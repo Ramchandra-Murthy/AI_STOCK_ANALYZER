@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# VS Code
+.vscode/
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Logs / temporary
+*.log
+*.tmp
+
+# Databases / local runtime data
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated reports
+generated_reports/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
