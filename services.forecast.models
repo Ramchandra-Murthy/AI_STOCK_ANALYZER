@@ -1,0 +1,410 @@
+"""
+Module: services.forecast.models
+Description: Canonical institutional-grade domain models for the Forecast Engine.
+Author: Engineering Team
+Python Version: 3.13+
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, Optional, Tuple, Protocol, runtime_checkable
+
+__all__ = [
+    "ForecastMethod",
+    "ConfidenceLevel",
+    "ForecastProtocol",
+    "ForecastSeries",
+    "RevenueForecast",
+    "MarginForecast",
+    "CapexForecast",
+    "DepreciationForecast",
+    "WorkingCapitalForecast",
+    "TaxForecast",
+    "TerminalGrowthForecast",
+    "ForecastAssumption",
+    "ForecastScenario",
+    "ForecastConfidence",
+]
+
+
+class ForecastMethod(str, Enum):
+    """Supported institutional financial forecasting methods."""
+
+    CAGR = "cagr"
+    ROLLING_AVERAGE = "rolling_average"
+    LINEAR_REGRESSION = "linear_regression"
+    MEAN_REVERSION = "mean_reversion"
+    EXPONENTIAL_SMOOTHING = "exponential_smoothing"
+    MANUAL = "manual"
+    INDUSTRY = "industry"
+    MANAGEMENT_GUIDANCE = "management_guidance"
+    HYBRID = "hybrid"
+
+
+class ConfidenceLevel(str, Enum):
+    """Statistical confidence tier associated with a forecast projection."""
+
+    VERY_HIGH = "very_high"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+    VERY_LOW = "very_low"
+
+
+@runtime_checkable
+class ForecastProtocol(Protocol):
+    """Protocol defining the structural interface for immutable forecast models."""
+
+    historical: Tuple[float, ...]
+    projected: Tuple[float, ...]
+    method: ForecastMethod
+    confidence: ConfidenceLevel
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializes the forecast model to a standard dictionary representation."""
+        ...
+
+
+@dataclass(slots=True, frozen=True)
+class ForecastSeries:
+    """Base immutable representation of a financial time-series projection."""
+
+    historical: Tuple[float, ...] = field(default_factory=tuple)
+    projected: Tuple[float, ...] = field(default_factory=tuple)
+    method: ForecastMethod = ForecastMethod.CAGR
+    confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM
+
+    def __post_init__(self) -> None:
+        """Validates structural invariants and type coercions upon instantiation."""
+        if not isinstance(self.historical, tuple):
+            object.__setattr__(self, "historical", tuple(self.historical))
+        if not isinstance(self.projected, tuple):
+            object.__setattr__(self, "projected", tuple(self.projected))
+        if not isinstance(self.method, ForecastMethod):
+            try:
+                object.__setattr__(self, "method", ForecastMethod(self.method))
+            except ValueError:
+                object.__setattr__(self, "method", ForecastMethod.CAGR)
+        if not isinstance(self.confidence, ConfidenceLevel):
+            try:
+                object.__setattr__(self, "confidence", ConfidenceLevel(self.confidence))
+            except ValueError:
+                object.__setattr__(self, "confidence", ConfidenceLevel.MEDIUM)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializes the base forecast series payload."""
+        return {
+            "historical": list(self.historical),
+            "projected": list(self.projected),
+            "method": self.method.value,
+            "confidence": self.confidence.value,
+        }
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> ForecastSeries:
+        """Constructs an instance from a dictionary payload."""
+        return cls(
+            historical=tuple(data.get("historical", [])),
+            projected=tuple(data.get("projected", [])),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class RevenueForecast(ForecastSeries):
+    """Immutable domain model for projected revenue streams."""
+
+    growth_rates: Tuple[float, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if not isinstance(self.growth_rates, tuple):
+            object.__setattr__(self, "growth_rates", tuple(self.growth_rates))
+
+    def to_dict(self) -> Dict[str, Any]:
+        base = super().to_dict()
+        base.update({"growth_rates": list(self.growth_rates)})
+        return base
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> RevenueForecast:
+        return cls(
+            historical=tuple(data.get("historical", [])),
+            projected=tuple(data.get("projected", [])),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+            growth_rates=tuple(data.get("growth_rates", [])),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class MarginForecast(ForecastSeries):
+    """Immutable domain model for operating or gross margin projections."""
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> MarginForecast:
+        return cls(
+            historical=tuple(data.get("historical", [])),
+            projected=tuple(data.get("projected", [])),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class CapexForecast(ForecastSeries):
+    """Immutable value object containing capital expenditure projections."""
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> CapexForecast:
+        return cls(
+            historical=tuple(data.get("historical", [])),
+            projected=tuple(data.get("projected", [])),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class DepreciationForecast(ForecastSeries):
+    """Immutable value object containing depreciation and amortization projections."""
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> DepreciationForecast:
+        return cls(
+            historical=tuple(data.get("historical", [])),
+            projected=tuple(data.get("projected", [])),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class WorkingCapitalForecast(ForecastSeries):
+    """Immutable domain model for working capital schedule projections."""
+
+    delta: Tuple[float, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if not isinstance(self.delta, tuple):
+            object.__setattr__(self, "delta", tuple(self.delta))
+
+    def to_dict(self) -> Dict[str, Any]:
+        base = super().to_dict()
+        base.update({"delta": list(self.delta)})
+        return base
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> WorkingCapitalForecast:
+        return cls(
+            historical=tuple(data.get("historical", [])),
+            projected=tuple(data.get("projected", [])),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+            delta=tuple(data.get("delta", [])),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class TaxForecast(ForecastSeries):
+    """Immutable domain model for effective tax rate and tax liability projections."""
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> TaxForecast:
+        return cls(
+            historical=tuple(data.get("historical", [])),
+            projected=tuple(data.get("projected", [])),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class TerminalGrowthForecast:
+    """Immutable domain model for terminal value growth configuration."""
+
+    terminal_growth: float = 0.03
+    method: ForecastMethod = ForecastMethod.CAGR
+    confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM
+
+    def __post_init__(self) -> None:
+        if not (-0.05 <= self.terminal_growth <= 0.10):
+            raise ValueError(
+                "Terminal growth rate must fall within institutional boundaries [-5%, 10%]."
+            )
+        if not isinstance(self.method, ForecastMethod):
+            object.__setattr__(self, "method", ForecastMethod(self.method))
+        if not isinstance(self.confidence, ConfidenceLevel):
+            object.__setattr__(self, "confidence", ConfidenceLevel(self.confidence))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "terminal_growth": self.terminal_growth,
+            "method": self.method.value,
+            "confidence": self.confidence.value,
+        }
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> TerminalGrowthForecast:
+        return cls(
+            terminal_growth=data.get("terminal_growth", 0.03),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class ForecastAssumption:
+    """Immutable domain model representing specific scenario forecasting assumptions."""
+
+    name: str
+    value: float
+    source: str
+    rationale: str
+    method: ForecastMethod
+    confidence: ConfidenceLevel
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.method, ForecastMethod):
+            object.__setattr__(self, "method", ForecastMethod(self.method))
+        if not isinstance(self.confidence, ConfidenceLevel):
+            object.__setattr__(self, "confidence", ConfidenceLevel(self.confidence))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "value": self.value,
+            "source": self.source,
+            "rationale": self.rationale,
+            "method": self.method.value,
+            "confidence": self.confidence.value,
+        }
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> ForecastAssumption:
+        return cls(
+            name=data.get("name", ""),
+            value=data.get("value", 0.0),
+            source=data.get("source", ""),
+            rationale=data.get("rationale", ""),
+            method=ForecastMethod(data.get("method", ForecastMethod.CAGR.value)),
+            confidence=ConfidenceLevel(data.get("confidence", ConfidenceLevel.MEDIUM.value)),
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.name, self.value, self.source, self.rationale, self.method, self.confidence))
+
+
+@dataclass(slots=True, frozen=True)
+class ForecastConfidence:
+    """Immutable aggregate wrapper assessing overall projection confidence."""
+
+    overall_score: float = 0.85
+    revenue_score: float = 0.85
+    margin_score: float = 0.85
+    capex_score: float = 0.85
+    tax_score: float = 0.85
+    warnings: Tuple[str, ...] = field(default_factory=tuple)
+    strengths: Tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        for score_name, score_val in [
+            ("overall_score", self.overall_score),
+            ("revenue_score", self.revenue_score),
+            ("margin_score", self.margin_score),
+            ("capex_score", self.capex_score),
+            ("tax_score", self.tax_score),
+        ]:
+            if not (0.0 <= score_val <= 1.0):
+                raise ValueError(f"{score_name} must be normalized between 0.0 and 1.0.")
+        if not isinstance(self.warnings, tuple):
+            object.__setattr__(self, "warnings", tuple(self.warnings))
+        if not isinstance(self.strengths, tuple):
+            object.__setattr__(self, "strengths", tuple(self.strengths))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "overall_score": self.overall_score,
+            "revenue_score": self.revenue_score,
+            "margin_score": self.margin_score,
+            "capex_score": self.capex_score,
+            "tax_score": self.tax_score,
+            "warnings": list(self.warnings),
+            "strengths": list(self.strengths),
+        }
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> ForecastConfidence:
+        return cls(
+            overall_score=data.get("overall_score", 0.85),
+            revenue_score=data.get("revenue_score", 0.85),
+            margin_score=data.get("margin_score", 0.85),
+            capex_score=data.get("capex_score", 0.85),
+            tax_score=data.get("tax_score", 0.85),
+            warnings=tuple(data.get("warnings", [])),
+            strengths=tuple(data.get("strengths", [])),
+        )
+
+
+@dataclass(slots=True, frozen=True)
+class ForecastScenario:
+    """Immutable container representing distinct macro/micro forecasting scenarios."""
+
+    scenario_name: str = "Base Case"
+    probability: float = 1.0
+    revenue_forecast: Optional[RevenueForecast] = None
+    margin_forecast: Optional[MarginForecast] = None
+    capex_forecast: Optional[CapexForecast] = None
+    tax_forecast: Optional[TaxForecast] = None
+    terminal_growth: Optional[TerminalGrowthForecast] = None
+
+    def __post_init__(self) -> None:
+        if not (0.0 <= self.probability <= 1.0):
+            raise ValueError("Probability must be bounded between 0.0 and 1.0.")
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "scenario_name": self.scenario_name,
+            "probability": self.probability,
+            "revenue_forecast": self.revenue_forecast.to_dict() if self.revenue_forecast else None,
+            "margin_forecast": self.margin_forecast.to_dict() if self.margin_forecast else None,
+            "capex_forecast": self.capex_forecast.to_dict() if self.capex_forecast else None,
+            "tax_forecast": self.tax_forecast.to_dict() if self.tax_forecast else None,
+            "terminal_growth": self.terminal_growth.to_dict() if self.terminal_growth else None,
+        }
+
+    @classmethod
+    from_dict(cls, data: Dict[str, Any]) -> ForecastScenario:
+        return cls(
+            scenario_name=data.get("scenario_name", "Base Case"),
+            probability=data.get("probability", 1.0),
+            revenue_forecast=(
+                RevenueForecast.from_dict(data["revenue_forecast"])
+                if data.get("revenue_forecast")
+                else None
+            ),
+            margin_forecast=(
+                MarginForecast.from_dict(data["margin_forecast"])
+                if data.get("margin_forecast")
+                else None
+            ),
+            capex_forecast=(
+                CapexForecast.from_dict(data["capex_forecast"])
+                if data.get("capex_forecast")
+                else None
+            ),
+            tax_forecast=(
+                TaxForecast.from_dict(data["tax_forecast"])
+                if data.get("tax_forecast")
+                else None
+            ),
+            terminal_growth=(
+                TerminalGrowthForecast.from_dict(data["terminal_growth"])
+                if data.get("terminal_growth")
+                else None
+            ),
+        )

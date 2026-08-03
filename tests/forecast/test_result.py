@@ -31,7 +31,6 @@ def test_forecast_result_initialization_and_serialization() -> None:
         projected=(0.22, 0.22),
         method=ForecastMethod.HISTORICAL_MEAN,
         confidence=ConfidenceLevel.MEDIUM,
-        margins=(0.22, 0.22),
     )
 
     result = ForecastResult(

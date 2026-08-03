@@ -5,15 +5,15 @@ from typing import Any, Dict
 from services.sotp_long_term_equity_overlap_service import (
     evaluate_long_term_equity_overlap,
 )
-
 from services.sotp_long_term_equity_entity_data_service import (
     get_sotp_long_term_equity_entity_data,
 )
-
+from services.sotp_long_term_equity_economic_evidence_service import (
+    get_sotp_long_term_equity_economic_evidence,
+)
 from services.sotp_long_term_equity_reconciliation_service import (
     reconcile_sotp_long_term_equity_entities,
 )
-
 from services.sotp_segment_accounting_basis_service import (
     get_sotp_segment_accounting_basis,
 )
@@ -122,6 +122,34 @@ def classify_long_term_equity_entities(
             "source_entity_data": entity_data,
             "source_reconciliation": reconciliation,
         }
+
+    # ------------------------------------------------------
+    # ECONOMIC EVIDENCE CONTROL
+    # ------------------------------------------------------
+
+    economic_evidence = get_sotp_long_term_equity_economic_evidence(base_symbol)
+
+    if (
+        not isinstance(economic_evidence, dict)
+        or economic_evidence.get("status") != "OK"
+    ):
+        return {
+            "status": "UNAVAILABLE",
+            "version": "V5.0",
+            "symbol": base_symbol,
+            "message": ("Long-term equity economic evidence " "is unavailable."),
+            "source_overlap_analysis": overlap,
+            "source_entity_data": entity_data,
+            "source_reconciliation": reconciliation,
+            "source_economic_evidence": economic_evidence,
+        }
+
+    economic_evidence_complete = bool(
+        economic_evidence.get(
+            "all_evidence_complete",
+            False,
+        )
+    )
 
     # ------------------------------------------------------
     # 5. ACCOUNTING AGGREGATE
@@ -354,6 +382,7 @@ def classify_long_term_equity_entities(
         aggregate_reconciles
         and entity_population_complete
         and ownership_structure_confirmed
+        and economic_evidence_complete
         and operating_segment_overlap_resolved
         and valuation_basis_confirmed
         and classification_complete
@@ -379,6 +408,9 @@ def classify_long_term_equity_entities(
 
     if not ownership_structure_confirmed:
         unresolved_tests.append("OWNERSHIP_STRUCTURE")
+
+    if not economic_evidence_complete:
+        unresolved_tests.append("ECONOMIC_EVIDENCE")
 
     if not operating_segment_overlap_resolved:
         unresolved_tests.append("OPERATING_SEGMENT_OVERLAP")
@@ -483,6 +515,8 @@ def classify_long_term_equity_entities(
             "entity_level_holdings_available": (entity_level_holdings_available),
             "entity_population_complete": (entity_population_complete),
             "ownership_structure_confirmed": (ownership_structure_confirmed),
+            "accounting_overlap_cleared": (accounting_overlap_cleared),
+            "economic_evidence_complete": (economic_evidence_complete),
             "operating_segment_overlap_resolved": (operating_segment_overlap_resolved),
             "valuation_basis_confirmed": (valuation_basis_confirmed),
             "classification_complete": (classification_complete),
@@ -539,4 +573,5 @@ def classify_long_term_equity_entities(
         "source_entity_data": entity_data,
         "source_reconciliation": reconciliation,
         "source_segment_accounting_basis": accounting_basis,
+        "source_economic_evidence": economic_evidence,
     }
