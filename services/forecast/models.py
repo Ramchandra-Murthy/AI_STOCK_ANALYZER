@@ -154,7 +154,7 @@ class TerminalGrowthForecast:
 class ForecastConfidence:
     """Immutable confidence metadata container."""
 
-    score: float  # 0.0 to 100.0
+    score: float
     level: ConfidenceLevel
 
     def __post_init__(self) -> None:

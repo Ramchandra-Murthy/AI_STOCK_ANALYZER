@@ -1,6 +1,17 @@
-# Forecast Engine Domain Layer
+# Forecast Engine Subsystem
 
-Provides frozen, immutable dataclasses for financial statement forecasting within the AI Institutional Equity Research Platform (AIIERP). 
+## Architecture Overview
+The Forecast Engine is the quantitative core of the AI Institutional Equity Research Platform. It enforces immutable, strictly typed Python 3.13 dataclasses across all multi-statement financial projections.
 
-## Architecture
-All objects use Python frozen dataclasses with `slots=True` to guarantee thread safety, low memory overhead, and deterministic financial calculations.
+## Public API
+- `ForecastMethod`, `ConfidenceLevel`
+- `RevenueForecast`, `MarginForecast`, `CapexForecast`, `DepreciationForecast`, `WorkingCapitalForecast`, `TaxForecast`
+- `TerminalGrowthForecast`, `ForecastConfidence`, `ForecastAssumption`, `ForecastScenario`
+
+## Dependency Graph
+- Standard Library Only (`dataclasses`, `enum`, `typing`)
+
+## Testing Instructions
+Run pytest specifically on forecast modules:
+```powershell
+& .venv\Scripts\python.exe -m pytest tests/forecast/ -v --cov=services/forecast
