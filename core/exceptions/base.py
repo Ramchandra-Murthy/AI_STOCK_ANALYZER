@@ -1,13 +1,18 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
-class AIERPError(Exception):
-    """Base exception for all errors raised by the AIERP platform."""
+class AIStockAnalyzerError(Exception):
+    """Base exception for all domain and infrastructure errors in the platform."""
     pass
 
-class ValidationError(AIERPError):
-    """Raised when data fails domain validation rules."""
+class DomainError(AIStockAnalyzerError):
+    """Raised when a business rule or invariant is violated within a domain."""
     pass
 
-class SerializationError(AIERPError):
-    """Raised when encoding or decoding objects fails."""
+class ValidationError(AIStockAnalyzerError):
+    """Raised when input data, types, or constraints fail validation."""
     pass
+
+class InfrastructureError(AIStockAnalyzerError):
+    """Raised when an external system, database, or provider fails."""
+    pass
+

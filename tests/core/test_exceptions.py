@@ -1,24 +1,23 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import pytest
 from core.exceptions import (
-    AIERPError,
+    AIStockAnalyzerError,
+    DomainError,
     ValidationError,
-    SerializationError,
-    ForecastError,
-    ValuationError,
-    MarketDataError,
-    ResearchError,
+    InfrastructureError,
 )
 
 def test_exception_inheritance() -> None:
-    assert issubclass(ValidationError, AIERPError)
-    assert issubclass(SerializationError, AIERPError)
-    assert issubclass(ForecastError, AIERPError)
-    assert issubclass(ValuationError, AIERPError)
-    assert issubclass(MarketDataError, AIERPError)
-    assert issubclass(ResearchError, AIERPError)
+    assert issubclass(DomainError, AIStockAnalyzerError)
+    assert issubclass(ValidationError, AIStockAnalyzerError)
+    assert issubclass(InfrastructureError, AIStockAnalyzerError)
 
-def test_raising_base_error() -> None:
-    with pytest.raises(AIERPError):
-        raise ForecastError("Model convergence failed")
+def test_raising_domain_error() -> None:
+    with pytest.raises(DomainError, match="Business rule violated"):
+        raise DomainError("Business rule violated")
+
+def test_raising_validation_error() -> None:
+    with pytest.raises(ValidationError, match="Invalid input"):
+        raise ValidationError("Invalid input")
+
