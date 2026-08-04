@@ -1,4 +1,5 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from core.protocols.serializable import Serializable
-from core.protocols.validatable import Validatable
+from core.protocols.repository import RepositoryProtocol
+from core.protocols.service import DomainServiceProtocol
+
