@@ -1,42 +1,16 @@
 from __future__ import annotations
 
-"""
-==========================================================
-CUSTOM DOMAIN EXCEPTIONS
-Module  : core.exceptions
-Version : 4.0.0
-==========================================================
-"""
-
-from typing import Any
-
-class PlatformError(Exception):
-    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
-        super().__init__(message)
-        self.message = message
-        self.details = details or {}
-
-class ValidationError(PlatformError):
-    def __init__(self, message: str, discrepancies: dict[str, Any] | None = None) -> None:
-        super().__init__(message, details=discrepancies)
-
-class ParserError(PlatformError):
+class AIERPError(Exception):
     pass
 
-class RepositoryError(PlatformError):
+class CoreError(AIERPError):
     pass
 
-class ValuationError(PlatformError):
+class ConfigurationError(CoreError):
     pass
 
-class ForecastError(PlatformError):
+class ValidationError(CoreError):
     pass
 
-class DispatcherError(PlatformError):
-    pass
-
-class ReportGenerationError(PlatformError):
-    pass
-
-class ConfigurationError(PlatformError):
+class SerializationError(CoreError):
     pass
