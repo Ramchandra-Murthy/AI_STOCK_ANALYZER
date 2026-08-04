@@ -1,9 +1,15 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from decimal import Decimal
-from core.utils.rounding import round_currency
 
-def format_currency(amount: float | Decimal, currency_symbol: str = "₹") -> str:
-    """Format a numeric amount into a readable currency string."""
-    rounded = round_currency(amount)
-    return f"{currency_symbol}{rounded:,.2f}"
+class NumberFormatter:
+    @staticmethod
+    def format_currency(amount: Decimal, currency_code: str = "INR") -> str:
+        """Formats a decimal amount into a readable currency string."""
+        return f"{amount:,.2f} {currency_code}"
+
+    @staticmethod
+    def format_percentage(value: Decimal) -> str:
+        """Formats a decimal percentage."""
+        return f"{value:.2f}%"
+
