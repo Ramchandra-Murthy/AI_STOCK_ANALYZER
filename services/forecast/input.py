@@ -1,9 +1,11 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Tuple, Optional, Dict, Any
 
 @dataclass(frozen=True, slots=True)
 class ForecastInput:
+    """Input payload containing historical financials and configuration for forecasting."""
     ticker: str
     historical_years: Tuple[int, ...]
     historical_revenue: Tuple[float, ...]
