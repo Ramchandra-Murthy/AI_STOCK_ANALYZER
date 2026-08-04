@@ -1,68 +1,42 @@
-"""
-Module: services.forecast.algorithms.linear_regression
-Description: Institutional OLS Linear Regression forecasting calculation engine.
-Author: Engineering Team
-Python Version: 3.13+
-"""
-
-from __future__ import annotations
-
+﻿from __future__ import annotations
 from typing import Tuple
-from services.forecast.algorithms.base import ForecastAlgorithmProtocol
+from services.forecast.algorithms.base import BaseForecastAlgorithm
+from services.forecast.input import ForecastInput
+from services.forecast.exceptions import ForecastAlgorithmError
 
-
-class LinearRegressionForecastEngine:
-    """Pure mathematical engine for Ordinary Least Squares (OLS) linear trend projections."""
-
-    def calculate(
-        self, historical: Tuple[float, ...], periods: int, **kwargs: float
-    ) -> Tuple[float, ...]:
-        """
-        Fitting a linear trend line (y = mx + c) over historical time indices and projecting forward.
-
-                Parameters:
-                    historical: Tuple of historical numerical observations.
-                    periods: Number of future periods to project.
-                    **kwargs: Optional overrides.
-
-                Returns:
-                    Tuple of projected float values.
-        """
-        n = len(historical)
-        if n == 0 or periods <= 0:
-            return tuple()
-
-        if n == 1:
-            val = historical[0]
-            return tuple(val for _ in range(periods))
-
-        # X represents time indices: 0, 1, 2, ..., n-1
-        x_vals = list(range(n))
-        y_vals = list(historical)
-
-        mean_x = sum(x_vals) / n
-        mean_y = sum(y_vals) / n
-
-        numerator = sum((x_vals[i] - mean_x) * (y_vals[i] - mean_y) for i in range(n))
-        denominator = sum((x_vals[i] - mean_x) ** 2 for i in range(n))
-
-        # Handle zero variance edge case (flat line)
-        if denominator == 0.0:
-            slope = 0.0
-        else:
-            slope = numerator / denominator
-
+class LinearRegressionForecastAlgorithm(BaseForecastAlgorithm):
+    def calculate_revenue(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+        revenues = forecast_input.historical_revenue
+        n = len(revenues)
+        if n < 2:
+            raise ForecastAlgorithmError("At least two points required.")
+        x, y = list(range(n)), list(revenues)
+        mean_x, mean_y = sum(x) / n, sum(y) / n
+        numer = sum((x[i] - mean_x) * (y[i] - mean_y) for i in range(n))
+        denom = sum((x[i] - mean_x) ** 2 for i in range(n))
+        slope = (numer / denom) if denom != 0 else 0.0
         intercept = mean_y - slope * mean_x
-
-        # Optional trend dampening factor if provided in kwargs (e.g. mean-reversion pull)
-        dampening = kwargs.get("trend_dampening", 1.0)
-
         projected = []
-        for step in range(1, periods + 1):
-            future_x = n - 1 + step
-            # Apply optional slope dampening over extended projection horizons
-            adjusted_slope = slope * (dampening ** (step - 1))
-            val = intercept + adjusted_slope * future_x
-            projected.append(float(val))
-
+        for step in range(1, len(forecast_input.forecast_years) + 1):
+            projected.append(max(0.0, intercept + slope * (n - 1 + step)))
         return tuple(projected)
+    def calculate_margins(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+        margins = forecast_input.historical_margins
+        avg = (sum(margins) / len(margins)) if margins else 0.0
+        return tuple(max(0.0, min(1.0, avg)) for _ in forecast_input.forecast_years)
+    def calculate_capex(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+        capex = forecast_input.historical_capex
+        avg = (sum(capex) / len(capex)) if capex else 0.0
+        return tuple(max(0.0, avg) for _ in forecast_input.forecast_years)
+    def calculate_depreciation(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+        dep = forecast_input.historical_depreciation
+        avg = (sum(dep) / len(dep)) if dep else 0.0
+        return tuple(max(0.0, avg) for _ in forecast_input.forecast_years)
+    def calculate_working_capital(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+        wc = forecast_input.historical_working_capital
+        avg = (sum(wc) / len(wc)) if wc else 0.0
+        return tuple(avg for _ in forecast_input.forecast_years)
+    def calculate_taxes(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+        taxes = forecast_input.historical_taxes
+        avg = (sum(taxes) / len(taxes)) if taxes else 0.25
+        return tuple(max(0.0, min(1.0, avg)) for _ in forecast_input.forecast_years)

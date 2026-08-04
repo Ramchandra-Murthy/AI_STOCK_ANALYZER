@@ -1,7 +1,7 @@
 """
 ==========================================================
 UNIT TESTS: FORECAST DOMAIN MODELS
-Module  : tests.forecast.test_models
+Module  : services.forecast.tests.test_models
 ==========================================================
 """
 

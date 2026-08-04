@@ -1,56 +1,24 @@
-"""
-==========================================================
-FORECAST RESULT CONTRACTS
-Module  : services.forecast.result
-Layer   : Forecast Service Result
-==========================================================
-"""
-
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Dict, Any, Mapping, Type, TypeVar
+﻿from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
 from services.forecast.models import ForecastPackage
-from services.forecast.exceptions import ForecastSerializationError
 
-T = TypeVar("T", bound="ForecastResult")
-
-
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ForecastResult:
-    """Canonical immutable output contract encapsulating completed forecast packages."""
-
     package: ForecastPackage
     execution_time_ms: float
-    status: str = "SUCCESS"
-    error_message: str | None = None
-
+    status: str
+    error_message: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "package": self.package.to_dict(),
-            "execution_time_ms": self.execution_time_ms,
-            "status": self.status,
-            "error_message": self.error_message,
+            "package": self.package.to_dict(), "execution_time_ms": self.execution_time_ms,
+            "status": self.status, "error_message": self.error_message, "metadata": dict(self.metadata),
         }
-
     @classmethod
-    def from_dict(cls: Type[T], data: Mapping[str, object]) -> T:
-        try:
-            pkg_data = data["package"]
-            if not isinstance(pkg_data, Mapping):
-                raise ValueError("Package payload must be a mapping dictionary.")
-            package_obj = ForecastPackage.from_dict(pkg_data)  # type: ignore
-            return cls(
-                package=package_obj,
-                execution_time_ms=float(data.get("execution_time_ms", 0.0)),  # type: ignore
-                status=str(data.get("status", "SUCCESS")),
-                error_message=(
-                    str(data["error_message"])
-                    if data.get("error_message") is not None
-                    else None
-                ),
-            )
-        except (KeyError, ValueError, TypeError) as e:
-            raise ForecastSerializationError(
-                f"Failed to deserialize ForecastResult: {e}"
-            ) from e
+    def from_dict(cls, data: Dict[str, Any]) -> ForecastResult:
+        return cls(
+            package=ForecastPackage.from_dict(data["package"]),
+            execution_time_ms=data["execution_time_ms"], status=data["status"],
+            error_message=data.get("error_message"), metadata=dict(data.get("metadata", {})),
+        )

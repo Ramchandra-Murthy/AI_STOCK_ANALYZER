@@ -1,200 +1,40 @@
-"""
-Module: services.forecast.service
-Description: Institutional orchestrator for financial forecasting workflows.
-Author: Engineering Team
-Python Version: 3.13+
-"""
-
-from __future__ import annotations
-
-import logging
-from typing import Any, Dict, Optional, Tuple
-
-from services.forecast.models import (
-    ConfidenceLevel,
-    ForecastMethod,
-    ForecastScenario,
-    RevenueForecast,
-    MarginForecast,
-    CapexForecast,
-    DepreciationForecast,
-    WorkingCapitalForecast,
-    TaxForecast,
-    TerminalGrowthForecast,
-    ForecastConfidence,
-)
-from services.forecast.algorithms.cagr import CAGRForecastEngine
-from services.forecast.algorithms.linear_regression import (
-    LinearRegressionForecastEngine,
-)
-from services.forecast.algorithms.rolling_average import RollingAverageForecastEngine
-
-logger = logging.getLogger(__name__)
-
+﻿from __future__ import annotations
+import time
+from services.forecast.input import ForecastInput
+from services.forecast.result import ForecastResult
+from services.forecast.models import ForecastPackage, ForecastLineItem
+from services.forecast.validation import ForecastValidator
+from services.forecast.exceptions import ForecastError
+from services.forecast.algorithms.base import BaseForecastAlgorithm
 
 class ForecastService:
-    """Orchestration service for generating multi-statement financial projections."""
-
-    def __init__(self) -> None:
-        self._cagr_engine = CAGRForecastEngine()
-        self._lr_engine = LinearRegressionForecastEngine()
-        self._ra_engine = RollingAverageForecastEngine()
-
-    def _get_engine(self, method: ForecastMethod):
-        """Maps forecast method enum to its respective computational engine."""
-        if method in (
-            ForecastMethod.CAGR,
-            ForecastMethod.INDUSTRY,
-            ForecastMethod.MANAGEMENT_GUIDANCE,
-            ForecastMethod.HYBRID,
-        ):
-            return self._cagr_engine
-        elif method in (
-            ForecastMethod.LINEAR_REGRESSION,
-            ForecastMethod.MEAN_REVERSION,
-        ):
-            return self._lr_engine
-        elif method in (
-            ForecastMethod.ROLLING_AVERAGE,
-            ForecastMethod.HISTORICAL_MEAN,
-            ForecastMethod.EXPONENTIAL_SMOOTHING,
-        ):
-            return self._ra_engine
-        return self._cagr_engine
-
-    def generate_revenue_forecast(
-        self,
-        historical: Tuple[float, ...],
-        periods: int,
-        method: ForecastMethod = ForecastMethod.CAGR,
-        confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
-        **kwargs: Any,
-    ) -> RevenueForecast:
-        """Generates a validated immutable RevenueForecast projection."""
-        logger.info(
-            f"Generating revenue forecast over {periods} periods using {method.value}"
-        )
-        engine = self._get_engine(method)
-        projected = engine.calculate(historical, periods, **kwargs)
-
-        # Calculate implied year-over-year growth rates for projected period
-        growth_rates = []
-        combined = historical + projected
-        for i in range(len(historical), len(combined)):
-            prev = combined[i - 1]
-            curr = combined[i]
-            rate = (curr / prev - 1.0) if prev != 0 else 0.0
-            growth_rates.append(rate)
-
-        return RevenueForecast(
-            historical=historical,
-            projected=projected,
-            method=method,
-            confidence=confidence,
-            growth_rates=tuple(growth_rates),
-        )
-
-    def generate_margin_forecast(
-        self,
-        historical: Tuple[float, ...],
-        periods: int,
-        method: ForecastMethod = ForecastMethod.ROLLING_AVERAGE,
-        confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
-        **kwargs: Any,
-    ) -> MarginForecast:
-        """Generates a validated immutable MarginForecast projection."""
-        logger.info(
-            f"Generating margin forecast over {periods} periods using {method.value}"
-        )
-        engine = self._get_engine(method)
-        projected = engine.calculate(historical, periods, **kwargs)
-
-        return MarginForecast(
-            historical=historical,
-            projected=projected,
-            method=method,
-            confidence=confidence,
-        )
-
-    def generate_capex_forecast(
-        self,
-        historical: Tuple[float, ...],
-        periods: int,
-        method: ForecastMethod = ForecastMethod.HISTORICAL_MEAN,
-        confidence: ConfidenceLevel = ConfidenceLevel.LOW,
-        **kwargs: Any,
-    ) -> CapexForecast:
-        """Generates a validated immutable CapexForecast projection."""
-        logger.info(
-            f"Generating capex forecast over {periods} periods using {method.value}"
-        )
-        engine = self._get_engine(method)
-        projected = engine.calculate(historical, periods, **kwargs)
-
-        return CapexForecast(
-            historical=historical,
-            projected=projected,
-            method=method,
-            confidence=confidence,
-        )
-
-    def generate_working_capital_forecast(
-        self,
-        historical: Tuple[float, ...],
-        periods: int,
-        method: ForecastMethod = ForecastMethod.ROLLING_AVERAGE,
-        confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
-        **kwargs: Any,
-    ) -> WorkingCapitalForecast:
-        """Generates a validated immutable WorkingCapitalForecast projection with deltas."""
-        logger.info(f"Generating working capital forecast over {periods} periods")
-        engine = self._get_engine(method)
-        projected = engine.calculate(historical, periods, **kwargs)
-
-        # Compute period-over-period absolute deltas
-        deltas = []
-        combined = historical + projected
-        for i in range(len(historical), len(combined)):
-            delta_val = combined[i] - combined[i - 1]
-            deltas.append(delta_val)
-
-        return WorkingCapitalForecast(
-            historical=historical,
-            projected=projected,
-            method=method,
-            confidence=confidence,
-            delta=tuple(deltas),
-        )
-
-    def generate_scenario(
-        self,
-        scenario_name: str,
-        probability: float,
-        historical_revenue: Tuple[float, ...],
-        historical_margin: Tuple[float, ...],
-        historical_capex: Tuple[float, ...],
-        periods: int,
-        method: ForecastMethod = ForecastMethod.CAGR,
-    ) -> ForecastScenario:
-        """Orchestrates and bundles a complete financial scenario package."""
-        logger.info(
-            f"Assembling scenario: {scenario_name} (probability: {probability})"
-        )
-
-        rev_f = self.generate_revenue_forecast(
-            historical_revenue, periods, method=method
-        )
-        margin_f = self.generate_margin_forecast(historical_margin, periods)
-        capex_f = self.generate_capex_forecast(historical_capex, periods)
-        tax_f = TaxForecast(historical=(0.25, 0.25), projected=(0.25, 0.25))
-        tg_f = TerminalGrowthForecast(terminal_growth=0.03, method=method)
-
-        return ForecastScenario(
-            scenario_name=scenario_name,
-            probability=probability,
-            revenue_forecast=rev_f,
-            margin_forecast=margin_f,
-            capex_forecast=capex_f,
-            tax_forecast=tax_f,
-            terminal_growth=tg_f,
-        )
+    def __init__(self, algorithm: BaseForecastAlgorithm) -> None:
+        self.algorithm = algorithm
+    def execute(self, forecast_input: ForecastInput) -> ForecastResult:
+        start_time = time.perf_counter()
+        try:
+            ForecastValidator.validate_input(forecast_input)
+            years = forecast_input.forecast_years
+            revenues = self.algorithm.calculate_revenue(forecast_input)
+            margins = self.algorithm.calculate_margins(forecast_input)
+            capex = self.algorithm.calculate_capex(forecast_input)
+            depreciation = self.algorithm.calculate_depreciation(forecast_input)
+            working_capital = self.algorithm.calculate_working_capital(forecast_input)
+            taxes = self.algorithm.calculate_taxes(forecast_input)
+            net_income = tuple(r * m for r, m in zip(revenues, margins))
+            package = ForecastPackage(
+                ticker=forecast_input.ticker, years=years,
+                revenue=ForecastLineItem("Revenue", revenues),
+                net_income=ForecastLineItem("Net Income", net_income),
+                capex=ForecastLineItem("Capital Expenditures", capex),
+                depreciation=ForecastLineItem("Depreciation", depreciation),
+                working_capital=ForecastLineItem("Working Capital", working_capital),
+                tax_rate=ForecastLineItem("Tax Rate", taxes),
+            )
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            return ForecastResult(package=package, execution_time_ms=round(elapsed_ms, 3), status="SUCCESS", metadata={"algorithm": self.algorithm.__class__.__name__})
+        except ForecastError as e:
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            empty_item = ForecastLineItem("", ())
+            pkg = ForecastPackage(ticker=forecast_input.ticker, years=(), revenue=empty_item, net_income=empty_item, capex=empty_item, depreciation=empty_item, working_capital=empty_item, tax_rate=empty_item)
+            return ForecastResult(package=pkg, execution_time_ms=round(elapsed_ms, 3), status="FAILED", error_message=str(e), metadata={"algorithm": self.algorithm.__class__.__name__})

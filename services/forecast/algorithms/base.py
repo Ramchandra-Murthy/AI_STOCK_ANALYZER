@@ -1,21 +1,18 @@
-﻿"""
-Module: services.forecast.algorithms.base
-Description: Base protocol definition for institutional forecasting algorithms.
-Author: Engineering Team
-Python Version: 3.13+
-"""
+﻿from __future__ import annotations
+from abc import ABC, abstractmethod
+from typing import Tuple
+from services.forecast.input import ForecastInput
 
-from __future__ import annotations
-
-from typing import Protocol, Tuple, runtime_checkable
-
-
-@runtime_checkable
-class ForecastAlgorithmProtocol(Protocol):
-    """Protocol defining the structural interface for pure mathematical forecasting engines."""
-
-    def calculate(
-        self, historical: Tuple[float, ...], periods: int, **kwargs: float
-    ) -> Tuple[float, ...]:
-        """Projects future time-series values based on historical data and algorithm-specific parameters."""
-        ...
+class BaseForecastAlgorithm(ABC):
+    @abstractmethod
+    def calculate_revenue(self, forecast_input: ForecastInput) -> Tuple[float, ...]: pass
+    @abstractmethod
+    def calculate_margins(self, forecast_input: ForecastInput) -> Tuple[float, ...]: pass
+    @abstractmethod
+    def calculate_capex(self, forecast_input: ForecastInput) -> Tuple[float, ...]: pass
+    @abstractmethod
+    def calculate_depreciation(self, forecast_input: ForecastInput) -> Tuple[float, ...]: pass
+    @abstractmethod
+    def calculate_working_capital(self, forecast_input: ForecastInput) -> Tuple[float, ...]: pass
+    @abstractmethod
+    def calculate_taxes(self, forecast_input: ForecastInput) -> Tuple[float, ...]: pass

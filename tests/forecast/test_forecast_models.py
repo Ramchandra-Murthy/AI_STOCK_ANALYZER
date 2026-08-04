@@ -1,103 +1,86 @@
 """
 ==========================================================
-TEST FORECAST DOMAIN MODELS
+UNIT TESTS: FORECAST DOMAIN MODELS
 Module  : tests.forecast.test_forecast_models
-Layer   : Tests / Forecast / Domain Models
 ==========================================================
 """
 
 from __future__ import annotations
 
-import dataclasses
 import pytest
-from services.forecast.forecast_models import (
-    ConfidenceLevel,
-    ForecastAssumption,
-    ForecastConfidence,
+from services.forecast.models import (
     ForecastMethod,
-    ForecastProtocol,
-    ForecastScenario,
-    ForecastSeries,
-    MarginForecast,
+    ConfidenceLevel,
     RevenueForecast,
+    MarginForecast,
+    CapexForecast,
+    DepreciationForecast,
+    WorkingCapitalForecast,
+    TaxForecast,
     TerminalGrowthForecast,
+    ForecastConfidence,
+    ForecastAssumption,
+    ForecastScenario,
 )
+from services.forecast.exceptions import ForecastValidationError
 
 
 def test_forecast_method_enum() -> None:
-    assert ForecastMethod.CAGR == "cagr"
-    assert ForecastMethod.HISTORICAL_MEAN == "historical_mean"
-    assert list(ForecastMethod) == [
-        ForecastMethod.CAGR,
-        ForecastMethod.HISTORICAL_MEAN,
-        ForecastMethod.LINEAR_REGRESSION,
-        ForecastMethod.EXPONENTIAL_SMOOTHING,
-        ForecastMethod.MANAGEMENT_GUIDANCE,
-    ]
+    assert ForecastMethod.CAGR.value == "CAGR"
+    assert ForecastMethod.LINEAR_REGRESSION.value == "LINEAR_REGRESSION"
 
 
 def test_confidence_level_enum() -> None:
-    assert ConfidenceLevel.HIGH == "high"
-    assert ConfidenceLevel.UNCERTAIN == "uncertain"
+    assert ConfidenceLevel.HIGH.value == "HIGH"
+    assert ConfidenceLevel.LOW.value == "LOW"
 
 
-def test_forecast_assumption_immutability_and_serialization() -> None:
-    assumption = ForecastAssumption(
-        name="Growth Rate",
-        value=0.08,
-        description="Historical average",
-        source="Annual Report",
-    )
-    with pytest.raises(dataclasses.FrozenInstanceError):
-        assumption.value = 0.10  # type: ignore[misc]
+def test_revenue_forecast_immutability_and_serialization() -> None:
+    rev = RevenueForecast(values=(100.0, 110.0, 121.0), years=(2024, 2025, 2026))
 
-    data = assumption.to_dict()
-    assert data["name"] == "Growth Rate"
-    assert data["value"] == 0.08
-    assert data["source"] == "Annual Report"
+    # Immutability check
+    with pytest.raises(AttributeError):
+        rev.values = (200.0,)  # type: ignore
+
+    # Serialization round-trip
+    d = rev.to_dict()
+    rev_restored = RevenueForecast.from_dict(d)
+    assert rev == rev_restored
 
 
-def test_revenue_forecast_protocol_and_inheritance() -> None:
-    rev_forecast = RevenueForecast(
-        historical=(100.0, 110.0),
-        projected=(121.0, 133.1),
-        method=ForecastMethod.CAGR,
-        confidence=ConfidenceLevel.HIGH,
-        growth_rates=(0.10, 0.10),
-    )
+def test_margin_forecast_validation() -> None:
+    # Valid margin
+    margin = MarginForecast(values=(0.15, 0.18), years=(2024, 2025))
+    assert margin.values == (0.15, 0.18)
 
-    # Verify structural protocol compliance
-    assert isinstance(rev_forecast, ForecastProtocol)
-
-    # Verify field synchronization / behavior
-    assert rev_forecast.projected == (121.0, 133.1)
-    assert rev_forecast.projected_revenue == (121.0, 133.1)
-
-    # Round-trip serialization check
-    serialized = rev_forecast.to_dict()
-    assert serialized["historical"] == [100.0, 110.0]
-    assert serialized["projected"] == [121.0, 133.1]
-    assert serialized["method"] == "cagr"
+    # Invalid margin (> 1.0)
+    with pytest.raises(ForecastValidationError):
+        MarginForecast(values=(1.10,), years=(2024,))
 
 
-def test_margin_forecast_sync() -> None:
-    margin_fc = MarginForecast(
-        historical=(0.20, 0.22),
-        projected=(0.25,),
-        margins=(0.25,),
-    )
-    assert margin_fc.margins == (0.25,)
-    assert margin_fc.projected_margins == (0.25,)
-
-
-def test_forecast_scenario_serialization() -> None:
+def test_forecast_scenario_roundtrip() -> None:
     scenario = ForecastScenario(
-        scenario_name="Bull",
-        probability=0.25,
-        revenue_multiplier=1.2,
-        margin_expansion_bps=50.0,
+        scenario_name="Base Case",
+        method=ForecastMethod.CAGR,
+        revenue=RevenueForecast(values=(1000.0,), years=(2024,)),
+        margins=MarginForecast(values=(0.20,), years=(2024,)),
+        capex=CapexForecast(values=(50.0,), years=(2024,)),
+        depreciation=DepreciationForecast(values=(30.0,), years=(2024,)),
+        working_capital=WorkingCapitalForecast(values=(100.0,), years=(2024,)),
+        taxes=TaxForecast(values=(0.25,), years=(2024,)),
+        terminal_growth=TerminalGrowthForecast(
+            rate=0.03, confidence=ConfidenceLevel.HIGH
+        ),
+        confidence=ForecastConfidence(score=85.0, level=ConfidenceLevel.HIGH),
+        assumptions=ForecastAssumption(
+            revenue_growth_rate=0.10,
+            ebitda_margin=0.20,
+            tax_rate=0.25,
+            capex_pct_revenue=0.05,
+            working_capital_pct_revenue=0.10,
+        ),
     )
-    data = scenario.to_dict()
-    assert data["scenario_name"] == "Bull"
-    assert data["probability"] == 0.25
-    assert data["margin_expansion_bps"] == 50.0
+
+    serialized = scenario.to_dict()
+    deserialized = ForecastScenario.from_dict(serialized)
+    assert scenario == deserialized
