@@ -1,38 +1,36 @@
 from __future__ import annotations
-
-from collections.abc import Callable
-from typing import Any, TypeVar
-
-T = TypeVar("T")
-
+from typing import Any, Callable
 
 class ServiceContainer:
-    """Enterprise-grade lightweight service container for DI."""
-
     def __init__(self) -> None:
         self._services: dict[str, Any] = {}
-        self._factories: dict[str, Callable[[ServiceContainer], Any]] = {}
+        self._factories: dict[str, Callable[[], Any]] = {}
 
-    def register_instance(self, key: str, instance: Any) -> None:
-        """Register a pre-instantiated singleton service."""
-        self._services[key] = instance
+    def register(self, name: str, service: Any) -> None:
+        if name in self._services or name in self._factories:
+            raise ValueError(f"Service \x27{name}\x27 already registered.")
+        self._services[name] = service
 
-    def register_factory(self, key: str, factory: Callable[[ServiceContainer], Any]) -> None:
-        """Register a lazy factory function for service instantiation."""
-        self._factories[key] = factory
+    def register_instance(self, name: str, service: Any) -> None:
+        self.register(name, service)
 
-    def resolve(self, key: str) -> Any:
-        """Resolve a service by its key, invoking its factory if necessary."""
-        if key in self._services:
-            return self._services[key]
+    def register_factory(self, name: str, factory: Callable[[], Any]) -> None:
+        if name in self._services or name in self._factories:
+            raise ValueError(f"Service \x27{name}\x27 already registered.")
+        self._factories[name] = factory
 
-        if key in self._factories:
-            instance = self._factories[key](self)
-            self._services[key] = instance
-            return instance
+    def resolve(self, name: str) -> Any:
+        if name in self._services:
+            return self._services[name]
+        if name in self._factories:
+            # Optionally cache factory-created singletons or return fresh instances
+            service = self._factories[name]()
+            self._services[name] = service
+            return service
+        raise KeyError(f"Service \x27{name}\x27 not registered.")
 
-        raise KeyError(f"Service key '{key}' is not registered in the container.")
+    def clear(self) -> None:
+        self._services.clear()
+        self._factories.clear()
 
-
-# Global container instance
 container = ServiceContainer()
