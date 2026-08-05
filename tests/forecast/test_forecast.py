@@ -1,10 +1,12 @@
 ﻿from __future__ import annotations
+
 import pytest
-from services.forecast.input import ForecastInput
-from services.forecast.exceptions import ForecastValidationError
-from services.forecast.validation import ForecastValidator
+
 from services.forecast.algorithms.cagr import CAGRForecastAlgorithm
+from services.forecast.input import ForecastInput
 from services.forecast.service import ForecastService
+from services.forecast.validation import ForecastValidator
+
 
 @pytest.fixture
 def valid_input() -> ForecastInput:
@@ -20,14 +22,17 @@ def valid_input() -> ForecastInput:
         forecast_years=(2026, 2027),
     )
 
+
 def test_validator_success(valid_input: ForecastInput) -> None:
     ForecastValidator.validate_input(valid_input)
+
 
 def test_cagr_algorithm(valid_input: ForecastInput) -> None:
     algo = CAGRForecastAlgorithm()
     revenues = algo.calculate_revenue(valid_input)
     assert len(revenues) == 2
     assert pytest.approx(revenues[0], 0.01) == 133.1
+
 
 def test_forecast_service_execution(valid_input: ForecastInput) -> None:
     service = ForecastService(algorithm=CAGRForecastAlgorithm())

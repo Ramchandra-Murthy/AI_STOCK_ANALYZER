@@ -84,10 +84,7 @@ class CashFlowStatement:
         Formula:
             Operating Cash Flow - Capital Expenditure
         """
-        return (
-            self.operating_cash_flow
-            - self.capital_expenditure
-        )
+        return self.operating_cash_flow - self.capital_expenditure
 
     @property
     def reinvestment(self) -> float:
@@ -97,10 +94,7 @@ class CashFlowStatement:
         Formula:
             CapEx + Acquisitions
         """
-        return (
-            self.capital_expenditure
-            + self.acquisitions
-        )
+        return self.capital_expenditure + self.acquisitions
 
     @property
     def financing_requirement(self) -> float:

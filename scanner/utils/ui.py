@@ -6,11 +6,7 @@ def section(title):
 
 
 def card(title, value, delta=None):
-    st.metric(
-        label=title,
-        value=value,
-        delta=delta
-    )
+    st.metric(label=title, value=value, delta=delta)
 
 
 def recommendation_box(action, confidence, risk):
@@ -26,15 +22,9 @@ def recommendation_box(action, confidence, risk):
 
     c1, c2 = st.columns(2)
 
-    c1.metric(
-        "Confidence",
-        f"{confidence}%"
-    )
+    c1.metric("Confidence", f"{confidence}%")
 
-    c2.metric(
-        "Risk",
-        risk
-    )
+    c2.metric("Risk", risk)
 
 
 def show_reasons(reasons):

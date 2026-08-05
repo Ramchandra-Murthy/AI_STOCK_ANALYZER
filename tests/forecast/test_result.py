@@ -8,7 +8,6 @@ Layer   : Tests / Forecast / Output DTOs
 
 from __future__ import annotations
 
-import pytest
 from services.forecast.models import (
     ConfidenceLevel,
     ForecastMethod,

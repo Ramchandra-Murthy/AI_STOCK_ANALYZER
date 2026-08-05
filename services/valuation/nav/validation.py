@@ -19,15 +19,15 @@ Checks include:
 """
 
 from services.valuation.nav.nav_input import (
-    NAVInput,
     NAVAsset,
+    NAVInput,
     NAVLiability,
 )
-
 
 # ==========================================================
 # Asset Validation
 # ==========================================================
+
 
 def _validate_asset(asset: NAVAsset) -> None:
 
@@ -35,24 +35,19 @@ def _validate_asset(asset: NAVAsset) -> None:
         raise ValueError("Asset name cannot be empty.")
 
     if asset.book_value < 0:
-        raise ValueError(
-            f"{asset.name}: book_value cannot be negative."
-        )
+        raise ValueError(f"{asset.name}: book_value cannot be negative.")
 
     if asset.fair_value < 0:
-        raise ValueError(
-            f"{asset.name}: fair_value cannot be negative."
-        )
+        raise ValueError(f"{asset.name}: fair_value cannot be negative.")
 
     if not (0 <= asset.ownership_pct <= 100):
-        raise ValueError(
-            f"{asset.name}: ownership_pct must be between 0 and 100."
-        )
+        raise ValueError(f"{asset.name}: ownership_pct must be between 0 and 100.")
 
 
 # ==========================================================
 # Liability Validation
 # ==========================================================
+
 
 def _validate_liability(liability: NAVLiability) -> None:
 
@@ -60,14 +55,13 @@ def _validate_liability(liability: NAVLiability) -> None:
         raise ValueError("Liability name cannot be empty.")
 
     if liability.amount < 0:
-        raise ValueError(
-            f"{liability.name}: liability amount cannot be negative."
-        )
+        raise ValueError(f"{liability.name}: liability amount cannot be negative.")
 
 
 # ==========================================================
 # Main Validation
 # ==========================================================
+
 
 def validate_input(data: NAVInput) -> None:
 
@@ -75,19 +69,13 @@ def validate_input(data: NAVInput) -> None:
         raise ValueError("Company name is required.")
 
     if data.shares_outstanding <= 0:
-        raise ValueError(
-            "Shares outstanding must be greater than zero."
-        )
+        raise ValueError("Shares outstanding must be greater than zero.")
 
     if not (0 <= data.holding_company_discount_pct <= 1):
-        raise ValueError(
-            "Holding company discount must be between 0 and 1."
-        )
+        raise ValueError("Holding company discount must be between 0 and 1.")
 
     if data.minority_interest < 0:
-        raise ValueError(
-            "Minority interest cannot be negative."
-        )
+        raise ValueError("Minority interest cannot be negative.")
 
     asset_names = set()
 
@@ -96,9 +84,7 @@ def validate_input(data: NAVInput) -> None:
         _validate_asset(asset)
 
         if asset.name in asset_names:
-            raise ValueError(
-                f"Duplicate asset detected: {asset.name}"
-            )
+            raise ValueError(f"Duplicate asset detected: {asset.name}")
 
         asset_names.add(asset.name)
 
@@ -109,8 +95,6 @@ def validate_input(data: NAVInput) -> None:
         _validate_liability(liability)
 
         if liability.name in liability_names:
-            raise ValueError(
-                f"Duplicate liability detected: {liability.name}"
-            )
+            raise ValueError(f"Duplicate liability detected: {liability.name}")
 
         liability_names.add(liability.name)

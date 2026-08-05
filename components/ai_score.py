@@ -35,16 +35,10 @@ def show_ai_score(score=80):
     col1, col2 = st.columns(2)
 
     with col1:
-        st.metric(
-            "AI Score",
-            f"{score}/100"
-        )
+        st.metric("AI Score", f"{score}/100")
 
     with col2:
-        st.metric(
-            "Portfolio Status",
-            status
-        )
+        st.metric("Portfolio Status", status)
 
     # Recommendation
     st.info(f"{color} {advice}")

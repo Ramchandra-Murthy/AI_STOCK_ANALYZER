@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 def calculate_macd(df):
 
     ema12 = df["Close"].ewm(span=12, adjust=False).mean()
@@ -9,11 +6,7 @@ def calculate_macd(df):
 
     df["MACD"] = ema12 - ema26
 
-    df["Signal"] = (
-        df["MACD"]
-        .ewm(span=9, adjust=False)
-        .mean()
-    )
+    df["Signal"] = df["MACD"].ewm(span=9, adjust=False).mean()
 
     df["Histogram"] = df["MACD"] - df["Signal"]
 

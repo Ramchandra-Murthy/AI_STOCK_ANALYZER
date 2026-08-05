@@ -1,12 +1,14 @@
 ﻿import pytest
-from services.forecast.forecast_input import ForecastInput
-from services.forecast.forecast_models import ScenarioType, ForecastMethod
+from services.forecast.forecast_models import ScenarioType
 from services.forecast.forecast_service import ForecastService
+
 from core.exceptions import ValidationError
+from services.forecast.forecast_input import ForecastInput
+
 
 def test_epic1_forecast_engine_full_flow():
     service = ForecastService()
-    
+
     inp = ForecastInput(
         symbol="TATASTEEL",
         historical_revenues=[100000.0, 115000.0, 132000.0, 150000.0],
@@ -16,7 +18,7 @@ def test_epic1_forecast_engine_full_flow():
         historical_depreciation=[3000.0, 3450.0, 3960.0, 4500.0],
         historical_pbt=[12000.0, 13800.0, 15840.0, 18000.0],
         historical_tax=[3000.0, 3450.0, 3960.0, 4500.0],
-        forecast_years=5
+        forecast_years=5,
     )
 
     scenarios = service.generate_full_forecast(inp)
@@ -34,15 +36,16 @@ def test_epic1_forecast_engine_full_flow():
     bull = scenarios[ScenarioType.BULL]
     assert bull.projected_revenues[0] > base.projected_revenues[0]
 
+
 def test_epic1_validation_failure():
     service = ForecastService()
     invalid_inp = ForecastInput(
         symbol="INVALID",
-        historical_revenues=[100.0], # Insufficient length (< 2)
+        historical_revenues=[100.0],  # Insufficient length (< 2)
         historical_ebits=[10.0],
         historical_nwc=[10.0],
         historical_capex=[5.0],
-        historical_depreciation=[2.0]
+        historical_depreciation=[2.0],
     )
 
     with pytest.raises(ValidationError):

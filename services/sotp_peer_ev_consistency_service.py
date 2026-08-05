@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import yfinance as yf
 
@@ -27,7 +27,7 @@ def _to_crore(value: Any):
 
 def analyze_peer_ev_consistency(
     ticker: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Reconstruct provider enterprise value and examine the
     treatment of debt, leases and cash.

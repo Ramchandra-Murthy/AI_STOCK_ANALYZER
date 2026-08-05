@@ -9,7 +9,7 @@ Summary : Capital Expenditure (CapEx) Forecast Subservice.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from core.logger import logger
 from services.forecast.forecast_input import ForecastInput
@@ -26,8 +26,8 @@ class CapexForecastEngine:
     def forecast_capex(
         self,
         inp: ForecastInput,
-        projected_revenues: Optional[Tuple[float, ...]] = None,
-        method: Optional[ForecastMethod] = None,
+        projected_revenues: tuple[float, ...] | None = None,
+        method: ForecastMethod | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> CapexForecast:
@@ -48,7 +48,7 @@ class CapexForecastEngine:
         if hist_capex and hist_revs:
             ratios = tuple(
                 cap / rev if rev != 0 else 0.05
-                for cap, rev in zip(hist_capex, hist_revs)
+                for cap, rev in zip(hist_capex, hist_revs, strict=False)
             )
             capex_ratio = sum(ratios) / len(ratios) if ratios else 0.05
         else:

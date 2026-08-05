@@ -22,14 +22,15 @@ Equity Multiples
 """
 
 from dataclasses import dataclass
+
 from services.valuation.comparable.comparable_input import (
     PeerCompany,
 )
 
-
 # ==========================================================
 # Multiple Container
 # ==========================================================
+
 
 @dataclass(slots=True)
 class ComparableMultiples:
@@ -48,6 +49,7 @@ class ComparableMultiples:
 # ==========================================================
 # Enterprise Multiples
 # ==========================================================
+
 
 def ev_sales(peer: PeerCompany) -> float:
 
@@ -68,6 +70,7 @@ def ev_ebitda(peer: PeerCompany) -> float:
 # Equity Multiples
 # ==========================================================
 
+
 def pe(peer: PeerCompany) -> float:
 
     return peer.market_cap / peer.net_income
@@ -82,19 +85,15 @@ def pb(peer: PeerCompany) -> float:
 # Aggregate Calculator
 # ==========================================================
 
+
 def calculate_multiples(
     peer: PeerCompany,
 ) -> ComparableMultiples:
 
     return ComparableMultiples(
-
         ev_sales=ev_sales(peer),
-
         ev_ebit=ev_ebit(peer),
-
         ev_ebitda=ev_ebitda(peer),
-
         pe=pe(peer),
-
         pb=pb(peer),
     )

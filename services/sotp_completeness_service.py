@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from services.sotp_equity_bridge_service import (
     generate_sotp_equity_bridge,
@@ -20,7 +20,7 @@ def _num(value: Any):
 
 def analyze_sotp_completeness(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     symbol = symbol.upper().strip()
 

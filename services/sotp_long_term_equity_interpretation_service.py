@@ -25,7 +25,7 @@ Future classification logic belongs in:
     sotp_long_term_equity_interpretation_service.py
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from services.sotp_long_term_equity_economic_evidence_service import (
     get_sotp_long_term_equity_economic_evidence,
@@ -107,8 +107,8 @@ EVIDENCE_FIELDS = (
 
 
 def _build_unresolved_classification(
-    entity: Dict[str, Any],
-) -> Dict[str, Any]:
+    entity: dict[str, Any],
+) -> dict[str, Any]:
     return {
         "note_39_serial": entity.get("note_39_serial"),
         "name": entity.get("name"),
@@ -128,9 +128,9 @@ def _build_unresolved_classification(
 
 
 def _merge_economic_evidence(
-    record: Dict[str, Any],
-    evidence: Dict[str, Any],
-) -> Dict[str, Any]:
+    record: dict[str, Any],
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
     merged = dict(record)
 
     if not isinstance(evidence, dict):
@@ -150,9 +150,9 @@ def _merge_economic_evidence(
 
 
 def _validate_classification_record(
-    record: Dict[str, Any],
-) -> List[str]:
-    errors: List[str] = []
+    record: dict[str, Any],
+) -> list[str]:
+    errors: list[str] = []
 
     if record.get("economic_category") not in ECONOMIC_CATEGORIES:
         errors.append("INVALID_ECONOMIC_CATEGORY")
@@ -174,7 +174,7 @@ def _validate_classification_record(
 
 def get_sotp_long_term_equity_classification(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     entity_data = get_sotp_long_term_equity_entity_data(symbol)
 
     if not isinstance(entity_data, dict) or entity_data.get("status") != "OK":
@@ -235,7 +235,7 @@ def get_sotp_long_term_equity_classification(
     if missing:
         raise RuntimeError(f"Economic evidence missing for: {missing}")
 
-    classifications: List[Dict[str, Any]] = []
+    classifications: list[dict[str, Any]] = []
 
     for entity in population:
         record = _build_unresolved_classification(entity)
@@ -243,7 +243,7 @@ def get_sotp_long_term_equity_classification(
         record = _merge_economic_evidence(record, entity_evidence)
         classifications.append(record)
 
-    validation_errors: List[Dict[str, Any]] = []
+    validation_errors: list[dict[str, Any]] = []
 
     for record in classifications:
         errors = _validate_classification_record(record)

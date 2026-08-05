@@ -8,11 +8,10 @@ Layer   : Tests / Capital / Models
 
 from __future__ import annotations
 
-import pytest
 from services.capital.models import (
     CapitalStructure,
-    CostOfEquityResult,
     CostOfDebtResult,
+    CostOfEquityResult,
     WACCResult,
 )
 

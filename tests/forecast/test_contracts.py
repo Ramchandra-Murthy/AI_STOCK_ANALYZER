@@ -1,9 +1,11 @@
 ﻿from __future__ import annotations
 
 import pytest
-from services.forecast.input import ForecastInput
+
 from services.forecast.exceptions import ForecastValidationError
+from services.forecast.input import ForecastInput
 from services.forecast.validation import ForecastValidator
+
 
 @pytest.fixture
 def valid_forecast_input() -> ForecastInput:
@@ -19,9 +21,11 @@ def valid_forecast_input() -> ForecastInput:
         forecast_years=(2026, 2027),
     )
 
+
 def test_validator_passes_valid_input(valid_forecast_input: ForecastInput) -> None:
     # Should not raise any exception
     ForecastValidator.validate_input(valid_forecast_input)
+
 
 def test_validator_fails_empty_ticker(valid_forecast_input: ForecastInput) -> None:
     bad_input = ForecastInput(
@@ -37,6 +41,7 @@ def test_validator_fails_empty_ticker(valid_forecast_input: ForecastInput) -> No
     )
     with pytest.raises(ForecastValidationError):
         ForecastValidator.validate_input(bad_input)
+
 
 def test_validator_fails_length_mismatch(valid_forecast_input: ForecastInput) -> None:
     bad_input = ForecastInput(

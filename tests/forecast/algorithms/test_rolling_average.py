@@ -4,7 +4,7 @@ Description: Unit tests for Rolling Average forecast calculation engine.
 """
 
 from __future__ import annotations
-import pytest
+
 from services.forecast.algorithms.rolling_average import RollingAverageForecastEngine
 
 

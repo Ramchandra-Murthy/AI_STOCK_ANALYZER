@@ -11,7 +11,7 @@ Summary : Aggregated immutable output container for complete company
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from services.forecast.forecast_models import (
     CapexForecast,
@@ -59,8 +59,8 @@ class ForecastResult:
     tax: TaxForecast
     terminal_growth: TerminalGrowthForecast
     confidence: ForecastConfidence
-    scenarios: Tuple[ForecastScenario, ...] = field(default_factory=tuple)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    scenarios: tuple[ForecastScenario, ...] = field(default_factory=tuple)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     # ----------------------------------------------------
     # Subservice Aliases & Compatibility Accessors
@@ -98,7 +98,7 @@ class ForecastResult:
     # Vector Property Accessors
     # ----------------------------------------------------
     @property
-    def projected_revenues(self) -> Tuple[float, ...]:
+    def projected_revenues(self) -> tuple[float, ...]:
         """Direct accessor for projected revenue series."""
         return tuple(self.revenue.projected)
 
@@ -108,22 +108,26 @@ class ForecastResult:
         return [round(m, 4) for m in self.margin.projected]
 
     @property
-    def projected_ebit(self) -> Tuple[float, ...]:
+    def projected_ebit(self) -> tuple[float, ...]:
         """Calculates projected EBIT series: Revenue * Margin."""
         return tuple(
             round(rev * margin, 4)
-            for rev, margin in zip(self.revenue.projected, self.margin.projected)
+            for rev, margin in zip(
+                self.revenue.projected, self.margin.projected, strict=False
+            )
         )
 
     @property
-    def projected_nopat(self) -> Tuple[float, ...]:
+    def projected_nopat(self) -> tuple[float, ...]:
         """Calculates projected Net Operating Profit After Tax (NOPAT): EBIT - Tax."""
         ebits = self.projected_ebit
         taxes = tuple(self.tax.projected)
-        return tuple(round(ebit - tax, 4) for ebit, tax in zip(ebits, taxes))
+        return tuple(
+            round(ebit - tax, 4) for ebit, tax in zip(ebits, taxes, strict=False)
+        )
 
     @property
-    def projected_fcff(self) -> Tuple[float, ...]:
+    def projected_fcff(self) -> tuple[float, ...]:
         """Calculates projected Free Cash Flow to Firm (FCFF): NOPAT + D&A - CapEx - Delta NWC."""
         nopats = self.projected_nopat
         deps = tuple(self.depreciation.projected)
@@ -132,16 +136,18 @@ class ForecastResult:
 
         return tuple(
             round(nopat + dep - cap - dnwc, 4)
-            for nopat, dep, cap, dnwc in zip(nopats, deps, capex, delta_nwc)
+            for nopat, dep, cap, dnwc in zip(
+                nopats, deps, capex, delta_nwc, strict=False
+            )
         )
 
     @property
-    def projected_fcfs(self) -> Tuple[float, ...]:
+    def projected_fcfs(self) -> tuple[float, ...]:
         """Legacy alias accessor for projected FCFF."""
         return self.projected_fcff
 
     @property
-    def yearly_forecasts(self) -> Tuple[YearlyFinancialForecast, ...]:
+    def yearly_forecasts(self) -> tuple[YearlyFinancialForecast, ...]:
         """Returns annual structured financial objects across the forecast horizon."""
         revs = tuple(self.revenue.projected)
         margins = tuple(self.margin.projected)

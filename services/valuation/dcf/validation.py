@@ -31,6 +31,7 @@ def validate_input(data: DCFInput) -> None:
 # Historical Financials
 # ==========================================================
 
+
 def _validate_history(data: DCFInput) -> None:
     if data.last_historical_revenue is None or data.last_historical_revenue <= 0:
         raise ValueError("last_historical_revenue must be strictly greater than 0.")
@@ -39,6 +40,7 @@ def _validate_history(data: DCFInput) -> None:
 # ==========================================================
 # Forecast Arrays
 # ==========================================================
+
 
 def _validate_forecast_lengths(data: DCFInput) -> None:
     n = len(data.revenue_growth_rates)
@@ -63,6 +65,7 @@ def _validate_forecast_lengths(data: DCFInput) -> None:
 # Rates
 # ==========================================================
 
+
 def _validate_rates(data: DCFInput) -> None:
     if not (0 <= data.tax_rate <= 1):
         raise ValueError("Tax rate must be between 0 and 1.")
@@ -84,6 +87,7 @@ def _validate_rates(data: DCFInput) -> None:
 # Capital Structure
 # ==========================================================
 
+
 def _validate_capital_structure(data: DCFInput) -> None:
     total = data.equity_weight + data.debt_weight
 
@@ -103,6 +107,7 @@ def _validate_capital_structure(data: DCFInput) -> None:
 # Terminal Growth
 # ==========================================================
 
+
 def _validate_terminal_growth(data: DCFInput) -> None:
     wacc = data.calculate_wacc()
 
@@ -119,6 +124,7 @@ def _validate_terminal_growth(data: DCFInput) -> None:
 # Balance Sheet
 # ==========================================================
 
+
 def _validate_balance_sheet(data: DCFInput) -> None:
     if data.total_debt < 0:
         raise ValueError("Debt cannot be negative.")
@@ -130,6 +136,7 @@ def _validate_balance_sheet(data: DCFInput) -> None:
 # ==========================================================
 # Shares Outstanding
 # ==========================================================
+
 
 def _validate_share_count(data: DCFInput) -> None:
     if data.shares_outstanding <= 0:

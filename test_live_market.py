@@ -8,7 +8,7 @@ data = get_market_indices()
 
 cols = st.columns(4)
 
-for col, (name, value) in zip(cols, data.items()):
+for col, (name, value) in zip(cols, data.items(), strict=False):
 
     with col:
 

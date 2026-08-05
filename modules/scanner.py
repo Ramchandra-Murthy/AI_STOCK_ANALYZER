@@ -1,4 +1,5 @@
 import streamlit as st
+
 from scanner.market_scanner import market_scan
 
 
@@ -20,17 +21,8 @@ def show():
 
         st.success(f"{len(df)} Stocks Scanned")
 
-        st.dataframe(
-            df,
-            use_container_width=True,
-            height=600
-        )
+        st.dataframe(df, use_container_width=True, height=600)
 
         csv = df.to_csv(index=False)
 
-        st.download_button(
-            "⬇ Download CSV",
-            csv,
-            "market_scan.csv",
-            "text/csv"
-        )
+        st.download_button("⬇ Download CSV", csv, "market_scan.csv", "text/csv")

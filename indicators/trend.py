@@ -18,7 +18,4 @@ def detect_trend(df):
     else:
         momentum = "Weak"
 
-    return {
-        "Trend": trend,
-        "Momentum": momentum
-    }
+    return {"Trend": trend, "Momentum": momentum}

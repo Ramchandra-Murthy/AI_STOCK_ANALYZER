@@ -1,8 +1,9 @@
-﻿from enum import Enum
+﻿from enum import StrEnum
 
 
-class ValuationMethod(str, Enum):
+class ValuationMethod(StrEnum):
     """Supported valuation methodologies across the SOTP framework."""
+
     DCF = "DCF"
     EV_EBITDA = "EV/EBITDA"
     BOOK = "BOOK"
@@ -10,8 +11,9 @@ class ValuationMethod(str, Enum):
     MARKET = "MARKET"
 
 
-class ValuationStatus(str, Enum):
+class ValuationStatus(StrEnum):
     """Lifecycle status of a segment or group valuation execution."""
+
     PENDING = "PENDING"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETE = "COMPLETE"

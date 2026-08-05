@@ -24,17 +24,17 @@ Future Versions
 • AI similarity scoring
 """
 
-from typing import List
-from services.valuation.comparable.comparable_input import PeerCompany
 
+from services.valuation.comparable.comparable_input import PeerCompany
 
 # ==========================================================
 # Remove Duplicate Peers
 # ==========================================================
 
+
 def remove_duplicate_peers(
-    peers: List[PeerCompany],
-) -> List[PeerCompany]:
+    peers: list[PeerCompany],
+) -> list[PeerCompany]:
 
     unique = {}
 
@@ -52,9 +52,10 @@ def remove_duplicate_peers(
 # Basic Financial Filter
 # ==========================================================
 
+
 def filter_valid_peers(
-    peers: List[PeerCompany],
-) -> List[PeerCompany]:
+    peers: list[PeerCompany],
+) -> list[PeerCompany]:
 
     valid = []
 
@@ -76,9 +77,10 @@ def filter_valid_peers(
 # Manual Peer Selection
 # ==========================================================
 
+
 def select_peers(
-    peers: List[PeerCompany],
-) -> List[PeerCompany]:
+    peers: list[PeerCompany],
+) -> list[PeerCompany]:
     """
     Current peer selection pipeline.
 

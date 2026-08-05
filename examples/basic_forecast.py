@@ -3,10 +3,7 @@ Example: Creating basic forecast domain objects.
 """
 
 from services.forecast.models import (
-    ConfidenceLevel,
     ForecastAssumption,
-    ForecastMethod,
-    RevenueForecast,
 )
 
 

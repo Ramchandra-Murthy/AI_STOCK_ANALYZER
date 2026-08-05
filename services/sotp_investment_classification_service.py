@@ -5,7 +5,6 @@
 from services.sotp_balance_sheet_detail_service import (
     get_sotp_balance_sheet_details,
 )
-
 from services.sotp_investment_service import (
     analyze_financial_asset_composition,
 )

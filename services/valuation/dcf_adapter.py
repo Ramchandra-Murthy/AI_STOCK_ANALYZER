@@ -1,10 +1,11 @@
 ﻿from __future__ import annotations
 
 from typing import Any
+
 from services.valuation.base_engine import BaseValuationEngine
-from services.valuation.models import ValuationResult, ValuationMethod, ValuationStatus
 from services.valuation.contracts import SOTPSegmentInput
 from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
 
 
 class DCFValuationEngine(BaseValuationEngine):

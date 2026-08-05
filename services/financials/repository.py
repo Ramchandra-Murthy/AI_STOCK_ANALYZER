@@ -1,6 +1,5 @@
 ﻿from __future__ import annotations
 
-from typing import Optional
 from core.exceptions import RepositoryError
 from core.logger import logger
 from services.financials.financial_statement import FinancialStatements
@@ -9,7 +8,7 @@ from services.financials.financial_statement import FinancialStatements
 class FinancialStatementRepository:
     """In-memory singleton repository for validated FinancialStatements."""
 
-    _instance: Optional[FinancialStatementRepository] = None
+    _instance: FinancialStatementRepository | None = None
 
     def __new__(cls) -> FinancialStatementRepository:
         if cls._instance is None:
@@ -32,7 +31,9 @@ class FinancialStatementRepository:
             logger.error(f"[REPOSITORY_ERROR] {error_msg}")
             raise RepositoryError(error_msg)
 
-        logger.info(f"[{fs.ticker}] Successfully retrieved financial statements for period {fiscal_year}")
+        logger.info(
+            f"[{fs.ticker}] Successfully retrieved financial statements for period {fiscal_year}"
+        )
         return fs
 
     def clear(self) -> None:

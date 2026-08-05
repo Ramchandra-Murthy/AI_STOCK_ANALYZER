@@ -9,7 +9,7 @@ Layer   : Domain / Forecast
 from __future__ import annotations
 
 import logging
-from typing import Tuple, Any
+from typing import Any
 
 from services.forecast.models import ForecastAssumption, ForecastMethod
 
@@ -21,9 +21,9 @@ class AssumptionEngine:
 
     @staticmethod
     def derive_assumptions(
-        historical_revenue: Tuple[float, ...],
-        historical_margins: Tuple[float, ...],
-        historical_capex: Tuple[float, ...],
+        historical_revenue: tuple[float, ...],
+        historical_margins: tuple[float, ...],
+        historical_capex: tuple[float, ...],
         method: ForecastMethod = ForecastMethod.CAGR,
         **kwargs: Any,
     ) -> ForecastAssumption:

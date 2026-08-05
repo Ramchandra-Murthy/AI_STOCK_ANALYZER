@@ -2,9 +2,7 @@ import pandas as pd
 
 from services.analyzer import analyze_stock
 
-
 WATCHLIST = [
-
     "RELIANCE.NS",
     "TCS.NS",
     "INFY.NS",
@@ -14,8 +12,7 @@ WATCHLIST = [
     "LT.NS",
     "ITC.NS",
     "BHARTIARTL.NS",
-    "HINDUNILVR.NS"
-
+    "HINDUNILVR.NS",
 ]
 
 
@@ -35,29 +32,20 @@ def market_scan():
 
             trend = result["trend"]
 
-            results.append({
-
-                "Symbol": symbol,
-
-                "Price": round(last["Close"], 2),
-
-                "Trend": trend["Trend"],
-
-                "RSI": round(last["RSI_14"], 2),
-
-                "MACD": round(last["MACD"], 2),
-
-                "ATR": round(last["ATR"], 2),
-
-                "AI Score": signal["Score"],
-
-                "Confidence": abs(signal["Score"]),
-
-                "Risk": "Medium",
-
-                "Recommendation": signal["Recommendation"]
-
-            })
+            results.append(
+                {
+                    "Symbol": symbol,
+                    "Price": round(last["Close"], 2),
+                    "Trend": trend["Trend"],
+                    "RSI": round(last["RSI_14"], 2),
+                    "MACD": round(last["MACD"], 2),
+                    "ATR": round(last["ATR"], 2),
+                    "AI Score": signal["Score"],
+                    "Confidence": abs(signal["Score"]),
+                    "Risk": "Medium",
+                    "Recommendation": signal["Recommendation"],
+                }
+            )
 
         except Exception as e:
 
@@ -67,9 +55,6 @@ def market_scan():
 
     if not df.empty:
 
-        df = df.sort_values(
-            by="AI Score",
-            ascending=False
-        )
+        df = df.sort_values(by="AI Score", ascending=False)
 
     return df

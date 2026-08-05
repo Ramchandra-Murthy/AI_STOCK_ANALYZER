@@ -23,15 +23,16 @@ Repository
 FinancialStatements
 """
 
-from typing import Any, Dict
+from typing import Any
+
 from services.financials.normalization import (
     normalize_financial_statements,
 )
-from services.financials.validator import (
-    validate_financial_statements,
-)
 from services.financials.repository import (
     FinancialStatementRepository,
+)
+from services.financials.validator import (
+    validate_financial_statements,
 )
 
 _repository = FinancialStatementRepository()
@@ -43,9 +44,9 @@ def parse_financial_statements(
     ticker: str,
     currency: str,
     fiscal_year: str,
-    income_statement: Dict[str, Any],
-    balance_sheet: Dict[str, Any],
-    cash_flow: Dict[str, Any],
+    income_statement: dict[str, Any],
+    balance_sheet: dict[str, Any],
+    cash_flow: dict[str, Any],
 ):
     """
     Normalizes, validates and stores a FinancialStatements object.

@@ -10,7 +10,7 @@ Layer   : Services / Forecast
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any
 
 from core.logger import logger
 from services.forecast.forecast_input import ForecastInput
@@ -21,8 +21,8 @@ from services.forecast.forecast_models import ForecastMethod
 class WorkingCapitalForecast:
     """Working capital forecast structure."""
 
-    projected_nwc: List[float]
-    delta_nwc: List[float]
+    projected_nwc: list[float]
+    delta_nwc: list[float]
     method_used: str
 
 
@@ -32,7 +32,7 @@ class WorkingCapitalForecastEngine:
     def forecast_working_capital(
         self,
         inp_or_revs: Any,
-        projected_revenues: Optional[List[float]] = None,
+        projected_revenues: list[float] | None = None,
         method: ForecastMethod = ForecastMethod.CAGR,
         *args: Any,
         **kwargs: Any,
@@ -56,7 +56,7 @@ class WorkingCapitalForecastEngine:
 
         if nwc_hist and len(nwc_hist) > 0 and len(revs) >= len(nwc_hist):
             avg_ratio = sum(
-                n / r if r > 0 else 0.10 for n, r in zip(nwc_hist, revs)
+                n / r if r > 0 else 0.10 for n, r in zip(nwc_hist, revs, strict=False)
             ) / len(nwc_hist)
         else:
             avg_ratio = 0.10

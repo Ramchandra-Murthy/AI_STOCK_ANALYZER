@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from services.sotp_balance_sheet_detail_service import (
     get_sotp_balance_sheet_details,
@@ -15,7 +15,7 @@ def _num(value: Any):
 
 def generate_sotp_debt_like_liabilities(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Identify potential debt-like liabilities for the SOTP EV-to-equity bridge.
 

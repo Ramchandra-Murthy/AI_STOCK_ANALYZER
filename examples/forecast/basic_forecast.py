@@ -8,11 +8,12 @@ Module  : examples.forecast.basic_forecast
 from __future__ import annotations
 
 import logging
+
 from services.forecast.forecast_models import (
     ForecastAssumption,
     ForecastMethod,
-    ScenarioModel,
     RevenueForecastModel,
+    ScenarioModel,
 )
 
 logging.basicConfig(level=logging.INFO)

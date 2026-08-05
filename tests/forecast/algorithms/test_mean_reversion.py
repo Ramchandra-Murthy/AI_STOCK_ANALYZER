@@ -9,6 +9,7 @@ Layer   : Tests / Forecast / Algorithms
 from __future__ import annotations
 
 import pytest
+
 from services.forecast.algorithms.mean_reversion import MeanReversionCalculator
 from services.forecast.exceptions import ValuationError
 

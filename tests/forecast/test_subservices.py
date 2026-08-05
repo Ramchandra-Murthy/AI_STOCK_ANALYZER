@@ -6,11 +6,11 @@ Module  : tests.forecast.test_subservices
 """
 
 import pytest
+from services.forecast.forecast_models import ForecastMethod
 
 from services.forecast.capex_forecast import CapExForecastEngine
 from services.forecast.depreciation_forecast import DepreciationForecastEngine
 from services.forecast.forecast_input import ForecastInput
-from services.forecast.forecast_models import ForecastMethod
 from services.forecast.tax_forecast import TaxForecastEngine
 from services.forecast.working_capital_forecast import WorkingCapitalForecastEngine
 

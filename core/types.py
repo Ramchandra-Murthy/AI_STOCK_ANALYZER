@@ -8,7 +8,7 @@ Layer   : Core Infrastructure
 
 from __future__ import annotations
 
-from typing import Protocol, Dict, Any, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 Ticker = str
 Currency = str
@@ -19,9 +19,7 @@ Year = int
 class Serializable(Protocol):
     """Protocol defining objects that support bidirectional dictionary conversion."""
 
-    def to_dict(self) -> Dict[str, Any]:
-        ...
+    def to_dict(self) -> dict[str, Any]: ...
 
     @classmethod
-    from_dict(cls, data: Dict[str, Any]) -> Serializable:
-    
+    def from_dict(cls, data: dict[str, Any]) -> Serializable: ...

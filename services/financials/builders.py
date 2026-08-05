@@ -13,6 +13,12 @@ input contracts required by each valuation engine.
 
 from services.financials.financial_statement import FinancialStatements
 
+# Comparable
+from services.valuation.comparable.comparable_input import (
+    ComparableInput,
+    TargetCompany,
+)
+
 # DCF
 from services.valuation.dcf.dcf_input import DCFInput
 
@@ -21,16 +27,10 @@ from services.valuation.nav.nav_input import (
     NAVInput,
 )
 
-# Comparable
-from services.valuation.comparable.comparable_input import (
-    ComparableInput,
-    TargetCompany,
-)
-
-
 # =========================================================
 # DCF Builder
 # =========================================================
+
 
 def build_dcf_input(
     fs: FinancialStatements,
@@ -44,7 +44,8 @@ def build_dcf_input(
 
     dna_ratio = (
         income.depreciation_and_amortization / income.revenue
-        if income.revenue > 0 else 0.0
+        if income.revenue > 0
+        else 0.0
     )
 
     preferred_stock_val = getattr(balance, "preferred_stock", 0.0)
@@ -54,9 +55,7 @@ def build_dcf_input(
         currency=fs.currency,
         last_historical_revenue=income.revenue,
         revenue_growth_rates=[0.08] * 5,
-        ebit_margin_forecast=[
-            income.operating_margin()
-        ] * 5,
+        ebit_margin_forecast=[income.operating_margin()] * 5,
         capex_pct_rev=[0.05] * 5,
         nwc_pct_rev=[0.02] * 5,
         dna_pct_rev=[dna_ratio] * 5,
@@ -77,6 +76,7 @@ def build_dcf_input(
 # =========================================================
 # NAV Builder
 # =========================================================
+
 
 def build_nav_input(
     fs: FinancialStatements,
@@ -99,6 +99,7 @@ def build_nav_input(
 # =========================================================
 # Comparable Builder
 # =========================================================
+
 
 def build_comparable_input(
     fs: FinancialStatements,
@@ -126,6 +127,7 @@ def build_comparable_input(
         peers=[],
         currency=fs.currency,
     )
+
 
 # Compatibility Adapter for Legacy Test Suites
 class ValuationPayloadBuilder:

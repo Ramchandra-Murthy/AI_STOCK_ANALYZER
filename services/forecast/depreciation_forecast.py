@@ -9,7 +9,7 @@ Summary : Depreciation & Amortization Forecast Subservice.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from core.logger import logger
 from services.forecast.forecast_input import ForecastInput
@@ -26,8 +26,8 @@ class DepreciationForecastEngine:
     def forecast_depreciation(
         self,
         inp: ForecastInput,
-        method: Optional[ForecastMethod] = None,
-        projected_revenues: Optional[Tuple[float, ...]] = None,
+        method: ForecastMethod | None = None,
+        projected_revenues: tuple[float, ...] | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> DepreciationForecast:
@@ -39,7 +39,7 @@ class DepreciationForecastEngine:
             ratios = tuple(
                 dep / rev if rev != 0 else 0.02
                 for dep, rev in zip(
-                    inp.historical_depreciation, inp.historical_revenues
+                    inp.historical_depreciation, inp.historical_revenues, strict=False
                 )
             )
             dep_ratio = sum(ratios) / len(ratios) if ratios else 0.02

@@ -21,10 +21,10 @@ from services.valuation.comparable.comparable_input import (
     PeerCompany,
 )
 
-
 # ==========================================================
 # Peer Validation
 # ==========================================================
+
 
 def _validate_peer(peer: PeerCompany) -> None:
 
@@ -32,34 +32,25 @@ def _validate_peer(peer: PeerCompany) -> None:
         raise ValueError("Peer company name cannot be empty.")
 
     if peer.enterprise_value <= 0:
-        raise ValueError(
-            f"{peer.name}: enterprise value must be positive."
-        )
+        raise ValueError(f"{peer.name}: enterprise value must be positive.")
 
     if peer.market_cap <= 0:
-        raise ValueError(
-            f"{peer.name}: market capitalization must be positive."
-        )
+        raise ValueError(f"{peer.name}: market capitalization must be positive.")
 
     if peer.revenue <= 0:
-        raise ValueError(
-            f"{peer.name}: revenue must be positive."
-        )
+        raise ValueError(f"{peer.name}: revenue must be positive.")
 
     if peer.ebitda <= 0:
-        raise ValueError(
-            f"{peer.name}: EBITDA must be positive."
-        )
+        raise ValueError(f"{peer.name}: EBITDA must be positive.")
 
     if peer.shares_outstanding <= 0:
-        raise ValueError(
-            f"{peer.name}: shares outstanding must be positive."
-        )
+        raise ValueError(f"{peer.name}: shares outstanding must be positive.")
 
 
 # ==========================================================
 # Main Validation
 # ==========================================================
+
 
 def validate_input(data: ComparableInput) -> None:
 
@@ -75,14 +66,10 @@ def validate_input(data: ComparableInput) -> None:
         raise ValueError("Target EBITDA must be positive.")
 
     if target.shares_outstanding <= 0:
-        raise ValueError(
-            "Target shares outstanding must be positive."
-        )
+        raise ValueError("Target shares outstanding must be positive.")
 
     if len(data.peers) == 0:
-        raise ValueError(
-            "At least one comparable peer is required."
-        )
+        raise ValueError("At least one comparable peer is required.")
 
     peer_names = set()
 
@@ -91,8 +78,6 @@ def validate_input(data: ComparableInput) -> None:
         _validate_peer(peer)
 
         if peer.name in peer_names:
-            raise ValueError(
-                f"Duplicate peer company detected: {peer.name}"
-            )
+            raise ValueError(f"Duplicate peer company detected: {peer.name}")
 
         peer_names.add(peer.name)

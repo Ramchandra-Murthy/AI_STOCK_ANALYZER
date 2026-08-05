@@ -1,16 +1,19 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import Any
-from core.primitives.base import ValueObject
-from core.primitives import Money, Quantity, Currency
-from core.identifiers import CompanySymbol, ISIN
+
 from core.validation.rules import NumericValidators
+
+from core.identifiers import ISIN, CompanySymbol
+from core.primitives import Money, Quantity
+from core.primitives.base import ValueObject
+
 
 @dataclass(frozen=True, order=True)
 class Position(ValueObject):
     """Immutable representation of an equity investment position."""
+
     symbol: CompanySymbol
     isin: ISIN
     quantity: Quantity
@@ -48,4 +51,3 @@ class Position(ValueObject):
             "market_value": str(self.market_value().amount),
             "unrealized_pnl": str(self.unrealized_pnl().amount),
         }
-

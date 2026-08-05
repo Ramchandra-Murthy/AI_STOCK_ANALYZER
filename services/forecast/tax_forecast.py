@@ -9,7 +9,7 @@ Summary : Effective Tax Rate & Liability Forecast Subservice.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from core.logger import logger
 from services.forecast.forecast_input import ForecastInput
@@ -26,7 +26,7 @@ class TaxForecastEngine:
     def forecast_tax(
         self,
         inp: ForecastInput,
-        method: Optional[ForecastMethod] = None,
+        method: ForecastMethod | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> TaxForecast:

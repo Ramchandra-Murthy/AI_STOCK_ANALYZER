@@ -13,8 +13,6 @@ gradually from recent baseline levels back toward long-term historical averages.
 
 from __future__ import annotations
 
-from typing import Tuple
-
 from services.forecast.exceptions import ValuationError
 
 
@@ -23,10 +21,10 @@ class MeanReversionCalculator:
 
     @staticmethod
     def project(
-        historical_values: Tuple[float, ...],
+        historical_values: tuple[float, ...],
         horizon: int,
         reversion_speed: float = 0.5,
-    ) -> Tuple[float, ...]:
+    ) -> tuple[float, ...]:
         """
         Projects future values converging from the most recent historical value
         toward the historical mean.

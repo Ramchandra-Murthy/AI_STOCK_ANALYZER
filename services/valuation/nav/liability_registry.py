@@ -18,14 +18,14 @@ Standardizes liability classification across:
     • Portfolio Analytics
 """
 
-from enum import Enum
-
+from enum import StrEnum
 
 # ==========================================================
 # Liability Categories
 # ==========================================================
 
-class LiabilityCategory(str, Enum):
+
+class LiabilityCategory(StrEnum):
 
     # Financial Debt
     SHORT_TERM_DEBT = "SHORT_TERM_DEBT"

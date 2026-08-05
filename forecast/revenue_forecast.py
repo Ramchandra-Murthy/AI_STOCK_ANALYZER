@@ -1,8 +1,10 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
+
 from core.exceptions import ForecastError
 from core.logger import logger
+
 
 @dataclass(slots=True, frozen=True)
 class RevenueForecastOutput:
@@ -10,6 +12,7 @@ class RevenueForecastOutput:
     projected_growth_rates: list[float]
     base_revenue: float
     projected_revenues: list[float]
+
 
 class RevenueForecastEngine:
     @staticmethod
@@ -37,10 +40,12 @@ class RevenueForecastEngine:
             if y > 0:
                 current_growth = max(current_growth * decay_factor, min_growth_cap)
             projected_growth_rates.append(round(current_growth, 4))
-            current_rev *= (1.0 + current_growth)
+            current_rev *= 1.0 + current_growth
             projected_revenues.append(round(current_rev, 2))
 
-        logger.info(f"[FORECAST] Historical CAGR: {cagr:.2%} | Growth: {projected_growth_rates}")
+        logger.info(
+            f"[FORECAST] Historical CAGR: {cagr:.2%} | Growth: {projected_growth_rates}"
+        )
 
         return RevenueForecastOutput(
             historical_cagr=round(cagr, 4),

@@ -1,4 +1,3 @@
-import sqlite3
 from data.database import connect
 
 
@@ -27,8 +26,8 @@ def save_dataframe(df, symbol):
                 float(row["High"]),
                 float(row["Low"]),
                 float(row["Close"]),
-                int(row["Volume"])
-            )
+                int(row["Volume"]),
+            ),
         )
 
     conn.commit()

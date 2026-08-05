@@ -10,7 +10,7 @@ Summary : Operating Margin (EBIT) Forecast Subservice executing
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from core.logger import logger
 from services.forecast.algorithms.mean_reversion import MeanReversionAlgorithm
@@ -32,7 +32,7 @@ class MarginForecastEngine:
     def forecast_margins(
         self,
         inp: ForecastInput,
-        method: Optional[ForecastMethod] = None,
+        method: ForecastMethod | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> MarginForecast:
@@ -44,7 +44,9 @@ class MarginForecastEngine:
         if inp.historical_ebits is not None:
             historical_margins = tuple(
                 ebit / rev if rev != 0 else 0.0
-                for ebit, rev in zip(inp.historical_ebits, inp.historical_revenues)
+                for ebit, rev in zip(
+                    inp.historical_ebits, inp.historical_revenues, strict=False
+                )
             )
         else:
             historical_margins = (0.15,) * len(inp.historical_revenues)

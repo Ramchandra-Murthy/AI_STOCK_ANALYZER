@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional, List
 
 
 @dataclass(frozen=True)
@@ -10,12 +9,12 @@ class ClassificationRule:
     """
 
     interpretation: str
-    relationship: Optional[str] = None
+    relationship: str | None = None
 
     # --- Future Domain Dimensions (Optional Predicates) ---
-    business_model: Optional[str] = None
-    asset_type: Optional[str] = None
-    integration_level: Optional[str] = None
+    business_model: str | None = None
+    asset_type: str | None = None
+    integration_level: str | None = None
 
     classification: str = CLASSIFICATION_UNRESOLVED
     priority: int = 1
@@ -24,9 +23,9 @@ class ClassificationRule:
 class ClassificationRuleEvaluator:
     """Evaluates interpreted evidence against declarative rules."""
 
-    def __init__(self, custom_rules: Optional[List[ClassificationRule]] = None) -> None:
+    def __init__(self, custom_rules: list[ClassificationRule] | None = None) -> None:
         # Standard default rules
-        self.rules: List[ClassificationRule] = custom_rules or [
+        self.rules: list[ClassificationRule] = custom_rules or [
             # Example rule with extended dimensions
             ClassificationRule(
                 interpretation=INTERPRETATION_OPERATING_INFRASTRUCTURE,
@@ -40,11 +39,11 @@ class ClassificationRuleEvaluator:
     def find_best_rule(
         self,
         interpretation: str,
-        ril_relationship: Optional[str],
-        business_model: Optional[str] = None,
-        asset_type: Optional[str] = None,
-        integration_level: Optional[str] = None,
-    ) -> List[ClassificationRule]:
+        ril_relationship: str | None,
+        business_model: str | None = None,
+        asset_type: str | None = None,
+        integration_level: str | None = None,
+    ) -> list[ClassificationRule]:
         matched_rules = []
         for rule in self.rules:
             # Mandated Interpretation Match

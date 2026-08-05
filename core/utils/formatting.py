@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 
+
 class NumberFormatter:
     @staticmethod
     def format_currency(amount: Decimal, currency_code: str = "INR") -> str:
@@ -12,4 +13,3 @@ class NumberFormatter:
     def format_percentage(value: Decimal) -> str:
         """Formats a decimal percentage."""
         return f"{value:.2f}%"
-

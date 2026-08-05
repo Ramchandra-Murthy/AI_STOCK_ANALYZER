@@ -188,9 +188,6 @@ def calculate_technical_score(df):
     return score, reasons
 
 
-import math
-
-
 def _valid_number(value):
     """Return True when value is a usable numeric value."""
     try:

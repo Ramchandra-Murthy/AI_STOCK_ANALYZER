@@ -7,7 +7,7 @@ cf = CashFlowStatement(
     debt_issued=2000.0,
     debt_repaid=1000.0,
     dividends_paid=3000.0,
-    share_repurchases=500.0
+    share_repurchases=500.0,
 )
 
 print(f"Operating Cash Flow   : ₹{cf.operating_cash_flow:,.2f} Cr")

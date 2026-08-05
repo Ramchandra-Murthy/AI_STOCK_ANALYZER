@@ -22,23 +22,22 @@ Future Extensions
 """
 
 from dataclasses import dataclass
-from typing import List
 
 import numpy as np
-
 
 # ==========================================================
 # Result
 # ==========================================================
 
+
 @dataclass(slots=True)
 class SensitivityResult:
 
-    wacc_axis: List[float]
+    wacc_axis: list[float]
 
-    terminal_growth_axis: List[float]
+    terminal_growth_axis: list[float]
 
-    implied_share_price_matrix: List[List[float]]
+    implied_share_price_matrix: list[list[float]]
 
     def summary(self) -> dict:
         return {
@@ -50,6 +49,7 @@ class SensitivityResult:
 # ==========================================================
 # Helper
 # ==========================================================
+
 
 def _equity_value_to_share_price(
     enterprise_value: float,
@@ -66,6 +66,7 @@ def _equity_value_to_share_price(
 # ==========================================================
 # Main Engine
 # ==========================================================
+
 
 def build_sensitivity_matrix(
     final_year_fcff: float,
@@ -110,14 +111,9 @@ def build_sensitivity_matrix(
 
             terminal_value = terminal_fcff / (wacc - growth)
 
-            pv_terminal = terminal_value / (
-                (1 + wacc) ** forecast_years
-            )
+            pv_terminal = terminal_value / ((1 + wacc) ** forecast_years)
 
-            enterprise_value = (
-                pv_fcff_total
-                + pv_terminal
-            )
+            enterprise_value = pv_fcff_total + pv_terminal
 
             price = _equity_value_to_share_price(
                 enterprise_value,

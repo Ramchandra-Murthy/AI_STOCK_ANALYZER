@@ -1,9 +1,11 @@
 ﻿from __future__ import annotations
 
 import pytest
+
 from capital.wacc_engine import CapitalCostEngine
-from core.exceptions import ForecastError, ValuationError
+from core.exceptions import ForecastError
 from forecast.revenue_forecast import RevenueForecastEngine
+
 
 def test_revenue_forecast_cagr():
     revenues = [100.0, 120.0, 144.0]  # 20% CAGR
@@ -11,9 +13,11 @@ def test_revenue_forecast_cagr():
     assert res.historical_cagr == pytest.approx(0.20, abs=1e-2)
     assert len(res.projected_growth_rates) == 5
 
+
 def test_revenue_forecast_insufficient_data():
     with pytest.raises(ForecastError):
         RevenueForecastEngine.project_revenue([100.0])
+
 
 def test_capital_cost_wacc_calculation():
     cap = CapitalCostEngine.calculate_wacc(

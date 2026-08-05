@@ -1,7 +1,6 @@
 import streamlit as st
 
 from services.research_service import get_stock_profile
-from services.news_service import get_company_news
 
 
 def format_number(value):

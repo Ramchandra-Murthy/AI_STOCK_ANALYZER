@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
-from services.sotp_long_term_equity_overlap_service import (
-    evaluate_long_term_equity_overlap,
+from services.sotp_long_term_equity_economic_evidence_service import (
+    get_sotp_long_term_equity_economic_evidence,
 )
 from services.sotp_long_term_equity_entity_data_service import (
     get_sotp_long_term_equity_entity_data,
 )
-from services.sotp_long_term_equity_economic_evidence_service import (
-    get_sotp_long_term_equity_economic_evidence,
+from services.sotp_long_term_equity_overlap_service import (
+    evaluate_long_term_equity_overlap,
 )
 from services.sotp_long_term_equity_reconciliation_service import (
     reconcile_sotp_long_term_equity_entities,
@@ -37,7 +37,7 @@ def _num(value: Any):
 
 def classify_long_term_equity_entities(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Classify entity-level evidence relating to the
     Long-Term Equity Investment pool.

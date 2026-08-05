@@ -9,12 +9,13 @@ Layer   : Test Automation
 from __future__ import annotations
 
 import pytest
-from core.exceptions import ValidationError, SerializationError
-from core.serialization import serialize_to_json, deserialize_from_json
+
+from core.exceptions import SerializationError, ValidationError
+from core.serialization import deserialize_from_json, serialize_to_json
 from core.validation import (
-    validate_non_empty_string,
-    validate_finite_number,
     validate_bounds,
+    validate_finite_number,
+    validate_non_empty_string,
 )
 
 

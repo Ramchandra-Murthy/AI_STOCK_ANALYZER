@@ -1,23 +1,20 @@
 import streamlit as st
 
-from services.portfolio_service import get_portfolio, get_summary
-
-from components.kpi_cards import show_kpi_cards
-from components.ai_score import show_ai_score
-from components.portfolio_allocation import show_portfolio_allocation
-from components.top_holdings import show_top_holdings
-from components.quick_actions import show_quick_actions
 from components.add_holding_form import show_add_holding_form
+from components.ai_market_summary import show_ai_market_summary
+from components.ai_score import show_ai_score
 from components.edit_holding_form import show_edit_holding_form
 from components.export_portfolio import export_portfolio
-from components.portfolio_analytics import show_portfolio_analytics
-from components.performance_chart import show_performance_chart
 from components.investment_chart import show_investment_chart
-from components.market_overview import show_market_overview
+from components.kpi_cards import show_kpi_cards
 from components.market_movers import show_market_movers
-from components.ai_market_summary import show_ai_market_summary
-from components.technical_summary import show_technical_summary
-from reports.report_generator import ReportGenerator
+from components.market_overview import show_market_overview
+from components.performance_chart import show_performance_chart
+from components.portfolio_allocation import show_portfolio_allocation
+from components.portfolio_analytics import show_portfolio_analytics
+from components.quick_actions import show_quick_actions
+from components.top_holdings import show_top_holdings
+from services.portfolio_service import get_portfolio, get_summary
 
 
 def calculate_ai_score(summary):

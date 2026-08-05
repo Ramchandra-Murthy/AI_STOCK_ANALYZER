@@ -7,10 +7,8 @@ Summary : Demonstrates construction of ForecastInput, creation of
 ==========================================================
 """
 
-from services.forecast.forecast_input import ForecastInput
 from services.forecast.forecast_models import (
     CapexForecast,
-    ConfidenceLevel,
     DepreciationForecast,
     ForecastConfidence,
     ForecastMethod,
@@ -20,6 +18,8 @@ from services.forecast.forecast_models import (
     TerminalGrowthForecast,
     WorkingCapitalForecast,
 )
+
+from services.forecast.forecast_input import ForecastInput
 from services.forecast.forecast_result import ForecastResult
 
 
@@ -99,7 +99,7 @@ def main() -> None:
     )
 
     # 4. Extract Derived FCFF Output
-    print(f"--- Output Forecast Result Summary ---")
+    print("--- Output Forecast Result Summary ---")
     print(f"Projected EBIT : {result.projected_ebit}")
     print(f"Projected NOPAT: {result.projected_nopat}")
     print(f"Projected FCFF : {result.projected_fcff}")

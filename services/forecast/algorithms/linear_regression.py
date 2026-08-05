@@ -1,11 +1,12 @@
 ﻿from __future__ import annotations
-from typing import Tuple
+
 from services.forecast.algorithms.base import BaseForecastAlgorithm
-from services.forecast.input import ForecastInput
 from services.forecast.exceptions import ForecastAlgorithmError
+from services.forecast.input import ForecastInput
+
 
 class LinearRegressionForecastAlgorithm(BaseForecastAlgorithm):
-    def calculate_revenue(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+    def calculate_revenue(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         revenues = forecast_input.historical_revenue
         n = len(revenues)
         if n < 2:
@@ -20,23 +21,32 @@ class LinearRegressionForecastAlgorithm(BaseForecastAlgorithm):
         for step in range(1, len(forecast_input.forecast_years) + 1):
             projected.append(max(0.0, intercept + slope * (n - 1 + step)))
         return tuple(projected)
-    def calculate_margins(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+
+    def calculate_margins(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         margins = forecast_input.historical_margins
         avg = (sum(margins) / len(margins)) if margins else 0.0
         return tuple(max(0.0, min(1.0, avg)) for _ in forecast_input.forecast_years)
-    def calculate_capex(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+
+    def calculate_capex(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         capex = forecast_input.historical_capex
         avg = (sum(capex) / len(capex)) if capex else 0.0
         return tuple(max(0.0, avg) for _ in forecast_input.forecast_years)
-    def calculate_depreciation(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+
+    def calculate_depreciation(
+        self, forecast_input: ForecastInput
+    ) -> tuple[float, ...]:
         dep = forecast_input.historical_depreciation
         avg = (sum(dep) / len(dep)) if dep else 0.0
         return tuple(max(0.0, avg) for _ in forecast_input.forecast_years)
-    def calculate_working_capital(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+
+    def calculate_working_capital(
+        self, forecast_input: ForecastInput
+    ) -> tuple[float, ...]:
         wc = forecast_input.historical_working_capital
         avg = (sum(wc) / len(wc)) if wc else 0.0
         return tuple(avg for _ in forecast_input.forecast_years)
-    def calculate_taxes(self, forecast_input: ForecastInput) -> Tuple[float, ...]:
+
+    def calculate_taxes(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         taxes = forecast_input.historical_taxes
         avg = (sum(taxes) / len(taxes)) if taxes else 0.25
         return tuple(max(0.0, min(1.0, avg)) for _ in forecast_input.forecast_years)

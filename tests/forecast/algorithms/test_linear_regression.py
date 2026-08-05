@@ -4,7 +4,9 @@ Description: Unit tests for Linear Regression forecast calculation engine.
 """
 
 from __future__ import annotations
+
 import pytest
+
 from services.forecast.algorithms.linear_regression import (
     LinearRegressionForecastEngine,
 )

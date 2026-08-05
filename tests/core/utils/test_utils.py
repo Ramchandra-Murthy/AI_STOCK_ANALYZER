@@ -1,10 +1,14 @@
 ﻿from __future__ import annotations
+
 from decimal import Decimal
-from core.utils import get_logger, NumberFormatter
+
+from core.utils import NumberFormatter, get_logger
+
 
 def test_logger() -> None:
     logger = get_logger("test_logger")
     assert logger is not None
+
 
 def test_number_formatter() -> None:
     curr_str = NumberFormatter.format_currency(Decimal("125000.50"), "INR")
@@ -13,4 +17,3 @@ def test_number_formatter() -> None:
 
     pct_str = NumberFormatter.format_percentage(Decimal("12.5"))
     assert pct_str == "12.50%"
-

@@ -21,17 +21,18 @@ Supported Sources
 • Manual Import
 """
 
-from typing import Any, Dict
-from services.financials.income_statement import IncomeStatement
+from typing import Any
+
 from services.financials.balance_sheet import BalanceSheet
 from services.financials.cash_flow import CashFlowStatement
 from services.financials.financial_statement import (
     FinancialStatements,
 )
+from services.financials.income_statement import IncomeStatement
 
 
 def _get(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     *aliases: str,
     default: float = 0.0,
 ):
@@ -45,7 +46,7 @@ def _get(
 
 
 def normalize_income_statement(
-    raw: Dict[str, Any],
+    raw: dict[str, Any],
 ) -> IncomeStatement:
 
     return IncomeStatement(
@@ -89,7 +90,7 @@ def normalize_income_statement(
 
 
 def normalize_balance_sheet(
-    raw: Dict[str, Any],
+    raw: dict[str, Any],
 ) -> BalanceSheet:
 
     return BalanceSheet(
@@ -148,7 +149,7 @@ def normalize_balance_sheet(
 
 
 def normalize_cash_flow(
-    raw: Dict[str, Any],
+    raw: dict[str, Any],
 ) -> CashFlowStatement:
 
     return CashFlowStatement(
@@ -189,9 +190,9 @@ def normalize_financial_statements(
     ticker: str,
     currency: str,
     fiscal_year: str,
-    income_raw: Dict[str, Any],
-    balance_raw: Dict[str, Any],
-    cashflow_raw: Dict[str, Any],
+    income_raw: dict[str, Any],
+    balance_raw: dict[str, Any],
+    cashflow_raw: dict[str, Any],
 ) -> FinancialStatements:
     """
     Builds the platform's canonical FinancialStatements object.
@@ -202,13 +203,7 @@ def normalize_financial_statements(
         ticker=ticker,
         currency=currency,
         fiscal_year=fiscal_year,
-        income_statement=normalize_income_statement(
-            income_raw
-        ),
-        balance_sheet=normalize_balance_sheet(
-            balance_raw
-        ),
-        cash_flow_statement=normalize_cash_flow(
-            cashflow_raw
-        ),
+        income_statement=normalize_income_statement(income_raw),
+        balance_sheet=normalize_balance_sheet(balance_raw),
+        cash_flow_statement=normalize_cash_flow(cashflow_raw),
     )

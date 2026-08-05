@@ -10,6 +10,7 @@ Version : 4.0.0
 
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class DCFSettings:
     DEFAULT_TAX_RATE: float = 0.25
@@ -23,14 +24,17 @@ class DCFSettings:
     DEFAULT_CAPEX_PCT_REV: float = 0.05
     DEFAULT_NWC_PCT_REV: float = 0.02
 
+
 @dataclass(frozen=True)
 class NAVSettings:
     DEFAULT_HOLDCO_DISCOUNT: float = 0.15
+
 
 @dataclass(frozen=True)
 class AccountingSettings:
     STRICT_BALANCE_SHEET_CHECK: bool = True
     BALANCE_SHEET_TOLERANCE: float = 1.0
+
 
 @dataclass(frozen=True)
 class PlatformSettings:
@@ -38,5 +42,6 @@ class PlatformSettings:
     dcf: DCFSettings = DCFSettings()
     nav: NAVSettings = NAVSettings()
     accounting: AccountingSettings = AccountingSettings()
+
 
 settings = PlatformSettings()

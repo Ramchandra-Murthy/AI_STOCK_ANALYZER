@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from services.sotp_long_term_equity_entity_data_service import (
     get_sotp_long_term_equity_entity_data,
@@ -30,7 +30,7 @@ def _num(value: Any):
 
 def reconcile_sotp_long_term_equity_entities(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Evaluate entity-level evidence for Reliance's
     Long-Term Equity Investment pool.

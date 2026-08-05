@@ -46,7 +46,7 @@ def generate_investment_thesis(
 
     technical_reasons = _clean_reasons(technical_reasons)
     fundamental_reasons = _clean_reasons(fundamental_reasons)
-    ai_reasons = _clean_reasons(ai_result.get("reasons", []))
+    _clean_reasons(ai_result.get("reasons", []))
 
     investment_score = _safe_float(investment_score, 0) or 0
     technical_score = _safe_float(technical_score, 0) or 0

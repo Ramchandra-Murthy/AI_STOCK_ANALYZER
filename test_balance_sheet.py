@@ -7,7 +7,7 @@ bs = BalanceSheet(
     long_term_debt=10000.0,
     current_lease_liabilities=500.0,
     long_term_lease_liabilities=1500.0,
-    total_equity=50000.0
+    total_equity=50000.0,
 )
 
 print(f"Total Cash Resources : ₹{bs.total_cash:,.2f} Cr")

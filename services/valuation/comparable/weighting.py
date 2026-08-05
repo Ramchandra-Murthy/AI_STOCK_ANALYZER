@@ -24,16 +24,10 @@ class ComparableWeights:
     ev_ebitda: float
 
     def validate(self) -> None:
-        total = (
-            self.ev_sales
-            + self.ev_ebit
-            + self.ev_ebitda
-        )
+        total = self.ev_sales + self.ev_ebit + self.ev_ebitda
 
         if abs(total - 1.0) > 1e-6:
-            raise ValueError(
-                "Comparable weights must sum to 1.0."
-            )
+            raise ValueError("Comparable weights must sum to 1.0.")
 
 
 # ==========================================================

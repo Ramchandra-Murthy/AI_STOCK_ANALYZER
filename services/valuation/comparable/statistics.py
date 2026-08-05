@@ -23,14 +23,13 @@ Metrics
 • Outlier Detection
 """
 
-from dataclasses import dataclass
-from typing import List
 import statistics
-
+from dataclasses import dataclass
 
 # ==========================================================
 # Statistics Result
 # ==========================================================
+
 
 @dataclass(slots=True)
 class MultipleStatistics:
@@ -55,14 +54,15 @@ class MultipleStatistics:
 
     trimmed_mean: float
 
-    outliers: List[float]
+    outliers: list[float]
 
 
 # ==========================================================
 # Percentile
 # ==========================================================
 
-def percentile(values: List[float], pct: float) -> float:
+
+def percentile(values: list[float], pct: float) -> float:
 
     if not values:
         return 0.0
@@ -87,8 +87,9 @@ def percentile(values: List[float], pct: float) -> float:
 # Trimmed Mean
 # ==========================================================
 
+
 def calculate_trimmed_mean(
-    values: List[float],
+    values: list[float],
     trim_pct: float = 0.10,
 ) -> float:
 
@@ -102,7 +103,7 @@ def calculate_trimmed_mean(
     if len(values) <= 2 * trim:
         return statistics.mean(values)
 
-    trimmed = values[trim:len(values)-trim]
+    trimmed = values[trim : len(values) - trim]
 
     return statistics.mean(trimmed)
 
@@ -111,7 +112,8 @@ def calculate_trimmed_mean(
 # IQR Outlier Detection
 # ==========================================================
 
-def detect_outliers(values: List[float]) -> List[float]:
+
+def detect_outliers(values: list[float]) -> list[float]:
 
     if len(values) < 4:
         return []
@@ -126,23 +128,16 @@ def detect_outliers(values: List[float]) -> List[float]:
 
     upper = q3 + 1.5 * iqr
 
-    return [
-
-        value
-
-        for value in values
-
-        if value < lower or value > upper
-
-    ]
+    return [value for value in values if value < lower or value > upper]
 
 
 # ==========================================================
 # Main Statistics
 # ==========================================================
 
+
 def compute_statistics(
-    values: List[float],
+    values: list[float],
 ) -> MultipleStatistics:
 
     if not values:
@@ -154,33 +149,18 @@ def compute_statistics(
 
     iqr = q3 - q1
 
-    stdev = (
-        statistics.stdev(values)
-        if len(values) > 1
-        else 0.0
-    )
+    stdev = statistics.stdev(values) if len(values) > 1 else 0.0
 
     return MultipleStatistics(
-
         count=len(values),
-
         minimum=min(values),
-
         maximum=max(values),
-
         mean=statistics.mean(values),
-
         median=statistics.median(values),
-
         standard_deviation=stdev,
-
         q1=q1,
-
         q3=q3,
-
         iqr=iqr,
-
         trimmed_mean=calculate_trimmed_mean(values),
-
         outliers=detect_outliers(values),
     )

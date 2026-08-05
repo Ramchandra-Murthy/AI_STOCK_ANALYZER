@@ -15,6 +15,7 @@ BUILD = "2026.08"
 PYTHON_VERSION = "3.13+"
 ARCHITECTURE = "Modular Institutional Valuation Platform"
 
+
 def get_version_info() -> dict[str, str]:
     return {
         "platform_name": PLATFORM_NAME,

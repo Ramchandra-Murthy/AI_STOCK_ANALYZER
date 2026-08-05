@@ -1,5 +1,5 @@
-import streamlit as st
 import plotly.graph_objects as go
+import streamlit as st
 
 
 def show_portfolio_chart(summary):
@@ -17,21 +17,9 @@ def show_portfolio_chart(summary):
 
     fig = go.Figure()
 
-    fig.add_trace(
-        go.Bar(
-            name="Investment",
-            x=["Portfolio"],
-            y=[investment]
-        )
-    )
+    fig.add_trace(go.Bar(name="Investment", x=["Portfolio"], y=[investment]))
 
-    fig.add_trace(
-        go.Bar(
-            name="Current Value",
-            x=["Portfolio"],
-            y=[current_value]
-        )
-    )
+    fig.add_trace(go.Bar(name="Current Value", x=["Portfolio"], y=[current_value]))
 
     fig.update_layout(
         title="📈 Portfolio Value Comparison",
@@ -39,7 +27,7 @@ def show_portfolio_chart(summary):
         height=450,
         template="plotly_white",
         xaxis_title="",
-        yaxis_title="Value (₹)"
+        yaxis_title="Value (₹)",
     )
 
     st.plotly_chart(fig, use_container_width=True)

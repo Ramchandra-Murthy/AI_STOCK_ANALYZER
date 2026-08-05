@@ -1,40 +1,52 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Tuple, Dict, Any
+from typing import Any
+
 
 @dataclass(frozen=True, slots=True)
 class ForecastLineItem:
     name: str
-    values: Tuple[float, ...]
-    def to_dict(self) -> Dict[str, Any]:
+    values: tuple[float, ...]
+
+    def to_dict(self) -> dict[str, Any]:
         return {"name": self.name, "values": list(self.values)}
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> ForecastLineItem:
+    def from_dict(cls, data: dict[str, Any]) -> ForecastLineItem:
         return cls(name=data["name"], values=tuple(data["values"]))
+
 
 @dataclass(frozen=True, slots=True)
 class ForecastPackage:
     ticker: str
-    years: Tuple[int, ...]
+    years: tuple[int, ...]
     revenue: ForecastLineItem
     net_income: ForecastLineItem
     capex: ForecastLineItem
     depreciation: ForecastLineItem
     working_capital: ForecastLineItem
     tax_rate: ForecastLineItem
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    def to_dict(self) -> Dict[str, Any]:
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         return {
-            "ticker": self.ticker, "years": list(self.years),
-            "revenue": self.revenue.to_dict(), "net_income": self.net_income.to_dict(),
-            "capex": self.capex.to_dict(), "depreciation": self.depreciation.to_dict(),
-            "working_capital": self.working_capital.to_dict(), "tax_rate": self.tax_rate.to_dict(),
+            "ticker": self.ticker,
+            "years": list(self.years),
+            "revenue": self.revenue.to_dict(),
+            "net_income": self.net_income.to_dict(),
+            "capex": self.capex.to_dict(),
+            "depreciation": self.depreciation.to_dict(),
+            "working_capital": self.working_capital.to_dict(),
+            "tax_rate": self.tax_rate.to_dict(),
             "metadata": dict(self.metadata),
         }
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> ForecastPackage:
+    def from_dict(cls, data: dict[str, Any]) -> ForecastPackage:
         return cls(
-            ticker=data["ticker"], years=tuple(data["years"]),
+            ticker=data["ticker"],
+            years=tuple(data["years"]),
             revenue=ForecastLineItem.from_dict(data["revenue"]),
             net_income=ForecastLineItem.from_dict(data["net_income"]),
             capex=ForecastLineItem.from_dict(data["capex"]),

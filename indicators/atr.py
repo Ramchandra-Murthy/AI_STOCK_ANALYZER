@@ -9,10 +9,7 @@ def calculate_atr(df, period=14):
 
     low_close = (df["Low"] - df["Close"].shift()).abs()
 
-    tr = pd.concat(
-        [high_low, high_close, low_close],
-        axis=1
-    ).max(axis=1)
+    tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
 
     df["ATR"] = tr.rolling(period).mean()
 

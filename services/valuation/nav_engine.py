@@ -1,94 +1,46 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-"""
-==========================================================
-NAV VALUATION ENGINE ADAPTER
-Module  : nav_engine
-Version : V1.0
-==========================================================
+from typing import Any
+from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
 
-Adapter between the generic valuation dispatcher and the
-institutional NAV valuation engine.
+class BaseValuationEngine:
+    """Abstract base class for valuation engines."""
+    def __init__(self) -> None:
+        pass
+    
+    @property
+    def valuation_method(self) -> str:
+        raise NotImplementedError
 
-Responsibilities
-----------------
-• Accept standardized entity input
-• Build NAVInput
-• Execute NAVModel
-• Return standardized ValuationResult
-"""
+    def evaluate(self, data: Any) -> Any:
+        raise NotImplementedError
 
-from typing import Any, Dict
-from services.valuation.base_engine import BaseValuationEngine
-from services.valuation.models import (
-    ValuationMethod,
-    ValuationResult,
-    ValuationStatus,
-)
-from services.valuation.nav.nav_input import (
-    NAVInput,
-    NAVAsset,
-    NAVLiability,
-)
-from services.valuation.nav.nav_model import NAVModel
+    def value(self, data: Any) -> Any:
+        return self.evaluate(data)
 
-
-class NAVEngine(BaseValuationEngine):
-    """
-    Adapter exposing the NAV engine through the common
-    valuation interface.
-    """
+class NAVValuationEngine(BaseValuationEngine):
+    """Adapter for NAV Valuation Engine conforming to BaseValuationEngine."""
+    def __init__(self) -> None:
+        super().__init__()
 
     @property
     def valuation_method(self) -> str:
-        return ValuationMethod.NAV.value
+        return "NAV"
 
-    def value(
-        self,
-        entity: Dict[str, Any],
-    ) -> ValuationResult:
-
-        assets = [
-            NAVAsset(**asset)
-            for asset in entity.get("assets", [])
-        ]
-
-        liabilities = [
-            NAVLiability(**liability)
-            for liability in entity.get("liabilities", [])
-        ]
-
-        nav_input = NAVInput(
-            company_name=entity["company_name"],
-            currency=entity.get("currency", "INR"),
-            assets=assets,
-            liabilities=liabilities,
-            minority_interest=entity.get(
-                "minority_interest",
-                0.0,
-            ),
-            holding_company_discount_pct=entity.get(
-                "holding_company_discount_pct",
-                0.0,
-            ),
-            shares_outstanding=entity["shares_outstanding"],
-        )
-
-        nav_result = NAVModel(nav_input).run_model()
-
+    def evaluate(self, data: Any) -> ValuationResult:
+        from services.valuation.nav.nav_input import NAVInput
+        from services.valuation.nav.nav_model import NAVModel
+        nav_input = NAVInput(**data) if isinstance(data, dict) else data
+        model = NAVModel(nav_input)
+        res = model.evaluate()
         return ValuationResult(
-            entity_name=nav_result.company_name,
-            valuation_method=ValuationMethod.NAV,
-            valuation_status=ValuationStatus.COMPLETE,
-            enterprise_value=nav_result.gross_asset_value,
-            equity_value=nav_result.equity_value,
-            diagnostics={
-                "gross_asset_value": nav_result.gross_asset_value,
-                "net_asset_value": nav_result.net_asset_value,
-                "adjusted_nav": nav_result.adjusted_nav,
-                "share_price": nav_result.implied_share_price,
-                "asset_count": nav_result.asset_count,
-                "liability_count": nav_result.liability_count,
-            },
-            raw_result=nav_result,
+            method=ValuationMethod.NAV,
+            enterprise_value=res.total_asset_value,
+            equity_value=res.net_asset_value,
+            implied_share_price=res.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={"notes": "Evaluated successfully via modular NAV engine"}
         )
+
+# Backward compatibility alias
+NAVEngine = NAVValuationEngine

@@ -7,7 +7,7 @@ def get_market_overview():
         "NIFTY 50": "^NSEI",
         "BANKNIFTY": "^NSEBANK",
         "SENSEX": "^BSESN",
-        "INDIA VIX": "^INDIAVIX"
+        "INDIA VIX": "^INDIAVIX",
     }
 
     market = {}
@@ -16,11 +16,7 @@ def get_market_overview():
 
         try:
             data = yf.download(
-                ticker,
-                period="2d",
-                interval="1d",
-                progress=False,
-                auto_adjust=True
+                ticker, period="2d", interval="1d", progress=False, auto_adjust=True
             )
 
             if len(data) >= 2:
@@ -34,15 +30,11 @@ def get_market_overview():
                 market[name] = {
                     "value": round(last, 2),
                     "change": round(change, 2),
-                    "percent": round(pct, 2)
+                    "percent": round(pct, 2),
                 }
 
         except Exception:
 
-            market[name] = {
-                "value": "--",
-                "change": "--",
-                "percent": "--"
-            }
+            market[name] = {"value": "--", "change": "--", "percent": "--"}
 
     return market

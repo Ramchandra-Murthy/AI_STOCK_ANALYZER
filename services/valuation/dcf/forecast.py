@@ -14,33 +14,33 @@ This module contains no valuation or discounting logic.
 """
 
 from dataclasses import dataclass
-from typing import List
+
 from services.valuation.dcf.dcf_input import DCFInput
 
 
 @dataclass(slots=True)
 class ForecastSchedule:
     """
-    Container holding itemized line-item forecasts across the 
+    Container holding itemized line-item forecasts across the
     explicit projection period.
     """
 
-    projected_revenue: List[float]
-    projected_ebit: List[float]
-    projected_nopat: List[float]
-    projected_depreciation: List[float]
-    projected_capex: List[float]
-    projected_delta_nwc: List[float]
-    projected_fcff: List[float]
+    projected_revenue: list[float]
+    projected_ebit: list[float]
+    projected_nopat: list[float]
+    projected_depreciation: list[float]
+    projected_capex: list[float]
+    projected_delta_nwc: list[float]
+    projected_fcff: list[float]
 
 
-def forecast_revenue(last_revenue: float, growth_rates: List[float]) -> List[float]:
+def forecast_revenue(last_revenue: float, growth_rates: list[float]) -> list[float]:
     """
     Forecasts revenue recursively from the most recent historical base revenue.
 
     R_t = R_{t-1} * (1 + g_t)
     """
-    revenues: List[float] = []
+    revenues: list[float] = []
     current_revenue = last_revenue
 
     for rate in growth_rates:
@@ -58,12 +58,12 @@ def build_forecast_schedule(data: DCFInput) -> ForecastSchedule:
     last_rev = data.last_historical_revenue
     revenues = forecast_revenue(last_rev, data.revenue_growth_rates)
 
-    ebit_list: List[float] = []
-    nopat_list: List[float] = []
-    depreciation_list: List[float] = []
-    capex_list: List[float] = []
-    delta_nwc_list: List[float] = []
-    fcff_list: List[float] = []
+    ebit_list: list[float] = []
+    nopat_list: list[float] = []
+    depreciation_list: list[float] = []
+    capex_list: list[float] = []
+    delta_nwc_list: list[float] = []
+    fcff_list: list[float] = []
 
     prev_revenue = last_rev
 

@@ -7,6 +7,7 @@ Layer   : Tests / Forecast / Validation
 """
 
 import math
+
 import pytest
 
 from services.forecast.exceptions import ValuationError

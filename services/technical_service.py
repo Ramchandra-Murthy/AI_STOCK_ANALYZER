@@ -1,5 +1,5 @@
-import yfinance as yf
 import pandas as pd
+import yfinance as yf
 
 
 def get_price_history(symbol, period="1y"):
@@ -13,12 +13,7 @@ def get_price_history(symbol, period="1y"):
     if "." not in symbol:
         symbol += ".NS"
 
-    df = yf.download(
-        symbol,
-        period=period,
-        auto_adjust=False,
-        progress=False
-    )
+    df = yf.download(symbol, period=period, auto_adjust=False, progress=False)
 
     if df.empty:
         return None
@@ -86,10 +81,7 @@ def get_price_history(symbol, period="1y"):
     high_close = (df["High"] - df["Close"].shift()).abs()
     low_close = (df["Low"] - df["Close"].shift()).abs()
 
-    tr = pd.concat(
-        [high_low, high_close, low_close],
-        axis=1
-    ).max(axis=1)
+    tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
 
     df["ATR"] = tr.rolling(window=14).mean()
 

@@ -1,14 +1,14 @@
-﻿from services.financials.income_statement import IncomeStatement
-from services.financials.balance_sheet import BalanceSheet
+﻿from services.financials.balance_sheet import BalanceSheet
 from services.financials.cash_flow import CashFlowStatement
 from services.financials.financial_ratios import calculate_financial_ratios
+from services.financials.income_statement import IncomeStatement
 
 inc = IncomeStatement(
     revenue=100000.0,
     cost_of_goods_sold=60000.0,
     ebitda=20000.0,
     ebit=16000.0,
-    net_income=10500.0
+    net_income=10500.0,
 )
 
 bs = BalanceSheet(
@@ -20,13 +20,10 @@ bs = BalanceSheet(
     total_current_liabilities=20000.0,
     short_term_debt=4000.0,
     long_term_debt=16000.0,
-    total_equity=75000.0
+    total_equity=75000.0,
 )
 
-cf = CashFlowStatement(
-    operating_cash_flow=15000.0,
-    capital_expenditure=4000.0
-)
+cf = CashFlowStatement(operating_cash_flow=15000.0, capital_expenditure=4000.0)
 
 ratios = calculate_financial_ratios(inc, bs, cf)
 

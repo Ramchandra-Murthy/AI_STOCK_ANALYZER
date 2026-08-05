@@ -1,32 +1,43 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass
-from core.exceptions import ValidationError
+from decimal import Decimal
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(frozen=True, order=True)
 class Percentage:
-    value: float
+    """Immutable representation of a percentage value stored as a decimal fraction."""
+
+    value: Decimal
 
     def __post_init__(self) -> None:
-        if not isinstance(self.value, (int, float)):
-            raise ValidationError(f"Percentage value must numeric, got {type(self.value)}")
+        if not isinstance(self.value, Decimal):
+            object.__setattr__(self, "value", Decimal(str(self.value)))
 
     @classmethod
-    def from_rate(cls, rate: float) -> Percentage:
-        return cls(rate)
+    def from_fraction(cls, fraction: Decimal | float | int) -> Percentage:
+        return cls(Decimal(str(fraction)))
 
     @classmethod
-    def from_basis_points(cls, bps: float) -> Percentage:
-        return cls(bps / 10000.0)
+    def from_percentage(cls, pct: Decimal | float | int) -> Percentage:
+        return cls(Decimal(str(pct)) / Decimal("100"))
 
-    @property
-    def as_rate(self) -> float:
-        return self.value
+    @classmethod
+    def zero(cls) -> Percentage:
+        return cls(Decimal("0"))
 
-    @property
-    def as_basis_points(self) -> float:
-        return self.value * 10000.0
+    @classmethod
+    def hundred(cls) -> Percentage:
+        return cls(Decimal("1"))
 
-    @property
-    def as_percentage(self) -> float:
-        return self.value * 100.0
+    def to_basis_points(self) -> Decimal:
+        return self.value * Decimal("10000")
+
+    def __add__(self, other: Percentage) -> Percentage:
+        return Percentage(self.value + other.value)
+
+    def __sub__(self, other: Percentage) -> Percentage:
+        return Percentage(self.value - other.value)
+
+    def __float__(self) -> float:
+        return float(self.value * Decimal("100"))

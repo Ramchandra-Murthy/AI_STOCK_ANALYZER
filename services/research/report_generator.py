@@ -1,9 +1,11 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
+
 from core.enums import Status
-from services.sotp.sotp_engine import SOTPResult
 from core.logger import logger
+from services.sotp.sotp_engine import SOTPResult
+
 
 @dataclass(slots=True, frozen=True)
 class EquityResearchReport:
@@ -15,6 +17,7 @@ class EquityResearchReport:
     investment_thesis: str
     sotp_result: SOTPResult
     status: Status = Status.OK
+
 
 class ResearchReportGenerator:
     """Compiles structured institutional research reports from valuation outputs."""
@@ -41,7 +44,9 @@ class ResearchReportGenerator:
         else:
             rec = "SELL"
 
-        logger.info(f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})")
+        logger.info(
+            f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})"
+        )
 
         return EquityResearchReport(
             ticker=ticker,

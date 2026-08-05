@@ -6,11 +6,7 @@ def section(title):
 
 
 def card(title, value, delta=None):
-    st.metric(
-        label=title,
-        value=value,
-        delta=delta
-    )
+    st.metric(label=title, value=value, delta=delta)
 
 
 def recommendation_box(action, confidence, risk):

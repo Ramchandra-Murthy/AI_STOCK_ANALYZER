@@ -1,6 +1,9 @@
 ﻿from __future__ import annotations
+
 from decimal import Decimal
-from core.utils import get_logger, NumberFormatter
+
+from core.utils import NumberFormatter, get_logger
+
 
 def run_example() -> None:
     print("--- CORE-006: Utilities Example ---")
@@ -13,6 +16,6 @@ def run_example() -> None:
     print(f"Formatted Money: {formatted_money}")
     print(f"Formatted Percentage: {formatted_pct}")
 
+
 if __name__ == "__main__":
     run_example()
-

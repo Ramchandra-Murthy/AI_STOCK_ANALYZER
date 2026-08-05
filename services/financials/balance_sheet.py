@@ -115,11 +115,7 @@ class BalanceSheet:
         """
         Cash and near-cash resources.
         """
-        return (
-            self.cash
-            + self.cash_equivalents
-            + self.short_term_investments
-        )
+        return self.cash + self.cash_equivalents + self.short_term_investments
 
     @property
     def net_debt(self) -> float:
