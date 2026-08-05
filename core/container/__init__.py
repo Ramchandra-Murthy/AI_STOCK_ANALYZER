@@ -1,4 +1,9 @@
-from core.container.bootstrap import bootstrap_container
-from core.container.container import ServiceContainer, container
+"""
+==========================================================
+Core Dependency Injection Package
+==========================================================
+"""
+from core.container.container import ServiceContainer
+from core.container.registry import ServiceRegistry
 
-__all__ = ["ServiceContainer", "container", "bootstrap_container"]
+__all__ = ["ServiceContainer", "ServiceRegistry"]
