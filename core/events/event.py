@@ -22,5 +22,6 @@ class BaseDomainEvent:
         assert isinstance(self.payload, dict), f"Event payload must be a dictionary, got {type(self.payload)}"
 
 
-# Backward compatibility alias
+# Backward compatibility aliases
 DomainEvent = BaseDomainEvent
+BaseEvent = BaseDomainEvent
