@@ -1,14 +1,6 @@
 ﻿from __future__ import annotations
 
-from services.forecast.service import ForecastService
-from services.forecast.engine import ForecastEngine
-from services.forecast.models import ForecastResult, FinancialMetricForecast
-from services.forecast.events import ForecastCompleted
+from services.forecast.models import ForecastResult
 
-__all__ = [
-    "ForecastService",
-    "ForecastEngine",
-    "ForecastResult",
-    "FinancialMetricForecast",
-    "ForecastCompleted",
-]
+# Backward compatibility alias if imported by event contract tests
+FinancialMetricForecast = ForecastResult
