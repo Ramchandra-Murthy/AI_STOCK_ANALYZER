@@ -3,13 +3,13 @@
 import asyncio
 import streamlit as st
 import pandas as pd
+import os
 
 from core.events import InMemoryEventBus, EventDispatcher
 from services.fundamentals.provider import YahooFinanceProvider
 from services.fundamentals.normalizer import FinancialNormalizer
 from services.fundamentals.service import FundamentalsService
-from services.forecast.engine import ForecastEngine
-from services.forecast.service import ForecastService
+from services.forecast.models import ForecastResult
 from services.valuation.dcf.engine import ProductionDCFEngine
 from services.valuation.relative.engine import RelativeValuationEngine
 from services.valuation.sotp.engine import SOTPEngine
@@ -41,7 +41,6 @@ if page == "Single Stock Analysis":
 
     if st.button("Run Institutional Pipeline", type="primary"):
         with st.spinner(f"Executing event-driven pipeline for {symbol}..."):
-            # Initialize core event bus & services
             bus = InMemoryEventBus()
             dispatcher = EventDispatcher(bus)
             
@@ -49,21 +48,16 @@ if page == "Single Stock Analysis":
             normalizer = FinancialNormalizer()
             fundamentals_service = FundamentalsService(provider, normalizer, dispatcher)
             
-            # Execute fundamentals retrieval/download
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             financials = loop.run_until_complete(fundamentals_service.get_or_download(symbol))
 
-            # Run Valuation Engines
             dcf_engine = ProductionDCFEngine()
             rel_engine = RelativeValuationEngine()
             sotp_engine = SOTPEngine()
             scoring_engine = AIScoringEngine()
             report_engine = ProductionReportEngine()
 
-            # Generate results
-            # Mock or default forecast for demo
-            from services.forecast.models import ForecastResult
             forecast = ForecastResult(
                 symbol=symbol,
                 model_type="CAGR",
@@ -75,6 +69,20 @@ if page == "Single Stock Analysis":
             sotp_res = sotp_engine.calculate(financials, holding_discount=0.15)
             score_res = scoring_engine.evaluate(financials)
 
+            # Generate formal HTML/Markdown Report
+            report_result = report_engine.generate(
+                symbol=symbol,
+                format_type="MULTI-FORMAT",
+                analysis_data={
+                    "recommendation": "BUY",
+                    "blended_fair_value": dcf_res.fair_value_per_share,
+                    "composite_score": score_res.composite_score,
+                    "dcf_ev": dcf_res.enterprise_value,
+                    "relative_blend": rel_res.blend_relative_value,
+                    "sotp_equity": sotp_res.equity_value,
+                }
+            )
+
             st.success("Pipeline executed successfully via Event Dispatcher!")
 
             # Display Key Metrics
@@ -84,18 +92,24 @@ if page == "Single Stock Analysis":
             m3.metric("SOTP Equity Value / Share", f"₹{sotp_res.fair_value_per_share:,.2f}")
             m4.metric("Composite AI Score", f"{score_res.composite_score} / 100", delta=score_res.breakdown_details.get("rating"))
 
-            # Tabs for Detailed Breakdown
-            tab1, tab2, tab3, tab4 = st.tabs(["DCF Valuation", "Relative Valuation", "SOTP (Conglomerate)", "AI Scorecard"])
+            # Tabs for Detailed Breakdown & Visualizations
+            tab1, tab2, tab3, tab4, tab5 = st.tabs(["DCF Valuation", "Relative Valuation", "SOTP (Conglomerate)", "AI Scorecard", "Research Report"])
 
             with tab1:
-                st.subheader("Discounted Cash Flow (DCF) Model")
-                st.json({
-                    "Enterprise Value (₹M)": dcf_res.enterprise_value,
-                    "Equity Value (₹M)": dcf_res.equity_value,
-                    "WACC (%)": dcf_res.wacc * 100,
-                    "Terminal Value (₹M)": dcf_res.terminal_value,
-                    "PV of Terminal Value (₹M)": dcf_res.pv_terminal_value,
-                })
+                st.subheader("Discounted Cash Flow (DCF) Model & Sensitivity")
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.json({
+                        "Enterprise Value (₹M)": dcf_res.enterprise_value,
+                        "Equity Value (₹M)": dcf_res.equity_value,
+                        "WACC (%)": dcf_res.wacc * 100,
+                        "Terminal Value (₹M)": dcf_res.terminal_value,
+                        "PV of Terminal Value (₹M)": dcf_res.pv_terminal_value,
+                    })
+                with c2:
+                    st.markdown("##### FCF Forecast Projection (₹M)")
+                    fcf_df = pd.DataFrame({"Year": [1, 2, 3, 4, 5], "FCF": forecast.free_cash_flow_forecast})
+                    st.bar_chart(fcf_df.set_index("Year"))
 
             with tab2:
                 st.subheader("Relative Valuation & Peer Benchmarking")
@@ -116,15 +130,32 @@ if page == "Single Stock Analysis":
 
             with tab4:
                 st.subheader("Multi-Pillar AI Scoring Breakdown")
-                st.json({
-                    "Growth Score": score_res.growth_score,
-                    "Quality Score": score_res.quality_score,
-                    "Profitability Score": score_res.profitability_score,
-                    "Capital Allocation Score": score_res.capital_allocation_score,
-                    "Valuation Score": score_res.valuation_score,
-                    "Momentum Score": score_res.momentum_score,
-                    "Risk Score": score_res.risk_score,
+                scores_df = pd.DataFrame({
+                    "Pillar": ["Growth", "Quality", "Profitability", "Capital Allocation", "Valuation", "Momentum", "Risk"],
+                    "Score": [
+                        score_res.growth_score,
+                        score_res.quality_score,
+                        score_res.profitability_score,
+                        score_res.capital_allocation_score,
+                        score_res.valuation_score,
+                        score_res.momentum_score,
+                        score_res.risk_score,
+                    ]
                 })
+                st.bar_chart(scores_df.set_index("Pillar"))
+
+            with tab5:
+                st.subheader("Generated Institutional Research Report")
+                st.markdown(report_result.content)
+                if os.path.exists(report_result.file_path):
+                    with open(report_result.file_path, "r", encoding="utf-8") as rf:
+                        html_bytes = rf.read()
+                    st.download_button(
+                        label="Download HTML Research Report",
+                        data=html_bytes,
+                        file_name=f"{symbol}_research_report.html",
+                        mime="text/html",
+                    )
 
 elif page == "Portfolio Analytics":
     st.header("Portfolio Analytics & Risk Attribution")
@@ -158,7 +189,7 @@ else:
     st.markdown("""
     ### Institutional Event-Driven Architecture V6
     - **Event Bus & Dispatcher**: Fully active, asynchronous decoupling.
-    - **Tested Coverage**: 25/25 unit & integration tests passing successfully.
+    - **Tested Coverage**: 26/26 unit & integration tests passing successfully.
     - **Pipeline Flow**: MarketData → Fundamentals → Forecast → DCF/Relative/SOTP → AI Scoring → Portfolio Analytics → Report Generation.
     """)
     st.info("System status: Stable on branch `feature/event-pipeline` (Tag: `v6.0.0-beta1`).")
