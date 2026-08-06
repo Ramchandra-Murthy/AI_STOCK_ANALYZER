@@ -40,3 +40,7 @@ htmlcov/
 .vscode/
 .idea/
 
+# Temporary archives
+*.zip
+*.rar
+*.7z
