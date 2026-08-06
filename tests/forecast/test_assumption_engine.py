@@ -7,10 +7,9 @@ Module  : tests.forecast.test_assumption_engine
 
 from __future__ import annotations
 
-import pytest
 from services.forecast.assumption_engine import AssumptionEngine
 from services.forecast.confidence_engine import ConfidenceEngine
-from services.forecast.models import ForecastMethod, ConfidenceLevel
+from services.forecast.models import ConfidenceLevel, ForecastMethod
 
 
 def test_assumption_engine_derivation() -> None:

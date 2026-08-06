@@ -1,8 +1,8 @@
 import streamlit as st
 
-from services.technical_service import get_price_history
-from services.technical_score_service import calculate_technical_score
 from services.target_price_service import calculate_target_price
+from services.technical_score_service import calculate_technical_score
+from services.technical_service import get_price_history
 
 st.title("🎯 Target Price Engine Test")
 

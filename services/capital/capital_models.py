@@ -1,5 +1,7 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True, slots=True)
 class CapitalStructure:
@@ -24,6 +26,7 @@ class CapitalStructure:
     def weight_debt(self) -> float:
         total = self.market_cap + self.total_debt
         return self.total_debt / total if total > 0 else 0.0
+
 
 @dataclass(frozen=True, slots=True)
 class WACCResult:

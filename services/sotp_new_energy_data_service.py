@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 # ============================================================
 # SOTP V5.0 — NEW ENERGY FACTUAL DATA
@@ -169,7 +169,7 @@ def _is_available(value: Any) -> bool:
 
 def get_sotp_new_energy_data(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     base_symbol = _clean_symbol(symbol)
 

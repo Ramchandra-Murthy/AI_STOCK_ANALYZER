@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+
 @dataclass(slots=True, frozen=True)
 class WACCOutput:
     wacc: float
@@ -9,6 +10,7 @@ class WACCOutput:
     cost_of_debt_post_tax: float
     equity_weight: float
     debt_weight: float
+
 
 class WACCService:
     @staticmethod

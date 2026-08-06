@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
-from services.sotp_segment_valuation_service import (
-    generate_operating_sotp_valuation,
-)
+from services.research_service import get_stock_profile
 from services.sotp_adjustment_service import (
     build_sotp_adjustments,
 )
 from services.sotp_new_energy_scenario_policy_service import (
     authorize_sotp_new_energy_scenarios,
 )
-from services.research_service import get_stock_profile
+from services.sotp_segment_valuation_service import (
+    generate_operating_sotp_valuation,
+)
 
 
 def _num(value: Any):
@@ -45,7 +45,7 @@ def _crore_to_rupees(value: float) -> float:
 
 def generate_sotp_equity_bridge(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     symbol = symbol.upper().replace(".NS", "").strip()
 

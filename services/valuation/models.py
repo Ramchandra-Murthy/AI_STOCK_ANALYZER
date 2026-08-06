@@ -13,7 +13,7 @@ used across engines, dispatchers, and aggregators.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class ValuationMethod(Enum):
@@ -41,7 +41,7 @@ class ValuationResult:
     valuation_status: ValuationStatus
     enterprise_value: float
     equity_value: float
-    diagnostics: Dict[str, Any] = field(default_factory=dict)
+    diagnostics: dict[str, Any] = field(default_factory=dict)
     raw_result: Any = None
 
 
@@ -57,4 +57,4 @@ class SOTPResult:
     net_debt: float
     holdco_discount_pct: float
     holdco_discount_amount: float
-    component_results: List[ValuationResult] = field(default_factory=list)
+    component_results: list[ValuationResult] = field(default_factory=list)

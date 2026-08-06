@@ -1,7 +1,9 @@
 ﻿from __future__ import annotations
-from services.capital.capital_models import CapitalStructure, WACCResult
+
 from core.exceptions import ValuationError
 from core.logger import logger
+from services.capital.capital_models import CapitalStructure, WACCResult
+
 
 class WACCService:
     """Computes Weighted Average Cost of Capital (WACC) via CAPM and post-tax cost of debt."""

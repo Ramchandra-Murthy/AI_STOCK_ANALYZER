@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
+
 
 def round_currency(amount: float | Decimal, places: int = 2) -> Decimal:
     """Round a monetary amount using standard financial half-up rounding."""

@@ -9,7 +9,7 @@ Layer   : Services / Capital / Domain Models
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Tuple
+from typing import Any
 
 
 @dataclass(slots=True, frozen=True)
@@ -44,7 +44,7 @@ class CostOfEquityResult:
     equity_risk_premium: float
     cost_of_equity: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "risk_free_rate": self.risk_free_rate,
             "beta": self.beta,
@@ -61,7 +61,7 @@ class CostOfDebtResult:
     effective_tax_rate: float
     after_tax_cost_of_debt: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "pre_tax_cost_of_debt": self.pre_tax_cost_of_debt,
             "effective_tax_rate": self.effective_tax_rate,
@@ -78,9 +78,9 @@ class WACCResult:
     cost_of_equity: CostOfEquityResult
     cost_of_debt: CostOfDebtResult
     wacc: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "symbol": self.symbol,
             "capital_structure": {

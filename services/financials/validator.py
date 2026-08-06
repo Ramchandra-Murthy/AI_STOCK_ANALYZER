@@ -32,13 +32,16 @@ ACCOUNTING_TOLERANCE = 1e-3
 # Helper
 # =========================================================
 
+
 def _require_non_negative(name: str, value: float) -> None:
     if value < 0:
         raise ValueError(f"{name} cannot be negative.")
 
+
 # =========================================================
 # Main Validation
 # =========================================================
+
 
 def validate_financial_statements(
     fs: FinancialStatements,
@@ -96,11 +99,7 @@ def validate_financial_statements(
     # ------------------------------------------------------
 
     difference = abs(
-        balance.total_assets
-        - (
-            balance.total_liabilities
-            + balance.total_equity
-        )
+        balance.total_assets - (balance.total_liabilities + balance.total_equity)
     )
 
     if difference > ACCOUNTING_TOLERANCE:
@@ -115,21 +114,10 @@ def validate_financial_statements(
     # Cash Flow
     # ------------------------------------------------------
 
-    calculated_cash = (
-        cashflow.beginning_cash
-        + cashflow.net_change_in_cash
-    )
+    calculated_cash = cashflow.beginning_cash + cashflow.net_change_in_cash
 
-    if (
-        cashflow.beginning_cash != 0
-        or cashflow.ending_cash != 0
-    ):
-        difference = abs(
-            calculated_cash
-            - cashflow.ending_cash
-        )
+    if cashflow.beginning_cash != 0 or cashflow.ending_cash != 0:
+        difference = abs(calculated_cash - cashflow.ending_cash)
 
         if difference > ACCOUNTING_TOLERANCE:
-            raise ValueError(
-                "Cash Flow reconciliation failed."
-            )
+            raise ValueError("Cash Flow reconciliation failed.")

@@ -17,7 +17,7 @@ def plot_candlestick(df):
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.05,
-        row_heights=[0.75, 0.25]
+        row_heights=[0.75, 0.25],
     )
 
     # ======================================================
@@ -31,10 +31,10 @@ def plot_candlestick(df):
             high=df["High"],
             low=df["Low"],
             close=df["Close"],
-            name="Price"
+            name="Price",
         ),
         row=1,
-        col=1
+        col=1,
     )
 
     # ======================================================
@@ -43,14 +43,10 @@ def plot_candlestick(df):
 
     fig.add_trace(
         go.Scatter(
-            x=df.index,
-            y=df["EMA20"],
-            mode="lines",
-            name="EMA 20",
-            line=dict(width=1.5)
+            x=df.index, y=df["EMA20"], mode="lines", name="EMA 20", line=dict(width=1.5)
         ),
         row=1,
-        col=1
+        col=1,
     )
 
     # ======================================================
@@ -59,14 +55,10 @@ def plot_candlestick(df):
 
     fig.add_trace(
         go.Scatter(
-            x=df.index,
-            y=df["EMA50"],
-            mode="lines",
-            name="EMA 50",
-            line=dict(width=1.5)
+            x=df.index, y=df["EMA50"], mode="lines", name="EMA 50", line=dict(width=1.5)
         ),
         row=1,
-        col=1
+        col=1,
     )
 
     # ======================================================
@@ -75,14 +67,10 @@ def plot_candlestick(df):
 
     fig.add_trace(
         go.Scatter(
-            x=df.index,
-            y=df["EMA200"],
-            mode="lines",
-            name="EMA 200",
-            line=dict(width=2)
+            x=df.index, y=df["EMA200"], mode="lines", name="EMA 200", line=dict(width=2)
         ),
         row=1,
-        col=1
+        col=1,
     )
 
     # ======================================================
@@ -95,10 +83,10 @@ def plot_candlestick(df):
             y=df["BB_Upper"],
             mode="lines",
             name="BB Upper",
-            line=dict(dash="dot")
+            line=dict(dash="dot"),
         ),
         row=1,
-        col=1
+        col=1,
     )
 
     fig.add_trace(
@@ -107,10 +95,10 @@ def plot_candlestick(df):
             y=df["BB_Lower"],
             mode="lines",
             name="BB Lower",
-            line=dict(dash="dot")
+            line=dict(dash="dot"),
         ),
         row=1,
-        col=1
+        col=1,
     )
 
     # ======================================================
@@ -123,10 +111,10 @@ def plot_candlestick(df):
             y=df["Support"],
             mode="lines",
             name="Support",
-            line=dict(dash="dash")
+            line=dict(dash="dash"),
         ),
         row=1,
-        col=1
+        col=1,
     )
 
     # ======================================================
@@ -139,25 +127,17 @@ def plot_candlestick(df):
             y=df["Resistance"],
             mode="lines",
             name="Resistance",
-            line=dict(dash="dash")
+            line=dict(dash="dash"),
         ),
         row=1,
-        col=1
+        col=1,
     )
 
     # ======================================================
     # Volume
     # ======================================================
 
-    fig.add_trace(
-        go.Bar(
-            x=df.index,
-            y=df["Volume"],
-            name="Volume"
-        ),
-        row=2,
-        col=1
-    )
+    fig.add_trace(go.Bar(x=df.index, y=df["Volume"], name="Volume"), row=2, col=1)
 
     # ======================================================
     # Layout
@@ -169,23 +149,11 @@ def plot_candlestick(df):
         height=850,
         hovermode="x unified",
         xaxis_rangeslider_visible=False,
-        legend=dict(
-            orientation="h",
-            y=1.02,
-            x=0
-        )
+        legend=dict(orientation="h", y=1.02, x=0),
     )
 
-    fig.update_yaxes(
-        title_text="Price (₹)",
-        row=1,
-        col=1
-    )
+    fig.update_yaxes(title_text="Price (₹)", row=1, col=1)
 
-    fig.update_yaxes(
-        title_text="Volume",
-        row=2,
-        col=1
-    )
+    fig.update_yaxes(title_text="Volume", row=2, col=1)
 
     return fig

@@ -9,9 +9,9 @@ Layer   : Services / Forecast / Input
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import logging
-from typing import Any, Dict, Optional, Sequence, Tuple
+from dataclasses import dataclass, field
+from typing import Any
 
 from services.forecast.exceptions import ValuationError
 from services.forecast.forecast_models import ForecastMethod
@@ -23,19 +23,19 @@ logger = logging.getLogger(__name__)
 class HistoricalFinancials:
     """Container for historical financial time-series data."""
 
-    revenue: Tuple[float, ...]
-    ebitda: Tuple[float, ...] = field(default_factory=tuple)
-    capex: Tuple[float, ...] = field(default_factory=tuple)
-    depreciation: Tuple[float, ...] = field(default_factory=tuple)
-    nwc: Tuple[float, ...] = field(default_factory=tuple)
+    revenue: tuple[float, ...]
+    ebitda: tuple[float, ...] = field(default_factory=tuple)
+    capex: tuple[float, ...] = field(default_factory=tuple)
+    depreciation: tuple[float, ...] = field(default_factory=tuple)
+    nwc: tuple[float, ...] = field(default_factory=tuple)
 
 
 @dataclass(slots=True, frozen=True)
 class ScenarioOverrides:
     """Container for scenario-specific growth and margin overrides."""
 
-    revenue_growth_override: Optional[Tuple[float, ...]] = None
-    margin_override: Optional[Tuple[float, ...]] = None
+    revenue_growth_override: tuple[float, ...] | None = None
+    margin_override: tuple[float, ...] | None = None
 
 
 @dataclass(slots=True, frozen=True)
@@ -46,20 +46,20 @@ class ForecastInput:
     """
 
     symbol: str = "GENERIC"
-    historical_data: Optional[HistoricalFinancials] = None
+    historical_data: HistoricalFinancials | None = None
     forecast_horizon: int = 5
 
     # Direct flat/legacy parameter accessors
-    historical_revenues: Tuple[float, ...] = field(default_factory=tuple)
-    historical_ebits: Tuple[float, ...] = field(default_factory=tuple)
-    historical_nwc: Tuple[float, ...] = field(default_factory=tuple)
-    historical_capex: Tuple[float, ...] = field(default_factory=tuple)
-    historical_depreciation: Tuple[float, ...] = field(default_factory=tuple)
+    historical_revenues: tuple[float, ...] = field(default_factory=tuple)
+    historical_ebits: tuple[float, ...] = field(default_factory=tuple)
+    historical_nwc: tuple[float, ...] = field(default_factory=tuple)
+    historical_capex: tuple[float, ...] = field(default_factory=tuple)
+    historical_depreciation: tuple[float, ...] = field(default_factory=tuple)
     forecast_years: int = 5
     method: ForecastMethod = ForecastMethod.CAGR
-    management_guidance_revenue: Optional[Tuple[float, ...]] = None
-    scenario_overrides: Optional[ScenarioOverrides] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    management_guidance_revenue: tuple[float, ...] | None = None
+    scenario_overrides: ScenarioOverrides | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Normalizes and validates input state upon instantiation."""

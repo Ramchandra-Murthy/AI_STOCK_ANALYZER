@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 def calculate_bollinger(df, period=20, std_dev=2):
 
     sma = df["Close"].rolling(window=period).mean()

@@ -1,4 +1,5 @@
 import math
+
 from services.sotp_equity_bridge_service import (
     generate_sotp_equity_bridge,
 )

@@ -12,12 +12,11 @@ engine.
 """
 
 from dataclasses import dataclass, field
-from typing import List
-
 
 # ==========================================================
 # Asset
 # ==========================================================
+
 
 @dataclass(slots=True)
 class NAVAsset:
@@ -44,6 +43,7 @@ class NAVAsset:
 # Liability
 # ==========================================================
 
+
 @dataclass(slots=True)
 class NAVLiability:
     """
@@ -65,6 +65,7 @@ class NAVLiability:
 # NAV Input
 # ==========================================================
 
+
 @dataclass(slots=True)
 class NAVInput:
     """
@@ -77,9 +78,9 @@ class NAVInput:
 
     valuation_method: str = "NAV"
 
-    assets: List[NAVAsset] = field(default_factory=list)
+    assets: list[NAVAsset] = field(default_factory=list)
 
-    liabilities: List[NAVLiability] = field(default_factory=list)
+    liabilities: list[NAVLiability] = field(default_factory=list)
 
     minority_interest: float = 0.0
 

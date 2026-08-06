@@ -1,11 +1,10 @@
 import math
 
-from services.sotp_segment_data_service import (
-    get_sotp_segment_data,
-)
-
 from services.sotp_benchmark_service import (
     generate_validated_sotp_benchmarks,
+)
+from services.sotp_segment_data_service import (
+    get_sotp_segment_data,
 )
 
 # ==========================================================

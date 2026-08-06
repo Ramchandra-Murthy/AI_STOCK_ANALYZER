@@ -29,16 +29,9 @@ Assemble Report Sections:
 Validate Report Completeness & Audit
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from services.sotp_clock import get_current_timestamp
-from services.sotp_long_term_equity_domain_constants import (
-    EXPECTED_ENTITY_COUNT,
-    PIPELINE_VERSION,
-    STAGE_16,
-    STATUS_OK,
-    STATUS_UNAVAILABLE,
-)
 from services.sotp_long_term_equity_report_templates import (
     get_default_risks,
     get_segment_risks,
@@ -50,15 +43,23 @@ from services.sotp_long_term_equity_target_price_service import (
     get_sotp_long_term_equity_target_price_service,
 )
 
+from services.sotp_long_term_equity_domain_constants import (
+    EXPECTED_ENTITY_COUNT,
+    PIPELINE_VERSION,
+    STAGE_16,
+    STATUS_OK,
+    STATUS_UNAVAILABLE,
+)
+
 # ==========================================================
 # 1. Section Formatting Helpers
 # ==========================================================
 
 
 def _build_executive_summary(
-    target_price_payload: Dict[str, Any],
-    sotp_payload: Dict[str, Any],
-) -> Dict[str, Any]:
+    target_price_payload: dict[str, Any],
+    sotp_payload: dict[str, Any],
+) -> dict[str, Any]:
     """Formats Section 1: Executive Summary & Recommendation Card."""
     return {
         "symbol": target_price_payload.get("symbol"),
@@ -75,9 +76,9 @@ def _build_executive_summary(
 
 
 def _build_valuation_summary(
-    sotp_payload: Dict[str, Any],
-    target_price_payload: Dict[str, Any],
-) -> Dict[str, Any]:
+    sotp_payload: dict[str, Any],
+    target_price_payload: dict[str, Any],
+) -> dict[str, Any]:
     """Formats Section 2: Concise Financial Overview Dashboard."""
     return {
         "enterprise_value": sotp_payload.get("enterprise_value"),
@@ -90,7 +91,7 @@ def _build_valuation_summary(
     }
 
 
-def _build_sotp_breakdown_table(sotp_payload: Dict[str, Any]) -> Dict[str, Any]:
+def _build_sotp_breakdown_table(sotp_payload: dict[str, Any]) -> dict[str, Any]:
     """Formats Section 3: Consolidated SOTP Financial Bridge."""
     return {
         "gross_enterprise_value": sotp_payload.get("enterprise_value"),
@@ -106,8 +107,8 @@ def _build_sotp_breakdown_table(sotp_payload: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _build_rich_portfolio_appendix(
-    sotp_payload: Dict[str, Any],
-) -> List[Dict[str, Any]]:
+    sotp_payload: dict[str, Any],
+) -> list[dict[str, Any]]:
     """Formats Section 5: Extended Entity-Level Portfolio Appendix."""
     breakdown = sotp_payload.get("component_breakdown", [])
     appendix = []
@@ -135,7 +136,7 @@ def _build_rich_portfolio_appendix(
     return appendix
 
 
-def _validate_report(report_payload: Dict[str, Any]) -> bool:
+def _validate_report(report_payload: dict[str, Any]) -> bool:
     """Validates structural completeness of the research report."""
     if report_payload.get("status") != STATUS_OK:
         return False
@@ -184,8 +185,8 @@ def audit_report(
 
 def get_sotp_long_term_equity_report_service(
     symbol: str,
-    override_market_price: Optional[float] = None,
-) -> Dict[str, Any]:
+    override_market_price: float | None = None,
+) -> dict[str, Any]:
     """
     Main Research Report Generation Service Routine.
     Gathers outputs across the pipeline and formats a professional research report.

@@ -1,17 +1,17 @@
 import streamlit as st
 
+from modules.backtesting import show as backtesting
+
 # ==========================================================
 # IMPORT MODULES
 # ==========================================================
-
 from modules.dashboard import show as dashboard
+from modules.fundamentals import show as fundamentals
 from modules.market import show as market
 from modules.portfolio import show as portfolio
-from modules.scanner import show as scanner
-from modules.research import show as research
-from modules.fundamentals import show as fundamentals
-from modules.backtesting import show as backtesting
 from modules.prediction import show as prediction
+from modules.research import show as research
+from modules.scanner import show as scanner
 from modules.settings import show as settings
 
 

@@ -22,12 +22,11 @@ Contains NO:
 """
 
 from dataclasses import dataclass
-from typing import List
-
 
 # ==========================================================
 # Discount Schedule
 # ==========================================================
+
 
 @dataclass(slots=True)
 class DiscountSchedule:
@@ -36,9 +35,9 @@ class DiscountSchedule:
     forecast period.
     """
 
-    discount_factors: List[float]
+    discount_factors: list[float]
 
-    present_value_fcff: List[float]
+    present_value_fcff: list[float]
 
     pv_fcff_total: float
 
@@ -57,46 +56,43 @@ class DiscountSchedule:
 # Discount Factors
 # ==========================================================
 
+
 def compute_discount_factors(
     wacc: float,
     forecast_years: int,
-) -> List[float]:
+) -> list[float]:
     """
     Computes discount factors:
 
         DF = (1 + WACC)^t
     """
 
-    return [
-        (1.0 + wacc) ** (year + 1)
-        for year in range(forecast_years)
-    ]
+    return [(1.0 + wacc) ** (year + 1) for year in range(forecast_years)]
 
 
 # ==========================================================
 # Present Value of FCFF
 # ==========================================================
 
+
 def discount_fcff(
-    projected_fcff: List[float],
-    discount_factors: List[float],
-) -> List[float]:
+    projected_fcff: list[float],
+    discount_factors: list[float],
+) -> list[float]:
     """
     Discounts each projected FCFF.
     """
 
-    return [
-        projected_fcff[i] / discount_factors[i]
-        for i in range(len(projected_fcff))
-    ]
+    return [projected_fcff[i] / discount_factors[i] for i in range(len(projected_fcff))]
 
 
 # ==========================================================
 # Aggregate PV
 # ==========================================================
 
+
 def aggregate_present_value(
-    pv_fcff: List[float],
+    pv_fcff: list[float],
 ) -> float:
     """
     Sum of discounted explicit FCFF.
@@ -109,8 +105,9 @@ def aggregate_present_value(
 # Master Routine
 # ==========================================================
 
+
 def build_discount_schedule(
-    projected_fcff: List[float],
+    projected_fcff: list[float],
     wacc: float,
 ) -> DiscountSchedule:
     """

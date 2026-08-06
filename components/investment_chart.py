@@ -17,26 +17,12 @@ def show_investment_chart(df):
 
     fig = go.Figure()
 
-    fig.add_bar(
-        name="Investment",
-        x=df["symbol"],
-        y=invested
-    )
+    fig.add_bar(name="Investment", x=df["symbol"], y=invested)
 
-    fig.add_bar(
-        name="Current Value",
-        x=df["symbol"],
-        y=df["Current Value"]
-    )
+    fig.add_bar(name="Current Value", x=df["symbol"], y=df["Current Value"])
 
     fig.update_layout(
-        barmode="group",
-        height=500,
-        xaxis_title="Stock",
-        yaxis_title="Amount (₹)"
+        barmode="group", height=500, xaxis_title="Stock", yaxis_title="Amount (₹)"
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    st.plotly_chart(fig, use_container_width=True)

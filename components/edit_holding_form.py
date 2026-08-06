@@ -14,16 +14,13 @@ def show_edit_holding_form(df):
     selected_id = st.selectbox(
         "Select Holding",
         df["id"],
-        format_func=lambda x: df.loc[df["id"] == x, "symbol"].iloc[0]
+        format_func=lambda x: df.loc[df["id"] == x, "symbol"].iloc[0],
     )
 
     row = df[df["id"] == selected_id].iloc[0]
 
     quantity = st.number_input(
-        "Quantity",
-        min_value=1,
-        value=int(row["quantity"]),
-        step=1
+        "Quantity", min_value=1, value=int(row["quantity"]), step=1
     )
 
     buy_price = st.number_input(
@@ -31,16 +28,12 @@ def show_edit_holding_form(df):
         min_value=0.0,
         value=float(row["buy_price"]),
         step=0.05,
-        format="%.2f"
+        format="%.2f",
     )
 
     if st.button("💾 Update Holding", use_container_width=True):
 
-        update_stock(
-            selected_id,
-            int(quantity),
-            float(buy_price)
-        )
+        update_stock(selected_id, int(quantity), float(buy_price))
 
         st.success("Holding updated successfully!")
 

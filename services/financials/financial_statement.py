@@ -12,10 +12,11 @@ throughout the valuation platform.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
-from services.financials.income_statement import IncomeStatement
+from typing import Any
+
 from services.financials.balance_sheet import BalanceSheet
 from services.financials.cash_flow import CashFlowStatement
+from services.financials.income_statement import IncomeStatement
 
 
 @dataclass(slots=True)
@@ -23,6 +24,7 @@ class PeriodFinancials:
     """
     Holds statements for a single fiscal period.
     """
+
     period: str
     income_statement: IncomeStatement
     balance_sheet: BalanceSheet
@@ -42,10 +44,10 @@ class FinancialStatements:
     income_statement: IncomeStatement
     balance_sheet: BalanceSheet
     cash_flow_statement: CashFlowStatement
-    periods: List[PeriodFinancials] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    periods: list[PeriodFinancials] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         return {
             "company": self.company_name,
             "year": self.fiscal_year,

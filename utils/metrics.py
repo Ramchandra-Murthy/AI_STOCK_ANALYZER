@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 def portfolio_summary(df):
     """
     Calculate basic portfolio summary metrics.
@@ -12,7 +9,7 @@ def portfolio_summary(df):
             "current_value": 0,
             "profit": 0,
             "return": 0,
-            "holdings": 0
+            "holdings": 0,
         }
 
     investment = (df["quantity"] * df["buy_price"]).sum()
@@ -34,5 +31,5 @@ def portfolio_summary(df):
         "current_value": round(current_value, 2),
         "profit": round(profit, 2),
         "return": round(returns, 2),
-        "holdings": len(df)
+        "holdings": len(df),
     }

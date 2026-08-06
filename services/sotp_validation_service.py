@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from services.sotp_valuation_service import generate_sotp_valuation
 
@@ -35,7 +35,7 @@ def _close(a, b, tolerance=TOLERANCE):
 
 def validate_sotp_valuation(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     symbol = symbol.upper().strip()
 
@@ -49,8 +49,8 @@ def validate_sotp_valuation(
             "valuation": valuation,
         }
 
-    failures: List[str] = []
-    warnings: List[str] = []
+    failures: list[str] = []
+    warnings: list[str] = []
 
     # --------------------------------------------------
     # 1. OPERATING SEGMENT ARITHMETIC

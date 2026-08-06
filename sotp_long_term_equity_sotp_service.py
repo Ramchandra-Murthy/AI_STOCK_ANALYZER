@@ -40,17 +40,18 @@ Intrinsic Value
 Intrinsic Value / Share
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from services.sotp_clock import get_current_timestamp
+from services.sotp_long_term_equity_valuation_service import (
+    get_sotp_long_term_equity_valuation,
+)
+
 from services.sotp_long_term_equity_domain_constants import (
     DEFAULT_PARENT_SHARES_OUTSTANDING_MILLIONS,
     EXPECTED_ENTITY_COUNT,
     STATUS_OK,
     STATUS_UNAVAILABLE,
-)
-from services.sotp_long_term_equity_valuation_service import (
-    get_sotp_long_term_equity_valuation,
 )
 
 # ==========================================================
@@ -59,8 +60,8 @@ from services.sotp_long_term_equity_valuation_service import (
 
 
 def _get_authorized_entities(
-    valuation_records: List[Dict[str, Any]],
-) -> List[Dict[str, Any]]:
+    valuation_records: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     """Filters valuation records to only authorized SOTP components."""
     return [
         record
@@ -69,24 +70,24 @@ def _get_authorized_entities(
     ]
 
 
-def _compute_enterprise_value(eligible_records: List[Dict[str, Any]]) -> float:
+def _compute_enterprise_value(eligible_records: list[dict[str, Any]]) -> float:
     """Computes total Enterprise Value across eligible components (nulls treated as 0.0)."""
     return sum(
         float(record.get("enterprise_value") or 0.0) for record in eligible_records
     )
 
 
-def _compute_total_cash(eligible_records: List[Dict[str, Any]]) -> float:
+def _compute_total_cash(eligible_records: list[dict[str, Any]]) -> float:
     """Computes total standalone cash across eligible components."""
     return sum(float(record.get("cash") or 0.0) for record in eligible_records)
 
 
-def _compute_total_net_debt(eligible_records: List[Dict[str, Any]]) -> float:
+def _compute_total_net_debt(eligible_records: list[dict[str, Any]]) -> float:
     """Computes total net debt across eligible components."""
     return sum(float(record.get("net_debt") or 0.0) for record in eligible_records)
 
 
-def _compute_minority_interest(eligible_records: List[Dict[str, Any]]) -> float:
+def _compute_minority_interest(eligible_records: list[dict[str, Any]]) -> float:
     """Computes total minority interest across eligible components."""
     return sum(
         float(record.get("minority_interest") or 0.0) for record in eligible_records
@@ -126,7 +127,7 @@ def _compute_value_per_share(
     return intrinsic_value / shares_outstanding_millions
 
 
-def _generate_breakdown(eligible_records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _generate_breakdown(eligible_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     Generates a structured component breakdown for audit and research reporting.
     Preserves framework/model completion status and normalizes missing numbers to 0.0.
@@ -157,7 +158,7 @@ def _generate_breakdown(eligible_records: List[Dict[str, Any]]) -> List[Dict[str
     return breakdown
 
 
-def _validate_sotp(payload: Dict[str, Any]) -> bool:
+def _validate_sotp(payload: dict[str, Any]) -> bool:
     """Validates SOTP summary keys, numeric types, and structural relationships."""
     required_keys = [
         "enterprise_value",
@@ -225,7 +226,7 @@ def audit_sotp(
 def get_sotp_long_term_equity_sotp_service(
     symbol: str,
     shares_outstanding_millions: float = DEFAULT_PARENT_SHARES_OUTSTANDING_MILLIONS,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Main SOTP Aggregation Routine.
     Consumes ONLY get_sotp_long_term_equity_valuation(symbol).

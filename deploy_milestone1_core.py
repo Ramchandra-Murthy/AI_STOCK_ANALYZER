@@ -5,7 +5,6 @@ os.makedirs("core", exist_ok=True)
 
 files = {
     "core/__init__.py": '"""Core platform framework package initialization."""\n',
-    
     "core/version.py": '''from __future__ import annotations
 
 """
@@ -33,7 +32,6 @@ def get_version_info() -> dict[str, str]:
         "architecture": ARCHITECTURE,
     }
 ''',
-
     "core/exceptions.py": '''from __future__ import annotations
 
 """
@@ -77,7 +75,6 @@ class ReportGenerationError(PlatformError):
 class ConfigurationError(PlatformError):
     pass
 ''',
-
     "core/enums.py": '''from __future__ import annotations
 
 """
@@ -124,7 +121,6 @@ class MetricUnit(str, Enum):
     BILLIONS = "B"
     RAW = "RAW"
 ''',
-
     "core/logger.py": '''from __future__ import annotations
 
 """
@@ -162,7 +158,6 @@ class SystemLogger:
 
 logger = SystemLogger()
 ''',
-
     "core/settings.py": '''from __future__ import annotations
 
 """
@@ -205,7 +200,7 @@ class PlatformSettings:
     accounting: AccountingSettings = AccountingSettings()
 
 settings = PlatformSettings()
-'''
+''',
 }
 
 for path, content in files.items():

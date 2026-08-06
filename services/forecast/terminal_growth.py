@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from core.logger import logger
-from services.forecast.forecast_input import ForecastInput
 
 
 @dataclass(slots=True, frozen=True)

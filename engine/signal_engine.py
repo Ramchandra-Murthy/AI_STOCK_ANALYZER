@@ -2,7 +2,7 @@ def generate_signal(df):
 
     last = df.iloc[-1]
 
-    score = 50          # Neutral starting score
+    score = 50  # Neutral starting score
     reasons = []
     risk = "Medium"
 
@@ -146,15 +146,9 @@ def generate_signal(df):
     confidence = score if score >= 50 else 100 - score
 
     return {
-
         "Score": score,
-
         "Confidence": round(confidence, 1),
-
         "Recommendation": recommendation,
-
         "Risk": risk,
-
-        "Reasons": reasons
-
+        "Reasons": reasons,
     }

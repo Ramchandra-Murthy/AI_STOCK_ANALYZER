@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from services.sotp_new_energy_data_service import (
     get_sotp_new_energy_data,
 )
-
 from services.sotp_new_energy_overlap_service import (
     analyze_sotp_new_energy_overlap,
 )
-
 from services.sotp_new_energy_policy_service import (
     generate_sotp_new_energy_policy,
 )
@@ -26,7 +24,7 @@ def _num(value):
 
 def value_sotp_new_energy(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     data = get_sotp_new_energy_data(symbol)
     overlap = analyze_sotp_new_energy_overlap(symbol)

@@ -10,8 +10,12 @@ valid_fs = normalize_financial_statements(
     currency="INR",
     fiscal_year="FY2026",
     income_raw={"totalRevenue": 240000.0, "sharesOutstanding": 3600.0},
-    balance_raw={"totalAssets": 150000.0, "totalLiabilities": 50000.0, "totalEquity": 100000.0},
-    cashflow_raw={"operatingCashFlow": 40000.0}
+    balance_raw={
+        "totalAssets": 150000.0,
+        "totalLiabilities": 50000.0,
+        "totalEquity": 100000.0,
+    },
+    cashflow_raw={"operatingCashFlow": 40000.0},
 )
 
 try:
@@ -27,8 +31,12 @@ invalid_fs = normalize_financial_statements(
     currency="INR",
     fiscal_year="FY2026",
     income_raw={"totalRevenue": 100.0, "sharesOutstanding": 10.0},
-    balance_raw={"totalAssets": 1000.0, "totalLiabilities": 400.0, "totalEquity": 500.0}, # Diff = 100
-    cashflow_raw={}
+    balance_raw={
+        "totalAssets": 1000.0,
+        "totalLiabilities": 400.0,
+        "totalEquity": 500.0,
+    },  # Diff = 100
+    cashflow_raw={},
 )
 
 try:

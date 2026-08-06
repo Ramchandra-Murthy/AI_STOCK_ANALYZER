@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 
 from portfolio.portfolio import delete_stock
 
@@ -13,14 +12,7 @@ def show_top_holdings(df, top_n=5):
         st.info("No holdings available.")
         return
 
-    table = (
-        df.sort_values(
-            by="Current Value",
-            ascending=False
-        )
-        .head(top_n)
-        .copy()
-    )
+    table = df.sort_values(by="Current Value", ascending=False).head(top_n).copy()
 
     # ----------------------------
     # Format numbers
@@ -34,7 +26,7 @@ def show_top_holdings(df, top_n=5):
             "CMP",
             "Current Value",
             "Profit",
-            "Return %"
+            "Return %",
         ]
     ].copy()
 
@@ -45,7 +37,7 @@ def show_top_holdings(df, top_n=5):
         "CMP",
         "Current Value",
         "Profit",
-        "Return %"
+        "Return %",
     ]
 
     display["Buy Price"] = display["Buy Price"].map(lambda x: f"₹{x:,.2f}")
@@ -54,11 +46,7 @@ def show_top_holdings(df, top_n=5):
     display["Profit"] = display["Profit"].map(lambda x: f"₹{x:,.2f}")
     display["Return %"] = display["Return %"].map(lambda x: f"{x:.2f}%")
 
-    st.dataframe(
-        display,
-        use_container_width=True,
-        hide_index=True
-    )
+    st.dataframe(display, use_container_width=True, hide_index=True)
 
     st.divider()
 
@@ -73,10 +61,7 @@ def show_top_holdings(df, top_n=5):
         selected = st.selectbox(
             "Delete Holding",
             table["id"],
-            format_func=lambda x: table.loc[
-                table["id"] == x,
-                "symbol"
-            ].iloc[0]
+            format_func=lambda x: table.loc[table["id"] == x, "symbol"].iloc[0],
         )
 
     with col2:
@@ -84,10 +69,7 @@ def show_top_holdings(df, top_n=5):
         st.write("")
         st.write("")
 
-        if st.button(
-            "🗑 Delete",
-            use_container_width=True
-        ):
+        if st.button("🗑 Delete", use_container_width=True):
             delete_stock(selected)
             st.success("Holding deleted.")
             st.rerun()

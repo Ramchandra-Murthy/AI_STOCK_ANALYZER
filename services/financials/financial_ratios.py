@@ -21,14 +21,15 @@ Used by:
 """
 
 from dataclasses import dataclass
-from services.financials.income_statement import IncomeStatement
+
 from services.financials.balance_sheet import BalanceSheet
 from services.financials.cash_flow import CashFlowStatement
-
+from services.financials.income_statement import IncomeStatement
 
 # =========================================================
 # Ratio Container
 # =========================================================
+
 
 @dataclass(slots=True)
 class FinancialRatios:
@@ -66,6 +67,7 @@ class FinancialRatios:
 # Helper
 # =========================================================
 
+
 def _safe_divide(a: float, b: float) -> float:
     if b == 0:
         return 0.0
@@ -76,32 +78,23 @@ def _safe_divide(a: float, b: float) -> float:
 # Main Calculator
 # =========================================================
 
+
 def calculate_financial_ratios(
     income: IncomeStatement,
     balance: BalanceSheet,
     cashflow: CashFlowStatement,
 ) -> FinancialRatios:
 
-    gross_profit = (
-        income.revenue
-        - income.cost_of_goods_sold
-    )
+    gross_profit = income.revenue - income.cost_of_goods_sold
 
-    invested_capital = (
-        balance.total_equity
-        + balance.total_debt
-        - balance.total_cash
-    )
+    invested_capital = balance.total_equity + balance.total_debt - balance.total_cash
 
     current_ratio = _safe_divide(
         balance.total_current_assets,
         balance.total_current_liabilities,
     )
 
-    quick_assets = (
-        balance.total_cash
-        + balance.accounts_receivable
-    )
+    quick_assets = balance.total_cash + balance.accounts_receivable
 
     quick_ratio = _safe_divide(
         quick_assets,
@@ -109,82 +102,66 @@ def calculate_financial_ratios(
     )
 
     return FinancialRatios(
-
         # Profitability
         gross_margin=_safe_divide(
             gross_profit,
             income.revenue,
         ),
-
         ebitda_margin=_safe_divide(
             income.ebitda,
             income.revenue,
         ),
-
         ebit_margin=_safe_divide(
             income.ebit,
             income.revenue,
         ),
-
         net_margin=_safe_divide(
             income.net_income,
             income.revenue,
         ),
-
         # Returns
         roe=_safe_divide(
             income.net_income,
             balance.total_equity,
         ),
-
         roa=_safe_divide(
             income.net_income,
             balance.total_assets,
         ),
-
         roce=_safe_divide(
             income.ebit,
             invested_capital,
         ),
-
         roic=_safe_divide(
             income.ebit * (1 - 0.25),
             invested_capital,
         ),
-
         # Liquidity
         current_ratio=current_ratio,
-
         quick_ratio=quick_ratio,
-
         # Leverage
         debt_to_equity=_safe_divide(
             balance.total_debt,
             balance.total_equity,
         ),
-
         net_debt_to_ebitda=_safe_divide(
             balance.net_debt,
             income.ebitda,
         ),
-
         # Cash Flow
         fcf_margin=_safe_divide(
             cashflow.free_cash_flow,
             income.revenue,
         ),
-
         cash_conversion_ratio=_safe_divide(
             cashflow.operating_cash_flow,
             income.net_income,
         ),
-
         # Efficiency
         asset_turnover=_safe_divide(
             income.revenue,
             balance.total_assets,
         ),
-
         inventory_turnover=_safe_divide(
             income.cost_of_goods_sold,
             balance.inventory,

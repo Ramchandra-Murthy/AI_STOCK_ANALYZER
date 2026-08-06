@@ -1,4 +1,5 @@
 import io
+
 import streamlit as st
 from openpyxl import Workbook
 
@@ -31,5 +32,5 @@ def export_portfolio(df):
         data=output,
         file_name="portfolio.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True
+        use_container_width=True,
     )

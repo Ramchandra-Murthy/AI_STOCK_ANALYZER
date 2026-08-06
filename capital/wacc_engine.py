@@ -1,8 +1,10 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
+
 from core.exceptions import ValuationError
 from core.logger import logger
+
 
 @dataclass(slots=True, frozen=True)
 class CAPMOutput:
@@ -11,6 +13,7 @@ class CAPMOutput:
     equity_weight: float
     debt_weight: float
     wacc: float
+
 
 class CapitalCostEngine:
     @staticmethod
@@ -38,7 +41,9 @@ class CapitalCostEngine:
         if wacc <= 0:
             raise ValuationError("WACC must be positive.")
 
-        logger.info(f"[CAPITAL_COST] Ke: {cost_of_equity:.2%} | Kd: {cost_of_debt_post_tax:.2%} | WACC: {wacc:.2%}")
+        logger.info(
+            f"[CAPITAL_COST] Ke: {cost_of_equity:.2%} | Kd: {cost_of_debt_post_tax:.2%} | WACC: {wacc:.2%}"
+        )
 
         return CAPMOutput(
             cost_of_equity=round(cost_of_equity, 4),

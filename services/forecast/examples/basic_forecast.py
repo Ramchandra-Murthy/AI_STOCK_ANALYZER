@@ -1,6 +1,9 @@
 ﻿from __future__ import annotations
+
 import json
+
 from services.forecast.models import ForecastLineItem, ForecastPackage
+
 
 def run_example() -> None:
     print("Initializing Forecast Domain Layer Example...")
@@ -21,12 +24,13 @@ def run_example() -> None:
         depreciation=dep,
         working_capital=wc,
         tax_rate=tax,
-        metadata={"author": "AIERP Core Framework", "version": "5.1"}
+        metadata={"author": "AIERP Core Framework", "version": "5.1"},
     )
 
     serialized = json.dumps(package.to_dict(), indent=4)
     print("\nSerialized Forecast Package Output:")
     print(serialized)
+
 
 if __name__ == "__main__":
     run_example()

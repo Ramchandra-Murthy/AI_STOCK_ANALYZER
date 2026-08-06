@@ -8,25 +8,26 @@ Module  : services.forecast.tests.test_models
 from __future__ import annotations
 
 import pytest
+
+from services.forecast.exceptions import ForecastValidationError
 from services.forecast.models import (
-    ForecastMethod,
-    ConfidenceLevel,
-    ForecastFrequency,
-    ScenarioType,
-    ForecastMetadata,
-    RevenueForecast,
-    MarginForecast,
     CapexForecast,
+    ConfidenceLevel,
     DepreciationForecast,
-    WorkingCapitalForecast,
+    ForecastAssumption,
+    ForecastConfidence,
+    ForecastFrequency,
+    ForecastMetadata,
+    ForecastMethod,
+    ForecastPackage,
+    ForecastScenario,
+    MarginForecast,
+    RevenueForecast,
+    ScenarioType,
     TaxForecast,
     TerminalGrowthForecast,
-    ForecastConfidence,
-    ForecastAssumption,
-    ForecastScenario,
-    ForecastPackage,
+    WorkingCapitalForecast,
 )
-from services.forecast.exceptions import ForecastValidationError
 
 
 def test_enums() -> None:

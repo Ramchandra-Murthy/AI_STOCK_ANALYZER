@@ -22,13 +22,13 @@ Future Extensions
 """
 
 from dataclasses import dataclass
-from typing import List
-import numpy as np
 
+import numpy as np
 
 # ==========================================================
 # Result
 # ==========================================================
+
 
 @dataclass(slots=True)
 class NAVSensitivityResult:
@@ -36,10 +36,10 @@ class NAVSensitivityResult:
     Stores NAV sensitivity output.
     """
 
-    holdco_discount_axis: List[float]
-    fair_value_multiplier_axis: List[float]
-    equity_value_matrix: List[List[float]]
-    implied_share_price_matrix: List[List[float]]
+    holdco_discount_axis: list[float]
+    fair_value_multiplier_axis: list[float]
+    equity_value_matrix: list[list[float]]
+    implied_share_price_matrix: list[list[float]]
 
     def summary(self) -> dict:
         return {
@@ -51,6 +51,7 @@ class NAVSensitivityResult:
 # ==========================================================
 # Main Engine
 # ==========================================================
+
 
 def build_nav_sensitivity_matrix(
     gross_asset_value: float,
@@ -96,9 +97,7 @@ def build_nav_sensitivity_matrix(
             equity_value = adjusted_nav * (1.0 - discount)
 
             share_price = (
-                equity_value / shares_outstanding
-                if shares_outstanding > 0
-                else 0.0
+                equity_value / shares_outstanding if shares_outstanding > 0 else 0.0
             )
 
             equity_row.append(equity_value)

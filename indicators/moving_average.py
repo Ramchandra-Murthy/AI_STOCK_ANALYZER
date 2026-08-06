@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 def calculate_sma(df, period=20):
     """
     Calculate Simple Moving Average
@@ -20,10 +17,6 @@ def calculate_ema(df, period=20):
 
     column_name = f"EMA_{period}"
 
-    df[column_name] = (
-        df["Close"]
-        .ewm(span=period, adjust=False)
-        .mean()
-    )
+    df[column_name] = df["Close"].ewm(span=period, adjust=False).mean()
 
     return df

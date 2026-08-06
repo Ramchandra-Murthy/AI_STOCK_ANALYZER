@@ -17,12 +17,11 @@ Used by:
 """
 
 from dataclasses import dataclass, field
-from typing import List
-
 
 # ==========================================================
 # Peer Company
 # ==========================================================
+
 
 @dataclass(slots=True)
 class PeerCompany:
@@ -47,6 +46,7 @@ class PeerCompany:
 # Target Company
 # ==========================================================
 
+
 @dataclass(slots=True)
 class TargetCompany:
     """
@@ -67,6 +67,7 @@ class TargetCompany:
 # Comparable Input
 # ==========================================================
 
+
 @dataclass(slots=True)
 class ComparableInput:
     """
@@ -74,5 +75,5 @@ class ComparableInput:
     """
 
     target: TargetCompany
-    peers: List[PeerCompany] = field(default_factory=list)
+    peers: list[PeerCompany] = field(default_factory=list)
     currency: str = "INR"

@@ -1,6 +1,6 @@
-﻿from services.financials.parser import FinancialStatementParser
+﻿from services.financials.builders import ValuationPayloadBuilder
+from services.financials.parser import FinancialStatementParser
 from services.financials.repository import FinancialRepository
-from services.financials.builders import ValuationPayloadBuilder
 
 # Raw filing input payload (simulating an ingested annual report)
 filing_data = {
@@ -15,7 +15,7 @@ filing_data = {
                 "cost_of_goods_sold": 150000.0,
                 "operating_expenses": 45000.0,
                 "depreciation_amortization": 5000.0,
-                "shares_outstanding": 1400.0
+                "shares_outstanding": 1400.0,
             },
             "balance_sheet": {
                 "cash_and_equivalents": 12000.0,
@@ -23,14 +23,14 @@ filing_data = {
                 "long_term_debt": 35000.0,
                 "total_assets": 310000.0,
                 "total_liabilities": 200000.0,
-                "total_equity": 110000.0
+                "total_equity": 110000.0,
             },
             "cash_flow": {
                 "operating_cash_flow": 28000.0,
-                "capital_expenditures": 9000.0
-            }
+                "capital_expenditures": 9000.0,
+            },
         }
-    ]
+    ],
 }
 
 # 1. Parse Filing

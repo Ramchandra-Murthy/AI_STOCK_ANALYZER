@@ -1,5 +1,5 @@
-import yfinance as yf
 import pandas as pd
+import yfinance as yf
 
 
 def _get_last_change(ticker):
@@ -31,7 +31,7 @@ def get_market_indices():
         "BANK NIFTY": "^NSEBANK",
         "INDIA VIX": "^INDIAVIX",
         "USD/INR": "INR=X",
-        "GOLD": "GC=F"
+        "GOLD": "GC=F",
     }
 
     data = {}
@@ -40,10 +40,7 @@ def get_market_indices():
 
         value, change = _get_last_change(ticker)
 
-        data[name] = {
-            "value": value,
-            "change": change
-        }
+        data[name] = {"value": value, "change": change}
 
     return data
 
@@ -60,7 +57,7 @@ def get_top_movers():
         "LT.NS",
         "ITC.NS",
         "BHARTIARTL.NS",
-        "AXISBANK.NS"
+        "AXISBANK.NS",
     ]
 
     rows = []
@@ -80,7 +77,7 @@ def get_top_movers():
                 {
                     "Symbol": symbol.replace(".NS", ""),
                     "Price": round(latest, 2),
-                    "Change %": round(change, 2)
+                    "Change %": round(change, 2),
                 }
             )
 
@@ -92,14 +89,8 @@ def get_top_movers():
     if df.empty:
         return pd.DataFrame(), pd.DataFrame()
 
-    gainers = df.sort_values(
-        "Change %",
-        ascending=False
-    ).head(5)
+    gainers = df.sort_values("Change %", ascending=False).head(5)
 
-    losers = df.sort_values(
-        "Change %",
-        ascending=True
-    ).head(5)
+    losers = df.sort_values("Change %", ascending=True).head(5)
 
     return gainers, losers

@@ -14,7 +14,7 @@ def show_market_overview():
 
     cols = st.columns(len(data))
 
-    for col, (name, info) in zip(cols, data.items()):
+    for col, (name, info) in zip(cols, data.items(), strict=False):
 
         value = info.get("value")
         change = info.get("change")
@@ -25,8 +25,4 @@ def show_market_overview():
         else:
             delta = f"{change:+.2f}%"
 
-        col.metric(
-            label=name,
-            value=value,
-            delta=delta
-        )
+        col.metric(label=name, value=value, delta=delta)

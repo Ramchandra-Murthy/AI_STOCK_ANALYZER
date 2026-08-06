@@ -14,7 +14,4 @@ def detect_breakout(df):
         signal = "BREAKDOWN"
         reason = "Close is below Support."
 
-    return {
-        "Signal": signal,
-        "Reason": reason
-    }
+    return {"Signal": signal, "Reason": reason}

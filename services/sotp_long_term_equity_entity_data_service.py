@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 # Expected population count constant for Note 39 validation
 RELIANCE_NOTE_39_EXPECTED_POPULATION_COUNT: int = 58
@@ -45,7 +45,7 @@ RELIANCE_NOTE_39_EXPECTED_POPULATION_COUNT: int = 58
 # the consolidated investment carrying value.
 # ==========================================================
 
-RELIANCE_LONG_TERM_EQUITY_POPULATION: List[Dict[str, Any]] = [
+RELIANCE_LONG_TERM_EQUITY_POPULATION: list[dict[str, Any]] = [
     {
         "note_39_serial": 1,
         "name": "Alok Industries Limited",
@@ -399,7 +399,7 @@ RELIANCE_LONG_TERM_EQUITY_POPULATION: List[Dict[str, Any]] = [
     },
 ]
 
-RELIANCE_LONG_TERM_EQUITY_ENTITIES: List[Dict[str, Any]] = [
+RELIANCE_LONG_TERM_EQUITY_ENTITIES: list[dict[str, Any]] = [
     {
         "name": "Alok Industries Limited",
         "country": "India",
@@ -518,22 +518,22 @@ def _safe_float(value: Any):
 
 
 def _validate_note_39_population(
-    population: List[Dict[str, Any]],
-) -> Dict[str, Any]:
+    population: list[dict[str, Any]],
+) -> dict[str, Any]:
 
     expected_count = RELIANCE_NOTE_39_EXPECTED_POPULATION_COUNT
     expected_serials = set(range(1, expected_count + 1))
 
     actual_count = len(population)
 
-    serials: List[int] = []
-    names: List[str] = []
+    serials: list[int] = []
+    names: list[str] = []
 
-    missing_name_serials: List[int] = []
-    missing_country_serials: List[int] = []
-    missing_ownership_serials: List[int] = []
-    invalid_ownership_serials: List[int] = []
-    invalid_serial_rows: List[int] = []
+    missing_name_serials: list[int] = []
+    missing_country_serials: list[int] = []
+    missing_ownership_serials: list[int] = []
+    invalid_ownership_serials: list[int] = []
+    invalid_serial_rows: list[int] = []
 
     for row_index, entity in enumerate(population, start=1):
 
@@ -641,7 +641,7 @@ def _normalize_entity_name(value: Any) -> str:
     return " ".join(normalized.split())
 
 
-RELIANCE_ANNEXURE_NOTE_39_EXCEPTIONS: Dict[str, Dict[str, Any]] = {
+RELIANCE_ANNEXURE_NOTE_39_EXCEPTIONS: dict[str, dict[str, Any]] = {
     "bam dlr kolkata private limited": {
         "exception_type": "YEAR_END_POPULATION_DIFFERENCE",
         "resolution_status": "EXPLAINED",
@@ -679,9 +679,9 @@ RELIANCE_ANNEXURE_NOTE_39_EXCEPTIONS: Dict[str, Dict[str, Any]] = {
 
 
 def _reconcile_annexure_to_note_39(
-    population: List[Dict[str, Any]],
-    annexure_entities: List[Dict[str, Any]],
-) -> Dict[str, Any]:
+    population: list[dict[str, Any]],
+    annexure_entities: list[dict[str, Any]],
+) -> dict[str, Any]:
     """
     Reconcile Annexure A evidence records against the
     authoritative Note 39 associate/JV population.
@@ -693,7 +693,7 @@ def _reconcile_annexure_to_note_39(
     do not determine entity identity.
     """
 
-    population_by_name: Dict[str, Dict[str, Any]] = {}
+    population_by_name: dict[str, dict[str, Any]] = {}
 
     for entity in population:
         normalized_name = _normalize_entity_name(entity.get("name"))
@@ -701,8 +701,8 @@ def _reconcile_annexure_to_note_39(
         if normalized_name:
             population_by_name[normalized_name] = entity
 
-    matched_entities: List[Dict[str, Any]] = []
-    unmatched_entities: List[Dict[str, Any]] = []
+    matched_entities: list[dict[str, Any]] = []
+    unmatched_entities: list[dict[str, Any]] = []
 
     for annexure_entity in annexure_entities:
 
@@ -788,7 +788,7 @@ def _reconcile_annexure_to_note_39(
 
 def get_sotp_long_term_equity_entity_data(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     symbol = str(symbol or "").upper().strip()
 

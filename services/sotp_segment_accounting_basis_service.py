@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 
-def get_sotp_segment_accounting_basis(symbol: str) -> Dict[str, Any]:
+def get_sotp_segment_accounting_basis(symbol: str) -> dict[str, Any]:
     """
     Document the accounting basis of operating segment results
     used by the SOTP valuation engine.

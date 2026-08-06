@@ -24,10 +24,10 @@ from services.valuation.nav.nav_input import (
     NAVAsset,
 )
 
-
 # ==========================================================
 # Fair Value
 # ==========================================================
+
 
 def adjusted_asset_value(asset: NAVAsset) -> float:
     """
@@ -52,9 +52,7 @@ def fair_value_adjustment(asset: NAVAsset) -> float:
     if not asset.include_in_nav:
         return 0.0
 
-    adjusted_book = asset.book_value * (
-        asset.ownership_pct / 100.0
-    )
+    adjusted_book = asset.book_value * (asset.ownership_pct / 100.0)
 
     adjusted_fair = adjusted_asset_value(asset)
 
@@ -64,6 +62,7 @@ def fair_value_adjustment(asset: NAVAsset) -> float:
 # ==========================================================
 # Minority Interest
 # ==========================================================
+
 
 def apply_minority_interest(
     nav: float,
@@ -79,6 +78,7 @@ def apply_minority_interest(
 # ==========================================================
 # Holding Company Discount
 # ==========================================================
+
 
 def apply_holdco_discount(
     equity_value: float,
@@ -98,6 +98,7 @@ def apply_holdco_discount(
 # Aggregate Fair Value
 # ==========================================================
 
+
 def total_adjusted_asset_value(
     assets: list[NAVAsset],
 ) -> float:
@@ -105,10 +106,7 @@ def total_adjusted_asset_value(
     Total economic value of included assets.
     """
 
-    return sum(
-        adjusted_asset_value(asset)
-        for asset in assets
-    )
+    return sum(adjusted_asset_value(asset) for asset in assets)
 
 
 def total_fair_value_adjustment(
@@ -118,7 +116,4 @@ def total_fair_value_adjustment(
     Aggregate uplift versus book values.
     """
 
-    return sum(
-        fair_value_adjustment(asset)
-        for asset in assets
-    )
+    return sum(fair_value_adjustment(asset) for asset in assets)

@@ -4,7 +4,9 @@ Description: Unit tests for CAGR forecast calculation engine.
 """
 
 from __future__ import annotations
+
 import pytest
+
 from services.forecast.algorithms.cagr import CAGRForecastEngine
 
 

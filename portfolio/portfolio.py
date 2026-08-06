@@ -1,4 +1,5 @@
 import sqlite3
+
 import pandas as pd
 
 DATABASE = "stock_data.db"
@@ -25,7 +26,7 @@ def add_stock(symbol, quantity, buy_price):
 
     conn.execute(
         "INSERT INTO portfolio(symbol, quantity, buy_price) VALUES (?, ?, ?)",
-        (symbol, quantity, buy_price)
+        (symbol, quantity, buy_price),
     )
 
     conn.commit()
@@ -45,13 +46,12 @@ def load_portfolio():
 def delete_stock(stock_id):
     conn = sqlite3.connect(DATABASE)
 
-    conn.execute(
-        "DELETE FROM portfolio WHERE id=?",
-        (stock_id,)
-    )
+    conn.execute("DELETE FROM portfolio WHERE id=?", (stock_id,))
 
     conn.commit()
     conn.close()
+
+
 def update_stock(stock_id, quantity, buy_price):
     conn = sqlite3.connect(DATABASE)
 
@@ -61,15 +61,12 @@ def update_stock(stock_id, quantity, buy_price):
         SET quantity = ?, buy_price = ?
         WHERE id = ?
         """,
-        (
-            quantity,
-            buy_price,
-            stock_id
-        )
+        (quantity, buy_price, stock_id),
     )
 
     conn.commit()
     conn.close()
+
 
 def clear_portfolio():
     conn = sqlite3.connect(DATABASE)

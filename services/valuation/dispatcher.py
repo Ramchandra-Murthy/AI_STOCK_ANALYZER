@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 """
 ==========================================================
@@ -10,16 +10,29 @@ Version : V1.0
 Central registry routing valuation tasks to engine strategies.
 """
 
-from typing import Any, Dict
+from typing import Any
+
 from services.valuation.base_engine import BaseValuationEngine
 from services.valuation.models import ValuationResult
 
 
 class ValuationDispatcher:
+
+    def list_supported_methods(self) -> list[str]:
+        """Return a list of supported valuation method names."""
+        if not hasattr(self, "engines"):
+            return []
+        return list(self.engines.keys())
+
+    def register_engine(self, name: str, engine: Any) -> None:
+        """Register a valuation engine."""
+        if not hasattr(self, "engines"):
+            self.engines = {}
+        self.engines[name] = engine
     """Registry managing valuation engine adapters."""
 
     def __init__(self):
-        self._engines: Dict[str, BaseValuationEngine] = {}
+        self._engines: dict[str, BaseValuationEngine] = {}
 
     def register(self, engine: BaseValuationEngine) -> None:
         """Registers a valuation engine adapter."""

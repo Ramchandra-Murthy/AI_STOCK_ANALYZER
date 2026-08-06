@@ -10,14 +10,15 @@ Version : V1.0
 Adapter exposing the NAV package via the BaseValuationEngine interface.
 """
 
-from typing import Any, Dict
+from typing import Any
+
 from services.valuation.base_engine import BaseValuationEngine
 from services.valuation.models import (
     ValuationMethod,
     ValuationResult,
     ValuationStatus,
 )
-from services.valuation.nav.nav_input import NAVInput, NAVAsset, NAVLiability
+from services.valuation.nav.nav_input import NAVAsset, NAVInput, NAVLiability
 from services.valuation.nav.nav_model import NAVModel
 
 
@@ -34,7 +35,9 @@ class NAVEngine(BaseValuationEngine):
         elif isinstance(entity, dict):
             nav_input = self._parse_dict_payload(entity)
         else:
-            raise TypeError(f"NAVEngine received unsupported payload type: {type(entity)}")
+            raise TypeError(
+                f"NAVEngine received unsupported payload type: {type(entity)}"
+            )
 
         model = NAVModel(nav_input)
         nav_res = model.run_model()
@@ -58,7 +61,7 @@ class NAVEngine(BaseValuationEngine):
             raw_result=nav_res,
         )
 
-    def _parse_dict_payload(self, data: Dict[str, Any]) -> NAVInput:
+    def _parse_dict_payload(self, data: dict[str, Any]) -> NAVInput:
         assets = [
             NAVAsset(
                 name=a.get("name", "Unnamed Asset"),
@@ -84,13 +87,17 @@ class NAVEngine(BaseValuationEngine):
         ]
 
         return NAVInput(
-            company_name=data.get("segment_name", data.get("company_name", "NAV Entity")),
+            company_name=data.get(
+                "segment_name", data.get("company_name", "NAV Entity")
+            ),
             currency=data.get("currency", "INR"),
             assets=assets,
             liabilities=liabilities,
             minority_interest=float(data.get("minority_interest", 0.0)),
             holding_company_discount_pct=float(
-                data.get("holding_company_discount_pct", data.get("holdco_discount_pct", 0.0))
+                data.get(
+                    "holding_company_discount_pct", data.get("holdco_discount_pct", 0.0)
+                )
             ),
             shares_outstanding=float(data.get("shares_outstanding", 1.0)),
         )

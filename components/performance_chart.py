@@ -23,27 +23,17 @@ def show_performance_chart(df):
         y="Profit",
         color="Status",
         text="Profit",
-        color_discrete_map={
-            "Profit": "#2ECC71",
-            "Loss": "#E74C3C"
-        }
+        color_discrete_map={"Profit": "#2ECC71", "Loss": "#E74C3C"},
     )
 
-    fig.update_traces(
-        texttemplate="₹%{text:,.0f}",
-        textposition="outside"
-    )
+    fig.update_traces(texttemplate="₹%{text:,.0f}", textposition="outside")
 
     fig.update_layout(
         height=420,
         showlegend=False,
         xaxis_title="Stock",
         yaxis_title="Profit / Loss (₹)",
-        margin=dict(l=20, r=20, t=20, b=20)
+        margin=dict(l=20, r=20, t=20, b=20),
     )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-        config={"displayModeBar": False}
-    )
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})

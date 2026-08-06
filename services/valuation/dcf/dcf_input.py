@@ -1,5 +1,5 @@
 ﻿from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import Any
 
 
 @dataclass
@@ -8,15 +8,16 @@ class DCFInput:
     Input data container for the Discounted Cash Flow (DCF) valuation engine.
     Includes strict validation to ensure structural and economic sanity.
     """
+
     # Historical Base
     last_historical_revenue: float
 
     # Forecast Driver Vectors (Must all match forecast period length)
-    revenue_growth_rates: List[float]
-    ebit_margin_forecast: List[float]
-    capex_pct_rev: List[float]
-    nwc_pct_rev: List[float]
-    dna_pct_rev: List[float]
+    revenue_growth_rates: list[float]
+    ebit_margin_forecast: list[float]
+    capex_pct_rev: list[float]
+    nwc_pct_rev: list[float]
+    dna_pct_rev: list[float]
 
     # Capital Structure & Discount Parameters
     tax_rate: float
@@ -53,8 +54,9 @@ class DCFInput:
         Calculates the Weighted Average Cost of Capital (WACC).
         WACC = (We * Ke) + (Wd * Kd_post_tax)
         """
-        return (self.equity_weight * self.cost_of_equity) + \
-               (self.debt_weight * self.cost_of_debt_post_tax)
+        return (self.equity_weight * self.cost_of_equity) + (
+            self.debt_weight * self.cost_of_debt_post_tax
+        )
 
     def validate(self) -> None:
         """
@@ -86,11 +88,15 @@ class DCFInput:
             raise ValueError("cash_and_equivalents cannot be negative.")
 
         if not (0.0 <= self.tax_rate <= 1.0):
-            raise ValueError(f"tax_rate must be between 0.0 and 1.0 (got {self.tax_rate}).")
+            raise ValueError(
+                f"tax_rate must be between 0.0 and 1.0 (got {self.tax_rate})."
+            )
 
         weight_sum = self.equity_weight + self.debt_weight
         if abs(weight_sum - 1.0) > 1e-4:
-            raise ValueError(f"Equity and Debt weights must sum to 1.0 (got {weight_sum:.4f}).")
+            raise ValueError(
+                f"Equity and Debt weights must sum to 1.0 (got {weight_sum:.4f})."
+            )
 
         wacc = self.calculate_wacc()
         if self.terminal_growth_rate >= wacc:
@@ -99,7 +105,7 @@ class DCFInput:
                 f"than WACC ({wacc:.2%}) to prevent mathematical singularity."
             )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Returns assumptions as a dictionary."""
         return {
             "last_historical_revenue": self.last_historical_revenue,

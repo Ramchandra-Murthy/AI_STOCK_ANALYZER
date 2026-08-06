@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from services.sotp_new_energy_data_service import (
     get_sotp_new_energy_data,
 )
-
 from services.sotp_new_energy_valuation_service import (
     value_sotp_new_energy,
 )
@@ -51,7 +50,7 @@ def _num(value):
 
 def generate_sotp_new_energy_scenarios(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     data = get_sotp_new_energy_data(symbol)
 

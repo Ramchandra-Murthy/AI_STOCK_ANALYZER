@@ -7,10 +7,8 @@ Python Version: 3.13+
 
 from __future__ import annotations
 
-import pytest
-
+from services.forecast.models import ConfidenceLevel, ForecastMethod
 from services.forecast.service import ForecastService
-from services.forecast.models import ForecastMethod, ConfidenceLevel
 
 
 def test_forecast_service_revenue() -> None:

@@ -1,12 +1,11 @@
-﻿from services.valuation.dispatcher import ValuationDispatcher
-from services.valuation.dcf_engine import DCFEngine
-from services.valuation.stub_adapters import (
-    NAVValuationEngine,
-    MarketValuationEngine,
-    BookValueEngine,
-)
+﻿from services.valuation.dcf_engine import DCFEngine
+from services.valuation.dispatcher import ValuationDispatcher
 from services.valuation.sotp_engine import SOTPEngine
-from services.valuation.models import ValuationMethod
+from services.valuation.stub_adapters import (
+    BookValueEngine,
+    MarketValuationEngine,
+    NAVValuationEngine,
+)
 
 # 1. Startup: Instantiate Dispatcher & Register Engines
 dispatcher = ValuationDispatcher()
@@ -47,7 +46,7 @@ my_entities = [
     {
         "segment_name": "Distressed Banking Arm",
         "valuation_method": "BOOK_VALUE",
-    }
+    },
 ]
 
 # 3. Execute SOTP Valuation
@@ -68,4 +67,6 @@ print(f"Implied Price per Share: {result.implied_share_price:,.2f}\n")
 print(f"{'Segment Name':<30} | {'Method':<10} | {'Status':<10} | {'Enterprise Value'}")
 print("-" * 75)
 for res in result.component_results:
-    print(f"{res.entity_name:<30} | {res.valuation_method.value:<10} | {res.valuation_status.value:<10} | {res.enterprise_value:15,.2f}")
+    print(
+        f"{res.entity_name:<30} | {res.valuation_method.value:<10} | {res.valuation_status.value:<10} | {res.enterprise_value:15,.2f}"
+    )

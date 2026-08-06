@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import pytest
+
 from core.exceptions import RepositoryError, ValidationError
 from services.financials.builders import build_dcf_input
 from services.financials.financial_statement import (
@@ -12,6 +13,7 @@ from services.financials.financial_statement import (
 from services.financials.repository import FinancialStatementRepository
 from services.financials.validator import validate_financial_statements
 
+
 @pytest.fixture
 def valid_financial_statements() -> FinancialStatements:
     income = IncomeStatement(
@@ -19,7 +21,7 @@ def valid_financial_statements() -> FinancialStatements:
         cost_of_goods_sold=150000.0,
         operating_expenses=32000.0,
         depreciation_and_amortization=4000.0,
-                tax_expense=7000.0,
+        tax_expense=7000.0,
         net_income=24000.0,
         shares_outstanding=140.0,
     )
@@ -60,19 +62,23 @@ def valid_financial_statements() -> FinancialStatements:
         cash_flow_statement=cash_flow,
     )
 
+
 def test_financial_statement_validation_success(valid_financial_statements):
     # validate_financial_statements returns None on success
     validate_financial_statements(valid_financial_statements)
+
 
 def test_financial_statement_validation_unbalanced_failure(valid_financial_statements):
     valid_financial_statements.balance_sheet.total_assets += 5000.0
     with pytest.raises((ValueError, ValidationError)):
         validate_financial_statements(valid_financial_statements)
 
+
 def test_dcf_builder_contract(valid_financial_statements):
     dcf_in = build_dcf_input(valid_financial_statements)
     assert dcf_in.company_name == "Larsen & Toubro"
     assert dcf_in.tax_rate == 0.25
+
 
 def test_repository_lifecycle(valid_financial_statements):
     repo = FinancialStatementRepository()
@@ -83,8 +89,3 @@ def test_repository_lifecycle(valid_financial_statements):
     with pytest.raises(RepositoryError):
         repo.get("NonExistentCorp", "FY2025")
     repo.clear()
-
-
-
-
-

@@ -21,7 +21,7 @@ Consumed by:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List
+from typing import Any
 
 
 @dataclass(slots=True)
@@ -67,16 +67,16 @@ class ComparableResult:
     median_pb: float
 
     # Statistical Diagnostics
-    statistics: Dict[str, Any] = field(default_factory=dict)
+    statistics: dict[str, Any] = field(default_factory=dict)
 
     # Validation
     validation_passed: bool = True
 
-    warnings: List[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    diagnostics: Dict[str, Any] = field(default_factory=dict)
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         """
         Lightweight reporting summary.
         """

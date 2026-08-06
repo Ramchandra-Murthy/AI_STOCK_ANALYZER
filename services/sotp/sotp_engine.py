@@ -1,9 +1,11 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
+
 from core.enums import Status, ValuationMethod
 from core.exceptions import ValuationError
 from core.logger import logger
+
 
 @dataclass(slots=True, frozen=True)
 class SegmentValuation:
@@ -12,6 +14,7 @@ class SegmentValuation:
     value_amount: float
     stake_percentage: float = 1.00
     notes: str = ""
+
 
 @dataclass(slots=True, frozen=True)
 class SOTPInput:
@@ -22,6 +25,7 @@ class SOTPInput:
     net_debt: float = 0.0
     shares_outstanding: float = 1.0
 
+
 @dataclass(slots=True, frozen=True)
 class SOTPResult:
     company_name: str
@@ -31,13 +35,16 @@ class SOTPResult:
     value_per_share: float
     status: Status = Status.OK
 
+
 class SOTPAggregator:
     """Aggregates multi-segment valuations into a consolidated Target Price per Share."""
 
     @staticmethod
     def calculate(sotp_input: SOTPInput) -> SOTPResult:
         if not sotp_input.segments:
-            raise ValuationError("SOTP calculation requires at least one business segment.")
+            raise ValuationError(
+                "SOTP calculation requires at least one business segment."
+            )
 
         gross_ev = sum(s.value_amount * s.stake_percentage for s in sotp_input.segments)
         gross_equity = gross_ev - sotp_input.net_debt

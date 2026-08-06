@@ -18,14 +18,14 @@ This registry standardizes asset classification across:
     • SOTP Engine
 """
 
-from enum import Enum
-
+from enum import StrEnum
 
 # ==========================================================
 # Asset Categories
 # ==========================================================
 
-class AssetCategory(str, Enum):
+
+class AssetCategory(StrEnum):
 
     # Financial Assets
     CASH = "CASH"

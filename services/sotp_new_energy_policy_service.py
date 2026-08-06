@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from services.sotp_new_energy_data_service import (
     get_sotp_new_energy_data,
@@ -18,7 +18,7 @@ def _num(value):
 
 def generate_sotp_new_energy_policy(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     data = get_sotp_new_energy_data(symbol)
 
@@ -27,7 +27,7 @@ def generate_sotp_new_energy_policy(
 
     investment = data.get("investment", {})
     assets = data.get("operating_assets", {})
-    net_assets = data.get("reported_net_assets", {})
+    data.get("reported_net_assets", {})
     financials = data.get("financials", {})
 
     commitment = _num(investment.get("committed_investment"))

@@ -62,7 +62,4 @@ class BaseValuationEngine(ABC):
         return self.__class__.__name__
 
     def __repr__(self) -> str:
-        return (
-            f"{self.engine_name}"
-            f"(method={self.valuation_method})"
-        )
+        return f"{self.engine_name}" f"(method={self.valuation_method})"

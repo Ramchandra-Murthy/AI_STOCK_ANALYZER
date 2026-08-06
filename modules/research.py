@@ -1,35 +1,32 @@
 ﻿import streamlit as st
 
 # ==========================================================
-# SERVICES
-# ==========================================================
-
-from services.research_service import get_stock_profile
-from services.technical_service import get_price_history
-from services.ai_service import get_ai_recommendation
-from services.news_service import get_company_news
-from services.score_service import calculate_investment_score
-from services.technical_score_service import calculate_technical_score
-from services.fundamental_score_service import calculate_fundamental_score
-from services.recommendation_service import generate_recommendation
-from services.trade_plan_service import generate_trade_plan
-from services.investment_thesis_service import generate_investment_thesis
-from services.scenario_service import generate_scenario_analysis
-from services.valuation_service import generate_valuation_analysis
-from services.valuation_v43_service import generate_valuation_v43
-
-# ==========================================================
 # COMPONENTS
 # ==========================================================
-
 from components.charts.candlestick_chart import plot_candlestick
 from components.technical_summary import show_technical_summary
 
 # ==========================================================
 # REPORTS
 # ==========================================================
-
 from reports.report_generator import ReportGenerator
+from services.ai_service import get_ai_recommendation
+from services.fundamental_score_service import calculate_fundamental_score
+from services.investment_thesis_service import generate_investment_thesis
+from services.news_service import get_company_news
+from services.recommendation_service import generate_recommendation
+
+# ==========================================================
+# SERVICES
+# ==========================================================
+from services.research_service import get_stock_profile
+from services.scenario_service import generate_scenario_analysis
+from services.score_service import calculate_investment_score
+from services.technical_score_service import calculate_technical_score
+from services.technical_service import get_price_history
+from services.trade_plan_service import generate_trade_plan
+from services.valuation_service import generate_valuation_analysis
+from services.valuation_v43_service import generate_valuation_v43
 
 # ==========================================================
 # HELPER FUNCTIONS & FORMATTERS
@@ -2596,8 +2593,6 @@ def show():
 
                 st.success("Research report generated successfully.")
 
-            except Exception as error:
-                st.error(f"Unable to generate research report: {error}")
             except Exception as error:
                 st.error(f"Unable to generate research report: {error}")
 

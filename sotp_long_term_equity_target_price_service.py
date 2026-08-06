@@ -10,9 +10,9 @@ risk mappings, and functional getters to prevent mutation of
 shared state.
 """
 
-from typing import List, Sequence
+from collections.abc import Sequence
 
-DEFAULT_KEY_RISKS: List[str] = [
+DEFAULT_KEY_RISKS: list[str] = [
     "Macroeconomic slowdown impacting consumer discretionary retail spending.",
     "Commodity price volatility affecting Oil-to-Chemicals (O2C) operating margins.",
     "Regulatory shifts or spectrum auction pricing impacts on Digital Services.",
@@ -29,12 +29,12 @@ SEGMENT_RISK_MAPPING = {
 }
 
 
-def get_default_risks() -> List[str]:
+def get_default_risks() -> list[str]:
     """Returns a defensive copy of the default key risks to prevent accidental mutation."""
     return DEFAULT_KEY_RISKS.copy()
 
 
-def get_segment_risks(segments: Sequence[str]) -> List[str]:
+def get_segment_risks(segments: Sequence[str]) -> list[str]:
     """
     Dynamically maps operating segments to relevant risk factors.
     Falls back to default risks if no segment-specific risks match.

@@ -218,29 +218,23 @@ def resolve_valuation_benchmarks(
     if peer_selected_methods:
 
         warnings.append(
-            (
-                f"Independent peer benchmarks were selected "
-                f"for {peer_selected_methods} valuation "
-                f"method(s)."
-            )
+            f"Independent peer benchmarks were selected "
+            f"for {peer_selected_methods} valuation "
+            f"method(s)."
         )
 
     if fallback_methods:
 
         warnings.append(
-            (
-                f"Company-derived fallback benchmarks were "
-                f"used for {fallback_methods} valuation "
-                f"method(s)."
-            )
+            f"Company-derived fallback benchmarks were "
+            f"used for {fallback_methods} valuation "
+            f"method(s)."
         )
 
     warnings.append(
-        (
-            "Peer-multiple valuation does not automatically "
-            "adjust for differences in business mix, growth, "
-            "profitability, leverage or capital intensity."
-        )
+        "Peer-multiple valuation does not automatically "
+        "adjust for differences in business mix, growth, "
+        "profitability, leverage or capital intensity."
     )
 
     # Remove duplicate warning strings while preserving order.

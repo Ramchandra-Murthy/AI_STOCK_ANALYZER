@@ -9,11 +9,12 @@ Layer   : Core Infrastructure
 from __future__ import annotations
 
 import json
-from typing import Any, Dict
+from typing import Any
+
 from core.exceptions import SerializationError
 
 
-def serialize_to_json(data: Dict[str, Any], indent: int = 4) -> str:
+def serialize_to_json(data: dict[str, Any], indent: int = 4) -> str:
     """Serializes a dictionary payload into a formatted JSON string."""
     try:
         return json.dumps(data, indent=indent, sort_keys=True)
@@ -21,7 +22,7 @@ def serialize_to_json(data: Dict[str, Any], indent: int = 4) -> str:
         raise SerializationError(f"Failed to serialize payload to JSON: {exc}") from exc
 
 
-def deserialize_from_json(json_str: str) -> Dict[str, Any]:
+def deserialize_from_json(json_str: str) -> dict[str, Any]:
     """Deserializes a JSON string into a standard dictionary."""
     try:
         parsed = json.loads(json_str)

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict
-
-from services.sotp_new_energy_scenario_service import (
-    generate_sotp_new_energy_scenarios,
-)
+from typing import Any
 
 from services.sotp_new_energy_overlap_service import (
     analyze_sotp_new_energy_overlap,
+)
+from services.sotp_new_energy_scenario_service import (
+    generate_sotp_new_energy_scenarios,
 )
 
 REQUIRED_SCENARIOS = (
@@ -28,7 +27,7 @@ def _num(value):
 
 def authorize_sotp_new_energy_scenarios(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     scenario_data = generate_sotp_new_energy_scenarios(symbol)
 

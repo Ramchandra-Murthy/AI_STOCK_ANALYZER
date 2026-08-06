@@ -1,23 +1,18 @@
-from services.sotp_balance_sheet_service import (
-    get_sotp_balance_sheet_data,
-)
-
 from services.sotp_balance_sheet_detail_service import (
     get_sotp_balance_sheet_details,
 )
-
-from services.sotp_liquidity_policy_service import (
-    evaluate_short_term_investment_policy,
+from services.sotp_balance_sheet_service import (
+    get_sotp_balance_sheet_data,
 )
-
 from services.sotp_financial_asset_overlap_service import (
     evaluate_financial_asset_overlap,
 )
-
 from services.sotp_investment_policy_service import (
     generate_sotp_investment_policy,
 )
-
+from services.sotp_liquidity_policy_service import (
+    evaluate_short_term_investment_policy,
+)
 from services.sotp_new_energy_scenario_policy_service import (
     authorize_sotp_new_energy_scenarios,
 )

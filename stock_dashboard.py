@@ -1,24 +1,15 @@
 import streamlit as st
 
-from services.analyzer import analyze_stock
 from charts.candlestick import create_candlestick
+from portfolio.portfolio import add_stock, create_portfolio_table, load_portfolio
 from scanner.market_scanner import market_scan
-
-from portfolio.portfolio import (
-    create_portfolio_table,
-    add_stock,
-    load_portfolio
-)
+from services.analyzer import analyze_stock
 
 # ====================================================
 # PAGE CONFIG
 # ====================================================
 
-st.set_page_config(
-    page_title="AI Stock Analyzer Pro",
-    page_icon="📈",
-    layout="wide"
-)
+st.set_page_config(page_title="AI Stock Analyzer Pro", page_icon="📈", layout="wide")
 
 create_portfolio_table()
 
@@ -30,47 +21,25 @@ st.sidebar.title("📊 Dashboard")
 
 st.sidebar.header("Portfolio")
 
-portfolio_symbol = st.sidebar.text_input(
-    "Symbol",
-    "RELIANCE.NS"
-)
+portfolio_symbol = st.sidebar.text_input("Symbol", "RELIANCE.NS")
 
-portfolio_qty = st.sidebar.number_input(
-    "Quantity",
-    min_value=1,
-    value=10
-)
+portfolio_qty = st.sidebar.number_input("Quantity", min_value=1, value=10)
 
 portfolio_price = st.sidebar.number_input(
-    "Buy Price",
-    min_value=0.0,
-    value=1000.0,
-    step=1.0
+    "Buy Price", min_value=0.0, value=1000.0, step=1.0
 )
 
 if st.sidebar.button("➕ Add To Portfolio"):
 
-    add_stock(
-        portfolio_symbol,
-        portfolio_qty,
-        portfolio_price
-    )
+    add_stock(portfolio_symbol, portfolio_qty, portfolio_price)
 
     st.sidebar.success("Added Successfully")
 
 st.sidebar.divider()
 
-period = st.sidebar.selectbox(
-    "History",
-    ["3mo", "6mo", "1y", "2y", "5y"],
-    index=2
-)
+period = st.sidebar.selectbox("History", ["3mo", "6mo", "1y", "2y", "5y"], index=2)
 
-interval = st.sidebar.selectbox(
-    "Interval",
-    ["1d", "1wk", "1mo"],
-    index=0
-)
+interval = st.sidebar.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
 
 # ====================================================
 # MAIN TITLE
@@ -78,10 +47,7 @@ interval = st.sidebar.selectbox(
 
 st.title("📈 AI Stock Analyzer Pro")
 
-symbol = st.text_input(
-    "Stock Symbol",
-    "RELIANCE.NS"
-)
+symbol = st.text_input("Stock Symbol", "RELIANCE.NS")
 
 # ====================================================
 # ANALYZE
@@ -106,20 +72,11 @@ if st.button("Analyze"):
 
     col1, col2, col3 = st.columns(3)
 
-    col1.metric(
-        "Current Price",
-        f"₹{last['Close']:.2f}"
-    )
+    col1.metric("Current Price", f"₹{last['Close']:.2f}")
 
-    col2.metric(
-        "Trend",
-        trend["Trend"]
-    )
+    col2.metric("Trend", trend["Trend"])
 
-    col3.metric(
-        "Recommendation",
-        signal["Recommendation"]
-    )
+    col3.metric("Recommendation", signal["Recommendation"])
 
     # ==========================
     # TECHNICAL INDICATORS
@@ -150,10 +107,7 @@ if st.button("Analyze"):
 
     score_col, rec_col = st.columns(2)
 
-    score_col.metric(
-        "AI Score",
-        signal["Score"]
-    )
+    score_col.metric("AI Score", signal["Score"])
 
     rec = signal["Recommendation"]
 
@@ -194,15 +148,9 @@ if st.button("Analyze"):
 
     st.subheader("📈 Technical Chart")
 
-    fig = create_candlestick(
-        result["df"],
-        symbol
-    )
+    fig = create_candlestick(result["df"], symbol)
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    st.plotly_chart(fig, use_container_width=True)
 
     # ==========================
     # DATA TABLE
@@ -212,11 +160,7 @@ if st.button("Analyze"):
 
     st.subheader("📄 Latest Market Data")
 
-    st.dataframe(
-        result["df"].tail(20),
-        use_container_width=True,
-        hide_index=True
-    )
+    st.dataframe(result["df"].tail(20), use_container_width=True, hide_index=True)
 
 # ====================================================
 # PORTFOLIO
@@ -234,11 +178,7 @@ if portfolio.empty:
 
 else:
 
-    st.dataframe(
-        portfolio,
-        use_container_width=True,
-        hide_index=True
-    )
+    st.dataframe(portfolio, use_container_width=True, hide_index=True)
 
 # ====================================================
 # NIFTY SCANNER
@@ -258,22 +198,13 @@ if st.button("🔍 Scan Market"):
 
     if not scan.empty:
 
-        scan = scan.sort_values(
-            "Score",
-            ascending=False
-        )
+        scan = scan.sort_values("Score", ascending=False)
 
         if buy_only:
 
-            scan = scan[
-                scan["Signal"] == "BUY"
-            ]
+            scan = scan[scan["Signal"] == "BUY"]
 
-        st.dataframe(
-            scan,
-            use_container_width=True,
-            hide_index=True
-        )
+        st.dataframe(scan, use_container_width=True, hide_index=True)
 
     else:
 

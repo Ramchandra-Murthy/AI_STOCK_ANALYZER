@@ -5,8 +5,6 @@ Module  : tests.wacc.test_wacc_service
 ==========================================================
 """
 
-import pytest
-
 from services.wacc.wacc_models import BetaAdjustmentInput, CAPMInput, WACCInput
 from services.wacc.wacc_service import CapitalCostEngine
 

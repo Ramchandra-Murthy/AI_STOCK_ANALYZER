@@ -14,7 +14,6 @@ This module contains no valuation logic.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List
 
 
 @dataclass(slots=True)
@@ -33,25 +32,25 @@ class DCFResult:
     # Revenue Forecast
     # ======================================================
 
-    projected_revenue: List[float]
+    projected_revenue: list[float]
 
     # ======================================================
     # Operating Forecast
     # ======================================================
 
-    projected_ebit: List[float]
+    projected_ebit: list[float]
 
-    projected_nopat: List[float]
+    projected_nopat: list[float]
 
     # ======================================================
     # Free Cash Flow Forecast
     # ======================================================
 
-    projected_fcff: List[float]
+    projected_fcff: list[float]
 
-    discount_factors: List[float]
+    discount_factors: list[float]
 
-    present_value_fcff: List[float]
+    present_value_fcff: list[float]
 
     pv_fcff_total: float
 
@@ -103,13 +102,13 @@ class DCFResult:
 
     validation_passed: bool = True
 
-    warnings: List[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
     # ======================================================
     # Sensitivity Analysis
     # ======================================================
 
-    sensitivity_matrix: Dict[str, object] = field(default_factory=dict)
+    sensitivity_matrix: dict[str, object] = field(default_factory=dict)
 
     # ======================================================
     # Convenience Properties
@@ -126,7 +125,7 @@ class DCFResult:
         return self.present_value_terminal
 
     @property
-    def enterprise_bridge(self) -> Dict[str, float]:
+    def enterprise_bridge(self) -> dict[str, float]:
         """Enterprise value bridge."""
         return {
             "enterprise_value": self.enterprise_value,
@@ -135,7 +134,7 @@ class DCFResult:
             "equity_value": self.equity_value,
         }
 
-    def summary(self) -> Dict[str, float]:
+    def summary(self) -> dict[str, float]:
         """
         Returns a concise valuation summary.
         """

@@ -26,18 +26,18 @@ Sensitivity Analysis
 Return NAVResult
 """
 
-from services.valuation.nav.nav_input import NAVInput
-from services.valuation.nav.nav_result import NAVResult
-from services.valuation.nav.validation import validate_input
 from services.valuation.nav.adjustments import (
+    apply_holdco_discount,
+    apply_minority_interest,
     total_adjusted_asset_value,
     total_fair_value_adjustment,
-    apply_minority_interest,
-    apply_holdco_discount,
 )
+from services.valuation.nav.nav_input import NAVInput
+from services.valuation.nav.nav_result import NAVResult
 from services.valuation.nav.sensitivity import (
     build_nav_sensitivity_matrix,
 )
+from services.valuation.nav.validation import validate_input
 
 
 class NAVModel:
@@ -60,9 +60,7 @@ class NAVModel:
         # Assets
         # ------------------------------------------
 
-        gross_asset_value = total_adjusted_asset_value(
-            self.data.assets
-        )
+        gross_asset_value = total_adjusted_asset_value(self.data.assets)
 
         total_book_value = sum(
             asset.book_value * (asset.ownership_pct / 100.0)
@@ -70,9 +68,7 @@ class NAVModel:
             if asset.include_in_nav
         )
 
-        fair_value_adjustment = total_fair_value_adjustment(
-            self.data.assets
-        )
+        fair_value_adjustment = total_fair_value_adjustment(self.data.assets)
 
         # ------------------------------------------
         # Liabilities
@@ -100,9 +96,7 @@ class NAVModel:
             self.data.holding_company_discount_pct,
         )
 
-        share_price = (
-            equity_value / self.data.shares_outstanding
-        )
+        share_price = equity_value / self.data.shares_outstanding
 
         # ------------------------------------------
         # Sensitivity
@@ -137,14 +131,10 @@ class NAVModel:
             asset_count=len(self.data.assets),
             liability_count=len(self.data.liabilities),
             included_asset_count=sum(
-                1
-                for asset in self.data.assets
-                if asset.include_in_nav
+                1 for asset in self.data.assets if asset.include_in_nav
             ),
             included_liability_count=sum(
-                1
-                for liability in self.data.liabilities
-                if liability.include_in_nav
+                1 for liability in self.data.liabilities if liability.include_in_nav
             ),
             validation_passed=True,
             warnings=[],

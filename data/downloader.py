@@ -1,5 +1,5 @@
-import yfinance as yf
 import pandas as pd
+import yfinance as yf
 
 
 def download_stock(symbol, period="1y", interval="1d"):
@@ -10,7 +10,7 @@ def download_stock(symbol, period="1y", interval="1d"):
         interval=interval,
         auto_adjust=True,
         progress=False,
-        multi_level_index=False
+        multi_level_index=False,
     )
 
     # Handle MultiIndex columns

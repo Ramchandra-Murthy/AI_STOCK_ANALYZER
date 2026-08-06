@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from services.sotp_new_energy_data_service import (
     get_sotp_new_energy_data,
@@ -18,7 +18,7 @@ def _num(value):
 
 def analyze_sotp_new_energy_overlap(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
 
     # ----------------------------------------------------
     # LOAD FACTUAL NEW ENERGY DATA

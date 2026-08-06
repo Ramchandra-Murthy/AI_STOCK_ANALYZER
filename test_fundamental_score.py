@@ -1,7 +1,7 @@
 import streamlit as st
 
-from services.research_service import get_stock_profile
 from services.fundamental_score_service import calculate_fundamental_score
+from services.research_service import get_stock_profile
 
 st.title("Fundamental Score Test")
 

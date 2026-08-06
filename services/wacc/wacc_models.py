@@ -11,7 +11,7 @@ Summary : Core domain models for Weighted Average Cost of Capital (WACC),
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Any
 
 
 @dataclass(slots=True, frozen=True)
@@ -59,7 +59,7 @@ class WACCInput:
     cost_of_equity: float  # Re
     cost_of_debt: float  # Rd
     tax_rate: float  # Tc (Corporate tax rate)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.symbol:

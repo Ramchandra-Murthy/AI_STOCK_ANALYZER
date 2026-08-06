@@ -9,6 +9,7 @@ Layer   : Validation & Governance
 from __future__ import annotations
 
 import math
+
 from services.statements.models import FinancialStatementPackage
 
 

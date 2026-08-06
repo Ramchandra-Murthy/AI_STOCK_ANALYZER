@@ -23,10 +23,10 @@ Contains NO:
 
 from dataclasses import dataclass
 
-
 # ==========================================================
 # Terminal Value Result
 # ==========================================================
+
 
 @dataclass(slots=True)
 class TerminalValueResult:
@@ -55,6 +55,7 @@ class TerminalValueResult:
 # Terminal FCFF
 # ==========================================================
 
+
 def compute_terminal_fcff(
     final_year_fcff: float,
     terminal_growth_rate: float,
@@ -70,6 +71,7 @@ def compute_terminal_fcff(
 # Gordon Growth Terminal Value
 # ==========================================================
 
+
 def compute_terminal_value(
     terminal_fcff: float,
     wacc: float,
@@ -80,9 +82,7 @@ def compute_terminal_value(
     """
 
     if terminal_growth_rate >= wacc:
-        raise ValueError(
-            "Terminal growth rate must be less than WACC."
-        )
+        raise ValueError("Terminal growth rate must be less than WACC.")
 
     return terminal_fcff / (wacc - terminal_growth_rate)
 
@@ -90,6 +90,7 @@ def compute_terminal_value(
 # ==========================================================
 # Present Value of Terminal Value
 # ==========================================================
+
 
 def discount_terminal_value(
     terminal_value: float,
@@ -106,6 +107,7 @@ def discount_terminal_value(
 # ==========================================================
 # Contribution
 # ==========================================================
+
 
 def terminal_value_contribution(
     pv_terminal: float,
@@ -124,6 +126,7 @@ def terminal_value_contribution(
 # ==========================================================
 # Master Routine
 # ==========================================================
+
 
 def build_terminal_value(
     final_year_fcff: float,

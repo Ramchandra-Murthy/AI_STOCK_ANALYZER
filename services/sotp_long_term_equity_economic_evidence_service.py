@@ -25,7 +25,7 @@ No runtime mutation is performed.
 ECONOMIC_EVIDENCE is the single authoritative registry.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from services.sotp_long_term_equity_entity_data_service import (
     get_sotp_long_term_equity_entity_data,
@@ -46,7 +46,7 @@ def _clean_symbol(symbol: str) -> str:
     return symbol
 
 
-ECONOMIC_EVIDENCE: Dict[str, Dict[str, Any]] = {
+ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     # Entity #1
     "Alok Industries Limited": {
         "business_activity": (
@@ -1861,8 +1861,8 @@ ECONOMIC_EVIDENCE: Dict[str, Dict[str, Any]] = {
 
 
 def _validate_economic_evidence(
-    evidence: Dict[str, Any],
-) -> Dict[str, Any]:
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
     if not isinstance(evidence, dict):
         evidence = {}
 
@@ -1889,7 +1889,7 @@ def _validate_economic_evidence(
 
     source_present = bool(evidence.get("source"))
 
-    missing_requirements: List[str] = []
+    missing_requirements: list[str] = []
 
     if not relationship_known:
         missing_requirements.append("RELATIONSHIP_EVIDENCE")
@@ -1924,7 +1924,7 @@ def _validate_economic_evidence(
 
 def get_sotp_long_term_equity_economic_evidence(
     symbol: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     symbol = _clean_symbol(symbol)
 
     data = get_sotp_long_term_equity_entity_data(symbol)
@@ -1943,7 +1943,7 @@ def get_sotp_long_term_equity_economic_evidence(
     if not isinstance(population, list):
         population = []
 
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     relationship_known_count = 0
     economic_activity_known_count = 0

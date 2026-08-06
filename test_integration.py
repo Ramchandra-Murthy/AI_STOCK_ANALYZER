@@ -1,5 +1,5 @@
-﻿from services.valuation.models import ValuationMethod, ValuationStatus
-from services.valuation.contracts import SOTPSegmentInput
+﻿from services.valuation.contracts import SOTPSegmentInput
+from services.valuation.models import ValuationMethod, ValuationStatus
 from services.valuation.sotp_engine import SOTPEngine
 
 engine = SOTPEngine(group_name="Conglomerate Holdings", total_group_shares=100.0)
@@ -34,6 +34,10 @@ print("\n=== Registry-Driven Dispatcher Verification ===")
 for r in results:
     status_tag = f"[{r.valuation_status.value}]"
     if r.valuation_status == ValuationStatus.COMPLETE:
-        print(f"{r.entity_name:<30} | {r.valuation_method.value:<10} | {status_tag:<12} | EV: {r.enterprise_value:,.2f} | WACC: {r.diagnostics.get('wacc', 0):.2%}")
+        print(
+            f"{r.entity_name:<30} | {r.valuation_method.value:<10} | {status_tag:<12} | EV: {r.enterprise_value:,.2f} | WACC: {r.diagnostics.get('wacc', 0):.2%}"
+        )
     else:
-        print(f"{r.entity_name:<30} | {r.valuation_method.value:<10} | {status_tag:<12} | {r.diagnostics.get('error', 'Pending implementation')}")
+        print(
+            f"{r.entity_name:<30} | {r.valuation_method.value:<10} | {status_tag:<12} | {r.diagnostics.get('error', 'Pending implementation')}"
+        )

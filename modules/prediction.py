@@ -1,12 +1,12 @@
-import streamlit as st
-import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
-
+import streamlit as st
+import yfinance as yf
 
 # ==========================================================
 # Download Stock Data
 # ==========================================================
+
 
 def download_stock(symbol):
 
@@ -18,7 +18,7 @@ def download_stock(symbol):
             interval="1d",
             auto_adjust=True,
             progress=False,
-            threads=False
+            threads=False,
         )
 
         if df is None or df.empty:
@@ -39,6 +39,7 @@ def download_stock(symbol):
 # ==========================================================
 # Prediction Model
 # ==========================================================
+
 
 def predict_prices(df, days=30):
 
@@ -70,25 +71,16 @@ def predict_prices(df, days=30):
 # Prediction Page
 # ==========================================================
 
+
 def show():
 
     st.title("🤖 AI Stock Price Prediction")
 
-    st.write(
-        "Simple AI prediction using moving-average trend forecasting."
-    )
+    st.write("Simple AI prediction using moving-average trend forecasting.")
 
-    symbol = st.text_input(
-        "Stock Symbol",
-        value="RELIANCE.NS"
-    )
+    symbol = st.text_input("Stock Symbol", value="RELIANCE.NS")
 
-    forecast_days = st.slider(
-        "Forecast Days",
-        5,
-        60,
-        30
-    )
+    forecast_days = st.slider("Forecast Days", 5, 60, 30)
 
     if st.button("Predict"):
 
@@ -98,9 +90,7 @@ def show():
 
         if df is None:
 
-            st.error(
-                f"Unable to download data for {symbol}"
-            )
+            st.error(f"Unable to download data for {symbol}")
 
             return
 
@@ -108,111 +98,53 @@ def show():
 
         st.subheader("Latest Market Data")
 
-        st.dataframe(
-            df.tail(),
-            use_container_width=True
-        )
+        st.dataframe(df.tail(), use_container_width=True)
 
-        prediction = predict_prices(
-            df,
-            forecast_days
-        )
+        prediction = predict_prices(df, forecast_days)
 
         current_price = float(df["Close"].iloc[-1])
 
         predicted_price = prediction[-1]
 
-        expected_return = (
-            (predicted_price - current_price)
-            / current_price
-        ) * 100
+        expected_return = ((predicted_price - current_price) / current_price) * 100
 
         st.divider()
 
         c1, c2, c3 = st.columns(3)
 
-        c1.metric(
-            "Current Price",
-            f"₹{current_price:,.2f}"
-        )
+        c1.metric("Current Price", f"₹{current_price:,.2f}")
 
-        c2.metric(
-            "Predicted Price",
-            f"₹{predicted_price:,.2f}"
-        )
+        c2.metric("Predicted Price", f"₹{predicted_price:,.2f}")
 
-        c3.metric(
-            "Expected Return",
-            f"{expected_return:.2f}%"
-        )
+        c3.metric("Expected Return", f"{expected_return:.2f}%")
 
         st.divider()
 
         fig = go.Figure()
 
         fig.add_trace(
-
-            go.Scatter(
-
-                x=df.index,
-
-                y=df["Close"],
-
-                mode="lines",
-
-                name="Historical Price"
-
-            )
-
+            go.Scatter(x=df.index, y=df["Close"], mode="lines", name="Historical Price")
         )
 
         future_dates = pd.date_range(
-
-            start=df.index[-1],
-
-            periods=forecast_days + 1,
-
-            freq="B"
-
+            start=df.index[-1], periods=forecast_days + 1, freq="B"
         )[1:]
 
         fig.add_trace(
-
             go.Scatter(
-
-                x=future_dates,
-
-                y=prediction,
-
-                mode="lines+markers",
-
-                name="AI Prediction"
-
+                x=future_dates, y=prediction, mode="lines+markers", name="AI Prediction"
             )
-
         )
 
         fig.update_layout(
-
             title=f"{symbol} Price Prediction",
-
             xaxis_title="Date",
-
             yaxis_title="Price",
-
             height=600,
-
-            template="plotly_white"
-
+            template="plotly_white",
         )
 
-        st.plotly_chart(
-
-            fig,
-
-            use_container_width=True
-
-        )
+        st.plotly_chart(fig, use_container_width=True)
 
         st.divider()
 
@@ -236,37 +168,24 @@ def show():
 
         st.subheader("Prediction Summary")
 
-        summary = pd.DataFrame({
-
-            "Metric": [
-
-                "Stock",
-
-                "Forecast",
-
-                "Current Price",
-
-                "Predicted Price",
-
-                "Expected Return"
-
-            ],
-
-            "Value": [
-
-                symbol,
-
-                f"{forecast_days} Days",
-
-                f"₹{current_price:.2f}",
-
-                f"₹{predicted_price:.2f}",
-
-                f"{expected_return:.2f}%"
-
-            ]
-
-        })
+        summary = pd.DataFrame(
+            {
+                "Metric": [
+                    "Stock",
+                    "Forecast",
+                    "Current Price",
+                    "Predicted Price",
+                    "Expected Return",
+                ],
+                "Value": [
+                    symbol,
+                    f"{forecast_days} Days",
+                    f"₹{current_price:.2f}",
+                    f"₹{predicted_price:.2f}",
+                    f"{expected_return:.2f}%",
+                ],
+            }
+        )
 
         st.table(summary)
 

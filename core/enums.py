@@ -8,16 +8,18 @@ Version : 4.0.0
 ==========================================================
 """
 
-from enum import Enum
+from enum import StrEnum
 
-class Status(str, Enum):
+
+class Status(StrEnum):
     OK = "OK"
     UNAVAILABLE = "UNAVAILABLE"
     UNRESOLVED = "UNRESOLVED"
     FAILED = "FAILED"
     WARNING = "WARNING"
 
-class ValuationMethod(str, Enum):
+
+class ValuationMethod(StrEnum):
     DCF = "DCF"
     NAV = "NAV"
     COMPARABLE = "COMPARABLE"
@@ -27,18 +29,21 @@ class ValuationMethod(str, Enum):
     MONTE_CARLO = "MONTE_CARLO"
     SOTP = "SOTP"
 
-class AccountingStandard(str, Enum):
+
+class AccountingStandard(StrEnum):
     IND_AS = "IND_AS"
     US_GAAP = "US_GAAP"
     IFRS = "IFRS"
 
-class Currency(str, Enum):
+
+class Currency(StrEnum):
     INR = "INR"
     USD = "USD"
     EUR = "EUR"
     GBP = "GBP"
 
-class MetricUnit(str, Enum):
+
+class MetricUnit(StrEnum):
     CRORES = "CR"
     MILLIONS = "M"
     BILLIONS = "B"

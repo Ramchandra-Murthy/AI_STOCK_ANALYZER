@@ -1,6 +1,9 @@
 ﻿from __future__ import annotations
+
 import pytest
+
 from services.forecast.models import ForecastLineItem, ForecastPackage
+
 
 def test_forecast_line_item_creation_and_serialization() -> None:
     item = ForecastLineItem(name="Revenue", values=(100.0, 110.0, 121.0))
@@ -10,10 +13,12 @@ def test_forecast_line_item_creation_and_serialization() -> None:
     reconstructed = ForecastLineItem.from_dict(data)
     assert reconstructed == item
 
+
 def test_forecast_line_item_immutability() -> None:
     item = ForecastLineItem(name="Revenue", values=(100.0, 110.0))
     with pytest.raises(AttributeError):
         item.name = "Modified"  # type: ignore[misc]
+
 
 def test_forecast_package_serialization() -> None:
     rev = ForecastLineItem("Revenue", (100.0, 120.0))
