@@ -22,19 +22,14 @@ class ForecastEngine:
             else:
                 cagr = 0.10
         else:
-            # Default institutional baseline growth assumption
             cagr = 0.115
 
         base_revenue = historical_revenue[-1] if historical_revenue else 1000.0
         projected_revenue = base_revenue * (1 + cagr)
-        projected_ebitda = projected_revenue * 0.22
-        projected_fcf = projected_revenue * 0.15
 
         return ForecastResult(
             symbol=symbol,
+            revenue_growth_rate=cagr,
             projected_revenue=projected_revenue,
-            projected_ebitda=projected_ebitda,
-            projected_fcf=projected_fcf,
-            growth_rate=cagr,
-            scenario="BASE"
+            confidence_score=0.85
         )
