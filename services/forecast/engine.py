@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 import logging
-from services.forecast.models import ForecastResult
+from services.forecast.models import ForecastResult, FinancialMetricForecast
 
 logger = logging.getLogger(__name__)
 
@@ -17,19 +17,21 @@ class ForecastEngine:
             start_val = historical_revenue[0]
             end_val = historical_revenue[-1]
             n_periods = len(historical_revenue) - 1
-            if start_val > 0:
-                cagr = (end_val / start_val) ** (1 / n_periods) - 1
-            else:
-                cagr = 0.10
+            cagr = (end_val / start_val) ** (1 / n_periods) - 1 if start_val > 0 else 0.10
         else:
             cagr = 0.115
 
         base_revenue = historical_revenue[-1] if historical_revenue else 1000.0
-        projected_revenue = base_revenue * (1 + cagr)
+        proj_revenue = [base_revenue * (1 + cagr), base_revenue * (1 + cagr)**2, base_revenue * (1 + cagr)**3]
+        proj_eps = [10.0 * (1 + cagr), 10.0 * (1 + cagr)**2, 10.0 * (1 + cagr)**3]
+        proj_fcf = [base_revenue * 0.15 * (1 + cagr), base_revenue * 0.15 * (1 + cagr)**2, base_revenue * 0.15 * (1 + cagr)**3]
+        proj_ebitda = [base_revenue * 0.22 * (1 + cagr), base_revenue * 0.22 * (1 + cagr)**2, base_revenue * 0.22 * (1 + cagr)**3]
 
         return ForecastResult(
             symbol=symbol,
-            projected_revenue=projected_revenue,
-            growth_rate=cagr,
-            scenario="BASE"
+            revenue=FinancialMetricForecast(metric_name="Revenue", historical_base=base_revenue, projections=proj_revenue, cagr=cagr),
+            eps=FinancialMetricForecast(metric_name="EPS", historical_base=10.0, projections=proj_eps, cagr=cagr),
+            fcf=FinancialMetricForecast(metric_name="FCF", historical_base=base_revenue * 0.15, projections=proj_fcf, cagr=cagr),
+            ebitda=FinancialMetricForecast(metric_name="EBITDA", historical_base=base_revenue * 0.22, projections=proj_ebitda, cagr=cagr),
+            model_type="CAGRDeterministicModel"
         )
