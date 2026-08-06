@@ -1,7 +1,17 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Any, Dict, List
+
+
+@dataclass(frozen=True, slots=True)
+class FinancialMetricForecast:
+    """Forecast details for an individual financial metric (e.g., Revenue, EBIT)."""
+    metric_name: str
+    historical_values: List[float] = field(default_factory=list)
+    projected_values: List[float] = field(default_factory=list)
+    growth_rate: float = 0.10
+    model_used: str = "CAGR"
 
 
 @dataclass(frozen=True, slots=True)

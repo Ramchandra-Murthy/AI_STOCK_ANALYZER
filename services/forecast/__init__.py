@@ -1,6 +1,11 @@
 ﻿from __future__ import annotations
 
-from services.forecast.models import ForecastResult
+from services.forecast.models import (
+    ForecastResult,
+    FinancialMetricForecast,
+)
 
-# Backward compatibility alias if imported by event contract tests
-FinancialMetricForecast = ForecastResult
+__all__ = [
+    "ForecastResult",
+    "FinancialMetricForecast",
+]
