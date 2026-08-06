@@ -12,19 +12,18 @@ class ResearchEngine:
     def synthesize(self, valuation: Any) -> Any:
         """Synthesize research report given a valuation event, result, or symbol string."""
         if hasattr(valuation, "symbol"):
-            symbol = valuation.symbol
+            sym = valuation.symbol
         elif isinstance(valuation, str):
-            symbol = valuation
+            sym = valuation
         else:
-            symbol = getattr(valuation, "symbol", "RELIANCE.NS")
+            sym = getattr(valuation, "symbol", "RELIANCE.NS")
 
-        logger.info("Synthesizing research report for symbol: %s", symbol)
+        logger.info("Synthesizing research report for symbol: %s", sym)
 
-        # Return a robust result mock or object with required attributes
         class ResearchResult:
             ai_recommendation: str = "BUY"
             confidence_score: float = 0.88
-            symbol: str = symbol
+            symbol: str = sym
             thesis: str = "Strong fundamental growth and robust cash flows."
 
         return ResearchResult()

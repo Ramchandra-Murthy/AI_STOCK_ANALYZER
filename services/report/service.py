@@ -26,13 +26,21 @@ class ReportService:
     async def handle_research_completed(self, event: Any) -> None:
         """Event handler triggered when research is completed."""
         symbol = event.symbol
-        await self.compute_and_publish(symbol)
+        await self.compute_and_publish(symbol, event)
 
-    async def compute_and_publish(self, symbol: str) -> Any:
+    async def compute_and_publish(self, symbol: str, event: Any = None) -> Any:
         """Run report generation and publish ReportCompleted event."""
-        result = self._engine.generate(symbol)
+        if hasattr(self._engine, "generate"):
+            try:
+                result = self._engine.generate(event if event else symbol)
+            except TypeError:
+                result = self._engine.generate(symbol)
+        elif hasattr(self._engine, "compute"):
+            result = self._engine.compute(symbol)
+        else:
+            result = self._engine.build_report(symbol) # type: ignore[attr-defined]
 
-        event = ReportCompleted(
+        event_msg = ReportCompleted(
             symbol=symbol,
             payload={
                 "format_type": "MULTI-FORMAT",
@@ -40,6 +48,6 @@ class ReportService:
             },
         )
 
-        await self._dispatcher.dispatch(event)
+        await self._dispatcher.dispatch(event_msg)
         logger.info("ReportCompleted event published for symbol: %s", symbol)
         return result
