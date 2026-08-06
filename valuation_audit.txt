@@ -1,0 +1,28 @@
+﻿=== 1. Listing valuation-related files ===
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\contracts.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\enums.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\stub_adapters.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py
+
+=== 2. Finding references to legacy valuation services ===
+(No active references to valuation_v4_service or valuation_v43_service found in python files)
+
+=== 3. Finding all dispatcher references ===
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\deploy_milestone1_core.py:69 - class Dispatcher...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\test_integration.py:33 - print("\n=== Registering engines...")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\test_nav_dispatch.py:1 - from services.valuation.dispatcher import get_valuation_dispatcher
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\test_nav_dispatch.py:3 - dispatcher = get_valuation_dispatcher()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\test_nav_dispatch.py:27 - res = dispatcher.dispatch(...)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\test_sotp_pipeline.py:2 - from services.valuation.dispatcher import ValuationDispatcher
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\test_sotp_pipeline.py:11 - dispatcher = ValuationDispatcher()
