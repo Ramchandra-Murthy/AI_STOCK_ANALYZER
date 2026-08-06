@@ -1,12 +1,10 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
-from core.events.event import BaseEvent
+from core.events.event import BaseDomainEvent
 
 
 @dataclass(frozen=True, slots=True)
-class ForecastCompleted(BaseEvent):
-    """Event published when financial forecasts are successfully computed."""
-    symbol: str = ""
-    model_type: str = ""
+class ForecastCompleted(BaseDomainEvent):
+    """Event emitted when financial forecasting is completed."""
     name: str = "forecast.completed"

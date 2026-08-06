@@ -1,12 +1,10 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
-from core.events.event import BaseEvent
+from core.events.event import BaseDomainEvent
 
 
 @dataclass(frozen=True, slots=True)
-class ReportCompleted(BaseEvent):
-    """Event published when multi-format report generation is completed."""
-    symbol: str = ""
-    format_type: str = ""
+class ReportCompleted(BaseDomainEvent):
+    """Event emitted when multi-format report generation is completed."""
     name: str = "report.completed"

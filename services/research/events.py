@@ -1,13 +1,10 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
-from core.events.event import BaseEvent
+from core.events.event import BaseDomainEvent
 
 
 @dataclass(frozen=True, slots=True)
-class ResearchCompleted(BaseEvent):
-    """Event published when comprehensive equity research analysis is completed."""
-    symbol: str = ""
-    ai_recommendation: str = ""
-    confidence_score: float = 0.0
+class ResearchCompleted(BaseDomainEvent):
+    """Event emitted when research and thesis generation are completed."""
     name: str = "research.completed"
