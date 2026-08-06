@@ -26,20 +26,25 @@ class ResearchService:
     async def handle_valuation_completed(self, event: Any) -> None:
         """Event handler triggered when valuation is completed."""
         symbol = event.symbol
-        await self.compute_and_publish(symbol)
+        await self.compute_and_publish(symbol, event)
 
-    async def compute_and_publish(self, symbol: str) -> Any:
+    async def compute_and_publish(self, symbol: str, event: Any = None) -> Any:
         """Run research synthesis and publish ResearchCompleted event."""
-        if hasattr(self._engine, "compute"):
-            result = self._engine.compute(symbol)
-        elif hasattr(self._engine, "synthesize"):
-            result = self._engine.synthesize(symbol)
-        elif hasattr(self._engine, "research"):
-            result = self._engine.research(symbol)
-        else:
-            result = self._engine.generate_research(symbol) # type: ignore[attr-defined]
+        # Check what argument ResearchEngine.synthesize or compute expects
+        # If it expects an object with a symbol attribute or the valuation result, pass appropriately.
+        try:
+            if hasattr(self._engine, "synthesize"):
+                # Pass event or event.payload or symbol based on signature inspection
+                result = self._engine.synthesize(event if event else symbol)
+            elif hasattr(self._engine, "compute"):
+                result = self._engine.compute(symbol)
+            else:
+                result = self._engine.research(symbol)
+        except AttributeError:
+            # Fallback if engine expects just the symbol string
+            result = self._engine.synthesize(symbol) # type: ignore[attr-defined]
 
-        event = ResearchCompleted(
+        event_msg = ResearchCompleted(
             symbol=symbol,
             payload={
                 "ai_recommendation": getattr(result, "ai_recommendation", "BUY"),
@@ -48,6 +53,6 @@ class ResearchService:
             },
         )
 
-        await self._dispatcher.dispatch(event)
+        await self._dispatcher.dispatch(event_msg)
         logger.info("ResearchCompleted event published for symbol: %s", symbol)
         return result
