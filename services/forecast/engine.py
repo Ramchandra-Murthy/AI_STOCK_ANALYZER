@@ -1,60 +1,40 @@
 ﻿from __future__ import annotations
 
 import logging
-from services.forecast.models import ForecastResult, FinancialMetricForecast
-from services.market_data.models import MarketDataResponse
+from services.forecast.models import ForecastResult
 
 logger = logging.getLogger(__name__)
 
 
 class ForecastEngine:
-    """Computes deterministic or AI-assisted financial forecasts from market and fundamental data."""
+    """Institutional forecasting engine incorporating historical CAGR and financial projections."""
 
-    def compute(self, market_data: MarketDataResponse) -> ForecastResult:
-        """Run multi-year financial projections based on recent historical prices/metrics."""
-        logger.info("Running forecast engine for symbol: %s", market_data.symbol)
-        
-        # Base values derived or mocked from recent price action / baseline
-        base_price = market_data.records[-1].close if market_data.records else 2500.0
-        
-        rev_base = base_price * 100.0
-        eps_base = base_price * 0.05
-        fcf_base = base_price * 15.0
-        ebitda_base = base_price * 25.0
+    def compute(self, symbol: str, historical_revenue: list[float] | None = None) -> ForecastResult:
+        """Compute revenue, earnings, and cash flow projections based on historical data or robust baselines."""
+        logger.info("Computing institutional financial forecast for symbol: %s", symbol)
 
-        revenue = FinancialMetricForecast(
-            metric_name="Revenue",
-            historical_base=rev_base,
-            projections=[rev_base * (1.12 ** i) for i in range(1, 4)],
-            cagr=12.0
-        )
-        
-        eps = FinancialMetricForecast(
-            metric_name="EPS",
-            historical_base=eps_base,
-            projections=[eps_base * (1.15 ** i) for i in range(1, 4)],
-            cagr=15.0
-        )
+        if historical_revenue and len(historical_revenue) >= 2:
+            start_val = historical_revenue[0]
+            end_val = historical_revenue[-1]
+            n_periods = len(historical_revenue) - 1
+            if start_val > 0:
+                cagr = (end_val / start_val) ** (1 / n_periods) - 1
+            else:
+                cagr = 0.10
+        else:
+            # Default institutional baseline growth assumption
+            cagr = 0.115
 
-        fcf = FinancialMetricForecast(
-            metric_name="FCF",
-            historical_base=fcf_base,
-            projections=[fcf_base * (1.10 ** i) for i in range(1, 4)],
-            cagr=10.0
-        )
-
-        ebitda = FinancialMetricForecast(
-            metric_name="EBITDA",
-            historical_base=ebitda_base,
-            projections=[ebitda_base * (1.14 ** i) for i in range(1, 4)],
-            cagr=14.0
-        )
+        base_revenue = historical_revenue[-1] if historical_revenue else 1000.0
+        projected_revenue = base_revenue * (1 + cagr)
+        projected_ebitda = projected_revenue * 0.22
+        projected_fcf = projected_revenue * 0.15
 
         return ForecastResult(
-            symbol=market_data.symbol,
-            revenue=revenue,
-            eps=eps,
-            fcf=fcf,
-            ebitda=ebitda,
-            model_type="DeterministicGrowthModel"
+            symbol=symbol,
+            projected_revenue=projected_revenue,
+            projected_ebitda=projected_ebitda,
+            projected_fcf=projected_fcf,
+            growth_rate=cagr,
+            scenario="BASE"
         )
