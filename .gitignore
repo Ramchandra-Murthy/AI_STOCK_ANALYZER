@@ -44,3 +44,8 @@ htmlcov/
 *.zip
 *.rar
 *.7z
+
+# Temporary archives
+*.zip
+*.rar
+*.7z
