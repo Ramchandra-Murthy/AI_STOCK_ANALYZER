@@ -2,10 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
+## [6.0.0-alpha] - 2026-04-06
 ### Added
-- Repository foundation (M0) including directory structure, CI/CD workflows, governance documents, and tool configurations.
-
+- Centralized `ValuationDispatcher` supporting DCF, NAV, and SOTP valuation strategies.
+- Core Domain-Driven Design layout (`Core`, `Application`, `Infrastructure`, `Services`).
+- Robust validation rules package (`core/validation/rules.py`) with strict `ValidationError` handling.
+- Comprehensive test suite for container bootstrapping and valuation dispatchers.
