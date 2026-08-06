@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import logging
+from typing import Any
 from core.events.dispatcher import EventDispatcher
 from services.market_data.cache import MarketDataCache
 from services.market_data.downloader import MarketDataDownloader
@@ -11,17 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 class MarketDataService:
-    """Orchestrates market data downloading, caching, and event publication."""
+    """Service managing market data acquisition, caching, and download events."""
 
     def __init__(
         self,
         downloader: MarketDataDownloader,
         cache: MarketDataCache,
-        event_dispatcher: EventDispatcher
+        dispatcher: EventDispatcher
     ) -> None:
         self._downloader = downloader
         self._cache = cache
-        self._dispatcher = event_dispatcher
+        self._dispatcher = dispatcher
 
     async def get_or_download(self, symbol: str) -> MarketDataResponse:
         """Retrieve market data from cache or download, then publish MarketDataDownloaded event."""
@@ -34,16 +35,17 @@ class MarketDataService:
             self._cache.set(symbol, response)
             source = response.source
 
-        # Publish domain event
+        # Publish domain event adhering strictly to BaseDomainEvent contract
         event = MarketDataDownloaded(
             symbol=response.symbol,
-            records=len(response.records),
-            source=source,
             payload={
                 "symbol": response.symbol,
                 "records": len(response.records),
-                "source": source
+                "source": source,
+                "data": response
             }
         )
+
         await self._dispatcher.dispatch(event)
+        logger.info("MarketDataDownloaded event published for symbol: %s", response.symbol)
         return response
