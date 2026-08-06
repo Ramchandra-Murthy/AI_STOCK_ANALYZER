@@ -1,15 +1,13 @@
-﻿from __future__ import annotations
-
+﻿from __main__ import *
 from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Dict, Any
 
 
 @dataclass(frozen=True, slots=True)
-class ReportResult:
-    """Professional multi-format institutional report output."""
+class GeneratedReport:
+    """Multi-format output container for institutional equity reports."""
     symbol: str
-    html_content: str
     markdown_content: str
+    html_content: str
     json_content: str
-    format_type: str = "MULTI-FORMAT"
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    format_type: str = "ALL"
