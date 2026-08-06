@@ -30,7 +30,9 @@ class ValuationService:
 
     async def handle_forecast_completed(self, event: ForecastCompleted) -> None:
         """Handler triggered when financial forecasts are completed."""
-        symbol = getattr(event, "symbol", "RELIANCE.NS")
+        raw_symbol = getattr(event, "symbol", "RELIANCE.NS")
+        symbol = raw_symbol.symbol if hasattr(raw_symbol, "symbol") else str(raw_symbol)
+        
         payload = getattr(event, "payload", event)
         logger.info("ValuationService received ForecastCompleted for symbol: %s", symbol)
         
