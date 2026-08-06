@@ -5,9 +5,9 @@ from typing import Any
 import pytest
 
 from core.events import InMemoryEventBus, EventDispatcher
-from services.market_data.downloader import MarketDataDownloader
-from services.market_data.cache import MarketDataCache
-from services.market_data.service import MarketDataService
+from services.fundamentals.provider import YahooFinanceProvider
+from services.fundamentals.normalizer import FinancialNormalizer
+from services.fundamentals.service import FundamentalsService
 from services.forecast.engine import ForecastEngine
 from services.forecast.service import ForecastService
 from services.valuation.engine import ValuationEngine
@@ -19,14 +19,14 @@ from services.report.service import ReportService
 
 
 def test_end_to_end_pipeline() -> None:
-    """Synchronous wrapper running async end-to-end integration test with deterministic event-driven synchronization and ordering verification."""
+    """Synchronous wrapper running async end-to-end integration test with foundational Fundamentals pipeline trigger."""
     async def run_pipeline() -> None:
         bus = InMemoryEventBus()
         dispatcher = EventDispatcher(bus)
 
-        downloader = MarketDataDownloader()
-        cache = MarketDataCache()
-        market_service = MarketDataService(downloader, cache, dispatcher)
+        provider = YahooFinanceProvider()
+        normalizer = FinancialNormalizer()
+        fundamentals_service = FundamentalsService(provider, normalizer, dispatcher)
 
         forecast_engine = ForecastEngine()
         forecast_service = ForecastService(forecast_engine, bus, dispatcher)
@@ -60,14 +60,14 @@ def test_end_to_end_pipeline() -> None:
             report_events.append(event)
             pipeline_completed.set()
 
-        bus.subscribe("market.data.downloaded", spy_handler)
+        bus.subscribe("fundamentals.downloaded", spy_handler)
         bus.subscribe("forecast.completed", spy_handler)
         bus.subscribe("valuation.completed", valuation_listener)
         bus.subscribe("research.completed", research_listener)
         bus.subscribe("report.completed", report_listener)
 
         symbol = "RELIANCE.NS"
-        await market_service.get_or_download(symbol)
+        await fundamentals_service.get_or_download(symbol)
 
         try:
             await asyncio.wait_for(pipeline_completed.wait(), timeout=2.0)
@@ -76,7 +76,7 @@ def test_end_to_end_pipeline() -> None:
 
         event_names = [e.name for e in events_received]
 
-        assert event_names.count("market.data.downloaded") == 1
+        assert event_names.count("fundamentals.downloaded") == 1
         assert event_names.count("forecast.completed") == 1
         assert len(valuation_events) == 1
         assert len(research_events) == 1

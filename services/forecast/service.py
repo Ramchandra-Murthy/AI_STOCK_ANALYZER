@@ -1,56 +1,57 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Any
+import time
+from typing import Any, Optional
 from core.events.dispatcher import EventDispatcher
 from services.forecast.engine import ForecastEngine
 from services.forecast.events import ForecastCompleted
+from services.forecast.models import ForecastResult
+from services.fundamentals.models import FinancialStatements
 
 logger = logging.getLogger(__name__)
 
 
 class ForecastService:
-    """Service managing financial forecasting computations and event publishing."""
+    """Service managing financial forecasting computations triggered by fundamental statements events."""
 
     def __init__(
         self,
         engine: ForecastEngine,
         bus: Any,
-        dispatcher: EventDispatcher
+        dispatcher: EventDispatcher,
     ) -> None:
         self._engine = engine
         self._bus = bus
         self._dispatcher = dispatcher
-        self._bus.subscribe("market.data.downloaded", self.handle_market_data_downloaded)
+        self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
 
-    async def handle_market_data_downloaded(self, event: Any) -> None:
-        """Event handler triggered when market data is downloaded."""
-        market_response = event.payload.get("response")
-        if not market_response:
-            symbol = event.symbol
-        else:
-            symbol = market_response.symbol
+    async def handle_fundamentals_downloaded(self, event: Any) -> None:
+        """Event handler triggered when fundamentals are successfully downloaded and normalized."""
+        financials = event.payload.get("financial_statements")
+        symbol = event.symbol
 
-        await self.compute_and_publish(symbol)
+        if not financials:
+            logger.warning("No financial statements found in payload for symbol: %s", symbol)
+            return
 
-    async def compute_and_publish(self, symbol: str) -> Any:
-        """Run forecast calculations and publish ForecastCompleted event."""
-        # Use generate_forecast or compute depending on engine method signature
-        if hasattr(self._engine, "generate_forecast"):
-            result = self._engine.generate_forecast(symbol)
-        elif hasattr(self._engine, "forecast"):
-            result = self._engine.forecast(symbol)
-        else:
-            result = self._engine.compute(symbol) # type: ignore[attr-defined]
+        await self.compute_and_publish(financials)
+
+    async def compute_and_publish(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+        """Run forecast calculations using actual FinancialStatements and publish ForecastCompleted event."""
+        symbol = financials.symbol
+        result = self._engine.generate_forecast(financials, model_type=model_type)
 
         event = ForecastCompleted(
             symbol=symbol,
+            timestamp=time.time(),
             payload={
                 "forecast_result": result,
-                "model_type": "DCF-GROWTH",
+                "model_type": model_type,
+                "symbol": symbol,
             },
         )
 
         await self._dispatcher.dispatch(event)
-        logger.info("ForecastCompleted event published for symbol: %s", symbol)
+        logger.info("ForecastCompleted event published for symbol: %s using model: %s", symbol, model_type)
         return result

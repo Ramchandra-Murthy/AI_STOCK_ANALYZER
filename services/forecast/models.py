@@ -1,24 +1,20 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List
-
-
-@dataclass(frozen=True, slots=True)
-class FinancialMetricForecast:
-    """Forecasted projections for a specific metric over future years."""
-    metric_name: str
-    historical_base: float
-    projections: List[float] = field(default_factory=list)
-    cagr: float = 0.0
+from typing import Dict, List, Optional
 
 
 @dataclass(frozen=True, slots=True)
 class ForecastResult:
-    """Complete financial forecast suite for a company."""
+    """Comprehensive multi-period forecast result based on financial statements."""
     symbol: str
-    revenue: FinancialMetricForecast
-    eps: FinancialMetricForecast
-    fcf: FinancialMetricForecast
-    ebitda: FinancialMetricForecast
-    model_type: str = "DeterministicGrowthModel"
+    model_type: str
+    forecast_periods: int = 5
+    revenue_forecast: List[float] = field(default_factory=list)
+    ebit_forecast: List[float] = field(default_factory=list)
+    eps_forecast: List[float] = field(default_factory=list)
+    free_cash_flow_forecast: List[float] = field(default_factory=list)
+    capex_forecast: List[float] = field(default_factory=list)
+    working_capital_forecast: List[float] = field(default_factory=list)
+    depreciation_forecast: List[float] = field(default_factory=list)
+    assumptions: Dict[str, Any] = field(default_factory=dict)
