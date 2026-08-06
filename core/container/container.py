@@ -1,40 +1,33 @@
-﻿"""
-==========================================================
-Dependency Injection Container Implementation
-==========================================================
-"""
-from typing import Any, Callable, Dict
-from core.container.exceptions import ServiceNotFoundError, DuplicateServiceError
+﻿from __future__ import annotations
 
-class ServiceContainer:
-    def __init__(self):
-        self._singletons: Dict[str, Any] = {}
-        self._factories: Dict[str, Callable[[], Any]] = {}
+from typing import Any, Callable, Type, TypeVar
+from core.container.registry import ServiceRegistry
 
-    def register(self, key: str, instance: Any) -> None:
-        """Alias for register_singleton for compatibility."""
-        self.register_singleton(key, instance)
+T = TypeVar("T")
 
-    def register_singleton(self, key: str, instance: Any) -> None:
-        if key in self._singletons or key in self._factories:
-            raise DuplicateServiceError(f"Service '{key}' is already registered.")
-        self._singletons[key] = instance
 
-    def register_factory(self, key: str, factory: Callable[[], Any]) -> None:
-        if key in self._singletons or key in self._factories:
-            raise DuplicateServiceError(f"Service '{key}' is already registered.")
-        self._factories[key] = factory
+class Container:
+    """Enterprise Dependency Injection Container for AIERP V6."""
 
-    def resolve(self, key: str) -> Any:
-        if key in self._singletons:
-            return self._singletons[key]
-        if key in self._factories:
-            return self._factories[key]()
-        raise ServiceNotFoundError(f"Service '{key}' not found in container.")
+    def __init__(self, registry: ServiceRegistry | None = None) -> None:
+        self._registry = registry or ServiceRegistry()
 
-    def clear(self) -> None:
-        self._singletons.clear()
-        self._factories.clear()
+    @property
+    def registry(self) -> ServiceRegistry:
+        """Access the underlying service registry."""
+        return self._registry
 
-# Global container instance
-container = ServiceContainer()
+    def register_singleton(self, interface: Type[T] | str, factory: Callable[..., T]) -> None:
+        """Register a singleton service factory."""
+        self._registry.register_singleton(interface, factory)
+
+    def register_transient(self, interface: Type[T] | str, factory: Callable[..., T]) -> None:
+        """Register a transient service factory."""
+        self._registry.register_transient(interface, factory)
+
+    def resolve(self, interface: Type[T] | str) -> T:
+        """Resolve an instance for the given interface or key."""
+        provider = self._registry.get_provider(interface)
+        if provider is None:
+            raise KeyError(f"No service registered for interface/key: {interface}")
+        return provider.get()

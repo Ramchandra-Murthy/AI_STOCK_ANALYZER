@@ -1,21 +1,28 @@
-﻿"""
-==========================================================
-Container Bootstrap / Composition Root
-==========================================================
-"""
-from core.container.container import container
-from core.container.registry import ServiceKey
-from services.valuation.dispatcher import ValuationDispatcher
+﻿from __future__ import annotations
 
-class ResearchServiceFacade:
-    """Service wrapper for research pipeline execution."""
-    def run_pipeline(self, ticker: str) -> dict:
-        return {"ticker": ticker, "status": "analyzed"}
+from core.container.container import Container
 
-def bootstrap_container() -> None:
-    """Wire up core services into the container."""
-    try:
-        container.register_singleton(ServiceKey.RESEARCH, ResearchServiceFacade())
-        container.register_singleton("valuation_dispatcher", ValuationDispatcher())
-    except Exception as e:
-        print(f"Bootstrap warning: {e}")
+
+class ContainerBootstrap:
+    """Handles global container initialization and service wire-up for AIERP V6."""
+
+    _instance: Container | None = None
+
+    @classmethod
+    def get_container(cls) -> Container:
+        """Retrieve or initialize the global container singleton."""
+        if cls._instance is None:
+            cls._instance = cls._initialize()
+        return cls._instance
+
+    @classmethod
+    def _initialize(cls) -> Container:
+        """Create and configure container bindings."""
+        container = Container()
+        # Future domain services and infrastructure providers will be bound here
+        return container
+
+    @classmethod
+    def reset(cls) -> None:
+        """Reset the global container (primarily used for testing)."""
+        cls._instance = None
