@@ -2,8 +2,8 @@
 
 import asyncio
 import pytest
-from core.events.bus import InMemoryEventBus
-from core.events.dispatcher import EventDispatcher
+from typing import Any
+from core.events import InMemoryEventBus, EventDispatcher
 from services.fundamentals.normalizer import FinancialNormalizer
 from services.fundamentals.provider import YahooFinanceProvider
 from services.fundamentals.service import FundamentalsService
