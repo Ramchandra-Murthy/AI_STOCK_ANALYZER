@@ -4,7 +4,7 @@ import json
 import logging
 from dataclasses import asdict, is_dataclass
 from typing import Any
-from services.report.models import ReportResult
+from services.report.models import GeneratedReport
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class ReportEngine:
             return {str(k): self._safe_serialize(v) for k, v in obj.items()}
         return obj
 
-    def generate(self, research_data: Any) -> ReportResult:
+    def generate(self, research_data: Any) -> GeneratedReport:
         """Generate professional multi-format reports from research data."""
         logger.info("Generating professional institutional reports")
 
@@ -33,10 +33,10 @@ class ReportEngine:
 
         symbol = getattr(research_data, "symbol", "UNKNOWN")
 
-        return ReportResult(
+        return GeneratedReport(
             symbol=symbol,
-            html_content=html_data,
             markdown_content=markdown_data,
+            html_content=html_data,
             json_content=json_data,
             format_type="MULTI-FORMAT"
         )
