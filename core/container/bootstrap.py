@@ -5,7 +5,7 @@ Container Bootstrap / Composition Root
 """
 from core.container.container import container
 from core.container.registry import ServiceKey
-from services.research_service import _calculate_roe # Or instantiate ResearchService if it's a class
+from services.valuation.dispatcher import ValuationDispatcher
 
 class ResearchServiceFacade:
     """Service wrapper for research pipeline execution."""
@@ -16,5 +16,6 @@ def bootstrap_container() -> None:
     """Wire up core services into the container."""
     try:
         container.register_singleton(ServiceKey.RESEARCH, ResearchServiceFacade())
-    except Exception:
-        pass
+        container.register_singleton("valuation_dispatcher", ValuationDispatcher())
+    except Exception as e:
+        print(f"Bootstrap warning: {e}")
