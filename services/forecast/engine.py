@@ -29,7 +29,7 @@ class ForecastEngine:
 
         return ForecastResult(
             symbol=symbol,
-            revenue_growth_rate=cagr,
             projected_revenue=projected_revenue,
-            confidence_score=0.85
+            growth_rate=cagr,
+            scenario="BASE"
         )
