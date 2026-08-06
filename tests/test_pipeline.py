@@ -1,14 +1,16 @@
 ﻿from __future__ import annotations
 
 import asyncio
+from typing import Any
 from core.events import InMemoryEventBus, EventDispatcher
 from services.market_data import MarketDataService, MarketDataDownloader, MarketDataCache
 from services.forecast import ForecastService, ForecastEngine
 from services.valuation import ValuationService, ValuationEngine
+from services.research import ResearchService, ResearchEngine
 
 
 def test_end_to_end_pipeline() -> None:
-    """Synchronous wrapper running async end-to-end integration test for MarketData -> Forecast -> Valuation."""
+    """Synchronous wrapper running async end-to-end integration test through ResearchService."""
     async def run_pipeline() -> None:
         bus = InMemoryEventBus()
         dispatcher = EventDispatcher(bus)
@@ -23,6 +25,9 @@ def test_end_to_end_pipeline() -> None:
         valuation_engine = ValuationEngine()
         valuation_service = ValuationService(valuation_engine, bus, dispatcher)
 
+        research_engine = ResearchEngine()
+        research_service = ResearchService(research_engine, bus, dispatcher)
+
         events_received: list[Any] = []
 
         async def spy_handler(event: Any) -> None:
@@ -31,22 +36,25 @@ def test_end_to_end_pipeline() -> None:
         bus.subscribe("market.data.downloaded", spy_handler)
         bus.subscribe("forecast.completed", spy_handler)
         bus.subscribe("valuation.completed", spy_handler)
+        bus.subscribe("research.completed", spy_handler)
 
         symbol = "RELIANCE.NS"
-        response = await market_service.get_or_download(symbol)
+        await market_service.get_or_download(symbol)
 
-        # Allow async event loop ticks for handlers to process
-        await asyncio.sleep(0.1)
+        # Allow async event loop ticks for the full event cascade to process
+        await asyncio.sleep(0.2)
 
         event_names = [e.name for e in events_received]
         assert "market.data.downloaded" in event_names
         assert "forecast.completed" in event_names
         assert "valuation.completed" in event_names
+        assert "research.completed" in event_names
 
-        # Verify valuation outcomes
+        # Verify research outcome
         valuation_result = valuation_engine.compute(symbol)
-        assert valuation_result.symbol == symbol
-        assert valuation_result.blended_fair_value > 0.0
-        assert valuation_result.recommendation in ["BUY", "HOLD", "SELL"]
+        research_result = research_engine.synthesize(valuation_result)
+        assert research_result.symbol == symbol
+        assert research_result.ai_recommendation in ["BUY", "HOLD", "SELL"]
+        assert research_result.confidence_score > 0.0
 
     asyncio.run(run_pipeline())
