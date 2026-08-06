@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Generic, TypeVar, runtime_checkable
+
+TContext = TypeVar("TContext")
+TResult = TypeVar("TResult")
 
 
 @dataclass
@@ -26,8 +29,9 @@ class ValuationResult:
     details: Dict[str, Any] = field(default_factory=dict)
 
 
-class IValuationEngine(ABC):
-    """Interface implemented by all valuation plugins (DCF, SOTP, etc.)."""
+@runtime_checkable
+class IValuationEngine(ABC, Generic[TContext, TResult]):
+    """Interface implemented by all valuation plugins (DCF, SOTP, Relative, NAV)."""
 
     @property
     @abstractmethod
@@ -36,6 +40,6 @@ class IValuationEngine(ABC):
         pass
 
     @abstractmethod
-    def calculate(self, context: ValuationContext) -> ValuationResult:
-        """Execute the valuation calculation based on the provided context."""
+    async def calculate(self, context: TContext) -> TResult:
+        """Execute the valuation calculation asynchronously based on context."""
         pass

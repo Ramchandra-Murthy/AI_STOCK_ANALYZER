@@ -1,13 +1,19 @@
-﻿from core.interfaces.valuation_engine import ValuationEngine
-from core.interfaces.forecast_engine import ForecastEngine
-from core.interfaces.research_engine import ResearchEngine
-from core.interfaces.market_data_provider import MarketDataProvider
-from core.interfaces.report_generator import ReportGenerator
+﻿from __future__ import annotations
+
+from core.interfaces.forecast import IForecastEngine
+from core.interfaces.market_data import IMarketDataProvider
+from core.interfaces.portfolio import IPortfolioManager
+from core.interfaces.report import IReportExporter
+from core.interfaces.research import IResearchSynthesizer
+from core.interfaces.valuation import IValuationEngine, ValuationContext, ValuationResult
 
 __all__ = [
-    "ValuationEngine",
-    "ForecastEngine",
-    "ResearchEngine",
-    "MarketDataProvider",
-    "ReportGenerator",
+    "IForecastEngine",
+    "IMarketDataProvider",
+    "IPortfolioManager",
+    "IReportExporter",
+    "IResearchSynthesizer",
+    "IValuationEngine",
+    "ValuationContext",
+    "ValuationResult",
 ]

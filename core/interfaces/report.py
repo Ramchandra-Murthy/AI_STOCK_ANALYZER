@@ -1,14 +1,14 @@
-# core/interfaces/report.py
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, runtime_checkable
 
 
+@runtime_checkable
 class IReportExporter(ABC):
     """Interface for rendering analytical models into exportable formats (PDF, HTML)."""
 
     @abstractmethod
-    def export(self, data: Dict[str, Any], output_path: str) -> str:
-        """Render and save the report, returning the final file path."""
+    async def export(self, data: Dict[str, Any], output_path: str) -> str:
+        """Render and save the report asynchronously, returning the final file path."""
         pass
