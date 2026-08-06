@@ -1,10 +1,10 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 """
 ==========================================================
 VALUATION DISPATCHER (STRATEGY REGISTRY)
 Module  : dispatcher
-Version : V1.0
+Version : V2.0
 ==========================================================
 
 Central registry routing valuation tasks to engine strategies.
@@ -14,29 +14,41 @@ from typing import Any
 
 from services.valuation.base_engine import BaseValuationEngine
 from services.valuation.models import ValuationResult
+from services.valuation.engines.dcf_engine import DCFValuationEngine
+from services.valuation.engines.nav_engine import NAVValuationEngine
+from services.valuation.engines.sotp_engine import SOTPValuationEngine
 
 
 class ValuationDispatcher:
+    def __init__(self):
+        self._engines: dict[str, BaseValuationEngine] = {}
+        self.engines = self._engines  # Backwards compatibility alias
+        
+        # Register default engines
+        try:
+            self.register(DCFValuationEngine())
+        except Exception:
+            pass
+        try:
+            self.register(NAVValuationEngine())
+        except Exception:
+            pass
+        try:
+            self.register(SOTPValuationEngine())
+        except Exception:
+            pass
 
     def list_supported_methods(self) -> list[str]:
         """Return a list of supported valuation method names."""
-        if not hasattr(self, "engines"):
-            return []
-        return list(self.engines.keys())
+        return list(self._engines.keys())
 
     def register_engine(self, name: str, engine: Any) -> None:
         """Register a valuation engine."""
-        if not hasattr(self, "engines"):
-            self.engines = {}
-        self.engines[name] = engine
-    """Registry managing valuation engine adapters."""
-
-    def __init__(self):
-        self._engines: dict[str, BaseValuationEngine] = {}
+        self._engines[name.upper()] = engine
 
     def register(self, engine: BaseValuationEngine) -> None:
         """Registers a valuation engine adapter."""
-        method_key = engine.valuation_method.upper()
+        method_key = getattr(engine, "valuation_method", engine.__class__.__name__.replace("ValuationEngine", "")).upper()
         self._engines[method_key] = engine
 
     def get_engine(self, method: str) -> BaseValuationEngine:
