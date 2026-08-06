@@ -20,3 +20,7 @@ class BaseDomainEvent:
         assert isinstance(self.symbol, str), f"Event symbol must be a string, got {type(self.symbol)}"
         assert self.symbol != "", "Event symbol cannot be empty"
         assert isinstance(self.payload, dict), f"Event payload must be a dictionary, got {type(self.payload)}"
+
+
+# Backward compatibility alias
+DomainEvent = BaseDomainEvent
