@@ -1,65 +1,66 @@
 ﻿from __future__ import annotations
 
-import time
+import logging
+from core.events.dispatcher import EventDispatcher
+from core.events.interfaces import EventBus
+from services.forecast.engine import ForecastEngine
+from services.forecast.events import ForecastCompleted
+from services.forecast.models import ForecastResult
+from services.market_data.events import MarketDataDownloaded
+from services.market_data.models import MarketDataResponse
 
-from services.forecast.algorithms.base import BaseForecastAlgorithm
-from services.forecast.exceptions import ForecastError
-from services.forecast.input import ForecastInput
-from services.forecast.models import ForecastLineItem, ForecastPackage
-from services.forecast.result import ForecastResult
-from services.forecast.validation import ForecastValidator
+logger = logging.getLogger(__name__)
 
 
 class ForecastService:
-    def __init__(self, algorithm: BaseForecastAlgorithm) -> None:
-        self.algorithm = algorithm
+    """Orchestrates forecast generation triggered by MarketDataDownloaded events."""
 
-    def execute(self, forecast_input: ForecastInput) -> ForecastResult:
-        start_time = time.perf_counter()
+    def __init__(
+        self,
+        engine: ForecastEngine,
+        event_bus: EventBus,
+        event_dispatcher: EventDispatcher
+    ) -> None:
+        self._engine = engine
+        self._event_bus = event_bus
+        self._dispatcher = event_dispatcher
+        
+        # Subscribe to market data events
+        self._event_bus.subscribe("market.data.downloaded", self.handle_market_data_downloaded)
+
+    async def handle_market_data_downloaded(self, event: MarketDataDownloaded) -> None:
+        """Handler triggered when market data is downloaded."""
+        logger.info("ForecastService received MarketDataDownloaded for symbol: %s", event.symbol)
+        
+        # In a fully integrated runtime, we fetch or receive the MarketDataResponse.
+        # For pipeline orchestration, we construct a corresponding payload response or query cache.
+        from services.market_data.downloader import MarketDataDownloader
+        downloader = MarketDataDownloader()
+        market_response = await downloader.fetch(event.symbol)
+        
+        result = self.compute_and_publish(market_response)
+        logger.info("ForecastCompleted published for symbol: %s", result.symbol)
+
+    def compute_and_publish(self, market_data: MarketDataResponse) -> ForecastResult:
+        """Compute forecast and dispatch ForecastCompleted event synchronously/asynchronously."""
+        result = self._engine.compute(market_data)
+        
+        event = ForecastCompleted(
+            symbol=result.symbol,
+            model_type=result.model_type,
+            payload={
+                "symbol": result.symbol,
+                "model_type": result.model_type,
+                "revenue_cagr": result.revenue.cagr,
+                "eps_cagr": result.eps.cagr
+            }
+        )
+        # Dispatch event asynchronously via event loop if running
+        import asyncio
         try:
-            ForecastValidator.validate_input(forecast_input)
-            years = forecast_input.forecast_years
-            revenues = self.algorithm.calculate_revenue(forecast_input)
-            margins = self.algorithm.calculate_margins(forecast_input)
-            capex = self.algorithm.calculate_capex(forecast_input)
-            depreciation = self.algorithm.calculate_depreciation(forecast_input)
-            working_capital = self.algorithm.calculate_working_capital(forecast_input)
-            taxes = self.algorithm.calculate_taxes(forecast_input)
-            net_income = tuple(r * m for r, m in zip(revenues, margins, strict=False))
-            package = ForecastPackage(
-                ticker=forecast_input.ticker,
-                years=years,
-                revenue=ForecastLineItem("Revenue", revenues),
-                net_income=ForecastLineItem("Net Income", net_income),
-                capex=ForecastLineItem("Capital Expenditures", capex),
-                depreciation=ForecastLineItem("Depreciation", depreciation),
-                working_capital=ForecastLineItem("Working Capital", working_capital),
-                tax_rate=ForecastLineItem("Tax Rate", taxes),
-            )
-            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
-            return ForecastResult(
-                package=package,
-                execution_time_ms=round(elapsed_ms, 3),
-                status="SUCCESS",
-                metadata={"algorithm": self.algorithm.__class__.__name__},
-            )
-        except ForecastError as e:
-            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
-            empty_item = ForecastLineItem("", ())
-            pkg = ForecastPackage(
-                ticker=forecast_input.ticker,
-                years=(),
-                revenue=empty_item,
-                net_income=empty_item,
-                capex=empty_item,
-                depreciation=empty_item,
-                working_capital=empty_item,
-                tax_rate=empty_item,
-            )
-            return ForecastResult(
-                package=pkg,
-                execution_time_ms=round(elapsed_ms, 3),
-                status="FAILED",
-                error_message=str(e),
-                metadata={"algorithm": self.algorithm.__class__.__name__},
-            )
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._dispatcher.dispatch(event))
+        except RuntimeError:
+            asyncio.run(self._dispatcher.dispatch(event))
+            
+        return result
