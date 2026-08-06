@@ -30,7 +30,14 @@ class ValuationService:
 
     async def compute_and_publish(self, symbol: str) -> Any:
         """Run valuation calculations and publish ValuationCompleted event."""
-        result = self._engine.value(symbol)
+        if hasattr(self._engine, "compute"):
+            result = self._engine.compute(symbol)
+        elif hasattr(self._engine, "evaluate"):
+            result = self._engine.evaluate(symbol)
+        elif hasattr(self._engine, "value"):
+            result = self._engine.value(symbol)
+        else:
+            result = self._engine.compute_valuation(symbol) # type: ignore[attr-defined]
 
         event = ValuationCompleted(
             symbol=symbol,
