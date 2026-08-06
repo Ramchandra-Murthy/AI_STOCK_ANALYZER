@@ -15,3 +15,9 @@ ENV/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Coverage and package build metadata
+.coverage
+*.egg-info/
+dist/
+build/
