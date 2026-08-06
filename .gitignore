@@ -49,3 +49,6 @@ htmlcov/
 *.zip
 *.rar
 *.7z
+
+# Generated institutional reports
+reports_output/
