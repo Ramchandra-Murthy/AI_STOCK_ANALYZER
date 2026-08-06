@@ -1,36 +1,40 @@
-from __future__ import annotations
-from typing import Any, Callable
+﻿"""
+==========================================================
+Dependency Injection Container Implementation
+==========================================================
+"""
+from typing import Any, Callable, Dict
+from core.container.exceptions import ServiceNotFoundError, DuplicateServiceError
 
 class ServiceContainer:
-    def __init__(self) -> None:
-        self._services: dict[str, Any] = {}
-        self._factories: dict[str, Callable[[], Any]] = {}
+    def __init__(self):
+        self._singletons: Dict[str, Any] = {}
+        self._factories: Dict[str, Callable[[], Any]] = {}
 
-    def register(self, name: str, service: Any) -> None:
-        if name in self._services or name in self._factories:
-            raise ValueError(f"Service \x27{name}\x27 already registered.")
-        self._services[name] = service
+    def register(self, key: str, instance: Any) -> None:
+        """Alias for register_singleton for compatibility."""
+        self.register_singleton(key, instance)
 
-    def register_instance(self, name: str, service: Any) -> None:
-        self.register(name, service)
+    def register_singleton(self, key: str, instance: Any) -> None:
+        if key in self._singletons or key in self._factories:
+            raise DuplicateServiceError(f"Service '{key}' is already registered.")
+        self._singletons[key] = instance
 
-    def register_factory(self, name: str, factory: Callable[[], Any]) -> None:
-        if name in self._services or name in self._factories:
-            raise ValueError(f"Service \x27{name}\x27 already registered.")
-        self._factories[name] = factory
+    def register_factory(self, key: str, factory: Callable[[], Any]) -> None:
+        if key in self._singletons or key in self._factories:
+            raise DuplicateServiceError(f"Service '{key}' is already registered.")
+        self._factories[key] = factory
 
-    def resolve(self, name: str) -> Any:
-        if name in self._services:
-            return self._services[name]
-        if name in self._factories:
-            # Optionally cache factory-created singletons or return fresh instances
-            service = self._factories[name]()
-            self._services[name] = service
-            return service
-        raise KeyError(f"Service \x27{name}\x27 not registered.")
+    def resolve(self, key: str) -> Any:
+        if key in self._singletons:
+            return self._singletons[key]
+        if key in self._factories:
+            return self._factories[key]()
+        raise ServiceNotFoundError(f"Service '{key}' not found in container.")
 
     def clear(self) -> None:
-        self._services.clear()
+        self._singletons.clear()
         self._factories.clear()
 
+# Global container instance
 container = ServiceContainer()

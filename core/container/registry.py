@@ -1,15 +1,14 @@
-"""
+﻿"""
 ==========================================================
-Service Registry Constants and Type Definitions
+Service Registry Enums
 ==========================================================
 """
-from __future__ import annotations
+from enum import Enum
 
-class ServiceRegistry:
-    MARKET = "market"
-    PORTFOLIO = "portfolio"
+class ServiceKey(str, Enum):
     RESEARCH = "research"
     FORECAST = "forecast"
+    PORTFOLIO = "portfolio"
+    MARKET = "market"
     VALUATION = "valuation"
-    SCANNER = "scanner"
-    REPORTS = "reports"
+    REPORT = "report"
