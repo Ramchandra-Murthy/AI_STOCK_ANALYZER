@@ -8,3 +8,5 @@ from core.events.event import BaseDomainEvent
 class ForecastCompleted(BaseDomainEvent):
     """Event emitted when financial forecasting is completed."""
     name: str = "forecast.completed"
+    model_type: str = ""
+    forecast_periods: int = 5

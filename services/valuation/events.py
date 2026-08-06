@@ -8,3 +8,5 @@ from core.events.event import BaseDomainEvent
 class ValuationCompleted(BaseDomainEvent):
     """Event emitted when valuation calculations are completed."""
     name: str = "valuation.completed"
+    blended_fair_value: float = 0.0
+    recommendation: str = "HOLD"

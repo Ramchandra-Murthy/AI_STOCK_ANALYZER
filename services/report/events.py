@@ -8,3 +8,4 @@ from core.events.event import BaseDomainEvent
 class ReportCompleted(BaseDomainEvent):
     """Event emitted when multi-format report generation is completed."""
     name: str = "report.completed"
+    format_type: str = "MULTI-FORMAT"
