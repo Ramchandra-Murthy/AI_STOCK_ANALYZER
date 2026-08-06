@@ -1,40 +1,60 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Any
 from core.events.dispatcher import EventDispatcher
-from core.events.memory_bus import InMemoryEventBus
+from core.events.interfaces import EventBus
 from services.valuation.engine import ValuationEngine
 from services.valuation.models import ValuationResult
+from services.forecast.events import ForecastCompleted
 
 logger = logging.getLogger(__name__)
 
 
 class ValuationService:
-    """Service orchestrating valuation calculations upon forecast completion."""
+    """Orchestrates valuation execution triggered by ForecastCompleted events."""
 
-    def __init__(self, engine: ValuationEngine, event_bus: InMemoryEventBus, dispatcher: EventDispatcher) -> None:
+    def __init__(
+        self,
+        engine: ValuationEngine,
+        event_bus: EventBus,
+        event_dispatcher: EventDispatcher
+    ) -> None:
         self._engine = engine
         self._event_bus = event_bus
-        self._dispatcher = dispatcher
+        self._dispatcher = event_dispatcher
+
+        # Subscribe to forecast completion events
         self._event_bus.subscribe("forecast.completed", self.handle_forecast_completed)
 
-    async def handle_forecast_completed(self, event: Any) -> None:
-        """Handle forecast completion event and compute valuation."""
+    async def handle_forecast_completed(self, event: ForecastCompleted) -> None:
+        """Handler triggered when financial forecasts are completed."""
+        symbol = getattr(event, "symbol", "RELIANCE.NS")
         payload = getattr(event, "payload", event)
-        symbol = getattr(payload, "symbol", "RELIANCE.NS")
-        if hasattr(symbol, "symbol"):
-            symbol = symbol.symbol
-
-        logger.info("ValuationService received forecast completion for symbol: %s", symbol)
-        valuation_result = self._engine.compute(symbol, payload)
+        logger.info("ValuationService received ForecastCompleted for symbol: %s", symbol)
         
-        await self._dispatcher.dispatch(
-            "valuation.completed",
-            {
-                "symbol": symbol,
-                "blended_fair_value": valuation_result.blended_fair_value,
-                "margin_of_safety_pct": valuation_result.margin_of_safety_pct,
-                "recommendation": valuation_result.recommendation
-            }
-        )
+        result = self.compute_and_publish(symbol, payload)
+        logger.info("ValuationCompleted published for symbol: %s with Fair Value: %.2f", result.symbol, result.blended_fair_value)
+
+    def compute_and_publish(self, symbol: str, forecast_payload: Any = None) -> ValuationResult:
+        """Compute valuation and dispatch valuation completed event."""
+        result = self._engine.compute(symbol, forecast_payload)
+
+        import asyncio
+        event_data = {
+            "symbol": result.symbol,
+            "blended_fair_value": result.blended_fair_value,
+            "margin_of_safety_pct": result.margin_of_safety_pct,
+            "recommendation": result.recommendation,
+            "dcf": result.dcf,
+            "relative": result.relative,
+            "nav_value": result.nav_value,
+            "current_market_price": result.current_market_price
+        }
+
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(self._dispatcher.dispatch("valuation.completed", event_data))
+        except RuntimeError:
+            asyncio.run(self._dispatcher.dispatch("valuation.completed", event_data))
+
+        return result
