@@ -35,15 +35,13 @@ class MarketDataService:
             self._cache.set(symbol, response)
             source = response.source
 
-        # Publish domain event adhering strictly to BaseDomainEvent contract
         event = MarketDataDownloaded(
             symbol=response.symbol,
             payload={
-                "symbol": response.symbol,
                 "records": len(response.records),
                 "source": source,
-                "data": response
-            }
+                "response": response,
+            },
         )
 
         await self._dispatcher.dispatch(event)

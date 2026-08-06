@@ -2,12 +2,20 @@
 
 import asyncio
 from typing import Any
+import pytest
+
 from core.events import InMemoryEventBus, EventDispatcher
-from services.market_data import MarketDataService, MarketDataDownloader, MarketDataCache
-from services.forecast import ForecastService, ForecastEngine
-from services.valuation import ValuationService, ValuationEngine
-from services.research import ResearchService, ResearchEngine
-from services.report import ReportService, ReportEngine
+from services.market_data.downloader import MarketDataDownloader
+from services.market_data.cache import MarketDataCache
+from services.market_data.service import MarketDataService
+from services.forecast.engine import ForecastEngine
+from services.forecast.service import ForecastService
+from services.valuation.engine import ValuationEngine
+from services.valuation.service import ValuationService
+from services.research.engine import ResearchEngine
+from services.research.service import ResearchService
+from services.report.engine import ReportEngine
+from services.report.service import ReportService
 
 
 def test_end_to_end_pipeline() -> None:
@@ -50,7 +58,6 @@ def test_end_to_end_pipeline() -> None:
 
         async def report_listener(event: Any) -> None:
             report_events.append(event)
-            # Final event in the pipeline cascade
             pipeline_completed.set()
 
         bus.subscribe("market.data.downloaded", spy_handler)
@@ -62,7 +69,6 @@ def test_end_to_end_pipeline() -> None:
         symbol = "RELIANCE.NS"
         await market_service.get_or_download(symbol)
 
-        # Wait deterministically for the final event with a strict timeout
         try:
             await asyncio.wait_for(pipeline_completed.wait(), timeout=2.0)
         except asyncio.TimeoutError:
@@ -70,7 +76,6 @@ def test_end_to_end_pipeline() -> None:
 
         event_names = [e.name for e in events_received]
 
-        # Verify exact event occurrence counts
         assert event_names.count("market.data.downloaded") == 1
         assert event_names.count("forecast.completed") == 1
         assert len(valuation_events) == 1
@@ -79,16 +84,16 @@ def test_end_to_end_pipeline() -> None:
 
         # Verify valuation payload
         assert valuation_events[0].symbol == symbol
-        assert valuation_events[0].blended_fair_value > 0.0
-        assert valuation_events[0].recommendation in {"BUY", "HOLD", "SELL"}
+        assert valuation_events[0].payload["blended_fair_value"] > 0.0
+        assert valuation_events[0].payload["recommendation"] in {"BUY", "HOLD", "SELL"}
 
         # Verify research payload
         assert research_events[0].symbol == symbol
-        assert research_events[0].ai_recommendation in {"BUY", "HOLD", "SELL"}
-        assert research_events[0].confidence_score > 0.0
+        assert research_events[0].payload["ai_recommendation"] in {"BUY", "HOLD", "SELL"}
+        assert research_events[0].payload["confidence_score"] > 0.0
 
         # Verify report payload
         assert report_events[0].symbol == symbol
-        assert report_events[0].format_type == "MULTI-FORMAT"
+        assert report_events[0].payload["format_type"] == "MULTI-FORMAT"
 
     asyncio.run(run_pipeline())

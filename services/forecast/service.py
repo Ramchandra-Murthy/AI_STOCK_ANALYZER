@@ -1,66 +1,50 @@
 ﻿from __future__ import annotations
 
 import logging
+from typing import Any
 from core.events.dispatcher import EventDispatcher
-from core.events.interfaces import EventBus
 from services.forecast.engine import ForecastEngine
 from services.forecast.events import ForecastCompleted
-from services.forecast.models import ForecastResult
-from services.market_data.events import MarketDataDownloaded
-from services.market_data.models import MarketDataResponse
 
 logger = logging.getLogger(__name__)
 
 
 class ForecastService:
-    """Orchestrates forecast generation triggered by MarketDataDownloaded events."""
+    """Service managing financial forecasting computations and event publishing."""
 
     def __init__(
         self,
         engine: ForecastEngine,
-        event_bus: EventBus,
-        event_dispatcher: EventDispatcher
+        bus: Any,
+        dispatcher: EventDispatcher
     ) -> None:
         self._engine = engine
-        self._event_bus = event_bus
-        self._dispatcher = event_dispatcher
-        
-        # Subscribe to market data events
-        self._event_bus.subscribe("market.data.downloaded", self.handle_market_data_downloaded)
+        self._bus = bus
+        self._dispatcher = dispatcher
+        self._bus.subscribe("market.data.downloaded", self.handle_market_data_downloaded)
 
-    async def handle_market_data_downloaded(self, event: MarketDataDownloaded) -> None:
-        """Handler triggered when market data is downloaded."""
-        logger.info("ForecastService received MarketDataDownloaded for symbol: %s", event.symbol)
-        
-        # In a fully integrated runtime, we fetch or receive the MarketDataResponse.
-        # For pipeline orchestration, we construct a corresponding payload response or query cache.
-        from services.market_data.downloader import MarketDataDownloader
-        downloader = MarketDataDownloader()
-        market_response = await downloader.fetch(event.symbol)
-        
-        result = self.compute_and_publish(market_response)
-        logger.info("ForecastCompleted published for symbol: %s", result.symbol)
+    async def handle_market_data_downloaded(self, event: Any) -> None:
+        """Event handler triggered when market data is downloaded."""
+        market_response = event.payload.get("response")
+        if not market_response:
+            symbol = event.symbol
+        else:
+            symbol = market_response.symbol
 
-    def compute_and_publish(self, market_data: MarketDataResponse) -> ForecastResult:
-        """Compute forecast and dispatch ForecastCompleted event synchronously/asynchronously."""
-        result = self._engine.compute(market_data)
-        
+        await self.compute_and_publish(symbol)
+
+    async def compute_and_publish(self, symbol: str) -> Any:
+        """Run forecast calculations and publish ForecastCompleted event."""
+        result = self._engine.forecast(symbol)
+
         event = ForecastCompleted(
-            symbol=result.symbol,
-            model_type=result.model_type,
+            symbol=symbol,
             payload={
-                "symbol": result.symbol,
-                "model_type": result.model_type,
-                "revenue_cagr": result.revenue.cagr,
-                "eps_cagr": result.eps.cagr
-            }
+                "forecast_result": result,
+                "model_type": "DCF-GROWTH",
+            },
         )
-        # Dispatch event asynchronously via event loop if running
-        import asyncio
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(self._dispatcher.dispatch(event))
-        except RuntimeError:
-            asyncio.run(self._dispatcher.dispatch(event))
-            
+
+        await self._dispatcher.dispatch(event)
+        logger.info("ForecastCompleted event published for symbol: %s", symbol)
         return result
