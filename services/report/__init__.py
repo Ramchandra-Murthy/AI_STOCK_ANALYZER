@@ -1,13 +1,10 @@
 ﻿from __future__ import annotations
 
-from services.report.service import ReportService
-from services.report.engine import ReportEngine
-from services.report.models import GeneratedReport
-from services.report.events import ReportCompleted
+from services.report.engine import ProductionReportEngine, ReportEngine
+from services.report.models import ReportResult
 
 __all__ = [
-    "ReportService",
+    "ProductionReportEngine",
     "ReportEngine",
-    "GeneratedReport",
-    "ReportCompleted",
+    "ReportResult",
 ]
