@@ -30,7 +30,14 @@ class ResearchService:
 
     async def compute_and_publish(self, symbol: str) -> Any:
         """Run research synthesis and publish ResearchCompleted event."""
-        result = self._engine.research(symbol)
+        if hasattr(self._engine, "compute"):
+            result = self._engine.compute(symbol)
+        elif hasattr(self._engine, "synthesize"):
+            result = self._engine.synthesize(symbol)
+        elif hasattr(self._engine, "research"):
+            result = self._engine.research(symbol)
+        else:
+            result = self._engine.generate_research(symbol) # type: ignore[attr-defined]
 
         event = ResearchCompleted(
             symbol=symbol,
