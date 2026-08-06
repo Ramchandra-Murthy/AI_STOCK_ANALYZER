@@ -1,60 +1,35 @@
 ﻿from __future__ import annotations
 
-"""
-==========================================================
-VALUATION DATA MODELS & CONTRACTS
-Module  : models
-Version : V1.0
-==========================================================
-
-Defines core data structures, enums, and calculation contracts
-used across engines, dispatchers, and aggregators.
-"""
-
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any
+from typing import Dict
 
 
-class ValuationMethod(Enum):
-    DCF = "DCF"
-    NAV = "NAV"
-    COMPARABLE = "COMPARABLE"
-    MARKET = "MARKET"
-    BOOK = "BOOK"
+@dataclass(frozen=True, slots=True)
+class DCFValuation:
+    """Discounted Cash Flow (DCF) valuation model output."""
+    implied_value: float
+    wacc: float
+    terminal_growth_rate: float
+    pv_cash_flows: float
+    pv_terminal_value: float
 
 
-class ValuationStatus(Enum):
-    COMPLETE = "COMPLETE"
-    INCOMPLETE = "INCOMPLETE"
-    FAILED = "FAILED"
+@dataclass(frozen=True, slots=True)
+class RelativeValuation:
+    """Peer comparison and relative valuation (P/E, EV/EBITDA)."""
+    pe_implied_value: float
+    ev_ebitda_implied_value: float
+    sector_pe_benchmark: float
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class ValuationResult:
-    """
-    Standardized result contract returned by all valuation engines.
-    """
-
-    entity_name: str
-    valuation_method: ValuationMethod
-    valuation_status: ValuationStatus
-    enterprise_value: float
-    equity_value: float
-    diagnostics: dict[str, Any] = field(default_factory=dict)
-    raw_result: Any = None
-
-
-@dataclass(slots=True)
-class SOTPResult:
-    """
-    Aggregate valuation result output by SOTPEngine.
-    """
-
-    enterprise_value: float
-    equity_value: float
-    implied_share_price: float
-    net_debt: float
-    holdco_discount_pct: float
-    holdco_discount_amount: float
-    component_results: list[ValuationResult] = field(default_factory=list)
+    """Comprehensive institutional valuation summary."""
+    symbol: str
+    dcf: DCFValuation
+    relative: RelativeValuation
+    nav_value: float
+    blended_fair_value: float
+    current_market_price: float
+    margin_of_safety_pct: float
+    recommendation: str
