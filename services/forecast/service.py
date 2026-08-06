@@ -35,7 +35,13 @@ class ForecastService:
 
     async def compute_and_publish(self, symbol: str) -> Any:
         """Run forecast calculations and publish ForecastCompleted event."""
-        result = self._engine.forecast(symbol)
+        # Use generate_forecast or compute depending on engine method signature
+        if hasattr(self._engine, "generate_forecast"):
+            result = self._engine.generate_forecast(symbol)
+        elif hasattr(self._engine, "forecast"):
+            result = self._engine.forecast(symbol)
+        else:
+            result = self._engine.compute(symbol) # type: ignore[attr-defined]
 
         event = ForecastCompleted(
             symbol=symbol,
