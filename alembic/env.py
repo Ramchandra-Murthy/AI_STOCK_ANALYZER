@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import logging
 from logging.config import fileConfig
@@ -6,7 +6,6 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-# Import EROS 3.0 Enterprise Models and Settings
 from backend.database.engine import Base
 from backend.database.models.company import CompanyModel, ValuationRecordModel
 from backend.config.settings import settings
@@ -16,7 +15,6 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Dynamically override sqlalchemy.url from Pydantic Settings
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 target_metadata = Base.metadata
