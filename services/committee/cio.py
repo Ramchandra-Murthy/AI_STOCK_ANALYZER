@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 class ArtificialCIO:
     """Artificial Chief Investment Officer (CIO) responsible for weighting specialist opinions, resolving conflicts, and synthesizing consensus."""
 
-    # Institutional department weighting matrix
     DEPARTMENT_WEIGHTS: Dict[str, float] = {
         "Valuation Analyst": 0.25,
         "Quality Analyst": 0.20,
@@ -57,11 +56,10 @@ class ArtificialCIO:
             all_concerns.extend(op.concerns)
             all_evidence.extend(op.evidence)
 
-        norm_weight = max(total_weight, 1.0)
+        norm_weight = max(total_weight, 0.01)
         final_score = round(weighted_score_sum / norm_weight, 2)
         final_confidence = round(weighted_conf_sum / norm_weight, 2)
 
-        # Determine consensus signal based on weighted majorities
         if buy_weight >= hold_weight and buy_weight >= sell_weight:
             consensus = "BUY"
         elif sell_weight > buy_weight and sell_weight >= hold_weight:
@@ -69,7 +67,6 @@ class ArtificialCIO:
         else:
             consensus = "HOLD"
 
-        # Formulate CIO narrative
         risk_summary = "; ".join(set(all_concerns[:3])) if all_concerns else "No material risk factors identified."
         narrative = (
             f"Artificial Investment Committee consensus for {symbol}: "
