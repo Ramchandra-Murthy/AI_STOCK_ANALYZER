@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 from sqlalchemy.orm import Session
-from backend.database.models.company import CompanyModel, PortfolioModel = PortfolioRecordModel, ForecastRecordModel
+from backend.database.models.company import CompanyModel, PortfolioRecordModel, ForecastRecordModel
 
 logger = logging.getLogger(__name__)
 
