@@ -7,13 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.core.config.settings import settings
 from backend.api.routers.system.health_router import router as system_router
 from backend.api.routers.realtime_router import router as realtime_router
-from backend.security.auth_router import auth_router
-from backend.tasks.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="EROS 3.0 Institutional Autonomous Investment Intelligence Platform",
+    title=settings.PROJECT_NAME,
     version="3.0.0",
 )
 
@@ -25,15 +23,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register All Enterprise Routers
+# Register Verified Enterprise Routers
 app.include_router(system_router)
 app.include_router(realtime_router)
-app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
 
 @app.get("/")
 def root() -> dict:
     return {
-        "platform": "EROS 3.0",
+        "platform": settings.PROJECT_NAME,
         "status": "OPERATIONAL",
+        "environment": settings.ENVIRONMENT,
         "architecture": "Cloud-Native Enterprise Platform (CNEP)"
     }
