@@ -7,10 +7,9 @@ from services.fundamentals.models import FinancialStatements, IncomeStatement, B
 def test_blended_valuation_engine() -> None:
     engine = BlendedValuationEngine()
     
-    # Use valid parameters corresponding to IncomeStatement definition
     fin = FinancialStatements(
         symbol="RELIANCE.NS",
-        income_statements=[IncomeStatement(revenue=100000.0, ebit=15000.0, net_income=10000.0, eps=10.0)],
+        income_statements=[IncomeStatement(period="2025", revenue=100000.0, operating_income=15000.0, net_income=10000.0, eps=10.0)],
         balance_sheets=[BalanceSheet(total_assets=200000.0, total_liabilities=100000.0, total_equity=100000.0, cash_and_equivalents=10000.0, total_debt=60000.0)],
         cash_flow_statements=[CashFlowStatement(operating_cash_flow=18000.0, capital_expenditure=5000.0, free_cash_flow=13000.0)]
     )
