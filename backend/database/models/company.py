@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from sqlalchemy import Column, String, Float, DateTime
 from datetime import datetime
@@ -20,4 +20,22 @@ class ValuationRecordModel(Base):
     intrinsic_value = Column(Float, nullable=False)
     model_type = Column(String, nullable=False)
     margin_of_safety = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class ForecastRecordModel(Base):
+    __tablename__ = "forecasts"
+
+    id = Column(String, primary_key=True, index=True)
+    symbol = Column(String, index=True, nullable=False)
+    revenue_cagr = Column(Float, nullable=False)
+    eps_forecast = Column(Float, nullable=False)
+    confidence = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class PortfolioRecordModel(Base):
+    __tablename__ = "portfolios"
+
+    id = Column(String, primary_key=True, index=True)
+    strategy_name = Column(String, nullable=False)
+    expected_return = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
