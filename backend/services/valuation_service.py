@@ -18,17 +18,27 @@ class ValuationService:
     ) -> Dict[str, Any]:
         logger.info("Executing institutional valuation pipeline for %s", symbol)
         
-        base_eps = financial_metrics.get("eps", 50.0)
-        growth_rate = financial_metrics.get("growth_rate", 0.12)
-        discount_rate = financial_metrics.get("discount_rate", 0.10)
+        base_eps = float(financial_metrics.get("eps", 50.0))
+        growth_rate = float(financial_metrics.get("growth_rate", 0.06))
+        discount_rate = float(financial_metrics.get("discount_rate", 0.12))
         
-        intrinsic_value = round(base_eps * (1 + growth_rate) / (discount_rate - growth_rate), 2)
-        current_price = financial_metrics.get("current_price", intrinsic_value * 0.80)
+        # Ensure discount rate exceeds growth rate to avoid negative/invalid valuations
+        if discount_rate <= growth_rate:
+            discount_rate = growth_rate + 0.04
+
+        # Safe Gordon Growth / DCF Estimate
+        denominator = discount_rate - growth_rate
+        intrinsic_value = round((base_eps * (1.0 + growth_rate)) / denominator, 2)
+        if intrinsic_value < 0:
+            intrinsic_value = abs(intrinsic_value)
+
+        current_price = float(financial_metrics.get("current_price", intrinsic_value * 0.85))
         margin_of_safety = round((intrinsic_value - current_price) / intrinsic_value, 4)
 
         record_id = f"{symbol}-VAL-2026-Q2"
         model_type = "Professional DCF & Margin of Safety"
 
+        # Persist via Repository
         ValuationRepository.save_valuation(
             session=session,
             record_id=record_id,
