@@ -39,3 +39,12 @@ class PortfolioRecordModel(Base):
     strategy_name = Column(String, nullable=False)
     expected_return = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class ReportRecordModel(Base):
+    __tablename__ = "reports"
+
+    id = Column(String, primary_key=True, index=True)
+    symbol = Column(String, index=True, nullable=False)
+    report_type = Column(String, nullable=False)
+    content_summary = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
