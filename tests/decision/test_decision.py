@@ -3,7 +3,6 @@
 import pytest
 from services.decision.models import DecisionOption
 from services.decision.decision_engine import InstitutionalDecisionEngine
-from services.decision.decision_policy import DecisionPolicyEngine if False else ... # placeholder check
 from services.decision.policy_engine import DecisionPolicyEngine
 
 def test_decision_option_immutability() -> None:
