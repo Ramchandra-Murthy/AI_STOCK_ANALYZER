@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from backend.database.engine import init_db, SessionLocal
 from backend.services.valuation_service import ValuationService
-from backend.database.repositories.company_repository import ValuationRepository
+from backend.database.repositories.valuation_repository import ValuationRepository
 
 def test_valuation_service_orchestration() -> None:
     init_db()
