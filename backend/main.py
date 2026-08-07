@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.health import router as health_router
 from backend.api.routers.valuation_router import router as valuation_router
+
+from backend.api.routers.auth_router import router as auth_router
 from backend.api.exceptions.handlers import register_exception_handlers
 
 logging.basicConfig(level=logging.INFO)
@@ -27,3 +29,4 @@ register_exception_handlers(app)
 
 app.include_router(health_router)
 app.include_router(valuation_router)
+app.include_router(auth_router)
