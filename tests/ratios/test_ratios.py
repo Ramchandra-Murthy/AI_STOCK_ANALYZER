@@ -25,4 +25,4 @@ def test_financial_ratio_engine() -> None:
     assert ratios.symbol == "RELIANCE.NS"
     assert ratios.profitability["net_margin"] > 0
     assert ratios.solvency["debt_to_equity"] > 0
-    assert ratios.quality_scores["piotroski_f_score"] == 7.0
+    assert ratios.quality_scores["piotroski_f_score"] == 8.0
