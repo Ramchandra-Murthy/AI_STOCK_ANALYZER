@@ -21,7 +21,6 @@ app = FastAPI(
     description="Institutional-grade automated equity research, valuation, and portfolio optimization API."
 )
 app.include_router(system_router)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
