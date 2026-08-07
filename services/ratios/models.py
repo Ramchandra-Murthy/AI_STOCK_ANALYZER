@@ -14,6 +14,7 @@ class RatioCategoryResult:
 @dataclass(frozen=True)
 class FinancialRatios:
     period: str
+    symbol: str = "UNKNOWN"
     roe: float = 0.0
     roa: float = 0.0
     roic: float = 0.0
@@ -25,5 +26,12 @@ class FinancialRatios:
     debt_to_equity: float = 0.0
     interest_coverage: float = 0.0
     asset_turnover: float = 0.0
+    profitability: Dict[str, float] = field(default_factory=dict)
+    liquidity: Dict[str, float] = field(default_factory=dict)
+    solvency: Dict[str, float] = field(default_factory=dict)
+    efficiency: Dict[str, float] = field(default_factory=dict)
+    growth: Dict[str, float] = field(default_factory=dict)
+    cash_flow: Dict[str, float] = field(default_factory=dict)
+    quality_scores: Dict[str, float] = field(default_factory=dict)
     metrics: Dict[str, float] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
