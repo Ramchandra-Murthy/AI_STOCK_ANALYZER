@@ -1,3 +1,4 @@
+from backend.api.routers.system.health_router import router as system_router
 from __future__ import annotations
 
 import logging
@@ -19,6 +20,7 @@ app = FastAPI(
     version="3.0",
     description="Institutional-grade automated equity research, valuation, and portfolio optimization API."
 )
+app.include_router(system_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,4 +41,3 @@ app.include_router(auth_router)
 app.include_router(task_router)
 app.include_router(admin_task_router)
 app.include_router(realtime_router)
-app.include_router(system_router)
