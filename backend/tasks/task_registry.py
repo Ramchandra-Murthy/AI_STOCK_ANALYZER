@@ -8,4 +8,5 @@ def register_all_tasks() -> None:
     celery_app.register_task("forecast.execute", BackgroundWorkers.execute_forecast_task)
     celery_app.register_task("report.generate", BackgroundWorkers.execute_report_task)
 
+# Auto-register on module import
 register_all_tasks()
