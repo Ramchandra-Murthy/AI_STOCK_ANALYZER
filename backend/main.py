@@ -7,6 +7,7 @@ from backend.api.health import router as health_router
 from backend.api.routers.valuation_router import router as valuation_router
 from backend.api.routers.auth_router import router as auth_router
 from backend.api.routers.task_router import router as task_router
+from backend.api.routers.admin_task_router import router as admin_task_router
 from backend.api.exceptions.handlers import register_exception_handlers
 from backend.tasks.task_registry import register_all_tasks
 
@@ -35,3 +36,4 @@ app.include_router(health_router)
 app.include_router(valuation_router)
 app.include_router(auth_router)
 app.include_router(task_router)
+app.include_router(admin_task_router)
