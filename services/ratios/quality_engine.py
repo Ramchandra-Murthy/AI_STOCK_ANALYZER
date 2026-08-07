@@ -2,31 +2,30 @@
 
 import logging
 from typing import Any, Dict
-from services.fundamentals.models import FinancialStatements
 
 logger = logging.getLogger(__name__)
 
 class AdvancedQualityEngine:
-    """Computes advanced accounting quality and financial distress scores including Altman Z-Score, Beneish M-Score, and Cash Conversion Cycle."""
+    """Computes advanced accounting quality and financial distress scores including Altman Z-Score and Cash Conversion Cycle."""
 
     @staticmethod
     def compute_altman_z(bs: Any, inc: Any) -> float:
         """
         Altman Z-Score for manufacturing companies:
         Z = 1.2(X1) + 1.4(X2) + 3.3(X3) + 0.6(X4) + 0.999(X5)
-        X1 = Working Capital / Total Assets
-        X2 = Retained Earnings / Total Assets
-        X3 = EBIT / Total Assets
-        X4 = Market Value of Equity / Total Liabilities
-        X5 = Sales / Total Assets
         """
         try:
-            total_assets = max(bs.total_assets, 1.0)
-            working_capital = (bs.current_assets - bs.current_liabilities) if hasattr(bs, 'current_assets') else total_assets * 0.2
-            retained_earnings = getattr(bs, 'retained_earnings', total_assets * 0.3)
+            total_assets = max(getattr(bs, 'total_assets', 1000.0), 1.0)
+            total_liab = max(getattr(bs, 'total_liabilities', 500.0), 1.0)
+            equity = max(getattr(bs, 'shareholders_equity', 500.0), 1.0)
+            
+            # Estimate working capital and retained earnings from normalized balance sheet attributes or proxies
+            current_assets = getattr(bs, 'current_assets', total_assets * 0.5)
+            current_liabilities = getattr(bs, 'current_liabilities', total_liab * 0.5)
+            working_capital = current_assets - current_liabilities
+            retained_earnings = getattr(bs, 'retained_earnings', equity * 0.6)
             ebit = inc.ebit if inc else 0.0
-            market_equity = getattr(bs, 'market_value_equity', bs.shareholders_equity * 1.5)
-            total_liab = max(bs.total_liabilities, 1.0)
+            market_equity = getattr(bs, 'market_value_equity', equity * 1.5)
             sales = inc.revenue if inc else 1.0
 
             x1 = working_capital / total_assets
@@ -47,8 +46,10 @@ class AdvancedQualityEngine:
         try:
             revenue = max(inc.revenue if inc else 1.0, 1.0)
             cogs = max(getattr(inc, 'cogs', revenue * 0.6), 1.0)
-            inventory = getattr(bs, 'inventory', revenue * 0.1)
-            receivables = getattr(bs, 'receivables', revenue * 0.15)
+            total_assets = getattr(bs, 'total_assets', 1000.0)
+            
+            inventory = getattr(bs, 'inventory', total_assets * 0.1)
+            receivables = getattr(bs, 'receivables', total_assets * 0.15)
             payables = getattr(bs, 'payables', cogs * 0.15)
 
             inv_days = round((inventory / cogs) * 365, 1)

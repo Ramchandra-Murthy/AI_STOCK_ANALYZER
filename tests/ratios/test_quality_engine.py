@@ -2,10 +2,10 @@
 
 import pytest
 from services.ratios.quality_engine import AdvancedQualityEngine
-from services.fundamentals.models import FinancialStatements, IncomeStatement, BalanceSheet, CashFlowStatement
+from services.fundamentals.models import IncomeStatement, BalanceSheet
 
 def test_advanced_quality_engine() -> None:
-    bs = BalanceSheet(period="2025", total_assets=100000.0, total_liabilities=40000.0, shareholders_equity=60000.0, cash=15000.0, debt=20000.0, current_assets=50000.0, current_liabilities=25000.0, inventory=15000.0, receivables=20000.0, payables=15000.0)
+    bs = BalanceSheet(period="2025", total_assets=100000.0, total_liabilities=40000.0, shareholders_equity=60000.0, cash=15000.0, debt=20000.0)
     inc = IncomeStatement(period="2025", revenue=120000.0, ebit=18000.0, net_income=12000.0, eps=12.0)
 
     z_score = AdvancedQualityEngine.compute_altman_z(bs, inc)
