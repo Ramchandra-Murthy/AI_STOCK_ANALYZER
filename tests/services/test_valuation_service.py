@@ -32,3 +32,18 @@ def test_valuation_service_orchestration() -> None:
         assert saved_record.symbol == "TCS.NS"
     finally:
         session.close()
+
+def test_valuation_service_edge_cases() -> None:
+    init_db()
+    session = SessionLocal()
+    try:
+        # Test handling of missing metrics (defaults fallback)
+        result = ValuationService.execute_and_persist_valuation(
+            session=session,
+            symbol="INFY.NS",
+            financial_metrics={}
+        )
+        assert result["status"] == "SUCCESS"
+        assert result["intrinsic_value"] > 0
+    finally:
+        session.close()
