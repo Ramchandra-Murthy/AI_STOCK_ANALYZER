@@ -7,10 +7,6 @@ from services.fundamentals.models import FinancialStatements, IncomeStatement, B
 def test_blended_valuation_engine() -> None:
     engine = BlendedValuationEngine()
     
-    # Use exact field signatures:
-    # IncomeStatement: (period, revenue, operating_income, ebit, net_income, eps)
-    # BalanceSheet: (period, total_assets, total_liabilities, shareholders_equity, cash, debt)
-    # CashFlowStatement: (period, operating_cash_flow, capex, free_cash_flow, investing_cash_flow, financing_cash_flow)
     fin = FinancialStatements(
         symbol="RELIANCE.NS",
         income_statements=[
@@ -33,7 +29,7 @@ def test_blended_valuation_engine() -> None:
                 debt=60000.0
             )
         ],
-        cash_flow_statements=[
+        cash_flows=[
             CashFlowStatement(
                 period="2025",
                 operating_cash_flow=18000.0,
