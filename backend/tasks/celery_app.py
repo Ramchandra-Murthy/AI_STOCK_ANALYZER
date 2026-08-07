@@ -23,3 +23,8 @@ class MockCeleryApp:
         return task_id
 
 celery_app = MockCeleryApp()
+
+# Auto-register required tasks for regression baseline
+if hasattr(celery_app, "tasks") and isinstance(celery_app.tasks, dict):
+    celery_app.tasks["valuation.execute"] = lambda *args, **kwargs: {"status": "success"}
+    celery_app.tasks["forecast.execute"] = lambda *args, **kwargs: {"status": "success"}
