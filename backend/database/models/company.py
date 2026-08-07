@@ -1,0 +1,23 @@
+﻿from __future__ import annotations
+
+from sqlalchemy import Column, String, Float, DateTime
+from datetime import datetime
+from backend.database.engine import Base
+
+class CompanyModel(Base):
+    __tablename__ = "companies"
+
+    symbol = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    sector = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class ValuationRecordModel(Base):
+    __tablename__ = "valuations"
+
+    id = Column(String, primary_key=True, index=True)
+    symbol = Column(String, index=True, nullable=False)
+    intrinsic_value = Column(Float, nullable=False)
+    model_type = Column(String, nullable=False)
+    margin_of_safety = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
