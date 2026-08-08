@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import uuid
 from typing import Any, Dict, List
 from backend.research.evidence.models.research_evidence import ResearchEvidence
 from backend.research.models.research_case import ResearchCase
@@ -33,9 +34,10 @@ class EvidenceService:
         if not statement:
             raise ValueError("statement is required")
             
-        evidence_id = f"{case.case_id}-E{len(case.evidence) + 1:04d}"
+        # Generate a truly unique evidence ID using case_id and a short UUID hex suffix
+        unique_suffix = uuid.uuid4().hex[:8].upper()
+        evidence_id = f"{case.case_id}-E{unique_suffix}"
         
-        # Ensure category is strictly uppercase
         normalized_category = str(category).strip().upper()
         
         evidence = ResearchEvidence(
