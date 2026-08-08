@@ -15,7 +15,8 @@ class EvidenceAdapter:
     """
 
     @staticmethod
-    from_engine_output = NotImplemented
+    def extract(case: ResearchCase, output: Dict[str, Any]) -> List[ResearchEvidence]:
+        raise NotImplementedError("Subclasses must implement extract()")
 
 
 class FundamentalsEvidenceAdapter(EvidenceAdapter):
