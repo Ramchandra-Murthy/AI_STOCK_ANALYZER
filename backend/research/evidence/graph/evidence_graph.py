@@ -55,10 +55,11 @@ class EvidenceGraph:
         total_contradiction = 0.0
 
         for node in self.nodes.values():
-            # Use quality score or fallback to evidence strength
             weight = getattr(node.quality, "quality_score", None)
-            if weight is None:
+            if weight is None or weight <= 0:
                 weight = (node.evidence.confidence * node.evidence.materiality * node.evidence.recency)
+            if weight <= 0:
+                weight = 1.0  # Safe fallback weight
 
             polarity = str(node.evidence.polarity).strip().upper()
             if polarity == "POSITIVE":
