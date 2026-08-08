@@ -75,7 +75,8 @@ def api_valuation(payload: dict):
         "symbol": payload.get("symbol", "RELIANCE.NS"),
         "intrinsic_value": 3500.0,
         "blended_valuation": 3500.0,
-        "margin_of_safety": 0.25,`n        "recommendation": "BUY",
+        "margin_of_safety": 0.25,
+        "recommendation": "BUY",
         "status": "COMPLETED"
     }
 
