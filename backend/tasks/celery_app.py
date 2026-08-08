@@ -61,7 +61,7 @@ class CeleryFacade:
 
     def register_task(self, name: str, func: Callable[..., Any]) -> None:
         self.tasks[name] = func
-        self._app.task(name=name, bind=True)(func)
+        self._app.task(name=name, bind=False)(func)
         logger.info("Registered real Celery task: %s", name)
 
     def send_task(self, name: str, args: tuple = (), kwargs: dict = None) -> str:
