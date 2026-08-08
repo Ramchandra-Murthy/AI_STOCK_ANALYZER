@@ -8,6 +8,7 @@ from backend.core.config.settings import settings
 from backend.api.routers.system.health_router import router as system_router
 from backend.api.routers.realtime_router import router as realtime_router
 from backend.tasks.celery_app import celery_app
+from backend.tasks.task_control import task_control
 
 logger = logging.getLogger(__name__)
 
@@ -82,31 +83,27 @@ def api_valuation(payload: dict):
 
 @app.get("/api/v1/admin/queues", status_code=status.HTTP_200_OK)
 def api_admin_queues():
-    return {
-        "queues": ["default", "valuation", "market_data", "valuation_queue"],
-        "active_workers": 2,
-        "status": "HEALTHY"
-    }
+    return task_control.get_queue_status()
 
 @app.get("/api/v1/admin/tasks", status_code=status.HTTP_200_OK)
 def api_admin_tasks():
+    registered = task_control.get_registered_tasks()
     return {
-        "tasks": [],
-        "total": 0,
+        "tasks": registered,
+        "total": len(registered),
         "status": "HEALTHY"
     }
 
 @app.post("/api/v1/tasks/submit", status_code=status.HTTP_202_ACCEPTED)
 def api_task_submit(payload: dict):
-    return {
-        "task_id": "task-uuid-1234",
-        "status": "QUEUED",
-        "task_name": payload.get("task_name", "forecast.execute"),
-        "execution_result": {
-            "status": "SUCCESS",
-            "data": {}
-        }
-    }
+    task_name = payload.get("task_name", "forecast.execute")
+    user = payload.get("user", "system_admin")
+    task_payload = payload.get("payload", {})
+    return task_control.submit_task(
+        task_name=task_name,
+        user=user,
+        payload=task_payload,
+    )
 
 @app.get("/")
 def root() -> dict:
