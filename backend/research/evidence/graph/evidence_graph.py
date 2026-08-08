@@ -37,8 +37,11 @@ class EvidenceGraph:
         self.edges = EvidenceReasoningEngine.analyze_relationships(evidence_list)
 
     def get_cluster(self, category: str) -> List[EvidenceGraphNode]:
-        cat_upper = category.upper()
-        return [node for node in self.nodes.values() if node.evidence.category.upper() == cat_upper]
+        cat_upper = category.strip().upper()
+        return [
+            node for node in self.nodes.values()
+            if node.evidence.category.strip().upper() == cat_upper
+        ]
 
     def compute_thesis_support_score(self) -> Dict[str, float]:
         """
