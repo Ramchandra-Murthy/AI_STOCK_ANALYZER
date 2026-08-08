@@ -46,10 +46,9 @@ class EvidenceReasoningEngine:
                 if i >= j:
                     continue  # Avoid self-comparison and duplicate pairs
 
-                # Check for Contradiction (Same category or related metrics with opposite polarity)
+                # Check for Contradiction (Same category with opposite non-neutral polarity)
                 if item_a.category == item_b.category and item_a.polarity != "NEUTRAL" and item_b.polarity != "NEUTRAL":
                     if item_a.polarity != item_b.polarity:
-                        # Contradiction detected
                         qa_a = EvidenceQualityService.assess_evidence(item_a)
                         qa_b = EvidenceQualityService.assess_evidence(item_b)
                         strength = round((qa_a.quality_score + qa_b.quality_score) / 2.0, 4)
@@ -62,24 +61,24 @@ class EvidenceReasoningEngine:
                             rationale=f"Conflicting polarities detected in category {item_a.category}: '{item_a.statement}' vs '{item_b.statement}'"
                         )
                         relationships.append(rel)
+                        continue
 
-                # Check for Corroboration (Same category, same polarity, different sources)
-                elif item_a.category == item_b.category and item_a.polarity == item_b.polarity and item_a.polarity != "NEUTRAL":
-                    if item_a.source != item_b.source:
-                        qa_a = EvidenceQualityService.assess_evidence(item_a)
-                        qa_b = EvidenceQualityService.assess_evidence(item_b)
-                        strength = round((qa_a.quality_score + qa_b.quality_score) / 2.0, 4)
+                # Check for Corroboration (Same category, same non-neutral polarity)
+                if item_a.category == item_b.category and item_a.polarity == item_b.polarity and item_a.polarity != "NEUTRAL":
+                    qa_a = EvidenceQualityService.assess_evidence(item_a)
+                    qa_b = EvidenceQualityService.assess_evidence(item_b)
+                    strength = round((qa_a.quality_score + qa_b.quality_score) / 2.0, 4)
 
-                        rel = EvidenceRelationship(
-                            source_evidence_id=item_a.evidence_id,
-                            target_evidence_id=item_b.evidence_id,
-                            relation_type="CORROBORATES",
-                            strength=strength,
-                            rationale=f"Independent sources ({item_a.source} and {item_b.source}) corroborate finding in {item_a.category}"
-                        )
-                        relationships.append(rel)
+                    rel = EvidenceRelationship(
+                        source_evidence_id=item_a.evidence_id,
+                        target_evidence_id=item_b.evidence_id,
+                        relation_type="CORROBORATES",
+                        strength=strength,
+                        rationale=f"Sources ({item_a.source} and {item_b.source}) corroborate finding in {item_a.category}"
+                    )
+                    relationships.append(rel)
 
-                # Check for Supersession (Same category, one is much older/lower recency than the other)
+                # Check for Supersession (Same category, significant recency delta)
                 elif item_a.category == item_b.category and abs(item_a.recency - item_b.recency) > 0.3:
                     older = item_a if item_a.recency < item_b.recency else item_b
                     newer = item_b if item_a.recency < item_b.recency else item_a
@@ -109,7 +108,6 @@ class EvidenceReasoningEngine:
         pos_score = sum(1.0 for item in evidence_items if item.polarity == "POSITIVE")
         neg_score = sum(1.0 for item in evidence_items if item.polarity == "NEGATIVE")
 
-        # Penalize for unaddressed contradictions
         net_balance = pos_score - neg_score
         if len(contradictions) > 0:
             net_balance *= (1.0 - (0.1 * len(contradictions)))
