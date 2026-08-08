@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict, List
-from backend.research.evidence.models.research_evidence import (
-    ResearchEvidence,
-)
+from backend.research.evidence.models.research_evidence import ResearchEvidence
 from backend.research.models.research_case import ResearchCase
 
 logger = logging.getLogger(__name__)
@@ -34,15 +32,17 @@ class EvidenceService:
             raise ValueError("category is required")
         if not statement:
             raise ValueError("statement is required")
-        evidence_id = (
-            f"{case.case_id}-"
-            f"E{len(case.evidence) + 1:04d}"
-        )
+            
+        evidence_id = f"{case.case_id}-E{len(case.evidence) + 1:04d}"
+        
+        # Ensure category is strictly uppercase
+        normalized_category = str(category).strip().upper()
+        
         evidence = ResearchEvidence(
             evidence_id=evidence_id,
             case_id=case.case_id,
             symbol=case.symbol,
-            category=category.strip().upper(),
+            category=normalized_category,
             statement=statement,
             value=value,
             source=source,
