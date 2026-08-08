@@ -42,7 +42,7 @@ class EvidenceService:
             evidence_id=evidence_id,
             case_id=case.case_id,
             symbol=case.symbol,
-            category=category.upper(),
+            category=category.strip().upper(),
             statement=statement,
             value=value,
             source=source,
