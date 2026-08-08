@@ -5,24 +5,25 @@ services:
     image: postgres:15-alpine
     container_name: eros_postgres
     environment:
-      POSTGRES_USER: eros_admin
-      POSTGRES_PASSWORD: secure_production_password_change_me
-      POSTGRES_DB: eros_production
+      POSTGRES_USER: ${POSTGRES_USER:-eros_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_production_password_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-eros_production}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U eros_admin -d eros_production"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-eros_admin} -d ${POSTGRES_DB:-eros_production}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: always
 
   redis:
     image: redis:7-alpine
     container_name: eros_redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -30,22 +31,24 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: always
 
   api:
     build:
       context: .
       dockerfile: Dockerfile.production
     container_name: eros_api
-    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000
+    command: uvicorn backend.main:app --host ${APP_HOST:-0.0.0.0} --port ${APP_PORT:-8000}
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:8000"
     environment:
-      - DATABASE_URL=postgresql://eros_admin:secure_production_password_change_me@postgres:5432/eros_production
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DATABASE_URL=${DATABASE_URL:-postgresql://eros_admin:secure_production_password_change_me@postgres:5432/eros_production}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+      - APP_ENVIRONMENT=${APP_ENVIRONMENT:-production}
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,14 +61,14 @@ services:
       context: .
       dockerfile: Dockerfile.production
     container_name: eros_celery_worker
-    command: celery -A backend.tasks.celery_app worker --loglevel=info
+    command: celery -A backend.tasks.celery_app worker --loglevel=${LOG_LEVEL:-info} --concurrency=${WORKER_CONCURRENCY:-4}
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgresql://eros_admin:secure_production_password_change_me@postgres:5432/eros_production
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DATABASE_URL=${DATABASE_URL:-postgresql://eros_admin:secure_production_password_change_me@postgres:5432/eros_production}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
     depends_on:
       - redis
       - postgres
@@ -76,14 +79,14 @@ services:
       context: .
       dockerfile: Dockerfile.production
     container_name: eros_celery_beat
-    command: celery -A backend.tasks.celery_app beat --loglevel=info
+    command: celery -A backend.tasks.celery_app beat --loglevel=${LOG_LEVEL:-info}
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgresql://eros_admin:secure_production_password_change_me@postgres:5432/eros_production
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DATABASE_URL=${DATABASE_URL:-postgresql://eros_admin:secure_production_password_change_me@postgres:5432/eros_production}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
     depends_on:
       - redis
       - postgres
