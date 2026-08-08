@@ -1,4 +1,4 @@
-from __previous__ import annotations
+from __future__ import annotations
 
 import pytest
 from backend.research.evidence.models.research_evidence import ResearchEvidence
