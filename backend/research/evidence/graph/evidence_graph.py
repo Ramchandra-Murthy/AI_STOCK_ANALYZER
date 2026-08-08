@@ -31,6 +31,8 @@ class EvidenceGraph:
         if evidence.case_id != self.case_id:
             raise ValueError("Evidence case_id does not match graph case_id")
         self.nodes[evidence.evidence_id] = EvidenceGraphNode(evidence)
+        # Automatically keep graph relationships updated when evidence is added
+        self.build_graph()
 
     def build_graph(self) -> None:
         evidence_list = [node.evidence for node in self.nodes.values()]
@@ -38,10 +40,12 @@ class EvidenceGraph:
 
     def get_cluster(self, category: str) -> List[EvidenceGraphNode]:
         cat_upper = category.strip().upper()
-        return [
-            node for node in self.nodes.values()
-            if node.evidence.category.strip().upper() == cat_upper
-        ]
+        cluster_nodes = []
+        for node in self.nodes.values():
+            node_cat = str(node.evidence.category).strip().upper()
+            if node_cat == cat_upper:
+                cluster_nodes.append(node)
+        return cluster_nodes
 
     def compute_thesis_support_score(self) -> Dict[str, float]:
         """
@@ -55,9 +59,10 @@ class EvidenceGraph:
 
         for node in self.nodes.values():
             weight = node.quality.quality_score
-            if node.evidence.polarity == "POSITIVE":
+            polarity = str(node.evidence.polarity).strip().upper()
+            if polarity == "POSITIVE":
                 total_support += weight
-            elif node.evidence.polarity == "NEGATIVE":
+            elif polarity == "NEGATIVE":
                 total_contradiction += weight
 
         for edge in self.edges:
