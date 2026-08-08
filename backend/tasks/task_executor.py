@@ -31,3 +31,19 @@ class BackgroundWorkers:
     def execute_report_task(context: TaskContext) -> Dict[str, Any]:
         logger.info("Worker generating institutional PDF report for task %s", context.task_id)
         return {"status": "SUCCESS", "task_id": context.task_id, "report_url": f"/reports/{context.task_id}.pdf"}
+
+
+# ==========================================================
+# Production Celery Task Boundary Handlers (JSON serializable)
+# ==========================================================
+def celery_valuation_wrapper(task_id: str, task_name: str, user: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)
+    return BackgroundWorkers.execute_valuation_task(context)
+
+def celery_forecast_wrapper(task_id: str, task_name: str, user: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)
+    return BackgroundWorkers.execute_forecast_task(context)
+
+def celery_report_wrapper(task_id: str, task_name: str, user: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)
+    return BackgroundWorkers.execute_report_task(context)
