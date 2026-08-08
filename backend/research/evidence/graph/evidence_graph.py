@@ -38,7 +38,7 @@ class EvidenceGraph:
 
     def get_cluster(self, category: str) -> List[EvidenceGraphNode]:
         cat_upper = category.upper()
-        return [node for node in self.nodes.values() if node.evidence.category == cat_upper]
+        return [node for node in self.nodes.values() if node.evidence.category.upper() == cat_upper]
 
     def compute_thesis_support_score(self) -> Dict[str, float]:
         """
@@ -57,7 +57,6 @@ class EvidenceGraph:
             elif node.evidence.polarity == "NEGATIVE":
                 total_contradiction += weight
 
-        # Adjust for edge relationships
         for edge in self.edges:
             if edge.relation_type == "CONTRADICTS":
                 total_contradiction += (edge.strength * 0.5)
