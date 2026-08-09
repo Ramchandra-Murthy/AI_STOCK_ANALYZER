@@ -63,3 +63,14 @@ def get_task_result(task_id: str) -> dict:
     if result_info.get("status") == "NOT_FOUND":
         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
     return result_info
+
+@router.get("/observability/metrics", status_code=status.HTTP_200_OK)
+def get_task_observability_metrics() -> dict:
+    """
+    Retrieve enterprise task execution and lifecycle observability metrics.
+    """
+    metrics = task_control.get_task_metrics()
+    return {
+        "status": "SUCCESS",
+        "metrics": metrics
+    }
