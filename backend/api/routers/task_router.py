@@ -86,3 +86,14 @@ def get_task_observability_details() -> dict:
         "tasks": details["tasks"],
         "total_tasks": details["total_tasks"],
     }
+
+@router.get("/observability", status_code=status.HTTP_200_OK)
+def get_task_observability_summary() -> dict:
+    """
+    Retrieve comprehensive unified task control-plane observability summary.
+    """
+    summary = task_control.get_observability_summary()
+    return {
+        "status": "SUCCESS",
+        "summary": summary
+    }

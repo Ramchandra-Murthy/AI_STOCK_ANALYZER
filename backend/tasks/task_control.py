@@ -268,7 +268,23 @@ class TaskControlService:
             "status": "HEALTHY",
         }
 
+
+
+    def get_observability_summary(self) -> Dict[str, Any]:
+        """
+        Return a comprehensive unified task control-plane observability summary,
+        aggregating metrics, per-task details, queue status, and registered tasks.
+        """
+        return {
+            "status": "HEALTHY",
+            "metrics": self.get_task_metrics(),
+            "tasks": self.get_task_observability_details().get("tasks", []),
+            "queues": self.get_queue_status(),
+            "registered_tasks": self.get_registered_tasks(),
+        }
+
 task_control = TaskControlService()
+
 
 
 
