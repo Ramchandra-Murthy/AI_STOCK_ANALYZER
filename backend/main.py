@@ -96,29 +96,5 @@ def api_admin_tasks():
         "status": "HEALTHY"
     }
 
-@app.post("/api/v1/tasks/submit", status_code=status.HTTP_202_ACCEPTED)
-def api_task_submit(payload: dict):
-    task_name = payload.get("task_name", "forecast.execute")
-    user = payload.get("user", "system_admin")
-    task_payload = payload.get("payload", {})
-    return task_control.submit_task(
-        task_name=task_name,
-        user=user,
-        payload=task_payload,
-    )
-
-@app.get("/")
-def root() -> dict:
-    return {
-        "platform": settings.PROJECT_NAME,
-        "status": "OPERATIONAL",
-        "architecture": "Cloud-Native Enterprise Platform (CNEP)"
-    }
-@app.get("/api/v1/tasks/{task_id}", status_code=status.HTTP_200_OK)
-def api_task_status(task_id: str):
-    return task_control.get_task_status(task_id)
-
-@app.get("/api/v1/tasks/{task_id}/result", status_code=status.HTTP_200_OK)
-def api_task_result(task_id: str):
-    return task_control.get_task_result(task_id)
+# Legacy inline task endpoints removed in favor of task_router
 
