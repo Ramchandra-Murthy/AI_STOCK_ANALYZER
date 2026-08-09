@@ -4,6 +4,8 @@ import logging
 import os
 from typing import Any, Dict
 from backend.tasks.celery_app import celery_app, celery_instance
+from backend.tasks.task_executor import BackgroundWorkers
+from backend.tasks.task_context import TaskContext
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +39,10 @@ class TaskControlService:
         Submit an EROS task through the configured execution facade.
         """
         payload = payload or {}
+
         if not task_name:
             raise ValueError("task_name is required")
+
         if task_name not in self._app.tasks:
             raise ValueError(f"Unknown task: {task_name}")
 
@@ -53,13 +57,30 @@ class TaskControlService:
             ],
         )
 
-        # Record initial state in mock registry if not real celery
+        # Default mock execution result.
+        execution_result: Dict[str, Any] = {
+            "status": "SUCCESS",
+            "data": {},
+        }
+
+        # Execute the already-tested forecast worker inline in Mock mode.
+        if not self._real_celery and task_name in ("forecast.execute", "forecast.run"):
+            context = TaskContext(
+                task_id=task_id,
+                task_name=task_name,
+                user=user,
+                payload=payload,
+            )
+
+            execution_result = BackgroundWorkers.execute_forecast_task(context)
+
+        # Record task state and complete execution result.
         self._mock_tasks[task_id] = {
             "task_id": task_id,
             "task_name": task_name,
             "user": user,
             "status": "SUCCESS" if not self._real_celery else "QUEUED",
-            "result": {"status": "SUCCESS", "symbol": payload.get("symbol", "DEFAULT.NS")} if not self._real_celery else None,
+            "result": execution_result if not self._real_celery else None,
         }
 
         logger.info(
@@ -75,12 +96,8 @@ class TaskControlService:
             "status": "QUEUED",
             "task_name": task_name,
             "user": user,
-            "execution_result": {
-                "status": "SUCCESS" if not self._real_celery else "QUEUED",
-                "data": {},
-            },
+            "execution_result": execution_result,
         }
-
     def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """
         Return task status.
