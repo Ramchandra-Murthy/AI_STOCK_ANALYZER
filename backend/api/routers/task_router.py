@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
 from backend.tasks.task_control import task_control
@@ -29,3 +29,30 @@ def submit_task(request: TaskSubmitRequest) -> dict:
         "message": f"Task '{request.task_name}' accepted for asynchronous execution.",
         "execution_result": submission.get("execution_result", {})
     }
+
+@router.get("/{task_id}/status", status_code=status.HTTP_200_OK)
+def get_task_status(task_id: str) -> dict:
+    """
+    Retrieve the execution status of a given task ID.
+    """
+    status_info = task_control.get_task_status(task_id)
+    if status_info.get("status") == "NOT_FOUND":
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
+    return status_info
+
+@router.get("/{task_id}/result", status_code=status.HTTP_200_OK)
+def get_task_result(task_id: str) -> dict:
+    """
+    Retrieve the execution result payload of a given task ID.
+    """
+    result_info = task_control.get_task_result(task_id)
+    if result_info.get("status") == "NOT_FOUND":
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
+    return result_info
+
+@router.get("/queues/status", status_code=status.HTTP_200_OK)
+def get_queue_status() -> dict:
+    """
+    Retrieve active queues and worker status from the control plane.
+    """
+    return task_control.get_queue_status()
