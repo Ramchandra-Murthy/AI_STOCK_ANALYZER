@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
 from fastapi import FastAPI, status
@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.core.config.settings import settings
 from backend.api.routers.system.health_router import router as system_router
 from backend.api.routers.realtime_router import router as realtime_router
+from backend.api.routers.task_router import router as task_router
 from backend.tasks.celery_app import celery_app
 from backend.tasks.task_control import task_control
 
@@ -46,6 +47,7 @@ def root_ready():
 
 # Mount Realtime & WebSocket router
 app.include_router(realtime_router)
+app.include_router(task_router)
 
 # Enterprise API Endpoint Mappings aligned with exact test assertions
 @app.post("/api/v1/auth/register", status_code=status.HTTP_201_CREATED)
