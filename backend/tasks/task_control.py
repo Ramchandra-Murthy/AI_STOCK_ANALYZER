@@ -245,7 +245,31 @@ class TaskControlService:
             "status": "HEALTHY"
         }
 
+
+
+    def get_task_observability_details(self) -> Dict[str, Any]:
+        """
+        Return detailed per-task observability information.
+        """
+        tasks = []
+        for task_id, meta in self._mock_tasks.items():
+            tasks.append({
+                "task_id": task_id,
+                "task_name": meta.get("task_name"),
+                "status": meta.get("status"),
+                "ready": meta.get("status") == "SUCCESS",
+                "execution_time_ms": meta.get("execution_time_ms", 15.5),
+                "created_at": meta.get("created_at"),
+                "completed_at": meta.get("completed_at"),
+            })
+        return {
+            "tasks": tasks,
+            "total_tasks": len(tasks),
+            "status": "HEALTHY",
+        }
+
 task_control = TaskControlService()
+
 
 
 

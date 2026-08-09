@@ -74,3 +74,15 @@ def get_task_observability_metrics() -> dict:
         "status": "SUCCESS",
         "metrics": metrics
     }
+
+@router.get("/observability/details", status_code=status.HTTP_200_OK)
+def get_task_observability_details() -> dict:
+    """
+    Retrieve detailed per-task execution telemetry.
+    """
+    details = task_control.get_task_observability_details()
+    return {
+        "status": "SUCCESS",
+        "tasks": details["tasks"],
+        "total_tasks": details["total_tasks"],
+    }
