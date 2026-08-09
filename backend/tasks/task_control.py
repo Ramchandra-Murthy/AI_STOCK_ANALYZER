@@ -11,7 +11,7 @@ class TaskControlService:
     """
     EROS 3.0 task control-plane facade.
     Provides a single API-facing abstraction over:
-      - deterministic MockCeleryApp
+      - deterministic MockCeleryApp with task state tracking
       - real Celery + Redis execution
     """
     def __init__(self) -> None:
@@ -20,6 +20,8 @@ class TaskControlService:
             os.getenv("USE_REAL_CELERY", "false").lower() == "true"
             and celery_instance is not None
         )
+        # In-memory store for mock task states and results
+        self._mock_tasks: Dict[str, Dict[str, Any]] = {}
 
     @property
     def real_celery_enabled(self) -> bool:
@@ -51,6 +53,15 @@ class TaskControlService:
             ],
         )
 
+        # Record initial state in mock registry if not real celery
+        self._mock_tasks[task_id] = {
+            "task_id": task_id,
+            "task_name": task_name,
+            "user": user,
+            "status": "SUCCESS" if not self._real_celery else "QUEUED",
+            "result": {"status": "SUCCESS", "symbol": payload.get("symbol", "DEFAULT.NS")} if not self._real_celery else None,
+        }
+
         logger.info(
             "Task submitted: task=%s user=%s task_id=%s real=%s",
             task_name,
@@ -74,15 +85,54 @@ class TaskControlService:
         """
         Return task status.
         Real Celery mode queries the Redis-backed result backend.
-        Mock mode preserves deterministic local behavior.
+        Mock mode queries deterministic local memory store.
         """
         if not task_id:
             raise ValueError("task_id is required")
 
         if not self._real_celery or celery_instance is None:
+            if task_id in self._mock_tasks:
+                meta = self._mock_tasks[task_id]
+                return {
+                    "task_id": task_id,
+                    "status": meta["status"],
+                    "task_name": meta["task_name"],
+                    "user": meta["user"],
+                    "ready": True,
+                }
             return {
                 "task_id": task_id,
-                "status": "QUEUED",
+                "status": "NOT_FOUND",
+                "ready": False,
+            }
+
+        from celery.result import AsyncResult
+        result = AsyncResult(task_id, app=celery_instance)
+        response: Dict[str, Any] = {
+            "task_id": task_id,
+            "status": result.status,
+            "ready": result.ready(),
+        }
+        return response
+
+    def get_task_result(self, task_id: str) -> Dict[str, Any]:
+        """
+        Return the execution result payload for a given task ID.
+        """
+        if not task_id:
+            raise ValueError("task_id is required")
+
+        if not self._real_celery or celery_instance is None:
+            if task_id in self._mock_tasks:
+                meta = self._mock_tasks[task_id]
+                return {
+                    "task_id": task_id,
+                    "status": meta["status"],
+                    "result": meta["result"],
+                }
+            return {
+                "task_id": task_id,
+                "status": "NOT_FOUND",
                 "result": None,
             }
 
@@ -92,12 +142,10 @@ class TaskControlService:
             "task_id": task_id,
             "status": result.status,
         }
-        if result.ready():
-            try:
-                response["result"] = result.result
-            except Exception as exc:
-                response["result_error"] = repr(exc)
-        else:
+        try:
+            response["result"] = result.result if result.ready() else None
+        except Exception as exc:
+            response["result_error"] = repr(exc)
             response["result"] = None
 
         return response
@@ -109,8 +157,6 @@ class TaskControlService:
     def get_queue_status(self) -> Dict[str, Any]:
         """
         Return queue/control-plane information.
-        Queue names are derived from the EROS Celery configuration.
-        Worker information is queried only when real Celery is enabled.
         """
         queues = [
             "default",

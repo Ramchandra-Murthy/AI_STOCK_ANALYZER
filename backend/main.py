@@ -112,3 +112,10 @@ def root() -> dict:
         "status": "OPERATIONAL",
         "architecture": "Cloud-Native Enterprise Platform (CNEP)"
     }
+@app.get("/api/v1/tasks/{task_id}", status_code=status.HTTP_200_OK)
+def api_task_status(task_id: str):
+    return task_control.get_task_status(task_id)
+
+@app.get("/api/v1/tasks/{task_id}/result", status_code=status.HTTP_200_OK)
+def api_task_result(task_id: str):
+    return task_control.get_task_result(task_id)
