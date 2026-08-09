@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
 import os
@@ -64,7 +64,18 @@ class TaskControlService:
         }
 
         # Execute the already-tested forecast worker inline in Mock mode.
-        if not self._real_celery and task_name in ("forecast.execute", "forecast.run"):
+        if not self._real_celery and task_name in ("forecast.execute", "forecast.run", "report.generate"):
+            context = TaskContext(
+                task_id=task_id,
+                task_name=task_name,
+                user=user,
+                payload=payload,
+            )
+            if task_name in ("forecast.execute", "forecast.run"):
+                execution_result = BackgroundWorkers.execute_forecast_task(context)
+            else:
+                execution_result = BackgroundWorkers.execute_report_task(context)
+
             context = TaskContext(
                 task_id=task_id,
                 task_name=task_name,
@@ -214,3 +225,5 @@ class TaskControlService:
         }
 
 task_control = TaskControlService()
+
+

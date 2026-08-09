@@ -4,14 +4,50 @@ from typing import Dict, Any
 from backend.tasks.task_context import TaskContext
 from backend.services.valuation_service import ValuationService
 from backend.database.engine import SessionLocal
+from backend.database.repositories.forecast_report_repository import ForecastRepository, ReportRepository
 from backend.database.repositories.forecast_report_repository import ForecastRepository
 from services.forecasting.models import ForecastScenario
 from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
+from services.report.engine import ReportEngine
 
 
 logger = logging.getLogger(__name__)
 
 class BackgroundWorkers:
+    @staticmethod
+    def execute_report_task(context: TaskContext) -> Dict[str, Any]:
+        logger.info("Worker processing report task %s", context.task_id)
+        symbol = context.payload.get("symbol", "TCS.NS")
+        format_type = context.payload.get("format_type", "MULTI-FORMAT")
+        analysis_data = context.payload.get("analysis_data", {})
+        
+        engine = ReportEngine()
+        report = engine.generate(symbol=symbol, format_type=format_type, analysis_data=analysis_data)
+        report_id = f"{symbol}-REPORT-2026-Q2"
+        
+        session = SessionLocal()
+        try:
+            saved_report = ReportRepository.save_report(
+                session=session,
+                report_id=report_id,
+                symbol=report.symbol,
+                report_type=report.format_type,
+                content_summary=report.content,
+            )
+        finally:
+            session.close()
+            
+        return {
+            "status": "SUCCESS",
+            "task_id": context.task_id,
+            "symbol": report.symbol,
+            "format_type": report.format_type,
+            "file_path": report.file_path,
+            "content": report.content,
+            "metadata": report.metadata,
+            "report_id": saved_report.id,
+            "timestamp": context.payload.get("timestamp"),
+        }
     @staticmethod
     def execute_forecast_task(context: TaskContext) -> Dict[str, Any]:
         logger.info("Worker processing forecast task %s", context.task_id)
@@ -147,4 +183,20 @@ def celery_forecast_wrapper(*args, **kwargs) -> Dict[str, Any]:
     return BackgroundWorkers.execute_forecast_task(context)
 
 def celery_report_wrapper(*args, **kwargs) -> Dict[str, Any]:
-    return {"status": "SUCCESS", "task_id": "report_stub"}
+    if len(args) >= 4:
+        task_id, task_name, user, payload = args[-4:]
+    else:
+        task_id = kwargs.get("task_id", "UNKNOWN")
+        task_name = kwargs.get("task_name", "report.generate")
+        user = kwargs.get("user", "system")
+        payload = kwargs.get("payload", {})
+    context = TaskContext(
+        task_id=task_id,
+        task_name=task_name,
+        user=user,
+        payload=payload,
+    )
+    return BackgroundWorkers.execute_report_task(context)
+
+
+
