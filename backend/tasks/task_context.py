@@ -9,5 +9,6 @@ class TaskContext:
     task_id: str
     task_name: str
     user: str
+    workflow_id: Optional[str] = None
     payload: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)

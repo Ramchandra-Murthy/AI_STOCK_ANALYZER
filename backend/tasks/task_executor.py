@@ -154,70 +154,129 @@ class BackgroundWorkers:
             session.close()
 
 def _extract_context(*args, **kwargs):
+    """
+    Extract the EROS task execution context.
+    Supported calling conventions:
+        _extract_context(task_name, user, payload)
+    and Celery-bound invocation where args[0] may be the
+    bound task instance containing request.id.
+    """
     task_id = "UNKNOWN"
-    try:
-        from celery import current_task
-        if current_task and current_task.request and current_task.request.id:
-            task_id = str(current_task.request.id)
-    except Exception:
-        pass
-
-    if task_id == "UNKNOWN" and len(args) > 0 and hasattr(args[0], "request") and args[0].request and args[0].request.id:
-        task_id = str(args[0].request.id)
-
     task_name = "forecast.execute"
     user = "system"
     payload = {}
 
-    remaining_args = list(args[1:]) if len(args) > 1 else []
-    
-    if len(remaining_args) >= 2:
-        if isinstance(remaining_args[0], str):
-            task_name = remaining_args[0]
-        if isinstance(remaining_args[1], str):
-            user = remaining_args[1]
-        if len(remaining_args) >= 3 and isinstance(remaining_args[2], dict):
-            payload = remaining_args[2]
-    else:
-        for arg in remaining_args:
-            if isinstance(arg, str):
-                if "." in arg and len(arg) < 35:
-                    task_name = arg
-                else:
-                    user = arg
-            elif isinstance(arg, dict):
-                payload = arg
+    # --------------------------------------------------
+    # Celery-bound task invocation
+    # --------------------------------------------------
+    if args:
+        first = args[0]
+        if (
+            hasattr(first, "request")
+            and first.request is not None
+            and getattr(first.request, "id", None)
+        ):
+            task_id = str(first.request.id)
+            remaining_args = list(args[1:])
+            if len(remaining_args) >= 1 and isinstance(remaining_args[0], str):
+                task_name = remaining_args[0]
+            if len(remaining_args) >= 2 and isinstance(remaining_args[1], str):
+                user = remaining_args[1]
+            if len(remaining_args) >= 3 and isinstance(remaining_args[2], dict):
+                payload = remaining_args[2]
+        # --------------------------------------------------
+        # Direct EROS invocation:
+        # (task_name, user, payload)
+        # --------------------------------------------------
+        else:
+            if isinstance(first, str):
+                task_name = first
+            if len(args) >= 2 and isinstance(args[1], str):
+                user = args[1]
+            if len(args) >= 3 and isinstance(args[2], dict):
+                payload = args[2]
 
-    if "task_name" in kwargs:
-        task_name = kwargs["task_name"]
-    if "user" in kwargs:
-        user = kwargs["user"]
+    # --------------------------------------------------
+    # Keyword overrides
+    # --------------------------------------------------
+    if "task_id" in kwargs and kwargs["task_id"] is not None:
+        task_id = str(kwargs["task_id"])
+    if "task_name" in kwargs and kwargs["task_name"] is not None:
+        task_name = str(kwargs["task_name"])
+    if "user" in kwargs and kwargs["user"] is not None:
+        user = str(kwargs["user"])
     if "payload" in kwargs and isinstance(kwargs["payload"], dict):
         payload = kwargs["payload"]
 
+    # --------------------------------------------------
+    # Payload task_id fallback
+    # --------------------------------------------------
     if task_id == "UNKNOWN":
-        if isinstance(payload, dict) and "task_id" in payload:
-            task_id = payload["task_id"]
+        if isinstance(payload, dict) and payload.get("task_id"):
+            task_id = str(payload["task_id"])
 
-    return str(task_id), str(task_name), str(user), payload
+    # --------------------------------------------------
+    # Workflow correlation
+    # --------------------------------------------------
+    workflow_id = None
+    if isinstance(payload, dict):
+        workflow_id = payload.get("workflow_id")
+    if workflow_id is not None:
+        workflow_id = str(workflow_id)
 
+    return (
+        str(task_id),
+        str(task_name),
+        str(user),
+        payload,
+        workflow_id,
+    )
 def celery_valuation_wrapper(*args, **kwargs) -> Dict[str, Any]:
-    task_id, task_name, user, payload = _extract_context(*args, **kwargs)
-    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)
-    return BackgroundWorkers.execute_valuation_task(context)
+    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
+    context = TaskContext(
+        task_id=task_id,
+        task_name=task_name,
+        user=user,
+        workflow_id=workflow_id,
+        payload=payload,
+    )
+    res = BackgroundWorkers.execute_valuation_task(context)
+    if isinstance(res, dict) and workflow_id is not None:
+        res["workflow_id"] = workflow_id
+    return res
 
 def celery_forecast_wrapper(*args, **kwargs) -> Dict[str, Any]:
-    task_id, task_name, user, payload = _extract_context(*args, **kwargs)
-    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)
+    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
+    context = TaskContext(
+        task_id=task_id,
+        task_name=task_name,
+        user=user,
+        workflow_id=workflow_id,
+        payload=payload,
+    )
     res = BackgroundWorkers.execute_forecast_task(context)
+    if not isinstance(res, dict):
+        res = {"result": res}
     res["task_id"] = task_id
     res["user"] = user
+    if workflow_id is not None:
+        if isinstance(res, dict):
+            res["workflow_id"] = workflow_id
     return res
 
 def celery_report_wrapper(*args, **kwargs) -> Dict[str, Any]:
-    task_id, task_name, user, payload = _extract_context(*args, **kwargs)
-    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)
+    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
+    context = TaskContext(
+        task_id=task_id,
+        task_name=task_name,
+        user=user,
+        workflow_id=workflow_id,
+        payload=payload,
+    )
     res = BackgroundWorkers.execute_report_task(context)
     res["task_id"] = task_id
     res["user"] = user
+    if workflow_id is not None:
+        if isinstance(res, dict):
+            res["workflow_id"] = workflow_id
     return res
