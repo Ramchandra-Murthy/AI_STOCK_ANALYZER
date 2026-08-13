@@ -653,6 +653,7 @@ class TaskControlService:
         self,
     ) -> Dict[str, Any]:
         tasks = []
+
         for task_id, meta in self._mock_tasks.items():
             try:
                 status_info = self.get_task_status(task_id)
@@ -668,12 +669,16 @@ class TaskControlService:
                 "task_name": meta.get("task_name"),
                 "user": meta.get("user"),
                 "status": status_info.get("status"),
-                "ready": status_info.get("ready"),
-                "execution_time_ms": meta.get("execution_time_ms", 0.0),
+                "ready": status_info.get("ready", False),
+                "execution_time_ms": meta.get(
+                    "execution_time_ms",
+                    0.0,
+                ),
             })
 
         return {
             "tasks": tasks,
+            "total_tasks": len(tasks),
             "status": "HEALTHY",
         }
 
