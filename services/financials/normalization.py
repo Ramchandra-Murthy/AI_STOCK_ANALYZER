@@ -59,6 +59,7 @@ def normalize_income_statement(
         cost_of_goods_sold=_get(
             raw,
             "costOfRevenue",
+            "costOfGoodsSold",
             "cost_of_goods_sold",
             "COGS",
         ),
@@ -82,9 +83,16 @@ def normalize_income_statement(
             "depreciation",
             "depreciationAndAmortization",
         ),
+        eps=_get(
+            raw,
+            "eps",
+            "EPS",
+            "earningsPerShare",
+        ),
         shares_outstanding=_get(
             raw,
             "sharesOutstanding",
+            "shares_outstanding",
         ),
     )
 
@@ -124,9 +132,20 @@ def normalize_balance_sheet(
             raw,
             "intangibles",
         ),
+        total_current_assets=_get(
+            raw,
+            "totalCurrentAssets",
+            "total_current_assets",
+        ),
+        total_current_liabilities=_get(
+            raw,
+            "totalCurrentLiabilities",
+            "total_current_liabilities",
+        ),
         total_assets=_get(
             raw,
             "totalAssets",
+            "total_assets",
         ),
         short_term_debt=_get(
             raw,
@@ -178,9 +197,15 @@ def normalize_cash_flow(
             raw,
             "changeInCash",
         ),
+                beginning_cash=_get(
+            raw,
+            "beginningCash",
+            "beginning_cash",
+        ),
         ending_cash=_get(
             raw,
             "endingCash",
+            "ending_cash",
         ),
     )
 
@@ -207,3 +232,8 @@ def normalize_financial_statements(
         balance_sheet=normalize_balance_sheet(balance_raw),
         cash_flow_statement=normalize_cash_flow(cashflow_raw),
     )
+
+
+
+
+

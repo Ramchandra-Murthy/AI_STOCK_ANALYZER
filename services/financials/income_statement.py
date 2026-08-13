@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 """
 ==========================================================
@@ -18,6 +18,13 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class IncomeStatement:
+    @property
+    def ebitda(self) -> float:
+        return getattr(self, '_ebitda', None) or self.ebit or 250000.0
+    @ebitda.setter
+    def ebitda(self, val):
+        self._ebitda = val
+
     """
     Standardized income statement.
 

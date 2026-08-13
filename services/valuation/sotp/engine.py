@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import logging
 from typing import Any
@@ -17,7 +17,7 @@ class SOTPEngine:
         holding_discount: float = 0.15,
         shares_outstanding: float = 6760.0,
     ) -> SOTPResult:
-        symbol = financials.symbol
+        symbol = financials.ticker
         logger.info("Running Sum-of-the-Parts (SOTP) valuation for conglomerate: %s", symbol)
 
         # Segment breakdown for a conglomerate (e.g., Reliance: O2C, Jio, Retail, New Energy)
@@ -45,8 +45,10 @@ class SOTPEngine:
             )
 
         # Balance sheet net debt extraction or fallback
-        bs = financials.balance_sheets[0] if financials.balance_sheets else None
-        net_debt = (bs.debt - bs.cash) if bs else 250000.0
+        bs = financials.balance_sheet
+        debt_val = ((getattr(bs, "short_term_debt", 0.0) or 0.0) + (getattr(bs, "long_term_debt", getattr(bs, "debt", 0.0)) or 0.0)) if bs else 0.0
+        cash_val = ((getattr(bs, "cash", 0.0) or 0.0) + (getattr(bs, "cash_equivalents", 0.0) or 0.0)) if bs else 0.0
+        net_debt = (debt_val - cash_val) if bs else 250000.0
 
         raw_equity_value = total_ev - net_debt
         discounted_equity_value = raw_equity_value * (1.0 - holding_discount)

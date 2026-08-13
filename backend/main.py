@@ -98,3 +98,11 @@ def api_admin_tasks():
 
 # Legacy inline task endpoints removed in favor of task_router
 
+
+# ============================================================
+# EROS 3.0 PRODUCTION WORKFLOW ROUTER - BLOCK 25
+# ============================================================
+from backend.api.routers.eros_production_router import (
+    router as eros_production_router,
+)
+app.include_router(eros_production_router)

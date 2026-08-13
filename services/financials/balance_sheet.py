@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 """
 ==========================================================
@@ -18,6 +18,20 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class BalanceSheet:
+    @property
+    def short_term_debt(self) -> float:
+        return getattr(self, '_short_term_debt', 0.0)
+    @short_term_debt.setter
+    def short_term_debt(self, val):
+        self._short_term_debt = val
+
+    @property
+    def long_term_debt(self) -> float:
+        return getattr(self, '_long_term_debt', getattr(self, 'debt', 0.0))
+    @long_term_debt.setter
+    def long_term_debt(self, val):
+        self._long_term_debt = val
+
     """
     Standardized balance sheet.
 

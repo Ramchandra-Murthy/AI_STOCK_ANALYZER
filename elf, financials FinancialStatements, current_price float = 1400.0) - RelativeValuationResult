@@ -1,0 +1,177 @@
+[1mdiff --git a/backend/tasks/task_executor.py b/backend/tasks/task_executor.py[m
+[1mindex addcebe..d59a42e 100644[m
+[1m--- a/backend/tasks/task_executor.py[m
+[1m+++ b/backend/tasks/task_executor.py[m
+[36m@@ -154,70 +154,129 @@[m [mclass BackgroundWorkers:[m
+             session.close()[m
+ [m
+ def _extract_context(*args, **kwargs):[m
+[32m+[m[32m    """[m
+[32m+[m[32m    Extract the EROS task execution context.[m
+[32m+[m[32m    Supported calling conventions:[m
+[32m+[m[32m        _extract_context(task_name, user, payload)[m
+[32m+[m[32m    and Celery-bound invocation where args[0] may be the[m
+[32m+[m[32m    bound task instance containing request.id.[m
+[32m+[m[32m    """[m
+     task_id = "UNKNOWN"[m
+[31m-    try:[m
+[31m-        from celery import current_task[m
+[31m-        if current_task and current_task.request and current_task.request.id:[m
+[31m-            task_id = str(current_task.request.id)[m
+[31m-    except Exception:[m
+[31m-        pass[m
+[31m-[m
+[31m-    if task_id == "UNKNOWN" and len(args) > 0 and hasattr(args[0], "request") and args[0].request and args[0].request.id:[m
+[31m-        task_id = str(args[0].request.id)[m
+[31m-[m
+     task_name = "forecast.execute"[m
+     user = "system"[m
+     payload = {}[m
+ [m
+[31m-    remaining_args = list(args[1:]) if len(args) > 1 else [][m
+[31m-    [m
+[31m-    if len(remaining_args) >= 2:[m
+[31m-        if isinstance(remaining_args[0], str):[m
+[31m-            task_name = remaining_args[0][m
+[31m-        if isinstance(remaining_args[1], str):[m
+[31m-            user = remaining_args[1][m
+[31m-        if len(remaining_args) >= 3 and isinstance(remaining_args[2], dict):[m
+[31m-            payload = remaining_args[2][m
+[31m-    else:[m
+[31m-        for arg in remaining_args:[m
+[31m-            if isinstance(arg, str):[m
+[31m-                if "." in arg and len(arg) < 35:[m
+[31m-                    task_name = arg[m
+[31m-                else:[m
+[31m-                    user = arg[m
+[31m-            elif isinstance(arg, dict):[m
+[31m-                payload = arg[m
+[31m-[m
+[31m-    if "task_name" in kwargs:[m
+[31m-        task_name = kwargs["task_name"][m
+[31m-    if "user" in kwargs:[m
+[31m-        user = kwargs["user"][m
+[32m+[m[32m    # --------------------------------------------------[m
+[32m+[m[32m    # Celery-bound task invocation[m
+[32m+[m[32m    # --------------------------------------------------[m
+[32m+[m[32m    if args:[m
+[32m+[m[32m        first = args[0][m
+[32m+[m[32m        if ([m
+[32m+[m[32m            hasattr(first, "request")[m
+[32m+[m[32m            and first.request is not None[m
+[32m+[m[32m            and getattr(first.request, "id", None)[m
+[32m+[m[32m        ):[m
+[32m+[m[32m            task_id = str(first.request.id)[m
+[32m+[m[32m            remaining_args = list(args[1:])[m
+[32m+[m[32m            if len(remaining_args) >= 1 and isinstance(remaining_args[0], str):[m
+[32m+[m[32m                task_name = remaining_args[0][m
+[32m+[m[32m            if len(remaining_args) >= 2 and isinstance(remaining_args[1], str):[m
+[32m+[m[32m                user = remaining_args[1][m
+[32m+[m[32m            if len(remaining_args) >= 3 and isinstance(remaining_args[2], dict):[m
+[32m+[m[32m                payload = remaining_args[2][m
+[32m+[m[32m        # --------------------------------------------------[m
+[32m+[m[32m        # Direct EROS invocation:[m
+[32m+[m[32m        # (task_name, user, payload)[m
+[32m+[m[32m        # --------------------------------------------------[m
+[32m+[m[32m        else:[m
+[32m+[m[32m            if isinstance(first, str):[m
+[32m+[m[32m                task_name = first[m
+[32m+[m[32m            if len(args) >= 2 and isinstance(args[1], str):[m
+[32m+[m[32m                user = args[1][m
+[32m+[m[32m            if len(args) >= 3 and isinstance(args[2], dict):[m
+[32m+[m[32m                payload = args[2][m
+[32m+[m
+[32m+[m[32m    # --------------------------------------------------[m
+[32m+[m[32m    # Keyword overrides[m
+[32m+[m[32m    # --------------------------------------------------[m
+[32m+[m[32m    if "task_id" in kwargs and kwargs["task_id"] is not None:[m
+[32m+[m[32m        task_id = str(kwargs["task_id"])[m
+[32m+[m[32m    if "task_name" in kwargs and kwargs["task_name"] is not None:[m
+[32m+[m[32m        task_name = str(kwargs["task_name"])[m
+[32m+[m[32m    if "user" in kwargs and kwargs["user"] is not None:[m
+[32m+[m[32m        user = str(kwargs["user"])[m
+     if "payload" in kwargs and isinstance(kwargs["payload"], dict):[m
+         payload = kwargs["payload"][m
+ [m
+[32m+[m[32m    # --------------------------------------------------[m
+[32m+[m[32m    # Payload task_id fallback[m
+[32m+[m[32m    # --------------------------------------------------[m
+     if task_id == "UNKNOWN":[m
+[31m-        if isinstance(payload, dict) and "task_id" in payload:[m
+[31m-            task_id = payload["task_id"][m
+[32m+[m[32m        if isinstance(payload, dict) and payload.get("task_id"):[m
+[32m+[m[32m            task_id = str(payload["task_id"])[m
+ [m
+[31m-    return str(task_id), str(task_name), str(user), payload[m
+[32m+[m[32m    # --------------------------------------------------[m
+[32m+[m[32m    # Workflow correlation[m
+[32m+[m[32m    # --------------------------------------------------[m
+[32m+[m[32m    workflow_id = None[m
+[32m+[m[32m    if isinstance(payload, dict):[m
+[32m+[m[32m        workflow_id = payload.get("workflow_id")[m
+[32m+[m[32m    if workflow_id is not None:[m
+[32m+[m[32m        workflow_id = str(workflow_id)[m
+ [m
+[32m+[m[32m    return ([m
+[32m+[m[32m        str(task_id),[m
+[32m+[m[32m        str(task_name),[m
+[32m+[m[32m        str(user),[m
+[32m+[m[32m        payload,[m
+[32m+[m[32m        workflow_id,[m
+[32m+[m[32m    )[m
+ def celery_valuation_wrapper(*args, **kwargs) -> Dict[str, Any]:[m
+[31m-    task_id, task_name, user, payload = _extract_context(*args, **kwargs)[m
+[31m-    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)[m
+[31m-    return BackgroundWorkers.execute_valuation_task(context)[m
+[32m+[m[32m    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)[m
+[32m+[m[32m    context = TaskContext([m
+[32m+[m[32m        task_id=task_id,[m
+[32m+[m[32m        task_name=task_name,[m
+[32m+[m[32m        user=user,[m
+[32m+[m[32m        workflow_id=workflow_id,[m
+[32m+[m[32m        payload=payload,[m
+[32m+[m[32m    )[m
+[32m+[m[32m    res = BackgroundWorkers.execute_valuation_task(context)[m
+[32m+[m[32m    if isinstance(res, dict) and workflow_id is not None:[m
+[32m+[m[32m        res["workflow_id"] = workflow_id[m
+[32m+[m[32m    return res[m
+ [m
+ def celery_forecast_wrapper(*args, **kwargs) -> Dict[str, Any]:[m
+[31m-    task_id, task_name, user, payload = _extract_context(*args, **kwargs)[m
+[31m-    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)[m
+[32m+[m[32m    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)[m
+[32m+[m[32m    context = TaskContext([m
+[32m+[m[32m        task_id=task_id,[m
+[32m+[m[32m        task_name=task_name,[m
+[32m+[m[32m        user=user,[m
+[32m+[m[32m        workflow_id=workflow_id,[m
+[32m+[m[32m        payload=payload,[m
+[32m+[m[32m    )[m
+     res = BackgroundWorkers.execute_forecast_task(context)[m
+[32m+[m[32m    if not isinstance(res, dict):[m
+[32m+[m[32m        res = {"result": res}[m
+     res["task_id"] = task_id[m
+     res["user"] = user[m
+[32m+[m[32m    if workflow_id is not None:[m
+[32m+[m[32m        if isinstance(res, dict):[m
+[32m+[m[32m            res["workflow_id"] = workflow_id[m
+     return res[m
+ [m
+ def celery_report_wrapper(*args, **kwargs) -> Dict[str, Any]:[m
+[31m-    task_id, task_name, user, payload = _extract_context(*args, **kwargs)[m
+[31m-    context = TaskContext(task_id=task_id, task_name=task_name, user=user, payload=payload)[m
+[32m+[m[32m    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)[m
+[32m+[m[32m    context = TaskContext([m
+[32m+[m[32m        task_id=task_id,[m
+[32m+[m[32m        task_name=task_name,[m
+[32m+[m[32m        user=user,[m
+[32m+[m[32m        workflow_id=workflow_id,[m
+[32m+[m[32m        payload=payload,[m
+[32m+[m[32m    )[m
+     res = BackgroundWorkers.execute_report_task(context)[m
+     res["task_id"] = task_id[m
+     res["user"] = user[m
+[32m+[m[32m    if workflow_id is not None:[m
+[32m+[m[32m        if isinstance(res, dict):[m
+[32m+[m[32m            res["workflow_id"] = workflow_id[m
+     return res[m

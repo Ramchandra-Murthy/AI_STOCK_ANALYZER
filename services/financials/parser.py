@@ -64,7 +64,7 @@ def parse_financial_statements(
 
     validate_financial_statements(statements)
 
-    _repository.save(statements)
+    _repository.store(statements)
 
     return statements
 
@@ -77,7 +77,7 @@ def get_financial_statements(
     Retrieve previously parsed statements.
     """
 
-    return _repository.load(
+    return _repository.get(
         company_name,
         fiscal_year,
     )
