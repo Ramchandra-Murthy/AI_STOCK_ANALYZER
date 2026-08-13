@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import logging
 from typing import Any
@@ -12,20 +12,23 @@ class RelativeValuationEngine:
     """Engine computing relative valuation metrics (P/E, EV/EBITDA, EV/Sales, P/B, PEG) vs industry benchmarks."""
 
     def evaluate(self, financials: FinancialStatements, current_price: float = 1400.0) -> RelativeValuationResult:
-        symbol = financials.symbol
+        symbol = financials.ticker
         logger.info("Running Relative Valuation for symbol: %s", symbol)
 
-        inc = financials.income_statements[0] if financials.income_statements else None
-        bs = financials.balance_sheets[0] if financials.balance_sheets else None
+        inc = financials.income_statement
+        bs = financials.balance_sheet
 
         eps = inc.eps if inc and inc.eps > 0 else 45.0
-        ebitda = inc.ebit + 50000.0 if inc else 250000.0
+        val = getattr(inc, "ebitda", getattr(inc, "ebit", 250000.0))
+        ebitda = val if (inc and val > 0) else 250000.0
         revenue = inc.revenue if inc else 1000000.0
-        equity = bs.shareholders_equity if bs else 1500000.0
-        debt = bs.debt if bs else 500000.0
-        cash = bs.cash if bs else 300000.0
+        equity = getattr(bs, "total_equity", 0.0)
+        equity = equity if (bs and equity > 0) else 1500000.0
+        debt = ((getattr(bs, "short_term_debt", 0.0) or 0.0) + (getattr(bs, "long_term_debt", getattr(bs, "debt", 0.0)) or 0.0)) if bs else 500000.0
+        cash = ((getattr(bs, "cash", 0.0) or 0.0) + (getattr(bs, "cash_equivalents", 0.0) or 0.0)) if bs else 300000.0
 
-        shares = 6760.0
+        shares = getattr(inc, "shares_outstanding", 0.0)
+        shares = shares if (inc and shares > 0) else 6760.0
         market_cap = current_price * shares
         net_debt = debt - cash
         ev = market_cap + net_debt
@@ -59,3 +62,4 @@ class RelativeValuationEngine:
             blend_relative_value=blend_val,
             comparison_benchmarks=benchmarks,
         )
+

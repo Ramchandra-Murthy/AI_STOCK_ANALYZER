@@ -1,13 +1,20 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
+import os
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
 class CeleryConfig:
-    BROKER_URL: str = "redis://localhost:6379/0"
-    RESULT_BACKEND: str = "redis://localhost:6379/0"
+    BROKER_URL: str = os.getenv(
+        "CELERY_BROKER_URL",
+        os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+    )
+    RESULT_BACKEND: str = os.getenv(
+        "CELERY_RESULT_BACKEND",
+        os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+    )
     TASK_QUEUES: list[str] = [
         "valuation_queue",
         "forecast_queue",
