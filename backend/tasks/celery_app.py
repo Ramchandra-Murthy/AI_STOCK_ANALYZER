@@ -13,10 +13,14 @@ if USE_REAL_CELERY:
         from celery import Celery
         broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
         result_backend = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+        from backend.tasks.celery_config import CeleryConfig
+        celery_config = CeleryConfig()
         celery_instance = Celery(
             "eros_enterprise",
             broker=broker_url,
             backend=result_backend,
+            task_queues=celery_config.TASK_QUEUES,
+            task_routes=celery_config.TASK_ROUTES,
         )
         celery_instance.conf.update(
             task_serializer="json",

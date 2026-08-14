@@ -3,6 +3,7 @@
 import logging
 import os
 from typing import Dict, Any
+from kombu import Queue, Exchange
 
 logger = logging.getLogger(__name__)
 
@@ -15,13 +16,13 @@ class CeleryConfig:
         "CELERY_RESULT_BACKEND",
         os.getenv("REDIS_URL", "redis://localhost:6379/0"),
     )
-    TASK_QUEUES: list[str] = [
-        "valuation_queue",
-        "forecast_queue",
-        "research_queue",
-        "portfolio_queue",
-        "report_queue",
-        "maintenance_queue"
+    TASK_QUEUES: list = [
+        Queue("valuation_queue", Exchange("valuation_exchange"), routing_key="valuation.#"),
+        Queue("forecast_queue", Exchange("forecast_exchange"), routing_key="forecast.#"),
+        Queue("research_queue", Exchange("research_exchange"), routing_key="research.#"),
+        Queue("portfolio_queue", Exchange("portfolio_exchange"), routing_key="portfolio.#"),
+        Queue("report_queue", Exchange("report_exchange"), routing_key="report.#"),
+        Queue("maintenance_queue", Exchange("maintenance_exchange"), routing_key="maintenance.#"),
     ]
     TASK_ROUTES: Dict[str, str] = {
         "valuation.*": "valuation_queue",
