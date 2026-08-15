@@ -446,6 +446,21 @@ class TaskControlService:
         status_value = result.status
 
         meta = self._mock_tasks.get(task_id)
+
+        # Harden unknown Celery task IDs.
+        # Celery reports unknown IDs as PENDING when no result exists.
+        if (
+            status_value == "PENDING"
+            and meta is None
+            and telemetry is None
+        ):
+            return {
+                "task_id": task_id,
+                "status": "NOT_FOUND",
+                "ready": False,
+                "execution_time_ms": None,
+            }
+
         if meta is not None:
             if ready and meta.get("completed_at") is None:
                 meta["completed_at"] = time.time()
