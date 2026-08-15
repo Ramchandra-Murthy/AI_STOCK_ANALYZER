@@ -89,6 +89,9 @@ class TaskControlService:
         if task_name not in self._app.tasks:
             self._synchronize_task_registry()
 
+        if task_name not in self._app.tasks:
+            raise ValueError(f"Unknown task: {task_name}")
+
         task_id = str(uuid.uuid4())
         payload["task_id"] = task_id
         payload["user"] = user
