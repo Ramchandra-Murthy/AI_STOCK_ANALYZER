@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import logging
 from typing import Dict, Any, List
@@ -13,8 +13,33 @@ class ResearchReportBuilder:
     def build_report(symbol: str, committee_decision: Any, forecast_result: Any, portfolio_decision: Any = None) -> InstitutionalResearchReport:
         logger.info("Building institutional research report for %s", symbol)
 
-        rec = committee_decision.consensus_signal if committee_decision else "HOLD"
-        conf = int((committee_decision.overall_confidence if committee_decision else 0.85) * 100)
+        decision = getattr(committee_decision, "decision", None)
+
+        rec = (
+            getattr(committee_decision, "final_action", None)
+            or getattr(decision, "action", None)
+            or "HOLD"
+        )
+        confidence_value = (
+            getattr(committee_decision, "adjusted_confidence", None)
+            if committee_decision
+            else None
+        )
+
+        if confidence_value is None and committee_decision:
+            confidence_value = getattr(
+                getattr(committee_decision, "confidence", None),
+                "overall_confidence",
+                None
+            )
+
+        if confidence_value is None and decision:
+            confidence_value = getattr(decision, "confidence", None)
+
+        if confidence_value is None:
+            confidence_value = 0.85
+
+        conf = int(float(confidence_value) * 100)
 
         exec_summary = (
             f"Recommendation: {rec} | Confidence: {conf}% | "

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import logging
 from typing import List, Dict, Any, Optional
@@ -18,10 +18,11 @@ class InstitutionalExecutionEngine:
             symbol = alloc.get("symbol", "UNKNOWN.NS")
             action = alloc.get("action", "BUY")
             weight = alloc.get("trade_weight", 0.05)
+            market_price = alloc.get("current_price")
             
             # Assume standard ₹100,000,000 AUM baseline for unit quantity modeling
             notional_value = weight * 100000000.0
-            assumed_price = 2500.0 # Standard benchmark price point
+            assumed_price = float(market_price) if market_price and float(market_price) > 0 else 2500.0
             quantity = round(notional_value / assumed_price, 2)
             
             slippage = round(assumed_price * 0.0012, 2) # 12 bps slippage estimate

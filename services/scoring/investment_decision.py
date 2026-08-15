@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from services.scoring.models import AIScoreResult
@@ -121,6 +121,7 @@ class InvestmentDecisionOrchestrator:
                 "symbol": symbol,
                 "action": order_action,
                 "trade_weight": abs(incremental_weight),
+                "current_price": assumed_price,
             }]
             execution_orders = InstitutionalExecutionEngine.generate_orders(allocation_payload, execution_policy="VWAP-oriented")
             

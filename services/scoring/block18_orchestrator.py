@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from services.scoring.models import AIScoreResult
@@ -65,10 +65,15 @@ class UnifiedResearchToDecisionOrchestrator:
         )
 
         # 4. Run Block 16 Investment Decision & Portfolio Orchestrator
+        live_price = float(
+            (ai_score.breakdown_details or {}).get("current_price", 2500.0)
+        )
+
         decision_res = self.decision_orchestrator.evaluate(
             ai_score=ai_score,
             holdings=holdings,
-            portfolio_weight=portfolio_weight
+            portfolio_weight=portfolio_weight,
+            assumed_price=live_price
         )
 
         # 5. Integrate Research Confidence into Final Decision Action & Confidence
