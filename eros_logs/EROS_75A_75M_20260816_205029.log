@@ -1,0 +1,197 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816205029
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 75A-75M
+PORTFOLIO RISK + EXECUTION CONTROL CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+75A - CORE IMPORTS
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+75A IMPORT: PASS
+75A IMPORT: PASS
+
+==================================================
+75B - MULTI-ASSET BATCH
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_
+action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False,
+ 'final_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final
+_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'TCS.NS', 'status': 'SUCCESS', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_acti
+on': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+75B BATCH: PASS
+75B BATCH: PASS
+
+==================================================
+75C - NORMALIZATION / DEDUPLICATION
+==================================================
+COUNT: 2
+SYMBOLS: ['RELIANCE.NS', 'TCS.NS']
+75C NORMALIZATION: PASS
+75C NORMALIZATION: PASS
+
+==================================================
+75D - ALLOCATION BOUNDARIES
+==================================================
+CASE: ZERO TOTAL: 0.0 VALID: True
+CASE: FULL TOTAL: 1.0 VALID: True
+CASE: EQUAL TOTAL: 1.0 VALID: True
+CASE: UNDER TOTAL: 0.5 VALID: True
+75D ALLOCATION: PASS
+75D ALLOCATION: PASS
+
+==================================================
+75E - INVALID ALLOCATION TESTS
+==================================================
+CASE: NEGATIVE TOTAL: 0.4 VALID: False
+CASE: OVER_ONE TOTAL: 1.1 VALID: False
+CASE: TOTAL_OVER_ONE TOTAL: 1.2 VALID: False
+CASE: VALID TOTAL: 1.0 VALID: True
+75E INVALID ALLOCATION: PASS
+75E INVALID ALLOCATION: PASS
+
+==================================================
+75F - EXECUTION INTENT SAFETY
+==================================================
+ENGINE: EROSExecutionIntentEngine
+ATTRIBUTES: ['max_order_allocation', 'min_confidence']
+75F INTENT ENGINE: PASS
+75F INTENT ENGINE: PASS
+
+==================================================
+75G - PAPER EXECUTION
+==================================================
+MODE: PAPER
+INTENTS: 4
+FULL: 1
+PARTIAL: 2
+HOLD: 1
+TOTAL FILLED: 175.0
+75G PAPER EXECUTION: PASS
+75G PAPER EXECUTION: PASS
+
+==================================================
+75H - TCA RECONCILIATION
+==================================================
+REQUESTED: 30.0
+FILLED: 17.5
+FILL RATE: 0.583333
+SLIPPAGE: 13.914
+TRANSACTION COST: 27.841913
+EXECUTION COST: 41.755913
+DIFFERENCE: 0.0
+75H TCA: PASS
+75H TCA: PASS
+
+==================================================
+75I - SERVICE COMPILE
+==================================================
+
+75I SERVICES COMPILE: PASS
+
+==================================================
+75J - BACKEND COMPILE
+==================================================
+
+75J BACKEND COMPILE: PASS
+
+==================================================
+75K - API HEALTH / READY
+==================================================
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+API HEALTH: PASS
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+API READY: PASS
+
+==================================================
+75L - REDIS / REAL CELERY
+==================================================
+PONG
+REDIS: PASS
+TYPE: Celery
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+REAL CELERY: PASS
+REAL CELERY: PASS
+
+==================================================
+75M - FINAL READ-ONLY CERTIFICATION
+==================================================
+
+DIFF CHECK: PASS
+
+GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+75A CORE IMPORTS: PASS
+75B BATCH: PASS
+75C NORMALIZATION: PASS
+75D ALLOCATION: PASS
+75E INVALID ALLOCATION: PASS
+75F INTENT SAFETY: PASS
+75G PAPER EXECUTION: PASS
+75H TCA: PASS
+75I SERVICES COMPILE: PASS
+75J BACKEND COMPILE: PASS
+75K API: PASS
+75L REDIS/CELERY: PASS
+75M FINAL CERTIFICATION: PASS
+
+==================================================
+EROS 3.0 - BLOCK 75A-75M CERTIFICATION: PASS
+==================================================
+
+SOURCE CHANGES: NONE
+BROKER SUBMISSION: NONE
+LIVE ORDERS: NONE
+COMMIT: NONE
+
+TRANSCRIPT:
+.\eros_logs\EROS_75A_75M_20260816_205029.log
+**********************
+Windows PowerShell transcript end
+End time: 20260816205037
+**********************

@@ -1,0 +1,268 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816194925
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 70A TO 70M
+EXECUTION PIPELINE INTEGRATION
+EXECUTION INTENT -> PAPER EXECUTION -> TCA
+SIMULATION ONLY - NO LIVE ORDERS
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_70_20260816_194925.log
+
+==================================================
+70A - EXECUTION INTENT ENGINE
+==================================================
+ENGINE: EROSExecutionIntentEngine
+IMPORT: PASS
+70A: PASS
+
+==================================================
+70B - PAPER EXECUTION ENGINE
+==================================================
+ENGINE: EROSPaperExecutionEngine
+VERSION: EROS-3.0-BLOCK-69
+IMPORT: PASS
+70B: PASS
+
+==================================================
+70C - INTENT TO PAPER EXECUTION CONTRACT
+==================================================
+INTENT: {'symbol': 'RELIANCE.NS', 'action': 'BUY', 'quantity': 10, 'reference_price': 1310.0, 'execution_allowed': True}
+
+FILL: {'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'filled_quantity': 10.0, 'reference_price':
+ 1310.0, 'fill_price': 1310.655, 'gross_value': 13106.55, 'slippage_value': 6.55, 'slippage_bps': 5.0, 'transaction_cost
+': 13.10655, 'net_value': 13119.65655, 'fill_status': 'FILLED', 'broker_submission': False, 'engine_version': 'EROS-3.0-
+BLOCK-69'}
+70C: PASS
+70C: PASS
+
+==================================================
+70D - FOUR-STOCK EXECUTION INTENTS
+==================================================
+INTENT COUNT: 4
+{'symbol': 'HDFCBANK.NS', 'action': 'BUY', 'quantity': 10, 'reference_price': 727.0, 'execution_allowed': True}
+{'symbol': 'INFY.NS', 'action': 'BUY', 'quantity': 10, 'reference_price': 1169.2, 'execution_allowed': True}
+{'symbol': 'RELIANCE.NS', 'action': 'BUY', 'quantity': 10, 'reference_price': 1310.0, 'execution_allowed': True}
+{'symbol': 'TCS.NS', 'action': 'BUY', 'quantity': 10, 'reference_price': 2361.0, 'execution_allowed': True}
+70D: PASS
+70D: PASS
+
+==================================================
+70E - PORTFOLIO PAPER EXECUTION
+==================================================
+EXECUTION RESULT: {'engine_version': 'EROS-3.0-BLOCK-69', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mo
+de': 'PAPER', 'intent_count': 4, 'filled_count': 4, 'partial_count': 0, 'blocked_count': 0, 'hold_count': 0, 'total_gros
+s_value': 55699.836, 'total_slippage_value': 27.836, 'average_slippage_bps': 5.0, 'total_transaction_cost': 55.699836, '
+total_net_value': 55755.535836, 'fills': [{'symbol': 'HDFCBANK.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'filled
+_quantity': 10.0, 'reference_price': 727.0, 'fill_price': 727.3635, 'gross_value': 7273.635, 'slippage_value': 3.635, 's
+lippage_bps': 5.0, 'transaction_cost': 7.273635, 'net_value': 7280.908635, 'fill_status': 'FILLED', 'broker_submission':
+ False, 'engine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'INFY.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'fill
+ed_quantity': 10.0, 'reference_price': 1169.2, 'fill_price': 1169.7846, 'gross_value': 11697.846, 'slippage_value': 5.84
+6, 'slippage_bps': 5.0, 'transaction_cost': 11.697846, 'net_value': 11709.543846, 'fill_status': 'FILLED', 'broker_submi
+ssion': False, 'engine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity':
+10.0, 'filled_quantity': 10.0, 'reference_price': 1310.0, 'fill_price': 1310.655, 'gross_value': 13106.55, 'slippage_val
+ue': 6.55, 'slippage_bps': 5.0, 'transaction_cost': 13.10655, 'net_value': 13119.65655, 'fill_status': 'FILLED', 'broker
+_submission': False, 'engine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'TCS.NS', 'action': 'BUY', 'requested_quantity':
+ 10.0, 'filled_quantity': 10.0, 'reference_price': 2361.0, 'fill_price': 2362.1805, 'gross_value': 23621.805, 'slippage_
+value': 11.805, 'slippage_bps': 5.0, 'transaction_cost': 23.621805, 'net_value': 23645.426805, 'fill_status': 'FILLED',
+'broker_submission': False, 'engine_version': 'EROS-3.0-BLOCK-69'}]}
+70E: PASS
+70E: PASS
+
+==================================================
+70F - PARTIAL EXECUTION CONTROL
+==================================================
+RESULT: {'engine_version': 'EROS-3.0-BLOCK-69', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'PAPE
+R', 'intent_count': 3, 'filled_count': 1, 'partial_count': 2, 'blocked_count': 0, 'hold_count': 0, 'total_gross_value':
+163991.955, 'total_slippage_value': 81.955, 'average_slippage_bps': 5.0, 'total_transaction_cost': 163.991955, 'total_ne
+t_value': 164155.946955, 'fills': [{'symbol': 'HDFCBANK.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'filled_quant
+ity': 100.0, 'reference_price': 727.0, 'fill_price': 727.3635, 'gross_value': 72736.35, 'slippage_value': 36.35, 'slippa
+ge_bps': 5.0, 'transaction_cost': 72.73635, 'net_value': 72809.08635, 'fill_status': 'FILLED', 'broker_submission': Fals
+e, 'engine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'INFY.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'filled_q
+uantity': 50.0, 'reference_price': 1169.2, 'fill_price': 1169.7846, 'gross_value': 58489.23, 'slippage_value': 29.23, 's
+lippage_bps': 5.0, 'transaction_cost': 58.48923, 'net_value': 58547.71923, 'fill_status': 'PARTIAL', 'broker_submission'
+: False, 'engine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 100.0,
+ 'filled_quantity': 25.0, 'reference_price': 1310.0, 'fill_price': 1310.655, 'gross_value': 32766.375, 'slippage_value':
+ 16.375, 'slippage_bps': 5.0, 'transaction_cost': 32.766375, 'net_value': 32799.141375, 'fill_status': 'PARTIAL', 'broke
+r_submission': False, 'engine_version': 'EROS-3.0-BLOCK-69'}]}
+70F: PASS
+70F: PASS
+
+==================================================
+70G - EXECUTION SAFETY GATES
+==================================================
+NOT ALLOWED: {'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'filled_quantity': 0.0, 'reference_p
+rice': 1310.0, 'fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps': 0.0, 'transaction_cost': 0.
+0, 'net_value': 0.0, 'fill_status': 'BLOCKED_EXECUTION_NOT_ALLOWED', 'broker_submission': False, 'engine_version': 'EROS
+-3.0-BLOCK-69'}
+ZERO QUANTITY: {'symbol': 'TCS.NS', 'action': 'BUY', 'requested_quantity': 0.0, 'filled_quantity': 0.0, 'reference_price
+': 2361.0, 'fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps': 0.0, 'transaction_cost': 0.0, '
+net_value': 0.0, 'fill_status': 'BLOCKED_INVALID_QUANTITY', 'broker_submission': False, 'engine_version': 'EROS-3.0-BLOC
+K-69'}
+HOLD: {'symbol': 'INFY.NS', 'action': 'HOLD', 'requested_quantity': 10.0, 'filled_quantity': 0.0, 'reference_price': 116
+9.0, 'fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps': 0.0, 'transaction_cost': 0.0, 'net_va
+lue': 0.0, 'fill_status': 'HOLD_NO_FILL', 'broker_submission': False, 'engine_version': 'EROS-3.0-BLOCK-69'}
+70G: PASS
+70G: PASS
+
+==================================================
+70H - PORTFOLIO TCA GENERATION
+==================================================
+TCA: {'engine_version': 'EROS-3.0-BLOCK-69', 'status': 'SUCCESS', 'execution_mode': 'PAPER', 'broker_submission': False,
+ 'requested_quantity': 40.0, 'filled_quantity': 40.0, 'fill_rate': 1.0, 'executed_orders': 4, 'total_slippage': 27.836,
+'total_transaction_cost': 55.699836, 'total_execution_cost': 83.535836, 'executed_value': 55699.836}
+70H: PASS
+70H: PASS
+
+==================================================
+70I - END-TO-END PORTFOLIO CONTRACT
+==================================================
+END-TO-END REPORT: {'intent_count': 4, 'filled_count': 4, 'partial_count': 0, 'blocked_count': 0, 'fill_rate': 1.0, 'sli
+ppage': 27.836, 'transaction_cost': 55.699836, 'execution_cost': 83.535836, 'paper_mode': True, 'broker_submission': Fal
+se}
+70I: PASS
+70I: PASS
+
+==================================================
+70J - EXECUTION ACCOUNTING CONSISTENCY
+==================================================
+EXECUTION: {'engine_version': 'EROS-3.0-BLOCK-69', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'P
+APER', 'intent_count': 2, 'filled_count': 2, 'partial_count': 0, 'blocked_count': 0, 'hold_count': 0, 'total_gross_value
+': 24905.6475, 'total_slippage_value': 12.4525, 'average_slippage_bps': 5.0, 'total_transaction_cost': 24.905648, 'total
+_net_value': 24906.954952, 'fills': [{'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'filled_quan
+tity': 10.0, 'reference_price': 1310.0, 'fill_price': 1310.655, 'gross_value': 13106.55, 'slippage_value': 6.55, 'slippa
+ge_bps': 5.0, 'transaction_cost': 13.10655, 'net_value': 13119.65655, 'fill_status': 'FILLED', 'broker_submission': Fals
+e, 'engine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'TCS.NS', 'action': 'SELL', 'requested_quantity': 5.0, 'filled_qua
+ntity': 5.0, 'reference_price': 2361.0, 'fill_price': 2359.8195, 'gross_value': 11799.0975, 'slippage_value': 5.9025, 's
+lippage_bps': 5.0, 'transaction_cost': 11.799098, 'net_value': 11787.298402, 'fill_status': 'FILLED', 'broker_submission
+': False, 'engine_version': 'EROS-3.0-BLOCK-69'}]}
+TCA: {'engine_version': 'EROS-3.0-BLOCK-69', 'status': 'SUCCESS', 'execution_mode': 'PAPER', 'broker_submission': False,
+ 'requested_quantity': 15.0, 'filled_quantity': 15.0, 'fill_rate': 1.0, 'executed_orders': 2, 'total_slippage': 12.4525,
+ 'total_transaction_cost': 24.905648, 'total_execution_cost': 37.358148, 'executed_value': 24905.6475}
+70J: PASS
+70J: PASS
+
+==================================================
+70K - MIXED PORTFOLIO FAILURE CONTAINMENT
+==================================================
+EXECUTION: {'engine_version': 'EROS-3.0-BLOCK-69', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'P
+APER', 'intent_count': 4, 'filled_count': 1, 'partial_count': 1, 'blocked_count': 1, 'hold_count': 1, 'total_gross_value
+': 13122.558, 'total_slippage_value': 6.558, 'average_slippage_bps': 5.0, 'total_transaction_cost': 13.122558, 'total_ne
+t_value': 13135.680558, 'fills': [{'symbol': 'HDFCBANK.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'filled_quantit
+y': 10.0, 'reference_price': 727.0, 'fill_price': 727.3635, 'gross_value': 7273.635, 'slippage_value': 3.635, 'slippage_
+bps': 5.0, 'transaction_cost': 7.273635, 'net_value': 7280.908635, 'fill_status': 'FILLED', 'broker_submission': False,
+'engine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'INFY.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'filled_quant
+ity': 5.0, 'reference_price': 1169.2, 'fill_price': 1169.7846, 'gross_value': 5848.923, 'slippage_value': 2.923, 'slippa
+ge_bps': 5.0, 'transaction_cost': 5.848923, 'net_value': 5854.771923, 'fill_status': 'PARTIAL', 'broker_submission': Fal
+se, 'engine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'fill
+ed_quantity': 0.0, 'reference_price': 0.0, 'fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps':
+ 0.0, 'transaction_cost': 0.0, 'net_value': 0.0, 'fill_status': 'BLOCKED_INVALID_PRICE', 'broker_submission': False, 'en
+gine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'TCS.NS', 'action': 'HOLD', 'requested_quantity': 10.0, 'filled_quantity
+': 0.0, 'reference_price': 2361.0, 'fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps': 0.0, 't
+ransaction_cost': 0.0, 'net_value': 0.0, 'fill_status': 'HOLD_NO_FILL', 'broker_submission': False, 'engine_version': 'E
+ROS-3.0-BLOCK-69'}]}
+TCA: {'engine_version': 'EROS-3.0-BLOCK-69', 'status': 'SUCCESS', 'execution_mode': 'PAPER', 'broker_submission': False,
+ 'requested_quantity': 40.0, 'filled_quantity': 15.0, 'fill_rate': 0.375, 'executed_orders': 2, 'total_slippage': 6.558,
+ 'total_transaction_cost': 13.122558, 'total_execution_cost': 19.680558, 'executed_value': 13122.558}
+70K: PASS
+70K: PASS
+
+==================================================
+70L - FULL INFRASTRUCTURE REGRESSION
+==================================================
+
+QUANTITATIVE COMPILE: PASS
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+70L API HEALTH
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+API HEALTH: PASS
+
+70L API READY
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+API READY: PASS
+
+70L REDIS
+PONG
+REDIS: PASS
+
+70L CELERY
+TYPE: Celery
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+CELERY: PASS
+CELERY: PASS
+
+70L GIT DIFF CHECK
+
+DIFF CHECK: PASS
+
+==================================================
+70M - FINAL EXECUTION PIPELINE CERTIFICATION
+==================================================
+70A: PASS
+70B: PASS
+70C: PASS
+70D: PASS
+70E: PASS
+70F: PASS
+70G: PASS
+70H: PASS
+70I: PASS
+70J: PASS
+70K: PASS
+70L: PASS
+70M: PASS
+
+EROS 3.0 BLOCK 70: CERTIFICATION PASS
+
+70M GIT STATUS
+?? eros_logs/
+?? services/quantitative/
+
+70M HEAD
+84549bb Repair live execution pricing and report contracts
+
+NO COMMIT PERFORMED.
+
+==================================================
+OUTPUT PERMANENTLY SAVED
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_70_20260816_194925.log
+
+RESULT:
+.\eros_logs\EROS_70_20260816_194925_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816194931
+**********************

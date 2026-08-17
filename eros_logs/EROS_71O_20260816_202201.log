@@ -1,0 +1,160 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816202201
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 71O
+CORRECTED PAPER EXECUTION CERTIFICATION
+==================================================
+
+SAFETY:
+READ ONLY - NO SOURCE CHANGES
+NO BROKER SUBMISSION
+NO LIVE ORDER
+NO REAL MONEY
+NO COMMIT
+
+TRANSCRIPT:
+.\eros_logs\EROS_71O_20260816_202201.log
+
+==================================================
+71O.1 ENGINE IMPORT
+==================================================
+ENGINE: EROSPaperExecutionEngine
+VERSION: services.quantitative.paper_execution
+IMPORT: PASS
+IMPORT: PASS
+
+==================================================
+71O.2 EXPLICIT 100% FILL
+==================================================
+REQUESTED: 100.0
+FILLED: 100.0
+STATUS: FILLED
+100% FILL: PASS
+100% FILL: PASS
+
+==================================================
+71O.3 EXPLICIT 50% FILL
+==================================================
+REQUESTED: 100.0
+FILLED: 50.0
+STATUS: PARTIAL
+50% FILL: PASS
+50% FILL: PASS
+
+==================================================
+71O.4 EXPLICIT 25% FILL
+==================================================
+REQUESTED: 100.0
+FILLED: 25.0
+STATUS: PARTIAL
+25% FILL: PASS
+25% FILL: PASS
+
+==================================================
+71O.5 EXECUTE_INTENTS PROPAGATION
+==================================================
+MODE: PAPER
+INTENTS: 3
+FILLED: 1
+PARTIAL: 2
+BLOCKED: 0
+TOTAL FILLED: 175.0
+HDFCBANK.NS REQUESTED= 100.0 FILLED= 100.0 STATUS= FILLED
+INFY.NS REQUESTED= 100.0 FILLED= 50.0 STATUS= PARTIAL
+RELIANCE.NS REQUESTED= 100.0 FILLED= 25.0 STATUS= PARTIAL
+EXECUTE_INTENTS PROPAGATION: PASS
+EXECUTE_INTENTS PROPAGATION: PASS
+
+==================================================
+71O.6 FILL-RATE CONTRACT
+==================================================
+REQUESTED TOTAL: 700.0
+FILLED TOTAL: 300.0
+FILL RATE: 0.42857142857142855
+FILL-RATE CONTRACT: PASS
+FILL-RATE CONTRACT: PASS
+
+==================================================
+71O.7 TCA CONTRACT
+==================================================
+REQUESTED: 30.0
+FILLED: 17.5
+FILL RATE: 0.583333
+SLIPPAGE: 8.1955
+TRANSACTION COST: 16.399196
+EXECUTION COST: 24.594696
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{
+'symbol':'HDFCBANK.NS','action':'BUY','quantity':10,'reference_price':727,'execution_allowed':True,'fill_ratio':1.0},{'s
+ymbol':'INFY.NS','action':'BUY','quantity':10,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.5},{'symb
+ol':'RELIANCE.NS','action':'BUY','quantity':10,'reference_price':1310,'execution_allowed':True,'fill_ratio':0.25}]; r=e.
+execute_intents(intents); t=e.generate_tca(r); print('REQUESTED:',t['requested_quantity']); print('FILLED:',t['filled_qu
+antity']); print('FILL RATE:',t['fill_rate']); print('SLIPPAGE:',t['total_slippage']); print('TRANSACTION COST:',t['tota
+l_transaction_cost']); print('EXECUTION COST:',t['total_execution_cost']); assert t['requested_quantity']==30.0; assert
+t['filled_quantity']==17.5; assert abs(t['fill_rate']-(17.5/30.0))<1e-12; assert abs(t['total_execution_cost']-(t['total
+_slippage']+t['total_transaction_cost']))<1e-9; print('TCA CONTRACT: PASS')
+
+
+
+
+
+
+
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+TCA CONTRACT: FAIL
+
+==================================================
+71O.8 MODULE COMPILE
+==================================================
+
+COMPILE: PASS
+
+==================================================
+71O.9 GIT DIFF CHECK
+==================================================
+
+DIFF CHECK: PASS
+
+==================================================
+71O.10 GIT STATUS
+==================================================
+?? eros_logs/
+?? services/quantitative/
+
+==================================================
+71O.11 HEAD
+==================================================
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+BLOCK 71O FINAL RESULT
+==================================================
+
+EROS 3.0 BLOCK 71O: FAIL
+DO NOT REPAIR SOURCE UNTIL OUTPUT IS REVIEWED.
+
+RESULT FILE SAVED:
+.\eros_logs\EROS_71O_20260816_202201_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816202202
+**********************

@@ -1,0 +1,186 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816191048
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 9240
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 67A TO 67M
+PORTFOLIO DECISION & EXECUTION GOVERNANCE
+DEVELOPMENT + CERTIFICATION
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_67_20260816_191048.log
+
+==================================================
+67A - PORTFOLIO GOVERNANCE ENGINE SOURCE
+==================================================
+portfolio_governance.py not found.
+Creating certified baseline governance engine...
+GOVERNANCE ENGINE CREATED.
+67A: PASS
+
+==================================================
+67B - GOVERNANCE ENGINE IMPORT
+==================================================
+ENGINE: EROSExecutionGovernanceEngine
+POLICY: Institutional
+MAX RISK: 60.0
+67B: PASS
+67B: PASS
+
+==================================================
+67C - EMPTY PORTFOLIO GOVERNANCE
+==================================================
+{'policy_profile': 'Institutional', 'governance': 'BLOCK', 'execution_action': 'BLOCK', 'status': 'SUCCESS', 'portfolio_
+status': 'EMPTY', 'security_count': 0, 'total_weight': 0.0, 'stale_count': 0, 'risk_governance': 'PASS', 'risk_score': 0
+.0, 'blocking_reasons': ['EMPTY_PORTFOLIO'], 'review_reasons': ['UNALLOCATED_PORTFOLIO_WEIGHT'], 'execution_approved': F
+alse}
+67C: PASS
+67C: PASS
+
+==================================================
+67D - REAL FOUR-STOCK EXECUTION APPROVAL
+==================================================
+PORTFOLIO: [{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pc
+t': 25.0, 'confidence': 0.66, 'final_action': 'BUY', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False},
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confi
+dence': 0.66, 'final_action': 'BUY', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False}, {'sy
+mbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confi
+dence': 0.66, 'final_action': 'BUY', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False}, {'symbol': 'TCS
+.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confidence': 0.66, 'f
+inal_action': 'BUY', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False}]
+RISK: {'policy_profile': 'Institutional', 'governance': 'PASS', 'risk_score': 35.0, 'metrics': {'security_count': 4, 'to
+tal_weight': 1.0, 'cash_weight': 0.0, 'max_position_weight': 0.25, 'top3_weight': 0.75, 'hhi': 0.25, 'stale_positions':
+0, 'error_positions': 0, 'negative_positions': 0, 'overweight_positions': 0}, 'blocking_reasons': [], 'review_reasons':
+[], 'status': 'SUCCESS'}
+GOVERNANCE: {'policy_profile': 'Institutional', 'governance': 'APPROVED', 'execution_action': 'EXECUTE', 'status': 'SUCC
+ESS', 'portfolio_status': 'SUCCESS', 'security_count': 4, 'total_weight': 1.0, 'stale_count': 0, 'risk_governance': 'PAS
+S', 'risk_score': 35.0, 'blocking_reasons': [], 'review_reasons': [], 'execution_approved': True}
+67D: PASS
+67D: PASS
+
+==================================================
+67E - RISK REVIEW GATE
+==================================================
+{'policy_profile': 'Institutional', 'governance': 'BLOCK', 'execution_action': 'BLOCK', 'status': 'SUCCESS', 'portfolio_
+status': 'SUCCESS', 'security_count': 2, 'total_weight': 1.0, 'stale_count': 0, 'risk_governance': 'REVIEW', 'risk_score
+': 20.0, 'blocking_reasons': ['RISK_GOVERNANCE_NOT_PASS'], 'review_reasons': [], 'execution_approved': False}
+67E: PASS
+67E: PASS
+
+==================================================
+67F - RISK SCORE EXECUTION LIMIT
+==================================================
+{'policy_profile': 'Institutional', 'governance': 'BLOCK', 'execution_action': 'BLOCK', 'status': 'SUCCESS', 'portfolio_
+status': 'SUCCESS', 'security_count': 4, 'total_weight': 1.0, 'stale_count': 0, 'risk_governance': 'PASS', 'risk_score':
+ 75.0, 'blocking_reasons': ['RISK_SCORE_LIMIT_BREACH'], 'review_reasons': [], 'execution_approved': False}
+67F: PASS
+67F: PASS
+
+==================================================
+67G - STALE DATA EXECUTION BLOCK
+==================================================
+{'policy_profile': 'Institutional', 'governance': 'BLOCK', 'execution_action': 'BLOCK', 'status': 'SUCCESS', 'portfolio_
+status': 'SUCCESS', 'security_count': 4, 'total_weight': 1.0, 'stale_count': 1, 'risk_governance': 'PASS', 'risk_score':
+ 20.0, 'blocking_reasons': ['STALE_MARKET_DATA'], 'review_reasons': [], 'execution_approved': False}
+67G: PASS
+67G: PASS
+
+==================================================
+67H - TOTAL WEIGHT EXECUTION BLOCK
+==================================================
+{'policy_profile': 'Institutional', 'governance': 'BLOCK', 'execution_action': 'BLOCK', 'status': 'SUCCESS', 'portfolio_
+status': 'SUCCESS', 'security_count': 2, 'total_weight': 1.2, 'stale_count': 0, 'risk_governance': 'PASS', 'risk_score':
+ 20.0, 'blocking_reasons': ['PORTFOLIO_WEIGHT_OVER_100_PERCENT'], 'review_reasons': [], 'execution_approved': False}
+67H: PASS
+67H: PASS
+
+==================================================
+67I - UNALLOCATED CASH REVIEW
+==================================================
+{'policy_profile': 'Institutional', 'governance': 'REVIEW', 'execution_action': 'HOLD', 'status': 'SUCCESS', 'portfolio_
+status': 'SUCCESS', 'security_count': 2, 'total_weight': 0.5, 'stale_count': 0, 'risk_governance': 'PASS', 'risk_score':
+ 20.0, 'blocking_reasons': [], 'review_reasons': ['UNALLOCATED_PORTFOLIO_WEIGHT'], 'execution_approved': False}
+67I: PASS
+67I: PASS
+
+==================================================
+67J - FINAL CERTIFICATION CONTRACT
+==================================================
+{'policy_profile': 'Institutional', 'governance': 'APPROVED', 'execution_action': 'EXECUTE', 'status': 'SUCCESS', 'certi
+fied': True, 'execution_approved': True, 'risk_governance': 'PASS', 'risk_score': 20.0, 'security_count': 4, 'total_weig
+ht': 1.0, 'blocking_reasons': [], 'review_reasons': []}
+67J: PASS
+67J: PASS
+
+==================================================
+67K - API + REDIS + CELERY REGRESSION
+==================================================
+HEALTH: healthy
+READY: ready
+DATABASE: connected
+REDIS: connected
+PONG
+CELERY: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+67K: PASS
+
+==================================================
+67L - FULL COMPILE + GIT CERTIFICATION
+==================================================
+
+GOVERNANCE COMPILE: PASS
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+DIFF CHECK: PASS
+67L COMPLETE
+
+==================================================
+67M - FINAL PORTFOLIO GOVERNANCE CERTIFICATION
+==================================================
+67A: PASS
+67B: PASS
+67C: PASS
+67D: PASS
+67E: PASS
+67F: PASS
+67G: PASS
+67H: PASS
+67I: PASS
+67J: PASS
+67K: PASS
+67L: PASS
+67M: PASS
+
+EROS 3.0 BLOCK 67: CERTIFICATION PASS
+
+==================================================
+OUTPUT PERMANENTLY SAVED
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_67_20260816_191048.log
+
+RESULT:
+.\eros_logs\EROS_67_20260816_191048_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816191054
+**********************

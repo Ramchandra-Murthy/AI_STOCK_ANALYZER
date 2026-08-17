@@ -1,0 +1,190 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816190124
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 9240
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 65A TO 65M
+SCREENING -> OPTIMIZATION -> PORTFOLIO INTEGRATION
+SAFE EXECUTION MODE
+NO SOURCE CHANGES
+NO COMMIT
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_65_20260816_190124.log
+
+RESULT FILE:
+.\eros_logs\EROS_65_20260816_190124_RESULT.txt
+
+==================================================
+65A - PORTFOLIO OPTIMIZER FILE CHECK
+==================================================
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_optimizer.py
+SIZE: 7705
+LAST WRITE: 16-08-2026 06:24:01 PM
+65A: PASS
+
+==================================================
+65B - PORTFOLIO OPTIMIZER IMPORT
+==================================================
+CLASS: EROSPortfolioOptimizer
+POLICY: Institutional
+MAX POSITION: 0.25
+MIN POSITION: 0.0
+TARGET TOTAL: 1.0
+65B: PASS
+65B: PASS
+
+==================================================
+65C - REAL BATCH SCREENER INPUT
+==================================================
+SCREEN COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_
+action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False,
+ 'final_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final
+_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'TCS.NS', 'status': 'SUCCESS', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_acti
+on': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+65C: PASS
+65C: PASS
+
+==================================================
+65D - REAL SCREEN TO OPTIMIZER
+==================================================
+PORTFOLIO COUNT: 4
+{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'c
+onfidence': 0.66, 'final_action': 'BUY', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False}
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confi
+dence': 0.66, 'final_action': 'BUY', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False}
+{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'c
+onfidence': 0.66, 'final_action': 'BUY', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False}
+{'symbol': 'TCS.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confid
+ence': 0.66, 'final_action': 'BUY', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False}
+65D REAL INTEGRATION: PASS
+65D: PASS
+
+==================================================
+65E - OPTIMIZED WEIGHT VALIDATION
+==================================================
+TOTAL OPTIMIZED WEIGHT: 1.0
+WEIGHTS: {'HDFCBANK.NS': 0.25, 'INFY.NS': 0.25, 'RELIANCE.NS': 0.25, 'TCS.NS': 0.25}
+65E: PASS
+65E: PASS
+
+==================================================
+65F - ALLOCATION PERCENTAGE CONTRACT
+==================================================
+A WEIGHT= 0.25 PCT= 25.0
+B WEIGHT= 0.25 PCT= 25.0
+C WEIGHT= 0.25 PCT= 25.0
+D WEIGHT= 0.25 PCT= 25.0
+65F: PASS
+65F: PASS
+
+==================================================
+65G - MAX POSITION CAP ENFORCEMENT
+==================================================
+A 0.25
+B 0.24999999999999997
+C 0.24999999999999997
+D 0.24999999999999997
+65G: PASS
+65G: PASS
+
+==================================================
+65H - EMPTY / NULL INPUT CONTRACT
+==================================================
+EMPTY: []
+NONE: []
+65H: PASS
+65H: PASS
+
+==================================================
+65I - INVALID / UNSUCCESSFUL INPUT ISOLATION
+==================================================
+RESULT: [{'symbol': 'GOOD', 'status': 'SUCCESS', 'raw_weight': 0.5, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'c
+onfidence': 0.8, 'final_action': 'BUY', 'price': 100, 'source': 'test', 'is_stale': False}]
+65I: PASS
+65I: PASS
+
+==================================================
+65J - PORTFOLIO SUMMARY CONTRACT
+==================================================
+SUMMARY: {'policy_profile': 'Institutional', 'security_count': 4, 'total_weight': 1.0, 'cash_weight': 0.0, 'status': 'SU
+CCESS'}
+65J: PASS
+65J: PASS
+
+==================================================
+65K - API + REDIS + CELERY REGRESSION
+==================================================
+HEALTH: healthy
+READY: ready
+DATABASE: connected
+REDIS: connected
+PONG
+CELERY: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+65K: PASS
+
+==================================================
+65L - FULL COMPILE + GIT CERTIFICATION
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+DIFF CHECK: PASS
+65L: PASS
+
+==================================================
+65M - FINAL PORTFOLIO INTEGRATION CERTIFICATION
+==================================================
+65A: PASS
+65B: PASS
+65C: PASS
+65D: PASS
+65E: PASS
+65F: PASS
+65G: PASS
+65H: PASS
+65I: PASS
+65J: PASS
+65K: PASS
+65L: PASS
+65M: PASS
+
+EROS 3.0 BLOCK 65: CERTIFICATION PASS
+
+==================================================
+OUTPUT PERMANENTLY SAVED
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_65_20260816_190124.log
+
+RESULT:
+.\eros_logs\EROS_65_20260816_190124_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816190135
+**********************

@@ -1,0 +1,189 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816185405
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 9240
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 63A TO 63M
+PORTFOLIO RISK + VALIDATION CERTIFICATION
+SAFE EXECUTION MODE
+NO SOURCE CHANGES
+NO COMMIT
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_63_20260816_185405.log
+
+RESULT FILE:
+.\eros_logs\EROS_63_.txt
+
+==================================================
+63A - QUANTITATIVE MODULE INSPECTION
+==================================================
+
+Mode   Length LastWriteTime          Name
+----   ------ -------------          ----
+d-----        16-08-2026 06:27:28 PM __pycache__
+-a---- 5932   16-08-2026 05:48:21 PM batch_screener.py
+-a---- 7705   16-08-2026 06:24:01 PM portfolio_optimizer.py
+-a---- 0      16-08-2026 04:58:46 PM __init__.py
+
+
+
+63A: PASS
+
+==================================================
+63B - RISK MODULE DISCOVERY
+==================================================
+
+NO DEDICATED PORTFOLIO RISK MODULE FOUND.
+This is an inspection result, NOT a source failure.
+63B: PASS - DISCOVERY COMPLETE
+
+==================================================
+63C - BATCH SCREENER CONTRACT
+==================================================
+CLASS: EROSMultiAssetBatchScreener
+POLICY: Institutional
+MAX WORKERS: 4
+63C: PASS
+63C: PASS
+
+==================================================
+63D - REAL 4-STOCK PORTFOLIO
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_
+action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False,
+ 'final_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final
+_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'TCS.NS', 'status': 'SUCCESS', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_acti
+on': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+63D: PASS
+63D: PASS
+
+==================================================
+63E - MARKET DATA INTEGRITY
+==================================================
+HDFCBANK.NS PRICE= 727.0 SOURCE= yfinance-live-api STALE= False
+INFY.NS PRICE= 1169.199951171875 SOURCE= yfinance-live-api STALE= False
+RELIANCE.NS PRICE= 1310.0 SOURCE= yfinance-live-api STALE= False
+TCS.NS PRICE= 2361.0 SOURCE= yfinance-live-api STALE= False
+63E: PASS
+63E: PASS
+
+==================================================
+63F - PORTFOLIO EXPOSURE VALIDATION
+==================================================
+TOTAL EXPOSURE: 1.0
+LARGEST POSITION: 0.25
+POSITIONS: 4
+63F: PASS
+63F: PASS
+
+==================================================
+63G - CONCENTRATION BOUNDARY TESTS
+==================================================
+CASE: {'A': 0.25, 'B': 0.25, 'C': 0.25, 'D': 0.25} TOTAL= 1.0 MAX= 0.25
+CASE: {'A': 0.5, 'B': 0.5} TOTAL= 1.0 MAX= 0.5
+CASE: {'A': 1.0} TOTAL= 1.0 MAX= 1.0
+63G: PASS
+63G: PASS
+
+==================================================
+63H - INVALID RISK / EXPOSURE TESTS
+==================================================
+CASE: {'A': -0.1, 'B': 0.5} TOTAL= 0.4 VALID= False
+CASE: {'A': 1.1} TOTAL= 1.1 VALID= False
+CASE: {'A': 0.6, 'B': 0.6} TOTAL= 1.2 VALID= False
+63H: PASS
+63H: PASS
+
+==================================================
+63I - EMPTY / SINGLE PORTFOLIO BOUNDARIES
+==================================================
+EMPTY: {}
+SINGLE: {'RELIANCE.NS': 0.25}
+63I: PASS
+63I: PASS
+
+==================================================
+63J - ERROR ISOLATION
+==================================================
+VALID: [{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'price': 1310.0}]
+ERRORS: [{'symbol': 'INVALID', 'status': 'ERROR', 'error': 'No price data'}]
+63J: PASS
+63J: PASS
+
+==================================================
+63K - API + REDIS + CELERY REGRESSION
+==================================================
+API HEALTH: healthy
+API READY: ready
+DATABASE: connected
+REDIS: connected
+PONG
+CELERY PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+63K: PASS
+
+==================================================
+63L - FULL COMPILE + REGRESSION
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+DIFF CHECK: PASS
+63L: PASS
+
+==================================================
+63M - FINAL CERTIFICATION
+==================================================
+63A: PASS
+63B: PASS
+63C: PASS
+63D: PASS
+63E: PASS
+63F: PASS
+63G: PASS
+63H: PASS
+63I: PASS
+63J: PASS
+63K: PASS
+63L: PASS
+63M: PASS
+
+EROS 3.0 BLOCK 63: CERTIFICATION PASS
+
+==================================================
+OUTPUT PERMANENTLY SAVED
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_63_20260816_185405.log
+
+RESULT:
+.\eros_logs\EROS_63_.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816185414
+**********************

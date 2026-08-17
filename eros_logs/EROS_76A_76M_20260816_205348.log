@@ -1,0 +1,216 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816205348
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 76A-76M
+PORTFOLIO -> INTENT -> PAPER EXECUTION
+INTEGRATION CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+76A - CORE IMPORT CERTIFICATION
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+76A IMPORT: PASS
+76A IMPORT: PASS
+
+==================================================
+76B - REAL PORTFOLIO UNIVERSE
+==================================================
+REQUESTED: ['RELIANCE.NS', 'TCS.NS', 'INFY.NS', 'HDFCBANK.NS']
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_
+action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False,
+ 'final_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final
+_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'TCS.NS', 'status': 'SUCCESS', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_acti
+on': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+76B UNIVERSE: PASS
+76B UNIVERSE: PASS
+
+==================================================
+76C - PORTFOLIO SIGNAL CONTRACT
+==================================================
+ACTIONS: ['BUY', 'BUY', 'BUY', 'BUY']
+CONFIDENCE: [0.66, 0.66, 0.66, 0.66]
+TARGET WEIGHTS: [0.084, 0.084, 0.084, 0.084]
+76C SIGNAL CONTRACT: PASS
+76C SIGNAL CONTRACT: PASS
+
+==================================================
+76D - TARGET WEIGHT CONTROL
+==================================================
+WEIGHTS: {'HDFCBANK.NS': 0.084, 'INFY.NS': 0.084, 'RELIANCE.NS': 0.084, 'TCS.NS': 0.084}
+TOTAL TARGET WEIGHT: 0.336
+76D TARGET WEIGHT CONTROL: PASS
+76D TARGET WEIGHT CONTROL: PASS
+
+==================================================
+76E - NORMALIZED PORTFOLIO WEIGHTS
+==================================================
+SELECTED TOTAL: 0.336
+NORMALIZED: {'HDFCBANK.NS': 0.25, 'INFY.NS': 0.25, 'RELIANCE.NS': 0.25, 'TCS.NS': 0.25}
+NORMALIZED TOTAL: 1.0
+76E NORMALIZATION: PASS
+76E NORMALIZATION: PASS
+
+==================================================
+76F - EXECUTION INTENT ENGINE
+==================================================
+ENGINE: EROSExecutionIntentEngine
+MAX ORDER ALLOCATION: 0.25
+MIN CONFIDENCE: 0.5
+76F INTENT ENGINE: PASS
+76F INTENT ENGINE: PASS
+
+==================================================
+76G - EXECUTION INTENT OBJECT CONTRACT
+==================================================
+PUBLIC MEMBERS: ['ALLOWED_ACTIONS', 'build_order_plan', 'certify', 'evaluate', 'max_order_allocation', 'min_confidence',
+ 'require_fresh_data']
+76G INTENT OBJECT: PASS
+76G INTENT OBJECT: PASS
+
+==================================================
+76H - PAPER EXECUTION INTEGRATION
+==================================================
+MODE: PAPER
+INTENTS: 4
+FULL: 1
+PARTIAL: 2
+HOLD: 1
+BLOCKED: 0
+FILLS: [{'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'filled_quantity': 100.0, 'reference_pri
+ce': 1310.0, 'fill_price': 1310.655, 'gross_value': 131065.5, 'slippage_value': 65.5, 'slippage_bps': 5.0, 'transaction_
+cost': 131.0655, 'net_value': 131196.5655, 'fill_status': 'FILLED', 'broker_submission': False, 'engine_version': 'EROS-
+3.0-BLOCK-69'}, {'symbol': 'TCS.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'filled_quantity': 50.0, 'reference_p
+rice': 2361.0, 'fill_price': 2362.1805, 'gross_value': 118109.025, 'slippage_value': 59.025, 'slippage_bps': 5.0, 'trans
+action_cost': 118.109025, 'net_value': 118227.134025, 'fill_status': 'PARTIAL', 'broker_submission': False, 'engine_vers
+ion': 'EROS-3.0-BLOCK-69'}, {'symbol': 'INFY.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'filled_quantity': 25.0,
+ 'reference_price': 1169.2, 'fill_price': 1169.7846, 'gross_value': 29244.615, 'slippage_value': 14.615, 'slippage_bps':
+ 5.0, 'transaction_cost': 29.244615, 'net_value': 29273.859615, 'fill_status': 'PARTIAL', 'broker_submission': False, 'e
+ngine_version': 'EROS-3.0-BLOCK-69'}, {'symbol': 'HDFCBANK.NS', 'action': 'HOLD', 'requested_quantity': 100.0, 'filled_q
+uantity': 0.0, 'reference_price': 727.0, 'fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps': 0
+.0, 'transaction_cost': 0.0, 'net_value': 0.0, 'fill_status': 'HOLD_NO_FILL', 'broker_submission': False, 'engine_versio
+n': 'EROS-3.0-BLOCK-69'}]
+76H PAPER INTEGRATION: PASS
+76H PAPER INTEGRATION: PASS
+
+==================================================
+76I - TCA INTEGRATION
+==================================================
+TCA STATUS: SUCCESS
+MODE: PAPER
+REQUESTED: 300.0
+FILLED: 175.0
+FILL RATE: 0.583333
+SLIPPAGE: 139.14
+TRANSACTION COST: 278.41914
+EXECUTION COST: 417.55914
+76I TCA INTEGRATION: PASS
+76I TCA INTEGRATION: PASS
+
+==================================================
+76J - SERVICES COMPILE
+==================================================
+
+76J SERVICES COMPILE: PASS
+
+==================================================
+76K - BACKEND / API REGRESSION
+==================================================
+
+76K BACKEND COMPILE: PASS
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+API HEALTH: PASS
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+API READY: PASS
+
+==================================================
+76L - REDIS / REAL CELERY
+==================================================
+PONG
+REDIS: PASS
+TYPE: Celery
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+76L REAL CELERY: PASS
+REAL CELERY: PASS
+
+==================================================
+76M - FINAL READ-ONLY CERTIFICATION
+==================================================
+
+DIFF CHECK: PASS
+
+GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+76A CORE IMPORTS: PASS
+76B PORTFOLIO UNIVERSE: PASS
+76C SIGNAL CONTRACT: PASS
+76D TARGET WEIGHT CONTROL: PASS
+76E NORMALIZATION: PASS
+76F INTENT ENGINE: PASS
+76G INTENT OBJECT: PASS
+76H PAPER EXECUTION: PASS
+76I TCA INTEGRATION: PASS
+76J SERVICES COMPILE: PASS
+76K BACKEND/API: PASS
+76L REDIS/CELERY: PASS
+76M FINAL CERTIFICATION: PASS
+
+==================================================
+EROS 3.0 - BLOCK 76A-76M CERTIFICATION: PASS
+==================================================
+
+SOURCE CHANGES: NONE
+BROKER SUBMISSION: NONE
+LIVE ORDERS: NONE
+COMMIT: NONE
+
+TRANSCRIPT:
+.\eros_logs\EROS_76A_76M_20260816_205348.log
+**********************
+Windows PowerShell transcript end
+End time: 20260816205400
+**********************

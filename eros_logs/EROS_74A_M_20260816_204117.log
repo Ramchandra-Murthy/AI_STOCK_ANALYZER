@@ -1,0 +1,229 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816204117
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 74A-74M
+PORTFOLIO RISK + EXPOSURE CONTROL
+CERTIFICATION PROGRAM
+==================================================
+
+SAFETY CONTROLS
+READ ONLY - NO SOURCE CHANGES
+NO BROKER SUBMISSION
+NO LIVE ORDER
+NO REAL MONEY
+NO COMMIT
+
+TRANSCRIPT:
+.\eros_logs\EROS_74A_M_20260816_204117.log
+
+==================================================
+74A - CORE MODULE IMPORT CERTIFICATION
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+74A IMPORTS: PASS
+74A IMPORTS: PASS
+
+==================================================
+74B - CERTIFIED PORTFOLIO UNIVERSE
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+HDFCBANK.NS SUCCESS BUY 0.66 0.084
+INFY.NS SUCCESS BUY 0.66 0.084
+RELIANCE.NS SUCCESS BUY 0.66 0.084
+TCS.NS SUCCESS BUY 0.66 0.084
+74B UNIVERSE: PASS
+74B UNIVERSE: PASS
+
+==================================================
+74C - CONCENTRATION CONTROL
+==================================================
+TOTAL EXPOSURE: 1.0
+MAX SINGLE POSITION: 0.25
+MIN SINGLE POSITION: 0.25
+POSITION COUNT: 4
+74C CONCENTRATION CONTROL: PASS
+74C CONCENTRATION CONTROL: PASS
+
+==================================================
+74D - EXPOSURE BOUNDARY TESTS
+==================================================
+  File "<string>", line 1
+    cases=@{ZERO=@{'A'=0.0;'B'=0.0}; FULL=@{'A'=1.0}; EQUAL=@{'A'=0.25;'B'=0.25;'C'=0.25;'D'=0.25}; UNDER=@{'A'=0.30;'B'
+=0.20}}; foreach( in .Keys){=[]; =(.Values|Measure-Object -Sum).Sum; =(.Values|ForEach-Object{ -ge 0 -and  -le 1}|Where-
+Object{ -eq False}).Count -eq 0 -and  -le 1; Write-Host(+' TOTAL='++' VALID='+);}; =0.0; =1.0; =1.0; assert  -eq 0.0; as
+sert  -eq 1.0; assert abs(-1.0)<1e-9; print('ZERO EXPOSURE: PASS'); print('FULL EXPOSURE: PASS'); print('EQUAL EXPOSURE:
+ PASS'); print('74D BOUNDARIES: PASS')
+          ^
+SyntaxError: invalid syntax
+74D BOUNDARIES: FAIL
+
+==================================================
+74E - INVALID EXPOSURE DETECTION
+==================================================
+  File "<string>", line 1
+    cases=[{'A':-0.10,'B':0.50},{'A':1.10},{'A':0.60,'B':0.60},{'A':0.25,'B':0.25,'C':0.25,'D':0.25}]; foreach( in ){=(.
+Values|Measure-Object -Sum).Sum; =(.Values|ForEach-Object{ -ge 0 -and  -le 1}|Where-Object{ -eq False}).Count -eq 0 -and
+  -le 1; print('CASE='+str()+' TOTAL='+str()+' VALID='+str())}; validity=[all(0<=v<=1 for v in x.values()) and sum(x.val
+ues())<=1 for x in cases]; assert validity[0] is False; assert validity[1] is False; assert validity[2] is False; assert
+ validity[3] is True; print('NEGATIVE EXPOSURE: PASS'); print('OVER 100 PERCENT: PASS'); print('TOTAL OVER 100 PERCENT:
+PASS'); print('74E INVALID EXPOSURE: PASS')
+                                                                                                                ^^
+SyntaxError: invalid syntax
+74E INVALID EXPOSURE: FAIL
+
+==================================================
+74F - EXECUTION INTENT RISK GATES
+==================================================
+ENGINE: EROSExecutionIntentEngine
+ALLOWED ACTIONS: {'BUY', 'SELL', 'HOLD'}
+MIN CONFIDENCE: 0.5
+MAX ORDER ALLOCATION: 0.25
+REQUIRE FRESH DATA: True
+74F INTENT RISK GATES: PASS
+74F INTENT RISK GATES: PASS
+
+==================================================
+74G - FULL PORTFOLIO PAPER EXECUTION
+==================================================
+MODE: PAPER
+INTENTS: 4
+FILLED: 4
+PARTIAL: 0
+BLOCKED: 0
+HOLD: 0
+TOTAL FILLED: 40.0
+74G FULL PAPER EXECUTION: PASS
+74G FULL PAPER EXECUTION: PASS
+
+==================================================
+74H - PARTIAL FILL RISK CONTROL
+==================================================
+FULL: 1
+PARTIAL: 2
+BLOCKED: 0
+HOLD: 1
+TOTAL FILLED: 175.0
+74H PARTIAL FILL CONTROL: PASS
+74H PARTIAL FILL CONTROL: PASS
+
+==================================================
+74I - TCA RISK RECONCILIATION
+==================================================
+REQUESTED: 30.0
+FILLED: 17.5
+FILL RATE: 0.583333
+SLIPPAGE: 13.914
+TRANSACTION COST: 27.841913
+EXECUTION COST: 41.755913
+RECONCILIATION: 0.0
+74I TCA RECONCILIATION: PASS
+74I TCA RECONCILIATION: PASS
+
+==================================================
+74J - NO-ORDER SAFETY CONTROL
+==================================================
+MODE: PAPER
+BLOCKED: 1
+HOLD: 1
+BROKER SUBMISSION: False
+74J SAFETY CONTROL: PASS
+74J SAFETY CONTROL: PASS
+
+==================================================
+74K - DETERMINISTIC PORTFOLIO REPLAY
+==================================================
+HASH1: dfc39fb35190320e56139bd81b7fc4b41b7033dae6d68940308620e1a991c02b
+HASH2: dfc39fb35190320e56139bd81b7fc4b41b7033dae6d68940308620e1a991c02b
+IDENTICAL: True
+74K DETERMINISTIC REPLAY: PASS
+74K DETERMINISTIC REPLAY: PASS
+
+==================================================
+74L - INFRASTRUCTURE CERTIFICATION
+==================================================
+
+SERVICES COMPILE
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE
+
+BACKEND COMPILE: PASS
+
+API HEALTH
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+API HEALTH: PASS
+
+API READY
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+API READY: PASS
+
+REDIS
+PONG
+REDIS: PASS
+
+REAL CELERY
+TYPE: Celery
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+CELERY: PASS
+CELERY: PASS
+
+==================================================
+74M - FINAL PORTFOLIO RISK CERTIFICATION
+==================================================
+
+GIT DIFF CHECK
+
+DIFF CHECK: PASS
+
+GIT STATUS
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH
+feature/eros-3-0-sprint19
+
+HEAD
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+BLOCK 74A-74M: REVIEW REQUIRED
+ONE OR MORE TESTS FAILED.
+DO NOT MODIFY SOURCE UNTIL OUTPUT IS REVIEWED.
+==================================================
+
+RESULT FILE SAVED:
+.\eros_logs\EROS_74A_M_20260816_204117_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816204123
+**********************

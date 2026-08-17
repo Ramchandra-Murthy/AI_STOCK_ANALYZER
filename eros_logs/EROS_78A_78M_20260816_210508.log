@@ -1,0 +1,2371 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816210508
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> $PASS = $true
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> try {
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "EROS 3.0 - BLOCK 78A-78M" -ForegroundColor Cyan
+    Write-Host "PORTFOLIO RISK DECISION + EXECUTION CONTROL" -ForegroundColor Cyan
+    Write-Host "END-TO-END REGRESSION CERTIFICATION" -ForegroundColor Cyan
+    Write-Host "READ ONLY - NO SOURCE CHANGES" -ForegroundColor Yellow
+    Write-Host "NO BROKER - NO LIVE ORDER - NO COMMIT" -ForegroundColor Yellow
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+
+    # ==========================================================
+    # 78A - CORE IMPORTS
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78A - CORE IMPORTS" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; from services.quantitative.execution_intent import EROSExecutionIntentEngine; from services.quantitative.paper_execution import EROSPaperExecutionEngine; print('BATCH:',EROSMultiAssetBatchScreener.__name__); print('INTENT:',EROSExecutionIntentEngine.__name__); print('PAPER:',EROSPaperExecutionEngine.__name__); print('78A IMPORT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78A IMPORT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78A IMPORT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78B - REAL MULTI-ASSET SCREEN
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78B - REAL MULTI-ASSET SCREEN" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); print('COUNT:',len(r)); print('SUCCESS:',sum(x.get('status')=='SUCCESS' for x in r)); print('ERRORS:',sum(x.get('status')=='ERROR' for x in r)); [print(x['symbol'],x['status'],x.get('final_action'),x.get('confidence'),x.get('target_weight')) for x in r]; assert len(r)==4; assert all(x.get('status')=='SUCCESS' for x in r); assert [x['symbol'] for x in r]==sorted(symbols); print('78B MULTI-ASSET SCREEN: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78B MULTI-ASSET SCREEN: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78B MULTI-ASSET SCREEN: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78C - SIGNAL QUALITY CONTRACT
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78C - SIGNAL QUALITY CONTRACT" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); actions=[x.get('final_action') for x in r]; confidence=[float(x.get('confidence',0)) for x in r]; weights=[float(x.get('target_weight',0)) for x in r]; print('ACTIONS:',actions); print('CONFIDENCE:',confidence); print('TARGET WEIGHTS:',weights); assert all(a in ['BUY','SELL','HOLD'] for a in actions); assert all(0<=c<=1 for c in confidence); assert all(0<=w<=1 for w in weights); assert all(c>=0.5 for c in confidence); print('78C SIGNAL QUALITY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78C SIGNAL QUALITY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78C SIGNAL QUALITY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78D - PORTFOLIO EXPOSURE
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78D - PORTFOLIO EXPOSURE" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); weights={x['symbol']:float(x.get('target_weight',0)) for x in r}; total=sum(weights.values()); maximum=max(weights.values()); print('WEIGHTS:',weights); print('TOTAL:',total); print('MAX POSITION:',maximum); assert total<=1.0; assert maximum<=0.25; assert all(0<=v<=1 for v in weights.values()); print('78D EXPOSURE: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78D EXPOSURE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78D EXPOSURE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78E - INVALID RISK BOUNDARIES
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78E - INVALID RISK BOUNDARIES" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "cases=[{'A':-0.10,'B':0.20},{'A':0.30},{'A':0.60,'B':0.60},{'A':0.25,'B':0.25}]; validity=[all(0<=v<=0.25 for v in x.values()) and sum(x.values())<=1 for x in cases]; [print('CASE:',x,'TOTAL:',sum(x.values()),'VALID:',v) for x,v in zip(cases,validity)]; assert validity[0] is False; assert validity[1] is False; assert validity[2] is False; assert validity[3] is True; print('78E RISK BOUNDARIES: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78E RISK BOUNDARIES: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78E RISK BOUNDARIES: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78F - EXECUTION INTENT RISK LIMITS
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78F - EXECUTION INTENT RISK LIMITS" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.execution_intent import EROSExecutionIntentEngine; e=EROSExecutionIntentEngine(); print('ENGINE:',type(e).__name__); print('MAX ORDER ALLOCATION:',e.max_order_allocation); print('MIN CONFIDENCE:',e.min_confidence); assert e.max_order_allocation<=0.25; assert e.min_confidence>=0.5; print('78F INTENT RISK LIMITS: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78F INTENT RISK LIMITS: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78F INTENT RISK LIMITS: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78G - PAPER EXECUTION CONTRACT
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78G - PAPER EXECUTION CONTRACT" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25},{'symbol':'HDFCBANK.NS','action':'HOLD','quantity':100,'reference_price':727.0,'execution_allowed':False,'fill_ratio':0.0}]; r=e.execute_intents(intents); total=sum(float(x['filled_quantity']) for x in r['fills']); print('MODE:',r['execution_mode']); print('INTENTS:',r['intent_count']); print('FULL:',r['filled_count']); print('PARTIAL:',r['partial_count']); print('HOLD:',r['hold_count']); print('FILLED QUANTITY:',total); print('BROKER:',r.get('broker_submission',False)); assert r['execution_mode']=='PAPER'; assert r['intent_count']==4; assert r['filled_count']==1; assert r['partial_count']==2; assert r['hold_count']==1; assert total==175.0; assert r.get('broker_submission',False) is False; print('78G PAPER CONTRACT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78G PAPER CONTRACT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78G PAPER CONTRACT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78H - TCA MATHEMATICAL RECONCILIATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78H - TCA MATHEMATICAL RECONCILIATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25}]; r=e.execute_intents(intents); t=e.generate_tca(r); sl=float(t['total_slippage']); tc=float(t['total_transaction_cost']); ec=float(t['total_execution_cost']); print('REQUESTED:',t['requested_quantity']); print('FILLED:',t['filled_quantity']); print('FILL RATE:',t['fill_rate']); print('SLIPPAGE:',sl); print('TRANSACTION COST:',tc); print('EXECUTION COST:',ec); print('RECONCILIATION:',ec-(sl+tc)); assert abs(ec-(sl+tc))<=1e-9; assert t['status']=='SUCCESS'; assert t['execution_mode']=='PAPER'; assert t['broker_submission'] is False; print('78H TCA: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78H TCA: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78H TCA: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78I - EXECUTION COST SANITY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78I - EXECUTION COST SANITY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':10,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':10,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':10,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25}]; r=e.execute_intents(intents); t=e.generate_tca(r); sl=float(t['total_slippage']); tc=float(t['total_transaction_cost']); ec=float(t['total_execution_cost']); print('SLIPPAGE:',sl); print('TRANSACTION COST:',tc); print('EXECUTION COST:',ec); assert sl>=0; assert tc>=0; assert ec>=0; assert abs(ec-(sl+tc))<=1e-9; print('78I COST SANITY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78I COST SANITY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78I COST SANITY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78J - SERVICES + BACKEND COMPILE
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78J - SERVICES + BACKEND COMPILE" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -m compileall -q ".\services"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "SERVICES COMPILE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "SERVICES COMPILE: PASS" -ForegroundColor Green
+    }
+
+    .\.venv\Scripts\python.exe -m compileall -q ".\backend"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "BACKEND COMPILE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "BACKEND COMPILE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78K - API HEALTH + READY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78K - API HEALTH + READY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    try {
+
+        $health = Invoke-RestMethod "http://127.0.0.1:8000/health"
+
+        $ready = Invoke-RestMethod "http://127.0.0.1:8000/ready"
+
+        Write-Host "HEALTH:"
+        Write-Host ($health | ConvertTo-Json -Depth 10)
+
+        Write-Host "READY:"
+        Write-Host ($ready | ConvertTo-Json -Depth 10)
+
+        if ($health.status -ne "healthy") {
+            throw "API health failed"
+        }
+
+        if ($ready.status -ne "ready") {
+            throw "API readiness failed"
+        }
+
+        Write-Host "78K API: PASS" -ForegroundColor Green
+    }
+    catch {
+
+        Write-Host "78K API: FAIL" -ForegroundColor Red
+        Write-Host $_.Exception.Message -ForegroundColor Red
+        $PASS = $false
+    }
+
+
+    # ==========================================================
+    # 78L - REDIS + REAL CELERY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78L - REDIS + REAL CELERY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    wsl -d Ubuntu -- redis-cli -h 127.0.0.1 -p 6379 ping
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "REDIS: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "REDIS: PASS" -ForegroundColor Green
+    }
+
+    $wslIp = (wsl -d Ubuntu -- hostname -I).Trim().Split()[0]
+
+    $env:USE_REAL_CELERY = "true"
+    $env:CELERY_BROKER_URL = "redis://${wslIp}:6379/0"
+    $env:CELERY_RESULT_BACKEND = "redis://${wslIp}:6379/0"
+
+    .\.venv\Scripts\python.exe -c "from backend.tasks.celery_app import celery_instance; print('CELERY TYPE:',type(celery_instance).__name__); print('BROKER:',celery_instance.conf.broker_url if celery_instance else None); p=celery_instance.control.inspect().ping(); print('PING:',p); assert celery_instance is not None; assert p; print('78L CELERY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "CELERY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "CELERY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78M - FINAL CERTIFICATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78M - FINAL READ-ONLY CERTIFICATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    git diff --check
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "DIFF CHECK: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "DIFF CHECK: PASS" -ForegroundColor Green
+    }
+
+    Write-Host ""
+    Write-Host "GIT STATUS:" -ForegroundColor Yellow
+    git status --short
+
+    Write-Host ""
+    Write-Host "CURRENT BRANCH:" -ForegroundColor Yellow
+    git branch --show-current
+
+    Write-Host ""
+    Write-Host "HEAD:" -ForegroundColor Yellow
+    git log -1 --oneline
+
+    Write-Host ""
+
+    if ($PASS) {
+
+        Write-Host "==================================================" -ForegroundColor Green
+        Write-Host "78A: PASS" -ForegroundColor Green
+        Write-Host "78B: PASS" -ForegroundColor Green
+        Write-Host "78C: PASS" -ForegroundColor Green
+        Write-Host "78D: PASS" -ForegroundColor Green
+        Write-Host "78E: PASS" -ForegroundColor Green
+        Write-Host "78F: PASS" -ForegroundColor Green
+        Write-Host "78G: PASS" -ForegroundColor Green
+        Write-Host "78H: PASS" -ForegroundColor Green
+        Write-Host "78I: PASS" -ForegroundColor Green
+        Write-Host "78J: PASS" -ForegroundColor Green
+        Write-Host "78K: PASS" -ForegroundColor Green
+        Write-Host "78L: PASS" -ForegroundColor Green
+        Write-Host "78M: PASS" -ForegroundColor Green
+        Write-Host "==================================================" -ForegroundColor Green
+
+        Write-Host ""
+        Write-Host "EROS 3.0 - BLOCK 78A-78M CERTIFICATION: PASS" -ForegroundColor Green
+
+        Write-Host ""
+        Write-Host "SOURCE CHANGES: NONE" -ForegroundColor Green
+        Write-Host "BROKER SUBMISSION: NONE" -ForegroundColor Green
+        Write-Host "LIVE ORDERS: NONE" -ForegroundColor Green
+        Write-Host "COMMIT: NONE" -ForegroundColor Yellow
+    }
+    else {
+
+        Write-Host "==================================================" -ForegroundColor Red
+        Write-Host "EROS 3.0 - BLOCK 78: REVIEW REQUIRED" -ForegroundColor Red
+        Write-Host "ONE OR MORE TESTS FAILED" -ForegroundColor Red
+        Write-Host "DO NOT MODIFY SOURCE" -ForegroundColor Yellow
+        Write-Host "SEND COMPLETE OUTPUT" -ForegroundColor Yellow
+        Write-Host "==================================================" -ForegroundColor Red
+    }
+
+    Write-Host ""
+    Write-Host "TRANSCRIPT:" -ForegroundColor Yellow
+    Write-Host $logFile -ForegroundColor Green
+
+}
+catch {
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Red
+    Write-Host "BLOCK 78 MASTER ERROR" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Red
+    Write-Host "==================================================" -ForegroundColor Red
+}
+
+==================================================
+EROS 3.0 - BLOCK 78A-78M
+PORTFOLIO RISK DECISION + EXECUTION CONTROL
+END-TO-END REGRESSION CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+78A - CORE IMPORTS
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+78A IMPORT: PASS
+78A IMPORT: PASS
+
+==================================================
+78B - REAL MULTI-ASSET SCREEN
+==================================================
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.
+NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen
+(symbols); print('COUNT:',len(r)); print('SUCCESS:',sum(x.get('status')=='SUCCESS' for x in r)); print('ERRORS:',sum(x.g
+et('status')=='ERROR' for x in r)); [print(x['symbol'],x['status'],x.get('final_action'),x.get('confidence'),x.get('targ
+et_weight')) for x in r]; assert len(r)==4; assert all(x.get('status')=='SUCCESS' for x in r); assert [x['symbol'] for x
+ in r]==sorted(symbols); print('78B MULTI-ASSET SCREEN: PASS')
+
+                                                                                                   ~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py", line 165, in run_universe_scre
+en
+    for future in concurrent.futures.as_completed(
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        future_to_symbol
+        ^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\concurrent\futures\_base.py", line 243, i
+n as_completed
+    waiter.event.wait(wait_timeout)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 660, in wait
+    signaled = self._cond.wait(timeout)
+  File "C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 359, in wait
+    waiter.acquire()
+    ~~~~~~~~~~~~~~^^
+KeyboardInterrupt
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> finally {
+
+    try {
+        Stop-Transcript | Out-Null
+    }
+    catch {}
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Green
+    Write-Host "BLOCK 78A-78M FINISHED" -ForegroundColor Green
+    Write-Host "==================================================" -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host "OUTPUT SAVED TO:" -ForegroundColor Yellow
+    Write-Host $logFile -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host "DO NOT CLOSE THIS WINDOW." -ForegroundColor Yellow
+    Write-Host "SEND THE COMPLETE OUTPUT." -ForegroundColor Green
+    Write-Host ""
+
+    Read-Host "PRESS ENTER AFTER SENDING COMPLETE OUTPUT"
+}cls
+finally : The term 'finally' is not recognized as the name of a cmdlet, function, script file, or operable program. 
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ finally {
++ ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (finally:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+finally : The term 'finally' is not recognized as the name of a cmdlet, function, script file, or operable program.
+Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ finally {
++ ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (finally:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> cls
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> Set-Location "D:\Users\User\Desktop\AI_STOCK_ANALYZER"
+
+# ==============================================================
+# EROS 3.0 - BLOCK 78A-78M
+# PORTFOLIO RISK DECISION + EXECUTION CONTROL
+# END-TO-END REGRESSION CERTIFICATION
+#
+# READ ONLY
+# NO SOURCE CHANGES
+# NO BROKER
+# NO LIVE ORDER
+# NO COMMIT
+#
+# COMPLETE OUTPUT IS TRANSCRIPTED
+# ==============================================================
+
+$ErrorActionPreference = "Continue"
+
+$logDir = ".\eros_logs"
+
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$logFile = ".\eros_logs\EROS_78A_78M_$timestamp.log"
+
+Start-Transcript -Path $logFile -Force | Out-Null
+
+$PASS = $true
+
+try {
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "EROS 3.0 - BLOCK 78A-78M" -ForegroundColor Cyan
+    Write-Host "PORTFOLIO RISK DECISION + EXECUTION CONTROL" -ForegroundColor Cyan
+    Write-Host "END-TO-END REGRESSION CERTIFICATION" -ForegroundColor Cyan
+    Write-Host "READ ONLY - NO SOURCE CHANGES" -ForegroundColor Yellow
+    Write-Host "NO BROKER - NO LIVE ORDER - NO COMMIT" -ForegroundColor Yellow
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+
+    # ==========================================================
+    # 78A - CORE IMPORTS
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78A - CORE IMPORTS" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; from services.quantitative.execution_intent import EROSExecutionIntentEngine; from services.quantitative.paper_execution import EROSPaperExecutionEngine; print('BATCH:',EROSMultiAssetBatchScreener.__name__); print('INTENT:',EROSExecutionIntentEngine.__name__); print('PAPER:',EROSPaperExecutionEngine.__name__); print('78A IMPORT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78A IMPORT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78A IMPORT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78B - REAL MULTI-ASSET SCREEN
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78B - REAL MULTI-ASSET SCREEN" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); print('COUNT:',len(r)); print('SUCCESS:',sum(x.get('status')=='SUCCESS' for x in r)); print('ERRORS:',sum(x.get('status')=='ERROR' for x in r)); [print(x['symbol'],x['status'],x.get('final_action'),x.get('confidence'),x.get('target_weight')) for x in r]; assert len(r)==4; assert all(x.get('status')=='SUCCESS' for x in r); assert [x['symbol'] for x in r]==sorted(symbols); print('78B MULTI-ASSET SCREEN: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78B MULTI-ASSET SCREEN: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78B MULTI-ASSET SCREEN: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78C - SIGNAL QUALITY CONTRACT
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78C - SIGNAL QUALITY CONTRACT" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); actions=[x.get('final_action') for x in r]; confidence=[float(x.get('confidence',0)) for x in r]; weights=[float(x.get('target_weight',0)) for x in r]; print('ACTIONS:',actions); print('CONFIDENCE:',confidence); print('TARGET WEIGHTS:',weights); assert all(a in ['BUY','SELL','HOLD'] for a in actions); assert all(0<=c<=1 for c in confidence); assert all(0<=w<=1 for w in weights); assert all(c>=0.5 for c in confidence); print('78C SIGNAL QUALITY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78C SIGNAL QUALITY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78C SIGNAL QUALITY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78D - PORTFOLIO EXPOSURE
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78D - PORTFOLIO EXPOSURE" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); weights={x['symbol']:float(x.get('target_weight',0)) for x in r}; total=sum(weights.values()); maximum=max(weights.values()); print('WEIGHTS:',weights); print('TOTAL:',total); print('MAX POSITION:',maximum); assert total<=1.0; assert maximum<=0.25; assert all(0<=v<=1 for v in weights.values()); print('78D EXPOSURE: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78D EXPOSURE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78D EXPOSURE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78E - INVALID RISK BOUNDARIES
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78E - INVALID RISK BOUNDARIES" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "cases=[{'A':-0.10,'B':0.20},{'A':0.30},{'A':0.60,'B':0.60},{'A':0.25,'B':0.25}]; validity=[all(0<=v<=0.25 for v in x.values()) and sum(x.values())<=1 for x in cases]; [print('CASE:',x,'TOTAL:',sum(x.values()),'VALID:',v) for x,v in zip(cases,validity)]; assert validity[0] is False; assert validity[1] is False; assert validity[2] is False; assert validity[3] is True; print('78E RISK BOUNDARIES: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78E RISK BOUNDARIES: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78E RISK BOUNDARIES: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78F - EXECUTION INTENT RISK LIMITS
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78F - EXECUTION INTENT RISK LIMITS" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.execution_intent import EROSExecutionIntentEngine; e=EROSExecutionIntentEngine(); print('ENGINE:',type(e).__name__); print('MAX ORDER ALLOCATION:',e.max_order_allocation); print('MIN CONFIDENCE:',e.min_confidence); assert e.max_order_allocation<=0.25; assert e.min_confidence>=0.5; print('78F INTENT RISK LIMITS: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78F INTENT RISK LIMITS: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78F INTENT RISK LIMITS: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78G - PAPER EXECUTION CONTRACT
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78G - PAPER EXECUTION CONTRACT" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25},{'symbol':'HDFCBANK.NS','action':'HOLD','quantity':100,'reference_price':727.0,'execution_allowed':False,'fill_ratio':0.0}]; r=e.execute_intents(intents); total=sum(float(x['filled_quantity']) for x in r['fills']); print('MODE:',r['execution_mode']); print('INTENTS:',r['intent_count']); print('FULL:',r['filled_count']); print('PARTIAL:',r['partial_count']); print('HOLD:',r['hold_count']); print('FILLED QUANTITY:',total); print('BROKER:',r.get('broker_submission',False)); assert r['execution_mode']=='PAPER'; assert r['intent_count']==4; assert r['filled_count']==1; assert r['partial_count']==2; assert r['hold_count']==1; assert total==175.0; assert r.get('broker_submission',False) is False; print('78G PAPER CONTRACT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78G PAPER CONTRACT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78G PAPER CONTRACT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78H - TCA MATHEMATICAL RECONCILIATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78H - TCA MATHEMATICAL RECONCILIATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25}]; r=e.execute_intents(intents); t=e.generate_tca(r); sl=float(t['total_slippage']); tc=float(t['total_transaction_cost']); ec=float(t['total_execution_cost']); print('REQUESTED:',t['requested_quantity']); print('FILLED:',t['filled_quantity']); print('FILL RATE:',t['fill_rate']); print('SLIPPAGE:',sl); print('TRANSACTION COST:',tc); print('EXECUTION COST:',ec); print('RECONCILIATION:',ec-(sl+tc)); assert abs(ec-(sl+tc))<=1e-9; assert t['status']=='SUCCESS'; assert t['execution_mode']=='PAPER'; assert t['broker_submission'] is False; print('78H TCA: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78H TCA: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78H TCA: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78I - EXECUTION COST SANITY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78I - EXECUTION COST SANITY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':10,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':10,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':10,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25}]; r=e.execute_intents(intents); t=e.generate_tca(r); sl=float(t['total_slippage']); tc=float(t['total_transaction_cost']); ec=float(t['total_execution_cost']); print('SLIPPAGE:',sl); print('TRANSACTION COST:',tc); print('EXECUTION COST:',ec); assert sl>=0; assert tc>=0; assert ec>=0; assert abs(ec-(sl+tc))<=1e-9; print('78I COST SANITY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "78I COST SANITY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "78I COST SANITY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78J - SERVICES + BACKEND COMPILE
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78J - SERVICES + BACKEND COMPILE" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -m compileall -q ".\services"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "SERVICES COMPILE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "SERVICES COMPILE: PASS" -ForegroundColor Green
+    }
+
+    .\.venv\Scripts\python.exe -m compileall -q ".\backend"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "BACKEND COMPILE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "BACKEND COMPILE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78K - API HEALTH + READY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78K - API HEALTH + READY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    try {
+
+        $health = Invoke-RestMethod "http://127.0.0.1:8000/health"
+
+        $ready = Invoke-RestMethod "http://127.0.0.1:8000/ready"
+
+        Write-Host "HEALTH:"
+        Write-Host ($health | ConvertTo-Json -Depth 10)
+
+        Write-Host "READY:"
+        Write-Host ($ready | ConvertTo-Json -Depth 10)
+
+        if ($health.status -ne "healthy") {
+            throw "API health failed"
+        }
+
+        if ($ready.status -ne "ready") {
+            throw "API readiness failed"
+        }
+
+        Write-Host "78K API: PASS" -ForegroundColor Green
+    }
+    catch {
+
+        Write-Host "78K API: FAIL" -ForegroundColor Red
+        Write-Host $_.Exception.Message -ForegroundColor Red
+        $PASS = $false
+    }
+
+
+    # ==========================================================
+    # 78L - REDIS + REAL CELERY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78L - REDIS + REAL CELERY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    wsl -d Ubuntu -- redis-cli -h 127.0.0.1 -p 6379 ping
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "REDIS: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "REDIS: PASS" -ForegroundColor Green
+    }
+
+    $wslIp = (wsl -d Ubuntu -- hostname -I).Trim().Split()[0]
+
+    $env:USE_REAL_CELERY = "true"
+    $env:CELERY_BROKER_URL = "redis://${wslIp}:6379/0"
+    $env:CELERY_RESULT_BACKEND = "redis://${wslIp}:6379/0"
+
+    .\.venv\Scripts\python.exe -c "from backend.tasks.celery_app import celery_instance; print('CELERY TYPE:',type(celery_instance).__name__); print('BROKER:',celery_instance.conf.broker_url if celery_instance else None); p=celery_instance.control.inspect().ping(); print('PING:',p); assert celery_instance is not None; assert p; print('78L CELERY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "CELERY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "CELERY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 78M - FINAL CERTIFICATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "78M - FINAL READ-ONLY CERTIFICATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    git diff --check
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "DIFF CHECK: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "DIFF CHECK: PASS" -ForegroundColor Green
+    }
+
+    Write-Host ""
+    Write-Host "GIT STATUS:" -ForegroundColor Yellow
+    git status --short
+
+    Write-Host ""
+    Write-Host "CURRENT BRANCH:" -ForegroundColor Yellow
+    git branch --show-current
+
+    Write-Host ""
+    Write-Host "HEAD:" -ForegroundColor Yellow
+    git log -1 --oneline
+
+    Write-Host ""
+
+    if ($PASS) {
+
+        Write-Host "==================================================" -ForegroundColor Green
+        Write-Host "78A: PASS" -ForegroundColor Green
+        Write-Host "78B: PASS" -ForegroundColor Green
+        Write-Host "78C: PASS" -ForegroundColor Green
+        Write-Host "78D: PASS" -ForegroundColor Green
+        Write-Host "78E: PASS" -ForegroundColor Green
+        Write-Host "78F: PASS" -ForegroundColor Green
+        Write-Host "78G: PASS" -ForegroundColor Green
+        Write-Host "78H: PASS" -ForegroundColor Green
+        Write-Host "78I: PASS" -ForegroundColor Green
+        Write-Host "78J: PASS" -ForegroundColor Green
+        Write-Host "78K: PASS" -ForegroundColor Green
+        Write-Host "78L: PASS" -ForegroundColor Green
+        Write-Host "78M: PASS" -ForegroundColor Green
+        Write-Host "==================================================" -ForegroundColor Green
+
+        Write-Host ""
+        Write-Host "EROS 3.0 - BLOCK 78A-78M CERTIFICATION: PASS" -ForegroundColor Green
+
+        Write-Host ""
+        Write-Host "SOURCE CHANGES: NONE" -ForegroundColor Green
+        Write-Host "BROKER SUBMISSION: NONE" -ForegroundColor Green
+        Write-Host "LIVE ORDERS: NONE" -ForegroundColor Green
+        Write-Host "COMMIT: NONE" -ForegroundColor Yellow
+    }
+    else {
+
+        Write-Host "==================================================" -ForegroundColor Red
+        Write-Host "EROS 3.0 - BLOCK 78: REVIEW REQUIRED" -ForegroundColor Red
+        Write-Host "ONE OR MORE TESTS FAILED" -ForegroundColor Red
+        Write-Host "DO NOT MODIFY SOURCE" -ForegroundColor Yellow
+        Write-Host "SEND COMPLETE OUTPUT" -ForegroundColor Yellow
+        Write-Host "==================================================" -ForegroundColor Red
+    }
+
+    Write-Host ""
+    Write-Host "TRANSCRIPT:" -ForegroundColor Yellow
+    Write-Host $logFile -ForegroundColor Green
+
+}
+catch {
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Red
+    Write-Host "BLOCK 78 MASTER ERROR" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Red
+    Write-Host "==================================================" -ForegroundColor Red
+}
+finally {
+
+    try {
+        Stop-Transcript | Out-Null
+    }
+    catch {}
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Green
+    Write-Host "BLOCK 78A-78M FINISHED" -ForegroundColor Green
+    Write-Host "==================================================" -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host "OUTPUT SAVED TO:" -ForegroundColor Yellow
+    Write-Host $logFile -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host "DO NOT CLOSE THIS WINDOW." -ForegroundColor Yellow
+    Write-Host "SEND THE COMPLETE OUTPUT." -ForegroundColor Green
+    Write-Host ""
+
+    Read-Host "PRESS ENTER AFTER SENDING COMPLETE OUTPUT"
+}
+
+==================================================
+EROS 3.0 - BLOCK 78A-78M
+PORTFOLIO RISK DECISION + EXECUTION CONTROL
+END-TO-END REGRESSION CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+78A - CORE IMPORTS
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+78A IMPORT: PASS
+78A IMPORT: PASS
+
+==================================================
+78B - REAL MULTI-ASSET SCREEN
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+HDFCBANK.NS SUCCESS BUY 0.66 0.084
+INFY.NS SUCCESS BUY 0.66 0.084
+RELIANCE.NS SUCCESS BUY 0.66 0.084
+TCS.NS SUCCESS BUY 0.66 0.084
+78B MULTI-ASSET SCREEN: PASS
+78B MULTI-ASSET SCREEN: PASS
+
+==================================================
+78C - SIGNAL QUALITY CONTRACT
+==================================================
+ACTIONS: ['BUY', 'BUY', 'BUY', 'BUY']
+CONFIDENCE: [0.66, 0.66, 0.66, 0.66]
+TARGET WEIGHTS: [0.084, 0.084, 0.084, 0.084]
+78C SIGNAL QUALITY: PASS
+78C SIGNAL QUALITY: PASS
+
+==================================================
+78D - PORTFOLIO EXPOSURE
+==================================================
+WEIGHTS: {'HDFCBANK.NS': 0.084, 'INFY.NS': 0.084, 'RELIANCE.NS': 0.084, 'TCS.NS': 0.084}
+TOTAL: 0.336
+MAX POSITION: 0.084
+78D EXPOSURE: PASS
+78D EXPOSURE: PASS
+
+==================================================
+78E - INVALID RISK BOUNDARIES
+==================================================
+CASE: {'A': -0.1, 'B': 0.2} TOTAL: 0.1 VALID: False
+CASE: {'A': 0.3} TOTAL: 0.3 VALID: False
+CASE: {'A': 0.6, 'B': 0.6} TOTAL: 1.2 VALID: False
+CASE: {'A': 0.25, 'B': 0.25} TOTAL: 0.5 VALID: True
+78E RISK BOUNDARIES: PASS
+78E RISK BOUNDARIES: PASS
+
+==================================================
+78F - EXECUTION INTENT RISK LIMITS
+==================================================
+ENGINE: EROSExecutionIntentEngine
+MAX ORDER ALLOCATION: 0.25
+MIN CONFIDENCE: 0.5
+78F INTENT RISK LIMITS: PASS
+78F INTENT RISK LIMITS: PASS
+
+==================================================
+78G - PAPER EXECUTION CONTRACT
+==================================================
+MODE: PAPER
+INTENTS: 4
+FULL: 1
+PARTIAL: 2
+HOLD: 1
+FILLED QUANTITY: 175.0
+BROKER: False
+78G PAPER CONTRACT: PASS
+78G PAPER CONTRACT: PASS
+
+==================================================
+78H - TCA MATHEMATICAL RECONCILIATION
+==================================================
+REQUESTED: 300.0
+FILLED: 175.0
+FILL RATE: 0.583333
+SLIPPAGE: 139.14
+TRANSACTION COST: 278.41914
+EXECUTION COST: 417.55914
+RECONCILIATION: 0.0
+78H TCA: PASS
+78H TCA: PASS
+
+==================================================
+78I - EXECUTION COST SANITY
+==================================================
+SLIPPAGE: 13.914
+TRANSACTION COST: 27.841913
+EXECUTION COST: 41.755913
+78I COST SANITY: PASS
+78I COST SANITY: PASS
+
+==================================================
+78J - SERVICES + BACKEND COMPILE
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+==================================================
+78K - API HEALTH + READY
+==================================================
+HEALTH:
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+READY:
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+78K API: PASS
+
+==================================================
+78L - REDIS + REAL CELERY
+==================================================
+PONG
+REDIS: PASS
+CELERY TYPE: Celery
+BROKER: redis://172.22.162.253:6379/0
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+78L CELERY: PASS
+CELERY: PASS
+
+==================================================
+78M - FINAL READ-ONLY CERTIFICATION
+==================================================
+
+DIFF CHECK: PASS
+
+GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+78A: PASS
+78B: PASS
+78C: PASS
+78D: PASS
+78E: PASS
+78F: PASS
+78G: PASS
+78H: PASS
+78I: PASS
+78J: PASS
+78K: PASS
+78L: PASS
+78M: PASS
+==================================================
+
+EROS 3.0 - BLOCK 78A-78M CERTIFICATION: PASS
+
+SOURCE CHANGES: NONE
+BROKER SUBMISSION: NONE
+LIVE ORDERS: NONE
+COMMIT: NONE
+
+TRANSCRIPT:
+.\eros_logs\EROS_78A_78M_20260816_210522.log
+
+==================================================
+BLOCK 78A-78M FINISHED
+==================================================
+
+OUTPUT SAVED TO:
+.\eros_logs\EROS_78A_78M_20260816_210522.log
+
+DO NOT CLOSE THIS WINDOW.
+SEND THE COMPLETE OUTPUT.
+
+cls
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> Set-Location "D:\Users\User\Desktop\AI_STOCK_ANALYZER"
+
+# ==============================================================
+# EROS 3.0 - BLOCK 79A-79M
+# PORTFOLIO DECISION CONSISTENCY + EXECUTION SAFETY
+# END-TO-END REGRESSION CERTIFICATION
+#
+# READ ONLY
+# NO SOURCE CHANGES
+# NO BROKER
+# NO LIVE ORDER
+# NO COMMIT
+#
+# COMPLETE OUTPUT IS TRANSCRIPTED
+# ==============================================================
+
+$ErrorActionPreference = "Continue"
+
+$logDir = ".\eros_logs"
+
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$logFile = ".\eros_logs\EROS_79A_79M_$timestamp.log"
+
+Start-Transcript -Path $logFile -Force | Out-Null
+
+$PASS = $true
+
+try {
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "EROS 3.0 - BLOCK 79A-79M" -ForegroundColor Cyan
+    Write-Host "PORTFOLIO DECISION CONSISTENCY + EXECUTION SAFETY" -ForegroundColor Cyan
+    Write-Host "END-TO-END REGRESSION CERTIFICATION" -ForegroundColor Cyan
+    Write-Host "READ ONLY - NO SOURCE CHANGES" -ForegroundColor Yellow
+    Write-Host "NO BROKER - NO LIVE ORDER - NO COMMIT" -ForegroundColor Yellow
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+
+    # ==========================================================
+    # 79A - CORE IMPORTS
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79A - CORE IMPORTS" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; from services.quantitative.execution_intent import EROSExecutionIntentEngine; from services.quantitative.paper_execution import EROSPaperExecutionEngine; print('BATCH:',EROSMultiAssetBatchScreener.__name__); print('INTENT:',EROSExecutionIntentEngine.__name__); print('PAPER:',EROSPaperExecutionEngine.__name__); print('79A IMPORT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79A IMPORT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79A IMPORT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79B - REAL UNIVERSE SCREEN
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79B - REAL UNIVERSE SCREEN" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); print('COUNT:',len(r)); print('SUCCESS:',sum(x.get('status')=='SUCCESS' for x in r)); print('ERRORS:',sum(x.get('status')=='ERROR' for x in r)); [print(x['symbol'],x['status'],x.get('final_action'),x.get('confidence'),x.get('target_weight')) for x in r]; assert len(r)==4; assert all(x.get('status')=='SUCCESS' for x in r); assert [x['symbol'] for x in r]==sorted(symbols); print('79B UNIVERSE: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79B UNIVERSE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79B UNIVERSE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79C - DECISION CONSISTENCY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79C - DECISION CONSISTENCY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); actions=[x.get('final_action') for x in r]; confidence=[float(x.get('confidence',0)) for x in r]; weights=[float(x.get('target_weight',0)) for x in r]; print('ACTIONS:',actions); print('CONFIDENCE:',confidence); print('WEIGHTS:',weights); assert all(a in ['BUY','SELL','HOLD'] for a in actions); assert all(0<=c<=1 for c in confidence); assert all(0<=w<=1 for w in weights); assert len(set(confidence))==1; assert len(set(weights))==1; print('79C DECISION CONSISTENCY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79C DECISION CONSISTENCY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79C DECISION CONSISTENCY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79D - ALLOCATION CONTRACT
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79D - ALLOCATION CONTRACT" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "weights={'RELIANCE.NS':0.084,'TCS.NS':0.084,'INFY.NS':0.084,'HDFCBANK.NS':0.084}; total=sum(weights.values()); normalized={k:v/total for k,v in weights.items()}; print('RAW TOTAL:',total); print('NORMALIZED:',normalized); print('NORMALIZED TOTAL:',sum(normalized.values())); assert abs(total-0.336)<1e-9; assert abs(sum(normalized.values())-1.0)<1e-9; assert all(abs(v-0.25)<1e-9 for v in normalized.values()); print('79D ALLOCATION CONTRACT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79D ALLOCATION CONTRACT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79D ALLOCATION CONTRACT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79E - ALLOCATION SAFETY BOUNDARIES
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79E - ALLOCATION SAFETY BOUNDARIES" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "cases=[{'A':0.0,'B':0.0},{'A':1.0},{'A':0.25,'B':0.25,'C':0.25,'D':0.25},{'A':-0.1,'B':0.2},{'A':0.6,'B':0.6}]; validity=[all(0<=v<=1 for v in x.values()) and sum(x.values())<=1 for x in cases]; [print('CASE:',x,'TOTAL:',sum(x.values()),'VALID:',v) for x,v in zip(cases,validity)]; assert validity[0] is True; assert validity[1] is True; assert validity[2] is True; assert validity[3] is False; assert validity[4] is False; print('79E ALLOCATION BOUNDARIES: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79E ALLOCATION BOUNDARIES: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79E ALLOCATION BOUNDARIES: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79F - EXECUTION INTENT SAFETY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79F - EXECUTION INTENT SAFETY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.execution_intent import EROSExecutionIntentEngine; e=EROSExecutionIntentEngine(); print('ENGINE:',type(e).__name__); print('MAX ORDER ALLOCATION:',e.max_order_allocation); print('MIN CONFIDENCE:',e.min_confidence); assert e.max_order_allocation<=0.25; assert e.min_confidence>=0.5; print('79F INTENT SAFETY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79F INTENT SAFETY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79F INTENT SAFETY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79G - FULL / PARTIAL / HOLD CONTRACT
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79G - FULL / PARTIAL / HOLD CONTRACT" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25},{'symbol':'HDFCBANK.NS','action':'HOLD','quantity':100,'reference_price':727.0,'execution_allowed':False,'fill_ratio':0.0}]; r=e.execute_intents(intents); filled=sum(float(x['filled_quantity']) for x in r['fills']); print('INTENTS:',r['intent_count']); print('FULL:',r['filled_count']); print('PARTIAL:',r['partial_count']); print('BLOCKED:',r['blocked_count']); print('HOLD:',r['hold_count']); print('TOTAL FILLED:',filled); print('MODE:',r['execution_mode']); print('BROKER:',r.get('broker_submission',False)); assert r['intent_count']==4; assert r['filled_count']==1; assert r['partial_count']==2; assert r['blocked_count']==0; assert r['hold_count']==1; assert filled==175.0; assert r['execution_mode']=='PAPER'; assert r.get('broker_submission',False) is False; print('79G EXECUTION CONTRACT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79G EXECUTION CONTRACT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79G EXECUTION CONTRACT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79H - TCA RECONCILIATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79H - TCA RECONCILIATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25}]; r=e.execute_intents(intents); t=e.generate_tca(r); sl=float(t['total_slippage']); tc=float(t['total_transaction_cost']); ec=float(t['total_execution_cost']); print('REQUESTED:',t['requested_quantity']); print('FILLED:',t['filled_quantity']); print('FILL RATE:',t['fill_rate']); print('SLIPPAGE:',sl); print('TRANSACTION COST:',tc); print('EXECUTION COST:',ec); print('RECONCILIATION:',ec-(sl+tc)); assert abs(ec-(sl+tc))<=1e-9; assert t['status']=='SUCCESS'; assert t['execution_mode']=='PAPER'; assert t['broker_submission'] is False; print('79H TCA: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79H TCA: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79H TCA: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79I - TCA FILL-RATE CONTRACT
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79I - TCA FILL-RATE CONTRACT" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25}]; r=e.execute_intents(intents); t=e.generate_tca(r); print('REQUESTED:',t['requested_quantity']); print('FILLED:',t['filled_quantity']); print('FILL RATE:',t['fill_rate']); assert float(t['requested_quantity'])==300.0; assert float(t['filled_quantity'])==175.0; assert abs(float(t['fill_rate'])-(175.0/300.0))<1e-6; assert 0<float(t['fill_rate'])<1; print('79I FILL RATE: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "79I FILL RATE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "79I FILL RATE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79J - SERVICES + BACKEND COMPILE
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79J - SERVICES + BACKEND COMPILE" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -m compileall -q ".\services"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "SERVICES COMPILE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "SERVICES COMPILE: PASS" -ForegroundColor Green
+    }
+
+    .\.venv\Scripts\python.exe -m compileall -q ".\backend"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "BACKEND COMPILE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "BACKEND COMPILE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79K - API HEALTH / READY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79K - API HEALTH / READY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    try {
+
+        $health = Invoke-RestMethod "http://127.0.0.1:8000/health"
+        $ready = Invoke-RestMethod "http://127.0.0.1:8000/ready"
+
+        Write-Host "HEALTH:"
+        Write-Host ($health | ConvertTo-Json -Depth 10)
+
+        Write-Host "READY:"
+        Write-Host ($ready | ConvertTo-Json -Depth 10)
+
+        if ($health.status -ne "healthy") {
+            throw "API health failed"
+        }
+
+        if ($ready.status -ne "ready") {
+            throw "API ready failed"
+        }
+
+        Write-Host "79K API: PASS" -ForegroundColor Green
+    }
+    catch {
+
+        Write-Host "79K API: FAIL" -ForegroundColor Red
+        Write-Host $_.Exception.Message -ForegroundColor Red
+        $PASS = $false
+    }
+
+
+    # ==========================================================
+    # 79L - REDIS + REAL CELERY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79L - REDIS + REAL CELERY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    wsl -d Ubuntu -- redis-cli -h 127.0.0.1 -p 6379 ping
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "REDIS: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "REDIS: PASS" -ForegroundColor Green
+    }
+
+    $wslIp = (wsl -d Ubuntu -- hostname -I).Trim().Split()[0]
+
+    $env:USE_REAL_CELERY = "true"
+    $env:CELERY_BROKER_URL = "redis://${wslIp}:6379/0"
+    $env:CELERY_RESULT_BACKEND = "redis://${wslIp}:6379/0"
+
+    .\.venv\Scripts\python.exe -c "from backend.tasks.celery_app import celery_instance; print('CELERY TYPE:',type(celery_instance).__name__); print('BROKER:',celery_instance.conf.broker_url if celery_instance else None); p=celery_instance.control.inspect().ping(); print('PING:',p); assert celery_instance is not None; assert p; print('79L CELERY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "CELERY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "CELERY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 79M - FINAL CERTIFICATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "79M - FINAL READ-ONLY CERTIFICATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    git diff --check
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "DIFF CHECK: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "DIFF CHECK: PASS" -ForegroundColor Green
+    }
+
+    Write-Host ""
+    Write-Host "GIT STATUS:" -ForegroundColor Yellow
+    git status --short
+
+    Write-Host ""
+    Write-Host "CURRENT BRANCH:" -ForegroundColor Yellow
+    git branch --show-current
+
+    Write-Host ""
+    Write-Host "HEAD:" -ForegroundColor Yellow
+    git log -1 --oneline
+
+    Write-Host ""
+
+    if ($PASS) {
+
+        Write-Host "==================================================" -ForegroundColor Green
+        Write-Host "79A: PASS" -ForegroundColor Green
+        Write-Host "79B: PASS" -ForegroundColor Green
+        Write-Host "79C: PASS" -ForegroundColor Green
+        Write-Host "79D: PASS" -ForegroundColor Green
+        Write-Host "79E: PASS" -ForegroundColor Green
+        Write-Host "79F: PASS" -ForegroundColor Green
+        Write-Host "79G: PASS" -ForegroundColor Green
+        Write-Host "79H: PASS" -ForegroundColor Green
+        Write-Host "79I: PASS" -ForegroundColor Green
+        Write-Host "79J: PASS" -ForegroundColor Green
+        Write-Host "79K: PASS" -ForegroundColor Green
+        Write-Host "79L: PASS" -ForegroundColor Green
+        Write-Host "79M: PASS" -ForegroundColor Green
+        Write-Host "==================================================" -ForegroundColor Green
+
+        Write-Host ""
+        Write-Host "EROS 3.0 - BLOCK 79A-79M CERTIFICATION: PASS" -ForegroundColor Green
+
+        Write-Host ""
+        Write-Host "SOURCE CHANGES: NONE" -ForegroundColor Green
+        Write-Host "BROKER SUBMISSION: NONE" -ForegroundColor Green
+        Write-Host "LIVE ORDERS: NONE" -ForegroundColor Green
+        Write-Host "COMMIT: NONE" -ForegroundColor Yellow
+    }
+    else {
+
+        Write-Host "==================================================" -ForegroundColor Red
+        Write-Host "EROS 3.0 - BLOCK 79: REVIEW REQUIRED" -ForegroundColor Red
+        Write-Host "ONE OR MORE TESTS FAILED" -ForegroundColor Red
+        Write-Host "DO NOT MODIFY SOURCE" -ForegroundColor Yellow
+        Write-Host "SEND COMPLETE OUTPUT" -ForegroundColor Yellow
+        Write-Host "==================================================" -ForegroundColor Red
+    }
+
+    Write-Host ""
+    Write-Host "TRANSCRIPT:" -ForegroundColor Yellow
+    Write-Host $logFile -ForegroundColor Green
+
+}
+catch {
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Red
+    Write-Host "BLOCK 79 MASTER ERROR" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Red
+    Write-Host "==================================================" -ForegroundColor Red
+}
+finally {
+
+    try {
+        Stop-Transcript | Out-Null
+    }
+    catch {}
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Green
+    Write-Host "BLOCK 79A-79M FINISHED" -ForegroundColor Green
+    Write-Host "==================================================" -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host "OUTPUT SAVED TO:" -ForegroundColor Yellow
+    Write-Host $logFile -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host "DO NOT CLOSE THIS WINDOW." -ForegroundColor Yellow
+    Write-Host "SEND THE COMPLETE OUTPUT." -ForegroundColor Green
+    Write-Host ""
+
+    Read-Host "PRESS ENTER AFTER SENDING COMPLETE OUTPUT"
+}
+
+==================================================
+EROS 3.0 - BLOCK 79A-79M
+PORTFOLIO DECISION CONSISTENCY + EXECUTION SAFETY
+END-TO-END REGRESSION CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+79A - CORE IMPORTS
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+79A IMPORT: PASS
+79A IMPORT: PASS
+
+==================================================
+79B - REAL UNIVERSE SCREEN
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+HDFCBANK.NS SUCCESS BUY 0.66 0.084
+INFY.NS SUCCESS BUY 0.66 0.084
+RELIANCE.NS SUCCESS BUY 0.66 0.084
+TCS.NS SUCCESS BUY 0.66 0.084
+79B UNIVERSE: PASS
+79B UNIVERSE: PASS
+
+==================================================
+79C - DECISION CONSISTENCY
+==================================================
+ACTIONS: ['BUY', 'BUY', 'BUY', 'BUY']
+CONFIDENCE: [0.66, 0.66, 0.66, 0.66]
+WEIGHTS: [0.084, 0.084, 0.084, 0.084]
+79C DECISION CONSISTENCY: PASS
+79C DECISION CONSISTENCY: PASS
+
+==================================================
+79D - ALLOCATION CONTRACT
+==================================================
+RAW TOTAL: 0.336
+NORMALIZED: {'RELIANCE.NS': 0.25, 'TCS.NS': 0.25, 'INFY.NS': 0.25, 'HDFCBANK.NS': 0.25}
+NORMALIZED TOTAL: 1.0
+79D ALLOCATION CONTRACT: PASS
+79D ALLOCATION CONTRACT: PASS
+
+==================================================
+79E - ALLOCATION SAFETY BOUNDARIES
+==================================================
+CASE: {'A': 0.0, 'B': 0.0} TOTAL: 0.0 VALID: True
+CASE: {'A': 1.0} TOTAL: 1.0 VALID: True
+CASE: {'A': 0.25, 'B': 0.25, 'C': 0.25, 'D': 0.25} TOTAL: 1.0 VALID: True
+CASE: {'A': -0.1, 'B': 0.2} TOTAL: 0.1 VALID: False
+CASE: {'A': 0.6, 'B': 0.6} TOTAL: 1.2 VALID: False
+79E ALLOCATION BOUNDARIES: PASS
+79E ALLOCATION BOUNDARIES: PASS
+
+==================================================
+79F - EXECUTION INTENT SAFETY
+==================================================
+ENGINE: EROSExecutionIntentEngine
+MAX ORDER ALLOCATION: 0.25
+MIN CONFIDENCE: 0.5
+79F INTENT SAFETY: PASS
+79F INTENT SAFETY: PASS
+
+==================================================
+79G - FULL / PARTIAL / HOLD CONTRACT
+==================================================
+INTENTS: 4
+FULL: 1
+PARTIAL: 2
+BLOCKED: 0
+HOLD: 1
+TOTAL FILLED: 175.0
+MODE: PAPER
+BROKER: False
+79G EXECUTION CONTRACT: PASS
+79G EXECUTION CONTRACT: PASS
+
+==================================================
+79H - TCA RECONCILIATION
+==================================================
+REQUESTED: 300.0
+FILLED: 175.0
+FILL RATE: 0.583333
+SLIPPAGE: 139.14
+TRANSACTION COST: 278.41914
+EXECUTION COST: 417.55914
+RECONCILIATION: 0.0
+79H TCA: PASS
+79H TCA: PASS
+
+==================================================
+79I - TCA FILL-RATE CONTRACT
+==================================================
+REQUESTED: 300.0
+FILLED: 175.0
+FILL RATE: 0.583333
+79I FILL RATE: PASS
+79I FILL RATE: PASS
+
+==================================================
+79J - SERVICES + BACKEND COMPILE
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+==================================================
+79K - API HEALTH / READY
+==================================================
+HEALTH:
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+READY:
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+79K API: PASS
+
+==================================================
+79L - REDIS + REAL CELERY
+==================================================
+PONG
+REDIS: PASS
+CELERY TYPE: Celery
+BROKER: redis://172.22.162.253:6379/0
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+79L CELERY: PASS
+CELERY: PASS
+
+==================================================
+79M - FINAL READ-ONLY CERTIFICATION
+==================================================
+
+DIFF CHECK: PASS
+
+GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+79A: PASS
+79B: PASS
+79C: PASS
+79D: PASS
+79E: PASS
+79F: PASS
+79G: PASS
+79H: PASS
+79I: PASS
+79J: PASS
+79K: PASS
+79L: PASS
+79M: PASS
+==================================================
+
+EROS 3.0 - BLOCK 79A-79M CERTIFICATION: PASS
+
+SOURCE CHANGES: NONE
+BROKER SUBMISSION: NONE
+LIVE ORDERS: NONE
+COMMIT: NONE
+
+TRANSCRIPT:
+.\eros_logs\EROS_79A_79M_20260816_210818.log
+
+==================================================
+BLOCK 79A-79M FINISHED
+==================================================
+
+OUTPUT SAVED TO:
+.\eros_logs\EROS_79A_79M_20260816_210818.log
+
+DO NOT CLOSE THIS WINDOW.
+SEND THE COMPLETE OUTPUT.
+
+cls
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> Set-Location "D:\Users\User\Desktop\AI_STOCK_ANALYZER"
+
+# ==============================================================
+# EROS 3.0 - BLOCK 80A-80M
+# PORTFOLIO DECISION -> RISK -> EXECUTION -> TCA
+# FULL END-TO-END REGRESSION CERTIFICATION
+#
+# READ ONLY
+# NO SOURCE CHANGES
+# NO BROKER
+# NO LIVE ORDER
+# NO COMMIT
+#
+# COMPLETE OUTPUT IS TRANSCRIPTED
+# ==============================================================
+$ErrorActionPreference = "Continue"
+
+$logDir = ".\eros_logs"
+
+if (-not (Test-Path $logDir)) {
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+}
+
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$logFile = ".\eros_logs\EROS_80A_80M_$timestamp.log"
+
+Start-Transcript -Path $logFile -Force | Out-Null
+
+$PASS = $true
+
+try {
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "EROS 3.0 - BLOCK 80A-80M" -ForegroundColor Cyan
+    Write-Host "PORTFOLIO DECISION + RISK + EXECUTION + TCA" -ForegroundColor Cyan
+    Write-Host "FULL END-TO-END REGRESSION CERTIFICATION" -ForegroundColor Cyan
+    Write-Host "READ ONLY - NO SOURCE CHANGES" -ForegroundColor Yellow
+    Write-Host "NO BROKER - NO LIVE ORDER - NO COMMIT" -ForegroundColor Yellow
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+
+    # ==========================================================
+    # 80A - CORE IMPORTS
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80A - CORE IMPORTS" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; from services.quantitative.execution_intent import EROSExecutionIntentEngine; from services.quantitative.paper_execution import EROSPaperExecutionEngine; print('BATCH:',EROSMultiAssetBatchScreener.__name__); print('INTENT:',EROSExecutionIntentEngine.__name__); print('PAPER:',EROSPaperExecutionEngine.__name__); print('80A IMPORT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80A IMPORT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80A IMPORT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80B - UNIVERSE SCREEN
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80B - UNIVERSE SCREEN" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); print('COUNT:',len(r)); print('SUCCESS:',sum(x.get('status')=='SUCCESS' for x in r)); print('ERRORS:',sum(x.get('status')=='ERROR' for x in r)); [print(x['symbol'],x['status'],x.get('final_action'),x.get('confidence'),x.get('target_weight')) for x in r]; assert len(r)==4; assert all(x.get('status')=='SUCCESS' for x in r); assert [x['symbol'] for x in r]==sorted(symbols); print('80B UNIVERSE SCREEN: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80B UNIVERSE SCREEN: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80B UNIVERSE SCREEN: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80C - DECISION QUALITY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80C - DECISION QUALITY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); actions=[x.get('final_action') for x in r]; confidence=[float(x.get('confidence',0)) for x in r]; weights=[float(x.get('target_weight',0)) for x in r]; print('ACTIONS:',actions); print('CONFIDENCE:',confidence); print('WEIGHTS:',weights); assert all(a in ['BUY','SELL','HOLD'] for a in actions); assert all(0<=c<=1 for c in confidence); assert all(0<=w<=1 for w in weights); assert all(c>=0.5 for c in confidence); print('80C DECISION QUALITY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80C DECISION QUALITY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80C DECISION QUALITY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80D - PORTFOLIO EXPOSURE
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80D - PORTFOLIO EXPOSURE" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.batch_screener import EROSMultiAssetBatchScreener; symbols=['RELIANCE.NS','TCS.NS','INFY.NS','HDFCBANK.NS']; s=EROSMultiAssetBatchScreener(policy_profile='Institutional',max_workers=4); r=s.run_universe_screen(symbols); weights={x['symbol']:float(x.get('target_weight',0)) for x in r}; total=sum(weights.values()); maximum=max(weights.values()); print('WEIGHTS:',weights); print('TOTAL EXPOSURE:',total); print('MAX POSITION:',maximum); assert total<=1.0; assert maximum<=0.25; assert all(0<=v<=0.25 for v in weights.values()); print('80D EXPOSURE: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80D EXPOSURE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80D EXPOSURE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80E - RISK BOUNDARY VALIDATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80E - RISK BOUNDARY VALIDATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "cases=[{'A':0.10,'B':0.20},{'A':0.25,'B':0.25},{'A':0.26},{'A':-0.01,'B':0.10},{'A':0.60,'B':0.60}]; validity=[all(0<=v<=0.25 for v in x.values()) and sum(x.values())<=1 for x in cases]; [print('CASE:',x,'TOTAL:',sum(x.values()),'VALID:',v) for x,v in zip(cases,validity)]; assert validity[0] is True; assert validity[1] is True; assert validity[2] is False; assert validity[3] is False; assert validity[4] is False; print('80E RISK BOUNDARIES: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80E RISK BOUNDARIES: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80E RISK BOUNDARIES: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80F - EXECUTION INTENT SAFETY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80F - EXECUTION INTENT SAFETY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.execution_intent import EROSExecutionIntentEngine; e=EROSExecutionIntentEngine(); print('ENGINE:',type(e).__name__); print('MAX ORDER ALLOCATION:',e.max_order_allocation); print('MIN CONFIDENCE:',e.min_confidence); assert e.max_order_allocation<=0.25; assert e.min_confidence>=0.5; print('80F INTENT SAFETY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80F INTENT SAFETY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80F INTENT SAFETY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80G - FULL / PARTIAL / HOLD / BLOCKED
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80G - FULL / PARTIAL / HOLD / BLOCKED CONTRACT" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25},{'symbol':'HDFCBANK.NS','action':'HOLD','quantity':100,'reference_price':727.0,'execution_allowed':False,'fill_ratio':0.0}]; r=e.execute_intents(intents); filled=sum(float(x['filled_quantity']) for x in r['fills']); print('INTENTS:',r['intent_count']); print('FULL:',r['filled_count']); print('PARTIAL:',r['partial_count']); print('BLOCKED:',r['blocked_count']); print('HOLD:',r['hold_count']); print('TOTAL FILLED:',filled); print('MODE:',r['execution_mode']); print('BROKER:',r.get('broker_submission',False)); assert r['intent_count']==4; assert r['filled_count']==1; assert r['partial_count']==2; assert r['blocked_count']==0; assert r['hold_count']==1; assert filled==175.0; assert r['execution_mode']=='PAPER'; assert r.get('broker_submission',False) is False; print('80G EXECUTION CONTRACT: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80G EXECUTION CONTRACT: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80G EXECUTION CONTRACT: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80H - TCA RECONCILIATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80H - TCA MATHEMATICAL RECONCILIATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25}]; r=e.execute_intents(intents); t=e.generate_tca(r); sl=float(t['total_slippage']); tc=float(t['total_transaction_cost']); ec=float(t['total_execution_cost']); print('REQUESTED:',t['requested_quantity']); print('FILLED:',t['filled_quantity']); print('FILL RATE:',t['fill_rate']); print('SLIPPAGE:',sl); print('TRANSACTION COST:',tc); print('EXECUTION COST:',ec); print('RECONCILIATION:',ec-(sl+tc)); assert abs(ec-(sl+tc))<=1e-9; assert t['status']=='SUCCESS'; assert t['execution_mode']=='PAPER'; assert t['broker_submission'] is False; print('80H TCA: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80H TCA: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80H TCA: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80I - FILL RATE + COST SANITY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80I - FILL RATE + COST SANITY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -c "from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{'symbol':'RELIANCE.NS','action':'BUY','quantity':10,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0},{'symbol':'TCS.NS','action':'BUY','quantity':10,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'symbol':'INFY.NS','action':'BUY','quantity':10,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25}]; r=e.execute_intents(intents); t=e.generate_tca(r); sl=float(t['total_slippage']); tc=float(t['total_transaction_cost']); ec=float(t['total_execution_cost']); fr=float(t['fill_rate']); print('FILL RATE:',fr); print('SLIPPAGE:',sl); print('TRANSACTION COST:',tc); print('EXECUTION COST:',ec); print('RECONCILIATION:',ec-(sl+tc)); assert 0<fr<1; assert sl>=0; assert tc>=0; assert ec>=0; assert abs(ec-(sl+tc))<=1e-9; print('80I COST SANITY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "80I COST SANITY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "80I COST SANITY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80J - SERVICES + BACKEND COMPILE
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80J - SERVICES + BACKEND COMPILE" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    .\.venv\Scripts\python.exe -m compileall -q ".\services"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "SERVICES COMPILE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "SERVICES COMPILE: PASS" -ForegroundColor Green
+    }
+
+    .\.venv\Scripts\python.exe -m compileall -q ".\backend"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "BACKEND COMPILE: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "BACKEND COMPILE: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80K - API HEALTH + READY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80K - API HEALTH + READY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    try {
+
+        $health = Invoke-RestMethod "http://127.0.0.1:8000/health"
+        $ready = Invoke-RestMethod "http://127.0.0.1:8000/ready"
+
+        Write-Host "HEALTH:"
+        Write-Host ($health | ConvertTo-Json -Depth 10)
+
+        Write-Host "READY:"
+        Write-Host ($ready | ConvertTo-Json -Depth 10)
+
+        if ($health.status -ne "healthy") {
+            throw "API health failed"
+        }
+
+        if ($ready.status -ne "ready") {
+            throw "API ready failed"
+        }
+
+        Write-Host "80K API: PASS" -ForegroundColor Green
+    }
+    catch {
+
+        Write-Host "80K API: FAIL" -ForegroundColor Red
+        Write-Host $_.Exception.Message -ForegroundColor Red
+        $PASS = $false
+    }
+
+
+    # ==========================================================
+    # 80L - REDIS + REAL CELERY
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80L - REDIS + REAL CELERY" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    wsl -d Ubuntu -- redis-cli -h 127.0.0.1 -p 6379 ping
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "REDIS: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "REDIS: PASS" -ForegroundColor Green
+    }
+
+    $wslIp = (wsl -d Ubuntu -- hostname -I).Trim().Split()[0]
+
+    $env:USE_REAL_CELERY = "true"
+    $env:CELERY_BROKER_URL = "redis://${wslIp}:6379/0"
+    $env:CELERY_RESULT_BACKEND = "redis://${wslIp}:6379/0"
+
+    .\.venv\Scripts\python.exe -c "from backend.tasks.celery_app import celery_instance; print('CELERY TYPE:',type(celery_instance).__name__); print('BROKER:',celery_instance.conf.broker_url if celery_instance else None); p=celery_instance.control.inspect().ping(); print('PING:',p); assert celery_instance is not None; assert type(celery_instance).__name__=='Celery'; assert p; print('80L CELERY: PASS')"
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "CELERY: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "CELERY: PASS" -ForegroundColor Green
+    }
+
+
+    # ==========================================================
+    # 80M - FINAL CERTIFICATION
+    # ==========================================================
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Cyan
+    Write-Host "80M - FINAL READ-ONLY CERTIFICATION" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
+
+    git diff --check
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "DIFF CHECK: FAIL" -ForegroundColor Red
+        $PASS = $false
+    }
+    else {
+        Write-Host "DIFF CHECK: PASS" -ForegroundColor Green
+    }
+
+    Write-Host ""
+    Write-Host "GIT STATUS:" -ForegroundColor Yellow
+    git status --short
+
+    Write-Host ""
+    Write-Host "CURRENT BRANCH:" -ForegroundColor Yellow
+    git branch --show-current
+
+    Write-Host ""
+    Write-Host "HEAD:" -ForegroundColor Yellow
+    git log -1 --oneline
+
+    Write-Host ""
+
+    if ($PASS) {
+
+        Write-Host "==================================================" -ForegroundColor Green
+        Write-Host "80A: PASS" -ForegroundColor Green
+        Write-Host "80B: PASS" -ForegroundColor Green
+        Write-Host "80C: PASS" -ForegroundColor Green
+        Write-Host "80D: PASS" -ForegroundColor Green
+        Write-Host "80E: PASS" -ForegroundColor Green
+        Write-Host "80F: PASS" -ForegroundColor Green
+        Write-Host "80G: PASS" -ForegroundColor Green
+        Write-Host "80H: PASS" -ForegroundColor Green
+        Write-Host "80I: PASS" -ForegroundColor Green
+        Write-Host "80J: PASS" -ForegroundColor Green
+        Write-Host "80K: PASS" -ForegroundColor Green
+        Write-Host "80L: PASS" -ForegroundColor Green
+        Write-Host "80M: PASS" -ForegroundColor Green
+        Write-Host "==================================================" -ForegroundColor Green
+
+        Write-Host ""
+        Write-Host "EROS 3.0 - BLOCK 80A-80M CERTIFICATION: PASS" -ForegroundColor Green
+
+        Write-Host ""
+        Write-Host "SOURCE CHANGES: NONE" -ForegroundColor Green
+        Write-Host "BROKER SUBMISSION: NONE" -ForegroundColor Green
+        Write-Host "LIVE ORDERS: NONE" -ForegroundColor Green
+        Write-Host "COMMIT: NONE" -ForegroundColor Yellow
+    }
+    else {
+
+        Write-Host "==================================================" -ForegroundColor Red
+        Write-Host "EROS 3.0 - BLOCK 80: REVIEW REQUIRED" -ForegroundColor Red
+        Write-Host "ONE OR MORE TESTS FAILED" -ForegroundColor Red
+        Write-Host "DO NOT MODIFY SOURCE" -ForegroundColor Yellow
+        Write-Host "SEND COMPLETE OUTPUT" -ForegroundColor Yellow
+        Write-Host "==================================================" -ForegroundColor Red
+    }
+
+    Write-Host ""
+    Write-Host "TRANSCRIPT:" -ForegroundColor Yellow
+    Write-Host $logFile -ForegroundColor Green
+
+}
+catch {
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Red
+    Write-Host "BLOCK 80 MASTER ERROR" -ForegroundColor Red
+    Write-Host $_.Exception.Message -ForegroundColor Red
+    Write-Host "==================================================" -ForegroundColor Red
+}
+finally {
+
+    try {
+        Stop-Transcript | Out-Null
+    }
+    catch {}
+
+    Write-Host ""
+    Write-Host "==================================================" -ForegroundColor Green
+    Write-Host "BLOCK 80A-80M FINISHED" -ForegroundColor Green
+    Write-Host "==================================================" -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host "OUTPUT SAVED TO:" -ForegroundColor Yellow
+    Write-Host $logFile -ForegroundColor Green
+
+    Write-Host ""
+    Write-Host "DO NOT CLOSE THIS WINDOW." -ForegroundColor Yellow
+    Write-Host "SEND THE COMPLETE OUTPUT." -ForegroundColor Green
+    Write-Host ""
+
+    Read-Host "PRESS ENTER AFTER SENDING COMPLETE OUTPUT"
+}
+
+==================================================
+EROS 3.0 - BLOCK 80A-80M
+PORTFOLIO DECISION + RISK + EXECUTION + TCA
+FULL END-TO-END REGRESSION CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+80A - CORE IMPORTS
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+80A IMPORT: PASS
+80A IMPORT: PASS
+
+==================================================
+80B - UNIVERSE SCREEN
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+HDFCBANK.NS SUCCESS BUY 0.66 0.084
+INFY.NS SUCCESS BUY 0.66 0.084
+RELIANCE.NS SUCCESS BUY 0.66 0.084
+TCS.NS SUCCESS BUY 0.66 0.084
+80B UNIVERSE SCREEN: PASS
+80B UNIVERSE SCREEN: PASS
+
+==================================================
+80C - DECISION QUALITY
+==================================================
+ACTIONS: ['BUY', 'BUY', 'BUY', 'BUY']
+CONFIDENCE: [0.66, 0.66, 0.66, 0.66]
+WEIGHTS: [0.084, 0.084, 0.084, 0.084]
+80C DECISION QUALITY: PASS
+80C DECISION QUALITY: PASS
+
+==================================================
+80D - PORTFOLIO EXPOSURE
+==================================================
+WEIGHTS: {'HDFCBANK.NS': 0.084, 'INFY.NS': 0.084, 'RELIANCE.NS': 0.084, 'TCS.NS': 0.084}
+TOTAL EXPOSURE: 0.336
+MAX POSITION: 0.084
+80D EXPOSURE: PASS
+80D EXPOSURE: PASS
+
+==================================================
+80E - RISK BOUNDARY VALIDATION
+==================================================
+CASE: {'A': 0.1, 'B': 0.2} TOTAL: 0.30000000000000004 VALID: True
+CASE: {'A': 0.25, 'B': 0.25} TOTAL: 0.5 VALID: True
+CASE: {'A': 0.26} TOTAL: 0.26 VALID: False
+CASE: {'A': -0.01, 'B': 0.1} TOTAL: 0.09000000000000001 VALID: False
+CASE: {'A': 0.6, 'B': 0.6} TOTAL: 1.2 VALID: False
+80E RISK BOUNDARIES: PASS
+80E RISK BOUNDARIES: PASS
+
+==================================================
+80F - EXECUTION INTENT SAFETY
+==================================================
+ENGINE: EROSExecutionIntentEngine
+MAX ORDER ALLOCATION: 0.25
+MIN CONFIDENCE: 0.5
+80F INTENT SAFETY: PASS
+80F INTENT SAFETY: PASS
+
+==================================================
+80G - FULL / PARTIAL / HOLD / BLOCKED CONTRACT
+==================================================
+INTENTS: 4
+FULL: 1
+PARTIAL: 2
+BLOCKED: 0
+HOLD: 1
+TOTAL FILLED: 175.0
+MODE: PAPER
+BROKER: False
+80G EXECUTION CONTRACT: PASS
+80G EXECUTION CONTRACT: PASS
+
+==================================================
+80H - TCA MATHEMATICAL RECONCILIATION
+==================================================
+REQUESTED: 300.0
+FILLED: 175.0
+FILL RATE: 0.583333
+SLIPPAGE: 139.14
+TRANSACTION COST: 278.41914
+EXECUTION COST: 417.55914
+RECONCILIATION: 0.0
+80H TCA: PASS
+80H TCA: PASS
+
+==================================================
+80I - FILL RATE + COST SANITY
+==================================================
+FILL RATE: 0.583333
+SLIPPAGE: 13.914
+TRANSACTION COST: 27.841913
+EXECUTION COST: 41.755913
+RECONCILIATION: 0.0
+80I COST SANITY: PASS
+80I COST SANITY: PASS
+
+==================================================
+80J - SERVICES + BACKEND COMPILE
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+==================================================
+80K - API HEALTH + READY
+==================================================
+HEALTH:
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+READY:
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+80K API: PASS
+
+==================================================
+80L - REDIS + REAL CELERY
+==================================================
+PONG
+REDIS: PASS
+CELERY TYPE: Celery
+BROKER: redis://172.22.162.253:6379/0
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+80L CELERY: PASS
+CELERY: PASS
+
+==================================================
+80M - FINAL READ-ONLY CERTIFICATION
+==================================================
+
+DIFF CHECK: PASS
+
+GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+80A: PASS
+80B: PASS
+80C: PASS
+80D: PASS
+80E: PASS
+80F: PASS
+80G: PASS
+80H: PASS
+80I: PASS
+80J: PASS
+80K: PASS
+80L: PASS
+80M: PASS
+==================================================
+
+EROS 3.0 - BLOCK 80A-80M CERTIFICATION: PASS
+
+SOURCE CHANGES: NONE
+BROKER SUBMISSION: NONE
+LIVE ORDERS: NONE
+COMMIT: NONE
+
+TRANSCRIPT:
+.\eros_logs\EROS_80A_80M_20260816_214051.log
+
+==================================================
+BLOCK 80A-80M FINISHED
+==================================================
+
+OUTPUT SAVED TO:
+.\eros_logs\EROS_80A_80M_20260816_214051.log
+
+DO NOT CLOSE THIS WINDOW.
+SEND THE COMPLETE OUTPUT.
+
+

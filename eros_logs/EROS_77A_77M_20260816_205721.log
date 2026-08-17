@@ -1,0 +1,185 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816205721
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 77A-77M
+PORTFOLIO RISK / EXPOSURE / CONCENTRATION
+INTEGRATION CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+77A - CORE QUANTITATIVE IMPORTS
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+77A IMPORT: PASS
+77A IMPORT: PASS
+
+==================================================
+77B - REAL UNIVERSE SCREEN
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+HDFCBANK.NS SUCCESS BUY 0.66 0.084
+INFY.NS SUCCESS BUY 0.66 0.084
+RELIANCE.NS SUCCESS BUY 0.66 0.084
+TCS.NS SUCCESS BUY 0.66 0.084
+77B UNIVERSE: PASS
+77B UNIVERSE: PASS
+
+==================================================
+77C - GROSS PORTFOLIO EXPOSURE
+==================================================
+WEIGHTS: [0.084, 0.084, 0.084, 0.084]
+GROSS EXPOSURE: 0.336
+77C GROSS EXPOSURE: PASS
+77C GROSS EXPOSURE: PASS
+
+==================================================
+77D - SINGLE POSITION CONCENTRATION
+==================================================
+WEIGHTS: {'HDFCBANK.NS': 0.084, 'INFY.NS': 0.084, 'RELIANCE.NS': 0.084, 'TCS.NS': 0.084}
+MAX POSITION: 0.084
+MIN POSITION: 0.084
+77D CONCENTRATION: PASS
+77D CONCENTRATION: PASS
+
+==================================================
+77E - DIVERSIFICATION TEST
+==================================================
+POSITIONS: 4
+WEIGHT SUM: 0.336
+77E DIVERSIFICATION: PASS
+77E DIVERSIFICATION: PASS
+
+==================================================
+77F - POSITION LIMIT BOUNDARIES
+==================================================
+WEIGHT: 0.0 VALID: True
+WEIGHT: 0.084 VALID: True
+WEIGHT: 0.25 VALID: True
+WEIGHT: 1.0 VALID: False
+77F POSITION BOUNDARIES: PASS
+77F POSITION BOUNDARIES: PASS
+
+==================================================
+77G - INVALID EXPOSURE SAFETY TESTS
+==================================================
+  File "<string>", line 1
+    cases=[{'A':0.30},{'A':0.60,'B':0.60},{'A':-0.10,'B':0.20}]; foreach( in @()){}; [print('CASE:',x,'VALID:',all(0<=v<
+=0.25 for v in x.values()) and sum(x.values())<=1) for x in cases]; assert not (all(0<=v<=0.25 for v in cases[0].values(
+)) and sum(cases[0].values())<=1); assert not (all(0<=v<=0.25 for v in cases[1].values()) and sum(cases[1].values())<=1)
+; assert not (all(0<=v<=0.25 for v in cases[2].values()) and sum(cases[2].values())<=1); print('77G INVALID EXPOSURE: PA
+SS')
+                                                                          ^^
+SyntaxError: invalid syntax
+77G INVALID EXPOSURE: FAIL
+
+==================================================
+77H - EXECUTION INTENT RISK GATE
+==================================================
+MAX ORDER ALLOCATION: 0.25
+MIN CONFIDENCE: 0.5
+77H RISK GATE: PASS
+77H RISK GATE: PASS
+
+==================================================
+77I - PAPER EXECUTION SAFETY
+==================================================
+MODE: PAPER
+BROKER SUBMISSION: False
+FILLED: 1
+PARTIAL: 2
+HOLD: 1
+77I PAPER SAFETY: PASS
+77I PAPER SAFETY: PASS
+
+==================================================
+77J - TCA RISK RECONCILIATION
+==================================================
+SLIPPAGE: 139.14
+TRANSACTION COST: 278.41914
+EXECUTION COST: 417.55914
+RECONCILIATION: 0.0
+77J TCA RECONCILIATION: PASS
+77J TCA RECONCILIATION: PASS
+
+==================================================
+77K - SERVICES / BACKEND COMPILE
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+==================================================
+77L - API / REDIS / CELERY REGRESSION
+==================================================
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+API HEALTH: PASS
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+API READY: PASS
+PONG
+REDIS: PASS
+CELERY TYPE: Celery
+CELERY PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+REAL CELERY: PASS
+REAL CELERY: PASS
+
+==================================================
+77M - FINAL READ-ONLY CERTIFICATION
+==================================================
+
+DIFF CHECK: PASS
+
+GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+EROS 3.0 - BLOCK 77: REVIEW REQUIRED
+ONE OR MORE TESTS FAILED
+DO NOT MODIFY SOURCE
+SEND COMPLETE OUTPUT
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_77A_77M_20260816_205721.log
+**********************
+Windows PowerShell transcript end
+End time: 20260816205730
+**********************

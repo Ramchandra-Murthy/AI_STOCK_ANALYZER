@@ -1,0 +1,201 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816191700
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 7008
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 68A TO 68M
+EXECUTION INTENT & ORDER SAFETY ENGINE
+DEVELOPMENT + CERTIFICATION
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_68_20260816_191700.log
+
+==================================================
+68A - EXECUTION INTENT ENGINE SOURCE
+==================================================
+execution_intent.py not found.
+Creating certified baseline execution intent engine...
+EXECUTION INTENT ENGINE CREATED.
+68A: PASS
+
+==================================================
+68B - EXECUTION INTENT ENGINE IMPORT
+==================================================
+ENGINE: EROSExecutionIntentEngine
+VERSION: EROS-3.0-BLOCK-68
+68B: PASS
+
+==================================================
+68C - EMPTY PORTFOLIO INTENT CONTRACT
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 0, 'approved_count': 0, 'blocked_count': 0, 'hold_count': 0, 'execution_intents': [], 'certified': Fal
+se, 'certification_status': 'REVIEW_REQUIRED'}
+68C: PASS
+68C: PASS
+
+==================================================
+68D - REAL FOUR-STOCK EXECUTION INTENT
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 4, 'approved_count': 4, 'blocked_count': 0, 'hold_count': 0, 'execution_intents': [{'symbol': 'HDFCBAN
+K.NS', 'action': 'BUY', 'quantity': 1.0, 'reference_price': 727.0, 'limit_price': 727.0, 'allocation_pct': 0.25, 'confid
+ence': 0.66, 'status': 'APPROVED', 'execution_allowed': True, 'reasons': [], 'warnings': [], 'engine_version': 'EROS-3.0
+-BLOCK-68'}, {'symbol': 'INFY.NS', 'action': 'BUY', 'quantity': 1.0, 'reference_price': 1169.2, 'limit_price': 1169.2, '
+allocation_pct': 0.25, 'confidence': 0.66, 'status': 'APPROVED', 'execution_allowed': True, 'reasons': [], 'warnings': [
+], 'engine_version': 'EROS-3.0-BLOCK-68'}, {'symbol': 'RELIANCE.NS', 'action': 'BUY', 'quantity': 1.0, 'reference_price'
+: 1310.0, 'limit_price': 1310.0, 'allocation_pct': 0.25, 'confidence': 0.66, 'status': 'APPROVED', 'execution_allowed':
+True, 'reasons': [], 'warnings': [], 'engine_version': 'EROS-3.0-BLOCK-68'}, {'symbol': 'TCS.NS', 'action': 'BUY', 'quan
+tity': 1.0, 'reference_price': 2361.0, 'limit_price': 2361.0, 'allocation_pct': 0.25, 'confidence': 0.66, 'status': 'APP
+ROVED', 'execution_allowed': True, 'reasons': [], 'warnings': [], 'engine_version': 'EROS-3.0-BLOCK-68'}], 'certified':
+True, 'certification_status': 'CERTIFIED'}
+68D: PASS
+68D: PASS
+
+==================================================
+68E - GOVERNANCE NOT APPROVED BLOCK
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 1, 'approved_count': 0, 'blocked_count': 1, 'hold_count': 0, 'execution_intents': [{'symbol': 'RELIANC
+E.NS', 'action': 'BUY', 'quantity': 1.0, 'reference_price': 1310.0, 'limit_price': 1310.0, 'allocation_pct': 0.25, 'conf
+idence': 0.66, 'status': 'BLOCKED', 'execution_allowed': False, 'reasons': ['GOVERNANCE_NOT_APPROVED', 'EXECUTION_NOT_AP
+PROVED'], 'warnings': [], 'engine_version': 'EROS-3.0-BLOCK-68'}], 'certified': False, 'certification_status': 'REVIEW_R
+EQUIRED'}
+68E: PASS
+68E: PASS
+
+==================================================
+68F - EXECUTION APPROVAL BLOCK
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 1, 'approved_count': 0, 'blocked_count': 1, 'hold_count': 0, 'execution_intents': [{'symbol': 'INFY.NS
+', 'action': 'BUY', 'quantity': 1.0, 'reference_price': 1169.2, 'limit_price': 1169.2, 'allocation_pct': 0.25, 'confiden
+ce': 0.66, 'status': 'BLOCKED', 'execution_allowed': False, 'reasons': ['EXECUTION_NOT_APPROVED'], 'warnings': [], 'engi
+ne_version': 'EROS-3.0-BLOCK-68'}], 'certified': False, 'certification_status': 'REVIEW_REQUIRED'}
+68F: PASS
+68F: PASS
+
+==================================================
+68G - STALE DATA EXECUTION INTENT BLOCK
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 1, 'approved_count': 0, 'blocked_count': 1, 'hold_count': 0, 'execution_intents': [{'symbol': 'RELIANC
+E.NS', 'action': 'BUY', 'quantity': 1.0, 'reference_price': 1310.0, 'limit_price': 1310.0, 'allocation_pct': 0.25, 'conf
+idence': 0.66, 'status': 'BLOCKED', 'execution_allowed': False, 'reasons': ['STALE_MARKET_DATA'], 'warnings': [], 'engin
+e_version': 'EROS-3.0-BLOCK-68'}], 'certified': False, 'certification_status': 'REVIEW_REQUIRED'}
+68G: PASS
+68G: PASS
+
+==================================================
+68H - INVALID ORDER DATA BLOCK
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 1, 'approved_count': 0, 'blocked_count': 1, 'hold_count': 0, 'execution_intents': [{'symbol': 'TCS.NS'
+, 'action': 'BUY', 'quantity': 0.0, 'reference_price': 0.0, 'limit_price': 0.0, 'allocation_pct': 0.25, 'confidence': 0.
+66, 'status': 'BLOCKED', 'execution_allowed': False, 'reasons': ['INVALID_REFERENCE_PRICE', 'INVALID_ORDER_QUANTITY'], '
+warnings': [], 'engine_version': 'EROS-3.0-BLOCK-68'}], 'certified': False, 'certification_status': 'REVIEW_REQUIRED'}
+68H: PASS
+68H: PASS
+
+==================================================
+68I - ORDER ALLOCATION LIMIT BLOCK
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 1, 'approved_count': 0, 'blocked_count': 1, 'hold_count': 0, 'execution_intents': [{'symbol': 'HDFCBAN
+K.NS', 'action': 'BUY', 'quantity': 1.0, 'reference_price': 727.0, 'limit_price': 727.0, 'allocation_pct': 0.4, 'confide
+nce': 0.66, 'status': 'BLOCKED', 'execution_allowed': False, 'reasons': ['ORDER_ALLOCATION_LIMIT_BREACH'], 'warnings': [
+], 'engine_version': 'EROS-3.0-BLOCK-68'}], 'certified': False, 'certification_status': 'REVIEW_REQUIRED'}
+68I: PASS
+68I: PASS
+
+==================================================
+68J - CONFIDENCE EXECUTION LIMIT
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 1, 'approved_count': 0, 'blocked_count': 1, 'hold_count': 0, 'execution_intents': [{'symbol': 'INFY.NS
+', 'action': 'BUY', 'quantity': 1.0, 'reference_price': 1169.2, 'limit_price': 1169.2, 'allocation_pct': 0.25, 'confiden
+ce': 0.3, 'status': 'BLOCKED', 'execution_allowed': False, 'reasons': ['CONFIDENCE_BELOW_EXECUTION_THRESHOLD'], 'warning
+s': [], 'engine_version': 'EROS-3.0-BLOCK-68'}], 'certified': False, 'certification_status': 'REVIEW_REQUIRED'}
+68J: PASS
+68J: PASS
+
+==================================================
+68K - HOLD / NO ORDER CONTRACT
+==================================================
+{'engine_version': 'EROS-3.0-BLOCK-68', 'status': 'SUCCESS', 'broker_submission': False, 'execution_mode': 'INTENT_ONLY'
+, 'intent_count': 1, 'approved_count': 0, 'blocked_count': 0, 'hold_count': 1, 'execution_intents': [{'symbol': 'RELIANC
+E.NS', 'action': 'HOLD', 'quantity': 0.0, 'reference_price': 1310.0, 'limit_price': 1310.0, 'allocation_pct': 0.25, 'con
+fidence': 0.66, 'status': 'HOLD', 'execution_allowed': False, 'reasons': [], 'warnings': ['HOLD_ACTION_NO_ORDER_CREATED'
+], 'engine_version': 'EROS-3.0-BLOCK-68'}], 'certified': False, 'certification_status': 'REVIEW_REQUIRED'}
+68K: PASS
+68K: PASS
+
+==================================================
+68L - FULL COMPILE + INFRASTRUCTURE REGRESSION
+==================================================
+
+QUANTITATIVE COMPILE: PASS
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+68L REDIS:
+REDIS CHECK SKIPPED
+
+68L CELERY:
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from backend.tasks.celery_app import celery_instance; print(celery_instance.control.inspect().ping())
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'control'
+CELERY: FAIL
+
+68L GIT DIFF CHECK:
+
+DIFF CHECK: PASS
+
+68L GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+68L HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+68L COMPLETE
+
+==================================================
+68M - FINAL EXECUTION INTENT CERTIFICATION
+==================================================
+
+EROS 3.0 BLOCK 68: REVIEW REQUIRED
+CHECK FAILED SECTIONS ABOVE.
+
+==================================================
+OUTPUT PERMANENTLY SAVED
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_68_20260816_191700.log
+
+RESULT:
+.\eros_logs\EROS_68_20260816_191700_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816191703
+**********************

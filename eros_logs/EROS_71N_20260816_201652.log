@@ -1,0 +1,1039 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816201652
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 71N
+PAPER EXECUTION SOURCE DIAGNOSTIC
+READ-ONLY - NO SOURCE CHANGES
+==================================================
+
+TRANSCRIPT:
+.\eros_logs\EROS_71N_20260816_201652.log
+
+==================================================
+71N.1 PAPER EXECUTION FILE
+==================================================
+FILE: .\services\quantitative\paper_execution.py
+SIZE: 12742 bytes
+LAST WRITE: 08/16/2026 19:27:17
+
+==================================================
+71N.2 SOURCE SYMBOL INSPECTION
+==================================================
+
+SEARCH: execute_intents
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:308:            slippage_value=slippage_value,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:309:            slippage_bps=slippage_bps,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:310:            transaction_cost=transaction_cost,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:311:            net_value=net_value,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:312:            fill_status=fill_status,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:313:            broker_submission=False,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:314:        ).to_dict()
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:315:
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:316:    def execute_intents(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:317:        self,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:318:        intents: List[Dict[str, Any]],
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:319:    ) -> Dict[str, Any]:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:320:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:321:        fills: List[Dict[str, Any]] = []
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:322:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:323:        for intent in intents:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:324:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:325:            fill_ratio = float(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:326:                intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:327:                    "fill_ratio",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:328:                    1.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:329:                )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:330:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:331:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:332:            fill = self.simulate_fill(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:333:                intent,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:334:                fill_ratio=fill_ratio,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:335:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:336:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:337:            fills.append(fill)
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:338:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:339:        filled = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:340:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:341:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:342:            if item["fill_status"] == "FILLED"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:343:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:344:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:345:        partial = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:346:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:347:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:348:            if item["fill_status"] == "PARTIAL"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:349:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:350:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:351:        blocked = [
+
+SEARCH: simulate_fill
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:102:            "slippage_bps": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:103:            "transaction_cost": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:104:            "net_value": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:105:            "fill_status": status,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:106:            "broker_submission": False,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:107:            "engine_version": ENGINE_VERSION,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:108:        }
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:109:
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:110:    def simulate_fill(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:111:        self,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:112:        intent: Dict[str, Any],
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:113:        fill_ratio: float = 1.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:114:    ) -> Dict[str, Any]:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:115:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:116:        symbol = str(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:117:            intent.get("symbol", "")
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:118:        ).strip().upper()
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:119:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:120:        action = str(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:121:            intent.get("action", "")
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:122:        ).upper().strip()
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:123:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:124:        requested_quantity = float(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:125:            intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:126:                "quantity",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:127:                intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:128:                    "requested_quantity",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:129:                    0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:130:                ),
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:131:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:132:            or 0.0
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:133:        )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:134:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:135:        reference_price = float(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:136:            intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:137:                "reference_price",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:138:                intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:139:                    "price",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:140:                    0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:141:                ),
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:142:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:143:            or 0.0
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:144:        )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:145:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:146:        execution_allowed = bool(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:147:            intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:148:                "execution_allowed",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:149:                False,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:150:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:151:        )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:152:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:153:        if not symbol:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:154:            return self._blocked(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:155:                symbol,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:324:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:325:            fill_ratio = float(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:326:                intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:327:                    "fill_ratio",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:328:                    1.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:329:                )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:330:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:331:
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:332:            fill = self.simulate_fill(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:333:                intent,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:334:                fill_ratio=fill_ratio,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:335:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:336:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:337:            fills.append(fill)
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:338:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:339:        filled = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:340:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:341:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:342:            if item["fill_status"] == "FILLED"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:343:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:344:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:345:        partial = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:346:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:347:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:348:            if item["fill_status"] == "PARTIAL"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:349:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:350:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:351:        blocked = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:352:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:353:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:354:            if item["fill_status"].startswith(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:355:                "BLOCKED"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:356:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:357:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:358:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:359:        hold = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:360:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:361:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:362:            if item["fill_status"] == "HOLD_NO_FILL"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:363:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:364:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:365:        total_gross = round(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:366:            sum(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:367:                item["gross_value"]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:368:                for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:369:            ),
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:370:            6,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:371:        )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:372:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:373:        total_slippage = round(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:374:            sum(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:375:                item["slippage_value"]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:376:                for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:377:            ),
+
+SEARCH: fill_ratio
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:46:        "HOLD",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:47:    }
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:48:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:49:    def __init__(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:50:        self,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:51:        buy_slippage_bps: float = 5.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:52:        sell_slippage_bps: float = 5.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:53:        transaction_cost_bps: float = 10.0,
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:54:        max_fill_ratio: float = 1.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:55:    ) -> None:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:56:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:57:        if buy_slippage_bps < 0:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:58:            raise ValueError(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:59:                "buy_slippage_bps must be >= 0"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:60:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:61:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:62:        if sell_slippage_bps < 0:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:63:            raise ValueError(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:64:                "sell_slippage_bps must be >= 0"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:65:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:66:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:67:        if transaction_cost_bps < 0:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:68:            raise ValueError(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:69:                "transaction_cost_bps must be >= 0"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:70:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:71:
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:72:        if not 0 < max_fill_ratio <= 1:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:73:            raise ValueError(
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:74:                "max_fill_ratio must be > 0 and <= 1"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:75:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:76:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:77:        self.buy_slippage_bps = float(buy_slippage_bps)
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:78:        self.sell_slippage_bps = float(sell_slippage_bps)
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:79:        self.transaction_cost_bps = float(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:80:            transaction_cost_bps
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:81:        )
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:82:        self.max_fill_ratio = float(max_fill_ratio)
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:83:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:84:    def _blocked(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:85:        self,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:86:        symbol: str,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:87:        action: str,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:88:        quantity: float,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:89:        reference_price: float,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:90:        status: str,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:91:    ) -> Dict[str, Any]:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:92:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:93:        return {
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:94:            "symbol": symbol,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:95:            "action": action,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:96:            "requested_quantity": quantity,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:97:            "filled_quantity": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:98:            "reference_price": reference_price,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:99:            "fill_price": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:100:            "gross_value": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:101:            "slippage_value": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:102:            "slippage_bps": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:103:            "transaction_cost": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:104:            "net_value": 0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:105:            "fill_status": status,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:106:            "broker_submission": False,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:107:            "engine_version": ENGINE_VERSION,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:108:        }
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:109:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:110:    def simulate_fill(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:111:        self,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:112:        intent: Dict[str, Any],
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:113:        fill_ratio: float = 1.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:114:    ) -> Dict[str, Any]:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:115:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:116:        symbol = str(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:117:            intent.get("symbol", "")
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:118:        ).strip().upper()
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:119:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:120:        action = str(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:121:            intent.get("action", "")
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:122:        ).upper().strip()
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:123:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:124:        requested_quantity = float(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:125:            intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:126:                "quantity",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:127:                intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:128:                    "requested_quantity",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:129:                    0.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:130:                ),
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:131:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:132:            or 0.0
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:133:        )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:134:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:135:        reference_price = float(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:136:            intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:137:                "reference_price",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:138:                intent.get(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:199:            return self._blocked(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:200:                symbol,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:201:                action,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:202:                requested_quantity,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:203:                reference_price,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:204:                "BLOCKED_INVALID_PRICE",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:205:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:206:
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:207:        if not 0 < fill_ratio <= 1:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:208:            return self._blocked(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:209:                symbol,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:210:                action,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:211:                requested_quantity,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:212:                reference_price,
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:213:                "BLOCKED_INVALID_FILL_RATIO",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:214:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:215:
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:216:        fill_ratio = min(
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:217:            float(fill_ratio),
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:218:            self.max_fill_ratio,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:219:        )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:220:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:221:        filled_quantity = round(
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:222:            requested_quantity * fill_ratio,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:223:            6,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:224:        )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:225:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:226:        if filled_quantity <= 0:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:227:            return self._blocked(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:228:                symbol,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:229:                action,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:230:                requested_quantity,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:231:                reference_price,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:232:                "BLOCKED_ZERO_FILL",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:233:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:234:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:235:        if action == "BUY":
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:236:            slippage_bps = self.buy_slippage_bps
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:237:            fill_price = (
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:238:                reference_price
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:239:                * (1.0 + slippage_bps / 10000.0)
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:240:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:241:        else:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:242:            slippage_bps = self.sell_slippage_bps
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:243:            fill_price = (
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:244:                reference_price
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:245:                * (1.0 - slippage_bps / 10000.0)
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:246:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:247:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:284:                6,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:285:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:286:        else:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:287:            net_value = round(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:288:                gross_value - transaction_cost,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:289:                6,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:290:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:291:
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:292:        if fill_ratio >= 1.0:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:293:            fill_status = "FILLED"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:294:        else:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:295:            fill_status = "PARTIAL"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:296:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:297:        return PaperFill(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:298:            symbol=symbol,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:299:            action=action,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:300:            requested_quantity=requested_quantity,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:301:            filled_quantity=filled_quantity,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:302:            reference_price=round(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:303:                reference_price,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:304:                6,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:305:            ),
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:306:            fill_price=fill_price,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:307:            gross_value=gross_value,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:308:            slippage_value=slippage_value,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:309:            slippage_bps=slippage_bps,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:310:            transaction_cost=transaction_cost,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:311:            net_value=net_value,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:312:            fill_status=fill_status,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:313:            broker_submission=False,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:314:        ).to_dict()
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:315:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:316:    def execute_intents(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:317:        self,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:318:        intents: List[Dict[str, Any]],
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:319:    ) -> Dict[str, Any]:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:320:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:321:        fills: List[Dict[str, Any]] = []
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:322:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:323:        for intent in intents:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:324:
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:325:            fill_ratio = float(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:326:                intent.get(
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:327:                    "fill_ratio",
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:328:                    1.0,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:329:                )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:330:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:331:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:332:            fill = self.simulate_fill(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:333:                intent,
+> D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:334:                fill_ratio=fill_ratio,
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:335:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:336:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:337:            fills.append(fill)
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:338:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:339:        filled = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:340:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:341:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:342:            if item["fill_status"] == "FILLED"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:343:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:344:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:345:        partial = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:346:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:347:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:348:            if item["fill_status"] == "PARTIAL"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:349:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:350:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:351:        blocked = [
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:352:            item
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:353:            for item in fills
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:354:            if item["fill_status"].startswith(
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:355:                "BLOCKED"
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:356:            )
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:357:        ]
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:358:
+  D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py:359:        hold = [
+
+==================================================
+71N.3 COMPLETE PAPER EXECUTION SOURCE
+==================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any, Dict, List
+
+
+ENGINE_VERSION = "EROS-3.0-BLOCK-69"
+
+
+@dataclass
+class PaperFill:
+    symbol: str
+    action: str
+    requested_quantity: float
+    filled_quantity: float
+    reference_price: float
+    fill_price: float
+    gross_value: float
+    slippage_value: float
+    slippage_bps: float
+    transaction_cost: float
+    net_value: float
+    fill_status: str
+    broker_submission: bool
+    engine_version: str = ENGINE_VERSION
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+class EROSPaperExecutionEngine:
+    """
+    EROS 3.0 Block 69.
+
+    Paper execution and transaction-cost-analysis engine.
+
+    This engine NEVER submits an order to a broker.
+
+    It converts an approved execution intent into a simulated fill
+    and calculates deterministic execution-quality metrics.
+    """
+
+    ALLOWED_ACTIONS = {
+        "BUY",
+        "SELL",
+        "HOLD",
+    }
+
+    def __init__(
+        self,
+        buy_slippage_bps: float = 5.0,
+        sell_slippage_bps: float = 5.0,
+        transaction_cost_bps: float = 10.0,
+        max_fill_ratio: float = 1.0,
+    ) -> None:
+
+        if buy_slippage_bps < 0:
+            raise ValueError(
+                "buy_slippage_bps must be >= 0"
+            )
+
+        if sell_slippage_bps < 0:
+            raise ValueError(
+                "sell_slippage_bps must be >= 0"
+            )
+
+        if transaction_cost_bps < 0:
+            raise ValueError(
+                "transaction_cost_bps must be >= 0"
+            )
+
+        if not 0 < max_fill_ratio <= 1:
+            raise ValueError(
+                "max_fill_ratio must be > 0 and <= 1"
+            )
+
+        self.buy_slippage_bps = float(buy_slippage_bps)
+        self.sell_slippage_bps = float(sell_slippage_bps)
+        self.transaction_cost_bps = float(
+            transaction_cost_bps
+        )
+        self.max_fill_ratio = float(max_fill_ratio)
+
+    def _blocked(
+        self,
+        symbol: str,
+        action: str,
+        quantity: float,
+        reference_price: float,
+        status: str,
+    ) -> Dict[str, Any]:
+
+        return {
+            "symbol": symbol,
+            "action": action,
+            "requested_quantity": quantity,
+            "filled_quantity": 0.0,
+            "reference_price": reference_price,
+            "fill_price": 0.0,
+            "gross_value": 0.0,
+            "slippage_value": 0.0,
+            "slippage_bps": 0.0,
+            "transaction_cost": 0.0,
+            "net_value": 0.0,
+            "fill_status": status,
+            "broker_submission": False,
+            "engine_version": ENGINE_VERSION,
+        }
+
+    def simulate_fill(
+        self,
+        intent: Dict[str, Any],
+        fill_ratio: float = 1.0,
+    ) -> Dict[str, Any]:
+
+        symbol = str(
+            intent.get("symbol", "")
+        ).strip().upper()
+
+        action = str(
+            intent.get("action", "")
+        ).upper().strip()
+
+        requested_quantity = float(
+            intent.get(
+                "quantity",
+                intent.get(
+                    "requested_quantity",
+                    0.0,
+                ),
+            )
+            or 0.0
+        )
+
+        reference_price = float(
+            intent.get(
+                "reference_price",
+                intent.get(
+                    "price",
+                    0.0,
+                ),
+            )
+            or 0.0
+        )
+
+        execution_allowed = bool(
+            intent.get(
+                "execution_allowed",
+                False,
+            )
+        )
+
+        if not symbol:
+            return self._blocked(
+                symbol,
+                action,
+                requested_quantity,
+                reference_price,
+                "BLOCKED_MISSING_SYMBOL",
+            )
+
+        if action not in self.ALLOWED_ACTIONS:
+            return self._blocked(
+                symbol,
+                action,
+                requested_quantity,
+                reference_price,
+                "BLOCKED_INVALID_ACTION",
+            )
+
+        if action == "HOLD":
+            return self._blocked(
+                symbol,
+                action,
+                requested_quantity,
+                reference_price,
+                "HOLD_NO_FILL",
+            )
+
+        if not execution_allowed:
+            return self._blocked(
+                symbol,
+                action,
+                requested_quantity,
+                reference_price,
+                "BLOCKED_EXECUTION_NOT_ALLOWED",
+            )
+
+        if requested_quantity <= 0:
+            return self._blocked(
+                symbol,
+                action,
+                requested_quantity,
+                reference_price,
+                "BLOCKED_INVALID_QUANTITY",
+            )
+
+        if reference_price <= 0:
+            return self._blocked(
+                symbol,
+                action,
+                requested_quantity,
+                reference_price,
+                "BLOCKED_INVALID_PRICE",
+            )
+
+        if not 0 < fill_ratio <= 1:
+            return self._blocked(
+                symbol,
+                action,
+                requested_quantity,
+                reference_price,
+                "BLOCKED_INVALID_FILL_RATIO",
+            )
+
+        fill_ratio = min(
+            float(fill_ratio),
+            self.max_fill_ratio,
+        )
+
+        filled_quantity = round(
+            requested_quantity * fill_ratio,
+            6,
+        )
+
+        if filled_quantity <= 0:
+            return self._blocked(
+                symbol,
+                action,
+                requested_quantity,
+                reference_price,
+                "BLOCKED_ZERO_FILL",
+            )
+
+        if action == "BUY":
+            slippage_bps = self.buy_slippage_bps
+            fill_price = (
+                reference_price
+                * (1.0 + slippage_bps / 10000.0)
+            )
+        else:
+            slippage_bps = self.sell_slippage_bps
+            fill_price = (
+                reference_price
+                * (1.0 - slippage_bps / 10000.0)
+            )
+
+        fill_price = round(
+            fill_price,
+            6,
+        )
+
+        gross_value = round(
+            filled_quantity * fill_price,
+            6,
+        )
+
+        benchmark_value = (
+            filled_quantity
+            * reference_price
+        )
+
+        if action == "BUY":
+            slippage_value = round(
+                gross_value - benchmark_value,
+                6,
+            )
+        else:
+            slippage_value = round(
+                benchmark_value - gross_value,
+                6,
+            )
+
+        transaction_cost = round(
+            gross_value
+            * self.transaction_cost_bps
+            / 10000.0,
+            6,
+        )
+
+        if action == "BUY":
+            net_value = round(
+                gross_value + transaction_cost,
+                6,
+            )
+        else:
+            net_value = round(
+                gross_value - transaction_cost,
+                6,
+            )
+
+        if fill_ratio >= 1.0:
+            fill_status = "FILLED"
+        else:
+            fill_status = "PARTIAL"
+
+        return PaperFill(
+            symbol=symbol,
+            action=action,
+            requested_quantity=requested_quantity,
+            filled_quantity=filled_quantity,
+            reference_price=round(
+                reference_price,
+                6,
+            ),
+            fill_price=fill_price,
+            gross_value=gross_value,
+            slippage_value=slippage_value,
+            slippage_bps=slippage_bps,
+            transaction_cost=transaction_cost,
+            net_value=net_value,
+            fill_status=fill_status,
+            broker_submission=False,
+        ).to_dict()
+
+    def execute_intents(
+        self,
+        intents: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+
+        fills: List[Dict[str, Any]] = []
+
+        for intent in intents:
+
+            fill_ratio = float(
+                intent.get(
+                    "fill_ratio",
+                    1.0,
+                )
+            )
+
+            fill = self.simulate_fill(
+                intent,
+                fill_ratio=fill_ratio,
+            )
+
+            fills.append(fill)
+
+        filled = [
+            item
+            for item in fills
+            if item["fill_status"] == "FILLED"
+        ]
+
+        partial = [
+            item
+            for item in fills
+            if item["fill_status"] == "PARTIAL"
+        ]
+
+        blocked = [
+            item
+            for item in fills
+            if item["fill_status"].startswith(
+                "BLOCKED"
+            )
+        ]
+
+        hold = [
+            item
+            for item in fills
+            if item["fill_status"] == "HOLD_NO_FILL"
+        ]
+
+        total_gross = round(
+            sum(
+                item["gross_value"]
+                for item in fills
+            ),
+            6,
+        )
+
+        total_slippage = round(
+            sum(
+                item["slippage_value"]
+                for item in fills
+            ),
+            6,
+        )
+
+        total_cost = round(
+            sum(
+                item["transaction_cost"]
+                for item in fills
+            ),
+            6,
+        )
+
+        total_net = round(
+            sum(
+                item["net_value"]
+                for item in fills
+            ),
+            6,
+        )
+
+        execution_count = (
+            len(filled)
+            + len(partial)
+        )
+
+        if execution_count > 0:
+            average_slippage_bps = round(
+                sum(
+                    item["slippage_bps"]
+                    for item in fills
+                    if item["fill_status"]
+                    in {"FILLED", "PARTIAL"}
+                )
+                / execution_count,
+                6,
+            )
+        else:
+            average_slippage_bps = 0.0
+
+        return {
+            "engine_version": ENGINE_VERSION,
+            "status": "SUCCESS",
+            "broker_submission": False,
+            "execution_mode": "PAPER",
+            "intent_count": len(intents),
+            "filled_count": len(filled),
+            "partial_count": len(partial),
+            "blocked_count": len(blocked),
+            "hold_count": len(hold),
+            "total_gross_value": total_gross,
+            "total_slippage_value": total_slippage,
+            "average_slippage_bps": average_slippage_bps,
+            "total_transaction_cost": total_cost,
+            "total_net_value": total_net,
+            "fills": fills,
+        }
+
+    def generate_tca(
+        self,
+        execution_result: Dict[str, Any],
+    ) -> Dict[str, Any]:
+
+        fills = execution_result.get(
+            "fills",
+            [],
+        )
+
+        executed = [
+            item
+            for item in fills
+            if item["fill_status"]
+            in {"FILLED", "PARTIAL"}
+        ]
+
+        requested_quantity = round(
+            sum(
+                item["requested_quantity"]
+                for item in fills
+            ),
+            6,
+        )
+
+        filled_quantity = round(
+            sum(
+                item["filled_quantity"]
+                for item in fills
+            ),
+            6,
+        )
+
+        fill_rate = (
+            filled_quantity
+            / requested_quantity
+            if requested_quantity > 0
+            else 0.0
+        )
+
+        total_cost = round(
+            sum(
+                item["transaction_cost"]
+                for item in executed
+            ),
+            6,
+        )
+
+        total_slippage = round(
+            sum(
+                item["slippage_value"]
+                for item in executed
+            ),
+            6,
+        )
+
+        total_value = round(
+            sum(
+                item["gross_value"]
+                for item in executed
+            ),
+            6,
+        )
+
+        return {
+            "engine_version": ENGINE_VERSION,
+            "status": "SUCCESS",
+            "execution_mode": "PAPER",
+            "broker_submission": False,
+            "requested_quantity": requested_quantity,
+            "filled_quantity": filled_quantity,
+            "fill_rate": round(
+                fill_rate,
+                6,
+            ),
+            "executed_orders": len(executed),
+            "total_slippage": total_slippage,
+            "total_transaction_cost": total_cost,
+            "total_execution_cost": round(
+                total_slippage + total_cost,
+                6,
+            ),
+            "executed_value": total_value,
+        }
+
+
+__all__ = [
+    "EROSPaperExecutionEngine",
+    "PaperFill",
+    "ENGINE_VERSION",
+]
+
+==================================================
+71N.4 DIRECT simulate_fill() TEST
+==================================================
+ENGINE: EROSPaperExecutionEngine
+DIRECT HDFCBANK.NS INPUT_RATIO= 1.0 OUTPUT= {'symbol': 'HDFCBANK.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'fil
+led_quantity': 100.0, 'reference_price': 727.0, 'fill_price': 727.3635, 'gross_value': 72736.35, 'slippage_value': 36.35
+, 'slippage_bps': 5.0, 'transaction_cost': 72.73635, 'net_value': 72809.08635, 'fill_status': 'FILLED', 'broker_submissi
+on': False, 'engine_version': 'EROS-3.0-BLOCK-69'}
+DIRECT INFY.NS INPUT_RATIO= 0.5 OUTPUT= {'symbol': 'INFY.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'filled_quan
+tity': 100.0, 'reference_price': 1169.2, 'fill_price': 1169.7846, 'gross_value': 116978.46, 'slippage_value': 58.46, 'sl
+ippage_bps': 5.0, 'transaction_cost': 116.97846, 'net_value': 117095.43846, 'fill_status': 'FILLED', 'broker_submission'
+: False, 'engine_version': 'EROS-3.0-BLOCK-69'}
+DIRECT RELIANCE.NS INPUT_RATIO= 0.25 OUTPUT= {'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'fi
+lled_quantity': 100.0, 'reference_price': 1310.0, 'fill_price': 1310.655, 'gross_value': 131065.5, 'slippage_value': 65.
+5, 'slippage_bps': 5.0, 'transaction_cost': 131.0655, 'net_value': 131196.5655, 'fill_status': 'FILLED', 'broker_submiss
+ion': False, 'engine_version': 'EROS-3.0-BLOCK-69'}
+DIRECT SIMULATE_FILL: EXECUTED
+
+==================================================
+71N.5 execute_intents() FILL-RATIO DIAGNOSTIC
+==================================================
+EXECUTION MODE: PAPER
+INTENT COUNT: 3
+FILLED COUNT: 1
+PARTIAL COUNT: 2
+BLOCKED COUNT: 0
+HOLD COUNT: 0
+TOTAL FILLED QUANTITY: 175.0
+RESULT HDFCBANK.NS REQUESTED= 100.0 FILLED= 100.0 STATUS= FILLED
+RESULT INFY.NS REQUESTED= 100.0 FILLED= 50.0 STATUS= PARTIAL
+RESULT RELIANCE.NS REQUESTED= 100.0 FILLED= 25.0 STATUS= PARTIAL
+EXPECTED FILLED QUANTITY: 175
+EXPECTED PARTIAL COUNT: 2
+ACTUAL FILLED QUANTITY: 175.0
+ACTUAL PARTIAL COUNT: 2
+EXECUTE_INTENTS DIAGNOSTIC: EXECUTED
+
+==================================================
+71N.6 VALUE RECONCILIATION CONTRACT
+==================================================
+GROSS: 55699.835999999996
+SLIPPAGE: 27.836
+TRANSACTION COST: 55.699836
+NET: 55755.535835999995
+NET-GROSS: 55.69983599999978
+SLIPPAGE+COST: 83.53583599999999
+TCA EXECUTION COST: 83.535836
+ENGINE TOTAL GROSS: 55699.836
+ENGINE TOTAL SLIPPAGE: 27.836
+ENGINE TOTAL COST: 55.699836
+CONTRACT: NET-GROSS equals transaction cost = True
+CONTRACT: SLIPPAGE+COST equals TCA execution cost = True
+VALUE CONTRACT DIAGNOSTIC: EXECUTED
+
+==================================================
+71N.7 MODULE COMPILE
+==================================================
+
+COMPILE: PASS
+
+==================================================
+71N.8 GIT DIFF CHECK
+==================================================
+
+DIFF CHECK: PASS
+
+==================================================
+71N.9 GIT STATUS
+==================================================
+?? eros_logs/
+?? services/quantitative/
+
+==================================================
+71N.10 HEAD
+==================================================
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+BLOCK 71N DIAGNOSTIC COMPLETE
+==================================================
+
+IMPORTANT:
+NO SOURCE CHANGES WERE MADE.
+NO BROKER SUBMISSION WAS MADE.
+NO LIVE ORDER WAS CREATED.
+NO COMMIT WAS PERFORMED.
+
+THE PURPOSE OF THIS BLOCK IS DIAGNOSIS ONLY.
+SEND THE COMPLETE OUTPUT BEFORE ANY REPAIR.
+
+RESULT FILE SAVED:
+.\eros_logs\EROS_71N_20260816_201652_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816201653
+**********************

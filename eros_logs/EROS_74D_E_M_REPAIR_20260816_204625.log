@@ -1,0 +1,179 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816204625
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 74D-R / 74E-R / 74M-R
+CORRECTED EXPOSURE CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+74D-R - EXPOSURE BOUNDARY TESTS
+==================================================
+CASE: ZERO TOTAL: 0.0 VALID: True
+CASE: FULL TOTAL: 1.0 VALID: True
+CASE: EQUAL TOTAL: 1.0 VALID: True
+CASE: UNDER TOTAL: 0.5 VALID: True
+ZERO EXPOSURE: PASS
+FULL EXPOSURE: PASS
+EQUAL EXPOSURE: PASS
+UNDER ALLOCATION: PASS
+74D-R EXPOSURE BOUNDARIES: PASS
+74D-R: PASS
+
+==================================================
+74E-R - INVALID EXPOSURE DETECTION
+==================================================
+CASE: NEGATIVE TOTAL: 0.4 VALID: False
+CASE: OVER_ONE TOTAL: 1.1 VALID: False
+CASE: TOTAL_OVER_ONE TOTAL: 1.2 VALID: False
+CASE: VALID TOTAL: 1.0 VALID: True
+NEGATIVE WEIGHT: PASS
+WEIGHT > 100%: PASS
+TOTAL > 100%: PASS
+VALID CONTROL CASE: PASS
+74E-R INVALID EXPOSURE: PASS
+74E-R: PASS
+
+==================================================
+74M-R.1 CORE IMPORT
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+IMPORT: PASS
+IMPORT: PASS
+
+==================================================
+74M-R.2 REAL BATCH REGRESSION
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_
+action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False,
+ 'final_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final
+_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'TCS.NS', 'status': 'SUCCESS', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_acti
+on': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+REAL BATCH: PASS
+REAL BATCH: PASS
+
+==================================================
+74M-R.3 PAPER EXECUTION REGRESSION
+==================================================
+MODE: PAPER
+INTENTS: 4
+FULL: 1
+PARTIAL: 2
+BLOCKED: 0
+HOLD: 1
+TOTAL FILLED: 175.0
+PAPER EXECUTION: PASS
+PAPER EXECUTION: PASS
+
+==================================================
+74M-R.4 TCA RECONCILIATION
+==================================================
+REQUESTED: 30.0
+FILLED: 17.5
+FILL RATE: 0.583333
+SLIPPAGE: 13.914
+TRANSACTION COST: 27.841913
+EXECUTION COST: 41.755913
+RECONCILIATION DIFFERENCE: 0.0
+TCA: PASS
+TCA: PASS
+
+==================================================
+74M-R.5 SERVICES COMPILE
+==================================================
+
+SERVICES COMPILE: PASS
+
+74M-R.6 BACKEND COMPILE
+
+BACKEND COMPILE: PASS
+
+74M-R.7 API HEALTH / READY
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+API HEALTH: PASS
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+API READY: PASS
+
+74M-R.8 REDIS
+PONG
+REDIS: PASS
+
+74M-R.9 REAL CELERY
+TYPE: Celery
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+REAL CELERY: PASS
+REAL CELERY: PASS
+
+==================================================
+74M-R.10 GIT READ-ONLY CERTIFICATION
+==================================================
+
+DIFF CHECK: PASS
+
+GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+BLOCK 74D-R: PASS
+BLOCK 74E-R: PASS
+BLOCK 74M-R: PASS
+
+==================================================
+EROS 3.0 - BLOCK 74A-74M CERTIFICATION: PASS
+==================================================
+
+74D EXPOSURE BOUNDARIES: PASS
+74E INVALID EXPOSURE: PASS
+74M FINAL REGRESSION: PASS
+SOURCE CHANGES: NONE
+BROKER SUBMISSION: NONE
+LIVE ORDERS: NONE
+COMMIT: NONE
+
+TRANSCRIPT SAVED:
+.\eros_logs\EROS_74D_E_M_REPAIR_20260816_204625.log
+**********************
+Windows PowerShell transcript end
+End time: 20260816204631
+**********************

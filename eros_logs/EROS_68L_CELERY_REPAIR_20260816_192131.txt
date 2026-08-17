@@ -1,0 +1,83 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816192131
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 7008
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 68L CELERY REPAIR
+REAL CELERY ENVIRONMENT VERIFICATION
+READ ONLY - NO SOURCE CHANGES
+==================================================
+
+68L-R1 WSL IP
+WSL IP: 172.22.162.253
+
+68L-R2 SET REAL CELERY ENVIRONMENT
+USE_REAL_CELERY = true
+CELERY_BROKER_URL = redis://172.22.162.253:6379/0
+CELERY_RESULT_BACKEND = redis://172.22.162.253:6379/0
+
+68L-R3 REDIS TEST
+PONG
+REDIS COMMAND: PASS
+
+68L-R4 REAL CELERY IMPORT
+CELERY_INSTANCE = <Celery eros_enterprise at 0x25b3796aba0>
+TYPE = <class 'celery.app.base.Celery'>
+BROKER = redis://172.22.162.253:6379/0
+REAL CELERY INSTANCE: PASS
+
+68L-R5 CELERY PING
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+CELERY PING: PASS
+
+68L-R6 REGISTERED TASKS
+TASK COUNT: 13
+ - forecast.execute
+ - forecast.run
+ - report.generate
+ - valuation.execute
+REGISTERED TASKS: PASS
+
+68L-R7 CELERY PROCESS CHECK
+
+ProcessName   Id Path
+-----------   -- ----
+python      3668 C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\python.exe
+python      5404 C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\python.exe
+python      7544 D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Scripts\python.exe
+python      9904 D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Scripts\python.exe
+
+
+
+68L-R8 SOURCE CHECK - READ ONLY
+
+DIFF CHECK: PASS
+
+==================================================
+BLOCK 68L CELERY REPAIR: PASS
+REAL CELERY INSTANCE: PASS
+REDIS: PASS
+CELERY PING: PASS
+TASK REGISTRATION: PASS
+NO SOURCE CHANGES
+NO COMMIT
+==================================================
+**********************
+Windows PowerShell transcript end
+End time: 20260816192136
+**********************

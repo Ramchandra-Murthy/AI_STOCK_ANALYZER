@@ -1,0 +1,231 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816202917
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 72A-72M
+PORTFOLIO EXECUTION INTEGRATION CERTIFICATION
+==================================================
+
+SAFETY:
+READ ONLY - NO SOURCE CHANGES
+NO BROKER SUBMISSION
+NO LIVE ORDER
+NO REAL MONEY
+NO COMMIT
+
+TRANSCRIPT:
+.\eros_logs\EROS_72A_M_20260816_202917.log
+
+==================================================
+72A - QUANTITATIVE ENGINE IMPORT
+==================================================
+ENGINE: EROSMultiAssetBatchScreener
+POLICY: Institutional
+WORKERS: 4
+72A IMPORT: PASS
+72A IMPORT: PASS
+
+==================================================
+72B - PAPER EXECUTION ENGINE IMPORT
+==================================================
+ENGINE: EROSPaperExecutionEngine
+72B IMPORT: PASS
+72B IMPORT: PASS
+
+==================================================
+72C - FOUR-STOCK QUANTITATIVE SCREEN
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_
+action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False,
+ 'final_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final
+_action': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+{'symbol': 'TCS.NS', 'status': 'SUCCESS', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False, 'final_acti
+on': 'BUY', 'confidence': 0.66, 'target_weight': 0.084}
+72C SCREEN: PASS
+72C SCREEN: PASS
+
+==================================================
+72D - PORTFOLIO ALLOCATION CONTRACT
+==================================================
+WEIGHTS: {'RELIANCE.NS': 0.25, 'TCS.NS': 0.25, 'INFY.NS': 0.25, 'HDFCBANK.NS': 0.25}
+TOTAL: 1.0
+72D ALLOCATION: PASS
+72D ALLOCATION: PASS
+
+==================================================
+72E - EXECUTION INTENT ENGINE
+==================================================
+ENGINE: EROSExecutionIntentEngine
+72E EXECUTION INTENT IMPORT: PASS
+72E EXECUTION INTENT: PASS
+
+==================================================
+72F - PAPER PORTFOLIO EXECUTION
+==================================================
+MODE: PAPER
+INTENTS: 4
+FILLED: 4
+PARTIAL: 0
+BLOCKED: 0
+FILLED QUANTITY: 40.0
+72F PAPER EXECUTION: PASS
+72F PAPER EXECUTION: PASS
+
+==================================================
+72G - PARTIAL FILL PORTFOLIO
+==================================================
+INTENTS: 4
+FILLED: 1
+PARTIAL: 2
+BLOCKED: 0
+HOLD: 1
+TOTAL FILLED: 175.0
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from services.quantitative.paper_execution import EROSPaperExecutionEngine; e=EROSPaperExecutionEngine(); intents=[{
+'symbol':'RELIANCE.NS','action':'BUY','quantity':100,'reference_price':1310.0,'execution_allowed':True,'fill_ratio':1.0}
+,{'symbol':'TCS.NS','action':'BUY','quantity':100,'reference_price':2361.0,'execution_allowed':True,'fill_ratio':0.5},{'
+symbol':'INFY.NS','action':'BUY','quantity':100,'reference_price':1169.2,'execution_allowed':True,'fill_ratio':0.25},{'s
+ymbol':'HDFCBANK.NS','action':'HOLD','quantity':100,'reference_price':727.0,'execution_allowed':False,'fill_ratio':0.0}]
+; r=e.execute_intents(intents); print('INTENTS:',r['intent_count']); print('FILLED:',r['filled_count']); print('PARTIAL:
+',r['partial_count']); print('BLOCKED:',r['blocked_count']); print('HOLD:',r['hold_count']); print('TOTAL FILLED:',sum(f
+loat(x['filled_quantity']) for x in r['fills'])); assert r['intent_count']==4; assert r['filled_count']==1; assert r['pa
+rtial_count']==1; assert r['blocked_count']==1; assert r['hold_count']==1; assert sum(float(x['filled_quantity']) for x
+in r['fills'])==150.0; print('72G PARTIAL PORTFOLIO: PASS')
+
+
+
+
+
+
+
+                                                                                                                   ^^^^^
+^^^^^^^^^^^^^^^^
+AssertionError
+72G PARTIAL PORTFOLIO: FAIL
+
+==================================================
+72H - PORTFOLIO TCA RECONCILIATION
+==================================================
+REQUESTED: 30.0
+FILLED: 17.5
+FILL RATE: 0.583333
+SLIPPAGE: 13.914
+TRANSACTION COST: 27.841913
+EXECUTION COST: 41.755913
+72H TCA: PASS
+72H TCA: PASS
+
+==================================================
+72I - SAFETY GATE VALIDATION
+==================================================
+RESULTS:
+{'symbol': 'SAFE_A.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'filled_quantity': 0.0, 'reference_price': 100.0, '
+fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps': 0.0, 'transaction_cost': 0.0, 'net_value':
+0.0, 'fill_status': 'BLOCKED_EXECUTION_NOT_ALLOWED', 'broker_submission': False, 'engine_version': 'EROS-3.0-BLOCK-69'}
+{'symbol': 'SAFE_B.NS', 'action': 'HOLD', 'requested_quantity': 10.0, 'filled_quantity': 0.0, 'reference_price': 100.0,
+'fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps': 0.0, 'transaction_cost': 0.0, 'net_value':
+ 0.0, 'fill_status': 'HOLD_NO_FILL', 'broker_submission': False, 'engine_version': 'EROS-3.0-BLOCK-69'}
+{'symbol': 'SAFE_C.NS', 'action': 'BUY', 'requested_quantity': 10.0, 'filled_quantity': 0.0, 'reference_price': 100.0, '
+fill_price': 0.0, 'gross_value': 0.0, 'slippage_value': 0.0, 'slippage_bps': 0.0, 'transaction_cost': 0.0, 'net_value':
+0.0, 'fill_status': 'BLOCKED_INVALID_FILL_RATIO', 'broker_submission': False, 'engine_version': 'EROS-3.0-BLOCK-69'}
+BLOCKED: 2
+HOLD: 1
+72I SAFETY GATES: PASS
+72I SAFETY GATES: PASS
+
+==================================================
+72J - DETERMINISTIC REPLAY
+==================================================
+HASH 1: dfc39fb35190320e56139bd81b7fc4b41b7033dae6d68940308620e1a991c02b
+HASH 2: dfc39fb35190320e56139bd81b7fc4b41b7033dae6d68940308620e1a991c02b
+IDENTICAL: True
+72J DETERMINISTIC REPLAY: PASS
+72J DETERMINISTIC REPLAY: PASS
+
+==================================================
+72K - FULL SERVICE COMPILE
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+==================================================
+72L - INFRASTRUCTURE REGRESSION
+==================================================
+
+API HEALTH
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+API HEALTH: PASS
+
+API READY
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+API READY: PASS
+
+REDIS
+PONG
+REDIS: PASS
+
+REAL CELERY
+TYPE: Celery
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+CELERY: PASS
+CELERY: PASS
+
+==================================================
+72M - FINAL EROS 3.0 CERTIFICATION
+==================================================
+
+GIT DIFF CHECK
+
+DIFF CHECK: PASS
+
+GIT STATUS
+?? eros_logs/
+?? services/quantitative/
+
+HEAD
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+BLOCK 72A-72M: REVIEW REQUIRED
+ONE OR MORE CERTIFICATION TESTS FAILED.
+DO NOT MODIFY SOURCE UNTIL OUTPUT IS REVIEWED.
+==================================================
+
+RESULT FILE SAVED:
+.\eros_logs\EROS_72A_M_20260816_202917_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816202925
+**********************

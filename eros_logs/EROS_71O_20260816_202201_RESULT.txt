@@ -1,0 +1,32 @@
+﻿==================================================
+EROS 3.0 - BLOCK 71O
+CORRECTED PAPER EXECUTION CERTIFICATION
+==================================================
+
+EXPECTED:
+100% -> 100 FILLED / FILLED
+50%  -> 50 FILLED / PARTIAL
+25%  -> 25 FILLED / PARTIAL
+
+EXECUTE_INTENTS:
+TOTAL FILLED = 175
+FULL = 1
+PARTIAL = 2
+BLOCKED = 0
+
+TCA:
+FILL RATE AND EXECUTION COST CONTRACTS MUST PASS.
+
+SAFETY:
+NO BROKER SUBMISSION
+NO LIVE ORDER
+NO REAL MONEY
+NO SOURCE CHANGES
+NO COMMIT
+
+TRANSCRIPT:
+.\eros_logs\EROS_71O_20260816_202201.log
+
+RESULT:
+.\eros_logs\EROS_71O_20260816_202201_RESULT.txt
+==================================================

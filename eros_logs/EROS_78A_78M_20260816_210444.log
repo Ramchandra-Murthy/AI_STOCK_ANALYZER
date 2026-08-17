@@ -1,0 +1,202 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816210444
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 78A-78M
+PORTFOLIO RISK DECISION + EXECUTION CONTROL
+END-TO-END REGRESSION CERTIFICATION
+READ ONLY - NO SOURCE CHANGES
+NO BROKER - NO LIVE ORDER - NO COMMIT
+==================================================
+
+==================================================
+78A - CORE IMPORTS
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+78A IMPORT: PASS
+78A IMPORT: PASS
+
+==================================================
+78B - REAL MULTI-ASSET SCREEN
+==================================================
+COUNT: 4
+SUCCESS: 4
+ERRORS: 0
+HDFCBANK.NS SUCCESS BUY 0.66 0.084
+INFY.NS SUCCESS BUY 0.66 0.084
+RELIANCE.NS SUCCESS BUY 0.66 0.084
+TCS.NS SUCCESS BUY 0.66 0.084
+78B MULTI-ASSET SCREEN: PASS
+78B MULTI-ASSET SCREEN: PASS
+
+==================================================
+78C - SIGNAL QUALITY CONTRACT
+==================================================
+ACTIONS: ['BUY', 'BUY', 'BUY', 'BUY']
+CONFIDENCE: [0.66, 0.66, 0.66, 0.66]
+TARGET WEIGHTS: [0.084, 0.084, 0.084, 0.084]
+78C SIGNAL QUALITY: PASS
+78C SIGNAL QUALITY: PASS
+
+==================================================
+78D - PORTFOLIO EXPOSURE
+==================================================
+WEIGHTS: {'HDFCBANK.NS': 0.084, 'INFY.NS': 0.084, 'RELIANCE.NS': 0.084, 'TCS.NS': 0.084}
+TOTAL: 0.336
+MAX POSITION: 0.084
+78D EXPOSURE: PASS
+78D EXPOSURE: PASS
+
+==================================================
+78E - INVALID RISK BOUNDARIES
+==================================================
+CASE: {'A': -0.1, 'B': 0.2} TOTAL: 0.1 VALID: False
+CASE: {'A': 0.3} TOTAL: 0.3 VALID: False
+CASE: {'A': 0.6, 'B': 0.6} TOTAL: 1.2 VALID: False
+CASE: {'A': 0.25, 'B': 0.25} TOTAL: 0.5 VALID: True
+78E RISK BOUNDARIES: PASS
+78E RISK BOUNDARIES: PASS
+
+==================================================
+78F - EXECUTION INTENT RISK LIMITS
+==================================================
+ENGINE: EROSExecutionIntentEngine
+MAX ORDER ALLOCATION: 0.25
+MIN CONFIDENCE: 0.5
+78F INTENT RISK LIMITS: PASS
+78F INTENT RISK LIMITS: PASS
+
+==================================================
+78G - PAPER EXECUTION CONTRACT
+==================================================
+MODE: PAPER
+INTENTS: 4
+FULL: 1
+PARTIAL: 2
+HOLD: 1
+FILLED QUANTITY: 175.0
+BROKER: False
+78G PAPER CONTRACT: PASS
+78G PAPER CONTRACT: PASS
+
+==================================================
+78H - TCA MATHEMATICAL RECONCILIATION
+==================================================
+REQUESTED: 300.0
+FILLED: 175.0
+FILL RATE: 0.583333
+SLIPPAGE: 139.14
+TRANSACTION COST: 278.41914
+EXECUTION COST: 417.55914
+RECONCILIATION: 0.0
+78H TCA: PASS
+78H TCA: PASS
+
+==================================================
+78I - EXECUTION COST SANITY
+==================================================
+SLIPPAGE: 13.914
+TRANSACTION COST: 27.841913
+EXECUTION COST: 41.755913
+78I COST SANITY: PASS
+78I COST SANITY: PASS
+
+==================================================
+78J - SERVICES + BACKEND COMPILE
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+==================================================
+78K - API HEALTH + READY
+==================================================
+HEALTH:
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+READY:
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+78K API: PASS
+
+==================================================
+78L - REDIS + REAL CELERY
+==================================================
+PONG
+REDIS: PASS
+CELERY TYPE: Celery
+BROKER: redis://172.22.162.253:6379/0
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+78L CELERY: PASS
+CELERY: PASS
+
+==================================================
+78M - FINAL READ-ONLY CERTIFICATION
+==================================================
+
+DIFF CHECK: PASS
+
+GIT STATUS:
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+78A: PASS
+78B: PASS
+78C: PASS
+78D: PASS
+78E: PASS
+78F: PASS
+78G: PASS
+78H: PASS
+78I: PASS
+78J: PASS
+78K: PASS
+78L: PASS
+78M: PASS
+==================================================
+
+EROS 3.0 - BLOCK 78A-78M CERTIFICATION: PASS
+
+SOURCE CHANGES: NONE
+BROKER SUBMISSION: NONE
+LIVE ORDERS: NONE
+COMMIT: NONE
+
+TRANSCRIPT:
+.\eros_logs\EROS_78A_78M_20260816_210444.log
+**********************
+Windows PowerShell transcript end
+End time: 20260816210455
+**********************

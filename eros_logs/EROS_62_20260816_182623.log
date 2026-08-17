@@ -1,0 +1,165 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816182623
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 9240
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 62A TO 62M
+SAFE EXECUTION MODE
+==================================================
+
+LOG FILE:
+.\eros_logs\EROS_62_20260816_182623.log
+
+RESULT FILE:
+.\eros_logs\EROS_62_.txt
+
+IMPORTANT: WINDOW WILL REMAIN OPEN AFTER COMPLETION
+
+========== 62A ==========
+BATCH SCREENER IMPORT: PASS
+62A: PASS
+
+========== 62B ==========
+
+62B: PASS
+
+========== 62C ==========
+CLASS: EROSPortfolioOptimizer
+POLICY: Institutional
+MAX: 0.25
+62C: PASS
+62C: PASS
+
+========== 62D ==========
+RESULT: [{'symbol': 'A.NS', 'status': 'SUCCESS', 'raw_weight': 0.5, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'c
+onfidence': 0.0, 'final_action': 'HOLD', 'price': None, 'source': None, 'is_stale': False}, {'symbol': 'B.NS', 'status':
+ 'SUCCESS', 'raw_weight': 0.3, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confidence': 0.0, 'final_action': 'HOL
+D', 'price': None, 'source': None, 'is_stale': False}, {'symbol': 'C.NS', 'status': 'SUCCESS', 'raw_weight': 0.2, 'optim
+ized_weight': 0.25, 'allocation_pct': 25.0, 'confidence': 0.0, 'final_action': 'HOLD', 'price': None, 'source': None, 'i
+s_stale': False}]
+62D: PASS
+62D: PASS
+
+========== 62E ==========
+RESULT: [{'symbol': 'A.NS', 'status': 'SUCCESS', 'raw_weight': 0.9, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'c
+onfidence': 0.0, 'final_action': 'HOLD', 'price': None, 'source': None, 'is_stale': False}, {'symbol': 'B.NS', 'status':
+ 'SUCCESS', 'raw_weight': 0.05, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confidence': 0.0, 'final_action': 'HO
+LD', 'price': None, 'source': None, 'is_stale': False}, {'symbol': 'C.NS', 'status': 'SUCCESS', 'raw_weight': 0.05, 'opt
+imized_weight': 0.25, 'allocation_pct': 25.0, 'confidence': 0.0, 'final_action': 'HOLD', 'price': None, 'source': None,
+'is_stale': False}]
+62E: PASS
+62E: PASS
+
+========== 62F ==========
+TOTAL: 1.0
+62F: PASS
+62F: PASS
+
+========== 62G ==========
+RESULT: [{'symbol': 'A.NS', 'status': 'SUCCESS', 'raw_weight': 0.8, 'optimized_weight': 0.2, 'allocation_pct': 20.0, 'co
+nfidence': 0.0, 'final_action': 'HOLD', 'price': None, 'source': None, 'is_stale': False}, {'symbol': 'B.NS', 'status':
+'SUCCESS', 'raw_weight': 0.1, 'optimized_weight': 0.2, 'allocation_pct': 20.0, 'confidence': 0.0, 'final_action': 'HOLD'
+, 'price': None, 'source': None, 'is_stale': False}, {'symbol': 'C.NS', 'status': 'SUCCESS', 'raw_weight': 0.1, 'optimiz
+ed_weight': 0.2, 'allocation_pct': 20.0, 'confidence': 0.0, 'final_action': 'HOLD', 'price': None, 'source': None, 'is_s
+tale': False}]
+62G: PASS
+62G: PASS
+
+========== 62H ==========
+REAL 4-STOCK OPTIMIZATION
+SCREEN COUNT: 4
+SUCCESS: 4
+PORTFOLIO:
+{'symbol': 'HDFCBANK.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'c
+onfidence': 0.66, 'final_action': 'BUY', 'price': 727.0, 'source': 'yfinance-live-api', 'is_stale': False}
+{'symbol': 'INFY.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confi
+dence': 0.66, 'final_action': 'BUY', 'price': 1169.199951171875, 'source': 'yfinance-live-api', 'is_stale': False}
+{'symbol': 'RELIANCE.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'c
+onfidence': 0.66, 'final_action': 'BUY', 'price': 1310.0, 'source': 'yfinance-live-api', 'is_stale': False}
+{'symbol': 'TCS.NS', 'status': 'SUCCESS', 'raw_weight': 0.084, 'optimized_weight': 0.25, 'allocation_pct': 25.0, 'confid
+ence': 0.66, 'final_action': 'BUY', 'price': 2361.0, 'source': 'yfinance-live-api', 'is_stale': False}
+TOTAL WEIGHT: 1.0
+62H: PASS
+62H: PASS
+
+========== 62I ==========
+EMPTY: PASS
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from services.quantitative.portfolio_optimizer import EROSPortfolioOptimizer; o=EROSPortfolioOptimizer(); assert o.o
+ptimize([])==[]; print('EMPTY: PASS'); r=o.optimize([{'symbol':'A.NS','status':'SUCCESS','target_weight':1.0}]); assert
+abs(r[0]['optimized_weight']-1.0)<1e-9; print('ONE STOCK: PASS'); print('62I: PASS')
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+62I: FAIL - Boundary tests failed
+
+========== 62J ==========
+ERROR ISOLATION: PASS
+62J: PASS
+62J: PASS
+
+========== 62K ==========
+API / REDIS / CELERY
+API HEALTH: healthy
+API READY: ready
+DATABASE: connected
+REDIS: connected
+PONG
+CELERY: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+62K: PASS
+
+========== 62L ==========
+FULL PORTFOLIO REGRESSION
+SCREEN: 4
+PORTFOLIO: 4
+SUCCESS: 4
+HDFCBANK.NS 0.25 BUY 0.66
+INFY.NS 0.25 BUY 0.66
+RELIANCE.NS 0.25 BUY 0.66
+TCS.NS 0.25 BUY 0.66
+TOTAL: 1.0
+62L: PASS
+62L: PASS
+
+========== 62M ==========
+FINAL CERTIFICATION
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+DIFF CHECK: PASS
+
+==================================================
+EROS 3.0 - BLOCK 62 FINAL RESULT
+==================================================
+
+EROS 3.0 BLOCK 62: FAILURES DETECTED
+CHECK TRANSCRIPT FOR DETAILS
+
+TRANSCRIPT SAVED:
+.\eros_logs\EROS_62_20260816_182623.log
+
+FINAL RESULT SAVED:
+.\eros_logs\EROS_62_.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816182633
+**********************

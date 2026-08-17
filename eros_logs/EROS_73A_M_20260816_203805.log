@@ -1,0 +1,226 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816203805
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 73A-73M
+PORTFOLIO GOVERNANCE + EXECUTION CONTROL
+CERTIFICATION PROGRAM
+==================================================
+
+SAFETY CONTROLS
+READ ONLY - NO SOURCE CHANGES
+NO BROKER SUBMISSION
+NO LIVE ORDER
+NO REAL MONEY
+NO COMMIT
+
+TRANSCRIPT:
+.\eros_logs\EROS_73A_M_20260816_203805.log
+
+==================================================
+73A - CORE MODULE IMPORTS
+==================================================
+BATCH: EROSMultiAssetBatchScreener
+INTENT: EROSExecutionIntentEngine
+PAPER: EROSPaperExecutionEngine
+73A IMPORTS: PASS
+73A IMPORTS: PASS
+
+==================================================
+73B - UNIVERSE NORMALIZATION
+==================================================
+COUNT: 4
+SYMBOLS: ['HDFCBANK.NS', 'INFY.NS', 'RELIANCE.NS', 'TCS.NS']
+73B NORMALIZATION: PASS
+73B NORMALIZATION: PASS
+
+==================================================
+73C - UNIVERSE EDGE CASE GOVERNANCE
+==================================================
+EMPTY: []
+DUP COUNT: 1
+DUP SYMBOLS: ['RELIANCE.NS']
+73C EDGE CASES: PASS
+73C EDGE CASES: PASS
+
+==================================================
+73D - PORTFOLIO ALLOCATION GOVERNANCE
+==================================================
+WEIGHTS: {'RELIANCE.NS': 0.25, 'TCS.NS': 0.25, 'INFY.NS': 0.25, 'HDFCBANK.NS': 0.25}
+TOTAL: 1.0
+MIN: 0.25
+MAX: 0.25
+73D ALLOCATION GOVERNANCE: PASS
+73D ALLOCATION GOVERNANCE: PASS
+
+==================================================
+73E - INVALID ALLOCATION DETECTION
+==================================================
+CASE: {'A': -0.1, 'B': 0.5} TOTAL: 0.4 VALID: False
+CASE: {'A': 1.1} TOTAL: 1.1 VALID: False
+CASE: {'A': 0.6, 'B': 0.6} TOTAL: 1.2 VALID: False
+CASE: {'A': 0.25, 'B': 0.25, 'C': 0.25, 'D': 0.25} TOTAL: 1.0 VALID: True
+73E INVALID ALLOCATION: PASS
+73E INVALID ALLOCATION: PASS
+
+==================================================
+73F - EXECUTION INTENT GOVERNANCE
+==================================================
+ENGINE: EROSExecutionIntentEngine
+ATTRIBUTES: ['ALLOWED_ACTIONS', 'build_order_plan', 'certify', 'evaluate', 'max_order_allocation', 'min_confidence', 're
+quire_fresh_data']
+73F INTENT ENGINE: PASS
+73F INTENT ENGINE: PASS
+
+==================================================
+73G - FULL PORTFOLIO PAPER EXECUTION
+==================================================
+MODE: PAPER
+INTENTS: 4
+FILLED: 4
+PARTIAL: 0
+BLOCKED: 0
+HOLD: 0
+TOTAL: 40.0
+73G FULL EXECUTION: PASS
+73G FULL EXECUTION: PASS
+
+==================================================
+73H - PARTIAL FILL GOVERNANCE
+==================================================
+FILLED: 1
+PARTIAL: 2
+BLOCKED: 0
+HOLD: 1
+TOTAL: 175.0
+73H PARTIAL GOVERNANCE: PASS
+73H PARTIAL GOVERNANCE: PASS
+
+==================================================
+73I - TCA GOVERNANCE
+==================================================
+REQUESTED: 30.0
+FILLED: 17.5
+FILL RATE: 0.583333
+SLIPPAGE: 13.914
+TRANSACTION COST: 27.841913
+EXECUTION COST: 41.755913
+RECONCILIATION: 0.0
+73I TCA GOVERNANCE: PASS
+73I TCA GOVERNANCE: PASS
+
+==================================================
+73J - SAFETY / NO-ORDER GOVERNANCE
+==================================================
+EXECUTION MODE: PAPER
+BLOCKED: 1
+HOLD: 1
+BROKER SUBMISSION: False
+73J SAFETY: PASS
+73J SAFETY: PASS
+
+==================================================
+73K - DETERMINISTIC REPLAY
+==================================================
+HASH1: dfc39fb35190320e56139bd81b7fc4b41b7033dae6d68940308620e1a991c02b
+HASH2: dfc39fb35190320e56139bd81b7fc4b41b7033dae6d68940308620e1a991c02b
+IDENTICAL: True
+73K REPLAY: PASS
+73K REPLAY: PASS
+
+==================================================
+73L - INFRASTRUCTURE + COMPILE
+==================================================
+
+SERVICES COMPILE: PASS
+
+BACKEND COMPILE: PASS
+
+API HEALTH
+{
+    "status":  "healthy",
+    "version":  "3.0",
+    "environment":  "production"
+}
+API HEALTH: PASS
+
+API READY
+{
+    "status":  "ready",
+    "database":  "connected",
+    "redis":  "connected"
+}
+API READY: PASS
+
+REDIS
+PONG
+REDIS: PASS
+
+REAL CELERY
+TYPE: Celery
+PING: {'celery@DESKTOP-LE24ARK': {'ok': 'pong'}}
+CELERY: PASS
+CELERY: PASS
+
+==================================================
+73M - FINAL PORTFOLIO GOVERNANCE CERTIFICATION
+==================================================
+
+GIT DIFF CHECK
+
+DIFF CHECK: PASS
+
+GIT STATUS
+?? eros_logs/
+?? services/quantitative/
+
+CURRENT BRANCH
+feature/eros-3-0-sprint19
+
+HEAD
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+BLOCK 73A-73M COMPLETE
+73A CORE IMPORTS: PASS
+73B NORMALIZATION: PASS
+73C EDGE CASES: PASS
+73D ALLOCATION GOVERNANCE: PASS
+73E INVALID ALLOCATION: PASS
+73F EXECUTION INTENT: PASS
+73G FULL PAPER EXECUTION: PASS
+73H PARTIAL FILL GOVERNANCE: PASS
+73I TCA GOVERNANCE: PASS
+73J SAFETY: PASS
+73K DETERMINISTIC REPLAY: PASS
+73L INFRASTRUCTURE: PASS
+73M FINAL CERTIFICATION: PASS
+NO SOURCE CHANGES
+NO BROKER SUBMISSION
+NO LIVE ORDER
+NO REAL MONEY
+NO COMMIT
+==================================================
+
+RESULT FILE SAVED:
+.\eros_logs\EROS_73A_M_20260816_203805_RESULT.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260816203814
+**********************

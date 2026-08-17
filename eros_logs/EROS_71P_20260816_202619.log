@@ -1,0 +1,89 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260816202619
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 4520
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+==================================================
+EROS 3.0 - BLOCK 71P
+TCA CONTRACT DIAGNOSTIC
+READ ONLY - NO SOURCE CHANGES
+==================================================
+
+71P.1 IMPORT
+ENGINE: EROSPaperExecutionEngine
+IMPORT: PASS
+
+71P.2 TCA RAW CONTRACT
+RESULT TYPE: <class 'dict'>
+TCA KEYS: ['broker_submission', 'engine_version', 'executed_orders', 'executed_value', 'execution_mode', 'fill_rate', 'f
+illed_quantity', 'requested_quantity', 'status', 'total_execution_cost', 'total_slippage', 'total_transaction_cost']
+TCA FIELD broker_submission = False TYPE= bool
+TCA FIELD engine_version = 'EROS-3.0-BLOCK-69' TYPE= str
+TCA FIELD executed_orders = 3 TYPE= int
+TCA FIELD executed_value = 16399.1955 TYPE= float
+TCA FIELD execution_mode = 'PAPER' TYPE= str
+TCA FIELD fill_rate = 0.583333 TYPE= float
+TCA FIELD filled_quantity = 17.5 TYPE= float
+TCA FIELD requested_quantity = 30.0 TYPE= float
+TCA FIELD status = 'SUCCESS' TYPE= str
+TCA FIELD total_execution_cost = 24.594696 TYPE= float
+TCA FIELD total_slippage = 8.1955 TYPE= float
+TCA FIELD total_transaction_cost = 16.399196 TYPE= float
+
+71P.3 MATHEMATICAL RECONCILIATION
+SLIPPAGE = 8.1955
+TRANSACTION COST = 16.399196
+EXECUTION COST = 24.594696
+SLIPPAGE + COST = 24.594696
+DIFFERENCE = 0.0
+ABS DIFFERENCE = 0.0
+<= 1e-9 = True
+<= 1e-6 = True
+ARITHMETIC RECONCILIATION: PASS
+
+71P.4 REQUEST/FILL CONTRACT
+REQUESTED: 30.0
+FILLED: 17.5
+FILL RATE: 0.583333
+REQUEST/FILL CONTRACT: PASS
+
+71P.5 SOURCE COMPILE
+
+COMPILE: PASS
+
+71P.6 DIFF CHECK
+
+DIFF CHECK: PASS
+
+71P.7 GIT STATUS
+?? eros_logs/
+?? services/quantitative/
+
+71P.8 HEAD
+84549bb (HEAD -> feature/eros-3-0-sprint19) Repair live execution pricing and report contracts
+
+==================================================
+BLOCK 71P DIAGNOSTIC COMPLETE
+SOURCE CHANGES: NONE
+BROKER SUBMISSION: NONE
+LIVE ORDERS: NONE
+COMMIT: NONE
+==================================================
+**********************
+Windows PowerShell transcript end
+End time: 20260816202619
+**********************
