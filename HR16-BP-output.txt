@@ -1,0 +1,231 @@
+======================================================================
+HR16-BP: BLOCK 91-94 COMPLETE DATACLASS DISCOVERY
+======================================================================
+
+======================================================================
+BLOCK 91
+======================================================================
+
+----------------------------------------------------------------------
+CLASS: PortfolioValuationRecord
+----------------------------------------------------------------------
+FIELD: valuation_id | TYPE: str | DEFAULT: <none>
+FIELD: valuation_status | TYPE: str | DEFAULT: <none>
+FIELD: portfolio_id | TYPE: str | DEFAULT: <none>
+FIELD: settlement_id | TYPE: str | DEFAULT: <none>
+FIELD: audit_id | TYPE: str | DEFAULT: <none>
+FIELD: decision_id | TYPE: str | DEFAULT: <none>
+FIELD: cash_balance | TYPE: float | DEFAULT: <none>
+FIELD: invested_cost | TYPE: float | DEFAULT: <none>
+FIELD: market_value | TYPE: float | DEFAULT: <none>
+FIELD: portfolio_equity | TYPE: float | DEFAULT: <none>
+FIELD: realized_pnl | TYPE: float | DEFAULT: <none>
+FIELD: unrealized_pnl | TYPE: float | DEFAULT: <none>
+FIELD: total_pnl | TYPE: float | DEFAULT: <none>
+FIELD: return_pct | TYPE: float | DEFAULT: <none>
+FIELD: cash_weight | TYPE: float | DEFAULT: <none>
+FIELD: invested_weight | TYPE: float | DEFAULT: <none>
+FIELD: position_count | TYPE: int | DEFAULT: <none>
+FIELD: positions | TYPE: List[Dict[str, Any]] | DEFAULT: field(default_factory=list)
+FIELD: engine_version | TYPE: str | DEFAULT: ENGINE_VERSION
+FIELD: timestamp_utc | TYPE: str | DEFAULT: field(default_factory=_utc_now)
+
+----------------------------------------------------------------------
+CLASS: Block91PortfolioValuationCertificate
+----------------------------------------------------------------------
+FIELD: status | TYPE: str | DEFAULT: <none>
+FIELD: valuation_status | TYPE: str | DEFAULT: <none>
+FIELD: valuation_id | TYPE: str | DEFAULT: <none>
+FIELD: portfolio_id | TYPE: str | DEFAULT: <none>
+FIELD: settlement_id | TYPE: str | DEFAULT: <none>
+FIELD: audit_id | TYPE: str | DEFAULT: <none>
+FIELD: decision_id | TYPE: str | DEFAULT: <none>
+FIELD: valuation_hash | TYPE: str | DEFAULT: <none>
+FIELD: position_count | TYPE: int | DEFAULT: <none>
+FIELD: portfolio_equity | TYPE: float | DEFAULT: <none>
+FIELD: total_pnl | TYPE: float | DEFAULT: <none>
+FIELD: return_pct | TYPE: float | DEFAULT: <none>
+FIELD: mutation_allowed | TYPE: bool | DEFAULT: False
+FIELD: broker_submission | TYPE: bool | DEFAULT: False
+FIELD: live_order_submission | TYPE: bool | DEFAULT: False
+FIELD: created_at_utc | TYPE: str | DEFAULT: field(default_factory=_utc_now)
+
+======================================================================
+BLOCK 92
+======================================================================
+
+----------------------------------------------------------------------
+CLASS: PortfolioPerformanceRecord
+----------------------------------------------------------------------
+FIELD: performance_id | TYPE: str | DEFAULT: <none>
+FIELD: performance_schema_version | TYPE: str | DEFAULT: <none>
+FIELD: engine_version | TYPE: str | DEFAULT: <none>
+FIELD: timestamp_utc | TYPE: str | DEFAULT: <none>
+FIELD: valuation_id | TYPE: str | DEFAULT: <none>
+FIELD: prior_valuation_id | TYPE: str | DEFAULT: <none>
+FIELD: settlement_id | TYPE: str | DEFAULT: <none>
+FIELD: audit_id | TYPE: str | DEFAULT: <none>
+FIELD: decision_id | TYPE: str | DEFAULT: <none>
+FIELD: portfolio_id | TYPE: str | DEFAULT: <none>
+FIELD: benchmark_name | TYPE: str | DEFAULT: <none>
+FIELD: current_equity | TYPE: float | DEFAULT: <none>
+FIELD: prior_equity | TYPE: float | DEFAULT: <none>
+FIELD: absolute_pnl | TYPE: float | DEFAULT: <none>
+FIELD: return_pct | TYPE: float | DEFAULT: <none>
+FIELD: benchmark_return_pct | TYPE: Optional[float] | DEFAULT: <none>
+FIELD: active_return_pct | TYPE: Optional[float] | DEFAULT: <none>
+FIELD: alpha | TYPE: Optional[float] | DEFAULT: <none>
+FIELD: beta | TYPE: Optional[float] | DEFAULT: <none>
+FIELD: tracking_error_pct | TYPE: Optional[float] | DEFAULT: <none>
+FIELD: information_ratio | TYPE: Optional[float] | DEFAULT: <none>
+FIELD: performance_status | TYPE: str | DEFAULT: <none>
+FIELD: calculation_status | TYPE: str | DEFAULT: <none>
+FIELD: mutation_allowed | TYPE: bool | DEFAULT: <none>
+FIELD: broker_submission | TYPE: bool | DEFAULT: <none>
+FIELD: live_order_submission | TYPE: bool | DEFAULT: <none>
+FIELD: performance_hash | TYPE: str | DEFAULT: <none>
+
+----------------------------------------------------------------------
+CLASS: Block92PerformanceCertificate
+----------------------------------------------------------------------
+FIELD: status | TYPE: str | DEFAULT: <none>
+FIELD: performance_id | TYPE: str | DEFAULT: <none>
+FIELD: valuation_id | TYPE: str | DEFAULT: <none>
+FIELD: prior_valuation_id | TYPE: str | DEFAULT: <none>
+FIELD: settlement_id | TYPE: str | DEFAULT: <none>
+FIELD: audit_id | TYPE: str | DEFAULT: <none>
+FIELD: decision_id | TYPE: str | DEFAULT: <none>
+FIELD: portfolio_id | TYPE: str | DEFAULT: <none>
+FIELD: performance_hash | TYPE: str | DEFAULT: <none>
+FIELD: certificate_hash | TYPE: str | DEFAULT: <none>
+FIELD: mutation_allowed | TYPE: bool | DEFAULT: <none>
+FIELD: broker_submission | TYPE: bool | DEFAULT: <none>
+FIELD: live_order_submission | TYPE: bool | DEFAULT: <none>
+
+----------------------------------------------------------------------
+CLASS: EROSBlock92PortfolioPerformanceEngine
+----------------------------------------------------------------------
+
+======================================================================
+BLOCK 93
+======================================================================
+
+----------------------------------------------------------------------
+CLASS: PerformanceObservation
+----------------------------------------------------------------------
+FIELD: period | TYPE: str | DEFAULT: <none>
+FIELD: portfolio_return | TYPE: float | DEFAULT: <none>
+FIELD: benchmark_return | TYPE: float | DEFAULT: <none>
+
+----------------------------------------------------------------------
+CLASS: RiskMetrics
+----------------------------------------------------------------------
+FIELD: observation_count | TYPE: int | DEFAULT: <none>
+FIELD: volatility | TYPE: float | DEFAULT: <none>
+FIELD: downside_volatility | TYPE: float | DEFAULT: <none>
+FIELD: maximum_drawdown | TYPE: float | DEFAULT: <none>
+FIELD: sharpe_ratio | TYPE: float | DEFAULT: <none>
+FIELD: sortino_ratio | TYPE: float | DEFAULT: <none>
+FIELD: beta | TYPE: float | DEFAULT: <none>
+FIELD: alpha | TYPE: float | DEFAULT: <none>
+FIELD: tracking_error | TYPE: float | DEFAULT: <none>
+FIELD: information_ratio | TYPE: float | DEFAULT: <none>
+FIELD: cumulative_return | TYPE: float | DEFAULT: <none>
+FIELD: benchmark_cumulative_return | TYPE: float | DEFAULT: <none>
+FIELD: active_return | TYPE: float | DEFAULT: <none>
+
+----------------------------------------------------------------------
+CLASS: AttributionRecord
+----------------------------------------------------------------------
+FIELD: symbol | TYPE: str | DEFAULT: <none>
+FIELD: portfolio_weight | TYPE: float | DEFAULT: <none>
+FIELD: benchmark_weight | TYPE: float | DEFAULT: <none>
+FIELD: portfolio_return | TYPE: float | DEFAULT: <none>
+FIELD: benchmark_return | TYPE: float | DEFAULT: <none>
+FIELD: portfolio_contribution | TYPE: float | DEFAULT: <none>
+FIELD: benchmark_contribution | TYPE: float | DEFAULT: <none>
+FIELD: active_contribution | TYPE: float | DEFAULT: <none>
+
+----------------------------------------------------------------------
+CLASS: Block93Certificate
+----------------------------------------------------------------------
+FIELD: certificate_id | TYPE: str | DEFAULT: <none>
+FIELD: status | TYPE: str | DEFAULT: <none>
+FIELD: reason_code | TYPE: str | DEFAULT: <none>
+FIELD: performance_id | TYPE: str | DEFAULT: <none>
+FIELD: valuation_id | TYPE: str | DEFAULT: <none>
+FIELD: settlement_id | TYPE: str | DEFAULT: <none>
+FIELD: audit_id | TYPE: str | DEFAULT: <none>
+FIELD: decision_id | TYPE: str | DEFAULT: <none>
+FIELD: observation_count | TYPE: int | DEFAULT: <none>
+FIELD: metrics | TYPE: Mapping[str, Any] | DEFAULT: <none>
+FIELD: attribution | TYPE: Tuple[Mapping[str, Any], ...] | DEFAULT: <none>
+FIELD: certificate_hash | TYPE: str | DEFAULT: <none>
+FIELD: version | TYPE: str | DEFAULT: BLOCK93_VERSION
+
+----------------------------------------------------------------------
+CLASS: EROSBlock93PerformanceRiskAttributionEngine
+----------------------------------------------------------------------
+
+======================================================================
+BLOCK 94
+======================================================================
+
+----------------------------------------------------------------------
+CLASS: ScenarioDefinition
+----------------------------------------------------------------------
+FIELD: scenario_id | TYPE: str | DEFAULT: <none>
+FIELD: scenario_type | TYPE: str | DEFAULT: <none>
+FIELD: name | TYPE: str | DEFAULT: <none>
+FIELD: description | TYPE: str | DEFAULT: ''
+FIELD: price_shock_pct | TYPE: float | DEFAULT: 0.0
+FIELD: market_shock_pct | TYPE: float | DEFAULT: 0.0
+FIELD: volatility_shock_pct | TYPE: float | DEFAULT: 0.0
+FIELD: benchmark_shock_pct | TYPE: float | DEFAULT: 0.0
+FIELD: sector_shock_pct | TYPE: float | DEFAULT: 0.0
+FIELD: liquidity_shock_pct | TYPE: float | DEFAULT: 0.0
+FIELD: correlation_shock_pct | TYPE: float | DEFAULT: 0.0
+FIELD: default_shock_pct | TYPE: float | DEFAULT: 0.0
+FIELD: sector | TYPE: str | DEFAULT: ''
+FIELD: benchmark | TYPE: str | DEFAULT: ''
+FIELD: metadata | TYPE: Mapping[str, Any] | DEFAULT: field(default_factory=dict)
+
+----------------------------------------------------------------------
+CLASS: PositionExposure
+----------------------------------------------------------------------
+FIELD: symbol | TYPE: str | DEFAULT: <none>
+FIELD: quantity | TYPE: float | DEFAULT: <none>
+FIELD: price | TYPE: float | DEFAULT: <none>
+FIELD: market_value | TYPE: float | DEFAULT: <none>
+FIELD: sector | TYPE: str | DEFAULT: ''
+FIELD: beta | TYPE: float | DEFAULT: 1.0
+FIELD: volatility | TYPE: float | DEFAULT: 0.0
+FIELD: liquidity_factor | TYPE: float | DEFAULT: 1.0
+FIELD: benchmark | TYPE: str | DEFAULT: ''
+
+----------------------------------------------------------------------
+CLASS: EROSBlock94PortfolioStressScenarioEngine
+----------------------------------------------------------------------
+
+======================================================================
+HR16-BP COMPLETE
+======================================================================
+
+READ ONLY.
+NO ENGINE INSTANCE CREATED.
+NO BUSINESS METHOD CALLED.
+NO ORDERS CREATED.
+NO FILLS CREATED.
+NO SETTLEMENT EXECUTED.
+NO PORTFOLIO STATE APPLIED.
+NO VALUATION PERFORMED.
+NO PERFORMANCE CALCULATED.
+NO RISK CALCULATED.
+NO ATTRIBUTION CALCULATED.
+NO STRESS SCENARIO EXECUTED.
+NO BROKER.
+NO LIVE EXECUTION.
+NO FILES MODIFIED.
+NO FILES STAGED.
+NO COMMIT.
+NO PUSH.
