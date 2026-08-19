@@ -17,6 +17,7 @@ from services.valuation.sotp.engine import SOTPEngine
 from services.scoring.engine import AIScoringEngine
 from services.portfolio.engine import PortfolioAnalyticsEngine
 from services.report.engine import ProductionReportEngine
+from dashboard.eros_command_center import render_eros_command_center
 
 st.set_page_config(
     page_title="AI Stock Analyzer Institutional Edition V6",
@@ -29,7 +30,15 @@ st.markdown("Event-Driven Institutional Equity Research & Valuation Platform")
 
 # Sidebar configuration controls
 st.sidebar.header("Control Panel")
-page = st.sidebar.selectbox("Choose Module", ["Single Stock Analysis", "Portfolio Analytics", "System Architecture & Status"])
+page = st.sidebar.selectbox(
+    "Choose Module",
+    [
+        "EROS 3.0 Command Center",
+        "Single Stock Analysis",
+        "Portfolio Analytics",
+        "System Architecture & Status",
+    ],
+)
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("Valuation Assumptions")
@@ -37,7 +46,87 @@ custom_wacc = st.sidebar.slider("WACC / Discount Rate (%)", min_value=6.0, max_v
 custom_tgr = st.sidebar.slider("Terminal Growth Rate (%)", min_value=1.0, max_value=6.0, value=4.0, step=0.5) / 100.0
 holding_disc = st.sidebar.slider("SOTP Conglomerate Holding Discount (%)", min_value=0.0, max_value=30.0, value=15.0, step=1.0) / 100.0
 
-if page == "Single Stock Analysis":
+if page == "EROS 3.0 Command Center":
+
+    eros_read_model = {
+        "status": "CERTIFIED",
+        "block_id": "103",
+
+        "pipeline": [
+            {
+                "block_id": str(block_id),
+                "status": "CERTIFIED",
+            }
+            for block_id in range(94, 102)
+        ],
+
+        "governance": {
+            "status": "APPROVED",
+            "governance_id": "EROS98-DASHBOARD-DEMO",
+            "execution_action": "EXECUTE",
+        },
+
+        "intent": {
+            "status": "AUTHORIZED",
+            "intent_id": "EROS99-DASHBOARD-DEMO",
+            "intent_action": "PREPARE",
+            "authorization_status": "AUTHORIZED",
+            "symbol": "RELIANCE.NS",
+            "action": "BUY",
+            "quantity": 100.0,
+            "reference_price": 2500.0,
+        },
+
+        "execution": {
+            "status": "SIMULATED",
+            "execution_id": "EROS100-DASHBOARD-DEMO",
+            "symbol": "RELIANCE.NS",
+            "action": "BUY",
+            "requested_quantity": 100.0,
+            "filled_quantity": 100.0,
+            "reference_price": 2500.0,
+            "fill_price": 2501.25,
+            "fill_status": "FILLED",
+            "slippage_bps": 5.0,
+            "transaction_cost": 250.0,
+            "net_value": 250125.0,
+        },
+
+        "reconciliation": {
+            "status": "RECONCILED",
+            "reconciliation_id": "EROS101-DASHBOARD-DEMO",
+            "source_execution_id": "EROS100-DASHBOARD-DEMO",
+            "quantity_reconciled": True,
+            "price_reconciled": True,
+            "value_reconciled": True,
+            "cost_reconciled": True,
+            "lineage_reconciled": True,
+        },
+
+        "lineage": {
+            f"block{block_id}": f"EROS{block_id}-DASHBOARD-DEMO"
+            for block_id in range(94, 102)
+        },
+
+        "safety": {
+            "portfolio_mutation": False,
+            "valuation_mutation": False,
+            "performance_mutation": False,
+            "risk_mutation": False,
+            "optimization": False,
+            "order_creation": False,
+            "broker_submission": False,
+            "live_order_submission": False,
+            "execution_blocked": True,
+            "non_mutation_invariant": True,
+        },
+    }
+
+    render_eros_command_center(
+        read_model=eros_read_model
+    )
+
+elif page == "Single Stock Analysis":
     st.header("Single Stock Institutional Valuation & Research")
     
     col1, col2, col3 = st.columns([2, 1, 1])
@@ -214,3 +303,4 @@ else:
     - **Pipeline Flow**: MarketData → Fundamentals → Forecast → DCF/Relative/SOTP → AI Scoring → Portfolio Analytics → Report Generation.
     """)
     st.info("System status: Stable on branch `feature/event-pipeline` (Tag: `v6.0.0-RC1`).")
+
