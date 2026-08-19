@@ -1,0 +1,548 @@
+﻿"""
+EROS 3.0 - Block 96
+Stress Decision & Risk Admission Gate
+
+Architectural authority
+-----------------------
+Block 96 consumes CERTIFIED Block 95 stress evidence and produces
+a deterministic downstream stress decision.
+
+Hard boundaries
+---------------
+* no portfolio state mutation
+* no valuation mutation
+* no performance mutation
+* no risk-certificate mutation
+* no optimization
+* no order creation
+* no broker submission
+* no live execution
+
+Decision states
+---------------
+ADMITTED
+REJECTED
+BLOCKED
+"""
+
+from __future__ import annotations
+
+from copy import deepcopy
+from datetime import datetime, timezone
+import hashlib
+import json
+import math
+from typing import Any, Dict, List, Mapping, Optional
+
+
+ENGINE_VERSION = "EROS-3.0-BLOCK-96"
+BLOCK_ID = "96"
+
+STATUS_PASS = "PASS"
+STATUS_BLOCKED = "BLOCKED"
+STATUS_CERTIFIED = "CERTIFIED"
+STATUS_DUPLICATE = "DUPLICATE"
+
+DECISION_ADMITTED = "ADMITTED"
+DECISION_REJECTED = "REJECTED"
+
+DECISION_PREFIX = "EROS96-STRESS-DECISION-"
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _text(value: Any, default: str = "") -> str:
+    if value is None:
+        return default
+
+    text = str(value).strip()
+    return text if text else default
+
+
+def _number(
+    value: Any,
+    default: Optional[float] = None,
+) -> Optional[float]:
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return default
+
+    if not math.isfinite(result):
+        return default
+
+    return result
+
+
+def _deepcopy(value: Any) -> Any:
+    return deepcopy(value)
+
+
+def _hash_payload(payload: Mapping[str, Any]) -> str:
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        default=str,
+    )
+
+    return hashlib.sha256(
+        canonical.encode("utf-8")
+    ).hexdigest()
+
+
+class EROSBlock96StressDecisionGate:
+
+    def __init__(self) -> None:
+        self.engine_version = ENGINE_VERSION
+        self._decisions: Dict[str, Dict[str, Any]] = {}
+
+    # ---------------------------------------------------------
+    # Public API
+    # ---------------------------------------------------------
+
+    def decide(
+        self,
+        *,
+        stress_gate: Mapping[str, Any],
+        policy: Optional[Mapping[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Consume a Block 95 CERTIFIED gate and produce a deterministic
+        Block 96 stress decision.
+        """
+
+        normalized_policy = self._normalize_policy(policy)
+
+        validation = self._validate_gate(
+            stress_gate=stress_gate,
+            policy=normalized_policy,
+        )
+
+        if validation["status"] != STATUS_PASS:
+            return validation
+
+        scenario_results = stress_gate.get(
+            "scenario_results",
+            [],
+        )
+
+        decision = self._evaluate_decision(
+            scenario_results=scenario_results,
+            policy=normalized_policy,
+        )
+
+        source_gate_id = _text(
+            stress_gate.get("gate_id")
+        )
+
+        source_certificate_id = _text(
+            stress_gate.get("source_certificate_id")
+        )
+
+        decision_payload = {
+            "block_id": BLOCK_ID,
+            "engine_version": self.engine_version,
+            "source_block": "95",
+            "source_gate_id": source_gate_id,
+            "source_certificate_id": source_certificate_id,
+            "scenario_count": len(scenario_results),
+            "scenario_ids": [
+                _text(
+                    item.get("scenario", {}).get(
+                        "scenario_id"
+                    )
+                )
+                for item in scenario_results
+            ],
+            "decision": decision,
+            "policy": normalized_policy,
+        }
+
+        decision_id = (
+            f"{DECISION_PREFIX}"
+            f"{_hash_payload(decision_payload)[:20]}"
+        )
+
+        if decision_id in self._decisions:
+            return {
+                "status": STATUS_DUPLICATE,
+                "decision_status": STATUS_DUPLICATE,
+                "decision_id": decision_id,
+            }
+
+        result = {
+            "status": STATUS_CERTIFIED,
+            "decision_status": STATUS_CERTIFIED,
+            "decision": decision,
+            "decision_id": decision_id,
+            "block_id": BLOCK_ID,
+            "engine_version": self.engine_version,
+            "created_at": _now_iso(),
+            "source_block": "95",
+            "source_engine_version": _text(
+                stress_gate.get("engine_version")
+            ),
+            "source_gate_id": source_gate_id,
+            "source_certificate_id": source_certificate_id,
+            "scenario_count": len(scenario_results),
+            "scenario_ids": [
+                _text(
+                    item.get("scenario", {}).get(
+                        "scenario_id"
+                    )
+                )
+                for item in scenario_results
+            ],
+            "decision_reason": (
+                "STRESS_EVIDENCE_ADMITTED"
+                if decision == DECISION_ADMITTED
+                else "STRESS_POLICY_REJECTED"
+            ),
+            "policy": _deepcopy(normalized_policy),
+            "non_mutation_invariant": True,
+            "broker_submission": False,
+            "live_order_submission": False,
+        }
+
+        self._decisions[decision_id] = _deepcopy(result)
+
+        return _deepcopy(result)
+
+    # ---------------------------------------------------------
+    # Compatibility API
+    # ---------------------------------------------------------
+
+    def certify(
+        self,
+        *,
+        stress_gate: Mapping[str, Any],
+        policy: Optional[Mapping[str, Any]] = None,
+    ) -> Dict[str, Any]:
+
+        return self.decide(
+            stress_gate=stress_gate,
+            policy=policy,
+        )
+
+    # ---------------------------------------------------------
+    # Snapshot
+    # ---------------------------------------------------------
+
+    def snapshot(self) -> Dict[str, Any]:
+        return {
+            "engine_version": self.engine_version,
+            "block_id": BLOCK_ID,
+            "decisions": _deepcopy(
+                self._decisions
+            ),
+        }
+
+    # ---------------------------------------------------------
+    # Policy
+    # ---------------------------------------------------------
+
+    def _normalize_policy(
+        self,
+        policy: Optional[Mapping[str, Any]],
+    ) -> Dict[str, Any]:
+
+        source = (
+            dict(policy)
+            if isinstance(policy, Mapping)
+            else {}
+        )
+
+        min_scenarios = source.get(
+            "min_scenarios",
+            1,
+        )
+
+        max_drawdown = source.get(
+            "max_stressed_drawdown_pct"
+        )
+
+        try:
+            min_scenarios = int(
+                min_scenarios
+            )
+        except (TypeError, ValueError):
+            min_scenarios = 1
+
+        if min_scenarios < 1:
+            min_scenarios = 1
+
+        normalized = {
+            "min_scenarios": min_scenarios,
+        }
+
+        if max_drawdown is not None:
+            converted = _number(
+                max_drawdown
+            )
+
+            if (
+                converted is not None
+                and converted >= 0
+            ):
+                normalized[
+                    "max_stressed_drawdown_pct"
+                ] = converted
+
+        return normalized
+
+    # ---------------------------------------------------------
+    # Validation
+    # ---------------------------------------------------------
+
+    def _validate_gate(
+        self,
+        *,
+        stress_gate: Mapping[str, Any],
+        policy: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        if not isinstance(
+            stress_gate,
+            Mapping,
+        ):
+            return self._blocked(
+                "MALFORMED_STRESS_GATE"
+            )
+
+        if _text(
+            stress_gate.get("status")
+        ) != STATUS_CERTIFIED:
+            return self._blocked(
+                "SOURCE_GATE_NOT_CERTIFIED"
+            )
+
+        if _text(
+            stress_gate.get("gate_status")
+        ) != STATUS_CERTIFIED:
+            return self._blocked(
+                "SOURCE_GATE_STATUS_INVALID"
+            )
+
+        if _text(
+            stress_gate.get("block_id")
+        ) != "95":
+            return self._blocked(
+                "INVALID_SOURCE_BLOCK"
+            )
+
+        if _text(
+            stress_gate.get("source_block")
+        ) != "94":
+            return self._blocked(
+                "INVALID_BLOCK_94_LINEAGE"
+            )
+
+        if not _text(
+            stress_gate.get("gate_id")
+        ):
+            return self._blocked(
+                "MISSING_SOURCE_GATE_ID"
+            )
+
+        if not _text(
+            stress_gate.get(
+                "source_certificate_id"
+            )
+        ):
+            return self._blocked(
+                "MISSING_SOURCE_CERTIFICATE_ID"
+            )
+
+        if _text(
+            stress_gate.get(
+                "evidence_status"
+            )
+        ) != STATUS_CERTIFIED:
+            return self._blocked(
+                "SOURCE_EVIDENCE_NOT_CERTIFIED"
+            )
+
+        if _text(
+            stress_gate.get(
+                "downstream_risk_gate"
+            )
+        ) != STATUS_PASS:
+            return self._blocked(
+                "DOWNSTREAM_RISK_GATE_NOT_PASS"
+            )
+
+        if stress_gate.get(
+            "non_mutation_invariant"
+        ) is not True:
+            return self._blocked(
+                "NON_MUTATION_INVARIANT_FAILED"
+            )
+
+        if stress_gate.get(
+            "broker_submission"
+        ) is not False:
+            return self._blocked(
+                "BROKER_SUBMISSION_INVARIANT_FAILED"
+            )
+
+        if stress_gate.get(
+            "live_order_submission"
+        ) is not False:
+            return self._blocked(
+                "LIVE_EXECUTION_INVARIANT_FAILED"
+            )
+
+        scenario_results = stress_gate.get(
+            "scenario_results"
+        )
+
+        if not isinstance(
+            scenario_results,
+            list,
+        ):
+            return self._blocked(
+                "MISSING_SCENARIO_RESULTS"
+            )
+
+        if len(scenario_results) < int(
+            policy.get(
+                "min_scenarios",
+                1,
+            )
+        ):
+            return self._blocked(
+                "INSUFFICIENT_SCENARIOS"
+            )
+
+        scenario_ids: List[str] = []
+
+        for item in scenario_results:
+
+            if not isinstance(
+                item,
+                Mapping,
+            ):
+                return self._blocked(
+                    "MALFORMED_SCENARIO_RESULT"
+                )
+
+            if _text(
+                item.get("status")
+            ) != STATUS_PASS:
+                return self._blocked(
+                    "NON_PASS_SCENARIO_RESULT"
+                )
+
+            scenario = item.get(
+                "scenario"
+            )
+
+            if not isinstance(
+                scenario,
+                Mapping,
+            ):
+                return self._blocked(
+                    "MISSING_SCENARIO"
+                )
+
+            scenario_id = _text(
+                scenario.get(
+                    "scenario_id"
+                )
+            )
+
+            if not scenario_id:
+                return self._blocked(
+                    "MISSING_SCENARIO_ID"
+                )
+
+            if scenario_id in scenario_ids:
+                return self._blocked(
+                    "DUPLICATE_SCENARIO_ID"
+                )
+
+            scenario_ids.append(
+                scenario_id
+            )
+
+            contribution = item.get(
+                "scenario_contribution"
+            )
+
+            if not contribution:
+                return self._blocked(
+                    "MISSING_SCENARIO_CONTRIBUTION"
+                )
+
+            drawdown = _number(
+                item.get(
+                    "stressed_drawdown_pct"
+                )
+            )
+
+            if drawdown is None:
+                return self._blocked(
+                    "INVALID_STRESSED_DRAWDOWN"
+                )
+
+        return {
+            "status": STATUS_PASS
+        }
+
+    # ---------------------------------------------------------
+    # Decision evaluation
+    # ---------------------------------------------------------
+
+    def _evaluate_decision(
+        self,
+        *,
+        scenario_results: List[Any],
+        policy: Mapping[str, Any],
+    ) -> str:
+
+        max_drawdown = policy.get(
+            "max_stressed_drawdown_pct"
+        )
+
+        if max_drawdown is not None:
+
+            for item in scenario_results:
+
+                drawdown = _number(
+                    item.get(
+                        "stressed_drawdown_pct"
+                    )
+                )
+
+                if (
+                    drawdown is not None
+                    and drawdown
+                    > float(max_drawdown)
+                ):
+                    return DECISION_REJECTED
+
+        return DECISION_ADMITTED
+
+    # ---------------------------------------------------------
+    # Blocked result
+    # ---------------------------------------------------------
+
+    def _blocked(
+        self,
+        reason: str,
+    ) -> Dict[str, Any]:
+
+        return {
+            "status": STATUS_BLOCKED,
+            "decision_status": STATUS_BLOCKED,
+            "block_id": BLOCK_ID,
+            "engine_version": self.engine_version,
+            "reason_code": reason,
+            "downstream_risk_gate": STATUS_BLOCKED,
+            "broker_submission": False,
+            "live_order_submission": False,
+        }

@@ -1,0 +1,476 @@
+﻿"""
+EROS 3.0 - Block 95
+Stress Evidence Gate
+
+Architectural authority
+-----------------------
+Block 95 owns downstream validation and gating of certified
+Block 94 stress/scenario evidence.
+
+Upstream:
+    Block 94 -> certified portfolio stress/scenario evidence
+
+Block 95:
+    stress evidence validation / downstream risk gate only
+
+Hard boundaries:
+    * no portfolio state mutation
+    * no valuation mutation
+    * no performance mutation
+    * no risk-certificate mutation
+    * no optimization
+    * no order creation
+    * no broker submission
+    * no live execution
+
+The implementation uses only the Python standard library.
+All certificate IDs are deterministic for identical evidence/policy.
+"""
+
+from __future__ import annotations
+
+from copy import deepcopy
+from datetime import datetime, timezone
+import hashlib
+import json
+import math
+from typing import Any, Dict, List, Mapping, Optional
+
+
+ENGINE_VERSION = "EROS-3.0-BLOCK-95"
+BLOCK_ID = "95"
+
+STATUS_PASS = "PASS"
+STATUS_BLOCKED = "BLOCKED"
+STATUS_CERTIFIED = "CERTIFIED"
+STATUS_DUPLICATE = "DUPLICATE"
+
+GATE_PREFIX = "EROS95-STRESS-GATE-"
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _text(value: Any, default: str = "") -> str:
+    if value is None:
+        return default
+    text = str(value).strip()
+    return text if text else default
+
+
+def _number(value: Any, default: Optional[float] = None) -> Optional[float]:
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return default
+
+    if not math.isfinite(result):
+        return default
+
+    return result
+
+
+def _deepcopy(value: Any) -> Any:
+    return deepcopy(value)
+
+
+def _hash_payload(payload: Mapping[str, Any]) -> str:
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+        default=str,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _contains_forbidden_content(value: Any) -> bool:
+    """
+    Block 95 execution-content safety scanner.
+
+    Block 94 legitimately declares:
+        broker_submission: False
+        live_order_submission: False
+
+    Those explicit False safety declarations are permitted.
+
+    Explicit execution-positive semantics remain forbidden.
+    """
+
+    forbidden_tokens = (
+        "submit_order",
+        "place_order",
+        "create_order",
+        "execute_order",
+        "broker_order",
+        "live_execution",
+    )
+
+    if isinstance(value, Mapping):
+        for key, item in value.items():
+            key_text = _text(key).lower()
+
+            # Block 94 safety declarations are legitimate when FALSE.
+            if key_text in (
+                "broker_submission",
+                "live_order_submission",
+            ):
+                if item is False:
+                    continue
+
+                if item is True:
+                    return True
+
+            # Reject explicit execution-oriented keys.
+            if any(
+                token in key_text
+                for token in forbidden_tokens
+            ):
+                return True
+
+            # Recursively inspect nested content.
+            if _contains_forbidden_content(item):
+                return True
+
+        return False
+
+    if isinstance(value, (list, tuple, set)):
+        return any(
+            _contains_forbidden_content(item)
+            for item in value
+        )
+
+    if isinstance(value, str):
+        lowered = value.lower()
+
+        return any(
+            token in lowered
+            for token in forbidden_tokens
+        )
+
+    return False
+
+class EROSBlock95StressEvidenceGate:
+    """
+    Deterministic downstream gate for Block 94 certified stress evidence.
+
+    The gate validates:
+        1. Block 94 certification status
+        2. Block 94 identity
+        3. stress certificate lineage
+        4. scenario presence
+        5. scenario result integrity
+        6. optional policy constraints
+        7. execution-content exclusion
+        8. duplicate certification control
+
+    It does not recalculate Block 94 stress analytics.
+    """
+
+    def __init__(self) -> None:
+        self.engine_version = ENGINE_VERSION
+        self._certificates: Dict[str, Dict[str, Any]] = {}
+
+    # --------------------------------------------------------
+    # Public API: gate
+    # --------------------------------------------------------
+
+    def gate(
+        self,
+        *,
+        stress_certificate: Mapping[str, Any],
+        policy: Optional[Mapping[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Validate Block 94 stress evidence and return a downstream gate result.
+        """
+        normalized_policy = self._normalize_policy(policy)
+
+        validation = self._validate_evidence(
+            stress_certificate=stress_certificate,
+            policy=normalized_policy,
+        )
+
+        if validation["status"] != STATUS_PASS:
+            return validation
+
+        evidence_id = _text(
+            stress_certificate.get("certificate_id")
+        )
+
+        scenario_results = _deepcopy(
+            stress_certificate.get("scenario_results", [])
+        )
+
+        gate_payload = {
+            "block_id": BLOCK_ID,
+            "engine_version": self.engine_version,
+            "source_block": "94",
+            "source_certificate_id": evidence_id,
+            "policy": normalized_policy,
+            "scenario_results": scenario_results,
+        }
+
+        gate_id = (
+            f"{GATE_PREFIX}"
+            f"{_hash_payload(gate_payload)[:20]}"
+        )
+
+        if gate_id in self._certificates:
+            return {
+                "status": STATUS_DUPLICATE,
+                "gate_status": STATUS_DUPLICATE,
+                "gate_id": gate_id,
+                "source_certificate_id": evidence_id,
+            }
+
+        certificate = {
+            "status": STATUS_CERTIFIED,
+            "gate_status": STATUS_CERTIFIED,
+            "gate_id": gate_id,
+            "block_id": BLOCK_ID,
+            "engine_version": self.engine_version,
+            "source_block": "94",
+            "source_engine_version": _text(
+                stress_certificate.get("engine_version")
+            ),
+            "source_certificate_id": evidence_id,
+            "created_at": _now_iso(),
+            "scenario_count": len(scenario_results),
+            "scenario_results": _deepcopy(scenario_results),
+            "scenario_ids": [
+                _text(
+                    item.get("scenario", {}).get("scenario_id")
+                )
+                for item in scenario_results
+            ],
+            "policy": _deepcopy(normalized_policy),
+            "evidence_status": STATUS_CERTIFIED,
+            "downstream_risk_gate": STATUS_PASS,
+            "non_mutation_invariant": True,
+            "broker_submission": False,
+            "live_order_submission": False,
+        }
+
+        self._certificates[gate_id] = _deepcopy(certificate)
+
+        return _deepcopy(certificate)
+
+    # --------------------------------------------------------
+    # Public API: certify
+    # --------------------------------------------------------
+
+    def certify(
+        self,
+        *,
+        stress_certificate: Mapping[str, Any],
+        policy: Optional[Mapping[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Compatibility-oriented public certification API.
+
+        Block 95 does not create new stress evidence; it certifies the
+        downstream admissibility of existing Block 94 evidence.
+        """
+        return self.gate(
+            stress_certificate=stress_certificate,
+            policy=policy,
+        )
+
+    # --------------------------------------------------------
+    # Public API: snapshot
+    # --------------------------------------------------------
+
+    def snapshot(self) -> Dict[str, Any]:
+        """
+        Return an isolated snapshot of the Block 95 certificate store.
+        """
+        return {
+            "engine_version": self.engine_version,
+            "block_id": BLOCK_ID,
+            "certificates": _deepcopy(self._certificates),
+        }
+
+    # --------------------------------------------------------
+    # Policy
+    # --------------------------------------------------------
+
+    def _normalize_policy(
+        self,
+        policy: Optional[Mapping[str, Any]],
+    ) -> Dict[str, Any]:
+        source = dict(policy) if isinstance(policy, Mapping) else {}
+
+        min_scenarios = source.get("min_scenarios", 1)
+        max_drawdown = source.get("max_stressed_drawdown_pct")
+
+        try:
+            min_scenarios = int(min_scenarios)
+        except (TypeError, ValueError):
+            min_scenarios = 1
+
+        if min_scenarios < 1:
+            min_scenarios = 1
+
+        normalized: Dict[str, Any] = {
+            "min_scenarios": min_scenarios,
+        }
+
+        if max_drawdown is not None:
+            converted = _number(max_drawdown)
+            if converted is None or converted < 0:
+                normalized["max_stressed_drawdown_pct"] = None
+            else:
+                normalized["max_stressed_drawdown_pct"] = converted
+
+        return normalized
+
+    # --------------------------------------------------------
+    # Validation
+    # --------------------------------------------------------
+
+    def _validate_evidence(
+        self,
+        *,
+        stress_certificate: Mapping[str, Any],
+        policy: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+        if not isinstance(stress_certificate, Mapping):
+            return self._blocked("MALFORMED_STRESS_EVIDENCE")
+
+        if _contains_forbidden_content(stress_certificate):
+            return self._blocked("EXECUTION_CONTENT_FORBIDDEN")
+
+        if _text(stress_certificate.get("status")) != STATUS_CERTIFIED:
+            return self._blocked("STRESS_CERTIFICATE_NOT_CERTIFIED")
+
+        if _text(stress_certificate.get("certificate_status")) != STATUS_CERTIFIED:
+            return self._blocked("STRESS_CERTIFICATE_STATUS_INVALID")
+
+        if _text(stress_certificate.get("block_id")) != "EROS-BLOCK-94":
+            return self._blocked("INVALID_SOURCE_BLOCK")
+
+        certificate_id = _text(
+            stress_certificate.get("certificate_id")
+        )
+
+        if not certificate_id:
+            return self._blocked("MISSING_STRESS_CERTIFICATE_ID")
+
+        if not certificate_id.startswith("EROS94-STRESS-"):
+            return self._blocked("INVALID_STRESS_CERTIFICATE_ID")
+
+        engine_version = _text(
+            stress_certificate.get("engine_version")
+        )
+
+        if engine_version != "94.1.0":
+            return self._blocked("INVALID_STRESS_ENGINE_VERSION")
+
+        scenario_results = stress_certificate.get("scenario_results")
+
+        if not isinstance(scenario_results, list):
+            return self._blocked("INVALID_SCENARIO_RESULTS")
+
+        min_scenarios = int(policy.get("min_scenarios", 1))
+
+        if len(scenario_results) < min_scenarios:
+            return self._blocked("INSUFFICIENT_SCENARIO_EVIDENCE")
+
+        scenario_ids: List[str] = []
+
+        for item in scenario_results:
+            if not isinstance(item, Mapping):
+                return self._blocked("MALFORMED_SCENARIO_EVIDENCE")
+
+            if _text(item.get("status")) != STATUS_PASS:
+                return self._blocked("SCENARIO_NOT_PASS")
+
+            scenario = item.get("scenario")
+
+            if not isinstance(scenario, Mapping):
+                return self._blocked("MISSING_SCENARIO_DEFINITION")
+
+            scenario_id = _text(scenario.get("scenario_id"))
+
+            if not scenario_id:
+                return self._blocked("MISSING_SCENARIO_ID")
+
+            if scenario_id in scenario_ids:
+                return self._blocked("DUPLICATE_SCENARIO_ID")
+
+            scenario_ids.append(scenario_id)
+
+            scenario_contribution = item.get(
+                "scenario_contribution"
+            )
+
+            # Block 94 emits scenario contribution as a list of
+            # position-level contribution records. Mapping is also
+            # accepted for compatible upstream evidence contracts.
+            if isinstance(scenario_contribution, Mapping):
+                if not scenario_contribution:
+                    return self._blocked(
+                        "MISSING_SCENARIO_CONTRIBUTION"
+                    )
+            elif isinstance(
+                scenario_contribution,
+                (list, tuple),
+            ):
+                if not scenario_contribution:
+                    return self._blocked(
+                        "MISSING_SCENARIO_CONTRIBUTION"
+                    )
+            else:
+                return self._blocked(
+                    "MISSING_SCENARIO_CONTRIBUTION"
+                )
+
+        max_drawdown = policy.get(
+            "max_stressed_drawdown_pct"
+        )
+
+        if max_drawdown is not None:
+            for item in scenario_results:
+                drawdown = _number(
+                    item.get("stressed_drawdown_pct")
+                )
+
+                if drawdown is None:
+                    return self._blocked(
+                        "INVALID_STRESSED_DRAWDOWN"
+                    )
+
+                if drawdown > float(max_drawdown):
+                    return self._blocked(
+                        "STRESS_DRAWDOWN_POLICY_BREACH"
+                    )
+
+        return {"status": STATUS_PASS}
+
+    # --------------------------------------------------------
+    # Helpers
+    # --------------------------------------------------------
+
+    def _blocked(self, reason: str) -> Dict[str, Any]:
+        return {
+            "status": STATUS_BLOCKED,
+            "gate_status": STATUS_BLOCKED,
+            "block_id": BLOCK_ID,
+            "engine_version": self.engine_version,
+            "reason_code": reason,
+            "downstream_risk_gate": STATUS_BLOCKED,
+            "broker_submission": False,
+            "live_order_submission": False,
+        }
+
+
+
+
+
+
+
+
+

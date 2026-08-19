@@ -1,4 +1,4 @@
-"""
+﻿"""
 EROS 3.0 - Block 94
 Portfolio Stress / Scenario Engine
 
@@ -522,6 +522,33 @@ class EROSBlock94PortfolioStressScenarioEngine:
         if not successful:
             return self._blocked("NO_VALID_SCENARIO_RESULT")
 
+        # ----------------------------------------------------
+        # Block 94 -> Block 95 certificate evidence adapter.
+        #
+        # Preserve the existing run_scenario() contract:
+        #   item["result"][...]
+        #
+        # Expose the analytical stress evidence at the
+        # certificate scenario-result boundary as required
+        # by Block 95.
+        # ----------------------------------------------------
+        certificate_scenarios = []
+
+        for item in successful:
+            adapted = _deepcopy(item)
+            result = adapted.get("result")
+
+            if isinstance(result, Mapping):
+                adapted["stressed_pnl"] = result.get("stressed_pnl")
+                adapted["stressed_drawdown_pct"] = result.get(
+                    "stressed_drawdown_pct"
+                )
+                adapted["scenario_contribution"] = _deepcopy(
+                    result.get("scenario_contribution", {})
+                )
+
+            certificate_scenarios.append(adapted)
+
         valuation_id = self._valuation_id(valuation)
         performance_id = self._performance_id(performance)
         risk_certificate_id = self._risk_certificate_id(risk)
@@ -532,7 +559,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
             "valuation_id": valuation_id,
             "performance_id": performance_id,
             "risk_certificate_id": risk_certificate_id,
-            "scenario_results": successful,
+            "scenario_results": certificate_scenarios,
         }
 
         certificate_id = (
@@ -557,8 +584,8 @@ class EROSBlock94PortfolioStressScenarioEngine:
             "valuation_id": valuation_id,
             "performance_id": performance_id,
             "risk_certificate_id": risk_certificate_id,
-            "scenario_count": len(successful),
-            "scenario_results": _deepcopy(successful),
+            "scenario_count": len(certificate_scenarios),
+            "scenario_results": _deepcopy(certificate_scenarios),
             "non_mutation_invariant": True,
             "broker_submission": False,
             "live_order_submission": False,
@@ -1255,3 +1282,5 @@ __all__ = [
     "run_scenario",
     "certify_stress",
 ]
+
+
