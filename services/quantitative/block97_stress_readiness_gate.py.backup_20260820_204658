@@ -186,7 +186,6 @@ class EROSBlock97StressReadinessGate:
             "readiness_reason": readiness_reason,
 
             "non_mutation_invariant": True,
-            "execution_blocked": True,
             "portfolio_mutation": False,
             "valuation_mutation": False,
             "performance_mutation": False,
@@ -385,7 +384,6 @@ class EROSBlock97StressReadinessGate:
             "downstream_execution_gate": STATUS_BLOCKED,
 
             "non_mutation_invariant": True,
-            "execution_blocked": True,
             "broker_submission": False,
             "live_order_submission": False,
         }

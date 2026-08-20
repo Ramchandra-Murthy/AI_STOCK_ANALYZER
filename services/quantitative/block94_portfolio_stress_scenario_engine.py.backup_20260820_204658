@@ -1,4 +1,4 @@
-"""
+﻿"""
 EROS 3.0 - Block 94
 Portfolio Stress / Scenario Engine
 
@@ -587,7 +587,6 @@ class EROSBlock94PortfolioStressScenarioEngine:
             "scenario_count": len(certificate_scenarios),
             "scenario_results": _deepcopy(certificate_scenarios),
             "non_mutation_invariant": True,
-            "execution_blocked": True,
             "broker_submission": False,
             "live_order_submission": False,
         }
@@ -1223,8 +1222,6 @@ class EROSBlock94PortfolioStressScenarioEngine:
             "status": STATUS_BLOCKED,
             "block_id": BLOCK_ID,
             "reason": reason,
-            "non_mutation_invariant": True,
-            "execution_blocked": True,
             "broker_submission": False,
             "live_order_submission": False,
             "portfolio_mutation": False,

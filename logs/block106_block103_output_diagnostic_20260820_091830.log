@@ -1,0 +1,544 @@
+﻿EROS 3.0 - BLOCK 103 OUTPUT DIAGNOSTIC
+TIMESTAMP: 20260820_091830
+
+PYTHON EXIT CODE: 0
+
+================ PYTHON OUTPUT ================
+
+
+======================================================================
+EROS 3.0 - BLOCK 103 OUTPUT DIAGNOSTIC
+======================================================================
+READ / VERIFY ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER CREATION
+NO MUTATION
+
+======================================================================
+1. IMPORTS
+======================================================================
+BLOCK 102 IMPORT : PASS
+BLOCK 103 IMPORT : PASS
+
+======================================================================
+2. CLASS CONTRACTS
+======================================================================
+BLOCK 102 ID           : 102
+BLOCK 102 VERSION      : EROS-3.0-BLOCK-102
+BLOCK 103 ID           : 103
+BLOCK 103 VERSION      : EROS-3.0-BLOCK-103
+BLOCK 103 REQUIRED     : ('94', '95', '96', '97', '98', '99', '100', '101')
+
+======================================================================
+3. METHOD SIGNATURES
+======================================================================
+BLOCK 102 BUILD        : (self, *, block94: 'Mapping[str, Any] | None' = None, block95: 'Mapping[str, Any] | None' = None, block96: 'Mapping[str, Any] | None' = None, block97: 'Mapping[str, Any] | None' = None, block98: 'Mapping[str, Any] | None' = None, block99: 'Mapping[str, Any] | None' = None, block100: 'Mapping[str, Any] | None' = None, block101: 'Mapping[str, Any] | None' = None) -> 'Dict[str, Any]'
+BLOCK 103 BUILD        : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 103 SNAPSHOT     : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+======================================================================
+4. CREATE BLOCK 102 INPUTS
+======================================================================
+
+======================================================================
+5. BUILD ACTUAL BLOCK 102
+======================================================================
+BLOCK 102 OUTPUT TYPE : dict
+BLOCK 102 OUTPUT ID   : 102
+BLOCK 102 STATUS      : CERTIFIED
+BLOCK 102 VERSION     : EROS-3.0-BLOCK-102
+
+BLOCK 102 TOP LEVEL KEYS:
+  - status
+  - block_id
+  - engine_version
+  - created_at
+  - pipeline_status
+  - risk
+  - governance
+  - intent
+  - execution
+  - reconciliation
+  - lineage
+  - safety
+
+BLOCK 102 COMPLETE OUTPUT:
+{
+  "block_id": "102",
+  "created_at": "2026-08-20T03:48:31.123611+00:00",
+  "engine_version": "EROS-3.0-BLOCK-102",
+  "execution": {
+    "action": "BUY",
+    "execution_id": null,
+    "fill_price": 2501.25,
+    "fill_status": null,
+    "filled_quantity": 100.0,
+    "net_value": null,
+    "reference_price": 2500.0,
+    "requested_quantity": null,
+    "slippage_bps": null,
+    "status": "SIMULATED",
+    "symbol": "RELIANCE.NS",
+    "transaction_cost": null
+  },
+  "governance": {
+    "execution_action": "BUY",
+    "governance_id": null,
+    "source_certificate_id": null,
+    "source_decision_id": null,
+    "source_gate_id": null,
+    "source_readiness_id": null,
+    "status": "APPROVED"
+  },
+  "intent": {
+    "action": "BUY",
+    "authorization_status": null,
+    "intent_action": null,
+    "intent_id": null,
+    "quantity": 100.0,
+    "reference_price": 2500.0,
+    "status": "CERTIFIED",
+    "symbol": "RELIANCE.NS"
+  },
+  "lineage": {
+    "block100": null,
+    "block101": null,
+    "block94": null,
+    "block95": null,
+    "block96": null,
+    "block97": null,
+    "block98": null,
+    "block99": null
+  },
+  "pipeline_status": [
+    {
+      "block_id": "94",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Stress Scenario Engine",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "95",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Stress Evidence Gate",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "96",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Stress Decision Gate",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "97",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Stress Readiness Gate",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "98",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Execution Governance Bridge",
+      "source_block": null,
+      "status": "APPROVED"
+    },
+    {
+      "block_id": "99",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Execution Intent Authorization",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "100",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Paper Execution / Fill Validation",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "101",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Execution Evidence Reconciliation",
+      "source_block": null,
+      "status": "CERTIFIED"
+    }
+  ],
+  "reconciliation": {
+    "cost_reconciled": null,
+    "lineage_reconciled": null,
+    "price_reconciled": null,
+    "quantity_reconciled": null,
+    "reconciliation_id": null,
+    "source_execution_id": null,
+    "status": "CERTIFIED",
+    "value_reconciled": null
+  },
+  "risk": {
+    "decision_status": "CERTIFIED",
+    "downside_pnl": null,
+    "evidence_status": "CERTIFIED",
+    "readiness_status": "CERTIFIED",
+    "scenario_count": null,
+    "stress_status": "CERTIFIED",
+    "upside_pnl": null
+  },
+  "safety": {
+    "broker_submission": false,
+    "execution_blocked": true,
+    "live_order_submission": false,
+    "non_mutation_invariant": true,
+    "optimization": false,
+    "order_creation": false,
+    "performance_mutation": false,
+    "portfolio_mutation": false,
+    "risk_mutation": false,
+    "valuation_mutation": false
+  },
+  "status": "CERTIFIED"
+}
+
+======================================================================
+6. BUILD ACTUAL BLOCK 103
+======================================================================
+BLOCK 103 INSTANCE TYPE : EROSBlock103InstitutionalFrontendReadModel
+
+BLOCK 103 BUILD          : PASS
+OUTPUT TYPE             : dict
+OUTPUT BLOCK ID         : 103
+OUTPUT STATUS           : CERTIFIED
+OUTPUT ENGINE VERSION   : EROS-3.0-BLOCK-103
+
+BLOCK 103 TOP LEVEL KEYS:
+  - status
+  - block_id
+  - engine_version
+  - dashboard
+  - pipeline
+  - risk
+  - governance
+  - intent
+  - execution
+  - reconciliation
+  - lineage
+  - safety
+
+BLOCK 103 COMPLETE OUTPUT:
+{
+  "block_id": "103",
+  "dashboard": {
+    "subtitle": "Read-only governance, execution and reconciliation view",
+    "title": "EROS 3.0 Institutional Command Center"
+  },
+  "engine_version": "EROS-3.0-BLOCK-103",
+  "execution": {
+    "action": "BUY",
+    "execution_id": null,
+    "fill_price": 2501.25,
+    "fill_status": null,
+    "filled_quantity": 100.0,
+    "net_value": null,
+    "reference_price": 2500.0,
+    "requested_quantity": null,
+    "slippage_bps": null,
+    "status": "SIMULATED",
+    "symbol": "RELIANCE.NS",
+    "transaction_cost": null
+  },
+  "governance": {
+    "execution_action": "BUY",
+    "governance_id": null,
+    "source_certificate_id": null,
+    "source_decision_id": null,
+    "source_gate_id": null,
+    "source_readiness_id": null,
+    "status": "APPROVED"
+  },
+  "intent": {
+    "action": "BUY",
+    "authorization_status": null,
+    "intent_action": null,
+    "intent_id": null,
+    "quantity": 100.0,
+    "reference_price": 2500.0,
+    "status": "CERTIFIED",
+    "symbol": "RELIANCE.NS"
+  },
+  "lineage": {
+    "block100": null,
+    "block101": null,
+    "block94": null,
+    "block95": null,
+    "block96": null,
+    "block97": null,
+    "block98": null,
+    "block99": null
+  },
+  "pipeline": [
+    {
+      "block_id": "94",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Stress Scenario Engine",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "95",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Stress Evidence Gate",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "96",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Stress Decision Gate",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "97",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Stress Readiness Gate",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "98",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Execution Governance Bridge",
+      "source_block": null,
+      "status": "APPROVED"
+    },
+    {
+      "block_id": "99",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Execution Intent Authorization",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "100",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Paper Execution / Fill Validation",
+      "source_block": null,
+      "status": "CERTIFIED"
+    },
+    {
+      "block_id": "101",
+      "execution_blocked": true,
+      "identifier": null,
+      "name": "Execution Evidence Reconciliation",
+      "source_block": null,
+      "status": "CERTIFIED"
+    }
+  ],
+  "reconciliation": {
+    "cost_reconciled": null,
+    "lineage_reconciled": null,
+    "price_reconciled": null,
+    "quantity_reconciled": null,
+    "reconciliation_id": null,
+    "source_execution_id": null,
+    "status": "CERTIFIED",
+    "value_reconciled": null
+  },
+  "risk": {
+    "decision_status": "CERTIFIED",
+    "downside_pnl": null,
+    "evidence_status": "CERTIFIED",
+    "readiness_status": "CERTIFIED",
+    "scenario_count": null,
+    "stress_status": "CERTIFIED",
+    "upside_pnl": null
+  },
+  "safety": {
+    "broker_submission": false,
+    "execution_blocked": true,
+    "live_order_submission": false,
+    "non_mutation_invariant": true,
+    "optimization": false,
+    "order_creation": false,
+    "performance_mutation": false,
+    "portfolio_mutation": false,
+    "risk_mutation": false,
+    "valuation_mutation": false
+  },
+  "status": "CERTIFIED"
+}
+
+======================================================================
+7. BLOCK 103 SOURCE VALIDATION METHOD
+======================================================================
+
+--- SOURCE CONTEXT 7:23 ---
+0007: 
+0008:     Presentation/read-model layer only.
+0009:     """
+0010: 
+0011:     BLOCK_ID = "103"
+0012:     ENGINE_VERSION = "EROS-3.0-BLOCK-103"
+0013: 
+0014:     REQUIRED_BLOCKS = (
+0015:         "94",
+0016:         "95",
+0017:         "96",
+0018:         "97",
+0019:         "98",
+0020:         "99",
+0021:         "100",
+0022:         "101",
+0023:     )
+
+--- SOURCE CONTEXT 10:26 ---
+0010: 
+0011:     BLOCK_ID = "103"
+0012:     ENGINE_VERSION = "EROS-3.0-BLOCK-103"
+0013: 
+0014:     REQUIRED_BLOCKS = (
+0015:         "94",
+0016:         "95",
+0017:         "96",
+0018:         "97",
+0019:         "98",
+0020:         "99",
+0021:         "100",
+0022:         "101",
+0023:     )
+0024: 
+0025:     def __init__(self) -> None:
+0026:         self.engine_version = self.ENGINE_VERSION
+
+--- SOURCE CONTEXT 32:48 ---
+0032:     ) -> Dict[str, Any]:
+0033: 
+0034:         source = deepcopy(dict(contract))
+0035: 
+0036:         self._validate_source(source)
+0037: 
+0038:         pipeline = self._build_pipeline(source)
+0039:         risk = self._build_risk(source)
+0040:         governance = self._build_governance(source)
+0041:         intent = self._build_intent(source)
+0042:         execution = self._build_execution(source)
+0043:         reconciliation = self._build_reconciliation(source)
+0044:         lineage = self._build_lineage(source)
+0045:         safety = self._build_safety(source)
+0046: 
+0047:         return {
+0048:             "status": "CERTIFIED",
+
+--- SOURCE CONTEXT 45:61 ---
+0045:         safety = self._build_safety(source)
+0046: 
+0047:         return {
+0048:             "status": "CERTIFIED",
+0049:             "block_id": self.BLOCK_ID,
+0050:             "engine_version": self.engine_version,
+0051: 
+0052:             "dashboard": {
+0053:                 "title": "EROS 3.0 Institutional Command Center",
+0054:                 "subtitle": "Read-only governance, execution and reconciliation view",
+0055:             },
+0056: 
+0057:             "pipeline": pipeline,
+0058:             "risk": risk,
+0059:             "governance": governance,
+0060:             "intent": intent,
+0061:             "execution": execution,
+
+--- SOURCE CONTEXT 71:87 ---
+0071:     ) -> Dict[str, Any]:
+0072:         return self.build(contract=contract)
+0073: 
+0074:     @staticmethod
+0075:     def _validate_source(source: Mapping[str, Any]) -> None:
+0076: 
+0077:         if source.get("status") != "CERTIFIED":
+0078:             raise ValueError("BLOCK103_SOURCE_NOT_CERTIFIED")
+0079: 
+0080:         if source.get("block_id") != "102":
+0081:             raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+0082: 
+0083:         pipeline = source.get("pipeline_status")
+0084: 
+0085:         if not isinstance(pipeline, list):
+0086:             raise ValueError("BLOCK103_PIPELINE_MISSING")
+0087: 
+
+--- SOURCE CONTEXT 77:93 ---
+0077:         if source.get("status") != "CERTIFIED":
+0078:             raise ValueError("BLOCK103_SOURCE_NOT_CERTIFIED")
+0079: 
+0080:         if source.get("block_id") != "102":
+0081:             raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+0082: 
+0083:         pipeline = source.get("pipeline_status")
+0084: 
+0085:         if not isinstance(pipeline, list):
+0086:             raise ValueError("BLOCK103_PIPELINE_MISSING")
+0087: 
+0088:         block_ids = {
+0089:             str(item.get("block_id"))
+0090:             for item in pipeline
+0091:             if isinstance(item, Mapping)
+0092:         }
+0093: 
+
+--- SOURCE CONTEXT 90:106 ---
+0090:             for item in pipeline
+0091:             if isinstance(item, Mapping)
+0092:         }
+0093: 
+0094:         if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
+0095:             raise ValueError("BLOCK103_INVALID_PIPELINE")
+0096: 
+0097:         safety = source.get("safety")
+0098: 
+0099:         if not isinstance(safety, Mapping):
+0100:             raise ValueError("BLOCK103_SAFETY_MISSING")
+0101: 
+0102:         if safety.get("portfolio_mutation") is not False:
+0103:             raise ValueError("BLOCK103_PORTFOLIO_MUTATION")
+0104: 
+0105:         if safety.get("valuation_mutation") is not False:
+0106:             raise ValueError("BLOCK103_VALUATION_MUTATION")
+
+======================================================================
+8. DIAGNOSTIC RESULT
+======================================================================
+BLOCK 102 : BUILT
+BLOCK 103 : INSPECTED
+SOURCE CHANGES : NONE
+GIT COMMIT     : NONE
+GIT PUSH       : NONE
+BROKER         : FALSE
+LIVE EXECUTION : FALSE
+MUTATION       : FALSE
+
+======================================================================
+BLOCK 103 OUTPUT DIAGNOSTIC COMPLETE
+======================================================================

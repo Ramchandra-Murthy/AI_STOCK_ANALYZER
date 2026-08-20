@@ -1,0 +1,649 @@
+==========================================================================================
+EROS 3.0 - BLOCK 94-101 SAFETY PROPAGATION TRACE
+==========================================================================================
+
+PURPOSE
+-------
+Read-only inspection of actual safety schemas and propagation.
+NO SOURCE CHANGES
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+
+
+==========================================================================================
+services.quantitative.block94_portfolio_stress_scenario_engine
+==========================================================================================
+IMPORT : PASS
+
+CLASS : EROSBlock94PortfolioStressScenarioEngine
+INSTANCE : PASS
+
+----- SNAPSHOT TRACE -----
+TYPE : <class 'dict'>
+
+TOP LEVEL KEYS:
+   block_id
+   engine_version
+   certificate_count
+   scenario_count
+   certificates
+
+SAFETY FIELD LOCATION:
+execution_blocked            : ABSENT
+non_mutation_invariant       : ABSENT
+broker_submission            : ABSENT
+live_order_submission        : ABSENT
+portfolio_mutation           : ABSENT
+valuation_mutation           : ABSENT
+performance_mutation         : ABSENT
+risk_mutation                : ABSENT
+optimization                 : ABSENT
+order_creation               : ABSENT
+
+FULL SNAPSHOT:
+{'block_id': 'EROS-BLOCK-94', 'engine_version': '94.1.0', 'certificate_count': 0, 'scenario_count': 0, 'certificates': []}
+
+----- certificate_history -----
+TYPE : <class 'list'>
+[]
+
+----- scenario_history -----
+TYPE : <class 'dict'>
+{}
+
+==========================================================================================
+services.quantitative.block95_stress_evidence_gate
+==========================================================================================
+IMPORT : PASS
+
+CLASS : EROSBlock95StressEvidenceGate
+INSTANCE : PASS
+
+----- SNAPSHOT TRACE -----
+TYPE : <class 'dict'>
+
+TOP LEVEL KEYS:
+   engine_version
+   block_id
+   certificates
+
+SAFETY FIELD LOCATION:
+execution_blocked            : ABSENT
+non_mutation_invariant       : ABSENT
+broker_submission            : ABSENT
+live_order_submission        : ABSENT
+portfolio_mutation           : ABSENT
+valuation_mutation           : ABSENT
+performance_mutation         : ABSENT
+risk_mutation                : ABSENT
+optimization                 : ABSENT
+order_creation               : ABSENT
+
+FULL SNAPSHOT:
+{'engine_version': 'EROS-3.0-BLOCK-95', 'block_id': '95', 'certificates': {}}
+
+==========================================================================================
+services.quantitative.block96_stress_decision_gate
+==========================================================================================
+IMPORT : PASS
+
+CLASS : EROSBlock96StressDecisionGate
+INSTANCE : PASS
+
+----- SNAPSHOT TRACE -----
+TYPE : <class 'dict'>
+
+TOP LEVEL KEYS:
+   engine_version
+   block_id
+   decisions
+
+SAFETY FIELD LOCATION:
+execution_blocked            : ABSENT
+non_mutation_invariant       : ABSENT
+broker_submission            : ABSENT
+live_order_submission        : ABSENT
+portfolio_mutation           : ABSENT
+valuation_mutation           : ABSENT
+performance_mutation         : ABSENT
+risk_mutation                : ABSENT
+optimization                 : ABSENT
+order_creation               : ABSENT
+
+FULL SNAPSHOT:
+{'engine_version': 'EROS-3.0-BLOCK-96', 'block_id': '96', 'decisions': {}}
+
+==========================================================================================
+services.quantitative.block97_stress_readiness_gate
+==========================================================================================
+IMPORT : PASS
+
+CLASS : EROSBlock97StressReadinessGate
+INSTANCE : PASS
+
+----- SNAPSHOT TRACE -----
+TYPE : <class 'dict'>
+
+TOP LEVEL KEYS:
+   engine_version
+   block_id
+   readiness
+
+SAFETY FIELD LOCATION:
+execution_blocked            : ABSENT
+non_mutation_invariant       : ABSENT
+broker_submission            : ABSENT
+live_order_submission        : ABSENT
+portfolio_mutation           : ABSENT
+valuation_mutation           : ABSENT
+performance_mutation         : ABSENT
+risk_mutation                : ABSENT
+optimization                 : ABSENT
+order_creation               : ABSENT
+
+FULL SNAPSHOT:
+{'engine_version': '97.1.0', 'block_id': '97', 'readiness': {}}
+
+==========================================================================================
+services.quantitative.block98_execution_governance_bridge
+==========================================================================================
+IMPORT : PASS
+
+CLASS : EROSBlock98ExecutionGovernanceBridge
+INSTANCE : PASS
+
+----- SNAPSHOT TRACE -----
+TYPE : <class 'dict'>
+
+TOP LEVEL KEYS:
+   block_id
+   engine_version
+   governance
+   source_index
+
+SAFETY FIELD LOCATION:
+execution_blocked            : ABSENT
+non_mutation_invariant       : ABSENT
+broker_submission            : ABSENT
+live_order_submission        : ABSENT
+portfolio_mutation           : ABSENT
+valuation_mutation           : ABSENT
+performance_mutation         : ABSENT
+risk_mutation                : ABSENT
+optimization                 : ABSENT
+order_creation               : ABSENT
+
+FULL SNAPSHOT:
+{'block_id': '98', 'engine_version': '98.1.0', 'governance': {}, 'source_index': {}}
+
+==========================================================================================
+services.quantitative.block99_execution_intent_authorization_gate
+==========================================================================================
+IMPORT : PASS
+
+CLASS : EROSBlock99ExecutionIntentAuthorizationGate
+INSTANCE : PASS
+
+----- SNAPSHOT TRACE -----
+TYPE : <class 'dict'>
+
+TOP LEVEL KEYS:
+   block_id
+   engine_version
+   intents
+   source_index
+
+SAFETY FIELD LOCATION:
+execution_blocked            : ABSENT
+non_mutation_invariant       : ABSENT
+broker_submission            : ABSENT
+live_order_submission        : ABSENT
+portfolio_mutation           : ABSENT
+valuation_mutation           : ABSENT
+performance_mutation         : ABSENT
+risk_mutation                : ABSENT
+optimization                 : ABSENT
+order_creation               : ABSENT
+
+FULL SNAPSHOT:
+{'block_id': '99', 'engine_version': 'EROS-3.0-BLOCK-99', 'intents': {}, 'source_index': {}}
+
+==========================================================================================
+services.quantitative.block100_paper_execution_fill_gate
+==========================================================================================
+IMPORT : PASS
+
+CLASS : EROSBlock100PaperExecutionFillGate
+INSTANCE : PASS
+
+----- SNAPSHOT TRACE -----
+TYPE : <class 'dict'>
+
+TOP LEVEL KEYS:
+   block_id
+   engine_version
+   execution_count
+   executions
+
+SAFETY FIELD LOCATION:
+execution_blocked            : ABSENT
+non_mutation_invariant       : ABSENT
+broker_submission            : ABSENT
+live_order_submission        : ABSENT
+portfolio_mutation           : ABSENT
+valuation_mutation           : ABSENT
+performance_mutation         : ABSENT
+risk_mutation                : ABSENT
+optimization                 : ABSENT
+order_creation               : ABSENT
+
+FULL SNAPSHOT:
+{'block_id': '100', 'engine_version': 'EROS-3.0-BLOCK-100', 'execution_count': 0, 'executions': []}
+
+==========================================================================================
+services.quantitative.block101_execution_evidence_reconciliation
+==========================================================================================
+IMPORT : PASS
+
+CLASS : EROSBlock101ExecutionEvidenceReconciliationGate
+INSTANCE : PASS
+
+----- SNAPSHOT TRACE -----
+TYPE : <class 'dict'>
+
+TOP LEVEL KEYS:
+   status
+   block_id
+   engine_version
+   reconciliation
+
+SAFETY FIELD LOCATION:
+execution_blocked            : ABSENT
+non_mutation_invariant       : ABSENT
+broker_submission            : ABSENT
+live_order_submission        : ABSENT
+portfolio_mutation           : ABSENT
+valuation_mutation           : ABSENT
+performance_mutation         : ABSENT
+risk_mutation                : ABSENT
+optimization                 : ABSENT
+order_creation               : ABSENT
+
+FULL SNAPSHOT:
+{'status': 'CERTIFIED', 'block_id': '101', 'engine_version': 'EROS-3.0-BLOCK-101', 'reconciliation': []}
+
+==========================================================================================
+SOURCE-LEVEL SAFETY CONSTANT TRACE
+==========================================================================================
+
+------------------------------------------------------------------------------------------
+services.quantitative.block94_portfolio_stress_scenario_engine
+------------------------------------------------------------------------------------------
+
+non_mutation_invariant :
+    "non_mutation_invariant": True,
+
+broker_submission :
+    "broker_submission",
+    "broker_submission": False,
+    "broker_submission": False,
+
+live_order_submission :
+    "live_order_submission": False,
+    "live_order_submission": False,
+
+portfolio_mutation :
+    "portfolio_mutation": False,
+
+valuation_mutation :
+    "valuation_mutation": False,
+
+optimization :
+    * no optimization
+
+------------------------------------------------------------------------------------------
+services.quantitative.block95_stress_evidence_gate
+------------------------------------------------------------------------------------------
+
+non_mutation_invariant :
+    "non_mutation_invariant": True,
+
+broker_submission :
+    broker_submission: False
+    "broker_submission",
+    "broker_submission": False,
+    "broker_submission": False,
+
+live_order_submission :
+    live_order_submission: False
+    "live_order_submission",
+    "live_order_submission": False,
+    "live_order_submission": False,
+
+optimization :
+    * no optimization
+
+------------------------------------------------------------------------------------------
+services.quantitative.block96_stress_decision_gate
+------------------------------------------------------------------------------------------
+
+non_mutation_invariant :
+    "non_mutation_invariant": True,
+    "non_mutation_invariant"
+
+broker_submission :
+    "broker_submission": False,
+    "broker_submission"
+    "broker_submission": False,
+
+live_order_submission :
+    "live_order_submission": False,
+    "live_order_submission"
+    "live_order_submission": False,
+
+optimization :
+    * no optimization
+
+------------------------------------------------------------------------------------------
+services.quantitative.block97_stress_readiness_gate
+------------------------------------------------------------------------------------------
+
+non_mutation_invariant :
+    "non_mutation_invariant": True,
+    "non_mutation_invariant"
+    "non_mutation_invariant": True,
+
+broker_submission :
+    "broker_submission": False,
+    "broker_submission"
+    "broker_submission": False,
+
+live_order_submission :
+    "live_order_submission": False,
+    "live_order_submission"
+    "live_order_submission": False,
+
+portfolio_mutation :
+    "portfolio_mutation": False,
+
+valuation_mutation :
+    "valuation_mutation": False,
+
+performance_mutation :
+    "performance_mutation": False,
+
+risk_mutation :
+    "risk_mutation": False,
+
+optimization :
+    "optimization": False,
+
+order_creation :
+    "order_creation": False,
+
+------------------------------------------------------------------------------------------
+services.quantitative.block98_execution_governance_bridge
+------------------------------------------------------------------------------------------
+
+execution_blocked :
+    "execution_blocked": True,
+    "execution_blocked": True,
+
+non_mutation_invariant :
+    "non_mutation_invariant": True,
+    "non_mutation_invariant"
+    "non_mutation_invariant": True,
+
+broker_submission :
+    "broker_submission": False,
+    "broker_submission"
+    "broker_submission": False,
+
+live_order_submission :
+    "live_order_submission": False,
+    "live_order_submission"
+    "live_order_submission": False,
+
+portfolio_mutation :
+    "portfolio_mutation": False,
+    "portfolio_mutation": False,
+
+valuation_mutation :
+    "valuation_mutation": False,
+    "valuation_mutation": False,
+
+performance_mutation :
+    "performance_mutation": False,
+    "performance_mutation": False,
+
+risk_mutation :
+    "risk_mutation": False,
+    "risk_mutation": False,
+
+optimization :
+    "optimization": False,
+    "optimization": False,
+
+order_creation :
+    "order_creation": False,
+    "order_creation": False,
+
+------------------------------------------------------------------------------------------
+services.quantitative.block99_execution_intent_authorization_gate
+------------------------------------------------------------------------------------------
+
+execution_blocked :
+    "execution_blocked": True,
+    "execution_blocked"
+    "execution_blocked": True,
+
+non_mutation_invariant :
+    "non_mutation_invariant": True,
+    "non_mutation_invariant"
+    "non_mutation_invariant": True,
+
+broker_submission :
+    "broker_submission": False,
+    "broker_submission":
+    "broker_submission": False,
+
+live_order_submission :
+    "live_order_submission": False,
+    "live_order_submission":
+    "live_order_submission": False,
+
+portfolio_mutation :
+    "portfolio_mutation": False,
+    "portfolio_mutation":
+    "portfolio_mutation": False,
+
+valuation_mutation :
+    "valuation_mutation": False,
+    "valuation_mutation":
+    "valuation_mutation": False,
+
+performance_mutation :
+    "performance_mutation": False,
+    "performance_mutation":
+    "performance_mutation": False,
+
+risk_mutation :
+    "risk_mutation": False,
+    "risk_mutation":
+    "risk_mutation": False,
+
+optimization :
+    - perform optimization
+    "optimization": False,
+    "optimization":
+    "optimization": False,
+
+order_creation :
+    "order_creation": False,
+    "order_creation":
+    "order_creation": False,
+
+------------------------------------------------------------------------------------------
+services.quantitative.block100_paper_execution_fill_gate
+------------------------------------------------------------------------------------------
+
+execution_blocked :
+    "execution_blocked": True,
+    "execution_blocked"
+    "execution_blocked": True,
+
+non_mutation_invariant :
+    "non_mutation_invariant": True,
+    "non_mutation_invariant"
+    "non_mutation_invariant": True,
+
+broker_submission :
+    "broker_submission": False,
+    "broker_submission"
+    "broker_submission": False,
+
+live_order_submission :
+    "live_order_submission": False,
+    "live_order_submission"
+    "live_order_submission": False,
+
+optimization :
+    - performs optimization
+
+------------------------------------------------------------------------------------------
+services.quantitative.block101_execution_evidence_reconciliation
+------------------------------------------------------------------------------------------
+
+execution_blocked :
+    "execution_blocked"
+    "execution_blocked":
+    "execution_blocked": True,
+
+non_mutation_invariant :
+    "non_mutation_invariant"
+    "non_mutation_invariant":
+    "non_mutation_invariant": True,
+
+broker_submission :
+    "broker_submission"
+    "broker_submission":
+    "broker_submission": False,
+
+live_order_submission :
+    "live_order_submission"
+    "live_order_submission":
+    "live_order_submission": False,
+
+==========================================================================================
+FINAL SAFETY FIELD SUMMARY
+==========================================================================================
+
+EROSBlock94PortfolioStressScenarioEngine
+  execution_blocked            ABSENT
+  non_mutation_invariant       ABSENT
+  broker_submission            ABSENT
+  live_order_submission        ABSENT
+  portfolio_mutation           ABSENT
+  valuation_mutation           ABSENT
+  performance_mutation         ABSENT
+  risk_mutation                ABSENT
+  optimization                 ABSENT
+  order_creation               ABSENT
+
+EROSBlock95StressEvidenceGate
+  execution_blocked            ABSENT
+  non_mutation_invariant       ABSENT
+  broker_submission            ABSENT
+  live_order_submission        ABSENT
+  portfolio_mutation           ABSENT
+  valuation_mutation           ABSENT
+  performance_mutation         ABSENT
+  risk_mutation                ABSENT
+  optimization                 ABSENT
+  order_creation               ABSENT
+
+EROSBlock96StressDecisionGate
+  execution_blocked            ABSENT
+  non_mutation_invariant       ABSENT
+  broker_submission            ABSENT
+  live_order_submission        ABSENT
+  portfolio_mutation           ABSENT
+  valuation_mutation           ABSENT
+  performance_mutation         ABSENT
+  risk_mutation                ABSENT
+  optimization                 ABSENT
+  order_creation               ABSENT
+
+EROSBlock97StressReadinessGate
+  execution_blocked            ABSENT
+  non_mutation_invariant       ABSENT
+  broker_submission            ABSENT
+  live_order_submission        ABSENT
+  portfolio_mutation           ABSENT
+  valuation_mutation           ABSENT
+  performance_mutation         ABSENT
+  risk_mutation                ABSENT
+  optimization                 ABSENT
+  order_creation               ABSENT
+
+EROSBlock98ExecutionGovernanceBridge
+  execution_blocked            ABSENT
+  non_mutation_invariant       ABSENT
+  broker_submission            ABSENT
+  live_order_submission        ABSENT
+  portfolio_mutation           ABSENT
+  valuation_mutation           ABSENT
+  performance_mutation         ABSENT
+  risk_mutation                ABSENT
+  optimization                 ABSENT
+  order_creation               ABSENT
+
+EROSBlock99ExecutionIntentAuthorizationGate
+  execution_blocked            ABSENT
+  non_mutation_invariant       ABSENT
+  broker_submission            ABSENT
+  live_order_submission        ABSENT
+  portfolio_mutation           ABSENT
+  valuation_mutation           ABSENT
+  performance_mutation         ABSENT
+  risk_mutation                ABSENT
+  optimization                 ABSENT
+  order_creation               ABSENT
+
+EROSBlock100PaperExecutionFillGate
+  execution_blocked            ABSENT
+  non_mutation_invariant       ABSENT
+  broker_submission            ABSENT
+  live_order_submission        ABSENT
+  portfolio_mutation           ABSENT
+  valuation_mutation           ABSENT
+  performance_mutation         ABSENT
+  risk_mutation                ABSENT
+  optimization                 ABSENT
+  order_creation               ABSENT
+
+EROSBlock101ExecutionEvidenceReconciliationGate
+  execution_blocked            ABSENT
+  non_mutation_invariant       ABSENT
+  broker_submission            ABSENT
+  live_order_submission        ABSENT
+  portfolio_mutation           ABSENT
+  valuation_mutation           ABSENT
+  performance_mutation         ABSENT
+  risk_mutation                ABSENT
+  optimization                 ABSENT
+  order_creation               ABSENT
+
+==========================================================================================
+SAFETY PROPAGATION TRACE COMPLETE
+==========================================================================================
+READ ONLY
+NO SOURCE CHANGES
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+==========================================================================================
+

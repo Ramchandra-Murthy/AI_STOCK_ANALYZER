@@ -1,0 +1,239 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820094319
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 8248
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_final_regression_20260820_094319.log
+
+======================================================================
+       EROS 3.0 - BLOCK 106 FINAL REGRESSION & GIT READINESS
+======================================================================
+
+1. GIT BASELINE
+----------------------------------------------------------------------
+feature/eros-3-0-sprint19
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+2. COMPILE VERIFICATION
+----------------------------------------------------------------------
+
+COMPILING: .\services\quantitative\block100_paper_execution_fill_gate.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block101_execution_evidence_reconciliation.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block102_frontend_contract.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block103_institutional_frontend_read_model.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block104_eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block106_institutional_integration_boundary.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\app.py
+
+COMPILE : PASS
+
+3. BLOCK 106 IMPORT
+----------------------------------------------------------------------
+BLOCK 106 IMPORT : PASS
+CLASS : EROSBlock106InstitutionalIntegrationBoundary
+
+4. SAFETY BOUNDARY SEARCH
+----------------------------------------------------------------------
+LIVE EXECUTION / BROKER TERMS:
+
+services\quantitative\block106_institutional_integration_boundary.py:18:- broker independent
+services\quantitative\block106_institutional_integration_boundary.py:24:- broker submission
+services\quantitative\block106_institutional_integration_boundary.py:59:        "allow_order_creation": False,
+services\quantitative\block106_institutional_integration_boundary.py:60:        "allow_broker_submission": False,
+services\quantitative\block106_institutional_integration_boundary.py:61:        "allow_live_execution": False,
+services\quantitative\block106_institutional_integration_boundary.py:62:        "allow_portfolio_mutation": False,
+services\quantitative\block106_institutional_integration_boundary.py:67:        "execution_blocked": True,
+services\quantitative\block106_institutional_integration_boundary.py:68:        "non_mutation_invariant": True,
+services\quantitative\block106_institutional_integration_boundary.py:148:            "portfolio_mutation",
+services\quantitative\block106_institutional_integration_boundary.py:153:            "order_creation",
+services\quantitative\block106_institutional_integration_boundary.py:154:            "broker_submission",
+services\quantitative\block106_institutional_integration_boundary.py:170:        if not
+bool(source_safety.get("execution_blocked", False)):
+services\quantitative\block106_institutional_integration_boundary.py:172:                "Block 106 requires
+execution_blocked=True"
+services\quantitative\block106_institutional_integration_boundary.py:175:        if not
+bool(source_safety.get("non_mutation_invariant", False)):
+services\quantitative\block106_institutional_integration_boundary.py:177:                "Block 106 requires
+non_mutation_invariant=True"
+services\quantitative\block106_institutional_integration_boundary.py:282:        if safety.get("allow_order_creation"):
+services\quantitative\block106_institutional_integration_boundary.py:285:        if
+safety.get("allow_broker_submission"):
+services\quantitative\block106_institutional_integration_boundary.py:288:        if safety.get("allow_live_execution"):
+services\quantitative\block106_institutional_integration_boundary.py:291:        if
+safety.get("allow_portfolio_mutation"):
+services\quantitative\block106_institutional_integration_boundary.py:306:        if not
+safety.get("execution_blocked"):
+services\quantitative\block106_institutional_integration_boundary.py:309:        if not
+safety.get("non_mutation_invariant"):
+
+5. GENERATED TEST RUNNER INVENTORY
+----------------------------------------------------------------------
+
+Name          : block106_102_103_104_106_final_runtime_runner.py
+Length        : 15775
+LastWriteTime : 20-08-2026 09:37:15 AM
+
+
+Name          : block106_102_103_contract_inspection_runner.py
+Length        : 8834
+LastWriteTime : 20-08-2026 09:20:20 AM
+
+
+Name          : block106_actual_block103_output_runner.py
+Length        : 8649
+LastWriteTime : 20-08-2026 09:22:32 AM
+
+
+Name          : block106_actual_chain_diagnostic_runner.py
+Length        : 11467
+LastWriteTime : 20-08-2026 09:19:23 AM
+
+
+Name          : block106_block102_actual_contract_runner_20260820_093924.py
+Length        : 4725
+LastWriteTime : 20-08-2026 09:39:24 AM
+
+
+Name          : block106_block102_real_contract_runner.py
+Length        : 8447
+LastWriteTime : 20-08-2026 09:15:04 AM
+
+
+Name          : block106_block103_actual_output_diagnostic_runner.py
+Length        : 8336
+LastWriteTime : 20-08-2026 09:34:17 AM
+
+
+Name          : block106_block103_actual_output_runner.py
+Length        : 5889
+LastWriteTime : 20-08-2026 09:36:21 AM
+
+
+Name          : block106_block103_contract_inspection_runner.py
+Length        : 3850
+LastWriteTime : 20-08-2026 09:00:09 AM
+
+
+Name          : block106_block103_id_type_runner.py
+Length        : 5432
+LastWriteTime : 20-08-2026 09:17:41 AM
+
+
+Name          : block106_block103_output_diagnostic_runner.py
+Length        : 7763
+LastWriteTime : 20-08-2026 09:21:39 AM
+
+
+Name          : block106_block103_source_contract_runner.py
+Length        : 9697
+LastWriteTime : 20-08-2026 09:14:12 AM
+
+
+Name          : block106_build_signature_runner.py
+Length        : 3234
+LastWriteTime : 20-08-2026 08:56:12 AM
+
+
+Name          : block106_corrected_integration_runner.py
+Length        : 12462
+LastWriteTime : 20-08-2026 08:54:25 AM
+
+
+Name          : block106_deep_runtime_contract_runner.py
+Length        : 21590
+LastWriteTime : 20-08-2026 08:52:25 AM
+
+
+Name          : block106_e2e_corrected_runner.py
+Length        : 12549
+LastWriteTime : 20-08-2026 09:11:02 AM
+
+
+Name          : block106_end_to_end_runtime_runner.py
+Length        : 11359
+LastWriteTime : 20-08-2026 08:57:09 AM
+
+
+Name          : block106_interface_runtime_runner.py
+Length        : 9170
+LastWriteTime : 20-08-2026 08:50:51 AM
+
+
+Name          : block106_real_102_to_106_runtime_runner.py
+Length        : 14712
+LastWriteTime : 20-08-2026 09:15:59 AM
+
+
+6. PYTHON CACHE CLEANUP
+----------------------------------------------------------------------
+PYTHON CACHE : CLEANED
+
+7. SOURCE FILE STATUS
+----------------------------------------------------------------------
+
+FullName      : D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block106_institutional_integration_bounda
+                ry.py
+Length        : 8723
+LastWriteTime : 20-08-2026 08:42:13 AM
+
+
+8. FINAL GIT STATUS
+----------------------------------------------------------------------
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+======================================================================
+BLOCK 106 FINAL REGRESSION PRECHECK COMPLETE
+======================================================================
+RESULT : PASS
+
+LIVE BROKER       : FALSE
+LIVE EXECUTION    : FALSE
+ORDER CREATION    : FALSE
+MUTATION          : FALSE
+EXECUTION BLOCKED : TRUE
+READ ONLY         : TRUE
+
+LOG FILE:
+.\logs\block106_final_regression_20260820_094319.log
+**********************
+Windows PowerShell transcript end
+End time: 20260820094321
+**********************

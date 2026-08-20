@@ -1,0 +1,43 @@
+
+======================================================================
+EROS 3.0 - BLOCK 106 END-TO-END PYTHON RUNTIME RUNNER
+======================================================================
+
+1. IMPORT CONTRACT LAYERS
+----------------------------------------------------------------------
+BLOCK 103 IMPORT : PASS
+BLOCK 104 IMPORT : PASS
+BLOCK 106 IMPORT : PASS
+
+2. ACTUAL RUNTIME SIGNATURES
+----------------------------------------------------------------------
+BLOCK 103 BUILD     : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 103 SNAPSHOT  : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 104 SNAPSHOT  : (self, *, read_model: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 BUILD     : (self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 SNAPSHOT  : (self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 VALIDATE  : (self, payload: 'Mapping[str, Any]') -> 'bool'
+SIGNATURE VERIFICATION : PASS
+
+3. BUILD BLOCK 103 UPSTREAM CONTRACT
+----------------------------------------------------------------------
+UPSTREAM CONTRACT : CREATED
+SYMBOL            : RELIANCE.NS
+ACTION            : BUY
+QUANTITY          : 100.0
+REFERENCE PRICE   : 2500.0
+
+4. BLOCK 103 INSTITUTIONAL READ MODEL
+----------------------------------------------------------------------
+INSTANCE TYPE     : EROSBlock103InstitutionalFrontendReadModel
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_end_to_end_runtime_runner.py", line 188, in <module>
+    read_model = block103.build(
+        contract=contract
+    )
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py", line 42, in build
+    self._validate_source(source)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py", line 87, in _validate_source
+    raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+ValueError: BLOCK103_INVALID_SOURCE_BLOCK

@@ -1,0 +1,95 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820085424
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 2348
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+1. CURRENT GIT BASELINE
+----------------------------------------------------------------------
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+LATEST COMMIT:
+29bfca9 (HEAD -> feature/eros-3-0-sprint19, origin/feature/eros-3-0-sprint19) EROS 3.0: integrate Block 105 command cent
+er dashboard
+
+WORKING TREE:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+PYTHON RUNNER CREATED:
+.\logs\block106_corrected_integration_runner.py
+
+RUNNING CORRECTED BLOCK 106 TEST...
+
+
+======================================================================
+EROS 3.0 - BLOCK 106 CORRECTED INTEGRATION RUNNER
+======================================================================
+
+1. IMPORT CONTRACT
+----------------------------------------------------------------------
+BLOCK 103 IMPORT : PASS
+BLOCK 104 IMPORT : PASS
+BLOCK 106 IMPORT : PASS
+
+2. BLOCK 103 READ MODEL
+----------------------------------------------------------------------
+BLOCK 103 INSTANCE : PASS
+BLOCK 103 TYPE     : EROSBlock103InstitutionalFrontendReadModel
+
+3. BLOCK 103 BUILD INTERFACE
+----------------------------------------------------------------------
+BUILD METHOD : <bound method EROSBlock103InstitutionalFrontendReadModel.build of <services.quantitative.block103_institu
+tional_frontend_read_model.EROSBlock103InstitutionalFrontendReadModel object at 0x000002BCB945E3C0>>
+SNAPSHOT METHOD : <bound method EROSBlock103InstitutionalFrontendReadModel.snapshot of <services.quantitative.block103_i
+nstitutional_frontend_read_model.EROSBlock103InstitutionalFrontendReadModel object at 0x000002BCB945E3C0>>
+BLOCK 103 INTERFACE : PASS
+
+4. BUILD READ-ONLY UPSTREAM SOURCE
+----------------------------------------------------------------------
+UPSTREAM SOURCE CREATED : PASS
+
+5. BLOCK 103 BUILD
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_corrected_integration_runner.py", line 162, in <module>
+    read_model = block103.build(
+        source=upstream
+    )
+TypeError: EROSBlock103InstitutionalFrontendReadModel.build() got an unexpected keyword argument 'source'
+
+======================================================================
+ BLOCK 106 CORRECTED INTEGRATION TEST : FAILED
+======================================================================
+
+ERROR:
+BLOCK 106 CORRECTED INTEGRATION TEST FAILED
+
+NO COMMIT
+NO PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+**********************
+Windows PowerShell transcript end
+End time: 20260820085425
+**********************

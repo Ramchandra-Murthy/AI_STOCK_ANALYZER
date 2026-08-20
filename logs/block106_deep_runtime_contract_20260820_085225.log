@@ -1,0 +1,281 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820085225
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 2348
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+======================================================================
+       EROS 3.0 - BLOCK 106 DEEP RUNTIME CONTRACT TEST
+======================================================================
+
+READ / VERIFY ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER SUBMISSION
+
+RUNNER CREATED:
+.\logs\block106_deep_runtime_contract_runner.py
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+RUNNING DEEP CONTRACT TEST...
+
+======================================================================
+EROS 3.0 - BLOCK 106 DEEP RUNTIME CONTRACT RUNNER
+======================================================================
+
+
+======================================================================
+1. IMPORT ALL CONTRACT LAYERS
+----------------------------------------------------------------------
+Block 100 import                             : PASS
+Block 101 import                             : PASS
+Block 102 import                             : PASS
+Block 103 import                             : PASS
+Block 104 import                             : PASS
+Block 106 import                             : PASS
+
+======================================================================
+2. CREATE BLOCK 106 BOUNDARY
+----------------------------------------------------------------------
+CLASS       : EROSBlock106InstitutionalIntegrationBoundary
+BLOCK ID    : 106
+BLOCK NAME  : Institutional Integration Boundary
+VERSION     : 1.0
+BUILD COUNT : 0
+Block 106 instance creation                  : PASS
+
+======================================================================
+3. BUILD CERTIFIED BLOCK 104 INPUT
+----------------------------------------------------------------------
+BLOCK 104 CLASS : EROSBlock104CommandCenter
+BLOCK 104 ID    : 104
+SOURCE BLOCK   : 103
+ENGINE VERSION : EROS-3.0-BLOCK-104
+Certified Block 104 input                    : FAILED
+  REASON: TypeError: EROSBlock104CommandCenter.snapshot() missing 1 required keyword-only argument: 'read_model'
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_deep_runtime_contract_runner.py", line 131, in <module>
+    command_center = block104.snapshot()
+TypeError: EROSBlock104CommandCenter.snapshot() missing 1 required keyword-only argument: 'read_model'
+
+======================================================================
+4. BLOCK 104 CERTIFICATION CHECK
+----------------------------------------------------------------------
+Block 104 certification                      : FAILED
+  REASON: NameError: name 'command_center' is not defined
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_deep_runtime_contract_runner.py", line 162, in <module>
+    command_center.get("status"),
+    ^^^^^^^^^^^^^^
+NameError: name 'command_center' is not defined
+
+======================================================================
+5. BUILD BLOCK 106 INTEGRATION PAYLOAD
+----------------------------------------------------------------------
+Block 106 payload generation                 : FAILED
+  REASON: NameError: name 'command_center' is not defined
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_deep_runtime_contract_runner.py", line 194, in <module>
+    payload = block106.build_integration_payload(command_center)
+                                                 ^^^^^^^^^^^^^^
+NameError: name 'command_center' is not defined
+
+======================================================================
+6. BLOCK 106 REQUIRED FIELD DISCOVERY
+----------------------------------------------------------------------
+Required integration fields                  : FAILED
+  REASON: No payload generated
+
+======================================================================
+7. VALIDATE BLOCK 106 PAYLOAD
+----------------------------------------------------------------------
+
+======================================================================
+8. BUILD READ-ONLY SNAPSHOT
+----------------------------------------------------------------------
+Read-only snapshot generation                : FAILED
+  REASON: NameError: name 'command_center' is not defined
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_deep_runtime_contract_runner.py", line 311, in <module>
+    snapshot = block106.build_read_only_snapshot(command_center)
+                                                 ^^^^^^^^^^^^^^
+NameError: name 'command_center' is not defined
+
+======================================================================
+9. DETERMINISTIC BUILD TEST
+----------------------------------------------------------------------
+Deterministic payload                        : FAILED
+  REASON: NameError: name 'command_center' is not defined
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_deep_runtime_contract_runner.py", line 345, in <module>
+    first = block106.build_integration_payload(command_center)
+                                               ^^^^^^^^^^^^^^
+NameError: name 'command_center' is not defined
+
+======================================================================
+10. INPUT IMMUTABILITY TEST
+----------------------------------------------------------------------
+Input immutability                           : FAILED
+  REASON: NameError: name 'command_center' is not defined
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_deep_runtime_contract_runner.py", line 382, in <module>
+    original_input = copy.deepcopy(command_center)
+                                   ^^^^^^^^^^^^^^
+NameError: name 'command_center' is not defined
+
+======================================================================
+11. SAFETY POLICY VERIFICATION
+----------------------------------------------------------------------
+SAFETY POLICY TYPE : dict
+
+allow_broker_submission            : False
+allow_live_execution               : False
+allow_optimization                 : False
+allow_order_creation               : False
+allow_performance_mutation         : False
+allow_portfolio_mutation           : False
+allow_risk_mutation                : False
+allow_valuation_mutation           : False
+execution_blocked                  : True
+non_mutation_invariant             : True
+read_only                          : True
+
+READ ONLY     : True
+NON MUTATING  : None
+Safety policy                                : PASS
+
+======================================================================
+12. PAYLOAD SAFETY FLAGS
+----------------------------------------------------------------------
+
+======================================================================
+13. LINEAGE PRESERVATION
+----------------------------------------------------------------------
+
+======================================================================
+14. BLOCK 94 -> 106 CHAIN REFERENCE CHECK
+----------------------------------------------------------------------
+
+======================================================================
+15. SERIALIZATION CONTRACT
+----------------------------------------------------------------------
+
+======================================================================
+17. BROKER / LIVE EXECUTION API CHECK
+----------------------------------------------------------------------
+Broker/live execution API check              : PASS
+
+======================================================================
+BLOCK 106 DEEP RUNTIME CONTRACT SUMMARY
+======================================================================
+
+RESULT : FAILED
+
+FAILURES:
+ - Certified Block 104 input
+ - Block 104 certification
+ - Block 106 payload generation
+ - Required integration fields
+ - Read-only snapshot generation
+ - Deterministic payload
+ - Input immutability
+
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER SUBMISSION
+======================================================================
+
+======================================================================
+DEEP CONTRACT TEST FINISHED
+======================================================================
+
+DEEP CONTRACT TEST : FAILED
+
+19. FINAL COMPILE VERIFICATION
+----------------------------------------------------------------------
+
+COMPILING: .\services\quantitative\block100_paper_execution_fill_gate.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block101_execution_evidence_reconciliation.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block102_frontend_contract.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block103_institutional_frontend_read_model.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block104_eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block106_institutional_integration_boundary.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\app.py
+
+COMPILE : PASS
+
+20. GIT SAFETY STATE
+----------------------------------------------------------------------
+
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+STATUS:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+21. EXECUTION SAFETY BOUNDARY
+----------------------------------------------------------------------
+BROKER CONNECTION       : FALSE
+LIVE EXECUTION          : FALSE
+ORDER SUBMISSION        : FALSE
+PORTFOLIO MUTATION      : FALSE
+VALUATION MUTATION      : FALSE
+PERFORMANCE MUTATION    : FALSE
+RISK MUTATION            : FALSE
+OPTIMIZATION             : FALSE
+READ ONLY               : TRUE
+NON MUTATING            : TRUE
+
+22. DISCOVERY / TEST LOG
+----------------------------------------------------------------------
+.\logs\block106_deep_runtime_contract_20260820_085225.log
+**********************
+Windows PowerShell transcript end
+End time: 20260820085226
+**********************

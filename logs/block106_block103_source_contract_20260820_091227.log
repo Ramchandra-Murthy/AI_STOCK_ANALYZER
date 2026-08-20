@@ -1,0 +1,322 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820091227
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 8248
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+======================================================================
+ EROS 3.0 - BLOCK 103 SOURCE CONTRACT DIAGNOSTIC
+======================================================================
+
+READ ONLY
+NO SOURCE CHANGES
+NO COMMIT
+NO PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+1. GIT BASELINE
+----------------------------------------------------------------------
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+STATUS:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+2. PYTHON DIAGNOSTIC RUNNER CREATED
+.\logs\block106_block103_source_contract_runner.py
+
+3. RUNNING DIAGNOSTIC
+----------------------------------------------------------------------
+
+======================================================================
+EROS 3.0 - BLOCK 103 SOURCE CONTRACT DIAGNOSTIC
+======================================================================
+
+1. IMPORT BLOCK 103
+----------------------------------------------------------------------
+BLOCK 103 IMPORT : PASS
+
+2. BLOCK 103 CLASS CONTRACT
+----------------------------------------------------------------------
+CLASS NAME       : EROSBlock103InstitutionalFrontendReadModel
+MODULE           : services.quantitative.block103_institutional_frontend_read_model
+BLOCK_ID         : 103
+ENGINE_VERSION   : EROS-3.0-BLOCK-103
+REQUIRED_BLOCKS  : ('94', '95', '96', '97', '98', '99', '100', '101')
+
+3. BUILD SIGNATURE
+----------------------------------------------------------------------
+(self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+SNAPSHOT SIGNATURE: (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+4. EXACT BLOCK 103 _validate_source() SOURCE
+----------------------------------------------------------------------
+    @staticmethod
+    def _validate_source(source: Mapping[str, Any]) -> None:
+
+        if source.get("status") != "CERTIFIED":
+            raise ValueError("BLOCK103_SOURCE_NOT_CERTIFIED")
+
+        if source.get("block_id") != "102":
+            raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+
+        pipeline = source.get("pipeline_status")
+
+        if not isinstance(pipeline, list):
+            raise ValueError("BLOCK103_PIPELINE_MISSING")
+
+        block_ids = {
+            str(item.get("block_id"))
+            for item in pipeline
+            if isinstance(item, Mapping)
+        }
+
+        if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
+            raise ValueError("BLOCK103_INVALID_PIPELINE")
+
+        safety = source.get("safety")
+
+        if not isinstance(safety, Mapping):
+            raise ValueError("BLOCK103_SAFETY_MISSING")
+
+        if safety.get("portfolio_mutation") is not False:
+            raise ValueError("BLOCK103_PORTFOLIO_MUTATION")
+
+        if safety.get("valuation_mutation") is not False:
+            raise ValueError("BLOCK103_VALUATION_MUTATION")
+
+        if safety.get("performance_mutation") is not False:
+            raise ValueError("BLOCK103_PERFORMANCE_MUTATION")
+
+        if safety.get("risk_mutation") is not False:
+            raise ValueError("BLOCK103_RISK_MUTATION")
+
+        if safety.get("optimization") is not False:
+            raise ValueError("BLOCK103_OPTIMIZATION")
+
+        if safety.get("order_creation") is not False:
+            raise ValueError("BLOCK103_ORDER_CREATION")
+
+        if safety.get("broker_submission") is not False:
+            raise ValueError("BLOCK103_BROKER_SUBMISSION")
+
+        if safety.get("live_order_submission") is not False:
+            raise ValueError("BLOCK103_LIVE_EXECUTION")
+
+        if safety.get("execution_blocked") is not True:
+            raise ValueError("BLOCK103_EXECUTION_BLOCKED_INVARIANT")
+
+        if safety.get("non_mutation_invariant") is not True:
+            raise ValueError("BLOCK103_NON_MUTATION_INVARIANT")
+
+
+5. EXACT BLOCK 103 build() SOURCE
+----------------------------------------------------------------------
+    def build(
+        self,
+        *,
+        contract: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        source = deepcopy(dict(contract))
+
+        self._validate_source(source)
+
+        pipeline = self._build_pipeline(source)
+        risk = self._build_risk(source)
+        governance = self._build_governance(source)
+        intent = self._build_intent(source)
+        execution = self._build_execution(source)
+        reconciliation = self._build_reconciliation(source)
+        lineage = self._build_lineage(source)
+        safety = self._build_safety(source)
+
+        return {
+            "status": "CERTIFIED",
+            "block_id": self.BLOCK_ID,
+            "engine_version": self.engine_version,
+
+            "dashboard": {
+                "title": "EROS 3.0 Institutional Command Center",
+                "subtitle": "Read-only governance, execution and reconciliation view",
+            },
+
+            "pipeline": pipeline,
+            "risk": risk,
+            "governance": governance,
+            "intent": intent,
+            "execution": execution,
+            "reconciliation": reconciliation,
+            "lineage": lineage,
+            "safety": safety,
+        }
+
+
+6. MODULE LOCATION
+----------------------------------------------------------------------
+MODULE FILE:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py
+
+FILE EXISTS : True
+
+7. SOURCE BLOCK REFERENCES IN BLOCK 103
+----------------------------------------------------------------------
+0017:     BLOCK_ID = "103"
+0020:     REQUIRED_BLOCKS = (
+0055:             "block_id": self.BLOCK_ID,
+0086:         if source.get("block_id") != "102":
+0087:             raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+0094:         block_ids = {
+0095:             str(item.get("block_id"))
+0100:         if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
+0148:                     "block_id": item.get("block_id"),
+0152:                     "source_block": item.get("source_block"),
+
+8. BLOCK 103 CLASS CONSTANTS
+----------------------------------------------------------------------
+BLOCK_ID                       = '103'
+ENGINE_VERSION                 = 'EROS-3.0-BLOCK-103'
+REQUIRED_BLOCKS                = ('94', '95', '96', '97', '98', '99', '100', '101')
+
+9. SOURCE-BLOCK LOGIC ANALYSIS
+----------------------------------------------------------------------
+PATTERN 'source_block'                      : 3 MATCHES
+PATTERN 'source block'                      : 0 MATCHES
+PATTERN 'BLOCK103_INVALID_SOURCE_BLOCK'     : 1 MATCHES
+PATTERN 'REQUIRED_BLOCKS'                   : 2 MATCHES
+
+10. RELEVANT SOURCE WINDOWS
+----------------------------------------------------------------------
+
+--- SOURCE WINDOW 12:32 ---
+0012:     UI-ready read model.
+0013:
+0014:     Presentation/read-model layer only.
+0015:     """
+0016:
+0017:     BLOCK_ID = "103"
+0018:     ENGINE_VERSION = "EROS-3.0-BLOCK-103"
+0019:
+0020:     REQUIRED_BLOCKS = (
+0021:         "94",
+0022:         "95",
+0023:         "96",
+0024:         "97",
+0025:         "98",
+0026:         "99",
+0027:         "100",
+0028:         "101",
+0029:     )
+0030:
+0031:     def __init__(self) -> None:
+0032:         self.engine_version = self.ENGINE_VERSION
+
+--- SOURCE WINDOW 79:99 ---
+0079:
+0080:     @staticmethod
+0081:     def _validate_source(source: Mapping[str, Any]) -> None:
+0082:
+0083:         if source.get("status") != "CERTIFIED":
+0084:             raise ValueError("BLOCK103_SOURCE_NOT_CERTIFIED")
+0085:
+0086:         if source.get("block_id") != "102":
+0087:             raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+0088:
+0089:         pipeline = source.get("pipeline_status")
+0090:
+0091:         if not isinstance(pipeline, list):
+0092:             raise ValueError("BLOCK103_PIPELINE_MISSING")
+0093:
+0094:         block_ids = {
+0095:             str(item.get("block_id"))
+0096:             for item in pipeline
+0097:             if isinstance(item, Mapping)
+0098:         }
+0099:
+
+--- SOURCE WINDOW 92:112 ---
+0092:             raise ValueError("BLOCK103_PIPELINE_MISSING")
+0093:
+0094:         block_ids = {
+0095:             str(item.get("block_id"))
+0096:             for item in pipeline
+0097:             if isinstance(item, Mapping)
+0098:         }
+0099:
+0100:         if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
+0101:             raise ValueError("BLOCK103_INVALID_PIPELINE")
+0102:
+0103:         safety = source.get("safety")
+0104:
+0105:         if not isinstance(safety, Mapping):
+0106:             raise ValueError("BLOCK103_SAFETY_MISSING")
+0107:
+0108:         if safety.get("portfolio_mutation") is not False:
+0109:             raise ValueError("BLOCK103_PORTFOLIO_MUTATION")
+0110:
+0111:         if safety.get("valuation_mutation") is not False:
+0112:             raise ValueError("BLOCK103_VALUATION_MUTATION")
+
+--- SOURCE WINDOW 144:164 ---
+0144:
+0145:         for item in source["pipeline_status"]:
+0146:             pipeline.append(
+0147:                 {
+0148:                     "block_id": item.get("block_id"),
+0149:                     "name": item.get("name"),
+0150:                     "status": item.get("status"),
+0151:                     "identifier": item.get("identifier"),
+0152:                     "source_block": item.get("source_block"),
+0153:                     "execution_blocked": item.get(
+0154:                         "execution_blocked",
+0155:                         True,
+0156:                     ),
+0157:                 }
+0158:             )
+0159:
+0160:         return pipeline
+0161:
+0162:     @staticmethod
+0163:     def _build_risk(
+0164:         source: Mapping[str, Any],
+
+11. DIAGNOSTIC DECISION
+----------------------------------------------------------------------
+The previous E2E runner supplied source_block=100.
+That value is NOT being assumed to be correct anymore.
+The exact accepted Block 103 source contract will be
+taken directly from the installed Block 103 implementation.
+
+NO BLOCK 103 SOURCE MODIFICATION
+NO BLOCK 106 SOURCE MODIFICATION
+NO E2E RETRY UNTIL THE ACTUAL CONTRACT IS IDENTIFIED
+
+======================================================================
+BLOCK 103 SOURCE CONTRACT DIAGNOSTIC : COMPLETE
+======================================================================
+
+
+PYTHON EXIT CODE : 0
+
+**********************
+Windows PowerShell transcript end
+End time: 20260820091228
+**********************

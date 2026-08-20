@@ -1,0 +1,526 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820092020
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 8248
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+======================================================================
+ EROS 3.0 - BLOCK 102 -> 103 CONTRACT INSPECTION
+======================================================================
+
+READ ONLY
+NO SOURCE CHANGES
+NO COMMIT
+NO PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+
+PYTHON RUNNER CREATED:
+.\logs\block106_102_103_contract_inspection_runner.py
+
+RUNNING CONTRACT INSPECTION...
+
+======================================================================
+EROS 3.0 - BLOCK 102 -> 103 CONTRACT INSPECTION PYTHON RUNNER
+======================================================================
+
+PYTHON:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\python.exe
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+======================================================================
+1. IMPORT BLOCK 102 / 103 / 104 / 106
+======================================================================
+BLOCK 102 IMPORT : PASS
+BLOCK 103 IMPORT : PASS
+BLOCK 104 IMPORT : PASS
+BLOCK 106 IMPORT : PASS
+
+======================================================================
+2. BLOCK 102 CLASS CONTRACT
+======================================================================
+CLASS: <class 'services.quantitative.block102_frontend_contract.EROSBlock102FrontendContract'>
+BLOCK_ID: 102
+ENGINE_VERSION: EROS-3.0-BLOCK-102
+
+BUILD SIGNATURE:
+(*, block94: 'Mapping[str, Any] | None' = None, block95: 'Mapping[str, Any] | None' = None, block96: 'Mapping[str, Any] | None' = None, block97: 'Mapping[str, Any] | None' = None, block98: 'Mapping[str, Any] | None' = None, block99: 'Mapping[str, Any] | None' = None, block100: 'Mapping[str, Any] | None' = None, block101: 'Mapping[str, Any] | None' = None) -> 'Dict[str, Any]'
+
+SNAPSHOT SIGNATURE:
+(**kwargs: 'Any') -> 'Dict[str, Any]'
+
+======================================================================
+3. BLOCK 103 CLASS CONTRACT
+======================================================================
+CLASS: <class 'services.quantitative.block103_institutional_frontend_read_model.EROSBlock103InstitutionalFrontendReadModel'>
+BLOCK_ID: 103
+ENGINE_VERSION: EROS-3.0-BLOCK-103
+REQUIRED_BLOCKS: ('94', '95', '96', '97', '98', '99', '100', '101')
+
+BUILD SIGNATURE:
+(*, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+SNAPSHOT SIGNATURE:
+(*, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+======================================================================
+4. BLOCK 103 SOURCE VALIDATION METHOD
+======================================================================
+_validate_source : FOUND
+(source: 'Mapping[str, Any]') -> 'None'
+
+SOURCE:
+    @staticmethod
+    def _validate_source(source: Mapping[str, Any]) -> None:
+
+        if source.get("status") != "CERTIFIED":
+            raise ValueError("BLOCK103_SOURCE_NOT_CERTIFIED")
+
+        if source.get("block_id") != "102":
+            raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+
+        pipeline = source.get("pipeline_status")
+
+        if not isinstance(pipeline, list):
+            raise ValueError("BLOCK103_PIPELINE_MISSING")
+
+        block_ids = {
+            str(item.get("block_id"))
+            for item in pipeline
+            if isinstance(item, Mapping)
+        }
+
+        if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
+            raise ValueError("BLOCK103_INVALID_PIPELINE")
+
+        safety = source.get("safety")
+
+        if not isinstance(safety, Mapping):
+            raise ValueError("BLOCK103_SAFETY_MISSING")
+
+        if safety.get("portfolio_mutation") is not False:
+            raise ValueError("BLOCK103_PORTFOLIO_MUTATION")
+
+        if safety.get("valuation_mutation") is not False:
+            raise ValueError("BLOCK103_VALUATION_MUTATION")
+
+        if safety.get("performance_mutation") is not False:
+            raise ValueError("BLOCK103_PERFORMANCE_MUTATION")
+
+        if safety.get("risk_mutation") is not False:
+            raise ValueError("BLOCK103_RISK_MUTATION")
+
+        if safety.get("optimization") is not False:
+            raise ValueError("BLOCK103_OPTIMIZATION")
+
+        if safety.get("order_creation") is not False:
+            raise ValueError("BLOCK103_ORDER_CREATION")
+
+        if safety.get("broker_submission") is not False:
+            raise ValueError("BLOCK103_BROKER_SUBMISSION")
+
+        if safety.get("live_order_submission") is not False:
+            raise ValueError("BLOCK103_LIVE_EXECUTION")
+
+        if safety.get("execution_blocked") is not True:
+            raise ValueError("BLOCK103_EXECUTION_BLOCKED_INVARIANT")
+
+        if safety.get("non_mutation_invariant") is not True:
+            raise ValueError("BLOCK103_NON_MUTATION_INVARIANT")
+
+
+======================================================================
+5. BLOCK 102 PUBLIC CONSTANTS
+======================================================================
+BLOCK_ID = '102'
+BLOCK_NAMES = {'94': 'Stress Scenario Engine', '95': 'Stress Evidence Gate', '96': 'Stress Decision Gate', '97': 'Stress Readiness Gate', '98': 'Execution Governance Bridge', '99': 'Execution Intent Authorization', '100': 'Paper Execution / Fill Validation', '101': 'Execution Evidence Reconciliation'}
+ENGINE_VERSION = 'EROS-3.0-BLOCK-102'
+SAFETY_FIELDS = {'portfolio_mutation': False, 'valuation_mutation': False, 'performance_mutation': False, 'risk_mutation': False, 'optimization': False, 'order_creation': False, 'broker_submission': False, 'live_order_submission': False, 'execution_blocked': True, 'non_mutation_invariant': True}
+engine_version = 'EROS-3.0-BLOCK-102'
+
+======================================================================
+6. BLOCK 103 PUBLIC CONSTANTS
+======================================================================
+BLOCK_ID = '103'
+ENGINE_VERSION = 'EROS-3.0-BLOCK-103'
+REQUIRED_BLOCKS = ('94', '95', '96', '97', '98', '99', '100', '101')
+engine_version = 'EROS-3.0-BLOCK-103'
+
+======================================================================
+7. BUILD REAL BLOCK 102 INPUT
+======================================================================
+BLOCK 94 : READY
+BLOCK 95 : READY
+BLOCK 96 : READY
+BLOCK 97 : READY
+BLOCK 98 : READY
+BLOCK 99 : READY
+BLOCK 100: READY
+BLOCK 101: READY
+
+======================================================================
+8. BUILD ACTUAL BLOCK 102
+======================================================================
+BLOCK 102 BUILD : PASS
+
+BLOCK 102 TOP-LEVEL KEYS:
+['status',
+ 'block_id',
+ 'engine_version',
+ 'created_at',
+ 'pipeline_status',
+ 'risk',
+ 'governance',
+ 'intent',
+ 'execution',
+ 'reconciliation',
+ 'lineage',
+ 'safety']
+
+BLOCK 102 OUTPUT:
+{'block_id': '102',
+ 'created_at': '2026-08-20T03:50:20.532151+00:00',
+ 'engine_version': 'EROS-3.0-BLOCK-102',
+ 'execution': {'action': 'BUY',
+               'execution_id': None,
+               'fill_price': None,
+               'fill_status': None,
+               'filled_quantity': None,
+               'net_value': None,
+               'reference_price': 2500.0,
+               'requested_quantity': None,
+               'slippage_bps': None,
+               'status': 'SIMULATED',
+               'symbol': 'RELIANCE.NS',
+               'transaction_cost': None},
+ 'governance': {'execution_action': 'BUY',
+                'governance_id': None,
+                'source_certificate_id': None,
+                'source_decision_id': None,
+                'source_gate_id': None,
+                'source_readiness_id': None,
+                'status': 'APPROVED'},
+ 'intent': {'action': 'BUY',
+            'authorization_status': None,
+            'intent_action': None,
+            'intent_id': None,
+            'quantity': 100.0,
+            'reference_price': 2500.0,
+            'status': 'CERTIFIED',
+            'symbol': 'RELIANCE.NS'},
+ 'lineage': {'block100': None,
+             'block101': None,
+             'block94': None,
+             'block95': None,
+             'block96': None,
+             'block97': None,
+             'block98': None,
+             'block99': None},
+ 'pipeline_status': [{'block_id': '94',
+                      'execution_blocked': True,
+                      'identifier': None,
+                      'name': 'Stress Scenario Engine',
+                      'source_block': None,
+                      'status': 'CERTIFIED'},
+                     {'block_id': '95',
+                      'execution_blocked': True,
+                      'identifier': None,
+                      'name': 'Stress Evidence Gate',
+                      'source_block': '94',
+                      'status': 'CERTIFIED'},
+                     {'block_id': '96',
+                      'execution_blocked': True,
+                      'identifier': None,
+                      'name': 'Stress Decision Gate',
+                      'source_block': '95',
+                      'status': 'CERTIFIED'},
+                     {'block_id': '97',
+                      'execution_blocked': True,
+                      'identifier': None,
+                      'name': 'Stress Readiness Gate',
+                      'source_block': '96',
+                      'status': 'CERTIFIED'},
+                     {'block_id': '98',
+                      'execution_blocked': True,
+                      'identifier': None,
+                      'name': 'Execution Governance Bridge',
+                      'source_block': '97',
+                      'status': 'APPROVED'},
+                     {'block_id': '99',
+                      'execution_blocked': True,
+                      'identifier': None,
+                      'name': 'Execution Intent Authorization',
+                      'source_block': '98',
+                      'status': 'CERTIFIED'},
+                     {'block_id': '100',
+                      'execution_blocked': True,
+                      'identifier': None,
+                      'name': 'Paper Execution / Fill Validation',
+                      'source_block': '99',
+                      'status': 'CERTIFIED'},
+                     {'block_id': '101',
+                      'execution_blocked': True,
+                      'identifier': None,
+                      'name': 'Execution Evidence Reconciliation',
+                      'source_block': '100',
+                      'status': 'CERTIFIED'}],
+ 'reconciliation': {'cost_reconciled': None,
+                    'lineage_reconciled': None,
+                    'price_reconciled': None,
+                    'quantity_reconciled': None,
+                    'reconciliation_id': None,
+                    'source_execution_id': None,
+                    'status': 'CERTIFIED',
+                    'value_reconciled': None},
+ 'risk': {'decision_status': 'CERTIFIED',
+          'downside_pnl': None,
+          'evidence_status': 'CERTIFIED',
+          'readiness_status': 'CERTIFIED',
+          'scenario_count': None,
+          'stress_status': 'CERTIFIED',
+          'upside_pnl': None},
+ 'safety': {'broker_submission': False,
+            'execution_blocked': True,
+            'live_order_submission': False,
+            'non_mutation_invariant': True,
+            'optimization': False,
+            'order_creation': False,
+            'performance_mutation': False,
+            'portfolio_mutation': False,
+            'risk_mutation': False,
+            'valuation_mutation': False},
+ 'status': 'CERTIFIED'}
+
+======================================================================
+9. BLOCK 102 OUTPUT STRUCTURE
+======================================================================
+TYPE: dict
+
+TOP LEVEL:
+'status' -> type=str, value='CERTIFIED'
+'block_id' -> type=str, value='102'
+'engine_version' -> type=str, value='EROS-3.0-BLOCK-102'
+'created_at' -> type=str, value='2026-08-20T03:50:20.532151+00:00'
+'pipeline_status' -> type=list, value=[{'block_id': '94', 'name': 'Stress Scenario Engine', 'status': 'CERTIFIED', 'source_block': None, 'identifier': None, 'execution_blocked': True}, {'block_id': '95', 'name': 'Stress Evidence Gate', 'status': 'CERTIFIED', 'source_block': '94', 'identifier': None, 'execution_blocked': True}, {'block_id': '96', 'name': 'Stress Decision Gate', 'status': 'CERTIFIED', 'source_block': '95', 'identifier': None, 'execution_blocked': True}, {'block_id': '97', 'name': 'Stress Readiness Gate', 'status': 'CE
+'risk' -> type=dict, value={'stress_status': 'CERTIFIED', 'evidence_status': 'CERTIFIED', 'decision_status': 'CERTIFIED', 'readiness_status': 'CERTIFIED', 'scenario_count': None, 'downside_pnl': None, 'upside_pnl': None}
+'governance' -> type=dict, value={'status': 'APPROVED', 'governance_id': None, 'execution_action': 'BUY', 'source_readiness_id': None, 'source_decision_id': None, 'source_gate_id': None, 'source_certificate_id': None}
+'intent' -> type=dict, value={'status': 'CERTIFIED', 'intent_id': None, 'intent_action': None, 'authorization_status': None, 'symbol': 'RELIANCE.NS', 'action': 'BUY', 'quantity': 100.0, 'reference_price': 2500.0}
+'execution' -> type=dict, value={'status': 'SIMULATED', 'execution_id': None, 'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': None, 'filled_quantity': None, 'reference_price': 2500.0, 'fill_price': None, 'fill_status': None, 'slippage_bps': None, 'transaction_cost': None, 'net_value': None}
+'reconciliation' -> type=dict, value={'status': 'CERTIFIED', 'reconciliation_id': None, 'source_execution_id': None, 'quantity_reconciled': None, 'price_reconciled': None, 'value_reconciled': None, 'cost_reconciled': None, 'lineage_reconciled': None}
+'lineage' -> type=dict, value={'block94': None, 'block95': None, 'block96': None, 'block97': None, 'block98': None, 'block99': None, 'block100': None, 'block101': None}
+'safety' -> type=dict, value={'portfolio_mutation': False, 'valuation_mutation': False, 'performance_mutation': False, 'risk_mutation': False, 'optimization': False, 'order_creation': False, 'broker_submission': False, 'live_order_submission': False, 'execution_blocked': True, 'non_mutation_invariant': True}
+
+FIELD [status]
+--------------------------------------------------
+'CERTIFIED'
+
+FIELD [block_id]
+--------------------------------------------------
+'102'
+
+FIELD [engine_version]
+--------------------------------------------------
+'EROS-3.0-BLOCK-102'
+
+FIELD [pipeline]
+--------------------------------------------------
+None
+
+FIELD [risk]
+--------------------------------------------------
+{'decision_status': 'CERTIFIED',
+ 'downside_pnl': None,
+ 'evidence_status': 'CERTIFIED',
+ 'readiness_status': 'CERTIFIED',
+ 'scenario_count': None,
+ 'stress_status': 'CERTIFIED',
+ 'upside_pnl': None}
+
+FIELD [governance]
+--------------------------------------------------
+{'execution_action': 'BUY',
+ 'governance_id': None,
+ 'source_certificate_id': None,
+ 'source_decision_id': None,
+ 'source_gate_id': None,
+ 'source_readiness_id': None,
+ 'status': 'APPROVED'}
+
+FIELD [intent]
+--------------------------------------------------
+{'action': 'BUY',
+ 'authorization_status': None,
+ 'intent_action': None,
+ 'intent_id': None,
+ 'quantity': 100.0,
+ 'reference_price': 2500.0,
+ 'status': 'CERTIFIED',
+ 'symbol': 'RELIANCE.NS'}
+
+FIELD [execution]
+--------------------------------------------------
+{'action': 'BUY',
+ 'execution_id': None,
+ 'fill_price': None,
+ 'fill_status': None,
+ 'filled_quantity': None,
+ 'net_value': None,
+ 'reference_price': 2500.0,
+ 'requested_quantity': None,
+ 'slippage_bps': None,
+ 'status': 'SIMULATED',
+ 'symbol': 'RELIANCE.NS',
+ 'transaction_cost': None}
+
+FIELD [reconciliation]
+--------------------------------------------------
+{'cost_reconciled': None,
+ 'lineage_reconciled': None,
+ 'price_reconciled': None,
+ 'quantity_reconciled': None,
+ 'reconciliation_id': None,
+ 'source_execution_id': None,
+ 'status': 'CERTIFIED',
+ 'value_reconciled': None}
+
+FIELD [lineage]
+--------------------------------------------------
+{'block100': None,
+ 'block101': None,
+ 'block94': None,
+ 'block95': None,
+ 'block96': None,
+ 'block97': None,
+ 'block98': None,
+ 'block99': None}
+
+FIELD [safety]
+--------------------------------------------------
+{'broker_submission': False,
+ 'execution_blocked': True,
+ 'live_order_submission': False,
+ 'non_mutation_invariant': True,
+ 'optimization': False,
+ 'order_creation': False,
+ 'performance_mutation': False,
+ 'portfolio_mutation': False,
+ 'risk_mutation': False,
+ 'valuation_mutation': False}
+
+======================================================================
+10. TEST BLOCK 102 OUTPUT AGAINST BLOCK 103
+======================================================================
+BLOCK 102 OUTPUT BLOCK_ID:
+'102'
+
+BLOCK 103 EXPECTED BLOCK_ID:
+'103'
+
+BLOCK 103 REQUIRED BLOCKS:
+('94', '95', '96', '97', '98', '99', '100', '101')
+
+BLOCK 103 SOURCE VALIDATION:
+BLOCK 103 ACCEPTS BLOCK 102 OUTPUT : YES
+
+======================================================================
+11. IDENTIFY EXPECTED BLOCK 103 SOURCE CONTRACT
+======================================================================
+Inspecting BLOCK 103 source for exact validation rules...
+SOURCE EXTRACTION ERROR: NameError("name 'ErosBlock103InstitutionalFrontendReadModel' is not defined")
+
+======================================================================
+12. BLOCK 104 SIGNATURE
+======================================================================
+BLOCK 104 CLASS: <class 'services.quantitative.block104_eros_command_center.EROSBlock104CommandCenter'>
+BLOCK 104 BLOCK_ID: 104
+BLOCK 104 SNAPSHOT: (*, read_model: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+======================================================================
+13. BLOCK 106 SIGNATURE
+======================================================================
+BLOCK 106 CLASS: <class 'services.quantitative.block106_institutional_integration_boundary.EROSBlock106InstitutionalIntegrationBoundary'>
+BLOCK 106 BLOCK_ID: 106
+BLOCK 106 BUILD: (command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 SNAPSHOT: (command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 VALIDATE: (payload: 'Mapping[str, Any]') -> 'bool'
+
+======================================================================
+14. DIAGNOSTIC CONCLUSION
+======================================================================
+
+The purpose of this test is to determine the exact contract mismatch
+between Block 102 and Block 103.
+
+NO SOURCE FILE IS MODIFIED.
+NO BROKER IS TOUCHED.
+NO ORDER IS CREATED.
+NO LIVE EXECUTION OCCURS.
+NO GIT COMMIT OCCURS.
+NO GIT PUSH OCCURS.
+
+
+======================================================================
+BLOCK 102 -> BLOCK 103 CONTRACT INSPECTION COMPLETE
+======================================================================
+
+======================================================================
+ PYTHON EXIT CODE : 0
+======================================================================
+
+SAVING COMBINED DIAGNOSTIC OUTPUT...
+PS>TerminatingError(Set-Content): "The process cannot access the file 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_102_103_contract_inspection_20260820_092020.log' because it is being used by another process."
+Set-Content : The process cannot access the file 
+'D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_102_103_contract_inspection_20260820_092020.log' because it is 
+being used by another process.
+At line:488 char:13
++ $combined | Set-Content -Path $log -Encoding UTF8
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Set-Content], IOException
+    + FullyQualifiedErrorId : System.IO.IOException,Microsoft.PowerShell.Commands.SetContentCommand
+Set-Content : The process cannot access the file
+'D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_102_103_contract_inspection_20260820_092020.log' because it is
+being used by another process.
+At line:488 char:13
++ $combined | Set-Content -Path $log -Encoding UTF8
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Set-Content], IOException
+    + FullyQualifiedErrorId : System.IO.IOException,Microsoft.PowerShell.Commands.SetContentCommand
+
+
+LOG SAVED:
+.\logs\block106_102_103_contract_inspection_20260820_092020.log
+
+COPYING OUTPUT TO CLIPBOARD...
+CLIPBOARD COPY : PASS
+
+======================================================================
+BLOCK 102 -> 103 CONTRACT INSPECTION : PASS
+======================================================================
+
+IMPORTANT:
+DO NOT COMMIT YET.
+DO NOT PUSH YET.
+
+The output has been copied to the clipboard.
+Paste the complete output here.
+
+**********************
+Windows PowerShell transcript end
+End time: 20260820092020
+**********************

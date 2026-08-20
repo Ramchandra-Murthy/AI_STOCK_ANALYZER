@@ -1,4 +1,4 @@
-"""
+﻿"""
 EROS 3.0 - Block 95
 Stress Evidence Gate
 
@@ -463,8 +463,6 @@ class EROSBlock95StressEvidenceGate:
             "engine_version": self.engine_version,
             "reason_code": reason,
             "downstream_risk_gate": STATUS_BLOCKED,
-            "non_mutation_invariant": True,
-            "execution_blocked": True,
             "broker_submission": False,
             "live_order_submission": False,
         }

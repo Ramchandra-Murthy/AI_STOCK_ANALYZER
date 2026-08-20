@@ -1,0 +1,41 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260819225257
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 8360
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_runtime_contract_test_20260819_225257.log
+
+======================================================================
+        EROS 3.0 - BLOCK 106 RUNTIME CONTRACT TEST
+======================================================================
+READ ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+1. IMPORT CONTRACT LAYERS
+----------------------------------------------------------------------
+  File "<string>", line 8
+    print(BLOCK
+         ^
+SyntaxError: '(' was never closed
+IMPORT TEST : FAILED
+**********************
+Windows PowerShell transcript end
+End time: 20260819225257
+**********************

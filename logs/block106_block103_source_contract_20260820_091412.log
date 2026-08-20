@@ -1,0 +1,604 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820091412
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 8248
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+======================================================================
+ EROS 3.0 - BLOCK 103 SOURCE CONTRACT DIAGNOSTIC FOR BLOCK 106
+======================================================================
+
+READ / VERIFY ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+
+PYTHON RUNNER CREATED:
+.\logs\block106_block103_source_contract_runner.py
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+RUNNING BLOCK 103 SOURCE CONTRACT DIAGNOSTIC...
+
+
+======================================================================
+EROS 3.0 - BLOCK 103 SOURCE CONTRACT DIAGNOSTIC
+======================================================================
+
+1. IMPORT BLOCK 103
+----------------------------------------------------------------------
+BLOCK 103 IMPORT : PASS
+
+2. BLOCK 103 CLASS INFORMATION
+----------------------------------------------------------------------
+CLASS:
+<class 'services.quantitative.block103_institutional_frontend_read_model.EROSBlock103InstitutionalFrontendReadModel'>
+
+MODULE:
+services.quantitative.block103_institutional_frontend_read_model
+
+FILE:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py
+
+3. BLOCK 103 CONTRACT CONSTANTS
+----------------------------------------------------------------------
+BLOCK_ID = '103'
+ENGINE_VERSION = 'EROS-3.0-BLOCK-103'
+REQUIRED_BLOCKS = ('94', '95', '96', '97', '98', '99', '100', '101')
+
+4. BLOCK 103 PUBLIC METHOD SIGNATURES
+----------------------------------------------------------------------
+BUILD: (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+SNAPSHOT: (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+5. BLOCK 103 VALIDATION METHODS
+----------------------------------------------------------------------
+
+_validate_source : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _validate_source(source: Mapping[str, Any]) -> None:
+
+        if source.get("status") != "CERTIFIED":
+            raise ValueError("BLOCK103_SOURCE_NOT_CERTIFIED")
+
+        if source.get("block_id") != "102":
+            raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+
+        pipeline = source.get("pipeline_status")
+
+        if not isinstance(pipeline, list):
+            raise ValueError("BLOCK103_PIPELINE_MISSING")
+
+        block_ids = {
+            str(item.get("block_id"))
+            for item in pipeline
+            if isinstance(item, Mapping)
+        }
+
+        if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
+            raise ValueError("BLOCK103_INVALID_PIPELINE")
+
+        safety = source.get("safety")
+
+        if not isinstance(safety, Mapping):
+            raise ValueError("BLOCK103_SAFETY_MISSING")
+
+        if safety.get("portfolio_mutation") is not False:
+            raise ValueError("BLOCK103_PORTFOLIO_MUTATION")
+
+        if safety.get("valuation_mutation") is not False:
+            raise ValueError("BLOCK103_VALUATION_MUTATION")
+
+        if safety.get("performance_mutation") is not False:
+            raise ValueError("BLOCK103_PERFORMANCE_MUTATION")
+
+        if safety.get("risk_mutation") is not False:
+            raise ValueError("BLOCK103_RISK_MUTATION")
+
+        if safety.get("optimization") is not False:
+            raise ValueError("BLOCK103_OPTIMIZATION")
+
+        if safety.get("order_creation") is not False:
+            raise ValueError("BLOCK103_ORDER_CREATION")
+
+        if safety.get("broker_submission") is not False:
+            raise ValueError("BLOCK103_BROKER_SUBMISSION")
+
+        if safety.get("live_order_submission") is not False:
+            raise ValueError("BLOCK103_LIVE_EXECUTION")
+
+        if safety.get("execution_blocked") is not True:
+            raise ValueError("BLOCK103_EXECUTION_BLOCKED_INVARIANT")
+
+        if safety.get("non_mutation_invariant") is not True:
+            raise ValueError("BLOCK103_NON_MUTATION_INVARIANT")
+
+
+_build_pipeline : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _build_pipeline(
+        source: Mapping[str, Any],
+    ) -> list[Dict[str, Any]]:
+
+        pipeline = []
+
+        for item in source["pipeline_status"]:
+            pipeline.append(
+                {
+                    "block_id": item.get("block_id"),
+                    "name": item.get("name"),
+                    "status": item.get("status"),
+                    "identifier": item.get("identifier"),
+                    "source_block": item.get("source_block"),
+                    "execution_blocked": item.get(
+                        "execution_blocked",
+                        True,
+                    ),
+                }
+            )
+
+        return pipeline
+
+
+_build_risk : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _build_risk(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        risk = source.get("risk", {})
+
+        return {
+            "stress_status": risk.get("stress_status"),
+            "evidence_status": risk.get("evidence_status"),
+            "decision_status": risk.get("decision_status"),
+            "readiness_status": risk.get("readiness_status"),
+            "scenario_count": risk.get("scenario_count"),
+            "downside_pnl": risk.get("downside_pnl"),
+            "upside_pnl": risk.get("upside_pnl"),
+        }
+
+
+_build_governance : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _build_governance(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        governance = source.get("governance", {})
+
+        return {
+            "status": governance.get("status"),
+            "governance_id": governance.get("governance_id"),
+            "execution_action": governance.get("execution_action"),
+            "source_readiness_id": governance.get(
+                "source_readiness_id"
+            ),
+            "source_decision_id": governance.get(
+                "source_decision_id"
+            ),
+            "source_gate_id": governance.get(
+                "source_gate_id"
+            ),
+            "source_certificate_id": governance.get(
+                "source_certificate_id"
+            ),
+        }
+
+
+_build_intent : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _build_intent(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        intent = source.get("intent", {})
+
+        return {
+            "status": intent.get("status"),
+            "intent_id": intent.get("intent_id"),
+            "intent_action": intent.get("intent_action"),
+            "authorization_status": intent.get(
+                "authorization_status"
+            ),
+            "symbol": intent.get("symbol"),
+            "action": intent.get("action"),
+            "quantity": intent.get("quantity"),
+            "reference_price": intent.get(
+                "reference_price"
+            ),
+        }
+
+
+_build_execution : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _build_execution(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        execution = source.get("execution", {})
+
+        return {
+            "status": execution.get("status"),
+            "execution_id": execution.get("execution_id"),
+            "symbol": execution.get("symbol"),
+            "action": execution.get("action"),
+            "requested_quantity": execution.get(
+                "requested_quantity"
+            ),
+            "filled_quantity": execution.get(
+                "filled_quantity"
+            ),
+            "reference_price": execution.get(
+                "reference_price"
+            ),
+            "fill_price": execution.get("fill_price"),
+            "fill_status": execution.get("fill_status"),
+            "slippage_bps": execution.get("slippage_bps"),
+            "transaction_cost": execution.get(
+                "transaction_cost"
+            ),
+            "net_value": execution.get("net_value"),
+        }
+
+
+_build_reconciliation : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _build_reconciliation(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        reconciliation = source.get("reconciliation", {})
+
+        return {
+            "status": reconciliation.get("status"),
+            "reconciliation_id": reconciliation.get(
+                "reconciliation_id"
+            ),
+            "source_execution_id": reconciliation.get(
+                "source_execution_id"
+            ),
+            "quantity_reconciled": reconciliation.get(
+                "quantity_reconciled"
+            ),
+            "price_reconciled": reconciliation.get(
+                "price_reconciled"
+            ),
+            "value_reconciled": reconciliation.get(
+                "value_reconciled"
+            ),
+            "cost_reconciled": reconciliation.get(
+                "cost_reconciled"
+            ),
+            "lineage_reconciled": reconciliation.get(
+                "lineage_reconciled"
+            ),
+        }
+
+
+_build_lineage : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _build_lineage(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        lineage = source.get("lineage", {})
+
+        return {
+            "block94": lineage.get("block94"),
+            "block95": lineage.get("block95"),
+            "block96": lineage.get("block96"),
+            "block97": lineage.get("block97"),
+            "block98": lineage.get("block98"),
+            "block99": lineage.get("block99"),
+            "block100": lineage.get("block100"),
+            "block101": lineage.get("block101"),
+        }
+
+
+_build_safety : FOUND
+--------------------------------------------------
+    @staticmethod
+    def _build_safety(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        safety = source.get("safety", {})
+
+        return {
+            "portfolio_mutation": safety.get(
+                "portfolio_mutation"
+            ),
+            "valuation_mutation": safety.get(
+                "valuation_mutation"
+            ),
+            "performance_mutation": safety.get(
+                "performance_mutation"
+            ),
+            "risk_mutation": safety.get("risk_mutation"),
+            "optimization": safety.get("optimization"),
+            "order_creation": safety.get("order_creation"),
+            "broker_submission": safety.get(
+                "broker_submission"
+            ),
+            "live_order_submission": safety.get(
+                "live_order_submission"
+            ),
+            "execution_blocked": safety.get(
+                "execution_blocked"
+            ),
+            "non_mutation_invariant": safety.get(
+                "non_mutation_invariant"
+            ),
+        }
+
+
+6. BLOCK 103 INSTANCE CREATION
+----------------------------------------------------------------------
+INSTANCE : PASS
+TYPE     : EROSBlock103InstitutionalFrontendReadModel
+
+7. SOURCE CONTRACT CANDIDATES
+----------------------------------------------------------------------
+CANDIDATE A
+{
+  "block_id": 102,
+  "execution": {
+    "broker_submission": false,
+    "execution_blocked": true,
+    "execution_status": "SIMULATED",
+    "live_execution": false,
+    "status": "SIMULATED"
+  },
+  "governance": {
+    "authorization": "AUTHORIZED",
+    "status": "APPROVED"
+  },
+  "intent": {
+    "action": "BUY",
+    "authorization": "AUTHORIZED",
+    "quantity": 100.0,
+    "reference_price": 2500.0,
+    "status": "CERTIFIED",
+    "symbol": "RELIANCE.NS"
+  },
+  "lineage": {
+    "source_block": "102",
+    "status": "PRESERVED"
+  },
+  "pipeline": {
+    "blocks": [
+      "94",
+      "95",
+      "96",
+      "97",
+      "98",
+      "99",
+      "100",
+      "101"
+    ],
+    "status": "CERTIFIED"
+  },
+  "reconciliation": {
+    "cost_reconciled": true,
+    "lineage_reconciled": true,
+    "price_reconciled": true,
+    "quantity_reconciled": true,
+    "status": "RECONCILED",
+    "value_reconciled": true
+  },
+  "risk": {
+    "risk_state": "CONTROLLED",
+    "status": "CERTIFIED"
+  },
+  "safety": {
+    "allow_broker_submission": false,
+    "allow_live_execution": false,
+    "allow_optimization": false,
+    "allow_order_creation": false,
+    "allow_performance_mutation": false,
+    "allow_portfolio_mutation": false,
+    "allow_risk_mutation": false,
+    "allow_valuation_mutation": false,
+    "execution_blocked": true,
+    "non_mutation_invariant": true,
+    "read_only": true
+  },
+  "status": "CERTIFIED"
+}
+
+8. DIRECT BLOCK 103 SOURCE VALIDATION
+----------------------------------------------------------------------
+
+Testing Candidate A against _validate_source()
+
+CANDIDATE A VALIDATION : FAIL
+EXCEPTION TYPE          : ValueError
+EXCEPTION MESSAGE       : BLOCK103_INVALID_SOURCE_BLOCK
+
+9. BLOCK 103 SOURCE FIELD PROBE
+----------------------------------------------------------------------
+
+FIELD block_id             TYPE=int
+FIELD execution            TYPE=dict
+     SUBFIELDS: broker_submission, execution_blocked, execution_status, live_execution, status
+FIELD governance           TYPE=dict
+     SUBFIELDS: authorization, status
+FIELD intent               TYPE=dict
+     SUBFIELDS: action, authorization, quantity, reference_price, status, symbol
+FIELD lineage              TYPE=dict
+     SUBFIELDS: source_block, status
+FIELD pipeline             TYPE=dict
+     SUBFIELDS: blocks, status
+FIELD reconciliation       TYPE=dict
+     SUBFIELDS: cost_reconciled, lineage_reconciled, price_reconciled, quantity_reconciled, status, value_reconciled
+FIELD risk                 TYPE=dict
+     SUBFIELDS: risk_state, status
+FIELD safety               TYPE=dict
+     SUBFIELDS: allow_broker_submission, allow_live_execution, allow_optimization, allow_order_creation, allow_performance_mutation, allow_portfolio_mutation, allow_risk_mutation, allow_valuation_mutation, execution_blocked, non_mutation_invariant, read_only
+FIELD status               TYPE=str
+
+10. SOURCE BLOCK REPRESENTATION DIAGNOSTIC
+----------------------------------------------------------------------
+source_block=100      -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+source_block=101      -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+source_block=102      -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+source_block=103      -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+source_block='100'    -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+source_block='101'    -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+source_block='102'    -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+source_block='103'    -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+
+11. TOP-LEVEL BLOCK ID DIAGNOSTIC
+----------------------------------------------------------------------
+block_id=100      -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+block_id=101      -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+block_id=102      -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+block_id=103      -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+block_id='100'    -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+block_id='101'    -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+block_id='102'    -> ValueError: BLOCK103_PIPELINE_MISSING
+block_id='103'    -> ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+
+12. EXACT _validate_source IMPLEMENTATION
+----------------------------------------------------------------------
+    @staticmethod
+    def _validate_source(source: Mapping[str, Any]) -> None:
+
+        if source.get("status") != "CERTIFIED":
+            raise ValueError("BLOCK103_SOURCE_NOT_CERTIFIED")
+
+        if source.get("block_id") != "102":
+            raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+
+        pipeline = source.get("pipeline_status")
+
+        if not isinstance(pipeline, list):
+            raise ValueError("BLOCK103_PIPELINE_MISSING")
+
+        block_ids = {
+            str(item.get("block_id"))
+            for item in pipeline
+            if isinstance(item, Mapping)
+        }
+
+        if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
+            raise ValueError("BLOCK103_INVALID_PIPELINE")
+
+        safety = source.get("safety")
+
+        if not isinstance(safety, Mapping):
+            raise ValueError("BLOCK103_SAFETY_MISSING")
+
+        if safety.get("portfolio_mutation") is not False:
+            raise ValueError("BLOCK103_PORTFOLIO_MUTATION")
+
+        if safety.get("valuation_mutation") is not False:
+            raise ValueError("BLOCK103_VALUATION_MUTATION")
+
+        if safety.get("performance_mutation") is not False:
+            raise ValueError("BLOCK103_PERFORMANCE_MUTATION")
+
+        if safety.get("risk_mutation") is not False:
+            raise ValueError("BLOCK103_RISK_MUTATION")
+
+        if safety.get("optimization") is not False:
+            raise ValueError("BLOCK103_OPTIMIZATION")
+
+        if safety.get("order_creation") is not False:
+            raise ValueError("BLOCK103_ORDER_CREATION")
+
+        if safety.get("broker_submission") is not False:
+            raise ValueError("BLOCK103_BROKER_SUBMISSION")
+
+        if safety.get("live_order_submission") is not False:
+            raise ValueError("BLOCK103_LIVE_EXECUTION")
+
+        if safety.get("execution_blocked") is not True:
+            raise ValueError("BLOCK103_EXECUTION_BLOCKED_INVARIANT")
+
+        if safety.get("non_mutation_invariant") is not True:
+            raise ValueError("BLOCK103_NON_MUTATION_INVARIANT")
+
+
+13. BLOCK 103 BUILD ATTEMPT
+----------------------------------------------------------------------
+BLOCK 103 BUILD : FAIL
+EXCEPTION TYPE  : ValueError
+EXCEPTION       : BLOCK103_INVALID_SOURCE_BLOCK
+
+======================================================================
+BLOCK 103 SOURCE CONTRACT DIAGNOSTIC COMPLETE
+======================================================================
+
+IMPORTANT:
+This diagnostic does NOT modify Block 103.
+This diagnostic does NOT modify Block 106.
+No broker was contacted.
+No live execution occurred.
+No order was created.
+No commit was performed.
+No push was performed.
+
+RESULT : DIAGNOSTIC COMPLETE
+
+
+PYTHON EXIT CODE : 0
+
+======================================================================
+ GIT SAFETY STATE
+======================================================================
+
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+STATUS:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+======================================================================
+ SAFETY CONFIRMATION
+======================================================================
+
+SOURCE CHANGES       : NONE
+GIT COMMIT           : NONE
+GIT PUSH             : NONE
+BROKER               : FALSE
+LIVE EXECUTION       : FALSE
+ORDER SUBMISSION     : FALSE
+PORTFOLIO MUTATION   : FALSE
+
+LOG FILE:
+.\logs\block106_block103_source_contract_20260820_091412.log
+**********************
+Windows PowerShell transcript end
+End time: 20260820091413
+**********************

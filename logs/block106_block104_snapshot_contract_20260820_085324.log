@@ -1,0 +1,412 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820085324
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 2348
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_block104_snapshot_contract_20260820_085324.log
+
+======================================================================
+ EROS 3.0 - BLOCK 106 / BLOCK 104 SNAPSHOT CONTRACT INSPECTION
+======================================================================
+
+READ ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+1. CURRENT GIT BASELINE
+----------------------------------------------------------------------
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+STATUS:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+2. BLOCK 104 IMPORT
+----------------------------------------------------------------------
+  File "<string>", line 2
+    print(BLOCK
+         ^
+SyntaxError: '(' was never closed
+
+3. BLOCK 104 PUBLIC METHOD SIGNATURES
+----------------------------------------------------------------------
+  File "<string>", line 5
+    print(")
+          ^
+SyntaxError: unterminated string literal (detected at line 5)
+
+4. BLOCK 104 SNAPSHOT SOURCE
+----------------------------------------------------------------------
+MATCHING DEFINITIONS:
+
+LineNumber Line
+---------- ----
+         7 class EROSBlock104CommandCenter:
+        35     def render_model(
+       147     def snapshot(
+       232 def build_command_center(
+
+
+
+RELEVANT SOURCE:
+
+    1: from __future__ import annotations
+    2:
+    3: from copy import deepcopy
+    4: from typing import Any, Dict, Mapping
+    5:
+    6:
+    7: class EROSBlock104CommandCenter:
+    8:     """
+    9:     EROS 3.0 Block 104
+   10:
+   11:     Institutional Command Center presentation model.
+   12:
+   13:     Presentation-only layer consuming the Block 103
+   14:     Institutional Frontend Read Model.
+   15:
+   16:     This block MUST NOT:
+   17:         - create orders
+   18:         - submit broker orders
+   19:         - perform live execution
+   20:         - mutate portfolio
+   21:         - mutate valuation
+   22:         - mutate performance
+   23:         - mutate risk
+   24:         - perform optimization
+   25:     """
+   26:
+   27:     BLOCK_ID = "104"
+   28:     ENGINE_VERSION = "EROS-3.0-BLOCK-104"
+   29:
+   30:     SOURCE_BLOCK = "103"
+   31:
+   32:     def __init__(self) -> None:
+   33:         self.engine_version = self.ENGINE_VERSION
+   34:
+   35:     def render_model(
+   36:         self,
+   37:         *,
+   38:         read_model: Mapping[str, Any],
+   39:     ) -> Dict[str, Any]:
+   40:         """
+   41:         Convert the Block 103 read model into a UI-ready
+   42:         institutional command-center model.
+   43:         """
+   44:
+   45:         source = deepcopy(dict(read_model))
+   46:
+   47:         self._validate_source(source)
+   48:
+   49:         return {
+   50:             "status": "CERTIFIED",
+   51:             "block_id": self.BLOCK_ID,
+   52:             "engine_version": self.engine_version,
+   53:             "source_block": self.SOURCE_BLOCK,
+   54:
+   55:             "header": {
+   56:                 "title": "EROS 3.0 Institutional Command Center",
+   57:                 "subtitle": (
+   58:                     "Read-only governance, execution and "
+   59:                     "reconciliation control view"
+   60:                 ),
+   61:                 "pipeline": "94 -> 103",
+   62:             },
+   63:
+   64:             "status_cards": {
+   65:                 "governance": source["governance"].get("status"),
+   66:                 "intent": source["intent"].get("status"),
+   67:                 "execution": source["execution"].get("status"),
+   68:                 "reconciliation": source["reconciliation"].get(
+   69:                     "status"
+   70:                 ),
+   71:             },
+   72:
+   73:             "pipeline": deepcopy(
+   74:                 source.get("pipeline", [])
+   75:             ),
+   76:
+   77:             "risk": deepcopy(
+   78:                 source.get("risk", {})
+   79:             ),
+   80:
+   81:             "governance": deepcopy(
+   82:                 source.get("governance", {})
+   83:             ),
+   84:
+   85:             "intent": deepcopy(
+   86:                 source.get("intent", {})
+   87:             ),
+   88:
+   89:             "execution": deepcopy(
+   90:                 source.get("execution", {})
+   91:             ),
+   92:
+   93:             "reconciliation": deepcopy(
+   94:                 source.get("reconciliation", {})
+   95:             ),
+   96:
+   97:             "lineage": deepcopy(
+   98:                 source.get("lineage", {})
+   99:             ),
+  100:
+  101:             "safety": {
+  102:                 "portfolio_mutation": source["safety"].get(
+  103:                     "portfolio_mutation"
+  104:                 ),
+  105:                 "valuation_mutation": source["safety"].get(
+  106:                     "valuation_mutation"
+  107:                 ),
+  108:                 "performance_mutation": source["safety"].get(
+  109:                     "performance_mutation"
+  110:                 ),
+  111:                 "risk_mutation": source["safety"].get(
+  112:                     "risk_mutation"
+  113:                 ),
+  114:                 "optimization": source["safety"].get(
+  115:                     "optimization"
+  116:                 ),
+  117:                 "order_creation": source["safety"].get(
+  118:                     "order_creation"
+  119:                 ),
+  120:                 "broker_submission": source["safety"].get(
+  121:                     "broker_submission"
+  122:                 ),
+  123:                 "live_order_submission": source["safety"].get(
+  124:                     "live_order_submission"
+  125:                 ),
+  126:                 "execution_blocked": source["safety"].get(
+  127:                     "execution_blocked"
+  128:                 ),
+  129:                 "non_mutation_invariant": source["safety"].get(
+  130:                     "non_mutation_invariant"
+  131:                 ),
+  132:             },
+  133:
+  134:             "ui_policy": {
+  135:                 "read_only": True,
+  136:                 "allow_order_creation": False,
+  137:                 "allow_broker_submission": False,
+  138:                 "allow_live_execution": False,
+  139:                 "allow_portfolio_mutation": False,
+  140:                 "allow_valuation_mutation": False,
+  141:                 "allow_performance_mutation": False,
+  142:                 "allow_risk_mutation": False,
+  143:                 "allow_optimization": False,
+  144:             },
+  145:         }
+  146:
+  147:     def snapshot(
+  148:         self,
+  149:         *,
+  150:         read_model: Mapping[str, Any],
+  151:     ) -> Dict[str, Any]:
+  152:         return self.render_model(
+  153:             read_model=read_model
+  154:         )
+  155:
+  156:     @staticmethod
+  157:     def _validate_source(
+  158:         source: Mapping[str, Any],
+  159:     ) -> None:
+  160:
+  161:         if source.get("status") != "CERTIFIED":
+  162:             raise ValueError(
+  163:                 "BLOCK104_SOURCE_NOT_CERTIFIED"
+  164:             )
+  165:
+  166:         if str(source.get("block_id")) != "103":
+  167:             raise ValueError(
+  168:                 "BLOCK104_INVALID_SOURCE_BLOCK"
+  169:             )
+  170:
+  171:         required_sections = (
+  172:             "pipeline",
+  173:             "governance",
+  174:             "intent",
+  175:             "execution",
+  176:             "reconciliation",
+  177:             "lineage",
+  178:             "safety",
+  179:         )
+  180:
+  181:         for section in required_sections:
+  182:             if not isinstance(
+  183:                 source.get(section),
+  184:                 Mapping,
+  185:             ) and section != "pipeline":
+  186:                 raise ValueError(
+  187:                     f"BLOCK104_MISSING_{section.upper()}"
+
+5. BLOCK 103 READ MODEL INTERFACE
+----------------------------------------------------------------------
+  File "<string>", line 6
+    print(CLASS:, cls)
+               ^
+SyntaxError: invalid syntax
+
+6. BLOCK 103 PUBLIC METHOD DEFINITIONS
+----------------------------------------------------------------------
+
+LineNumber Line
+---------- ----
+         7 class EROSBlock103InstitutionalFrontendReadModel:
+        31     def __init__(self) -> None:
+        34     def build(
+        73     def snapshot(
+        81     def _validate_source(source: Mapping[str, Any]) -> None:
+       139     def _build_pipeline(
+       163     def _build_risk(
+       180     def _build_governance(
+       205     def _build_intent(
+       227     def _build_execution(
+       257     def _build_reconciliation(
+       289     def _build_lineage(
+       307     def _build_safety(
+
+
+
+7. BLOCK 104 RUNTIME CONSTRUCTION DISCOVERY
+----------------------------------------------------------------------
+  File "<string>", line 6
+    print(BLOCK
+         ^
+SyntaxError: '(' was never closed
+
+8. ALL BLOCK 104 SNAPSHOT CALL SITES
+----------------------------------------------------------------------
+SEARCHING PROJECT FOR:
+EROSBlock104CommandCenter.snapshot
+.snapshot(
+
+
+Path                                                                                            LineNumber Line
+----                                                                                            ---------- ----
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block100_test_harness.py                 265     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block101_test_harness.py                 354     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_portfolio_state_engine.py        562          ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_portfolio_state_engine.py        580          ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_portfolio_state_engine.py        598          ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_portfolio_state_engine.py        619          ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_portfolio_state_engine.py        693          ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_test_harness.py                  142     befor...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_test_harness.py                  148     after...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_test_harness.py                  164         e...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_test_harness.py                  169         e...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_test_harness.py                  207     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block92_test_harness.py                  185     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block93_test_harness.py                  330     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_test_harness.py                  779     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_test_harness.py                  788     fresh...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_test_harness.py                  322     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_test_harness.py                  328     fresh...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_test_harness.py                  311     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block97_test_harness.py                  293     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_test_harness.py                  291     snaps...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block99_test_harness.py                  344     snaps...
+
+
+
+9. READ MODEL CONSTRUCTION CALL SITES
+----------------------------------------------------------------------
+
+Path                                                                                                        LineNumber
+----                                                                                                        ----------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py          7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py        100
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_test_harness.py                               5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_test_harness.py                               6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_test_harness.py                              23
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_test_harness.py                             118
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                       35
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                       38
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                       45
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                      150
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                      152
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                      153
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                      233
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                      239
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                      240
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_test_harness.py                              20
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_test_harness.py                             108
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_test_harness.py                             109
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py                                                            51
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py                                                           126
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\eros_command_center.py                                            19
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\eros_command_center.py                                            32
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\eros_command_center.py                                            33
+
+
+
+10. BLOCK 106 CURRENT INTERFACE
+----------------------------------------------------------------------
+  File "<string>", line 7
+    print(CLASS:, cls)
+               ^
+SyntaxError: invalid syntax
+
+11. BLOCK 106 SAFETY POLICY
+----------------------------------------------------------------------
+  File "<string>", line 5
+    print(SAFETY
+         ^
+SyntaxError: '(' was never closed
+
+12. CURRENT DIAGNOSIS
+----------------------------------------------------------------------
+
+The previous deep runtime test failed because:
+
+Block 104 snapshot() requires:
+    read_model=<...>
+
+The test runner incorrectly called:
+    block104.snapshot()
+
+Therefore command_center was never created, causing the later
+Block 106 failures to cascade.
+
+NO BLOCK 106 SOURCE CHANGE WILL BE MADE BY THIS TEST.
+
+======================================================================
+ BLOCK 106 / BLOCK 104 SNAPSHOT CONTRACT INSPECTION COMPLETE
+======================================================================
+
+READ ONLY              : TRUE
+SOURCE CHANGES         : NONE
+GIT COMMIT             : NOT STARTED
+GIT PUSH               : NOT STARTED
+BROKER                 : FALSE
+LIVE EXECUTION         : FALSE
+ORDER SUBMISSION       : FALSE
+
+LOG FILE:
+.\logs\block106_block104_snapshot_contract_20260820_085324.log
+
+**********************
+Windows PowerShell transcript end
+End time: 20260820085334
+**********************

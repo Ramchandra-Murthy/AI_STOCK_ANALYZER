@@ -1,0 +1,505 @@
+﻿EROS 3.0 - BLOCK 103 ACTUAL OUTPUT DIAGNOSTIC
+TIMESTAMP : 20260820_092139
+PYTHON EXIT CODE : 0
+
+======================================================================
+======================================================================
+EROS 3.0 - BLOCK 103 ACTUAL OUTPUT DIAGNOSTIC
+======================================================================
+READ ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER CREATION
+NO MUTATION
+
+======================================================================
+1. IMPORT VERIFICATION
+======================================================================
+BLOCK 102 IMPORT : PASS
+BLOCK 103 IMPORT : PASS
+
+======================================================================
+2. ACTUAL SIGNATURES
+======================================================================
+BLOCK 102 BUILD:
+(self, *, block94: 'Mapping[str, Any] | None' = None, block95: 'Mapping[str, Any] | None' = None, block96: 'Mapping[str, Any] | None' = None, block97: 'Mapping[str, Any] | None' = None, block98: 'Mapping[str, Any] | None' = None, block99: 'Mapping[str, Any] | None' = None, block100: 'Mapping[str, Any] | None' = None, block101: 'Mapping[str, Any] | None' = None) -> 'Dict[str, Any]'
+
+BLOCK 103 BUILD:
+(self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+======================================================================
+3. BUILD BLOCK 102
+======================================================================
+BLOCK 102 BUILD : PASS
+
+BLOCK 102 TOP LEVEL:
+  'status': str = 'CERTIFIED'
+  'block_id': str = '102'
+  'engine_version': str = 'EROS-3.0-BLOCK-102'
+  'created_at': str = '2026-08-20T03:51:39.711114+00:00'
+  'pipeline_status': list = [{'block_id': '94', 'name': 'Stress Scenario Engine', 'status': 'CERTIFIED', 'source_block': None, 'identifier': None, 'execution_blocked': True}, {'block_id': '95', 'name': 'Stress Evidence Gate', 'status': 'CERTIFIED', 'source_block': None, 'identifier': None, 'execution_blocked': True}, {'block_id': '96', 'name': 'Stress Decision Gate', 'status': 'CERTIFIED', 'source_block': None, 'identifier': None, 'execution_blocked': True}, {'block_id': '97', 'name': 'Stress Readiness Gate', 'status': 'CERTIFIED', 'source_block': None, 'identifier': None, 'execution_blocked': True}, {'block_id': '98', 'name': 'Execution Governance Bridge', 'status': 'APPROVED', 'source_block': None, 'identifier': None, 'execution_blocked': True}, {'block_id': '99', 'name': 'Execution Intent Authorization', 'status': 'CERTIFIED', 'source_block': None, 'identifier': None, 'execution_blocked': True}, {'block_id': '100', 'name': 'Paper Execution / Fill Validation', 'status': 'CERTIFIED', 'source_block': None, 'identifier': None, 'execution_blocked': True}, {'block_id': '101', 'name': 'Execution Evidence Reconciliation', 'status': 'CERTIFIED', 'source_block': 100, 'identifier': None, 'execution_blocked': True}]
+  'risk': dict = {'stress_status': 'CERTIFIED', 'evidence_status': 'CERTIFIED', 'decision_status': 'CERTIFIED', 'readiness_status': 'CERTIFIED', 'scenario_count': None, 'downside_pnl': None, 'upside_pnl': None}
+  'governance': dict = {'status': 'APPROVED', 'governance_id': None, 'execution_action': None, 'source_readiness_id': None, 'source_decision_id': None, 'source_gate_id': None, 'source_certificate_id': None}
+  'intent': dict = {'status': 'CERTIFIED', 'intent_id': None, 'intent_action': None, 'authorization_status': None, 'symbol': None, 'action': None, 'quantity': None, 'reference_price': None}
+  'execution': dict = {'status': 'SIMULATED', 'execution_id': None, 'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'filled_quantity': 100.0, 'reference_price': 2500.0, 'fill_price': 2501.25, 'fill_status': 'FILLED', 'slippage_bps': None, 'transaction_cost': None, 'net_value': None}
+  'reconciliation': dict = {'status': 'CERTIFIED', 'reconciliation_id': None, 'source_execution_id': None, 'quantity_reconciled': True, 'price_reconciled': True, 'value_reconciled': True, 'cost_reconciled': True, 'lineage_reconciled': True}
+  'lineage': dict = {'block94': None, 'block95': None, 'block96': None, 'block97': None, 'block98': None, 'block99': None, 'block100': None, 'block101': None}
+  'safety': dict = {'portfolio_mutation': False, 'valuation_mutation': False, 'performance_mutation': False, 'risk_mutation': False, 'optimization': False, 'order_creation': False, 'broker_submission': False, 'live_order_submission': False, 'execution_blocked': True, 'non_mutation_invariant': True}
+
+BLOCK 102 COMPLETE JSON:
+{
+  "status": "CERTIFIED",
+  "block_id": "102",
+  "engine_version": "EROS-3.0-BLOCK-102",
+  "created_at": "2026-08-20T03:51:39.711114+00:00",
+  "pipeline_status": [
+    {
+      "block_id": "94",
+      "name": "Stress Scenario Engine",
+      "status": "CERTIFIED",
+      "source_block": null,
+      "identifier": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "95",
+      "name": "Stress Evidence Gate",
+      "status": "CERTIFIED",
+      "source_block": null,
+      "identifier": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "96",
+      "name": "Stress Decision Gate",
+      "status": "CERTIFIED",
+      "source_block": null,
+      "identifier": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "97",
+      "name": "Stress Readiness Gate",
+      "status": "CERTIFIED",
+      "source_block": null,
+      "identifier": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "98",
+      "name": "Execution Governance Bridge",
+      "status": "APPROVED",
+      "source_block": null,
+      "identifier": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "99",
+      "name": "Execution Intent Authorization",
+      "status": "CERTIFIED",
+      "source_block": null,
+      "identifier": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "100",
+      "name": "Paper Execution / Fill Validation",
+      "status": "CERTIFIED",
+      "source_block": null,
+      "identifier": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "101",
+      "name": "Execution Evidence Reconciliation",
+      "status": "CERTIFIED",
+      "source_block": 100,
+      "identifier": null,
+      "execution_blocked": true
+    }
+  ],
+  "risk": {
+    "stress_status": "CERTIFIED",
+    "evidence_status": "CERTIFIED",
+    "decision_status": "CERTIFIED",
+    "readiness_status": "CERTIFIED",
+    "scenario_count": null,
+    "downside_pnl": null,
+    "upside_pnl": null
+  },
+  "governance": {
+    "status": "APPROVED",
+    "governance_id": null,
+    "execution_action": null,
+    "source_readiness_id": null,
+    "source_decision_id": null,
+    "source_gate_id": null,
+    "source_certificate_id": null
+  },
+  "intent": {
+    "status": "CERTIFIED",
+    "intent_id": null,
+    "intent_action": null,
+    "authorization_status": null,
+    "symbol": null,
+    "action": null,
+    "quantity": null,
+    "reference_price": null
+  },
+  "execution": {
+    "status": "SIMULATED",
+    "execution_id": null,
+    "symbol": "RELIANCE.NS",
+    "action": "BUY",
+    "requested_quantity": 100.0,
+    "filled_quantity": 100.0,
+    "reference_price": 2500.0,
+    "fill_price": 2501.25,
+    "fill_status": "FILLED",
+    "slippage_bps": null,
+    "transaction_cost": null,
+    "net_value": null
+  },
+  "reconciliation": {
+    "status": "CERTIFIED",
+    "reconciliation_id": null,
+    "source_execution_id": null,
+    "quantity_reconciled": true,
+    "price_reconciled": true,
+    "value_reconciled": true,
+    "cost_reconciled": true,
+    "lineage_reconciled": true
+  },
+  "lineage": {
+    "block94": null,
+    "block95": null,
+    "block96": null,
+    "block97": null,
+    "block98": null,
+    "block99": null,
+    "block100": null,
+    "block101": null
+  },
+  "safety": {
+    "portfolio_mutation": false,
+    "valuation_mutation": false,
+    "performance_mutation": false,
+    "risk_mutation": false,
+    "optimization": false,
+    "order_creation": false,
+    "broker_submission": false,
+    "live_order_submission": false,
+    "execution_blocked": true,
+    "non_mutation_invariant": true
+  }
+}
+======================================================================
+4. BUILD BLOCK 103 FROM ACTUAL BLOCK 102 OUTPUT
+======================================================================
+BLOCK 103 INSTANCE : PASS
+
+BLOCK 103 BUILD : PASS
+
+======================================================================
+5. ACTUAL BLOCK 103 OUTPUT
+======================================================================
+OUTPUT TYPE:
+dict
+
+TOP LEVEL KEYS:
+   'status'
+   'block_id'
+   'engine_version'
+   'dashboard'
+   'pipeline'
+   'risk'
+   'governance'
+   'intent'
+   'execution'
+   'reconciliation'
+   'lineage'
+   'safety'
+
+TOP LEVEL VALUES / TYPES:
+  'status': type=str, value='CERTIFIED'
+  'block_id': type=str, value='103'
+  'engine_version': type=str, value='EROS-3.0-BLOCK-103'
+  'dashboard': type=dict, value={'title': 'EROS 3.0 Institutional Command Center', 'subtitle': 'Read-only governance, execution and reconciliation view'}
+  'pipeline': type=list, value=[{'block_id': '94', 'name': 'Stress Scenario Engine', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '95', 'name': 'Stress Evidence Gate', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '96', 'name': 'Stress Decision Gate', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '97', 'name': 'Stress Readiness Gate', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '98', 'name': 'Execution Governance Bridge', 'status': 'APPROVED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '99', 'name': 'Execution Intent Authorization', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '100', 'name': 'Paper Execution / Fill Validation', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '101', 'name': 'Execution Evidence Reconciliation', 'status': 'CERTIFIED', 'identifier': None, 'source_block': 100, 'execution_blocked': True}]
+  'risk': type=dict, value={'stress_status': 'CERTIFIED', 'evidence_status': 'CERTIFIED', 'decision_status': 'CERTIFIED', 'readiness_status': 'CERTIFIED', 'scenario_count': None, 'downside_pnl': None, 'upside_pnl': None}
+  'governance': type=dict, value={'status': 'APPROVED', 'governance_id': None, 'execution_action': None, 'source_readiness_id': None, 'source_decision_id': None, 'source_gate_id': None, 'source_certificate_id': None}
+  'intent': type=dict, value={'status': 'CERTIFIED', 'intent_id': None, 'intent_action': None, 'authorization_status': None, 'symbol': None, 'action': None, 'quantity': None, 'reference_price': None}
+  'execution': type=dict, value={'status': 'SIMULATED', 'execution_id': None, 'symbol': 'RELIANCE.NS', 'action': 'BUY', 'requested_quantity': 100.0, 'filled_quantity': 100.0, 'reference_price': 2500.0, 'fill_price': 2501.25, 'fill_status': 'FILLED', 'slippage_bps': None, 'transaction_cost': None, 'net_value': None}
+  'reconciliation': type=dict, value={'status': 'CERTIFIED', 'reconciliation_id': None, 'source_execution_id': None, 'quantity_reconciled': True, 'price_reconciled': True, 'value_reconciled': True, 'cost_reconciled': True, 'lineage_reconciled': True}
+  'lineage': type=dict, value={'block94': None, 'block95': None, 'block96': None, 'block97': None, 'block98': None, 'block99': None, 'block100': None, 'block101': None}
+  'safety': type=dict, value={'portfolio_mutation': False, 'valuation_mutation': False, 'performance_mutation': False, 'risk_mutation': False, 'optimization': False, 'order_creation': False, 'broker_submission': False, 'live_order_submission': False, 'execution_blocked': True, 'non_mutation_invariant': True}
+
+======================================================================
+6. BLOCK 103 IDENTITY CHECK
+======================================================================
+read_model.get('status')    : 'CERTIFIED'
+read_model.get('block_id')  : '103'
+read_model.get('block_id') type: str
+
+EXPECTED:
+  status   = CERTIFIED
+  block_id = 103
+
+ACTUAL:
+  status   = 'CERTIFIED'
+  block_id = '103'
+
+======================================================================
+7. BLOCK 103 NESTED STRUCTURE
+======================================================================
+
+--- DASHBOARD ---
+  'title': 'EROS 3.0 Institutional Command Center'
+  'subtitle': 'Read-only governance, execution and reconciliation view'
+
+--- PIPELINE ---
+  TYPE : list
+  VALUE: [{'block_id': '94', 'name': 'Stress Scenario Engine', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '95', 'name': 'Stress Evidence Gate', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '96', 'name': 'Stress Decision Gate', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '97', 'name': 'Stress Readiness Gate', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '98', 'name': 'Execution Governance Bridge', 'status': 'APPROVED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '99', 'name': 'Execution Intent Authorization', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '100', 'name': 'Paper Execution / Fill Validation', 'status': 'CERTIFIED', 'identifier': None, 'source_block': None, 'execution_blocked': True}, {'block_id': '101', 'name': 'Execution Evidence Reconciliation', 'status': 'CERTIFIED', 'identifier': None, 'source_block': 100, 'execution_blocked': True}]
+
+--- RISK ---
+  'stress_status': 'CERTIFIED'
+  'evidence_status': 'CERTIFIED'
+  'decision_status': 'CERTIFIED'
+  'readiness_status': 'CERTIFIED'
+  'scenario_count': None
+  'downside_pnl': None
+  'upside_pnl': None
+
+--- GOVERNANCE ---
+  'status': 'APPROVED'
+  'governance_id': None
+  'execution_action': None
+  'source_readiness_id': None
+  'source_decision_id': None
+  'source_gate_id': None
+  'source_certificate_id': None
+
+--- INTENT ---
+  'status': 'CERTIFIED'
+  'intent_id': None
+  'intent_action': None
+  'authorization_status': None
+  'symbol': None
+  'action': None
+  'quantity': None
+  'reference_price': None
+
+--- EXECUTION ---
+  'status': 'SIMULATED'
+  'execution_id': None
+  'symbol': 'RELIANCE.NS'
+  'action': 'BUY'
+  'requested_quantity': 100.0
+  'filled_quantity': 100.0
+  'reference_price': 2500.0
+  'fill_price': 2501.25
+  'fill_status': 'FILLED'
+  'slippage_bps': None
+  'transaction_cost': None
+  'net_value': None
+
+--- RECONCILIATION ---
+  'status': 'CERTIFIED'
+  'reconciliation_id': None
+  'source_execution_id': None
+  'quantity_reconciled': True
+  'price_reconciled': True
+  'value_reconciled': True
+  'cost_reconciled': True
+  'lineage_reconciled': True
+
+--- LINEAGE ---
+  'block94': None
+  'block95': None
+  'block96': None
+  'block97': None
+  'block98': None
+  'block99': None
+  'block100': None
+  'block101': None
+
+--- SAFETY ---
+  'portfolio_mutation': False
+  'valuation_mutation': False
+  'performance_mutation': False
+  'risk_mutation': False
+  'optimization': False
+  'order_creation': False
+  'broker_submission': False
+  'live_order_submission': False
+  'execution_blocked': True
+  'non_mutation_invariant': True
+
+======================================================================
+8. COMPLETE BLOCK 103 JSON
+======================================================================
+{
+  "status": "CERTIFIED",
+  "block_id": "103",
+  "engine_version": "EROS-3.0-BLOCK-103",
+  "dashboard": {
+    "title": "EROS 3.0 Institutional Command Center",
+    "subtitle": "Read-only governance, execution and reconciliation view"
+  },
+  "pipeline": [
+    {
+      "block_id": "94",
+      "name": "Stress Scenario Engine",
+      "status": "CERTIFIED",
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "95",
+      "name": "Stress Evidence Gate",
+      "status": "CERTIFIED",
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "96",
+      "name": "Stress Decision Gate",
+      "status": "CERTIFIED",
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "97",
+      "name": "Stress Readiness Gate",
+      "status": "CERTIFIED",
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "98",
+      "name": "Execution Governance Bridge",
+      "status": "APPROVED",
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "99",
+      "name": "Execution Intent Authorization",
+      "status": "CERTIFIED",
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "100",
+      "name": "Paper Execution / Fill Validation",
+      "status": "CERTIFIED",
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "101",
+      "name": "Execution Evidence Reconciliation",
+      "status": "CERTIFIED",
+      "identifier": null,
+      "source_block": 100,
+      "execution_blocked": true
+    }
+  ],
+  "risk": {
+    "stress_status": "CERTIFIED",
+    "evidence_status": "CERTIFIED",
+    "decision_status": "CERTIFIED",
+    "readiness_status": "CERTIFIED",
+    "scenario_count": null,
+    "downside_pnl": null,
+    "upside_pnl": null
+  },
+  "governance": {
+    "status": "APPROVED",
+    "governance_id": null,
+    "execution_action": null,
+    "source_readiness_id": null,
+    "source_decision_id": null,
+    "source_gate_id": null,
+    "source_certificate_id": null
+  },
+  "intent": {
+    "status": "CERTIFIED",
+    "intent_id": null,
+    "intent_action": null,
+    "authorization_status": null,
+    "symbol": null,
+    "action": null,
+    "quantity": null,
+    "reference_price": null
+  },
+  "execution": {
+    "status": "SIMULATED",
+    "execution_id": null,
+    "symbol": "RELIANCE.NS",
+    "action": "BUY",
+    "requested_quantity": 100.0,
+    "filled_quantity": 100.0,
+    "reference_price": 2500.0,
+    "fill_price": 2501.25,
+    "fill_status": "FILLED",
+    "slippage_bps": null,
+    "transaction_cost": null,
+    "net_value": null
+  },
+  "reconciliation": {
+    "status": "CERTIFIED",
+    "reconciliation_id": null,
+    "source_execution_id": null,
+    "quantity_reconciled": true,
+    "price_reconciled": true,
+    "value_reconciled": true,
+    "cost_reconciled": true,
+    "lineage_reconciled": true
+  },
+  "lineage": {
+    "block94": null,
+    "block95": null,
+    "block96": null,
+    "block97": null,
+    "block98": null,
+    "block99": null,
+    "block100": null,
+    "block101": null
+  },
+  "safety": {
+    "portfolio_mutation": false,
+    "valuation_mutation": false,
+    "performance_mutation": false,
+    "risk_mutation": false,
+    "optimization": false,
+    "order_creation": false,
+    "broker_submission": false,
+    "live_order_submission": false,
+    "execution_blocked": true,
+    "non_mutation_invariant": true
+  }
+}
+
+======================================================================
+9. CONTRACT COMPARISON
+======================================================================
+BLOCK 102 block_id : '102'
+BLOCK 103 block_id : '103'
+
+BLOCK 103 ID CONTRACT : FAIL
+IMPORTANT: DO NOT MODIFY SOURCE YET.
+
+======================================================================
+BLOCK 103 ACTUAL OUTPUT DIAGNOSTIC COMPLETE
+======================================================================

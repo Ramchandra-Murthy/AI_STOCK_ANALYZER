@@ -1,0 +1,240 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260819224955
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 10728
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_interface_discovery_20260819_224955.log
+
+======================================================================
+          EROS 3.0 - BLOCK 106 INTERFACE DISCOVERY
+======================================================================
+READ ONLY - NO SOURCE CHANGES
+READ ONLY - NO GIT COMMIT
+READ ONLY - NO LIVE EXECUTION
+
+1. CURRENT GIT BASELINE
+----------------------------------------------------------------------
+feature/eros-3-0-sprint19
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+?? logs/
+
+2. BLOCK 104 - EROS COMMAND CENTER ENGINE
+----------------------------------------------------------------------
+
+
+PUBLIC CLASSES / FUNCTIONS:
+FullName                                                                                      Length LastWriteTime
+--------                                                                                      ------ -------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py   6640 19-08-2026 10:...
+
+
+
+LineNumber Line
+---------- ----
+         7 class EROSBlock104CommandCenter:
+       232 def build_command_center(
+
+
+
+3. BLOCK 103 - INSTITUTIONAL FRONTEND READ MODEL
+----------------------------------------------------------------------
+
+
+PUBLIC CLASSES / FUNCTIONS:
+FullName                                                                                                    Length Las
+                                                                                                                   tWr
+                                                                                                                   ite
+                                                                                                                   Tim
+                                                                                                                   e
+--------                                                                                                    ------ ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py  10296 19-
+
+
+
+LineNumber Line
+---------- ----
+         7 class EROSBlock103InstitutionalFrontendReadModel:
+
+
+
+4. BLOCK 102 - FRONTEND CONTRACT
+----------------------------------------------------------------------
+
+
+PUBLIC CLASSES / FUNCTIONS:
+FullName                                                                                    Length LastWriteTime
+--------                                                                                    ------ -------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block102_frontend_contract.py   9437 19-08-2026 09:24...
+
+
+
+LineNumber Line
+---------- ----
+         8 class EROSBlock102FrontendContract:
+
+
+
+5. BLOCK 101 - EXECUTION EVIDENCE RECONCILIATION
+----------------------------------------------------------------------
+
+
+PUBLIC CLASSES / FUNCTIONS:
+FullName                                                                                                    Length Las
+                                                                                                                   tWr
+                                                                                                                   ite
+                                                                                                                   Tim
+                                                                                                                   e
+--------                                                                                                    ------ ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block101_execution_evidence_reconciliation.py  12478 19-
+
+
+
+LineNumber Line
+---------- ----
+        20 def _text(value: Any) -> str:
+        24 def _number(value: Any):
+        37 def _id(prefix: str, payload: Mapping[str, Any]) -> str:
+        43 class EROSBlock101ExecutionEvidenceReconciliationGate:
+
+
+
+6. BLOCK 100 - PAPER EXECUTION
+----------------------------------------------------------------------
+
+
+PUBLIC CLASSES / FUNCTIONS:
+FullName                                                                                            Length LastWriteTi
+                                                                                                           me
+--------                                                                                            ------ -----------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block100_paper_execution_fill_gate.py  16946 19-08-20...
+
+
+
+LineNumber Line
+---------- ----
+        23 def _text(value: Any) -> str:
+        29 def _number(value: Any) -> Optional[float]:
+        38 class EROSBlock100PaperExecutionFillGate:
+
+
+
+7. DASHBOARD INTERFACE
+----------------------------------------------------------------------
+
+FILE: .\dashboard\app.py
+
+
+PUBLIC CLASSES / FUNCTIONS:
+
+FILE: .\dashboard\eros_command_center.py
+
+PUBLIC CLASSES / FUNCTIONS:
+FullName                                                                 Length LastWriteTime
+--------                                                                 ------ -------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py                  13962 19-08-2026 10:30:21 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\eros_command_center.py   7922 19-08-2026 10:32:44 PM
+
+
+
+LineNumber Line
+---------- ----
+        12 def _status_label(value: Any) -> str:
+        18 def render_eros_command_center(
+
+
+
+8. IMPORT VERIFICATION
+----------------------------------------------------------------------
+BLOCK104 IMPORT : PASS
+BLOCK103 IMPORT : PASS
+BLOCK102 IMPORT : PASS
+BLOCK101 IMPORT : PASS
+BLOCK100 IMPORT : PASS
+EROS UI IMPORT : PASS
+
+9. COMPILE VERIFICATION
+----------------------------------------------------------------------
+
+COMPILING: .\services\quantitative\block100_paper_execution_fill_gate.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block101_execution_evidence_reconciliation.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block102_frontend_contract.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block103_institutional_frontend_read_model.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block104_eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\app.py
+
+COMPILE : PASS
+
+10. BLOCK 106 REFERENCES
+----------------------------------------------------------------------
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> TerminatingError(Get-ChildItem): "A positional parameter cannot be found that accepts argument '.\tests'."
+Get-ChildItem : A positional parameter cannot be found that accepts argument '.\tests'.
+At line:291 char:1
++ Get-ChildItem `
++ ~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-ChildItem], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.GetChildItemCommand
+Get-ChildItem : A positional parameter cannot be found that accepts argument '.\tests'.
+At line:291 char:1
++ Get-ChildItem `
++ ~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-ChildItem], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.GetChildItemCommand
+
+
+11. LIVE EXECUTION / BROKER SAFETY SEARCH
+----------------------------------------------------------------------
+
+======================================================================
+          BLOCK 106 INTERFACE DISCOVERY COMPLETE
+======================================================================
+
+READ ONLY                 : YES
+SOURCE CHANGES            : NONE
+BLOCK 106 IMPLEMENTATION  : NOT STARTED
+GIT COMMIT                : NOT STARTED
+LIVE BROKER               : FALSE
+LIVE EXECUTION            : FALSE
+
+DISCOVERY LOG:
+.\logs\block106_interface_discovery_20260819_224955.log
+
+======================================================================
+COPYING DISCOVERY LOG TO CLIPBOARD
+======================================================================
+
+**********************
+Windows PowerShell transcript end
+End time: 20260819224958
+**********************

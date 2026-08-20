@@ -1,0 +1,263 @@
+﻿======================================================================
+EROS 3.0 - BLOCK 104 -> 106 EXACT FAILURE DIAGNOSTIC
+======================================================================
+READ ONLY
+NO SOURCE CHANGES
+NO COMMIT
+NO PUSH
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER CREATION
+NO MUTATION
+
+1. IMPORTS
+----------------------------------------------------------------------
+BLOCK 102 IMPORT : PASS
+BLOCK 103 IMPORT : PASS
+BLOCK 104 IMPORT : PASS
+BLOCK 106 IMPORT : PASS
+
+2. SIGNATURES
+----------------------------------------------------------------------
+BLOCK 102 BUILD : (*, block94: 'Mapping[str, Any] | None' = None, block95: 'Mapping[str, Any] | None' = None, block96: 'Mapping[str, Any] | None' = None, block97: 'Mapping[str, Any] | None' = None, block98: 'Mapping[str, Any] | None' = None, block99: 'Mapping[str, Any] | None' = None, block100: 'Mapping[str, Any] | None' = None, block101: 'Mapping[str, Any] | None' = None) -> 'Dict[str, Any]'
+BLOCK 103 BUILD : (*, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 104 SNAPSHOT : (*, read_model: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 BUILD : (command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+3. BLOCK 102 ACTUAL OUTPUT
+----------------------------------------------------------------------
+TYPE : <class 'dict'>
+BLOCK ID : '102'
+STATUS : 'CERTIFIED'
+ENGINE : 'EROS-3.0-BLOCK-102'
+KEYS : ['status', 'block_id', 'engine_version', 'created_at', 'pipeline_status', 'risk', 'governance', 'intent', 'execution', 'reconciliation', 'lineage', 'safety']
+BLOCK 102 : PASS
+
+4. BLOCK 103 ACTUAL OUTPUT
+----------------------------------------------------------------------
+TYPE : <class 'dict'>
+BLOCK ID : '103'
+STATUS : 'CERTIFIED'
+ENGINE : 'EROS-3.0-BLOCK-103'
+KEYS : ['status', 'block_id', 'engine_version', 'dashboard', 'pipeline', 'risk', 'governance', 'intent', 'execution', 'reconciliation', 'lineage', 'safety']
+BLOCK 103 : PASS
+
+5. BLOCK 104 ACTUAL OUTPUT
+----------------------------------------------------------------------
+TYPE : <class 'dict'>
+BLOCK ID : '104'
+STATUS : 'CERTIFIED'
+ENGINE : 'EROS-3.0-BLOCK-104'
+SOURCE BLOCK : '103'
+KEYS : ['status', 'block_id', 'engine_version', 'source_block', 'header', 'status_cards', 'pipeline', 'risk', 'governance', 'intent', 'execution', 'reconciliation', 'lineage', 'safety', 'ui_policy']
+
+BLOCK 104 OUTPUT JSON
+----------------------------------------------------------------------
+{
+  "status": "CERTIFIED",
+  "block_id": "104",
+  "engine_version": "EROS-3.0-BLOCK-104",
+  "source_block": "103",
+  "header": {
+    "title": "EROS 3.0 Institutional Command Center",
+    "subtitle": "Read-only governance, execution and reconciliation control view",
+    "pipeline": "94 -> 103"
+  },
+  "status_cards": {
+    "governance": null,
+    "intent": null,
+    "execution": null,
+    "reconciliation": null
+  },
+  "pipeline": [
+    {
+      "block_id": "94",
+      "name": "Stress Scenario Engine",
+      "status": null,
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "95",
+      "name": "Stress Evidence Gate",
+      "status": null,
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "96",
+      "name": "Stress Decision Gate",
+      "status": null,
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "97",
+      "name": "Stress Readiness Gate",
+      "status": null,
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "98",
+      "name": "Execution Governance Bridge",
+      "status": null,
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "99",
+      "name": "Execution Intent Authorization",
+      "status": null,
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "100",
+      "name": "Paper Execution / Fill Validation",
+      "status": null,
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    },
+    {
+      "block_id": "101",
+      "name": "Execution Evidence Reconciliation",
+      "status": null,
+      "identifier": null,
+      "source_block": null,
+      "execution_blocked": true
+    }
+  ],
+  "risk": {
+    "stress_status": null,
+    "evidence_status": null,
+    "decision_status": null,
+    "readiness_status": null,
+    "scenario_count": null,
+    "downside_pnl": null,
+    "upside_pnl": null
+  },
+  "governance": {
+    "status": null,
+    "governance_id": null,
+    "execution_action": null,
+    "source_readiness_id": null,
+    "source_decision_id": null,
+    "source_gate_id": null,
+    "source_certificate_id": null
+  },
+  "intent": {
+    "status": null,
+    "intent_id": null,
+    "intent_action": null,
+    "authorization_status": null,
+    "symbol": null,
+    "action": null,
+    "quantity": null,
+    "reference_price": null
+  },
+  "execution": {
+    "status": null,
+    "execution_id": null,
+    "symbol": null,
+    "action": null,
+    "requested_quantity": null,
+    "filled_quantity": null,
+    "reference_price": null,
+    "fill_price": null,
+    "fill_status": null,
+    "slippage_bps": null,
+    "transaction_cost": null,
+    "net_value": null
+  },
+  "reconciliation": {
+    "status": null,
+    "reconciliation_id": null,
+    "source_execution_id": null,
+    "quantity_reconciled": null,
+    "price_reconciled": null,
+    "value_reconciled": null,
+    "cost_reconciled": null,
+    "lineage_reconciled": null
+  },
+  "lineage": {
+    "block94": null,
+    "block95": null,
+    "block96": null,
+    "block97": null,
+    "block98": null,
+    "block99": null,
+    "block100": null,
+    "block101": null
+  },
+  "safety": {
+    "portfolio_mutation": false,
+    "valuation_mutation": false,
+    "performance_mutation": false,
+    "risk_mutation": false,
+    "optimization": false,
+    "order_creation": false,
+    "broker_submission": false,
+    "live_order_submission": false,
+    "execution_blocked": true,
+    "non_mutation_invariant": true
+  },
+  "ui_policy": {
+    "read_only": true,
+    "allow_order_creation": false,
+    "allow_broker_submission": false,
+    "allow_live_execution": false,
+    "allow_portfolio_mutation": false,
+    "allow_valuation_mutation": false,
+    "allow_performance_mutation": false,
+    "allow_risk_mutation": false,
+    "allow_optimization": false
+  }
+}
+
+BLOCK 104 : PASS
+
+6. BLOCK 106 INPUT INSPECTION
+----------------------------------------------------------------------
+INPUT TYPE : <class 'dict'>
+INPUT BLOCK ID : '104'
+INPUT STATUS : 'CERTIFIED'
+INPUT KEYS : ['status', 'block_id', 'engine_version', 'source_block', 'header', 'status_cards', 'pipeline', 'risk', 'governance', 'intent', 'execution', 'reconciliation', 'lineage', 'safety', 'ui_policy']
+
+BLOCK 106 REQUIRED SOURCE FIELDS
+----------------------------------------------------------------------
+status               : PRESENT
+block_id             : PRESENT
+pipeline             : PRESENT
+governance           : PRESENT
+intent               : PRESENT
+execution            : PRESENT
+reconciliation       : PRESENT
+lineage              : PRESENT
+safety               : PRESENT
+
+7. BLOCK 106 BUILD
+----------------------------------------------------------------------
+BLOCK 106 BUILD : PASS
+TYPE : <class 'dict'>
+BLOCK ID : None
+STATUS : None
+VERSION : None
+KEYS : ['schema', 'integration', 'command_center', 'safety', 'lineage', 'integrity']
+
+8. BLOCK 106 VALIDATION
+----------------------------------------------------------------------
+VALIDATE RESULT : True
+BLOCK 106 VALIDATION : PASS
+
+======================================================================
+BLOCK 106 104->106 DIAGNOSTIC : PASS
+======================================================================
+

@@ -1,0 +1,247 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260819225418
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 11668
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_runtime_contract_test_20260819_225418.log
+
+======================================================================
+        EROS 3.0 - BLOCK 106 RUNTIME CONTRACT TEST - RETRY
+======================================================================
+
+READ ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+PYTHON TEST RUNNER CREATED:
+.\logs\block106_runtime_contract_test_runner.py
+
+RUNNING PYTHON CONTRACT TEST...
+
+======================================================================
+EROS 3.0 - BLOCK 106 PYTHON RUNTIME CONTRACT RUNNER
+======================================================================
+
+1. IMPORT CONTRACT LAYERS
+----------------------------------------------------------------------
+BLOCK 100 IMPORT : PASS
+BLOCK 101 IMPORT : PASS
+BLOCK 102 IMPORT : PASS
+BLOCK 103 IMPORT : PASS
+BLOCK 104 IMPORT : PASS
+EROS UI IMPORT   : PASS
+
+2. BUILD CERTIFIED EXECUTION INTENT
+----------------------------------------------------------------------
+INTENT STATUS       : CERTIFIED
+INTENT AUTHORIZATION: AUTHORIZED
+SYMBOL              : RELIANCE.NS
+ACTION              : BUY
+QUANTITY            : 100.0
+REFERENCE PRICE     : 2500.0
+
+3. BLOCK 100 PAPER EXECUTION
+----------------------------------------------------------------------
+STATUS              : CERTIFIED
+EXECUTION STATUS    : SIMULATED
+EXECUTION ID        : EROS100-PAPER-83527849190055B4B0D9
+SYMBOL              : RELIANCE.NS
+ACTION              : BUY
+REQUESTED QUANTITY  : 100.0
+FILLED QUANTITY     : 100.0
+REFERENCE PRICE     : 2500.0
+FILL PRICE          : 2501.25
+FILL STATUS         : FILLED
+SLIPPAGE BPS        : 5.0
+TRANSACTION COST    : 250.125
+NET VALUE           : 250375.125
+
+BLOCK 100 RUNTIME : PASS
+BLOCK 100 SAFETY  : PASS
+
+4. BLOCK 101 EXECUTION EVIDENCE RECONCILIATION
+----------------------------------------------------------------------
+STATUS              : CERTIFIED
+RECONCILIATION      : RECONCILED
+RECONCILIATION ID   : EROS101-STRESS-RECONCILIATION-839C9CFE3340008FD172
+QUANTITY RECONCILED : True
+PRICE RECONCILED    : True
+VALUE RECONCILED    : True
+COST RECONCILED     : True
+LINEAGE RECONCILED  : True
+
+BLOCK 101 RUNTIME : PASS
+BLOCK 101 SAFETY  : PASS
+
+5. BUILD READ-ONLY UPSTREAM CONTRACT
+----------------------------------------------------------------------
+BLOCK 94 : CERTIFIED
+BLOCK 95 : CERTIFIED
+BLOCK 96 : CERTIFIED
+BLOCK 97 : CERTIFIED
+BLOCK 98 : APPROVED
+
+6. BLOCK 102 FRONTEND CONTRACT
+----------------------------------------------------------------------
+STATUS          : CERTIFIED
+BLOCK ID        : 102
+PIPELINE LENGTH : 8
+
+BLOCK 102 CONTRACT : PASS
+BLOCK 102 SAFETY   : PASS
+
+7. BLOCK 103 INSTITUTIONAL READ MODEL
+----------------------------------------------------------------------
+STATUS          : CERTIFIED
+BLOCK ID        : 103
+DASHBOARD TITLE : EROS 3.0 Institutional Command Center
+PIPELINE COUNT  : 8
+
+BLOCK 103 READ MODEL : PASS
+BLOCK 103 SAFETY     : PASS
+
+8. BLOCK 104 COMMAND CENTER
+----------------------------------------------------------------------
+STATUS         : CERTIFIED
+BLOCK ID       : 104
+SOURCE BLOCK   : 103
+PIPELINE       : 94 -> 103
+
+STATUS CARDS
+GOVERNANCE     : APPROVED
+INTENT         : AUTHORIZED
+EXECUTION      : SIMULATED
+RECONCILIATION : RECONCILED
+
+UI POLICY
+read_only                           : True
+allow_order_creation                : False
+allow_broker_submission             : False
+allow_live_execution                : False
+allow_portfolio_mutation            : False
+allow_valuation_mutation            : False
+allow_performance_mutation          : False
+allow_risk_mutation                 : False
+allow_optimization                  : False
+
+BLOCK 104 COMMAND CENTER : PASS
+BLOCK 104 UI POLICY      : PASS
+
+9. FULL SAFETY CHAIN
+----------------------------------------------------------------------
+broker submission              : PASS
+live execution                 : PASS
+execution blocked              : PASS
+non mutation                   : PASS
+UI read only                   : PASS
+no order creation              : PASS
+no portfolio mutation          : PASS
+no optimization                : PASS
+
+======================================================================
+100 -> 101 -> 102 -> 103 -> 104
+======================================================================
+
+BLOCK 100 : SIMULATED
+BLOCK 101 : RECONCILED
+BLOCK 102 : CERTIFIED
+BLOCK 103 : CERTIFIED
+BLOCK 104 : CERTIFIED
+
+FULL CONTRACT CHAIN : PASS
+FULL SAFETY CHAIN   : PASS
+
+======================================================================
+EROS 3.0 BLOCK 106 RUNTIME CONTRACT : PASS
+======================================================================
+
+======================================================================
+11. FINAL COMPILE VERIFICATION
+======================================================================
+
+COMPILING: .\services\quantitative\block100_paper_execution_fill_gate.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block101_execution_evidence_reconciliation.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block102_frontend_contract.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block103_institutional_frontend_read_model.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block104_eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\app.py
+
+COMPILE : PASS
+
+======================================================================
+12. GIT SAFETY STATE
+======================================================================
+
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9 (HEAD -> feature/eros-3-0-sprint19, origin/feature/eros-3-0-sprint19) EROS 3.0: integrate Block 105 command cent
+er dashboard
+
+STATUS:
+?? logs/
+
+======================================================================
+        BLOCK 106 RUNTIME CONTRACT TEST : PASS
+======================================================================
+
+BLOCK 100 PAPER EXECUTION   : PASS
+BLOCK 101 RECONCILIATION    : PASS
+BLOCK 102 FRONTEND CONTRACT : PASS
+BLOCK 103 READ MODEL        : PASS
+BLOCK 104 COMMAND CENTER    : PASS
+FULL 100 -> 104 CHAIN       : PASS
+FULL SAFETY CHAIN           : PASS
+COMPILE VERIFICATION        : PASS
+
+BLOCK 106 IMPLEMENTATION    : NOT STARTED
+GIT COMMIT                  : NOT STARTED
+GIT PUSH                    : NOT STARTED
+LIVE BROKER                 : FALSE
+LIVE EXECUTION              : FALSE
+EXECUTION BLOCKED           : TRUE
+NON-MUTATION                : TRUE
+
+**********************
+Windows PowerShell transcript end
+End time: 20260819225420
+**********************

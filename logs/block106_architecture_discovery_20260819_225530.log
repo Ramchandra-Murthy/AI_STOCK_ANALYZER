@@ -1,0 +1,848 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260819225530
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 11668
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_architecture_discovery_20260819_225530.log
+
+======================================================================
+             EROS 3.0 - BLOCK 106 ARCHITECTURE DISCOVERY
+======================================================================
+
+READ ONLY                  : YES
+SOURCE CHANGES             : NONE
+BLOCK 106 IMPLEMENTATION   : NOT STARTED
+GIT COMMIT                 : NOT STARTED
+GIT PUSH                   : NOT STARTED
+LIVE BROKER                : FALSE
+LIVE EXECUTION             : FALSE
+
+1. CURRENT GIT BASELINE
+----------------------------------------------------------------------
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+LATEST COMMIT:
+29bfca9 (HEAD -> feature/eros-3-0-sprint19, origin/feature/eros-3-0-sprint19) EROS 3.0: integrate Block 105 command cent
+er dashboard
+
+WORKING TREE:
+?? logs/
+
+2. BLOCK 100 - PAPER EXECUTION INTERFACE
+----------------------------------------------------------------------
+
+
+PUBLIC CLASSES / FUNCTIONS:
+
+IMPORTANT CONTRACT TERMS:
+
+3. BLOCK 101 - RECONCILIATION INTERFACE
+----------------------------------------------------------------------
+
+PUBLIC CLASSES / FUNCTIONS:
+
+IMPORTANT CONTRACT TERMS:
+
+4. BLOCK 102 - FRONTEND CONTRACT INTERFACE
+----------------------------------------------------------------------
+
+PUBLIC CLASSES / FUNCTIONS:
+
+CONTRACT / SAFETY TERMS:
+
+5. BLOCK 103 - INSTITUTIONAL READ MODEL
+----------------------------------------------------------------------
+
+PUBLIC CLASSES / FUNCTIONS:
+
+READ-MODEL TERMS:
+
+6. BLOCK 104 - COMMAND CENTER
+----------------------------------------------------------------------
+
+PUBLIC CLASSES / FUNCTIONS:
+
+COMMAND CENTER TERMS:
+
+7. BLOCK 105 - DASHBOARD INTERFACE
+----------------------------------------------------------------------
+DASHBOARD APP:
+
+EROS COMMAND CENTER UI:
+
+EROS IMPORT:
+
+EROS SIDEBAR ROUTE:
+
+UI RENDER FUNCTION:
+
+8. IMPORT VERIFICATION
+----------------------------------------------------------------------
+BLOCK100 IMPORT : PASS
+BLOCK101 IMPORT : PASS
+BLOCK102 IMPORT : PASS
+BLOCK103 IMPORT : PASS
+BLOCK104 IMPORT : PASS
+EROS UI IMPORT : PASS
+
+9. COMPILE VERIFICATION
+----------------------------------------------------------------------
+
+COMPILING: .\services\quantitative\block100_paper_execution_fill_gate.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block101_execution_evidence_reconciliation.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block102_frontend_contract.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block103_institutional_frontend_read_model.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block104_eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\app.py
+
+COMPILE : PASS
+
+10. EXISTING BLOCK 106 REFERENCES
+----------------------------------------------------------------------
+
+SEARCH PATH: .\services
+
+SEARCH PATH: .\dashboard
+
+SEARCH PATH: .\tests
+
+SEARCH PATH: .\docs
+
+11. BROKER / LIVE EXECUTION BOUNDARY SEARCH
+----------------------------------------------------------------------
+
+SEARCHING: .\services
+
+PATTERN: broker
+FullName                                                                                                    Length Last
+                                                                                                                   Writ
+                                                                                                                   eTim
+                                                                                                                   e
+--------                                                                                                    ------ ----
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block100_paper_execution_fill_gate.py          16946 1...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block101_execution_evidence_reconciliation.py  12478 1...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block102_frontend_contract.py                   9437 1...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py  10296 1...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py                 6640 1...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py                                                     13962 1...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\eros_command_center.py                                      7922 1...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PATTERN: place_order
+
+
+
+PATTERN: submit_order
+
+
+
+
+
+
+
+PATTERN: live_order
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PATTERN: live_execution
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PATTERN: zerodha
+
+PATTERN: kiteconnect
+
+PATTERN: upstox
+
+PATTERN: angel
+
+PATTERN: aliceblue
+
+PATTERN: fyers
+
+PATTERN: order_id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SEARCHING: .\dashboard
+
+PATTERN: broker
+
+
+
+
+
+
+
+
+
+
+
+PATTERN: place_order
+
+PATTERN: submit_order
+
+PATTERN: live_order
+
+
+
+
+
+
+PATTERN: live_execution
+
+PATTERN: zerodha
+
+PATTERN: kiteconnect
+
+PATTERN: upstox
+
+PATTERN: angel
+
+PATTERN: aliceblue
+
+PATTERN: fyers
+
+PATTERN: order_id
+
+12. CURRENT EROS ARCHITECTURAL TREE
+----------------------------------------------------------------------
+
+BLOCK 94
+   |
+   v
+BLOCK 95
+   |
+   v
+BLOCK 96
+   |
+   v
+BLOCK 97
+   |
+   v
+BLOCK 98 GOVERNANCE
+   |
+   v
+BLOCK 99 EXECUTION INTENT
+   |
+   v
+BLOCK 100 PAPER EXECUTION
+   |
+   v
+BLOCK 101 RECONCILIATION
+   |
+   v
+BLOCK 102 FRONTEND CONTRACT
+   |
+   v
+BLOCK 103 INSTITUTIONAL READ MODEL
+   |
+   v
+BLOCK 104 COMMAND CENTER
+   |
+   v
+BLOCK 105 DASHBOARD
+   |
+   v
+BLOCK 106 INTEGRATION BOUNDARY  <-- NOT IMPLEMENTED
+
+13. BLOCK 106 ARCHITECTURAL DECISION STATUS
+----------------------------------------------------------------------
+
+PURPOSE:
+Controlled institutional integration boundary.
+
+PRIMARY INPUT:
+Certified Block 104 command-center model.
+
+PRIMARY OUTPUT:
+Read-only institutional integration payload.
+
+REQUIRED PROPERTIES:
+  - deterministic
+  - auditable
+  - lineage preserving
+  - schema controlled
+  - read only
+  - non-mutating
+  - broker independent
+  - live execution independent
+
+EXPLICITLY OUT OF SCOPE:
+  - broker submission
+  - live order execution
+  - portfolio mutation
+  - valuation mutation
+  - performance mutation
+  - risk mutation
+  - optimization
+  - order creation
+
+======================================================================
+             BLOCK 106 ARCHITECTURE DISCOVERY COMPLETE
+======================================================================
+
+DISCOVERY                  : PASS
+BLOCK 100                  : VERIFIED
+BLOCK 101                  : VERIFIED
+BLOCK 102                  : VERIFIED
+BLOCK 103                  : VERIFIED
+BLOCK 104                  : VERIFIED
+BLOCK 105                  : VERIFIED
+IMPORTS                    : PASS
+COMPILE                    : PASS
+SOURCE CHANGES             : NONE
+BLOCK 106 IMPLEMENTATION   : NOT STARTED
+GIT COMMIT                 : NOT STARTED
+GIT PUSH                   : NOT STARTED
+LIVE BROKER                : FALSE
+LIVE EXECUTION             : FALSE
+
+DISCOVERY LOG:
+.\logs\block106_architecture_discovery_20260819_225530.log
+
+**********************
+Windows PowerShell transcript end
+End time: 20260819225538
+**********************

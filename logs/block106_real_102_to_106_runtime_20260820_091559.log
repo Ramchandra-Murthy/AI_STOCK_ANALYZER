@@ -1,0 +1,217 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820091559
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 8248
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+======================================================================
+     EROS 3.0 - BLOCK 106 REAL 102 -> 103 -> 104 -> 106 RUNTIME
+======================================================================
+
+READ / VERIFY ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+
+1. GIT BASELINE
+----------------------------------------------------------------------
+feature/eros-3-0-sprint19
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+WORKING TREE:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+2. CREATING REAL PYTHON CONTRACT RUNNER
+----------------------------------------------------------------------
+RUNNER CREATED:
+.\logs\block106_real_102_to_106_runtime_runner.py
+
+3. RUNNING REAL CONTRACT CHAIN
+----------------------------------------------------------------------
+
+======================================================================
+EROS 3.0 - BLOCK 106 REAL CONTRACT CHAIN
+======================================================================
+READ / VERIFY ONLY
+NO BROKER
+NO LIVE EXECUTION
+NO ORDER CREATION
+NO MUTATION
+
+======================================================================
+1. IMPORT CONTRACT LAYERS
+======================================================================
+BLOCK 102 IMPORT : PASS
+BLOCK 103 IMPORT : PASS
+BLOCK 104 IMPORT : PASS
+BLOCK 106 IMPORT : PASS
+
+======================================================================
+2. ACTUAL RUNTIME SIGNATURES
+======================================================================
+BLOCK 102 BUILD    : (self, *, block94: 'Mapping[str, Any] | None' = None, block95: 'Mapping[str, Any] | None' = None, block96: 'Mapping[str, Any] | None' = None, block97: 'Mapping[str, Any] | None' = None, block98: 'Mapping[str, Any] | None' = None, block99: 'Mapping[str, Any] | None' = None, block100: 'Mapping[str, Any] | None' = None, block101: 'Mapping[str, Any] | None' = None) -> 'Dict[str, Any]'
+BLOCK 102 SNAPSHOT : (self, **kwargs: 'Any') -> 'Dict[str, Any]'
+BLOCK 103 BUILD    : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 103 SNAPSHOT : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 104 SNAPSHOT : (self, *, read_model: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 BUILD    : (self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 SNAPSHOT : (self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 VALIDATE : (self, payload: 'Mapping[str, Any]') -> 'bool'
+SIGNATURE VERIFICATION : PASS
+
+======================================================================
+3. PREPARE BLOCK 94 -> 101 READ-ONLY UPSTREAM OUTPUTS
+======================================================================
+BLOCK 94 : READY
+BLOCK 95 : READY
+BLOCK 96 : READY
+BLOCK 97 : READY
+BLOCK 98 : READY
+BLOCK 99 : READY
+BLOCK 100: READY
+BLOCK 101: READY
+
+======================================================================
+4. BUILD ACTUAL BLOCK 102 FRONTEND CONTRACT
+======================================================================
+BLOCK 102 INSTANCE : PASS
+BLOCK 102 BUILD : PASS
+STATUS         : CERTIFIED
+BLOCK ID       : 102
+ENGINE VERSION : EROS-3.0-BLOCK-102
+PIPELINE COUNT : 8
+
+BLOCK 102 SAFETY
+portfolio_mutation               : False
+valuation_mutation               : False
+performance_mutation             : False
+risk_mutation                    : False
+optimization                     : False
+order_creation                   : False
+broker_submission                : False
+live_order_submission            : False
+execution_blocked                : True
+non_mutation_invariant           : True
+BLOCK 102 SAFETY : PASS
+
+======================================================================
+5. FEED ACTUAL BLOCK 102 OUTPUT INTO BLOCK 103
+======================================================================
+BLOCK 103 INSTANCE : PASS
+INPUT TYPE        : dict
+INPUT BLOCK ID    : 102
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_real_102_to_106_runtime_runner.py", line 277, in <module>
+    require(read_model.get("block_id") == 103, "BLOCK103_BAD_ID")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_real_102_to_106_runtime_runner.py", line 41, in require
+    raise AssertionError(message)
+AssertionError: BLOCK103_BAD_ID
+
+PYTHON EXIT CODE : 1
+
+4. FINAL COMPILE VERIFICATION
+----------------------------------------------------------------------
+
+COMPILING: .\services\quantitative\block102_frontend_contract.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block103_institutional_frontend_read_model.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block104_eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block106_institutional_integration_boundary.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\app.py
+
+COMPILE : PASS
+
+5. GIT SAFETY STATE
+----------------------------------------------------------------------
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+STATUS:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+6. BROKER SAFETY SEARCH
+----------------------------------------------------------------------
+No broker commands are executed by this verification.
+No live order is submitted.
+No portfolio mutation is performed.
+
+7. FINAL RESULT
+----------------------------------------------------------------------
+
+======================================================================
+      BLOCK 106 REAL END-TO-END VERIFICATION : FAILED
+======================================================================
+
+NO COMMIT
+NO PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+8. SAVING COMPLETE OUTPUT
+----------------------------------------------------------------------
+COMPLETE OUTPUT SAVED:
+.\logs\block106_real_102_to_106_complete_20260820_091559.txt
+
+9. COPYING COMPLETE OUTPUT TO CLIPBOARD
+----------------------------------------------------------------------
+
+CLIPBOARD : PASS
+The complete verification output is now in the clipboard.
+
+10. LOG FILES
+----------------------------------------------------------------------
+Transcript:
+.\logs\block106_real_102_to_106_runtime_20260820_091559.log
+
+Python output:
+.\logs\block106_real_102_to_106_python_output_20260820_091559.log
+
+Complete copy:
+.\logs\block106_real_102_to_106_complete_20260820_091559.txt
+
+======================================================================
+                         VERIFICATION END
+======================================================================
+
+**********************
+Windows PowerShell transcript end
+End time: 20260820091601
+**********************

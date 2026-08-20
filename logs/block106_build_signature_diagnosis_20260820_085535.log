@@ -1,0 +1,61 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820085535
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 8616
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_build_signature_diagnosis_20260820_085535.log
+
+======================================================================
+     EROS 3.0 - BLOCK 106 / BLOCK 103 BUILD CONTRACT DIAGNOSIS
+======================================================================
+
+READ ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+1. CURRENT GIT BASELINE
+----------------------------------------------------------------------
+feature/eros-3-0-sprint19
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+WORKING TREE:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+2. BLOCK 103 SOURCE LOCATION
+----------------------------------------------------------------------
+FILE:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py
+
+3. BLOCK 103 CLASS / METHOD DISCOVERY
+----------------------------------------------------------------------
+  File "<string>", line 6
+    print(CLASS
+         ^
+SyntaxError: '(' was never closed
+
+PYTHON DIAGNOSIS : FAILED
+
+**********************
+Windows PowerShell transcript end
+End time: 20260820085536
+**********************

@@ -1,0 +1,77 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820084434
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 2380
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_integration_boundary_20260820_084434.log
+
+======================================================================
+        EROS 3.0 - BLOCK 106 INSTITUTIONAL INTEGRATION BOUNDARY
+======================================================================
+
+READ ONLY                 : YES
+SOURCE CHANGES            : BLOCK 106 ONLY
+BROKER                    : FALSE
+LIVE EXECUTION            : FALSE
+ORDER CREATION            : FALSE
+
+1. CURRENT GIT BASELINE
+----------------------------------------------------------------------
+feature/eros-3-0-sprint19
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+2. VERIFY BLOCK 104 IMPORT
+----------------------------------------------------------------------
+BLOCK 104 IMPORT : PASS
+
+3. CREATING BLOCK 106 MODULE
+----------------------------------------------------------------------
+BLOCK 106 MODULE ALREADY EXISTS
+NO OVERWRITE PERFORMED
+
+4. COMPILE BLOCK 106
+----------------------------------------------------------------------
+
+BLOCK 106 COMPILE : PASS
+
+5. IMPORT BLOCK 106
+----------------------------------------------------------------------
+BLOCK 106 IMPORT : PASS
+BLOCK ID : 106
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from services.quantitative.block106_institutional_integration_boundary import EROSBlock106InstitutionalIntegrationBo
+undary; print('BLOCK 106 IMPORT : PASS'); print('BLOCK ID :', EROSBlock106InstitutionalIntegrationBoundary.BLOCK_ID); pr
+int('SCHEMA :', EROSBlock106InstitutionalIntegrationBoundary.SCHEMA_VERSION)
+
+
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'EROSBlock106InstitutionalIntegrationBoundary' has no attribute 'SCHEMA_VERSION'
+
+======================================================================
+        BLOCK 106 IMPLEMENTATION : FAILED
+======================================================================
+
+BLOCK 106 IMPORT FAILED
+
+NO COMMIT WAS PERFORMED
+NO PUSH WAS PERFORMED
+NO LIVE EXECUTION
+
+**********************
+Windows PowerShell transcript end
+End time: 20260820084434
+**********************

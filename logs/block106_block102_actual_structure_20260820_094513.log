@@ -1,0 +1,173 @@
+﻿======================================================================
+EROS 3.0 - BLOCK 102 ACTUAL OUTPUT STRUCTURE
+======================================================================
+READ ONLY
+NO SOURCE CHANGES
+NO COMMIT
+NO PUSH
+
+CLASS:
+<class 'services.quantitative.block102_frontend_contract.EROSBlock102FrontendContract'>
+
+BUILDING ACTUAL BLOCK 102 OUTPUT...
+----------------------------------------------------------------------
+RESULT TYPE:
+<class 'dict'>
+
+TOP-LEVEL KEYS:
+  'status' -> str
+  'block_id' -> str
+  'engine_version' -> str
+  'created_at' -> str
+  'pipeline_status' -> list
+  'risk' -> dict
+  'governance' -> dict
+  'intent' -> dict
+  'execution' -> dict
+  'reconciliation' -> dict
+  'lineage' -> dict
+  'safety' -> dict
+
+TOP-LEVEL VALUES:
+----------------------------------------------------------------------
+'status': 'CERTIFIED'
+
+'block_id': '102'
+
+'engine_version': 'EROS-3.0-BLOCK-102'
+
+'created_at': '2026-08-20T04:15:13.539927+00:00'
+
+'pipeline_status':
+[{'block_id': '94',
+  'execution_blocked': True,
+  'identifier': None,
+  'name': 'Stress Scenario Engine',
+  'source_block': None,
+  'status': None},
+ {'block_id': '95',
+  'execution_blocked': True,
+  'identifier': None,
+  'name': 'Stress Evidence Gate',
+  'source_block': None,
+  'status': None},
+ {'block_id': '96',
+  'execution_blocked': True,
+  'identifier': None,
+  'name': 'Stress Decision Gate',
+  'source_block': None,
+  'status': None},
+ {'block_id': '97',
+  'execution_blocked': True,
+  'identifier': None,
+  'name': 'Stress Readiness Gate',
+  'source_block': None,
+  'status': None},
+ {'block_id': '98',
+  'execution_blocked': True,
+  'identifier': None,
+  'name': 'Execution Governance Bridge',
+  'source_block': None,
+  'status': None},
+ {'block_id': '99',
+  'execution_blocked': True,
+  'identifier': None,
+  'name': 'Execution Intent Authorization',
+  'source_block': None,
+  'status': None},
+ {'block_id': '100',
+  'execution_blocked': True,
+  'identifier': None,
+  'name': 'Paper Execution / Fill Validation',
+  'source_block': None,
+  'status': None},
+ {'block_id': '101',
+  'execution_blocked': True,
+  'identifier': None,
+  'name': 'Execution Evidence Reconciliation',
+  'source_block': None,
+  'status': None}]
+
+'risk':
+{'decision_status': None,
+ 'downside_pnl': None,
+ 'evidence_status': None,
+ 'readiness_status': None,
+ 'scenario_count': None,
+ 'stress_status': None,
+ 'upside_pnl': None}
+
+'governance':
+{'execution_action': None,
+ 'governance_id': None,
+ 'source_certificate_id': None,
+ 'source_decision_id': None,
+ 'source_gate_id': None,
+ 'source_readiness_id': None,
+ 'status': None}
+
+'intent':
+{'action': None,
+ 'authorization_status': None,
+ 'intent_action': None,
+ 'intent_id': None,
+ 'quantity': None,
+ 'reference_price': None,
+ 'status': None,
+ 'symbol': None}
+
+'execution':
+{'action': None,
+ 'execution_id': None,
+ 'fill_price': None,
+ 'fill_status': None,
+ 'filled_quantity': None,
+ 'net_value': None,
+ 'reference_price': None,
+ 'requested_quantity': None,
+ 'slippage_bps': None,
+ 'status': None,
+ 'symbol': None,
+ 'transaction_cost': None}
+
+'reconciliation':
+{'cost_reconciled': None,
+ 'lineage_reconciled': None,
+ 'price_reconciled': None,
+ 'quantity_reconciled': None,
+ 'reconciliation_id': None,
+ 'source_execution_id': None,
+ 'status': None,
+ 'value_reconciled': None}
+
+'lineage':
+{'block100': None,
+ 'block101': None,
+ 'block94': None,
+ 'block95': None,
+ 'block96': None,
+ 'block97': None,
+ 'block98': None,
+ 'block99': None}
+
+'safety':
+{'broker_submission': False,
+ 'execution_blocked': True,
+ 'live_order_submission': False,
+ 'non_mutation_invariant': True,
+ 'optimization': False,
+ 'order_creation': False,
+ 'performance_mutation': False,
+ 'portfolio_mutation': False,
+ 'risk_mutation': False,
+ 'valuation_mutation': False}
+
+======================================================================
+BLOCK 102 STRUCTURE DIAGNOSTIC COMPLETE
+======================================================================
+
+
+======================================================================
+PYTHON EXIT CODE : 0
+LOG FILE         : .\logs\block106_block102_actual_structure_20260820_094513.log
+======================================================================

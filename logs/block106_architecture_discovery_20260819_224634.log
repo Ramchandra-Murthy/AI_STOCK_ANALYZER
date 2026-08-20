@@ -1,0 +1,1959 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260819224634
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 10728
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> try {
+
+    # ==================================================================
+    # 0. PROJECT / GIT BASELINE
+    # ==================================================================
+
+    Write-Host "0. PROJECT / GIT BASELINE" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Write-Host "PROJECT ROOT:"
+    Write-Host (Get-Location).Path
+
+    Write-Host ""
+    Write-Host "CURRENT BRANCH:"
+    git branch --show-current
+
+    Write-Host ""
+    Write-Host "CURRENT HEAD:"
+    git log -1 --oneline --decorate
+
+    Write-Host ""
+    Write-Host "GIT STATUS:"
+    git status --short
+
+    Write-Host ""
+
+    # ==================================================================
+    # 1. BLOCK 94 -> 105 FILE INVENTORY
+    # ==================================================================
+
+    Write-Host "1. EROS BLOCK 94 -> 105 FILE INVENTORY" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem ".\services\quantitative" -File -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.Name -match "^block(94|95|96|97|98|99|100|101|102|103|104).*\.py$"
+        } |
+        Sort-Object Name |
+        Select-Object Name, Length, LastWriteTime
+
+    Write-Host ""
+
+    # ==================================================================
+    # 2. BLOCK 105 DASHBOARD FILES
+    # ==================================================================
+
+    Write-Host "2. BLOCK 105 DASHBOARD FILES" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    @(
+        ".\dashboard\app.py",
+        ".\dashboard\eros_command_center.py"
+    ) | ForEach-Object {
+
+        if (Test-Path $_) {
+            Get-Item $_ |
+                Select-Object FullName, Length, LastWriteTime
+        }
+        else {
+            Write-Host "MISSING : $_" -ForegroundColor Red
+        }
+    }
+
+    Write-Host ""
+
+    # ==================================================================
+    # 3. BLOCK 105 DASHBOARD ROUTING
+    # ==================================================================
+
+    Write-Host "3. BLOCK 105 DASHBOARD ROUTING" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Select-String `
+        -Path ".\dashboard\app.py" `
+        -Pattern `
+            "EROS 3.0 Command Center",
+            "render_eros_command_center",
+            "Choose Module",
+            "selectbox" `
+        -Context 3,8 `
+        -ErrorAction SilentlyContinue |
+        Select-Object Path,LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # 4. EROS COMMAND CENTER STRUCTURE
+    # ==================================================================
+
+    Write-Host "4. EROS COMMAND CENTER STRUCTURE" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Select-String `
+        -Path ".\dashboard\eros_command_center.py" `
+        -Pattern `
+            "^def ",
+            "render_eros_command_center",
+            "status",
+            "governance",
+            "intent",
+            "execution",
+            "reconciliation",
+            "lineage",
+            "safety",
+            "read_only",
+            "execution_blocked",
+            "broker_submission",
+            "live_order_submission" `
+        -ErrorAction SilentlyContinue |
+        Select-Object LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # 5. BLOCK 104 ENGINE
+    # ==================================================================
+
+    Write-Host "5. BLOCK 104 ENGINE STRUCTURE" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Select-String `
+        -Path ".\services\quantitative\block104_eros_command_center.py" `
+        -Pattern `
+            "^class ",
+            "^    def ",
+            "ENGINE_VERSION",
+            "render_model",
+            "governance",
+            "intent",
+            "execution",
+            "reconciliation",
+            "lineage",
+            "safety",
+            "execution_blocked",
+            "non_mutation" `
+        -ErrorAction SilentlyContinue |
+        Select-Object LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # 6. BLOCK 103
+    # ==================================================================
+
+    Write-Host "6. BLOCK 103 READ MODEL STRUCTURE" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Select-String `
+        -Path ".\services\quantitative\block103_institutional_frontend_read_model.py" `
+        -Pattern `
+            "^class ",
+            "^    def ",
+            "ENGINE_VERSION",
+            "build",
+            "pipeline",
+            "governance",
+            "intent",
+            "execution",
+            "reconciliation",
+            "lineage",
+            "safety" `
+        -ErrorAction SilentlyContinue |
+        Select-Object LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # 7. BLOCK 102
+    # ==================================================================
+
+    Write-Host "7. BLOCK 102 FRONTEND CONTRACT" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Select-String `
+        -Path ".\services\quantitative\block102_frontend_contract.py" `
+        -Pattern `
+            "^class ",
+            "^    def ",
+            "ENGINE_VERSION",
+            "contract",
+            "schema",
+            "governance",
+            "intent",
+            "execution",
+            "reconciliation",
+            "safety",
+            "read_only" `
+        -ErrorAction SilentlyContinue |
+        Select-Object LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # 8. BLOCK 101
+    # ==================================================================
+
+    Write-Host "8. BLOCK 101 RECONCILIATION OUTPUT" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    if (Test-Path ".\services\quantitative\block101_execution_evidence_reconciliation.py") {
+
+        Select-String `
+            -Path ".\services\quantitative\block101_execution_evidence_reconciliation.py" `
+            -Pattern `
+                "^class ",
+                "^    def ",
+                "status",
+                "reconciled",
+                "quantity",
+                "price",
+                "value",
+                "cost",
+                "lineage",
+                "execution_id",
+                "source_execution_id" `
+            -ErrorAction SilentlyContinue |
+            Select-Object LineNumber,Line
+    }
+    else {
+        Write-Host "BLOCK 101 FILE NAME NOT FOUND BY EXPECTED NAME" -ForegroundColor Yellow
+    }
+
+    Write-Host ""
+
+    # ==================================================================
+    # 9. BLOCK 100
+    # ==================================================================
+
+    Write-Host "9. BLOCK 100 PAPER EXECUTION OUTPUT" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem ".\services\quantitative" -Filter "block100*.py" |
+        Select-Object -ExpandProperty FullName |
+        ForEach-Object {
+
+            Select-String `
+                -Path $_ `
+                -Pattern `
+                    "^class ",
+                    "^    def ",
+                    "SIMULATED",
+                    "FILLED",
+                    "fill_price",
+                    "filled_quantity",
+                    "slippage",
+                    "transaction_cost",
+                    "execution_blocked",
+                    "broker_submission" `
+                -ErrorAction SilentlyContinue |
+                Select-Object Path,LineNumber,Line
+        }
+
+    Write-Host ""
+
+    # ==================================================================
+    # 10. BLOCK 99
+    # ==================================================================
+
+    Write-Host "10. BLOCK 99 EXECUTION INTENT OUTPUT" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem ".\services\quantitative" -Filter "block99*.py" |
+        ForEach-Object {
+
+            Select-String `
+                -Path $_.FullName `
+                -Pattern `
+                    "AUTHORIZED",
+                    "intent_action",
+                    "authorization_status",
+                    "order_creation",
+                    "broker_submission" `
+                -ErrorAction SilentlyContinue |
+                Select-Object Path,LineNumber,Line
+        }
+
+    Write-Host ""
+
+    # ==================================================================
+    # 11. BLOCK 98
+    # ==================================================================
+
+    Write-Host "11. BLOCK 98 GOVERNANCE OUTPUT" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem ".\services\quantitative" -Filter "block98*.py" |
+        ForEach-Object {
+
+            Select-String `
+                -Path $_.FullName `
+                -Pattern `
+                    "APPROVED",
+                    "governance",
+                    "execution_action",
+                    "execution_blocked",
+                    "non_mutation" `
+                -ErrorAction SilentlyContinue |
+                Select-Object Path,LineNumber,Line
+        }
+
+    Write-Host ""
+
+    # ==================================================================
+    # 12. EXISTING DASHBOARD DATA SOURCES
+    # ==================================================================
+
+    Write-Host "12. EXISTING DASHBOARD DATA SOURCES" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Select-String `
+        -Path ".\dashboard\app.py" `
+        -Pattern `
+            "YahooFinanceProvider",
+            "FundamentalsService",
+            "ProductionDCFEngine",
+            "RelativeValuationEngine",
+            "SOTPEngine",
+            "AIScoringEngine",
+            "PortfolioAnalyticsEngine",
+            "ProductionReportEngine",
+            "financials",
+            "dcf_res",
+            "rel_res",
+            "sotp_res",
+            "score_res",
+            "report_result" `
+        -Context 1,3 `
+        -ErrorAction SilentlyContinue |
+        Select-Object LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # 13. EXISTING DECISION / EVIDENCE UI
+    # ==================================================================
+
+    Write-Host "13. EXISTING DECISION / EVIDENCE UI SEARCH" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem "." -Recurse -File `
+        -Include *.py,*.js,*.jsx,*.ts,*.tsx,*.md `
+        -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.FullName -notmatch "\\.git\\|\\.venv\\|\\venv\\|node_modules"
+        } |
+        Select-String `
+            -Pattern `
+                "decision evidence",
+                "evidence panel",
+                "decision card",
+                "institutional decision",
+                "audit trail",
+                "audit lineage",
+                "risk decision" `
+            -ErrorAction SilentlyContinue |
+        Select-Object Path,LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # 14. BLOCK 106 EXISTING REFERENCES
+    # ==================================================================
+
+    Write-Host "14. EXISTING BLOCK 106 REFERENCES" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem "." -Recurse -File `
+        -Include *.py,*.js,*.jsx,*.ts,*.tsx,*.md `
+        -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.FullName -notmatch "\\.git\\|\\.venv\\|\\venv\\|node_modules"
+        } |
+        Select-String `
+            -Pattern `
+                "block106",
+                "BLOCK 106",
+                "Block 106" `
+            -ErrorAction SilentlyContinue |
+        Select-Object Path,LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # 15. PACKAGE STRUCTURE
+    # ==================================================================
+
+    Write-Host "15. QUANTITATIVE PACKAGE STRUCTURE" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem ".\services\quantitative" -Force -ErrorAction SilentlyContinue |
+        Select-Object Mode,Name,Length
+
+    Write-Host ""
+
+    Write-Host "16. DASHBOARD PACKAGE STRUCTURE" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem ".\dashboard" -Force -ErrorAction SilentlyContinue |
+        Where-Object {
+            $_.Name -notmatch "__pycache__"
+        } |
+        Select-Object Mode,Name,Length
+
+    Write-Host ""
+
+    # ==================================================================
+    # 17. FINAL GIT STATE
+    # ==================================================================
+
+    Write-Host "17. FINAL GIT STATE" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    git status --short
+
+    Write-Host ""
+    git log -1 --oneline --decorate
+
+    Write-Host ""
+
+    # ==================================================================
+    # 18. SAFETY SEARCH
+    # ==================================================================
+
+    Write-Host "18. SAFETY BASELINE" -ForegroundColor Yellow
+    Write-Host "----------------------------------------------------------------------"
+
+    Get-ChildItem ".\services\quantitative",".\dashboard" -Recurse -File `
+        -Include *.py `
+        -ErrorAction SilentlyContinue |
+        Select-String `
+            -Pattern `
+                "broker_submission",
+                "live_order_submission",
+                "order_creation",
+                "execution_blocked",
+                "portfolio_mutation",
+                "valuation_mutation",
+                "performance_mutation",
+                "risk_mutation",
+                "non_mutation_invariant" `
+            -ErrorAction SilentlyContinue |
+        Select-Object Path,LineNumber,Line
+
+    Write-Host ""
+
+    # ==================================================================
+    # FINAL DISCOVERY SUMMARY
+    # ==================================================================
+
+    Write-Host "======================================================================" -ForegroundColor Green
+    Write-Host "             BLOCK 106 DISCOVERY COMPLETE"
+    Write-Host "======================================================================" -ForegroundColor Green
+    Write-Host ""
+
+    Write-Host "READ ONLY                 : YES" -ForegroundColor Green
+    Write-Host "IMPLEMENTATION            : NOT STARTED" -ForegroundColor Yellow
+    Write-Host "GIT COMMIT                : NOT STARTED" -ForegroundColor Yellow
+    Write-Host "BLOCK 105                 : PUSHED" -ForegroundColor Green
+    Write-Host "LIVE BROKER               : FALSE" -ForegroundColor Green
+    Write-Host "LIVE EXECUTION            : FALSE" -ForegroundColor Green
+    Write-Host ""
+
+}
+finally {
+
+    Stop-Transcript | Out-Null
+}
+0. PROJECT / GIT BASELINE
+----------------------------------------------------------------------
+PROJECT ROOT:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+CURRENT BRANCH:
+
+
+CURRENT HEAD:
+
+
+GIT STATUS:
+
+
+1. EROS BLOCK 94 -> 105 FILE INVENTORY
+----------------------------------------------------------------------
+
+
+2. BLOCK 105 DASHBOARD FILES
+----------------------------------------------------------------------
+
+3. BLOCK 105 DASHBOARD ROUTING
+----------------------------------------------------------------------
+
+4. EROS COMMAND CENTER STRUCTURE
+----------------------------------------------------------------------
+
+5. BLOCK 104 ENGINE STRUCTURE
+----------------------------------------------------------------------
+
+6. BLOCK 103 READ MODEL STRUCTURE
+----------------------------------------------------------------------
+
+7. BLOCK 102 FRONTEND CONTRACT
+----------------------------------------------------------------------
+
+8. BLOCK 101 RECONCILIATION OUTPUT
+----------------------------------------------------------------------
+
+9. BLOCK 100 PAPER EXECUTION OUTPUT
+----------------------------------------------------------------------
+
+10. BLOCK 99 EXECUTION INTENT OUTPUT
+----------------------------------------------------------------------
+
+11. BLOCK 98 GOVERNANCE OUTPUT
+----------------------------------------------------------------------
+
+12. EXISTING DASHBOARD DATA SOURCES
+----------------------------------------------------------------------
+
+13. EXISTING DECISION / EVIDENCE UI SEARCH
+----------------------------------------------------------------------
+Name                                           Length LastWriteTime
+----                                           ------ -------------
+block100_paper_execution_fill_gate.py           16946 19-08-2026 08:30:12 PM
+block100_test_harness.py                         6390 19-08-2026 08:30:12 PM
+block101_execution_evidence_reconciliation.py   12478 19-08-2026 08:54:07 PM
+block101_test_harness.py                        10424 19-08-2026 09:00:07 PM
+block102_frontend_contract.py                    9437 19-08-2026 09:24:54 PM
+block102_test_harness.py                         6339 19-08-2026 09:24:54 PM
+block103_institutional_frontend_read_model.py   10296 19-08-2026 09:35:13 PM
+block103_test_harness.py                         7145 19-08-2026 09:35:13 PM
+block104_eros_command_center.py                  6640 19-08-2026 10:21:07 PM
+block104_test_harness.py                         8326 19-08-2026 10:21:07 PM
+block94_portfolio_stress_scenario_engine.py     38313 19-08-2026 07:19:36 PM
+block94_test_harness.py                         26153 17-08-2026 09:28:05 PM
+block95_stress_evidence_gate.py                 13905 19-08-2026 07:33:49 PM
+block95_test_harness.py                          9624 18-08-2026 11:32:32 PM
+block96_stress_decision_gate.py                 13717 19-08-2026 07:29:31 PM
+block96_test_harness.py                          7839 19-08-2026 07:31:04 PM
+block97_stress_readiness_gate.py                10303 19-08-2026 07:41:42 PM
+block97_test_harness.py                          6476 19-08-2026 07:43:33 PM
+block98_execution_governance_bridge.py          12839 19-08-2026 08:13:03 PM
+block98_test_harness.py                          7561 19-08-2026 08:13:03 PM
+block99_execution_intent_authorization_gate.py  12899 19-08-2026 08:19:17 PM
+block99_test_harness.py                          9803 19-08-2026 08:19:17 PM
+                                                13962 19-08-2026 10:30:21 PM
+                                                 7922 19-08-2026 10:32:44 PM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+14. EXISTING BLOCK 106 REFERENCES
+----------------------------------------------------------------------
+
+15. QUANTITATIVE PACKAGE STRUCTURE
+----------------------------------------------------------------------
+__pycache__
+batch_screener.py                                5932
+block100_paper_execution_fill_gate.py           16946
+block100_test_harness.py                         6390
+block101_execution_evidence_reconciliation.py   12478
+block101_test_harness.py                        10424
+block102_frontend_contract.py                    9437
+block102_test_harness.py                         6339
+block103_institutional_frontend_read_model.py   10296
+block103_test_harness.py                         7145
+block104_eros_command_center.py                  6640
+block104_test_harness.py                         8326
+block85_execution_certification.py              15796
+block85_test_harness.py                          1832
+block86_control_plane.py                         9367
+block86_test_harness.py                          2112
+block87_execution_bridge.py                     16844
+block87_test_harness.py                          3680
+block88_audit_reconciliation.py                 18711
+block88_test_harness.py                          8801
+block89_settlement_engine.py                    19878
+block89_test_harness.py                          9346
+block90_portfolio_state_engine.py               20303
+block90_test_harness.py                          4966
+block91_portfolio_valuation_engine.py           17450
+block91_test_harness.py                          6349
+block92_portfolio_performance_engine.py         23044
+block92_test_harness.py                          7122
+block93_performance_risk_attribution_engine.py  29692
+block93_test_harness.py                         17885
+block94_portfolio_stress_scenario_engine.py     38313
+block94_test_harness.py                         26153
+block95_stress_evidence_gate.py                 13905
+block95_test_harness.py                          9624
+block96_stress_decision_gate.py                 13717
+block96_test_harness.py                          7839
+block97_stress_readiness_gate.py                10303
+block97_test_harness.py                          6476
+block98_execution_governance_bridge.py          12839
+block98_test_harness.py                          7561
+block99_execution_intent_authorization_gate.py  12899
+block99_test_harness.py                          9803
+execution_intent.py                              8651
+golden_path_85_94_orchestrator.py                8679
+golden_path_85_94_test_harness.py               19154
+paper_execution.py                              12742
+portfolio_governance.py                          6254
+portfolio_optimizer.py                           7705
+portfolio_risk.py                                6708
+__init__.py                                       614
+
+16. DASHBOARD PACKAGE STRUCTURE
+----------------------------------------------------------------------
+app.py                                          13962
+eros_command_center.py                           7922
+
+17. FINAL GIT STATE
+----------------------------------------------------------------------
+
+
+
+
+18. SAFETY BASELINE
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+======================================================================
+             BLOCK 106 DISCOVERY COMPLETE
+======================================================================
+
+READ ONLY                 : YES
+IMPLEMENTATION            : NOT STARTED
+GIT COMMIT                : NOT STARTED
+BLOCK 105                 : PUSHED
+LIVE BROKER               : FALSE
+LIVE EXECUTION            : FALSE
+
+**********************
+Windows PowerShell transcript end
+End time: 20260819224649
+**********************

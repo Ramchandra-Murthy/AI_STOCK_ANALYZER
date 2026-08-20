@@ -1,0 +1,142 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820091102
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 8248
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+======================================================================
+ EROS 3.0 - BLOCK 106 CORRECTED END-TO-END VERIFICATION
+======================================================================
+
+READ / VERIFY ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+1. GIT BASELINE
+----------------------------------------------------------------------
+feature/eros-3-0-sprint19
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+
+PYTHON RUNNER CREATED:
+.\logs\block106_e2e_corrected_runner.py
+
+2. RUNNING CORRECTED BLOCK 106 TEST
+----------------------------------------------------------------------
+
+======================================================================
+EROS 3.0 - BLOCK 106 CORRECTED PYTHON E2E RUNNER
+======================================================================
+
+1. IMPORT CONTRACT LAYERS
+----------------------------------------------------------------------
+BLOCK 103 IMPORT : PASS
+BLOCK 104 IMPORT : PASS
+BLOCK 106 IMPORT : PASS
+
+2. ACTUAL RUNTIME SIGNATURES
+----------------------------------------------------------------------
+BLOCK 103 BUILD     : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 103 SNAPSHOT  : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 104 SNAPSHOT  : (self, *, read_model: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 BUILD     : (self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 SNAPSHOT  : (self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 VALIDATE  : (self, payload: 'Mapping[str, Any]') -> 'bool'
+SIGNATURE VERIFICATION : PASS
+
+3. BUILD BLOCK 103 VALID UPSTREAM CONTRACT
+----------------------------------------------------------------------
+UPSTREAM CONTRACT : CREATED
+STATUS            : CERTIFIED
+BLOCK ID          : 101
+SOURCE BLOCK      : 100
+PIPELINE          : 94 -> 95 -> 96 -> 97 -> 98 -> 99 -> 100 -> 101
+SYMBOL            : RELIANCE.NS
+ACTION            : BUY
+QUANTITY          : 100.0
+REFERENCE PRICE   : 2500.0
+
+4. BLOCK 103 INSTITUTIONAL READ MODEL
+----------------------------------------------------------------------
+INSTANCE TYPE     : EROSBlock103InstitutionalFrontendReadModel
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_e2e_corrected_runner.py", line 209, in <module>
+    read_model = block103.build(
+        contract=contract
+    )
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py", line 42, in build
+    self._validate_source(source)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py", line 87, in _validate_source
+    raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+
+PYTHON EXIT CODE : 1
+
+======================================================================
+ BLOCK 106 CORRECTED E2E TEST : FAILED
+======================================================================
+
+3. FINAL COMPILE CHECK
+----------------------------------------------------------------------
+
+COMPILING: .\services\quantitative\block103_institutional_frontend_read_model.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block104_eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\services\quantitative\block106_institutional_integration_boundary.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\eros_command_center.py
+
+COMPILE : PASS
+
+COMPILING: .\dashboard\app.py
+
+COMPILE : PASS
+
+4. GIT SAFETY STATE
+----------------------------------------------------------------------
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+5. FINAL STATUS
+----------------------------------------------------------------------
+BLOCK 106 VERIFICATION    : FAILED
+NO COMMIT
+NO PUSH
+
+LOG FILE:
+.\logs\block106_e2e_corrected_20260820_091102.log
+
+**********************
+Windows PowerShell transcript end
+End time: 20260820091103
+**********************

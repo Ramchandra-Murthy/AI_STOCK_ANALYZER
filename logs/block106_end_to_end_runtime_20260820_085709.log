@@ -1,0 +1,1444 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820085709
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 2920
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is .\logs\block106_end_to_end_runtime_20260820_085709.log
+
+======================================================================
+       EROS 3.0 - BLOCK 106 END-TO-END RUNTIME VERIFICATION
+======================================================================
+
+READ / VERIFY ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+1. CURRENT GIT BASELINE
+----------------------------------------------------------------------
+BRANCH:
+feature/eros-3-0-sprint19
+
+HEAD:
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+WORKING TREE:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+PYTHON RUNNER CREATED:
+.\logs\block106_end_to_end_runtime_runner.py
+
+RUNNING BLOCK 106 END-TO-END TEST...
+
+PS>TerminatingError(python.exe): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: Traceback (most recent call last):"
+>> TerminatingError(python.exe): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: Traceback (most recent call last):"
+The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: Traceback (most recent call last):
+python : Traceback (most recent call last):
+At line:552 char:5
++     python $runner 2>&1
++     ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> cls
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> Set-Location "D:\Users\User\Desktop\AI_STOCK_ANALYZER"
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "EROS 3.0 - BLOCK 106 END-TO-END FAILURE DIAGNOSTIC" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "READ / VERIFY ONLY" -ForegroundColor Yellow
+Write-Host "NO SOURCE CHANGES" -ForegroundColor Yellow
+Write-Host "NO GIT COMMIT" -ForegroundColor Yellow
+Write-Host "NO GIT PUSH" -ForegroundColor Yellow
+Write-Host "NO BROKER" -ForegroundColor Yellow
+Write-Host "NO LIVE EXECUTION" -ForegroundColor Yellow
+Write-Host ""
+
+$env:PYTHONPATH = (Get-Location).Path
+
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$logFile = ".\logs\block106_end_to_end_failure_$timestamp.log"
+$runner = ".\logs\block106_end_to_end_runtime_runner.py"
+
+Write-Host "PYTHONPATH:" -ForegroundColor Yellow
+Write-Host $env:PYTHONPATH
+Write-Host ""
+
+Write-Host "RUNNER:" -ForegroundColor Yellow
+Write-Host $runner
+Write-Host ""
+
+Write-Host "LOG:" -ForegroundColor Yellow
+Write-Host $logFile
+Write-Host ""
+
+if (-not (Test-Path ".\logs")) {
+    New-Item -ItemType Directory ".\logs" | Out-Null
+}
+
+if (-not (Test-Path $runner)) {
+    Write-Host "ERROR: END-TO-END RUNNER NOT FOUND" -ForegroundColor Red
+    Write-Host $runner
+    exit 1
+}
+
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "1. CURRENT GIT BASELINE" -ForegroundColor Cyan
+Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
+
+git branch --show-current
+git rev-parse HEAD
+
+Write-Host ""
+Write-Host "WORKING TREE:" -ForegroundColor Yellow
+git status --short
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "2. RUNNING END-TO-END RUNNER WITH FULL ERROR CAPTURE" -ForegroundColor Cyan
+Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host ""
+
+$startTime = Get-Date
+
+$output = @(
+    "EROS 3.0 - BLOCK 106 END-TO-END FAILURE DIAGNOSTIC"
+    "TIMESTAMP : $timestamp"
+    "PYTHONPATH: $env:PYTHONPATH"
+    ""
+    "RUNNER: $runner"
+    ""
+    "================ PYTHON OUTPUT ================"
+)
+
+try {
+
+    $pythonOutput = & python $runner 2>&1 |
+        ForEach-Object {
+            $_.ToString()
+        }
+
+    $exitCode = $LASTEXITCODE
+
+    $output += $pythonOutput
+
+}
+catch {
+
+    $exitCode = 999
+
+    $output += ""
+    $output += "POWERSHELL EXCEPTION:"
+    $output += $_.Exception.ToString()
+}
+
+$endTime = Get-Date
+
+$output += ""
+$output += "================ PROCESS RESULT ================"
+$output += "PYTHON EXIT CODE : $exitCode"
+$output += "START TIME       : $startTime"
+$output += "END TIME         : $endTime"
+$output += ""
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Yellow
+Write-Host "3. COMPLETE PYTHON OUTPUT" -ForegroundColor Yellow
+Write-Host "======================================================================" -ForegroundColor Yellow
+Write-Host ""
+
+$output | ForEach-Object {
+    Write-Host $_
+}
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Yellow
+Write-Host "4. SAVING COMPLETE DIAGNOSTIC LOG" -ForegroundColor Yellow
+Write-Host "======================================================================" -ForegroundColor Yellow
+
+$output | Out-File -FilePath $logFile -Encoding UTF8
+
+Write-Host ""
+Write-Host "LOG SAVED:" -ForegroundColor Green
+Write-Host $logFile -ForegroundColor Green
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "5. COPYING COMPLETE OUTPUT TO CLIPBOARD" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+
+$clipboardText = $output -join [Environment]::NewLine
+
+Set-Clipboard -Value $clipboardText
+
+Write-Host ""
+Write-Host "CLIPBOARD : READY" -ForegroundColor Green
+Write-Host "Paste the clipboard contents directly into ChatGPT." -ForegroundColor Green
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "6. SAFETY STATE" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+
+Write-Host "SOURCE CHANGES       : NONE"
+Write-Host "GIT COMMIT           : NONE"
+Write-Host "GIT PUSH             : NONE"
+Write-Host "BROKER               : FALSE"
+Write-Host "LIVE EXECUTION       : FALSE"
+Write-Host "ORDER SUBMISSION     : FALSE"
+Write-Host "PORTFOLIO MUTATION   : FALSE"
+Write-Host "EXECUTION BLOCKED    : TRUE"
+Write-Host ""
+
+if ($exitCode -eq 0) {
+
+    Write-Host "======================================================================" -ForegroundColor Green
+    Write-Host "BLOCK 106 END-TO-END DIAGNOSTIC : PASS" -ForegroundColor Green
+    Write-Host "======================================================================" -ForegroundColor Green
+
+}
+else {
+
+    Write-Host "======================================================================" -ForegroundColor Red
+    Write-Host "BLOCK 106 END-TO-END DIAGNOSTIC : FAILED" -ForegroundColor Red
+    Write-Host "======================================================================" -ForegroundColor Red
+
+    Write-Host ""
+    Write-Host "IMPORTANT:" -ForegroundColor Yellow
+    Write-Host "DO NOT MODIFY BLOCK 106 YET." -ForegroundColor Yellow
+    Write-Host "Paste the clipboard output here so the exact failing line can be fixed." -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "DIAGNOSTIC LOG:" -ForegroundColor Cyan
+Write-Host $logFile
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "END OF DIAGNOSTIC" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+
+======================================================================
+EROS 3.0 - BLOCK 106 END-TO-END FAILURE DIAGNOSTIC
+======================================================================
+
+READ / VERIFY ONLY
+NO SOURCE CHANGES
+NO GIT COMMIT
+NO GIT PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+RUNNER:
+.\logs\block106_end_to_end_runtime_runner.py
+
+LOG:
+.\logs\block106_end_to_end_failure_20260820_085816.log
+
+======================================================================
+1. CURRENT GIT BASELINE
+----------------------------------------------------------------------
+feature/eros-3-0-sprint19
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+WORKING TREE:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+======================================================================
+2. RUNNING END-TO-END RUNNER WITH FULL ERROR CAPTURE
+----------------------------------------------------------------------
+
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> TerminatingError(python.exe): "The running command stopped because the preference variable "ErrorActionPreference" or common parameter is set to Stop: Traceback (most recent call last):"
+
+======================================================================
+3. COMPLETE PYTHON OUTPUT
+======================================================================
+
+EROS 3.0 - BLOCK 106 END-TO-END FAILURE DIAGNOSTIC
+TIMESTAMP : 20260820_085816
+PYTHONPATH: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+RUNNER: .\logs\block106_end_to_end_runtime_runner.py
+
+================ PYTHON OUTPUT ================
+
+POWERSHELL EXCEPTION:
+System.Management.Automation.RemoteException: Traceback (most recent call last):
+
+================ PROCESS RESULT ================
+PYTHON EXIT CODE : 999
+START TIME       : 08/20/2026 08:58:16
+END TIME         : 08/20/2026 08:58:16
+
+
+======================================================================
+4. SAVING COMPLETE DIAGNOSTIC LOG
+======================================================================
+
+LOG SAVED:
+.\logs\block106_end_to_end_failure_20260820_085816.log
+
+======================================================================
+5. COPYING COMPLETE OUTPUT TO CLIPBOARD
+======================================================================
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> TerminatingError(Set-Clipboard): "Requested Clipboard operation did not succeed."
+>> TerminatingError(Set-Clipboard): "Requested Clipboard operation did not succeed."
+Requested Clipboard operation did not succeed.
+Set-Clipboard : Requested Clipboard operation did not succeed.
+At line:131 char:1
++ Set-Clipboard -Value $clipboardText
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Set-Clipboard], ExternalException
+    + FullyQualifiedErrorId : System.Runtime.InteropServices.ExternalException,Microsoft.PowerShell.Commands.SetClipbo
+   ardCommand
+
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> cls
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> Set-Location "D:\Users\User\Desktop\AI_STOCK_ANALYZER"
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "EROS 3.0 - BLOCK 106 RAW PYTHON TRACEBACK CAPTURE" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "NO SOURCE CHANGES" -ForegroundColor Yellow
+Write-Host "NO COMMIT" -ForegroundColor Yellow
+Write-Host "NO PUSH" -ForegroundColor Yellow
+Write-Host "NO BROKER" -ForegroundColor Yellow
+Write-Host "NO LIVE EXECUTION" -ForegroundColor Yellow
+Write-Host ""
+
+$env:PYTHONPATH = (Get-Location).Path
+
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$logFile = ".\logs\block106_raw_traceback_$timestamp.log"
+$rawFile = ".\logs\block106_raw_python_output_$timestamp.txt"
+$runner = ".\logs\block106_end_to_end_runtime_runner.py"
+
+if (-not (Test-Path ".\logs")) {
+    New-Item -ItemType Directory ".\logs" | Out-Null
+}
+
+if (-not (Test-Path $runner)) {
+    Write-Host "ERROR: RUNNER NOT FOUND" -ForegroundColor Red
+    Write-Host $runner
+    exit 1
+}
+
+Write-Host "PYTHONPATH:" -ForegroundColor Yellow
+Write-Host $env:PYTHONPATH
+Write-Host ""
+
+Write-Host "RUNNER:" -ForegroundColor Yellow
+Write-Host $runner
+Write-Host ""
+
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "1. GIT BASELINE" -ForegroundColor Cyan
+Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
+
+$branch = git branch --show-current
+$head = git rev-parse HEAD
+$status = git status --short
+
+Write-Host "BRANCH : $branch"
+Write-Host "HEAD   : $head"
+Write-Host ""
+Write-Host "STATUS:"
+$status
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "2. EXECUTING PYTHON THROUGH CMD.EXE" -ForegroundColor Cyan
+Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host ""
+
+#
+# IMPORTANT:
+# Do NOT use:
+#     python $runner 2>&1
+#
+# PowerShell 5.1 converts Python stderr into ErrorRecord /
+# RemoteException objects and can truncate the traceback.
+#
+# Instead use cmd.exe and redirect stderr/stdout to a physical file.
+#
+
+$cmdLine = "python `"$runner`" > `"$rawFile`" 2>&1"
+
+Write-Host "COMMAND:" -ForegroundColor Yellow
+Write-Host $cmdLine
+Write-Host ""
+
+cmd.exe /c $cmdLine
+
+$pythonExitCode = $LASTEXITCODE
+
+Write-Host ""
+Write-Host "PYTHON EXIT CODE : $pythonExitCode" -ForegroundColor Yellow
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "3. READING RAW PYTHON OUTPUT" -ForegroundColor Cyan
+Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
+
+if (Test-Path $rawFile) {
+
+    $rawOutput = Get-Content $rawFile -Raw -ErrorAction SilentlyContinue
+
+    if ([string]::IsNullOrWhiteSpace($rawOutput)) {
+
+        Write-Host "RAW PYTHON OUTPUT IS EMPTY" -ForegroundColor Red
+
+    }
+    else {
+
+        Write-Host ""
+        Write-Host $rawOutput
+    }
+
+}
+else {
+
+    Write-Host "RAW OUTPUT FILE WAS NOT CREATED" -ForegroundColor Red
+    $rawOutput = "RAW OUTPUT FILE WAS NOT CREATED"
+}
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "4. BUILD FINAL DIAGNOSTIC LOG" -ForegroundColor Cyan
+Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
+
+$diagnostic = @()
+
+$diagnostic += "EROS 3.0 - BLOCK 106 RAW PYTHON TRACEBACK"
+$diagnostic += "TIMESTAMP : $timestamp"
+$diagnostic += ""
+$diagnostic += "PYTHONPATH:"
+$diagnostic += $env:PYTHONPATH
+$diagnostic += ""
+$diagnostic += "RUNNER:"
+$diagnostic += $runner
+$diagnostic += ""
+$diagnostic += "======================================================================"
+$diagnostic += "GIT BASELINE"
+$diagnostic += "======================================================================"
+$diagnostic += "BRANCH : $branch"
+$diagnostic += "HEAD   : $head"
+$diagnostic += ""
+$diagnostic += "WORKING TREE:"
+$diagnostic += $status
+$diagnostic += ""
+$diagnostic += "======================================================================"
+$diagnostic += "RAW PYTHON OUTPUT"
+$diagnostic += "======================================================================"
+$diagnostic += ""
+
+if ($rawOutput) {
+    $diagnostic += $rawOutput
+}
+
+$diagnostic += ""
+$diagnostic += "======================================================================"
+$diagnostic += "PROCESS RESULT"
+$diagnostic += "======================================================================"
+$diagnostic += "PYTHON EXIT CODE : $pythonExitCode"
+$diagnostic += ""
+$diagnostic += "SOURCE CHANGES : NONE"
+$diagnostic += "COMMIT         : NONE"
+$diagnostic += "PUSH           : NONE"
+$diagnostic += "BROKER         : FALSE"
+$diagnostic += "LIVE EXECUTION : FALSE"
+$diagnostic += "ORDER SUBMIT   : FALSE"
+
+$diagnostic | Out-File -FilePath $logFile -Encoding UTF8
+
+Write-Host ""
+Write-Host "DIAGNOSTIC LOG CREATED:" -ForegroundColor Green
+Write-Host $logFile -ForegroundColor Green
+
+Write-Host ""
+Write-Host "RAW PYTHON FILE CREATED:" -ForegroundColor Green
+Write-Host $rawFile -ForegroundColor Green
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "5. COPY RAW OUTPUT TO CLIPBOARD" -ForegroundColor Cyan
+Write-Host "----------------------------------------------------------------------" -ForegroundColor DarkGray
+
+#
+# Use clip.exe instead of Set-Clipboard.
+# This avoids the PowerShell clipboard provider problem.
+#
+
+if (Test-Path $rawFile) {
+
+    Get-Content $rawFile -Raw | clip.exe
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "CLIPBOARD : SUCCESS" -ForegroundColor Green
+        Write-Host "Use CTRL+V in ChatGPT." -ForegroundColor Green
+    }
+    else {
+        Write-Host "CLIPBOARD : FAILED" -ForegroundColor Red
+        Write-Host "The raw output is still safely stored in:" -ForegroundColor Yellow
+        Write-Host $rawFile -ForegroundColor Yellow
+    }
+
+}
+else {
+
+    Write-Host "CLIPBOARD : SKIPPED - RAW FILE MISSING" -ForegroundColor Red
+}
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "6. SAFETY STATE" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+
+Write-Host "SOURCE CHANGES       : NONE"
+Write-Host "GIT COMMIT           : NONE"
+Write-Host "GIT PUSH             : NONE"
+Write-Host "BROKER               : FALSE"
+Write-Host "LIVE EXECUTION       : FALSE"
+Write-Host "ORDER SUBMISSION     : FALSE"
+Write-Host "PORTFOLIO MUTATION   : FALSE"
+Write-Host "EXECUTION BLOCKED    : TRUE"
+Write-Host "NON-MUTATING         : TRUE"
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Green
+Write-Host "RAW TRACEBACK CAPTURE COMPLETE" -ForegroundColor Green
+Write-Host "======================================================================" -ForegroundColor Green
+
+Write-Host ""
+Write-Host "PASTE THE CLIPBOARD CONTENTS INTO CHATGPT." -ForegroundColor Cyan
+Write-Host ""
+
+if ($pythonExitCode -eq 0) {
+    Write-Host "PYTHON RESULT : PASS" -ForegroundColor Green
+}
+else {
+    Write-Host "PYTHON RESULT : FAILED - TRACEBACK REQUIRED" -ForegroundColor Red
+}
+
+Write-Host ""
+Write-Host "LOG:"
+Write-Host $logFile
+
+Write-Host ""
+Write-Host "RAW:"
+Write-Host $rawFile
+
+======================================================================
+EROS 3.0 - BLOCK 106 RAW PYTHON TRACEBACK CAPTURE
+======================================================================
+
+NO SOURCE CHANGES
+NO COMMIT
+NO PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+RUNNER:
+.\logs\block106_end_to_end_runtime_runner.py
+
+======================================================================
+1. GIT BASELINE
+----------------------------------------------------------------------
+BRANCH : feature/eros-3-0-sprint19
+HEAD   : 29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+STATUS:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+======================================================================
+2. EXECUTING PYTHON THROUGH CMD.EXE
+----------------------------------------------------------------------
+
+COMMAND:
+python ".\logs\block106_end_to_end_runtime_runner.py" > ".\logs\block106_raw_python_output_20260820_085915.txt" 2>&1
+
+
+
+PYTHON EXIT CODE : 1
+
+======================================================================
+3. READING RAW PYTHON OUTPUT
+----------------------------------------------------------------------
+
+
+======================================================================
+EROS 3.0 - BLOCK 106 END-TO-END PYTHON RUNTIME RUNNER
+======================================================================
+
+1. IMPORT CONTRACT LAYERS
+----------------------------------------------------------------------
+BLOCK 103 IMPORT : PASS
+BLOCK 104 IMPORT : PASS
+BLOCK 106 IMPORT : PASS
+
+2. ACTUAL RUNTIME SIGNATURES
+----------------------------------------------------------------------
+BLOCK 103 BUILD     : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 103 SNAPSHOT  : (self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 104 SNAPSHOT  : (self, *, read_model: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 BUILD     : (self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 SNAPSHOT  : (self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+BLOCK 106 VALIDATE  : (self, payload: 'Mapping[str, Any]') -> 'bool'
+SIGNATURE VERIFICATION : PASS
+
+3. BUILD BLOCK 103 UPSTREAM CONTRACT
+----------------------------------------------------------------------
+UPSTREAM CONTRACT : CREATED
+SYMBOL            : RELIANCE.NS
+ACTION            : BUY
+QUANTITY          : 100.0
+REFERENCE PRICE   : 2500.0
+
+4. BLOCK 103 INSTITUTIONAL READ MODEL
+----------------------------------------------------------------------
+INSTANCE TYPE     : EROSBlock103InstitutionalFrontendReadModel
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_end_to_end_runtime_runner.py", line 188, in <module>
+    read_model = block103.build(
+        contract=contract
+    )
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py", line 42, in build
+    self._validate_source(source)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py", line 87, in _validate_source
+    raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+ValueError: BLOCK103_INVALID_SOURCE_BLOCK
+
+======================================================================
+4. BUILD FINAL DIAGNOSTIC LOG
+----------------------------------------------------------------------
+
+DIAGNOSTIC LOG CREATED:
+.\logs\block106_raw_traceback_20260820_085915.log
+
+RAW PYTHON FILE CREATED:
+.\logs\block106_raw_python_output_20260820_085915.txt
+
+======================================================================
+5. COPY RAW OUTPUT TO CLIPBOARD
+----------------------------------------------------------------------
+
+CLIPBOARD : SUCCESS
+Use CTRL+V in ChatGPT.
+
+======================================================================
+6. SAFETY STATE
+======================================================================
+SOURCE CHANGES       : NONE
+GIT COMMIT           : NONE
+GIT PUSH             : NONE
+BROKER               : FALSE
+LIVE EXECUTION       : FALSE
+ORDER SUBMISSION     : FALSE
+PORTFOLIO MUTATION   : FALSE
+EXECUTION BLOCKED    : TRUE
+NON-MUTATING         : TRUE
+
+======================================================================
+RAW TRACEBACK CAPTURE COMPLETE
+======================================================================
+
+PASTE THE CLIPBOARD CONTENTS INTO CHATGPT.
+
+PYTHON RESULT : FAILED - TRACEBACK REQUIRED
+
+LOG:
+.\logs\block106_raw_traceback_20260820_085915.log
+
+RAW:
+.\logs\block106_raw_python_output_20260820_085915.txt
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> cls
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> Set-Location "D:\Users\User\Desktop\AI_STOCK_ANALYZER"
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "EROS 3.0 - BLOCK 106 / BLOCK 103 CONTRACT REQUIREMENT INSPECTION" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "READ ONLY" -ForegroundColor Yellow
+Write-Host "NO SOURCE CHANGES" -ForegroundColor Yellow
+Write-Host "NO COMMIT" -ForegroundColor Yellow
+Write-Host "NO PUSH" -ForegroundColor Yellow
+Write-Host "NO BROKER" -ForegroundColor Yellow
+Write-Host "NO LIVE EXECUTION" -ForegroundColor Yellow
+Write-Host ""
+
+$env:PYTHONPATH = (Get-Location).Path
+
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$logFile = ".\logs\block106_block103_contract_inspection_$timestamp.log"
+
+if (-not (Test-Path ".\logs")) {
+    New-Item -ItemType Directory ".\logs" | Out-Null
+}
+
+Write-Host "PYTHONPATH:" -ForegroundColor Yellow
+Write-Host $env:PYTHONPATH
+Write-Host ""
+
+$runner = ".\logs\block106_block103_contract_inspection_runner.py"
+
+@'
+from __future__ import annotations
+
+import inspect
+from pathlib import Path
+
+from services.quantitative.block103_institutional_frontend_read_model import (
+    EROSBlock103InstitutionalFrontendReadModel,
+)
+
+from services.quantitative.block106_institutional_integration_boundary import (
+    EROSBlock106InstitutionalIntegrationBoundary,
+)
+
+print()
+print("=" * 70)
+print("EROS 3.0 - BLOCK 103 CONTRACT REQUIREMENT INSPECTION")
+print("=" * 70)
+
+module = inspect.getmodule(EROSBlock103InstitutionalFrontendReadModel)
+
+print()
+print("1. BLOCK 103 CLASS")
+print("-" * 70)
+print("CLASS :", EROSBlock103InstitutionalFrontendReadModel)
+print("MODULE:", module.__name__ if module else "UNKNOWN")
+
+print()
+print("2. BLOCK 103 PUBLIC CONSTANTS")
+print("-" * 70)
+
+for name in dir(EROSBlock103InstitutionalFrontendReadModel):
+
+    if name.isupper():
+        try:
+            value = getattr(EROSBlock103InstitutionalFrontendReadModel, name)
+            print(f"{name} = {value!r}")
+        except Exception as exc:
+            print(f"{name} = <ERROR: {exc}>")
+
+print()
+print("3. BLOCK 103 BUILD SOURCE")
+print("-" * 70)
+
+source = inspect.getsource(
+    EROSBlock103InstitutionalFrontendReadModel.build
+)
+
+print(source)
+
+print()
+print("4. BLOCK 103 SOURCE VALIDATOR")
+print("-" * 70)
+
+validator = inspect.getsource(
+    EROSBlock103InstitutionalFrontendReadModel._validate_source
+)
+
+print(validator)
+
+print()
+print("5. BLOCK 103 PIPELINE BUILDER")
+print("-" * 70)
+
+try:
+    pipeline_source = inspect.getsource(
+        EROSBlock103InstitutionalFrontendReadModel._build_pipeline
+    )
+    print(pipeline_source)
+except Exception as exc:
+    print("PIPELINE SOURCE UNAVAILABLE:", exc)
+
+print()
+print("6. BLOCK 103 GOVERNANCE BUILDER")
+print("-" * 70)
+
+try:
+    print(
+        inspect.getsource(
+            EROSBlock103InstitutionalFrontendReadModel._build_governance
+        )
+    )
+except Exception as exc:
+    print("GOVERNANCE SOURCE UNAVAILABLE:", exc)
+
+print()
+print("7. BLOCK 103 INTENT BUILDER")
+print("-" * 70)
+
+try:
+    print(
+        inspect.getsource(
+            EROSBlock103InstitutionalFrontendReadModel._build_intent
+        )
+    )
+except Exception as exc:
+    print("INTENT SOURCE UNAVAILABLE:", exc)
+
+print()
+print("8. BLOCK 103 EXECUTION BUILDER")
+print("-" * 70)
+
+try:
+    print(
+        inspect.getsource(
+            EROSBlock103InstitutionalFrontendReadModel._build_execution
+        )
+    )
+except Exception as exc:
+    print("EXECUTION SOURCE UNAVAILABLE:", exc)
+
+print()
+print("9. BLOCK 103 RECONCILIATION BUILDER")
+print("-" * 70)
+
+try:
+    print(
+        inspect.getsource(
+            EROSBlock103InstitutionalFrontendReadModel._build_reconciliation
+        )
+    )
+except Exception as exc:
+    print("RECONCILIATION SOURCE UNAVAILABLE:", exc)
+
+print()
+print("10. BLOCK 103 LINEAGE BUILDER")
+print("-" * 70)
+
+try:
+    print(
+        inspect.getsource(
+            EROSBlock103InstitutionalFrontendReadModel._build_lineage
+        )
+    )
+except Exception as exc:
+    print("LINEAGE SOURCE UNAVAILABLE:", exc)
+
+print()
+print("11. BLOCK 103 SAFETY BUILDER")
+print("-" * 70)
+
+try:
+    print(
+        inspect.getsource(
+            EROSBlock103InstitutionalFrontendReadModel._build_safety
+        )
+    )
+except Exception as exc:
+    print("SAFETY SOURCE UNAVAILABLE:", exc)
+
+print()
+print("12. BLOCK 104 INPUT REQUIREMENT")
+print("-" * 70)
+
+print(
+    inspect.signature(
+        __import__(
+            "services.quantitative.block104_eros_command_center",
+            fromlist=["EROSBlock104CommandCenter"]
+        ).EROSBlock104CommandCenter.snapshot
+    )
+)
+
+print()
+print("13. BLOCK 106 INPUT REQUIREMENT")
+print("-" * 70)
+
+print(
+    inspect.signature(
+        EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload
+    )
+)
+
+print()
+print("=" * 70)
+print("BLOCK 103 CONTRACT INSPECTION COMPLETE")
+print("=" * 70)
+'@ | Set-Content -Path $runner -Encoding UTF8
+
+Write-Host "PYTHON INSPECTION RUNNER CREATED:" -ForegroundColor Green
+Write-Host $runner
+Write-Host ""
+
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "RUNNING INSPECTION" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host ""
+
+$rawFile = ".\logs\block106_block103_contract_inspection_raw_$timestamp.txt"
+
+$cmd = "python `"$runner`" > `"$rawFile`" 2>&1"
+
+cmd.exe /c $cmd
+
+$exitCode = $LASTEXITCODE
+
+Write-Host ""
+Write-Host "PYTHON EXIT CODE : $exitCode" -ForegroundColor Yellow
+Write-Host ""
+
+if (Test-Path $rawFile) {
+
+    $result = Get-Content $rawFile -Raw
+
+    Write-Host "======================================================================" -ForegroundColor Yellow
+    Write-Host "INSPECTION RESULT" -ForegroundColor Yellow
+    Write-Host "======================================================================" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host $result
+
+}
+else {
+
+    $result = "INSPECTION OUTPUT FILE WAS NOT CREATED"
+    Write-Host $result -ForegroundColor Red
+}
+
+$final = @()
+$final += "EROS 3.0 - BLOCK 106 / BLOCK 103 CONTRACT INSPECTION"
+$final += "TIMESTAMP : $timestamp"
+$final += "PYTHONPATH: $env:PYTHONPATH"
+$final += ""
+$final += $result
+$final += ""
+$final += "PYTHON EXIT CODE : $exitCode"
+$final += ""
+$final += "SOURCE CHANGES : NONE"
+$final += "GIT COMMIT     : NONE"
+$final += "GIT PUSH       : NONE"
+$final += "BROKER         : FALSE"
+$final += "LIVE EXECUTION : FALSE"
+
+$final | Out-File -FilePath $logFile -Encoding UTF8
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host "COPYING RESULT TO CLIPBOARD" -ForegroundColor Cyan
+Write-Host "======================================================================" -ForegroundColor Cyan
+Write-Host ""
+
+$final -join [Environment]::NewLine | clip.exe
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "CLIPBOARD : SUCCESS" -ForegroundColor Green
+}
+else {
+    Write-Host "CLIPBOARD : FAILED" -ForegroundColor Red
+    Write-Host "Use the log file instead:" -ForegroundColor Yellow
+    Write-Host $logFile
+}
+
+Write-Host ""
+Write-Host "LOG FILE:" -ForegroundColor Green
+Write-Host $logFile
+
+Write-Host ""
+Write-Host "======================================================================" -ForegroundColor Green
+Write-Host "INSPECTION COMPLETE" -ForegroundColor Green
+Write-Host "======================================================================" -ForegroundColor Green
+Write-Host ""
+
+Write-Host "PASTE THE CLIPBOARD CONTENT HERE." -ForegroundColor Cyan
+
+======================================================================
+EROS 3.0 - BLOCK 106 / BLOCK 103 CONTRACT REQUIREMENT INSPECTION
+======================================================================
+
+READ ONLY
+NO SOURCE CHANGES
+NO COMMIT
+NO PUSH
+NO BROKER
+NO LIVE EXECUTION
+
+PYTHONPATH:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+PYTHON INSPECTION RUNNER CREATED:
+.\logs\block106_block103_contract_inspection_runner.py
+
+======================================================================
+RUNNING INSPECTION
+======================================================================
+
+
+
+PYTHON EXIT CODE : 0
+
+======================================================================
+INSPECTION RESULT
+======================================================================
+
+
+======================================================================
+EROS 3.0 - BLOCK 103 CONTRACT REQUIREMENT INSPECTION
+======================================================================
+
+1. BLOCK 103 CLASS
+----------------------------------------------------------------------
+CLASS : <class 'services.quantitative.block103_institutional_frontend_read_model.EROSBlock103InstitutionalFrontendReadModel'>
+MODULE: services.quantitative.block103_institutional_frontend_read_model
+
+2. BLOCK 103 PUBLIC CONSTANTS
+----------------------------------------------------------------------
+BLOCK_ID = '103'
+ENGINE_VERSION = 'EROS-3.0-BLOCK-103'
+REQUIRED_BLOCKS = ('94', '95', '96', '97', '98', '99', '100', '101')
+
+3. BLOCK 103 BUILD SOURCE
+----------------------------------------------------------------------
+    def build(
+        self,
+        *,
+        contract: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        source = deepcopy(dict(contract))
+
+        self._validate_source(source)
+
+        pipeline = self._build_pipeline(source)
+        risk = self._build_risk(source)
+        governance = self._build_governance(source)
+        intent = self._build_intent(source)
+        execution = self._build_execution(source)
+        reconciliation = self._build_reconciliation(source)
+        lineage = self._build_lineage(source)
+        safety = self._build_safety(source)
+
+        return {
+            "status": "CERTIFIED",
+            "block_id": self.BLOCK_ID,
+            "engine_version": self.engine_version,
+
+            "dashboard": {
+                "title": "EROS 3.0 Institutional Command Center",
+                "subtitle": "Read-only governance, execution and reconciliation view",
+            },
+
+            "pipeline": pipeline,
+            "risk": risk,
+            "governance": governance,
+            "intent": intent,
+            "execution": execution,
+            "reconciliation": reconciliation,
+            "lineage": lineage,
+            "safety": safety,
+        }
+
+
+4. BLOCK 103 SOURCE VALIDATOR
+----------------------------------------------------------------------
+    @staticmethod
+    def _validate_source(source: Mapping[str, Any]) -> None:
+
+        if source.get("status") != "CERTIFIED":
+            raise ValueError("BLOCK103_SOURCE_NOT_CERTIFIED")
+
+        if source.get("block_id") != "102":
+            raise ValueError("BLOCK103_INVALID_SOURCE_BLOCK")
+
+        pipeline = source.get("pipeline_status")
+
+        if not isinstance(pipeline, list):
+            raise ValueError("BLOCK103_PIPELINE_MISSING")
+
+        block_ids = {
+            str(item.get("block_id"))
+            for item in pipeline
+            if isinstance(item, Mapping)
+        }
+
+        if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
+            raise ValueError("BLOCK103_INVALID_PIPELINE")
+
+        safety = source.get("safety")
+
+        if not isinstance(safety, Mapping):
+            raise ValueError("BLOCK103_SAFETY_MISSING")
+
+        if safety.get("portfolio_mutation") is not False:
+            raise ValueError("BLOCK103_PORTFOLIO_MUTATION")
+
+        if safety.get("valuation_mutation") is not False:
+            raise ValueError("BLOCK103_VALUATION_MUTATION")
+
+        if safety.get("performance_mutation") is not False:
+            raise ValueError("BLOCK103_PERFORMANCE_MUTATION")
+
+        if safety.get("risk_mutation") is not False:
+            raise ValueError("BLOCK103_RISK_MUTATION")
+
+        if safety.get("optimization") is not False:
+            raise ValueError("BLOCK103_OPTIMIZATION")
+
+        if safety.get("order_creation") is not False:
+            raise ValueError("BLOCK103_ORDER_CREATION")
+
+        if safety.get("broker_submission") is not False:
+            raise ValueError("BLOCK103_BROKER_SUBMISSION")
+
+        if safety.get("live_order_submission") is not False:
+            raise ValueError("BLOCK103_LIVE_EXECUTION")
+
+        if safety.get("execution_blocked") is not True:
+            raise ValueError("BLOCK103_EXECUTION_BLOCKED_INVARIANT")
+
+        if safety.get("non_mutation_invariant") is not True:
+            raise ValueError("BLOCK103_NON_MUTATION_INVARIANT")
+
+
+5. BLOCK 103 PIPELINE BUILDER
+----------------------------------------------------------------------
+    @staticmethod
+    def _build_pipeline(
+        source: Mapping[str, Any],
+    ) -> list[Dict[str, Any]]:
+
+        pipeline = []
+
+        for item in source["pipeline_status"]:
+            pipeline.append(
+                {
+                    "block_id": item.get("block_id"),
+                    "name": item.get("name"),
+                    "status": item.get("status"),
+                    "identifier": item.get("identifier"),
+                    "source_block": item.get("source_block"),
+                    "execution_blocked": item.get(
+                        "execution_blocked",
+                        True,
+                    ),
+                }
+            )
+
+        return pipeline
+
+
+6. BLOCK 103 GOVERNANCE BUILDER
+----------------------------------------------------------------------
+    @staticmethod
+    def _build_governance(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        governance = source.get("governance", {})
+
+        return {
+            "status": governance.get("status"),
+            "governance_id": governance.get("governance_id"),
+            "execution_action": governance.get("execution_action"),
+            "source_readiness_id": governance.get(
+                "source_readiness_id"
+            ),
+            "source_decision_id": governance.get(
+                "source_decision_id"
+            ),
+            "source_gate_id": governance.get(
+                "source_gate_id"
+            ),
+            "source_certificate_id": governance.get(
+                "source_certificate_id"
+            ),
+        }
+
+
+7. BLOCK 103 INTENT BUILDER
+----------------------------------------------------------------------
+    @staticmethod
+    def _build_intent(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        intent = source.get("intent", {})
+
+        return {
+            "status": intent.get("status"),
+            "intent_id": intent.get("intent_id"),
+            "intent_action": intent.get("intent_action"),
+            "authorization_status": intent.get(
+                "authorization_status"
+            ),
+            "symbol": intent.get("symbol"),
+            "action": intent.get("action"),
+            "quantity": intent.get("quantity"),
+            "reference_price": intent.get(
+                "reference_price"
+            ),
+        }
+
+
+8. BLOCK 103 EXECUTION BUILDER
+----------------------------------------------------------------------
+    @staticmethod
+    def _build_execution(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        execution = source.get("execution", {})
+
+        return {
+            "status": execution.get("status"),
+            "execution_id": execution.get("execution_id"),
+            "symbol": execution.get("symbol"),
+            "action": execution.get("action"),
+            "requested_quantity": execution.get(
+                "requested_quantity"
+            ),
+            "filled_quantity": execution.get(
+                "filled_quantity"
+            ),
+            "reference_price": execution.get(
+                "reference_price"
+            ),
+            "fill_price": execution.get("fill_price"),
+            "fill_status": execution.get("fill_status"),
+            "slippage_bps": execution.get("slippage_bps"),
+            "transaction_cost": execution.get(
+                "transaction_cost"
+            ),
+            "net_value": execution.get("net_value"),
+        }
+
+
+9. BLOCK 103 RECONCILIATION BUILDER
+----------------------------------------------------------------------
+    @staticmethod
+    def _build_reconciliation(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        reconciliation = source.get("reconciliation", {})
+
+        return {
+            "status": reconciliation.get("status"),
+            "reconciliation_id": reconciliation.get(
+                "reconciliation_id"
+            ),
+            "source_execution_id": reconciliation.get(
+                "source_execution_id"
+            ),
+            "quantity_reconciled": reconciliation.get(
+                "quantity_reconciled"
+            ),
+            "price_reconciled": reconciliation.get(
+                "price_reconciled"
+            ),
+            "value_reconciled": reconciliation.get(
+                "value_reconciled"
+            ),
+            "cost_reconciled": reconciliation.get(
+                "cost_reconciled"
+            ),
+            "lineage_reconciled": reconciliation.get(
+                "lineage_reconciled"
+            ),
+        }
+
+
+10. BLOCK 103 LINEAGE BUILDER
+----------------------------------------------------------------------
+    @staticmethod
+    def _build_lineage(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        lineage = source.get("lineage", {})
+
+        return {
+            "block94": lineage.get("block94"),
+            "block95": lineage.get("block95"),
+            "block96": lineage.get("block96"),
+            "block97": lineage.get("block97"),
+            "block98": lineage.get("block98"),
+            "block99": lineage.get("block99"),
+            "block100": lineage.get("block100"),
+            "block101": lineage.get("block101"),
+        }
+
+
+11. BLOCK 103 SAFETY BUILDER
+----------------------------------------------------------------------
+    @staticmethod
+    def _build_safety(
+        source: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        safety = source.get("safety", {})
+
+        return {
+            "portfolio_mutation": safety.get(
+                "portfolio_mutation"
+            ),
+            "valuation_mutation": safety.get(
+                "valuation_mutation"
+            ),
+            "performance_mutation": safety.get(
+                "performance_mutation"
+            ),
+            "risk_mutation": safety.get("risk_mutation"),
+            "optimization": safety.get("optimization"),
+            "order_creation": safety.get("order_creation"),
+            "broker_submission": safety.get(
+                "broker_submission"
+            ),
+            "live_order_submission": safety.get(
+                "live_order_submission"
+            ),
+            "execution_blocked": safety.get(
+                "execution_blocked"
+            ),
+            "non_mutation_invariant": safety.get(
+                "non_mutation_invariant"
+            ),
+        }
+
+
+12. BLOCK 104 INPUT REQUIREMENT
+----------------------------------------------------------------------
+(self, *, read_model: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+13. BLOCK 106 INPUT REQUIREMENT
+----------------------------------------------------------------------
+(self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+======================================================================
+BLOCK 103 CONTRACT INSPECTION COMPLETE
+======================================================================
+
+======================================================================
+COPYING RESULT TO CLIPBOARD
+======================================================================
+
+
+CLIPBOARD : SUCCESS
+
+LOG FILE:
+.\logs\block106_block103_contract_inspection_20260820_090009.log
+
+======================================================================
+INSPECTION COMPLETE
+======================================================================
+
+PASTE THE CLIPBOARD CONTENT HERE.
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> cls
+PS D:\Users\User\Desktop\AI_STOCK_ANALYZER> Set-Location "D:\Users\User\Desktop\AI_STOCK_ANALYZER"
+
+Write-Host ""
+Write-Host "==================================================" -ForegroundColor Cyan
+Write-Host "EROS 3.0 - PRESERVE EXECUTION AUDIT LOGS" -ForegroundColor Cyan
+Write-Host "==================================================" -ForegroundColor Cyan
+
+Write-Host ""
+Write-Host "1. CHECKING LOG COUNT..." -ForegroundColor Yellow
+$logs = Get-ChildItem .\eros_logs -Recurse -File
+Write-Host "Files found: $($logs.Count)"
+
+Write-Host ""
+Write-Host "2. TOTAL LOG SIZE..." -ForegroundColor Yellow
+$totalSize = ($logs | Measure-Object -Property Length -Sum).Sum
+Write-Host ("Total bytes: {0:N0}" -f $totalSize)
+
+Write-Host ""
+Write-Host "3. STAGING EROS AUDIT LOGS..." -ForegroundColor Yellow
+git add .\eros_logs\
+
+Write-Host ""
+Write-Host "4. STAGED LOG FILES..." -ForegroundColor Yellow
+git diff --cached --name-status
+
+Write-Host ""
+Write-Host "5. CREATING AUDIT COMMIT..." -ForegroundColor Yellow
+
+git commit -m "Preserve EROS 3.0 execution audit logs through Block 80"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "AUDIT LOG COMMIT: FAIL" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host ""
+Write-Host "AUDIT LOG COMMIT: PASS" -ForegroundColor Green
+
+Write-Host ""
+Write-Host "NEW HEAD:" -ForegroundColor Yellow
+git log -1 --oneline
+
+Write-Host ""
+Write-Host "POST-COMMIT STATUS:" -ForegroundColor Yellow
+git status --short
+
+Write-Host ""
+Write-Host "==================================================" -ForegroundColor Green
+Write-Host "EROS 3.0 - AUDIT LOG PRESERVATION COMPLETE" -ForegroundColor Green
+Write-Host "==================================================" -ForegroundColor Green
+
+==================================================
+EROS 3.0 - PRESERVE EXECUTION AUDIT LOGS
+==================================================
+
+1. CHECKING LOG COUNT...
+Files found: 44
+
+2. TOTAL LOG SIZE...
+Total bytes: 3,73,979
+
+3. STAGING EROS AUDIT LOGS...
+
+
+4. STAGED LOG FILES...
+
+
+5. CREATING AUDIT COMMIT...
+On branch feature/eros-3-0-sprint19
+Your branch is up to date with 'origin/feature/eros-3-0-sprint19'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        logs/
+        services/quantitative/block106_institutional_integration_boundary.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+AUDIT LOG COMMIT: FAIL
+**********************
+Windows PowerShell transcript end
+End time: 20260820091002
+**********************

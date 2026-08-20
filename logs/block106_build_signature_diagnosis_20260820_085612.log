@@ -1,0 +1,181 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260820085612
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 2920
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+1. GIT BASELINE
+----------------------------------------------------------------------
+feature/eros-3-0-sprint19
+29bfca9e75d8a2c1a2556acd78ad8f899fae219f
+
+WORKING TREE:
+?? logs/
+?? services/quantitative/block106_institutional_integration_boundary.py
+
+2. BLOCK 103 FILE
+----------------------------------------------------------------------
+BLOCK 103 : FOUND
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py
+
+3. BLOCK 106 FILE
+----------------------------------------------------------------------
+BLOCK 106 : FOUND
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block106_institutional_integration_boundary.py
+
+4. PYTHON INTERFACE INSPECTION
+----------------------------------------------------------------------
+
+PYTHON RUNNER CREATED:
+.\logs\block106_build_signature_runner.py
+
+5. RUNNING PYTHON DIAGNOSTIC
+----------------------------------------------------------------------
+
+
+======================================================================
+EROS 3.0 - BLOCK 106 CONTRACT DIAGNOSTIC
+======================================================================
+
+1. IMPORT BLOCK 103
+----------------------------------------------------------------------
+BLOCK 103 IMPORT : PASS
+
+2. BLOCK 103 CLASS
+----------------------------------------------------------------------
+CLASS : <class 'services.quantitative.block103_institutional_frontend_read_model.EROSBlock103InstitutionalFrontendReadMo
+del'>
+MODULE: services.quantitative.block103_institutional_frontend_read_model
+
+3. BLOCK 103 BUILD SIGNATURE
+----------------------------------------------------------------------
+BUILD SIGNATURE:
+(self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+4. BLOCK 103 SNAPSHOT SIGNATURE
+----------------------------------------------------------------------
+SNAPSHOT SIGNATURE:
+(self, *, contract: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+5. BLOCK 103 CONSTRUCTOR
+----------------------------------------------------------------------
+CONSTRUCTOR:
+() -> 'None'
+
+6. BLOCK 103 BUILD SOURCE
+----------------------------------------------------------------------
+    def build(
+        self,
+        *,
+        contract: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+
+        source = deepcopy(dict(contract))
+
+        self._validate_source(source)
+
+        pipeline = self._build_pipeline(source)
+        risk = self._build_risk(source)
+        governance = self._build_governance(source)
+        intent = self._build_intent(source)
+        execution = self._build_execution(source)
+        reconciliation = self._build_reconciliation(source)
+        lineage = self._build_lineage(source)
+        safety = self._build_safety(source)
+
+        return {
+            "status": "CERTIFIED",
+            "block_id": self.BLOCK_ID,
+            "engine_version": self.engine_version,
+
+            "dashboard": {
+                "title": "EROS 3.0 Institutional Command Center",
+                "subtitle": "Read-only governance, execution and reconciliation view",
+            },
+
+            "pipeline": pipeline,
+            "risk": risk,
+            "governance": governance,
+            "intent": intent,
+            "execution": execution,
+            "reconciliation": reconciliation,
+            "lineage": lineage,
+            "safety": safety,
+        }
+
+
+7. BLOCK 103 SNAPSHOT SOURCE
+----------------------------------------------------------------------
+    def snapshot(
+        self,
+        *,
+        contract: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+        return self.build(contract=contract)
+
+
+8. BLOCK 103 PUBLIC MEMBERS
+----------------------------------------------------------------------
+PUBLIC VALUE  : BLOCK_ID = 103
+PUBLIC VALUE  : ENGINE_VERSION = EROS-3.0-BLOCK-103
+PUBLIC VALUE  : REQUIRED_BLOCKS = ('94', '95', '96', '97', '98', '99', '100', '101')
+PUBLIC METHOD : build
+PUBLIC METHOD : snapshot
+
+9. IMPORT BLOCK 106
+----------------------------------------------------------------------
+BLOCK 106 IMPORT : PASS
+
+10. BLOCK 106 BUILD SIGNATURE
+----------------------------------------------------------------------
+(self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+11. BLOCK 106 SNAPSHOT SIGNATURE
+----------------------------------------------------------------------
+(self, command_center: 'Mapping[str, Any]') -> 'Dict[str, Any]'
+
+12. BLOCK 106 VALIDATION SIGNATURE
+----------------------------------------------------------------------
+(self, payload: 'Mapping[str, Any]') -> 'bool'
+
+13. BLOCK 106 PUBLIC MEMBERS
+----------------------------------------------------------------------
+PUBLIC VALUE  : BLOCK_ID = 106
+PUBLIC VALUE  : BLOCK_NAME = Institutional Integration Boundary
+PUBLIC VALUE  : REQUIRED_SOURCE_FIELDS = ('status', 'block_id', 'pipeline', 'governance', 'intent', 'execution', 'reconc
+iliation', 'lineage', 'safety')
+PUBLIC VALUE  : SAFETY_POLICY = {'read_only': True, 'allow_order_creation': False, 'allow_broker_submission': False, 'al
+low_live_execution': False, 'allow_portfolio_mutation': False, 'allow_valuation_mutation': False, 'allow_performance_mut
+ation': False, 'allow_risk_mutation': False, 'allow_optimization': False, 'execution_blocked': True, 'non_mutation_invar
+iant': True}
+PUBLIC VALUE  : VERSION = 1.0
+PUBLIC VALUE  : build_count = <property object at 0x000001CA37227920>
+PUBLIC METHOD : build_integration_payload
+PUBLIC METHOD : build_read_only_snapshot
+PUBLIC METHOD : validate_payload
+
+======================================================================
+BLOCK 106 CONTRACT DIAGNOSTIC COMPLETE
+======================================================================
+
+PYTHON EXIT CODE : 0
+
+6. FINAL LOG FLUSH
+----------------------------------------------------------------------
+**********************
+Windows PowerShell transcript end
+End time: 20260820085613
+**********************
