@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 """
 EROS 3.0 - BLOCK 106
@@ -255,6 +255,9 @@ class EROSBlock106InstitutionalIntegrationBoundary:
     ) -> bool:
         """
         Validate a previously generated Block 106 payload.
+
+        Validation includes both the immutable safety contract and
+        the SHA-256 integrity fingerprint generated at construction.
         """
         if not isinstance(payload, Mapping):
             return False
@@ -263,6 +266,7 @@ class EROSBlock106InstitutionalIntegrationBoundary:
         integration = payload.get("integration", {})
         safety = payload.get("safety", {})
         command_center = payload.get("command_center")
+        integrity = payload.get("integrity")
 
         if schema.get("name") != "EROSInstitutionalIntegrationPayload":
             return False
@@ -310,6 +314,36 @@ class EROSBlock106InstitutionalIntegrationBoundary:
             return False
 
         if not isinstance(command_center, Mapping):
+            return False
+
+        # --------------------------------------------------------
+        # PAYLOAD INTEGRITY
+        # --------------------------------------------------------
+        if not isinstance(integrity, Mapping):
+            return False
+
+        if integrity.get("algorithm") != "SHA-256":
+            return False
+
+        supplied_hash = integrity.get("payload_hash")
+
+        if not isinstance(supplied_hash, str):
+            return False
+
+        # Reconstruct the exact pre-integrity payload used during
+        # payload generation. The integrity section itself is excluded
+        # from the hash calculation to avoid recursive hashing.
+        unsigned_payload = {
+            key: value
+            for key, value in payload.items()
+            if key != "integrity"
+        }
+
+        expected_hash = self._payload_hash(
+            unsigned_payload
+        )
+
+        if supplied_hash != expected_hash:
             return False
 
         return True
