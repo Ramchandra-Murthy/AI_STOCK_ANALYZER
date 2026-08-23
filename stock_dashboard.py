@@ -1,215 +1,2070 @@
-import streamlit as st
+﻿import streamlit as st
 
 from charts.candlestick import create_candlestick
-from portfolio.portfolio import add_stock, create_portfolio_table, load_portfolio
 from scanner.market_scanner import market_scan
 from services.analyzer import analyze_stock
+from services.eros_frontend_adapter import EROSFrontendAdapter
 
-# ====================================================
-# PAGE CONFIG
-# ====================================================
 
-st.set_page_config(page_title="AI Stock Analyzer Pro", page_icon="📈", layout="wide")
+# ============================================================
+# EROS 3.0 â€” FRONTEND V2
+# INSTITUTIONAL INTELLIGENCE COMMAND CENTER
+# ============================================================
 
-create_portfolio_table()
-
-# ====================================================
-# SIDEBAR
-# ====================================================
-
-st.sidebar.title("📊 Dashboard")
-
-st.sidebar.header("Portfolio")
-
-portfolio_symbol = st.sidebar.text_input("Symbol", "RELIANCE.NS")
-
-portfolio_qty = st.sidebar.number_input("Quantity", min_value=1, value=10)
-
-portfolio_price = st.sidebar.number_input(
-    "Buy Price", min_value=0.0, value=1000.0, step=1.0
+st.set_page_config(
+    page_title="EROS 3.0 â€” Institutional Intelligence",
+    page_icon="ðŸ“Š",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-if st.sidebar.button("➕ Add To Portfolio"):
 
-    add_stock(portfolio_symbol, portfolio_qty, portfolio_price)
+# ============================================================
+# ADAPTER
+# ============================================================
 
-    st.sidebar.success("Added Successfully")
+adapter = EROSFrontendAdapter()
 
-st.sidebar.divider()
 
-period = st.sidebar.selectbox("History", ["3mo", "6mo", "1y", "2y", "5y"], index=2)
+# ============================================================
+# GLOBAL STYLE
+# ============================================================
 
-interval = st.sidebar.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
+st.markdown(
+    """
+    <style>
 
-# ====================================================
-# MAIN TITLE
-# ====================================================
+    .main-title {
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 0;
+    }
 
-st.title("📈 AI Stock Analyzer Pro")
+    .subtitle {
+        font-size: 18px;
+        opacity: 0.75;
+        margin-top: 0;
+    }
 
-symbol = st.text_input("Stock Symbol", "RELIANCE.NS")
+    .section-title {
+        font-size: 24px;
+        font-weight: 750;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
 
-# ====================================================
-# ANALYZE
-# ====================================================
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-if st.button("Analyze"):
 
-    with st.spinner("Downloading market data..."):
 
-        result = analyze_stock(symbol)
+
+# ============================================================
+# V2.2 â€” MARKET INTELLIGENCE HELPERS
+# ============================================================
+
+def _market_pulse_summary(scan):
+    """
+    Presentation-only summary of the existing market scanner.
+
+    No scanner logic is changed.
+    No database write is performed.
+    """
+
+    if scan is None or scan.empty:
+        return {
+            "total": 0,
+            "buy": 0,
+            "hold": 0,
+            "sell": 0,
+        }
+
+    signal_column = None
+
+    for candidate in (
+        "Signal",
+        "Recommendation",
+        "signal",
+    ):
+        if candidate in scan.columns:
+            signal_column = candidate
+            break
+
+    if signal_column is None:
+        return {
+            "total": len(scan),
+            "buy": 0,
+            "hold": 0,
+            "sell": 0,
+        }
+
+    values = (
+        scan[signal_column]
+        .astype(str)
+        .str.upper()
+    )
+
+    return {
+        "total": len(scan),
+        "buy": int(
+            values.isin(
+                ["BUY", "STRONG BUY"]
+            ).sum()
+        ),
+        "hold": int(
+            values.isin(
+                ["HOLD", "NEUTRAL"]
+            ).sum()
+        ),
+        "sell": int(
+            values.isin(
+                ["SELL", "STRONG SELL"]
+            ).sum()
+        ),
+    }
+
+
+def _market_pulse_table(scan, buy_only=False):
+
+    if scan is None or scan.empty:
+        return scan
+
+    result = scan.copy()
+
+    if "Score" in result.columns:
+        result = result.sort_values(
+            "Score",
+            ascending=False,
+        )
+
+    if buy_only and "Signal" in result.columns:
+
+        result = result[
+            result["Signal"]
+            .astype(str)
+            .str.upper()
+            .isin(
+                ["BUY", "STRONG BUY"]
+            )
+        ]
+
+    return result
+
+
+# ============================================================
+# V2.1 â€” AI DECISION INTELLIGENCE HELPERS
+# ============================================================
+
+def _decision_bar(value):
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        numeric = 0.0
+
+    numeric = max(0.0, min(100.0, numeric))
+
+    return (
+        '<div style="'
+        'background:rgba(128,128,128,0.18);'
+        'border-radius:8px;'
+        'height:9px;'
+        'width:100%;'
+        '">'
+        '<div style="'
+        'background:currentColor;'
+        'border-radius:8px;'
+        'height:9px;'
+        f'width:{numeric:.0f}%;'
+        '"></div>'
+        '</div>'
+    )
+
+
+def _decision_score(signal):
+    try:
+        value = float(signal.get("Score", 0))
+    except (TypeError, ValueError):
+        value = 0.0
+
+    return max(0.0, min(100.0, value))
+
+
+def _technical_context(last, trend):
+
+    rsi = float(last.get("RSI_14", 50))
+    macd = float(last.get("MACD", 0))
+    macd_signal = float(last.get("Signal", 0))
+    close = float(last.get("Close", 0))
+    support = float(last.get("Support", close))
+    resistance = float(last.get("Resistance", close))
+
+    trend_name = str(trend.get("Trend", "UNKNOWN"))
+
+    if rsi < 30:
+        rsi_label = "OVERSOLD"
+        rsi_strength = 90
+    elif rsi > 70:
+        rsi_label = "OVERBOUGHT"
+        rsi_strength = 90
+    else:
+        rsi_label = "NEUTRAL"
+        rsi_strength = 50
+
+    if macd > macd_signal:
+        macd_label = "BULLISH"
+        macd_strength = 80
+    elif macd < macd_signal:
+        macd_label = "BEARISH"
+        macd_strength = 30
+    else:
+        macd_label = "NEUTRAL"
+        macd_strength = 50
+
+    trend_upper = trend_name.upper()
+
+    if "BULL" in trend_upper:
+        trend_strength = 90
+    elif "BEAR" in trend_upper:
+        trend_strength = 20
+    else:
+        trend_strength = 50
+
+    if close != 0:
+        support_distance = ((support - close) / close) * 100
+        resistance_distance = ((resistance - close) / close) * 100
+    else:
+        support_distance = 0.0
+        resistance_distance = 0.0
+
+    return {
+        "rsi": rsi,
+        "rsi_label": rsi_label,
+        "rsi_strength": rsi_strength,
+        "macd": macd,
+        "macd_signal": macd_signal,
+        "macd_label": macd_label,
+        "macd_strength": macd_strength,
+        "trend_label": trend_name,
+        "trend_strength": trend_strength,
+        "close": close,
+        "support": support,
+        "resistance": resistance,
+        "support_distance": support_distance,
+        "resistance_distance": resistance_distance,
+    }
+
+
+# ============================================================
+# SESSION STATE
+# ============================================================
+
+if "analysis_result" not in st.session_state:
+    st.session_state.analysis_result = None
+
+if "scan_result" not in st.session_state:
+    st.session_state.scan_result = None
+
+
+# ============================================================
+# HEADER
+# ============================================================
+
+st.markdown(
+    '<div class="main-title">EROS 3.0</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="subtitle">'
+    'Institutional Intelligence Command Center'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+st.divider()
+
+
+# ============================================================
+# SYSTEM STATUS
+# ============================================================
+
+governance = adapter.governance()
+
+status_col, gateway_col, mode_col, execution_col = st.columns(4)
+
+status_col.metric(
+    "SYSTEM",
+    governance["status"],
+)
+
+gateway_col.metric(
+    "QUERY GATEWAY",
+    f'BLOCK {governance["query_gateway"]["block_id"]}',
+)
+
+mode_col.metric(
+    "MODE",
+    "READ ONLY",
+)
+
+execution_col.metric(
+    "EXECUTION",
+    "BLOCKED",
+)
+
+
+# ============================================================
+# COMMAND CENTER
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">ðŸ  Command Center</div>',
+    unsafe_allow_html=True,
+)
+
+st.info(
+    "EROS 3.0 is operating through the certified "
+    "Block 109 Institutional Application Query Gateway. "
+    "The frontend is strictly read-only."
+)
+
+
+# ============================================================
+# STOCK INPUT
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">ðŸ”Ž Stock Intelligence</div>',
+    unsafe_allow_html=True,
+)
+
+input_col, button_col = st.columns([5, 1])
+
+with input_col:
+
+    symbol = st.text_input(
+        "Stock Symbol",
+        value="RELIANCE.NS",
+        key="stock_symbol",
+    ).strip().upper()
+
+with button_col:
+
+    st.write("")
+
+    analyze_clicked = st.button(
+        "ðŸ“Š ANALYZE",
+        use_container_width=True,
+        type="primary",
+    )
+
+
+# ============================================================
+# ANALYSIS
+# ============================================================
+
+if analyze_clicked:
+
+    if not symbol:
+
+        st.error("Please enter a stock symbol.")
+
+    else:
+
+        with st.spinner(
+            f"Analyzing {symbol}..."
+        ):
+
+            try:
+
+                result = analyze_stock(symbol)
+
+                st.session_state.analysis_result = result
+
+            except Exception as exc:
+
+                st.session_state.analysis_result = None
+
+                st.error(
+                    f"Analysis failed: {exc}"
+                )
+
+
+result = st.session_state.analysis_result
+
+
+# ============================================================
+# STOCK RESULT
+# ============================================================
+
+if result is not None:
 
     last = result["last"]
     trend = result["trend"]
     signal = result["signal"]
     breakout = result["breakout"]
+    df = result["df"]
 
-    st.success("Analysis Complete")
 
-    # ==========================
-    # TOP METRICS
-    # ==========================
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric("Current Price", f"₹{last['Close']:.2f}")
-
-    col2.metric("Trend", trend["Trend"])
-
-    col3.metric("Recommendation", signal["Recommendation"])
-
-    # ==========================
-    # TECHNICAL INDICATORS
-    # ==========================
+    # ========================================================
+    # DECISION SNAPSHOT
+    # ========================================================
 
     st.divider()
 
-    st.subheader("📊 Technical Indicators")
+    st.markdown(
+        f'<div class="section-title">'
+        f'ðŸ“Œ {symbol} Decision Snapshot'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("RSI", f"{last['RSI_14']:.2f}")
-    c1.metric("ATR", f"{last['ATR']:.2f}")
+    c1.metric(
+        "CURRENT PRICE",
+        f'â‚¹{last["Close"]:.2f}',
+    )
 
-    c2.metric("MACD", f"{last['MACD']:.2f}")
-    c2.metric("Signal", f"{last['Signal']:.2f}")
+    c2.metric(
+        "TREND",
+        str(trend["Trend"]),
+    )
 
-    c3.metric("Support", f"{last['Support']:.2f}")
-    c3.metric("Resistance", f"{last['Resistance']:.2f}")
+    c3.metric(
+        "AI SCORE",
+        str(signal["Score"]),
+    )
 
-    # ==========================
-    # AI SIGNAL
-    # ==========================
+    c4.metric(
+        "RECOMMENDATION",
+        str(signal["Recommendation"]),
+    )
+
+
+    # ========================================================
+    # TECHNICAL INTELLIGENCE
+    # ========================================================
 
     st.divider()
 
-    st.subheader("🤖 AI Signal Engine")
+    st.markdown(
+        '<div class="section-title">'
+        'ðŸ“ˆ Technical Intelligence'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
-    score_col, rec_col = st.columns(2)
+    t1, t2, t3, t4, t5, t6 = st.columns(6)
 
-    score_col.metric("AI Score", signal["Score"])
+    t1.metric(
+        "RSI",
+        f'{last["RSI_14"]:.2f}',
+    )
 
-    rec = signal["Recommendation"]
+    t2.metric(
+        "ATR",
+        f'{last["ATR"]:.2f}',
+    )
 
-    if rec == "BUY":
-        rec_col.success(rec)
-    elif rec == "SELL":
-        rec_col.error(rec)
+    t3.metric(
+        "MACD",
+        f'{last["MACD"]:.2f}',
+    )
+
+    t4.metric(
+        "SIGNAL",
+        f'{last["Signal"]:.2f}',
+    )
+
+    t5.metric(
+        "SUPPORT",
+        f'â‚¹{last["Support"]:.2f}',
+    )
+
+    t6.metric(
+        "RESISTANCE",
+        f'â‚¹{last["Resistance"]:.2f}',
+    )
+
+
+    # ========================================================
+    # PRICE ACTION
+    # ========================================================
+
+    st.divider()
+
+    st.markdown(
+        '<div class="section-title">'
+        'ðŸ“Š Price Action'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    try:
+
+        fig = create_candlestick(
+            df,
+            symbol,
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+        )
+
+    except Exception as exc:
+
+        st.warning(
+            f"Chart unavailable: {exc}"
+        )
+
+
+    # ========================================================
+    # V2.1 AI DECISION INTELLIGENCE
+    # ========================================================
+
+    st.divider()
+
+    st.markdown(
+        '<div class="section-title">'
+        'ðŸ§  EROS AI Decision Intelligence'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    context = _technical_context(last, trend)
+    score = _decision_score(signal)
+
+    recommendation = str(
+        signal.get("Recommendation", "UNKNOWN")
+    )
+
+    decision_left, decision_right = st.columns([1, 2])
+
+    with decision_left:
+
+        st.metric(
+            "AI DECISION SCORE",
+            f"{score:.0f}",
+        )
+
+        if recommendation in ("STRONG BUY", "BUY"):
+            st.success(recommendation)
+        elif recommendation in ("STRONG SELL", "SELL"):
+            st.error(recommendation)
+        else:
+            st.warning(recommendation)
+
+    with decision_right:
+
+        st.write("**Signal Decomposition**")
+
+        rows = [
+            (
+                "TREND",
+                context["trend_label"],
+                context["trend_strength"],
+            ),
+            (
+                "MACD",
+                context["macd_label"],
+                context["macd_strength"],
+            ),
+            (
+                "RSI",
+                context["rsi_label"],
+                context["rsi_strength"],
+            ),
+        ]
+
+        for label, state, strength in rows:
+
+            c1, c2 = st.columns([1, 2])
+
+            c1.write(f"**{label}**")
+
+            c2.markdown(
+                _decision_bar(strength)
+                + f"<small>{state}</small>",
+                unsafe_allow_html=True,
+            )
+
+    st.write("")
+    st.write("**Key Signal Drivers**")
+
+    reasons = signal.get("Reasons", [])
+
+    if reasons:
+
+        reason_columns = st.columns(2)
+
+        for index, reason in enumerate(reasons):
+
+            reason_columns[index % 2].write(
+                f"âœ“ {reason}"
+            )
+
     else:
-        rec_col.warning(rec)
 
-    st.write("### Reasons")
+        st.info(
+            "No signal drivers returned by the analyzer."
+        )
 
-    for reason in signal["Reasons"]:
-        st.write(f"✅ {reason}")
+    st.write("")
+    st.write("**Market Structure**")
 
-    # ==========================
+    structure_left, structure_mid, structure_right = (
+        st.columns(3)
+    )
+
+    structure_left.metric(
+        "SUPPORT",
+        f'â‚¹{context["support"]:.2f}',
+        f'{context["support_distance"]:.2f}%',
+    )
+
+    structure_mid.metric(
+        "CURRENT",
+        f'â‚¹{context["close"]:.2f}',
+    )
+
+    structure_right.metric(
+        "RESISTANCE",
+        f'â‚¹{context["resistance"]:.2f}',
+        f'{context["resistance_distance"]:.2f}%',
+    )
+
+    if abs(context["resistance_distance"]) < 2:
+
+        st.warning(
+            "Market context: price is close to "
+            "the identified resistance level."
+        )
+
+    elif abs(context["support_distance"]) < 2:
+
+        st.info(
+            "Market context: price is close to "
+            "the identified support level."
+        )
+
+    else:
+
+        st.info(
+            "Market context: price is operating "
+            "away from the immediate support and "
+            "resistance levels."
+        )
+
+    # ========================================================
+    # RISK / DECISION CONTEXT
+    # ========================================================
+
+    st.divider()
+
+    st.markdown(
+        '<div class="section-title">'
+        'âš ï¸ Risk & Decision Context'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    current_price = float(
+        last["Close"]
+    )
+
+    support = float(
+        last["Support"]
+    )
+
+    resistance = float(
+        last["Resistance"]
+    )
+
+    if current_price != 0:
+
+        support_distance = (
+            (support - current_price)
+            / current_price
+            * 100
+        )
+
+        resistance_distance = (
+            (resistance - current_price)
+            / current_price
+            * 100
+        )
+
+    else:
+
+        support_distance = 0.0
+        resistance_distance = 0.0
+
+
+    r1, r2, r3, r4 = st.columns(4)
+
+    r1.metric(
+        "CURRENT",
+        f"â‚¹{current_price:.2f}",
+    )
+
+    r2.metric(
+        "SUPPORT",
+        f"â‚¹{support:.2f}",
+        f"{support_distance:.2f}%",
+    )
+
+    r3.metric(
+        "RESISTANCE",
+        f"â‚¹{resistance:.2f}",
+        f"{resistance_distance:.2f}%",
+    )
+
+    r4.metric(
+        "ATR",
+        f'{last["ATR"]:.2f}',
+    )
+
+    st.caption(
+        "Distance values are contextual market indicators, "
+        "not guaranteed price targets."
+    )
+
+
+    # ========================================================
+    # BREAKOUT ENGINE
+    # ========================================================
+
+    st.divider()
+
+    st.markdown(
+        '<div class="section-title">'
+        'ðŸš€ Breakout Engine'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    breakout_signal = breakout.get(
+        "Signal",
+        "UNKNOWN",
+    )
+
+    breakout_reason = breakout.get(
+        "Reason",
+        "",
+    )
+
+    if breakout_signal == "BUY":
+
+        st.success(
+            f"BREAKOUT SIGNAL: {breakout_signal}"
+        )
+
+    elif breakout_signal == "SELL":
+
+        st.error(
+            f"BREAKOUT SIGNAL: {breakout_signal}"
+        )
+
+    else:
+
+        st.info(
+            f"BREAKOUT SIGNAL: {breakout_signal}"
+        )
+
+    st.write(
+        breakout_reason
+    )
+
+
+    # ========================================================
+    # RAW MARKET DATA
+    # ========================================================
+
+    with st.expander(
+        "ðŸ“„ Latest Market Data"
+    ):
+
+        st.dataframe(
+            df.tail(20),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
+# ============================================================
+# ============================================================
+# V2.3 â€” NIFTY MARKET INTELLIGENCE
+# ============================================================
+
+st.divider()
+
+st.markdown(
+    '<div class="section-title">'
+    'ðŸ”Ž NIFTY Market Intelligence'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+st.caption(
+    "Read-only market intelligence generated from the existing NIFTY scanner."
+)
+
+scan_col, filter_col = st.columns([3, 1])
+
+with filter_col:
+
+    buy_only = st.checkbox(
+        "BUY signals only",
+        value=False,
+        key="v23_buy_only",
+    )
+
+with scan_col:
+
+    scan_clicked = st.button(
+        "ðŸ” RUN NIFTY MARKET SCANNER",
+        use_container_width=True,
+        type="primary",
+        key="v23_scan_market",
+    )
+
+
+if scan_clicked:
+
+    with st.spinner("Scanning NIFTY stocks..."):
+
+        try:
+
+            scan_result = market_scan()
+
+            if (
+                scan_result is not None
+                and not scan_result.empty
+            ):
+
+                scan_result = scan_result.copy()
+
+                if "Score" in scan_result.columns:
+
+                    scan_result = scan_result.sort_values(
+                        "Score",
+                        ascending=False,
+                    )
+
+                st.session_state.scan_result = scan_result
+
+            else:
+
+                st.session_state.scan_result = None
+
+                st.warning(
+                    "No stocks found."
+                )
+
+        except Exception as exc:
+
+            st.session_state.scan_result = None
+
+            st.error(
+                f"Market scan failed: {exc}"
+            )
+
+
+scan = st.session_state.get(
+    "scan_result"
+)
+
+
+if scan is not None and not scan.empty:
+
+    # ========================================================
+    # SIGNAL COLUMN
+    # ========================================================
+
+    signal_column = None
+
+    for candidate in (
+        "Signal",
+        "Recommendation",
+        "signal",
+    ):
+
+        if candidate in scan.columns:
+
+            signal_column = candidate
+            break
+
+
+    # ========================================================
+    # MARKET BREADTH
+    # ========================================================
+
+    total_count = len(scan)
+
+    buy_count = 0
+    hold_count = 0
+    sell_count = 0
+
+    if signal_column is not None:
+
+        signal_values = (
+            scan[signal_column]
+            .astype(str)
+            .str.upper()
+        )
+
+        buy_count = int(
+            signal_values.isin(
+                ["BUY", "STRONG BUY"]
+            ).sum()
+        )
+
+        hold_count = int(
+            signal_values.isin(
+                ["HOLD", "NEUTRAL"]
+            ).sum()
+        )
+
+        sell_count = int(
+            signal_values.isin(
+                ["SELL", "STRONG SELL"]
+            ).sum()
+        )
+
+
+    st.subheader(
+        "ðŸ“Š Market Breadth"
+    )
+
+    b1, b2, b3, b4 = st.columns(4)
+
+    b1.metric("SCANNED", total_count)
+    b2.metric("BUY", buy_count)
+    b3.metric("HOLD", hold_count)
+    b4.metric("SELL", sell_count)
+
+
+    # ========================================================
+    # FILTER
+    # ========================================================
+
+    display_scan = scan.copy()
+
+    if buy_only and signal_column is not None:
+
+        display_scan = display_scan[
+            display_scan[signal_column]
+            .astype(str)
+            .str.upper()
+            .isin(
+                ["BUY", "STRONG BUY"]
+            )
+        ]
+
+
+    # ========================================================
+    # TOP AI SIGNALS
+    # ========================================================
+
+    st.divider()
+
+    st.subheader(
+        "ðŸ† Top AI Signals"
+    )
+
+    st.caption(
+        "Highest-ranked signals from the existing NIFTY scanner."
+    )
+
+    top_signals = display_scan.copy()
+
+    if "Score" in top_signals.columns:
+
+        top_signals = top_signals.sort_values(
+            "Score",
+            ascending=False,
+        )
+
+    top_signals = top_signals.head(5)
+
+
+    if top_signals.empty:
+
+        st.info(
+            "No signals match the current filter."
+        )
+
+    else:
+
+        symbol_column = None
+
+        for candidate in (
+            "Symbol",
+            "symbol",
+            "Ticker",
+            "ticker",
+            "Stock",
+            "stock",
+        ):
+
+            if candidate in top_signals.columns:
+
+                symbol_column = candidate
+                break
+
+
+        score_column = None
+
+        for candidate in (
+            "Score",
+            "score",
+            "AI Score",
+            "AI_Score",
+        ):
+
+            if candidate in top_signals.columns:
+
+                score_column = candidate
+                break
+
+
+        trend_column = None
+
+        for candidate in (
+            "Trend",
+            "trend",
+        ):
+
+            if candidate in top_signals.columns:
+
+                trend_column = candidate
+                break
+
+
+        for rank, (_, row) in enumerate(
+            top_signals.iterrows(),
+            start=1,
+        ):
+
+            stock_name = (
+                str(row[symbol_column])
+                if symbol_column is not None
+                else "UNKNOWN"
+            )
+
+            if score_column is not None:
+
+                try:
+
+                    ai_score = float(
+                        row[score_column]
+                    )
+
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+
+                    ai_score = 0.0
+
+            else:
+
+                ai_score = 0.0
+
+
+            stock_signal = (
+                str(row[signal_column]).upper()
+                if signal_column is not None
+                else "UNKNOWN"
+            )
+
+
+            stock_trend = (
+                str(row[trend_column])
+                if trend_column is not None
+                else "N/A"
+            )
+
+
+            if stock_signal in (
+                "BUY",
+                "STRONG BUY",
+            ):
+
+                icon = "ðŸŸ¢"
+
+            elif stock_signal in (
+                "SELL",
+                "STRONG SELL",
+            ):
+
+                icon = "ðŸ”´"
+
+            else:
+
+                icon = "ðŸŸ¡"
+
+
+            c1, c2, c3, c4 = st.columns(
+                [3, 2, 2, 2]
+            )
+
+            with c1:
+
+                st.markdown(
+                    f"### #{rank} {stock_name}"
+                )
+
+            with c2:
+
+                st.metric(
+                    "AI SCORE",
+                    f"{ai_score:.0f}",
+                )
+
+            with c3:
+
+                st.metric(
+                    "SIGNAL",
+                    f"{icon} {stock_signal}",
+                )
+
+            with c4:
+
+                st.metric(
+                    "TREND",
+                    stock_trend,
+                )
+
+            st.divider()
+
+
+        # ====================================================
+        # RANKING TABLE
+        # ====================================================
+
+        st.write(
+            "**Signal Ranking**"
+        )
+
+        ranking_rows = []
+
+        for rank, (_, row) in enumerate(
+            top_signals.iterrows(),
+            start=1,
+        ):
+
+            stock_name = (
+                str(row[symbol_column])
+                if symbol_column is not None
+                else "UNKNOWN"
+            )
+
+            if score_column is not None:
+
+                try:
+
+                    score_value = float(
+                        row[score_column]
+                    )
+
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+
+                    score_value = 0.0
+
+            else:
+
+                score_value = 0.0
+
+
+            signal_value = (
+                str(row[signal_column])
+                if signal_column is not None
+                else "UNKNOWN"
+            )
+
+
+            ranking_rows.append(
+                {
+                    "Rank": rank,
+                    "Symbol": stock_name,
+                    "AI Score": round(
+                        score_value,
+                        2,
+                    ),
+                    "Signal": signal_value,
+                }
+            )
+
+
+        if ranking_rows:
+
+            st.dataframe(
+                ranking_rows,
+                use_container_width=True,
+                hide_index=True,
+            )
+
+
+    # ========================================================
+    # FULL SCANNER DATA
+    # ========================================================
+
+    with st.expander(
+        "ðŸ“„ View Full Scanner Data"
+    ):
+
+        st.dataframe(
+            display_scan,
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
+else:
+
+    st.info(
+        "Run the NIFTY market scanner to populate Market Intelligence."
+    )
+
+
+# ============================================================
+# V2.4 â€” SELECTED STOCK DECISION INTELLIGENCE
+# ============================================================
+
+st.divider()
+
+st.markdown(
+    '<div class="section-title">'
+    'ðŸ§  EROS Decision Intelligence'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+st.caption(
+    "Detailed read-only analysis using the existing EROS stock analysis engine."
+)
+
+selected_symbol = None
+
+if scan is not None and not scan.empty:
+
+    selector_symbols = []
+
+    for candidate in (
+        "Symbol",
+        "symbol",
+        "Ticker",
+        "ticker",
+        "Stock",
+        "stock",
+    ):
+
+        if candidate in scan.columns:
+
+            selector_symbols = (
+                scan[candidate]
+                .astype(str)
+                .tolist()
+            )
+
+            break
+
+    if selector_symbols:
+
+        selected_symbol = st.selectbox(
+            "Select stock from Market Intelligence",
+            selector_symbols,
+            key="v24_selected_stock",
+        )
+
+
+if selected_symbol:
+
+    if st.button(
+        "ðŸ”Ž ANALYZE SELECTED STOCK",
+        use_container_width=True,
+        type="primary",
+        key="v24_analyze_selected",
+    ):
+
+        with st.spinner(
+            f"Analyzing {selected_symbol}..."
+        ):
+
+            try:
+
+                selected_result = analyze_stock(
+                    selected_symbol
+                )
+
+                st.session_state[
+                    "v24_selected_result"
+                ] = selected_result
+
+                st.session_state[
+                    "v24_selected_symbol"
+                ] = selected_symbol
+
+            except Exception as exc:
+
+                st.session_state[
+                    "v24_selected_result"
+                ] = None
+
+                st.error(
+                    f"Stock analysis failed: {exc}"
+                )
+
+
+selected_result = st.session_state.get(
+    "v24_selected_result"
+)
+
+
+if selected_result is not None:
+
+    selected_symbol_display = (
+        st.session_state.get(
+            "v24_selected_symbol",
+            selected_symbol,
+        )
+    )
+
+    selected_last = selected_result[
+        "df"
+    ].iloc[-1]
+
+    selected_signal = selected_result[
+        "signal"
+    ]
+
+    selected_trend = selected_result[
+        "trend"
+    ]
+
+    selected_breakout = selected_result[
+        "breakout"
+    ]
+
+    # ========================================================
+    # DECISION SNAPSHOT
+    # ========================================================
+
+    st.subheader(
+        f"ðŸ“Œ {selected_symbol_display} â€” Decision Snapshot"
+    )
+
+    d1, d2, d3, d4 = st.columns(4)
+
+    d1.metric(
+        "CURRENT PRICE",
+        f"â‚¹{float(selected_last['Close']):.2f}",
+    )
+
+    d2.metric(
+        "AI SCORE",
+        selected_signal["Score"],
+    )
+
+    d3.metric(
+        "CONFIDENCE",
+        selected_signal["Confidence"],
+    )
+
+    d4.metric(
+        "RISK",
+        selected_signal["Risk"],
+    )
+
+    recommendation = selected_signal[
+        "Recommendation"
+    ]
+
+    if recommendation in (
+        "STRONG BUY",
+        "BUY",
+    ):
+
+        st.success(
+            f"RECOMMENDATION: {recommendation}"
+        )
+
+    elif recommendation in (
+        "STRONG SELL",
+        "SELL",
+    ):
+
+        st.error(
+            f"RECOMMENDATION: {recommendation}"
+        )
+
+    else:
+
+        st.warning(
+            f"RECOMMENDATION: {recommendation}"
+        )
+
+    # ========================================================
+    # TREND / MOMENTUM
+    # ========================================================
+
+    st.subheader(
+        "ðŸ“ˆ Signal Decomposition"
+    )
+
+    s1, s2 = st.columns(2)
+
+    with s1:
+
+        st.metric(
+            "TREND",
+            selected_trend["Trend"],
+        )
+
+    with s2:
+
+        st.metric(
+            "MOMENTUM",
+            selected_trend["Momentum"],
+        )
+
+    # ========================================================
+    # SIGNAL / TREND DIVERGENCE
+    # ========================================================
+
+    strong_positive = recommendation in (
+        "STRONG BUY",
+        "BUY",
+    )
+
+    strong_negative = recommendation in (
+        "STRONG SELL",
+        "SELL",
+    )
+
+    trend_value = str(
+        selected_trend["Trend"]
+    ).upper()
+
+    if (
+        strong_positive
+        and trend_value == "BEARISH"
+    ):
+
+        st.warning(
+            "âš ï¸ SIGNAL / TREND DIVERGENCE â€” "
+            "The AI signal is positive while the "
+            "current trend classification is bearish."
+        )
+
+    elif (
+        strong_negative
+        and trend_value == "BULLISH"
+    ):
+
+        st.warning(
+            "âš ï¸ SIGNAL / TREND DIVERGENCE â€” "
+            "The AI signal is negative while the "
+            "current trend classification is bullish."
+        )
+
+    else:
+
+        st.info(
+            "Signal and trend classification are "
+            "not currently showing a major divergence."
+        )
+
+    # ========================================================
+    # SIGNAL DRIVERS
+    # ========================================================
+
+    st.subheader(
+        "ðŸ§  Signal Drivers"
+    )
+
+    reasons = selected_signal.get(
+        "Reasons",
+        [],
+    )
+
+    if reasons:
+
+        reason_columns = st.columns(2)
+
+        for index, reason in enumerate(
+            reasons
+        ):
+
+            with reason_columns[
+                index % 2
+            ]:
+
+                st.write(
+                    f"âœ“ {reason}"
+                )
+
+    else:
+
+        st.info(
+            "No signal drivers returned."
+        )
+
+    # ========================================================
+    # TECHNICAL INTELLIGENCE
+    # ========================================================
+
+    st.subheader(
+        "ðŸ“Š Technical Intelligence"
+    )
+
+    t1, t2, t3, t4 = st.columns(4)
+
+    t1.metric(
+        "RSI",
+        f"{float(selected_last['RSI_14']):.2f}",
+    )
+
+    t2.metric(
+        "ATR",
+        f"{float(selected_last['ATR']):.2f}",
+    )
+
+    t3.metric(
+        "MACD",
+        f"{float(selected_last['MACD']):.2f}",
+    )
+
+    t4.metric(
+        "SIGNAL",
+        f"{float(selected_last['Signal']):.2f}",
+    )
+
+    # ========================================================
+    # MARKET STRUCTURE
+    # ========================================================
+
+    st.subheader(
+        "ðŸ“ Market Structure"
+    )
+
+    support_value = float(
+        selected_last["Support"]
+    )
+
+    current_value = float(
+        selected_last["Close"]
+    )
+
+    resistance_value = float(
+        selected_last["Resistance"]
+    )
+
+    support_distance = (
+        (
+            current_value
+            - support_value
+        )
+        / current_value
+    ) * 100
+
+    resistance_distance = (
+        (
+            resistance_value
+            - current_value
+        )
+        / current_value
+    ) * 100
+
+    m1, m2, m3 = st.columns(3)
+
+    m1.metric(
+        "SUPPORT",
+        f"â‚¹{support_value:.2f}",
+    )
+
+    m2.metric(
+        "CURRENT",
+        f"â‚¹{current_value:.2f}",
+    )
+
+    m3.metric(
+        "RESISTANCE",
+        f"â‚¹{resistance_value:.2f}",
+    )
+
+    r1, r2 = st.columns(2)
+
+    r1.metric(
+        "DISTANCE TO SUPPORT",
+        f"{support_distance:.2f}%",
+    )
+
+    r2.metric(
+        "DISTANCE TO RESISTANCE",
+        f"{resistance_distance:.2f}%",
+    )
+
+    st.caption(
+        "Distance values are contextual market indicators, "
+        "not guaranteed price targets."
+    )
+
+    # ========================================================
     # BREAKOUT
-    # ==========================
+    # ========================================================
 
-    st.divider()
+    st.subheader(
+        "ðŸš€ Breakout Engine"
+    )
 
-    st.subheader("🚀 Breakout Engine")
+    breakout_signal = selected_breakout.get(
+        "Signal",
+        "NONE",
+    )
 
-    if breakout["Signal"] == "BUY":
-        st.success(breakout["Signal"])
-    elif breakout["Signal"] == "SELL":
-        st.error(breakout["Signal"])
-    else:
-        st.info(breakout["Signal"])
+    breakout_reason = selected_breakout.get(
+        "Reason",
+        "",
+    )
 
-    st.write(breakout["Reason"])
+    if breakout_signal == "BUY":
 
-    # ==========================
-    # CHART
-    # ==========================
+        st.success(
+            f"BREAKOUT SIGNAL: {breakout_signal}"
+        )
 
-    st.divider()
+    elif breakout_signal == "SELL":
 
-    st.subheader("📈 Technical Chart")
-
-    fig = create_candlestick(result["df"], symbol)
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    # ==========================
-    # DATA TABLE
-    # ==========================
-
-    st.divider()
-
-    st.subheader("📄 Latest Market Data")
-
-    st.dataframe(result["df"].tail(20), use_container_width=True, hide_index=True)
-
-# ====================================================
-# PORTFOLIO
-# ====================================================
-
-st.divider()
-
-st.header("💼 My Portfolio")
-
-portfolio = load_portfolio()
-
-if portfolio.empty:
-
-    st.info("Portfolio is empty.")
-
-else:
-
-    st.dataframe(portfolio, use_container_width=True, hide_index=True)
-
-# ====================================================
-# NIFTY SCANNER
-# ====================================================
-
-st.divider()
-
-st.header("📈 NIFTY Scanner")
-
-buy_only = st.checkbox("Show BUY Only")
-
-if st.button("🔍 Scan Market"):
-
-    with st.spinner("Scanning NIFTY Stocks..."):
-
-        scan = market_scan()
-
-    if not scan.empty:
-
-        scan = scan.sort_values("Score", ascending=False)
-
-        if buy_only:
-
-            scan = scan[scan["Signal"] == "BUY"]
-
-        st.dataframe(scan, use_container_width=True, hide_index=True)
+        st.error(
+            f"BREAKOUT SIGNAL: {breakout_signal}"
+        )
 
     else:
 
-        st.warning("No stocks found.")
+        st.info(
+            f"BREAKOUT SIGNAL: {breakout_signal}"
+        )
+
+    st.write(
+        breakout_reason
+    )
+
+    # ========================================================
+    # PRICE ACTION
+    # ========================================================
+
+    st.subheader(
+        "ðŸ“ˆ Price Action"
+    )
+
+    selected_fig = create_candlestick(
+        selected_result["df"],
+        selected_symbol_display,
+    )
+
+    st.plotly_chart(
+        selected_fig,
+        use_container_width=True,
+        key="v24_selected_chart",
+    )
+
+
+    # ========================================================
+    # EROS DECISION INTELLIGENCE
+    # ========================================================
+
+    st.divider()
+
+    st.subheader(
+        "🧠 EROS Decision Intelligence"
+    )
+
+    try:
+
+        eros_traceability = adapter.decision_traceability(
+            selected_symbol
+        )
+
+        if not isinstance(
+            eros_traceability,
+            dict
+        ):
+            raise RuntimeError(
+                "EROS_TRACEABILITY_NOT_DICT"
+            )
+
+        eros_decision = eros_traceability.get(
+            "decision",
+            {}
+        )
+
+        eros_interpretation = eros_traceability.get(
+            "interpretation",
+            {}
+        )
+
+        eros_conclusion = eros_traceability.get(
+            "conclusion",
+            {}
+        )
+
+        eros_trace = eros_traceability.get(
+            "trace",
+            {}
+        )
+
+        eros_governance = eros_traceability.get(
+            "governance",
+            {}
+        )
+
+        e1, e2, e3, e4 = st.columns(4)
+
+        e1.metric(
+            "STANCE",
+            eros_decision.get(
+                "stance",
+                "UNKNOWN"
+            ),
+        )
+
+        e2.metric(
+            "RECOMMENDATION",
+            eros_decision.get(
+                "recommendation",
+                "UNKNOWN"
+            ),
+        )
+
+        e3.metric(
+            "CONFIDENCE",
+            eros_decision.get(
+                "confidence",
+                0.0
+            ),
+        )
+
+        e4.metric(
+            "RISK",
+            eros_decision.get(
+                "risk",
+                "UNKNOWN"
+            ),
+        )
+
+        st.write(
+            "**Decision Classification:** "
+            f"{eros_decision.get('classification', 'UNKNOWN')}"
+        )
+
+        st.write(
+            "**Decision Quality:** "
+            f"{eros_decision.get('decision_quality', 'UNKNOWN')}"
+        )
+
+        st.markdown(
+            "**Interpretation**"
+        )
+
+        if isinstance(
+            eros_interpretation,
+            dict
+        ):
+
+            i1, i2, i3 = st.columns(3)
+
+            i1.write(
+                "**Market Condition**"
+            )
+
+            i1.info(
+                eros_interpretation.get(
+                    "market_condition",
+                    "UNKNOWN"
+                )
+            )
+
+            i2.write(
+                "**Price Context**"
+            )
+
+            i2.info(
+                eros_interpretation.get(
+                    "price_context",
+                    "UNKNOWN"
+                )
+            )
+
+            i3.write(
+                "**Breakout Context**"
+            )
+
+            i3.info(
+                eros_interpretation.get(
+                    "breakout_context",
+                    "UNKNOWN"
+                )
+            )
+
+        st.markdown(
+            "**Decision Traceability**"
+        )
+
+        trace_columns = st.columns(4)
+
+        trace_stages = [
+            (
+                "Evidence",
+                "stage_1_evidence"
+            ),
+            (
+                "Intelligence",
+                "stage_2_intelligence"
+            ),
+            (
+                "Interpretation",
+                "stage_3_interpretation"
+            ),
+            (
+                "Action Framework",
+                "stage_4_action_framework"
+            ),
+            (
+                "Action Explanation",
+                "stage_5_action_explanation"
+            ),
+            (
+                "Scenario Engine",
+                "stage_6_scenario_engine"
+            ),
+            (
+                "Scenario Explanation",
+                "stage_7_scenario_explanation"
+            ),
+            (
+                "Convergence",
+                "stage_8_convergence"
+            ),
+        ]
+
+        for index, (
+            label,
+            stage_key
+        ) in enumerate(
+            trace_stages
+        ):
+
+            stage = eros_trace.get(
+                stage_key,
+                {}
+            )
+
+            status = stage.get(
+                "status",
+                "UNKNOWN"
+            )
+
+            with trace_columns[
+                index % 4
+            ]:
+
+                if status == "AVAILABLE":
+
+                    st.success(
+                        f"✓ {label}"
+                    )
+
+                else:
+
+                    st.warning(
+                        f"{label}: {status}"
+                    )
+
+        if eros_conclusion:
+
+            st.markdown(
+                "**EROS Analytical Conclusion**"
+            )
+
+            if isinstance(
+                eros_conclusion,
+                dict
+            ):
+
+                for key, value in (
+                    eros_conclusion.items()
+                ):
+
+                    st.write(
+                        f"**{key}:** {value}"
+                    )
+
+            else:
+
+                st.write(
+                    eros_conclusion
+                )
+
+        st.caption(
+            "EROS Decision Intelligence is "
+            "read-only analytical provenance. "
+            "It does not execute trades or mutate "
+            "portfolio state."
+        )
+
+        if (
+            eros_governance.get(
+                "read_only",
+                False
+            )
+            and eros_governance.get(
+                "execution_blocked",
+                False
+            )
+        ):
+
+            st.success(
+                "EROS GOVERNANCE: READ ONLY / EXECUTION BLOCKED"
+            )
+
+        else:
+
+            st.warning(
+                "EROS GOVERNANCE STATUS REQUIRES REVIEW"
+            )
+
+    except Exception as eros_error:
+
+        st.error(
+            "EROS Decision Intelligence unavailable: "
+            f"{eros_error}"
+        )
 
 else:
 
-    st.info("Click 'Scan Market' to scan NIFTY stocks.")
+    st.info(
+        "Select a stock from Market Intelligence "
+        "and click ANALYZE SELECTED STOCK."
+    )
+# GOVERNANCE
+# ============================================================
+
+st.divider()
+
+st.markdown(
+    '<div class="section-title">'
+    'ðŸ” EROS Governance'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+governance = adapter.governance()
+
+g1, g2 = st.columns(2)
+
+with g1:
+
+    st.write(
+        "**Operating Mode**"
+    )
+
+    st.success(
+        "READ ONLY"
+    )
+
+    st.write(
+        "**Execution**"
+    )
+
+    st.error(
+        "BLOCKED"
+    )
+
+    st.write(
+        "**Broker**"
+    )
+
+    st.error(
+        "BLOCKED"
+    )
+
+    st.write(
+        "**Orders**"
+    )
+
+    st.error(
+        "BLOCKED"
+    )
+
+with g2:
+
+    safety = governance["safety"]
+
+    safety_rows = {
+        "Read Only": safety["read_only"],
+        "Order Creation": safety[
+            "allow_order_creation"
+        ],
+        "Broker Submission": safety[
+            "allow_broker_submission"
+        ],
+        "Live Execution": safety[
+            "allow_live_execution"
+        ],
+        "Portfolio Mutation": safety[
+            "allow_portfolio_mutation"
+        ],
+        "Valuation Mutation": safety[
+            "allow_valuation_mutation"
+        ],
+        "Performance Mutation": safety[
+            "allow_performance_mutation"
+        ],
+        "Risk Mutation": safety[
+            "allow_risk_mutation"
+        ],
+        "Optimization": safety[
+            "allow_optimization"
+        ],
+        "Execution Blocked": safety[
+            "execution_blocked"
+        ],
+        "Non-Mutation Invariant": safety[
+            "non_mutation_invariant"
+        ],
+    }
+
+    for label, value in safety_rows.items():
+
+        if value is True:
+
+            st.write(
+                f"**{label}** : `TRUE`"
+            )
+
+        else:
+
+            st.write(
+                f"**{label}** : `FALSE`"
+            )
+
+
+# ============================================================
+# FOOTER
+# ============================================================
+
+st.divider()
+
+st.caption(
+    "EROS 3.0 â€¢ Institutional Intelligence Command Center â€¢ "
+    "Block 109 â€¢ Read Only â€¢ Execution Blocked"
+)

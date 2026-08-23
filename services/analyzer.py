@@ -1,6 +1,6 @@
-from data.database import create_table
+﻿from data.database import create_table
 from data.downloader import download_stock
-from data.loader import save_dataframe
+# EROS V2.6 READ_ONLY: database persistence disabled for analyzer
 from data.reader import load_stock
 from engine.breakout_engine import detect_breakout
 from engine.signal_engine import generate_signal
@@ -20,9 +20,9 @@ def analyze_stock(symbol):
 
     df = download_stock(symbol)
 
-    save_dataframe(df, symbol)
+    # EROS V2.6 READ_ONLY: save_dataframe disabled
 
-    df = load_stock(symbol)
+    # EROS V2.6 READ_ONLY: database reload disabled; retain downloaded dataframe
 
     df = df.dropna(subset=["Open", "High", "Low", "Close"])
 
