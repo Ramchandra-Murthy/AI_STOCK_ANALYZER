@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any
 from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
@@ -28,7 +28,7 @@ class SOTPValuationEngine(BaseValuationEngine):
         return "SOTP"
 
     def evaluate(self, data: Any) -> ValuationResult:
-        from services.valuation.sotp_long_term_equity_valuation_service import (
+        from sotp_long_term_equity_valuation_service import (
             SOTPLongTermValuationService,
         )
         company_name = data.get("company_name", "Target Co")
@@ -50,3 +50,4 @@ class SOTPValuationEngine(BaseValuationEngine):
 
 # Backward compatibility alias
 SOTPEngine = SOTPValuationEngine
+

@@ -26,7 +26,7 @@ def analyze_stock(symbol):
 
     df = df.dropna(subset=["Open", "High", "Low", "Close"])
 
-    df = df.reset_index(drop=True)
+    df = df.reset_index()
 
     df = calculate_sma(df, 20)
     df = calculate_sma(df, 50)
@@ -57,3 +57,4 @@ def analyze_stock(symbol):
         "signal": signal,
         "breakout": breakout,
     }
+

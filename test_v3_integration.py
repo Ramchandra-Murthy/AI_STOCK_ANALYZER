@@ -48,30 +48,32 @@ fs = parse_financial_statements(
     cash_flow=raw_cf,
 )
 
-print(f"✓ Ingestion & Validation Success: {fs.company_name} ({fs.ticker})")
+print(f"[PASS] Ingestion & Validation Success: {fs.company_name} ({fs.ticker})")
 
 retrieved = get_financial_statements("Larsen & Toubro", "FY2026")
 print(
-    f"✓ Repository Retrieval         : Net Income = ₹{retrieved.income_statement.net_income:,.2f} Cr"
+    f"[PASS] Repository Retrieval         : Net Income = INR {retrieved.income_statement.net_income:,.2f} Cr"
 )
 
 ratios = calculate_financial_ratios(
     retrieved.income_statement, retrieved.balance_sheet, retrieved.cash_flow_statement
 )
 print(
-    f"✓ Analytics Layer               : ROE = {ratios.roe:.2%} | Net Debt/EBITDA = {ratios.net_debt_to_ebitda:.2f}x"
+    f"[PASS] Analytics Layer               : ROE = {ratios.roe:.2%} | Net Debt/EBITDA = {ratios.net_debt_to_ebitda:.2f}x"
 )
 
 dcf_in = build_dcf_input(retrieved)
 print(
-    f"✓ DCF Builder Input             : Forecast Horizon = {len(dcf_in.revenue_growth_rates)} Yrs | Last Revenue = ₹{dcf_in.last_historical_revenue:,.2f} Cr"
+    f"[PASS] DCF Builder Input             : Forecast Horizon = {len(dcf_in.revenue_growth_rates)} Yrs | Last Revenue = INR {dcf_in.last_historical_revenue:,.2f} Cr"
 )
 
 comp_in = build_comparable_input(retrieved)
 print(
-    f"✓ Comparable Builder Input       : Target EBITDA Base = ₹{comp_in.target.ebitda:,.2f} Cr"
+    f"[PASS] Comparable Builder Input       : Target EBITDA Base = INR {comp_in.target.ebitda:,.2f} Cr"
 )
 
 print("==========================================================")
 print("ALL SYSTEMS OPERATIONAL: Financial Statement Layer V1.0 Ready!")
 print("==========================================================")
+
+
