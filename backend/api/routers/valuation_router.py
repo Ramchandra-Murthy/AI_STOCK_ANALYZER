@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
+from fastapi import Depends
+from backend.api.dependencies.auth import get_current_user
 from sqlalchemy.orm import Session
 from datetime import datetime
 from backend.api.dependencies.database import get_session
@@ -9,7 +11,7 @@ from backend.services.valuation_service import ValuationService
 
 router = APIRouter(prefix="/api/v1", tags=["Valuation"])
 
-@router.post("/valuation", response_model=ValuationResponse)
+@router.post("/valuation", response_model=ValuationResponse, dependencies=[Depends(get_current_user)])
 def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_session)) -> ValuationResponse:
     metrics = {
         "eps": payload.eps,
