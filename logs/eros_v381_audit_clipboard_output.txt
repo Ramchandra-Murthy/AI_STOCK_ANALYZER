@@ -1,0 +1,290 @@
+====================================================================
+EROS 3.0 - V3.8.1 DECISION AUDIT
+LONG-FORM RUNTIME DIAGNOSTIC
+====================================================================
+
+PYTHON VERSION
+--------------------------------------------------------------------
+3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]
+
+1. WORKING DIRECTORY
+--------------------------------------------------------------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+2. ADAPTER IMPORT
+--------------------------------------------------------------------
+IMPORT : PASS
+CLASS  : EROSFrontendAdapter
+
+3. FOUNDATION API CHECK
+--------------------------------------------------------------------
+snapshot                            : PASS
+governance                          : PASS
+dashboard_snapshot                  : PASS
+market_scan                         : PASS
+stock_analysis                      : PASS
+decision_evidence                   : PASS
+decision_intelligence               : PASS
+decision_interpretation             : PASS
+decision_action_framework           : PASS
+decision_action_explanation         : PASS
+decision_scenario_engine            : PASS
+decision_scenario_explanation       : PASS
+decision_convergence                : PASS
+decision_traceability               : PASS
+decision_audit                      : PASS
+
+FOUNDATION : VERIFIED
+
+4. METHOD INSPECTION
+--------------------------------------------------------------------
+METHOD OBJECT : <bound method EROSFrontendAdapter.decision_audit of <services.eros_frontend_adapter.EROSFrontendAdapter object at 0x000002EEBEFA6CF0>>
+METHOD TYPE   : method
+
+METHOD SIGNATURE
+(symbol)
+
+5. TRACEABILITY PRE-CHECK
+--------------------------------------------------------------------
+TRACEABILITY CALL : PASS
+RESULT TYPE       : dict
+TRACEABILITY KEYS
+ - symbol
+ - price
+ - decision
+ - trace
+ - evidence_chain
+ - scenario_trace
+ - interpretation
+ - conclusion
+ - traceability_status
+ - traceability
+ - governance
+
+TRACEABILITY STATUS : COMPLETE
+TRACEABILITY OBJECT :
+{
+  "status": "COMPLETE",
+  "source": "decision_traceability",
+  "schema_version": "V3.7.2",
+  "legacy_trace_preserved": true,
+  "stages": {
+    "stage_1_evidence": "AVAILABLE",
+    "stage_2_intelligence": "AVAILABLE",
+    "stage_3_interpretation": "AVAILABLE",
+    "stage_4_action_framework": "AVAILABLE",
+    "stage_5_action_explanation": "AVAILABLE",
+    "stage_6_scenario_engine": "AVAILABLE",
+    "stage_7_scenario_explanation": "AVAILABLE",
+    "stage_8_convergence": "AVAILABLE"
+  },
+  "primary_scenario": "BULL",
+  "decision_quality": "HIGH",
+  "read_only": true,
+  "execution_blocked": true,
+  "non_mutation_invariant": true
+}
+
+6. DECISION AUDIT TARGET
+--------------------------------------------------------------------
+SYMBOL : RELIANCE.NS
+
+7. DECISION AUDIT CALL
+--------------------------------------------------------------------
+CALL:
+adapter.decision_audit("RELIANCE.NS")
+
+DECISION AUDIT CALL : PASS
+RESULT TYPE         : dict
+
+8. AUDIT RESULT TYPE
+--------------------------------------------------------------------
+RESULT DICT : PASS
+
+9. RAW AUDIT RESULT
+--------------------------------------------------------------------
+{
+  "symbol": "RELIANCE.NS",
+  "price": 1316.0,
+  "decision": {},
+  "audit": {
+    "status": "PASS",
+    "evidence_validation": "PASS",
+    "decision_consistency": "PASS",
+    "scenario_consistency": "PASS",
+    "trace_completeness": "PASS",
+    "governance_validation": "PASS",
+    "safety_validation": "PASS",
+    "conflict_detection": "PASS",
+    "cross_layer_consistency": "PASS",
+    "audit_conclusion": "RELIANCE.NS decision audit passed. Evidence, decision consistency, scenario consistency, traceability, governance, safety, and cross-layer consistency are valid.",
+    "overall_status": "PASS"
+  },
+  "audit_findings": [],
+  "trace": {
+    "source": "decision_traceability",
+    "status": "AVAILABLE",
+    "compatibility": "V3.8.1"
+  },
+  "traceability": {
+    "status": "COMPLETE",
+    "source": "decision_traceability",
+    "schema_version": "V3.7.2",
+    "legacy_trace_preserved": true,
+    "stages": {},
+    "primary_scenario": null,
+    "decision_quality": null,
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true
+  },
+  "evidence_chain": {},
+  "scenario_trace": {},
+  "interpretation": {},
+  "conclusion": "RELIANCE.NS currently has a UNKNOWN stance with UNSPECIFIED recommendation. The current analytical classification is UNSPECIFIED. The decision audit status is PASS. The decision chain remains read-only and execution-blocked.",
+  "audit_summary": "RELIANCE.NS decision audit passed. Evidence, decision consistency, scenario consistency, traceability, governance, safety, and cross-layer consistency are valid.",
+  "audit_status": "PASS",
+  "traceability_status": "COMPLETE",
+  "governance": {
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true,
+    "allow_order_creation": false,
+    "allow_broker_submission": false,
+    "allow_live_execution": false,
+    "allow_portfolio_mutation": false,
+    "allow_valuation_mutation": false,
+    "allow_performance_mutation": false,
+    "allow_risk_mutation": false,
+    "allow_optimization": false
+  }
+}
+
+10. TOP-LEVEL SCHEMA
+--------------------------------------------------------------------
+symbol                              : PASS
+price                               : PASS
+decision                            : PASS
+audit                               : PASS
+audit_findings                      : PASS
+trace                               : PASS
+traceability                        : PASS
+evidence_chain                      : PASS
+scenario_trace                      : PASS
+interpretation                      : PASS
+conclusion                          : PASS
+traceability_status                 : PASS
+audit_summary                       : PASS
+audit_status                        : PASS
+governance                          : PASS
+
+11. AUDIT OBJECT
+--------------------------------------------------------------------
+TYPE : dict
+{
+  "status": "PASS",
+  "evidence_validation": "PASS",
+  "decision_consistency": "PASS",
+  "scenario_consistency": "PASS",
+  "trace_completeness": "PASS",
+  "governance_validation": "PASS",
+  "safety_validation": "PASS",
+  "conflict_detection": "PASS",
+  "cross_layer_consistency": "PASS",
+  "audit_conclusion": "RELIANCE.NS decision audit passed. Evidence, decision consistency, scenario consistency, traceability, governance, safety, and cross-layer consistency are valid.",
+  "overall_status": "PASS"
+}
+
+12. AUDIT FINDINGS
+--------------------------------------------------------------------
+TYPE : list
+[]
+
+13. TRACEABILITY CONTRACT
+--------------------------------------------------------------------
+TYPE : dict
+{
+  "status": "COMPLETE",
+  "source": "decision_traceability",
+  "schema_version": "V3.7.2",
+  "legacy_trace_preserved": true,
+  "stages": {},
+  "primary_scenario": null,
+  "decision_quality": null,
+  "read_only": true,
+  "execution_blocked": true,
+  "non_mutation_invariant": true
+}
+
+14. LEGACY TRACE
+--------------------------------------------------------------------
+TYPE : dict
+{
+  "source": "decision_traceability",
+  "status": "AVAILABLE",
+  "compatibility": "V3.8.1"
+}
+
+15. DECISION
+--------------------------------------------------------------------
+TYPE : dict
+
+16. AUDIT STATUS
+--------------------------------------------------------------------
+audit_status          : PASS
+audit_summary         : RELIANCE.NS decision audit passed. Evidence, decision consistency, scenario consistency, traceability, governance, safety, and cross-layer consistency are valid.
+traceability_status   : COMPLETE
+
+17. GOVERNANCE
+--------------------------------------------------------------------
+TYPE : dict
+{
+  "read_only": true,
+  "execution_blocked": true,
+  "non_mutation_invariant": true,
+  "allow_order_creation": false,
+  "allow_broker_submission": false,
+  "allow_live_execution": false,
+  "allow_portfolio_mutation": false,
+  "allow_valuation_mutation": false,
+  "allow_performance_mutation": false,
+  "allow_risk_mutation": false,
+  "allow_optimization": false
+}
+
+18. SAFETY CONTRACT
+--------------------------------------------------------------------
+read_only                           : PASS (actual=True, expected=True)
+execution_blocked                   : PASS (actual=True, expected=True)
+non_mutation_invariant              : PASS (actual=True, expected=True)
+allow_order_creation                : PASS (actual=False, expected=False)
+allow_broker_submission             : PASS (actual=False, expected=False)
+allow_live_execution                : PASS (actual=False, expected=False)
+allow_portfolio_mutation            : PASS (actual=False, expected=False)
+allow_valuation_mutation            : PASS (actual=False, expected=False)
+allow_performance_mutation          : PASS (actual=False, expected=False)
+allow_risk_mutation                 : PASS (actual=False, expected=False)
+allow_optimization                  : PASS (actual=False, expected=False)
+
+19. DATABASE / EXECUTION SAFETY
+--------------------------------------------------------------------
+DATABASE WRITE-PATH : NONE
+EXECUTION PATH      : BLOCKED
+
+20. FINAL DIAGNOSTIC STATUS
+--------------------------------------------------------------------
+FOUNDATION API       : PASS
+TRACEABILITY API     : PASS
+DECISION AUDIT API   : PASS
+AUDIT RESULT DICT    : PASS
+TOP-LEVEL SCHEMA     : PASS
+SAFETY CONTRACT      : PASS
+DATABASE WRITE-PATH  : NONE
+EXECUTION PATH       : BLOCKED
+
+============================================================
+V3.8.1 DECISION AUDIT RUNTIME : PASS
+============================================================
+
+END OF DIAGNOSTIC
+====================================================================

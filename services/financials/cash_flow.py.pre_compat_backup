@@ -1,0 +1,68 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+@dataclass(slots=True)
+class CashFlowStatement:
+    """Standardized cash flow statement for one reporting period."""
+
+    period: str = "FY2025"
+
+    net_income: float = 0.0
+    depreciation_and_amortization: float = 0.0
+    share_based_compensation: float = 0.0
+    deferred_tax: float = 0.0
+    change_in_working_capital: float = 0.0
+    other_operating_items: float = 0.0
+    operating_cash_flow: float = 0.0
+
+    capital_expenditure: float = 0.0
+    capex: float = 0.0
+
+    acquisitions: float = 0.0
+    asset_sales: float = 0.0
+    investment_purchases: float = 0.0
+    investment_sales: float = 0.0
+    investing_cash_flow: float = 0.0
+
+    debt_issued: float = 0.0
+    debt_repaid: float = 0.0
+    dividends_paid: float = 0.0
+    share_repurchases: float = 0.0
+    equity_issued: float = 0.0
+    financing_cash_flow: float = 0.0
+
+    net_change_in_cash: float = 0.0
+    beginning_cash: float = 0.0
+    ending_cash: float = 0.0
+
+    free_cash_flow: float = 0.0
+
+    def __post_init__(self) -> None:
+        if self.capex != 0.0 and self.capital_expenditure == 0.0:
+            self.capital_expenditure = self.capex
+
+        if self.capital_expenditure != 0.0 and self.capex == 0.0:
+            self.capex = self.capital_expenditure
+
+        calculated_fcf = (
+            self.operating_cash_flow - self.capital_expenditure
+        )
+
+        if self.free_cash_flow == 0.0:
+            self.free_cash_flow = calculated_fcf
+
+    @property
+    def reinvestment(self) -> float:
+        return self.capital_expenditure + self.acquisitions
+
+    @property
+    def financing_requirement(self) -> float:
+        return (
+            self.debt_issued
+            + self.equity_issued
+            - self.debt_repaid
+            - self.dividends_paid
+            - self.share_repurchases
+        )

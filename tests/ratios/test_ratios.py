@@ -10,13 +10,13 @@ def test_financial_ratio_engine() -> None:
     fin = FinancialStatements(
         symbol="RELIANCE.NS",
         income_statements=[
-            IncomeStatement(period="2025", revenue=100000.0, operating_income=20000.0, ebit=18000.0, net_income=12000.0, eps=12.0)
+            IncomeStatement(period="2025", revenue=100000.0, total_operating_income=20000.0, ebit=18000.0, net_income=12000.0, eps=12.0)
         ],
         balance_sheets=[
-            BalanceSheet(period="2025", total_assets=250000.0, total_liabilities=100000.0, shareholders_equity=150000.0, cash=20000.0, debt=50000.0)
+            BalanceSheet(period="2025", total_assets=250000.0, total_liabilities=100000.0, total_equity=150000.0, cash=20000.0, long_term_debt=50000.0)
         ],
         cash_flows=[
-            CashFlowStatement(period="2025", operating_cash_flow=22000.0, capex=5000.0, free_cash_flow=17000.0, investing_cash_flow=-6000.0, financing_cash_flow=-8000.0)
+            CashFlowStatement(period="2025", operating_cash_flow=22000.0, capital_expenditure=5000.0, investing_cash_flow=-6000.0, financing_cash_flow=-8000.0)
         ]
     )
 
@@ -26,3 +26,4 @@ def test_financial_ratio_engine() -> None:
     assert ratios.profitability["net_margin"] > 0
     assert ratios.solvency["debt_to_equity"] > 0
     assert ratios.quality_scores["piotroski_f_score"] == 8.0
+

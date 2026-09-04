@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+from functools import total_ordering
 from typing import Any
 
 
@@ -11,6 +12,7 @@ class SerializableMixin:
         raise NotImplementedError("Subclasses must implement to_dict().")
 
 
+@total_ordering
 class ComparableMixin:
     """Provides ordering and comparison logic for numeric value objects."""
 
@@ -18,6 +20,11 @@ class ComparableMixin:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._get_comparison_value() < other._get_comparison_value()
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self._get_comparison_value() == other._get_comparison_value()
 
     def _get_comparison_value(self) -> Any:
         raise NotImplementedError

@@ -1,0 +1,317 @@
+﻿======================================================================
+EROS 3.0 - V3.8.20 TRACEABILITY UI CONTEXT INSPECTION
+======================================================================
+
+DASHBOARD : .\stock_dashboard.py
+START LINE : 1680
+END LINE   : 1975
+
+ 1680 | 
+ 1681 |     # ========================================================
+ 1682 |     # EROS DECISION INTELLIGENCE
+ 1683 |     # ========================================================
+ 1684 | 
+ 1685 |     st.divider()
+ 1686 | 
+ 1687 |     st.subheader(
+ 1688 |         "🧠 EROS Decision Intelligence"
+ 1689 |     )
+ 1690 | 
+ 1691 |     try:
+ 1692 | 
+ 1693 |         eros_traceability = adapter.decision_traceability(
+ 1694 |             selected_symbol
+ 1695 |         )
+ 1696 | 
+ 1697 |         if not isinstance(
+ 1698 |             eros_traceability,
+ 1699 |             dict
+ 1700 |         ):
+ 1701 |             raise RuntimeError(
+ 1702 |                 "EROS_TRACEABILITY_NOT_DICT"
+ 1703 |             )
+ 1704 | 
+ 1705 |         eros_decision = eros_traceability.get(
+ 1706 |             "decision",
+ 1707 |             {}
+ 1708 |         )
+ 1709 | 
+ 1710 |         eros_interpretation = eros_traceability.get(
+ 1711 |             "interpretation",
+ 1712 |             {}
+ 1713 |         )
+ 1714 | 
+ 1715 |         eros_conclusion = eros_traceability.get(
+ 1716 |             "conclusion",
+ 1717 |             {}
+ 1718 |         )
+ 1719 | 
+ 1720 |         eros_trace = eros_traceability.get(
+ 1721 |             "trace",
+ 1722 |             {}
+ 1723 |         )
+ 1724 | 
+ 1725 |         eros_governance = eros_traceability.get(
+ 1726 |             "governance",
+ 1727 |             {}
+ 1728 |         )
+ 1729 | 
+ 1730 |         e1, e2, e3, e4 = st.columns(4)
+ 1731 | 
+ 1732 |         e1.metric(
+ 1733 |             "STANCE",
+ 1734 |             eros_decision.get(
+ 1735 |                 "stance",
+ 1736 |                 "UNKNOWN"
+ 1737 |             ),
+ 1738 |         )
+ 1739 | 
+ 1740 |         e2.metric(
+ 1741 |             "RECOMMENDATION",
+ 1742 |             eros_decision.get(
+ 1743 |                 "recommendation",
+ 1744 |                 "UNKNOWN"
+ 1745 |             ),
+ 1746 |         )
+ 1747 | 
+ 1748 |         e3.metric(
+ 1749 |             "CONFIDENCE",
+ 1750 |             eros_decision.get(
+ 1751 |                 "confidence",
+ 1752 |                 0.0
+ 1753 |             ),
+ 1754 |         )
+ 1755 | 
+ 1756 |         e4.metric(
+ 1757 |             "RISK",
+ 1758 |             eros_decision.get(
+ 1759 |                 "risk",
+ 1760 |                 "UNKNOWN"
+ 1761 |             ),
+ 1762 |         )
+ 1763 | 
+ 1764 |         st.write(
+ 1765 |             "**Decision Classification:** "
+ 1766 |             f"{eros_decision.get('classification', 'UNKNOWN')}"
+ 1767 |         )
+ 1768 | 
+ 1769 |         st.write(
+ 1770 |             "**Decision Quality:** "
+ 1771 |             f"{eros_decision.get('decision_quality', 'UNKNOWN')}"
+ 1772 |         )
+ 1773 | 
+ 1774 |         st.markdown(
+ 1775 |             "**Interpretation**"
+ 1776 |         )
+ 1777 | 
+ 1778 |         if isinstance(
+ 1779 |             eros_interpretation,
+ 1780 |             dict
+ 1781 |         ):
+ 1782 | 
+ 1783 |             i1, i2, i3 = st.columns(3)
+ 1784 | 
+ 1785 |             i1.write(
+ 1786 |                 "**Market Condition**"
+ 1787 |             )
+ 1788 | 
+ 1789 |             i1.info(
+ 1790 |                 eros_interpretation.get(
+ 1791 |                     "market_condition",
+ 1792 |                     "UNKNOWN"
+ 1793 |                 )
+ 1794 |             )
+ 1795 | 
+ 1796 |             i2.write(
+ 1797 |                 "**Price Context**"
+ 1798 |             )
+ 1799 | 
+ 1800 |             i2.info(
+ 1801 |                 eros_interpretation.get(
+ 1802 |                     "price_context",
+ 1803 |                     "UNKNOWN"
+ 1804 |                 )
+ 1805 |             )
+ 1806 | 
+ 1807 |             i3.write(
+ 1808 |                 "**Breakout Context**"
+ 1809 |             )
+ 1810 | 
+ 1811 |             i3.info(
+ 1812 |                 eros_interpretation.get(
+ 1813 |                     "breakout_context",
+ 1814 |                     "UNKNOWN"
+ 1815 |                 )
+ 1816 |             )
+ 1817 | 
+ 1818 |         st.markdown(
+ 1819 |             "**Decision Traceability**"
+ 1820 |         )
+ 1821 | 
+ 1822 |         trace_columns = st.columns(4)
+ 1823 | 
+ 1824 |         trace_stages = [
+ 1825 |             (
+ 1826 |                 "Evidence",
+ 1827 |                 "stage_1_evidence"
+ 1828 |             ),
+ 1829 |             (
+ 1830 |                 "Intelligence",
+ 1831 |                 "stage_2_intelligence"
+ 1832 |             ),
+ 1833 |             (
+ 1834 |                 "Interpretation",
+ 1835 |                 "stage_3_interpretation"
+ 1836 |             ),
+ 1837 |             (
+ 1838 |                 "Action Framework",
+ 1839 |                 "stage_4_action_framework"
+ 1840 |             ),
+ 1841 |             (
+ 1842 |                 "Action Explanation",
+ 1843 |                 "stage_5_action_explanation"
+ 1844 |             ),
+ 1845 |             (
+ 1846 |                 "Scenario Engine",
+ 1847 |                 "stage_6_scenario_engine"
+ 1848 |             ),
+ 1849 |             (
+ 1850 |                 "Scenario Explanation",
+ 1851 |                 "stage_7_scenario_explanation"
+ 1852 |             ),
+ 1853 |             (
+ 1854 |                 "Convergence",
+ 1855 |                 "stage_8_convergence"
+ 1856 |             ),
+ 1857 |         ]
+ 1858 | 
+ 1859 |         for index, (
+ 1860 |             label,
+ 1861 |             stage_key
+ 1862 |         ) in enumerate(
+ 1863 |             trace_stages
+ 1864 |         ):
+ 1865 | 
+ 1866 |             stage = eros_trace.get(
+ 1867 |                 stage_key,
+ 1868 |                 {}
+ 1869 |             )
+ 1870 | 
+ 1871 |             status = stage.get(
+ 1872 |                 "status",
+ 1873 |                 "UNKNOWN"
+ 1874 |             )
+ 1875 | 
+ 1876 |             with trace_columns[
+ 1877 |                 index % 4
+ 1878 |             ]:
+ 1879 | 
+ 1880 |                 if status == "AVAILABLE":
+ 1881 | 
+ 1882 |                     st.success(
+ 1883 |                         f"✓ {label}"
+ 1884 |                     )
+ 1885 | 
+ 1886 |                 else:
+ 1887 | 
+ 1888 |                     st.warning(
+ 1889 |                         f"{label}: {status}"
+ 1890 |                     )
+ 1891 | 
+ 1892 |         if eros_conclusion:
+ 1893 | 
+ 1894 |             st.markdown(
+ 1895 |                 "**EROS Analytical Conclusion**"
+ 1896 |             )
+ 1897 | 
+ 1898 |             if isinstance(
+ 1899 |                 eros_conclusion,
+ 1900 |                 dict
+ 1901 |             ):
+ 1902 | 
+ 1903 |                 for key, value in (
+ 1904 |                     eros_conclusion.items()
+ 1905 |                 ):
+ 1906 | 
+ 1907 |                     st.write(
+ 1908 |                         f"**{key}:** {value}"
+ 1909 |                     )
+ 1910 | 
+ 1911 |             else:
+ 1912 | 
+ 1913 |                 st.write(
+ 1914 |                     eros_conclusion
+ 1915 |                 )
+ 1916 | 
+ 1917 |         st.caption(
+ 1918 |             "EROS Decision Intelligence is "
+ 1919 |             "read-only analytical provenance. "
+ 1920 |             "It does not execute trades or mutate "
+ 1921 |             "portfolio state."
+ 1922 |         )
+ 1923 | 
+ 1924 |         if (
+ 1925 |             eros_governance.get(
+ 1926 |                 "read_only",
+ 1927 |                 False
+ 1928 |             )
+ 1929 |             and eros_governance.get(
+ 1930 |                 "execution_blocked",
+ 1931 |                 False
+ 1932 |             )
+ 1933 |         ):
+ 1934 | 
+ 1935 |             st.success(
+ 1936 |                 "EROS GOVERNANCE: READ ONLY / EXECUTION BLOCKED"
+ 1937 |             )
+ 1938 | 
+ 1939 |         else:
+ 1940 | 
+ 1941 |             st.warning(
+ 1942 |                 "EROS GOVERNANCE STATUS REQUIRES REVIEW"
+ 1943 |             )
+ 1944 | 
+ 1945 |     except Exception as eros_error:
+ 1946 | 
+ 1947 |         st.error(
+ 1948 |             "EROS Decision Intelligence unavailable: "
+ 1949 |             f"{eros_error}"
+ 1950 |         )
+ 1951 | 
+ 1952 | else:
+ 1953 | 
+ 1954 |     st.info(
+ 1955 |         "Select a stock from Market Intelligence "
+ 1956 |         "and click ANALYZE SELECTED STOCK."
+ 1957 |     )
+ 1958 | # GOVERNANCE
+ 1959 | # ============================================================
+ 1960 | 
+ 1961 | st.divider()
+ 1962 | 
+ 1963 | st.markdown(
+ 1964 |     '<div class="section-title">'
+ 1965 |     'ðŸ” EROS Governance'
+ 1966 |     '</div>',
+ 1967 |     unsafe_allow_html=True,
+ 1968 | )
+ 1969 | 
+ 1970 | governance = adapter.governance()
+ 1971 | 
+ 1972 | g1, g2 = st.columns(2)
+ 1973 | 
+ 1974 | with g1:
+ 1975 | 
+
+======================================================================
+SAFETY
+======================================================================
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+V3.8.20 UI CONTEXT INSPECTION COMPLETE
+======================================================================

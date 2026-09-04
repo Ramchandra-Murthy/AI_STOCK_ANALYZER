@@ -17,6 +17,7 @@ class ResearchReportBuilder:
 
         rec = (
             getattr(committee_decision, "final_action", None)
+            or getattr(committee_decision, "consensus_signal", None)
             or getattr(decision, "action", None)
             or "HOLD"
         )

@@ -39,13 +39,13 @@ class FinancialRatioEngine:
 
         total_assets = bs.total_assets if bs else 1.0
         total_liab = bs.total_liabilities if bs else 0.0
-        equity = bs.shareholders_equity if bs else 1.0
+        equity = (bs.shareholders_equity if bs and bs.shareholders_equity != 0 else (bs.total_equity if bs else 1.0))
         cash = bs.cash if bs else 0.0
-        debt = bs.debt if bs else 0.0
+        debt = (bs.debt if bs and bs.debt != 0 else ((bs.short_term_debt + bs.long_term_debt) if bs else 0.0))
 
         op_cf = cf.operating_cash_flow if cf else 0.0
         fcf = cf.free_cash_flow if cf else 0.0
-        capex = cf.capex if cf else 0.0
+        capex = (cf.capex if cf and cf.capex != 0 else (cf.capital_expenditure if cf else 0.0))
 
         rev_3y_cagr = 15.0
         net_inc_3y_cagr = 18.2
@@ -60,7 +60,7 @@ class FinancialRatioEngine:
             "net_margin": round((net_income / revenue) * 100, 2),
             "operating_margin": round((operating_income / revenue) * 100, 2),
             "ebit_margin": round((ebit / revenue) * 100, 2),
-            "roe": round((net_income / equity) * 100, 2),
+            "roe": round((net_income / max(equity, 1.0)) * 100, 2),
             "roce": round((ebit / total_assets) * 100, 2),
             "roic": round((ebit / (equity + debt - cash)) * 100, 2) if (equity + debt - cash) > 0 else 0.0,
             "croic": round((op_cf / (equity + debt - cash)) * 100, 2) if (equity + debt - cash) > 0 else 0.0
@@ -116,3 +116,4 @@ class FinancialRatioEngine:
             quality_scores=quality_scores,
             metadata={"version": "6.3", "metrics_computed": 55}
         )
+

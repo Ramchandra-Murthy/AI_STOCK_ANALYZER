@@ -103,3 +103,5 @@ if USE_REAL_CELERY and celery_instance is not None:
     celery_app = CeleryFacade(celery_instance)
 else:
     celery_app = MockCeleryApp()
+
+celery = celery_instance

@@ -5,9 +5,9 @@ import pytest
 def test_block30l_live_worker_broker_integration():
     """
     Validates live task dispatch, synchronous/asynchronous execution,
-    and result backend retrieval against WSL Redis at redis://127.0.0.1:6380/0.
+    and result backend retrieval against WSL Redis at redis://127.0.0.1:6379/0.
     """
-    broker_url = "redis://127.0.0.1:6380/0"
+    broker_url = "redis://127.0.0.1:6379/0"
     
     try:
         from celery import Celery
@@ -35,7 +35,7 @@ def test_block30l_live_worker_broker_integration():
         res_data = None
         while time.time() - start_time < 5.0:
             if async_result.ready():
-                res_data = async_result.get(timeout=2.0)
+                res_data = async_result.result
                 break
             time.sleep(0.2)
             
@@ -45,3 +45,5 @@ def test_block30l_live_worker_broker_integration():
         assert async_result.status in ["PENDING", "SUCCESS"]
     except Exception as exc:
         pytest.fail(f"Live worker integration test failed: {exc}")
+
+

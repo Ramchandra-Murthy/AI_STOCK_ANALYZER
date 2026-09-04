@@ -1,0 +1,211 @@
+﻿powershell.exe : JWT decoding failed: Invalid header string: 'utf-8' codec can't decode byte 0x8a in position 0: invalid start byte
+At line:11 char:15
++ $FullOutput = & powershell -NoProfile -Command {
++               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (JWT decoding fa...alid start byte:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+==================================================
+
+
+EROS 3.0 - BLOCK 31K-CI FINAL SECURITY AUDIT
+
+
+==================================================
+
+
+
+
+1. MOCK JWT SEARCH
+
+
+--------------------------------------------------
+
+
+MOCK JWT: FOUND
+
+
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:65 -> "access_token": "mock-jwt-token-xyz"
+
+
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:72 -> "access_token": "mock-jwt-token-xyz",
+
+
+
+
+2. PYTHON COMPILE
+
+
+--------------------------------------------------
+
+
+COMPILE PASS: .\backend\main.py
+
+
+COMPILE PASS: .\backend\api\routers\task_router.py
+
+
+COMPILE PASS: .\backend\api\routers\valuation_router.py
+
+
+COMPILE PASS: .\backend\api\routers\admin_task_router.py
+
+
+COMPILE PASS: .\backend\api\routers\auth_router.py
+
+
+COMPILE PASS: .\backend\security\dependencies.py
+
+
+COMPILE PASS: .\backend\security\jwt.py
+
+
+COMPILE PASS: .\backend\services\user_service.py
+
+
+
+
+3. FASTAPI IMPORT
+
+
+--------------------------------------------------
+
+
+APPLICATION IMPORT: PASS
+APP: FastAPI
+TITLE: EROS 3.0 Institutional Research Platform
+VERSION: 3.0.0
+
+
+4. ROUTE SECURITY INVENTORY
+
+
+--------------------------------------------------
+
+
+OPEN | /openapi.json | GET,HEAD | DEP_COUNT= 0
+OPEN | /docs | GET,HEAD | DEP_COUNT= 0
+OPEN | /docs/oauth2-redirect | GET,HEAD | DEP_COUNT= 0
+OPEN | /redoc | GET,HEAD | DEP_COUNT= 0
+OPEN | /health | GET | DEP_COUNT= 0
+OPEN | /ready | GET | DEP_COUNT= 0
+OPEN | /api/v1/auth/register | POST | DEP_COUNT= 0
+OPEN | /api/v1/auth/login | POST | DEP_COUNT= 0
+SECURED | /api/v1/valuation | POST | DEP_COUNT= 1
+SECURED | /api/v1/admin/queues | GET | DEP_COUNT= 1
+SECURED | /api/v1/admin/tasks | GET | DEP_COUNT= 1
+
+
+5. OPENAPI SECURITY
+
+
+--------------------------------------------------
+
+
+OPENAPI: 200
+SECURITY SCHEMES: {'HTTPBearer': {'type': 'http', 'scheme': 'bearer'}}
+SECURED OPERATIONS: 11
+  /api/v1/tasks/submit | POST
+  /api/v1/tasks/registered | GET
+  /api/v1/tasks/queues/status | GET
+  /api/v1/tasks/{task_id}/status | GET
+  /api/v1/tasks/{task_id}/result | GET
+  /api/v1/tasks/observability/metrics | GET
+  /api/v1/tasks/observability/details | GET
+  /api/v1/tasks/observability | GET
+  /api/v1/valuation | POST
+  /api/v1/admin/queues | GET
+  /api/v1/admin/tasks | GET
+
+
+6. SETTINGS
+
+
+--------------------------------------------------
+
+
+PROJECT_NAME: EROS 3.0 Institutional Research Platform
+ENVIRONMENT: production
+AUTH_ENABLED: True
+JWT_ALGORITHM: HS256
+ACCESS_TOKEN_EXPIRE_MINUTES: 60
+JWT_SECRET CONFIGURED: True
+DATABASE_URL CONFIGURED: True
+REDIS_URL CONFIGURED: True
+
+
+7. JWT FUNCTIONAL
+
+
+--------------------------------------------------
+
+
+TOKEN CREATED: True
+TOKEN LENGTH: 251
+DECODE SUCCESS: True
+SUB: eros_security_test
+USERNAME: eros_security_test
+ROLE: ANALYST
+ISSUER: eros-enterprise-platform
+EXP: 1787489734
+INVALID TOKEN RETURNS NONE: True
+
+
+8. UNAUTHENTICATED ACCESS
+
+
+--------------------------------------------------
+
+
+TASK_SUBMIT -> 401 | SECURITY_ENFORCED
+VALUATION -> 401 | SECURITY_ENFORCED
+ADMIN_QUEUES -> 401 | SECURITY_ENFORCED
+ADMIN_TASKS -> 401 | SECURITY_ENFORCED
+PROTECTED: 4 / 4
+AUTH GATE: PASS
+
+
+9. INFRASTRUCTURE
+
+
+--------------------------------------------------
+
+
+HEALTH: 200 {'status': 'healthy', 'version': '3.0', 'environment': 'production'}
+READY: 200 {'status': 'ready', 'database': 'connected', 'redis': 'connected'}
+INFRASTRUCTURE: PASS
+
+
+10. MAIN.PY ROUTE DUPLICATES
+
+
+--------------------------------------------------
+
+
+
+
+
+
+
+
+==================================================
+
+
+FINAL SECURITY RESULT
+
+
+==================================================
+
+
+MOCK JWT: FAIL
+
+
+COMPILE: PASS
+
+
+==================================================
+
+
+
+
+

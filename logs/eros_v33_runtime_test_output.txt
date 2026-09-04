@@ -1,0 +1,171 @@
+============================================================
+EROS 3.0 - V3.3 DECISION ACTION EXPLANATION ENGINE - RUNTIME
+============================================================
+
+1. ADAPTER IMPORT
+------------------------------------------------------------
+IMPORT : PASS
+CLASS  : EROSFrontendAdapter
+
+2. EXISTING API CHECK
+------------------------------------------------------------
+snapshot                         : PASS
+governance                       : PASS
+dashboard_snapshot               : PASS
+market_scan                      : PASS
+stock_analysis                   : PASS
+decision_evidence                : PASS
+decision_intelligence            : PASS
+decision_interpretation          : PASS
+decision_action_framework        : PASS
+
+3. V3.3 EXPLANATION API DISCOVERY
+------------------------------------------------------------
+EXPLANATION API : PASS
+ - decision_action_explanation
+
+4. DECISION ACTION FRAMEWORK
+------------------------------------------------------------
+ACTION FRAMEWORK : PASS
+{
+  "symbol": "RELIANCE.NS",
+  "price": 1316.0,
+  "action": {
+    "classification": "WAIT_FOR_CONFIRMATION",
+    "stance": "BULLISH",
+    "recommendation": "STRONG BUY",
+    "score": 100.0,
+    "confidence": 100.0,
+    "confidence_band": "HIGH",
+    "risk_context": "LOW"
+  },
+  "market_context": {
+    "price_context": "NEAR_SUPPORT",
+    "breakout_context": "NO_ACTIVE_BREAKOUT",
+    "support": 1298.0999755859375,
+    "resistance": 1332.9000244140625
+  },
+  "confirmation_conditions": [
+    "Hold above support 1298.10",
+    "Monitor resistance 1332.90"
+  ],
+  "invalidation_conditions": [
+    "Sustained breakdown below support 1298.10",
+    "Failure near resistance 1332.90"
+  ],
+  "interpretation_summary": "The technical evidence currently supports a STRONG BUY stance. The market condition is BULLISH_MOMENTUM. Decision quality is HIGH.",
+  "governance": {
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true,
+    "allow_order_creation": false,
+    "allow_broker_submission": false,
+    "allow_live_execution": false,
+    "allow_portfolio_mutation": false,
+    "allow_optimization": false
+  }
+}
+
+5. EXECUTING V3.3 EXPLANATION API
+------------------------------------------------------------
+EXPLANATION : PASS
+{
+  "symbol": "RELIANCE.NS",
+  "price": 1316.0,
+  "action": {
+    "classification": "WAIT_FOR_CONFIRMATION",
+    "stance": "BULLISH",
+    "recommendation": "STRONG BUY",
+    "confidence": 100.0,
+    "confidence_band": "HIGH",
+    "risk_context": "LOW"
+  },
+  "explanation": {
+    "primary_reason": "The underlying evidence is favorable, but the current price context requires confirmation before the action classification can strengthen.",
+    "supporting_reasons": [
+      "Overall stance is BULLISH.",
+      "Recommendation is STRONG BUY.",
+      "Confidence is HIGH (100.0%).",
+      "Price context is NEAR_SUPPORT.",
+      "Breakout context is NO_ACTIVE_BREAKOUT."
+    ],
+    "primary_drivers": [
+      "20 SMA above 50 SMA (Bullish)",
+      "EMA20 above SMA20",
+      "MACD Bullish Crossover"
+    ],
+    "supporting_drivers": [
+      "RSI Neutral",
+      "Trading near Support",
+      "Trading near Resistance",
+      "Low Volatility"
+    ],
+    "conflicting_signals": [],
+    "confirmation_logic": [
+      "Hold above support 1298.10",
+      "Monitor resistance 1332.90"
+    ],
+    "invalidation_logic": [
+      "Sustained breakdown below support 1298.10",
+      "Failure near resistance 1332.90"
+    ],
+    "decision_quality": "HIGH",
+    "risk_explanation": "Risk context is LOW. Risk is informational only and does not authorize execution.",
+    "price_context": "NEAR_SUPPORT",
+    "support": 1298.0999755859375,
+    "resistance": 1332.9000244140625,
+    "breakout_context": "NO_ACTIVE_BREAKOUT",
+    "summary": "RELIANCE.NS is classified as WAIT_FOR_CONFIRMATION with BULLISH stance and STRONG BUY recommendation. Decision confidence is 100.0% (HIGH). Price context is NEAR_SUPPORT.",
+    "execution_status": "BLOCKED"
+  },
+  "governance": {
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true,
+    "allow_order_creation": false,
+    "allow_broker_submission": false,
+    "allow_live_execution": false,
+    "allow_portfolio_mutation": false,
+    "allow_valuation_mutation": false,
+    "allow_performance_mutation": false,
+    "allow_risk_mutation": false,
+    "allow_optimization": false
+  }
+}
+
+6. EXPLANATION FIELD DISCOVERY
+------------------------------------------------------------
+ - symbol
+ - price
+ - action
+ - explanation
+ - governance
+
+7. SAFETY CHECK
+------------------------------------------------------------
+read_only                        : PASS
+execution_blocked                : PASS
+non_mutation_invariant           : PASS
+allow_order_creation             : PASS
+allow_broker_submission          : PASS
+allow_live_execution             : PASS
+allow_portfolio_mutation         : PASS
+allow_valuation_mutation         : PASS
+allow_performance_mutation       : PASS
+allow_risk_mutation              : PASS
+allow_optimization               : PASS
+
+============================================================
+EROS 3.0 - V3.3 DECISION ACTION EXPLANATION ENGINE
+============================================================
+
+EXPLANATION API        : PASS
+ACTION FRAMEWORK      : PASS
+SAFETY CONTRACT       : PASS
+READ_ONLY             : TRUE
+EXECUTION_BLOCKED     : TRUE
+NON_MUTATION_INVARIANT: TRUE
+
+FINAL RESULT : PASS
+V3.3 DECISION ACTION EXPLANATION : CLEARED
+============================================================

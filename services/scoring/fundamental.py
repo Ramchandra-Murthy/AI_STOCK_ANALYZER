@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
 from services.financials.financial_ratios import (
@@ -256,25 +256,37 @@ class FundamentalScoringEngine:
             2,
         )
 
+        raw_ratios = {
+            "gross_margin": ratios.gross_margin,
+            "ebitda_margin": ratios.ebitda_margin,
+            "ebit_margin": ratios.ebit_margin,
+            "net_margin": ratios.net_margin,
+            "roe": ratios.roe,
+            "roa": ratios.roa,
+            "roce": ratios.roce,
+            "roic": ratios.roic,
+            "current_ratio": ratios.current_ratio,
+            "quick_ratio": ratios.quick_ratio,
+            "debt_to_equity": ratios.debt_to_equity,
+            "net_debt_to_ebitda": ratios.net_debt_to_ebitda,
+            "fcf_margin": ratios.fcf_margin,
+            "cash_conversion_ratio": ratios.cash_conversion_ratio,
+            "asset_turnover": ratios.asset_turnover,
+            "inventory_turnover": ratios.inventory_turnover,
+        }
+
         details = {
-            "ratios": {
-                "gross_margin": ratios.gross_margin,
-                "ebitda_margin": ratios.ebitda_margin,
-                "ebit_margin": ratios.ebit_margin,
-                "net_margin": ratios.net_margin,
-                "roe": ratios.roe,
-                "roa": ratios.roa,
-                "roce": ratios.roce,
-                "roic": ratios.roic,
-                "current_ratio": ratios.current_ratio,
-                "quick_ratio": ratios.quick_ratio,
-                "debt_to_equity": ratios.debt_to_equity,
-                "net_debt_to_ebitda": ratios.net_debt_to_ebitda,
-                "fcf_margin": ratios.fcf_margin,
-                "cash_conversion_ratio": ratios.cash_conversion_ratio,
-                "asset_turnover": ratios.asset_turnover,
-                "inventory_turnover": ratios.inventory_turnover,
-            },
+            # Block 10 audit identity
+            "engine_version": "EROS-3.0-BLOCK-10",
+
+            # Canonical Block 10 audit contract
+            "raw_ratios": raw_ratios,
+            "profitability_components": profitability_components,
+            "quality_components": quality_components,
+            "capital_allocation_components": capital_efficiency_components,
+
+            # Existing detailed contract retained for compatibility
+            "ratios": raw_ratios,
             "profitability": profitability_components,
             "quality": quality_components,
             "financial_strength": financial_strength_components,

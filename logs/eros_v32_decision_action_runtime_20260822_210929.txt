@@ -1,0 +1,160 @@
+============================================================
+EROS 3.0 - V3.2 DECISION ACTION FRAMEWORK - RUNTIME
+============================================================
+
+1. ADAPTER IMPORT
+------------------------------------------------------------
+IMPORT : PASS
+CLASS  : EROSFrontendAdapter
+
+2. EXISTING API
+------------------------------------------------------------
+snapshot                      : PASS
+governance                    : PASS
+dashboard_snapshot            : PASS
+market_scan                   : PASS
+stock_analysis                : PASS
+decision_evidence             : PASS
+decision_intelligence         : PASS
+decision_interpretation       : PASS
+
+3. V3.2 ACTION API DISCOVERY
+------------------------------------------------------------
+ACTION-RELATED API : PASS
+ - decision_action_framework
+
+4. DECISION INTERPRETATION
+------------------------------------------------------------
+SYMBOL : RELIANCE.NS
+DECISION INTERPRETATION : PASS
+
+{
+  "symbol": "RELIANCE.NS",
+  "price": 1316.0,
+  "decision": {
+    "stance": "BULLISH",
+    "recommendation": "STRONG BUY",
+    "score": 100.0,
+    "score_band": "STRONG",
+    "confidence": 100.0,
+    "confidence_band": "HIGH",
+    "risk": "Low"
+  },
+  "interpretation": {
+    "market_condition": "BULLISH_MOMENTUM",
+    "price_context": "NEAR_SUPPORT",
+    "breakout_context": "NO_ACTIVE_BREAKOUT",
+    "decision_quality": "HIGH",
+    "primary_drivers": [
+      "20 SMA above 50 SMA (Bullish)",
+      "EMA20 above SMA20",
+      "MACD Bullish Crossover"
+    ],
+    "supporting_drivers": [
+      "RSI Neutral",
+      "Trading near Support",
+      "Trading near Resistance",
+      "Low Volatility"
+    ],
+    "conflicting_signals": [],
+    "interpretation": "The technical evidence currently supports a STRONG BUY stance. The market condition is BULLISH_MOMENTUM. Decision quality is HIGH.",
+    "invalidation_context": [
+      "Monitor price behavior around support 1298.10",
+      "Monitor price behavior around resistance 1332.90"
+    ]
+  },
+  "technical_indicators": {
+    "sma_20": 1307.9700073242188,
+    "sma_50": 1306.5940014648438,
+    "ema_20": 1311.3409877919446,
+    "rsi_14": 49.04336764483778,
+    "macd": 4.125609191499734,
+    "signal": 3.8792510855909024,
+    "histogram": 0.24635810590883178,
+    "bb_middle": 1307.9700073242188,
+    "bb_upper": 1346.3953311502535,
+    "bb_lower": 1269.5446834981842,
+    "atr": 20.635724748883927,
+    "support": 1298.0999755859375,
+    "resistance": 1332.9000244140625
+  },
+  "governance": {
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true
+  }
+}
+
+5. V3.2 ACTION FRAMEWORK
+------------------------------------------------------------
+ACTION METHODS FOUND :
+ - decision_action_framework
+
+ACTION METHOD EXECUTED : decision_action_framework
+ACTION RESULT : PASS
+
+{
+  "symbol": "RELIANCE.NS",
+  "price": 1316.0,
+  "action": {
+    "classification": "WAIT_FOR_CONFIRMATION",
+    "stance": "BULLISH",
+    "recommendation": "STRONG BUY",
+    "score": 100.0,
+    "confidence": 100.0,
+    "confidence_band": "HIGH",
+    "risk_context": "LOW"
+  },
+  "market_context": {
+    "price_context": "NEAR_SUPPORT",
+    "breakout_context": "NO_ACTIVE_BREAKOUT",
+    "support": 1298.0999755859375,
+    "resistance": 1332.9000244140625
+  },
+  "confirmation_conditions": [
+    "Hold above support 1298.10",
+    "Monitor resistance 1332.90"
+  ],
+  "invalidation_conditions": [
+    "Sustained breakdown below support 1298.10",
+    "Failure near resistance 1332.90"
+  ],
+  "interpretation_summary": "The technical evidence currently supports a STRONG BUY stance. The market condition is BULLISH_MOMENTUM. Decision quality is HIGH.",
+  "governance": {
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true,
+    "allow_order_creation": false,
+    "allow_broker_submission": false,
+    "allow_live_execution": false,
+    "allow_portfolio_mutation": false,
+    "allow_optimization": false
+  }
+}
+
+6. SAFETY CONTRACT
+------------------------------------------------------------
+read_only                       : PASS (actual=True, expected=True)
+execution_blocked               : PASS (actual=True, expected=True)
+non_mutation_invariant          : PASS (actual=True, expected=True)
+allow_order_creation            : PASS (actual=False, expected=False)
+allow_broker_submission         : PASS (actual=False, expected=False)
+allow_live_execution            : PASS (actual=False, expected=False)
+allow_portfolio_mutation        : PASS (actual=False, expected=False)
+allow_valuation_mutation        : PASS (actual=False, expected=False)
+allow_performance_mutation      : PASS (actual=False, expected=False)
+allow_risk_mutation             : PASS (actual=False, expected=False)
+allow_optimization              : PASS (actual=False, expected=False)
+
+============================================================
+EROS 3.0 - V3.2 DECISION ACTION FRAMEWORK
+============================================================
+
+SAFETY CONTRACT : PASS
+READ_ONLY       : TRUE
+EXECUTION_BLOCKED : TRUE
+NON_MUTATION_INVARIANT : TRUE
+
+FINAL RUNTIME SAFETY : PASS
+
+============================================================

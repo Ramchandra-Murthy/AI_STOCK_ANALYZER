@@ -1,0 +1,109 @@
+﻿======================================================================
+EROS 3.0 - V3.8.3 FRONTEND CONSUMPTION FORENSIC
+======================================================================
+
+DASHBOARD : .\stock_dashboard.py
+
+
+TOKEN : decision_evidence
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_intelligence
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_interpretation
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_action_framework
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_action_explanation
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_scenario_engine
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_scenario_explanation
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_convergence
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_traceability
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_audit
+----------------------------------------
+NOT FOUND
+
+TOKEN : evidence_chain
+----------------------------------------
+NOT FOUND
+
+TOKEN : scenario_trace
+----------------------------------------
+NOT FOUND
+
+TOKEN : traceability
+----------------------------------------
+NOT FOUND
+
+TOKEN : conclusion
+----------------------------------------
+NOT FOUND
+
+TOKEN : interpretation
+----------------------------------------
+NOT FOUND
+
+TOKEN : recommendation
+----------------------------------------
+   88 | "Recommendation",
+  442 | "RECOMMENDATION",
+  443 | str(signal["Recommendation"]),
+  541 | recommendation = str(
+  542 | signal.get("Recommendation", "UNKNOWN")
+  554 | if recommendation in ("STRONG BUY", "BUY"):
+  555 | st.success(recommendation)
+  556 | elif recommendation in ("STRONG SELL", "SELL"):
+  557 | st.error(recommendation)
+  559 | st.warning(recommendation)
+  892 | "Recommendation",
+ 1387 | recommendation = selected_signal[
+ 1388 | "Recommendation"
+ 1391 | if recommendation in (
+ 1397 | f"RECOMMENDATION: {recommendation}"
+ 1400 | elif recommendation in (
+ 1406 | f"RECOMMENDATION: {recommendation}"
+ 1412 | f"RECOMMENDATION: {recommendation}"
+ 1443 | strong_positive = recommendation in (
+ 1448 | strong_negative = recommendation in (
+
+ADAPTER CALLS
+----------------------------------------
+    6 | from services.eros_frontend_adapter import EROSFrontendAdapter
+   26 | adapter = EROSFrontendAdapter()
+  293 | governance = adapter.governance()
+ 1698 | governance = adapter.governance()
+
+SAFETY
+----------------------------------------
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+======================================================================
+V3.8.3 FRONTEND FORENSIC COMPLETE
+======================================================================

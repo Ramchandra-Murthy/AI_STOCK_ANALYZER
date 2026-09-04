@@ -1,0 +1,257 @@
+﻿======================================================================
+EROS 3.0 - V3.8.3.2 ADAPTER PUBLIC API CONSUMPTION FORENSIC
+======================================================================
+
+ADAPTER : .\services\eros_frontend_adapter.py
+
+   49 |     def decision_convergence(self, symbol: str = "RELIANCE.NS"):
+  260 |     def __init__(self) -> None:
+  270 |     def governance(self) -> Dict[str, Any]:
+  294 |     def stock_analysis(
+  323 |     def market_scan(self):
+  336 |     def dashboard_snapshot(
+  363 |     def decision_evidence(self, symbol: str) -> dict:
+  464 |     def snapshot(self) -> Dict[str, Any]:
+  479 |     def decision_intelligence(self, symbol: str) -> Dict[str, Any]:
+  688 |     def decision_interpretation(self, symbol: str) -> Dict[str, Any]:
+ 1104 |     def decision_action_explanation(self, symbol: str) -> dict:
+ 1342 |     def decision_action_framework(self, symbol: str) -> dict:
+ 1567 |     def decision_scenario_engine(self, symbol: str = "RELIANCE.NS") -> dict:
+ 1753 |     def decision_scenario_explanation(self, symbol: str) -> Dict[str, Any]:
+ 1863 |     def decision_traceability(self, symbol: str = "RELIANCE.NS") -> Dict[str, Any]:
+ 2095 |     def decision_audit(self, symbol):
+   13 | class EROSFrontendAdapter:
+  470 | "name": "EROSFrontendAdapter",
+
+DECISION METHOD REFERENCES
+----------------------------------------
+
+TOKEN : decision_evidence
+   67 | evidence = self.decision_evidence(symbol)
+  363 | def decision_evidence(self, symbol: str) -> dict:
+  484 | Convert the certified V2.9 decision_evidence() object
+  497 | evidence = self.decision_evidence(symbol)
+ 1937 | "source": "decision_evidence",
+ 2202 | "decision_evidence",
+
+TOKEN : decision_intelligence
+   69 | intelligence = self.decision_intelligence(symbol)
+  479 | def decision_intelligence(self, symbol: str) -> Dict[str, Any]:
+  692 | Converts the certified V3.0 decision_intelligence()
+  700 | intelligence = self.decision_intelligence(symbol)
+ 1942 | "source": "decision_intelligence",
+ 2203 | "decision_intelligence",
+
+TOKEN : decision_interpretation
+   65 | interpretation = self.decision_interpretation(symbol)
+  688 | def decision_interpretation(self, symbol: str) -> Dict[str, Any]:
+ 1120 | interpretation = self.decision_interpretation(symbol)
+ 1358 | interpretation = self.decision_interpretation(symbol)
+ 1579 | interpretation = self.decision_interpretation(symbol)
+ 1947 | "source": "decision_interpretation",
+ 2204 | "decision_interpretation",
+
+TOKEN : decision_action_framework
+   63 | action = self.decision_action_framework(symbol)
+ 1118 | action = self.decision_action_framework(symbol)
+ 1342 | def decision_action_framework(self, symbol: str) -> dict:
+ 1961 | "source": "decision_action_framework",
+ 2205 | "decision_action_framework",
+
+TOKEN : decision_action_explanation
+ 1104 | def decision_action_explanation(self, symbol: str) -> dict:
+ 1966 | "source": "decision_action_explanation",
+ 2206 | "decision_action_explanation",
+
+TOKEN : decision_scenario_engine
+   59 | scenario = self.decision_scenario_engine(symbol)
+ 1567 | def decision_scenario_engine(self, symbol: str = "RELIANCE.NS") -> dict:
+ 1764 | scenario_data = self.decision_scenario_engine(symbol)
+ 1971 | "source": "decision_scenario_engine",
+ 2207 | "decision_scenario_engine",
+
+TOKEN : decision_scenario_explanation
+   61 | explanation = self.decision_scenario_explanation(symbol)
+ 1753 | def decision_scenario_explanation(self, symbol: str) -> Dict[str, Any]:
+ 1976 | "source": "decision_scenario_explanation",
+ 2208 | "decision_scenario_explanation",
+
+TOKEN : decision_convergence
+   49 | def decision_convergence(self, symbol: str = "RELIANCE.NS"):
+ 1908 | convergence = self.decision_convergence(symbol)
+ 1981 | "source": "decision_convergence",
+ 2134 | convergence = self.decision_convergence(symbol)
+ 2209 | "decision_convergence"
+ 3061 | _v382_convergence_result = self.decision_convergence(symbol)
+
+TOKEN : decision_traceability
+ 1863 | def decision_traceability(self, symbol: str = "RELIANCE.NS") -> Dict[str, Any]:
+ 2055 | "source": "decision_traceability",
+ 2162 | traceability_result = self.decision_traceability(symbol)
+ 2631 | "source": "decision_traceability",
+ 2652 | "source": "decision_traceability",
+ 2973 | "decision_traceability"
+ 3056 | _v382_trace_result = self.decision_traceability(symbol)
+ 3197 | "decision_traceability",
+ 3256 | # V3.8.2.3 proved that decision_traceability(symbol) already contains
+ 3280 | _v3824_traceability_result = self.decision_traceability(symbol)
+
+TOKEN : decision_audit
+ 2095 | def decision_audit(self, symbol):
+
+TOKEN : evidence_chain
+ 1989 | "evidence_chain": {
+ 2179 | evidence_chain = traceability_result.get(
+ 2180 | "evidence_chain",
+ 2441 | conflicting_signals = evidence_chain.get(
+ 2662 | _v381_evidence_chain = _v381_result.get(
+ 2663 | "evidence_chain",
+ 2667 | if not isinstance(_v381_evidence_chain, dict):
+ 2668 | _v381_evidence_chain = {}
+ 3011 | _v381_result["evidence_chain"] = (
+ 3012 | _v381_evidence_chain
+ 3109 | _v382_evidence_chain = _v382_trace_result.get(
+ 3110 | "evidence_chain",
+ 3114 | if not isinstance(_v382_evidence_chain, dict):
+ 3115 | _v382_evidence_chain = {}
+ 3215 | "evidence_chain": _v382_evidence_chain,
+ 3260 | #   evidence_chain
+ 3300 | _v3824_evidence_chain = _v3824_traceability_result.get(
+ 3301 | "evidence_chain",
+ 3334 | if not isinstance(_v3824_evidence_chain, dict):
+ 3335 | _v3824_evidence_chain = {}
+ 3397 | "evidence_chain": _v3824_evidence_chain,
+
+TOKEN : scenario_trace
+ 2012 | "scenario_trace": {
+ 2184 | scenario_trace = traceability_result.get(
+ 2185 | "scenario_trace",
+ 2489 | trace_primary_scenario = scenario_trace.get(
+ 2675 | _v381_scenario_trace = _v381_result.get(
+ 2676 | "scenario_trace",
+ 2680 | if not isinstance(_v381_scenario_trace, dict):
+ 2681 | _v381_scenario_trace = {}
+ 3015 | _v381_result["scenario_trace"] = (
+ 3016 | _v381_scenario_trace
+ 3117 | _v382_scenario_trace = _v382_trace_result.get(
+ 3118 | "scenario_trace",
+ 3122 | if not isinstance(_v382_scenario_trace, dict):
+ 3123 | _v382_scenario_trace = {}
+ 3135 | or _v382_scenario_trace.get("primary_scenario")
+ 3216 | "scenario_trace": _v382_scenario_trace,
+ 3261 | #   scenario_trace
+ 3305 | _v3824_scenario_trace = _v3824_traceability_result.get(
+ 3306 | "scenario_trace",
+ 3337 | if not isinstance(_v3824_scenario_trace, dict):
+ 3338 | _v3824_scenario_trace = {}
+ 3399 | "scenario_trace": _v3824_scenario_trace,
+
+TOKEN : governance
+  243 | "governance": {
+  267 | # GOVERNANCE
+  270 | def governance(self) -> Dict[str, Any]:
+  272 | Return the frontend-visible EROS governance state.
+  343 | governance = self.governance()
+  354 | "gateway": governance["query_gateway"],
+  355 | "safety": governance["safety"],
+  455 | "governance": {
+  500 | governance = evidence.get("governance", {})
+  672 | "governance": {
+  674 | governance.get("read_only", True)
+  677 | governance.get("execution_blocked", True)
+  680 | governance.get(
+  727 | governance = intelligence.get(
+  728 | "governance",
+ 1077 | "governance": {
+ 1080 | governance.get(
+ 1087 | governance.get(
+ 1094 | governance.get(
+ 1124 | governance = interpretation.get("governance", {})
+ 1327 | "governance": {
+ 1518 | # READ-ONLY GOVERNANCE
+ 1521 | governance = {
+ 1564 | "governance": governance
+ 1584 | governance = interpretation.get("governance", {})
+ 1705 | safe_governance = {
+ 1749 | "governance": safe_governance
+ 1845 | "governance": {
+ 1918 | governance = convergence.get("governance", {})
+ 2078 | "governance": {
+ 2124 | 5. Governance integrity
+ 2153 | governance = convergence.get(
+ 2154 | "governance",
+ 2365 | # 5. Governance integrity
+ 2368 | governance_integrity = "PASS"
+ 2389 | if governance.get(field) is not True:
+ 2392 | "Governance violation: "
+ 2396 | governance_integrity = "FAIL"
+ 2400 | if governance.get(field) is not False:
+ 2403 | "Governance violation: "
+ 2407 | governance_integrity = "FAIL"
+ 2415 | if governance.get("read_only") is not True:
+ 2418 | if governance.get("execution_blocked") is not True:
+ 2421 | if governance.get("non_mutation_invariant") is not True:
+ 2426 | if governance.get(field) is not False:
+ 2532 | governance_integrity,
+ 2556 | "traceability, governance, safety, and cross-layer "
+ 2570 | # Final immutable governance contract
+ 2573 | audit_governance = {
+ 2786 | "governance_validation",
+ 2788 | "governance_integrity",
+ 2829 | f"traceability, governance, safety, and cross-layer "
+ 2920 | # Governance normalization
+ 2923 | _v381_governance = _v381_result.get(
+ 2924 | "governance",
+ 2928 | if not isinstance(_v381_governance, dict):
+ 2930 | _v381_governance = {}
+ 2932 | _v381_governance.update({
+ 3039 | _v381_result["governance"] = (
+ 3040 | _v381_governance
+ 3236 | "governance": {
+ 3320 | _v3824_governance = _v3824_traceability_result.get(
+ 3321 | "governance",
+ 3343 | if not isinstance(_v3824_governance, dict):
+ 3344 | _v3824_governance = {}
+ 3425 | "governance": _v3824_governance,
+
+RETURN STATEMENTS
+----------------------------------------
+  258 |         return convergence
+  272 |         Return the frontend-visible EROS governance state.
+  275 |         return {
+  317 |         return result
+  330 |         return market_scan()
+  340 |         Return a frontend-safe dashboard snapshot.
+  345 |         return {
+  397 |                         return None
+  401 |                             return None
+  405 |                     return value
+  408 |                 return None
+  410 |             return None
+  462 |         return evidence
+  466 |         Return immutable frontend adapter metadata.
+  469 |         return {
+  640 |         return {
+ 1043 |         return {
+ 1299 |         return {
+ 1532 |         return {
+ 1719 |         return {
+ 1860 |         return explanation
+ 2093 |         return traceability
+ 2588 |         # Return
+ 3252 |         # V3.8.2.4 AUDIT DATAFLOW RETURN REPAIR
+ 3428 |         return _v3824_result
+ 3430 |         # END V3.8.2.4 AUDIT DATAFLOW RETURN REPAIR
+
+SAFETY
+----------------------------------------
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+======================================================================
+V3.8.3.2 FORENSIC COMPLETE
+======================================================================

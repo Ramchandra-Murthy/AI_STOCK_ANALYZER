@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import logging
 from logging.config import fileConfig
 
@@ -8,6 +12,7 @@ from alembic import context
 
 from backend.database.engine import Base
 from backend.database.models.company import CompanyModel, ValuationRecordModel
+from backend.database.models.user import UserModel
 from backend.config.settings import settings
 
 config = context.config
@@ -15,7 +20,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1))
 
 target_metadata = Base.metadata
 
@@ -51,3 +56,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+

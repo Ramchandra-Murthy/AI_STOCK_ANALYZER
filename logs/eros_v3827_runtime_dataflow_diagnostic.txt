@@ -1,0 +1,334 @@
+﻿======================================================================
+EROS 3.0 - V3.8.2.7 RUNTIME DECISION DATAFLOW DIAGNOSTIC
+======================================================================
+
+1. ENVIRONMENT
+----------------------------------------------------------------------
+Python: 3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]
+CWD   : D:\Users\User\Desktop\AI_STOCK_ANALYZER
+ROOT  : D:\Users\User\Desktop\AI_STOCK_ANALYZER
+PATH  : True
+
+2. ADAPTER IMPORT
+----------------------------------------------------------------------
+IMPORT : PASS
+
+3. RUNTIME DATAFLOW
+----------------------------------------------------------------------
+SYMBOL : RELIANCE.NS
+
+CALLING: stock_analysis
+CALL : PASS
+
+======================================================================
+stock_analysis
+======================================================================
+TYPE : dict
+KEY COUNT : 5
+KEYS      : ['df', 'last', 'trend', 'signal', 'breakout']
+
+CRITICAL FIELDS
+--------------------------------------------------
+trend                    : DICT keys=2 ['Trend', 'Momentum']
+
+CALLING: decision_evidence
+CALL : PASS
+
+======================================================================
+decision_evidence
+======================================================================
+TYPE : dict
+KEY COUNT : 13
+KEYS      : ['symbol', 'price', 'trend', 'momentum', 'score', 'confidence', 'recommendation', 'risk', 'reasons', 'breakout_signal', 'breakout_reason', 'technical_indicators', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+trend                    : str = 'Bullish'
+momentum                 : str = 'Strong'
+score                    : int = 100
+confidence               : int = 100
+recommendation           : str = 'STRONG BUY'
+risk                     : str = 'Low'
+
+CALLING: decision_intelligence
+CALL : PASS
+
+======================================================================
+decision_intelligence
+======================================================================
+TYPE : dict
+KEY COUNT : 9
+KEYS      : ['symbol', 'price', 'decision', 'market_context', 'technical_drivers', 'technical_indicators', 'risk_flags', 'summary', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+decision                 : DICT keys=7 ['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+
+CALLING: decision_interpretation
+CALL : PASS
+
+======================================================================
+decision_interpretation
+======================================================================
+TYPE : dict
+KEY COUNT : 6
+KEYS      : ['symbol', 'price', 'decision', 'interpretation', 'technical_indicators', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+decision                 : DICT keys=7 ['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+interpretation           : DICT keys=9 ['market_condition', 'price_context', 'breakout_context', 'decision_quality', 'primary_drivers', 'supporting_drivers', 'conflicting_signals', 'interpretation', 'invalidation_context']
+
+CALLING: decision_action_framework
+CALL : PASS
+
+======================================================================
+decision_action_framework
+======================================================================
+TYPE : dict
+KEY COUNT : 8
+KEYS      : ['symbol', 'price', 'action', 'market_context', 'confirmation_conditions', 'invalidation_conditions', 'interpretation_summary', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+
+CALLING: decision_action_explanation
+CALL : PASS
+
+======================================================================
+decision_action_explanation
+======================================================================
+TYPE : dict
+KEY COUNT : 5
+KEYS      : ['symbol', 'price', 'action', 'explanation', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+
+CALLING: decision_scenario_engine
+CALL : PASS
+
+======================================================================
+decision_scenario_engine
+======================================================================
+TYPE : dict
+KEY COUNT : 8
+KEYS      : ['symbol', 'price', 'current_decision', 'primary_scenario', 'scenarios', 'decision_quality', 'scenario_summary', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+decision_quality         : str = 'HIGH'
+
+CALLING: decision_scenario_explanation
+CALL : PASS
+
+======================================================================
+decision_scenario_explanation
+======================================================================
+TYPE : dict
+KEY COUNT : 11
+KEYS      : ['symbol', 'price', 'current_decision', 'primary_scenario', 'scenario_explanation', 'decision_quality', 'interpretation', 'confirmation_logic', 'invalidation_logic', 'summary', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+decision_quality         : str = 'HIGH'
+interpretation           : str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The primary scenario is BULL.'
+
+CALLING: decision_convergence
+CALL : PASS
+
+======================================================================
+decision_convergence
+======================================================================
+TYPE : dict
+KEY COUNT : 7
+KEYS      : ['symbol', 'price', 'decision', 'convergence', 'interpretation', 'conclusion', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+decision                 : DICT keys=6 ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+interpretation           : DICT keys=4 ['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+convergence              : DICT keys=9 ['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation', 'confirmation_logic', 'invalidation_logic', 'primary_drivers', 'supporting_drivers', 'conflicting_signals']
+conclusion               : str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.'
+
+CALLING: decision_traceability
+CALL : PASS
+
+======================================================================
+decision_traceability
+======================================================================
+TYPE : dict
+KEY COUNT : 11
+KEYS      : ['symbol', 'price', 'decision', 'trace', 'evidence_chain', 'scenario_trace', 'interpretation', 'conclusion', 'traceability_status', 'traceability', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+decision                 : DICT keys=6 ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+evidence_chain           : DICT keys=5 ['primary_drivers', 'supporting_drivers', 'conflicting_signals', 'confirmation_logic', 'invalidation_logic']
+scenario_trace           : DICT keys=4 ['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation']
+interpretation           : DICT keys=4 ['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+trace                    : DICT keys=8 ['stage_1_evidence', 'stage_2_intelligence', 'stage_3_interpretation', 'stage_4_action_framework', 'stage_5_action_explanation', 'stage_6_scenario_engine', 'stage_7_scenario_explanation', 'stage_8_convergence']
+traceability             : DICT keys=10 ['status', 'source', 'schema_version', 'legacy_trace_preserved', 'stages', 'primary_scenario', 'decision_quality', 'read_only', 'execution_blocked', 'non_mutation_invariant']
+conclusion               : str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.'
+
+CALLING: decision_audit
+CALL : PASS
+
+======================================================================
+decision_audit
+======================================================================
+TYPE : dict
+KEY COUNT : 15
+KEYS      : ['symbol', 'price', 'decision', 'audit', 'audit_findings', 'trace', 'traceability', 'evidence_chain', 'scenario_trace', 'interpretation', 'conclusion', 'traceability_status', 'audit_summary', 'audit_status', 'governance']
+
+CRITICAL FIELDS
+--------------------------------------------------
+symbol                   : str = 'RELIANCE.NS'
+price                    : float = 1316.0
+decision                 : DICT keys=6 ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+evidence_chain           : DICT keys=5 ['primary_drivers', 'supporting_drivers', 'conflicting_signals', 'confirmation_logic', 'invalidation_logic']
+scenario_trace           : DICT keys=4 ['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation']
+interpretation           : DICT keys=4 ['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+trace                    : DICT keys=8 ['stage_1_evidence', 'stage_2_intelligence', 'stage_3_interpretation', 'stage_4_action_framework', 'stage_5_action_explanation', 'stage_6_scenario_engine', 'stage_7_scenario_explanation', 'stage_8_convergence']
+traceability             : DICT keys=10 ['status', 'source', 'schema_version', 'legacy_trace_preserved', 'stages', 'primary_scenario', 'decision_quality', 'read_only', 'execution_blocked', 'non_mutation_invariant']
+conclusion               : str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.'
+audit                    : DICT keys=11 ['status', 'evidence_validation', 'decision_consistency', 'scenario_consistency', 'trace_completeness', 'governance_validation', 'safety_validation', 'conflict_detection', 'cross_layer_consistency', 'audit_conclusion', 'overall_status']
+audit_findings           : LIST items=0
+audit_status             : str = 'PASS'
+
+
+======================================================================
+4. FIRST-EMPTY-STAGE ANALYSIS
+======================================================================
+
+stock_analysis
+
+decision_evidence
+
+decision_intelligence
+  decision                  : HYDRATED
+
+decision_interpretation
+  decision                  : HYDRATED
+  interpretation            : HYDRATED
+
+decision_action_framework
+
+decision_action_explanation
+
+decision_scenario_engine
+
+decision_scenario_explanation
+  interpretation            : VALUE
+
+decision_convergence
+  decision                  : HYDRATED
+  interpretation            : HYDRATED
+  convergence               : HYDRATED
+
+decision_traceability
+  decision                  : HYDRATED
+  evidence_chain            : HYDRATED
+  interpretation            : HYDRATED
+  scenario_trace            : HYDRATED
+  trace                     : HYDRATED
+  traceability              : HYDRATED
+
+decision_audit
+  decision                  : HYDRATED
+  evidence_chain            : HYDRATED
+  interpretation            : HYDRATED
+  scenario_trace            : HYDRATED
+  trace                     : HYDRATED
+  traceability              : HYDRATED
+
+
+======================================================================
+5. DECISION EVIDENCE PAYLOAD
+======================================================================
+symbol                    : 'RELIANCE.NS'
+price                     : 1316.0
+trend                     : 'Bullish'
+momentum                  : 'Strong'
+score                     : 100
+confidence                : 100
+recommendation            : 'STRONG BUY'
+risk                      : 'Low'
+reasons                   : ['20 SMA above 50 SMA (Bullish)', 'EMA20 above SMA20', 'RSI Neutral', 'MACD Bullish Crossover', 'Trading near Support', 'Trading near Resistance', 'Low Volatility']
+breakout_signal           : 'NONE'
+breakout_reason           : 'Price is inside the trading range.'
+
+
+======================================================================
+6. DECISION INTELLIGENCE PAYLOAD
+======================================================================
+{'symbol': 'RELIANCE.NS', 'price': 1316.0, 'decision': {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'score': 100.0, 'score_band': 'STRONG', 'confidence': 100.0, 'confidence_band': 'HIGH', 'risk': 'Low'}, 'market_context': {'trend': 'Bullish', 'momentum': 'Strong', 'breakout_signal': 'NONE', 'breakout_reason': 'Price is inside the trading range.'}, 'technical_drivers': ['20 SMA above 50 SMA (Bullish)', 'EMA20 above SMA20', 'RSI Neutral', 'MACD Bullish Crossover', 'Trading near Support', 'Trading near Resistance', 'Low Volatility'], 'technical_indicators': {'sma_20': 1307.9700073242188, 'sma_50': 1306.5940014648438, 'ema_20': 1311.3409877919446, 'rsi_14': 49.04336764483778, 'macd': 4.125609191499734, 'signal': 3.8792510855909024, 'histogram': 0.24635810590883178, 'bb_middle': 1307.9700073242188, 'bb_upper': 1346.3953311502535, 'bb_lower': 1269.5446834981842, 'atr': 20.635724748883927, 'support': 1298.0999755859375, 'resistance': 1332.9000244140625}, 'risk_flags': ['Low', 'NEAR_SUPPORT', 'NEAR_RESISTANCE'], 'summary': 'RELIANCE.NS is bullish with STRONG BUY recommendation, score 100/100 and 100% confidence.', 'governance': {'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True}}
+
+
+======================================================================
+7. DOWNSTREAM HYDRATION SUMMARY
+======================================================================
+decision_interpretation             : decision=DATA, interpretation=DATA
+decision_action_framework           : 
+decision_action_explanation         : 
+decision_scenario_engine            : 
+decision_scenario_explanation       : interpretation=VALUE
+decision_convergence                : decision=DATA, interpretation=DATA, convergence=DATA
+decision_traceability               : decision=DATA, evidence_chain=DATA, scenario_trace=DATA, interpretation=DATA, traceability=DATA
+decision_audit                      : decision=DATA, evidence_chain=DATA, scenario_trace=DATA, interpretation=DATA, traceability=DATA
+
+
+======================================================================
+8. SAFETY VERIFICATION
+======================================================================
+read_only                           : True
+execution_blocked                   : True
+non_mutation_invariant              : True
+allow_order_creation                : False
+allow_broker_submission             : False
+allow_live_execution                : False
+allow_portfolio_mutation            : False
+allow_valuation_mutation            : False
+allow_performance_mutation          : False
+allow_risk_mutation                 : False
+allow_optimization                  : False
+
+
+======================================================================
+9. CONCLUSION
+======================================================================
+
+NO SOURCE PATCH PERFORMED.
+NO DATABASE WRITE.
+NO BROKER CALL.
+NO ORDER CREATION.
+NO PORTFOLIO MUTATION.
+NO GIT OPERATION.
+
+This diagnostic identifies the FIRST runtime stage where
+decision data becomes empty or changes shape.
+
+V3.8.2.4 GOLDEN CHECKPOINT REMAINS UNMODIFIED.
+
+======================================================================
+V3.8.2.7 DIAGNOSTIC COMPLETE
+======================================================================
+

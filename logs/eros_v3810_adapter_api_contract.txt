@@ -1,0 +1,991 @@
+﻿======================================================================
+EROS 3.0 - V3.8.10 ADAPTER API CONTRACT CAPTURE
+======================================================================
+
+ADAPTER : .\services\eros_frontend_adapter.py
+
+
+======================================================================
+METHOD : decision_evidence
+======================================================================
+START LINE : 363
+CAPTURE TO : 463
+
+  363 |     def decision_evidence(self, symbol: str) -> dict:
+  364 |         """
+  365 |         EROS V2.9 normalized read-only decision evidence.
+  366 | 
+  367 |         This method consumes the existing stock_analysis()
+  368 |         result and exposes a stable evidence contract.
+  369 | 
+  370 |         No database writes are performed.
+  371 |         No portfolio mutation is performed.
+  372 |         No broker or execution path is exposed.
+  373 |         """
+  374 | 
+  375 |         result = self.stock_analysis(symbol)
+  376 | 
+  377 |         if not isinstance(result, dict):
+  378 |             raise TypeError(
+  379 |                 "STOCK_ANALYSIS_RESULT_MUST_BE_DICT"
+  380 |             )
+  381 | 
+  382 |         trend = result.get("trend") or {}
+  383 |         signal = result.get("signal") or {}
+  384 |         breakout = result.get("breakout") or {}
+  385 |         last = result.get("last")
+  386 | 
+  387 |         def value_from_last(name):
+  388 |             try:
+  389 |                 if last is not None and name in last:
+  390 | 
+  391 |                     value = last[name]
+  392 | 
+  393 |                     if hasattr(value, "item"):
+  394 |                         value = value.item()
+  395 | 
+  396 |                     if value is None:
+  397 |                         return None
+  398 | 
+  399 |                     try:
+  400 |                         if value != value:
+  401 |                             return None
+  402 |                     except Exception:
+  403 |                         pass
+  404 | 
+  405 |                     return value
+  406 | 
+  407 |             except Exception:
+  408 |                 return None
+  409 | 
+  410 |             return None
+  411 | 
+  412 |         evidence = {
+  413 |             "symbol": symbol,
+  414 | 
+  415 |             "price": value_from_last("Close"),
+  416 | 
+  417 |             "trend": trend.get("Trend"),
+  418 |             "momentum": trend.get("Momentum"),
+  419 | 
+  420 |             "score": signal.get("Score"),
+  421 |             "confidence": signal.get("Confidence"),
+  422 |             "recommendation": signal.get(
+  423 |                 "Recommendation"
+  424 |             ),
+  425 |             "risk": signal.get("Risk"),
+  426 | 
+  427 |             "reasons": list(
+  428 |                 signal.get("Reasons") or []
+  429 |             ),
+  430 | 
+  431 |             "breakout_signal": breakout.get(
+  432 |                 "Signal"
+  433 |             ),
+  434 | 
+  435 |             "breakout_reason": breakout.get(
+  436 |                 "Reason"
+  437 |             ),
+  438 | 
+  439 |             "technical_indicators": {
+  440 |                 "sma_20": value_from_last("SMA_20"),
+  441 |                 "sma_50": value_from_last("SMA_50"),
+  442 |                 "ema_20": value_from_last("EMA_20"),
+  443 |                 "rsi_14": value_from_last("RSI_14"),
+  444 |                 "macd": value_from_last("MACD"),
+  445 |                 "signal": value_from_last("Signal"),
+  446 |                 "histogram": value_from_last("Histogram"),
+  447 |                 "bb_middle": value_from_last("BB_Middle"),
+  448 |                 "bb_upper": value_from_last("BB_Upper"),
+  449 |                 "bb_lower": value_from_last("BB_Lower"),
+  450 |                 "atr": value_from_last("ATR"),
+  451 |                 "support": value_from_last("Support"),
+  452 |                 "resistance": value_from_last("Resistance"),
+  453 |             },
+  454 | 
+  455 |             "governance": {
+  456 |                 "read_only": True,
+  457 |                 "execution_blocked": True,
+  458 |                 "non_mutation_invariant": True,
+  459 |             },
+  460 |         }
+  461 | 
+  462 |         return evidence
+  463 | 
+
+======================================================================
+METHOD : decision_intelligence
+======================================================================
+START LINE : 479
+CAPTURE TO : 579
+
+  479 |     def decision_intelligence(self, symbol: str) -> Dict[str, Any]:
+  480 |         """
+  481 |         EROS 3.0 V3.0 Decision Intelligence Foundation.
+  482 | 
+  483 |         Purpose:
+  484 |             Convert the certified V2.9 decision_evidence() object
+  485 |             into a normalized read-only intelligence object.
+  486 | 
+  487 |         Safety:
+  488 |             - No database writes
+  489 |             - No portfolio mutation
+  490 |             - No valuation mutation
+  491 |             - No risk mutation
+  492 |             - No optimization
+  493 |             - No broker submission
+  494 |             - No live execution
+  495 |         """
+  496 | 
+  497 |         evidence = self.decision_evidence(symbol)
+  498 | 
+  499 |         technical = evidence.get("technical_indicators", {})
+  500 |         governance = evidence.get("governance", {})
+  501 | 
+  502 |         score = evidence.get("score")
+  503 |         confidence = evidence.get("confidence")
+  504 | 
+  505 |         try:
+  506 |             score_value = float(score)
+  507 |         except (TypeError, ValueError):
+  508 |             score_value = 0.0
+  509 | 
+  510 |         try:
+  511 |             confidence_value = float(confidence)
+  512 |         except (TypeError, ValueError):
+  513 |             confidence_value = 0.0
+  514 | 
+  515 |         recommendation = evidence.get(
+  516 |             "recommendation",
+  517 |             "UNKNOWN"
+  518 |         )
+  519 | 
+  520 |         risk = evidence.get(
+  521 |             "risk",
+  522 |             "UNKNOWN"
+  523 |         )
+  524 | 
+  525 |         trend = evidence.get(
+  526 |             "trend",
+  527 |             "UNKNOWN"
+  528 |         )
+  529 | 
+  530 |         momentum = evidence.get(
+  531 |             "momentum",
+  532 |             "UNKNOWN"
+  533 |         )
+  534 | 
+  535 |         breakout_signal = evidence.get(
+  536 |             "breakout_signal",
+  537 |             "NONE"
+  538 |         )
+  539 | 
+  540 |         reasons = evidence.get(
+  541 |             "reasons",
+  542 |             []
+  543 |         )
+  544 | 
+  545 |         if not isinstance(reasons, list):
+  546 |             reasons = [str(reasons)]
+  547 | 
+  548 |         # ----------------------------------------------------
+  549 |         # MARKET STANCE
+  550 |         # ----------------------------------------------------
+  551 | 
+  552 |         if recommendation in ("STRONG BUY", "BUY"):
+  553 |             stance = "BULLISH"
+  554 |         elif recommendation in ("STRONG SELL", "SELL"):
+  555 |             stance = "BEARISH"
+  556 |         elif recommendation == "HOLD":
+  557 |             stance = "NEUTRAL"
+  558 |         else:
+  559 |             stance = "UNDEFINED"
+  560 | 
+  561 |         # ----------------------------------------------------
+  562 |         # CONFIDENCE BAND
+  563 |         # ----------------------------------------------------
+  564 | 
+  565 |         if confidence_value >= 80:
+  566 |             confidence_band = "HIGH"
+  567 |         elif confidence_value >= 60:
+  568 |             confidence_band = "MEDIUM"
+  569 |         elif confidence_value >= 40:
+  570 |             confidence_band = "LOW"
+  571 |         else:
+  572 |             confidence_band = "VERY LOW"
+  573 | 
+  574 |         # ----------------------------------------------------
+  575 |         # SCORE BAND
+  576 |         # ----------------------------------------------------
+  577 | 
+  578 |         if score_value >= 80:
+  579 |             score_band = "STRONG"
+
+======================================================================
+METHOD : decision_interpretation
+======================================================================
+START LINE : 688
+CAPTURE TO : 788
+
+  688 |     def decision_interpretation(self, symbol: str) -> Dict[str, Any]:
+  689 |         """
+  690 |         EROS 3.0 V3.1 Decision Interpretation Engine.
+  691 | 
+  692 |         Converts the certified V3.0 decision_intelligence()
+  693 |         object into an interpretive, read-only decision view.
+  694 | 
+  695 |         No execution.
+  696 |         No broker interaction.
+  697 |         No database mutation.
+  698 |         """
+  699 | 
+  700 |         intelligence = self.decision_intelligence(symbol)
+  701 | 
+  702 |         decision = intelligence.get(
+  703 |             "decision",
+  704 |             {}
+  705 |         )
+  706 | 
+  707 |         context = intelligence.get(
+  708 |             "market_context",
+  709 |             {}
+  710 |         )
+  711 | 
+  712 |         technical = intelligence.get(
+  713 |             "technical_indicators",
+  714 |             {}
+  715 |         )
+  716 | 
+  717 |         drivers = intelligence.get(
+  718 |             "technical_drivers",
+  719 |             []
+  720 |         )
+  721 | 
+  722 |         risk_flags = intelligence.get(
+  723 |             "risk_flags",
+  724 |             []
+  725 |         )
+  726 | 
+  727 |         governance = intelligence.get(
+  728 |             "governance",
+  729 |             {}
+  730 |         )
+  731 | 
+  732 |         price = intelligence.get("price")
+  733 | 
+  734 |         try:
+  735 |             price_value = float(price)
+  736 |         except (TypeError, ValueError):
+  737 |             price_value = None
+  738 | 
+  739 |         try:
+  740 |             score = float(
+  741 |                 decision.get("score", 0)
+  742 |             )
+  743 |         except (TypeError, ValueError):
+  744 |             score = 0.0
+  745 | 
+  746 |         try:
+  747 |             confidence = float(
+  748 |                 decision.get("confidence", 0)
+  749 |             )
+  750 |         except (TypeError, ValueError):
+  751 |             confidence = 0.0
+  752 | 
+  753 |         recommendation = decision.get(
+  754 |             "recommendation",
+  755 |             "UNKNOWN"
+  756 |         )
+  757 | 
+  758 |         trend = context.get(
+  759 |             "trend",
+  760 |             "UNKNOWN"
+  761 |         )
+  762 | 
+  763 |         momentum = context.get(
+  764 |             "momentum",
+  765 |             "UNKNOWN"
+  766 |         )
+  767 | 
+  768 |         breakout = context.get(
+  769 |             "breakout_signal",
+  770 |             "NONE"
+  771 |         )
+  772 | 
+  773 |         # ----------------------------------------------------
+  774 |         # PRIMARY DRIVERS
+  775 |         # ----------------------------------------------------
+  776 | 
+  777 |         primary_drivers = []
+  778 | 
+  779 |         for driver in drivers:
+  780 | 
+  781 |             if not isinstance(driver, str):
+  782 |                 continue
+  783 | 
+  784 |             driver_lower = driver.lower()
+  785 | 
+  786 |             if (
+  787 |                 "sma" in driver_lower
+  788 |                 or "ema" in driver_lower
+
+======================================================================
+METHOD : decision_action_framework
+======================================================================
+START LINE : 1342
+CAPTURE TO : 1442
+
+ 1342 |     def decision_action_framework(self, symbol: str) -> dict:
+ 1343 |         """
+ 1344 |         EROS V3.2 - Decision Action Framework
+ 1345 | 
+ 1346 |         Converts V3.1 decision interpretation into a structured,
+ 1347 |         read-only action framework.
+ 1348 | 
+ 1349 |         SAFETY:
+ 1350 |         - No database writes
+ 1351 |         - No portfolio mutation
+ 1352 |         - No order creation
+ 1353 |         - No broker submission
+ 1354 |         - No live execution
+ 1355 |         - No optimization
+ 1356 |         """
+ 1357 | 
+ 1358 |         interpretation = self.decision_interpretation(symbol)
+ 1359 | 
+ 1360 |         decision = interpretation.get("decision", {})
+ 1361 |         market_context = interpretation.get("market_context", {})
+ 1362 |         technical_indicators = interpretation.get(
+ 1363 |             "technical_indicators",
+ 1364 |             {}
+ 1365 |         )
+ 1366 |         interpretation_block = interpretation.get(
+ 1367 |             "interpretation",
+ 1368 |             {}
+ 1369 |         )
+ 1370 | 
+ 1371 |         recommendation = decision.get(
+ 1372 |             "recommendation",
+ 1373 |             "NO ACTION"
+ 1374 |         )
+ 1375 | 
+ 1376 |         stance = decision.get(
+ 1377 |             "stance",
+ 1378 |             "NEUTRAL"
+ 1379 |         )
+ 1380 | 
+ 1381 |         risk = decision.get(
+ 1382 |             "risk",
+ 1383 |             "UNKNOWN"
+ 1384 |         )
+ 1385 | 
+ 1386 |         score = float(
+ 1387 |             decision.get("score", 0.0)
+ 1388 |         )
+ 1389 | 
+ 1390 |         confidence = float(
+ 1391 |             decision.get("confidence", 0.0)
+ 1392 |         )
+ 1393 | 
+ 1394 |         price_context = interpretation_block.get(
+ 1395 |             "price_context",
+ 1396 |             "UNKNOWN"
+ 1397 |         )
+ 1398 | 
+ 1399 |         breakout_context = interpretation_block.get(
+ 1400 |             "breakout_context",
+ 1401 |             "UNKNOWN"
+ 1402 |         )
+ 1403 | 
+ 1404 |         support = technical_indicators.get(
+ 1405 |             "support"
+ 1406 |         )
+ 1407 | 
+ 1408 |         resistance = technical_indicators.get(
+ 1409 |             "resistance"
+ 1410 |         )
+ 1411 | 
+ 1412 |         # ----------------------------------------------------
+ 1413 |         # ACTION CLASSIFICATION
+ 1414 |         # ----------------------------------------------------
+ 1415 | 
+ 1416 |         if (
+ 1417 |             stance == "BULLISH"
+ 1418 |             and recommendation in (
+ 1419 |                 "BUY",
+ 1420 |                 "STRONG BUY"
+ 1421 |             )
+ 1422 |             and confidence >= 70
+ 1423 |         ):
+ 1424 |             if price_context == "NEAR_SUPPORT":
+ 1425 |                 action = "WAIT_FOR_CONFIRMATION"
+ 1426 |             elif breakout_context == "ACTIVE_BREAKOUT":
+ 1427 |                 action = "BREAKOUT_CONFIRMATION"
+ 1428 |             else:
+ 1429 |                 action = "BULLISH_SETUP"
+ 1430 | 
+ 1431 |         elif (
+ 1432 |             stance == "BEARISH"
+ 1433 |             and recommendation in (
+ 1434 |                 "SELL",
+ 1435 |                 "STRONG SELL"
+ 1436 |             )
+ 1437 |             and confidence >= 70
+ 1438 |         ):
+ 1439 |             action = "BEARISH_SETUP"
+ 1440 | 
+ 1441 |         else:
+ 1442 |             action = "WAIT"
+
+======================================================================
+METHOD : decision_action_explanation
+======================================================================
+START LINE : 1104
+CAPTURE TO : 1204
+
+ 1104 |     def decision_action_explanation(self, symbol: str) -> dict:
+ 1105 |         """
+ 1106 |         EROS V3.3
+ 1107 |         Decision Action Explanation Engine.
+ 1108 | 
+ 1109 |         Converts the V3.2 action framework into a human-readable,
+ 1110 |         structured explanation.
+ 1111 | 
+ 1112 |         READ-ONLY ONLY.
+ 1113 |         NO DATABASE WRITE.
+ 1114 |         NO ORDER CREATION.
+ 1115 |         NO BROKER SUBMISSION.
+ 1116 |         """
+ 1117 | 
+ 1118 |         action = self.decision_action_framework(symbol)
+ 1119 | 
+ 1120 |         interpretation = self.decision_interpretation(symbol)
+ 1121 | 
+ 1122 |         decision = interpretation.get("decision", {})
+ 1123 |         technical = interpretation.get("technical_indicators", {})
+ 1124 |         governance = interpretation.get("governance", {})
+ 1125 | 
+ 1126 |         action_block = action.get("action", {})
+ 1127 |         market_context = action.get("market_context", {})
+ 1128 | 
+ 1129 |         classification = action_block.get(
+ 1130 |             "classification",
+ 1131 |             "UNKNOWN"
+ 1132 |         )
+ 1133 | 
+ 1134 |         stance = action_block.get(
+ 1135 |             "stance",
+ 1136 |             decision.get("stance", "UNKNOWN")
+ 1137 |         )
+ 1138 | 
+ 1139 |         recommendation = action_block.get(
+ 1140 |             "recommendation",
+ 1141 |             decision.get("recommendation", "UNKNOWN")
+ 1142 |         )
+ 1143 | 
+ 1144 |         confidence = action_block.get(
+ 1145 |             "confidence",
+ 1146 |             decision.get("confidence", 0.0)
+ 1147 |         )
+ 1148 | 
+ 1149 |         confidence_band = action_block.get(
+ 1150 |             "confidence_band",
+ 1151 |             decision.get("confidence_band", "UNKNOWN")
+ 1152 |         )
+ 1153 | 
+ 1154 |         risk_context = action_block.get(
+ 1155 |             "risk_context",
+ 1156 |             decision.get("risk", "UNKNOWN")
+ 1157 |         )
+ 1158 | 
+ 1159 |         price = interpretation.get(
+ 1160 |             "price",
+ 1161 |             action.get("price")
+ 1162 |         )
+ 1163 | 
+ 1164 |         support = market_context.get(
+ 1165 |             "support",
+ 1166 |             technical.get("support")
+ 1167 |         )
+ 1168 | 
+ 1169 |         resistance = market_context.get(
+ 1170 |             "resistance",
+ 1171 |             technical.get("resistance")
+ 1172 |         )
+ 1173 | 
+ 1174 |         price_context = market_context.get(
+ 1175 |             "price_context",
+ 1176 |             "UNKNOWN"
+ 1177 |         )
+ 1178 | 
+ 1179 |         breakout_context = market_context.get(
+ 1180 |             "breakout_context",
+ 1181 |             "UNKNOWN"
+ 1182 |         )
+ 1183 | 
+ 1184 |         confirmation_conditions = action.get(
+ 1185 |             "confirmation_conditions",
+ 1186 |             []
+ 1187 |         )
+ 1188 | 
+ 1189 |         invalidation_conditions = action.get(
+ 1190 |             "invalidation_conditions",
+ 1191 |             []
+ 1192 |         )
+ 1193 | 
+ 1194 |         interpretation_block = interpretation.get(
+ 1195 |             "interpretation",
+ 1196 |             {}
+ 1197 |         )
+ 1198 | 
+ 1199 |         primary_drivers = interpretation_block.get(
+ 1200 |             "primary_drivers",
+ 1201 |             []
+ 1202 |         )
+ 1203 | 
+ 1204 |         supporting_drivers = interpretation_block.get(
+
+======================================================================
+METHOD : decision_scenario_engine
+======================================================================
+START LINE : 1567
+CAPTURE TO : 1667
+
+ 1567 |     def decision_scenario_engine(self, symbol: str = "RELIANCE.NS") -> dict:
+ 1568 |         """
+ 1569 |         V3.4 Decision Scenario Engine.
+ 1570 | 
+ 1571 |         Read-only analytical layer.
+ 1572 |         No orders.
+ 1573 |         No broker submission.
+ 1574 |         No execution.
+ 1575 |         No portfolio mutation.
+ 1576 |         No database writes.
+ 1577 |         """
+ 1578 | 
+ 1579 |         interpretation = self.decision_interpretation(symbol)
+ 1580 | 
+ 1581 |         decision = interpretation.get("decision", {})
+ 1582 |         interp = interpretation.get("interpretation", {})
+ 1583 |         technical = interpretation.get("technical_indicators", {})
+ 1584 |         governance = interpretation.get("governance", {})
+ 1585 | 
+ 1586 |         price = float(interpretation.get("price", 0.0))
+ 1587 | 
+ 1588 |         support = technical.get(
+ 1589 |             "support",
+ 1590 |             interp.get("support")
+ 1591 |         )
+ 1592 | 
+ 1593 |         resistance = technical.get(
+ 1594 |             "resistance",
+ 1595 |             interp.get("resistance")
+ 1596 |         )
+ 1597 | 
+ 1598 |         stance = str(decision.get("stance", "NEUTRAL"))
+ 1599 |         recommendation = str(
+ 1600 |             decision.get("recommendation", "HOLD")
+ 1601 |         )
+ 1602 | 
+ 1603 |         confidence = float(
+ 1604 |             decision.get("confidence", 0.0)
+ 1605 |         )
+ 1606 | 
+ 1607 |         risk = str(
+ 1608 |             decision.get("risk", "UNKNOWN")
+ 1609 |         )
+ 1610 | 
+ 1611 |         # ----------------------------------------------------
+ 1612 |         # BASE SCENARIO
+ 1613 |         # ----------------------------------------------------
+ 1614 | 
+ 1615 |         base_conditions = []
+ 1616 | 
+ 1617 |         if support is not None:
+ 1618 |             base_conditions.append(
+ 1619 |                 f"Price remains above support {float(support):.2f}"
+ 1620 |             )
+ 1621 | 
+ 1622 |         if resistance is not None:
+ 1623 |             base_conditions.append(
+ 1624 |                 f"Price continues to monitor resistance {float(resistance):.2f}"
+ 1625 |             )
+ 1626 | 
+ 1627 |         base = {
+ 1628 |             "scenario": "BASE",
+ 1629 |             "stance": stance,
+ 1630 |             "classification": "WAIT_FOR_CONFIRMATION",
+ 1631 |             "conditions": base_conditions,
+ 1632 |             "decision_effect": (
+ 1633 |                 "Maintain the current analytical stance while "
+ 1634 |                 "confirmation conditions remain unresolved."
+ 1635 |             )
+ 1636 |         }
+ 1637 | 
+ 1638 |         # ----------------------------------------------------
+ 1639 |         # BULL SCENARIO
+ 1640 |         # ----------------------------------------------------
+ 1641 | 
+ 1642 |         bull_conditions = []
+ 1643 | 
+ 1644 |         if resistance is not None:
+ 1645 |             bull_conditions.append(
+ 1646 |                 f"Confirmed move above resistance {float(resistance):.2f}"
+ 1647 |             )
+ 1648 | 
+ 1649 |         bull_conditions.append(
+ 1650 |             "Bullish trend and momentum remain intact"
+ 1651 |         )
+ 1652 | 
+ 1653 |         bull = {
+ 1654 |             "scenario": "BULL",
+ 1655 |             "stance": "BULLISH",
+ 1656 |             "classification": "CONFIRMATION",
+ 1657 |             "conditions": bull_conditions,
+ 1658 |             "decision_effect": (
+ 1659 |                 "A confirmed upside move would strengthen the "
+ 1660 |                 "existing bullish decision context."
+ 1661 |             )
+ 1662 |         }
+ 1663 | 
+ 1664 |         # ----------------------------------------------------
+ 1665 |         # BEAR SCENARIO
+ 1666 |         # ----------------------------------------------------
+ 1667 | 
+
+======================================================================
+METHOD : decision_scenario_explanation
+======================================================================
+START LINE : 1753
+CAPTURE TO : 1853
+
+ 1753 |     def decision_scenario_explanation(self, symbol: str) -> Dict[str, Any]:
+ 1754 |         """
+ 1755 |         EROS V3.5
+ 1756 |         Scenario Explanation Engine.
+ 1757 | 
+ 1758 |         Pure read-only interpretation layer over V3.4.
+ 1759 |         No database writes.
+ 1760 |         No portfolio mutation.
+ 1761 |         No execution capability.
+ 1762 |         """
+ 1763 | 
+ 1764 |         scenario_data = self.decision_scenario_engine(symbol)
+ 1765 | 
+ 1766 |         current = scenario_data.get("current_decision", {})
+ 1767 |         scenarios = scenario_data.get("scenarios", {})
+ 1768 | 
+ 1769 |         base = scenarios.get("base", {})
+ 1770 |         bull = scenarios.get("bull", {})
+ 1771 |         bear = scenarios.get("bear", {})
+ 1772 | 
+ 1773 |         base_conditions = base.get("conditions", [])
+ 1774 |         bull_conditions = bull.get("conditions", [])
+ 1775 |         bear_conditions = bear.get("conditions", [])
+ 1776 | 
+ 1777 |         explanation = {
+ 1778 |             "symbol": scenario_data.get("symbol"),
+ 1779 |             "price": scenario_data.get("price"),
+ 1780 | 
+ 1781 |             "current_decision": current,
+ 1782 | 
+ 1783 |             "primary_scenario": scenario_data.get(
+ 1784 |                 "primary_scenario"
+ 1785 |             ),
+ 1786 | 
+ 1787 |             "scenario_explanation": {
+ 1788 |                 "base": {
+ 1789 |                     "meaning": (
+ 1790 |                         "The BASE scenario represents the current "
+ 1791 |                         "analytical state while confirmation remains "
+ 1792 |                         "unresolved."
+ 1793 |                     ),
+ 1794 |                     "stance": base.get("stance"),
+ 1795 |                     "classification": base.get("classification"),
+ 1796 |                     "conditions": base_conditions,
+ 1797 |                     "decision_effect": base.get("decision_effect"),
+ 1798 |                 },
+ 1799 | 
+ 1800 |                 "bull": {
+ 1801 |                     "meaning": (
+ 1802 |                         "The BULL scenario represents confirmation "
+ 1803 |                         "of the existing bullish structure."
+ 1804 |                     ),
+ 1805 |                     "stance": bull.get("stance"),
+ 1806 |                     "classification": bull.get("classification"),
+ 1807 |                     "conditions": bull_conditions,
+ 1808 |                     "decision_effect": bull.get("decision_effect"),
+ 1809 |                 },
+ 1810 | 
+ 1811 |                 "bear": {
+ 1812 |                     "meaning": (
+ 1813 |                         "The BEAR scenario represents invalidation "
+ 1814 |                         "of the current bullish structure."
+ 1815 |                     ),
+ 1816 |                     "stance": bear.get("stance"),
+ 1817 |                     "classification": bear.get("classification"),
+ 1818 |                     "conditions": bear_conditions,
+ 1819 |                     "decision_effect": bear.get("decision_effect"),
+ 1820 |                 },
+ 1821 |             },
+ 1822 | 
+ 1823 |             "decision_quality": scenario_data.get(
+ 1824 |                 "decision_quality"
+ 1825 |             ),
+ 1826 | 
+ 1827 |             "interpretation": (
+ 1828 |                 scenario_data.get("scenario_summary")
+ 1829 |             ),
+ 1830 | 
+ 1831 |             "confirmation_logic": bull_conditions,
+ 1832 | 
+ 1833 |             "invalidation_logic": bear_conditions,
+ 1834 | 
+ 1835 |             "summary": (
+ 1836 |                 f"{scenario_data.get('symbol')} currently has a "
+ 1837 |                 f"{current.get('stance')} stance with "
+ 1838 |                 f"{current.get('recommendation')} recommendation. "
+ 1839 |                 f"The primary scenario is "
+ 1840 |                 f"{scenario_data.get('primary_scenario')}. "
+ 1841 |                 f"The BULL scenario represents confirmation, while "
+ 1842 |                 f"the BEAR scenario represents invalidation."
+ 1843 |             ),
+ 1844 | 
+ 1845 |             "governance": {
+ 1846 |                 "read_only": True,
+ 1847 |                 "execution_blocked": True,
+ 1848 |                 "non_mutation_invariant": True,
+ 1849 |                 "allow_order_creation": False,
+ 1850 |                 "allow_broker_submission": False,
+ 1851 |                 "allow_live_execution": False,
+ 1852 |                 "allow_portfolio_mutation": False,
+ 1853 |                 "allow_valuation_mutation": False,
+
+======================================================================
+METHOD : decision_convergence
+======================================================================
+START LINE : 49
+CAPTURE TO : 149
+
+   49 |     def decision_convergence(self, symbol: str = "RELIANCE.NS"):
+   50 |         """
+   51 |         EROS V3.6
+   52 |         Decision Convergence Engine.
+   53 | 
+   54 |         Read-only analytical convergence layer.
+   55 |         No database writes.
+   56 |         No execution.
+   57 |         """
+   58 | 
+   59 |         scenario = self.decision_scenario_engine(symbol)
+   60 | 
+   61 |         explanation = self.decision_scenario_explanation(symbol)
+   62 | 
+   63 |         action = self.decision_action_framework(symbol)
+   64 | 
+   65 |         interpretation = self.decision_interpretation(symbol)
+   66 | 
+   67 |         evidence = self.decision_evidence(symbol)
+   68 | 
+   69 |         intelligence = self.decision_intelligence(symbol)
+   70 | 
+   71 |         decision = intelligence.get("decision", {})
+   72 |         scenario_data = scenario.get("scenarios", {})
+   73 |         explanation_data = explanation.get("scenario_explanation", {})
+   74 |         action_data = action.get("action", {})
+   75 |         interpretation_data = interpretation.get("interpretation", {})
+   76 | 
+   77 |         primary_scenario = scenario.get(
+   78 |             "primary_scenario",
+   79 |             "BASE"
+   80 |         )
+   81 | 
+   82 |         confirmation_logic = action.get(
+   83 |             "confirmation_conditions",
+   84 |             []
+   85 |         )
+   86 | 
+   87 |         invalidation_logic = action.get(
+   88 |             "invalidation_conditions",
+   89 |             []
+   90 |         )
+   91 | 
+   92 |         primary_drivers = interpretation_data.get(
+   93 |             "primary_drivers",
+   94 |             []
+   95 |         )
+   96 | 
+   97 |         supporting_drivers = interpretation_data.get(
+   98 |             "supporting_drivers",
+   99 |             []
+  100 |         )
+  101 | 
+  102 |         conflicting_signals = interpretation_data.get(
+  103 |             "conflicting_signals",
+  104 |             []
+  105 |         )
+  106 | 
+  107 |         decision_quality = interpretation_data.get(
+  108 |             "decision_quality",
+  109 |             scenario.get("decision_quality", "UNKNOWN")
+  110 |         )
+  111 | 
+  112 |         stance = decision.get(
+  113 |             "stance",
+  114 |             action_data.get("stance", "UNKNOWN")
+  115 |         )
+  116 | 
+  117 |         recommendation = decision.get(
+  118 |             "recommendation",
+  119 |             action_data.get("recommendation", "UNKNOWN")
+  120 |         )
+  121 | 
+  122 |         confidence = decision.get(
+  123 |             "confidence",
+  124 |             action_data.get("confidence", 0.0)
+  125 |         )
+  126 | 
+  127 |         risk = decision.get(
+  128 |             "risk",
+  129 |             action_data.get("risk_context", "UNKNOWN")
+  130 |         )
+  131 | 
+  132 |         classification = action_data.get(
+  133 |             "classification",
+  134 |             "UNKNOWN"
+  135 |         )
+  136 | 
+  137 |         bull = scenario_data.get("bull", {})
+  138 |         bear = scenario_data.get("bear", {})
+  139 |         base = scenario_data.get("base", {})
+  140 | 
+  141 |         convergence = {
+  142 |             "symbol": symbol,
+  143 |             "price": scenario.get(
+  144 |                 "price",
+  145 |                 evidence.get("price")
+  146 |             ),
+  147 | 
+  148 |             "decision": {
+  149 |                 "stance": stance,
+
+======================================================================
+METHOD : decision_traceability
+======================================================================
+START LINE : 1863
+CAPTURE TO : 1963
+
+ 1863 |     def decision_traceability(self, symbol: str = "RELIANCE.NS") -> Dict[str, Any]:
+ 1864 |         """
+ 1865 |         EROS 3.0 - V3.7 Decision Traceability Engine.
+ 1866 | 
+ 1867 |         Purpose
+ 1868 |         -------
+ 1869 |         Converts the existing V3.6 decision-convergence output into
+ 1870 |         a structured read-only traceability object.
+ 1871 | 
+ 1872 |         The method does not:
+ 1873 |             - create orders
+ 1874 |             - submit orders
+ 1875 |             - execute trades
+ 1876 |             - mutate portfolios
+ 1877 |             - mutate valuation
+ 1878 |             - mutate performance
+ 1879 |             - mutate risk
+ 1880 |             - perform optimization
+ 1881 |             - write to the database
+ 1882 | 
+ 1883 |         Traceability connects:
+ 1884 | 
+ 1885 |             technical evidence
+ 1886 |                     |
+ 1887 |                     v
+ 1888 |             decision intelligence
+ 1889 |                     |
+ 1890 |                     v
+ 1891 |             interpretation
+ 1892 |                     |
+ 1893 |                     v
+ 1894 |             action framework
+ 1895 |                     |
+ 1896 |                     v
+ 1897 |             scenario analysis
+ 1898 |                     |
+ 1899 |                     v
+ 1900 |             convergence
+ 1901 |                     |
+ 1902 |                     v
+ 1903 |             final analytical conclusion
+ 1904 | 
+ 1905 |         This is an analytical provenance layer only.
+ 1906 |         """
+ 1907 | 
+ 1908 |         convergence = self.decision_convergence(symbol)
+ 1909 | 
+ 1910 |         if not isinstance(convergence, dict):
+ 1911 |             raise RuntimeError(
+ 1912 |                 "TRACEABILITY_CONVERGENCE_NOT_DICT"
+ 1913 |             )
+ 1914 | 
+ 1915 |         decision = convergence.get("decision", {})
+ 1916 |         convergence_data = convergence.get("convergence", {})
+ 1917 |         interpretation = convergence.get("interpretation", {})
+ 1918 |         governance = convergence.get("governance", {})
+ 1919 | 
+ 1920 |         traceability = {
+ 1921 |             "symbol": convergence.get("symbol"),
+ 1922 |             "price": convergence.get("price"),
+ 1923 | 
+ 1924 |             "decision": {
+ 1925 |                 "stance": decision.get("stance"),
+ 1926 |                 "recommendation": decision.get("recommendation"),
+ 1927 |                 "classification": decision.get("classification"),
+ 1928 |                 "confidence": decision.get("confidence"),
+ 1929 |                 "risk": decision.get("risk"),
+ 1930 |                 "decision_quality": decision.get(
+ 1931 |                     "decision_quality"
+ 1932 |                 ),
+ 1933 |             },
+ 1934 | 
+ 1935 |             "trace": {
+ 1936 |                 "stage_1_evidence": {
+ 1937 |                     "source": "decision_evidence",
+ 1938 |                     "status": "AVAILABLE",
+ 1939 |                 },
+ 1940 | 
+ 1941 |                 "stage_2_intelligence": {
+ 1942 |                     "source": "decision_intelligence",
+ 1943 |                     "status": "AVAILABLE",
+ 1944 |                 },
+ 1945 | 
+ 1946 |                 "stage_3_interpretation": {
+ 1947 |                     "source": "decision_interpretation",
+ 1948 |                     "status": "AVAILABLE",
+ 1949 |                     "market_condition": interpretation.get(
+ 1950 |                         "market_condition"
+ 1951 |                     ),
+ 1952 |                     "price_context": interpretation.get(
+ 1953 |                         "price_context"
+ 1954 |                     ),
+ 1955 |                     "breakout_context": interpretation.get(
+ 1956 |                         "breakout_context"
+ 1957 |                     ),
+ 1958 |                 },
+ 1959 | 
+ 1960 |                 "stage_4_action_framework": {
+ 1961 |                     "source": "decision_action_framework",
+ 1962 |                     "status": "AVAILABLE",
+ 1963 |                 },
+
+======================================================================
+SAFETY
+======================================================================
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+V3.8.10 API CONTRACT CAPTURE COMPLETE
+======================================================================

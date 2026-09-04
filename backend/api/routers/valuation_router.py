@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -17,14 +17,19 @@ def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_
         "eps": payload.eps,
         "growth_rate": payload.growth_rate,
         "discount_rate": payload.discount_rate,
-        "current_price": payload.current_price
+        "current_price": payload.current_price,
+        "segments": payload.segments,
+        "net_debt": payload.net_debt,
+        "non_operating_assets": payload.non_operating_assets,
+        "shares_outstanding": payload.shares_outstanding,
+        "user": payload.user
     }
     result = ValuationService.execute_and_persist_valuation(
         session=session,
         symbol=payload.symbol,
         financial_metrics=metrics
     )
-    
+
     iv = result["intrinsic_value"]
     cp = result["current_price"]
     mos = result["margin_of_safety"]

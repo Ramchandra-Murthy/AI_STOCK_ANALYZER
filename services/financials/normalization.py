@@ -75,7 +75,7 @@ def normalize_income_statement(
         ),
         net_income=_get(
             raw,
-            "netIncome",
+            "netIncome","net_income",
             "profitAfterTax",
         ),
         depreciation_and_amortization=_get(
@@ -153,16 +153,16 @@ def normalize_balance_sheet(
         ),
         long_term_debt=_get(
             raw,
-            "longTermDebt",
+            "longTermDebt","debt",
         ),
         total_liabilities=_get(
             raw,
-            "totalLiabilities",
+            "totalLiabilities","total_liabilities",
         ),
         total_equity=_get(
             raw,
             "totalEquity",
-            "shareholdersEquity",
+            "shareholdersEquity","shareholders_equity",
         ),
     )
 
@@ -174,7 +174,7 @@ def normalize_cash_flow(
     return CashFlowStatement(
         operating_cash_flow=_get(
             raw,
-            "operatingCashFlow",
+            "operatingCashFlow","operating_cash_flow",
         ),
         capital_expenditure=_get(
             raw,
@@ -183,11 +183,11 @@ def normalize_cash_flow(
         ),
         investing_cash_flow=_get(
             raw,
-            "investingCashFlow",
+            "investingCashFlow","investing_cash_flow",
         ),
         financing_cash_flow=_get(
             raw,
-            "financingCashFlow",
+            "financingCashFlow","financing_cash_flow",
         ),
         dividends_paid=_get(
             raw,
@@ -232,6 +232,7 @@ def normalize_financial_statements(
         balance_sheet=normalize_balance_sheet(balance_raw),
         cash_flow_statement=normalize_cash_flow(cashflow_raw),
     )
+
 
 
 

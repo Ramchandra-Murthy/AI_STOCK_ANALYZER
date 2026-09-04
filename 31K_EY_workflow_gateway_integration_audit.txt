@@ -1,0 +1,1177 @@
+﻿============================================================
+EROS 3.0 - 31K-EY WORKFLOW / GATEWAY INTEGRATION AUDIT
+============================================================
+CHECKPOINT: 31K-EX COMPLETE
+MODE: READ-ONLY
+SOURCE MODIFICATION: NONE
+
+============================================================
+1. WORKFLOW SOURCE FILES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_context.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_state.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\orchestration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\production_orchestrator.py
+
+============================================================
+2. CORE WORKFLOW DEFINITIONS
+============================================================
+
+------------------------------------------------------------
+FILE: .\backend\workflow\workflow_engine.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import logging
+import time
+from typing import Callable, List, Dict, Any
+from backend.workflow.workflow_state import WorkflowState
+from backend.workflow.workflow_context import WorkflowContext
+from backend.workflow.workflow_exceptions import InvalidStateTransitionError, StageExecutionError
+
+logger = logging.getLogger(__name__)
+
+VALID_TRANSITIONS = {
+    WorkflowState.CREATED: {WorkflowState.QUEUED, WorkflowState.FAILED},
+    WorkflowState.QUEUED: {WorkflowState.RUNNING, WorkflowState.FAILED},
+    WorkflowState.RUNNING: {WorkflowState.VALIDATING, WorkflowState.FAILED},
+    WorkflowState.VALIDATING: {WorkflowState.ANALYZING, WorkflowState.FAILED},
+    WorkflowState.ANALYZING: {WorkflowState.SCORING, WorkflowState.FAILED},
+    WorkflowState.SCORING: {WorkflowState.REPORTING, WorkflowState.FAILED},
+    WorkflowState.REPORTING: {WorkflowState.COMPLETED, WorkflowState.FAILED},
+    WorkflowState.COMPLETED: set(),
+    WorkflowState.FAILED: set()
+}
+
+class WorkflowEngine:
+    def __init__(self, workflow_id: str, symbol: str, user: str) -> None:
+        self.context = WorkflowContext(workflow_id=workflow_id, symbol=symbol, user=user)
+        self.state = WorkflowState.CREATED
+        self.stages: List[Callable[[WorkflowContext], Dict[str, Any]]] = []
+        self.retry_limit = 2
+
+    def transition_to(self, new_state: WorkflowState) -> None:
+        if new_state not in VALID_TRANSITIONS.get(self.state, set()):
+            raise InvalidStateTransitionError(f"Invalid state transition from {self.state} to {new_state}")
+        logger.info("Workflow %s transitioning state: %s -> %s", self.context.workflow_id, self.state, new_state)
+        self.state = new_state
+
+    def add_stage(self, stage_fn: Callable[[WorkflowContext], Dict[str, Any]]) -> None:
+        self.stages.append(stage_fn)
+
+    def execute(self) -> WorkflowContext:
+        start_time = time.perf_counter()
+        try:
+            self.transition_to(WorkflowState.QUEUED)
+            self.transition_to(WorkflowState.RUNNING)
+            self.transition_to(WorkflowState.VALIDATING)
+            
+            # Validation pass
+            if not self.context.symbol:
+                raise StageExecutionError("Validation failed: Symbol is required.")
+
+            self.transition_to(WorkflowState.ANALYZING)
+            for stage in self.stages:
+                attempts = 0
+                success = False
+                while attempts <= self.retry_limit and not success:
+                    try:
+                        stage_result = stage(self.context)
+                        if stage_result:
+                            self.context.shared_data.update(stage_result)
+                        success = True
+                    except Exception as e:
+                        attempts += 1
+                        logger.warning("Stage execution attempt %s failed: %s. Retrying...", attempts, str(e))
+                        if attempts > self.retry_limit:
+                            raise StageExecutionError(f"Stage failed after {self.retry_limit} retries: {str(e)}") from e
+
+            self.transition_to(WorkflowState.SCORING)
+            self.transition_to(WorkflowState.REPORTING)
+            self.transition_to(WorkflowState.COMPLETED)
+
+            duration = round((time.perf_counter() - start_time) * 1000.0, 2)
+            self.context.metrics["total_duration_ms"] = duration
+            logger.info("Workflow %s completed successfully in %s ms", self.context.workflow_id, duration)
+            return self.context
+
+        except Exception as e:
+            logger.error("Workflow %s failed in state %s: %s", self.context.workflow_id, self.state, str(e))
+            self.state = WorkflowState.FAILED
+            raise StageExecutionError(f"Workflow execution failed: {str(e)}") from e
+
+------------------------------------------------------------
+FILE: .\backend\workflow\workflow_registry.py
+------------------------------------------------------------
+from __future__ import annotations
+
+from typing import Dict, Type
+from backend.workflow.workflow_engine import WorkflowEngine
+
+class WorkflowRegistry:
+    _registry: Dict[str, Type[WorkflowEngine]] = {}
+
+    @classmethod
+    def register(cls, name: str, engine_cls: Type[WorkflowEngine]) -> None:
+        cls._registry[name] = engine_cls
+
+    @classmethod
+    def get(cls, name: str) -> Type[WorkflowEngine]:
+        if name not in cls._registry:
+            raise KeyError(f"Workflow '{name}' not found in registry.")
+        return cls._registry[name]
+
+------------------------------------------------------------
+FILE: .\backend\workflow\workflow_context.py
+------------------------------------------------------------
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Dict, Any
+
+@dataclass(frozen=True)
+class WorkflowContext:
+    workflow_id: str
+    symbol: str
+    user: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: datetime = field(default_factory=datetime.utcnow)
+    shared_data: Dict[str, Any] = field(default_factory=dict)
+    metrics: Dict[str, float] = field(default_factory=dict)
+
+------------------------------------------------------------
+FILE: .\backend\workflow\workflow_state.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import enum
+
+class WorkflowState(str, enum.Enum):
+    CREATED = "CREATED"
+    QUEUED = "QUEUED"
+    RUNNING = "RUNNING"
+    VALIDATING = "VALIDATING"
+    ANALYZING = "ANALYZING"
+    SCORING = "SCORING"
+    REPORTING = "REPORTING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+============================================================
+3. MARKET DATA PIPELINE / INTEGRATION
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\adapter.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\cache.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\confidence_trace.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\decision_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\downloader.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\integrity.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\provider.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\provider_resilience.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\analytics\streaming_analytics.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\failover\failover_manager.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py
+
+============================================================
+4. CROSS-LAYER REFERENCES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:63 | @app.post("/api/v1/valuation", status_code=status.HTTP_200_OK, dependencies=[Depends(get_current_user)])
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:64 | def api_valuation(payload: dict):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:68 | "blended_valuation": 3500.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\health.py:35 | "workflow_engine": "active"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\exceptions\handlers.py:5 | from backend.exceptions import ValidationError, RepositoryError, ValuationError, ServiceError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\exceptions\handlers.py:12 | @app.exception_handler(ValuationError)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\exceptions\handlers.py:13 | async def valuation_exception_handler(request: Request, exc: ValuationError) -> JSONResponse:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\exceptions\handlers.py:14 | return JSONResponse(status_code=422, content={"error": "ValuationError", "detail": str(exc)})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\eros_production_router.py:16 | output = orchestrator.execute_workflow(request.symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:9 | from backend.api.schemas.valuation import ValuationRequest, ValuationResponse
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:10 | from backend.services.valuation_service import ValuationService
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:12 | router = APIRouter(prefix="/api/v1", tags=["Valuation"])
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:14 | @router.post("/valuation", response_model=ValuationResponse, dependencies=[Depends(get_current_user)])
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:15 | def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_session)) -> ValuationResponse:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:22 | result = ValuationService.execute_and_persist_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:33 | return ValuationResponse(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:40 | valuation_model=result["model_type"],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py:6 | class ValuationRequest(BaseModel):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py:13 | class ValuationResponse(BaseModel):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py:20 | valuation_model: str
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\config\settings.py:7 | PROJECT_NAME: str = "EROS 3.0 Institutional Research Platform"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\core\config\settings.py:7 | PROJECT_NAME: str = "EROS 3.0 Institutional Research Platform"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\models\company.py:15 | class ValuationRecordModel(Base):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\models\company.py:16 | __tablename__ = "valuations"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\models\company.py:25 | class ForecastRecordModel(Base):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\models\company.py:26 | __tablename__ = "forecasts"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\models\company.py:31 | eps_forecast = Column(Float, nullable=False)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\models\user.py:11 | RESEARCHER = "RESEARCHER"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\company_repository.py:6 | from backend.database.models.company import CompanyModel, PortfolioRecordModel, ForecastRecordModel
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:6 | from backend.database.models.company import ForecastRecordModel, ReportRecordModel
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:10 | class ForecastRepository:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:12 | def save_forecast(session: Session, record_id: str, symbol: str, revenue_cagr: float, eps_forecast: float, confidence: float) -> ForecastRecordModel:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:13 | logger.info("Persisting forecast record %s for symbol %s", record_id, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:14 | forecast = ForecastRecordModel(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:18 | eps_forecast=eps_forecast,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:21 | session.merge(forecast)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:23 | return forecast
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:26 | def get_forecast(session: Session, record_id: str) -> Optional[ForecastRecordModel]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:27 | return session.query(ForecastRecordModel).filter(ForecastRecordModel.id == record_id).first()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:6 | from backend.database.models.company import ValuationRecordModel
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:10 | class ValuationRepository:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:11 | """Canonical repository for persisting and retrieving valuation records."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:14 | def save_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:21 | ) -> ValuationRecordModel:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:22 | logger.info("Persisting valuation record %s for symbol %s", record_id, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:23 | record = ValuationRecordModel(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:35 | def get_valuation(session: Session, record_id: str) -> Optional[ValuationRecordModel]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:36 | return session.query(ValuationRecordModel).filter(ValuationRecordModel.id == record_id).first()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:19 | class ValuationError(ServiceError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:20 | """Raised when financial valuation calculation fails."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:23 | class ForecastError(ServiceError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:24 | """Raised when financial forecasting or scenario modeling fails."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:28 | """Raised when portfolio optimization or risk evaluation fails."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:31 | class ResearchError(ServiceError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:32 | """Raised when research orchestration or reasoning graph fails."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:5 | from backend.research.evidence.models.research_evidence import ResearchEvidence
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:6 | from backend.research.evidence.services.evidence_service import EvidenceService
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:7 | from backend.research.models.research_case import ResearchCase
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:14 | into structured institutional ResearchEvidence items.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:18 | def extract(case: ResearchCase, output: Dict[str, Any]) -> List[ResearchEvidence]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:25 | into structured ResearchEvidence.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:29 | def extract(case: ResearchCase, metrics: Dict[str, Any]) -> List[ResearchEvidence]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:71 | class ValuationEvidenceAdapter(EvidenceAdapter):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:73 | Extracts valuation model outputs (DCF / Margin of Safety)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:74 | and converts them into structured ResearchEvidence.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:78 | def extract(case: ResearchCase, valuation_result: Dict[str, Any]) -> List[ResearchEvidence]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:81 | intrinsic_value = valuation_result.get("intrinsic_value") or valuation_result.get("blended_valuation")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:82 | margin_of_safety = valuation_result.get("margin_of_safety")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:87 | category="VALUATION",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:88 | statement=f"Calculated intrinsic valuation stands at {intrinsic_value:.2f}",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:90 | source="ValuationEngine",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:103 | category="VALUATION",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:106 | source="ValuationEngine",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:121 | into structured ResearchEvidence.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:125 | def extract(case: ResearchCase, risk_metrics: Dict[str, Any]) -> List[ResearchEvidence]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\graph\evidence_graph.py:5 | from backend.research.evidence.models.research_evidence import ResearchEvidence
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\graph\evidence_graph.py:6 | from backend.research.evidence.reasoning.evidence_reasoning import EvidenceRelationship, EvidenceReasoningEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\graph\evidence_graph.py:7 | from backend.research.evidence.quality.evidence_quality import EvidenceQualityService
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\graph\evidence_graph.py:13 | Represents an evidence node within the research graph.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\graph\evidence_graph.py:15 | def __init__(self, evidence: ResearchEvidence) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\graph\evidence_graph.py:30 | def add_evidence(self, evidence: ResearchEvidence) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\models\research_evidence.py:8 | class ResearchEvidence:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\models\research_evidence.py:10 | Structured institutional evidence attached to a ResearchCase.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\models\research_evidence.py:11 | Evidence is deliberately separated from the research conclusion.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\models\research_evidence.py:13 | externally sourced research statement that can later contribute
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\quality\evidence_quality.py:6 | from backend.research.evidence.models.research_evidence import ResearchEvidence
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\quality\evidence_quality.py:12 | and corroboration of a ResearchEvidence item.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\quality\evidence_quality.py:47 | def assess_evidence(evidence: ResearchEvidence) -> EvidenceQualityAssessment:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\reasoning\evidence_reasoning.py:5 | from backend.research.evidence.models.research_evidence import ResearchEvidence
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\reasoning\evidence_reasoning.py:6 | from backend.research.evidence.quality.evidence_quality import EvidenceQualityService
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\reasoning\evidence_reasoning.py:36 | Analyzes a collection of ResearchEvidence items within a ResearchCase
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\reasoning\evidence_reasoning.py:41 | def analyze_relationships(evidence_items: List[ResearchEvidence]) -> List[EvidenceRelationship]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\reasoning\evidence_reasoning.py:98 | def evaluate_net_stance(evidence_items: List[ResearchEvidence], relationships: List[EvidenceRelationship]) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:6 | from backend.research.evidence.models.research_evidence import ResearchEvidence
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:7 | from backend.research.models.research_case import ResearchCase
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:14 | research cases.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:19 | case: ResearchCase,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:31 | ) -> ResearchEvidence:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:43 | evidence = ResearchEvidence(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:62 | case: ResearchCase,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:63 | evidence: ResearchEvidence,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:64 | ) -> ResearchCase:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:67 | "evidence does not belong to this research case"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:81 | evidence: ResearchEvidence,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:92 | evidence_items: List[ResearchEvidence],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\models\research_case.py:8 | class ResearchCase:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\models\research_case.py:10 | Institutional research case representing a structured
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\models\research_case.py:15 | research_type: str = "Long-Term Equity"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:5 | from backend.research.models.research_case import ResearchCase
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:9 | class ResearchCaseService:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:12 | institutional research cases.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:19 | research_type: str = "Long-Term Equity",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:21 | ) -> ResearchCase:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:24 | case_id = f"RESEARCH-{symbol}-2026"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:25 | case = ResearchCase(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:28 | research_type=research_type,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:34 | "Created research case %s for %s",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:42 | case: ResearchCase,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:44 | ) -> ResearchCase:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:56 | case: ResearchCase,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:58 | ) -> ResearchCase:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:67 | case: ResearchCase,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:69 | ) -> ResearchCase:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:76 | "Closed research case %s",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:6 | from backend.database.repositories.valuation_repository import ValuationRepository
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:10 | class ValuationService:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:11 | """Orchestrates financial valuation workflows and coordinates persistence via ValuationRepository."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:14 | def execute_and_persist_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:19 | logger.info("Executing institutional valuation pipeline for %s", symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:25 | # Ensure discount rate exceeds growth rate to avoid negative/invalid valuations
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:42 | ValuationRepository.save_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:51 | logger.info("Valuation successfully calculated and persisted for %s: IV = %s", symbol, intrinsic_value)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py:7 | class ValuationResultDTO:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py:14 | valuation_model: str
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:51 | "valuation.execute": lambda *a, **kw: {"status": "success"},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:52 | "forecast.execute": lambda *a, **kw: {"status": "success"},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:54 | "forecast.run": lambda *a, **kw: {"status": "success"},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:20 | Queue("valuation_queue", Exchange("valuation_exchange"), routing_key="valuation.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:21 | Queue("forecast_queue", Exchange("forecast_exchange"), routing_key="forecast.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:22 | Queue("research_queue", Exchange("research_exchange"), routing_key="research.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:28 | "valuation.*": "valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:29 | "forecast.*": "forecast_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:30 | "research.*": "research_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:11 | celery_forecast_wrapper,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:12 | celery_valuation_wrapper,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:46 | if "forecast.execute" not in target_app.tasks:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:48 | name="forecast.execute",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:50 | )(celery_forecast_wrapper)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:52 | if "forecast.run" not in target_app.tasks:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:54 | name="forecast.run",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:56 | )(celery_forecast_wrapper)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:58 | if "valuation.execute" not in target_app.tasks:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:60 | name="valuation.execute",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:62 | )(celery_valuation_wrapper)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:297 | if task_name in ("forecast.execute", "forecast.run"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:329 | if task_name in ("forecast.execute", "forecast.run"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:362 | # This mirrors the shape of the real forecast worker result
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:363 | # without executing the production forecasting pipeline.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:364 | if task_name in ("forecast.execute", "forecast.run"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:419 | # This mirrors the shape of the real forecast worker result
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:420 | # without executing the production forecasting pipeline.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:421 | if task_name in ("forecast.execute", "forecast.run"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:476 | # This mirrors the shape of the real forecast worker result
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:477 | # without executing the production forecasting pipeline.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:478 | if task_name in ("forecast.execute", "forecast.run"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:729 | "user": "institutional_research_user",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:762 | "forecast_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:763 | "valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:6 | from backend.services.valuation_service import ValuationService
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:8 | from backend.database.repositories.forecast_report_repository import ForecastRepository, ReportRepository
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:9 | from services.forecasting.models import ForecastScenario
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:10 | from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:53 | def execute_forecast_task(context: TaskContext) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:54 | logger.info("Worker processing forecast task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:58 | ForecastScenario(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:72 | ForecastScenario(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:86 | ForecastScenario(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:102 | forecast = ScenarioIntelligenceEngine.evaluate_scenarios(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:110 | ForecastRepository.save_forecast(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:115 | eps_forecast=forecast.expected_value,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:116 | confidence=forecast.confidence,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:125 | "symbol": forecast.symbol,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:126 | "expected_value": forecast.expected_value,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:127 | "bull_value": float(context.payload.get("bull_value", forecast.bull_value)),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:128 | "base_value": float(context.payload.get("base_value", forecast.base_value)),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:129 | "bear_value": float(context.payload.get("bear_value", forecast.bear_value)),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:130 | "confidence": forecast.confidence,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:131 | "probability_distribution": forecast.probability_distribution,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:132 | "key_drivers": forecast.key_drivers,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:133 | "major_risks": forecast.major_risks,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:134 | "assumptions": forecast.assumptions,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:136 | "timestamp": forecast.timestamp,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:140 | def execute_valuation_task(context: TaskContext) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:141 | logger.info("Worker processing valuation task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:145 | result = ValuationService.execute_and_persist_valuation(session, symbol, context.payload)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:165 | task_name = "forecast.execute"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:234 | def celery_valuation_wrapper(*args, **kwargs) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:243 | res = BackgroundWorkers.execute_valuation_task(context)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:248 | def celery_forecast_wrapper(*args, **kwargs) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:257 | res = BackgroundWorkers.execute_forecast_task(context)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:6 | celery_forecast_wrapper,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:7 | celery_valuation_wrapper,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:18 | # Register forecast.execute with auto-retry and strict time limits
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:19 | if "forecast.execute" not in celery_instance.tasks:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:21 | name="forecast.execute",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:30 | )(celery_forecast_wrapper)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:31 | logger.info("Registered task: forecast.execute with enterprise retry & timeout policy")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:33 | # Register forecast.run alias
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:34 | if "forecast.run" not in celery_instance.tasks:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:36 | name="forecast.run",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:43 | )(celery_forecast_wrapper)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:44 | logger.info("Registered task: forecast.run")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:46 | # Register valuation.execute
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:47 | if "valuation.execute" not in celery_instance.tasks:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:49 | name="valuation.execute",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:58 | )(celery_valuation_wrapper)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:59 | logger.info("Registered task: valuation.execute with enterprise retry & timeout policy")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_context.py:8 | class WorkflowContext:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:6 | from backend.workflow.workflow_state import WorkflowState
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:7 | from backend.workflow.workflow_context import WorkflowContext
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:13 | WorkflowState.CREATED: {WorkflowState.QUEUED, WorkflowState.FAILED},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:14 | WorkflowState.QUEUED: {WorkflowState.RUNNING, WorkflowState.FAILED},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:15 | WorkflowState.RUNNING: {WorkflowState.VALIDATING, WorkflowState.FAILED},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:16 | WorkflowState.VALIDATING: {WorkflowState.ANALYZING, WorkflowState.FAILED},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:17 | WorkflowState.ANALYZING: {WorkflowState.SCORING, WorkflowState.FAILED},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:18 | WorkflowState.SCORING: {WorkflowState.REPORTING, WorkflowState.FAILED},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:19 | WorkflowState.REPORTING: {WorkflowState.COMPLETED, WorkflowState.FAILED},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:20 | WorkflowState.COMPLETED: set(),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:21 | WorkflowState.FAILED: set()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:24 | class WorkflowEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:26 | self.context = WorkflowContext(workflow_id=workflow_id, symbol=symbol, user=user)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:27 | self.state = WorkflowState.CREATED
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:28 | self.stages: List[Callable[[WorkflowContext], Dict[str, Any]]] = []
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:31 | def transition_to(self, new_state: WorkflowState) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:37 | def add_stage(self, stage_fn: Callable[[WorkflowContext], Dict[str, Any]]) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:40 | def execute(self) -> WorkflowContext:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:43 | self.transition_to(WorkflowState.QUEUED)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:44 | self.transition_to(WorkflowState.RUNNING)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:45 | self.transition_to(WorkflowState.VALIDATING)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:51 | self.transition_to(WorkflowState.ANALYZING)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:67 | self.transition_to(WorkflowState.SCORING)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:68 | self.transition_to(WorkflowState.REPORTING)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:69 | self.transition_to(WorkflowState.COMPLETED)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:78 | self.state = WorkflowState.FAILED
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:4 | class WorkflowEngineError(ServiceError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:8 | class InvalidStateTransitionError(WorkflowEngineError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:12 | class StageExecutionError(WorkflowEngineError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py:4 | from backend.workflow.workflow_engine import WorkflowEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py:6 | class WorkflowRegistry:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py:7 | _registry: Dict[str, Type[WorkflowEngine]] = {}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py:10 | def register(cls, name: str, engine_cls: Type[WorkflowEngine]) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py:14 | def get(cls, name: str) -> Type[WorkflowEngine]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_state.py:5 | class WorkflowState(str, enum.Enum):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ai_service.py:15 | Dictionary returned by research_service.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:27 | - No valuation mutation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:41 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:49 | def decision_convergence(self, symbol: str = "RELIANCE.NS"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:52 | Decision Convergence Engine.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:59 | scenario = self.decision_scenario_engine(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:61 | explanation = self.decision_scenario_explanation(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:63 | action = self.decision_action_framework(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:65 | interpretation = self.decision_interpretation(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:67 | evidence = self.decision_evidence(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:69 | intelligence = self.decision_intelligence(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:71 | decision = intelligence.get("decision", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:107 | decision_quality = interpretation_data.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:108 | "decision_quality",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:109 | scenario.get("decision_quality", "UNKNOWN")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:112 | stance = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:117 | recommendation = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:122 | confidence = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:127 | risk = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:148 | "decision": {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:154 | "decision_quality": decision_quality
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:184 | "decision_effect": bull.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:185 | "decision_effect"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:200 | "decision_effect": bear.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:201 | "decision_effect"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:226 | "decision_quality": decision_quality
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:251 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:363 | def decision_evidence(self, symbol: str) -> dict:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:365 | EROS V2.9 normalized read-only decision evidence.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:479 | def decision_intelligence(self, symbol: str) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:481 | EROS 3.0 V3.0 Decision Intelligence Foundation.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:484 | Convert the certified V2.9 decision_evidence() object
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:490 | - No valuation mutation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:497 | evidence = self.decision_evidence(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:625 | # DECISION SUMMARY
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:644 | "decision": {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:688 | def decision_interpretation(self, symbol: str) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:690 | EROS 3.0 V3.1 Decision Interpretation Engine.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:692 | Converts the certified V3.0 decision_intelligence()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:693 | object into an interpretive, read-only decision view.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:700 | intelligence = self.decision_intelligence(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:702 | decision = intelligence.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:703 | "decision",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:741 | decision.get("score", 0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:748 | decision.get("confidence", 0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:753 | recommendation = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:951 | # DECISION QUALITY
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:959 | decision_quality = "HIGH"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:965 | decision_quality = "MEDIUM"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:968 | decision_quality = "LOW"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1015 | f"Decision quality is {decision_quality}."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1027 | f"Decision quality is {decision_quality}."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1036 | f"Decision quality is {decision_quality}."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1052 | "decision": decision,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1062 | "decision_quality": decision_quality,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1104 | def decision_action_explanation(self, symbol: str) -> dict:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1107 | Decision Action Explanation Engine.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1118 | action = self.decision_action_framework(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1120 | interpretation = self.decision_interpretation(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1122 | decision = interpretation.get("decision", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1136 | decision.get("stance", "UNKNOWN")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1141 | decision.get("recommendation", "UNKNOWN")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1146 | decision.get("confidence", 0.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1151 | decision.get("confidence_band", "UNKNOWN")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1156 | decision.get("risk", "UNKNOWN")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1214 | decision_quality = interpretation_block.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1215 | "decision_quality",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1241 | "current decision intelligence and interpretation."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1294 | f"Decision confidence is {confidence:.1f}% "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1318 | "decision_quality": decision_quality,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1335 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1342 | def decision_action_framework(self, symbol: str) -> dict:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1344 | EROS V3.2 - Decision Action Framework
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1346 | Converts V3.1 decision interpretation into a structured,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1358 | interpretation = self.decision_interpretation(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1360 | decision = interpretation.get("decision", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1371 | recommendation = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1376 | stance = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1381 | risk = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1387 | decision.get("score", 0.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1391 | decision.get("confidence", 0.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1490 | "Material deterioration in decision evidence"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1567 | def decision_scenario_engine(self, symbol: str = "RELIANCE.NS") -> dict:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1569 | V3.4 Decision Scenario Engine.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1579 | interpretation = self.decision_interpretation(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1581 | decision = interpretation.get("decision", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1598 | stance = str(decision.get("stance", "NEUTRAL"))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1600 | decision.get("recommendation", "HOLD")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1604 | decision.get("confidence", 0.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1608 | decision.get("risk", "UNKNOWN")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1632 | "decision_effect": (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1658 | "decision_effect": (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1660 | "existing bullish decision context."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1684 | "decision_effect": (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1713 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1723 | "current_decision": {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1738 | "decision_quality": interp.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1739 | "decision_quality",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1753 | def decision_scenario_explanation(self, symbol: str) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1764 | scenario_data = self.decision_scenario_engine(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1766 | current = scenario_data.get("current_decision", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1781 | "current_decision": current,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1797 | "decision_effect": base.get("decision_effect"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1808 | "decision_effect": bull.get("decision_effect"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1819 | "decision_effect": bear.get("decision_effect"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1823 | "decision_quality": scenario_data.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1824 | "decision_quality"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1853 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1863 | def decision_traceability(self, symbol: str = "RELIANCE.NS") -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1865 | EROS 3.0 - V3.7 Decision Traceability Engine.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1869 | Converts the existing V3.6 decision-convergence output into
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1877 | - mutate valuation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1888 | decision intelligence
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1908 | convergence = self.decision_convergence(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1915 | decision = convergence.get("decision", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1924 | "decision": {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1925 | "stance": decision.get("stance"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1926 | "recommendation": decision.get("recommendation"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1927 | "classification": decision.get("classification"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1928 | "confidence": decision.get("confidence"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1929 | "risk": decision.get("risk"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1930 | "decision_quality": decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1931 | "decision_quality"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1937 | "source": "decision_evidence",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1942 | "source": "decision_intelligence",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1947 | "source": "decision_interpretation",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1961 | "source": "decision_action_framework",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1966 | "source": "decision_action_explanation",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1971 | "source": "decision_scenario_engine",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1976 | "source": "decision_scenario_explanation",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:1981 | "source": "decision_convergence",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2040 | "decision_quality": interpretation.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2041 | "decision_quality"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2055 | "source": "decision_traceability",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2071 | "decision_quality": decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2072 | "decision_quality"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2086 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2095 | def decision_audit(self, symbol):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2098 | Decision Audit Engine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2102 | Audit the complete analytical decision chain produced by
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2103 | the V3.1-V3.7.2 decision framework.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2112 | - modify valuation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2121 | 2. Decision consistency
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2134 | convergence = self.decision_convergence(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2143 | decision = convergence.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2144 | "decision",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2162 | traceability_result = self.decision_traceability(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2202 | "decision_evidence",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2203 | "decision_intelligence",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2204 | "decision_interpretation",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2205 | "decision_action_framework",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2206 | "decision_action_explanation",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2207 | "decision_scenario_engine",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2208 | "decision_scenario_explanation",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2209 | "decision_convergence"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2236 | # 2. Decision consistency
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2239 | decision_consistency = "PASS"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2241 | stance = decision.get("stance")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2242 | recommendation = decision.get("recommendation")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2243 | classification = decision.get("classification")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2247 | "Decision stance is missing."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2249 | decision_consistency = "FAIL"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2253 | "Decision recommendation is missing."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2255 | decision_consistency = "FAIL"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2259 | "Decision classification is missing."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2261 | decision_consistency = "FAIL"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2263 | if decision.get("decision_quality") not in (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2269 | "Decision quality is missing or invalid."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2271 | decision_consistency = "FAIL"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2381 | "allow_valuation_mutation",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2460 | # informational unless the decision structure itself
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2468 | "Bullish decision conflicts with BEAR primary scenario."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2478 | "Bearish decision conflicts with BULL primary scenario."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2504 | trace_decision_quality = traceability.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2505 | "decision_quality"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2508 | convergence_quality = decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2509 | "decision_quality"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2513 | trace_decision_quality is not None
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2515 | and trace_decision_quality != convergence_quality
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2518 | "Trace decision quality differs from convergence."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2529 | decision_consistency,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2554 | f"{symbol} decision chain passed the V3.8 "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2555 | "audit. Evidence, decision structure, scenarios, "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2563 | f"{symbol} decision chain did not pass the "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2565 | "inspection before the analytical decision chain "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2581 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2603 | #   - no valuation mutation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2631 | "source": "decision_traceability",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2636 | "decision_quality": None,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2652 | "source": "decision_traceability",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2698 | # Recover decision
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2701 | _v381_decision = _v381_result.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2702 | "decision",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2706 | if not isinstance(_v381_decision, dict):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2707 | _v381_decision = {}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2711 | # Decision fields
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2714 | _v381_stance = _v381_decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2719 | _v381_recommendation = _v381_decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2724 | _v381_classification = _v381_decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2729 | _v381_quality = _v381_decision.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2730 | "decision_quality",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2732 | "decision_quality",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2768 | "decision_consistency",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2827 | f"{symbol} decision audit passed. "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2828 | f"Evidence, decision consistency, scenario consistency, "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2836 | f"{symbol} decision audit requires review. "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2881 | f"The decision audit status is "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2883 | f"The decision chain remains read-only and "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2948 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:2973 | "decision_traceability"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3001 | _v381_result["decision"] = _v381_decision
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3048 | # verified V3.7.2 decision traceability / convergence layers.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3052 | # portfolio mutation, valuation mutation, performance mutation,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3056 | _v382_trace_result = self.decision_traceability(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3061 | _v382_convergence_result = self.decision_convergence(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3077 | _v382_decision = _v382_convergence_result.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3078 | "decision",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3082 | if not isinstance(_v382_decision, dict):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3083 | _v382_decision = {}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3139 | _v382_decision_quality = (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3140 | _v382_decision.get("decision_quality")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3141 | or _v382_convergence.get("decision_quality")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3142 | or _v382_interpretation.get("decision_quality")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3143 | or _v382_traceability.get("decision_quality")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3179 | "decision": _v382_decision,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3197 | "decision_traceability",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3210 | "decision_quality": _v382_decision_quality,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3244 | "allow_valuation_mutation": False,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3256 | # V3.8.2.3 proved that decision_traceability(symbol) already contains
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3257 | # the complete verified decision chain:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3259 | #   decision
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3273 | # NO decision calculation is changed.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3280 | _v3824_traceability_result = self.decision_traceability(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3285 | _v3824_decision = _v3824_traceability_result.get(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3286 | "decision",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3325 | if not isinstance(_v3824_decision, dict):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3326 | _v3824_decision = {}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:3387 | "decision": _v3824_decision,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:115 | Valuation          20
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:160 | # 1. VALUATION — 20
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:169 | reasons.append(f"P/E of {pe:.2f} indicates attractive valuation.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:173 | reasons.append(f"P/E of {pe:.2f} indicates reasonable valuation.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:177 | reasons.append(f"P/E of {pe:.2f} indicates moderate valuation.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:181 | reasons.append(f"P/E of {pe:.2f} indicates an expensive valuation.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:185 | reasons.append(f"P/E of {pe:.2f} indicates a very high valuation.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:194 | f"P/B of {pb:.2f} indicates attractive book-value valuation."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:211 | reasons.append(f"P/B of {pb:.2f} indicates a very high valuation.")
+
+============================================================
+5. EVENT CHAIN / CONTRACT REFERENCES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\realtime_router.py:9 | @router.post("/publish", status_code=status.HTTP_200_OK)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\realtime_router.py:10 | def publish_live_quote(symbol: str, price: float, volume: int) -> dict:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\realtime_router.py:11 | """Ingest and broadcast real-time market quote to active WebSocket subscribers."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\realtime_router.py:15 | "message": f"Quote published for {symbol}",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\system\health_router.py:27 | "eros_active_websocket_subscribers": 42,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:8 | class EnterpriseEventBus:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:9 | """Centralized publish-subscribe event bus for routing normalized market events to subscribers."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:10 | _subscribers: Dict[str, List[Callable[[Dict[str, Any]], None]]] = {}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:13 | def subscribe(cls, event_type: str, callback: Callable[[Dict[str, Any]], None]) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:14 | if event_type not in cls._subscribers:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:15 | cls._subscribers[event_type] = []
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:16 | cls._subscribers[event_type].append(callback)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:17 | logger.info("Subscriber registered for event type: %s", event_type)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:20 | def publish(cls, event_type: str, payload: Dict[str, Any]) -> int:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:21 | callbacks = cls._subscribers.get(event_type, [])
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:22 | logger.info("Publishing event '%s' to %s subscribers", event_type, len(callbacks))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:27 | logger.error("Error dispatching event to subscriber: %s", e)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py:32 | cls._subscribers.clear()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\realtime\stream_hub.py:14 | def subscribe(self, client_id: str, symbol: str) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\realtime\stream_hub.py:18 | logger.info("Client %s subscribed to live feed for symbol %s", client_id, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\realtime\stream_hub.py:20 | def unsubscribe(self, client_id: str, symbol: str) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\realtime\stream_hub.py:25 | logger.info("Client %s unsubscribed from symbol %s", client_id, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\realtime\stream_hub.py:28 | subscribers = self.active_subscriptions.get(symbol, set())
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\realtime\stream_hub.py:34 | "subscriber_count": len(subscribers)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\realtime\stream_hub.py:36 | logger.info("Broadcasting live tick for %s at %.2f to %s subscribers", symbol, price, len(subscribers))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:11 | publisher
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:13 | published
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:52 | # Publisher / Provider
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:58 | publisher = provider.get("displayName") or provider.get("name")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:60 | publisher = provider
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:62 | publisher = publisher or article.get("publisher") or "Unknown"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:98 | # Published Date
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:101 | published = (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:104 | or article.get("providerPublishTime")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:118 | if title == "No Title" and publisher == "Unknown" and not link:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:124 | "publisher": str(publisher),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py:126 | "published": published,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_economic_evidence_service.py:622 | "Broadband and cable subscriber base overlaps with Digital Services."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_economic_evidence_service.py:703 | "Financial statements published through Hathway explicitly state "
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_economic_evidence_service.py:725 | "financial statements published by Hathway"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\events.py:8 | class ForecastCompleted(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:8 | from services.forecast.events import ForecastCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:27 | self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:38 | await self.compute_and_publish(financials)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:40 | async def compute_and_publish(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:41 | """Run forecast calculations using actual FinancialStatements and publish ForecastCompleted event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:45 | event = ForecastCompleted(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:56 | logger.info("ForecastCompleted event published for symbol: %s using model: %s", symbol, model_type)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\events.py:9 | class FundamentalsDownloaded(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:7 | from services.fundamentals.events import FundamentalsDownloaded
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:40 | event = FundamentalsDownloaded(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:51 | logger.info("FundamentalsDownloaded event dispatched successfully for symbol: %s", symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\events.py:8 | class MarketDataDownloaded(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py:8 | from services.market_data.events import MarketDataDownloaded
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py:28 | """Retrieve market data from cache or download, then publish MarketDataDownloaded event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py:38 | event = MarketDataDownloaded(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py:48 | logger.info("MarketDataDownloaded event published for symbol: %s", response.symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py:7 | from services.market_data.events import MarketDataDownloaded
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py:15 | "MarketDataDownloaded",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\health.py:21 | "EventBus": "HEALTHY"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\events.py:8 | class ReportCompleted(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:8 | from services.report.events import ReportCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:25 | self._bus.subscribe("research.completed", self.handle_research_completed)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:31 | await self.generate_and_publish(symbol, payload)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:33 | async def generate_and_publish(self, symbol: str, analysis_data: dict[str, Any]) -> Any:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:34 | """Generate professional report and publish ReportCompleted event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:37 | event = ReportCompleted(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:49 | logger.info("ReportCompleted event published for symbol: %s at %s", symbol, result.file_path)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\events.py:8 | class ResearchCompleted(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:7 | from services.research.events import ResearchCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:13 | """Service managing investment research synthesis and event publishing."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:24 | self._bus.subscribe("valuation.completed", self.handle_valuation_completed)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:29 | await self.compute_and_publish(symbol, event)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:31 | async def compute_and_publish(self, symbol: str, event: Any = None) -> Any:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:32 | """Run research synthesis and publish ResearchCompleted event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:47 | event_msg = ResearchCompleted(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:57 | logger.info("ResearchCompleted event published for symbol: %s", symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\__init__.py:6 | from services.research.events import ResearchCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\__init__.py:14 | "ResearchCompleted",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\events.py:8 | class ValuationCompleted(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:9 | from services.valuation.events import ValuationCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:16 | """Service managing production-grade DCF valuation and event publishing triggered by forecast completion."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:28 | self._bus.subscribe("forecast.completed", self.handle_forecast_completed)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:39 | await self.compute_and_publish(forecast_result)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:41 | async def compute_and_publish(self, forecast: ForecastResult) -> Any:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:42 | """Run production DCF valuation and publish ValuationCompleted event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:50 | event = ValuationCompleted(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:63 | logger.info("ValuationCompleted event published for symbol: %s with fair value: %.2f", symbol, fair_value)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py:6 | from services.valuation.events import ValuationCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py:14 | "ValuationCompleted",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:5 | from services.market_data.events import MarketDataDownloaded
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:6 | from services.forecast.events import ForecastCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:7 | from services.valuation.events import ValuationCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:8 | from services.research.events import ResearchCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:9 | from services.report.events import ReportCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:15 | (MarketDataDownloaded, "market.data.downloaded"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:16 | (ForecastCompleted, "forecast.completed"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:17 | (ValuationCompleted, "valuation.completed"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:18 | (ResearchCompleted, "research.completed"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:19 | (ReportCompleted, "report.completed"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:43 | MarketDataDownloaded(symbol="", payload={})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:46 | MarketDataDownloaded(symbol=123, payload={})  # type: ignore[arg-type]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py:49 | MarketDataDownloaded(symbol="RELIANCE.NS", payload="not-a-dict")  # type: ignore[arg-type]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:7 | from core.events import InMemoryEventBus, EventDispatcher
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:24 | bus = InMemoryEventBus()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:63 | bus.subscribe("fundamentals.downloaded", spy_handler)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:64 | bus.subscribe("forecast.completed", spy_handler)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:65 | bus.subscribe("valuation.completed", valuation_listener)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:66 | bus.subscribe("research.completed", research_listener)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:67 | bus.subscribe("report.completed", report_listener)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:75 | raise AssertionError("Pipeline execution timed out waiting for ReportCompleted event.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py:4 | from backend.events.bus.event_bus import EnterpriseEventBus
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py:9 | EnterpriseEventBus.clear()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py:12 | def mock_subscriber(payload: dict) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py:15 | EnterpriseEventBus.subscribe("market.quote", mock_subscriber)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py:16 | count = EnterpriseEventBus.publish("market.quote", {"symbol": "TCS.NS", "price": 3525.40})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py:21 | EnterpriseEventBus.clear()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py:4 | from services.fundamentals.events import FundamentalsDownloaded
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py:8 | event = FundamentalsDownloaded(symbol="RELIANCE.NS", provider="YahooFinance")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py:6 | from core.events import InMemoryEventBus, EventDispatcher
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py:14 | bus = InMemoryEventBus()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py:24 | bus.subscribe("fundamentals.downloaded", listener)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\infrastructure\test_cnep.py:33 | assert "eros_active_websocket_subscribers" in data
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21a_health.py:17 | "EventBus",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30k_real_celery_broker.py:30 | Validates task creation, signature binding, and message publishing
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:14 | manager.subscribe(client_id, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:21 | assert payload["subscriber_count"] == 1
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:23 | manager.unsubscribe(client_id, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:26 | def test_realtime_publishing_api_endpoint() -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:27 | response = client.post("/api/v1/realtime/publish?symbol=INFY.NS&price=1850.50&volume=25000")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:35 | manager.subscribe("terminal_02", "RELIANCE.NS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:41 | manager.unsubscribe("terminal_02", "RELIANCE.NS")
+
+============================================================
+6. WORKFLOW / ORCHESTRATION TESTS
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block24_e2e_production.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25c_api_e2e.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_e2e.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow\test_workflow.py
+
+============================================================
+7. WORKFLOW IMPORT PROBE
+============================================================
+  File "<string>", line 23
+    print(f{name}
+         ^
+SyntaxError: '(' was never closed
+
+============================================================
+8. WORKFLOW / PIPELINE COMPILE
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_context.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_state.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\orchestration.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\production_orchestrator.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\adapter.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\cache.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\confidence_trace.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\decision_gate.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\downloader.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\events.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\integrity.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\provider.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\provider_resilience.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py | COMPILE: PASS
+
+============================================================
+9. WORKFLOW UNFINISHED / ABSTRACT MARKERS
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:47 | # Validation pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:6 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:10 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:14 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\adapter.py:24 | # Institutional mock/live adapter implementation for NSE securities
+
+============================================================
+10. SOURCE / GIT STATUS
+============================================================
+ M backend/api/routers/admin_task_router.py
+ M backend/api/routers/task_router.py
+ M backend/api/routers/valuation_router.py
+ M backend/config/settings.py
+ M backend/infrastructure/redis/client.py
+ M backend/main.py
+ M backend/security/jwt.py
+ M backend/tasks/task_control.py
+ M tests/production/test_block29_real_celery.py
+?? .env
+?? 31K_BR_CA_SECURITY_AUDIT.txt
+?? 31K_ES_next_block_discovery.txt
+?? 31K_EU_next_engineering_discovery.txt
+?? 31K_EV_source_boundary_audit.txt
+?? 31K_EW_system_integration_target_discovery.txt
+?? 31K_EX_full_pipeline_integration_probe.txt
+?? backend/api/dependencies/auth.py
+?? backend/api/routers/valuation_router.py.31K-backup
+?? backend/infrastructure/redis/client.py.31K_EE_backup
+?? backend/infrastructure/redis/client.py.31K_EE_repair_backup
+?? backend/infrastructure/redis/client.py.31K_EO_backup
+?? backend/infrastructure/redis/client.py.31K_EP_backup
+?? backend/infrastructure/redis/client.py.31K_EQ_backup
+?? backend/main.py.31K-BC.bak
+?? backend/security/dependencies.py
+?? backend/tasks/task_control.py.31K-DSI.backup
+?? backend/tasks/task_control.py.31K_DSM_backup
+?? backend/tasks/task_control.py.31K_DSP_backup
+?? backend/tasks/task_control.py.31K_DV_backup
+?? backend/tasks/task_control.py.31K_EH_backup
+?? backend/tasks/task_control.py.31K_EH_patch_backup
+?? backend/tasks/task_control.py.31K_EJ_backup
+?? block_31K_CG_security_audit.py
+?? block_31K_CH_validation.py
+?? block_31K_CI_full_output.txt
+?? block_31K_CK_security_audit.py
+?? block_31K_CL_baseline.py
+?? block_31K_CM_task_route_diagnostic.py
+?? block_31K_CN_route_reconciliation.py
+?? block_31K_CO_task_route_reconciliation.py
+?? block_31K_CP_route_object_diagnostic.py
+?? block_31K_CS_20in1_security_audit.py
+?? block_31K_CS_login_diagnostic.py
+?? block_31K_CV_security_audit.py
+?? block_31K_CW_output.txt
+?? block_31K_DC_final_audit.py
+?? block_31K_DC_stderr.txt
+?? block_31K_DH_final_regression.py
+?? block_31K_DQ_task_test.py
+?? block_31K_DR_reliability_test.py
+?? block_31K_DSE_failure_recovery.py
+?? block_31K_DSF_idempotency.py
+?? block_31K_DSJ_live_test.py
+?? block_31K_DSJ_output.txt
+?? block_31K_DSJ_redis_diagnostic.py
+?? block_31K_DSJ_redis_diagnostic.txt
+?? block_31K_DSK_redis_access.py
+?? block_31K_DSK_redis_access.txt
+?? block_31K_DSN_live_idempotency_test.py
+?? block_31K_DSN_traceback.txt
+?? block_31K_DSO_idempotency_runtime_diagnostic.py
+?? block_31K_DSO_output.txt
+?? block_31K_DSP_live_test.py
+?? block_31K_DT_concurrent_idempotency_test.py
+?? block_31K_DU_concurrency_lock_diagnostic.py
+?? block_31K_DW_concurrent_idempotency_test.py
+?? block_31K_EA_race_test.py
+?? block_31K_EF_atomic_lock_stress.py
+?? block_31K_EG_full_idempotency_test.py
+?? block_31K_EK_concurrent_idempotency_test.py
+?? block_31K_EL_idempotency_regression_test.py
+?? block_31K_ER_lock_regression.py
+?? check_main_31K_CD.py
+?? eros_security_audit_31K_CC.py
+?? eros_security_audit_31K_CC_output.txt
+?? logs/analyzer_before_eros_v26_readonly_patch.py
+?? logs/analyzer_before_eros_v328_date_contract.py
+?? logs/eros_block29_queue_contract_fix_output.txt
+?? logs/eros_block29_source_inspection.txt
+?? logs/eros_block29b_queue_contract.txt
+?? logs/eros_block29b_queue_diagnostic.py
+?? logs/eros_block29b_queue_inspection.txt
+?? logs/eros_block30k_result.txt
+?? logs/eros_block30k_wsl_ip_result.txt
+?? logs/eros_celery_config_location.txt
+?? logs/eros_celery_search.txt
+?? logs/eros_checkpoint_latest.txt
+?? logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py
+?? logs/eros_frontend_adapter_before_v29.py
+?? logs/eros_frontend_adapter_before_v30_20260822_210324.py
+?? logs/eros_frontend_adapter_before_v30_decision_20260822_210450.py
+?? logs/eros_frontend_adapter_before_v31_20260822_210705.py
+?? logs/eros_frontend_adapter_before_v32_20260822_210838.py
+?? logs/eros_frontend_adapter_before_v33_20260822_211141.py
+?? logs/eros_frontend_adapter_before_v34_20260822_211420.py
+?? logs/eros_frontend_adapter_before_v35_20260822_211800.py
+?? logs/eros_frontend_adapter_before_v35_20260822_212229.py
+?? logs/eros_frontend_adapter_before_v36_20260822_212325.py
+?? logs/eros_frontend_adapter_before_v371_20260822_213654.py
+?? logs/eros_frontend_adapter_before_v372_20260822_213827.py
+?? logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213105.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213210.py
+?? logs/eros_frontend_adapter_before_v381_20260822_215432.py
+?? logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py
+?? logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py
+?? logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220104.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220437.py
+?? logs/eros_frontend_adapter_before_v38_20260822_214850.py
+?? logs/eros_full_suite_hang_diagnostic.txt
+?? logs/eros_full_test_20260823_123857.txt
+?? logs/eros_full_test_hang_isolation.txt
+?? logs/eros_precommit_safety_audit.txt
+?? logs/eros_pydantic_diagnostic.txt
+?? logs/eros_pydantic_repair.txt
+?? logs/eros_pytest_collection_check.txt
+?? logs/eros_pytest_hang_diagnostic.txt
+?? logs/eros_test_20260823_123827.txt
+?? logs/eros_v25_adapter_api.py
+?? logs/eros_v25_adapter_api_output.txt
+?? logs/eros_v25_contract_verify.py
+?? logs/eros_v25_dashboard_contract.py
+?? logs/eros_v25_dashboard_contract_output.txt
+?? logs/eros_v25_market_scan_contract.py
+?? logs/eros_v25_market_scan_contract_output.txt
+?? logs/eros_v26_active_sqlite_message_check.py
+?? logs/eros_v26_active_write_token_check.py
+?? logs/eros_v26_analyzer_patch_output.txt
+?? logs/eros_v26_analyzer_runtime_test.py
+?? logs/eros_v26_ast_nonmutation_proof.py
+?? logs/eros_v26_ast_nonmutation_proof.txt
+?? logs/eros_v26_ast_nonmutation_proof_v2.py
+?? logs/eros_v26_ast_nonmutation_proof_v2.txt
+?? logs/eros_v26_clean_write_trace.txt
+?? logs/eros_v26_corrected_nonmutation_proof_20260822_205417.txt
+?? logs/eros_v26_corrected_runtime_test.py
+?? logs/eros_v26_corrected_scan_test.py
+?? logs/eros_v26_database_nonmutation_proof.txt
+?? logs/eros_v26_exact_write_trace.txt
+?? logs/eros_v26_market_scan_readonly_test.py
+?? logs/eros_v26_nonmutation_runtime_test.py
+?? logs/eros_v26_safety_contract_runtime.py
+?? logs/eros_v26_sqlite_message_trace.txt
+?? logs/eros_v26_sqlite_save_message_trace.txt
+?? logs/eros_v26_write_trace_clipboard.txt
+?? logs/eros_v27_data_layer_boundary_console.txt
+?? logs/eros_v27_runtime_evidence_inspection.py
+?? logs/eros_v27_runtime_evidence_inspection.txt
+?? logs/eros_v28_decision_evidence_test.py
+?? logs/eros_v28_decision_evidence_test_output.txt
+?? logs/eros_v29_decision_evidence_output.txt
+?? logs/eros_v29_decision_evidence_test.py
+?? logs/eros_v30_decision_intelligence_foundation.txt
+?? logs/eros_v30_decision_intelligence_test.py
+?? logs/eros_v31_decision_interpretation_foundation.txt
+?? logs/eros_v31_decision_interpretation_test.py
+?? logs/eros_v32_decision_action_runtime_20260822_210929.txt
+?? logs/eros_v32_decision_action_runtime_test_20260822_210929.py
+?? logs/eros_v33_runtime_test.py
+?? logs/eros_v33_runtime_test_output.txt
+?? logs/eros_v34_runtime_test.py
+?? logs/eros_v34_runtime_test_output.txt
+?? logs/eros_v35_runtime_test.py
+?? logs/eros_v35_runtime_test_output.txt
+?? logs/eros_v36_runtime_test.py
+?? logs/eros_v372_ast_traceability_patch.py
+?? logs/eros_v372_return_structure_diagnostic.py
+?? logs/eros_v372_runtime_regression.py
+?? logs/eros_v372_traceability_failure_diagnostic.py
+?? logs/eros_v372_traceability_runtime_test.py
+?? logs/eros_v37_api_check.py
+?? logs/eros_v37_foundation_check.py
+?? logs/eros_v37_runtime_test.py
+?? logs/eros_v37_traceability_diagnostic.py
+?? logs/eros_v37_traceability_runtime_test.py
+?? logs/eros_v3810_adapter_api_contract.txt
+?? logs/eros_v3812_frontend_insertion_boundary.txt
+?? logs/eros_v3813_traceability_runtime_contract.py
+?? logs/eros_v3813_traceability_runtime_contract.txt
+?? logs/eros_v3815_frontend_runtime_consumption_audit.py
+?? logs/eros_v3815_frontend_runtime_consumption_audit.txt
+?? logs/eros_v3816_golden_integration_verification.txt
+?? logs/eros_v3817_traceability_frontend_consumption_inspection.txt
+?? logs/eros_v3818_frontend_traceability_runtime_test.py
+?? logs/eros_v3818_frontend_traceability_runtime_test.txt
+?? logs/eros_v3819_golden_integration_verification.py
+?? logs/eros_v3819_golden_integration_verification.txt
+?? logs/eros_v381_audit_clipboard_diagnostic.py
+?? logs/eros_v381_audit_clipboard_output.txt
+?? logs/eros_v381_audit_failure_isolation.py
+?? logs/eros_v381_audit_runtime_diagnostic.py
+?? logs/eros_v381_deep_audit_runtime.py
+?? logs/eros_v3820_traceability_ui_context.txt
+?? logs/eros_v3821_ast_only.py
+?? logs/eros_v3821_compile_failure_diagnostic_20260822_220822.txt
+?? logs/eros_v3821_structural_ast_diagnostic.py
+?? logs/eros_v3821_structural_diagnostic_clipboard.txt
+?? logs/eros_v3822_ast_inspection.py
+?? logs/eros_v3822_ast_syntax_diagnostic.py
+?? logs/eros_v3822_clean_runtime_diagnostic.py
+?? logs/eros_v3822_runtime_hydration_validation.py
+?? logs/eros_v3823_hydration_dataflow_diagnostic.py
+?? logs/eros_v3823_hydration_source_inspection.py
+?? logs/eros_v3823_import_path_test.py
+?? logs/eros_v3824_ast_inspection.py
+?? logs/eros_v3824_audit_dataflow_inspector.py
+?? logs/eros_v3824_audit_dataflow_source_diagnostic.py
+?? logs/eros_v3824_golden_baseline_runtime.py
+?? logs/eros_v3824_golden_difference_forensic_20260822_225337.txt
+?? logs/eros_v3824_runtime_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic_output.txt
+?? logs/eros_v3826_decision_evidence_source_forensic.txt
+?? logs/eros_v3827_runtime_dataflow_diagnostic.py
+?? logs/eros_v3827_runtime_dataflow_diagnostic.txt
+?? logs/eros_v3828_middle_layer_source_forensic.txt
+?? logs/eros_v3829_middle_layer_runtime_test.py
+?? logs/eros_v3829_middle_layer_runtime_test_output.txt
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.py
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.txt
+?? logs/eros_v382_ast_audit_hydration_patcher.py
+?? logs/eros_v382_audit_failure_capture.py
+?? logs/eros_v382_audit_schema_runtime_diagnostic.py
+?? logs/eros_v382_forensic_runtime.py
+?? logs/eros_v382_forensic_runtime_output.txt
+?? logs/eros_v382_forensic_stderr.txt
+?? logs/eros_v382_forensic_stdout.txt
+?? logs/eros_v382_integrity_patcher.py
+?? logs/eros_v382_integrity_runtime_diagnostic.py
+?? logs/eros_v3831_dashboard_analysis_flow_forensic.txt
+?? logs/eros_v3832_THREE_REPORTS_COMBINED.txt
+?? logs/eros_v3832_adapter_frontend_contract_forensic.txt
+?? logs/eros_v3832_adapter_frontend_integration_contract.txt
+?? logs/eros_v3832_adapter_public_api_forensic.txt
+?? logs/eros_v3833_adapter_runtime_contract_test.txt
+?? logs/eros_v383_frontend_consumption_forensic.txt
+?? logs/eros_v384_frontend_integration_insertion_forensic.txt
+?? logs/eros_v385_frontend_adapter_argument_contract.txt
+?? logs/eros_v386_frontend_integration_runtime_dry_run.txt
+?? logs/eros_v389_selected_stock_insertion_context.txt
+?? logs/eros_v38_audit_failure_diagnostic.py
+?? logs/eros_v38_decision_audit_diagnostic.py
+?? logs/eros_v38_runtime_test.py
+?? logs/stock_dashboard_before_eros_frontend_v1.py
+?? logs/stock_dashboard_before_eros_frontend_v2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_1.py
+?? logs/stock_dashboard_before_eros_frontend_v2_2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_market_insert.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_5.py
+?? logs/stock_dashboard_before_eros_v311_20260823_105006.py
+?? logs/stock_dashboard_before_eros_v314_integration.py
+?? logs/stock_dashboard_before_eros_v320_20260823_113203.py
+?? logs/stock_dashboard_before_eros_v387_20260823_000130.py
+?? logs/test_block29_real_celery_before_queue_contract_fix.py
+?? security_backup_31K_BG/
+?? security_backup_31K_CG/
+?? security_backup_31K_CH/
+?? security_backup_31K_CI/
+?? security_backup_31K_CJ/
+?? security_backup_31K_CR/
+?? security_backup_31K_CS/
+?? security_backup_31K_CU/
+?? security_backup_31K_CY/
+?? security_backup_31K_CZ/
+?? security_backup_31K_DA/
+
+============================================================
+31K-EY ENGINEERING STATUS
+============================================================
+31K-ES REDIS: PASS
+31K-ES TTL: PASS
+31K-ES ATOMIC LOCK: PASS
+31K-ES IDEMPOTENCY: PASS
+31K-EU FINANCIAL: PASS
+31K-EX PIPELINE PROBE: COMPLETE
+
+WORKFLOW SOURCE: REVIEW ABOVE
+EVENT CHAIN: REVIEW ABOVE
+IMPORTS: REVIEW ABOVE
+COMPILE: REVIEW ABOVE
+TESTS: REVIEW ABOVE
+
+SOURCE MODIFICATION: NONE
+DO NOT PATCH SOURCE UNTIL REPORT IS REVIEWED
+============================================================
+31K-EY COMPLETE
+============================================================

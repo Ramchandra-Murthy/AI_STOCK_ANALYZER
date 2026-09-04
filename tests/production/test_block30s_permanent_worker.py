@@ -8,7 +8,7 @@ import redis
 from threading import Thread
 from queue import Queue, Empty
 
-BROKER_URL = "redis://127.0.0.1:6380/0"
+BROKER_URL = "redis://127.0.0.1:6379/0"
 
 def _enqueue_output(out, queue):
     for line in iter(out.readline, ''):
@@ -85,7 +85,7 @@ def test_block30s_permanent_real_worker_regression():
         assert result.ready(), f"Task timed out as PENDING. Logs: {worker_logs[-15:]}"
         assert result.state == "SUCCESS"
 
-        payload = result.get(timeout=3.0)
+        payload = result.result
         assert isinstance(payload, dict)
         assert payload.get("status") == "EXECUTED"
         assert payload.get("token") == token
@@ -98,3 +98,5 @@ def test_block30s_permanent_real_worker_regression():
         except subprocess.TimeoutExpired:
             worker.kill()
             worker.wait(timeout=3.0)
+
+

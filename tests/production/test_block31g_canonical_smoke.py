@@ -10,7 +10,7 @@ from threading import Thread
 from queue import Queue, Empty
 
 
-BROKER_URL = "redis://127.0.0.1:6380/0"
+BROKER_URL = "redis://127.0.0.1:6379/0"
 
 
 def _enqueue_output(out, queue):
@@ -31,7 +31,7 @@ def test_block31g_canonical_worker_smoke_execution():
 
     against WSL Redis exposed through:
 
-        127.0.0.1:6380
+        127.0.0.1:6379
 
     Verifies:
 
@@ -257,9 +257,7 @@ def test_block31g_canonical_worker_smoke_execution():
 
                 if result.state == "SUCCESS":
 
-                    payload = result.get(
-                        timeout=5.0
-                    )
+                    payload = result.result
 
                     success_achieved = True
 
@@ -340,4 +338,7 @@ def test_block31g_canonical_worker_smoke_execution():
             worker_proc.wait(
                 timeout=5.0
             )
+
+
+
 

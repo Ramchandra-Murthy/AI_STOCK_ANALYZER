@@ -1,0 +1,115 @@
+﻿======================================================================
+EROS 3.0 - V3.8.17 TRACEABILITY FRONTEND CONSUMPTION INSPECTION
+======================================================================
+
+DASHBOARD : .\stock_dashboard.py
+
+
+TOKEN : eros_traceability
+----------------------------------------
+ 1693 | eros_traceability = adapter.decision_traceability(
+ 1698 | eros_traceability,
+ 1702 | "EROS_TRACEABILITY_NOT_DICT"
+ 1705 | eros_decision = eros_traceability.get(
+ 1710 | eros_interpretation = eros_traceability.get(
+ 1715 | eros_conclusion = eros_traceability.get(
+ 1720 | eros_trace = eros_traceability.get(
+ 1725 | eros_governance = eros_traceability.get(
+
+TOKEN : traceability_status
+----------------------------------------
+NOT FOUND
+
+TOKEN : evidence_chain
+----------------------------------------
+NOT FOUND
+
+TOKEN : scenario_trace
+----------------------------------------
+NOT FOUND
+
+TOKEN : stage_1_evidence
+----------------------------------------
+ 1827 | "stage_1_evidence"
+
+TOKEN : stage_2_intelligence
+----------------------------------------
+ 1831 | "stage_2_intelligence"
+
+TOKEN : stage_3_interpretation
+----------------------------------------
+ 1835 | "stage_3_interpretation"
+
+TOKEN : stage_4_action_framework
+----------------------------------------
+ 1839 | "stage_4_action_framework"
+
+TOKEN : stage_5_action_explanation
+----------------------------------------
+ 1843 | "stage_5_action_explanation"
+
+TOKEN : stage_6_scenario_engine
+----------------------------------------
+ 1847 | "stage_6_scenario_engine"
+
+TOKEN : stage_7_scenario_explanation
+----------------------------------------
+ 1851 | "stage_7_scenario_explanation"
+
+TOKEN : stage_8_convergence
+----------------------------------------
+ 1855 | "stage_8_convergence"
+
+TOKEN : traceability
+----------------------------------------
+ 1693 | eros_traceability = adapter.decision_traceability(
+ 1698 | eros_traceability,
+ 1702 | "EROS_TRACEABILITY_NOT_DICT"
+ 1705 | eros_decision = eros_traceability.get(
+ 1710 | eros_interpretation = eros_traceability.get(
+ 1715 | eros_conclusion = eros_traceability.get(
+ 1720 | eros_trace = eros_traceability.get(
+ 1725 | eros_governance = eros_traceability.get(
+ 1819 | "**Decision Traceability**"
+
+TOKEN : conclusion
+----------------------------------------
+ 1715 | eros_conclusion = eros_traceability.get(
+ 1716 | "conclusion",
+ 1892 | if eros_conclusion:
+ 1895 | "**EROS Analytical Conclusion**"
+ 1899 | eros_conclusion,
+ 1904 | eros_conclusion.items()
+ 1914 | eros_conclusion
+
+======================================================================
+TRACEABILITY OBJECT CONSUMPTION
+======================================================================
+eros_traceability references : 8
+ 1693 | eros_traceability = adapter.decision_traceability(
+ 1698 | eros_traceability,
+ 1702 | "EROS_TRACEABILITY_NOT_DICT"
+ 1705 | eros_decision = eros_traceability.get(
+ 1710 | eros_interpretation = eros_traceability.get(
+ 1715 | eros_conclusion = eros_traceability.get(
+ 1720 | eros_trace = eros_traceability.get(
+ 1725 | eros_governance = eros_traceability.get(
+
+======================================================================
+COMPILE VERIFICATION
+======================================================================
+ADAPTER COMPILE : PASS
+DASHBOARD COMPILE : PASS
+
+======================================================================
+SAFETY
+======================================================================
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+V3.8.17 TRACEABILITY FRONTEND CONSUMPTION INSPECTION COMPLETE
+======================================================================

@@ -1,0 +1,33 @@
+==========================================================
+EROS 3.0 - BLOCK 31K-DSN
+LIVE REDIS IDEMPOTENCY TEST
+==========================================================
+
+1. TASK CONTROL
+CLASS: <class 'backend.tasks.task_control.TaskControlService'>
+REGISTERED: ['forecast.execute', 'forecast.run', 'report.generate', 'valuation.execute']
+
+2. REDIS CLIENT
+CLASS: <class 'backend.infrastructure.redis.client.RedisClientStub'>
+HOST: localhost
+PORT: 6379
+DB: 0
+
+3. REDIS INITIAL STATE
+KEY COUNT: 0
+REQUEST ID: DSN-28ea0772927d46039971271234e3d5d3
+IDEMPOTENCY KEY: eros:idempotency:DSN-28ea0772927d46039971271234e3d5d3
+
+4. FIRST SUBMISSION
+FIRST: {'task_id': '29aa058a-93f8-4050-ab82-029b2b634b7b', 'status': 'QUEUED', 'task_name': 'valuation.execute', 'user': 'system', 'execution_result': {'status': 'SUCCESS', 'task_id': '29aa058a-93f8-4050-ab82-029b2b634b7b', 'user': 'system', 'symbol': 'TCS.NS'}}
+FIRST TASK ID: 29aa058a-93f8-4050-ab82-029b2b634b7b
+
+5. REDIS AFTER FIRST SUBMISSION
+REDIS VALUE: None
+MATCHES FIRST TASK: False
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSN_live_idempotency_test.py", line 62, in <module>
+    raise AssertionError(
+        "Redis idempotency mapping does not match first task ID"
+    )
+AssertionError: Redis idempotency mapping does not match first task ID

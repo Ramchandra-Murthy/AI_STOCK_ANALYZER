@@ -1,0 +1,760 @@
+﻿============================================================
+EROS 3.0 - 31K-FI1 REAL SCORE INTEGRATION SIMULATION
+============================================================
+CHECKPOINT: 31K-FD9 COMPLETE
+MODE: READ-ONLY
+SOURCE MODIFICATION: NONE
+
+============================================================
+1. CURRENT PIPELINE SOURCE
+============================================================
+class FullyIntegratedMarketPipeline:
+    """
+    EROS 3.0 Block 23K Fully Integrated Market Pipeline.
+    Supports contract-first four-path trace validation for LIVE, FALLBACK, STALE, and INVALID data states.
+    """
+    def __init__(self, policy_profile: str = "Institutional") -> None:
+        self.orchestrator = UnifiedResearchToDecisionOrchestrator(policy_profile=policy_profile)
+
+    def evaluate_stock_securely(self, symbol: str) -> Tuple[Any, MarketDataDecisionResult, Optional[UnifiedInvestmentResult], ConfidenceDecisionTraceRecord]:
+        packet, report = ResilientMarketDataProvider.get_validated_market_data(symbol)
+        decision = MarketDataDecisionGate.evaluate_decision(report)
+
+        base_confidence = 0.85
+        adjusted_conf = max(0.0, base_confidence - decision.confidence_penalty)
+
+        if not decision.allowed_in_scoring:
+            trace_record = ConfidenceAuditLogger.create_trace(
+                symbol=symbol,
+                raw_state=report.data_state,
+                valid=report.is_valid,
+                directive=decision.directive,
+                base_conf=base_confidence,
+                penalty=decision.confidence_penalty,
+                adj_conf=0.0,
+                composite_score=0.0,
+                action="REJECT_DATA"
+            )
+            return packet, decision, None, trace_record
+
+        ai_score = AIScoreResult(
+            symbol=symbol,
+            growth_score=82.0,
+            quality_score=88.0,
+            profitability_score=86.0,
+            capital_allocation_score=81.0,
+            valuation_score=79.0,
+            momentum_score=76.0,
+            risk_score=85.0,
+            composite_score=82.4,
+            breakdown_details={
+                "rating": "BUY",
+                "current_price": packet.current_price,
+                "data_state": decision.directive,
+                "confidence_penalty": decision.confidence_penalty,
+                "adjusted_confidence": adjusted_conf
+            }
+        )
+
+        result = self.orchestrator.evaluate(ai_score, holdings=None, portfolio_weight=0.05)
+
+        trace_record = ConfidenceAuditLogger.create_trace(
+            symbol=symbol,
+            raw_state=report.data_state,
+            valid=report.is_valid,
+            directive=decision.directive,
+            base_conf=base_confidence,
+            penalty=decision.confidence_penalty,
+            adj_conf=adjusted_conf,
+            composite_score=ai_score.composite_score,
+            action=result.final_action
+        )
+
+        return packet, decision, result, trace_record
+
+
+============================================================
+2. AIScoringEngine SOURCE
+============================================================
+class AIScoringEngine:
+    """
+    Institutional Fundamental, Growth, Valuation, Momentum, & Risk AI Scoring Engine.
+    Block 15H integrates RiskScoringEngine for dynamic institutional risk scoring.
+    """
+    def __init__(self) -> None:
+        self.fundamental_engine = FundamentalScoringEngine()
+        self.growth_engine = GrowthScoringEngine()
+        self.valuation_engine = ValuationEngine()
+        self.momentum_engine = MomentumScoringEngine()
+        self.risk_scoring_engine = RiskScoringEngine()
+
+    def evaluate(
+        self,
+        financials: FinancialStatements,
+        market_records: list[PriceRecord] | None = None,
+        risk_profile: PortfolioRiskProfile | None = None,
+    ) -> AIScoreResult:
+        ticker = financials.ticker
+        logger.info(
+            "Running unified institutional AI scoring with valuation, momentum, and risk for symbol: %s",
+            ticker,
+        )
+
+        # 1. Fundamental Scoring (Blocks 12A-12C)
+        fund_res = self.fundamental_engine.evaluate(financials)
+
+        profitability_score = fund_res.profitability_score
+        quality_score = fund_res.quality_score
+        capital_allocation_score = fund_res.cash_flow_quality_score
+
+        # 2. Historical Growth Scoring (Block 11)
+        growth_res = self.growth_engine.evaluate(financials)
+        growth_score = growth_res.growth_score
+
+        # 3. Dynamic Valuation Engine Integration (Block 13)
+        val_res = self.valuation_engine.compute(symbol=ticker, forecast_data=financials)
+        valuation_score = _score_valuation(val_res.margin_of_safety_pct)
+
+        # 4. Dynamic Momentum Scoring Integration (Block 14H)
+        if not market_records:
+            base_price = 1000.0
+            market_records = [
+                PriceRecord(
+                    date=f"2026-07-{i+1:02d}",
+                    open=base_price + i,
+                    high=base_price + i + 5,
+                    low=base_price + i - 5,
+                    close=base_price + i + 2,
+                    volume=1000000 + i * 10000,
+                )
+                for i in range(30)
+            ]
+
+        mom_res = self.momentum_engine.evaluate(symbol=ticker, records=market_records)
+        momentum_score = mom_res.momentum_score
+
+        # 5. Dynamic Risk Scoring Integration (Block 15H)
+        risk_res = self.risk_scoring_engine.evaluate(symbol=ticker, profile=risk_profile)
+        risk_score = risk_res.risk_score
+
+        # 6. Weighted Composite
+        weights: Dict[str, float] = {
+            "growth": 0.15,
+            "quality": 0.20,
+            "profitability": 0.20,
+            "capital_allocation": 0.10,
+            "valuation": 0.15,
+            "momentum": 0.10,
+            "risk": 0.10,
+        }
+        composite = (
+            growth_score * weights["growth"]
+            + quality_score * weights["quality"]
+            + profitability_score * weights["profitability"]
+            + capital_allocation_score * weights["capital_allocation"]
+            + valuation_score * weights["valuation"]
+            + momentum_score * weights["momentum"]
+            + risk_score * weights["risk"]
+        )
+        composite = round(_clamp(composite), 2)
+
+        if composite >= 75.0:
+            rating = "STRONG BUY"
+        elif composite >= 60.0:
+            rating = "BUY"
+        elif composite >= 45.0:
+            rating = "HOLD"
+        elif composite >= 30.0:
+            rating = "SELL"
+        else:
+            rating = "STRONG SELL"
+
+        details = {
+            "rating": rating,
+            "engine_version": "EROS-3.0-BLOCK-15",
+            "weights_used": weights,
+            "growth_engine": growth_res.growth_details,
+            "fundamental_engine": fund_res.pillar_details,
+            "valuation_engine": {
+                "blended_fair_value": val_res.blended_fair_value,
+                "current_market_price": val_res.current_market_price,
+                "margin_of_safety_pct": val_res.margin_of_safety_pct,
+                "recommendation": val_res.recommendation,
+                "valuation_score": valuation_score,
+            },
+            "momentum_engine": mom_res.details,
+            "risk_engine": risk_res.details,
+        }
+
+        return AIScoreResult(
+            symbol=ticker,
+            growth_score=round(growth_score, 2),
+            quality_score=round(quality_score, 2),
+            profitability_score=round(profitability_score, 2),
+            capital_allocation_score=round(capital_allocation_score, 2),
+            valuation_score=round(valuation_score, 2),
+            momentum_score=round(momentum_score, 2),
+            risk_score=round(risk_score, 2),
+            composite_score=composite,
+            breakdown_details=details,
+        )
+
+
+============================================================
+3. CANONICAL NORMALIZER
+============================================================
+SIGNATURE:
+(company_name: 'str', ticker: 'str', currency: 'str', fiscal_year: 'str', income_raw: 'dict[str, Any]', balance_raw: 'dict[str, Any]', cashflow_raw: 'dict[str, Any]') -> 'FinancialStatements'
+
+SOURCE:
+def normalize_financial_statements(
+    company_name: str,
+    ticker: str,
+    currency: str,
+    fiscal_year: str,
+    income_raw: dict[str, Any],
+    balance_raw: dict[str, Any],
+    cashflow_raw: dict[str, Any],
+) -> FinancialStatements:
+    """
+    Builds the platform's canonical FinancialStatements object.
+    """
+
+    return FinancialStatements(
+        company_name=company_name,
+        ticker=ticker,
+        currency=currency,
+        fiscal_year=fiscal_year,
+        income_statement=normalize_income_statement(income_raw),
+        balance_sheet=normalize_balance_sheet(balance_raw),
+        cash_flow_statement=normalize_cash_flow(cashflow_raw),
+    )
+
+
+============================================================
+4. FUNDAMENTALS SERVICE
+============================================================
+SIGNATURE:
+(provider: 'IFundamentalProvider', normalizer: 'FinancialNormalizer', dispatcher: 'EventDispatcher', cache: 'Optional[dict[str, FinancialStatements]]' = None) -> 'None'
+
+SOURCE:
+class FundamentalsService:
+    """Service managing financial statements acquisition, normalization, caching, and event dispatching."""
+
+    def __init__(
+        self,
+        provider: IFundamentalProvider,
+        normalizer: FinancialNormalizer,
+        dispatcher: EventDispatcher,
+        cache: Optional[dict[str, FinancialStatements]] = None,
+    ) -> None:
+        self._provider = provider
+        self._normalizer = normalizer
+        self._dispatcher = dispatcher
+        self._cache = cache if cache is not None else {}
+
+    async def get_or_download(self, symbol: str) -> FinancialStatements:
+        """Retrieve financial statements from cache or download and normalize them, then dispatch event."""
+        if symbol in self._cache:
+            logger.info("Serving financial statements from cache for symbol: %s", symbol)
+            statements = self._cache[symbol]
+        else:
+            raw = self._provider.download(symbol)
+            statements = self._normalizer.normalize(raw)
+            self._cache[symbol] = statements
+
+        event = FundamentalsDownloaded(
+            symbol=symbol,
+            provider=statements.metadata.get("provider", "YahooFinance"),
+            timestamp=time.time(),
+            payload={
+                "financial_statements": statements,
+                "symbol": symbol,
+            },
+        )
+
+        await self._dispatcher.dispatch(event)
+        logger.info("FundamentalsDownloaded event dispatched successfully for symbol: %s", symbol)
+        return statements
+
+
+============================================================
+5. REAL SCORE ENGINE IMPORT TEST
+============================================================
+AIScoringEngine | IMPORT=PASS | MODULE=services.scoring.engine
+FundamentalScoringEngine | IMPORT=PASS | MODULE=services.scoring.fundamental
+GrowthScoringEngine | IMPORT=PASS | MODULE=services.scoring.growth
+MomentumScoringEngine | IMPORT=PASS | MODULE=services.scoring.technical
+RiskScoringEngine | IMPORT=PASS | MODULE=services.scoring.risk_scoring
+ValuationEngine | IMPORT=PASS | MODULE=services.valuation.engine
+
+============================================================
+6. CANONICAL FINANCIALS ENTRY POINT SEARCH
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\company\repository.py:10 | """Thread-safe institutional memory repository for company registry and historical financial snapshots."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:21 | def download_financials(self, symbol: str) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\providers\yahoo.py:13 | def download_financials(self, symbol: str) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py:213 | def normalize_financial_statements(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py:29 | normalize_financial_statements,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py:31 | from services.financials.repository import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py:32 | FinancialStatementRepository,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py:38 | _repository = FinancialStatementRepository()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py:55 | statements = normalize_financial_statements(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py:72 | def get_financial_statements(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\repository.py:8 | class FinancialStatementRepository:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\repository.py:9 | """In-memory singleton repository for validated FinancialStatements."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\repository.py:11 | _instance: FinancialStatementRepository | None = None
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\repository.py:13 | def __new__(cls) -> FinancialStatementRepository:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\repository.py:26 | """Retrieves FinancialStatements from storage or raises RepositoryError."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\repository.py:45 | def get_repository() -> FinancialStatementRepository:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\repository.py:47 | return FinancialStatementRepository()
+
+============================================================
+7. PRICE RECORD / MOMENTUM INPUT SEARCH
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\target_price_service.py:29 | Historical OHLC price data.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\technical_score_service.py:22 | return 0, ["Historical price data is unavailable"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\technical_score_service.py:209 | return 0, ["Historical price data is unavailable"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\technical_service.py:5 | def get_price_history(symbol, period="1y"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\technical_service.py:7 | Download historical price data and calculate
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\trade_plan_service.py:69 | "message": "No historical price data available.",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\downloader.py:5 | from services.market_data.models import MarketDataResponse, PriceRecord
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\downloader.py:14 | """Fetch historical price records for the given symbol."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\downloader.py:19 | PriceRecord(date="2026-08-03", open=2480.0, high=2510.0, low=2475.0, close=2500.0, volume=1250000),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\downloader.py:20 | PriceRecord(date="2026-08-04", open=2500.0, high=2530.0, low=2490.0, close=2520.0, volume=1400000),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\downloader.py:21 | PriceRecord(date="2026-08-05", open=2520.0, high=2550.0, low=2515.0, close=2540.0, volume=1600000),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\models.py:8 | class PriceRecord:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\models.py:23 | records: List[PriceRecord] = field(default_factory=list)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py:6 | from services.market_data.models import MarketDataResponse, PriceRecord
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py:14 | "PriceRecord",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:9 | from services.scoring.technical import MomentumScoringEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:11 | from services.market_data.models import PriceRecord
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:32 | self.momentum_engine = MomentumScoringEngine()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:38 | market_records: list[PriceRecord] | None = None,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:63 | if not market_records:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:65 | market_records = [
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:66 | PriceRecord(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:77 | mom_res = self.momentum_engine.evaluate(symbol=ticker, records=market_records)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:4 | from services.market_data.models import PriceRecord
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:118 | Calculates deterministic indicators from OHLCV PriceRecord data.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:122 | records: List[PriceRecord],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:257 | class MomentumScoringEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:265 | records: List[PriceRecord],
+
+============================================================
+8. BLOCK 18 ACCEPTANCE CONTRACT
+============================================================
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py
+    def evaluate(
+        self,
+        ai_score: AIScoreResult,
+        holdings: Optional[Dict[str, Dict[str, float]]] = None,
+        portfolio_weight: Optional[float] = None,
+        ratios: Optional[FinancialRatios] = None,
+    ) -> UnifiedInvestmentResult:
+        symbol = ai_score.symbol
+
+        # 1. Run Block 17 Research Intelligence & Economic Moat
+        research_res = self.research_orchestrator.evaluate(
+            symbol=symbol,
+            ratios=ratios,
+            composite_score=ai_score.composite_score
+        )
+
+        # 2. Run Block 17 Evidence & Business Reasoning
+        reasoning_res = self.reasoning_orchestrator.evaluate(ai_score=ai_score)
+
+        # 3. Run Block 17 Confidence Orchestration
+        confidence_res = self.confidence_orchestrator.evaluate(
+            symbol=symbol,
+            evidence_confidence=0.90,
+            reasoning_confidence=reasoning_res.reasoning_confidence,
+            moat_score=research_res.moat_score,
+            contradiction_count=reasoning_res.contradiction_count
+        )
+
+        # 4. Run Block 16 Investment Decision & Portfolio Orchestrator
+        live_price = float(
+            (ai_score.breakdown_details or {}).get("current_price", 2500.0)
+        )
+
+        decision_res = self.decision_orchestrator.evaluate(
+            ai_score=ai_score,
+            holdings=holdings,
+            portfolio_weight=portfolio_weight,
+            assumed_price=live_price
+        )
+
+        # 5. Integrate Research Confidence into Final Decision Action & Confidence
+        final_action = decision_res.action
+        adjusted_confidence = round(decision_res.confidence * confidence_res.overall_confidence, 2)
+
+        summary_rationale = list(decision_res.rationale)
+        summary_rationale.append(f"Research Moat Classification: {research_res.moat_classification} (Score: {research_res.moat_score:.1f})")
+        summary_rationale.append(f"Research Confidence Rating: {confidence_res.confidence_rating} ({confidence_res.overall_confidence*100:.1f}%)")
+        if reasoning_res.high_severity_contradictions > 0:
+            summary_rationale.append(f"Warning: {reasoning_res.high_severity_contradictions} high-severity evidence contradiction(s) detected.")
+
+        details = {
+            "engine_version": "EROS-3.0-BLOCK-18",
+            "research_intelligence": {
+                "research_score": research_res.research_score,
+                "moat_classification": research_res.moat_classification,
+                "thesis_summary": research_res.thesis_summary,
+                "primary_risk": research_res.primary_risk,
+            },
+            "evidence_reasoning": {
+                "hypothesis_count": reasoning_res.hypothesis_count,
+                "contradiction_count": reasoning_res.contradiction_count,
+                "hypotheses": reasoning_res.hypotheses_summaries,
+                "contradictions": reasoning_res.contradictions_summaries,
+            },
+            "research_confidence": {
+                "overall_confidence": confidence_res.overall_confidence,
+                "rating": confidence_res.confidence_rating,
+            },
+            "execution_summary": {
+                "target_weight": decision_res.target_weight,
+                "incremental_weight": decision_res.incremental_weight,
+                "execution_cost": decision_res.execution_cost,
+                "net_expected_return": decision_res.net_expected_return,
+            }
+        }
+
+        return UnifiedInvestmentResult(
+            symbol=symbol,
+            decision=decision_res,
+            research=research_res,
+            reasoning=reasoning_res,
+            confidence=confidence_res,
+            final_action=final_action,
+            adjusted_confidence=adjusted_confidence,
+            summary_rationale=summary_rationale,
+            details=details,
+        )
+
+
+============================================================
+9. FIXED SCORE DETECTION
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:22 | growth_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:23 | quality_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:24 | profitability_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:25 | capital_allocation_score=81.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:26 | valuation_score=79.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:27 | momentum_score=76.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:28 | risk_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:29 | composite_score=82.4,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:40 | growth_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:41 | quality_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:42 | profitability_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:43 | capital_allocation_score=81.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:44 | valuation_score=79.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:45 | momentum_score=76.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:46 | risk_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:47 | composite_score=82.4,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:37 | risk_score=85.0, composite_score=80.1, breakdown_details={"rating": "BUY"}
+
+============================================================
+10. GIT SAFETY
+============================================================
+SOURCE MODIFICATION: NONE
+
+ M backend/api/routers/admin_task_router.py
+ M backend/api/routers/task_router.py
+ M backend/api/routers/valuation_router.py
+ M backend/config/settings.py
+ M backend/infrastructure/redis/client.py
+ M backend/main.py
+ M backend/security/jwt.py
+ M backend/tasks/task_control.py
+ M tests/production/test_block29_real_celery.py
+?? .env
+?? 31K_BR_CA_SECURITY_AUDIT.txt
+?? 31K_ES_next_block_discovery.txt
+?? 31K_EU_next_engineering_discovery.txt
+?? 31K_EV_source_boundary_audit.txt
+?? 31K_EW_system_integration_target_discovery.txt
+?? 31K_EX_full_pipeline_integration_probe.txt
+?? 31K_EY_workflow_gateway_integration_audit.txt
+?? 31K_EZ_production_workflow_eventbus_audit.txt
+?? 31K_FA_production_orchestrator_deep_audit.txt
+?? 31K_FB_pipeline_deep_execution_audit.txt
+?? 31K_FC_decision_scoring_integrity_audit.txt
+?? 31K_FD2_production_reachability_trace.txt
+?? 31K_FD3_fixed_score_production_path_isolation.txt
+?? 31K_FD4R_corrected_runtime_provenance.txt
+?? 31K_FD4_runtime_score_provenance.txt
+?? 31K_FD5_import_execution_boundary_trace.txt
+?? 31K_FD6_existing_score_engine_discovery.txt
+?? 31K_FD7_AIScoringEngine_contract_audit.txt
+?? 31K_FD8_financialstatements_hydration_trace.txt
+?? 31K_FD9_canonical_financials_hydration_trace.txt
+?? 31K_FD_production_decision_data_lineage_audit.txt
+?? backend/api/dependencies/auth.py
+?? backend/api/routers/valuation_router.py.31K-backup
+?? backend/infrastructure/redis/client.py.31K_EE_backup
+?? backend/infrastructure/redis/client.py.31K_EE_repair_backup
+?? backend/infrastructure/redis/client.py.31K_EO_backup
+?? backend/infrastructure/redis/client.py.31K_EP_backup
+?? backend/infrastructure/redis/client.py.31K_EQ_backup
+?? backend/main.py.31K-BC.bak
+?? backend/security/dependencies.py
+?? backend/tasks/task_control.py.31K-DSI.backup
+?? backend/tasks/task_control.py.31K_DSM_backup
+?? backend/tasks/task_control.py.31K_DSP_backup
+?? backend/tasks/task_control.py.31K_DV_backup
+?? backend/tasks/task_control.py.31K_EH_backup
+?? backend/tasks/task_control.py.31K_EH_patch_backup
+?? backend/tasks/task_control.py.31K_EJ_backup
+?? block_31K_CG_security_audit.py
+?? block_31K_CH_validation.py
+?? block_31K_CI_full_output.txt
+?? block_31K_CK_security_audit.py
+?? block_31K_CL_baseline.py
+?? block_31K_CM_task_route_diagnostic.py
+?? block_31K_CN_route_reconciliation.py
+?? block_31K_CO_task_route_reconciliation.py
+?? block_31K_CP_route_object_diagnostic.py
+?? block_31K_CS_20in1_security_audit.py
+?? block_31K_CS_login_diagnostic.py
+?? block_31K_CV_security_audit.py
+?? block_31K_CW_output.txt
+?? block_31K_DC_final_audit.py
+?? block_31K_DC_stderr.txt
+?? block_31K_DH_final_regression.py
+?? block_31K_DQ_task_test.py
+?? block_31K_DR_reliability_test.py
+?? block_31K_DSE_failure_recovery.py
+?? block_31K_DSF_idempotency.py
+?? block_31K_DSJ_live_test.py
+?? block_31K_DSJ_output.txt
+?? block_31K_DSJ_redis_diagnostic.py
+?? block_31K_DSJ_redis_diagnostic.txt
+?? block_31K_DSK_redis_access.py
+?? block_31K_DSK_redis_access.txt
+?? block_31K_DSN_live_idempotency_test.py
+?? block_31K_DSN_traceback.txt
+?? block_31K_DSO_idempotency_runtime_diagnostic.py
+?? block_31K_DSO_output.txt
+?? block_31K_DSP_live_test.py
+?? block_31K_DT_concurrent_idempotency_test.py
+?? block_31K_DU_concurrency_lock_diagnostic.py
+?? block_31K_DW_concurrent_idempotency_test.py
+?? block_31K_EA_race_test.py
+?? block_31K_EF_atomic_lock_stress.py
+?? block_31K_EG_full_idempotency_test.py
+?? block_31K_EK_concurrent_idempotency_test.py
+?? block_31K_EL_idempotency_regression_test.py
+?? block_31K_ER_lock_regression.py
+?? check_main_31K_CD.py
+?? eros_security_audit_31K_CC.py
+?? eros_security_audit_31K_CC_output.txt
+?? logs/analyzer_before_eros_v26_readonly_patch.py
+?? logs/analyzer_before_eros_v328_date_contract.py
+?? logs/eros_block29_queue_contract_fix_output.txt
+?? logs/eros_block29_source_inspection.txt
+?? logs/eros_block29b_queue_contract.txt
+?? logs/eros_block29b_queue_diagnostic.py
+?? logs/eros_block29b_queue_inspection.txt
+?? logs/eros_block30k_result.txt
+?? logs/eros_block30k_wsl_ip_result.txt
+?? logs/eros_celery_config_location.txt
+?? logs/eros_celery_search.txt
+?? logs/eros_checkpoint_latest.txt
+?? logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py
+?? logs/eros_frontend_adapter_before_v29.py
+?? logs/eros_frontend_adapter_before_v30_20260822_210324.py
+?? logs/eros_frontend_adapter_before_v30_decision_20260822_210450.py
+?? logs/eros_frontend_adapter_before_v31_20260822_210705.py
+?? logs/eros_frontend_adapter_before_v32_20260822_210838.py
+?? logs/eros_frontend_adapter_before_v33_20260822_211141.py
+?? logs/eros_frontend_adapter_before_v34_20260822_211420.py
+?? logs/eros_frontend_adapter_before_v35_20260822_211800.py
+?? logs/eros_frontend_adapter_before_v35_20260822_212229.py
+?? logs/eros_frontend_adapter_before_v36_20260822_212325.py
+?? logs/eros_frontend_adapter_before_v371_20260822_213654.py
+?? logs/eros_frontend_adapter_before_v372_20260822_213827.py
+?? logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213105.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213210.py
+?? logs/eros_frontend_adapter_before_v381_20260822_215432.py
+?? logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py
+?? logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py
+?? logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220104.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220437.py
+?? logs/eros_frontend_adapter_before_v38_20260822_214850.py
+?? logs/eros_full_suite_hang_diagnostic.txt
+?? logs/eros_full_test_20260823_123857.txt
+?? logs/eros_full_test_hang_isolation.txt
+?? logs/eros_precommit_safety_audit.txt
+?? logs/eros_pydantic_diagnostic.txt
+?? logs/eros_pydantic_repair.txt
+?? logs/eros_pytest_collection_check.txt
+?? logs/eros_pytest_hang_diagnostic.txt
+?? logs/eros_test_20260823_123827.txt
+?? logs/eros_v25_adapter_api.py
+?? logs/eros_v25_adapter_api_output.txt
+?? logs/eros_v25_contract_verify.py
+?? logs/eros_v25_dashboard_contract.py
+?? logs/eros_v25_dashboard_contract_output.txt
+?? logs/eros_v25_market_scan_contract.py
+?? logs/eros_v25_market_scan_contract_output.txt
+?? logs/eros_v26_active_sqlite_message_check.py
+?? logs/eros_v26_active_write_token_check.py
+?? logs/eros_v26_analyzer_patch_output.txt
+?? logs/eros_v26_analyzer_runtime_test.py
+?? logs/eros_v26_ast_nonmutation_proof.py
+?? logs/eros_v26_ast_nonmutation_proof.txt
+?? logs/eros_v26_ast_nonmutation_proof_v2.py
+?? logs/eros_v26_ast_nonmutation_proof_v2.txt
+?? logs/eros_v26_clean_write_trace.txt
+?? logs/eros_v26_corrected_nonmutation_proof_20260822_205417.txt
+?? logs/eros_v26_corrected_runtime_test.py
+?? logs/eros_v26_corrected_scan_test.py
+?? logs/eros_v26_database_nonmutation_proof.txt
+?? logs/eros_v26_exact_write_trace.txt
+?? logs/eros_v26_market_scan_readonly_test.py
+?? logs/eros_v26_nonmutation_runtime_test.py
+?? logs/eros_v26_safety_contract_runtime.py
+?? logs/eros_v26_sqlite_message_trace.txt
+?? logs/eros_v26_sqlite_save_message_trace.txt
+?? logs/eros_v26_write_trace_clipboard.txt
+?? logs/eros_v27_data_layer_boundary_console.txt
+?? logs/eros_v27_runtime_evidence_inspection.py
+?? logs/eros_v27_runtime_evidence_inspection.txt
+?? logs/eros_v28_decision_evidence_test.py
+?? logs/eros_v28_decision_evidence_test_output.txt
+?? logs/eros_v29_decision_evidence_output.txt
+?? logs/eros_v29_decision_evidence_test.py
+?? logs/eros_v30_decision_intelligence_foundation.txt
+?? logs/eros_v30_decision_intelligence_test.py
+?? logs/eros_v31_decision_interpretation_foundation.txt
+?? logs/eros_v31_decision_interpretation_test.py
+?? logs/eros_v32_decision_action_runtime_20260822_210929.txt
+?? logs/eros_v32_decision_action_runtime_test_20260822_210929.py
+?? logs/eros_v33_runtime_test.py
+?? logs/eros_v33_runtime_test_output.txt
+?? logs/eros_v34_runtime_test.py
+?? logs/eros_v34_runtime_test_output.txt
+?? logs/eros_v35_runtime_test.py
+?? logs/eros_v35_runtime_test_output.txt
+?? logs/eros_v36_runtime_test.py
+?? logs/eros_v372_ast_traceability_patch.py
+?? logs/eros_v372_return_structure_diagnostic.py
+?? logs/eros_v372_runtime_regression.py
+?? logs/eros_v372_traceability_failure_diagnostic.py
+?? logs/eros_v372_traceability_runtime_test.py
+?? logs/eros_v37_api_check.py
+?? logs/eros_v37_foundation_check.py
+?? logs/eros_v37_runtime_test.py
+?? logs/eros_v37_traceability_diagnostic.py
+?? logs/eros_v37_traceability_runtime_test.py
+?? logs/eros_v3810_adapter_api_contract.txt
+?? logs/eros_v3812_frontend_insertion_boundary.txt
+?? logs/eros_v3813_traceability_runtime_contract.py
+?? logs/eros_v3813_traceability_runtime_contract.txt
+?? logs/eros_v3815_frontend_runtime_consumption_audit.py
+?? logs/eros_v3815_frontend_runtime_consumption_audit.txt
+?? logs/eros_v3816_golden_integration_verification.txt
+?? logs/eros_v3817_traceability_frontend_consumption_inspection.txt
+?? logs/eros_v3818_frontend_traceability_runtime_test.py
+?? logs/eros_v3818_frontend_traceability_runtime_test.txt
+?? logs/eros_v3819_golden_integration_verification.py
+?? logs/eros_v3819_golden_integration_verification.txt
+?? logs/eros_v381_audit_clipboard_diagnostic.py
+?? logs/eros_v381_audit_clipboard_output.txt
+?? logs/eros_v381_audit_failure_isolation.py
+?? logs/eros_v381_audit_runtime_diagnostic.py
+?? logs/eros_v381_deep_audit_runtime.py
+?? logs/eros_v3820_traceability_ui_context.txt
+?? logs/eros_v3821_ast_only.py
+?? logs/eros_v3821_compile_failure_diagnostic_20260822_220822.txt
+?? logs/eros_v3821_structural_ast_diagnostic.py
+?? logs/eros_v3821_structural_diagnostic_clipboard.txt
+?? logs/eros_v3822_ast_inspection.py
+?? logs/eros_v3822_ast_syntax_diagnostic.py
+?? logs/eros_v3822_clean_runtime_diagnostic.py
+?? logs/eros_v3822_runtime_hydration_validation.py
+?? logs/eros_v3823_hydration_dataflow_diagnostic.py
+?? logs/eros_v3823_hydration_source_inspection.py
+?? logs/eros_v3823_import_path_test.py
+?? logs/eros_v3824_ast_inspection.py
+?? logs/eros_v3824_audit_dataflow_inspector.py
+?? logs/eros_v3824_audit_dataflow_source_diagnostic.py
+?? logs/eros_v3824_golden_baseline_runtime.py
+?? logs/eros_v3824_golden_difference_forensic_20260822_225337.txt
+?? logs/eros_v3824_runtime_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic_output.txt
+?? logs/eros_v3826_decision_evidence_source_forensic.txt
+?? logs/eros_v3827_runtime_dataflow_diagnostic.py
+?? logs/eros_v3827_runtime_dataflow_diagnostic.txt
+?? logs/eros_v3828_middle_layer_source_forensic.txt
+?? logs/eros_v3829_middle_layer_runtime_test.py
+?? logs/eros_v3829_middle_layer_runtime_test_output.txt
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.py
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.txt
+?? logs/eros_v382_ast_audit_hydration_patcher.py
+?? logs/eros_v382_audit_failure_capture.py
+?? logs/eros_v382_audit_schema_runtime_diagnostic.py
+?? logs/eros_v382_forensic_runtime.py
+?? logs/eros_v382_forensic_runtime_output.txt
+?? logs/eros_v382_forensic_stderr.txt
+?? logs/eros_v382_forensic_stdout.txt
+?? logs/eros_v382_integrity_patcher.py
+?? logs/eros_v382_integrity_runtime_diagnostic.py
+?? logs/eros_v3831_dashboard_analysis_flow_forensic.txt
+?? logs/eros_v3832_THREE_REPORTS_COMBINED.txt
+?? logs/eros_v3832_adapter_frontend_contract_forensic.txt
+?? logs/eros_v3832_adapter_frontend_integration_contract.txt
+?? logs/eros_v3832_adapter_public_api_forensic.txt
+?? logs/eros_v3833_adapter_runtime_contract_test.txt
+?? logs/eros_v383_frontend_consumption_forensic.txt
+?? logs/eros_v384_frontend_integration_insertion_forensic.txt
+?? logs/eros_v385_frontend_adapter_argument_contract.txt
+?? logs/eros_v386_frontend_integration_runtime_dry_run.txt
+?? logs/eros_v389_selected_stock_insertion_context.txt
+?? logs/eros_v38_audit_failure_diagnostic.py
+?? logs/eros_v38_decision_audit_diagnostic.py
+?? logs/eros_v38_runtime_test.py
+?? logs/stock_dashboard_before_eros_frontend_v1.py
+?? logs/stock_dashboard_before_eros_frontend_v2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_1.py
+?? logs/stock_dashboard_before_eros_frontend_v2_2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_market_insert.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_5.py
+?? logs/stock_dashboard_before_eros_v311_20260823_105006.py
+?? logs/stock_dashboard_before_eros_v314_integration.py
+?? logs/stock_dashboard_before_eros_v320_20260823_113203.py
+?? logs/stock_dashboard_before_eros_v387_20260823_000130.py
+?? logs/test_block29_real_celery_before_queue_contract_fix.py
+?? security_backup_31K_BG/
+?? security_backup_31K_CG/
+?? security_backup_31K_CH/
+?? security_backup_31K_CI/
+?? security_backup_31K_CJ/
+?? security_backup_31K_CR/
+?? security_backup_31K_CS/
+?? security_backup_31K_CU/
+?? security_backup_31K_CY/
+?? security_backup_31K_CZ/
+?? security_backup_31K_DA/
+
+============================================================
+31K-FI1 COMPLETE
+============================================================
+READ-ONLY INTEGRATION SIMULATION
+NO SOURCE FILES WERE MODIFIED
+
+NEXT DECISION:
+1 = DIRECT EXISTING FINANCIALS PATH
+2 = EXISTING ADAPTER/NORMALIZER
+3 = MINIMAL NEW BRIDGE REQUIRED
+4 = BLOCKED
+============================================================

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 import streamlit as st
@@ -8,9 +8,10 @@ import os
 
 from core.events import InMemoryEventBus, EventDispatcher
 from services.fundamentals.provider import YahooFinanceProvider
+import yfinance as yf
 from services.fundamentals.normalizer import FinancialNormalizer
 from services.fundamentals.service import FundamentalsService
-from services.forecast.models import ForecastResult
+from services.forecast.engine import ForecastEngine
 from services.valuation.dcf.engine import ProductionDCFEngine
 from services.valuation.relative.engine import RelativeValuationEngine
 from services.valuation.sotp.engine import SOTPEngine
@@ -21,11 +22,11 @@ from dashboard.eros_command_center import render_eros_command_center
 
 st.set_page_config(
     page_title="AI Stock Analyzer Institutional Edition V6",
-    page_icon="📈",
+    page_icon="??",
     layout="wide",
 )
 
-st.title("🏛️ AI Stock Analyzer — Institutional Edition V6 Release Candidate")
+st.title("??? AI Stock Analyzer — Institutional Edition V6 Release Candidate")
 st.markdown("Event-Driven Institutional Equity Research & Valuation Platform")
 
 # Sidebar configuration controls
@@ -133,7 +134,7 @@ elif page == "Single Stock Analysis":
     with col1:
         symbol = st.text_input("Enter Ticker Symbol", value="RELIANCE.NS")
     with col2:
-        current_price = st.number_input("Current Market Price (₹)", value=1400.0, step=10.0)
+        current_price = st.number_input("Current Market Price (?)", value=1400.0, step=10.0)
     with col3:
         exchange_selector = st.selectbox("Exchange", ["NSE/BSE (India)", "NYSE/NASDAQ (US)"])
 
@@ -156,15 +157,51 @@ elif page == "Single Stock Analysis":
             scoring_engine = AIScoringEngine()
             report_engine = ProductionReportEngine()
 
-            # Dynamic forecast projection vector
-            forecast = ForecastResult(
-                symbol=symbol,
+            # Generate forecast from actual normalized financial statements
+            forecast_engine = ForecastEngine()
+            forecast = forecast_engine.generate_forecast(
+                financials,
                 model_type="CAGR",
-                free_cash_flow_forecast=[100000.0, 115000.0, 132000.0, 151000.0, 173000.0],
             )
 
-            dcf_res = dcf_engine.calculate(forecast, wacc=custom_wacc, terminal_growth_rate=custom_tgr)
-            rel_res = rel_engine.evaluate(financials, current_price=current_price)
+            # Live DCF capital-structure inputs from normalized fundamentals + Yahoo share count
+            latest_balance = financials.balance_sheets[0] if financials.balance_sheets else None
+
+            if latest_balance is None:
+                raise RuntimeError(f"No balance sheet available for {symbol}")
+
+            net_debt = latest_balance.debt - latest_balance.cash
+
+            ticker = yf.Ticker(symbol)
+            shares_outstanding = float(ticker.info.get("sharesOutstanding") or 0.0)
+
+            if shares_outstanding <= 0:
+                raise RuntimeError(f"No valid Yahoo shares outstanding available for {symbol}")
+
+            dcf_res = dcf_engine.calculate(
+                forecast,
+                wacc=custom_wacc,
+                terminal_growth_rate=custom_tgr,
+                net_debt=net_debt,
+                shares_outstanding=shares_outstanding,
+            )
+            # Live Yahoo EBITDA for Relative Valuation.
+            # Normalized EBITDA is not currently present in IncomeStatement.
+            yahoo_ebitda = float(
+                ticker.info.get("ebitda") or 0.0
+            )
+
+            if yahoo_ebitda <= 0:
+                raise RuntimeError(
+                    f"No valid Yahoo EBITDA available for {symbol}"
+                )
+
+            rel_res = rel_engine.evaluate(
+                financials,
+                current_price=current_price,
+                yahoo_ebitda=yahoo_ebitda,
+                shares_outstanding=shares_outstanding,
+            )
             sotp_res = sotp_engine.calculate(financials, holding_discount=holding_disc)
             score_res = scoring_engine.evaluate(financials)
 
@@ -178,7 +215,7 @@ elif page == "Single Stock Analysis":
                     "composite_score": score_res.composite_score,
                     "dcf_ev": dcf_res.enterprise_value,
                     "relative_blend": rel_res.blend_relative_value,
-                    "sotp_equity": sotp_res.equity_value,
+                    "sotp_equity": sotp_res.conglomerate_equity_value,
                 }
             )
 
@@ -186,9 +223,9 @@ elif page == "Single Stock Analysis":
 
             # Display Key Metrics Dashboard
             m1, m2, m3, m4 = st.columns(4)
-            m1.metric("DCF Fair Value / Share", f"₹{dcf_res.fair_value_per_share:,.2f}", delta=f"{((dcf_res.fair_value_per_share - current_price)/current_price)*100:.1f}% vs Price")
-            m2.metric("Relative Valuation Blend", f"₹{rel_res.blend_relative_value:,.2f}")
-            m3.metric("SOTP Equity Value / Share", f"₹{sotp_res.fair_value_per_share:,.2f}")
+            m1.metric("DCF Fair Value / Share", f"?{dcf_res.fair_value_per_share:,.2f}", delta=f"{((dcf_res.fair_value_per_share - current_price)/current_price)*100:.1f}% vs Price")
+            m2.metric("Relative Valuation Blend", f"?{rel_res.blend_relative_value:,.2f}")
+            m3.metric("SOTP Equity Value / Share", f"?{sotp_res.fair_value_per_share:,.2f}")
             m4.metric("Composite AI Score", f"{score_res.composite_score} / 100", delta=score_res.breakdown_details.get("rating"))
 
             # Interactive Tabs for Detailed Breakdown & Visualizations
@@ -199,17 +236,17 @@ elif page == "Single Stock Analysis":
                 c1, c2 = st.columns(2)
                 with c1:
                     st.json({
-                        "Enterprise Value (₹M)": dcf_res.enterprise_value,
-                        "Equity Value (₹M)": dcf_res.equity_value,
+                        "Enterprise Value (?M)": dcf_res.enterprise_value,
+                        "Equity Value (?M)": dcf_res.equity_value,
                         "WACC (%)": dcf_res.wacc * 100,
                         "Terminal Growth (%)": dcf_res.terminal_growth_rate * 100,
-                        "Terminal Value (₹M)": dcf_res.terminal_value,
-                        "PV of Terminal Value (₹M)": dcf_res.pv_terminal_value,
+                        "Terminal Value (?M)": dcf_res.terminal_value,
+                        "PV of Terminal Value (?M)": dcf_res.pv_terminal_value,
                     })
                 with c2:
                     st.markdown("##### Free Cash Flow Projections (5-Year Horizon)")
-                    fcf_df = pd.DataFrame({"Year": ["Yr 1", "Yr 2", "Yr 3", "Yr 4", "Yr 5"], "FCF (₹M)": forecast.free_cash_flow_forecast})
-                    fig_fcf = px.bar(fcf_df, x="Year", y="FCF (₹M)", title="Projected Free Cash Flows to Firm (FCFF)", color="FCF (₹M)", color_continuous_scale="blues")
+                    fcf_df = pd.DataFrame({"Year": ["Yr 1", "Yr 2", "Yr 3", "Yr 4", "Yr 5"], "FCF (?M)": forecast.free_cash_flow_forecast})
+                    fig_fcf = px.bar(fcf_df, x="Year", y="FCF (?M)", title="Projected Free Cash Flows to Firm (FCFF)", color="FCF (?M)", color_continuous_scale="blues")
                     st.plotly_chart(fig_fcf, use_container_width=True)
 
             with tab2:
@@ -225,15 +262,15 @@ elif page == "Single Stock Analysis":
 
             with tab3:
                 st.subheader("Sum-of-the-Parts (SOTP) Segment Valuation")
-                seg_data = [{"Segment": s.segment_name, "Revenue (₹M)": s.revenue, "EBITDA (₹M)": s.ebitda, "Multiple": s.multiple, "EV (₹M)": s.enterprise_value} for s in sotp_res.segments]
+                seg_data = [{"Segment": s.segment_name, "Revenue (?M)": s.revenue, "EBITDA (?M)": s.ebitda, "Multiple": s.multiple, "EV (?M)": s.enterprise_value} for s in sotp_res.segments]
                 seg_df = pd.DataFrame(seg_data)
                 st.dataframe(seg_df, use_container_width=True)
                 
                 if not seg_df.empty:
-                    fig_seg = px.pie(seg_df, names="Segment", values="EV (₹M)", title="Enterprise Value Distribution by Segment")
+                    fig_seg = px.pie(seg_df, names="Segment", values="EV (?M)", title="Enterprise Value Distribution by Segment")
                     st.plotly_chart(fig_seg, use_container_width=True)
                     
-                st.info(f"Holding Company Discount Applied: {sotp_res.holding_company_discount_pct * 100}% | Net Debt: ₹{sotp_res.net_debt:,.2f}M")
+                st.info(f"Holding Company Discount Applied: {sotp_res.holding_company_discount_pct * 100}% | Net Debt: ?{sotp_res.net_debt:,.2f}M")
 
             with tab4:
                 st.subheader("Multi-Pillar AI Scoring & Quality Attribution")
@@ -259,7 +296,7 @@ elif page == "Single Stock Analysis":
                     with open(report_result.file_path, "r", encoding="utf-8") as rf:
                         html_bytes = rf.read()
                     st.download_button(
-                        label="📥 Download Complete HTML Research Report",
+                        label="?? Download Complete HTML Research Report",
                         data=html_bytes,
                         file_name=f"{symbol}_research_report.html",
                         mime="text/html",
@@ -278,13 +315,13 @@ elif page == "Portfolio Analytics":
             res = engine.analyze(holdings)
 
             p1, p2, p3, p4 = st.columns(4)
-            p1.metric("Total Portfolio Value", f"₹{res.total_portfolio_value:,.2f}")
+            p1.metric("Total Portfolio Value", f"?{res.total_portfolio_value:,.2f}")
             p2.metric("Sharpe Ratio", f"{res.sharpe_ratio:.2f}")
             p3.metric("Portfolio Beta", f"{res.portfolio_beta:.2f}")
-            p4.metric("95% Daily VaR", f"₹{res.value_at_risk_95:,.2f}")
+            p4.metric("95% Daily VaR", f"?{res.value_at_risk_95:,.2f}")
 
             st.subheader("Position Breakdown & Weight Attribution")
-            pos_data = [{"Symbol": p.symbol, "Shares": p.shares, "Price (₹)": p.current_price, "Market Value (₹)": p.market_value, "Weight": f"{p.weight*100:.2f}%", "Unrealized P&L (₹)": p.unrealized_pnl} for p in res.positions]
+            pos_data = [{"Symbol": p.symbol, "Shares": p.shares, "Price (?)": p.current_price, "Market Value (?)": p.market_value, "Weight": f"{p.weight*100:.2f}%", "Unrealized P&L (?)": p.unrealized_pnl} for p in res.positions]
             st.dataframe(pd.DataFrame(pos_data), use_container_width=True)
 
             st.subheader("Sector Allocation Breakdown")
@@ -300,7 +337,9 @@ else:
     ### Institutional Event-Driven Architecture V6 Release Candidate
     - **Event Bus & Dispatcher**: Fully active, asynchronous event decoupling.
     - **Tested Coverage**: 26/26 unit & integration tests passing successfully.
-    - **Pipeline Flow**: MarketData → Fundamentals → Forecast → DCF/Relative/SOTP → AI Scoring → Portfolio Analytics → Report Generation.
+    - **Pipeline Flow**: MarketData ? Fundamentals ? Forecast ? DCF/Relative/SOTP ? AI Scoring ? Portfolio Analytics ? Report Generation.
     """)
     st.info("System status: Stable on branch `feature/event-pipeline` (Tag: `v6.0.0-RC1`).")
+
+
 

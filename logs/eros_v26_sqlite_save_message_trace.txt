@@ -1,0 +1,260 @@
+﻿============================================================
+EROS 3.0 - V2.6 SQLITE SAVE MESSAGE EXACT TRACE
+============================================================
+
+PROJECT ROOT : D:\Users\User\Desktop\AI_STOCK_ANALYZER
+PYTHON FILES : 1078
+
+1. EXACT MESSAGE SEARCH
+------------------------------------------------------------
+MATCHES FOUND : 1
+
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\loader.py:36: print(f"{symbol} saved to SQLite successfully.")
+
+2. SAVE / SQLITE REFERENCES IN CRITICAL FILES
+------------------------------------------------------------
+
+FILE : .\data\loader.py
+4: def save_dataframe(df, symbol):
+19: INSERT OR REPLACE INTO stock_prices
+33: conn.commit()
+36: print(f"{symbol} saved to SQLite successfully.")
+
+FILE : .\data\database.py
+1: import sqlite3
+12: return sqlite3.connect(DB_NAME)
+38: conn.commit()
+
+FILE : .\scanner\market_scanner.py
+NO SQLITE / SAVE REFERENCES
+
+FILE : .\services\analyzer.py
+2: from data.downloader import download_stock
+23: # EROS V2.6 READ_ONLY: save_dataframe disabled
+
+FILE : .\services\eros_frontend_adapter.py
+NO SQLITE / SAVE REFERENCES
+
+FILE : .\stock_dashboard.py
+NO SQLITE / SAVE REFERENCES
+
+3. EXACT WRITE OPERATIONS IN PROJECT SOURCE
+------------------------------------------------------------
+
+SEARCH : to_sql(
+NO MATCH
+
+SEARCH : INSERT INTO
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:28: 'INSERT INTO scan_results (ticker, close_price, volume_ratio, signal_type) VALUES (?, ?, ?, ?)',
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:30: INSERT INTO portfolio
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:28: "INSERT INTO portfolio(symbol, quantity, buy_price) VALUES (?, ?, ?)",
+
+SEARCH : insert into
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:28: 'INSERT INTO scan_results (ticker, close_price, volume_ratio, signal_type) VALUES (?, ?, ?, ?)',
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:30: INSERT INTO portfolio
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:28: "INSERT INTO portfolio(symbol, quantity, buy_price) VALUES (?, ?, ?)",
+
+SEARCH : executemany(
+NO MATCH
+
+SEARCH : execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\phase4a_final_uuid.py:61: cur.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\phase4a_uuid_test.py:65: cur.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:20: self.conn.execute(query)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:27: self.conn.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\health.py:26: session.execute(text("SELECT 1"))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:40: def execute(self) -> WorkflowContext:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\protocols\service.py:10: def execute(self, *args: Any, **kwargs: Any) -> Any: ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\database.py:21: cur.execute("""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\loader.py:17: cur.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:10: cursor.execute("""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:28: cursor.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\EROS_3_0_Block87_Block88_complete\services\quantitative\block88_test_harness.py:30: execution = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\EROS_3_0_Block87_Block88_complete\services\quantitative\block88_test_harness.py:73: blocked_execution = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:11: conn.execute("""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:27: conn.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:49: conn.execute("DELETE FROM portfolio WHERE id=?", (stock_id,))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:58: conn.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:74: conn.execute("DELETE FROM portfolio")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py:383: def execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py:573: return self.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py:70: result = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py:93: duplicate = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py:104: blocked_result = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py:113: malformed = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py:55: execution = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py:203: blocked_execution = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_test_harness.py:164: execution = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_test_harness.py:277: blocked_execution = bridge.execute(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_ewop.py:17: result_context = engine.execute()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_ewop.py:39: engine.execute()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\core\protocols\test_protocols.py:28: def execute(self, value: int) -> int:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\forecast\test_forecast.py:39: result = service.execute(valid_input)
+
+SEARCH : commit(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:21: self.conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:31: self.conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\company_repository.py:16: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\company_repository.py:29: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:22: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:40: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\user_repository.py:30: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:31: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\base_service.py:39: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\user_service.py:43: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\database.py:38: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\loader.py:33: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:20: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:37: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:20: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:32: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:51: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:67: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:76: conn.commit()
+
+SEARCH : UPDATE 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\edit_holding_form.py:34: if st.button("💾 Update Holding", use_container_width=True):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_97_safety_normalization.py:99: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_safety_surgical_repair.py:73: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block95_safety_repair.py:52: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block96_safety_repair.py:51: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:60: UPDATE portfolio
+
+SEARCH : update 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\edit_holding_form.py:34: if st.button("💾 Update Holding", use_container_width=True):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_97_safety_normalization.py:99: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_safety_surgical_repair.py:73: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block95_safety_repair.py:52: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block96_safety_repair.py:51: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:60: UPDATE portfolio
+
+SEARCH : DELETE 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\top_holdings.py:54: # Delete Holding
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\top_holdings.py:62: "Delete Holding",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\portfolio.py:216: st.subheader("🗑 Delete Holding")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\portfolio.py:220: if st.button("Delete Holding", key="delete_btn"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:49: conn.execute("DELETE FROM portfolio WHERE id=?", (stock_id,))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:74: conn.execute("DELETE FROM portfolio")
+
+SEARCH : delete 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\top_holdings.py:54: # Delete Holding
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\top_holdings.py:62: "Delete Holding",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\portfolio.py:216: st.subheader("🗑 Delete Holding")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\portfolio.py:220: if st.button("Delete Holding", key="delete_btn"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:49: conn.execute("DELETE FROM portfolio WHERE id=?", (stock_id,))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:74: conn.execute("DELETE FROM portfolio")
+
+SEARCH : replace into
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\loader.py:19: INSERT OR REPLACE INTO stock_prices
+
+4. DATA LOADER SOURCE
+------------------------------------------------------------
+   1: from data.database import connect
+   2: 
+   3: 
+   4: def save_dataframe(df, symbol):
+   5: 
+   6:     conn = connect()
+   7:     cur = conn.cursor()
+   8: 
+   9:     # Reset index so Date becomes a column
+  10:     df = df.reset_index()
+  11: 
+  12:     # Remove incomplete rows
+  13:     df = df.dropna(subset=["Open", "High", "Low", "Close", "Volume"])
+  14: 
+  15:     for _, row in df.iterrows():
+  16: 
+  17:         cur.execute(
+  18:             """
+  19:             INSERT OR REPLACE INTO stock_prices
+  20:             VALUES(?,?,?,?,?,?,?)
+  21:             """,
+  22:             (
+  23:                 str(row["Date"].date()),
+  24:                 symbol,
+  25:                 float(row["Open"]),
+  26:                 float(row["High"]),
+  27:                 float(row["Low"]),
+  28:                 float(row["Close"]),
+  29:                 int(row["Volume"]),
+  30:             ),
+  31:         )
+  32: 
+  33:     conn.commit()
+  34:     conn.close()
+  35: 
+  36:     print(f"{symbol} saved to SQLite successfully.")
+
+5. ANALYZER SOURCE
+------------------------------------------------------------
+   1: from data.database import create_table
+   2: from data.downloader import download_stock
+   3: # EROS V2.6 READ_ONLY: database persistence disabled for analyzer
+   4: from data.reader import load_stock
+   5: from engine.breakout_engine import detect_breakout
+   6: from engine.signal_engine import generate_signal
+   7: from indicators.atr import calculate_atr
+   8: from indicators.bollinger import calculate_bollinger
+   9: from indicators.macd import calculate_macd
+  10: from indicators.macd_histogram import calculate_histogram
+  11: from indicators.moving_average import calculate_ema, calculate_sma
+  12: from indicators.rsi import calculate_rsi
+  13: from indicators.support_resistance import calculate_support_resistance
+  14: from indicators.trend import detect_trend
+  15: 
+  16: 
+  17: def analyze_stock(symbol):
+  18: 
+  19:     create_table()
+  20: 
+  21:     df = download_stock(symbol)
+  22: 
+  23:     # EROS V2.6 READ_ONLY: save_dataframe disabled
+  24: 
+  25:     # EROS V2.6 READ_ONLY: database reload disabled; retain downloaded dataframe
+  26: 
+  27:     df = df.dropna(subset=["Open", "High", "Low", "Close"])
+  28: 
+  29:     df = df.reset_index(drop=True)
+  30: 
+  31:     df = calculate_sma(df, 20)
+  32:     df = calculate_sma(df, 50)
+  33: 
+  34:     df = calculate_ema(df, 20)
+  35: 
+  36:     df = calculate_rsi(df, 14)
+  37: 
+  38:     df = calculate_macd(df)
+  39:     df = calculate_histogram(df)
+  40: 
+  41:     df = calculate_bollinger(df)
+  42: 
+  43:     df = calculate_atr(df)
+  44: 
+  45:     df = calculate_support_resistance(df)
+  46: 
+  47:     trend = detect_trend(df)
+  48: 
+  49:     signal = generate_signal(df)
+  50: 
+  51:     breakout = detect_breakout(df)
+  52: 
+  53:     return {
+  54:         "df": df,
+  55:         "last": df.iloc[-1],
+  56:         "trend": trend,
+  57:         "signal": signal,
+  58:         "breakout": breakout,
+  59:     }
+
+6. COMPILE
+------------------------------------------------------------
+COMPILE : PASS
+
+============================================================
+EROS 3.0 - V2.6 SQLITE SAVE MESSAGE EXACT TRACE COMPLETE
+============================================================
+
+NO FILES WERE MODIFIED.
+

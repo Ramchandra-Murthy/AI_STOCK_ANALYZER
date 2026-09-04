@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from core.enums import Status
 from core.logger import logger
-from services.sotp.sotp_engine import SOTPResult
+from typing import Any
 
 
 @dataclass(slots=True, frozen=True)
@@ -15,7 +15,7 @@ class EquityResearchReport:
     target_price: float
     recommendation: str
     investment_thesis: str
-    sotp_result: SOTPResult
+    sotp_result: Any
     status: Status = Status.OK
 
 
@@ -28,7 +28,7 @@ class ResearchReportGenerator:
         company_name: str,
         current_price: float,
         target_price: float,
-        sotp_result: SOTPResult,
+        sotp_result: Any,
         investment_thesis: str,
     ) -> EquityResearchReport:
         upside = (target_price - current_price) / max(current_price, 1e-4)
@@ -57,3 +57,4 @@ class ResearchReportGenerator:
             investment_thesis=investment_thesis,
             sotp_result=sotp_result,
         )
+

@@ -1,0 +1,285 @@
+﻿==============================================================================
+EROS 3.0 - V3.8.2.5 UPSTREAM DECISION DATAFLOW DIAGNOSTIC
+==============================================================================
+
+1. ENVIRONMENT
+------------------------------------------------------------------------------
+Python : 3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]
+CWD    : D:\Users\User\Desktop\AI_STOCK_ANALYZER
+ROOT   : D:\Users\User\Desktop\AI_STOCK_ANALYZER
+PATH   : True
+
+2. ADAPTER IMPORT
+------------------------------------------------------------------------------
+IMPORT : PASS
+CLASS  : EROSFrontendAdapter
+
+3. EXECUTION TARGET
+------------------------------------------------------------------------------
+SYMBOL : RELIANCE.NS
+
+4. RUNNING UPSTREAM APIs
+------------------------------------------------------------------------------
+
+==============================================================================
+API: decision_evidence
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 13
+KEYS     : ['symbol', 'price', 'trend', 'momentum', 'score', 'confidence', 'recommendation', 'risk', 'reasons', 'breakout_signal', 'breakout_reason', 'technical_indicators', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  confidence                   : int = 100
+  risk                         : STRING 'Low'
+  recommendation               : STRING 'STRONG BUY'
+
+==============================================================================
+API: decision_intelligence
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 9
+KEYS     : ['symbol', 'price', 'decision', 'market_context', 'technical_drivers', 'technical_indicators', 'risk_flags', 'summary', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  decision                     : DICT (7 keys)
+                                 KEYS: ['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+
+==============================================================================
+API: decision_interpretation
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 6
+KEYS     : ['symbol', 'price', 'decision', 'interpretation', 'technical_indicators', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  decision                     : DICT (7 keys)
+                                 KEYS: ['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+  interpretation               : DICT (9 keys)
+                                 KEYS: ['market_condition', 'price_context', 'breakout_context', 'decision_quality', 'primary_drivers', 'supporting_drivers', 'conflicting_signals', 'interpretation', 'invalidation_context']
+
+==============================================================================
+API: decision_action_framework
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 8
+KEYS     : ['symbol', 'price', 'action', 'market_context', 'confirmation_conditions', 'invalidation_conditions', 'interpretation_summary', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  action                       : DICT (7 keys)
+                                 KEYS: ['classification', 'stance', 'recommendation', 'score', 'confidence', 'confidence_band', 'risk_context']
+
+==============================================================================
+API: decision_action_explanation
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 5
+KEYS     : ['symbol', 'price', 'action', 'explanation', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  action                       : DICT (6 keys)
+                                 KEYS: ['classification', 'stance', 'recommendation', 'confidence', 'confidence_band', 'risk_context']
+
+==============================================================================
+API: decision_scenario_engine
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 8
+KEYS     : ['symbol', 'price', 'current_decision', 'primary_scenario', 'scenarios', 'decision_quality', 'scenario_summary', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  decision_quality             : STRING 'HIGH'
+
+==============================================================================
+API: decision_scenario_explanation
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 11
+KEYS     : ['symbol', 'price', 'current_decision', 'primary_scenario', 'scenario_explanation', 'decision_quality', 'interpretation', 'confirmation_logic', 'invalidation_logic', 'summary', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  interpretation               : STRING 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The primary scenario is BULL.'
+  decision_quality             : STRING 'HIGH'
+
+==============================================================================
+API: decision_convergence
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 7
+KEYS     : ['symbol', 'price', 'decision', 'convergence', 'interpretation', 'conclusion', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  decision                     : DICT (6 keys)
+                                 KEYS: ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+  interpretation               : DICT (4 keys)
+                                 KEYS: ['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+  convergence                  : DICT (9 keys)
+                                 KEYS: ['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation', 'confirmation_logic', 'invalidation_logic', 'primary_drivers', 'supporting_drivers', 'conflicting_signals']
+  conclusion                   : STRING 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation condi'
+
+==============================================================================
+API: decision_traceability
+==============================================================================
+CALL     : PASS
+TYPE     : dict
+KEY COUNT: 11
+KEYS     : ['symbol', 'price', 'decision', 'trace', 'evidence_chain', 'scenario_trace', 'interpretation', 'conclusion', 'traceability_status', 'traceability', 'governance']
+  symbol                       : STRING 'RELIANCE.NS'
+  price                        : float = 1316.0
+  decision                     : DICT (6 keys)
+                                 KEYS: ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+  evidence_chain               : DICT (5 keys)
+                                 KEYS: ['primary_drivers', 'supporting_drivers', 'conflicting_signals', 'confirmation_logic', 'invalidation_logic']
+  interpretation               : DICT (4 keys)
+                                 KEYS: ['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+  scenario_trace               : DICT (4 keys)
+                                 KEYS: ['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation']
+  trace                        : DICT (8 keys)
+                                 KEYS: ['stage_1_evidence', 'stage_2_intelligence', 'stage_3_interpretation', 'stage_4_action_framework', 'stage_5_action_explanation', 'stage_6_scenario_engine', 'stage_7_scenario_explanation', 'stage_8_convergence']
+  traceability                 : DICT (10 keys)
+                                 KEYS: ['status', 'source', 'schema_version', 'legacy_trace_preserved', 'stages', 'primary_scenario', 'decision_quality', 'read_only', 'execution_blocked', 'non_mutation_invariant']
+  conclusion                   : STRING 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation condi'
+
+
+==============================================================================
+5. FIRST-FAILURE ANALYSIS
+==============================================================================
+decision_evidence              -> decision               : ABSENT
+decision_evidence              -> evidence_chain         : ABSENT
+decision_intelligence          -> decision               : HYDRATED
+decision_interpretation        -> interpretation         : HYDRATED
+decision_scenario_engine       -> scenario_trace         : ABSENT
+decision_convergence           -> decision               : HYDRATED
+decision_convergence           -> trace                  : ABSENT
+decision_traceability          -> traceability           : HYDRATED
+
+
+==============================================================================
+6. DATAFLOW SUMMARY
+==============================================================================
+
+decision_evidence
+------------------------------------------------------------
+
+decision_intelligence
+------------------------------------------------------------
+decision                  : HYDRATED (7 keys)
+
+decision_interpretation
+------------------------------------------------------------
+decision                  : HYDRATED (7 keys)
+interpretation            : HYDRATED (9 keys)
+
+decision_action_framework
+------------------------------------------------------------
+
+decision_action_explanation
+------------------------------------------------------------
+
+decision_scenario_engine
+------------------------------------------------------------
+
+decision_scenario_explanation
+------------------------------------------------------------
+interpretation            : HYDRATED (str)
+
+decision_convergence
+------------------------------------------------------------
+decision                  : HYDRATED (6 keys)
+interpretation            : HYDRATED (4 keys)
+convergence               : HYDRATED (9 keys)
+conclusion                : HYDRATED (str)
+
+decision_traceability
+------------------------------------------------------------
+decision                  : HYDRATED (6 keys)
+evidence_chain            : HYDRATED (5 keys)
+interpretation            : HYDRATED (4 keys)
+scenario_trace            : HYDRATED (4 keys)
+trace                     : HYDRATED (8 keys)
+traceability              : HYDRATED (10 keys)
+conclusion                : HYDRATED (str)
+
+
+==============================================================================
+7. FIRST FAILURE
+==============================================================================
+FIRST FAILURE API   : decision_evidence
+FIRST FAILURE FIELD : decision
+REASON              : KEY ABSENT
+
+THIS IS THE LAYER TO INVESTIGATE.
+NO PATCH SHOULD BE APPLIED BY THIS DIAGNOSTIC.
+
+
+==============================================================================
+8. DECISION AUDIT OBSERVATION
+==============================================================================
+AUDIT CALL : PASS
+AUDIT TYPE : dict
+  decision                     : DICT (6 keys)
+                                 KEYS: ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+  audit                        : DICT (11 keys)
+                                 KEYS: ['status', 'evidence_validation', 'decision_consistency', 'scenario_consistency', 'trace_completeness', 'governance_validation', 'safety_validation', 'conflict_detection', 'cross_layer_consistency', 'audit_conclusion', 'overall_status']
+  audit_findings               : LIST (0 items)
+                                 *** EMPTY LIST ***
+  trace                        : DICT (8 keys)
+                                 KEYS: ['stage_1_evidence', 'stage_2_intelligence', 'stage_3_interpretation', 'stage_4_action_framework', 'stage_5_action_explanation', 'stage_6_scenario_engine', 'stage_7_scenario_explanation', 'stage_8_convergence']
+  traceability                 : DICT (10 keys)
+                                 KEYS: ['status', 'source', 'schema_version', 'legacy_trace_preserved', 'stages', 'primary_scenario', 'decision_quality', 'read_only', 'execution_blocked', 'non_mutation_invariant']
+  evidence_chain               : DICT (5 keys)
+                                 KEYS: ['primary_drivers', 'supporting_drivers', 'conflicting_signals', 'confirmation_logic', 'invalidation_logic']
+  scenario_trace               : DICT (4 keys)
+                                 KEYS: ['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation']
+  interpretation               : DICT (4 keys)
+                                 KEYS: ['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+  conclusion                   : STRING 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation condi'
+  audit_status                 : STRING 'PASS'
+  governance                   : DICT (11 keys)
+                                 KEYS: ['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+
+==============================================================================
+9. SAFETY OBSERVATION
+==============================================================================
+read_only                           : True
+execution_blocked                   : True
+non_mutation_invariant              : True
+allow_order_creation                : False
+allow_broker_submission             : False
+allow_live_execution                : False
+allow_portfolio_mutation            : False
+allow_valuation_mutation            : False
+allow_performance_mutation          : False
+allow_risk_mutation                 : False
+allow_optimization                  : False
+
+
+==============================================================================
+10. V3.8.2.5 CONCLUSION
+==============================================================================
+
+READ-ONLY DIAGNOSTIC
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+The purpose of this diagnostic is to identify the FIRST upstream
+decision-data layer that returns empty or incomplete data.
+
+Do not patch until the first failure is identified.
+
+==============================================================================
+V3.8.2.5 DIAGNOSTIC COMPLETE
+==============================================================================
+

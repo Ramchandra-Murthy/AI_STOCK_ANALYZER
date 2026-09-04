@@ -1,0 +1,56 @@
+==========================================================
+EROS 3.0 - BLOCK 31K-DSJ
+REDIS ACCESS + IDEMPOTENCY IMPLEMENTATION DIAGNOSTIC
+READ-ONLY
+==========================================================
+
+1. REDIS-RELATED REFERENCES
+96:         # 31K-DSI IDEMPOTENCY
+98:         # A caller may provide a stable logical request_id.  When present,
+99:         # Redis becomes the durable request_id -> task_id mapping.
+100:         # Repeated submissions with the same request_id return the
+102:         request_id = payload.get("request_id")
+104:         redis_client = None
+107:         if request_id:
+109:                 redis_client = self._get_redis_client()
+110:                 idempotency_key = f"eros:idempotency:{request_id}"
+111:                 existing_task_id = redis_client.get(idempotency_key)
+133:                         "request_id": request_id,
+136:                 # Idempotency must never prevent normal task execution if
+137:                 # Redis lookup is temporarily unavailable.
+138:                 redis_client = None
+144:         if request_id:
+145:             payload["request_id"] = request_id
+182:         # Persist request_id -> task_id only after the task has been
+184:         # poisoning the idempotency key.
+185:         if request_id:
+187:                 if redis_client is None:
+188:                     redis_client = self._get_redis_client()
+190:                 redis_client.set(
+191:                     f"eros:idempotency:{request_id}",
+196:                 # Preserve task execution even if the idempotency mapping
+
+2. CLASS METHODS
+__init__
+real_celery_enabled
+_synchronize_task_registry
+submit_task
+get_task_status
+get_task_result
+get_registered_tasks
+get_queue_status
+get_task_metrics
+get_task_observability_details
+get_observability_summary
+
+HAS _get_redis_client: False
+
+3. IMPORTS
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_redis_diagnostic.py", line 52, in <module>
+    print(f"{i}: {line}")
+    ~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\ufeff' in position 3: character maps to <undefined>

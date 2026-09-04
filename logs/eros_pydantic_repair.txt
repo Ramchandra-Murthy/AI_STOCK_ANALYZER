@@ -1,0 +1,74 @@
+﻿Python 3.13.14
+Name: pydantic
+Version: 2.13.4
+Summary: Data validation using Python type hints
+Home-page: https://github.com/pydantic/pydantic
+Author: 
+Author-email: Samuel Colvin <s@muelcolvin.com>, Eric Jolibois <em.jolibois@gmail.com>, Hasan Ramezani <hasan.r67@gmail.com>, Adrian Garcia Badaracco <1755071+adriangb@users.noreply.github.com>, Terrence Dorsey <terry@pydantic.dev>, David Montague <david@pydantic.dev>, Serge Matveenko <lig@countzero.co>, Marcelo Trylesinski <marcelotryle@gmail.com>, Sydney Runkle <sydneymarierunkle@gmail.com>, David Hewitt <mail@davidhewitt.dev>, Alex Hall <alex.mojaki@gmail.com>, Victorien Plot <contact@vctrn.dev>
+License-Expression: MIT
+Location: D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages
+Requires: annotated-types, pydantic-core, typing-extensions, typing-inspection
+Required-by: fastapi, pydantic-settings
+---
+Name: pydantic_core
+Version: 2.46.4
+Summary: Core functionality for Pydantic validation and serialization
+Home-page: https://github.com/pydantic/pydantic
+Author: 
+Author-email: Samuel Colvin <s@muelcolvin.com>, Adrian Garcia Badaracco <1755071+adriangb@users.noreply.github.com>, David Montague <david@pydantic.dev>, David Hewitt <mail@davidhewitt.dev>, Sydney Runkle <sydneymarierunkle@gmail.com>, Victorien Plot <contact@vctrn.dev>
+License-Expression: MIT
+Location: D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages
+Requires: typing-extensions
+Required-by: pydantic
+Collecting pydantic>=2.6.0
+  Using cached pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+Collecting annotated-types>=0.6.0 (from pydantic>=2.6.0)
+  Using cached annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+Collecting pydantic-core==2.46.4 (from pydantic>=2.6.0)
+  Using cached pydantic_core-2.46.4-cp313-cp313-win_amd64.whl.metadata (6.7 kB)
+Collecting typing-extensions>=4.14.1 (from pydantic>=2.6.0)
+  Using cached typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting typing-inspection>=0.4.2 (from pydantic>=2.6.0)
+  Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+Using cached pydantic-2.13.4-py3-none-any.whl (472 kB)
+Using cached pydantic_core-2.46.4-cp313-cp313-win_amd64.whl (2.1 MB)
+Using cached annotated_types-0.8.0-py3-none-any.whl (13 kB)
+Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+Installing collected packages: typing-extensions, annotated-types, typing-inspection, pydantic-core, pydantic
+  Attempting uninstall: typing-extensions
+    Found existing installation: typing_extensions 4.16.0
+    Uninstalling typing_extensions-4.16.0:
+      Successfully uninstalled typing_extensions-4.16.0
+  Attempting uninstall: annotated-types
+    Found existing installation: annotated-types 0.8.0
+    Uninstalling annotated-types-0.8.0:
+      Successfully uninstalled annotated-types-0.8.0
+  Attempting uninstall: typing-inspection
+    Found existing installation: typing-inspection 0.4.2
+    Uninstalling typing-inspection-0.4.2:
+      Successfully uninstalled typing-inspection-0.4.2
+  Attempting uninstall: pydantic-core
+    Found existing installation: pydantic_core 2.46.4
+    Uninstalling pydantic_core-2.46.4:
+      Successfully uninstalled pydantic_core-2.46.4
+  Attempting uninstall: pydantic
+    Found existing installation: pydantic 2.13.4
+    Uninstalling pydantic-2.13.4:
+      Successfully uninstalled pydantic-2.13.4
+
+Successfully installed annotated-types-0.8.0 pydantic-2.13.4 pydantic-core-2.46.4 typing-extensions-4.16.0 typing-inspection-0.4.4
+.\.venv\Scripts\python.exe : 
+At line:30 char:5
++     .\.venv\Scripts\python.exe -m pip install --upgrade --force-reins ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[notice] A new release of pip is available: 26.2 -> 26.2.1
+[notice] To update, run: D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Scripts\python.exe -m pip install --upgrade pip
+Pydantic version: 2.13.4
+Pydantic location: D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pydantic\__init__.py
+PASS: pydantic._internal._repr available
+No broken requirements found.
+

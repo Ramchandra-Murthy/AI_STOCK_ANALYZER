@@ -1,0 +1,653 @@
+﻿feature/eros-3-0-sprint19
+
+=================================== ERRORS ====================================
+___________________ ERROR collecting tests/api/test_eap.py ____________________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api\test_eap.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\api\test_eap.py:4: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+_____________ ERROR collecting tests/infrastructure/test_cnep.py ______________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\infrastructure\test_cnep.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\infrastructure\test_cnep.py:4: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+_______ ERROR collecting tests/production/test_block25a_api_contract.py _______
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25a_api_contract.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\production\test_block25a_api_contract.py:1: in <module>
+    from backend.main import app
+backend\main.py:4: in <module>
+    from fastapi import FastAPI, status
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+______ ERROR collecting tests/production/test_block25b_api_validation.py ______
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25b_api_validation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\production\test_block25b_api_validation.py:1: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+_________ ERROR collecting tests/production/test_block25c_api_e2e.py __________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25c_api_e2e.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\production\test_block25c_api_e2e.py:1: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+_____ ERROR collecting tests/production/test_block25d_integrity_chain.py ______
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25d_integrity_chain.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\production\test_block25d_integrity_chain.py:1: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+______ ERROR collecting tests/production/test_block26c_failure_safety.py ______
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26c_failure_safety.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\production\test_block26c_failure_safety.py:1: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+______ ERROR collecting tests/production/test_block26d_observability.py _______
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26d_observability.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\production\test_block26d_observability.py:1: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+________ ERROR collecting tests/production/test_block27_operations.py _________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block27_operations.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\production\test_block27_operations.py:1: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+_____________ ERROR collecting tests/realtime/test_edcp_stream.py _____________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\realtime\test_edcp_stream.py:4: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+________________ ERROR collecting tests/security/test_auth.py _________________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\security\test_auth.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\security\test_auth.py:5: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+__________________ ERROR collecting tests/tasks/test_edcp.py __________________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\tasks\test_edcp.py:4: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+__________________ ERROR collecting tests/tasks/test_edpp.py __________________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edpp.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\tasks\test_edpp.py:4: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+________ ERROR collecting tests/tasks/test_sprint19c_control_plane.py _________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\tasks\test_sprint19c_control_plane.py:1: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+________ ERROR collecting tests/tasks/test_sprint20a_observability.py _________
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20a_observability.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\tasks\test_sprint20a_observability.py:4: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+____ ERROR collecting tests/tasks/test_sprint20b_observability_details.py _____
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20b_observability_details.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\tasks\test_sprint20b_observability_details.py:4: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+____ ERROR collecting tests/tasks/test_sprint20c_unified_observability.py _____
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20c_unified_observability.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\tasks\test_sprint20c_unified_observability.py:4: in <module>
+    from fastapi.testclient import TestClient
+.venv\Lib\site-packages\fastapi\__init__.py:7: in <module>
+    from .applications import FastAPI as FastAPI
+.venv\Lib\site-packages\fastapi\applications.py:7: in <module>
+    from fastapi import routing
+.venv\Lib\site-packages\fastapi\routing.py:45: in <module>
+    from fastapi import params
+.venv\Lib\site-packages\fastapi\params.py:7: in <module>
+    from fastapi.exceptions import FastAPIDeprecationWarning
+.venv\Lib\site-packages\fastapi\exceptions.py:5: in <module>
+    from pydantic import BaseModel, create_model
+.venv\Lib\site-packages\pydantic\__init__.py:422: in <module>
+    _getattr_migration = getattr_migration(__name__)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pydantic\_migration.py:262: in getattr_migration
+    from .errors import PydanticImportError
+.venv\Lib\site-packages\pydantic\errors.py:11: in <module>
+    from pydantic._internal import _repr
+E   ModuleNotFoundError: No module named 'pydantic._internal'
+=========================== short test summary info ===========================
+ERROR tests/api/test_eap.py
+ERROR tests/infrastructure/test_cnep.py
+ERROR tests/production/test_block25a_api_contract.py
+ERROR tests/production/test_block25b_api_validation.py
+ERROR tests/production/test_block25c_api_e2e.py
+ERROR tests/production/test_block25d_integrity_chain.py
+ERROR tests/production/test_block26c_failure_safety.py
+ERROR tests/production/test_block26d_observability.py
+ERROR tests/production/test_block27_operations.py
+ERROR tests/realtime/test_edcp_stream.py
+ERROR tests/security/test_auth.py
+ERROR tests/tasks/test_edcp.py
+ERROR tests/tasks/test_edpp.py
+ERROR tests/tasks/test_sprint19c_control_plane.py
+ERROR tests/tasks/test_sprint20a_observability.py
+ERROR tests/tasks/test_sprint20b_observability_details.py
+ERROR tests/tasks/test_sprint20c_unified_observability.py
+!!!!!!!!!!!!!!!!!! Interrupted: 17 errors during collection !!!!!!!!!!!!!!!!!!!
+17 errors in 3.81s
+?? logs/analyzer_before_eros_v26_readonly_patch.py
+?? logs/analyzer_before_eros_v328_date_contract.py
+?? logs/eros_checkpoint_latest.txt
+?? logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py
+?? logs/eros_frontend_adapter_before_v29.py
+?? logs/eros_frontend_adapter_before_v30_20260822_210324.py
+?? logs/eros_frontend_adapter_before_v30_decision_20260822_210450.py
+?? logs/eros_frontend_adapter_before_v31_20260822_210705.py
+?? logs/eros_frontend_adapter_before_v32_20260822_210838.py
+?? logs/eros_frontend_adapter_before_v33_20260822_211141.py
+?? logs/eros_frontend_adapter_before_v34_20260822_211420.py
+?? logs/eros_frontend_adapter_before_v35_20260822_211800.py
+?? logs/eros_frontend_adapter_before_v35_20260822_212229.py
+?? logs/eros_frontend_adapter_before_v36_20260822_212325.py
+?? logs/eros_frontend_adapter_before_v371_20260822_213654.py
+?? logs/eros_frontend_adapter_before_v372_20260822_213827.py
+?? logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213105.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213210.py
+?? logs/eros_frontend_adapter_before_v381_20260822_215432.py
+?? logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py
+?? logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py
+?? logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220104.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220437.py
+?? logs/eros_frontend_adapter_before_v38_20260822_214850.py
+?? logs/eros_full_test_20260823_123857.txt
+?? logs/eros_test_20260823_123827.txt
+?? logs/eros_v25_adapter_api.py
+?? logs/eros_v25_adapter_api_output.txt
+?? logs/eros_v25_contract_verify.py
+?? logs/eros_v25_dashboard_contract.py
+?? logs/eros_v25_dashboard_contract_output.txt
+?? logs/eros_v25_market_scan_contract.py
+?? logs/eros_v25_market_scan_contract_output.txt
+?? logs/eros_v26_active_sqlite_message_check.py
+?? logs/eros_v26_active_write_token_check.py
+?? logs/eros_v26_analyzer_patch_output.txt
+?? logs/eros_v26_analyzer_runtime_test.py
+?? logs/eros_v26_ast_nonmutation_proof.py
+?? logs/eros_v26_ast_nonmutation_proof.txt
+?? logs/eros_v26_ast_nonmutation_proof_v2.py
+?? logs/eros_v26_ast_nonmutation_proof_v2.txt
+?? logs/eros_v26_clean_write_trace.txt
+?? logs/eros_v26_corrected_nonmutation_proof_20260822_205417.txt
+?? logs/eros_v26_corrected_runtime_test.py
+?? logs/eros_v26_corrected_scan_test.py
+?? logs/eros_v26_database_nonmutation_proof.txt
+?? logs/eros_v26_exact_write_trace.txt
+?? logs/eros_v26_market_scan_readonly_test.py
+?? logs/eros_v26_nonmutation_runtime_test.py
+?? logs/eros_v26_safety_contract_runtime.py
+?? logs/eros_v26_sqlite_message_trace.txt
+?? logs/eros_v26_sqlite_save_message_trace.txt
+?? logs/eros_v26_write_trace_clipboard.txt
+?? logs/eros_v27_data_layer_boundary_console.txt
+?? logs/eros_v27_runtime_evidence_inspection.py
+?? logs/eros_v27_runtime_evidence_inspection.txt
+?? logs/eros_v28_decision_evidence_test.py
+?? logs/eros_v28_decision_evidence_test_output.txt
+?? logs/eros_v29_decision_evidence_output.txt
+?? logs/eros_v29_decision_evidence_test.py
+?? logs/eros_v30_decision_intelligence_foundation.txt
+?? logs/eros_v30_decision_intelligence_test.py
+?? logs/eros_v31_decision_interpretation_foundation.txt
+?? logs/eros_v31_decision_interpretation_test.py
+?? logs/eros_v32_decision_action_runtime_20260822_210929.txt
+?? logs/eros_v32_decision_action_runtime_test_20260822_210929.py
+?? logs/eros_v33_runtime_test.py
+?? logs/eros_v33_runtime_test_output.txt
+?? logs/eros_v34_runtime_test.py
+?? logs/eros_v34_runtime_test_output.txt
+?? logs/eros_v35_runtime_test.py
+?? logs/eros_v35_runtime_test_output.txt
+?? logs/eros_v36_runtime_test.py
+?? logs/eros_v372_ast_traceability_patch.py
+?? logs/eros_v372_return_structure_diagnostic.py
+?? logs/eros_v372_runtime_regression.py
+?? logs/eros_v372_traceability_failure_diagnostic.py
+?? logs/eros_v372_traceability_runtime_test.py
+?? logs/eros_v37_api_check.py
+?? logs/eros_v37_foundation_check.py
+?? logs/eros_v37_runtime_test.py
+?? logs/eros_v37_traceability_diagnostic.py
+?? logs/eros_v37_traceability_runtime_test.py
+?? logs/eros_v3810_adapter_api_contract.txt
+?? logs/eros_v3812_frontend_insertion_boundary.txt
+?? logs/eros_v3813_traceability_runtime_contract.py
+?? logs/eros_v3813_traceability_runtime_contract.txt
+?? logs/eros_v3815_frontend_runtime_consumption_audit.py
+?? logs/eros_v3815_frontend_runtime_consumption_audit.txt
+?? logs/eros_v3816_golden_integration_verification.txt
+?? logs/eros_v3817_traceability_frontend_consumption_inspection.txt
+?? logs/eros_v3818_frontend_traceability_runtime_test.py
+?? logs/eros_v3818_frontend_traceability_runtime_test.txt
+?? logs/eros_v3819_golden_integration_verification.py
+?? logs/eros_v3819_golden_integration_verification.txt
+?? logs/eros_v381_audit_clipboard_diagnostic.py
+?? logs/eros_v381_audit_clipboard_output.txt
+?? logs/eros_v381_audit_failure_isolation.py
+?? logs/eros_v381_audit_runtime_diagnostic.py
+?? logs/eros_v381_deep_audit_runtime.py
+?? logs/eros_v3820_traceability_ui_context.txt
+?? logs/eros_v3821_ast_only.py
+?? logs/eros_v3821_compile_failure_diagnostic_20260822_220822.txt
+?? logs/eros_v3821_structural_ast_diagnostic.py
+?? logs/eros_v3821_structural_diagnostic_clipboard.txt
+?? logs/eros_v3822_ast_inspection.py
+?? logs/eros_v3822_ast_syntax_diagnostic.py
+?? logs/eros_v3822_clean_runtime_diagnostic.py
+?? logs/eros_v3822_runtime_hydration_validation.py
+?? logs/eros_v3823_hydration_dataflow_diagnostic.py
+?? logs/eros_v3823_hydration_source_inspection.py
+?? logs/eros_v3823_import_path_test.py
+?? logs/eros_v3824_ast_inspection.py
+?? logs/eros_v3824_audit_dataflow_inspector.py
+?? logs/eros_v3824_audit_dataflow_source_diagnostic.py
+?? logs/eros_v3824_golden_baseline_runtime.py
+?? logs/eros_v3824_golden_difference_forensic_20260822_225337.txt
+?? logs/eros_v3824_runtime_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic_output.txt
+?? logs/eros_v3826_decision_evidence_source_forensic.txt
+?? logs/eros_v3827_runtime_dataflow_diagnostic.py
+?? logs/eros_v3827_runtime_dataflow_diagnostic.txt
+?? logs/eros_v3828_middle_layer_source_forensic.txt
+?? logs/eros_v3829_middle_layer_runtime_test.py
+?? logs/eros_v3829_middle_layer_runtime_test_output.txt
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.py
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.txt
+?? logs/eros_v382_ast_audit_hydration_patcher.py
+?? logs/eros_v382_audit_failure_capture.py
+?? logs/eros_v382_audit_schema_runtime_diagnostic.py
+?? logs/eros_v382_forensic_runtime.py
+?? logs/eros_v382_forensic_runtime_output.txt
+?? logs/eros_v382_forensic_stderr.txt
+?? logs/eros_v382_forensic_stdout.txt
+?? logs/eros_v382_integrity_patcher.py
+?? logs/eros_v382_integrity_runtime_diagnostic.py
+?? logs/eros_v3831_dashboard_analysis_flow_forensic.txt
+?? logs/eros_v3832_THREE_REPORTS_COMBINED.txt
+?? logs/eros_v3832_adapter_frontend_contract_forensic.txt
+?? logs/eros_v3832_adapter_frontend_integration_contract.txt
+?? logs/eros_v3832_adapter_public_api_forensic.txt
+?? logs/eros_v3833_adapter_runtime_contract_test.txt
+?? logs/eros_v383_frontend_consumption_forensic.txt
+?? logs/eros_v384_frontend_integration_insertion_forensic.txt
+?? logs/eros_v385_frontend_adapter_argument_contract.txt
+?? logs/eros_v386_frontend_integration_runtime_dry_run.txt
+?? logs/eros_v389_selected_stock_insertion_context.txt
+?? logs/eros_v38_audit_failure_diagnostic.py
+?? logs/eros_v38_decision_audit_diagnostic.py
+?? logs/eros_v38_runtime_test.py
+?? logs/stock_dashboard_before_eros_frontend_v1.py
+?? logs/stock_dashboard_before_eros_frontend_v2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_1.py
+?? logs/stock_dashboard_before_eros_frontend_v2_2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_market_insert.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_5.py
+?? logs/stock_dashboard_before_eros_v311_20260823_105006.py
+?? logs/stock_dashboard_before_eros_v314_integration.py
+?? logs/stock_dashboard_before_eros_v320_20260823_113203.py
+?? logs/stock_dashboard_before_eros_v387_20260823_000130.py
+b6be2cf EROS 3.0 green checkpoint - 15 contract tests passing
+

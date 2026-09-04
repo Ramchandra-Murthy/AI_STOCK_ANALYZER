@@ -1,0 +1,783 @@
+﻿============================================================
+EROS 3.0 - 31K-FD7 AIScoringEngine CONTRACT AUDIT
+============================================================
+PURPOSE: VERIFY REAL SCORING ENGINE CONTRACT
+CHECKPOINT: 31K-FD6 COMPLETE
+MODE: READ-ONLY
+SOURCE MODIFICATION: NONE
+
+============================================================
+1. AIScoringEngine IDENTITY
+============================================================
+CLASS: <class 'services.scoring.engine.AIScoringEngine'>
+MODULE: services.scoring.engine
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py
+CONSTRUCTOR: () -> 'None'
+
+PUBLIC METHODS:
+evaluate | (self, financials: 'FinancialStatements', market_records: 'list[PriceRecord] | None' = None, risk_profile: 'PortfolioRiskProfile | None' = None) -> 'AIScoreResult'
+
+============================================================
+2. AIScoringEngine SOURCE
+============================================================
+class AIScoringEngine:
+    """
+    Institutional Fundamental, Growth, Valuation, Momentum, & Risk AI Scoring Engine.
+    Block 15H integrates RiskScoringEngine for dynamic institutional risk scoring.
+    """
+    def __init__(self) -> None:
+        self.fundamental_engine = FundamentalScoringEngine()
+        self.growth_engine = GrowthScoringEngine()
+        self.valuation_engine = ValuationEngine()
+        self.momentum_engine = MomentumScoringEngine()
+        self.risk_scoring_engine = RiskScoringEngine()
+
+    def evaluate(
+        self,
+        financials: FinancialStatements,
+        market_records: list[PriceRecord] | None = None,
+        risk_profile: PortfolioRiskProfile | None = None,
+    ) -> AIScoreResult:
+        ticker = financials.ticker
+        logger.info(
+            "Running unified institutional AI scoring with valuation, momentum, and risk for symbol: %s",
+            ticker,
+        )
+
+        # 1. Fundamental Scoring (Blocks 12A-12C)
+        fund_res = self.fundamental_engine.evaluate(financials)
+
+        profitability_score = fund_res.profitability_score
+        quality_score = fund_res.quality_score
+        capital_allocation_score = fund_res.cash_flow_quality_score
+
+        # 2. Historical Growth Scoring (Block 11)
+        growth_res = self.growth_engine.evaluate(financials)
+        growth_score = growth_res.growth_score
+
+        # 3. Dynamic Valuation Engine Integration (Block 13)
+        val_res = self.valuation_engine.compute(symbol=ticker, forecast_data=financials)
+        valuation_score = _score_valuation(val_res.margin_of_safety_pct)
+
+        # 4. Dynamic Momentum Scoring Integration (Block 14H)
+        if not market_records:
+            base_price = 1000.0
+            market_records = [
+                PriceRecord(
+                    date=f"2026-07-{i+1:02d}",
+                    open=base_price + i,
+                    high=base_price + i + 5,
+                    low=base_price + i - 5,
+                    close=base_price + i + 2,
+                    volume=1000000 + i * 10000,
+                )
+                for i in range(30)
+            ]
+
+        mom_res = self.momentum_engine.evaluate(symbol=ticker, records=market_records)
+        momentum_score = mom_res.momentum_score
+
+        # 5. Dynamic Risk Scoring Integration (Block 15H)
+        risk_res = self.risk_scoring_engine.evaluate(symbol=ticker, profile=risk_profile)
+        risk_score = risk_res.risk_score
+
+        # 6. Weighted Composite
+        weights: Dict[str, float] = {
+            "growth": 0.15,
+            "quality": 0.20,
+            "profitability": 0.20,
+            "capital_allocation": 0.10,
+            "valuation": 0.15,
+            "momentum": 0.10,
+            "risk": 0.10,
+        }
+        composite = (
+            growth_score * weights["growth"]
+            + quality_score * weights["quality"]
+            + profitability_score * weights["profitability"]
+            + capital_allocation_score * weights["capital_allocation"]
+            + valuation_score * weights["valuation"]
+            + momentum_score * weights["momentum"]
+            + risk_score * weights["risk"]
+        )
+        composite = round(_clamp(composite), 2)
+
+        if composite >= 75.0:
+            rating = "STRONG BUY"
+        elif composite >= 60.0:
+            rating = "BUY"
+        elif composite >= 45.0:
+            rating = "HOLD"
+        elif composite >= 30.0:
+            rating = "SELL"
+        else:
+            rating = "STRONG SELL"
+
+        details = {
+            "rating": rating,
+            "engine_version": "EROS-3.0-BLOCK-15",
+            "weights_used": weights,
+            "growth_engine": growth_res.growth_details,
+            "fundamental_engine": fund_res.pillar_details,
+            "valuation_engine": {
+                "blended_fair_value": val_res.blended_fair_value,
+                "current_market_price": val_res.current_market_price,
+                "margin_of_safety_pct": val_res.margin_of_safety_pct,
+                "recommendation": val_res.recommendation,
+                "valuation_score": valuation_score,
+            },
+            "momentum_engine": mom_res.details,
+            "risk_engine": risk_res.details,
+        }
+
+        return AIScoreResult(
+            symbol=ticker,
+            growth_score=round(growth_score, 2),
+            quality_score=round(quality_score, 2),
+            profitability_score=round(profitability_score, 2),
+            capital_allocation_score=round(capital_allocation_score, 2),
+            valuation_score=round(valuation_score, 2),
+            momentum_score=round(momentum_score, 2),
+            risk_score=round(risk_score, 2),
+            composite_score=composite,
+            breakdown_details=details,
+        )
+
+
+============================================================
+3. COMPONENT ENGINE CONTRACTS
+============================================================
+
+------------------------------------------------------------
+ENGINE: FundamentalScoringEngine
+MODULE: services.scoring.fundamental_engine
+------------------------------------------------------------
+IMPORT ERROR: ModuleNotFoundError No module named 'services.scoring.fundamental_engine'
+
+------------------------------------------------------------
+ENGINE: GrowthScoringEngine
+MODULE: services.scoring.growth_engine
+------------------------------------------------------------
+IMPORT ERROR: ModuleNotFoundError No module named 'services.scoring.growth_engine'
+
+------------------------------------------------------------
+ENGINE: MomentumScoringEngine
+MODULE: services.scoring.momentum_engine
+------------------------------------------------------------
+IMPORT ERROR: ModuleNotFoundError No module named 'services.scoring.momentum_engine'
+
+------------------------------------------------------------
+ENGINE: RiskScoringEngine
+MODULE: services.scoring.risk_engine
+------------------------------------------------------------
+IMPORT ERROR: ModuleNotFoundError No module named 'services.scoring.risk_engine'
+
+============================================================
+4. AIScoreResult COMPATIBILITY
+============================================================
+AIScoreResult FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py
+
+FIELDS / ANNOTATIONS:
+{'symbol': 'str', 'growth_score': 'float', 'quality_score': 'float', 'profitability_score': 'float', 'capital_allocation_score': 'float', 'valuation_score': 'float', 'momentum_score': 'float', 'risk_score': 'float', 'composite_score': 'float', 'breakdown_details': 'Dict[str, Any]'}
+
+DATACLASS FIELDS:
+symbol | type= str | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+growth_score | type= float | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+quality_score | type= float | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+profitability_score | type= float | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+capital_allocation_score | type= float | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+valuation_score | type= float | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+momentum_score | type= float | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+risk_score | type= float | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+composite_score | type= float | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+breakdown_details | type= Dict[str, Any] | default= <dataclasses._MISSING_TYPE object at 0x000001B358247E00>
+
+============================================================
+5. FUNDAMENTAL INPUT CONTRACTS
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:9 | revenue: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:10 | other_revenue: float = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:11 | total_revenue: float = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:12 | cost_of_revenue: float = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:13 | gross_profit: float = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:59 | retained_earnings: float = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:68 | operating_cash_flow: float = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:86 | free_cash_flow: float = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py:87 | owner_earnings: float = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\events.py:9 | class FundamentalsDownloaded(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\events.py:10 | """Event emitted when company fundamental financial statements are successfully downloaded and normalized."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\events.py:11 | name: str = "fundamentals.downloaded"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:11 | revenue: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:33 | operating_cash_flow: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:35 | free_cash_flow: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:36 | investing_cash_flow: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:37 | financing_cash_flow: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:41 | class FinancialStatements:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:48 | if self.income_statements:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:49 | return [stmt.period for stmt in self.income_statements if hasattr(stmt, 'period')]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:53 | def income_statement(self):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:54 | if self.income_statements:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:55 | return self.income_statements[0]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:56 | from services.financials.income_statement import IncomeStatement
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:57 | return IncomeStatement(revenue=1000000.0, ebitda=250000.0, ebit=200000.0, net_income=150000.0, eps=45.0, shares_outstanding=1000.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:60 | def balance_sheet(self):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:61 | if self.balance_sheets:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:62 | return self.balance_sheets[0]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:63 | from services.financials.balance_sheet import BalanceSheet
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:67 | def cash_flow_statement(self):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:68 | if self.cash_flows:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:69 | return self.cash_flows[0]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:71 | free_cash_flow = 150000.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:72 | operating_cash_flow = 180000.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:82 | def income_statement(self):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:83 | if self.income_statements:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:84 | return self.income_statements[0]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:85 | from services.financials.income_statement import IncomeStatement
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:86 | return IncomeStatement(revenue=1000000.0, ebitda=250000.0, ebit=200000.0, net_income=150000.0, eps=45.0, shares_outstanding=1000.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:89 | def balance_sheet(self):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:90 | if self.balance_sheets:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:91 | return self.balance_sheets[0]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:92 | from services.financials.balance_sheet import BalanceSheet
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:96 | def cash_flow_statement(self):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:97 | if self.cash_flows:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:98 | return self.cash_flows[0]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:101 | free_cash_flow = 150000.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:102 | operating_cash_flow = 180000.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:105 | income_statements: List[IncomeStatement] = field(default_factory=list)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:106 | balance_sheets: List[BalanceSheet] = field(default_factory=list)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py:107 | cash_flows: List[CashFlowStatement] = field(default_factory=list)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:5 | from services.fundamentals.models import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:8 | FinancialStatements,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:16 | """Normalizes raw provider payloads into canonical immutable FinancialStatements objects."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:18 | def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:23 | raw_inc = raw_data.get("income_statement", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:24 | raw_bs = raw_data.get("balance_sheet", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:25 | raw_cf = raw_data.get("cash_flow", {})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:29 | revenue=float(raw_inc.get("revenue", 0.0)),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:47 | operating_cash_flow=float(raw_cf.get("operating_cash_flow", 0.0)),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:49 | free_cash_flow=float(raw_cf.get("free_cash_flow", 0.0)),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:50 | investing_cash_flow=float(raw_cf.get("investing_cash_flow", 0.0)),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:51 | financing_cash_flow=float(raw_cf.get("financing_cash_flow", 0.0)),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:54 | return FinancialStatements(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:56 | income_statements=[inc],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:57 | balance_sheets=[bs],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py:58 | cash_flows=[cf],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:5 | from services.fundamentals.models import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:6 | FinancialStatements,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:15 | class FinancialStatementsParser:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:18 | def parse(self, raw_data: dict[str, Any]) -> FinancialStatements:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:25 | revenue=1000000.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:43 | operating_cash_flow=180000.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:45 | free_cash_flow=130000.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:49 | return FinancialStatements(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:51 | income_statements=[sample_income],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:52 | balance_sheets=[sample_balance],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py:53 | cash_flows=[sample_cf],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:5 | from services.fundamentals.models import FinancialStatements
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:11 | class IFundamentalProvider(Protocol):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:12 | """Protocol defining interface for fundamental data providers."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:18 | """Yahoo Finance adapter implementing IFundamentalProvider."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:21 | logger.info("Downloading raw financials from Yahoo Finance for symbol: %s", symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:25 | "income_statement": {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:27 | "revenue": 1000000.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:33 | "balance_sheet": {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:41 | "cash_flow": {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:43 | "operating_cash_flow": 250000.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:45 | "free_cash_flow": 170000.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:46 | "investing_cash_flow": -90000.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py:47 | "financing_cash_flow": -50000.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:7 | from services.fundamentals.events import FundamentalsDownloaded
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:8 | from services.fundamentals.models import FinancialStatements
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:9 | from services.fundamentals.normalizer import FinancialNormalizer
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:10 | from services.fundamentals.provider import IFundamentalProvider
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:15 | class FundamentalsService:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:20 | provider: IFundamentalProvider,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:23 | cache: Optional[dict[str, FinancialStatements]] = None,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:30 | async def get_or_download(self, symbol: str) -> FinancialStatements:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:40 | event = FundamentalsDownloaded(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py:51 | logger.info("FundamentalsDownloaded event dispatched successfully for symbol: %s", symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\validator.py:5 | from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet, CanonicalCashFlowStatement
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\validator.py:13 | def validate_balance_sheet(bs: CanonicalBalanceSheet) -> List[str]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\validator.py:24 | def validate_income_statement(inc: CanonicalIncomeStatement) -> List[str]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\validator.py:26 | if inc.revenue < 0:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\validator.py:27 | errors.append("Revenue cannot be negative.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\validator.py:49 | "free_cash_flow": cf.free_cash_flow if cf.free_cash_flow != 0.0 else cf.operating_cash_flow - abs(cf.capital_expenditures)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:4 | from services.financials.financial_statement import FinancialStatements
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:7 | from services.scoring.fundamental import FundamentalScoringEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:25 | Institutional Fundamental, Growth, Valuation, Momentum, & Risk AI Scoring Engine.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:29 | self.fundamental_engine = FundamentalScoringEngine()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:37 | financials: FinancialStatements,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:41 | ticker = financials.ticker
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:47 | # 1. Fundamental Scoring (Blocks 12A-12C)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:48 | fund_res = self.fundamental_engine.evaluate(financials)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:50 | profitability_score = fund_res.profitability_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:52 | capital_allocation_score = fund_res.cash_flow_quality_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:55 | growth_res = self.growth_engine.evaluate(financials)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:59 | val_res = self.valuation_engine.compute(symbol=ticker, forecast_data=financials)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:88 | "profitability": 0.20,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:97 | + profitability_score * weights["profitability"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:121 | "fundamental_engine": fund_res.pillar_details,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:137 | profitability_score=round(profitability_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:4 | from services.financials.financial_ratios import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:8 | from services.financials.financial_statement import FinancialStatements
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:49 | class FundamentalScoreResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:51 | Data-driven fundamental scoring result.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:55 | profitability_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:59 | cash_flow_quality_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:60 | fundamental_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:63 | class FundamentalScoringEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:65 | Deterministic, explainable fundamental scoring engine.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:72 | financials: FinancialStatements,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:73 | ) -> FundamentalScoreResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:75 | income=financials.income_statement,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:76 | balance=financials.balance_sheet,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:77 | cashflow=financials.cash_flow_statement,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:81 | # PROFITABILITY
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:83 | profitability_components = {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:125 | profitability_score = _average(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:126 | list(profitability_components.values())
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:224 | cash_flow_components = {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:236 | cash_flow_quality_score = _average(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:237 | list(cash_flow_components.values())
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:241 | # FUNDAMENTAL COMPOSITE
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:244 | "profitability": 0.25,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:248 | "cash_flow_quality": 0.15,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:250 | fundamental_score = round(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:251 | profitability_score * pillar_weights["profitability"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:255 | + cash_flow_quality_score * pillar_weights["cash_flow_quality"],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:278 | "profitability": profitability_components,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:282 | "cash_flow_quality": cash_flow_components,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:286 | return FundamentalScoreResult(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:287 | symbol=financials.ticker,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:288 | profitability_score=profitability_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:292 | cash_flow_quality_score=cash_flow_quality_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:293 | fundamental_score=fundamental_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:4 | from services.financials.financial_statement import FinancialStatements
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:29 | revenue_cagr: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:41 | - Revenue CAGR
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:47 | PeriodFinancials.period field.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:51 | financials: FinancialStatements,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:53 | periods = financials.periods
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:56 | revenue_cagr=0.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:68 | # PeriodFinancials uses `period`, NOT `fiscal_year`.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:77 | old_income = oldest.income_statement
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:78 | new_income = newest.income_statement
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:79 | old_cashflow = oldest.cash_flow_statement
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:80 | new_cashflow = newest.cash_flow_statement
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:83 | revenue_cagr = _calculate_cagr(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:84 | old_income.revenue,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:85 | new_income.revenue,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:105 | old_cashflow.operating_cash_flow
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:109 | new_cashflow.operating_cash_flow
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:122 | revenue_score = _score_cagr(revenue_cagr)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:129 | revenue_score * 0.25
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:146 | "revenue_cagr": round(revenue_cagr * 100, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:156 | "revenue": round(revenue_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:168 | revenue_cagr=round(revenue_cagr, 4),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:19 | profitability_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:174 | profitability_score=ai_score.profitability_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:13 | profitability_score: float
+
+============================================================
+6. MARKET DATA PACKET CONTRACT
+============================================================
+
+------------------------------------------------------------
+MarketDataPacket
+------------------------------------------------------------
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\adapter.py
+SIGNATURE: (symbol: 'str', current_price: 'float', previous_close: 'float', volume: 'int', ohlcv_history: 'List[Dict[str, Any]]', freshness_timestamp: 'str' = <factory>, is_stale: 'bool' = False, details: 'Dict[str, Any]' = <factory>) -> None
+ANNOTATIONS: {'symbol': 'str', 'current_price': 'float', 'previous_close': 'float', 'volume': 'int', 'ohlcv_history': 'List[Dict[str, Any]]', 'freshness_timestamp': 'str', 'is_stale': 'bool', 'details': 'Dict[str, Any]'}
+
+------------------------------------------------------------
+RealMarketPipeline
+------------------------------------------------------------
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py
+SIGNATURE: (policy_profile: 'str' = 'Institutional') -> 'None'
+ANNOTATIONS: {}
+
+------------------------------------------------------------
+FullyIntegratedMarketPipeline
+------------------------------------------------------------
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py
+SIGNATURE: (policy_profile: 'str' = 'Institutional') -> 'None'
+ANNOTATIONS: {}
+
+============================================================
+7. BLOCK 18 ORCHESTRATOR CONTRACT
+============================================================
+CLASS: <class 'services.scoring.block18_orchestrator.UnifiedResearchToDecisionOrchestrator'>
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py
+CONSTRUCTOR: (policy_profile: 'str' = 'Institutional', max_position_limit: 'float' = 0.12, aum_baseline: 'float' = 100000000.0) -> 'None'
+
+METHODS:
+evaluate | (self, ai_score: 'AIScoreResult', holdings: 'Optional[Dict[str, Dict[str, float]]]' = None, portfolio_weight: 'Optional[float]' = None, ratios: 'Optional[FinancialRatios]' = None) -> 'UnifiedInvestmentResult'
+
+============================================================
+8. CURRENT PIPELINE SCORE CREATION
+============================================================
+    def evaluate_stock_securely(self, symbol: str) -> Tuple[Any, MarketDataDecisionResult, Optional[UnifiedInvestmentResult], ConfidenceDecisionTraceRecord]:
+        packet, report = ResilientMarketDataProvider.get_validated_market_data(symbol)
+        decision = MarketDataDecisionGate.evaluate_decision(report)
+
+        base_confidence = 0.85
+        adjusted_conf = max(0.0, base_confidence - decision.confidence_penalty)
+
+        if not decision.allowed_in_scoring:
+            trace_record = ConfidenceAuditLogger.create_trace(
+                symbol=symbol,
+                raw_state=report.data_state,
+                valid=report.is_valid,
+                directive=decision.directive,
+                base_conf=base_confidence,
+                penalty=decision.confidence_penalty,
+                adj_conf=0.0,
+                composite_score=0.0,
+                action="REJECT_DATA"
+            )
+            return packet, decision, None, trace_record
+
+        ai_score = AIScoreResult(
+            symbol=symbol,
+            growth_score=82.0,
+            quality_score=88.0,
+            profitability_score=86.0,
+            capital_allocation_score=81.0,
+            valuation_score=79.0,
+            momentum_score=76.0,
+            risk_score=85.0,
+            composite_score=82.4,
+            breakdown_details={
+                "rating": "BUY",
+                "current_price": packet.current_price,
+                "data_state": decision.directive,
+                "confidence_penalty": decision.confidence_penalty,
+                "adjusted_confidence": adjusted_conf
+            }
+        )
+
+        result = self.orchestrator.evaluate(ai_score, holdings=None, portfolio_weight=0.05)
+
+        trace_record = ConfidenceAuditLogger.create_trace(
+            symbol=symbol,
+            raw_state=report.data_state,
+            valid=report.is_valid,
+            directive=decision.directive,
+            base_conf=base_confidence,
+            penalty=decision.confidence_penalty,
+            adj_conf=adjusted_conf,
+            composite_score=ai_score.composite_score,
+            action=result.final_action
+        )
+
+        return packet, decision, result, trace_record
+
+
+============================================================
+9. ENGINE IMPORT / CONSTRUCTION SMOKE TEST
+============================================================
+AIScoringEngine | IMPORT=PASS | MODULE=services.scoring.engine
+  CONSTRUCTION=PASS
+FundamentalScoringEngine | IMPORT=FAIL | ModuleNotFoundError No module named 'services.scoring.fundamental_engine'
+GrowthScoringEngine | IMPORT=FAIL | ModuleNotFoundError No module named 'services.scoring.growth_engine'
+MomentumScoringEngine | IMPORT=FAIL | ModuleNotFoundError No module named 'services.scoring.momentum_engine'
+RiskScoringEngine | IMPORT=FAIL | ModuleNotFoundError No module named 'services.scoring.risk_engine'
+
+============================================================
+10. GIT SAFETY
+============================================================
+SOURCE MODIFICATION: NONE
+
+ M backend/api/routers/admin_task_router.py
+ M backend/api/routers/task_router.py
+ M backend/api/routers/valuation_router.py
+ M backend/config/settings.py
+ M backend/infrastructure/redis/client.py
+ M backend/main.py
+ M backend/security/jwt.py
+ M backend/tasks/task_control.py
+ M tests/production/test_block29_real_celery.py
+?? .env
+?? 31K_BR_CA_SECURITY_AUDIT.txt
+?? 31K_ES_next_block_discovery.txt
+?? 31K_EU_next_engineering_discovery.txt
+?? 31K_EV_source_boundary_audit.txt
+?? 31K_EW_system_integration_target_discovery.txt
+?? 31K_EX_full_pipeline_integration_probe.txt
+?? 31K_EY_workflow_gateway_integration_audit.txt
+?? 31K_EZ_production_workflow_eventbus_audit.txt
+?? 31K_FA_production_orchestrator_deep_audit.txt
+?? 31K_FB_pipeline_deep_execution_audit.txt
+?? 31K_FC_decision_scoring_integrity_audit.txt
+?? 31K_FD2_production_reachability_trace.txt
+?? 31K_FD3_fixed_score_production_path_isolation.txt
+?? 31K_FD4R_corrected_runtime_provenance.txt
+?? 31K_FD4_runtime_score_provenance.txt
+?? 31K_FD5_import_execution_boundary_trace.txt
+?? 31K_FD6_existing_score_engine_discovery.txt
+?? 31K_FD_production_decision_data_lineage_audit.txt
+?? backend/api/dependencies/auth.py
+?? backend/api/routers/valuation_router.py.31K-backup
+?? backend/infrastructure/redis/client.py.31K_EE_backup
+?? backend/infrastructure/redis/client.py.31K_EE_repair_backup
+?? backend/infrastructure/redis/client.py.31K_EO_backup
+?? backend/infrastructure/redis/client.py.31K_EP_backup
+?? backend/infrastructure/redis/client.py.31K_EQ_backup
+?? backend/main.py.31K-BC.bak
+?? backend/security/dependencies.py
+?? backend/tasks/task_control.py.31K-DSI.backup
+?? backend/tasks/task_control.py.31K_DSM_backup
+?? backend/tasks/task_control.py.31K_DSP_backup
+?? backend/tasks/task_control.py.31K_DV_backup
+?? backend/tasks/task_control.py.31K_EH_backup
+?? backend/tasks/task_control.py.31K_EH_patch_backup
+?? backend/tasks/task_control.py.31K_EJ_backup
+?? block_31K_CG_security_audit.py
+?? block_31K_CH_validation.py
+?? block_31K_CI_full_output.txt
+?? block_31K_CK_security_audit.py
+?? block_31K_CL_baseline.py
+?? block_31K_CM_task_route_diagnostic.py
+?? block_31K_CN_route_reconciliation.py
+?? block_31K_CO_task_route_reconciliation.py
+?? block_31K_CP_route_object_diagnostic.py
+?? block_31K_CS_20in1_security_audit.py
+?? block_31K_CS_login_diagnostic.py
+?? block_31K_CV_security_audit.py
+?? block_31K_CW_output.txt
+?? block_31K_DC_final_audit.py
+?? block_31K_DC_stderr.txt
+?? block_31K_DH_final_regression.py
+?? block_31K_DQ_task_test.py
+?? block_31K_DR_reliability_test.py
+?? block_31K_DSE_failure_recovery.py
+?? block_31K_DSF_idempotency.py
+?? block_31K_DSJ_live_test.py
+?? block_31K_DSJ_output.txt
+?? block_31K_DSJ_redis_diagnostic.py
+?? block_31K_DSJ_redis_diagnostic.txt
+?? block_31K_DSK_redis_access.py
+?? block_31K_DSK_redis_access.txt
+?? block_31K_DSN_live_idempotency_test.py
+?? block_31K_DSN_traceback.txt
+?? block_31K_DSO_idempotency_runtime_diagnostic.py
+?? block_31K_DSO_output.txt
+?? block_31K_DSP_live_test.py
+?? block_31K_DT_concurrent_idempotency_test.py
+?? block_31K_DU_concurrency_lock_diagnostic.py
+?? block_31K_DW_concurrent_idempotency_test.py
+?? block_31K_EA_race_test.py
+?? block_31K_EF_atomic_lock_stress.py
+?? block_31K_EG_full_idempotency_test.py
+?? block_31K_EK_concurrent_idempotency_test.py
+?? block_31K_EL_idempotency_regression_test.py
+?? block_31K_ER_lock_regression.py
+?? check_main_31K_CD.py
+?? eros_security_audit_31K_CC.py
+?? eros_security_audit_31K_CC_output.txt
+?? logs/analyzer_before_eros_v26_readonly_patch.py
+?? logs/analyzer_before_eros_v328_date_contract.py
+?? logs/eros_block29_queue_contract_fix_output.txt
+?? logs/eros_block29_source_inspection.txt
+?? logs/eros_block29b_queue_contract.txt
+?? logs/eros_block29b_queue_diagnostic.py
+?? logs/eros_block29b_queue_inspection.txt
+?? logs/eros_block30k_result.txt
+?? logs/eros_block30k_wsl_ip_result.txt
+?? logs/eros_celery_config_location.txt
+?? logs/eros_celery_search.txt
+?? logs/eros_checkpoint_latest.txt
+?? logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py
+?? logs/eros_frontend_adapter_before_v29.py
+?? logs/eros_frontend_adapter_before_v30_20260822_210324.py
+?? logs/eros_frontend_adapter_before_v30_decision_20260822_210450.py
+?? logs/eros_frontend_adapter_before_v31_20260822_210705.py
+?? logs/eros_frontend_adapter_before_v32_20260822_210838.py
+?? logs/eros_frontend_adapter_before_v33_20260822_211141.py
+?? logs/eros_frontend_adapter_before_v34_20260822_211420.py
+?? logs/eros_frontend_adapter_before_v35_20260822_211800.py
+?? logs/eros_frontend_adapter_before_v35_20260822_212229.py
+?? logs/eros_frontend_adapter_before_v36_20260822_212325.py
+?? logs/eros_frontend_adapter_before_v371_20260822_213654.py
+?? logs/eros_frontend_adapter_before_v372_20260822_213827.py
+?? logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213105.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213210.py
+?? logs/eros_frontend_adapter_before_v381_20260822_215432.py
+?? logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py
+?? logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py
+?? logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220104.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220437.py
+?? logs/eros_frontend_adapter_before_v38_20260822_214850.py
+?? logs/eros_full_suite_hang_diagnostic.txt
+?? logs/eros_full_test_20260823_123857.txt
+?? logs/eros_full_test_hang_isolation.txt
+?? logs/eros_precommit_safety_audit.txt
+?? logs/eros_pydantic_diagnostic.txt
+?? logs/eros_pydantic_repair.txt
+?? logs/eros_pytest_collection_check.txt
+?? logs/eros_pytest_hang_diagnostic.txt
+?? logs/eros_test_20260823_123827.txt
+?? logs/eros_v25_adapter_api.py
+?? logs/eros_v25_adapter_api_output.txt
+?? logs/eros_v25_contract_verify.py
+?? logs/eros_v25_dashboard_contract.py
+?? logs/eros_v25_dashboard_contract_output.txt
+?? logs/eros_v25_market_scan_contract.py
+?? logs/eros_v25_market_scan_contract_output.txt
+?? logs/eros_v26_active_sqlite_message_check.py
+?? logs/eros_v26_active_write_token_check.py
+?? logs/eros_v26_analyzer_patch_output.txt
+?? logs/eros_v26_analyzer_runtime_test.py
+?? logs/eros_v26_ast_nonmutation_proof.py
+?? logs/eros_v26_ast_nonmutation_proof.txt
+?? logs/eros_v26_ast_nonmutation_proof_v2.py
+?? logs/eros_v26_ast_nonmutation_proof_v2.txt
+?? logs/eros_v26_clean_write_trace.txt
+?? logs/eros_v26_corrected_nonmutation_proof_20260822_205417.txt
+?? logs/eros_v26_corrected_runtime_test.py
+?? logs/eros_v26_corrected_scan_test.py
+?? logs/eros_v26_database_nonmutation_proof.txt
+?? logs/eros_v26_exact_write_trace.txt
+?? logs/eros_v26_market_scan_readonly_test.py
+?? logs/eros_v26_nonmutation_runtime_test.py
+?? logs/eros_v26_safety_contract_runtime.py
+?? logs/eros_v26_sqlite_message_trace.txt
+?? logs/eros_v26_sqlite_save_message_trace.txt
+?? logs/eros_v26_write_trace_clipboard.txt
+?? logs/eros_v27_data_layer_boundary_console.txt
+?? logs/eros_v27_runtime_evidence_inspection.py
+?? logs/eros_v27_runtime_evidence_inspection.txt
+?? logs/eros_v28_decision_evidence_test.py
+?? logs/eros_v28_decision_evidence_test_output.txt
+?? logs/eros_v29_decision_evidence_output.txt
+?? logs/eros_v29_decision_evidence_test.py
+?? logs/eros_v30_decision_intelligence_foundation.txt
+?? logs/eros_v30_decision_intelligence_test.py
+?? logs/eros_v31_decision_interpretation_foundation.txt
+?? logs/eros_v31_decision_interpretation_test.py
+?? logs/eros_v32_decision_action_runtime_20260822_210929.txt
+?? logs/eros_v32_decision_action_runtime_test_20260822_210929.py
+?? logs/eros_v33_runtime_test.py
+?? logs/eros_v33_runtime_test_output.txt
+?? logs/eros_v34_runtime_test.py
+?? logs/eros_v34_runtime_test_output.txt
+?? logs/eros_v35_runtime_test.py
+?? logs/eros_v35_runtime_test_output.txt
+?? logs/eros_v36_runtime_test.py
+?? logs/eros_v372_ast_traceability_patch.py
+?? logs/eros_v372_return_structure_diagnostic.py
+?? logs/eros_v372_runtime_regression.py
+?? logs/eros_v372_traceability_failure_diagnostic.py
+?? logs/eros_v372_traceability_runtime_test.py
+?? logs/eros_v37_api_check.py
+?? logs/eros_v37_foundation_check.py
+?? logs/eros_v37_runtime_test.py
+?? logs/eros_v37_traceability_diagnostic.py
+?? logs/eros_v37_traceability_runtime_test.py
+?? logs/eros_v3810_adapter_api_contract.txt
+?? logs/eros_v3812_frontend_insertion_boundary.txt
+?? logs/eros_v3813_traceability_runtime_contract.py
+?? logs/eros_v3813_traceability_runtime_contract.txt
+?? logs/eros_v3815_frontend_runtime_consumption_audit.py
+?? logs/eros_v3815_frontend_runtime_consumption_audit.txt
+?? logs/eros_v3816_golden_integration_verification.txt
+?? logs/eros_v3817_traceability_frontend_consumption_inspection.txt
+?? logs/eros_v3818_frontend_traceability_runtime_test.py
+?? logs/eros_v3818_frontend_traceability_runtime_test.txt
+?? logs/eros_v3819_golden_integration_verification.py
+?? logs/eros_v3819_golden_integration_verification.txt
+?? logs/eros_v381_audit_clipboard_diagnostic.py
+?? logs/eros_v381_audit_clipboard_output.txt
+?? logs/eros_v381_audit_failure_isolation.py
+?? logs/eros_v381_audit_runtime_diagnostic.py
+?? logs/eros_v381_deep_audit_runtime.py
+?? logs/eros_v3820_traceability_ui_context.txt
+?? logs/eros_v3821_ast_only.py
+?? logs/eros_v3821_compile_failure_diagnostic_20260822_220822.txt
+?? logs/eros_v3821_structural_ast_diagnostic.py
+?? logs/eros_v3821_structural_diagnostic_clipboard.txt
+?? logs/eros_v3822_ast_inspection.py
+?? logs/eros_v3822_ast_syntax_diagnostic.py
+?? logs/eros_v3822_clean_runtime_diagnostic.py
+?? logs/eros_v3822_runtime_hydration_validation.py
+?? logs/eros_v3823_hydration_dataflow_diagnostic.py
+?? logs/eros_v3823_hydration_source_inspection.py
+?? logs/eros_v3823_import_path_test.py
+?? logs/eros_v3824_ast_inspection.py
+?? logs/eros_v3824_audit_dataflow_inspector.py
+?? logs/eros_v3824_audit_dataflow_source_diagnostic.py
+?? logs/eros_v3824_golden_baseline_runtime.py
+?? logs/eros_v3824_golden_difference_forensic_20260822_225337.txt
+?? logs/eros_v3824_runtime_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic_output.txt
+?? logs/eros_v3826_decision_evidence_source_forensic.txt
+?? logs/eros_v3827_runtime_dataflow_diagnostic.py
+?? logs/eros_v3827_runtime_dataflow_diagnostic.txt
+?? logs/eros_v3828_middle_layer_source_forensic.txt
+?? logs/eros_v3829_middle_layer_runtime_test.py
+?? logs/eros_v3829_middle_layer_runtime_test_output.txt
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.py
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.txt
+?? logs/eros_v382_ast_audit_hydration_patcher.py
+?? logs/eros_v382_audit_failure_capture.py
+?? logs/eros_v382_audit_schema_runtime_diagnostic.py
+?? logs/eros_v382_forensic_runtime.py
+?? logs/eros_v382_forensic_runtime_output.txt
+?? logs/eros_v382_forensic_stderr.txt
+?? logs/eros_v382_forensic_stdout.txt
+?? logs/eros_v382_integrity_patcher.py
+?? logs/eros_v382_integrity_runtime_diagnostic.py
+?? logs/eros_v3831_dashboard_analysis_flow_forensic.txt
+?? logs/eros_v3832_THREE_REPORTS_COMBINED.txt
+?? logs/eros_v3832_adapter_frontend_contract_forensic.txt
+?? logs/eros_v3832_adapter_frontend_integration_contract.txt
+?? logs/eros_v3832_adapter_public_api_forensic.txt
+?? logs/eros_v3833_adapter_runtime_contract_test.txt
+?? logs/eros_v383_frontend_consumption_forensic.txt
+?? logs/eros_v384_frontend_integration_insertion_forensic.txt
+?? logs/eros_v385_frontend_adapter_argument_contract.txt
+?? logs/eros_v386_frontend_integration_runtime_dry_run.txt
+?? logs/eros_v389_selected_stock_insertion_context.txt
+?? logs/eros_v38_audit_failure_diagnostic.py
+?? logs/eros_v38_decision_audit_diagnostic.py
+?? logs/eros_v38_runtime_test.py
+?? logs/stock_dashboard_before_eros_frontend_v1.py
+?? logs/stock_dashboard_before_eros_frontend_v2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_1.py
+?? logs/stock_dashboard_before_eros_frontend_v2_2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_market_insert.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_5.py
+?? logs/stock_dashboard_before_eros_v311_20260823_105006.py
+?? logs/stock_dashboard_before_eros_v314_integration.py
+?? logs/stock_dashboard_before_eros_v320_20260823_113203.py
+?? logs/stock_dashboard_before_eros_v387_20260823_000130.py
+?? logs/test_block29_real_celery_before_queue_contract_fix.py
+?? security_backup_31K_BG/
+?? security_backup_31K_CG/
+?? security_backup_31K_CH/
+?? security_backup_31K_CI/
+?? security_backup_31K_CJ/
+?? security_backup_31K_CR/
+?? security_backup_31K_CS/
+?? security_backup_31K_CU/
+?? security_backup_31K_CY/
+?? security_backup_31K_CZ/
+?? security_backup_31K_DA/
+
+============================================================
+31K-FD7 COMPLETE
+============================================================
+QUESTION 1: WHAT INPUTS DOES AIScoringEngine REQUIRE?
+QUESTION 2: CAN MARKET DATA PROVIDE THOSE INPUTS?
+QUESTION 3: IS AIScoreResult DIRECTLY COMPATIBLE WITH BLOCK 18?
+QUESTION 4: WHAT IS THE SMALLEST SAFE INTEGRATION?
+
+SOURCE MODIFICATION: NONE
+============================================================

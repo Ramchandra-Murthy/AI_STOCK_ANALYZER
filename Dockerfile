@@ -1,16 +1,17 @@
-﻿FROM python:3.10-slim
+﻿FROM python:3.13-slim
 
 WORKDIR /app
 
-# Copy requirements first for optimized caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source code
+RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt
+
 COPY . .
 
-# Install package in editable/development mode
-RUN pip install -e .
+RUN pip install --no-cache-dir -e .
+
+RUN useradd --create-home --shell /bin/bash appuser
+USER appuser
 
 EXPOSE 8501
 

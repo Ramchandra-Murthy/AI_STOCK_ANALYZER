@@ -1,6 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
+import threading
+import time
 from typing import Optional, Any
 
 logger = logging.getLogger(__name__)
@@ -12,23 +14,42 @@ class RedisClientStub:
         self.port = port
         self.db = db
         self._store: dict[str, Any] = {}
+        self._expiry: dict[str, float] = {}
+        self._lock = threading.RLock()
         logger.info("Initialized Redis client stub connected to %s:%s/db%s", host, port, db)
 
     def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        self._store[key] = value
-        return True
+        with self._lock:
+            self._store[key] = value
+            if ttl is not None:
+                self._expiry[key] = time.monotonic() + max(0, ttl)
+            else:
+                self._expiry.pop(key, None)
+            return True
 
     def get(self, key: str) -> Optional[Any]:
-        return self._store.get(key)
+        with self._lock:
+            expiry = self._expiry.get(key)
+            if expiry is not None and time.monotonic() >= expiry:
+                self._store.pop(key, None)
+                self._expiry.pop(key, None)
+                return None
+            return self._store.get(key)
 
     def acquire_lock(self, lock_key: str, timeout: int = 10) -> bool:
-        if self._store.get(f"lock:{lock_key}"):
-            return False
-        self._store[f"lock:{lock_key}"] = True
-        return True
+        lock_name = f"lock:{lock_key}"
+        with self._lock:
+            if self._store.get(lock_name):
+                return False
+            self._store[lock_name] = True
+            return True
 
     def release_lock(self, lock_key: str) -> bool:
-        self._store.pop(f"lock:{lock_key}", None)
-        return True
+        with self._lock:
+            self._store.pop(f"lock:{lock_key}", None)
+            return True
 
 redis_client = RedisClientStub()
+
+
+

@@ -11,7 +11,13 @@ logger = logging.getLogger(__name__)
 class RelativeValuationEngine:
     """Engine computing relative valuation metrics (P/E, EV/EBITDA, EV/Sales, P/B, PEG) vs industry benchmarks."""
 
-    def evaluate(self, financials: FinancialStatements, current_price: float = 1400.0) -> RelativeValuationResult:
+    def evaluate(
+        self,
+        financials: FinancialStatements,
+        current_price: float = 1400.0,
+        yahoo_ebitda: float | None = None,
+        shares_outstanding: float | None = None,
+    ) -> RelativeValuationResult:
         symbol = financials.ticker
         logger.info("Running Relative Valuation for symbol: %s", symbol)
 
@@ -19,16 +25,69 @@ class RelativeValuationEngine:
         bs = financials.balance_sheet
 
         eps = inc.eps if inc and inc.eps > 0 else 45.0
-        val = getattr(inc, "ebitda", getattr(inc, "ebit", 250000.0))
-        ebitda = val if (inc and val > 0) else 250000.0
+        # EBITDA lineage:
+        # 1. Prefer normalized EBITDA when available.
+        # 2. Otherwise use explicitly supplied live Yahoo EBITDA.
+        # 3. Never fabricate a unit-incompatible fallback.
+        normalized_ebitda = getattr(inc, "ebitda", 0.0) if inc else 0.0
+
+        if normalized_ebitda and normalized_ebitda > 0:
+            ebitda = float(normalized_ebitda)
+            ebitda_source = "normalized"
+        elif yahoo_ebitda is not None and float(yahoo_ebitda) > 0:
+            ebitda = float(yahoo_ebitda)
+            ebitda_source = "yahoo"
+        else:
+            raise ValueError(
+                f"EBITDA unavailable for {symbol}; "
+                "Relative Valuation requires a valid normalized or Yahoo EBITDA value."
+            )
+
+        logger.info(
+            "Relative Valuation EBITDA source=%s value=%s",
+            ebitda_source,
+            ebitda,
+        )
         revenue = inc.revenue if inc else 1000000.0
-        equity = getattr(bs, "total_equity", 0.0)
-        equity = equity if (bs and equity > 0) else 1500000.0
+        equity = getattr(bs, "shareholders_equity", 0.0)
+        if not equity:
+            equity = getattr(bs, "total_equity", 0.0)
+        if not (bs and equity > 0):
+            raise ValueError(
+                f"Equity unavailable for {symbol}; "
+                "Relative Valuation requires valid shareholders equity."
+            )
         debt = ((getattr(bs, "short_term_debt", 0.0) or 0.0) + (getattr(bs, "long_term_debt", getattr(bs, "debt", 0.0)) or 0.0)) if bs else 500000.0
         cash = ((getattr(bs, "cash", 0.0) or 0.0) + (getattr(bs, "cash_equivalents", 0.0) or 0.0)) if bs else 300000.0
 
-        shares = getattr(inc, "shares_outstanding", 0.0)
-        shares = shares if (inc and shares > 0) else 6760.0
+        # Live shares lineage:
+        # 1. Prefer explicitly supplied live shares.
+        # 2. Otherwise use normalized shares if available.
+        # 3. Never fabricate a unit-incompatible fallback.
+
+        normalized_shares = (
+            getattr(inc, "shares_outstanding", 0.0)
+            if inc else 0.0
+        )
+
+        if shares_outstanding is not None and float(shares_outstanding) > 0:
+            shares = float(shares_outstanding)
+            shares_source = "explicit_live"
+        elif normalized_shares and normalized_shares > 0:
+            shares = float(normalized_shares)
+            shares_source = "normalized"
+        else:
+            raise ValueError(
+                f"Shares outstanding unavailable for {symbol}; "
+                "Relative Valuation requires a valid live or normalized share count."
+            )
+
+        logger.info(
+            "Relative Valuation shares source=%s value=%s",
+            shares_source,
+            shares,
+        )
+
         market_cap = current_price * shares
         net_debt = debt - cash
         ev = market_cap + net_debt
@@ -62,4 +121,6 @@ class RelativeValuationEngine:
             blend_relative_value=blend_val,
             comparison_benchmarks=benchmarks,
         )
+
+
 

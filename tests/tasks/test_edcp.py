@@ -23,12 +23,12 @@ def test_celery_queue_routing() -> None:
     assert task_id.startswith("CELERY-")
     assert task_id in celery_broker.active_tasks
 
-def test_admin_monitoring_endpoints() -> None:
-    resp = client.get("/api/v1/admin/queues")
+def test_admin_monitoring_endpoints(auth_headers) -> None:
+    resp = client.get("/api/v1/admin/queues", headers=auth_headers("ADMIN"))
     assert resp.status_code == 200
     data = resp.json()
     assert "valuation_queue" in data["queues"]
 
-    tasks_resp = client.get("/api/v1/admin/tasks")
+    tasks_resp = client.get("/api/v1/admin/tasks", headers=auth_headers("ADMIN"))
     assert tasks_resp.status_code == 200
     assert "tasks" in tasks_resp.json()

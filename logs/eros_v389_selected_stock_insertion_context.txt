@@ -1,0 +1,189 @@
+﻿======================================================================
+EROS 3.0 - V3.8.9 SELECTED STOCK INSERTION CONTEXT
+======================================================================
+
+DASHBOARD : .\stock_dashboard.py
+START LINE : 1358
+END LINE   : 1525
+
+ 1358 |     # DECISION SNAPSHOT
+ 1359 |     # ========================================================
+ 1360 | 
+ 1361 |     st.subheader(
+ 1362 |         f"ðŸ“Œ {selected_symbol_display} â€” Decision Snapshot"
+ 1363 |     )
+ 1364 | 
+ 1365 |     d1, d2, d3, d4 = st.columns(4)
+ 1366 | 
+ 1367 |     d1.metric(
+ 1368 |         "CURRENT PRICE",
+ 1369 |         f"â‚¹{float(selected_last['Close']):.2f}",
+ 1370 |     )
+ 1371 | 
+ 1372 |     d2.metric(
+ 1373 |         "AI SCORE",
+ 1374 |         selected_signal["Score"],
+ 1375 |     )
+ 1376 | 
+ 1377 |     d3.metric(
+ 1378 |         "CONFIDENCE",
+ 1379 |         selected_signal["Confidence"],
+ 1380 |     )
+ 1381 | 
+ 1382 |     d4.metric(
+ 1383 |         "RISK",
+ 1384 |         selected_signal["Risk"],
+ 1385 |     )
+ 1386 | 
+ 1387 |     recommendation = selected_signal[
+ 1388 |         "Recommendation"
+ 1389 |     ]
+ 1390 | 
+ 1391 |     if recommendation in (
+ 1392 |         "STRONG BUY",
+ 1393 |         "BUY",
+ 1394 |     ):
+ 1395 | 
+ 1396 |         st.success(
+ 1397 |             f"RECOMMENDATION: {recommendation}"
+ 1398 |         )
+ 1399 | 
+ 1400 |     elif recommendation in (
+ 1401 |         "STRONG SELL",
+ 1402 |         "SELL",
+ 1403 |     ):
+ 1404 | 
+ 1405 |         st.error(
+ 1406 |             f"RECOMMENDATION: {recommendation}"
+ 1407 |         )
+ 1408 | 
+ 1409 |     else:
+ 1410 | 
+ 1411 |         st.warning(
+ 1412 |             f"RECOMMENDATION: {recommendation}"
+ 1413 |         )
+ 1414 | 
+ 1415 |     # ========================================================
+ 1416 |     # TREND / MOMENTUM
+ 1417 |     # ========================================================
+ 1418 | 
+ 1419 |     st.subheader(
+ 1420 |         "ðŸ“ˆ Signal Decomposition"
+ 1421 |     )
+ 1422 | 
+ 1423 |     s1, s2 = st.columns(2)
+ 1424 | 
+ 1425 |     with s1:
+ 1426 | 
+ 1427 |         st.metric(
+ 1428 |             "TREND",
+ 1429 |             selected_trend["Trend"],
+ 1430 |         )
+ 1431 | 
+ 1432 |     with s2:
+ 1433 | 
+ 1434 |         st.metric(
+ 1435 |             "MOMENTUM",
+ 1436 |             selected_trend["Momentum"],
+ 1437 |         )
+ 1438 | 
+ 1439 |     # ========================================================
+ 1440 |     # SIGNAL / TREND DIVERGENCE
+ 1441 |     # ========================================================
+ 1442 | 
+ 1443 |     strong_positive = recommendation in (
+ 1444 |         "STRONG BUY",
+ 1445 |         "BUY",
+ 1446 |     )
+ 1447 | 
+ 1448 |     strong_negative = recommendation in (
+ 1449 |         "STRONG SELL",
+ 1450 |         "SELL",
+ 1451 |     )
+ 1452 | 
+ 1453 |     trend_value = str(
+ 1454 |         selected_trend["Trend"]
+ 1455 |     ).upper()
+ 1456 | 
+ 1457 |     if (
+ 1458 |         strong_positive
+ 1459 |         and trend_value == "BEARISH"
+ 1460 |     ):
+ 1461 | 
+ 1462 |         st.warning(
+ 1463 |             "âš ï¸ SIGNAL / TREND DIVERGENCE â€” "
+ 1464 |             "The AI signal is positive while the "
+ 1465 |             "current trend classification is bearish."
+ 1466 |         )
+ 1467 | 
+ 1468 |     elif (
+ 1469 |         strong_negative
+ 1470 |         and trend_value == "BULLISH"
+ 1471 |     ):
+ 1472 | 
+ 1473 |         st.warning(
+ 1474 |             "âš ï¸ SIGNAL / TREND DIVERGENCE â€” "
+ 1475 |             "The AI signal is negative while the "
+ 1476 |             "current trend classification is bullish."
+ 1477 |         )
+ 1478 | 
+ 1479 |     else:
+ 1480 | 
+ 1481 |         st.info(
+ 1482 |             "Signal and trend classification are "
+ 1483 |             "not currently showing a major divergence."
+ 1484 |         )
+ 1485 | 
+ 1486 |     # ========================================================
+ 1487 |     # SIGNAL DRIVERS
+ 1488 |     # ========================================================
+ 1489 | 
+ 1490 |     st.subheader(
+ 1491 |         "ðŸ§  Signal Drivers"
+ 1492 |     )
+ 1493 | 
+ 1494 |     reasons = selected_signal.get(
+ 1495 |         "Reasons",
+ 1496 |         [],
+ 1497 |     )
+ 1498 | 
+ 1499 |     if reasons:
+ 1500 | 
+ 1501 |         reason_columns = st.columns(2)
+ 1502 | 
+ 1503 |         for index, reason in enumerate(
+ 1504 |             reasons
+ 1505 |         ):
+ 1506 | 
+ 1507 |             with reason_columns[
+ 1508 |                 index % 2
+ 1509 |             ]:
+ 1510 | 
+ 1511 |                 st.write(
+ 1512 |                     f"âœ“ {reason}"
+ 1513 |                 )
+ 1514 | 
+ 1515 |     else:
+ 1516 | 
+ 1517 |         st.info(
+ 1518 |             "No signal drivers returned."
+ 1519 |         )
+ 1520 | 
+ 1521 |     # ========================================================
+ 1522 |     # TECHNICAL INTELLIGENCE
+ 1523 |     # ========================================================
+ 1524 | 
+ 1525 |     st.subheader(
+
+======================================================================
+SAFETY
+======================================================================
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+V3.8.9 CONTEXT CAPTURE COMPLETE
+======================================================================

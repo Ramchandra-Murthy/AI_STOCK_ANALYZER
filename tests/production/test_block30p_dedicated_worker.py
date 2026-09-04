@@ -6,7 +6,8 @@ import subprocess
 import pytest
 import redis
 
-BROKER_URL = "redis://127.0.0.1:6380/0"
+import os
+BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 
 def test_block30p_dedicated_worker_execution():
     redis_client = redis.Redis.from_url(
@@ -60,7 +61,7 @@ def test_block30p_dedicated_worker_execution():
         )
         assert result.state == "SUCCESS"
 
-        payload = result.get(timeout=2)
+        payload = result.result
         assert isinstance(payload, dict)
         assert payload["status"] == "EXECUTED"
         assert payload["token"] == token
@@ -73,3 +74,5 @@ def test_block30p_dedicated_worker_execution():
         except subprocess.TimeoutExpired:
             worker.kill()
             worker.wait(timeout=5)
+
+

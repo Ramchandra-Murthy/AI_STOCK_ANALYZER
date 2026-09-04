@@ -1,4 +1,4 @@
-﻿import os
+import os
 import pytest
 from backend.tasks.celery_app import celery_instance
 
@@ -20,6 +20,7 @@ def test_block30b_real_celery_instance_bootstrap():
     Validates that a real Celery instance can be instantiated and configured
     with enterprise serializer and timezone settings when USE_REAL_CELERY=true.
     """
+    old_use_real_celery = os.environ.get("USE_REAL_CELERY")
     os.environ["USE_REAL_CELERY"] = "true"
     try:
         from celery import Celery
@@ -38,4 +39,9 @@ def test_block30b_real_celery_instance_bootstrap():
         assert app is not None
         assert app.conf.task_serializer == "json"
     finally:
-        os.environ["USE_REAL_CELERY"] = "false"
+        if old_use_real_celery is None:
+            os.environ.pop("USE_REAL_CELERY", None)
+        else:
+            os.environ["USE_REAL_CELERY"] = old_use_real_celery
+
+

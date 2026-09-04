@@ -1,4 +1,5 @@
 ﻿from __future__ import annotations
+from backend.exceptions import ValidationError
 import logging
 import os
 import time
@@ -6,6 +7,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 from backend.tasks.celery_app import celery_app, celery_instance
+from backend.infrastructure.redis.client import redis_client as shared_redis_client
 from backend.tasks.task_executor import (
     celery_forecast_wrapper,
     celery_valuation_wrapper,
@@ -92,9 +94,142 @@ class TaskControlService:
         if task_name not in self._app.tasks:
             raise ValueError(f"Unknown task: {task_name}")
 
+        # ------------------------------------------------------------
+        # ------------------------------------------------------------
+        # ------------------------------------------------------------
+        # 31K-EJ IDEMPOTENCY CONCURRENCY CONTROL
+        # ------------------------------------------------------------
+        # For a stable request_id:
+        #
+        # 1. Acquire the per-request lock.
+        # 2. Re-check the Redis idempotency mapping AFTER the lock.
+        # 3. If a task already exists, return it as an idempotent replay.
+        # 4. Otherwise create and dispatch exactly one task.
+        # 5. Persist request_id -> task_id.
+        # 6. Release the lock.
+        #
+        # Concurrent callers WAIT for the owner instead of creating
+        # independent task IDs.
+        # ------------------------------------------------------------
+        request_id = payload.get("request_id")
+
+        redis_conn = None
+        existing_task_id = None
+        idempotency_lock_key = None
+        idempotency_lock_acquired = False
+
+        if request_id:
+            redis_conn = shared_redis_client
+            idempotency_key = f"eros:idempotency:{request_id}"
+            idempotency_lock_key = (
+                f"eros:idempotency-lock:{request_id}"
+            )
+
+            # --------------------------------------------------------
+            # WAIT FOR LOCK
+            # --------------------------------------------------------
+            # Lock contention is NOT a Redis failure.
+            # Wait until the current owner completes the critical
+            # section, then acquire the lock and re-check Redis.
+            # --------------------------------------------------------
+            lock_deadline = time.monotonic() + 30.0
+
+            while True:
+                try:
+                    idempotency_lock_acquired = redis_conn.acquire_lock(
+                        idempotency_lock_key,
+                        timeout=30,
+                    )
+                except Exception:
+                    # Actual Redis failure: preserve the existing
+                    # fail-open behavior for infrastructure failure.
+                    redis_conn = None
+                    idempotency_lock_acquired = False
+                    break
+
+                if idempotency_lock_acquired:
+                    break
+
+                if time.monotonic() >= lock_deadline:
+                    raise TimeoutError(
+                        f"Timed out waiting for idempotency lock: "
+                        f"{request_id}"
+                    )
+
+                time.sleep(0.01)
+
+            # --------------------------------------------------------
+            # ONLY THE LOCK OWNER MAY ENTER THIS SECTION
+            # --------------------------------------------------------
+            if redis_conn is not None and idempotency_lock_acquired:
+                try:
+                    existing_task_id = redis_conn.get(idempotency_key)
+
+                    if isinstance(existing_task_id, bytes):
+                        existing_task_id = existing_task_id.decode(
+                            "utf-8"
+                        )
+
+                    # Another caller already created the task.
+                    # Return the existing task instead of dispatching
+                    # another one.
+                    if existing_task_id:
+                        existing_status = self.get_task_status(
+                            existing_task_id
+                        )
+                        existing_result = self.get_task_result(
+                            existing_task_id
+                        )
+
+                        replay_response = {
+                            "task_id": existing_task_id,
+                            "status": existing_status.get(
+                                "status",
+                                existing_result.get(
+                                    "status",
+                                    "QUEUED",
+                                ),
+                            ),
+                            "task_name": task_name,
+                            "user": user,
+                            "execution_result": existing_result.get(
+                                "result",
+                                {},
+                            ),
+                            "idempotent_replay": True,
+                            "request_id": request_id,
+                        }
+
+                        redis_conn.release_lock(
+                            idempotency_lock_key
+                        )
+                        idempotency_lock_acquired = False
+
+                        return replay_response
+
+                except Exception:
+                    # A genuine Redis/read failure must not prevent
+                    # ordinary task execution.
+                    #
+                    # IMPORTANT: only release if we actually acquired
+                    # the lock.
+                    if idempotency_lock_acquired:
+                        try:
+                            redis_conn.release_lock(
+                                idempotency_lock_key
+                            )
+                        except Exception:
+                            pass
+
+                    idempotency_lock_acquired = False
+                    redis_conn = None
+
         task_id = str(uuid.uuid4())
         payload["task_id"] = task_id
         payload["user"] = user
+
+        if request_id:
+            payload["request_id"] = request_id
 
         submitted_at_dt = datetime.now(timezone.utc).isoformat()
         submitted_at_ts = time.time()
@@ -131,6 +266,29 @@ class TaskControlService:
 
         telemetry["dispatch_time_ms"] = dispatch_time_ms
 
+        # Persist request_id -> task_id while the request lock is still
+        # held. Waiting callers cannot pass the lock until this mapping
+        # exists.
+        if request_id and redis_conn is not None:
+            try:
+                redis_conn.set(
+                    idempotency_key,
+                    task_id,
+                    ttl=86400,
+                )
+            except Exception:
+                # Preserve task execution if mapping persistence fails.
+                pass
+
+        # Release only after Redis persistence.
+        if request_id and redis_conn is not None:
+            if idempotency_lock_acquired:
+                try:
+                    redis_conn.release_lock(
+                        idempotency_lock_key
+                    )
+                finally:
+                    idempotency_lock_acquired = False
         execution_result: Dict[str, Any] = {
             "status": "SUCCESS",
             "task_id": task_id,
@@ -717,3 +875,9 @@ class TaskControlService:
         }
 
 task_control = TaskControlService()
+
+
+
+
+
+

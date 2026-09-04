@@ -1,0 +1,140 @@
+﻿============================================================
+EROS 3.0 - V2.8 DECISION EVIDENCE API FOUNDATION
+============================================================
+
+1. ADAPTER
+------------------------------------------------------------
+ADAPTER : PASS
+CLASS   : EROSFrontendAdapter
+
+2. GOVERNANCE
+------------------------------------------------------------
+GOVERNANCE : PASS
+{
+  "system": "EROS 3.0",
+  "status": "CERTIFIED",
+  "query_gateway": {
+    "block_id": "109",
+    "name": "Institutional Application Query Gateway",
+    "status": "CERTIFIED"
+  },
+  "safety": {
+    "read_only": true,
+    "allow_order_creation": false,
+    "allow_broker_submission": false,
+    "allow_live_execution": false,
+    "allow_portfolio_mutation": false,
+    "allow_valuation_mutation": false,
+    "allow_performance_mutation": false,
+    "allow_risk_mutation": false,
+    "allow_optimization": false,
+    "execution_blocked": true,
+    "non_mutation_invariant": true
+  }
+}
+
+3. STOCK ANALYSIS
+------------------------------------------------------------
+SYMBOL : RELIANCE.NS
+STOCK ANALYSIS : PASS
+RESULT TYPE    : dict
+
+4. BUILD DECISION EVIDENCE
+------------------------------------------------------------
+DECISION EVIDENCE : PASS
+
+{
+  "symbol": "RELIANCE.NS",
+  "price": 1316.0,
+  "trend": "Bullish",
+  "momentum": "Strong",
+  "score": 100,
+  "confidence": 100,
+  "recommendation": "STRONG BUY",
+  "risk": "Low",
+  "reasons": [
+    "20 SMA above 50 SMA (Bullish)",
+    "EMA20 above SMA20",
+    "RSI Neutral",
+    "MACD Bullish Crossover",
+    "Trading near Support",
+    "Trading near Resistance",
+    "Low Volatility"
+  ],
+  "breakout_signal": "NONE",
+  "breakout_reason": "Price is inside the trading range.",
+  "technical_indicators": {
+    "sma_20": 1307.9700073242188,
+    "sma_50": 1306.5940014648438,
+    "ema_20": 1311.3409877919446,
+    "rsi_14": 49.04336764483778,
+    "macd": 4.125609191499734,
+    "signal": 3.8792510855909024,
+    "histogram": 0.24635810590883178,
+    "bb_middle": 1307.9700073242188,
+    "bb_upper": 1346.3953311502535,
+    "bb_lower": 1269.5446834981842,
+    "atr": 20.635724748883927,
+    "support": 1298.0999755859375,
+    "resistance": 1332.9000244140625
+  },
+  "governance": {
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true
+  }
+}
+
+5. REQUIRED FIELD VALIDATION
+------------------------------------------------------------
+symbol                    : PASS
+price                     : PASS
+trend                     : PASS
+momentum                  : PASS
+score                     : PASS
+confidence                : PASS
+recommendation            : PASS
+risk                      : PASS
+reasons                   : PASS
+breakout_signal           : PASS
+breakout_reason           : PASS
+technical_indicators      : PASS
+governance                : PASS
+
+6. TECHNICAL FIELD VALIDATION
+------------------------------------------------------------
+sma_20                    : PASS
+sma_50                    : PASS
+ema_20                    : PASS
+rsi_14                    : PASS
+macd                      : PASS
+signal                    : PASS
+histogram                 : PASS
+bb_middle                 : PASS
+bb_upper                  : PASS
+bb_lower                  : PASS
+atr                       : PASS
+support                   : PASS
+resistance                : PASS
+
+7. SAFETY VERIFICATION
+------------------------------------------------------------
+read_only                      : PASS
+execution_blocked              : PASS
+non_mutation_invariant         : PASS
+
+8. EVIDENCE CONTRACT
+------------------------------------------------------------
+EVIDENCE OBJECT : PASS
+NORMALIZED READ-ONLY VIEW : PASS
+DATABASE WRITE PATH : NONE
+EXECUTION PATH : BLOCKED
+
+============================================================
+EROS 3.0 - V2.8 DECISION EVIDENCE API FOUNDATION
+============================================================
+
+FINAL RESULT : PASS
+V2.8 EVIDENCE FOUNDATION : CLEARED
+
+

@@ -1,18 +1,53 @@
-version: '3.8'
-
-services:
+﻿services:
   api:
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2048M
-        reservations:
-          cpus: '0.5'
-          memory: 512M
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: eros_api_prod
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - USE_REAL_CELERY=true
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+
   worker:
-    deploy:
-      resources:
-        limits:
-          cpus: '4.0'
-          memory: 4096M
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: eros_worker_prod
+    command: celery -A backend.tasks.celery_app worker --loglevel=INFO -Q valuation_queue,forecast_queue,portfolio_queue,research_queue,report_queue,maintenance_queue --pool=solo
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - USE_REAL_CELERY=true
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: eros_redis_prod
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: always
+
+volumes:
+  redis_data:

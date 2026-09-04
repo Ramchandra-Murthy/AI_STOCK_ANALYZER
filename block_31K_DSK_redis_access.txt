@@ -1,0 +1,501 @@
+==========================================================
+EROS 3.0 - BLOCK 31K-DSK
+REDIS CLIENT LOCATION + ACCESS PATTERN
+READ-ONLY
+==========================================================
+
+1. SEARCHING ENTIRE BACKEND FOR REDIS CLIENT CREATION
+backend\infrastructure\runtime_probe.py:29:         import redis
+backend\tasks\task_control.py:104:         redis_client = None
+backend\tasks\task_control.py:109:                 redis_client = self._get_redis_client()
+backend\tasks\task_control.py:111:                 existing_task_id = redis_client.get(idempotency_key)
+backend\tasks\task_control.py:138:                 redis_client = None
+backend\tasks\task_control.py:187:                 if redis_client is None:
+backend\tasks\task_control.py:188:                     redis_client = self._get_redis_client()
+backend\tasks\task_control.py:190:                 redis_client.set(
+backend\infrastructure\redis\client.py:34: redis_client = RedisClientStub()
+backend\api\routers\admin_task_router.py:10: from backend.infrastructure.redis.client import redis_client
+backend\api\routers\admin_task_router.py:35:         "stored_keys": list(redis_client._store.keys())
+
+2. TASK_CONTROL IMPORTS
+1: from __future__ import annotations
+2: import logging
+3: import os
+4: import time
+5: import uuid
+6: from datetime import datetime, timezone
+7: from typing import Any, Dict
+8: from backend.tasks.celery_app import celery_app, celery_instance
+9: from backend.tasks.task_executor import (
+10:     celery_forecast_wrapper,
+11:     celery_valuation_wrapper,
+12:     celery_report_wrapper,
+13: )
+14: from backend.tasks.task_context import TaskContext
+15: 
+16: logger = logging.getLogger(__name__)
+17: 
+18: class TaskControlService:
+19:     """
+20:     EROS 3.0 unified task control-plane service.
+21:     """
+22: 
+23:     def __init__(self) -> None:
+24:         self._app = celery_app
+25:         self._real_celery = (
+26:             os.getenv("USE_REAL_CELERY", "false").lower() == "true"
+27:             and celery_instance is not None
+28:         )
+29:         self._mock_tasks: Dict[str, Dict[str, Any]] = {}
+30:         self._task_observability: Dict[str, Dict[str, Any]] = {}
+31:         self._synchronize_task_registry()
+32: 
+33:     @property
+34:     def real_celery_enabled(self) -> bool:
+35:         return self._real_celery
+36: 
+37:     def _synchronize_task_registry(self) -> None:
+38:         try:
+39:             target_app = (
+40:                 self._app.app
+41:                 if hasattr(self._app, "app")
+42:                 else self._app
+43:             )
+44: 
+45:             if "forecast.execute" not in target_app.tasks:
+46:                 target_app.task(
+47:                     name="forecast.execute",
+48:                     bind=True,
+49:                 )(celery_forecast_wrapper)
+50: 
+51:             if "forecast.run" not in target_app.tasks:
+52:                 target_app.task(
+53:                     name="forecast.run",
+54:                     bind=True,
+55:                 )(celery_forecast_wrapper)
+56: 
+57:             if "valuation.execute" not in target_app.tasks:
+58:                 target_app.task(
+59:                     name="valuation.execute",
+60:                     bind=True,
+61:                 )(celery_valuation_wrapper)
+62: 
+63:             if "report.generate" not in target_app.tasks:
+64:                 target_app.task(
+65:                     name="report.generate",
+66:                     bind=True,
+67:                 )(celery_report_wrapper)
+68: 
+69:         except Exception as exc:
+70:             logger.exception(
+71:                 "Failed to synchronize EROS task registry: %s",
+72:                 exc,
+73:             )
+74:             raise
+75: 
+76:     def submit_task(
+77:         self,
+78:         task_name: str,
+79:         user: str = "system",
+80:         payload: Dict[str, Any] | None = None,
+81:     ) -> Dict[str, Any]:
+82: 
+83:         started_at = time.perf_counter()
+84:         payload = dict(payload or {})
+85: 
+86:         if not task_name:
+87:             raise ValueError("task_name is required")
+88: 
+89:         if task_name not in self._app.tasks:
+90:             self._synchronize_task_registry()
+91: 
+92:         if task_name not in self._app.tasks:
+93:             raise ValueError(f"Unknown task: {task_name}")
+94: 
+95:         # ------------------------------------------------------------
+96:         # 31K-DSI IDEMPOTENCY
+97:         # ------------------------------------------------------------
+98:         # A caller may provide a stable logical request_id.  When present,
+99:         # Redis becomes the durable request_id -> task_id mapping.
+100:         # Repeated submissions with the same request_id return the
+
+3. TASK_CONTROL REDIS / IDEMPOTENCY CODE
+----------------------------------------------------------
+91: 
+92:         if task_name not in self._app.tasks:
+93:             raise ValueError(f"Unknown task: {task_name}")
+94: 
+95:         # ------------------------------------------------------------
+96:         # 31K-DSI IDEMPOTENCY
+97:         # ------------------------------------------------------------
+98:         # A caller may provide a stable logical request_id.  When present,
+99:         # Redis becomes the durable request_id -> task_id mapping.
+100:         # Repeated submissions with the same request_id return the
+101:         # original task instead of dispatching another Celery task.
+102:         request_id = payload.get("request_id")
+103: 
+104:         redis_client = None
+----------------------------------------------------------
+93:             raise ValueError(f"Unknown task: {task_name}")
+94: 
+95:         # ------------------------------------------------------------
+96:         # 31K-DSI IDEMPOTENCY
+97:         # ------------------------------------------------------------
+98:         # A caller may provide a stable logical request_id.  When present,
+99:         # Redis becomes the durable request_id -> task_id mapping.
+100:         # Repeated submissions with the same request_id return the
+101:         # original task instead of dispatching another Celery task.
+102:         request_id = payload.get("request_id")
+103: 
+104:         redis_client = None
+105:         existing_task_id = None
+106: 
+----------------------------------------------------------
+94: 
+95:         # ------------------------------------------------------------
+96:         # 31K-DSI IDEMPOTENCY
+97:         # ------------------------------------------------------------
+98:         # A caller may provide a stable logical request_id.  When present,
+99:         # Redis becomes the durable request_id -> task_id mapping.
+100:         # Repeated submissions with the same request_id return the
+101:         # original task instead of dispatching another Celery task.
+102:         request_id = payload.get("request_id")
+103: 
+104:         redis_client = None
+105:         existing_task_id = None
+106: 
+107:         if request_id:
+----------------------------------------------------------
+95:         # ------------------------------------------------------------
+96:         # 31K-DSI IDEMPOTENCY
+97:         # ------------------------------------------------------------
+98:         # A caller may provide a stable logical request_id.  When present,
+99:         # Redis becomes the durable request_id -> task_id mapping.
+100:         # Repeated submissions with the same request_id return the
+101:         # original task instead of dispatching another Celery task.
+102:         request_id = payload.get("request_id")
+103: 
+104:         redis_client = None
+105:         existing_task_id = None
+106: 
+107:         if request_id:
+108:             try:
+----------------------------------------------------------
+97:         # ------------------------------------------------------------
+98:         # A caller may provide a stable logical request_id.  When present,
+99:         # Redis becomes the durable request_id -> task_id mapping.
+100:         # Repeated submissions with the same request_id return the
+101:         # original task instead of dispatching another Celery task.
+102:         request_id = payload.get("request_id")
+103: 
+104:         redis_client = None
+105:         existing_task_id = None
+106: 
+107:         if request_id:
+108:             try:
+109:                 redis_client = self._get_redis_client()
+110:                 idempotency_key = f"eros:idempotency:{request_id}"
+----------------------------------------------------------
+99:         # Redis becomes the durable request_id -> task_id mapping.
+100:         # Repeated submissions with the same request_id return the
+101:         # original task instead of dispatching another Celery task.
+102:         request_id = payload.get("request_id")
+103: 
+104:         redis_client = None
+105:         existing_task_id = None
+106: 
+107:         if request_id:
+108:             try:
+109:                 redis_client = self._get_redis_client()
+110:                 idempotency_key = f"eros:idempotency:{request_id}"
+111:                 existing_task_id = redis_client.get(idempotency_key)
+112: 
+----------------------------------------------------------
+102:         request_id = payload.get("request_id")
+103: 
+104:         redis_client = None
+105:         existing_task_id = None
+106: 
+107:         if request_id:
+108:             try:
+109:                 redis_client = self._get_redis_client()
+110:                 idempotency_key = f"eros:idempotency:{request_id}"
+111:                 existing_task_id = redis_client.get(idempotency_key)
+112: 
+113:                 if isinstance(existing_task_id, bytes):
+114:                     existing_task_id = existing_task_id.decode("utf-8")
+115: 
+----------------------------------------------------------
+104:         redis_client = None
+105:         existing_task_id = None
+106: 
+107:         if request_id:
+108:             try:
+109:                 redis_client = self._get_redis_client()
+110:                 idempotency_key = f"eros:idempotency:{request_id}"
+111:                 existing_task_id = redis_client.get(idempotency_key)
+112: 
+113:                 if isinstance(existing_task_id, bytes):
+114:                     existing_task_id = existing_task_id.decode("utf-8")
+115: 
+116:                 if existing_task_id:
+117:                     existing_status = self.get_task_status(existing_task_id)
+----------------------------------------------------------
+105:         existing_task_id = None
+106: 
+107:         if request_id:
+108:             try:
+109:                 redis_client = self._get_redis_client()
+110:                 idempotency_key = f"eros:idempotency:{request_id}"
+111:                 existing_task_id = redis_client.get(idempotency_key)
+112: 
+113:                 if isinstance(existing_task_id, bytes):
+114:                     existing_task_id = existing_task_id.decode("utf-8")
+115: 
+116:                 if existing_task_id:
+117:                     existing_status = self.get_task_status(existing_task_id)
+118:                     existing_result = self.get_task_result(existing_task_id)
+----------------------------------------------------------
+106: 
+107:         if request_id:
+108:             try:
+109:                 redis_client = self._get_redis_client()
+110:                 idempotency_key = f"eros:idempotency:{request_id}"
+111:                 existing_task_id = redis_client.get(idempotency_key)
+112: 
+113:                 if isinstance(existing_task_id, bytes):
+114:                     existing_task_id = existing_task_id.decode("utf-8")
+115: 
+116:                 if existing_task_id:
+117:                     existing_status = self.get_task_status(existing_task_id)
+118:                     existing_result = self.get_task_result(existing_task_id)
+119: 
+----------------------------------------------------------
+128:                         "execution_result": existing_result.get(
+129:                             "result",
+130:                             {}
+131:                         ),
+132:                         "idempotent_replay": True,
+133:                         "request_id": request_id,
+134:                     }
+135:             except Exception:
+136:                 # Idempotency must never prevent normal task execution if
+137:                 # Redis lookup is temporarily unavailable.
+138:                 redis_client = None
+139: 
+140:         task_id = str(uuid.uuid4())
+141:         payload["task_id"] = task_id
+----------------------------------------------------------
+131:                         ),
+132:                         "idempotent_replay": True,
+133:                         "request_id": request_id,
+134:                     }
+135:             except Exception:
+136:                 # Idempotency must never prevent normal task execution if
+137:                 # Redis lookup is temporarily unavailable.
+138:                 redis_client = None
+139: 
+140:         task_id = str(uuid.uuid4())
+141:         payload["task_id"] = task_id
+142:         payload["user"] = user
+143: 
+144:         if request_id:
+----------------------------------------------------------
+132:                         "idempotent_replay": True,
+133:                         "request_id": request_id,
+134:                     }
+135:             except Exception:
+136:                 # Idempotency must never prevent normal task execution if
+137:                 # Redis lookup is temporarily unavailable.
+138:                 redis_client = None
+139: 
+140:         task_id = str(uuid.uuid4())
+141:         payload["task_id"] = task_id
+142:         payload["user"] = user
+143: 
+144:         if request_id:
+145:             payload["request_id"] = request_id
+----------------------------------------------------------
+133:                         "request_id": request_id,
+134:                     }
+135:             except Exception:
+136:                 # Idempotency must never prevent normal task execution if
+137:                 # Redis lookup is temporarily unavailable.
+138:                 redis_client = None
+139: 
+140:         task_id = str(uuid.uuid4())
+141:         payload["task_id"] = task_id
+142:         payload["user"] = user
+143: 
+144:         if request_id:
+145:             payload["request_id"] = request_id
+146: 
+----------------------------------------------------------
+139: 
+140:         task_id = str(uuid.uuid4())
+141:         payload["task_id"] = task_id
+142:         payload["user"] = user
+143: 
+144:         if request_id:
+145:             payload["request_id"] = request_id
+146: 
+147:         submitted_at_dt = datetime.now(timezone.utc).isoformat()
+148:         submitted_at_ts = time.time()
+149: 
+150:         telemetry = {
+151:             "task_id": task_id,
+152:             "task_name": task_name,
+----------------------------------------------------------
+140:         task_id = str(uuid.uuid4())
+141:         payload["task_id"] = task_id
+142:         payload["user"] = user
+143: 
+144:         if request_id:
+145:             payload["request_id"] = request_id
+146: 
+147:         submitted_at_dt = datetime.now(timezone.utc).isoformat()
+148:         submitted_at_ts = time.time()
+149: 
+150:         telemetry = {
+151:             "task_id": task_id,
+152:             "task_name": task_name,
+153:             "user": user,
+----------------------------------------------------------
+177:             3,
+178:         )
+179: 
+180:         telemetry["dispatch_time_ms"] = dispatch_time_ms
+181: 
+182:         # Persist request_id -> task_id only after the task has been
+183:         # successfully dispatched.  This prevents a failed dispatch from
+184:         # poisoning the idempotency key.
+185:         if request_id:
+186:             try:
+187:                 if redis_client is None:
+188:                     redis_client = self._get_redis_client()
+189: 
+190:                 redis_client.set(
+----------------------------------------------------------
+179: 
+180:         telemetry["dispatch_time_ms"] = dispatch_time_ms
+181: 
+182:         # Persist request_id -> task_id only after the task has been
+183:         # successfully dispatched.  This prevents a failed dispatch from
+184:         # poisoning the idempotency key.
+185:         if request_id:
+186:             try:
+187:                 if redis_client is None:
+188:                     redis_client = self._get_redis_client()
+189: 
+190:                 redis_client.set(
+191:                     f"eros:idempotency:{request_id}",
+192:                     task_id,
+----------------------------------------------------------
+180:         telemetry["dispatch_time_ms"] = dispatch_time_ms
+181: 
+182:         # Persist request_id -> task_id only after the task has been
+183:         # successfully dispatched.  This prevents a failed dispatch from
+184:         # poisoning the idempotency key.
+185:         if request_id:
+186:             try:
+187:                 if redis_client is None:
+188:                     redis_client = self._get_redis_client()
+189: 
+190:                 redis_client.set(
+191:                     f"eros:idempotency:{request_id}",
+192:                     task_id,
+193:                     ex=86400,
+----------------------------------------------------------
+182:         # Persist request_id -> task_id only after the task has been
+183:         # successfully dispatched.  This prevents a failed dispatch from
+184:         # poisoning the idempotency key.
+185:         if request_id:
+186:             try:
+187:                 if redis_client is None:
+188:                     redis_client = self._get_redis_client()
+189: 
+190:                 redis_client.set(
+191:                     f"eros:idempotency:{request_id}",
+192:                     task_id,
+193:                     ex=86400,
+194:                 )
+195:             except Exception:
+----------------------------------------------------------
+183:         # successfully dispatched.  This prevents a failed dispatch from
+184:         # poisoning the idempotency key.
+185:         if request_id:
+186:             try:
+187:                 if redis_client is None:
+188:                     redis_client = self._get_redis_client()
+189: 
+190:                 redis_client.set(
+191:                     f"eros:idempotency:{request_id}",
+192:                     task_id,
+193:                     ex=86400,
+194:                 )
+195:             except Exception:
+196:                 # Preserve task execution even if the idempotency mapping
+----------------------------------------------------------
+185:         if request_id:
+186:             try:
+187:                 if redis_client is None:
+188:                     redis_client = self._get_redis_client()
+189: 
+190:                 redis_client.set(
+191:                     f"eros:idempotency:{request_id}",
+192:                     task_id,
+193:                     ex=86400,
+194:                 )
+195:             except Exception:
+196:                 # Preserve task execution even if the idempotency mapping
+197:                 # cannot be persisted.
+198:                 pass
+----------------------------------------------------------
+186:             try:
+187:                 if redis_client is None:
+188:                     redis_client = self._get_redis_client()
+189: 
+190:                 redis_client.set(
+191:                     f"eros:idempotency:{request_id}",
+192:                     task_id,
+193:                     ex=86400,
+194:                 )
+195:             except Exception:
+196:                 # Preserve task execution even if the idempotency mapping
+197:                 # cannot be persisted.
+198:                 pass
+199: 
+----------------------------------------------------------
+191:                     f"eros:idempotency:{request_id}",
+192:                     task_id,
+193:                     ex=86400,
+194:                 )
+195:             except Exception:
+196:                 # Preserve task execution even if the idempotency mapping
+197:                 # cannot be persisted.
+198:                 pass
+199: 
+200:         execution_result: Dict[str, Any] = {
+201:             "status": "SUCCESS",
+202:             "task_id": task_id,
+203:             "user": user,
+204:             "symbol": payload.get("symbol", "TCS.NS"),
+
+4. POSSIBLE REDIS MODULES
+backend\main.py
+backend\config\settings.py
+backend\infrastructure\runtime_probe.py
+backend\tasks\celery_app.py
+backend\tasks\celery_config.py
+backend\tasks\eros_diagnostic_worker.py
+backend\tasks\eros_separate_process_worker.py
+backend\tasks\task_control.py
+backend\infrastructure\redis\client.py
+backend\core\config\settings.py
+backend\api\routers\admin_task_router.py
+backend\api\routers\system\health_router.py
+
+==========================================================
+BLOCK 31K-DSK DIAGNOSTIC COMPLETE
+READ-ONLY: NO SOURCE FILES MODIFIED
+==========================================================

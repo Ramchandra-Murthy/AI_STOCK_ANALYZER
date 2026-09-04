@@ -1,0 +1,135 @@
+﻿======================================================================
+EROS 3.0 - V3.8.16 GOLDEN INTEGRATION VERIFICATION
+======================================================================
+
+DASHBOARD : .\stock_dashboard.py
+
+
+TOKEN : EROSFrontendAdapter
+----------------------------------------
+    6 | from services.eros_frontend_adapter import EROSFrontendAdapter
+   26 | adapter = EROSFrontendAdapter()
+
+TOKEN : adapter.
+----------------------------------------
+  293 | governance = adapter.governance()
+ 1693 | eros_traceability = adapter.decision_traceability(
+ 1970 | governance = adapter.governance()
+
+TOKEN : decision_evidence
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_intelligence
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_interpretation
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_action_framework
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_action_explanation
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_scenario_engine
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_scenario_explanation
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_convergence
+----------------------------------------
+NOT FOUND
+
+TOKEN : decision_traceability
+----------------------------------------
+ 1693 | eros_traceability = adapter.decision_traceability(
+
+TOKEN : selected_result
+----------------------------------------
+ 1304 | selected_result = analyze_stock(
+ 1309 | "v24_selected_result"
+ 1310 | ] = selected_result
+ 1319 | "v24_selected_result"
+ 1327 | selected_result = st.session_state.get(
+ 1328 | "v24_selected_result"
+ 1332 | if selected_result is not None:
+ 1341 | selected_last = selected_result[
+ 1345 | selected_signal = selected_result[
+ 1349 | selected_trend = selected_result[
+ 1353 | selected_breakout = selected_result[
+ 1670 | selected_result["df"],
+
+TOKEN : selected_signal
+----------------------------------------
+ 1345 | selected_signal = selected_result[
+ 1374 | selected_signal["Score"],
+ 1379 | selected_signal["Confidence"],
+ 1384 | selected_signal["Risk"],
+ 1387 | recommendation = selected_signal[
+ 1494 | reasons = selected_signal.get(
+
+TOKEN : selected_trend
+----------------------------------------
+ 1349 | selected_trend = selected_result[
+ 1429 | selected_trend["Trend"],
+ 1436 | selected_trend["Momentum"],
+ 1454 | selected_trend["Trend"]
+
+TOKEN : selected_breakout
+----------------------------------------
+ 1353 | selected_breakout = selected_result[
+ 1629 | breakout_signal = selected_breakout.get(
+ 1634 | breakout_reason = selected_breakout.get(
+
+TOKEN : Decision Snapshot
+----------------------------------------
+  412 | # DECISION SNAPSHOT
+  419 | f'ðŸ“Œ {symbol} Decision Snapshot'
+ 1358 | # DECISION SNAPSHOT
+ 1362 | f"ðŸ“Œ {selected_symbol_display} â€” Decision Snapshot"
+
+TOKEN : Signal Drivers
+----------------------------------------
+  596 | st.write("**Key Signal Drivers**")
+  613 | "No signal drivers returned by the analyzer."
+ 1487 | # SIGNAL DRIVERS
+ 1491 | "ðŸ§  Signal Drivers"
+ 1518 | "No signal drivers returned."
+
+TOKEN : Technical Intelligence
+----------------------------------------
+  448 | # TECHNICAL INTELLIGENCE
+  455 | 'ðŸ“ˆ Technical Intelligence'
+ 1522 | # TECHNICAL INTELLIGENCE
+ 1526 | "ðŸ“Š Technical Intelligence"
+
+TOKEN : Breakout Engine
+----------------------------------------
+  738 | # BREAKOUT ENGINE
+  745 | 'ðŸš€ Breakout Engine'
+ 1626 | "ðŸš€ Breakout Engine"
+
+======================================================================
+COMPILE VERIFICATION
+======================================================================
+
+======================================================================
+SAFETY
+======================================================================
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+V3.8.16 GOLDEN INTEGRATION VERIFICATION COMPLETE
+======================================================================

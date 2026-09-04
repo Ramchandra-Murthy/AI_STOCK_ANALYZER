@@ -1,0 +1,1395 @@
+﻿============================================================
+EROS 3.0 - 31K-EW SYSTEM INTEGRATION TARGET DISCOVERY
+============================================================
+CHECKPOINT: 31K-EV COMPLETE
+FINANCIAL LAYER: PASS
+REDIS / TTL / LOCK / IDEMPOTENCY: PASS
+SOURCE MODIFICATION: NONE
+
+============================================================
+1. CORE ENGINEERING LAYERS
+============================================================
+
+--- financial ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\balance_sheet.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\cash_flow.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\financial_ratios.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\financial_statement.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\income_statement.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\repository.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\validator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_evidence_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_overlap_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py
+
+--- fundamentals ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\validator.py
+
+--- ratios ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\financial_ratios.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\efficiency.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\leverage.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\liquidity.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\profitability.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\quality_engine.py
+
+--- valuation ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py.31K-backup
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_valuation_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_valuation_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_input.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_model.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_result.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\multiple_calculator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\peer_selection.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\statistics.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\validation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\weighting.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\contracts.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\discounting.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\sensitivity.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\terminal_value.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\nav_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\enums.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\adjustments.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\asset_registry.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\liability_registry.py
+
+--- wacc ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\capital\wacc_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\wacc\wacc_models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\wacc\wacc_service.py
+
+--- scoring ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block17_confidence.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py
+
+--- forecast ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\cagr.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\linear_regression.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\mean_reversion.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\rolling_average.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\assumption_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\cagr.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\capex_forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\confidence_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\depreciation_forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\engines\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\examples\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\examples\basic_forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\examples\run_models_example.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\forecast_input.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\forecast_result.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\forecasts\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\growth.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\input.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\margin_forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\README.md
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\regression.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\result.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\revenue_forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\scenario_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\tax_forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\terminal_growth.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\test_forecast_input.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\test_validation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\tests\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\tests\test_models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\validation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\working_capital_forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast_system\forecast_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast_system\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting\scenario_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py
+
+--- forecasting ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting\scenario_engine.py
+
+--- research ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\graph\evidence_graph.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\models\research_evidence.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\quality\evidence_quality.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\reasoning\evidence_reasoning.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\models\research_case.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\block17_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\report_generator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\target_price.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research_director\director.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research_director\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research_service.py
+
+--- reasoning ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\reasoning\evidence_reasoning.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning_graph\graph_reasoner.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning_graph\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning_graph\propagation_engine.py
+
+--- decision ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\decision_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\policy_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\decision_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py.backup_20260820_204658
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py.backup_block96_safety_20260820_211714
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py
+
+--- risk ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block93_performance_risk_attribution_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\risk_management\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\risk_management\resilience.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\risk_management\stress_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py
+
+--- portfolio ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_intelligence\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_intelligence\service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_lab\factor_models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_lab\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_lab\strategy_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_manager\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_manager\portfolio_manager.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_optimizer\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_optimizer\optimizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_optimizer\rebalance.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_portfolio_state_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block92_portfolio_performance_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py.backup_20260820_204658
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_optimizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py
+
+--- portfolio_intelligence ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_intelligence\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_intelligence\service.py
+
+--- portfolio_optimizer ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_optimizer\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_optimizer\optimizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_optimizer\rebalance.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_optimizer.py
+
+--- execution ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\execution\execution_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\execution\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\execution\transaction_cost.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block100_paper_execution_fill_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block101_execution_evidence_reconciliation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_execution_certification.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block99_execution_intent_authorization_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\execution_intent.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py
+
+--- report ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\production\readiness_report.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\html_renderer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\report_builder.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\report_models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\report_generator.py
+
+--- reporting ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\html_renderer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\report_builder.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\report_models.py
+
+--- workflow ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_context.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_state.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\orchestration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\production_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow_engine\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow_engine\workflow_engine.py
+
+--- workflow_engine ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow_engine\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow_engine\workflow_engine.py
+
+--- market_data ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\analytics\streaming_analytics.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\failover\failover_manager.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\adapter.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\cache.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\confidence_trace.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\decision_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\downloader.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\integrity.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\provider.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\provider_resilience.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py
+
+--- monitoring ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\change_detector.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\health.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\models.py
+
+--- simulation ---
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\simulation\market_simulator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\simulation\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\simulation\monte_carlo.py
+
+============================================================
+2. ORCHESTRATION / PIPELINE FILES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_context.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_registry.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_state.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\agents\coordinator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alerts\alert_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\screening_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\attribution\attribution_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\attribution\benchmark_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\backtesting\strategy_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\compliance\policy_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\copilot\orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\decision_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\policy_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\execution\execution_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\assumption_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\confidence_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\scenario_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast_system\forecast_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting\scenario_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\governance\governance_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\memory\memory_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\moat\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_lab\strategy_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block106_institutional_integration_boundary.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_settlement_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_portfolio_state_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block92_portfolio_performance_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block93_performance_risk_attribution_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py.backup_20260820_204658
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\quality_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\realtime\alert_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning_graph\propagation_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\block17_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research_director\director.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\risk_management\stress_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\strategy_factory\strategy_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\backtest_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\nav_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\watchlist_platform\watchlist_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\orchestration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\production_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow_engine\workflow_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_quality_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reasoning\test_reasoning_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow\test_workflow.py
+
+============================================================
+3. EVENT / DOMAIN INTEGRATION
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\normalizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py
+
+EVENT CONTRACT REFERENCES
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\events.py:8 | class ForecastCompleted(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:8 | from services.forecast.events import ForecastCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:41 | """Run forecast calculations using actual FinancialStatements and publish ForecastCompleted event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:45 | event = ForecastCompleted(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:56 | logger.info("ForecastCompleted event published for symbol: %s using model: %s", symbol, model_type)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\events.py:8 | class MarketDataDownloaded(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py:8 | from services.market_data.events import MarketDataDownloaded
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py:28 | """Retrieve market data from cache or download, then publish MarketDataDownloaded event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py:38 | event = MarketDataDownloaded(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\service.py:48 | logger.info("MarketDataDownloaded event published for symbol: %s", response.symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py:7 | from services.market_data.events import MarketDataDownloaded
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\__init__.py:15 | "MarketDataDownloaded",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\events.py:8 | class ReportCompleted(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:8 | from services.report.events import ReportCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:34 | """Generate professional report and publish ReportCompleted event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:37 | event = ReportCompleted(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:49 | logger.info("ReportCompleted event published for symbol: %s at %s", symbol, result.file_path)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\events.py:8 | class ResearchCompleted(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:7 | from services.research.events import ResearchCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:32 | """Run research synthesis and publish ResearchCompleted event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:47 | event_msg = ResearchCompleted(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:57 | logger.info("ResearchCompleted event published for symbol: %s", symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\__init__.py:6 | from services.research.events import ResearchCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\__init__.py:14 | "ResearchCompleted",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\events.py:8 | class ValuationCompleted(BaseDomainEvent):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:9 | from services.valuation.events import ValuationCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:42 | """Run production DCF valuation and publish ValuationCompleted event."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:50 | event = ValuationCompleted(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:63 | logger.info("ValuationCompleted event published for symbol: %s with fair value: %.2f", symbol, fair_value)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py:6 | from services.valuation.events import ValuationCompleted
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py:14 | "ValuationCompleted",
+
+============================================================
+4. E2E / INTEGRATION TESTS
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block24_e2e_production.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25c_api_e2e.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_integration.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_e2e.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow\test_workflow.py
+
+============================================================
+5. TODO / NEXT / UNFINISHED MARKERS
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:5 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:9 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:13 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:17 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:21 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:25 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:29 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:33 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:37 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py:11 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py:15 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py:19 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py:23 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:13 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:17 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:36 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:41 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:46 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\adapters\provider_adapters.py:14 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:19 | raise NotImplementedError("Subclasses must implement extract()")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:221 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:280 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:660 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:797 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:810 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:47 | # Validation pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:6 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:10 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:14 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:403 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:839 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:859 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:879 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:933 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_movers_service.py:42 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_service.py:85 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py:16 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_peer_ev_consistency_service.py:14 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\agents\base_agent.py:24 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\agents\base_agent.py:28 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:22 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:26 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:30 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:34 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:7 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:13 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:19 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:25 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:31 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:11 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:15 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:19 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:25 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:31 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:35 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py:452 | if item.get("status") == STATUS_PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py:519 | if item.get("status") == STATUS_PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py:494 | "status": STATUS_PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py:590 | if all_pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py:616 | if all_pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:49 | self.require_risk_pass = require_risk_pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:26 | PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\engine.py:68 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:54 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:63 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\statements\validation.py:19 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py:44 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py:55 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:9 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:13 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:16 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:31 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:35 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:39 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py:9 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py:13 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py:16 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py:9 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py:13 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py:16 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30n_strict_worker.py:38 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30o_separate_worker.py:75 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30q_diagnostic.py:58 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30r_diagnostic.py:77 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30s_permanent_worker.py:79 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py:149 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py:243 | pass
+
+============================================================
+6. RECENT SOURCE MODIFICATIONS
+============================================================
+ M backend/api/routers/admin_task_router.py
+ M backend/api/routers/task_router.py
+ M backend/api/routers/valuation_router.py
+ M backend/config/settings.py
+ M backend/infrastructure/redis/client.py
+ M backend/main.py
+ M backend/security/jwt.py
+ M backend/tasks/task_control.py
+ M tests/production/test_block29_real_celery.py
+?? .env
+?? 31K_BR_CA_SECURITY_AUDIT.txt
+?? 31K_ES_next_block_discovery.txt
+?? 31K_EU_next_engineering_discovery.txt
+?? 31K_EV_source_boundary_audit.txt
+?? backend/api/dependencies/auth.py
+?? backend/api/routers/valuation_router.py.31K-backup
+?? backend/infrastructure/redis/client.py.31K_EE_backup
+?? backend/infrastructure/redis/client.py.31K_EE_repair_backup
+?? backend/infrastructure/redis/client.py.31K_EO_backup
+?? backend/infrastructure/redis/client.py.31K_EP_backup
+?? backend/infrastructure/redis/client.py.31K_EQ_backup
+?? backend/main.py.31K-BC.bak
+?? backend/security/dependencies.py
+?? backend/tasks/task_control.py.31K-DSI.backup
+?? backend/tasks/task_control.py.31K_DSM_backup
+?? backend/tasks/task_control.py.31K_DSP_backup
+?? backend/tasks/task_control.py.31K_DV_backup
+?? backend/tasks/task_control.py.31K_EH_backup
+?? backend/tasks/task_control.py.31K_EH_patch_backup
+?? backend/tasks/task_control.py.31K_EJ_backup
+?? block_31K_CG_security_audit.py
+?? block_31K_CH_validation.py
+?? block_31K_CI_full_output.txt
+?? block_31K_CK_security_audit.py
+?? block_31K_CL_baseline.py
+?? block_31K_CM_task_route_diagnostic.py
+?? block_31K_CN_route_reconciliation.py
+?? block_31K_CO_task_route_reconciliation.py
+?? block_31K_CP_route_object_diagnostic.py
+?? block_31K_CS_20in1_security_audit.py
+?? block_31K_CS_login_diagnostic.py
+?? block_31K_CV_security_audit.py
+?? block_31K_CW_output.txt
+?? block_31K_DC_final_audit.py
+?? block_31K_DC_stderr.txt
+?? block_31K_DH_final_regression.py
+?? block_31K_DQ_task_test.py
+?? block_31K_DR_reliability_test.py
+?? block_31K_DSE_failure_recovery.py
+?? block_31K_DSF_idempotency.py
+?? block_31K_DSJ_live_test.py
+?? block_31K_DSJ_output.txt
+?? block_31K_DSJ_redis_diagnostic.py
+?? block_31K_DSJ_redis_diagnostic.txt
+?? block_31K_DSK_redis_access.py
+?? block_31K_DSK_redis_access.txt
+?? block_31K_DSN_live_idempotency_test.py
+?? block_31K_DSN_traceback.txt
+?? block_31K_DSO_idempotency_runtime_diagnostic.py
+?? block_31K_DSO_output.txt
+?? block_31K_DSP_live_test.py
+?? block_31K_DT_concurrent_idempotency_test.py
+?? block_31K_DU_concurrency_lock_diagnostic.py
+?? block_31K_DW_concurrent_idempotency_test.py
+?? block_31K_EA_race_test.py
+?? block_31K_EF_atomic_lock_stress.py
+?? block_31K_EG_full_idempotency_test.py
+?? block_31K_EK_concurrent_idempotency_test.py
+?? block_31K_EL_idempotency_regression_test.py
+?? block_31K_ER_lock_regression.py
+?? check_main_31K_CD.py
+?? eros_security_audit_31K_CC.py
+?? eros_security_audit_31K_CC_output.txt
+?? logs/analyzer_before_eros_v26_readonly_patch.py
+?? logs/analyzer_before_eros_v328_date_contract.py
+?? logs/eros_block29_queue_contract_fix_output.txt
+?? logs/eros_block29_source_inspection.txt
+?? logs/eros_block29b_queue_contract.txt
+?? logs/eros_block29b_queue_diagnostic.py
+?? logs/eros_block29b_queue_inspection.txt
+?? logs/eros_block30k_result.txt
+?? logs/eros_block30k_wsl_ip_result.txt
+?? logs/eros_celery_config_location.txt
+?? logs/eros_celery_search.txt
+?? logs/eros_checkpoint_latest.txt
+?? logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py
+?? logs/eros_frontend_adapter_before_v29.py
+?? logs/eros_frontend_adapter_before_v30_20260822_210324.py
+?? logs/eros_frontend_adapter_before_v30_decision_20260822_210450.py
+?? logs/eros_frontend_adapter_before_v31_20260822_210705.py
+?? logs/eros_frontend_adapter_before_v32_20260822_210838.py
+?? logs/eros_frontend_adapter_before_v33_20260822_211141.py
+?? logs/eros_frontend_adapter_before_v34_20260822_211420.py
+?? logs/eros_frontend_adapter_before_v35_20260822_211800.py
+?? logs/eros_frontend_adapter_before_v35_20260822_212229.py
+?? logs/eros_frontend_adapter_before_v36_20260822_212325.py
+?? logs/eros_frontend_adapter_before_v371_20260822_213654.py
+?? logs/eros_frontend_adapter_before_v372_20260822_213827.py
+?? logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213105.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213210.py
+?? logs/eros_frontend_adapter_before_v381_20260822_215432.py
+?? logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py
+?? logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py
+?? logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220104.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220437.py
+?? logs/eros_frontend_adapter_before_v38_20260822_214850.py
+?? logs/eros_full_suite_hang_diagnostic.txt
+?? logs/eros_full_test_20260823_123857.txt
+?? logs/eros_full_test_hang_isolation.txt
+?? logs/eros_precommit_safety_audit.txt
+?? logs/eros_pydantic_diagnostic.txt
+?? logs/eros_pydantic_repair.txt
+?? logs/eros_pytest_collection_check.txt
+?? logs/eros_pytest_hang_diagnostic.txt
+?? logs/eros_test_20260823_123827.txt
+?? logs/eros_v25_adapter_api.py
+?? logs/eros_v25_adapter_api_output.txt
+?? logs/eros_v25_contract_verify.py
+?? logs/eros_v25_dashboard_contract.py
+?? logs/eros_v25_dashboard_contract_output.txt
+?? logs/eros_v25_market_scan_contract.py
+?? logs/eros_v25_market_scan_contract_output.txt
+?? logs/eros_v26_active_sqlite_message_check.py
+?? logs/eros_v26_active_write_token_check.py
+?? logs/eros_v26_analyzer_patch_output.txt
+?? logs/eros_v26_analyzer_runtime_test.py
+?? logs/eros_v26_ast_nonmutation_proof.py
+?? logs/eros_v26_ast_nonmutation_proof.txt
+?? logs/eros_v26_ast_nonmutation_proof_v2.py
+?? logs/eros_v26_ast_nonmutation_proof_v2.txt
+?? logs/eros_v26_clean_write_trace.txt
+?? logs/eros_v26_corrected_nonmutation_proof_20260822_205417.txt
+?? logs/eros_v26_corrected_runtime_test.py
+?? logs/eros_v26_corrected_scan_test.py
+?? logs/eros_v26_database_nonmutation_proof.txt
+?? logs/eros_v26_exact_write_trace.txt
+?? logs/eros_v26_market_scan_readonly_test.py
+?? logs/eros_v26_nonmutation_runtime_test.py
+?? logs/eros_v26_safety_contract_runtime.py
+?? logs/eros_v26_sqlite_message_trace.txt
+?? logs/eros_v26_sqlite_save_message_trace.txt
+?? logs/eros_v26_write_trace_clipboard.txt
+?? logs/eros_v27_data_layer_boundary_console.txt
+?? logs/eros_v27_runtime_evidence_inspection.py
+?? logs/eros_v27_runtime_evidence_inspection.txt
+?? logs/eros_v28_decision_evidence_test.py
+?? logs/eros_v28_decision_evidence_test_output.txt
+?? logs/eros_v29_decision_evidence_output.txt
+?? logs/eros_v29_decision_evidence_test.py
+?? logs/eros_v30_decision_intelligence_foundation.txt
+?? logs/eros_v30_decision_intelligence_test.py
+?? logs/eros_v31_decision_interpretation_foundation.txt
+?? logs/eros_v31_decision_interpretation_test.py
+?? logs/eros_v32_decision_action_runtime_20260822_210929.txt
+?? logs/eros_v32_decision_action_runtime_test_20260822_210929.py
+?? logs/eros_v33_runtime_test.py
+?? logs/eros_v33_runtime_test_output.txt
+?? logs/eros_v34_runtime_test.py
+?? logs/eros_v34_runtime_test_output.txt
+?? logs/eros_v35_runtime_test.py
+?? logs/eros_v35_runtime_test_output.txt
+?? logs/eros_v36_runtime_test.py
+?? logs/eros_v372_ast_traceability_patch.py
+?? logs/eros_v372_return_structure_diagnostic.py
+?? logs/eros_v372_runtime_regression.py
+?? logs/eros_v372_traceability_failure_diagnostic.py
+?? logs/eros_v372_traceability_runtime_test.py
+?? logs/eros_v37_api_check.py
+?? logs/eros_v37_foundation_check.py
+?? logs/eros_v37_runtime_test.py
+?? logs/eros_v37_traceability_diagnostic.py
+?? logs/eros_v37_traceability_runtime_test.py
+?? logs/eros_v3810_adapter_api_contract.txt
+?? logs/eros_v3812_frontend_insertion_boundary.txt
+?? logs/eros_v3813_traceability_runtime_contract.py
+?? logs/eros_v3813_traceability_runtime_contract.txt
+?? logs/eros_v3815_frontend_runtime_consumption_audit.py
+?? logs/eros_v3815_frontend_runtime_consumption_audit.txt
+?? logs/eros_v3816_golden_integration_verification.txt
+?? logs/eros_v3817_traceability_frontend_consumption_inspection.txt
+?? logs/eros_v3818_frontend_traceability_runtime_test.py
+?? logs/eros_v3818_frontend_traceability_runtime_test.txt
+?? logs/eros_v3819_golden_integration_verification.py
+?? logs/eros_v3819_golden_integration_verification.txt
+?? logs/eros_v381_audit_clipboard_diagnostic.py
+?? logs/eros_v381_audit_clipboard_output.txt
+?? logs/eros_v381_audit_failure_isolation.py
+?? logs/eros_v381_audit_runtime_diagnostic.py
+?? logs/eros_v381_deep_audit_runtime.py
+?? logs/eros_v3820_traceability_ui_context.txt
+?? logs/eros_v3821_ast_only.py
+?? logs/eros_v3821_compile_failure_diagnostic_20260822_220822.txt
+?? logs/eros_v3821_structural_ast_diagnostic.py
+?? logs/eros_v3821_structural_diagnostic_clipboard.txt
+?? logs/eros_v3822_ast_inspection.py
+?? logs/eros_v3822_ast_syntax_diagnostic.py
+?? logs/eros_v3822_clean_runtime_diagnostic.py
+?? logs/eros_v3822_runtime_hydration_validation.py
+?? logs/eros_v3823_hydration_dataflow_diagnostic.py
+?? logs/eros_v3823_hydration_source_inspection.py
+?? logs/eros_v3823_import_path_test.py
+?? logs/eros_v3824_ast_inspection.py
+?? logs/eros_v3824_audit_dataflow_inspector.py
+?? logs/eros_v3824_audit_dataflow_source_diagnostic.py
+?? logs/eros_v3824_golden_baseline_runtime.py
+?? logs/eros_v3824_golden_difference_forensic_20260822_225337.txt
+?? logs/eros_v3824_runtime_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic_output.txt
+?? logs/eros_v3826_decision_evidence_source_forensic.txt
+?? logs/eros_v3827_runtime_dataflow_diagnostic.py
+?? logs/eros_v3827_runtime_dataflow_diagnostic.txt
+?? logs/eros_v3828_middle_layer_source_forensic.txt
+?? logs/eros_v3829_middle_layer_runtime_test.py
+?? logs/eros_v3829_middle_layer_runtime_test_output.txt
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.py
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.txt
+?? logs/eros_v382_ast_audit_hydration_patcher.py
+?? logs/eros_v382_audit_failure_capture.py
+?? logs/eros_v382_audit_schema_runtime_diagnostic.py
+?? logs/eros_v382_forensic_runtime.py
+?? logs/eros_v382_forensic_runtime_output.txt
+?? logs/eros_v382_forensic_stderr.txt
+?? logs/eros_v382_forensic_stdout.txt
+?? logs/eros_v382_integrity_patcher.py
+?? logs/eros_v382_integrity_runtime_diagnostic.py
+?? logs/eros_v3831_dashboard_analysis_flow_forensic.txt
+?? logs/eros_v3832_THREE_REPORTS_COMBINED.txt
+?? logs/eros_v3832_adapter_frontend_contract_forensic.txt
+?? logs/eros_v3832_adapter_frontend_integration_contract.txt
+?? logs/eros_v3832_adapter_public_api_forensic.txt
+?? logs/eros_v3833_adapter_runtime_contract_test.txt
+?? logs/eros_v383_frontend_consumption_forensic.txt
+?? logs/eros_v384_frontend_integration_insertion_forensic.txt
+?? logs/eros_v385_frontend_adapter_argument_contract.txt
+?? logs/eros_v386_frontend_integration_runtime_dry_run.txt
+?? logs/eros_v389_selected_stock_insertion_context.txt
+?? logs/eros_v38_audit_failure_diagnostic.py
+?? logs/eros_v38_decision_audit_diagnostic.py
+?? logs/eros_v38_runtime_test.py
+?? logs/stock_dashboard_before_eros_frontend_v1.py
+?? logs/stock_dashboard_before_eros_frontend_v2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_1.py
+?? logs/stock_dashboard_before_eros_frontend_v2_2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_market_insert.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_5.py
+?? logs/stock_dashboard_before_eros_v311_20260823_105006.py
+?? logs/stock_dashboard_before_eros_v314_integration.py
+?? logs/stock_dashboard_before_eros_v320_20260823_113203.py
+?? logs/stock_dashboard_before_eros_v387_20260823_000130.py
+?? logs/test_block29_real_celery_before_queue_contract_fix.py
+?? security_backup_31K_BG/
+?? security_backup_31K_CG/
+?? security_backup_31K_CH/
+?? security_backup_31K_CI/
+?? security_backup_31K_CJ/
+?? security_backup_31K_CR/
+?? security_backup_31K_CS/
+?? security_backup_31K_CU/
+?? security_backup_31K_CY/
+?? security_backup_31K_CZ/
+?? security_backup_31K_DA/
+
+============================================================
+7. RECENT ENGINEERING FILES
+============================================================
+2026-08-24 16:30:11 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\31K_EV_source_boundary_audit.txt
+2026-08-24 16:26:32 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\31K_EU_next_engineering_discovery.txt
+2026-08-24 16:11:29 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\.pytest_cache\v\cache\nodeids
+2026-08-23 22:09:09 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\31K_ES_next_block_discovery.txt
+2026-08-23 21:58:07 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_ER_lock_regression.py
+2026-08-23 21:56:04 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\infrastructure\redis\client.py
+2026-08-23 21:55:38 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\infrastructure\redis\client.py.31K_EQ_backup
+2026-08-23 21:55:18 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\infrastructure\redis\client.py.31K_EP_backup
+2026-08-23 21:50:18 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EL_idempotency_regression_test.py
+2026-08-23 21:48:37 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EK_concurrent_idempotency_test.py
+2026-08-23 21:47:15 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py
+2026-08-23 21:44:49 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EG_full_idempotency_test.py
+2026-08-23 21:44:24 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EF_atomic_lock_stress.py
+2026-08-23 21:43:54 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\infrastructure\redis\client.py.31K_EO_backup
+2026-08-23 21:43:27 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\infrastructure\redis\client.py.31K_EE_repair_backup
+2026-08-23 21:39:55 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EA_race_test.py
+2026-08-23 21:33:53 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DW_concurrent_idempotency_test.py
+2026-08-23 21:32:59 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py.31K_EH_patch_backup
+2026-08-23 21:32:59 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py.31K_EH_backup
+2026-08-23 21:32:59 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py.31K_EJ_backup
+2026-08-23 21:32:38 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DU_concurrency_lock_diagnostic.py
+2026-08-23 21:32:10 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DT_concurrent_idempotency_test.py
+2026-08-23 21:31:42 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSP_live_test.py
+2026-08-23 21:31:42 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py.31K_DV_backup
+2026-08-23 21:31:14 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSO_output.txt
+2026-08-23 21:31:13 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSO_idempotency_runtime_diagnostic.py
+2026-08-23 21:30:51 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSN_traceback.txt
+2026-08-23 21:30:15 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSN_live_idempotency_test.py
+2026-08-23 21:29:55 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py.31K_DSP_backup
+2026-08-23 21:27:39 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSK_redis_access.txt
+2026-08-23 21:27:38 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSK_redis_access.py
+2026-08-23 21:27:13 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_redis_diagnostic.txt
+2026-08-23 21:27:13 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_redis_diagnostic.py
+2026-08-23 21:26:54 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_output.txt
+2026-08-23 21:26:01 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_live_test.py
+2026-08-23 21:25:16 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py.31K_DSM_backup
+2026-08-23 21:16:57 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSF_idempotency.py
+2026-08-23 21:16:12 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSE_failure_recovery.py
+2026-08-23 19:36:06 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\reports_output\TCS.NS_report.html
+2026-08-23 19:35:47 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros_production.db
+2026-08-23 19:35:45 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DR_reliability_test.py
+2026-08-23 19:34:09 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DQ_task_test.py
+2026-08-23 18:57:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DH_final_regression.py
+2026-08-23 18:52:06 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DC_stderr.txt
+2026-08-23 18:50:39 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DC_final_audit.py
+2026-08-23 18:48:46 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py
+2026-08-23 18:46:44 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CW_output.txt
+2026-08-23 18:45:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CV_security_audit.py
+2026-08-23 17:40:35 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\security\jwt.py
+2026-08-23 17:40:35 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\config\settings.py
+2026-08-23 17:38:53 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CS_20in1_security_audit.py
+2026-08-23 17:38:51 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CS_login_diagnostic.py
+2026-08-23 17:38:51 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CU\jwt.py
+2026-08-23 17:38:51 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\dependencies\auth.py
+2026-08-23 17:31:14 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CP_route_object_diagnostic.py
+2026-08-23 17:30:43 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CO_task_route_reconciliation.py
+2026-08-23 17:30:14 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CN_route_reconciliation.py
+2026-08-23 17:29:39 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CM_task_route_diagnostic.py
+2026-08-23 17:29:05 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CL_baseline.py
+2026-08-23 17:27:33 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CK_security_audit.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CY\main.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CZ\main.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CS\main.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CR\main.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_DA\main.py
+2026-08-23 17:26:14 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CJ\main.py.bak
+2026-08-23 17:25:37 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CI_full_output.txt
+2026-08-23 17:24:10 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CH_validation.py
+2026-08-23 17:24:10 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CI\main.py
+2026-08-23 17:24:10 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CJ\main.py
+2026-08-23 17:23:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CG_security_audit.py
+2026-08-23 17:23:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\admin_task_router.py
+2026-08-23 17:23:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py
+2026-08-23 17:23:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py
+2026-08-23 17:22:42 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\admin_task_router.py
+2026-08-23 17:22:42 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py
+2026-08-23 17:22:42 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\task_router.py
+2026-08-23 17:21:59 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\admin_task_router.py
+2026-08-23 17:21:59 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\task_router.py
+2026-08-23 17:21:59 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py
+2026-08-23 17:20:55 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\check_main_31K_CD.py
+2026-08-23 17:20:29 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros_security_audit_31K_CC_output.txt
+2026-08-23 17:20:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros_security_audit_31K_CC.py
+2026-08-23 17:19:18 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\31K_BR_CA_SECURITY_AUDIT.txt
+2026-08-23 16:59:52 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CU\settings.py
+2026-08-23 16:59:52 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\config\settings.py
+2026-08-23 16:57:33 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CS\auth.py
+2026-08-23 16:57:33 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\dependencies\auth.py
+2026-08-23 16:57:33 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CR\auth.py
+2026-08-23 16:56:48 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CR\jwt.py
+2026-08-23 16:56:48 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\security\jwt.py
+2026-08-23 16:56:48 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CS\jwt.py
+2026-08-23 16:00:54 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\security\dependencies.py
+2026-08-23 16:00:54 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\security\dependencies.py
+2026-08-23 16:00:46 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\.env
+2026-08-23 13:53:17 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_block30k_wsl_ip_result.txt
+2026-08-23 13:51:48 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_block30k_result.txt
+2026-08-23 13:42:44 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_full_suite_hang_diagnostic.txt
+2026-08-23 13:42:31 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\reports_output\RELIANCE.NS_report.html
+2026-08-23 13:42:29 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\.pytest_cache\v\cache\lastfailed
+
+============================================================
+8. CURRENT TEST INVENTORY BY MAJOR LAYER
+============================================================
+financial | TEST FILE COUNT: 0
+fundamentals | TEST FILE COUNT: 6
+ratios | TEST FILE COUNT: 4
+valuation | TEST FILE COUNT: 7
+wacc | TEST FILE COUNT: 1
+scoring | TEST FILE COUNT: 15
+forecast | TEST FILE COUNT: 3
+forecasting | TEST FILE COUNT: 1
+research | TEST FILE COUNT: 8
+reasoning | TEST FILE COUNT: 3
+decision | TEST FILE COUNT: 2
+risk | TEST FILE COUNT: 2
+portfolio | TEST FILE COUNT: 6
+portfolio_intelligence | TEST FILE COUNT: 1
+portfolio_optimizer | TEST FILE COUNT: 1
+execution | TEST FILE COUNT: 3
+report | TEST FILE COUNT: 4
+reporting | TEST FILE COUNT: 2
+workflow | TEST FILE COUNT: 3
+workflow_engine | TEST FILE COUNT: 2
+market_data | TEST FILE COUNT: 10
+monitoring | TEST FILE COUNT: 2
+simulation | TEST FILE COUNT: 1
+
+============================================================
+9. PYTEST COLLECTION
+============================================================
+tests/agents/test_agents.py::test_agent_opinion_immutability_and_defaults
+tests/agents/test_agents.py::test_specialist_agents_execution
+tests/agents/test_agents.py::test_multi_agent_coordinator_default_registry
+tests/agents/test_agents.py::test_multi_agent_coordinator_empty_registry
+tests/agents/test_agents.py::test_multi_agent_coordinator_conflicting_recommendations
+tests/alerts/test_ianp.py::test_institutional_alert_immutability
+tests/alerts/test_ianp.py::test_institutional_alert_engine
+tests/alpha_factory/test_iarf.py::test_investment_opportunity_immutability
+tests/alpha_factory/test_iarf.py::test_alpha_screening_engine
+tests/alpha_factory/test_iarf.py::test_opportunity_ranking_engine
+tests/api/test_api.py::test_enterprise_api_service_platform
+tests/api/test_eap.py::test_health_endpoint
+tests/api/test_eap.py::test_readiness_endpoint
+tests/api/test_eap.py::test_valuation_api_endpoint
+tests/api_gateway/test_eag.py::test_api_response_immutability
+tests/api_gateway/test_eag.py::test_enterprise_api_gateway_routing
+tests/attribution/test_ipaap.py::test_attribution_report_immutability
+tests/attribution/test_ipaap.py::test_performance_attribution_engine
+tests/attribution/test_ipaap.py::test_benchmark_analytics_engine
+tests/backtesting/test_ibrvp.py::test_backtest_result_immutability
+tests/backtesting/test_ibrvp.py::test_backtesting_engine
+tests/capital/test_capital_models.py::test_capital_structure_weights
+tests/capital/test_capital_models.py::test_capital_structure_zero_division
+tests/capital/test_capital_models.py::test_cost_of_equity_serialization
+tests/capital/test_capital_models.py::test_wacc_result_serialization
+tests/cio/test_acio.py::test_investment_decision_immutability
+tests/cio/test_acio.py::test_artificial_cio_engine
+tests/committee/test_committee.py::test_artificial_investment_committee
+tests/company/test_company_knowledge.py::test_company_registry_and_delta_engine
+tests/company/test_ikl_layer.py::test_company_timeline_and_predictions
+tests/compliance/test_ircp.py::test_compliance_report_immutability
+tests/compliance/test_ircp.py::test_institutional_compliance_platform
+tests/copilot/test_copilot.py::test_institutional_ai_copilot
+tests/copilot_v2/test_copilot_v2.py::test_copilot_response_immutability
+tests/copilot_v2/test_copilot_v2.py::test_institutional_copilot_v2
+tests/dashboard/test_dashboard.py::test_dashboard_file_exists
+tests/data_lake/test_idlfs.py::test_feature_record_immutability
+tests/data_lake/test_idlfs.py::test_institutional_feature_store
+tests/data_platform/test_idp.py::test_institutional_data_platform
+tests/database/test_expanded_repositories.py::test_expanded_repositories_persistence
+tests/database/test_forecast_report_repositories.py::test_forecast_and_report_repositories
+tests/database/test_production_db.py::test_production_database_persistence
+tests/database/test_sqlalchemy_production.py::test_sqlalchemy_production_persistence
+tests/decision/test_decision.py::test_decision_option_immutability
+tests/decision/test_decision.py::test_decision_engine_ranking
+tests/decision/test_decision.py::test_decision_policy_engine
+tests/events/test_s16_event_bus.py::test_enterprise_event_bus_pub_sub
+tests/events/test_s16_event_bus.py::test_provider_failover_success_on_primary
+tests/events/test_s16_event_bus.py::test_provider_failover_triggers_secondary_on_failure
+tests/events/test_s16_event_bus.py::test_streaming_analytics_engine
+tests/execution/test_ieip.py::test_execution_order_immutability
+tests/execution/test_ieip.py::test_institutional_execution_engine
+tests/execution/test_ieip.py::test_transaction_cost_analyzer
+tests/forecast_system/test_ifis.py::test_forecast_result_immutability
+tests/forecast_system/test_ifis.py::test_institutional_forecast_engine
+tests/forecasting/test_forecasting.py::test_forecasting_and_scenario_engine
+tests/frontend/test_frontend.py::test_institutional_web_platform_dashboard
+tests/fundamentals/test_canonical_models.py::test_canonical_models_and_validation
+tests/fundamentals/test_events.py::test_fundamentals_downloaded_event_contract
+tests/fundamentals/test_models.py::test_financial_statements_immutability_and_structure
+tests/fundamentals/test_normalizer.py::test_financial_normalizer
+tests/fundamentals/test_provider.py::test_yahoo_finance_provider
+tests/fundamentals/test_service.py::test_fundamentals_service_get_or_download_and_cache
+tests/governance/test_block20_governance.py::test_block20_governance_and_audit
+tests/infrastructure/test_cnep.py::test_settings_configuration_loading
+tests/infrastructure/test_cnep.py::test_system_liveness_endpoint
+tests/infrastructure/test_cnep.py::test_system_readiness_endpoint
+tests/infrastructure/test_cnep.py::test_system_metrics_endpoint
+tests/investors/test_investors.py::test_buffett_engine
+tests/knowledge_graph/test_kg.py::test_knowledge_graph_nodes_and_edges
+tests/learning/test_learning.py::test_self_learning_ai_service
+tests/market_data/test_block23_real_market.py::test_block23a_market_data_adapter
+tests/market_data/test_block23_real_market.py::test_block23b_real_stock_pipeline_evaluation
+tests/market_data/test_block23c_provider.py::test_block23c_yahoo_provider_execution
+tests/market_data/test_block23c_provider.py::test_block23c_provider_fallback_handling
+tests/market_data/test_block23de_integrity.py::test_block23d_integrity_gate_live
+tests/market_data/test_block23de_integrity.py::test_block23d_integrity_gate_invalid
+tests/market_data/test_block23de_integrity.py::test_block23e_resilient_provider_workflow
+tests/market_data/test_block23fg_gate.py::test_block23f_decision_gate_live
+tests/market_data/test_block23fg_gate.py::test_block23f_decision_gate_fallback
+tests/market_data/test_block23fg_gate.py::test_block23f_decision_gate_invalid
+tests/market_data/test_block23fg_gate.py::test_block23g_fully_integrated_pipeline
+tests/market_data/test_block23h_confidence.py::test_block23h_confidence_propagation
+tests/market_data/test_block23i_confidence_bounds.py::test_block23i_zero_penalty_live
+tests/market_data/test_block23i_confidence_bounds.py::test_block23i_degraded_penalty_fallback
+tests/market_data/test_block23i_confidence_bounds.py::test_block23i_stale_penalty_bounds
+tests/market_data/test_block23i_confidence_bounds.py::test_block23i_floor_bounds
+tests/market_data/test_block23j_trace.py::test_block23j_confidence_decision_trace_generation
+tests/market_data/test_block23k_four_path.py::test_block23k_path_live
+tests/market_data/test_block23k_four_path.py::test_block23k_path_fallback
+tests/market_data/test_block23k_four_path.py::test_block23k_path_stale
+tests/market_data/test_block23k_four_path.py::test_block23k_path_invalid
+tests/market_data/test_block23k_integration.py::test_block23k_fully_integrated_pipeline_execution
+tests/market_data/test_emdp.py::test_provider_registry_and_yahoo
+tests/market_data/test_emdp.py::test_provider_registry_and_alphavantage
+tests/market_data/test_emdp.py::test_registry_missing_provider_raises_error
+tests/memory/test_ikme.py::test_research_memory_immutability
+tests/memory/test_ikme.py::test_knowledge_memory_engine
+tests/ml_platform/test_mlamp.py::test_model_artifact_immutability
+tests/ml_platform/test_mlamp.py::test_machine_learning_platform
+tests/moat/test_moat.py::test_economic_moat_engine
+tests/monitoring/test_block20_monitoring.py::test_block20_monitoring_and_change_detection
+tests/monitoring/test_imop.py::test_system_health_immutability
+tests/monitoring/test_imop.py::test_monitoring_platform
+tests/portfolio/test_portfolio.py::test_portfolio_analytics_evaluation
+tests/portfolio_intelligence/test_portfolio_intelligence.py::test_portfolio_intelligence_layer
+tests/portfolio_lab/test_ipcsl.py::test_portfolio_strategy_immutability
+tests/portfolio_lab/test_ipcsl.py::test_portfolio_strategy_engine
+tests/portfolio_lab/test_ipcsl.py::test_factor_exposure_engine
+tests/portfolio_manager/test_apm.py::test_managed_portfolio_immutability
+tests/portfolio_manager/test_apm.py::test_artificial_portfolio_manager
+tests/portfolio_optimizer/test_ipoe.py::test_portfolio_allocation_immutability
+tests/portfolio_optimizer/test_ipoe.py::test_portfolio_optimizer_execution
+tests/portfolio_optimizer/test_ipoe.py::test_portfolio_rebalancer_trades
+tests/production/test_block21a_health.py::test_block21a_system_health_contract
+tests/production/test_block21b_backtest.py::test_block21b_positive_signal_validation
+tests/production/test_block21b_backtest.py::test_block21b_negative_signal_validation
+tests/production/test_block21b_backtest.py::test_block21b_default_attribution
+tests/production/test_block21c_e2e_lifecycle.py::test_block21c_e2e_production_lifecycle
+tests/production/test_block21d_degraded_modes.py::test_block21d_system_health_under_degraded_load
+tests/production/test_block21d_degraded_modes.py::test_block21d_backtest_edge_cases
+tests/production/test_block21e_readiness.py::test_block21e_production_readiness
+tests/production/test_block24_e2e_production.py::test_block24_e2e_production_workflow
+tests/production/test_block25a_api_contract.py::test_block25a_eros_production_route_registered
+tests/production/test_block25a_api_contract.py::test_block25a_eros_production_openapi_contract
+tests/production/test_block25a_api_contract.py::test_block25a_eros_production_router_contract
+tests/production/test_block25b_api_validation.py::test_block25b_valid_eros_request
+tests/production/test_block25b_api_validation.py::test_block25b_missing_symbol_rejected
+tests/production/test_block25b_api_validation.py::test_block25b_malformed_request_rejected
+tests/production/test_block25c_api_e2e.py::test_block25c_real_production_api_e2e
+tests/production/test_block25d_integrity_chain.py::test_block25d_production_integrity_chain
+tests/production/test_block26c_failure_safety.py::test_block26c_invalid_symbol_graceful_handling
+tests/production/test_block26c_failure_safety.py::test_block26c_missing_payload_rejection
+tests/production/test_block26c_failure_safety.py::test_block26c_malformed_symbol_type_rejection
+tests/production/test_block26c_failure_safety.py::test_block26c_safety_invariant_no_unvetted_buys
+tests/production/test_block26d_observability.py::test_block26d_audit_trace_observability
+tests/production/test_block26d_observability.py::test_block26e_state_determinism_and_health
+tests/production/test_block27_operations.py::test_block27a_configuration_contract
+tests/production/test_block27_operations.py::test_block27b_api_operational_contract
+tests/production/test_block27_operations.py::test_block27c_worker_operational_contract
+tests/production/test_block28_worker.py::test_block28_worker_facade_and_registry
+tests/production/test_block28_worker.py::test_block28_task_submission_and_status
+tests/production/test_block28_worker.py::test_block28_queue_and_metrics_observability
+tests/production/test_block29_real_celery.py::test_block29a_redis_broker_configuration
+tests/production/test_block29_real_celery.py::test_block29b_celery_config_queues
+tests/production/test_block29_real_celery.py::test_block29c_task_control_broker_integration
+tests/production/test_block29_real_celery.py::test_block29d_production_broker_dispatch
+tests/production/test_block30_real_worker.py::test_block30a_redis_ping_connection
+tests/production/test_block30_real_worker.py::test_block30b_real_celery_instance_bootstrap
+tests/production/test_block30c_real_worker_execution.py::test_block30c_real_worker_task_lifecycle
+tests/production/test_block30d_live_redis_worker.py::test_block30d_live_redis_broker_roundtrip
+tests/production/test_block30d_live_redis_worker.py::test_block30d_live_celery_task_dispatch
+tests/production/test_block30g_infra.py::test_block30g_redis_resilient_ping
+tests/production/test_block30g_infra.py::test_block30g_task_control_fallback
+tests/production/test_block30k_real_celery_broker.py::test_block30k_real_celery_broker_connection
+tests/production/test_block30k_real_celery_broker.py::test_block30k_celery_task_signature_and_dispatch
+tests/production/test_block30l_live_worker.py::test_block30l_live_worker_broker_integration
+tests/production/test_block30m_definitive_worker.py::test_block30m_definitive_worker_execution
+tests/production/test_block30n_strict_worker.py::test_block30n_strict_worker_execution_proof
+tests/production/test_block30o_separate_worker.py::test_block30o_separate_process_worker_execution
+tests/production/test_block30p_dedicated_worker.py::test_block30p_dedicated_worker_execution
+tests/production/test_block30q_diagnostic.py::test_block30q_worker_stream_diagnostic
+tests/production/test_block30r_diagnostic.py::test_block30r_nonblocking_worker_diagnostic
+tests/production/test_block30s_permanent_worker.py::test_block30s_permanent_real_worker_regression
+tests/production/test_block31g_canonical_smoke.py::test_block31g_canonical_worker_smoke_execution
+tests/production/test_block31l3c_failure_probe.py::test_failure_semantics_probe
+tests/providers/test_edpf.py::test_yahoo_provider_operations
+tests/providers/test_edpf.py::test_provider_failover_routing
+tests/providers/test_edpf.py::test_all_providers_fail_raises_error
+tests/providers/test_eepp_adapters.py::test_event_normalization_engine
+tests/providers/test_eepp_adapters.py::test_yahoo_finance_adapter_normalization
+tests/providers/test_eepp_adapters.py::test_alpha_vantage_adapter_normalization
+tests/ratios/test_profitability_ratios.py::test_profitability_ratio_engine
+tests/ratios/test_quality_engine.py::test_advanced_quality_engine
+tests/ratios/test_ratios.py::test_financial_ratio_engine
+tests/ratios/test_sprint7_ratios.py::test_sprint7_ratio_sub_engines
+tests/realtime/test_edcp_stream.py::test_websocket_connection_manager_subscriptions
+tests/realtime/test_edcp_stream.py::test_realtime_publishing_api_endpoint
+tests/realtime/test_edcp_stream.py::test_realtime_subscriptions_api_endpoint
+tests/realtime/test_realtime.py::test_real_time_intelligence_platform
+tests/reasoning/test_reasoning_engine.py::test_business_reasoning_engine
+tests/reasoning_graph/test_irg.py::test_reasoning_evidence_immutability
+tests/reasoning_graph/test_irg.py::test_reasoning_propagation_engine
+tests/reasoning_graph/test_irg.py::test_institutional_reasoning_graph_explanation
+tests/report/test_report.py::test_production_report_generation
+tests/reporting/test_block19_report.py::test_block19_report_generation
+tests/reporting/test_reporting.py::test_institutional_reporting_platform
+tests/research/evidence/adapters/test_evidence_adapters.py::test_fundamentals_evidence_adapter
+tests/research/evidence/adapters/test_evidence_adapters.py::test_valuation_evidence_adapter
+tests/research/evidence/adapters/test_evidence_adapters.py::test_risk_evidence_adapter
+tests/research/evidence/graph/test_evidence_graph.py::test_evidence_graph_node_addition
+tests/research/evidence/graph/test_evidence_graph.py::test_evidence_graph_clustering_and_scoring
+tests/research/evidence/quality/test_evidence_quality.py::test_evidence_quality_assessment_primary_source
+tests/research/evidence/quality/test_evidence_quality.py::test_evidence_quality_assessment_anonymous_source
+tests/research/evidence/quality/test_evidence_quality.py::test_evidence_quality_invalid_weights_rejected
+tests/research/evidence/reasoning/test_evidence_reasoning.py::test_evidence_contradiction_detection
+tests/research/evidence/reasoning/test_evidence_reasoning.py::test_evidence_corroboration_detection
+tests/research/evidence/reasoning/test_evidence_reasoning.py::test_net_stance_evaluation
+tests/research/evidence/test_evidence_engine.py::test_structured_evidence_creation
+tests/research/evidence/test_evidence_engine.py::test_evidence_strength_calculation
+tests/research/evidence/test_evidence_engine.py::test_evidence_attachment_to_case
+tests/research/evidence/test_evidence_engine.py::test_evidence_case_mismatch_rejected
+tests/research/evidence/test_evidence_engine.py::test_evidence_summary
+tests/research/evidence/test_evidence_engine.py::test_invalid_confidence_rejected
+tests/research/evidence/test_evidence_engine.py::test_invalid_polarity_rejected
+tests/research/test_block17_research.py::test_block17b_research_intelligence
+tests/research/test_block17_research.py::test_block17c_evidence_reasoning
+tests/research/test_block17_research.py::test_block17d_confidence_orchestration
+tests/research/test_research_case.py::test_research_case_creation
+tests/research/test_research_case.py::test_research_case_evidence_management
+tests/research/test_research_case.py::test_research_case_thesis_update
+tests/research/test_research_case.py::test_research_case_closure
+tests/research_director/test_ard.py::test_research_mission_immutability
+tests/research_director/test_ard.py::test_research_director_engine
+tests/risk_management/test_irmst.py::test_portfolio_risk_profile_immutability
+tests/risk_management/test_irmst.py::test_risk_resilience_evaluation
+tests/risk_management/test_irmst.py::test_stress_testing_engine
+tests/scoring/test_block10_fundamental_scoring.py::test_block10_fundamental_scoring
+tests/scoring/test_block11_historical_growth.py::test_block11_historical_growth_scoring
+tests/scoring/test_block12_unified_scoring.py::test_block12_unified_scoring_engine
+tests/scoring/test_block13_valuation_scoring.py::test_block13_valuation_scoring_integration
+tests/scoring/test_block14_integration.py::test_block14_ai_scoring_integration
+tests/scoring/test_block14_momentum.py::test_block14_technical_indicator_engine
+tests/scoring/test_block14_momentum.py::test_block14_momentum_scoring_engine
+tests/scoring/test_block15_integration.py::test_block15_ai_scoring_integration
+tests/scoring/test_block15_risk.py::test_block15_risk_scoring_engine
+tests/scoring/test_block16_decision.py::test_block16_investment_decision_orchestrator
+tests/scoring/test_block16_e2e.py::test_block16e_e2e_strong_buy_allocation
+tests/scoring/test_block16_e2e.py::test_block16e_e2e_concentration_downgrade
+tests/scoring/test_block16_execution.py::test_block16d_execution_tca_integration
+tests/scoring/test_block16_portfolio_context.py::test_block16b_portfolio_context_integration
+tests/scoring/test_block16_position_sizing.py::test_block16c_position_sizing_allocation
+tests/scoring/test_block18_orchestrator.py::test_block18_unified_orchestrator
+tests/scoring/test_scoring.py::test_ai_scoring_evaluation
+tests/security/test_auth.py::test_password_hashing_and_verification
+tests/security/test_auth.py::test_jwt_token_generation_and_decoding
+tests/security/test_auth.py::test_user_registration_and_login_flow
+tests/services/test_valuation_service.py::test_valuation_service_orchestration
+tests/services/test_valuation_service.py::test_valuation_service_edge_cases
+tests/simulation/test_imsdt.py::test_simulation_result_immutability
+tests/simulation/test_imsdt.py::test_institutional_market_simulator
+tests/simulation/test_imsdt.py::test_monte_carlo_engine
+tests/strategy_factory/test_isf.py::test_strategy_result_immutability
+tests/strategy_factory/test_isf.py::test_strategy_factory_engine
+tests/tasks/test_edcp.py::test_redis_infrastructure_and_locks
+tests/tasks/test_edcp.py::test_celery_queue_routing
+tests/tasks/test_edcp.py::test_admin_monitoring_endpoints
+tests/tasks/test_edpp.py::test_celery_task_registration_and_dispatch
+tests/tasks/test_edpp.py::test_background_valuation_worker
+tests/tasks/test_edpp.py::test_task_submission_api_endpoint
+tests/tasks/test_sprint19c_control_plane.py::test_task_control_forecast_lifecycle
+tests/tasks/test_sprint19c_control_plane.py::test_task_control_registered_tasks
+tests/tasks/test_sprint19c_control_plane.py::test_task_control_queue_status
+tests/tasks/test_sprint19c_control_plane.py::test_task_control_unknown_task
+tests/tasks/test_sprint19c_control_plane.py::test_task_router_lifecycle
+tests/tasks/test_sprint19c_control_plane.py::test_task_router_unknown_task
+tests/tasks/test_sprint19c_control_plane.py::test_task_router_queue_status
+tests/tasks/test_sprint20a_observability.py::test_task_observability_metrics
+tests/tasks/test_sprint20a_observability.py::test_task_observability_router_endpoint
+tests/tasks/test_sprint20b_observability_details.py::test_per_task_execution_telemetry
+tests/tasks/test_sprint20b_observability_details.py::test_task_observability_details_endpoint
+tests/tasks/test_sprint20c_unified_observability.py::test_unified_observability_service
+tests/tasks/test_sprint20c_unified_observability.py::test_unified_observability_endpoint
+tests/test_event_contracts.py::test_domain_event_contract[MarketDataDownloaded-market.data.downloaded]
+tests/test_event_contracts.py::test_domain_event_contract[ForecastCompleted-forecast.completed]
+tests/test_event_contracts.py::test_domain_event_contract[ValuationCompleted-valuation.completed]
+tests/test_event_contracts.py::test_domain_event_contract[ResearchCompleted-research.completed]
+tests/test_event_contracts.py::test_domain_event_contract[ReportCompleted-report.completed]
+tests/test_event_contracts.py::test_event_runtime_assertions
+tests/test_pipeline.py::test_end_to_end_pipeline
+tests/validation/test_backtest.py::test_backtest_evaluation
+tests/validation/test_block22_hardening.py::test_block22a_data_sanitization_valid
+tests/validation/test_block22_hardening.py::test_block22a_data_sanitization_anomalies
+tests/validation/test_block22_hardening.py::test_block22b_conflicting_signals_growth_vs_valuation
+tests/validation/test_block22_hardening.py::test_block22b_conflicting_signals_momentum_vs_fundamentals
+tests/validation/test_block22c_stress.py::test_block22c_batch_concurrency_stress
+tests/validation/test_block22c_stress.py::test_block22c_subsystem_recovery
+tests/valuation/test_blended_valuation.py::test_blended_valuation_engine
+tests/valuation/test_dcf.py::test_production_dcf_calculation
+tests/valuation/test_professional_dcf.py::test_professional_dcf_calculation
+tests/valuation/test_relative.py::test_relative_valuation_calculation
+tests/valuation/test_sotp.py::test_sotp_valuation_calculation
+tests/wacc/test_wacc_service.py::test_capm_cost_of_equity_calculation
+tests/wacc/test_wacc_service.py::test_hamada_beta_unlever_and_relever
+tests/wacc/test_wacc_service.py::test_wacc_calculation
+tests/watchlist_platform/test_iwip.py::test_watchlist_item_immutability
+tests/watchlist_platform/test_iwip.py::test_watchlist_intelligence_engine
+tests/web_platform/test_ewp.py::test_web_page_descriptor_immutability
+tests/web_platform/test_ewp.py::test_enterprise_web_platform
+tests/workflow/test_workflow.py::test_institutional_research_pipeline
+tests/workflow_engine/test_erwe.py::test_workflow_execution_immutability
+tests/workflow_engine/test_erwe.py::test_enterprise_workflow_engine
+tests/workflow_engine/test_ewop.py::test_workflow_successful_execution
+tests/workflow_engine/test_ewop.py::test_workflow_invalid_state_transition
+tests/workflow_engine/test_ewop.py::test_workflow_retry_and_failure
+
+295 tests collected in 2.21s
+
+============================================================
+10. COMPILE INTEGRATION CANDIDATES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_valuation_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_valuation_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_resolver.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_quality_adjustment_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v43_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v4_service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\copilot\orchestrator.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\decision_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\policy_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\assumption_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\cagr.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\capex_forecast.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\confidence_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\depreciation_forecast.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\events.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\forecast_input.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\forecast_result.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\growth.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\input.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\margin_forecast.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\regression.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\result.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\revenue_forecast.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\scenario_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\tax_forecast.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\terminal_growth.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\test_forecast_input.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\test_validation.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\validation.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\working_capital_forecast.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\__init__.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\cagr.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\linear_regression.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\mean_reversion.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\rolling_average.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\__init__.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\engines\__init__.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\examples\basic_forecast.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\examples\run_models_example.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\examples\__init__.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\forecasts\__init__.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\tests\test_models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\tests\__init__.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting\scenario_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast_system\forecast_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast_system\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\decision_gate.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning_graph\graph_reasoner.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning_graph\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning_graph\propagation_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\block17_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\events.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\report_generator.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\target_price.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\__init__.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research_director\director.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research_director\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block17_confidence.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\contracts.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\enums.py | COMPILE: PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\events.py | COMPILE: PASS
+
+============================================================
+31K-EW DECISION INPUT
+============================================================
+31K-EV: COMPLETE
+FINANCIAL LAYER: PASS
+295 TESTS COLLECTED
+NO SOURCE MODIFICATION
+
+IDENTIFY THE NEXT ACTUAL ENGINEERING TARGET
+DO NOT MODIFY SOURCE
+DO NOT CREATE NEXT BLOCK UNTIL REVIEWED
+============================================================

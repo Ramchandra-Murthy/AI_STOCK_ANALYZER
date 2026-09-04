@@ -1,0 +1,203 @@
+﻿======================================================================
+EROS 3.0 - V3.8.2.9 MIDDLE-LAYER RUNTIME HYDRATION TEST
+======================================================================
+
+======================================================================
+METHOD: decision_evidence
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 13
+KEYS: ['symbol', 'price', 'trend', 'momentum', 'score', 'confidence', 'recommendation', 'risk', 'reasons', 'breakout_signal', 'breakout_reason', 'technical_indicators', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  trend: str = 'Bullish'
+  momentum: str = 'Strong'
+  score: int = 100
+  confidence: int = 100
+  recommendation: str = 'STRONG BUY'
+  risk: str = 'Low'
+  reasons: LIST (7 items)
+    first: '20 SMA above 50 SMA (Bullish)'
+  breakout_signal: str = 'NONE'
+  breakout_reason: str = 'Price is inside the trading range.'
+  technical_indicators: DICT (13 keys)
+    keys: ['sma_20', 'sma_50', 'ema_20', 'rsi_14', 'macd', 'signal', 'histogram', 'bb_middle', 'bb_upper', 'bb_lower', 'atr', 'support', 'resistance']
+  governance: DICT (3 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant']
+
+======================================================================
+METHOD: decision_intelligence
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 9
+KEYS: ['symbol', 'price', 'decision', 'market_context', 'technical_drivers', 'technical_indicators', 'risk_flags', 'summary', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  decision: DICT (7 keys)
+    keys: ['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+  market_context: DICT (4 keys)
+    keys: ['trend', 'momentum', 'breakout_signal', 'breakout_reason']
+  technical_drivers: LIST (7 items)
+    first: '20 SMA above 50 SMA (Bullish)'
+  technical_indicators: DICT (13 keys)
+    keys: ['sma_20', 'sma_50', 'ema_20', 'rsi_14', 'macd', 'signal', 'histogram', 'bb_middle', 'bb_upper', 'bb_lower', 'atr', 'support', 'resistance']
+  risk_flags: LIST (3 items)
+    first: 'Low'
+  summary: str = 'RELIANCE.NS is bullish with STRONG BUY recommendation, score 100/100 and 100% confidence.'
+  governance: DICT (3 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant']
+
+======================================================================
+METHOD: decision_interpretation
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 6
+KEYS: ['symbol', 'price', 'decision', 'interpretation', 'technical_indicators', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  decision: DICT (7 keys)
+    keys: ['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+  interpretation: DICT (9 keys)
+    keys: ['market_condition', 'price_context', 'breakout_context', 'decision_quality', 'primary_drivers', 'supporting_drivers', 'conflicting_signals', 'interpretation', 'invalidation_context']
+  technical_indicators: DICT (13 keys)
+    keys: ['sma_20', 'sma_50', 'ema_20', 'rsi_14', 'macd', 'signal', 'histogram', 'bb_middle', 'bb_upper', 'bb_lower', 'atr', 'support', 'resistance']
+  governance: DICT (3 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant']
+
+======================================================================
+METHOD: decision_action_framework
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 8
+KEYS: ['symbol', 'price', 'action', 'market_context', 'confirmation_conditions', 'invalidation_conditions', 'interpretation_summary', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  action: DICT (7 keys)
+    keys: ['classification', 'stance', 'recommendation', 'score', 'confidence', 'confidence_band', 'risk_context']
+  market_context: DICT (4 keys)
+    keys: ['price_context', 'breakout_context', 'support', 'resistance']
+  confirmation_conditions: LIST (2 items)
+    first: 'Hold above support 1298.10'
+  invalidation_conditions: LIST (2 items)
+    first: 'Sustained breakdown below support 1298.10'
+  interpretation_summary: str = 'The technical evidence currently supports a STRONG BUY stance. The market condition is BULLISH_MOMENTUM. Decision quality is HIGH.'
+  governance: DICT (8 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_optimization']
+
+======================================================================
+METHOD: decision_action_explanation
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 5
+KEYS: ['symbol', 'price', 'action', 'explanation', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  action: DICT (6 keys)
+    keys: ['classification', 'stance', 'recommendation', 'confidence', 'confidence_band', 'risk_context']
+  explanation: DICT (15 keys)
+    keys: ['primary_reason', 'supporting_reasons', 'primary_drivers', 'supporting_drivers', 'conflicting_signals', 'confirmation_logic', 'invalidation_logic', 'decision_quality', 'risk_explanation', 'price_context', 'support', 'resistance', 'breakout_context', 'summary', 'execution_status']
+  governance: DICT (11 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+======================================================================
+METHOD: decision_scenario_engine
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 8
+KEYS: ['symbol', 'price', 'current_decision', 'primary_scenario', 'scenarios', 'decision_quality', 'scenario_summary', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  current_decision: DICT (4 keys)
+    keys: ['stance', 'recommendation', 'confidence', 'risk']
+  primary_scenario: str = 'BULL'
+  scenarios: DICT (3 keys)
+    keys: ['base', 'bull', 'bear']
+  decision_quality: str = 'HIGH'
+  scenario_summary: str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The primary scenario is BULL.'
+  governance: DICT (11 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+======================================================================
+METHOD: decision_scenario_explanation
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 11
+KEYS: ['symbol', 'price', 'current_decision', 'primary_scenario', 'scenario_explanation', 'decision_quality', 'interpretation', 'confirmation_logic', 'invalidation_logic', 'summary', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  current_decision: DICT (4 keys)
+    keys: ['stance', 'recommendation', 'confidence', 'risk']
+  primary_scenario: str = 'BULL'
+  scenario_explanation: DICT (3 keys)
+    keys: ['base', 'bull', 'bear']
+  decision_quality: str = 'HIGH'
+  interpretation: str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The primary scenario is BULL.'
+  confirmation_logic: LIST (2 items)
+    first: 'Confirmed move above resistance 1332.90'
+  invalidation_logic: LIST (2 items)
+    first: 'Sustained breakdown below support 1298.10'
+  summary: str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The primary scenario is BULL. The BULL scenario represents confirmation, while the BEAR scenario represents invalidation.'
+  governance: DICT (11 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+======================================================================
+METHOD: decision_convergence
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 7
+KEYS: ['symbol', 'price', 'decision', 'convergence', 'interpretation', 'conclusion', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  decision: DICT (6 keys)
+    keys: ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+  convergence: DICT (9 keys)
+    keys: ['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation', 'confirmation_logic', 'invalidation_logic', 'primary_drivers', 'supporting_drivers', 'conflicting_signals']
+  interpretation: DICT (4 keys)
+    keys: ['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+  conclusion: str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.'
+  governance: DICT (11 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+======================================================================
+METHOD: decision_traceability
+======================================================================
+CALL : PASS
+TYPE : dict
+KEY COUNT: 11
+KEYS: ['symbol', 'price', 'decision', 'trace', 'evidence_chain', 'scenario_trace', 'interpretation', 'conclusion', 'traceability_status', 'traceability', 'governance']
+  symbol: str = 'RELIANCE.NS'
+  price: float = 1316.0
+  decision: DICT (6 keys)
+    keys: ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+  trace: DICT (8 keys)
+    keys: ['stage_1_evidence', 'stage_2_intelligence', 'stage_3_interpretation', 'stage_4_action_framework', 'stage_5_action_explanation', 'stage_6_scenario_engine', 'stage_7_scenario_explanation', 'stage_8_convergence']
+  evidence_chain: DICT (5 keys)
+    keys: ['primary_drivers', 'supporting_drivers', 'conflicting_signals', 'confirmation_logic', 'invalidation_logic']
+  scenario_trace: DICT (4 keys)
+    keys: ['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation']
+  interpretation: DICT (4 keys)
+    keys: ['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+  conclusion: str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.'
+  traceability_status: str = 'COMPLETE'
+  traceability: DICT (10 keys)
+    keys: ['status', 'source', 'schema_version', 'legacy_trace_preserved', 'stages', 'primary_scenario', 'decision_quality', 'read_only', 'execution_blocked', 'non_mutation_invariant']
+  governance: DICT (11 keys)
+    keys: ['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+======================================================================
+V3.8.2.9 TEST COMPLETE
+======================================================================
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+

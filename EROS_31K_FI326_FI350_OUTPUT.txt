@@ -1,0 +1,545 @@
+============================================================
+EROS 3.0 - 31K-FI326 TO FI350 EVENT CONSUMER IMPACT AUDIT
+============================================================
+MODE: READ-ONLY
+WORKING DIRECTORY: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+PYTHON: C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\python.exe
+SOURCE MODIFICATION: NONE
+
+============================================================
+31K-FI326 - ENVIRONMENT SAFETY
+============================================================
+ROOT EXISTS = True
+SERVICE EXISTS = True
+EVENT EXISTS = True
+BUS EXISTS = True
+SKIPPED = .git,.mypy_cache,.pytest_cache,.ruff_cache,.venv_wsl,__pycache__,node_modules
+SAFE SCAN = PASS
+============================================================
+31K-FI327 - FUNDAMENTALS SERVICE
+============================================================
+TYPE = <class 'services.fundamentals.service.FundamentalsService'>
+MODULE = services.fundamentals.service
+SIGNATURE = (provider: 'IFundamentalProvider', normalizer: 'FinancialNormalizer', dispatcher: 'EventDispatcher', cache: 'Optional[dict[str, FinancialStatements]]' = None) -> 'None'
+GET_OR_DOWNLOAD = (self, symbol: 'str') -> 'FinancialStatements'
+============================================================
+31K-FI328 - EVENT CLASS
+============================================================
+TYPE = <class 'services.fundamentals.events.FundamentalsDownloaded'>
+SIGNATURE = (event_id: 'str' = <factory>, timestamp: 'float' = 0.0, name: 'str' = 'fundamentals.downloaded', symbol: 'str' = '', payload: 'Dict[str, Any]' = <factory>, provider: 'str' = 'YahooFinance') -> None
+NAME = fundamentals.downloaded
+SYMBOL = RELIANCE.NS
+PROVIDER = YahooFinance
+============================================================
+31K-FI329 - SERVICE SOURCE EVENT POSITION
+============================================================
+7: from services.fundamentals.events import FundamentalsDownloaded
+32:         if symbol in self._cache:
+36:             raw = self._provider.download(symbol)
+40:         event = FundamentalsDownloaded(
+50:         await self._dispatcher.dispatch(event)
+51:         logger.info("FundamentalsDownloaded event dispatched successfully for symbol: %s", symbol)
+============================================================
+31K-FI330 - EVENT NAME SEARCH
+============================================================
+FILES FOUND = 13
+31K_EY_workflow_gateway_integration_audit.txt -> 3
+31K_EZ_production_workflow_eventbus_audit.txt -> 3
+31K_FB_pipeline_deep_execution_audit.txt -> 2
+31K_FD2_production_reachability_trace.txt -> 2
+31K_FD7_AIScoringEngine_contract_audit.txt -> 1
+31K_FD_production_decision_data_lineage_audit.txt -> 1
+EROS_31K_FI101_FI125.py -> 4
+EROS_31K_FI76_FI100.py -> 2
+services\forecast\service.py -> 1
+services\fundamentals\events.py -> 1
+tests\fundamentals\test_events.py -> 1
+tests\fundamentals\test_service.py -> 1
+tests\test_pipeline.py -> 2
+============================================================
+31K-FI331 - FUNDAMENTALSDOWNLOADED SEARCH
+============================================================
+FILES FOUND = 13
+31K_EY_workflow_gateway_integration_audit.txt -> 6
+31K_EZ_production_workflow_eventbus_audit.txt -> 6
+31K_FB_pipeline_deep_execution_audit.txt -> 2
+31K_FD2_production_reachability_trace.txt -> 4
+31K_FD6_existing_score_engine_discovery.txt -> 1
+31K_FD7_AIScoringEngine_contract_audit.txt -> 4
+31K_FD8_financialstatements_hydration_trace.txt -> 2
+31K_FI1_real_score_integration_simulation.txt -> 2
+31K_FI3_real_financial_provider_trace.txt -> 3
+31K_FI4_rich_fundamentals_path_recovery.txt -> 3
+services\fundamentals\events.py -> 1
+services\fundamentals\service.py -> 3
+tests\fundamentals\test_events.py -> 2
+============================================================
+31K-FI332 - EVENT SUBSCRIPTION SEARCH
+============================================================
+SUBSCRIBE REFERENCES = 76
+31K_EY_workflow_gateway_integration_audit.txt:735: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:27 | self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
+31K_EY_workflow_gateway_integration_audit.txt:755: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:25 | self._bus.subscribe("research.completed", self.handle_research_completed)
+31K_EY_workflow_gateway_integration_audit.txt:764: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:24 | self._bus.subscribe("valuation.completed", self.handle_valuation_completed)
+31K_EY_workflow_gateway_integration_audit.txt:775: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:28 | self._bus.subscribe("forecast.completed", self.handle_forecast_completed)
+31K_EY_workflow_gateway_integration_audit.txt:798: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:63 | bus.subscribe("fundamentals.downloaded", spy_handler)
+31K_EY_workflow_gateway_integration_audit.txt:799: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:64 | bus.subscribe("forecast.completed", spy_handler)
+31K_EY_workflow_gateway_integration_audit.txt:800: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:65 | bus.subscribe("valuation.completed", valuation_listener)
+31K_EY_workflow_gateway_integration_audit.txt:801: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:66 | bus.subscribe("research.completed", research_listener)
+31K_EY_workflow_gateway_integration_audit.txt:802: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:67 | bus.subscribe("report.completed", report_listener)
+31K_EY_workflow_gateway_integration_audit.txt:807: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py:15 | EnterpriseEventBus.subscribe("market.quote", mock_subscriber)
+31K_EY_workflow_gateway_integration_audit.txt:814: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py:24 | bus.subscribe("fundamentals.downloaded", listener)
+31K_EY_workflow_gateway_integration_audit.txt:818: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:14 | manager.subscribe(client_id, symbol)
+31K_EY_workflow_gateway_integration_audit.txt:823: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:35 | manager.subscribe("terminal_02", "RELIANCE.NS")
+31K_EZ_production_workflow_eventbus_audit.txt:201: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:27 | self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
+31K_EZ_production_workflow_eventbus_audit.txt:205: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\service.py:25 | self._bus.subscribe("research.completed", self.handle_research_completed)
+31K_EZ_production_workflow_eventbus_audit.txt:208: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\service.py:24 | self._bus.subscribe("valuation.completed", self.handle_valuation_completed)
+31K_EZ_production_workflow_eventbus_audit.txt:211: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:28 | self._bus.subscribe("forecast.completed", self.handle_forecast_completed)
+31K_EZ_production_workflow_eventbus_audit.txt:216: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:63 | bus.subscribe("fundamentals.downloaded", spy_handler)
+31K_EZ_production_workflow_eventbus_audit.txt:217: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:64 | bus.subscribe("forecast.completed", spy_handler)
+31K_EZ_production_workflow_eventbus_audit.txt:218: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:65 | bus.subscribe("valuation.completed", valuation_listener)
+31K_EZ_production_workflow_eventbus_audit.txt:219: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:66 | bus.subscribe("research.completed", research_listener)
+31K_EZ_production_workflow_eventbus_audit.txt:220: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:67 | bus.subscribe("report.completed", report_listener)
+31K_EZ_production_workflow_eventbus_audit.txt:223: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py:15 | EnterpriseEventBus.subscribe("market.quote", mock_subscriber)
+31K_EZ_production_workflow_eventbus_audit.txt:228: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py:24 | bus.subscribe("fundamentals.downloaded", listener)
+31K_EZ_production_workflow_eventbus_audit.txt:230: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:14 | manager.subscribe(client_id, symbol)
+31K_EZ_production_workflow_eventbus_audit.txt:232: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py:35 | manager.subscribe("terminal_02", "RELIANCE.NS")
+31K_FB_pipeline_deep_execution_audit.txt:766: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:27 | self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
+31K_FD2_production_reachability_trace.txt:475: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:27 | self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
+31K_FD_production_decision_data_lineage_audit.txt:1601: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:27 | self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
+EROS_31K_FI101_FI125.py:36: bus.subscribe("fundamentals.downloaded", capture)
+EROS_31K_FI76_FI100.py:105: bus.subscribe("fundamentals.downloaded", capture)
+.venv\Lib\site-packages\celery\backends\redis.py:112: self._pubsub.subscribe(*self.subscribed_to)
+.venv\Lib\site-packages\celery\backends\redis.py:165: self._pubsub.subscribe(key)
+.venv\Lib\site-packages\kombu\transport\confluentkafka.py:206: consumer.subscribe([queue])
+.venv\Lib\site-packages\redis\keyspace_notifications.py:28: >>> ksn.subscribe(channel)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:50: >>> ksn.subscribe(channel)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:575: >>> notifications.subscribe(channel)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:643: >>> notifications.subscribe(channel)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1349: self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1370: self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1389: self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1408: self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1430: self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1452: self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1507: >>> notifications.subscribe(KeyspaceChannel("user:*"), handler=my_handler)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1647: self._pubsub.subscribe(**exact_channels)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1883: pubsub.subscribe(**self._subscribed_channels)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:1888: pubsub.subscribe(**exact_channels)
+.venv\Lib\site-packages\redis\keyspace_notifications.py:2156: pubsub.subscribe(**self._subscribed_channels)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:18: ...             await ksn.subscribe(channel)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:33: ...             await ksn.subscribe(channel)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:386: await self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:396: await self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:406: await self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:416: await self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:427: await self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:438: await self.subscribe(channel, handler=handler)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:528: await self._pubsub.subscribe(**exact_channels)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:744: await pubsub.subscribe(**self._subscribed_channels)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:749: await pubsub.subscribe(**exact_channels)
+.venv\Lib\site-packages\redis\asyncio\keyspace_notifications.py:1011: await pubsub.subscribe(**self._subscribed_channels)
+.venv\Lib\site-packages\yfinance\base.py:827: self.ws.subscribe(self.ticker)
+.venv\Lib\site-packages\yfinance\tickers.py:99: self.ws.subscribe(self.symbols)
+services\forecast\service.py:27: self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
+services\report\service.py:25: self._bus.subscribe("research.completed", self.handle_research_completed)
+services\research\service.py:24: self._bus.subscribe("valuation.completed", self.handle_valuation_completed)
+services\valuation\service.py:28: self._bus.subscribe("forecast.completed", self.handle_forecast_completed)
+tests\test_pipeline.py:63: bus.subscribe("fundamentals.downloaded", spy_handler)
+tests\test_pipeline.py:64: bus.subscribe("forecast.completed", spy_handler)
+tests\test_pipeline.py:65: bus.subscribe("valuation.completed", valuation_listener)
+tests\test_pipeline.py:66: bus.subscribe("research.completed", research_listener)
+tests\test_pipeline.py:67: bus.subscribe("report.completed", report_listener)
+tests\events\test_s16_event_bus.py:15: EnterpriseEventBus.subscribe("market.quote", mock_subscriber)
+tests\fundamentals\test_service.py:24: bus.subscribe("fundamentals.downloaded", listener)
+tests\realtime\test_edcp_stream.py:14: manager.subscribe(client_id, symbol)
+tests\realtime\test_edcp_stream.py:35: manager.subscribe("terminal_02", "RELIANCE.NS")
+============================================================
+31K-FI333 - HANDLER SEARCH
+============================================================
+POTENTIAL HANDLER REFERENCES = 429
+31K_EY_workflow_gateway_integration_audit.txt:798: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:63 | bus.subscribe("fundamentals.downloaded", spy_handler)
+31K_EZ_production_workflow_eventbus_audit.txt:179: D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\events\bus.py:8 | from core.events.interfaces import DomainEvent, EventHandler, IEventBus
+31K_EZ_production_workflow_eventbus_audit.txt:181: D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\events\bus.py:19 | def subscribe(self, event_name: str, handler: EventHandler) -> None:
+31K_EZ_production_workflow_eventbus_audit.txt:182: D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\events\bus.py:25 | def unsubscribe(self, event_name: str, handler: EventHandler) -> None:
+31K_EZ_production_workflow_eventbus_audit.txt:189: D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\events\interfaces.py:16 | def subscribe(self, event_name: str, handler: EventHandler[Any]) -> None:
+31K_EZ_production_workflow_eventbus_audit.txt:190: D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\events\interfaces.py:21 | def unsubscribe(self, event_name: str, handler: EventHandler[Any]) -> None:
+31K_EZ_production_workflow_eventbus_audit.txt:194: D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\events\memory_bus.py:21 | def subscribe(self, event_name: str, handler: EventHandler[Any]) -> None:
+31K_EZ_production_workflow_eventbus_audit.txt:195: D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\events\memory_bus.py:27 | def unsubscribe(self, event_name: str, handler: EventHandler[Any]) -> None:
+31K_EZ_production_workflow_eventbus_audit.txt:197: D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\events\__init__.py:3 | from core.events.interfaces import EventBus, EventHandler
+31K_EZ_production_workflow_eventbus_audit.txt:216: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py:63 | bus.subscribe("fundamentals.downloaded", spy_handler)
+31K_FB_pipeline_deep_execution_audit.txt:768: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:30 | """Event handler triggered when fundamentals are successfully downloaded and normalized."""
+31K_FD2_production_reachability_trace.txt:477: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:30 | """Event handler triggered when fundamentals are successfully downloaded and normalized."""
+31K_FD9_canonical_financials_hydration_trace.txt:835: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:30 | """Event handler triggered when fundamentals are successfully downloaded and normalized."""
+31K_FD_production_decision_data_lineage_audit.txt:1603: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:30 | """Event handler triggered when fundamentals are successfully downloaded and normalized."""
+31K_FD_production_decision_data_lineage_audit.txt:2227: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py:30 | """Event handler triggered when fundamentals are successfully downloaded and normalized."""
+.venv\Lib\site-packages\altair\expr\funcs.py:133: "inScope": r"Returns true if the given scenegraph _item_ is a descendant of the group mark in which the event handler was defined, false otherwise.",
+.venv\Lib\site-packages\altair\expr\__init__.py:1674: """Returns true if the given scenegraph ``item`` is a descendant of the group mark in which the event handler was defined, false otherwise."""
+.venv\Lib\site-packages\amqp\channel.py:2042: handlers = self.events.get('basic_return')
+.venv\Lib\site-packages\billiard\pool.py:1074: self.check_timeouts = self._timeout_handler.handle_event
+.venv\Lib\site-packages\billiard\pool.py:1082: self.handle_result_event = self._result_handler.handle_event
+.venv\Lib\site-packages\billiard\pool.py:1125: return self._result_handler.handle_event(*args)
+.venv\Lib\site-packages\celery\apps\worker.py:510: # gevent does not pass standard signal handler args
+.venv\Lib\site-packages\celery\concurrency\asynpool.py:524: self._result_handler.register_with_event_loop(hub)
+.venv\Lib\site-packages\celery\concurrency\asynpool.py:525: self.handle_result_event = self._result_handler.handle_event
+.venv\Lib\site-packages\celery\contrib\sphinx.py:99: """Handler for autodoc-skip-member event."""
+.venv\Lib\site-packages\celery\events\cursesmon.py:504: recv = app.events.Receiver(conn, handlers={'*': state.event})
+.venv\Lib\site-packages\celery\events\dumper.py:94: recv = app.events.Receiver(conn, handlers={'*': dumper.on_event})
+.venv\Lib\site-packages\celery\events\receiver.py:28: handlers (Mapping[Callable]): Event handlers.
+.venv\Lib\site-packages\celery\events\receiver.py:29: This is  a map of event type names and their handlers.
+.venv\Lib\site-packages\celery\events\receiver.py:30: The special handler `"*"` captures all events that don't have a
+.venv\Lib\site-packages\celery\events\receiver.py:81: """Process event by dispatching to configured handler."""
+.venv\Lib\site-packages\celery\events\receiver.py:83: handler and handler(event)
+.venv\Lib\site-packages\celery\events\snapshot.py:103: recv = app.events.Receiver(conn, handlers={'*': state.event})
+.venv\Lib\site-packages\celery\events\state.py:175: self.event = self._create_event_handler()
+.venv\Lib\site-packages\celery\events\state.py:183: def _create_event_handler(self):
+.venv\Lib\site-packages\celery\events\state.py:552: return handler(subject, event), subject
+.venv\Lib\site-packages\celery\worker\consumer\gossip.py:65: self.event_handlers = {
+.venv\Lib\site-packages\celery\worker\consumer\gossip.py:190: handler = self.event_handlers[_type]
+.venv\Lib\site-packages\fastapi\applications.py:506: A list of startup event handler functions.
+.venv\Lib\site-packages\fastapi\applications.py:518: A list of shutdown event handler functions.
+.venv\Lib\site-packages\fastapi\applications.py:4656: on_event is deprecated, use lifespan event handlers instead.
+.venv\Lib\site-packages\fastapi\applications.py:4674: Add an event handler for the application.
+.venv\Lib\site-packages\fastapi\applications.py:4676: `on_event` is deprecated, use `lifespan` event handlers instead.
+.venv\Lib\site-packages\fastapi\routing.py:256: on_startup and on_shutdown event handlers.
+.venv\Lib\site-packages\fastapi\routing.py:2419: A list of startup event handler functions.
+.venv\Lib\site-packages\fastapi\routing.py:2431: A list of shutdown event handler functions.
+.venv\Lib\site-packages\fastapi\routing.py:3314: self.add_event_handler("startup", handler)
+.venv\Lib\site-packages\fastapi\routing.py:3316: self.add_event_handler("shutdown", handler)
+.venv\Lib\site-packages\fastapi\routing.py:6366: Run any `.on_startup` event handlers.
+.venv\Lib\site-packages\fastapi\routing.py:6382: Run any `.on_shutdown` event handlers.
+.venv\Lib\site-packages\fastapi\routing.py:6396: def add_event_handler(
+.venv\Lib\site-packages\fastapi\routing.py:6402: Add an event handler function for startup or shutdown.
+.venv\Lib\site-packages\fastapi\routing.py:6417: on_event is deprecated, use lifespan event handlers instead.
+.venv\Lib\site-packages\fastapi\routing.py:6435: Add an event handler for the router.
+.venv\Lib\site-packages\fastapi\routing.py:6437: `on_event` is deprecated, use `lifespan` event handlers instead.
+.venv\Lib\site-packages\fastapi\routing.py:6444: self.add_event_handler(event_type, func)
+.venv\Lib\site-packages\fontTools\misc\plistlib\__init__.py:162: """Event handler using the ElementTree Target API that can be
+.venv\Lib\site-packages\fontTools\misc\plistlib\__init__.py:246: # event handlers
+.venv\Lib\site-packages\matplotlib\animation.py:927: handler, calls show to start the event loop.
+.venv\Lib\site-packages\matplotlib\animation.py:932: # First disconnect our draw event handler
+.venv\Lib\site-packages\matplotlib\animation.py:1146: Handler for getting events. By default, gets the next frame in the
+.venv\Lib\site-packages\matplotlib\animation.py:1257: # we're paused. Reset the cache and re-init. Set up an event handler
+.venv\Lib\site-packages\matplotlib\animation.py:1459: """Handler for getting events."""
+.venv\Lib\site-packages\matplotlib\backend_bases.py:1299: # Splitting _set_inaxes out is useful for the axes_leave_event handler: it
+.venv\Lib\site-packages\matplotlib\backend_bases.py:1551: def _key_handler(event):
+.venv\Lib\site-packages\matplotlib\backend_bases.py:1560: def _mouse_handler(event):
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2483: def key_press_handler(event, canvas=None, toolbar=None):
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2624: def button_press_handler(event, canvas=None, toolbar=None):
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2628: Parameters are as for `key_press_handler`, except that *event* is a
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2643: def scroll_handler(event, canvas=None, toolbar=None):
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2734: hooking up the `.key_press_handler` to the matplotlib event system. This
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2781: 'key_press_event', key_press_handler)
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2783: 'button_press_event', button_press_handler)
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2785: 'scroll_event', scroll_handler)
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2993: 'button_press_event', self._zoom_pan_handler)
+.venv\Lib\site-packages\matplotlib\backend_bases.py:2995: 'button_release_event', self._zoom_pan_handler)
+.venv\Lib\site-packages\matplotlib\backend_bases.py:3118: def _zoom_pan_handler(self, event):
+.venv\Lib\site-packages\matplotlib\backend_tools.py:387: mpl.backend_bases.key_press_handler(event, self.figure.canvas)
+.venv\Lib\site-packages\matplotlib\backend_tools.py:402: mpl.backend_bases.key_press_handler(event, self.figure.canvas)
+.venv\Lib\site-packages\matplotlib\contour.py:30: def _contour_labeler_event_handler(cs, inline, inline_spacing, event):
+.venv\Lib\site-packages\matplotlib\contour.py:170: # _contour_labeler_event_handler (for manual label placement).
+.venv\Lib\site-packages\matplotlib\contour.py:226: _contour_labeler_event_handler,
+.venv\Lib\site-packages\matplotlib\figure.py:2615: connect('key_press_event', backend_bases._key_handler),
+.venv\Lib\site-packages\matplotlib\figure.py:2616: connect('key_release_event', backend_bases._key_handler),
+.venv\Lib\site-packages\matplotlib\figure.py:2617: connect('key_release_event', backend_bases._key_handler),
+.venv\Lib\site-packages\matplotlib\figure.py:2618: connect('button_press_event', backend_bases._mouse_handler),
+.venv\Lib\site-packages\matplotlib\figure.py:2619: connect('button_release_event', backend_bases._mouse_handler),
+.venv\Lib\site-packages\matplotlib\figure.py:2620: connect('scroll_event', backend_bases._mouse_handler),
+.venv\Lib\site-packages\matplotlib\figure.py:2621: connect('motion_notify_event', backend_bases._mouse_handler),
+.venv\Lib\site-packages\matplotlib\figure.py:3569: def handler(event):
+.venv\Lib\site-packages\matplotlib\figure.py:3604: self, ["button_press_event", "key_press_event"], timeout, handler)
+.venv\Lib\site-packages\matplotlib\figure.py:3629: self, ["button_press_event", "key_press_event"], timeout, handler)
+.venv\Lib\site-packages\matplotlib\widgets.py:1169: """Internal event handler to clear the buttons."""
+.venv\Lib\site-packages\matplotlib\widgets.py:2105: """Internal event handler to clear the cursor."""
+.venv\Lib\site-packages\matplotlib\widgets.py:2113: """Internal event handler to draw the cursor when the mouse moves."""
+.venv\Lib\site-packages\matplotlib\widgets.py:2499: """Button press event handler."""
+.venv\Lib\site-packages\matplotlib\widgets.py:2503: """Button release event handler and validator."""
+.venv\Lib\site-packages\matplotlib\widgets.py:2515: """Button release event handler."""
+.venv\Lib\site-packages\matplotlib\widgets.py:2519: """Cursor move event handler and validator."""
+.venv\Lib\site-packages\matplotlib\widgets.py:2527: """Cursor move event handler."""
+============================================================
+31K-FI334 - EVENT NAME + SUBSCRIBE CORRELATION
+============================================================
+FILES CONTAINING BOTH = 10
+31K_EY_workflow_gateway_integration_audit.txt
+31K_EZ_production_workflow_eventbus_audit.txt
+31K_FB_pipeline_deep_execution_audit.txt
+31K_FD2_production_reachability_trace.txt
+31K_FD_production_decision_data_lineage_audit.txt
+EROS_31K_FI101_FI125.py
+EROS_31K_FI76_FI100.py
+services\forecast\service.py
+tests\test_pipeline.py
+tests\fundamentals\test_service.py
+============================================================
+31K-FI335 - DISPATCH REFERENCES
+============================================================
+DISPATCH REFERENCES = 61
+31K_FD8_financialstatements_hydration_trace.txt:72: await self._dispatcher.dispatch(event)
+31K_FI1_real_score_integration_simulation.txt:276: await self._dispatcher.dispatch(event)
+31K_FI3_real_financial_provider_trace.txt:1049: await self._dispatcher.dispatch(event)
+31K_FI4_rich_fundamentals_path_recovery.txt:185: await self._dispatcher.dispatch(event)
+test_nav_dispatch.py:27: res = dispatcher.dispatch("NAV", entity)
+valuation_audit.txt:26: D:\Users\User\Desktop\AI_STOCK_ANALYZER\test_nav_dispatch.py:27 - res = dispatcher.dispatch(...)
+.venv\Lib\site-packages\alembic\autogenerate\render.py:122: renderer = renderers.dispatch(op)
+.venv\Lib\site-packages\alembic\autogenerate\render.py:997: renderer = _constraint_renderers.dispatch(constraint)
+.venv\Lib\site-packages\alembic\autogenerate\rewriter.py:131: _rewriter = self.dispatch.dispatch(directive)
+.venv\Lib\site-packages\alembic\autogenerate\rewriter.py:211: traverser = self._traverse.dispatch(directive)
+.venv\Lib\site-packages\alembic\autogenerate\compare\constraints.py:407: # autogen_context.comparators.dispatch("index")
+.venv\Lib\site-packages\alembic\autogenerate\compare\constraints.py:409: # autogen_context.comparators.dispatch("unique_constraint")
+.venv\Lib\site-packages\alembic\autogenerate\compare\schema.py:49: autogen_context.comparators.dispatch(
+.venv\Lib\site-packages\alembic\autogenerate\compare\tables.py:128: autogen_context.comparators.dispatch(
+.venv\Lib\site-packages\alembic\autogenerate\compare\tables.py:164: autogen_context.comparators.dispatch(
+.venv\Lib\site-packages\alembic\autogenerate\compare\tables.py:216: autogen_context.comparators.dispatch(
+.venv\Lib\site-packages\alembic\autogenerate\compare\tables.py:277: autogen_context.comparators.dispatch(
+.venv\Lib\site-packages\alembic\autogenerate\compare\__init__.py:49: autogen_context.comparators.dispatch(
+.venv\Lib\site-packages\alembic\operations\base.py:445: fn = self._to_impl.dispatch(
+.venv\Lib\site-packages\alembic\operations\ops.py:107: return cls.add_constraint_ops.dispatch(constraint.__visit_name__)(  # type: ignore[no-any-return]  # noqa: E501
+.venv\Lib\site-packages\kombu\pidbox.py:143: return self.dispatch(**body)
+.venv\Lib\site-packages\numba\core\byteflow.py:115: runner.dispatch(state)
+.venv\Lib\site-packages\redis\client.py:507: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\client.py:515: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\client.py:533: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\client.py:1222: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\cluster.py:2367: self._event_dispatcher.dispatch(AfterSlotsCacheRefreshEvent())
+.venv\Lib\site-packages\redis\cluster.py:2493: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\cluster.py:2807: self._event_dispatcher.dispatch(AfterSlotsCacheRefreshEvent())
+.venv\Lib\site-packages\redis\cluster.py:3074: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\connection.py:3357: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\asyncio\client.py:480: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\asyncio\client.py:488: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\asyncio\client.py:532: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\asyncio\client.py:1292: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\asyncio\cluster.py:2270: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\multidb\command_executor.py:234: self._event_dispatcher.dispatch(
+.venv\Lib\site-packages\redis\multidb\command_executor.py:327: self._event_dispatcher.dispatch(OnCommandsFailEvent(args, error))
+.venv\Lib\site-packages\sqlalchemy\sql\traversals.py:552: dispatch = self.dispatch(left_visit_sym)
+.venv\Lib\site-packages\sqlalchemy\sql\visitors.py:550: meth = self.dispatch(visit_sym)
+.venv\Lib\site-packages\starlette\endpoints.py:30: return self.dispatch().__await__()
+.venv\Lib\site-packages\starlette\endpoints.py:68: return self.dispatch().__await__()
+.venv\Lib\site-packages\streamlit\runtime\app_session.py:1087: response = await self._backend_operation_dispatcher.dispatch(request, self.id)
+.venv\Lib\site-packages\watchdog\events.py:365: super().dispatch(event)
+.venv\Lib\site-packages\watchdog\events.py:448: super().dispatch(event)
+.venv\Lib\site-packages\watchdog\observers\api.py:391: handler.dispatch(event)
+logs\eros_block29b_queue_inspection.txt:35: task_id = celery_broker.dispatch(
+logs\eros_block29b_queue_inspection.txt:63: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py:22: task_id = celery_broker.dispatch("valuation.execute", "valuation_queue", {"symbol": "TCS.NS"})
+logs\eros_block29_source_inspection.txt:87: task_id = celery_broker.dispatch(
+logs\eros_celery_search.txt:19: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:35: task_id = celery_broker.dispatch(
+logs\eros_celery_search.txt:28: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py:22: task_id = celery_broker.dispatch("valuation.execute", "valuation_queue", {"symbol": "TCS.NS"})
+logs\test_block29_real_celery_before_queue_contract_fix.py:35: task_id = celery_broker.dispatch(
+services\forecast\service.py:55: await self._dispatcher.dispatch(event)
+services\fundamentals\service.py:50: await self._dispatcher.dispatch(event)
+services\market_data\service.py:47: await self._dispatcher.dispatch(event)
+services\report\service.py:48: await self._dispatcher.dispatch(event)
+services\research\service.py:56: await self._dispatcher.dispatch(event_msg)
+services\valuation\service.py:62: await self._dispatcher.dispatch(event)
+tests\production\test_block29_real_celery.py:37: task_id = celery_broker.dispatch(
+tests\realtime\test_realtime.py:19: result = dispatcher.dispatch(event)
+tests\tasks\test_edcp.py:22: task_id = celery_broker.dispatch("valuation.execute", "valuation_queue", {"symbol": "TCS.NS"})
+============================================================
+31K-FI336 - EVENT CLASS IMPORTS
+============================================================
+FILES IMPORTING FUNDAMENTALS EVENTS = 9
+31K_EY_workflow_gateway_integration_audit.txt
+31K_EZ_production_workflow_eventbus_audit.txt
+31K_FB_pipeline_deep_execution_audit.txt
+31K_FD2_production_reachability_trace.txt
+31K_FD6_existing_score_engine_discovery.txt
+31K_FD7_AIScoringEngine_contract_audit.txt
+31K_FI4_rich_fundamentals_path_recovery.txt
+services\fundamentals\service.py
+tests\fundamentals\test_events.py
+============================================================
+31K-FI337 - FUNDAMENTALS EVENT FAMILY
+============================================================
+9: class FundamentalsDownloaded(BaseDomainEvent):
+11:     name: str = "fundamentals.downloaded"
+============================================================
+31K-FI338 - AVAILABLE EVENT EXISTENCE
+============================================================
+fundamentals.available REFERENCES = 0
+============================================================
+31K-FI339 - DOWNLOADED EVENT CONSUMER COUNT
+============================================================
+REFERENCING FILES = 19
+31K_EY_workflow_gateway_integration_audit.txt
+31K_EZ_production_workflow_eventbus_audit.txt
+31K_FB_pipeline_deep_execution_audit.txt
+31K_FD2_production_reachability_trace.txt
+31K_FD6_existing_score_engine_discovery.txt
+31K_FD7_AIScoringEngine_contract_audit.txt
+31K_FD8_financialstatements_hydration_trace.txt
+31K_FD_production_decision_data_lineage_audit.txt
+31K_FI1_real_score_integration_simulation.txt
+31K_FI3_real_financial_provider_trace.txt
+31K_FI4_rich_fundamentals_path_recovery.txt
+EROS_31K_FI101_FI125.py
+EROS_31K_FI76_FI100.py
+services\forecast\service.py
+services\fundamentals\events.py
+services\fundamentals\service.py
+tests\fundamentals\test_events.py
+tests\fundamentals\test_service.py
+tests\test_pipeline.py
+============================================================
+31K-FI340 - TEST COVERAGE REFERENCES
+============================================================
+TEST FILES REFERENCING EVENT = 3
+tests\fundamentals\test_events.py
+tests\fundamentals\test_service.py
+tests\test_pipeline.py
+============================================================
+31K-FI341 - EVENT HANDLER FILE CANDIDATES
+============================================================
+CANDIDATE FILES = 55
+.venv\Lib\site-packages\_pytest\faulthandler.py
+.venv\Lib\site-packages\celery\worker\consumer\__init__.py
+.venv\Lib\site-packages\celery\worker\consumer\agent.py
+.venv\Lib\site-packages\celery\worker\consumer\connection.py
+.venv\Lib\site-packages\celery\worker\consumer\consumer.py
+.venv\Lib\site-packages\celery\worker\consumer\control.py
+.venv\Lib\site-packages\celery\worker\consumer\delayed_delivery.py
+.venv\Lib\site-packages\celery\worker\consumer\events.py
+.venv\Lib\site-packages\celery\worker\consumer\gossip.py
+.venv\Lib\site-packages\celery\worker\consumer\heart.py
+.venv\Lib\site-packages\celery\worker\consumer\mingle.py
+.venv\Lib\site-packages\celery\worker\consumer\tasks.py
+.venv\Lib\site-packages\fastapi\exception_handlers.py
+.venv\Lib\site-packages\google\protobuf\internal\message_listener.py
+.venv\Lib\site-packages\mako\ext\autohandler.py
+.venv\Lib\site-packages\matplotlib\legend_handler.py
+.venv\Lib\site-packages\passlib\handlers\__init__.py
+.venv\Lib\site-packages\passlib\handlers\argon2.py
+.venv\Lib\site-packages\passlib\handlers\bcrypt.py
+.venv\Lib\site-packages\passlib\handlers\cisco.py
+.venv\Lib\site-packages\passlib\handlers\des_crypt.py
+.venv\Lib\site-packages\passlib\handlers\digests.py
+.venv\Lib\site-packages\passlib\handlers\django.py
+.venv\Lib\site-packages\passlib\handlers\fshp.py
+.venv\Lib\site-packages\passlib\handlers\ldap_digests.py
+.venv\Lib\site-packages\passlib\handlers\md5_crypt.py
+.venv\Lib\site-packages\passlib\handlers\misc.py
+.venv\Lib\site-packages\passlib\handlers\mssql.py
+.venv\Lib\site-packages\passlib\handlers\mysql.py
+.venv\Lib\site-packages\passlib\handlers\oracle.py
+.venv\Lib\site-packages\passlib\handlers\pbkdf2.py
+.venv\Lib\site-packages\passlib\handlers\phpass.py
+.venv\Lib\site-packages\passlib\handlers\postgres.py
+.venv\Lib\site-packages\passlib\handlers\roundup.py
+.venv\Lib\site-packages\passlib\handlers\scram.py
+.venv\Lib\site-packages\passlib\handlers\scrypt.py
+.venv\Lib\site-packages\passlib\handlers\sha1_crypt.py
+.venv\Lib\site-packages\passlib\handlers\sha2_crypt.py
+.venv\Lib\site-packages\passlib\handlers\sun_md5_crypt.py
+.venv\Lib\site-packages\passlib\handlers\windows.py
+.venv\Lib\site-packages\passlib\tests\test_handlers.py
+.venv\Lib\site-packages\passlib\tests\test_handlers_argon2.py
+.venv\Lib\site-packages\passlib\tests\test_handlers_bcrypt.py
+.venv\Lib\site-packages\passlib\tests\test_handlers_cisco.py
+.venv\Lib\site-packages\passlib\tests\test_handlers_django.py
+.venv\Lib\site-packages\passlib\tests\test_handlers_pbkdf2.py
+.venv\Lib\site-packages\passlib\tests\test_handlers_scrypt.py
+.venv\Lib\site-packages\passlib\tests\test_utils_handlers.py
+.venv\Lib\site-packages\passlib\utils\handlers.py
+.venv\Lib\site-packages\prompt_toolkit\layout\mouse_handlers.py
+.venv\Lib\site-packages\pydantic\annotated_handlers.py
+.venv\Lib\site-packages\starlette\_exception_handler.py
+.venv\Lib\site-packages\streamlit\components\v2\component_manifest_handler.py
+.venv\Lib\site-packages\streamlit\runtime\backend_operation_handler.py
+backend\api\exceptions\handlers.py
+============================================================
+31K-FI342 - ARCHITECTURE DOCUMENTATION REFERENCES
+============================================================
+DOCUMENTS = 6
+31K_EY_workflow_gateway_integration_audit.txt
+31K_EZ_production_workflow_eventbus_audit.txt
+31K_FB_pipeline_deep_execution_audit.txt
+31K_FD2_production_reachability_trace.txt
+31K_FD7_AIScoringEngine_contract_audit.txt
+31K_FD_production_decision_data_lineage_audit.txt
+============================================================
+31K-FI343 - EVENT SEMANTIC WORDING
+============================================================
+DOWNLOAD = 188
+DOWNLOADED = 107
+AVAILABLE = 45
+CACHE = 92
+SERVED = 11
+FETCH = 31
+============================================================
+31K-FI344 - CURRENT ARCHITECTURAL STATE
+============================================================
+CACHE = WORKING
+OBJECT IDENTITY = PRESERVED
+DOWNLOAD EVENT = DISPATCHED AFTER CACHE MISS AND CACHE HIT
+EVENT NAME = fundamentals.downloaded
+SEMANTIC MISMATCH = POSSIBLE
+CONSUMER SEARCH = PERFORMED
+============================================================
+31K-FI345 - OPTION C PRECONDITION
+============================================================
+downloaded MUST REPRESENT ACTUAL PROVIDER DOWNLOAD
+available MUST REPRESENT DATA SERVED TO CONSUMER
+CACHE HIT SHOULD PRODUCE available
+CACHE MISS SHOULD PRODUCE downloaded + available
+CONSUMER IMPACT MUST BE KNOWN BEFORE CHANGE
+============================================================
+31K-FI346 - BREAKING CHANGE CHECK
+============================================================
+EXPLICIT DOWNLOADED REFERENCES = 13
+EXPLICIT EVENT CLASS REFERENCES = 13
+AVAILABLE EVENT REFERENCES = 0
+SOURCE MODIFICATION = NONE
+============================================================
+31K-FI347 - IMPLEMENTATION RISK
+============================================================
+DOWNLOADED CONSUMER RISK = HIGH / MULTIPLE REFERENCES
+NO CHANGE PERFORMED
+============================================================
+31K-FI348 - RECOMMENDED NEXT ACTION
+============================================================
+RECOMMENDED = DO NOT MODIFY SOURCE YET
+FIRST COMPLETE CONSUMER IMPACT AUDIT
+THEN IMPLEMENT OPTION C ONLY IF COMPATIBILITY IS CONFIRMED
+READ-ONLY EVIDENCE = REQUIRED BEFORE PATCH
+============================================================
+31K-FI349 - SOURCE SAFETY
+============================================================
+READ-ONLY = PASS
+PRODUCTION FILES MODIFIED = NO
+SERVICE FILE MODIFIED = NO
+EVENT FILE MODIFIED = NO
+CACHE LOGIC MODIFIED = NO
+============================================================
+31K-FI350 - FINAL STATUS
+============================================================
+FI326 ENVIRONMENT SAFETY: PASS
+FI327 SERVICE: PASS
+FI328 EVENT: PASS
+FI329 SOURCE POSITION: PASS
+FI330 EVENT NAME SEARCH: COMPLETE
+FI331 EVENT CLASS SEARCH: COMPLETE
+FI332 SUBSCRIPTIONS: COMPLETE
+FI333 HANDLERS: COMPLETE
+FI334 CORRELATION: COMPLETE
+FI335 DISPATCH REFERENCES: COMPLETE
+FI336 IMPORTS: COMPLETE
+FI337 EVENT FAMILY: COMPLETE
+FI338 AVAILABLE EVENT: COMPLETE
+FI339 CONSUMER COUNT: COMPLETE
+FI340 TEST COVERAGE: COMPLETE
+FI341 HANDLER CANDIDATES: COMPLETE
+FI342 DOCUMENTATION: COMPLETE
+FI343 SEMANTIC REVIEW: COMPLETE
+FI344 ARCHITECTURE: REVIEW
+FI345 OPTION C PRECONDITION: REVIEW
+FI346 BREAKING CHANGE: REVIEW
+FI347 IMPLEMENTATION RISK: REVIEW
+FI348 NEXT ACTION: DOCUMENTED
+FI349 SOURCE SAFETY: PASS
+FI350 FINAL STATUS: CONSUMER IMPACT AUDIT COMPLETE
+
+============================================================
+31K-FI326 TO FI350 COMPLETE
+SOURCE MODIFICATION: NONE
+============================================================

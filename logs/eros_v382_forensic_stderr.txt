@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_v382_forensic_runtime.py", line 271, in <module>
+    audit_result = adapter.decision_audit(symbol)
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py", line 3182, in decision_audit
+    if isinstance(_v382_trace, dict)
+                  ^^^^^^^^^^^
+NameError: name '_v382_trace' is not defined. Did you mean: '_v381_trace'?
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_v382_forensic_runtime.py", line 271, in <module>
+    audit_result = adapter.decision_audit(symbol)
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py", line 3182, in decision_audit
+    if isinstance(_v382_trace, dict)
+                  ^^^^^^^^^^^
+NameError: name '_v382_trace' is not defined. Did you mean: '_v381_trace'?

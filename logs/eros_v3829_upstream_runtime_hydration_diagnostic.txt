@@ -1,0 +1,463 @@
+﻿======================================================================
+EROS 3.0 - V3.8.2.9 UPSTREAM RUNTIME HYDRATION DIAGNOSTIC
+======================================================================
+
+1. ENVIRONMENT
+----------------------------------------------------------------------
+Python: 3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]
+CWD   : D:\Users\User\Desktop\AI_STOCK_ANALYZER
+ROOT  : D:\Users\User\Desktop\AI_STOCK_ANALYZER
+PATH  : True
+
+2. ADAPTER IMPORT
+----------------------------------------------------------------------
+IMPORT : PASS
+
+SYMBOL : RELIANCE.NS
+
+3. UPSTREAM-TO-DOWNSTREAM RUNTIME CHAIN
+----------------------------------------------------------------------
+
+CALLING : decision_evidence
+CALL : PASS
+
+======================================================================
+RESULT : decision_evidence
+======================================================================
+TYPE : dict
+KEY COUNT : 13
+KEYS : ['symbol', 'price', 'trend', 'momentum', 'score', 'confidence', 'recommendation', 'risk', 'reasons', 'breakout_signal', 'breakout_reason', 'technical_indicators', 'governance']
+
+IMPORTANT FIELDS
+--------------------------------------------------
+symbol                    : str = 'RELIANCE.NS'
+price                     : float = 1316.0
+decision                  : ABSENT
+recommendation            : str = 'STRONG BUY'
+stance                    : ABSENT
+classification            : ABSENT
+confidence                : int = 100
+risk                      : str = 'Low'
+evidence                  : ABSENT
+evidence_chain            : ABSENT
+interpretation            : ABSENT
+scenario_trace            : ABSENT
+convergence               : ABSENT
+trace                     : ABSENT
+traceability              : ABSENT
+conclusion                : ABSENT
+governance                : DICT (3 keys)
+                            keys=['read_only', 'execution_blocked', 'non_mutation_invariant']
+
+FULL RESULT
+--------------------------------------------------
+{'symbol': 'RELIANCE.NS', 'price': 1316.0, 'trend': 'Bullish', 'momentum': 'Strong', 'score': 100, 'confidence': 100, 'recommendation': 'STRONG BUY', 'risk': 'Low', 'reasons': ['20 SMA above 50 SMA (Bullish)', 'EMA20 above SMA20', 'RSI Neutral', 'MACD Bullish Crossover', 'Trading near Support', 'Trading near Resistance', 'Low Volatility'], 'breakout_signal': 'NONE', 'breakout_reason': 'Price is inside the trading range.', 'technical_indicators': {'sma_20': 1307.9700073242188, 'sma_50': 1306.5940014648438, 'ema_20': 1311.3409877919446, 'rsi_14': 49.04336764483778, 'macd': 4.125609191499734, 'signal': 3.8792510855909024, 'histogram': 0.24635810590883178, 'bb_middle': 1307.9700073242188, 'bb_upper': 1346.3953311502535, 'bb_lower': 1269.5446834981842, 'atr': 20.635724748883927, 'support': 1298.0999755859375, 'resistance': 1332.9000244140625}, 'governance': {'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True}}
+
+CALLING : decision_intelligence
+CALL : PASS
+
+======================================================================
+RESULT : decision_intelligence
+======================================================================
+TYPE : dict
+KEY COUNT : 9
+KEYS : ['symbol', 'price', 'decision', 'market_context', 'technical_drivers', 'technical_indicators', 'risk_flags', 'summary', 'governance']
+
+IMPORTANT FIELDS
+--------------------------------------------------
+symbol                    : str = 'RELIANCE.NS'
+price                     : float = 1316.0
+decision                  : DICT (7 keys)
+                            keys=['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+recommendation            : ABSENT
+stance                    : ABSENT
+classification            : ABSENT
+confidence                : ABSENT
+risk                      : ABSENT
+evidence                  : ABSENT
+evidence_chain            : ABSENT
+interpretation            : ABSENT
+scenario_trace            : ABSENT
+convergence               : ABSENT
+trace                     : ABSENT
+traceability              : ABSENT
+conclusion                : ABSENT
+governance                : DICT (3 keys)
+                            keys=['read_only', 'execution_blocked', 'non_mutation_invariant']
+
+FULL RESULT
+--------------------------------------------------
+{'symbol': 'RELIANCE.NS', 'price': 1316.0, 'decision': {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'score': 100.0, 'score_band': 'STRONG', 'confidence': 100.0, 'confidence_band': 'HIGH', 'risk': 'Low'}, 'market_context': {'trend': 'Bullish', 'momentum': 'Strong', 'breakout_signal': 'NONE', 'breakout_reason': 'Price is inside the trading range.'}, 'technical_drivers': ['20 SMA above 50 SMA (Bullish)', 'EMA20 above SMA20', 'RSI Neutral', 'MACD Bullish Crossover', 'Trading near Support', 'Trading near Resistance', 'Low Volatility'], 'technical_indicators': {'sma_20': 1307.9700073242188, 'sma_50': 1306.5940014648438, 'ema_20': 1311.3409877919446, 'rsi_14': 49.04336764483778, 'macd': 4.125609191499734, 'signal': 3.8792510855909024, 'histogram': 0.24635810590883178, 'bb_middle': 1307.9700073242188, 'bb_upper': 1346.3953311502535, 'bb_lower': 1269.5446834981842, 'atr': 20.635724748883927, 'support': 1298.0999755859375, 'resistance': 1332.9000244140625}, 'risk_flags': ['Low', 'NEAR_SUPPORT', 'NEAR_RESISTANCE'], 'summary': 'RELIANCE.NS is bullish with STRONG BUY recommendation, score 100/100 and 100% confidence.', 'governance': {'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True}}
+
+CALLING : decision_interpretation
+CALL : PASS
+
+======================================================================
+RESULT : decision_interpretation
+======================================================================
+TYPE : dict
+KEY COUNT : 6
+KEYS : ['symbol', 'price', 'decision', 'interpretation', 'technical_indicators', 'governance']
+
+IMPORTANT FIELDS
+--------------------------------------------------
+symbol                    : str = 'RELIANCE.NS'
+price                     : float = 1316.0
+decision                  : DICT (7 keys)
+                            keys=['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+recommendation            : ABSENT
+stance                    : ABSENT
+classification            : ABSENT
+confidence                : ABSENT
+risk                      : ABSENT
+evidence                  : ABSENT
+evidence_chain            : ABSENT
+interpretation            : DICT (9 keys)
+                            keys=['market_condition', 'price_context', 'breakout_context', 'decision_quality', 'primary_drivers', 'supporting_drivers', 'conflicting_signals', 'interpretation', 'invalidation_context']
+scenario_trace            : ABSENT
+convergence               : ABSENT
+trace                     : ABSENT
+traceability              : ABSENT
+conclusion                : ABSENT
+governance                : DICT (3 keys)
+                            keys=['read_only', 'execution_blocked', 'non_mutation_invariant']
+
+FULL RESULT
+--------------------------------------------------
+{'symbol': 'RELIANCE.NS', 'price': 1316.0, 'decision': {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'score': 100.0, 'score_band': 'STRONG', 'confidence': 100.0, 'confidence_band': 'HIGH', 'risk': 'Low'}, 'interpretation': {'market_condition': 'BULLISH_MOMENTUM', 'price_context': 'NEAR_SUPPORT', 'breakout_context': 'NO_ACTIVE_BREAKOUT', 'decision_quality': 'HIGH', 'primary_drivers': ['20 SMA above 50 SMA (Bullish)', 'EMA20 above SMA20', 'MACD Bullish Crossover'], 'supporting_drivers': ['RSI Neutral', 'Trading near Support', 'Trading near Resistance', 'Low Volatility'], 'conflicting_signals': [], 'interpretation': 'The technical evidence currently supports a STRONG BUY stance. The market condition is BULLISH_MOMENTUM. Decision quality is HIGH.', 'invalidation_context': ['Monitor price behavior around support 1298.10', 'Monitor price behavior around resistance 1332.90']}, 'technical_indicators': {'sma_20': 1307.9700073242188, 'sma_50': 1306.5940014648438, 'ema_20': 1311.3409877919446, 'rsi_14': 49.04336764483778, 'macd': 4.125609191499734, 'signal': 3.8792510855909024, 'histogram': 0.24635810590883178, 'bb_middle': 1307.9700073242188, 'bb_upper': 1346.3953311502535, 'bb_lower': 1269.5446834981842, 'atr': 20.635724748883927, 'support': 1298.0999755859375, 'resistance': 1332.9000244140625}, 'governance': {'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True}}
+
+CALLING : decision_action_framework
+CALL : PASS
+
+======================================================================
+RESULT : decision_action_framework
+======================================================================
+TYPE : dict
+KEY COUNT : 8
+KEYS : ['symbol', 'price', 'action', 'market_context', 'confirmation_conditions', 'invalidation_conditions', 'interpretation_summary', 'governance']
+
+IMPORTANT FIELDS
+--------------------------------------------------
+symbol                    : str = 'RELIANCE.NS'
+price                     : float = 1316.0
+decision                  : ABSENT
+recommendation            : ABSENT
+stance                    : ABSENT
+classification            : ABSENT
+confidence                : ABSENT
+risk                      : ABSENT
+evidence                  : ABSENT
+evidence_chain            : ABSENT
+interpretation            : ABSENT
+scenario_trace            : ABSENT
+convergence               : ABSENT
+trace                     : ABSENT
+traceability              : ABSENT
+conclusion                : ABSENT
+governance                : DICT (8 keys)
+                            keys=['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_optimization']
+
+FULL RESULT
+--------------------------------------------------
+{'symbol': 'RELIANCE.NS', 'price': 1316.0, 'action': {'classification': 'WAIT_FOR_CONFIRMATION', 'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'score': 100.0, 'confidence': 100.0, 'confidence_band': 'HIGH', 'risk_context': 'LOW'}, 'market_context': {'price_context': 'NEAR_SUPPORT', 'breakout_context': 'NO_ACTIVE_BREAKOUT', 'support': 1298.0999755859375, 'resistance': 1332.9000244140625}, 'confirmation_conditions': ['Hold above support 1298.10', 'Monitor resistance 1332.90'], 'invalidation_conditions': ['Sustained breakdown below support 1298.10', 'Failure near resistance 1332.90'], 'interpretation_summary': 'The technical evidence currently supports a STRONG BUY stance. The market condition is BULLISH_MOMENTUM. Decision quality is HIGH.', 'governance': {'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True, 'allow_order_creation': False, 'allow_broker_submission': False, 'allow_live_execution': False, 'allow_portfolio_mutation': False, 'allow_optimization': False}}
+
+CALLING : decision_scenario_engine
+CALL : PASS
+
+======================================================================
+RESULT : decision_scenario_engine
+======================================================================
+TYPE : dict
+KEY COUNT : 8
+KEYS : ['symbol', 'price', 'current_decision', 'primary_scenario', 'scenarios', 'decision_quality', 'scenario_summary', 'governance']
+
+IMPORTANT FIELDS
+--------------------------------------------------
+symbol                    : str = 'RELIANCE.NS'
+price                     : float = 1316.0
+decision                  : ABSENT
+recommendation            : ABSENT
+stance                    : ABSENT
+classification            : ABSENT
+confidence                : ABSENT
+risk                      : ABSENT
+evidence                  : ABSENT
+evidence_chain            : ABSENT
+interpretation            : ABSENT
+scenario_trace            : ABSENT
+convergence               : ABSENT
+trace                     : ABSENT
+traceability              : ABSENT
+conclusion                : ABSENT
+governance                : DICT (11 keys)
+                            keys=['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+FULL RESULT
+--------------------------------------------------
+{'symbol': 'RELIANCE.NS', 'price': 1316.0, 'current_decision': {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'confidence': 100.0, 'risk': 'Low'}, 'primary_scenario': 'BULL', 'scenarios': {'base': {'scenario': 'BASE', 'stance': 'BULLISH', 'classification': 'WAIT_FOR_CONFIRMATION', 'conditions': ['Price remains above support 1298.10', 'Price continues to monitor resistance 1332.90'], 'decision_effect': 'Maintain the current analytical stance while confirmation conditions remain unresolved.'}, 'bull': {'scenario': 'BULL', 'stance': 'BULLISH', 'classification': 'CONFIRMATION', 'conditions': ['Confirmed move above resistance 1332.90', 'Bullish trend and momentum remain intact'], 'decision_effect': 'A confirmed upside move would strengthen the existing bullish decision context.'}, 'bear': {'scenario': 'BEAR', 'stance': 'BEARISH', 'classification': 'INVALIDATION', 'conditions': ['Sustained breakdown below support 1298.10', 'Bullish technical structure deteriorates'], 'decision_effect': 'A sustained breakdown would invalidate the current bullish confirmation structure.'}}, 'decision_quality': 'HIGH', 'scenario_summary': 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The primary scenario is BULL.', 'governance': {'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True, 'allow_order_creation': False, 'allow_broker_submission': False, 'allow_live_execution': False, 'allow_portfolio_mutation': False, 'allow_valuation_mutation': False, 'allow_performance_mutation': False, 'allow_risk_mutation': False, 'allow_optimization': False}}
+
+CALLING : decision_convergence
+CALL : PASS
+
+======================================================================
+RESULT : decision_convergence
+======================================================================
+TYPE : dict
+KEY COUNT : 7
+KEYS : ['symbol', 'price', 'decision', 'convergence', 'interpretation', 'conclusion', 'governance']
+
+IMPORTANT FIELDS
+--------------------------------------------------
+symbol                    : str = 'RELIANCE.NS'
+price                     : float = 1316.0
+decision                  : DICT (6 keys)
+                            keys=['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+recommendation            : ABSENT
+stance                    : ABSENT
+classification            : ABSENT
+confidence                : ABSENT
+risk                      : ABSENT
+evidence                  : ABSENT
+evidence_chain            : ABSENT
+interpretation            : DICT (4 keys)
+                            keys=['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+scenario_trace            : ABSENT
+convergence               : DICT (9 keys)
+                            keys=['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation', 'confirmation_logic', 'invalidation_logic', 'primary_drivers', 'supporting_drivers', 'conflicting_signals']
+trace                     : ABSENT
+traceability              : ABSENT
+conclusion                : str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.'
+governance                : DICT (11 keys)
+                            keys=['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+FULL RESULT
+--------------------------------------------------
+{'symbol': 'RELIANCE.NS', 'price': 1316.0, 'decision': {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'classification': 'WAIT_FOR_CONFIRMATION', 'confidence': 100.0, 'risk': 'Low', 'decision_quality': 'HIGH'}, 'convergence': {'primary_scenario': 'BULL', 'base': {'classification': 'WAIT_FOR_CONFIRMATION', 'stance': 'BULLISH', 'conditions': ['Price remains above support 1298.10', 'Price continues to monitor resistance 1332.90']}, 'bull_confirmation': {'classification': 'CONFIRMATION', 'stance': 'BULLISH', 'conditions': ['Confirmed move above resistance 1332.90', 'Bullish trend and momentum remain intact'], 'decision_effect': 'A confirmed upside move would strengthen the existing bullish decision context.'}, 'bear_invalidation': {'classification': 'INVALIDATION', 'stance': 'BEARISH', 'conditions': ['Sustained breakdown below support 1298.10', 'Bullish technical structure deteriorates'], 'decision_effect': 'A sustained breakdown would invalidate the current bullish confirmation structure.'}, 'confirmation_logic': ['Hold above support 1298.10', 'Monitor resistance 1332.90'], 'invalidation_logic': ['Sustained breakdown below support 1298.10', 'Failure near resistance 1332.90'], 'primary_drivers': ['20 SMA above 50 SMA (Bullish)', 'EMA20 above SMA20', 'MACD Bullish Crossover'], 'supporting_drivers': ['RSI Neutral', 'Trading near Support', 'Trading near Resistance', 'Low Volatility'], 'conflicting_signals': []}, 'interpretation': {'market_condition': 'BULLISH_MOMENTUM', 'price_context': 'NEAR_SUPPORT', 'breakout_context': 'NO_ACTIVE_BREAKOUT', 'decision_quality': 'HIGH'}, 'conclusion': 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.', 'governance': {'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True, 'allow_order_creation': False, 'allow_broker_submission': False, 'allow_live_execution': False, 'allow_portfolio_mutation': False, 'allow_valuation_mutation': False, 'allow_performance_mutation': False, 'allow_risk_mutation': False, 'allow_optimization': False}}
+
+CALLING : decision_traceability
+CALL : PASS
+
+======================================================================
+RESULT : decision_traceability
+======================================================================
+TYPE : dict
+KEY COUNT : 11
+KEYS : ['symbol', 'price', 'decision', 'trace', 'evidence_chain', 'scenario_trace', 'interpretation', 'conclusion', 'traceability_status', 'traceability', 'governance']
+
+IMPORTANT FIELDS
+--------------------------------------------------
+symbol                    : str = 'RELIANCE.NS'
+price                     : float = 1316.0
+decision                  : DICT (6 keys)
+                            keys=['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+recommendation            : ABSENT
+stance                    : ABSENT
+classification            : ABSENT
+confidence                : ABSENT
+risk                      : ABSENT
+evidence                  : ABSENT
+evidence_chain            : DICT (5 keys)
+                            keys=['primary_drivers', 'supporting_drivers', 'conflicting_signals', 'confirmation_logic', 'invalidation_logic']
+interpretation            : DICT (4 keys)
+                            keys=['market_condition', 'price_context', 'breakout_context', 'decision_quality']
+scenario_trace            : DICT (4 keys)
+                            keys=['primary_scenario', 'base', 'bull_confirmation', 'bear_invalidation']
+convergence               : ABSENT
+trace                     : DICT (8 keys)
+                            keys=['stage_1_evidence', 'stage_2_intelligence', 'stage_3_interpretation', 'stage_4_action_framework', 'stage_5_action_explanation', 'stage_6_scenario_engine', 'stage_7_scenario_explanation', 'stage_8_convergence']
+traceability              : DICT (10 keys)
+                            keys=['status', 'source', 'schema_version', 'legacy_trace_preserved', 'stages', 'primary_scenario', 'decision_quality', 'read_only', 'execution_blocked', 'non_mutation_invariant']
+conclusion                : str = 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.'
+governance                : DICT (11 keys)
+                            keys=['read_only', 'execution_blocked', 'non_mutation_invariant', 'allow_order_creation', 'allow_broker_submission', 'allow_live_execution', 'allow_portfolio_mutation', 'allow_valuation_mutation', 'allow_performance_mutation', 'allow_risk_mutation', 'allow_optimization']
+
+FULL RESULT
+--------------------------------------------------
+{'symbol': 'RELIANCE.NS', 'price': 1316.0, 'decision': {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'classification': 'WAIT_FOR_CONFIRMATION', 'confidence': 100.0, 'risk': 'Low', 'decision_quality': 'HIGH'}, 'trace': {'stage_1_evidence': {'source': 'decision_evidence', 'status': 'AVAILABLE'}, 'stage_2_intelligence': {'source': 'decision_intelligence', 'status': 'AVAILABLE'}, 'stage_3_interpretation': {'source': 'decision_interpretation', 'status': 'AVAILABLE', 'market_condition': 'BULLISH_MOMENTUM', 'price_context': 'NEAR_SUPPORT', 'breakout_context': 'NO_ACTIVE_BREAKOUT'}, 'stage_4_action_framework': {'source': 'decision_action_framework', 'status': 'AVAILABLE'}, 'stage_5_action_explanation': {'source': 'decision_action_explanation', 'status': 'AVAILABLE'}, 'stage_6_scenario_engine': {'source': 'decision_scenario_engine', 'status': 'AVAILABLE'}, 'stage_7_scenario_explanation': {'source': 'decision_scenario_explanation', 'status': 'AVAILABLE'}, 'stage_8_convergence': {'source': 'decision_convergence', 'status': 'AVAILABLE', 'primary_scenario': 'BULL'}}, 'evidence_chain': {'primary_drivers': ['20 SMA above 50 SMA (Bullish)', 'EMA20 above SMA20', 'MACD Bullish Crossover'], 'supporting_drivers': ['RSI Neutral', 'Trading near Support', 'Trading near Resistance', 'Low Volatility'], 'conflicting_signals': [], 'confirmation_logic': ['Hold above support 1298.10', 'Monitor resistance 1332.90'], 'invalidation_logic': ['Sustained breakdown below support 1298.10', 'Failure near resistance 1332.90']}, 'scenario_trace': {'primary_scenario': 'BULL', 'base': {'classification': 'WAIT_FOR_CONFIRMATION', 'stance': 'BULLISH', 'conditions': ['Price remains above support 1298.10', 'Price continues to monitor resistance 1332.90']}, 'bull_confirmation': {'classification': 'CONFIRMATION', 'stance': 'BULLISH', 'conditions': ['Confirmed move above resistance 1332.90', 'Bullish trend and momentum remain intact'], 'decision_effect': 'A confirmed upside move would strengthen the existing bullish decision context.'}, 'bear_invalidation': {'classification': 'INVALIDATION', 'stance': 'BEARISH', 'conditions': ['Sustained breakdown below support 1298.10', 'Bullish technical structure deteriorates'], 'decision_effect': 'A sustained breakdown would invalidate the current bullish confirmation structure.'}}, 'interpretation': {'market_condition': 'BULLISH_MOMENTUM', 'price_context': 'NEAR_SUPPORT', 'breakout_context': 'NO_ACTIVE_BREAKOUT', 'decision_quality': 'HIGH'}, 'conclusion': 'RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.', 'traceability_status': 'COMPLETE', 'traceability': {'status': 'COMPLETE', 'source': 'decision_traceability', 'schema_version': 'V3.7.2', 'legacy_trace_preserved': True, 'stages': {'stage_1_evidence': 'AVAILABLE', 'stage_2_intelligence': 'AVAILABLE', 'stage_3_interpretation': 'AVAILABLE', 'stage_4_action_framework': 'AVAILABLE', 'stage_5_action_explanation': 'AVAILABLE', 'stage_6_scenario_engine': 'AVAILABLE', 'stage_7_scenario_explanation': 'AVAILABLE', 'stage_8_convergence': 'AVAILABLE'}, 'primary_scenario': 'BULL', 'decision_quality': 'HIGH', 'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True}, 'governance': {'read_only': True, 'execution_blocked': True, 'non_mutation_invariant': True, 'allow_order_creation': False, 'allow_broker_submission': False, 'allow_live_execution': False, 'allow_portfolio_mutation': False, 'allow_valuation_mutation': False, 'allow_performance_mutation': False, 'allow_risk_mutation': False, 'allow_optimization': False}}
+
+======================================================================
+4. CROSS-LAYER HYDRATION MATRIX
+======================================================================
+
+decision_evidence
+  price                  : float
+  decision               : ABSENT
+  recommendation         : str
+  stance                 : ABSENT
+  classification         : ABSENT
+  confidence             : int
+  risk                   : str
+  evidence               : ABSENT
+  evidence_chain         : ABSENT
+  interpretation         : ABSENT
+  scenario_trace         : ABSENT
+  convergence            : ABSENT
+  trace                  : ABSENT
+  traceability           : ABSENT
+  conclusion             : ABSENT
+
+decision_intelligence
+  price                  : float
+  decision               : DICT(7 keys)
+  recommendation         : ABSENT
+  stance                 : ABSENT
+  classification         : ABSENT
+  confidence             : ABSENT
+  risk                   : ABSENT
+  evidence               : ABSENT
+  evidence_chain         : ABSENT
+  interpretation         : ABSENT
+  scenario_trace         : ABSENT
+  convergence            : ABSENT
+  trace                  : ABSENT
+  traceability           : ABSENT
+  conclusion             : ABSENT
+
+decision_interpretation
+  price                  : float
+  decision               : DICT(7 keys)
+  recommendation         : ABSENT
+  stance                 : ABSENT
+  classification         : ABSENT
+  confidence             : ABSENT
+  risk                   : ABSENT
+  evidence               : ABSENT
+  evidence_chain         : ABSENT
+  interpretation         : DICT(9 keys)
+  scenario_trace         : ABSENT
+  convergence            : ABSENT
+  trace                  : ABSENT
+  traceability           : ABSENT
+  conclusion             : ABSENT
+
+decision_action_framework
+  price                  : float
+  decision               : ABSENT
+  recommendation         : ABSENT
+  stance                 : ABSENT
+  classification         : ABSENT
+  confidence             : ABSENT
+  risk                   : ABSENT
+  evidence               : ABSENT
+  evidence_chain         : ABSENT
+  interpretation         : ABSENT
+  scenario_trace         : ABSENT
+  convergence            : ABSENT
+  trace                  : ABSENT
+  traceability           : ABSENT
+  conclusion             : ABSENT
+
+decision_scenario_engine
+  price                  : float
+  decision               : ABSENT
+  recommendation         : ABSENT
+  stance                 : ABSENT
+  classification         : ABSENT
+  confidence             : ABSENT
+  risk                   : ABSENT
+  evidence               : ABSENT
+  evidence_chain         : ABSENT
+  interpretation         : ABSENT
+  scenario_trace         : ABSENT
+  convergence            : ABSENT
+  trace                  : ABSENT
+  traceability           : ABSENT
+  conclusion             : ABSENT
+
+decision_convergence
+  price                  : float
+  decision               : DICT(6 keys)
+  recommendation         : ABSENT
+  stance                 : ABSENT
+  classification         : ABSENT
+  confidence             : ABSENT
+  risk                   : ABSENT
+  evidence               : ABSENT
+  evidence_chain         : ABSENT
+  interpretation         : DICT(4 keys)
+  scenario_trace         : ABSENT
+  convergence            : DICT(9 keys)
+  trace                  : ABSENT
+  traceability           : ABSENT
+  conclusion             : str
+
+decision_traceability
+  price                  : float
+  decision               : DICT(6 keys)
+  recommendation         : ABSENT
+  stance                 : ABSENT
+  classification         : ABSENT
+  confidence             : ABSENT
+  risk                   : ABSENT
+  evidence               : ABSENT
+  evidence_chain         : DICT(5 keys)
+  interpretation         : DICT(4 keys)
+  scenario_trace         : DICT(4 keys)
+  convergence            : ABSENT
+  trace                  : DICT(8 keys)
+  traceability           : DICT(10 keys)
+  conclusion             : str
+
+======================================================================
+5. DECISION PROPAGATION CHECK
+======================================================================
+
+decision_evidence
+  decision : None
+
+decision_intelligence
+  decision : {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'score': 100.0, 'score_band': 'STRONG', 'confidence': 100.0, 'confidence_band': 'HIGH', 'risk': 'Low'}
+  decision keys : ['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+  decision.stance             : 'BULLISH'
+  decision.recommendation     : 'STRONG BUY'
+  decision.classification     : None
+  decision.confidence         : 100.0
+  decision.risk               : 'Low'
+
+decision_interpretation
+  decision : {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'score': 100.0, 'score_band': 'STRONG', 'confidence': 100.0, 'confidence_band': 'HIGH', 'risk': 'Low'}
+  decision keys : ['stance', 'recommendation', 'score', 'score_band', 'confidence', 'confidence_band', 'risk']
+  decision.stance             : 'BULLISH'
+  decision.recommendation     : 'STRONG BUY'
+  decision.classification     : None
+  decision.confidence         : 100.0
+  decision.risk               : 'Low'
+
+decision_action_framework
+  decision : None
+
+decision_scenario_engine
+  decision : None
+
+decision_convergence
+  decision : {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'classification': 'WAIT_FOR_CONFIRMATION', 'confidence': 100.0, 'risk': 'Low', 'decision_quality': 'HIGH'}
+  decision keys : ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+  decision.stance             : 'BULLISH'
+  decision.recommendation     : 'STRONG BUY'
+  decision.classification     : 'WAIT_FOR_CONFIRMATION'
+  decision.confidence         : 100.0
+  decision.risk               : 'Low'
+
+decision_traceability
+  decision : {'stance': 'BULLISH', 'recommendation': 'STRONG BUY', 'classification': 'WAIT_FOR_CONFIRMATION', 'confidence': 100.0, 'risk': 'Low', 'decision_quality': 'HIGH'}
+  decision keys : ['stance', 'recommendation', 'classification', 'confidence', 'risk', 'decision_quality']
+  decision.stance             : 'BULLISH'
+  decision.recommendation     : 'STRONG BUY'
+  decision.classification     : 'WAIT_FOR_CONFIRMATION'
+  decision.confidence         : 100.0
+  decision.risk               : 'Low'
+
+======================================================================
+6. SAFETY
+======================================================================
+SOURCE PATCH : NO
+DATABASE WRITE : NO
+BROKER CALL : NO
+ORDER CREATION : NO
+PORTFOLIO MUTATION : NO
+GIT OPERATION : NO
+
+======================================================================
+V3.8.2.9 DIAGNOSTIC COMPLETE
+======================================================================
+

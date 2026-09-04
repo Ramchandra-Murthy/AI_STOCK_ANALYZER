@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,9 +19,9 @@ def test_per_task_execution_telemetry():
     status_info = control.get_task_status(task_id)
     assert "execution_time_ms" in status_info or status_info.get("ready") is True
 
-def test_task_observability_details_endpoint():
+def test_task_observability_details_endpoint(auth_headers):
     client = TestClient(app)
-    response = client.get("/api/v1/tasks/observability/details")
+    response = client.get("/api/v1/tasks/observability/details", headers=auth_headers("ANALYST"))
     assert response.status_code == 200
     data = response.json()
     assert "status" in data

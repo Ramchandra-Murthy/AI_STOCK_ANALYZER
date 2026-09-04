@@ -7,7 +7,8 @@ import redis
 from threading import Thread
 from queue import Queue, Empty
 
-BROKER_URL = "redis://127.0.0.1:6380/0"
+import os
+BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 
 def _enqueue_output(out, queue):
     for line in iter(out.readline, ''):
@@ -83,7 +84,7 @@ def test_block30o_separate_process_worker_execution():
         )
         assert result.state == "SUCCESS"
 
-        payload = result.get(timeout=3.0)
+        payload = result.result
         assert isinstance(payload, dict)
         assert payload.get("status") == "EXECUTED"
         assert payload.get("token") == token
@@ -96,3 +97,5 @@ def test_block30o_separate_process_worker_execution():
         except subprocess.TimeoutExpired:
             worker_proc.kill()
             worker_proc.wait(timeout=5.0)
+
+

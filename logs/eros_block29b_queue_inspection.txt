@@ -1,0 +1,79 @@
+﻿import os
+import pytest
+from backend.tasks.celery_app import celery_app, MockCeleryApp, CeleryFacade
+from backend.tasks.task_control import task_control
+from backend.tasks.celery_config import celery_broker
+
+def test_block29a_redis_broker_configuration():
+    """Validates Redis broker and result backend URL configuration parameters."""
+    broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+    backend_url = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+    assert broker_url.startswith("redis://") or broker_url.startswith("amqp://")
+    assert backend_url.startswith("redis://") or backend_url.startswith("amqp://")
+
+def test_block29b_celery_config_queues():
+    """Validates enterprise queue definitions and task routing maps."""
+    queues = celery_broker.config.TASK_QUEUES
+    assert "valuation_queue" in queues
+    assert "forecast_queue" in queues
+    assert "report_queue" in queues
+    assert "portfolio_queue" in queues
+
+    routes = celery_broker.config.TASK_ROUTES
+    assert "valuation.*" in routes
+    assert "forecast.*" in routes
+
+def test_block29c_task_control_broker_integration():
+    """Validates that task control service correctly reports broker status."""
+    status = task_control.get_queue_status()
+    assert "queues" in status
+    assert "real_celery" in status
+    assert status["status"] == "HEALTHY"
+
+def test_block29d_production_broker_dispatch():
+    """Validates production celery broker task dispatch simulation."""
+    task_id = celery_broker.dispatch(
+        task_name="valuation.execute",
+        queue="valuation_queue",
+        payload={"symbol": "RELIANCE.NS"}
+    )
+    assert task_id is not None
+    assert task_id.startswith("CELERY-")
+    assert task_id in celery_broker.active_tasks
+    assert celery_broker.active_tasks[task_id]["status"] == "QUEUED"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\admin_task_router.py:22: "queues": celery_broker.config.TASK_QUEUES,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:22: task_queues=celery_config.TASK_QUEUES,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:19: TASK_QUEUES: list = [
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:20: Queue("valuation_queue", Exchange("valuation_exchange"), routing_key="valuation.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:21: Queue("forecast_queue", Exchange("forecast_exchange"), routing_key="forecast.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:24: Queue("report_queue", Exchange("report_exchange"), routing_key="report.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:25: Queue("maintenance_queue", Exchange("maintenance_exchange"), routing_key="maintenance.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:28: "valuation.*": "valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:29: "forecast.*": "forecast_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:32: "report.*": "report_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:33: "maintenance.*": "maintenance_queue"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:605: "forecast_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:606: "valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:607: "report_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:16: queues = celery_broker.config.TASK_QUEUES
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:17: assert "valuation_queue" in queues
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:18: assert "forecast_queue" in queues
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:19: assert "report_queue" in queues
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:37: queue="valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py:22: task_id = celery_broker.dispatch("valuation.execute", "valuation_queue", {"symbol": "TCS.NS"})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py:30: assert "valuation_queue" in data["queues"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py:36: assert "forecast_queue" in queue_status["queues"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py:37: assert "report_queue" in queue_status["queues"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py:101: assert "forecast_queue" in body["queues"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py:102: assert "report_queue" in body["queues"]
+.\.venv\Scripts\python.exe :   File "<string>", line 5
+At line:35 char:5
++     .\.venv\Scripts\python.exe -c @"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 5:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(TYPE:, type(queues))
+              ^
+SyntaxError: invalid syntax
+

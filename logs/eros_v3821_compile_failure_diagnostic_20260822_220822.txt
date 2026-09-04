@@ -1,0 +1,454 @@
+﻿======================================================================
+EROS 3.0 - V3.8.2.1 TRACE VARIABLE COMPATIBILITY REPAIR
+POST-PATCH COMPILE FAILURE DIAGNOSTIC
+======================================================================
+
+0. PROJECT PATH VERIFICATION
+----------------------------------------------------------------------
+PROJECT ROOT : D:\Users\User\Desktop\AI_STOCK_ANALYZER
+ADAPTER      : D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py
+LOGS         : D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs
+PROJECT ROOT : PASS
+ADAPTER      : PASS
+LOGS         : PASS
+
+1. SOURCE INFORMATION
+----------------------------------------------------------------------
+SOURCE LENGTH : 94335
+SOURCE LINES  : 3247
+SOURCE FILE   : D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py
+
+2. PYTHON VERSION
+----------------------------------------------------------------------
+Python 3.13.14
+
+3. POST-PATCH COMPILE
+----------------------------------------------------------------------
+PY_COMPILE EXIT CODE : 1
+PY_COMPILE OUTPUT:
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py", line 3197
+    _v382_trace = _v381_trace if isinstance(_v381_trace, dict) else {}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?
+
+COMPILE STATUS : FAIL
+
+4. SOURCE CONTEXT AROUND FAILURE LINE
+----------------------------------------------------------------------
+TARGET LINE : 3197
+CONTEXT     : lines 3117 through 3247
+
+     3117:         _v382_scenario_trace = _v382_trace_result.get(
+     3118:             "scenario_trace",
+     3119:             {}
+     3120:         )
+     3121: 
+     3122:         if not isinstance(_v382_scenario_trace, dict):
+     3123:             _v382_scenario_trace = {}
+     3124: 
+     3125:         _v382_traceability = _v382_trace_result.get(
+     3126:             "traceability",
+     3127:             {}
+     3128:         )
+     3129: 
+     3130:         if not isinstance(_v382_traceability, dict):
+     3131:             _v382_traceability = {}
+     3132: 
+     3133:         _v382_primary_scenario = (
+     3134:             _v382_convergence.get("primary_scenario")
+     3135:             or _v382_scenario_trace.get("primary_scenario")
+     3136:             or _v382_traceability.get("primary_scenario")
+     3137:         )
+     3138: 
+     3139:         _v382_decision_quality = (
+     3140:             _v382_decision.get("decision_quality")
+     3141:             or _v382_convergence.get("decision_quality")
+     3142:             or _v382_interpretation.get("decision_quality")
+     3143:             or _v382_traceability.get("decision_quality")
+     3144:         )
+     3145: 
+     3146:         _v382_result = {
+     3147:             "symbol": _v382_convergence_result.get(
+     3148:                 "symbol",
+     3149:                 symbol,
+     3150:             ),
+     3151:             "price": _v382_convergence_result.get(
+     3152:                 "price",
+     3153:                 _v382_trace_result.get("price"),
+     3154:             ),
+     3155:             "decision": _v382_decision,
+     3156:             "audit": _v381_audit
+     3157:                 if isinstance(locals().get("_v381_audit"), dict)
+     3158:                 else {},
+     3159:             "audit_findings": (
+     3160:                 _v381_result.get("audit_findings", [])
+     3161:                 if isinstance(locals().get("_v381_result"), dict)
+     3162:                 else []
+     3163:             ),
+     3164:             "trace": _v382_legacy_trace,
+     3165:             "traceability": {
+     3166:                 **_v382_traceability,
+     3167:                 "status": _v382_traceability.get(
+     3168:                     "status",
+     3169:                     "COMPLETE",
+     3170:                 ),
+     3171:                 "source": _v382_traceability.get(
+     3172:                     "source",
+     3173:                     "decision_traceability",
+     3174:                 ),
+     3175:                 "schema_version": _v382_traceability.get(
+     3176:                     "schema_version",
+     3177:                     "V3.7.2",
+     3178:                 ),
+     3179:                 "legacy_trace_preserved": True,
+     3180:                 "stages": (
+     3181:                             # ==============================================================
+     3182:         # V3.8.2.1 TRACE COMPATIBILITY INITIALIZER
+     3183:         # ==============================================================
+     3184:         # V3.7.2 already provides the verified trace object through
+     3185:         # _v381_trace. V3.8.2 references _v382_trace during hydration.
+     3186:         #
+     3187:         # This compatibility bridge intentionally preserves the existing
+     3188:         # V3.7.2 trace object rather than recalculating or replacing it.
+     3189:         #
+     3190:         # SAFETY:
+     3191:         #   read-only
+     3192:         #   no database writes
+     3193:         #   no broker calls
+     3194:         #   no order creation
+     3195:         #   no portfolio mutation
+     3196:         # ==============================================================
+>>>  3197:         _v382_trace = _v381_trace if isinstance(_v381_trace, dict) else {}
+     3198:         # ==============================================================
+     3199:         # END V3.8.2.1 TRACE COMPATIBILITY INITIALIZER
+     3200:         # ==============================================================
+     3201: _v382_trace.get("stages", {})
+     3202:                     if isinstance(_v382_trace, dict)
+     3203:                     else {}
+     3204:                 ),
+     3205:                 "primary_scenario": _v382_primary_scenario,
+     3206:                 "decision_quality": _v382_decision_quality,
+     3207:                 "read_only": True,
+     3208:                 "execution_blocked": True,
+     3209:                 "non_mutation_invariant": True,
+     3210:             },
+     3211:             "evidence_chain": _v382_evidence_chain,
+     3212:             "scenario_trace": _v382_scenario_trace,
+     3213:             "interpretation": _v382_interpretation,
+     3214:             "conclusion": _v382_conclusion
+     3215:                 if isinstance(locals().get("_v382_conclusion"), str)
+     3216:                 else (
+     3217:                     _v382_trace_result.get("conclusion")
+     3218:                     or _v382_convergence_result.get("conclusion")
+     3219:                     or ""
+     3220:                 ),
+     3221:             "traceability_status": "COMPLETE",
+     3222:             "audit_summary": (
+     3223:                 _v381_audit.get("audit_conclusion", "")
+     3224:                 if isinstance(locals().get("_v381_audit"), dict)
+     3225:                 else ""
+     3226:             ),
+     3227:             "audit_status": (
+     3228:                 _v381_audit.get("overall_status", "PASS")
+     3229:                 if isinstance(locals().get("_v381_audit"), dict)
+     3230:                 else "PASS"
+     3231:             ),
+     3232:             "governance": {
+     3233:                 "read_only": True,
+     3234:                 "execution_blocked": True,
+     3235:                 "non_mutation_invariant": True,
+     3236:                 "allow_order_creation": False,
+     3237:                 "allow_broker_submission": False,
+     3238:                 "allow_live_execution": False,
+     3239:                 "allow_portfolio_mutation": False,
+     3240:                 "allow_valuation_mutation": False,
+     3241:                 "allow_performance_mutation": False,
+     3242:                 "allow_risk_mutation": False,
+     3243:                 "allow_optimization": False,
+     3244:             },
+     3245:         }
+     3246: 
+     3247:         return _v381_result
+
+5. DECISION_AUDIT METHOD LOCATION
+----------------------------------------------------------------------
+decision_audit : FOUND
+LINE           : 2095
+SOURCE         : def decision_audit(self, symbol):
+
+6. TRACE VARIABLE ANALYSIS
+----------------------------------------------------------------------
+_v382_trace references   : 23
+_v382_trace assignments : 1
+_v381_trace assignments : 2
+
+_v382_trace REFERENCE LOCATIONS:
+LINE 3056: _v382_trace_result = self.decision_traceability(symbol)
+LINE 3058: _v382_trace_result = {}
+LINE 3065: _v382_trace_result = (
+LINE 3066: _v382_trace_result
+LINE 3067: if isinstance(_v382_trace_result, dict)
+LINE 3101: _v382_legacy_trace = _v382_trace_result.get(
+LINE 3109: _v382_evidence_chain = _v382_trace_result.get(
+LINE 3117: _v382_scenario_trace = _v382_trace_result.get(
+LINE 3125: _v382_traceability = _v382_trace_result.get(
+LINE 3130: if not isinstance(_v382_traceability, dict):
+LINE 3131: _v382_traceability = {}
+LINE 3136: or _v382_traceability.get("primary_scenario")
+LINE 3143: or _v382_traceability.get("decision_quality")
+LINE 3153: _v382_trace_result.get("price"),
+LINE 3166: **_v382_traceability,
+LINE 3167: "status": _v382_traceability.get(
+LINE 3171: "source": _v382_traceability.get(
+LINE 3175: "schema_version": _v382_traceability.get(
+LINE 3185: # _v381_trace. V3.8.2 references _v382_trace during hydration.
+LINE 3197: _v382_trace = _v381_trace if isinstance(_v381_trace, dict) else {}
+LINE 3201: _v382_trace.get("stages", {})
+LINE 3202: if isinstance(_v382_trace, dict)
+LINE 3217: _v382_trace_result.get("conclusion")
+
+_v382_trace ASSIGNMENT LOCATIONS:
+LINE 3197: _v382_trace = _v381_trace if isinstance(_v381_trace, dict) else {}
+
+_v381_trace ASSIGNMENT LOCATIONS:
+LINE 2647: _v381_trace = _v381_result.get("trace")
+LINE 2651: _v381_trace = {
+
+7. V3.8.2.1 COMPATIBILITY MARKERS
+----------------------------------------------------------------------
+V3.8.2                       : PRESENT (4 occurrence(s))
+V3.8.2.1                     : PRESENT (2 occurrence(s))
+_v382_trace                  : PRESENT (23 occurrence(s))
+_v381_trace                  : PRESENT (26 occurrence(s))
+traceability_status          : PRESENT (8 occurrence(s))
+legacy_trace_preserved       : PRESENT (5 occurrence(s))
+
+8. INDENTATION CONTEXT AROUND LINE 3197
+----------------------------------------------------------------------
+ 3172: spaces=20, tabs=0 | "source",
+ 3173: spaces=20, tabs=0 | "decision_traceability",
+ 3174: spaces=16, tabs=0 | ),
+ 3175: spaces=16, tabs=0 | "schema_version": _v382_traceability.get(
+ 3176: spaces=20, tabs=0 | "schema_version",
+ 3177: spaces=20, tabs=0 | "V3.7.2",
+ 3178: spaces=16, tabs=0 | ),
+ 3179: spaces=16, tabs=0 | "legacy_trace_preserved": True,
+ 3180: spaces=16, tabs=0 | "stages": (
+ 3181: spaces=28, tabs=0 | # ==============================================================
+ 3182: spaces=8, tabs=0 | # V3.8.2.1 TRACE COMPATIBILITY INITIALIZER
+ 3183: spaces=8, tabs=0 | # ==============================================================
+ 3184: spaces=8, tabs=0 | # V3.7.2 already provides the verified trace object through
+ 3185: spaces=8, tabs=0 | # _v381_trace. V3.8.2 references _v382_trace during hydration.
+ 3186: spaces=8, tabs=0 | #
+ 3187: spaces=8, tabs=0 | # This compatibility bridge intentionally preserves the existing
+ 3188: spaces=8, tabs=0 | # V3.7.2 trace object rather than recalculating or replacing it.
+ 3189: spaces=8, tabs=0 | #
+ 3190: spaces=8, tabs=0 | # SAFETY:
+ 3191: spaces=8, tabs=0 | #   read-only
+ 3192: spaces=8, tabs=0 | #   no database writes
+ 3193: spaces=8, tabs=0 | #   no broker calls
+ 3194: spaces=8, tabs=0 | #   no order creation
+ 3195: spaces=8, tabs=0 | #   no portfolio mutation
+ 3196: spaces=8, tabs=0 | # ==============================================================
+ 3197: spaces=8, tabs=0 | _v382_trace = _v381_trace if isinstance(_v381_trace, dict) else {}
+ 3198: spaces=8, tabs=0 | # ==============================================================
+ 3199: spaces=8, tabs=0 | # END V3.8.2.1 TRACE COMPATIBILITY INITIALIZER
+ 3200: spaces=8, tabs=0 | # ==============================================================
+ 3201: spaces=0, tabs=0 | _v382_trace.get("stages", {})
+ 3202: spaces=20, tabs=0 | if isinstance(_v382_trace, dict)
+ 3203: spaces=20, tabs=0 | else {}
+ 3204: spaces=16, tabs=0 | ),
+ 3205: spaces=16, tabs=0 | "primary_scenario": _v382_primary_scenario,
+ 3206: spaces=16, tabs=0 | "decision_quality": _v382_decision_quality,
+ 3207: spaces=16, tabs=0 | "read_only": True,
+ 3208: spaces=16, tabs=0 | "execution_blocked": True,
+ 3209: spaces=16, tabs=0 | "non_mutation_invariant": True,
+ 3210: spaces=12, tabs=0 | },
+ 3211: spaces=12, tabs=0 | "evidence_chain": _v382_evidence_chain,
+ 3212: spaces=12, tabs=0 | "scenario_trace": _v382_scenario_trace,
+ 3213: spaces=12, tabs=0 | "interpretation": _v382_interpretation,
+ 3214: spaces=12, tabs=0 | "conclusion": _v382_conclusion
+ 3215: spaces=16, tabs=0 | if isinstance(locals().get("_v382_conclusion"), str)
+ 3216: spaces=16, tabs=0 | else (
+ 3217: spaces=20, tabs=0 | _v382_trace_result.get("conclusion")
+ 3218: spaces=20, tabs=0 | or _v382_convergence_result.get("conclusion")
+ 3219: spaces=20, tabs=0 | or ""
+ 3220: spaces=16, tabs=0 | ),
+ 3221: spaces=12, tabs=0 | "traceability_status": "COMPLETE",
+ 3222: spaces=12, tabs=0 | "audit_summary": (
+
+9. STRUCTURAL TOKENS AROUND LINE 3197
+----------------------------------------------------------------------
+LINE 3157: if isinstance(locals().get("_v381_audit"), dict)
+LINE 3161: if isinstance(locals().get("_v381_result"), dict)
+LINE 3202: if isinstance(_v382_trace, dict)
+LINE 3215: if isinstance(locals().get("_v382_conclusion"), str)
+LINE 3224: if isinstance(locals().get("_v381_audit"), dict)
+LINE 3229: if isinstance(locals().get("_v381_audit"), dict)
+LINE 3210: },
+LINE 3163: ),
+LINE 3170: ),
+LINE 3174: ),
+LINE 3178: ),
+LINE 3204: ),
+LINE 3220: ),
+LINE 3226: ),
+LINE 3231: ),
+
+10. LAST 40 LINES BEFORE TARGET
+----------------------------------------------------------------------
+ 3157:                 if isinstance(locals().get("_v381_audit"), dict)
+ 3158:                 else {},
+ 3159:             "audit_findings": (
+ 3160:                 _v381_result.get("audit_findings", [])
+ 3161:                 if isinstance(locals().get("_v381_result"), dict)
+ 3162:                 else []
+ 3163:             ),
+ 3164:             "trace": _v382_legacy_trace,
+ 3165:             "traceability": {
+ 3166:                 **_v382_traceability,
+ 3167:                 "status": _v382_traceability.get(
+ 3168:                     "status",
+ 3169:                     "COMPLETE",
+ 3170:                 ),
+ 3171:                 "source": _v382_traceability.get(
+ 3172:                     "source",
+ 3173:                     "decision_traceability",
+ 3174:                 ),
+ 3175:                 "schema_version": _v382_traceability.get(
+ 3176:                     "schema_version",
+ 3177:                     "V3.7.2",
+ 3178:                 ),
+ 3179:                 "legacy_trace_preserved": True,
+ 3180:                 "stages": (
+ 3181:                             # ==============================================================
+ 3182:         # V3.8.2.1 TRACE COMPATIBILITY INITIALIZER
+ 3183:         # ==============================================================
+ 3184:         # V3.7.2 already provides the verified trace object through
+ 3185:         # _v381_trace. V3.8.2 references _v382_trace during hydration.
+ 3186:         #
+ 3187:         # This compatibility bridge intentionally preserves the existing
+ 3188:         # V3.7.2 trace object rather than recalculating or replacing it.
+ 3189:         #
+ 3190:         # SAFETY:
+ 3191:         #   read-only
+ 3192:         #   no database writes
+ 3193:         #   no broker calls
+ 3194:         #   no order creation
+ 3195:         #   no portfolio mutation
+ 3196:         # ==============================================================
+
+11. FIRST 40 LINES AFTER TARGET
+----------------------------------------------------------------------
+ 3197:         _v382_trace = _v381_trace if isinstance(_v381_trace, dict) else {}
+ 3198:         # ==============================================================
+ 3199:         # END V3.8.2.1 TRACE COMPATIBILITY INITIALIZER
+ 3200:         # ==============================================================
+ 3201: _v382_trace.get("stages", {})
+ 3202:                     if isinstance(_v382_trace, dict)
+ 3203:                     else {}
+ 3204:                 ),
+ 3205:                 "primary_scenario": _v382_primary_scenario,
+ 3206:                 "decision_quality": _v382_decision_quality,
+ 3207:                 "read_only": True,
+ 3208:                 "execution_blocked": True,
+ 3209:                 "non_mutation_invariant": True,
+ 3210:             },
+ 3211:             "evidence_chain": _v382_evidence_chain,
+ 3212:             "scenario_trace": _v382_scenario_trace,
+ 3213:             "interpretation": _v382_interpretation,
+ 3214:             "conclusion": _v382_conclusion
+ 3215:                 if isinstance(locals().get("_v382_conclusion"), str)
+ 3216:                 else (
+ 3217:                     _v382_trace_result.get("conclusion")
+ 3218:                     or _v382_convergence_result.get("conclusion")
+ 3219:                     or ""
+ 3220:                 ),
+ 3221:             "traceability_status": "COMPLETE",
+ 3222:             "audit_summary": (
+ 3223:                 _v381_audit.get("audit_conclusion", "")
+ 3224:                 if isinstance(locals().get("_v381_audit"), dict)
+ 3225:                 else ""
+ 3226:             ),
+ 3227:             "audit_status": (
+ 3228:                 _v381_audit.get("overall_status", "PASS")
+ 3229:                 if isinstance(locals().get("_v381_audit"), dict)
+ 3230:                 else "PASS"
+ 3231:             ),
+ 3232:             "governance": {
+ 3233:                 "read_only": True,
+ 3234:                 "execution_blocked": True,
+ 3235:                 "non_mutation_invariant": True,
+ 3236:                 "allow_order_creation": False,
+ 3237:                 "allow_broker_submission": False,
+
+12. SAFETY TOKEN SOURCE CHECK
+----------------------------------------------------------------------
+read_only                           : PRESENT
+execution_blocked                   : PRESENT
+non_mutation_invariant              : PRESENT
+allow_order_creation                : PRESENT
+allow_broker_submission             : PRESENT
+allow_live_execution                : PRESENT
+allow_portfolio_mutation            : PRESENT
+allow_valuation_mutation            : PRESENT
+allow_performance_mutation          : PRESENT
+allow_risk_mutation                 : PRESENT
+allow_optimization                  : PRESENT
+
+13. DATABASE / EXECUTION TOKEN CHECK
+----------------------------------------------------------------------
+
+PATTERN : broker
+LINE 24: - No broker submission
+LINE 38: "allow_broker_submission": False,
+LINE 248: "allow_broker_submission": False,
+LINE 372: No broker or execution path is exposed.
+LINE 493: - No broker submission
+LINE 696: No broker interaction.
+LINE 1115: NO BROKER SUBMISSION.
+LINE 1332: "allow_broker_submission": False,
+LINE 1353: - No broker submission
+LINE 1526: "allow_broker_submission": False,
+LINE 1573: No broker submission.
+LINE 1710: "allow_broker_submission": False,
+LINE 1850: "allow_broker_submission": False,
+LINE 2083: "allow_broker_submission": False,
+LINE 2110: - call brokers
+LINE 2378: "allow_broker_submission",
+LINE 2578: "allow_broker_submission": False,
+LINE 2600: #   - no broker submission
+LINE 2942: "allow_broker_submission": False,
+LINE 3051: # It performs no database writes, broker calls, order creation,
+LINE 3193: #   no broker calls
+LINE 3237: "allow_broker_submission": False,
+
+PATTERN : portfolio_mutation
+LINE 40: "allow_portfolio_mutation": False,
+LINE 250: "allow_portfolio_mutation": False,
+LINE 1334: "allow_portfolio_mutation": False,
+LINE 1528: "allow_portfolio_mutation": False,
+LINE 1712: "allow_portfolio_mutation": False,
+LINE 1852: "allow_portfolio_mutation": False,
+LINE 2085: "allow_portfolio_mutation": False,
+LINE 2380: "allow_portfolio_mutation",
+LINE 2580: "allow_portfolio_mutation": False,
+LINE 2946: "allow_portfolio_mutation": False,
+LINE 3239: "allow_portfolio_mutation": False,
+
+14. DIAGNOSTIC CONCLUSION
+----------------------------------------------------------------------
+POST-PATCH COMPILE : FAIL
+THE SOURCE MUST NOT BE PATCHED AGAIN UNTIL THE ERROR ABOVE IS INSPECTED.
+
+15. IMPORTANT
+----------------------------------------------------------------------
+This diagnostic performs NO source modification.
+This diagnostic performs NO database write.
+This diagnostic performs NO broker call.
+This diagnostic performs NO order creation.
+This diagnostic performs NO portfolio mutation.
+
+======================================================================
+EROS 3.0 - V3.8.2.1 COMPILE FAILURE DIAGNOSTIC COMPLETE
+======================================================================

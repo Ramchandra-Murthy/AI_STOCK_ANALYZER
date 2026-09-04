@@ -1,0 +1,11 @@
+﻿python.exe :   File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\EROS_31K_FI76_FI100.py", line 152
+At line:284 char:51
++ ... et-Content -LiteralPath $py -Encoding UTF8; & python $py 2>&1 | Out-S ...
++                                                 ~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "D:\User...0.py", line 152:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    result = await service.get_or_download("RELIANCE.NS")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: 'await' outside function
+

@@ -1,0 +1,666 @@
+﻿============================================================
+EROS 3.0 - POST 31K-EU FULL ENGINEERING DISCOVERY
+============================================================
+CHECKPOINT: 31K-ES COMPLETE
+FINANCIAL LAYER 31K-EU: PASS
+SOURCE MODIFICATION: NONE
+
+1. ALL 31K SOURCE REFERENCES
+------------------------------------------------------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:99 | # 31K-EJ IDEMPOTENCY CONCURRENCY CONTROL
+
+2. TODO / FIXME / HACK / NOT IMPLEMENTED
+------------------------------------------------------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:5 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:9 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:13 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:17 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:21 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:25 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:29 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:33 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:37 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py:11 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py:15 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py:19 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\providers\base.py:23 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\adapters\provider_adapters.py:14 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:13 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:17 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:36 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:41 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\base_provider.py:46 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:19 | raise NotImplementedError("Subclasses must implement extract()")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:221 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:280 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:660 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:797 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:810 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_engine.py:47 | # Validation pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:6 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:10 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\workflow\workflow_exceptions.py:14 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\agents\base_agent.py:24 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\agents\base_agent.py:28 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:22 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:26 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:30 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\contracts.py:34 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:11 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:15 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:19 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:25 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:31 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\algorithms\base.py:35 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:7 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:13 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:19 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:25 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\exceptions.py:31 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py:452 | if item.get("status") == STATUS_PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py:519 | if item.get("status") == STATUS_PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py:494 | "status": STATUS_PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py:590 | if all_pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py:616 | if all_pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:49 | self.require_risk_pass = require_risk_pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:26 | PASS
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\engine.py:68 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:54 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:63 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\statements\validation.py:19 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py:44 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py:55 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:9 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:13 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:16 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:31 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:35 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:39 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py:9 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py:13 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py:16 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py:9 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py:13 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py:16 | raise NotImplementedError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:403 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:839 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:859 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:879 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py:933 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_movers_service.py:42 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_service.py:85 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py:16 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_peer_ev_consistency_service.py:14 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30n_strict_worker.py:38 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30o_separate_worker.py:75 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30q_diagnostic.py:58 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30r_diagnostic.py:77 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30s_permanent_worker.py:79 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py:149 | pass
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py:243 | pass
+
+3. BACKEND TOP-LEVEL MODULES
+------------------------------------------------------------
+__pycache__
+api
+config
+core
+database
+events
+exceptions
+infrastructure
+market_data
+providers
+realtime
+research
+security
+services
+tasks
+workflow
+
+4. SERVICES
+------------------------------------------------------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\__pycache__
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\__pycache__
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\agents
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alerts
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\api_gateway
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\attribution
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\backtesting
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\capital
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\cio
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\committee
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\company
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\compliance
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\copilot
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\copilot_v2
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_lake
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\execution
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast_system
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\governance
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\investors
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\knowledge_graph
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\learning
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\memory
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ml_platform
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\moat
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_intelligence
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_lab
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_manager
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\portfolio_optimizer
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\production
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\realtime
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning_graph
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research_director
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\risk_management
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\simulation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\statements
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\strategy_factory
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\wacc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\watchlist_platform
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\web_platform
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow_engine
+
+5. ROUTERS
+------------------------------------------------------------
+admin_task_router.py
+auth_router.py
+eros_production_router.py
+realtime_router.py
+task_router.py
+valuation_router.py
+
+6. TEST AREAS
+------------------------------------------------------------
+__pycache__
+agents
+alerts
+alpha_factory
+api
+api_gateway
+attribution
+backtesting
+capital
+cio
+committee
+company
+compliance
+copilot
+copilot_v2
+dashboard
+data_lake
+data_platform
+database
+decision
+events
+execution
+forecast_system
+forecasting
+frontend
+fundamentals
+governance
+infrastructure
+investors
+knowledge_graph
+learning
+market_data
+memory
+ml_platform
+moat
+monitoring
+portfolio
+portfolio_intelligence
+portfolio_lab
+portfolio_manager
+portfolio_optimizer
+production
+providers
+ratios
+realtime
+reasoning
+reasoning_graph
+report
+reporting
+research
+research_director
+risk_management
+scoring
+security
+services
+simulation
+statements
+strategy_factory
+tasks
+validation
+valuation
+wacc
+watchlist_platform
+web_platform
+workflow
+workflow_engine
+
+7. RECENT ENGINEERING FILES
+------------------------------------------------------------
+2026-08-24 16:24:41 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\31K_EU_next_engineering_discovery.txt
+2026-08-23 22:09:09 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\31K_ES_next_block_discovery.txt
+2026-08-23 21:58:07 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_ER_lock_regression.py
+2026-08-23 21:56:04 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\infrastructure\redis\client.py
+2026-08-23 21:50:18 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EL_idempotency_regression_test.py
+2026-08-23 21:48:37 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EK_concurrent_idempotency_test.py
+2026-08-23 21:47:15 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py
+2026-08-23 21:44:49 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EG_full_idempotency_test.py
+2026-08-23 21:44:24 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EF_atomic_lock_stress.py
+2026-08-23 21:39:55 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_EA_race_test.py
+2026-08-23 21:33:53 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DW_concurrent_idempotency_test.py
+2026-08-23 21:32:38 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DU_concurrency_lock_diagnostic.py
+2026-08-23 21:32:10 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DT_concurrent_idempotency_test.py
+2026-08-23 21:31:42 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSP_live_test.py
+2026-08-23 21:31:14 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSO_output.txt
+2026-08-23 21:31:13 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSO_idempotency_runtime_diagnostic.py
+2026-08-23 21:30:51 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSN_traceback.txt
+2026-08-23 21:30:15 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSN_live_idempotency_test.py
+2026-08-23 21:27:39 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSK_redis_access.txt
+2026-08-23 21:27:38 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSK_redis_access.py
+2026-08-23 21:27:13 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_redis_diagnostic.txt
+2026-08-23 21:27:13 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_redis_diagnostic.py
+2026-08-23 21:26:54 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_output.txt
+2026-08-23 21:26:01 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_live_test.py
+2026-08-23 21:16:57 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSF_idempotency.py
+2026-08-23 21:16:12 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSE_failure_recovery.py
+2026-08-23 19:35:45 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DR_reliability_test.py
+2026-08-23 19:34:09 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DQ_task_test.py
+2026-08-23 18:57:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DH_final_regression.py
+2026-08-23 18:52:06 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DC_stderr.txt
+2026-08-23 18:50:39 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DC_final_audit.py
+2026-08-23 18:48:46 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py
+2026-08-23 18:46:44 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CW_output.txt
+2026-08-23 18:45:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CV_security_audit.py
+2026-08-23 17:40:35 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\security\jwt.py
+2026-08-23 17:40:35 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\config\settings.py
+2026-08-23 17:38:53 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CS_20in1_security_audit.py
+2026-08-23 17:38:51 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CS_login_diagnostic.py
+2026-08-23 17:38:51 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CU\jwt.py
+2026-08-23 17:38:51 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\dependencies\auth.py
+2026-08-23 17:31:14 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CP_route_object_diagnostic.py
+2026-08-23 17:30:43 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CO_task_route_reconciliation.py
+2026-08-23 17:30:14 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CN_route_reconciliation.py
+2026-08-23 17:29:39 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CM_task_route_diagnostic.py
+2026-08-23 17:29:05 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CL_baseline.py
+2026-08-23 17:27:33 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CK_security_audit.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CY\main.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CS\main.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CR\main.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CZ\main.py
+2026-08-23 17:27:00 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_DA\main.py
+2026-08-23 17:25:37 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CI_full_output.txt
+2026-08-23 17:24:10 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CH_validation.py
+2026-08-23 17:24:10 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CJ\main.py
+2026-08-23 17:24:10 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CI\main.py
+2026-08-23 17:23:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_CG_security_audit.py
+2026-08-23 17:23:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\admin_task_router.py
+2026-08-23 17:23:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py
+2026-08-23 17:23:28 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py
+2026-08-23 17:22:42 | D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\admin_task_router.py
+
+8. PYTEST COLLECTION
+------------------------------------------------------------
+tests/tasks/test_sprint20a_observability.py::test_task_observability_metrics
+tests/tasks/test_sprint20a_observability.py::test_task_observability_router_endpoint
+tests/tasks/test_sprint20b_observability_details.py::test_per_task_execution_telemetry
+tests/tasks/test_sprint20b_observability_details.py::test_task_observability_details_endpoint
+tests/tasks/test_sprint20c_unified_observability.py::test_unified_observability_service
+tests/tasks/test_sprint20c_unified_observability.py::test_unified_observability_endpoint
+tests/test_event_contracts.py::test_domain_event_contract[MarketDataDownloaded-market.data.downloaded]
+tests/test_event_contracts.py::test_domain_event_contract[ForecastCompleted-forecast.completed]
+tests/test_event_contracts.py::test_domain_event_contract[ValuationCompleted-valuation.completed]
+tests/test_event_contracts.py::test_domain_event_contract[ResearchCompleted-research.completed]
+tests/test_event_contracts.py::test_domain_event_contract[ReportCompleted-report.completed]
+tests/test_event_contracts.py::test_event_runtime_assertions
+tests/test_pipeline.py::test_end_to_end_pipeline
+tests/validation/test_backtest.py::test_backtest_evaluation
+tests/validation/test_block22_hardening.py::test_block22a_data_sanitization_valid
+tests/validation/test_block22_hardening.py::test_block22a_data_sanitization_anomalies
+tests/validation/test_block22_hardening.py::test_block22b_conflicting_signals_growth_vs_valuation
+tests/validation/test_block22_hardening.py::test_block22b_conflicting_signals_momentum_vs_fundamentals
+tests/validation/test_block22c_stress.py::test_block22c_batch_concurrency_stress
+tests/validation/test_block22c_stress.py::test_block22c_subsystem_recovery
+tests/valuation/test_blended_valuation.py::test_blended_valuation_engine
+tests/valuation/test_dcf.py::test_production_dcf_calculation
+tests/valuation/test_professional_dcf.py::test_professional_dcf_calculation
+tests/valuation/test_relative.py::test_relative_valuation_calculation
+tests/valuation/test_sotp.py::test_sotp_valuation_calculation
+tests/wacc/test_wacc_service.py::test_capm_cost_of_equity_calculation
+tests/wacc/test_wacc_service.py::test_hamada_beta_unlever_and_relever
+tests/wacc/test_wacc_service.py::test_wacc_calculation
+tests/watchlist_platform/test_iwip.py::test_watchlist_item_immutability
+tests/watchlist_platform/test_iwip.py::test_watchlist_intelligence_engine
+tests/web_platform/test_ewp.py::test_web_page_descriptor_immutability
+tests/web_platform/test_ewp.py::test_enterprise_web_platform
+tests/workflow/test_workflow.py::test_institutional_research_pipeline
+tests/workflow_engine/test_erwe.py::test_workflow_execution_immutability
+tests/workflow_engine/test_erwe.py::test_enterprise_workflow_engine
+tests/workflow_engine/test_ewop.py::test_workflow_successful_execution
+tests/workflow_engine/test_ewop.py::test_workflow_invalid_state_transition
+tests/workflow_engine/test_ewop.py::test_workflow_retry_and_failure
+
+295 tests collected in 2.20s
+PYTEST COLLECTION EXIT: 0
+
+9. KEY PRODUCTION MODULE COMPILE
+------------------------------------------------------------
+backend\infrastructure\redis\client.py | EXIT: 0
+backend\tasks\task_control.py | EXIT: 0
+backend\services\valuation_service.py | EXIT: 0
+backend\api\routers\eros_production_router.py | EXIT: 0
+backend\api\routers\task_router.py | EXIT: 0
+backend\api\routers\valuation_router.py | EXIT: 0
+
+10. GIT WORKTREE STATUS
+------------------------------------------------------------
+ M backend/api/routers/admin_task_router.py
+ M backend/api/routers/task_router.py
+ M backend/api/routers/valuation_router.py
+ M backend/config/settings.py
+ M backend/infrastructure/redis/client.py
+ M backend/main.py
+ M backend/security/jwt.py
+ M backend/tasks/task_control.py
+ M tests/production/test_block29_real_celery.py
+?? .env
+?? 31K_BR_CA_SECURITY_AUDIT.txt
+?? 31K_ES_next_block_discovery.txt
+?? 31K_EU_next_engineering_discovery.txt
+?? backend/api/dependencies/auth.py
+?? backend/api/routers/valuation_router.py.31K-backup
+?? backend/infrastructure/redis/client.py.31K_EE_backup
+?? backend/infrastructure/redis/client.py.31K_EE_repair_backup
+?? backend/infrastructure/redis/client.py.31K_EO_backup
+?? backend/infrastructure/redis/client.py.31K_EP_backup
+?? backend/infrastructure/redis/client.py.31K_EQ_backup
+?? backend/main.py.31K-BC.bak
+?? backend/security/dependencies.py
+?? backend/tasks/task_control.py.31K-DSI.backup
+?? backend/tasks/task_control.py.31K_DSM_backup
+?? backend/tasks/task_control.py.31K_DSP_backup
+?? backend/tasks/task_control.py.31K_DV_backup
+?? backend/tasks/task_control.py.31K_EH_backup
+?? backend/tasks/task_control.py.31K_EH_patch_backup
+?? backend/tasks/task_control.py.31K_EJ_backup
+?? block_31K_CG_security_audit.py
+?? block_31K_CH_validation.py
+?? block_31K_CI_full_output.txt
+?? block_31K_CK_security_audit.py
+?? block_31K_CL_baseline.py
+?? block_31K_CM_task_route_diagnostic.py
+?? block_31K_CN_route_reconciliation.py
+?? block_31K_CO_task_route_reconciliation.py
+?? block_31K_CP_route_object_diagnostic.py
+?? block_31K_CS_20in1_security_audit.py
+?? block_31K_CS_login_diagnostic.py
+?? block_31K_CV_security_audit.py
+?? block_31K_CW_output.txt
+?? block_31K_DC_final_audit.py
+?? block_31K_DC_stderr.txt
+?? block_31K_DH_final_regression.py
+?? block_31K_DQ_task_test.py
+?? block_31K_DR_reliability_test.py
+?? block_31K_DSE_failure_recovery.py
+?? block_31K_DSF_idempotency.py
+?? block_31K_DSJ_live_test.py
+?? block_31K_DSJ_output.txt
+?? block_31K_DSJ_redis_diagnostic.py
+?? block_31K_DSJ_redis_diagnostic.txt
+?? block_31K_DSK_redis_access.py
+?? block_31K_DSK_redis_access.txt
+?? block_31K_DSN_live_idempotency_test.py
+?? block_31K_DSN_traceback.txt
+?? block_31K_DSO_idempotency_runtime_diagnostic.py
+?? block_31K_DSO_output.txt
+?? block_31K_DSP_live_test.py
+?? block_31K_DT_concurrent_idempotency_test.py
+?? block_31K_DU_concurrency_lock_diagnostic.py
+?? block_31K_DW_concurrent_idempotency_test.py
+?? block_31K_EA_race_test.py
+?? block_31K_EF_atomic_lock_stress.py
+?? block_31K_EG_full_idempotency_test.py
+?? block_31K_EK_concurrent_idempotency_test.py
+?? block_31K_EL_idempotency_regression_test.py
+?? block_31K_ER_lock_regression.py
+?? check_main_31K_CD.py
+?? eros_security_audit_31K_CC.py
+?? eros_security_audit_31K_CC_output.txt
+?? logs/analyzer_before_eros_v26_readonly_patch.py
+?? logs/analyzer_before_eros_v328_date_contract.py
+?? logs/eros_block29_queue_contract_fix_output.txt
+?? logs/eros_block29_source_inspection.txt
+?? logs/eros_block29b_queue_contract.txt
+?? logs/eros_block29b_queue_diagnostic.py
+?? logs/eros_block29b_queue_inspection.txt
+?? logs/eros_block30k_result.txt
+?? logs/eros_block30k_wsl_ip_result.txt
+?? logs/eros_celery_config_location.txt
+?? logs/eros_celery_search.txt
+?? logs/eros_checkpoint_latest.txt
+?? logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py
+?? logs/eros_frontend_adapter_before_v29.py
+?? logs/eros_frontend_adapter_before_v30_20260822_210324.py
+?? logs/eros_frontend_adapter_before_v30_decision_20260822_210450.py
+?? logs/eros_frontend_adapter_before_v31_20260822_210705.py
+?? logs/eros_frontend_adapter_before_v32_20260822_210838.py
+?? logs/eros_frontend_adapter_before_v33_20260822_211141.py
+?? logs/eros_frontend_adapter_before_v34_20260822_211420.py
+?? logs/eros_frontend_adapter_before_v35_20260822_211800.py
+?? logs/eros_frontend_adapter_before_v35_20260822_212229.py
+?? logs/eros_frontend_adapter_before_v36_20260822_212325.py
+?? logs/eros_frontend_adapter_before_v371_20260822_213654.py
+?? logs/eros_frontend_adapter_before_v372_20260822_213827.py
+?? logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213105.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213210.py
+?? logs/eros_frontend_adapter_before_v381_20260822_215432.py
+?? logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py
+?? logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py
+?? logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220104.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220437.py
+?? logs/eros_frontend_adapter_before_v38_20260822_214850.py
+?? logs/eros_full_suite_hang_diagnostic.txt
+?? logs/eros_full_test_20260823_123857.txt
+?? logs/eros_full_test_hang_isolation.txt
+?? logs/eros_precommit_safety_audit.txt
+?? logs/eros_pydantic_diagnostic.txt
+?? logs/eros_pydantic_repair.txt
+?? logs/eros_pytest_collection_check.txt
+?? logs/eros_pytest_hang_diagnostic.txt
+?? logs/eros_test_20260823_123827.txt
+?? logs/eros_v25_adapter_api.py
+?? logs/eros_v25_adapter_api_output.txt
+?? logs/eros_v25_contract_verify.py
+?? logs/eros_v25_dashboard_contract.py
+?? logs/eros_v25_dashboard_contract_output.txt
+?? logs/eros_v25_market_scan_contract.py
+?? logs/eros_v25_market_scan_contract_output.txt
+?? logs/eros_v26_active_sqlite_message_check.py
+?? logs/eros_v26_active_write_token_check.py
+?? logs/eros_v26_analyzer_patch_output.txt
+?? logs/eros_v26_analyzer_runtime_test.py
+?? logs/eros_v26_ast_nonmutation_proof.py
+?? logs/eros_v26_ast_nonmutation_proof.txt
+?? logs/eros_v26_ast_nonmutation_proof_v2.py
+?? logs/eros_v26_ast_nonmutation_proof_v2.txt
+?? logs/eros_v26_clean_write_trace.txt
+?? logs/eros_v26_corrected_nonmutation_proof_20260822_205417.txt
+?? logs/eros_v26_corrected_runtime_test.py
+?? logs/eros_v26_corrected_scan_test.py
+?? logs/eros_v26_database_nonmutation_proof.txt
+?? logs/eros_v26_exact_write_trace.txt
+?? logs/eros_v26_market_scan_readonly_test.py
+?? logs/eros_v26_nonmutation_runtime_test.py
+?? logs/eros_v26_safety_contract_runtime.py
+?? logs/eros_v26_sqlite_message_trace.txt
+?? logs/eros_v26_sqlite_save_message_trace.txt
+?? logs/eros_v26_write_trace_clipboard.txt
+?? logs/eros_v27_data_layer_boundary_console.txt
+?? logs/eros_v27_runtime_evidence_inspection.py
+?? logs/eros_v27_runtime_evidence_inspection.txt
+?? logs/eros_v28_decision_evidence_test.py
+?? logs/eros_v28_decision_evidence_test_output.txt
+?? logs/eros_v29_decision_evidence_output.txt
+?? logs/eros_v29_decision_evidence_test.py
+?? logs/eros_v30_decision_intelligence_foundation.txt
+?? logs/eros_v30_decision_intelligence_test.py
+?? logs/eros_v31_decision_interpretation_foundation.txt
+?? logs/eros_v31_decision_interpretation_test.py
+?? logs/eros_v32_decision_action_runtime_20260822_210929.txt
+?? logs/eros_v32_decision_action_runtime_test_20260822_210929.py
+?? logs/eros_v33_runtime_test.py
+?? logs/eros_v33_runtime_test_output.txt
+?? logs/eros_v34_runtime_test.py
+?? logs/eros_v34_runtime_test_output.txt
+?? logs/eros_v35_runtime_test.py
+?? logs/eros_v35_runtime_test_output.txt
+?? logs/eros_v36_runtime_test.py
+?? logs/eros_v372_ast_traceability_patch.py
+?? logs/eros_v372_return_structure_diagnostic.py
+?? logs/eros_v372_runtime_regression.py
+?? logs/eros_v372_traceability_failure_diagnostic.py
+?? logs/eros_v372_traceability_runtime_test.py
+?? logs/eros_v37_api_check.py
+?? logs/eros_v37_foundation_check.py
+?? logs/eros_v37_runtime_test.py
+?? logs/eros_v37_traceability_diagnostic.py
+?? logs/eros_v37_traceability_runtime_test.py
+?? logs/eros_v3810_adapter_api_contract.txt
+?? logs/eros_v3812_frontend_insertion_boundary.txt
+?? logs/eros_v3813_traceability_runtime_contract.py
+?? logs/eros_v3813_traceability_runtime_contract.txt
+?? logs/eros_v3815_frontend_runtime_consumption_audit.py
+?? logs/eros_v3815_frontend_runtime_consumption_audit.txt
+?? logs/eros_v3816_golden_integration_verification.txt
+?? logs/eros_v3817_traceability_frontend_consumption_inspection.txt
+?? logs/eros_v3818_frontend_traceability_runtime_test.py
+?? logs/eros_v3818_frontend_traceability_runtime_test.txt
+?? logs/eros_v3819_golden_integration_verification.py
+?? logs/eros_v3819_golden_integration_verification.txt
+?? logs/eros_v381_audit_clipboard_diagnostic.py
+?? logs/eros_v381_audit_clipboard_output.txt
+?? logs/eros_v381_audit_failure_isolation.py
+?? logs/eros_v381_audit_runtime_diagnostic.py
+?? logs/eros_v381_deep_audit_runtime.py
+?? logs/eros_v3820_traceability_ui_context.txt
+?? logs/eros_v3821_ast_only.py
+?? logs/eros_v3821_compile_failure_diagnostic_20260822_220822.txt
+?? logs/eros_v3821_structural_ast_diagnostic.py
+?? logs/eros_v3821_structural_diagnostic_clipboard.txt
+?? logs/eros_v3822_ast_inspection.py
+?? logs/eros_v3822_ast_syntax_diagnostic.py
+?? logs/eros_v3822_clean_runtime_diagnostic.py
+?? logs/eros_v3822_runtime_hydration_validation.py
+?? logs/eros_v3823_hydration_dataflow_diagnostic.py
+?? logs/eros_v3823_hydration_source_inspection.py
+?? logs/eros_v3823_import_path_test.py
+?? logs/eros_v3824_ast_inspection.py
+?? logs/eros_v3824_audit_dataflow_inspector.py
+?? logs/eros_v3824_audit_dataflow_source_diagnostic.py
+?? logs/eros_v3824_golden_baseline_runtime.py
+?? logs/eros_v3824_golden_difference_forensic_20260822_225337.txt
+?? logs/eros_v3824_runtime_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic_output.txt
+?? logs/eros_v3826_decision_evidence_source_forensic.txt
+?? logs/eros_v3827_runtime_dataflow_diagnostic.py
+?? logs/eros_v3827_runtime_dataflow_diagnostic.txt
+?? logs/eros_v3828_middle_layer_source_forensic.txt
+?? logs/eros_v3829_middle_layer_runtime_test.py
+?? logs/eros_v3829_middle_layer_runtime_test_output.txt
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.py
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.txt
+?? logs/eros_v382_ast_audit_hydration_patcher.py
+?? logs/eros_v382_audit_failure_capture.py
+?? logs/eros_v382_audit_schema_runtime_diagnostic.py
+?? logs/eros_v382_forensic_runtime.py
+?? logs/eros_v382_forensic_runtime_output.txt
+?? logs/eros_v382_forensic_stderr.txt
+?? logs/eros_v382_forensic_stdout.txt
+?? logs/eros_v382_integrity_patcher.py
+?? logs/eros_v382_integrity_runtime_diagnostic.py
+?? logs/eros_v3831_dashboard_analysis_flow_forensic.txt
+?? logs/eros_v3832_THREE_REPORTS_COMBINED.txt
+?? logs/eros_v3832_adapter_frontend_contract_forensic.txt
+?? logs/eros_v3832_adapter_frontend_integration_contract.txt
+?? logs/eros_v3832_adapter_public_api_forensic.txt
+?? logs/eros_v3833_adapter_runtime_contract_test.txt
+?? logs/eros_v383_frontend_consumption_forensic.txt
+?? logs/eros_v384_frontend_integration_insertion_forensic.txt
+?? logs/eros_v385_frontend_adapter_argument_contract.txt
+?? logs/eros_v386_frontend_integration_runtime_dry_run.txt
+?? logs/eros_v389_selected_stock_insertion_context.txt
+?? logs/eros_v38_audit_failure_diagnostic.py
+?? logs/eros_v38_decision_audit_diagnostic.py
+?? logs/eros_v38_runtime_test.py
+?? logs/stock_dashboard_before_eros_frontend_v1.py
+?? logs/stock_dashboard_before_eros_frontend_v2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_1.py
+?? logs/stock_dashboard_before_eros_frontend_v2_2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_market_insert.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_5.py
+?? logs/stock_dashboard_before_eros_v311_20260823_105006.py
+?? logs/stock_dashboard_before_eros_v314_integration.py
+?? logs/stock_dashboard_before_eros_v320_20260823_113203.py
+?? logs/stock_dashboard_before_eros_v387_20260823_000130.py
+?? logs/test_block29_real_celery_before_queue_contract_fix.py
+?? security_backup_31K_BG/
+?? security_backup_31K_CG/
+?? security_backup_31K_CH/
+?? security_backup_31K_CI/
+?? security_backup_31K_CJ/
+?? security_backup_31K_CR/
+?? security_backup_31K_CS/
+?? security_backup_31K_CU/
+?? security_backup_31K_CY/
+?? security_backup_31K_CZ/
+?? security_backup_31K_DA/
+
+============================================================
+31K-EU FINAL CHECKPOINT
+============================================================
+FUNDAMENTALS: PASS
+RATIOS: PASS
+VALUATION: PASS
+REDIS: PASS
+TTL: PASS
+ATOMIC LOCK: PASS
+IDEMPOTENCY: PASS
+INTEGRATED REGRESSION: PASS
+
+NEXT BLOCK HAS NOT BEEN CREATED.
+SOURCE HAS NOT BEEN MODIFIED.
+DISCOVERY ONLY.
+============================================================
+

@@ -1,0 +1,183 @@
+﻿
+============================================================
+EROS 3.0 - V2.6 SQLITE SAVE MESSAGE FORENSIC TRACE
+============================================================
+
+1. PROJECT PYTHON SOURCE FILES
+------------------------------------------------------------
+SOURCE FILE COUNT : 1078
+
+2. EXACT SQLITE SAVE MESSAGE
+------------------------------------------------------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\loader.py:36: print(f"{symbol} saved to SQLite successfully.")
+
+3. SQLITE3 REFERENCES
+------------------------------------------------------------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\phase4a_final_uuid.py:1: import sqlite3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\phase4a_final_uuid.py:59: conn = sqlite3.connect("celery_results.db")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\phase4a_uuid_test.py:1: import sqlite3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\phase4a_uuid_test.py:63: conn = sqlite3.connect("celery_results.db")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:1: import sqlite3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:6: self.conn = sqlite3.connect(db_name)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\database.py:1: import sqlite3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\database.py:12: return sqlite3.connect(DB_NAME)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:1: import sqlite3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:7: conn = sqlite3.connect(DB_NAME)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:25: conn = sqlite3.connect(DB_NAME)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:1: import sqlite3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:9: conn = sqlite3.connect(DATABASE)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:25: conn = sqlite3.connect(DATABASE)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:37: conn = sqlite3.connect(DATABASE)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:47: conn = sqlite3.connect(DATABASE)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:56: conn = sqlite3.connect(DATABASE)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:72: conn = sqlite3.connect(DATABASE)
+
+4. DATABASE WRITE REFERENCES
+------------------------------------------------------------
+
+SEARCH : save_dataframe
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\loader.py:4: def save_dataframe(df, symbol):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\analyzer_before_eros_v26_readonly_patch.py:3: from data.loader import save_dataframe
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\analyzer_before_eros_v26_readonly_patch.py:23: save_dataframe(df, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\analyzer.py:23: # EROS V2.6 READ_ONLY: save_dataframe disabled
+
+SEARCH : save_to_database
+NO MATCH
+
+SEARCH : save_data
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\loader.py:4: def save_dataframe(df, symbol):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\analyzer_before_eros_v26_readonly_patch.py:3: from data.loader import save_dataframe
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\analyzer_before_eros_v26_readonly_patch.py:23: save_dataframe(df, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\analyzer.py:23: # EROS V2.6 READ_ONLY: save_dataframe disabled
+
+SEARCH : save_stock
+NO MATCH
+
+SEARCH : to_sql
+NO MATCH
+
+SEARCH : INSERT INTO
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:28: 'INSERT INTO scan_results (ticker, close_price, volume_ratio, signal_type) VALUES (?, ?, ?, ?)',
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:30: INSERT INTO portfolio
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:28: "INSERT INTO portfolio(symbol, quantity, buy_price) VALUES (?, ?, ?)",
+
+SEARCH : insert into
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:28: 'INSERT INTO scan_results (ticker, close_price, volume_ratio, signal_type) VALUES (?, ?, ?, ?)',
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:30: INSERT INTO portfolio
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:28: "INSERT INTO portfolio(symbol, quantity, buy_price) VALUES (?, ?, ?)",
+
+SEARCH : executemany
+NO MATCH
+
+SEARCH : commit(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:21: self.conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\AI_STOCK_ANALYZER\src\database.py:31: self.conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\company_repository.py:16: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\company_repository.py:29: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:22: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\forecast_report_repository.py:40: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\user_repository.py:30: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:31: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\base_service.py:39: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\user_service.py:43: session.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\database.py:38: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\data\loader.py:33: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:20: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\database\portfolio_db.py:37: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:20: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:32: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:51: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:67: conn.commit()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:76: conn.commit()
+
+SEARCH : UPDATE 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\edit_holding_form.py:34: if st.button("💾 Update Holding", use_container_width=True):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_97_safety_normalization.py:99: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_safety_surgical_repair.py:73: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block95_safety_repair.py:52: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block96_safety_repair.py:51: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:60: UPDATE portfolio
+
+SEARCH : update 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\edit_holding_form.py:34: if st.button("💾 Update Holding", use_container_width=True):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_97_safety_normalization.py:99: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_safety_surgical_repair.py:73: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block95_safety_repair.py:52: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block96_safety_repair.py:51: print("SOURCE UPDATE : PASS")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:60: UPDATE portfolio
+
+SEARCH : DELETE 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\top_holdings.py:54: # Delete Holding
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\top_holdings.py:62: "Delete Holding",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\portfolio.py:216: st.subheader("🗑 Delete Holding")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\portfolio.py:220: if st.button("Delete Holding", key="delete_btn"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:49: conn.execute("DELETE FROM portfolio WHERE id=?", (stock_id,))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:74: conn.execute("DELETE FROM portfolio")
+
+SEARCH : delete 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\top_holdings.py:54: # Delete Holding
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\top_holdings.py:62: "Delete Holding",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\portfolio.py:216: st.subheader("🗑 Delete Holding")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\portfolio.py:220: if st.button("Delete Holding", key="delete_btn"):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:49: conn.execute("DELETE FROM portfolio WHERE id=?", (stock_id,))
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\portfolio\portfolio.py:74: conn.execute("DELETE FROM portfolio")
+
+5. CRITICAL EROS FILE CHECK
+------------------------------------------------------------
+
+FILE : .\stock_dashboard.py
+NO DATABASE WRITE REFERENCES
+
+FILE : .\services\analyzer.py
+23: # EROS V2.6 READ_ONLY: save_dataframe disabled
+
+FILE : .\services\eros_frontend_adapter.py
+NO DATABASE WRITE REFERENCES
+
+FILE : .\scanner\market_scanner.py
+NO DATABASE WRITE REFERENCES
+
+6. ANALYZER READ-ONLY CHECK
+------------------------------------------------------------
+save_dataframe : FOUND
+commit() : NONE
+sqlite3 : NONE
+
+7. GIT STATUS
+------------------------------------------------------------
+ M database/stock_data.db
+ M services/analyzer.py
+ M stock_dashboard.py
+?? logs/analyzer_before_eros_v26_readonly_patch.py
+?? logs/eros_v25_adapter_api.py
+?? logs/eros_v25_adapter_api_output.txt
+?? logs/eros_v25_contract_verify.py
+?? logs/eros_v25_dashboard_contract.py
+?? logs/eros_v25_dashboard_contract_output.txt
+?? logs/eros_v25_market_scan_contract.py
+?? logs/eros_v25_market_scan_contract_output.txt
+?? logs/eros_v26_analyzer_patch_output.txt
+?? logs/eros_v26_analyzer_runtime_test.py
+?? logs/eros_v26_clean_write_trace.txt
+?? logs/eros_v26_exact_write_trace.txt
+?? logs/eros_v26_market_scan_readonly_test.py
+?? logs/eros_v26_sqlite_save_message_trace.txt
+?? logs/eros_v26_write_trace_clipboard.txt
+?? logs/eros_v27_data_layer_boundary_console.txt
+?? logs/stock_dashboard_before_eros_frontend_v1.py
+?? logs/stock_dashboard_before_eros_frontend_v2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_1.py
+?? logs/stock_dashboard_before_eros_frontend_v2_2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_market_insert.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_5.py
+?? services/eros_frontend_adapter.py
+
+============================================================
+EROS 3.0 - V2.6 SQLITE FORENSIC TRACE COMPLETE
+============================================================
+
+

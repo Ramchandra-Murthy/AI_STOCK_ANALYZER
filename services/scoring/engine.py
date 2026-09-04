@@ -118,7 +118,19 @@ class AIScoringEngine:
             "engine_version": "EROS-3.0-BLOCK-15",
             "weights_used": weights,
             "growth_engine": growth_res.growth_details,
-            "fundamental_engine": fund_res.pillar_details,
+
+            # Block 10 audit contract while preserving the
+            # existing FundamentalScoringEngine payload.
+            "fundamental_engine": {
+                **fund_res.pillar_details,
+                "profitability_components": fund_res.pillar_details["profitability"],
+                "quality_components": fund_res.pillar_details["quality"],
+                "capital_allocation_components": fund_res.pillar_details["capital_efficiency"],
+            },
+
+            # Block 10 audit contract.
+            "raw_ratios": fund_res.pillar_details["ratios"],
+
             "valuation_engine": {
                 "blended_fair_value": val_res.blended_fair_value,
                 "current_market_price": val_res.current_market_price,

@@ -1,0 +1,1202 @@
+﻿============================================================
+EROS 3.0 - 31K-FD6 EXISTING SCORE ENGINE DISCOVERY
+============================================================
+PURPOSE: IDENTIFY REAL EXISTING SCORING ENGINES
+MODE: READ-ONLY
+SOURCE MODIFICATION: NONE
+
+============================================================
+1. SCORING ENGINE INVENTORY
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block17_confidence.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py
+
+============================================================
+2. SCORE PRODUCER SEARCH
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:215 | valuation_score = _normalize_category(metrics)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:307 | profitability_score = _normalize_category(metrics)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:363 | growth_score = _normalize_category(metrics)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:513 | valuation_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:514 | profitability_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py:515 | growth_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\models.py:13 | quality_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\models.py:14 | valuation_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\models.py:15 | momentum_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\models.py:17 | risk_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py:22 | quality_score=0.92,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py:23 | valuation_score=0.88,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py:24 | momentum_score=0.75,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py:26 | risk_score=0.25,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py:35 | quality_score=0.95,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py:36 | valuation_score=0.85,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py:37 | momentum_score=0.70,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alpha_factory\ranking_engine.py:39 | risk_score=0.20,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecasting\models.py:20 | risk_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\confidence_trace.py:34 | composite_score: float,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\confidence_trace.py:45 | composite_ai_score=composite_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:22 | growth_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:23 | quality_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:24 | profitability_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:25 | capital_allocation_score=81.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:26 | valuation_score=79.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:27 | momentum_score=76.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:28 | risk_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:29 | composite_score=82.4,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:33 | composite_score=0.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:40 | growth_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:41 | quality_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:42 | profitability_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:43 | capital_allocation_score=81.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:44 | valuation_score=79.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:45 | momentum_score=76.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:46 | risk_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:47 | composite_score=82.4,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:67 | composite_score=ai_score.composite_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\change_detector.py:50 | check_score_metric("Composite Score", previous.composite_score, current.composite_score)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\change_detector.py:51 | check_score_metric("Risk Score", previous.risk_score, current.risk_score)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\change_detector.py:52 | check_score_metric("Valuation Score", previous.valuation_score, current.valuation_score)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\change_detector.py:53 | check_score_metric("Momentum Score", previous.momentum_score, current.momentum_score)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:10 | composite_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:12 | risk_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:13 | valuation_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:14 | momentum_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:36 | composite_score=dec.composite_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:38 | risk_score=dec.risk_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:39 | valuation_score=dec.valuation_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:40 | momentum_score=dec.momentum_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_test_harness.py:36 | risk={"status": "PASS", "risk_score": 25.0},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:37 | max_risk_score: float = 60.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:42 | if not 0 <= max_risk_score <= 100:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:44 | "max_risk_score must be between 0 and 100"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:48 | self.max_risk_score = float(max_risk_score)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:135 | risk_score = 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:147 | risk_score = float(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:149 | "risk_score",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:154 | risk_score = 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:162 | if risk_score > self.max_risk_score:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:164 | "RISK_SCORE_LIMIT_BREACH"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:194 | "risk_score": round(risk_score, 4),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py:219 | "risk_score": result["risk_score"],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:189 | risk_score = 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:191 | risk_score += min(metrics["hhi"] * 100.0, 40.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:192 | risk_score += min(metrics["max_position_weight"] * 40.0, 40.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:193 | risk_score += min(metrics["stale_positions"] * 10.0, 20.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:195 | risk_score = min(100.0, risk_score)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:200 | "risk_score": round(risk_score, 4),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py:217 | "risk_score": result["risk_score"],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\engine.py:100 | quality_scores = {
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\engine.py:116 | quality_scores=quality_scores,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\models.py:35 | quality_scores: Dict[str, float] = field(default_factory=dict)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:32 | value=ai_score.growth_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:33 | direction="IMPROVING" if ai_score.growth_score >= 60.0 else "DETERIORATING",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:41 | value=ai_score.profitability_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:42 | direction="IMPROVING" if ai_score.profitability_score >= 60.0 else "DETERIORATING",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:50 | value=ai_score.capital_allocation_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:51 | direction="IMPROVING" if ai_score.capital_allocation_score >= 50.0 else "DETERIORATING",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:59 | value=ai_score.risk_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:60 | direction="IMPROVING" if ai_score.risk_score >= 70.0 else "DETERIORATING",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\engine.py:25 | - **Composite AI Score**: {analysis_data.get('composite_score', 81.5)} / 100
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\engine.py:43 | <p><b>Composite AI Score:</b> {analysis_data.get('composite_score', 81.5)} / 100</p>
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:29 | lines.append(f"- **Composite AI Score**: `{dec.composite_score:.2f}/100` (Rating: `{dec.rating}`)")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:40 | lines.append(f"| Growth (Block 11) | `{dec.growth_score:.1f}` |")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:41 | lines.append(f"| Quality / Fundamentals (Block 12) | `{dec.quality_score:.1f}` |")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:42 | lines.append(f"| Profitability (Block 12) | `{dec.profitability_score:.1f}` |")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:43 | lines.append(f"| Capital Allocation (Block 12) | `{dec.capital_allocation_score:.1f}` |")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:44 | lines.append(f"| Valuation (Block 13) | `{dec.valuation_score:.1f}` |")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:45 | lines.append(f"| Momentum (Block 14) | `{dec.momentum_score:.1f}` |")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:46 | lines.append(f"| Risk & Resilience (Block 15) | `{dec.risk_score:.1f}` |")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\block17_engine.py:31 | def evaluate(self, symbol: str, ratios: Optional[FinancialRatios] = None, composite_score: float = 75.0) -> ResearchIntelligenceResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\research\block17_engine.py:47 | research_score = round((moat_res.moat_score * 0.5) + (composite_score * 0.5), 2)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py:52 | composite_score=ai_score.composite_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:50 | profitability_score = fund_res.profitability_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:51 | quality_score = fund_res.quality_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:52 | capital_allocation_score = fund_res.cash_flow_quality_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:56 | growth_score = growth_res.growth_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:60 | valuation_score = _score_valuation(val_res.margin_of_safety_pct)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:78 | momentum_score = mom_res.momentum_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:82 | risk_score = risk_res.risk_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:95 | growth_score * weights["growth"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:96 | + quality_score * weights["quality"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:97 | + profitability_score * weights["profitability"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:98 | + capital_allocation_score * weights["capital_allocation"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:99 | + valuation_score * weights["valuation"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:100 | + momentum_score * weights["momentum"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:101 | + risk_score * weights["risk"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:127 | "valuation_score": valuation_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:135 | growth_score=round(growth_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:136 | quality_score=round(quality_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:137 | profitability_score=round(profitability_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:138 | capital_allocation_score=round(capital_allocation_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:139 | valuation_score=round(valuation_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:140 | momentum_score=round(momentum_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:141 | risk_score=round(risk_score, 2),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:142 | composite_score=composite,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:55 | profitability_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:56 | quality_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:59 | cash_flow_quality_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:125 | profitability_score = _average(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:154 | quality_score = _average(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:236 | cash_flow_quality_score = _average(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:251 | profitability_score * pillar_weights["profitability"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:252 | + quality_score * pillar_weights["quality"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:255 | + cash_flow_quality_score * pillar_weights["cash_flow_quality"],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:288 | profitability_score=profitability_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:289 | quality_score=quality_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:292 | cash_flow_quality_score=cash_flow_quality_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:34 | growth_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:61 | growth_score=60.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:176 | growth_score=composite_growth,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:15 | composite_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:17 | growth_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:18 | quality_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:19 | profitability_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:20 | capital_allocation_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:21 | valuation_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:22 | momentum_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:23 | risk_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:85 | evidence = list(best_option.evidence) if best_option else [f"Composite Score: {ai_score.composite_score}"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:88 | risk_adjustment = ai_score.risk_score / 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:89 | conviction_factor = ai_score.composite_score / 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:91 | if action in ["BUY", "STRONG BUY"] and ai_score.composite_score >= 60.0:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:170 | composite_score=ai_score.composite_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:172 | growth_score=ai_score.growth_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:173 | quality_score=ai_score.quality_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:174 | profitability_score=ai_score.profitability_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:175 | capital_allocation_score=ai_score.capital_allocation_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:176 | valuation_score=ai_score.valuation_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:177 | momentum_score=ai_score.momentum_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:178 | risk_score=ai_score.risk_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:11 | growth_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:12 | quality_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:13 | profitability_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:14 | capital_allocation_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:15 | valuation_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:16 | momentum_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:17 | risk_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:18 | composite_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:14 | risk_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:72 | risk_score = round(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:93 | risk_score=risk_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:101 | momentum_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:106 | momentum_score: float
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:140 | momentum_score=50.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:222 | momentum_score = round(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:254 | momentum_score=momentum_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:286 | momentum_score = round(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:310 | momentum_score=momentum_score,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:18 | growth_score=92.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:19 | quality_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:20 | profitability_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:21 | capital_allocation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:22 | valuation_score=35.0, # High valuation / low score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:23 | momentum_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:24 | risk_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:25 | composite_score=76.7,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:31 | growth_score=40.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:32 | quality_score=45.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:33 | profitability_score=42.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:34 | capital_allocation_score=38.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:35 | valuation_score=50.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:36 | momentum_score=95.0, # High momentum
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:37 | risk_score=40.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:38 | composite_score=53.1,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:44 | growth_score=70.0, quality_score=70.0, profitability_score=70.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:45 | capital_allocation_score=70.0, valuation_score=70.0, momentum_score=70.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:46 | risk_score=70.0, composite_score=70.0, breakdown_details={"rating": "HOLD"}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:35 | growth_score=80.0, quality_score=85.0, profitability_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:36 | capital_allocation_score=78.0, valuation_score=75.0, momentum_score=70.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:37 | risk_score=85.0, composite_score=80.1, breakdown_details={"rating": "BUY"}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:77 | growth_score=75.0, quality_score=75.0, profitability_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:78 | capital_allocation_score=75.0, valuation_score=75.0, momentum_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:79 | risk_score=75.0, composite_score=75.0, breakdown_details={"rating": "HOLD"}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\production_orchestrator.py:49 | "composite_score": result.ai_score.composite_score if hasattr(result, "ai_score") else 82.4,
+
+============================================================
+3. SCORING CLASS / ENGINE DISCOVERY
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block17_confidence.py:6 | class ResearchConfidenceResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block17_confidence.py:15 | class Block17ConfidenceOrchestrator:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py:12 | class UnifiedInvestmentResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py:23 | class UnifiedResearchToDecisionOrchestrator:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:19 | def _score_valuation(margin_of_safety: float) -> float:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:23 | class AIScoringEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:13 | def _score_positive(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:28 | def _score_negative(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:49 | class FundamentalScoreResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py:63 | class FundamentalScoringEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:28 | class GrowthScoreResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:37 | class GrowthScoringEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py:118 | def _score_cagr(cagr: float) -> float:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:11 | class InvestmentDecisionResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:35 | class InvestmentDecisionOrchestrator:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py:8 | class AIScoreResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:12 | class RiskScoreResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py:23 | class RiskScoringEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:90 | class TechnicalIndicatorResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:104 | class MomentumScoreResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:115 | class TechnicalIndicatorEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py:257 | class MomentumScoringEngine:
+
+============================================================
+4. SCORING IMPORT GRAPH
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:4 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:5 | from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator, UnifiedInvestmentResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:6 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:7 | from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator, UnifiedInvestmentResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\monitoring\investment_monitor.py:5 | from services.scoring.block18_orchestrator import UnifiedInvestmentResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reasoning\block17_reasoning.py:6 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\reporting\block19_report.py:3 | from services.scoring.block18_orchestrator import UnifiedInvestmentResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py:4 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py:5 | from services.scoring.investment_decision import InvestmentDecisionOrchestrator, InvestmentDecisionResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py:8 | from services.scoring.block17_confidence import Block17ConfidenceOrchestrator, ResearchConfidenceResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:5 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:6 | from services.scoring.growth import GrowthScoringEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:7 | from services.scoring.fundamental import FundamentalScoringEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:9 | from services.scoring.technical import MomentumScoringEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py:10 | from services.scoring.risk_scoring import RiskScoringEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py:4 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:3 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py:4 | from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:6 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:7 | from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\production_orchestrator.py:4 | from services.scoring.models import AIScoreResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\production_orchestrator.py:5 | from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator, UnifiedInvestmentResult
+
+============================================================
+5. FINANCIAL / RATIOS / VALUATION ENGINE MAP
+============================================================
+
+TARGET: .\services\fundamentals
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\canonical_models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\parser.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\provider.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\validator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\__init__.py
+
+TARGET: .\services\ratios
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\efficiency.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\leverage.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\liquidity.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\profitability.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\quality_engine.py
+
+TARGET: .\services\valuation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\contracts.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\enums.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\stub_adapters.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_input.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_model.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_result.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\multiple_calculator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\peer_selection.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\statistics.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\validation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\weighting.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\discounting.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\sensitivity.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\terminal_value.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\nav_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\adjustments.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\asset_registry.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\liability_registry.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_input.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_model.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_result.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\sensitivity.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\validation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__init__.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\models.py
+
+TARGET: .\services\quantitative
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block100_paper_execution_fill_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block100_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block101_execution_evidence_reconciliation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block101_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block102_frontend_contract.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block102_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_institutional_frontend_read_model.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block103_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_eros_command_center.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block104_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block106_institutional_integration_boundary.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block107_application_read_boundary.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block108_institutional_application_service_boundary.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block109_institutional_application_query_gateway.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_execution_certification.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block86_control_plane.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block86_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_audit_reconciliation.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_settlement_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_portfolio_state_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block90_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block92_portfolio_performance_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block92_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block93_performance_risk_attribution_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block93_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block97_stress_readiness_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block97_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block99_execution_intent_authorization_gate.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block99_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\execution_intent.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\paper_execution.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_governance.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_optimizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_risk.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\__init__.py
+
+TARGET: .\services\scoring
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block17_confidence.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\growth.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\technical.py
+
+============================================================
+6. RUNTIME IMPORTABLE ENGINE TEST
+============================================================
+PROJECT ROOT ENGINE IMPORT SCAN
+
+ROOT: services.scoring
+IMPORT: PASS
+FILE: None
+
+MODULE: services.scoring.block17_confidence
+CLASSES: Block17ConfidenceOrchestrator, ResearchConfidenceResult
+
+MODULE: services.scoring.block18_orchestrator
+CLASSES: UnifiedInvestmentResult, UnifiedResearchToDecisionOrchestrator
+
+MODULE: services.scoring.engine
+CLASSES: AIScoringEngine
+
+MODULE: services.scoring.fundamental
+CLASSES: FundamentalScoreResult, FundamentalScoringEngine
+
+MODULE: services.scoring.growth
+CLASSES: GrowthScoreResult, GrowthScoringEngine
+
+MODULE: services.scoring.investment_decision
+CLASSES: InvestmentDecisionOrchestrator, InvestmentDecisionResult
+
+MODULE: services.scoring.models
+CLASSES: AIScoreResult
+
+MODULE: services.scoring.risk_scoring
+CLASSES: RiskScoreResult, RiskScoringEngine
+
+MODULE: services.scoring.technical
+CLASSES: MomentumScoreResult, MomentumScoringEngine, TechnicalIndicatorEngine, TechnicalIndicatorResult
+
+ROOT: services.fundamentals
+IMPORT: PASS
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\__init__.py
+
+MODULE: services.fundamentals.canonical_models
+CLASSES: CanonicalBalanceSheet, CanonicalCashFlowStatement, CanonicalIncomeStatement
+
+MODULE: services.fundamentals.events
+CLASSES: FundamentalsDownloaded
+
+MODULE: services.fundamentals.models
+CLASSES: BalanceSheet, CashFlowStatement, FinancialStatements, IncomeStatement
+
+MODULE: services.fundamentals.normalizer
+CLASSES: FinancialNormalizer
+
+MODULE: services.fundamentals.parser
+CLASSES: FinancialStatementsParser
+
+MODULE: services.fundamentals.provider
+CLASSES: IFundamentalProvider, YahooFinanceProvider
+
+MODULE: services.fundamentals.service
+CLASSES: FundamentalsService
+
+MODULE: services.fundamentals.validator
+CLASSES: CanonicalFinancialValidator
+
+ROOT: services.ratios
+IMPORT: PASS
+FILE: None
+
+MODULE: services.ratios.efficiency
+CLASSES: EfficiencyRatioEngine
+
+MODULE: services.ratios.engine
+CLASSES: FinancialRatioEngine
+
+MODULE: services.ratios.leverage
+CLASSES: LeverageRatioEngine
+
+MODULE: services.ratios.liquidity
+CLASSES: LiquidityRatioEngine
+
+MODULE: services.ratios.models
+CLASSES: FinancialRatios, RatioCategoryResult
+
+MODULE: services.ratios.profitability
+CLASSES: ProfitabilityRatioEngine
+
+MODULE: services.ratios.quality_engine
+CLASSES: AdvancedQualityEngine
+
+ROOT: services.valuation
+IMPORT: PASS
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py
+
+MODULE: services.valuation.base_engine
+CLASSES: BaseValuationEngine
+
+MODULE: services.valuation.blended_engine
+CLASSES: BlendedValuationEngine, BlendedValuationResult
+
+MODULE: services.valuation.contracts
+CLASSES: SOTPSegmentInput, SOTPSegmentResult
+
+MODULE: services.valuation.dcf_adapter
+IMPORT: FAIL
+ERROR: ImportError cannot import name 'ValuationMethod' from 'services.valuation.models' (D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py)
+
+MODULE: services.valuation.dcf_engine
+IMPORT: FAIL
+ERROR: ModuleNotFoundError No module named 'domain'
+
+MODULE: services.valuation.dispatcher
+IMPORT: FAIL
+ERROR: ModuleNotFoundError No module named 'domain'
+
+MODULE: services.valuation.engine
+CLASSES: ValuationEngine
+
+MODULE: services.valuation.enums
+CLASSES: ValuationMethod, ValuationStatus
+
+MODULE: services.valuation.events
+CLASSES: ValuationCompleted
+
+MODULE: services.valuation.models
+CLASSES: DCFValuation, RelativeValuation, ValuationResult
+
+MODULE: services.valuation.nav_engine
+IMPORT: FAIL
+ERROR: ModuleNotFoundError No module named 'domain'
+
+MODULE: services.valuation.service
+CLASSES: ValuationService
+
+MODULE: services.valuation.sotp_engine
+IMPORT: FAIL
+ERROR: ModuleNotFoundError No module named 'domain'
+
+MODULE: services.valuation.stub_adapters
+IMPORT: FAIL
+ERROR: ImportError cannot import name 'ValuationMethod' from 'services.valuation.models' (D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py)
+
+ROOT: services.quantitative
+IMPORT: PASS
+FILE: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\__init__.py
+
+MODULE: services.quantitative.batch_screener
+CLASSES: EROSMultiAssetBatchScreener
+
+MODULE: services.quantitative.block100_paper_execution_fill_gate
+CLASSES: EROSBlock100PaperExecutionFillGate
+
+MODULE: services.quantitative.block100_test_harness
+FUNCTIONS: main
+
+MODULE: services.quantitative.block101_execution_evidence_reconciliation
+CLASSES: EROSBlock101ExecutionEvidenceReconciliationGate
+
+MODULE: services.quantitative.block101_test_harness
+FUNCTIONS: main
+
+MODULE: services.quantitative.block102_frontend_contract
+CLASSES: EROSBlock102FrontendContract
+
+MODULE: services.quantitative.block102_test_harness
+FUNCTIONS: check, main
+
+MODULE: services.quantitative.block103_institutional_frontend_read_model
+CLASSES: EROSBlock103InstitutionalFrontendReadModel
+
+MODULE: services.quantitative.block103_test_harness
+FUNCTIONS: check, main
+
+MODULE: services.quantitative.block104_eros_command_center
+CLASSES: EROSBlock104CommandCenter
+FUNCTIONS: build_command_center
+
+MODULE: services.quantitative.block104_test_harness
+FUNCTIONS: check, main
+
+MODULE: services.quantitative.block106_institutional_integration_boundary
+CLASSES: EROSBlock106InstitutionalIntegrationBoundary
+
+MODULE: services.quantitative.block107_application_read_boundary
+CLASSES: EROSBlock107ApplicationReadBoundary
+
+MODULE: services.quantitative.block108_institutional_application_service_boundary
+CLASSES: EROSBlock108InstitutionalApplicationServiceBoundary
+
+MODULE: services.quantitative.block109_institutional_application_query_gateway
+CLASSES: EROSBlock109InstitutionalApplicationQueryGateway
+
+MODULE: services.quantitative.block85_execution_certification
+CLASSES: Block85Certification, EROSBlock85ExecutionCertificationEngine
+
+MODULE: services.quantitative.block85_test_harness
+FUNCTIONS: run_block85_self_test
+
+MODULE: services.quantitative.block86_control_plane
+CLASSES: Block86ControlDecision, EROSBlock86ControlPlane
+
+MODULE: services.quantitative.block86_test_harness
+FUNCTIONS: run_block86_self_test
+
+MODULE: services.quantitative.block87_execution_bridge
+CLASSES: Block87ExecutionResult, EROSBlock87ExecutionBridge
+
+MODULE: services.quantitative.block87_test_harness
+FUNCTIONS: run_block87_self_test
+
+MODULE: services.quantitative.block88_audit_reconciliation
+CLASSES: Block88AuditCertificate, EROSBlock88AuditReconciliationEngine, ExecutionAuditRecord
+
+MODULE: services.quantitative.block88_test_harness
+FUNCTIONS: run_block88_self_test
+
+MODULE: services.quantitative.block89_settlement_engine
+CLASSES: Block89SettlementCertificate, EROSBlock89SettlementEngine, SettlementRecord
+
+MODULE: services.quantitative.block89_test_harness
+FUNCTIONS: run_block89_self_test
+
+MODULE: services.quantitative.block90_portfolio_state_engine
+CLASSES: Block90PortfolioCertificate, EROSBlock90PortfolioStateEngine, PortfolioPositionState, PortfolioStateRecord
+
+MODULE: services.quantitative.block90_test_harness
+FUNCTIONS: run_block90_self_test
+
+MODULE: services.quantitative.block91_portfolio_valuation_engine
+CLASSES: Block91PortfolioValuationCertificate, EROSBlock91PortfolioValuationEngine, PortfolioValuationRecord
+
+MODULE: services.quantitative.block91_test_harness
+FUNCTIONS: run_block91_self_test
+
+MODULE: services.quantitative.block92_portfolio_performance_engine
+CLASSES: Block92PerformanceCertificate, EROSBlock92PortfolioPerformanceEngine, PortfolioPerformanceRecord
+
+MODULE: services.quantitative.block92_test_harness
+FUNCTIONS: run_block92_self_test
+
+MODULE: services.quantitative.block93_performance_risk_attribution_engine
+CLASSES: AttributionRecord, Block93Certificate, EROSBlock93PerformanceRiskAttributionEngine, PerformanceObservation, RiskMetrics
+
+MODULE: services.quantitative.block93_test_harness
+FUNCTIONS: run_block93_self_test, test_alpha_exists, test_attribution_exists, test_baseline_controlled, test_benchmark_risk_exists, test_beta_exists, test_blocked_status, test_certificate_hash_exists, test_certificate_id_exists, test_certified_performance, test_duplicate_performance, test_forbidden_broker_submission, test_forbidden_live_execution, test_forbidden_optimization, test_forbidden_order_creation, test_forbidden_portfolio_mutation, test_forbidden_valuation_mutation, test_history, test_infinity_rejection, test_information_ratio_exists, test_input_is_not_mutated, test_insufficient_history, test_invalid_benchmark, test_invalid_date_order, test_invalid_equity, test_invalid_return, test_malformed_history, test_max_drawdown_is_nonnegative, test_metrics_exist, test_missing_audit_lineage, test_missing_certificate, test_missing_decision_lineage, test_missing_performance_lineage, test_missing_settlement_lineage, test_missing_valuation_lineage, test_nan_rejection, test_sharpe_is_finite, test_snapshot, test_sortino_is_finite, test_tracking_error_exists, test_two_independent_engines
+
+MODULE: services.quantitative.block94_portfolio_stress_scenario_engine
+CLASSES: EROSBlock94PortfolioStressScenarioEngine, PositionExposure, ScenarioDefinition
+FUNCTIONS: certify_stress, run_scenario
+
+MODULE: services.quantitative.block94_test_harness
+FUNCTIONS: run_block94_self_test
+
+MODULE: services.quantitative.block95_stress_evidence_gate
+CLASSES: EROSBlock95StressEvidenceGate
+
+MODULE: services.quantitative.block95_test_harness
+FUNCTIONS: run_block95_self_test
+
+MODULE: services.quantitative.block96_stress_decision_gate
+CLASSES: EROSBlock96StressDecisionGate
+
+MODULE: services.quantitative.block96_test_harness
+FUNCTIONS: run_block96_self_test
+
+MODULE: services.quantitative.block97_stress_readiness_gate
+CLASSES: EROSBlock97StressReadinessGate
+
+MODULE: services.quantitative.block97_test_harness
+FUNCTIONS: base_decision, check, main
+
+MODULE: services.quantitative.block98_execution_governance_bridge
+CLASSES: EROSBlock98ExecutionGovernanceBridge
+
+MODULE: services.quantitative.block98_test_harness
+FUNCTIONS: base_ready, check, main
+
+MODULE: services.quantitative.block99_execution_intent_authorization_gate
+CLASSES: EROSBlock99ExecutionIntentAuthorizationGate
+
+MODULE: services.quantitative.block99_test_harness
+FUNCTIONS: base_governance, check, main
+
+MODULE: services.quantitative.execution_intent
+CLASSES: EROSExecutionIntentEngine, ExecutionIntent
+
+MODULE: services.quantitative.golden_path_85_94_orchestrator
+CLASSES: EROSGoldenPath85To94Orchestrator, GoldenPathContext
+FUNCTIONS: build_default_orchestrator, main
+
+MODULE: services.quantitative.golden_path_85_94_test_harness
+CLASSES: DiscoveryRecord, EROSGoldenPath85To94Engine, GoldenPathResult
+FUNCTIONS: discover_all_blocks, discover_block, main, run_self_test, test_all_engine_classes_exist, test_all_modules_import, test_block_90_exists, test_block_91_exists, test_block_92_exists, test_block_93_exists, test_block_94_exists, test_no_broker_submission, test_no_live_execution, test_no_portfolio_mutation, test_no_valuation_mutation, verify_architectural_invariants
+
+MODULE: services.quantitative.paper_execution
+CLASSES: EROSPaperExecutionEngine, PaperFill
+
+MODULE: services.quantitative.portfolio_governance
+CLASSES: EROSExecutionGovernanceEngine
+
+MODULE: services.quantitative.portfolio_optimizer
+CLASSES: EROSPortfolioOptimizer
+
+MODULE: services.quantitative.portfolio_risk
+CLASSES: EROSPortfolioRiskEngine, PortfolioRiskLimits
+
+
+============================================================
+7. CURRENT HARDCODED SCORE LOCATIONS
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:22 | growth_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:23 | quality_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:24 | profitability_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:25 | capital_allocation_score=81.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:26 | valuation_score=79.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:27 | momentum_score=76.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:28 | risk_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py:29 | composite_score=82.4,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:40 | growth_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:41 | quality_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:42 | profitability_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:43 | capital_allocation_score=81.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:44 | valuation_score=79.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:45 | momentum_score=76.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:46 | risk_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline_integration.py:47 | composite_score=82.4,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\stress_engine.py:37 | risk_score=85.0, composite_score=80.1, breakdown_details={"rating": "BUY"}
+
+============================================================
+8. SCORE ENGINE TEST COVERAGE
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alpha_factory\test_iarf.py:14 | quality_score=0.92,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alpha_factory\test_iarf.py:15 | valuation_score=0.88,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alpha_factory\test_iarf.py:16 | momentum_score=0.75,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alpha_factory\test_iarf.py:18 | risk_score=0.25,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecasting\test_forecasting.py:21 | risk_score=0.30
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecasting\test_forecasting.py:35 | risk_score=0.45
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecasting\test_forecasting.py:49 | risk_score=0.70
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:11 | growth_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:12 | quality_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:13 | profitability_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:14 | capital_allocation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:15 | valuation_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:16 | momentum_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:17 | risk_score=90.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:18 | composite_score=83.5,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:28 | growth_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:29 | quality_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:30 | profitability_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:31 | capital_allocation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:32 | valuation_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:33 | momentum_score=40.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:34 | risk_score=50.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py:35 | composite_score=71.2,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\investors\test_investors.py:20 | quality_scores={"piotroski_f_score": 8.0, "altman_z_score": 3.5, "beneish_m_score": -2.2, "accrual_ratio": 0.02},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23j_trace.py:12 | composite_score=82.4,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_four_path.py:12 | base_conf=0.85, penalty=decision.confidence_penalty, adj_conf=0.85, composite_score=82.4, action="BUY"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_four_path.py:26 | base_conf=0.85, penalty=decision.confidence_penalty, adj_conf=0.70, composite_score=82.4, action="BUY"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_four_path.py:40 | base_conf=0.85, penalty=decision.confidence_penalty, adj_conf=0.55, composite_score=82.4, action="HOLD"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_four_path.py:54 | base_conf=0.85, penalty=decision.confidence_penalty, adj_conf=0.0, composite_score=0.0, action="REJECT_DATA"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_integration.py:16 | assert trace.composite_ai_score == result.ai_score.composite_score if hasattr(result, "ai_score") else True
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\moat\test_moat.py:19 | quality_scores={"piotroski_f_score": 8.0, "altman_z_score": 3.5, "beneish_m_score": -2.2, "accrual_ratio": 0.02},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:9 | growth_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:10 | quality_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:11 | profitability_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:12 | capital_allocation_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:13 | valuation_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:14 | momentum_score=70.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:15 | risk_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:16 | composite_score=79.4,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:25 | assert snap_prev.composite_score == 79.4
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:29 | growth_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:30 | quality_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:31 | profitability_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:32 | capital_allocation_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:33 | valuation_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:34 | momentum_score=50.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:35 | risk_score=60.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py:36 | composite_score=70.8,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:14 | growth_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:15 | quality_score=90.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:16 | profitability_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:17 | capital_allocation_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:18 | valuation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:19 | momentum_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:20 | risk_score=87.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:21 | composite_score=84.3,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:41 | growth_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:42 | quality_score=90.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:43 | profitability_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:44 | capital_allocation_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:45 | valuation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:46 | momentum_score=45.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:47 | risk_score=55.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py:48 | composite_score=72.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25d_integrity_chain.py:48 | assert "composite_score" in decision
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25d_integrity_chain.py:49 | assert float(decision["composite_score"]) >= 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_ratios.py:28 | assert ratios.quality_scores["piotroski_f_score"] == 8.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\report\test_report.py:9 | result = engine.generate("RELIANCE.NS", format_type="MULTI-FORMAT", analysis_data={"recommendation": "BUY", "composite_score": 82.0})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py:8 | growth_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py:9 | quality_score=92.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py:10 | profitability_score=91.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py:11 | capital_allocation_score=84.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py:12 | valuation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py:13 | momentum_score=76.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py:14 | risk_score=89.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py:15 | composite_score=86.2,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:8 | result = orchestrator.evaluate("INFY.NS", composite_score=84.5)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:19 | growth_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:20 | quality_score=90.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:21 | profitability_score=92.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:22 | capital_allocation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:23 | valuation_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:24 | momentum_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:25 | risk_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py:26 | composite_score=84.5,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\test_evidence_quality.py:29 | assert assessment.quality_score >= 0.90
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\test_evidence_quality.py:47 | assert assessment.quality_score < 0.70
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:57 | assert 0.0 <= result.growth_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:58 | assert 0.0 <= result.quality_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:59 | assert 0.0 <= result.profitability_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:60 | assert 0.0 <= result.capital_allocation_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:61 | assert 0.0 <= result.valuation_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:62 | assert 0.0 <= result.momentum_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:63 | assert 0.0 <= result.risk_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:64 | assert 0.0 <= result.composite_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:69 | assert result.quality_score > 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:70 | assert result.profitability_score > 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:71 | assert result.capital_allocation_score > 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py:72 | assert result.risk_score > 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block11_historical_growth.py:45 | assert 0.0 <= result.growth_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block11_historical_growth.py:46 | assert result.growth_score != 60.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block12_unified_scoring.py:54 | assert 0.0 <= result.composite_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py:54 | assert 0.0 <= result.composite_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py:55 | assert 0.0 <= result.valuation_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_integration.py:67 | assert 0.0 <= result.composite_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_integration.py:68 | assert 0.0 <= result.momentum_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_momentum.py:37 | assert 0.0 <= result.momentum_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_momentum.py:47 | assert 0.0 <= result.momentum_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_integration.py:67 | assert 0.0 <= result.composite_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_integration.py:68 | assert 0.0 <= result.risk_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_risk.py:19 | assert 0.0 <= result.risk_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:7 | growth_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:8 | quality_score=90.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:9 | profitability_score=92.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:10 | capital_allocation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:11 | valuation_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:12 | momentum_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:13 | risk_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:14 | composite_score=84.5,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py:27 | assert result.composite_score == 84.5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_e2e.py:48 | assert decision.composite_score == ai_score.composite_score
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py:7 | growth_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py:8 | quality_score=92.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py:9 | profitability_score=91.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py:10 | capital_allocation_score=84.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py:11 | valuation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py:12 | momentum_score=76.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py:13 | risk_score=89.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py:14 | composite_score=86.2,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py:7 | growth_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py:8 | quality_score=90.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py:9 | profitability_score=92.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py:10 | capital_allocation_score=80.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py:11 | valuation_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py:12 | momentum_score=75.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py:13 | risk_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py:14 | composite_score=84.5,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py:7 | growth_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py:8 | quality_score=91.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py:9 | profitability_score=90.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py:10 | capital_allocation_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py:11 | valuation_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py:12 | momentum_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py:13 | risk_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py:14 | composite_score=85.7,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py:7 | growth_score=88.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py:8 | quality_score=91.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py:9 | profitability_score=90.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py:10 | capital_allocation_score=85.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py:11 | valuation_score=82.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py:12 | momentum_score=78.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py:13 | risk_score=86.0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py:14 | composite_score=85.7,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_scoring.py:14 | assert 0.0 <= result.composite_score <= 100.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_scoring.py:15 | assert result.growth_score > 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_scoring.py:16 | assert result.quality_score > 0.0
+
+============================================================
+9. GIT SAFETY
+============================================================
+SOURCE MODIFICATION: NONE
+
+CURRENT GIT STATUS:
+ M backend/api/routers/admin_task_router.py
+ M backend/api/routers/task_router.py
+ M backend/api/routers/valuation_router.py
+ M backend/config/settings.py
+ M backend/infrastructure/redis/client.py
+ M backend/main.py
+ M backend/security/jwt.py
+ M backend/tasks/task_control.py
+ M tests/production/test_block29_real_celery.py
+?? .env
+?? 31K_BR_CA_SECURITY_AUDIT.txt
+?? 31K_ES_next_block_discovery.txt
+?? 31K_EU_next_engineering_discovery.txt
+?? 31K_EV_source_boundary_audit.txt
+?? 31K_EW_system_integration_target_discovery.txt
+?? 31K_EX_full_pipeline_integration_probe.txt
+?? 31K_EY_workflow_gateway_integration_audit.txt
+?? 31K_EZ_production_workflow_eventbus_audit.txt
+?? 31K_FA_production_orchestrator_deep_audit.txt
+?? 31K_FB_pipeline_deep_execution_audit.txt
+?? 31K_FC_decision_scoring_integrity_audit.txt
+?? 31K_FD2_production_reachability_trace.txt
+?? 31K_FD3_fixed_score_production_path_isolation.txt
+?? 31K_FD4R_corrected_runtime_provenance.txt
+?? 31K_FD4_runtime_score_provenance.txt
+?? 31K_FD5_import_execution_boundary_trace.txt
+?? 31K_FD6_existing_score_engine_discovery.txt
+?? 31K_FD_production_decision_data_lineage_audit.txt
+?? backend/api/dependencies/auth.py
+?? backend/api/routers/valuation_router.py.31K-backup
+?? backend/infrastructure/redis/client.py.31K_EE_backup
+?? backend/infrastructure/redis/client.py.31K_EE_repair_backup
+?? backend/infrastructure/redis/client.py.31K_EO_backup
+?? backend/infrastructure/redis/client.py.31K_EP_backup
+?? backend/infrastructure/redis/client.py.31K_EQ_backup
+?? backend/main.py.31K-BC.bak
+?? backend/security/dependencies.py
+?? backend/tasks/task_control.py.31K-DSI.backup
+?? backend/tasks/task_control.py.31K_DSM_backup
+?? backend/tasks/task_control.py.31K_DSP_backup
+?? backend/tasks/task_control.py.31K_DV_backup
+?? backend/tasks/task_control.py.31K_EH_backup
+?? backend/tasks/task_control.py.31K_EH_patch_backup
+?? backend/tasks/task_control.py.31K_EJ_backup
+?? block_31K_CG_security_audit.py
+?? block_31K_CH_validation.py
+?? block_31K_CI_full_output.txt
+?? block_31K_CK_security_audit.py
+?? block_31K_CL_baseline.py
+?? block_31K_CM_task_route_diagnostic.py
+?? block_31K_CN_route_reconciliation.py
+?? block_31K_CO_task_route_reconciliation.py
+?? block_31K_CP_route_object_diagnostic.py
+?? block_31K_CS_20in1_security_audit.py
+?? block_31K_CS_login_diagnostic.py
+?? block_31K_CV_security_audit.py
+?? block_31K_CW_output.txt
+?? block_31K_DC_final_audit.py
+?? block_31K_DC_stderr.txt
+?? block_31K_DH_final_regression.py
+?? block_31K_DQ_task_test.py
+?? block_31K_DR_reliability_test.py
+?? block_31K_DSE_failure_recovery.py
+?? block_31K_DSF_idempotency.py
+?? block_31K_DSJ_live_test.py
+?? block_31K_DSJ_output.txt
+?? block_31K_DSJ_redis_diagnostic.py
+?? block_31K_DSJ_redis_diagnostic.txt
+?? block_31K_DSK_redis_access.py
+?? block_31K_DSK_redis_access.txt
+?? block_31K_DSN_live_idempotency_test.py
+?? block_31K_DSN_traceback.txt
+?? block_31K_DSO_idempotency_runtime_diagnostic.py
+?? block_31K_DSO_output.txt
+?? block_31K_DSP_live_test.py
+?? block_31K_DT_concurrent_idempotency_test.py
+?? block_31K_DU_concurrency_lock_diagnostic.py
+?? block_31K_DW_concurrent_idempotency_test.py
+?? block_31K_EA_race_test.py
+?? block_31K_EF_atomic_lock_stress.py
+?? block_31K_EG_full_idempotency_test.py
+?? block_31K_EK_concurrent_idempotency_test.py
+?? block_31K_EL_idempotency_regression_test.py
+?? block_31K_ER_lock_regression.py
+?? check_main_31K_CD.py
+?? eros_security_audit_31K_CC.py
+?? eros_security_audit_31K_CC_output.txt
+?? logs/analyzer_before_eros_v26_readonly_patch.py
+?? logs/analyzer_before_eros_v328_date_contract.py
+?? logs/eros_block29_queue_contract_fix_output.txt
+?? logs/eros_block29_source_inspection.txt
+?? logs/eros_block29b_queue_contract.txt
+?? logs/eros_block29b_queue_diagnostic.py
+?? logs/eros_block29b_queue_inspection.txt
+?? logs/eros_block30k_result.txt
+?? logs/eros_block30k_wsl_ip_result.txt
+?? logs/eros_celery_config_location.txt
+?? logs/eros_celery_search.txt
+?? logs/eros_checkpoint_latest.txt
+?? logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py
+?? logs/eros_frontend_adapter_before_v29.py
+?? logs/eros_frontend_adapter_before_v30_20260822_210324.py
+?? logs/eros_frontend_adapter_before_v30_decision_20260822_210450.py
+?? logs/eros_frontend_adapter_before_v31_20260822_210705.py
+?? logs/eros_frontend_adapter_before_v32_20260822_210838.py
+?? logs/eros_frontend_adapter_before_v33_20260822_211141.py
+?? logs/eros_frontend_adapter_before_v34_20260822_211420.py
+?? logs/eros_frontend_adapter_before_v35_20260822_211800.py
+?? logs/eros_frontend_adapter_before_v35_20260822_212229.py
+?? logs/eros_frontend_adapter_before_v36_20260822_212325.py
+?? logs/eros_frontend_adapter_before_v371_20260822_213654.py
+?? logs/eros_frontend_adapter_before_v372_20260822_213827.py
+?? logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213105.py
+?? logs/eros_frontend_adapter_before_v37_20260822_213210.py
+?? logs/eros_frontend_adapter_before_v381_20260822_215432.py
+?? logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py
+?? logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py
+?? logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220104.py
+?? logs/eros_frontend_adapter_before_v382_20260822_220437.py
+?? logs/eros_frontend_adapter_before_v38_20260822_214850.py
+?? logs/eros_full_suite_hang_diagnostic.txt
+?? logs/eros_full_test_20260823_123857.txt
+?? logs/eros_full_test_hang_isolation.txt
+?? logs/eros_precommit_safety_audit.txt
+?? logs/eros_pydantic_diagnostic.txt
+?? logs/eros_pydantic_repair.txt
+?? logs/eros_pytest_collection_check.txt
+?? logs/eros_pytest_hang_diagnostic.txt
+?? logs/eros_test_20260823_123827.txt
+?? logs/eros_v25_adapter_api.py
+?? logs/eros_v25_adapter_api_output.txt
+?? logs/eros_v25_contract_verify.py
+?? logs/eros_v25_dashboard_contract.py
+?? logs/eros_v25_dashboard_contract_output.txt
+?? logs/eros_v25_market_scan_contract.py
+?? logs/eros_v25_market_scan_contract_output.txt
+?? logs/eros_v26_active_sqlite_message_check.py
+?? logs/eros_v26_active_write_token_check.py
+?? logs/eros_v26_analyzer_patch_output.txt
+?? logs/eros_v26_analyzer_runtime_test.py
+?? logs/eros_v26_ast_nonmutation_proof.py
+?? logs/eros_v26_ast_nonmutation_proof.txt
+?? logs/eros_v26_ast_nonmutation_proof_v2.py
+?? logs/eros_v26_ast_nonmutation_proof_v2.txt
+?? logs/eros_v26_clean_write_trace.txt
+?? logs/eros_v26_corrected_nonmutation_proof_20260822_205417.txt
+?? logs/eros_v26_corrected_runtime_test.py
+?? logs/eros_v26_corrected_scan_test.py
+?? logs/eros_v26_database_nonmutation_proof.txt
+?? logs/eros_v26_exact_write_trace.txt
+?? logs/eros_v26_market_scan_readonly_test.py
+?? logs/eros_v26_nonmutation_runtime_test.py
+?? logs/eros_v26_safety_contract_runtime.py
+?? logs/eros_v26_sqlite_message_trace.txt
+?? logs/eros_v26_sqlite_save_message_trace.txt
+?? logs/eros_v26_write_trace_clipboard.txt
+?? logs/eros_v27_data_layer_boundary_console.txt
+?? logs/eros_v27_runtime_evidence_inspection.py
+?? logs/eros_v27_runtime_evidence_inspection.txt
+?? logs/eros_v28_decision_evidence_test.py
+?? logs/eros_v28_decision_evidence_test_output.txt
+?? logs/eros_v29_decision_evidence_output.txt
+?? logs/eros_v29_decision_evidence_test.py
+?? logs/eros_v30_decision_intelligence_foundation.txt
+?? logs/eros_v30_decision_intelligence_test.py
+?? logs/eros_v31_decision_interpretation_foundation.txt
+?? logs/eros_v31_decision_interpretation_test.py
+?? logs/eros_v32_decision_action_runtime_20260822_210929.txt
+?? logs/eros_v32_decision_action_runtime_test_20260822_210929.py
+?? logs/eros_v33_runtime_test.py
+?? logs/eros_v33_runtime_test_output.txt
+?? logs/eros_v34_runtime_test.py
+?? logs/eros_v34_runtime_test_output.txt
+?? logs/eros_v35_runtime_test.py
+?? logs/eros_v35_runtime_test_output.txt
+?? logs/eros_v36_runtime_test.py
+?? logs/eros_v372_ast_traceability_patch.py
+?? logs/eros_v372_return_structure_diagnostic.py
+?? logs/eros_v372_runtime_regression.py
+?? logs/eros_v372_traceability_failure_diagnostic.py
+?? logs/eros_v372_traceability_runtime_test.py
+?? logs/eros_v37_api_check.py
+?? logs/eros_v37_foundation_check.py
+?? logs/eros_v37_runtime_test.py
+?? logs/eros_v37_traceability_diagnostic.py
+?? logs/eros_v37_traceability_runtime_test.py
+?? logs/eros_v3810_adapter_api_contract.txt
+?? logs/eros_v3812_frontend_insertion_boundary.txt
+?? logs/eros_v3813_traceability_runtime_contract.py
+?? logs/eros_v3813_traceability_runtime_contract.txt
+?? logs/eros_v3815_frontend_runtime_consumption_audit.py
+?? logs/eros_v3815_frontend_runtime_consumption_audit.txt
+?? logs/eros_v3816_golden_integration_verification.txt
+?? logs/eros_v3817_traceability_frontend_consumption_inspection.txt
+?? logs/eros_v3818_frontend_traceability_runtime_test.py
+?? logs/eros_v3818_frontend_traceability_runtime_test.txt
+?? logs/eros_v3819_golden_integration_verification.py
+?? logs/eros_v3819_golden_integration_verification.txt
+?? logs/eros_v381_audit_clipboard_diagnostic.py
+?? logs/eros_v381_audit_clipboard_output.txt
+?? logs/eros_v381_audit_failure_isolation.py
+?? logs/eros_v381_audit_runtime_diagnostic.py
+?? logs/eros_v381_deep_audit_runtime.py
+?? logs/eros_v3820_traceability_ui_context.txt
+?? logs/eros_v3821_ast_only.py
+?? logs/eros_v3821_compile_failure_diagnostic_20260822_220822.txt
+?? logs/eros_v3821_structural_ast_diagnostic.py
+?? logs/eros_v3821_structural_diagnostic_clipboard.txt
+?? logs/eros_v3822_ast_inspection.py
+?? logs/eros_v3822_ast_syntax_diagnostic.py
+?? logs/eros_v3822_clean_runtime_diagnostic.py
+?? logs/eros_v3822_runtime_hydration_validation.py
+?? logs/eros_v3823_hydration_dataflow_diagnostic.py
+?? logs/eros_v3823_hydration_source_inspection.py
+?? logs/eros_v3823_import_path_test.py
+?? logs/eros_v3824_ast_inspection.py
+?? logs/eros_v3824_audit_dataflow_inspector.py
+?? logs/eros_v3824_audit_dataflow_source_diagnostic.py
+?? logs/eros_v3824_golden_baseline_runtime.py
+?? logs/eros_v3824_golden_difference_forensic_20260822_225337.txt
+?? logs/eros_v3824_runtime_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic.py
+?? logs/eros_v3825_upstream_dataflow_diagnostic_output.txt
+?? logs/eros_v3826_decision_evidence_source_forensic.txt
+?? logs/eros_v3827_runtime_dataflow_diagnostic.py
+?? logs/eros_v3827_runtime_dataflow_diagnostic.txt
+?? logs/eros_v3828_middle_layer_source_forensic.txt
+?? logs/eros_v3829_middle_layer_runtime_test.py
+?? logs/eros_v3829_middle_layer_runtime_test_output.txt
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.py
+?? logs/eros_v3829_upstream_runtime_hydration_diagnostic.txt
+?? logs/eros_v382_ast_audit_hydration_patcher.py
+?? logs/eros_v382_audit_failure_capture.py
+?? logs/eros_v382_audit_schema_runtime_diagnostic.py
+?? logs/eros_v382_forensic_runtime.py
+?? logs/eros_v382_forensic_runtime_output.txt
+?? logs/eros_v382_forensic_stderr.txt
+?? logs/eros_v382_forensic_stdout.txt
+?? logs/eros_v382_integrity_patcher.py
+?? logs/eros_v382_integrity_runtime_diagnostic.py
+?? logs/eros_v3831_dashboard_analysis_flow_forensic.txt
+?? logs/eros_v3832_THREE_REPORTS_COMBINED.txt
+?? logs/eros_v3832_adapter_frontend_contract_forensic.txt
+?? logs/eros_v3832_adapter_frontend_integration_contract.txt
+?? logs/eros_v3832_adapter_public_api_forensic.txt
+?? logs/eros_v3833_adapter_runtime_contract_test.txt
+?? logs/eros_v383_frontend_consumption_forensic.txt
+?? logs/eros_v384_frontend_integration_insertion_forensic.txt
+?? logs/eros_v385_frontend_adapter_argument_contract.txt
+?? logs/eros_v386_frontend_integration_runtime_dry_run.txt
+?? logs/eros_v389_selected_stock_insertion_context.txt
+?? logs/eros_v38_audit_failure_diagnostic.py
+?? logs/eros_v38_decision_audit_diagnostic.py
+?? logs/eros_v38_runtime_test.py
+?? logs/stock_dashboard_before_eros_frontend_v1.py
+?? logs/stock_dashboard_before_eros_frontend_v2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_1.py
+?? logs/stock_dashboard_before_eros_frontend_v2_2.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_3_market_insert.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4.py
+?? logs/stock_dashboard_before_eros_frontend_v2_4_exact.py
+?? logs/stock_dashboard_before_eros_frontend_v2_5.py
+?? logs/stock_dashboard_before_eros_v311_20260823_105006.py
+?? logs/stock_dashboard_before_eros_v314_integration.py
+?? logs/stock_dashboard_before_eros_v320_20260823_113203.py
+?? logs/stock_dashboard_before_eros_v387_20260823_000130.py
+?? logs/test_block29_real_celery_before_queue_contract_fix.py
+?? security_backup_31K_BG/
+?? security_backup_31K_CG/
+?? security_backup_31K_CH/
+?? security_backup_31K_CI/
+?? security_backup_31K_CJ/
+?? security_backup_31K_CR/
+?? security_backup_31K_CS/
+?? security_backup_31K_CU/
+?? security_backup_31K_CY/
+?? security_backup_31K_CZ/
+?? security_backup_31K_DA/
+
+============================================================
+31K-FD6 COMPLETE
+============================================================
+NEXT DECISION:
+IDENTIFY EXISTING ENGINES THAT CAN REPLACE BASELINE SCORES
+DO NOT PATCH 82.4 YET
+SOURCE MODIFICATION: NONE
+============================================================

@@ -1,0 +1,16 @@
+==========================================================
+EROS 3.0 - BLOCK 31K-DSJ
+LIVE IDEMPOTENCY VERIFICATION
+==========================================================
+
+1. TASK CONTROL
+CLASS: <class 'backend.tasks.task_control.TaskControlService'>
+REGISTERED: ['forecast.execute', 'forecast.run', 'report.generate', 'valuation.execute']
+
+2. REDIS
+REDIS ERROR: AttributeError("'TaskControlService' object has no attribute '_get_redis_client'")
+Traceback (most recent call last):
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\block_31K_DSJ_live_test.py", line 19, in <module>
+    r = task_control._get_redis_client()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'TaskControlService' object has no attribute '_get_redis_client'

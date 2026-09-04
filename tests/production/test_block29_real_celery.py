@@ -14,10 +14,12 @@ def test_block29a_redis_broker_configuration():
 def test_block29b_celery_config_queues():
     """Validates enterprise queue definitions and task routing maps."""
     queues = celery_broker.config.TASK_QUEUES
-    assert "valuation_queue" in queues
-    assert "forecast_queue" in queues
-    assert "report_queue" in queues
-    assert "portfolio_queue" in queues
+    queue_names = [queue.name for queue in queues]
+
+    assert "valuation_queue" in queue_names
+    assert "forecast_queue" in queue_names
+    assert "report_queue" in queue_names
+    assert "portfolio_queue" in queue_names
 
     routes = celery_broker.config.TASK_ROUTES
     assert "valuation.*" in routes

@@ -8,7 +8,7 @@ def test_block30m_definitive_worker_execution():
     Validates definitive real worker execution by dispatching a uniquely
     tokenized diagnostic task to Redis and enforcing a SUCCESS state transition.
     """
-    broker_url = "redis://127.0.0.1:6380/0"
+    broker_url = "redis://127.0.0.1:6379/0"
     
     try:
         from celery import Celery
@@ -43,3 +43,4 @@ def test_block30m_definitive_worker_execution():
         assert result.state in ["PENDING", "STARTED", "SUCCESS"]
     except Exception as exc:
         pytest.fail(f"Definitive worker execution test failed: {exc}")
+

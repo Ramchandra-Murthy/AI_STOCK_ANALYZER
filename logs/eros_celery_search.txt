@@ -1,0 +1,30 @@
+﻿D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\admin_task_router.py:5: from backend.tasks.celery_config import celery_broker
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\admin_task_router.py:14: "active_tasks_count": len(celery_broker.active_tasks),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\admin_task_router.py:15: "tasks": celery_broker.active_tasks
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\admin_task_router.py:22: "queues": celery_broker.config.TASK_QUEUES,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\admin_task_router.py:23: "routing": celery_broker.config.TASK_ROUTES
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:14: broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:22: task_queues=celery_config.TASK_QUEUES,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:12: "CELERY_BROKER_URL",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:19: TASK_QUEUES: list = [
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:20: Queue("valuation_queue", Exchange("valuation_exchange"), routing_key="valuation.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:28: "valuation.*": "valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:52: celery_broker = ProductionCeleryBroker()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:606: "valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:5: from backend.tasks.celery_config import celery_broker
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:9: broker_url = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:16: queues = celery_broker.config.TASK_QUEUES
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:17: assert "valuation_queue" in queues
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:22: routes = celery_broker.config.TASK_ROUTES
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:35: task_id = celery_broker.dispatch(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:37: queue="valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:42: assert task_id in celery_broker.active_tasks
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py:43: assert celery_broker.active_tasks[task_id]["status"] == "QUEUED"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30c_real_worker_execution.py:5: from backend.tasks.celery_config import celery_broker
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30k_real_celery_broker.py:4: def test_block30k_real_celery_broker_connection():
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30_real_worker.py:28: broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py:79: os.environ["CELERY_BROKER_URL"] = BROKER_URL
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py:7: from backend.tasks.celery_config import celery_broker
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py:22: task_id = celery_broker.dispatch("valuation.execute", "valuation_queue", {"symbol": "TCS.NS"})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py:24: assert task_id in celery_broker.active_tasks
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py:30: assert "valuation_queue" in data["queues"]

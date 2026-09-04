@@ -27,3 +27,4 @@ eros_production.db
 *.db
 *.db-journal
 *.db-wal
+.env

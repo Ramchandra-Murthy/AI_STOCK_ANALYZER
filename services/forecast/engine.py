@@ -24,10 +24,22 @@ class ForecastEngine:
         logger.info("Generating %s forecast for symbol: %s based on actual fundamentals", model_type, symbol)
 
         # Extract historical series or fall back to defaults
-        revenues = [inc.revenue for inc in financials.income_statements] if financials.income_statements else [1000000.0, 1100000.0, 1250000.0]
-        ebits = [inc.ebit for inc in financials.income_statements] if financials.income_statements else [200000.0, 220000.0, 250000.0]
-        eps_list = [inc.eps for inc in financials.income_statements] if financials.income_statements else [40.0, 45.0, 50.0]
-        fcf_list = [cf.free_cash_flow for cf in financials.cash_flows] if financials.cash_flows else [150000.0, 170000.0, 190000.0]
+        # Normalize historical ordering before forecasting.
+        # Yahoo Finance commonly returns periods newest -> oldest,
+        # while all forecast models require oldest -> newest.
+        income_history = sorted(
+            financials.income_statements,
+            key=lambda item: item.period,
+        )
+        cashflow_history = sorted(
+            financials.cash_flows,
+            key=lambda item: item.period,
+        )
+
+        revenues = [inc.revenue for inc in income_history] if income_history else [1000000.0, 1100000.0, 1250000.0]
+        ebits = [inc.ebit for inc in income_history] if income_history else [200000.0, 220000.0, 250000.0]
+        eps_list = [inc.eps for inc in income_history] if income_history else [40.0, 45.0, 50.0]
+        fcf_list = [cf.free_cash_flow for cf in cashflow_history] if cashflow_history else [150000.0, 170000.0, 190000.0]
 
         last_rev = revenues[-1]
         last_ebit = ebits[-1]

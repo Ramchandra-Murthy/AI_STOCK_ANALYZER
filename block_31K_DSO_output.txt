@@ -1,0 +1,199 @@
+==========================================================
+EROS 3.0 - BLOCK 31K-DSO
+IDEMPOTENCY RUNTIME PATH DIAGNOSTIC
+READ-ONLY
+==========================================================
+
+1. IMPORTING TASK CONTROL
+TASK CONTROL IMPORT: PASS
+
+2. IMPORTING REDIS CLIENT
+REDIS MODULE IMPORT: PASS
+
+3. REDIS OBJECT IDENTITY
+TEST redis_client ID : 1695168716416
+TASK MODULE REDIS ID  : 1695168716416
+SAME OBJECT           : True
+
+4. REDIS OBJECT TYPES
+TEST REDIS TYPE:
+<class 'backend.infrastructure.redis.client.RedisClientStub'>
+TASK MODULE REDIS TYPE:
+<class 'backend.infrastructure.redis.client.RedisClientStub'>
+
+5. REDIS STORE IDENTITY
+TEST STORE ID: 1695230278144
+TASK STORE ID: 1695230278144
+SAME STORE: True
+TEST STORE: {}
+TASK STORE: {}
+
+6. REDIS SET SIGNATURE
+(key: 'str', value: 'Any', ttl: 'Optional[int]' = None) -> 'bool'
+
+7. REDIS GET SIGNATURE
+(key: 'str') -> 'Optional[Any]'
+
+8. TASK CONTROL SUBMIT_TASK SOURCE
+0021:         # 31K-DSI IDEMPOTENCY
+0023:         # A caller may provide a stable logical request_id.  When present,
+0024:         # Redis becomes the durable request_id -> task_id mapping.
+0025:         # Repeated submissions with the same request_id return the
+0027:         request_id = payload.get("request_id")
+0029:         redis_client = None
+0032:         if request_id:
+0034:                 redis_client = redis_client
+0035:                 idempotency_key = f"eros:idempotency:{request_id}"
+0036:                 existing_task_id = redis_client.get(idempotency_key)
+0058:                         "request_id": request_id,
+0060:             except Exception:
+0063:                 redis_client = None
+0069:         if request_id:
+0070:             payload["request_id"] = request_id
+0094:         except Exception:
+0107:         # Persist request_id -> task_id only after the task has been
+0110:         if request_id:
+0112:                 if redis_client is None:
+0113:                     redis_client = redis_client
+0115:                 redis_client.set(
+0116:                     f"eros:idempotency:{request_id}",
+0118:                     ttl=86400,
+0120:             except Exception:
+
+9. FULL IDEMPOTENCY BLOCK
+0021:         # 31K-DSI IDEMPOTENCY
+0022:         # ------------------------------------------------------------
+0023:         # A caller may provide a stable logical request_id.  When present,
+0024:         # Redis becomes the durable request_id -> task_id mapping.
+0025:         # Repeated submissions with the same request_id return the
+0026:         # original task instead of dispatching another Celery task.
+0027:         request_id = payload.get("request_id")
+0028: 
+0029:         redis_client = None
+0030:         existing_task_id = None
+0031: 
+0032:         if request_id:
+0033:             try:
+0034:                 redis_client = redis_client
+0035:                 idempotency_key = f"eros:idempotency:{request_id}"
+0036:                 existing_task_id = redis_client.get(idempotency_key)
+0037: 
+0038:                 if isinstance(existing_task_id, bytes):
+0039:                     existing_task_id = existing_task_id.decode("utf-8")
+0040: 
+0041:                 if existing_task_id:
+0042:                     existing_status = self.get_task_status(existing_task_id)
+0043:                     existing_result = self.get_task_result(existing_task_id)
+0044: 
+0045:                     return {
+0046:                         "task_id": existing_task_id,
+0047:                         "status": existing_status.get(
+0048:                             "status",
+0049:                             existing_result.get("status", "QUEUED")
+0050:                         ),
+0051:                         "task_name": task_name,
+0052:                         "user": user,
+0053:                         "execution_result": existing_result.get(
+0054:                             "result",
+0055:                             {}
+0056:                         ),
+0057:                         "idempotent_replay": True,
+0058:                         "request_id": request_id,
+0059:                     }
+0060:             except Exception:
+0061:                 # Idempotency must never prevent normal task execution if
+0062:                 # Redis lookup is temporarily unavailable.
+0063:                 redis_client = None
+0064: 
+0065:         task_id = str(uuid.uuid4())
+0066:         payload["task_id"] = task_id
+0067:         payload["user"] = user
+0068: 
+0069:         if request_id:
+0070:             payload["request_id"] = request_id
+0071: 
+0072:         submitted_at_dt = datetime.now(timezone.utc).isoformat()
+0073:         submitted_at_ts = time.time()
+0074: 
+0075:         telemetry = {
+0076:             "task_id": task_id,
+0077:             "task_name": task_name,
+0078:             "user": user,
+0079:             "symbol": payload.get("symbol"),
+0080:             "status": "QUEUED" if self._real_celery else "SUCCESS",
+0081:             "submitted_at": submitted_at_dt,
+0082:             "execution_time_ms": None,
+0083:             "ready": not self._real_celery,
+0084:         }
+0085: 
+0086:         self._task_observability[task_id] = telemetry
+0087: 
+0088:         try:
+0089:             self._app.send_task(
+0090:                 task_name,
+0091:                 args=[task_name, user, payload],
+0092:                 task_id=task_id,
+0093:             )
+0094:         except Exception:
+0095:             self._app.send_task(
+0096:                 task_name,
+0097:                 args=[task_name, user, payload],
+0098:             )
+0099: 
+0100:         dispatch_time_ms = round(
+0101:             (time.perf_counter() - started_at) * 1000,
+0102:             3,
+0103:         )
+0104: 
+0105:         telemetry["dispatch_time_ms"] = dispatch_time_ms
+0106: 
+0107:         # Persist request_id -> task_id only after the task has been
+0108:         # successfully dispatched.  This prevents a failed dispatch from
+0109:         # poisoning the idempotency key.
+0110:         if request_id:
+0111:             try:
+0112:                 if redis_client is None:
+0113:                     redis_client = redis_client
+0114: 
+0115:                 redis_client.set(
+0116:                     f"eros:idempotency:{request_id}",
+0117:                     task_id,
+0118:                     ttl=86400,
+0119:                 )
+0120:             except Exception:
+0121:                 # Preserve task execution even if the idempotency mapping
+0122:                 # cannot be persisted.
+0123:                 pass
+0124: 
+0125:         execution_result: Dict[str, Any] = {
+0126:             "status": "SUCCESS",
+0127:             "task_id": task_id,
+0128:             "user": user,
+0129:             "symbol": payload.get("symbol", "TCS.NS"),
+0130:         }
+0131:         if task_name in ("forecast.execute", "forecast.run"):
+0132:             execution_result.update({
+0133:                 "expected_value": float(payload.get("expected_value", 2837.5)),
+0134:                 "bull_value": float(payload.get("bull_value", 3450.0)),
+0135:                 "base_value": float(payload.get("base_value", 2900.0)),
+
+10. DIRECT REDIS TEST
+SET RESULT: True
+GET RESULT: DSO_TEST
+STORE AFTER SET: {'eros:diagnostic:31K-DSO': 'DSO_TEST'}
+
+11. TASK CONTROL REDIS TEST
+TASK REDIS SET RESULT: True
+TASK REDIS GET RESULT: TASK_TEST
+TASK REDIS STORE: {'eros:diagnostic:31K-DSO': 'DSO_TEST', 'eros:diagnostic:31K-DSO-TASK': 'TASK_TEST'}
+
+12. CURRENT SOURCE FILE CHECK
+REDIS IMPORT PRESENT: True
+INVALID ACCESSOR PRESENT: False
+TTL=86400 PRESENT: True
+EX=86400 PRESENT: False
+
+==========================================================
+BLOCK 31K-DSO DIAGNOSTIC COMPLETE
+READ-ONLY: NO SOURCE FILES MODIFIED
+==========================================================

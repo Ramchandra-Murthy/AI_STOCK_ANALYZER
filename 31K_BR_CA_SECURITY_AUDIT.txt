@@ -1,0 +1,126 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260823171909
+Username: DESKTOP-LE24ARK\Ramchandra Murthy
+RunAs User: DESKTOP-LE24ARK\Ramchandra Murthy
+Configuration Name: 
+Machine: DESKTOP-LE24ARK (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 11452
+PSVersion: 5.1.19041.6456
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6456
+BuildVersion: 10.0.19041.6456
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+1. SEARCHING FOR CORRUPTED PATCHES
+CORRUPTED PATCH FOUND: .\backend\api\routers\task_router.py
+  LINE 4: from backend.api.dependencies.auth import get_current_user`nfrom pydantic import BaseModel
+CORRUPTED PATCH FOUND: .\backend\api\routers\valuation_router.py
+  LINE 4: from backend.api.dependencies.auth import get_current_user`nfrom sqlalchemy.orm import Session
+CORRUPTED PATCH FOUND: .\backend\api\routers\admin_task_router.py
+  LINE 4: from backend.security.dependencies import require_role`nfrom typing import Dict, Any
+CLEAN: .\backend\api\routers\eros_production_router.py
+CLEAN: .\backend\api\routers\realtime_router.py
+
+2. REPAIRING LITERAL NEWLINE ARTIFACTS
+REPAIRED: .\backend\api\routers\task_router.py
+REPAIRED: .\backend\api\routers\valuation_router.py
+REPAIRED: .\backend\api\routers\admin_task_router.py
+NO CHANGE: .\backend\api\routers\eros_production_router.py
+NO CHANGE: .\backend\api\routers\realtime_router.py
+
+3. PYTHON COMPILE CHECK
+
+COMPILE PASS: .\backend\api\routers\task_router.py
+
+COMPILE PASS: .\backend\api\routers\valuation_router.py
+
+COMPILE PASS: .\backend\api\routers\admin_task_router.py
+
+COMPILE PASS: .\backend\api\routers\eros_production_router.py
+
+COMPILE PASS: .\backend\api\routers\realtime_router.py
+
+4. FASTAPI APPLICATION IMPORT
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py", line 10, in <module>
+    from backend.api.routers.task_router import router as task_router
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py", line 16, in <module>
+    @router.post("/submit", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(get_current_user)])
+                                                                                ^^^^^^^
+NameError: name 'Depends' is not defined
+
+5. BUSINESS ROUTE INVENTORY
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py", line 10, in <module>
+    from backend.api.routers.task_router import router as task_router
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py", line 16, in <module>
+    @router.post("/submit", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(get_current_user)])
+                                                                                ^^^^^^^
+NameError: name 'Depends' is not defined
+
+6. MAIN.PY DUPLICATE ROUTE AUDIT
+FOUND: @app.post("/api/v1/valuation"
+  LINE 75: @app.post("/api/v1/valuation", status_code=status.HTTP_200_OK)
+FOUND: @app.get("/api/v1/admin/queues"
+  LINE 86: @app.get("/api/v1/admin/queues", status_code=status.HTTP_200_OK)
+FOUND: @app.get("/api/v1/admin/tasks"
+  LINE 90: @app.get("/api/v1/admin/tasks", status_code=status.HTTP_200_OK)
+FOUND: mock-jwt-token-xyz
+  LINE 59: "access_token": "mock-jwt-token-xyz"
+  LINE 66: "access_token": "mock-jwt-token-xyz",
+
+7. OPENAPI SECURITY AUDIT
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py", line 10, in <module>
+    from backend.api.routers.task_router import router as task_router
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py", line 16, in <module>
+    @router.post("/submit", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(get_current_user)])
+                                                                                ^^^^^^^
+NameError: name 'Depends' is not defined
+
+8. AUTH REGISTER / LOGIN
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py", line 10, in <module>
+    from backend.api.routers.task_router import router as task_router
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py", line 16, in <module>
+    @router.post("/submit", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(get_current_user)])
+                                                                                ^^^^^^^
+NameError: name 'Depends' is not defined
+
+9. UNAUTHENTICATED ACCESS GATE
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py", line 10, in <module>
+    from backend.api.routers.task_router import router as task_router
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py", line 16, in <module>
+    @router.post("/submit", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(get_current_user)])
+                                                                                ^^^^^^^
+NameError: name 'Depends' is not defined
+
+10. FINAL REGRESSION
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py", line 10, in <module>
+    from backend.api.routers.task_router import router as task_router
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py", line 16, in <module>
+    @router.post("/submit", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(get_current_user)])
+                                                                                ^^^^^^^
+NameError: name 'Depends' is not defined
+
+==================================================
+BLOCK 31K-BR/CA COMPLETE
+==================================================
+**********************
+Windows PowerShell transcript end
+End time: 20260823171918
+**********************

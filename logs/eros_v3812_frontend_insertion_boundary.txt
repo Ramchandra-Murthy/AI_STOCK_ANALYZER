@@ -1,0 +1,217 @@
+﻿======================================================================
+EROS 3.0 - V3.8.12 FRONTEND INSERTION BOUNDARY
+======================================================================
+
+DASHBOARD : .\stock_dashboard.py
+START LINE : 1515
+END LINE   : 1710
+
+ 1515 |     else:
+ 1516 | 
+ 1517 |         st.info(
+ 1518 |             "No signal drivers returned."
+ 1519 |         )
+ 1520 | 
+ 1521 |     # ========================================================
+ 1522 |     # TECHNICAL INTELLIGENCE
+ 1523 |     # ========================================================
+ 1524 | 
+ 1525 |     st.subheader(
+ 1526 |         "ðŸ“Š Technical Intelligence"
+ 1527 |     )
+ 1528 | 
+ 1529 |     t1, t2, t3, t4 = st.columns(4)
+ 1530 | 
+ 1531 |     t1.metric(
+ 1532 |         "RSI",
+ 1533 |         f"{float(selected_last['RSI_14']):.2f}",
+ 1534 |     )
+ 1535 | 
+ 1536 |     t2.metric(
+ 1537 |         "ATR",
+ 1538 |         f"{float(selected_last['ATR']):.2f}",
+ 1539 |     )
+ 1540 | 
+ 1541 |     t3.metric(
+ 1542 |         "MACD",
+ 1543 |         f"{float(selected_last['MACD']):.2f}",
+ 1544 |     )
+ 1545 | 
+ 1546 |     t4.metric(
+ 1547 |         "SIGNAL",
+ 1548 |         f"{float(selected_last['Signal']):.2f}",
+ 1549 |     )
+ 1550 | 
+ 1551 |     # ========================================================
+ 1552 |     # MARKET STRUCTURE
+ 1553 |     # ========================================================
+ 1554 | 
+ 1555 |     st.subheader(
+ 1556 |         "ðŸ“ Market Structure"
+ 1557 |     )
+ 1558 | 
+ 1559 |     support_value = float(
+ 1560 |         selected_last["Support"]
+ 1561 |     )
+ 1562 | 
+ 1563 |     current_value = float(
+ 1564 |         selected_last["Close"]
+ 1565 |     )
+ 1566 | 
+ 1567 |     resistance_value = float(
+ 1568 |         selected_last["Resistance"]
+ 1569 |     )
+ 1570 | 
+ 1571 |     support_distance = (
+ 1572 |         (
+ 1573 |             current_value
+ 1574 |             - support_value
+ 1575 |         )
+ 1576 |         / current_value
+ 1577 |     ) * 100
+ 1578 | 
+ 1579 |     resistance_distance = (
+ 1580 |         (
+ 1581 |             resistance_value
+ 1582 |             - current_value
+ 1583 |         )
+ 1584 |         / current_value
+ 1585 |     ) * 100
+ 1586 | 
+ 1587 |     m1, m2, m3 = st.columns(3)
+ 1588 | 
+ 1589 |     m1.metric(
+ 1590 |         "SUPPORT",
+ 1591 |         f"â‚¹{support_value:.2f}",
+ 1592 |     )
+ 1593 | 
+ 1594 |     m2.metric(
+ 1595 |         "CURRENT",
+ 1596 |         f"â‚¹{current_value:.2f}",
+ 1597 |     )
+ 1598 | 
+ 1599 |     m3.metric(
+ 1600 |         "RESISTANCE",
+ 1601 |         f"â‚¹{resistance_value:.2f}",
+ 1602 |     )
+ 1603 | 
+ 1604 |     r1, r2 = st.columns(2)
+ 1605 | 
+ 1606 |     r1.metric(
+ 1607 |         "DISTANCE TO SUPPORT",
+ 1608 |         f"{support_distance:.2f}%",
+ 1609 |     )
+ 1610 | 
+ 1611 |     r2.metric(
+ 1612 |         "DISTANCE TO RESISTANCE",
+ 1613 |         f"{resistance_distance:.2f}%",
+ 1614 |     )
+ 1615 | 
+ 1616 |     st.caption(
+ 1617 |         "Distance values are contextual market indicators, "
+ 1618 |         "not guaranteed price targets."
+ 1619 |     )
+ 1620 | 
+ 1621 |     # ========================================================
+ 1622 |     # BREAKOUT
+ 1623 |     # ========================================================
+ 1624 | 
+ 1625 |     st.subheader(
+ 1626 |         "ðŸš€ Breakout Engine"
+ 1627 |     )
+ 1628 | 
+ 1629 |     breakout_signal = selected_breakout.get(
+ 1630 |         "Signal",
+ 1631 |         "NONE",
+ 1632 |     )
+ 1633 | 
+ 1634 |     breakout_reason = selected_breakout.get(
+ 1635 |         "Reason",
+ 1636 |         "",
+ 1637 |     )
+ 1638 | 
+ 1639 |     if breakout_signal == "BUY":
+ 1640 | 
+ 1641 |         st.success(
+ 1642 |             f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1643 |         )
+ 1644 | 
+ 1645 |     elif breakout_signal == "SELL":
+ 1646 | 
+ 1647 |         st.error(
+ 1648 |             f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1649 |         )
+ 1650 | 
+ 1651 |     else:
+ 1652 | 
+ 1653 |         st.info(
+ 1654 |             f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1655 |         )
+ 1656 | 
+ 1657 |     st.write(
+ 1658 |         breakout_reason
+ 1659 |     )
+ 1660 | 
+ 1661 |     # ========================================================
+ 1662 |     # PRICE ACTION
+ 1663 |     # ========================================================
+ 1664 | 
+ 1665 |     st.subheader(
+ 1666 |         "ðŸ“ˆ Price Action"
+ 1667 |     )
+ 1668 | 
+ 1669 |     selected_fig = create_candlestick(
+ 1670 |         selected_result["df"],
+ 1671 |         selected_symbol_display,
+ 1672 |     )
+ 1673 | 
+ 1674 |     st.plotly_chart(
+ 1675 |         selected_fig,
+ 1676 |         use_container_width=True,
+ 1677 |         key="v24_selected_chart",
+ 1678 |     )
+ 1679 | 
+ 1680 | else:
+ 1681 | 
+ 1682 |     st.info(
+ 1683 |         "Select a stock from Market Intelligence "
+ 1684 |         "and click ANALYZE SELECTED STOCK."
+ 1685 |     )
+ 1686 | # GOVERNANCE
+ 1687 | # ============================================================
+ 1688 | 
+ 1689 | st.divider()
+ 1690 | 
+ 1691 | st.markdown(
+ 1692 |     '<div class="section-title">'
+ 1693 |     'ðŸ” EROS Governance'
+ 1694 |     '</div>',
+ 1695 |     unsafe_allow_html=True,
+ 1696 | )
+ 1697 | 
+ 1698 | governance = adapter.governance()
+ 1699 | 
+ 1700 | g1, g2 = st.columns(2)
+ 1701 | 
+ 1702 | with g1:
+ 1703 | 
+ 1704 |     st.write(
+ 1705 |         "**Operating Mode**"
+ 1706 |     )
+ 1707 | 
+ 1708 |     st.success(
+ 1709 |         "READ ONLY"
+ 1710 |     )
+
+======================================================================
+SAFETY
+======================================================================
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+V3.8.12 BOUNDARY CAPTURE COMPLETE
+======================================================================

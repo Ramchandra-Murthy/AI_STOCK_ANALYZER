@@ -1,0 +1,1738 @@
+﻿
+==================================================
+EROS 3.0 - FULL SUITE HANG DIAGNOSTIC
+==================================================
+
+
+Test                                                                                                 Status    
+----                                                                                                 ------    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\agents\test_agents.py                                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alerts\test_ianp.py                                    PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alpha_factory\test_iarf.py                             PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api\test_api.py                                        PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api\test_eap.py                                        PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api_gateway\test_eag.py                                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\attribution\test_ipaap.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\backtesting\test_ibrvp.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\capital\test_capital_models.py                         PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\cio\test_acio.py                                       PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\committee\test_committee.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\company\test_company_knowledge.py                      PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\company\test_ikl_layer.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\compliance\test_ircp.py                                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot\test_copilot.py                                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot_v2\test_copilot_v2.py                          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\dashboard\test_dashboard.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\data_lake\test_idlfs.py                                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\data_platform\test_idp.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_expanded_repositories.py                 PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_forecast_report_repositories.py          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_production_db.py                         PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_sqlalchemy_production.py                 PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\decision\test_decision.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py                           PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\execution\test_ieip.py                                 PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecast_system\test_ifis.py                           PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecasting\test_forecasting.py                        PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\frontend\test_frontend.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_canonical_models.py                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_models.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                        PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_provider.py                          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                           PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\infrastructure\test_cnep.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\investors\test_investors.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\knowledge_graph\test_kg.py                             PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\learning\test_learning.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23_real_market.py                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23c_provider.py                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23de_integrity.py                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23fg_gate.py                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23h_confidence.py                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23i_confidence_bounds.py         PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23j_trace.py                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_four_path.py                 PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_integration.py               PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                               PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\memory\test_ikme.py                                    PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ml_platform\test_mlamp.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\moat\test_moat.py                                      PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_imop.py                                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio\test_portfolio.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_intelligence\test_portfolio_intelligence.py  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_lab\test_ipcsl.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_manager\test_apm.py                          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_optimizer\test_ipoe.py                       PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21a_health.py                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21b_backtest.py                   PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21d_degraded_modes.py             PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21e_readiness.py                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block24_e2e_production.py              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25a_api_contract.py               PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25b_api_validation.py             PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25c_api_e2e.py                    PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25d_integrity_chain.py            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26c_failure_safety.py             PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26d_observability.py              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block27_operations.py                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block28_worker.py                      PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py                 PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30_real_worker.py                 PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30c_real_worker_execution.py      PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30d_live_redis_worker.py          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30g_infra.py                      PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30k_real_celery_broker.py         TIMEOUT   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30l_live_worker.py                TIMEOUT   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30m_definitive_worker.py          TIMEOUT   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30n_strict_worker.py              TIMEOUT   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30o_separate_worker.py            FAIL/ERROR
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30p_dedicated_worker.py           FAIL/ERROR
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30q_diagnostic.py                 FAIL/ERROR
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30r_diagnostic.py                 FAIL/ERROR
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30s_permanent_worker.py           PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31l3c_failure_probe.py            FAIL/ERROR
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_edpf.py                                 PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                        PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_profitability_ratios.py                    PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_quality_engine.py                          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_ratios.py                                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_sprint7_ratios.py                          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py                           PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_realtime.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reasoning\test_reasoning_engine.py                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reasoning_graph\test_irg.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\report\test_report.py                                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py                       PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_reporting.py                            FAIL/ERROR
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py   PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\test_evidence_graph.py         PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\test_evidence_quality.py     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\test_evidence_reasoning.py PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py                      PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_research_case.py                         PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research_director\test_ard.py                          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\risk_management\test_irmst.py                          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py            FAIL/ERROR
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block11_historical_growth.py              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block12_unified_scoring.py                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_integration.py                    PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_momentum.py                       PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_integration.py                    PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_risk.py                           PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py                       PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_e2e.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py                      PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py                   PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_scoring.py                                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\security\test_auth.py                                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\simulation\test_imsdt.py                               PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\strategy_factory\test_isf.py                           PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py                                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edpp.py                                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20a_observability.py                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20b_observability_details.py          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20c_unified_observability.py          PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py                                PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                       PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_backtest.py                            PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22_hardening.py                   PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22c_stress.py                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_blended_valuation.py                    PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py                                  PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_professional_dcf.py                     PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_relative.py                             PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_sotp.py                                 PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\wacc\test_wacc_service.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\watchlist_platform\test_iwip.py                        PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\web_platform\test_ewp.py                               PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow\test_workflow.py                              PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_erwe.py                           PASS      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_ewop.py                           PASS      
+
+
+
+
+==================================================
+DETAILED OUTPUT
+==================================================
+
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\agents\test_agents.py
+STATUS: PASS
+.....                                                                    [100%]
+5 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alerts\test_ianp.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alpha_factory\test_iarf.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api\test_api.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api\test_eap.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 1.04s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api_gateway\test_eag.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\attribution\test_ipaap.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\backtesting\test_ibrvp.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\capital\test_capital_models.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\cio\test_acio.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\committee\test_committee.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\company\test_company_knowledge.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\company\test_ikl_layer.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\compliance\test_ircp.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot\test_copilot.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot_v2\test_copilot_v2.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\dashboard\test_dashboard.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.06s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\data_lake\test_idlfs.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\data_platform\test_idp.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_expanded_repositories.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.39s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_forecast_report_repositories.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.39s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_production_db.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_sqlalchemy_production.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.39s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\decision\test_decision.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\events\test_s16_event_bus.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\execution\test_ieip.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecast_system\test_ifis.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecasting\test_forecasting.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\frontend\test_frontend.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_canonical_models.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_models.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_provider.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.13s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\infrastructure\test_cnep.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 1.03s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\investors\test_investors.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\knowledge_graph\test_kg.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\learning\test_learning.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23_real_market.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.13s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23c_provider.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 4.24s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23de_integrity.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 1.75s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23fg_gate.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 1.59s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23h_confidence.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 1.49s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23i_confidence_bounds.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 0.14s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23j_trace.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_four_path.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 0.09s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23k_integration.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 1.52s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\memory\test_ikme.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ml_platform\test_mlamp.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\moat\test_moat.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.12s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_imop.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio\test_portfolio.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_intelligence\test_portfolio_intelligence.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_lab\test_ipcsl.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_manager\test_apm.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_optimizer\test_ipoe.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21a_health.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21b_backtest.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.09s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.14s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21d_degraded_modes.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21e_readiness.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block24_e2e_production.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 1.50s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25a_api_contract.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.92s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25b_api_validation.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 3.15s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25c_api_e2e.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 2.59s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25d_integrity_chain.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 2.35s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26c_failure_safety.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 6.55s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26d_observability.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 2.87s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block27_operations.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 1.03s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block28_worker.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.40s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 0.51s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30_real_worker.py
+STATUS: PASS
+s.                                                                       [100%]
+1 passed, 1 skipped in 4.49s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30c_real_worker_execution.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.50s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30d_live_redis_worker.py
+STATUS: PASS
+ss                                                                       [100%]
+2 skipped in 8.76s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30g_infra.py
+STATUS: PASS
+s.                                                                       [100%]
+1 passed, 1 skipped in 4.61s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30k_real_celery_broker.py
+STATUS: TIMEOUT
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30l_live_worker.py
+STATUS: TIMEOUT
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30m_definitive_worker.py
+STATUS: TIMEOUT
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30n_strict_worker.py
+STATUS: TIMEOUT
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30o_separate_worker.py
+STATUS: FAIL/ERROR
+F                                                                        [100%]
+================================== FAILURES ===================================
+_______________ test_block30o_separate_process_worker_execution _______________
+
+self = <redis._parsers.socket.SocketBuffer object at 0x000001C5F0BA16A0>
+length = None, timeout = <object object at 0x000001C5ECE51BC0>
+raise_on_timeout = True
+
+    def _read_from_socket(
+        self,
+        length: Optional[int] = None,
+        timeout: Union[float, object] = SENTINEL,
+        raise_on_timeout: Optional[bool] = True,
+    ) -> bool:
+        sock = self._sock
+        socket_read_size = self.socket_read_size
+        marker = 0
+        custom_timeout = timeout is not SENTINEL
+    
+        buf = self._buffer
+        current_pos = buf.tell()
+        buf.seek(0, SEEK_END)
+        if custom_timeout:
+            sock.settimeout(timeout)
+        try:
+            while True:
+>               data = sock.recv(socket_read_size)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               TimeoutError: timed out
+
+.venv\Lib\site-packages\redis\_parsers\socket.py:64: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_block30o_separate_process_worker_execution():
+        redis_client = redis.Redis.from_url(
+            BROKER_URL,
+            socket_connect_timeout=3,
+            socket_timeout=3,
+            decode_responses=True,
+        )
+>       assert redis_client.ping() is True
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\production\test_block30o_separate_worker.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\redis\commands\core.py:2037: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\client.py:867: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\client.py:873: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\utils.py:258: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\connection.py:3273: in get_connection
+    connection.connect()
+.venv\Lib\site-packages\redis\connection.py:1028: in connect
+    self.retry.call_with_retry(
+.venv\Lib\site-packages\redis\retry.py:132: in call_with_retry
+    raise error
+.venv\Lib\site-packages\redis\retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+.venv\Lib\site-packages\redis\connection.py:1029: in <lambda>
+    lambda: self.connect_check_health(
+.venv\Lib\site-packages\redis\connection.py:1083: in connect_check_health
+    self.on_connect_check_health(check_health=check_health)
+.venv\Lib\site-packages\redis\connection.py:1186: in on_connect_check_health
+    self.handshake_metadata = self.read_response()
+                              ^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\connection.py:1407: in read_response
+    response = self._parser.read_response(
+.venv\Lib\site-packages\redis\_parsers\resp3.py:40: in read_response
+    result = self._read_response(
+.venv\Lib\site-packages\redis\_parsers\resp3.py:65: in _read_response
+    raw = self._buffer.readline(timeout=timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\_parsers\socket.py:117: in readline
+    self._read_from_socket(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis._parsers.socket.SocketBuffer object at 0x000001C5F0BA16A0>
+length = None, timeout = <object object at 0x000001C5ECE51BC0>
+raise_on_timeout = True
+
+    def _read_from_socket(
+        self,
+        length: Optional[int] = None,
+        timeout: Union[float, object] = SENTINEL,
+        raise_on_timeout: Optional[bool] = True,
+    ) -> bool:
+        sock = self._sock
+        socket_read_size = self.socket_read_size
+        marker = 0
+        custom_timeout = timeout is not SENTINEL
+    
+        buf = self._buffer
+        current_pos = buf.tell()
+        buf.seek(0, SEEK_END)
+        if custom_timeout:
+            sock.settimeout(timeout)
+        try:
+            while True:
+                data = sock.recv(socket_read_size)
+                # an empty string indicates the server shutdown the socket
+                if isinstance(data, bytes) and len(data) == 0:
+                    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+                buf.write(data)
+                data_length = len(data)
+                marker += data_length
+    
+                if length is not None and length > marker:
+                    continue
+                return True
+        except socket.timeout:
+            if raise_on_timeout:
+>               raise TimeoutError("Timeout reading from socket")
+E               redis.exceptions.TimeoutError: Timeout reading from socket
+
+.venv\Lib\site-packages\redis\_parsers\socket.py:77: TimeoutError
+=========================== short test summary info ===========================
+FAILED tests/production/test_block30o_separate_worker.py::test_block30o_separate_process_worker_execution
+1 failed in 3.60s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30p_dedicated_worker.py
+STATUS: FAIL/ERROR
+F                                                                        [100%]
+================================== FAILURES ===================================
+__________________ test_block30p_dedicated_worker_execution ___________________
+
+self = <redis._parsers.socket.SocketBuffer object at 0x00000207B47D5550>
+length = None, timeout = <object object at 0x00000207B0AA1BC0>
+raise_on_timeout = True
+
+    def _read_from_socket(
+        self,
+        length: Optional[int] = None,
+        timeout: Union[float, object] = SENTINEL,
+        raise_on_timeout: Optional[bool] = True,
+    ) -> bool:
+        sock = self._sock
+        socket_read_size = self.socket_read_size
+        marker = 0
+        custom_timeout = timeout is not SENTINEL
+    
+        buf = self._buffer
+        current_pos = buf.tell()
+        buf.seek(0, SEEK_END)
+        if custom_timeout:
+            sock.settimeout(timeout)
+        try:
+            while True:
+>               data = sock.recv(socket_read_size)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               TimeoutError: timed out
+
+.venv\Lib\site-packages\redis\_parsers\socket.py:64: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_block30p_dedicated_worker_execution():
+        redis_client = redis.Redis.from_url(
+            BROKER_URL,
+            socket_connect_timeout=3,
+            socket_timeout=3,
+            decode_responses=True,
+        )
+>       assert redis_client.ping() is True
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\production\test_block30p_dedicated_worker.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\redis\commands\core.py:2037: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\client.py:867: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\client.py:873: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\utils.py:258: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\connection.py:3273: in get_connection
+    connection.connect()
+.venv\Lib\site-packages\redis\connection.py:1028: in connect
+    self.retry.call_with_retry(
+.venv\Lib\site-packages\redis\retry.py:132: in call_with_retry
+    raise error
+.venv\Lib\site-packages\redis\retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+.venv\Lib\site-packages\redis\connection.py:1029: in <lambda>
+    lambda: self.connect_check_health(
+.venv\Lib\site-packages\redis\connection.py:1083: in connect_check_health
+    self.on_connect_check_health(check_health=check_health)
+.venv\Lib\site-packages\redis\connection.py:1186: in on_connect_check_health
+    self.handshake_metadata = self.read_response()
+                              ^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\connection.py:1407: in read_response
+    response = self._parser.read_response(
+.venv\Lib\site-packages\redis\_parsers\resp3.py:40: in read_response
+    result = self._read_response(
+.venv\Lib\site-packages\redis\_parsers\resp3.py:65: in _read_response
+    raw = self._buffer.readline(timeout=timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\_parsers\socket.py:117: in readline
+    self._read_from_socket(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis._parsers.socket.SocketBuffer object at 0x00000207B47D5550>
+length = None, timeout = <object object at 0x00000207B0AA1BC0>
+raise_on_timeout = True
+
+    def _read_from_socket(
+        self,
+        length: Optional[int] = None,
+        timeout: Union[float, object] = SENTINEL,
+        raise_on_timeout: Optional[bool] = True,
+    ) -> bool:
+        sock = self._sock
+        socket_read_size = self.socket_read_size
+        marker = 0
+        custom_timeout = timeout is not SENTINEL
+    
+        buf = self._buffer
+        current_pos = buf.tell()
+        buf.seek(0, SEEK_END)
+        if custom_timeout:
+            sock.settimeout(timeout)
+        try:
+            while True:
+                data = sock.recv(socket_read_size)
+                # an empty string indicates the server shutdown the socket
+                if isinstance(data, bytes) and len(data) == 0:
+                    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+                buf.write(data)
+                data_length = len(data)
+                marker += data_length
+    
+                if length is not None and length > marker:
+                    continue
+                return True
+        except socket.timeout:
+            if raise_on_timeout:
+>               raise TimeoutError("Timeout reading from socket")
+E               redis.exceptions.TimeoutError: Timeout reading from socket
+
+.venv\Lib\site-packages\redis\_parsers\socket.py:77: TimeoutError
+=========================== short test summary info ===========================
+FAILED tests/production/test_block30p_dedicated_worker.py::test_block30p_dedicated_worker_execution
+1 failed in 3.59s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30q_diagnostic.py
+STATUS: FAIL/ERROR
+F                                                                        [100%]
+================================== FAILURES ===================================
+___________________ test_block30q_worker_stream_diagnostic ____________________
+
+self = <redis._parsers.socket.SocketBuffer object at 0x00000281F1121550>
+length = None, timeout = <object object at 0x00000281ED461BC0>
+raise_on_timeout = True
+
+    def _read_from_socket(
+        self,
+        length: Optional[int] = None,
+        timeout: Union[float, object] = SENTINEL,
+        raise_on_timeout: Optional[bool] = True,
+    ) -> bool:
+        sock = self._sock
+        socket_read_size = self.socket_read_size
+        marker = 0
+        custom_timeout = timeout is not SENTINEL
+    
+        buf = self._buffer
+        current_pos = buf.tell()
+        buf.seek(0, SEEK_END)
+        if custom_timeout:
+            sock.settimeout(timeout)
+        try:
+            while True:
+>               data = sock.recv(socket_read_size)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               TimeoutError: timed out
+
+.venv\Lib\site-packages\redis\_parsers\socket.py:64: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_block30q_worker_stream_diagnostic():
+        """
+        Launches the dedicated Celery worker while capturing stdout/stderr
+        to inspect task registration and queue binding diagnostics.
+        """
+        redis_client = redis.Redis.from_url(
+            BROKER_URL,
+            socket_connect_timeout=3,
+            socket_timeout=3,
+            decode_responses=True,
+        )
+>       assert redis_client.ping() is True
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\production\test_block30q_diagnostic.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\redis\commands\core.py:2037: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\client.py:867: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\client.py:873: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\utils.py:258: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\connection.py:3273: in get_connection
+    connection.connect()
+.venv\Lib\site-packages\redis\connection.py:1028: in connect
+    self.retry.call_with_retry(
+.venv\Lib\site-packages\redis\retry.py:132: in call_with_retry
+    raise error
+.venv\Lib\site-packages\redis\retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+.venv\Lib\site-packages\redis\connection.py:1029: in <lambda>
+    lambda: self.connect_check_health(
+.venv\Lib\site-packages\redis\connection.py:1083: in connect_check_health
+    self.on_connect_check_health(check_health=check_health)
+.venv\Lib\site-packages\redis\connection.py:1186: in on_connect_check_health
+    self.handshake_metadata = self.read_response()
+                              ^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\connection.py:1407: in read_response
+    response = self._parser.read_response(
+.venv\Lib\site-packages\redis\_parsers\resp3.py:40: in read_response
+    result = self._read_response(
+.venv\Lib\site-packages\redis\_parsers\resp3.py:65: in _read_response
+    raw = self._buffer.readline(timeout=timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\_parsers\socket.py:117: in readline
+    self._read_from_socket(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis._parsers.socket.SocketBuffer object at 0x00000281F1121550>
+length = None, timeout = <object object at 0x00000281ED461BC0>
+raise_on_timeout = True
+
+    def _read_from_socket(
+        self,
+        length: Optional[int] = None,
+        timeout: Union[float, object] = SENTINEL,
+        raise_on_timeout: Optional[bool] = True,
+    ) -> bool:
+        sock = self._sock
+        socket_read_size = self.socket_read_size
+        marker = 0
+        custom_timeout = timeout is not SENTINEL
+    
+        buf = self._buffer
+        current_pos = buf.tell()
+        buf.seek(0, SEEK_END)
+        if custom_timeout:
+            sock.settimeout(timeout)
+        try:
+            while True:
+                data = sock.recv(socket_read_size)
+                # an empty string indicates the server shutdown the socket
+                if isinstance(data, bytes) and len(data) == 0:
+                    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+                buf.write(data)
+                data_length = len(data)
+                marker += data_length
+    
+                if length is not None and length > marker:
+                    continue
+                return True
+        except socket.timeout:
+            if raise_on_timeout:
+>               raise TimeoutError("Timeout reading from socket")
+E               redis.exceptions.TimeoutError: Timeout reading from socket
+
+.venv\Lib\site-packages\redis\_parsers\socket.py:77: TimeoutError
+=========================== short test summary info ===========================
+FAILED tests/production/test_block30q_diagnostic.py::test_block30q_worker_stream_diagnostic
+1 failed in 3.61s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30r_diagnostic.py
+STATUS: FAIL/ERROR
+F                                                                        [100%]
+================================== FAILURES ===================================
+_________________ test_block30r_nonblocking_worker_diagnostic _________________
+
+self = <redis._parsers.socket.SocketBuffer object at 0x000002221C3516A0>
+length = None, timeout = <object object at 0x0000022218631BC0>
+raise_on_timeout = True
+
+    def _read_from_socket(
+        self,
+        length: Optional[int] = None,
+        timeout: Union[float, object] = SENTINEL,
+        raise_on_timeout: Optional[bool] = True,
+    ) -> bool:
+        sock = self._sock
+        socket_read_size = self.socket_read_size
+        marker = 0
+        custom_timeout = timeout is not SENTINEL
+    
+        buf = self._buffer
+        current_pos = buf.tell()
+        buf.seek(0, SEEK_END)
+        if custom_timeout:
+            sock.settimeout(timeout)
+        try:
+            while True:
+>               data = sock.recv(socket_read_size)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               TimeoutError: timed out
+
+.venv\Lib\site-packages\redis\_parsers\socket.py:64: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+    def test_block30r_nonblocking_worker_diagnostic():
+        redis_client = redis.Redis.from_url(
+            BROKER_URL,
+            socket_connect_timeout=3,
+            socket_timeout=3,
+            decode_responses=True,
+        )
+>       assert redis_client.ping() is True
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\production\test_block30r_diagnostic.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\redis\commands\core.py:2037: in ping
+    return self.execute_command("PING", **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\client.py:867: in execute_command
+    return self._execute_command(*args, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\client.py:873: in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\utils.py:258: in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\connection.py:3273: in get_connection
+    connection.connect()
+.venv\Lib\site-packages\redis\connection.py:1028: in connect
+    self.retry.call_with_retry(
+.venv\Lib\site-packages\redis\retry.py:132: in call_with_retry
+    raise error
+.venv\Lib\site-packages\redis\retry.py:120: in call_with_retry
+    return do()
+           ^^^^
+.venv\Lib\site-packages\redis\connection.py:1029: in <lambda>
+    lambda: self.connect_check_health(
+.venv\Lib\site-packages\redis\connection.py:1083: in connect_check_health
+    self.on_connect_check_health(check_health=check_health)
+.venv\Lib\site-packages\redis\connection.py:1186: in on_connect_check_health
+    self.handshake_metadata = self.read_response()
+                              ^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\connection.py:1407: in read_response
+    response = self._parser.read_response(
+.venv\Lib\site-packages\redis\_parsers\resp3.py:40: in read_response
+    result = self._read_response(
+.venv\Lib\site-packages\redis\_parsers\resp3.py:65: in _read_response
+    raw = self._buffer.readline(timeout=timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\redis\_parsers\socket.py:117: in readline
+    self._read_from_socket(timeout=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <redis._parsers.socket.SocketBuffer object at 0x000002221C3516A0>
+length = None, timeout = <object object at 0x0000022218631BC0>
+raise_on_timeout = True
+
+    def _read_from_socket(
+        self,
+        length: Optional[int] = None,
+        timeout: Union[float, object] = SENTINEL,
+        raise_on_timeout: Optional[bool] = True,
+    ) -> bool:
+        sock = self._sock
+        socket_read_size = self.socket_read_size
+        marker = 0
+        custom_timeout = timeout is not SENTINEL
+    
+        buf = self._buffer
+        current_pos = buf.tell()
+        buf.seek(0, SEEK_END)
+        if custom_timeout:
+            sock.settimeout(timeout)
+        try:
+            while True:
+                data = sock.recv(socket_read_size)
+                # an empty string indicates the server shutdown the socket
+                if isinstance(data, bytes) and len(data) == 0:
+                    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+                buf.write(data)
+                data_length = len(data)
+                marker += data_length
+    
+                if length is not None and length > marker:
+                    continue
+                return True
+        except socket.timeout:
+            if raise_on_timeout:
+>               raise TimeoutError("Timeout reading from socket")
+E               redis.exceptions.TimeoutError: Timeout reading from socket
+
+.venv\Lib\site-packages\redis\_parsers\socket.py:77: TimeoutError
+=========================== short test summary info ===========================
+FAILED tests/production/test_block30r_diagnostic.py::test_block30r_nonblocking_worker_diagnostic
+1 failed in 3.61s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30s_permanent_worker.py
+STATUS: PASS
+s                                                                        [100%]
+1 skipped in 3.21s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py
+STATUS: PASS
+s                                                                        [100%]
+1 skipped in 10.22s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31l3c_failure_probe.py
+STATUS: FAIL/ERROR
+F                                                                        [100%]
+================================== FAILURES ===================================
+________________________ test_failure_semantics_probe _________________________
+
+    def test_failure_semantics_probe():
+        print("\n--- STARTING BLOCK 31L.3C FAILURE SEMANTICS PROBE ---")
+    
+        # 1. Start a background Celery worker process
+        worker_cmd = [
+            sys.executable, "-m", "celery",
+            "-A", "backend.tasks.celery_app",
+            "worker", "--pool=solo", "--loglevel=INFO"
+        ]
+        print("Launching background Celery worker for failure test...")
+        worker_proc = subprocess.Popen(worker_cmd)
+        time.sleep(4)  # Wait for worker startup
+    
+        try:
+            control = TaskControlService()
+>           assert control.real_celery_enabled is True
+E           assert False is True
+E            +  where False = <backend.tasks.task_control.TaskControlService object at 0x00000214DF062E90>.real_celery_enabled
+
+tests\production\test_block31l3c_failure_probe.py:21: AssertionError
+---------------------------- Captured stdout call -----------------------------
+
+--- STARTING BLOCK 31L.3C FAILURE SEMANTICS PROBE ---
+Launching background Celery worker for failure test...
+Terminating background worker...
+---------------------------- Captured stderr call -----------------------------
+Usage: python -m celery [OPTIONS] [COMMAND] [ARGS]...
+
+Try 'python -m celery --help' for help.
+
+
+
+Error: 
+
+Unable to load celery application.
+
+Module 'backend.tasks.celery_app' has no attribute 'celery'
+
+=========================== short test summary info ===========================
+FAILED tests/production/test_block31l3c_failure_probe.py::test_failure_semantics_probe
+1 failed in 4.56s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_edpf.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_profitability_ratios.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_quality_engine.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.09s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_ratios.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.10s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_sprint7_ratios.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_edcp_stream.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 1.16s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_realtime.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reasoning\test_reasoning_engine.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reasoning_graph\test_irg.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\report\test_report.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.12s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_reporting.py
+STATUS: FAIL/ERROR
+F                                                                        [100%]
+================================== FAILURES ===================================
+____________________ test_institutional_reporting_platform ____________________
+
+    def test_institutional_reporting_platform() -> None:
+        class MockCommittee:
+            consensus_signal = "BUY"
+            overall_confidence = 0.91
+    
+        class MockForecast:
+            expected_value = 3150.0
+    
+        report = ResearchReportBuilder.build_report("RELIANCE.NS", MockCommittee(), MockForecast())
+        assert report.symbol == "RELIANCE.NS"
+>       assert report.recommendation == "BUY"
+E       AssertionError: assert 'HOLD' == 'BUY'
+E         
+E         - BUY
+E         + HOLD
+
+tests\reporting\test_reporting.py:18: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/reporting/test_reporting.py::test_institutional_reporting_platform
+1 failed in 0.12s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\test_evidence_graph.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\test_evidence_quality.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\test_evidence_reasoning.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py
+STATUS: PASS
+.......                                                                  [100%]
+7 passed in 0.09s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.10s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_research_case.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research_director\test_ard.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\risk_management\test_irmst.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py
+STATUS: FAIL/ERROR
+F                                                                        [100%]
+================================== FAILURES ===================================
+______________________ test_block10_fundamental_scoring _______________________
+
+    def test_block10_fundamental_scoring() -> None:
+        income = {
+            "revenue": 100000.0,
+            "costOfRevenue": 60000.0,
+            "ebitda": 20000.0,
+            "ebit": 15000.0,
+            "netIncome": 10000.0,
+            "eps": 10.0,
+            "sharesOutstanding": 1000.0,
+        }
+        balance = {
+            "cash": 10000.0,
+            "cashEquivalents": 2000.0,
+            "accountsReceivable": 15000.0,
+            "inventory": 10000.0,
+            "totalAssets": 200000.0,
+            "totalLiabilities": 100000.0,
+            "totalEquity": 100000.0,
+            "shortTermDebt": 20000.0,
+            "longTermDebt": 40000.0,
+        }
+        cashflow = {
+            "operatingCashFlow": 18000.0,
+            "capitalExpenditure": 5000.0,
+            "beginningCash": 9000.0,
+            "changeInCash": 1000.0,
+            "endingCash": 10000.0,
+        }
+    
+        statements = parse_financial_statements(
+            company_name="Reliance Industries",
+            ticker="RELIANCE.NS",
+            currency="INR",
+            fiscal_year="FY2025",
+            income_statement=income,
+            balance_sheet=balance,
+            cash_flow=cashflow,
+        )
+    
+        engine = AIScoringEngine()
+        result = engine.evaluate(statements)
+    
+        # --------------------------------------------------
+        # Identity contract
+        # --------------------------------------------------
+        assert result.symbol == "RELIANCE.NS"
+    
+        # --------------------------------------------------
+        # Score range contract
+        # --------------------------------------------------
+        assert 0.0 <= result.growth_score <= 100.0
+        assert 0.0 <= result.quality_score <= 100.0
+        assert 0.0 <= result.profitability_score <= 100.0
+        assert 0.0 <= result.capital_allocation_score <= 100.0
+        assert 0.0 <= result.valuation_score <= 100.0
+        assert 0.0 <= result.momentum_score <= 100.0
+        assert 0.0 <= result.risk_score <= 100.0
+        assert 0.0 <= result.composite_score <= 100.0
+    
+        # --------------------------------------------------
+        # Fundamental integration contract
+        # --------------------------------------------------
+        assert result.quality_score > 0.0
+        assert result.profitability_score > 0.0
+        assert result.capital_allocation_score > 0.0
+        assert result.risk_score > 0.0
+    
+        # --------------------------------------------------
+        # Audit payload contract
+        # --------------------------------------------------
+        details = result.breakdown_details
+>       assert details["engine_version"] == "EROS-3.0-BLOCK-10"
+E       AssertionError: assert 'EROS-3.0-BLOCK-15' == 'EROS-3.0-BLOCK-10'
+E         
+E         - EROS-3.0-BLOCK-10
+E         ?                 ^
+E         + EROS-3.0-BLOCK-15
+E         ?                 ^
+
+tests\scoring\test_block10_fundamental_scoring.py:78: AssertionError
+---------------------------- Captured stdout call -----------------------------
+[2026-08-23 13:41:57] [INFO] [equity_platform]: [RELIANCE.NS] Stored financial statements under key: ('reliance industries', 'FY2025')
+------------------------------ Captured log call ------------------------------
+INFO     equity_platform:repository.py:23 [RELIANCE.NS] Stored financial statements under key: ('reliance industries', 'FY2025')
+=========================== short test summary info ===========================
+FAILED tests/scoring/test_block10_fundamental_scoring.py::test_block10_fundamental_scoring
+1 failed in 0.31s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block11_historical_growth.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.23s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block12_unified_scoring.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.24s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.24s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_integration.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.23s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block14_momentum.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.09s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_integration.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.23s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block15_risk.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.09s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_e2e.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.25s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.09s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.10s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.09s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.13s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_scoring.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.23s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\security\test_auth.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 1.83s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.48s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\simulation\test_imsdt.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\strategy_factory\test_isf.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 1.13s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edpp.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 1.05s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py
+STATUS: PASS
+.......                                                                  [100%]
+7 passed in 1.04s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20a_observability.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 1.03s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20b_observability_details.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 1.03s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20c_unified_observability.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 1.03s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py
+STATUS: PASS
+......                                                                   [100%]
+6 passed in 0.23s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.21s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_backtest.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22_hardening.py
+STATUS: PASS
+....                                                                     [100%]
+4 passed in 0.12s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22c_stress.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.12s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_blended_valuation.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.22s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.19s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_professional_dcf.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.19s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_relative.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.20s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_sotp.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.20s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\wacc\test_wacc_service.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.08s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\watchlist_platform\test_iwip.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\web_platform\test_ewp.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow\test_workflow.py
+STATUS: PASS
+.                                                                        [100%]
+1 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_erwe.py
+STATUS: PASS
+..                                                                       [100%]
+2 passed in 0.07s
+
+--------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_ewop.py
+STATUS: PASS
+...                                                                      [100%]
+3 passed in 0.07s
+
+--------------------------------------------------
+

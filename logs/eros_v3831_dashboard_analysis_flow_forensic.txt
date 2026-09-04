@@ -1,0 +1,879 @@
+﻿======================================================================
+EROS 3.0 - V3.8.3.1 DASHBOARD ANALYSIS FLOW FORENSIC
+======================================================================
+
+DASHBOARD : .\stock_dashboard.py
+
+
+TOKEN : analyze_stock
+----------------------------------------
+    5 | from services.analyzer import analyze_stock
+  382 | result = analyze_stock(symbol)
+ 1304 | selected_result = analyze_stock(
+
+TOKEN : market_scan
+----------------------------------------
+    4 | from scanner.market_scanner import market_scan
+  842 | scan_result = market_scan()
+
+TOKEN : selected_signal
+----------------------------------------
+ 1345 | selected_signal = selected_result[
+ 1374 | selected_signal["Score"],
+ 1379 | selected_signal["Confidence"],
+ 1384 | selected_signal["Risk"],
+ 1387 | recommendation = selected_signal[
+ 1494 | reasons = selected_signal.get(
+
+TOKEN : signal =
+----------------------------------------
+  198 | macd_signal = float(last.get("Signal", 0))
+  406 | signal = result["signal"]
+  750 | breakout_signal = breakout.get(
+  760 | if breakout_signal == "BUY":
+  766 | elif breakout_signal == "SELL":
+ 1079 | stock_signal = (
+ 1345 | selected_signal = selected_result[
+ 1629 | breakout_signal = selected_breakout.get(
+ 1639 | if breakout_signal == "BUY":
+ 1645 | elif breakout_signal == "SELL":
+
+TOKEN : result =
+----------------------------------------
+  134 | result = scan.copy()
+  137 | result = result.sort_values(
+  144 | result = result[
+  264 | st.session_state.analysis_result = None
+  267 | st.session_state.scan_result = None
+  382 | result = analyze_stock(symbol)
+  384 | st.session_state.analysis_result = result
+  388 | st.session_state.analysis_result = None
+  395 | result = st.session_state.analysis_result
+  842 | scan_result = market_scan()
+  849 | scan_result = scan_result.copy()
+  853 | scan_result = scan_result.sort_values(
+  858 | st.session_state.scan_result = scan_result
+  862 | st.session_state.scan_result = None
+  870 | st.session_state.scan_result = None
+ 1304 | selected_result = analyze_stock(
+ 1327 | selected_result = st.session_state.get(
+
+TOKEN : analysis =
+----------------------------------------
+NOT FOUND
+
+TOKEN : analyzer
+----------------------------------------
+    5 | from services.analyzer import analyze_stock
+  613 | "No signal drivers returned by the analyzer."
+
+TOKEN : EROSFrontendAdapter
+----------------------------------------
+    6 | from services.eros_frontend_adapter import EROSFrontendAdapter
+   26 | adapter = EROSFrontendAdapter()
+
+TOKEN : adapter.
+----------------------------------------
+  293 | governance = adapter.governance()
+ 1698 | governance = adapter.governance()
+
+TOKEN : st.session_state
+----------------------------------------
+  263 | if "analysis_result" not in st.session_state:
+  264 | st.session_state.analysis_result = None
+  266 | if "scan_result" not in st.session_state:
+  267 | st.session_state.scan_result = None
+  384 | st.session_state.analysis_result = result
+  388 | st.session_state.analysis_result = None
+  395 | result = st.session_state.analysis_result
+  858 | st.session_state.scan_result = scan_result
+  862 | st.session_state.scan_result = None
+  870 | st.session_state.scan_result = None
+  877 | scan = st.session_state.get(
+ 1308 | st.session_state[
+ 1312 | st.session_state[
+ 1318 | st.session_state[
+ 1327 | selected_result = st.session_state.get(
+ 1335 | st.session_state.get(
+
+TOKEN : stock_data
+----------------------------------------
+NOT FOUND
+
+TOKEN : df
+----------------------------------------
+  408 | df = result["df"]
+  509 | df,
+  792 | df.tail(20),
+ 1342 | "df"
+ 1670 | selected_result["df"],
+
+TOKEN : signal
+----------------------------------------
+   84 | signal_column = None
+   87 | "Signal",
+   89 | "signal",
+   92 | signal_column = candidate
+   95 | if signal_column is None:
+  104 | scan[signal_column]
+  142 | if buy_only and "Signal" in result.columns:
+  145 | result["Signal"]
+  185 | def _decision_score(signal):
+  187 | value = float(signal.get("Score", 0))
+  198 | macd_signal = float(last.get("Signal", 0))
+  215 | if macd > macd_signal:
+  218 | elif macd < macd_signal:
+  246 | "macd_signal": macd_signal,
+  406 | signal = result["signal"]
+  438 | str(signal["Score"]),
+  443 | str(signal["Recommendation"]),
+  478 | "SIGNAL",
+  479 | f'{last["Signal"]:.2f}',
+  539 | score = _decision_score(signal)
+  542 | signal.get("Recommendation", "UNKNOWN")
+  563 | st.write("**Signal Decomposition**")
+  596 | st.write("**Key Signal Drivers**")
+  598 | reasons = signal.get("Reasons", [])
+  613 | "No signal drivers returned by the analyzer."
+  750 | breakout_signal = breakout.get(
+  751 | "Signal",
+  760 | if breakout_signal == "BUY":
+  763 | f"BREAKOUT SIGNAL: {breakout_signal}"
+  766 | elif breakout_signal == "SELL":
+  769 | f"BREAKOUT SIGNAL: {breakout_signal}"
+  775 | f"BREAKOUT SIGNAL: {breakout_signal}"
+  821 | "BUY signals only",
+  885 | # SIGNAL COLUMN
+  888 | signal_column = None
+  891 | "Signal",
+  893 | "signal",
+  898 | signal_column = candidate
+  912 | if signal_column is not None:
+  914 | signal_values = (
+  915 | scan[signal_column]
+  921 | signal_values.isin(
+  927 | signal_values.isin(
+  933 | signal_values.isin(
+  957 | if buy_only and signal_column is not None:
+  960 | display_scan[signal_column]
+  970 | # TOP AI SIGNALS
+  976 | "🏆 Top AI Signals"
+  980 | "Highest-ranked signals from the existing NIFTY scanner."
+  983 | top_signals = display_scan.copy()
+  985 | if "Score" in top_signals.columns:
+  987 | top_signals = top_signals.sort_values(
+  992 | top_signals = top_signals.head(5)
+  995 | if top_signals.empty:
+  998 | "No signals match the current filter."
+ 1014 | if candidate in top_signals.columns:
+ 1029 | if candidate in top_signals.columns:
+ 1042 | if candidate in top_signals.columns:
+ 1049 | top_signals.iterrows(),
+ 1079 | stock_signal = (
+ 1080 | str(row[signal_column]).upper()
+ 1081 | if signal_column is not None
+ 1093 | if stock_signal in (
+ 1100 | elif stock_signal in (
+ 1132 | "SIGNAL",
+ 1133 | f"{icon} {stock_signal}",
+ 1151 | "**Signal Ranking**"
+ 1157 | top_signals.iterrows(),
+ 1187 | signal_value = (
+ 1188 | str(row[signal_column])
+ 1189 | if signal_column is not None
+ 1202 | "Signal": signal_value,
+ 1345 | selected_signal = selected_result[
+ 1346 | "signal"
+ 1374 | selected_signal["Score"],
+ 1379 | selected_signal["Confidence"],
+ 1384 | selected_signal["Risk"],
+ 1387 | recommendation = selected_signal[
+ 1420 | "📈 Signal Decomposition"
+ 1440 | # SIGNAL / TREND DIVERGENCE
+ 1463 | "⚠️ SIGNAL / TREND DIVERGENCE — "
+ 1464 | "The AI signal is positive while the "
+ 1474 | "⚠️ SIGNAL / TREND DIVERGENCE — "
+ 1475 | "The AI signal is negative while the "
+ 1482 | "Signal and trend classification are "
+ 1487 | # SIGNAL DRIVERS
+ 1491 | "🧠 Signal Drivers"
+ 1494 | reasons = selected_signal.get(
+ 1518 | "No signal drivers returned."
+ 1547 | "SIGNAL",
+ 1548 | f"{float(selected_last['Signal']):.2f}",
+ 1629 | breakout_signal = selected_breakout.get(
+ 1630 | "Signal",
+ 1639 | if breakout_signal == "BUY":
+ 1642 | f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1645 | elif breakout_signal == "SELL":
+ 1648 | f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1654 | f"BREAKOUT SIGNAL: {breakout_signal}"
+
+TOKEN : recommendation
+----------------------------------------
+   88 | "Recommendation",
+  442 | "RECOMMENDATION",
+  443 | str(signal["Recommendation"]),
+  541 | recommendation = str(
+  542 | signal.get("Recommendation", "UNKNOWN")
+  554 | if recommendation in ("STRONG BUY", "BUY"):
+  555 | st.success(recommendation)
+  556 | elif recommendation in ("STRONG SELL", "SELL"):
+  557 | st.error(recommendation)
+  559 | st.warning(recommendation)
+  892 | "Recommendation",
+ 1387 | recommendation = selected_signal[
+ 1388 | "Recommendation"
+ 1391 | if recommendation in (
+ 1397 | f"RECOMMENDATION: {recommendation}"
+ 1400 | elif recommendation in (
+ 1406 | f"RECOMMENDATION: {recommendation}"
+ 1412 | f"RECOMMENDATION: {recommendation}"
+ 1443 | strong_positive = recommendation in (
+ 1448 | strong_negative = recommendation in (
+
+TOKEN : AI Score
+----------------------------------------
+  437 | "AI SCORE",
+ 1025 | "AI Score",
+ 1125 | "AI SCORE",
+ 1198 | "AI Score": round(
+ 1373 | "AI SCORE",
+
+TOKEN : AI Signal
+----------------------------------------
+  970 | # TOP AI SIGNALS
+  976 | "🏆 Top AI Signals"
+ 1464 | "The AI signal is positive while the "
+ 1475 | "The AI signal is negative while the "
+
+TOKEN : Breakout
+----------------------------------------
+  407 | breakout = result["breakout"]
+  738 | # BREAKOUT ENGINE
+  745 | '🚀 Breakout Engine'
+  750 | breakout_signal = breakout.get(
+  755 | breakout_reason = breakout.get(
+  760 | if breakout_signal == "BUY":
+  763 | f"BREAKOUT SIGNAL: {breakout_signal}"
+  766 | elif breakout_signal == "SELL":
+  769 | f"BREAKOUT SIGNAL: {breakout_signal}"
+  775 | f"BREAKOUT SIGNAL: {breakout_signal}"
+  779 | breakout_reason
+ 1353 | selected_breakout = selected_result[
+ 1354 | "breakout"
+ 1622 | # BREAKOUT
+ 1626 | "🚀 Breakout Engine"
+ 1629 | breakout_signal = selected_breakout.get(
+ 1634 | breakout_reason = selected_breakout.get(
+ 1639 | if breakout_signal == "BUY":
+ 1642 | f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1645 | elif breakout_signal == "SELL":
+ 1648 | f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1654 | f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1658 | breakout_reason
+
+TOKEN : Technical Indicators
+----------------------------------------
+NOT FOUND
+
+KEY ANALYSIS CODE CONTEXT
+========================================
+
+---------------- LINE 5: analyze_stock ----------------
+    1 | import streamlit as st
+    2 | 
+    3 | from charts.candlestick import create_candlestick
+    4 | from scanner.market_scanner import market_scan
+    5 | from services.analyzer import analyze_stock
+    6 | from services.eros_frontend_adapter import EROSFrontendAdapter
+    7 | 
+    8 | 
+    9 | # ============================================================
+   10 | # EROS 3.0 â€” FRONTEND V2
+   11 | # INSTITUTIONAL INTELLIGENCE COMMAND CENTER
+   12 | # ============================================================
+   13 | 
+   14 | st.set_page_config(
+   15 |     page_title="EROS 3.0 â€” Institutional Intelligence",
+   16 |     page_icon="ðŸ“Š",
+   17 |     layout="wide",
+   18 |     initial_sidebar_state="expanded",
+   19 | )
+   20 | 
+   21 | 
+   22 | # ============================================================
+   23 | # ADAPTER
+
+---------------- LINE 382: analyze_stock ----------------
+  370 |     if not symbol:
+  371 | 
+  372 |         st.error("Please enter a stock symbol.")
+  373 | 
+  374 |     else:
+  375 | 
+  376 |         with st.spinner(
+  377 |             f"Analyzing {symbol}..."
+  378 |         ):
+  379 | 
+  380 |             try:
+  381 | 
+  382 |                 result = analyze_stock(symbol)
+  383 | 
+  384 |                 st.session_state.analysis_result = result
+  385 | 
+  386 |             except Exception as exc:
+  387 | 
+  388 |                 st.session_state.analysis_result = None
+  389 | 
+  390 |                 st.error(
+  391 |                     f"Analysis failed: {exc}"
+  392 |                 )
+  393 | 
+  394 | 
+  395 | result = st.session_state.analysis_result
+  396 | 
+  397 | 
+  398 | # ============================================================
+  399 | # STOCK RESULT
+  400 | # ============================================================
+
+---------------- LINE 1304: analyze_stock ----------------
+ 1292 |         "ðŸ”Ž ANALYZE SELECTED STOCK",
+ 1293 |         use_container_width=True,
+ 1294 |         type="primary",
+ 1295 |         key="v24_analyze_selected",
+ 1296 |     ):
+ 1297 | 
+ 1298 |         with st.spinner(
+ 1299 |             f"Analyzing {selected_symbol}..."
+ 1300 |         ):
+ 1301 | 
+ 1302 |             try:
+ 1303 | 
+ 1304 |                 selected_result = analyze_stock(
+ 1305 |                     selected_symbol
+ 1306 |                 )
+ 1307 | 
+ 1308 |                 st.session_state[
+ 1309 |                     "v24_selected_result"
+ 1310 |                 ] = selected_result
+ 1311 | 
+ 1312 |                 st.session_state[
+ 1313 |                     "v24_selected_symbol"
+ 1314 |                 ] = selected_symbol
+ 1315 | 
+ 1316 |             except Exception as exc:
+ 1317 | 
+ 1318 |                 st.session_state[
+ 1319 |                     "v24_selected_result"
+ 1320 |                 ] = None
+ 1321 | 
+ 1322 |                 st.error(
+
+---------------- LINE 4: market_scan ----------------
+    1 | import streamlit as st
+    2 | 
+    3 | from charts.candlestick import create_candlestick
+    4 | from scanner.market_scanner import market_scan
+    5 | from services.analyzer import analyze_stock
+    6 | from services.eros_frontend_adapter import EROSFrontendAdapter
+    7 | 
+    8 | 
+    9 | # ============================================================
+   10 | # EROS 3.0 â€” FRONTEND V2
+   11 | # INSTITUTIONAL INTELLIGENCE COMMAND CENTER
+   12 | # ============================================================
+   13 | 
+   14 | st.set_page_config(
+   15 |     page_title="EROS 3.0 â€” Institutional Intelligence",
+   16 |     page_icon="ðŸ“Š",
+   17 |     layout="wide",
+   18 |     initial_sidebar_state="expanded",
+   19 | )
+   20 | 
+   21 | 
+   22 | # ============================================================
+
+---------------- LINE 842: market_scan ----------------
+  830 |         use_container_width=True,
+  831 |         type="primary",
+  832 |         key="v23_scan_market",
+  833 |     )
+  834 | 
+  835 | 
+  836 | if scan_clicked:
+  837 | 
+  838 |     with st.spinner("Scanning NIFTY stocks..."):
+  839 | 
+  840 |         try:
+  841 | 
+  842 |             scan_result = market_scan()
+  843 | 
+  844 |             if (
+  845 |                 scan_result is not None
+  846 |                 and not scan_result.empty
+  847 |             ):
+  848 | 
+  849 |                 scan_result = scan_result.copy()
+  850 | 
+  851 |                 if "Score" in scan_result.columns:
+  852 | 
+  853 |                     scan_result = scan_result.sort_values(
+  854 |                         "Score",
+  855 |                         ascending=False,
+  856 |                     )
+  857 | 
+  858 |                 st.session_state.scan_result = scan_result
+  859 | 
+  860 |             else:
+
+---------------- LINE 1345: selected_signal ----------------
+ 1333 | 
+ 1334 |     selected_symbol_display = (
+ 1335 |         st.session_state.get(
+ 1336 |             "v24_selected_symbol",
+ 1337 |             selected_symbol,
+ 1338 |         )
+ 1339 |     )
+ 1340 | 
+ 1341 |     selected_last = selected_result[
+ 1342 |         "df"
+ 1343 |     ].iloc[-1]
+ 1344 | 
+ 1345 |     selected_signal = selected_result[
+ 1346 |         "signal"
+ 1347 |     ]
+ 1348 | 
+ 1349 |     selected_trend = selected_result[
+ 1350 |         "trend"
+ 1351 |     ]
+ 1352 | 
+ 1353 |     selected_breakout = selected_result[
+ 1354 |         "breakout"
+ 1355 |     ]
+ 1356 | 
+ 1357 |     # ========================================================
+ 1358 |     # DECISION SNAPSHOT
+ 1359 |     # ========================================================
+ 1360 | 
+ 1361 |     st.subheader(
+ 1362 |         f"ðŸ“Œ {selected_symbol_display} â€” Decision Snapshot"
+ 1363 |     )
+
+---------------- LINE 1374: selected_signal ----------------
+ 1362 |         f"ðŸ“Œ {selected_symbol_display} â€” Decision Snapshot"
+ 1363 |     )
+ 1364 | 
+ 1365 |     d1, d2, d3, d4 = st.columns(4)
+ 1366 | 
+ 1367 |     d1.metric(
+ 1368 |         "CURRENT PRICE",
+ 1369 |         f"â‚¹{float(selected_last['Close']):.2f}",
+ 1370 |     )
+ 1371 | 
+ 1372 |     d2.metric(
+ 1373 |         "AI SCORE",
+ 1374 |         selected_signal["Score"],
+ 1375 |     )
+ 1376 | 
+ 1377 |     d3.metric(
+ 1378 |         "CONFIDENCE",
+ 1379 |         selected_signal["Confidence"],
+ 1380 |     )
+ 1381 | 
+ 1382 |     d4.metric(
+ 1383 |         "RISK",
+ 1384 |         selected_signal["Risk"],
+ 1385 |     )
+ 1386 | 
+ 1387 |     recommendation = selected_signal[
+ 1388 |         "Recommendation"
+ 1389 |     ]
+ 1390 | 
+ 1391 |     if recommendation in (
+ 1392 |         "STRONG BUY",
+
+---------------- LINE 1379: selected_signal ----------------
+ 1367 |     d1.metric(
+ 1368 |         "CURRENT PRICE",
+ 1369 |         f"â‚¹{float(selected_last['Close']):.2f}",
+ 1370 |     )
+ 1371 | 
+ 1372 |     d2.metric(
+ 1373 |         "AI SCORE",
+ 1374 |         selected_signal["Score"],
+ 1375 |     )
+ 1376 | 
+ 1377 |     d3.metric(
+ 1378 |         "CONFIDENCE",
+ 1379 |         selected_signal["Confidence"],
+ 1380 |     )
+ 1381 | 
+ 1382 |     d4.metric(
+ 1383 |         "RISK",
+ 1384 |         selected_signal["Risk"],
+ 1385 |     )
+ 1386 | 
+ 1387 |     recommendation = selected_signal[
+ 1388 |         "Recommendation"
+ 1389 |     ]
+ 1390 | 
+ 1391 |     if recommendation in (
+ 1392 |         "STRONG BUY",
+ 1393 |         "BUY",
+ 1394 |     ):
+ 1395 | 
+ 1396 |         st.success(
+ 1397 |             f"RECOMMENDATION: {recommendation}"
+
+---------------- LINE 1384: selected_signal ----------------
+ 1372 |     d2.metric(
+ 1373 |         "AI SCORE",
+ 1374 |         selected_signal["Score"],
+ 1375 |     )
+ 1376 | 
+ 1377 |     d3.metric(
+ 1378 |         "CONFIDENCE",
+ 1379 |         selected_signal["Confidence"],
+ 1380 |     )
+ 1381 | 
+ 1382 |     d4.metric(
+ 1383 |         "RISK",
+ 1384 |         selected_signal["Risk"],
+ 1385 |     )
+ 1386 | 
+ 1387 |     recommendation = selected_signal[
+ 1388 |         "Recommendation"
+ 1389 |     ]
+ 1390 | 
+ 1391 |     if recommendation in (
+ 1392 |         "STRONG BUY",
+ 1393 |         "BUY",
+ 1394 |     ):
+ 1395 | 
+ 1396 |         st.success(
+ 1397 |             f"RECOMMENDATION: {recommendation}"
+ 1398 |         )
+ 1399 | 
+ 1400 |     elif recommendation in (
+ 1401 |         "STRONG SELL",
+ 1402 |         "SELL",
+
+---------------- LINE 1387: selected_signal ----------------
+ 1375 |     )
+ 1376 | 
+ 1377 |     d3.metric(
+ 1378 |         "CONFIDENCE",
+ 1379 |         selected_signal["Confidence"],
+ 1380 |     )
+ 1381 | 
+ 1382 |     d4.metric(
+ 1383 |         "RISK",
+ 1384 |         selected_signal["Risk"],
+ 1385 |     )
+ 1386 | 
+ 1387 |     recommendation = selected_signal[
+ 1388 |         "Recommendation"
+ 1389 |     ]
+ 1390 | 
+ 1391 |     if recommendation in (
+ 1392 |         "STRONG BUY",
+ 1393 |         "BUY",
+ 1394 |     ):
+ 1395 | 
+ 1396 |         st.success(
+ 1397 |             f"RECOMMENDATION: {recommendation}"
+ 1398 |         )
+ 1399 | 
+ 1400 |     elif recommendation in (
+ 1401 |         "STRONG SELL",
+ 1402 |         "SELL",
+ 1403 |     ):
+ 1404 | 
+ 1405 |         st.error(
+
+---------------- LINE 1494: selected_signal ----------------
+ 1482 |             "Signal and trend classification are "
+ 1483 |             "not currently showing a major divergence."
+ 1484 |         )
+ 1485 | 
+ 1486 |     # ========================================================
+ 1487 |     # SIGNAL DRIVERS
+ 1488 |     # ========================================================
+ 1489 | 
+ 1490 |     st.subheader(
+ 1491 |         "ðŸ§  Signal Drivers"
+ 1492 |     )
+ 1493 | 
+ 1494 |     reasons = selected_signal.get(
+ 1495 |         "Reasons",
+ 1496 |         [],
+ 1497 |     )
+ 1498 | 
+ 1499 |     if reasons:
+ 1500 | 
+ 1501 |         reason_columns = st.columns(2)
+ 1502 | 
+ 1503 |         for index, reason in enumerate(
+ 1504 |             reasons
+ 1505 |         ):
+ 1506 | 
+ 1507 |             with reason_columns[
+ 1508 |                 index % 2
+ 1509 |             ]:
+ 1510 | 
+ 1511 |                 st.write(
+ 1512 |                     f"âœ“ {reason}"
+
+---------------- LINE 970: AI Signal ----------------
+  958 | 
+  959 |         display_scan = display_scan[
+  960 |             display_scan[signal_column]
+  961 |             .astype(str)
+  962 |             .str.upper()
+  963 |             .isin(
+  964 |                 ["BUY", "STRONG BUY"]
+  965 |             )
+  966 |         ]
+  967 | 
+  968 | 
+  969 |     # ========================================================
+  970 |     # TOP AI SIGNALS
+  971 |     # ========================================================
+  972 | 
+  973 |     st.divider()
+  974 | 
+  975 |     st.subheader(
+  976 |         "ðŸ† Top AI Signals"
+  977 |     )
+  978 | 
+  979 |     st.caption(
+  980 |         "Highest-ranked signals from the existing NIFTY scanner."
+  981 |     )
+  982 | 
+  983 |     top_signals = display_scan.copy()
+  984 | 
+  985 |     if "Score" in top_signals.columns:
+  986 | 
+  987 |         top_signals = top_signals.sort_values(
+  988 |             "Score",
+
+---------------- LINE 976: AI Signal ----------------
+  964 |                 ["BUY", "STRONG BUY"]
+  965 |             )
+  966 |         ]
+  967 | 
+  968 | 
+  969 |     # ========================================================
+  970 |     # TOP AI SIGNALS
+  971 |     # ========================================================
+  972 | 
+  973 |     st.divider()
+  974 | 
+  975 |     st.subheader(
+  976 |         "ðŸ† Top AI Signals"
+  977 |     )
+  978 | 
+  979 |     st.caption(
+  980 |         "Highest-ranked signals from the existing NIFTY scanner."
+  981 |     )
+  982 | 
+  983 |     top_signals = display_scan.copy()
+  984 | 
+  985 |     if "Score" in top_signals.columns:
+  986 | 
+  987 |         top_signals = top_signals.sort_values(
+  988 |             "Score",
+  989 |             ascending=False,
+  990 |         )
+  991 | 
+  992 |     top_signals = top_signals.head(5)
+  993 | 
+  994 | 
+
+---------------- LINE 1464: AI Signal ----------------
+ 1452 | 
+ 1453 |     trend_value = str(
+ 1454 |         selected_trend["Trend"]
+ 1455 |     ).upper()
+ 1456 | 
+ 1457 |     if (
+ 1458 |         strong_positive
+ 1459 |         and trend_value == "BEARISH"
+ 1460 |     ):
+ 1461 | 
+ 1462 |         st.warning(
+ 1463 |             "âš ï¸ SIGNAL / TREND DIVERGENCE â€” "
+ 1464 |             "The AI signal is positive while the "
+ 1465 |             "current trend classification is bearish."
+ 1466 |         )
+ 1467 | 
+ 1468 |     elif (
+ 1469 |         strong_negative
+ 1470 |         and trend_value == "BULLISH"
+ 1471 |     ):
+ 1472 | 
+ 1473 |         st.warning(
+ 1474 |             "âš ï¸ SIGNAL / TREND DIVERGENCE â€” "
+ 1475 |             "The AI signal is negative while the "
+ 1476 |             "current trend classification is bullish."
+ 1477 |         )
+ 1478 | 
+ 1479 |     else:
+ 1480 | 
+ 1481 |         st.info(
+ 1482 |             "Signal and trend classification are "
+
+---------------- LINE 1475: AI Signal ----------------
+ 1463 |             "âš ï¸ SIGNAL / TREND DIVERGENCE â€” "
+ 1464 |             "The AI signal is positive while the "
+ 1465 |             "current trend classification is bearish."
+ 1466 |         )
+ 1467 | 
+ 1468 |     elif (
+ 1469 |         strong_negative
+ 1470 |         and trend_value == "BULLISH"
+ 1471 |     ):
+ 1472 | 
+ 1473 |         st.warning(
+ 1474 |             "âš ï¸ SIGNAL / TREND DIVERGENCE â€” "
+ 1475 |             "The AI signal is negative while the "
+ 1476 |             "current trend classification is bullish."
+ 1477 |         )
+ 1478 | 
+ 1479 |     else:
+ 1480 | 
+ 1481 |         st.info(
+ 1482 |             "Signal and trend classification are "
+ 1483 |             "not currently showing a major divergence."
+ 1484 |         )
+ 1485 | 
+ 1486 |     # ========================================================
+ 1487 |     # SIGNAL DRIVERS
+ 1488 |     # ========================================================
+ 1489 | 
+ 1490 |     st.subheader(
+ 1491 |         "ðŸ§  Signal Drivers"
+ 1492 |     )
+ 1493 | 
+
+---------------- LINE 738: Breakout Engine ----------------
+  726 |     r4.metric(
+  727 |         "ATR",
+  728 |         f'{last["ATR"]:.2f}',
+  729 |     )
+  730 | 
+  731 |     st.caption(
+  732 |         "Distance values are contextual market indicators, "
+  733 |         "not guaranteed price targets."
+  734 |     )
+  735 | 
+  736 | 
+  737 |     # ========================================================
+  738 |     # BREAKOUT ENGINE
+  739 |     # ========================================================
+  740 | 
+  741 |     st.divider()
+  742 | 
+  743 |     st.markdown(
+  744 |         '<div class="section-title">'
+  745 |         'ðŸš€ Breakout Engine'
+  746 |         '</div>',
+  747 |         unsafe_allow_html=True,
+  748 |     )
+  749 | 
+  750 |     breakout_signal = breakout.get(
+  751 |         "Signal",
+  752 |         "UNKNOWN",
+  753 |     )
+  754 | 
+  755 |     breakout_reason = breakout.get(
+  756 |         "Reason",
+
+---------------- LINE 745: Breakout Engine ----------------
+  733 |         "not guaranteed price targets."
+  734 |     )
+  735 | 
+  736 | 
+  737 |     # ========================================================
+  738 |     # BREAKOUT ENGINE
+  739 |     # ========================================================
+  740 | 
+  741 |     st.divider()
+  742 | 
+  743 |     st.markdown(
+  744 |         '<div class="section-title">'
+  745 |         'ðŸš€ Breakout Engine'
+  746 |         '</div>',
+  747 |         unsafe_allow_html=True,
+  748 |     )
+  749 | 
+  750 |     breakout_signal = breakout.get(
+  751 |         "Signal",
+  752 |         "UNKNOWN",
+  753 |     )
+  754 | 
+  755 |     breakout_reason = breakout.get(
+  756 |         "Reason",
+  757 |         "",
+  758 |     )
+  759 | 
+  760 |     if breakout_signal == "BUY":
+  761 | 
+  762 |         st.success(
+  763 |             f"BREAKOUT SIGNAL: {breakout_signal}"
+
+---------------- LINE 1626: Breakout Engine ----------------
+ 1614 |     )
+ 1615 | 
+ 1616 |     st.caption(
+ 1617 |         "Distance values are contextual market indicators, "
+ 1618 |         "not guaranteed price targets."
+ 1619 |     )
+ 1620 | 
+ 1621 |     # ========================================================
+ 1622 |     # BREAKOUT
+ 1623 |     # ========================================================
+ 1624 | 
+ 1625 |     st.subheader(
+ 1626 |         "ðŸš€ Breakout Engine"
+ 1627 |     )
+ 1628 | 
+ 1629 |     breakout_signal = selected_breakout.get(
+ 1630 |         "Signal",
+ 1631 |         "NONE",
+ 1632 |     )
+ 1633 | 
+ 1634 |     breakout_reason = selected_breakout.get(
+ 1635 |         "Reason",
+ 1636 |         "",
+ 1637 |     )
+ 1638 | 
+ 1639 |     if breakout_signal == "BUY":
+ 1640 | 
+ 1641 |         st.success(
+ 1642 |             f"BREAKOUT SIGNAL: {breakout_signal}"
+ 1643 |         )
+ 1644 | 
+
+FUNCTION / CLASS DEFINITIONS
+========================================
+   68 | def _market_pulse_summary(scan):
+  129 | def _market_pulse_table(scan, buy_only=False):
+  160 | def _decision_bar(value):
+  185 | def _decision_score(signal):
+  194 | def _technical_context(last, trend):
+
+SAFETY
+========================================
+NO SOURCE PATCH
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+======================================================================
+V3.8.3.1 FORENSIC COMPLETE
+======================================================================

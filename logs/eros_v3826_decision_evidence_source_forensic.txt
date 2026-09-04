@@ -1,0 +1,375 @@
+﻿======================================================================
+EROS 3.0 - V3.8.2.6 DECISION EVIDENCE SOURCE FORENSIC
+======================================================================
+
+ADAPTER : .\services\eros_frontend_adapter.py
+METHOD START : 363
+METHOD END   : 623
+
+  363 |     def decision_evidence(self, symbol: str) -> dict:
+  364 |         """
+  365 |         EROS V2.9 normalized read-only decision evidence.
+  366 | 
+  367 |         This method consumes the existing stock_analysis()
+  368 |         result and exposes a stable evidence contract.
+  369 | 
+  370 |         No database writes are performed.
+  371 |         No portfolio mutation is performed.
+  372 |         No broker or execution path is exposed.
+  373 |         """
+  374 | 
+  375 |         result = self.stock_analysis(symbol)
+  376 | 
+  377 |         if not isinstance(result, dict):
+  378 |             raise TypeError(
+  379 |                 "STOCK_ANALYSIS_RESULT_MUST_BE_DICT"
+  380 |             )
+  381 | 
+  382 |         trend = result.get("trend") or {}
+  383 |         signal = result.get("signal") or {}
+  384 |         breakout = result.get("breakout") or {}
+  385 |         last = result.get("last")
+  386 | 
+  387 |         def value_from_last(name):
+  388 |             try:
+  389 |                 if last is not None and name in last:
+  390 | 
+  391 |                     value = last[name]
+  392 | 
+  393 |                     if hasattr(value, "item"):
+  394 |                         value = value.item()
+  395 | 
+  396 |                     if value is None:
+  397 |                         return None
+  398 | 
+  399 |                     try:
+  400 |                         if value != value:
+  401 |                             return None
+  402 |                     except Exception:
+  403 |                         pass
+  404 | 
+  405 |                     return value
+  406 | 
+  407 |             except Exception:
+  408 |                 return None
+  409 | 
+  410 |             return None
+  411 | 
+  412 |         evidence = {
+  413 |             "symbol": symbol,
+  414 | 
+  415 |             "price": value_from_last("Close"),
+  416 | 
+  417 |             "trend": trend.get("Trend"),
+  418 |             "momentum": trend.get("Momentum"),
+  419 | 
+  420 |             "score": signal.get("Score"),
+  421 |             "confidence": signal.get("Confidence"),
+  422 |             "recommendation": signal.get(
+  423 |                 "Recommendation"
+  424 |             ),
+  425 |             "risk": signal.get("Risk"),
+  426 | 
+  427 |             "reasons": list(
+  428 |                 signal.get("Reasons") or []
+  429 |             ),
+  430 | 
+  431 |             "breakout_signal": breakout.get(
+  432 |                 "Signal"
+  433 |             ),
+  434 | 
+  435 |             "breakout_reason": breakout.get(
+  436 |                 "Reason"
+  437 |             ),
+  438 | 
+  439 |             "technical_indicators": {
+  440 |                 "sma_20": value_from_last("SMA_20"),
+  441 |                 "sma_50": value_from_last("SMA_50"),
+  442 |                 "ema_20": value_from_last("EMA_20"),
+  443 |                 "rsi_14": value_from_last("RSI_14"),
+  444 |                 "macd": value_from_last("MACD"),
+  445 |                 "signal": value_from_last("Signal"),
+  446 |                 "histogram": value_from_last("Histogram"),
+  447 |                 "bb_middle": value_from_last("BB_Middle"),
+  448 |                 "bb_upper": value_from_last("BB_Upper"),
+  449 |                 "bb_lower": value_from_last("BB_Lower"),
+  450 |                 "atr": value_from_last("ATR"),
+  451 |                 "support": value_from_last("Support"),
+  452 |                 "resistance": value_from_last("Resistance"),
+  453 |             },
+  454 | 
+  455 |             "governance": {
+  456 |                 "read_only": True,
+  457 |                 "execution_blocked": True,
+  458 |                 "non_mutation_invariant": True,
+  459 |             },
+  460 |         }
+  461 | 
+  462 |         return evidence
+  463 | 
+  464 |     def snapshot(self) -> Dict[str, Any]:
+  465 |         """
+  466 |         Return immutable frontend adapter metadata.
+  467 |         """
+  468 | 
+  469 |         return {
+  470 |             "name": "EROSFrontendAdapter",
+  471 |             "version": self.VERSION,
+  472 |             "source": "Block 109",
+  473 |             "mode": "READ_ONLY",
+  474 |             "safety": deepcopy(
+  475 |                 self.SAFETY_POLICY
+  476 |             ),
+  477 |         }
+  478 | 
+  479 |     def decision_intelligence(self, symbol: str) -> Dict[str, Any]:
+  480 |         """
+  481 |         EROS 3.0 V3.0 Decision Intelligence Foundation.
+  482 | 
+  483 |         Purpose:
+  484 |             Convert the certified V2.9 decision_evidence() object
+  485 |             into a normalized read-only intelligence object.
+  486 | 
+  487 |         Safety:
+  488 |             - No database writes
+  489 |             - No portfolio mutation
+  490 |             - No valuation mutation
+  491 |             - No risk mutation
+  492 |             - No optimization
+  493 |             - No broker submission
+  494 |             - No live execution
+  495 |         """
+  496 | 
+  497 |         evidence = self.decision_evidence(symbol)
+  498 | 
+  499 |         technical = evidence.get("technical_indicators", {})
+  500 |         governance = evidence.get("governance", {})
+  501 | 
+  502 |         score = evidence.get("score")
+  503 |         confidence = evidence.get("confidence")
+  504 | 
+  505 |         try:
+  506 |             score_value = float(score)
+  507 |         except (TypeError, ValueError):
+  508 |             score_value = 0.0
+  509 | 
+  510 |         try:
+  511 |             confidence_value = float(confidence)
+  512 |         except (TypeError, ValueError):
+  513 |             confidence_value = 0.0
+  514 | 
+  515 |         recommendation = evidence.get(
+  516 |             "recommendation",
+  517 |             "UNKNOWN"
+  518 |         )
+  519 | 
+  520 |         risk = evidence.get(
+  521 |             "risk",
+  522 |             "UNKNOWN"
+  523 |         )
+  524 | 
+  525 |         trend = evidence.get(
+  526 |             "trend",
+  527 |             "UNKNOWN"
+  528 |         )
+  529 | 
+  530 |         momentum = evidence.get(
+  531 |             "momentum",
+  532 |             "UNKNOWN"
+  533 |         )
+  534 | 
+  535 |         breakout_signal = evidence.get(
+  536 |             "breakout_signal",
+  537 |             "NONE"
+  538 |         )
+  539 | 
+  540 |         reasons = evidence.get(
+  541 |             "reasons",
+  542 |             []
+  543 |         )
+  544 | 
+  545 |         if not isinstance(reasons, list):
+  546 |             reasons = [str(reasons)]
+  547 | 
+  548 |         # ----------------------------------------------------
+  549 |         # MARKET STANCE
+  550 |         # ----------------------------------------------------
+  551 | 
+  552 |         if recommendation in ("STRONG BUY", "BUY"):
+  553 |             stance = "BULLISH"
+  554 |         elif recommendation in ("STRONG SELL", "SELL"):
+  555 |             stance = "BEARISH"
+  556 |         elif recommendation == "HOLD":
+  557 |             stance = "NEUTRAL"
+  558 |         else:
+  559 |             stance = "UNDEFINED"
+  560 | 
+  561 |         # ----------------------------------------------------
+  562 |         # CONFIDENCE BAND
+  563 |         # ----------------------------------------------------
+  564 | 
+  565 |         if confidence_value >= 80:
+  566 |             confidence_band = "HIGH"
+  567 |         elif confidence_value >= 60:
+  568 |             confidence_band = "MEDIUM"
+  569 |         elif confidence_value >= 40:
+  570 |             confidence_band = "LOW"
+  571 |         else:
+  572 |             confidence_band = "VERY LOW"
+  573 | 
+  574 |         # ----------------------------------------------------
+  575 |         # SCORE BAND
+  576 |         # ----------------------------------------------------
+  577 | 
+  578 |         if score_value >= 80:
+  579 |             score_band = "STRONG"
+  580 |         elif score_value >= 60:
+  581 |             score_band = "POSITIVE"
+  582 |         elif score_value >= 40:
+  583 |             score_band = "NEUTRAL"
+  584 |         else:
+  585 |             score_band = "WEAK"
+  586 | 
+  587 |         # ----------------------------------------------------
+  588 |         # RISK FLAGS
+  589 |         # ----------------------------------------------------
+  590 | 
+  591 |         risk_flags = []
+  592 | 
+  593 |         if risk:
+  594 |             risk_flags.append(str(risk))
+  595 | 
+  596 |         if breakout_signal and breakout_signal != "NONE":
+  597 |             risk_flags.append("BREAKOUT_EVENT")
+  598 | 
+  599 |         support = technical.get("support")
+  600 |         resistance = technical.get("resistance")
+  601 |         price = evidence.get("price")
+  602 | 
+  603 |         if (
+  604 |             isinstance(price, (int, float))
+  605 |             and isinstance(support, (int, float))
+  606 |             and isinstance(resistance, (int, float))
+  607 |         ):
+  608 |             if price <= support * 1.02:
+  609 |                 risk_flags.append("NEAR_SUPPORT")
+  610 | 
+  611 |             if price >= resistance * 0.98:
+  612 |                 risk_flags.append("NEAR_RESISTANCE")
+  613 | 
+  614 |         # ----------------------------------------------------
+  615 |         # TECHNICAL DRIVERS
+  616 |         # ----------------------------------------------------
+  617 | 
+  618 |         technical_drivers = []
+  619 | 
+  620 |         for reason in reasons:
+  621 |             if isinstance(reason, str):
+  622 |                 technical_drivers.append(reason)
+  623 | 
+
+DECISION-RELATED TOKENS
+----------------------------------------
+
+TOKEN: decision
+  363 | def decision_evidence(self, symbol: str) -> dict:
+  365 | EROS V2.9 normalized read-only decision evidence.
+  479 | def decision_intelligence(self, symbol: str) -> Dict[str, Any]:
+  481 | EROS 3.0 V3.0 Decision Intelligence Foundation.
+  484 | Convert the certified V2.9 decision_evidence() object
+  497 | evidence = self.decision_evidence(symbol)
+
+TOKEN: recommendation
+  422 | "recommendation": signal.get(
+  423 | "Recommendation"
+  515 | recommendation = evidence.get(
+  516 | "recommendation",
+  552 | if recommendation in ("STRONG BUY", "BUY"):
+  554 | elif recommendation in ("STRONG SELL", "SELL"):
+  556 | elif recommendation == "HOLD":
+
+TOKEN: confidence
+  421 | "confidence": signal.get("Confidence"),
+  503 | confidence = evidence.get("confidence")
+  511 | confidence_value = float(confidence)
+  513 | confidence_value = 0.0
+  562 | # CONFIDENCE BAND
+  565 | if confidence_value >= 80:
+  566 | confidence_band = "HIGH"
+  567 | elif confidence_value >= 60:
+  568 | confidence_band = "MEDIUM"
+  569 | elif confidence_value >= 40:
+  570 | confidence_band = "LOW"
+  572 | confidence_band = "VERY LOW"
+
+TOKEN: risk
+  425 | "risk": signal.get("Risk"),
+  491 | - No risk mutation
+  520 | risk = evidence.get(
+  521 | "risk",
+  588 | # RISK FLAGS
+  591 | risk_flags = []
+  593 | if risk:
+  594 | risk_flags.append(str(risk))
+  597 | risk_flags.append("BREAKOUT_EVENT")
+  609 | risk_flags.append("NEAR_SUPPORT")
+  612 | risk_flags.append("NEAR_RESISTANCE")
+
+TOKEN: stance
+  377 | if not isinstance(result, dict):
+  452 | "resistance": value_from_last("Resistance"),
+  545 | if not isinstance(reasons, list):
+  549 | # MARKET STANCE
+  553 | stance = "BULLISH"
+  555 | stance = "BEARISH"
+  557 | stance = "NEUTRAL"
+  559 | stance = "UNDEFINED"
+  600 | resistance = technical.get("resistance")
+  604 | isinstance(price, (int, float))
+  605 | and isinstance(support, (int, float))
+  606 | and isinstance(resistance, (int, float))
+  611 | if price >= resistance * 0.98:
+  612 | risk_flags.append("NEAR_RESISTANCE")
+  621 | if isinstance(reason, str):
+
+TOKEN: classification
+
+TOKEN: score
+  420 | "score": signal.get("Score"),
+  502 | score = evidence.get("score")
+  506 | score_value = float(score)
+  508 | score_value = 0.0
+  575 | # SCORE BAND
+  578 | if score_value >= 80:
+  579 | score_band = "STRONG"
+  580 | elif score_value >= 60:
+  581 | score_band = "POSITIVE"
+  582 | elif score_value >= 40:
+  583 | score_band = "NEUTRAL"
+  585 | score_band = "WEAK"
+
+TOKEN: governance
+  455 | "governance": {
+  500 | governance = evidence.get("governance", {})
+
+RETURN STATEMENTS
+----------------------------------------
+  397 |                         return None
+  401 |                             return None
+  405 |                     return value
+  408 |                 return None
+  410 |             return None
+  462 |         return evidence
+  466 |         Return immutable frontend adapter metadata.
+  469 |         return {
+
+NO SOURCE PATCH PERFORMED
+NO DATABASE WRITE
+NO BROKER CALL
+NO ORDER CREATION
+NO PORTFOLIO MUTATION
+NO GIT OPERATION
+
+======================================================================
+V3.8.2.6 FORENSIC COMPLETE
+======================================================================

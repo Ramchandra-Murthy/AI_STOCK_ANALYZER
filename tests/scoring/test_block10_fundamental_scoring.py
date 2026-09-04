@@ -1,4 +1,4 @@
-﻿from services.financials.parser import (
+from services.financials.parser import (
     parse_financial_statements,
     repository,
 )
@@ -75,7 +75,11 @@ def test_block10_fundamental_scoring() -> None:
     # Audit payload contract
     # --------------------------------------------------
     details = result.breakdown_details
-    assert details["engine_version"] == "EROS-3.0-BLOCK-10"
+    # AIScoringEngine is the unified Block 15 engine.
+    assert details["engine_version"] == "EROS-3.0-BLOCK-15"
+
+    # Fundamental scoring remains independently versioned as Block 10.
+    assert details["fundamental_engine"]["engine_version"] == "EROS-3.0-BLOCK-10"
     assert "fundamental_engine" in details
     assert "raw_ratios" in details
     assert "quality_components" in details["fundamental_engine"]

@@ -1,0 +1,272 @@
+========================================================================
+EROS 3.0 - V3.8.2 FORENSIC RUNTIME DIAGNOSTIC
+========================================================================
+
+PYTHON ENVIRONMENT
+------------------------------------------------------------------------
+PYTHON VERSION : 3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]
+PYTHON EXE     : C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\python.exe
+PLATFORM       : Windows-10-10.0.19045-SP0
+
+1. ADAPTER IMPORT
+------------------------------------------------------------------------
+IMPORT : PASS
+CLASS  : EROSFrontendAdapter
+
+2. FOUNDATION API CHECK
+------------------------------------------------------------------------
+snapshot                            : PASS
+governance                          : PASS
+dashboard_snapshot                  : PASS
+market_scan                         : PASS
+stock_analysis                      : PASS
+decision_evidence                   : PASS
+decision_intelligence               : PASS
+decision_interpretation             : PASS
+decision_action_framework           : PASS
+decision_action_explanation         : PASS
+decision_scenario_engine            : PASS
+decision_scenario_explanation       : PASS
+decision_convergence                : PASS
+decision_traceability               : PASS
+decision_audit                      : PASS
+
+FOUNDATION API : PASS
+
+3. METHOD OBJECT INSPECTION
+------------------------------------------------------------------------
+
+METHOD : decision_traceability
+OBJECT : <bound method EROSFrontendAdapter.decision_traceability of <services.eros_frontend_adapter.EROSFrontendAdapter object at 0x0000014DCF47ACF0>>
+TYPE   : method
+
+METHOD : decision_convergence
+OBJECT : <bound method EROSFrontendAdapter.decision_convergence of <services.eros_frontend_adapter.EROSFrontendAdapter object at 0x0000014DCF47ACF0>>
+TYPE   : method
+
+METHOD : decision_audit
+OBJECT : <bound method EROSFrontendAdapter.decision_audit of <services.eros_frontend_adapter.EROSFrontendAdapter object at 0x0000014DCF47ACF0>>
+TYPE   : method
+
+4. TRACEABILITY EXECUTION
+------------------------------------------------------------------------
+SYMBOL : RELIANCE.NS
+
+CALL : adapter.decision_traceability("RELIANCE.NS")
+
+TRACEABILITY CALL : PASS
+RESULT TYPE       : dict
+
+TRACEABILITY TOP LEVEL KEYS
+------------------------------------------------------------------------
+symbol                              : str
+price                               : float
+decision                            : dict
+trace                               : dict
+evidence_chain                      : dict
+scenario_trace                      : dict
+interpretation                      : dict
+conclusion                          : str
+traceability_status                 : str
+traceability                        : dict
+governance                          : dict
+
+5. TRACEABILITY RAW OUTPUT
+------------------------------------------------------------------------
+{
+  "symbol": "RELIANCE.NS",
+  "price": 1316.0,
+  "decision": {
+    "stance": "BULLISH",
+    "recommendation": "STRONG BUY",
+    "classification": "WAIT_FOR_CONFIRMATION",
+    "confidence": 100.0,
+    "risk": "Low",
+    "decision_quality": "HIGH"
+  },
+  "trace": {
+    "stage_1_evidence": {
+      "source": "decision_evidence",
+      "status": "AVAILABLE"
+    },
+    "stage_2_intelligence": {
+      "source": "decision_intelligence",
+      "status": "AVAILABLE"
+    },
+    "stage_3_interpretation": {
+      "source": "decision_interpretation",
+      "status": "AVAILABLE",
+      "market_condition": "BULLISH_MOMENTUM",
+      "price_context": "NEAR_SUPPORT",
+      "breakout_context": "NO_ACTIVE_BREAKOUT"
+    },
+    "stage_4_action_framework": {
+      "source": "decision_action_framework",
+      "status": "AVAILABLE"
+    },
+    "stage_5_action_explanation": {
+      "source": "decision_action_explanation",
+      "status": "AVAILABLE"
+    },
+    "stage_6_scenario_engine": {
+      "source": "decision_scenario_engine",
+      "status": "AVAILABLE"
+    },
+    "stage_7_scenario_explanation": {
+      "source": "decision_scenario_explanation",
+      "status": "AVAILABLE"
+    },
+    "stage_8_convergence": {
+      "source": "decision_convergence",
+      "status": "AVAILABLE",
+      "primary_scenario": "BULL"
+    }
+  },
+  "evidence_chain": {
+    "primary_drivers": [
+      "20 SMA above 50 SMA (Bullish)",
+      "EMA20 above SMA20",
+      "MACD Bullish Crossover"
+    ],
+    "supporting_drivers": [
+      "RSI Neutral",
+      "Trading near Support",
+      "Trading near Resistance",
+      "Low Volatility"
+    ],
+    "conflicting_signals": [],
+    "confirmation_logic": [
+      "Hold above support 1298.10",
+      "Monitor resistance 1332.90"
+    ],
+    "invalidation_logic": [
+      "Sustained breakdown below support 1298.10",
+      "Failure near resistance 1332.90"
+    ]
+  },
+  "scenario_trace": {
+    "primary_scenario": "BULL",
+    "base": {
+      "classification": "WAIT_FOR_CONFIRMATION",
+      "stance": "BULLISH",
+      "conditions": [
+        "Price remains above support 1298.10",
+        "Price continues to monitor resistance 1332.90"
+      ]
+    },
+    "bull_confirmation": {
+      "classification": "CONFIRMATION",
+      "stance": "BULLISH",
+      "conditions": [
+        "Confirmed move above resistance 1332.90",
+        "Bullish trend and momentum remain intact"
+      ],
+      "decision_effect": "A confirmed upside move would strengthen the existing bullish decision context."
+    },
+    "bear_invalidation": {
+      "classification": "INVALIDATION",
+      "stance": "BEARISH",
+      "conditions": [
+        "Sustained breakdown below support 1298.10",
+        "Bullish technical structure deteriorates"
+      ],
+      "decision_effect": "A sustained breakdown would invalidate the current bullish confirmation structure."
+    }
+  },
+  "interpretation": {
+    "market_condition": "BULLISH_MOMENTUM",
+    "price_context": "NEAR_SUPPORT",
+    "breakout_context": "NO_ACTIVE_BREAKOUT",
+    "decision_quality": "HIGH"
+  },
+  "conclusion": "RELIANCE.NS currently has a BULLISH stance with STRONG BUY recommendation. The current analytical classification is WAIT_FOR_CONFIRMATION. The primary scenario is BULL. Bull confirmation depends on the defined confirmation conditions, while bear invalidation depends on the defined invalidation conditions.",
+  "traceability_status": "COMPLETE",
+  "traceability": {
+    "status": "COMPLETE",
+    "source": "decision_traceability",
+    "schema_version": "V3.7.2",
+    "legacy_trace_preserved": true,
+    "stages": {
+      "stage_1_evidence": "AVAILABLE",
+      "stage_2_intelligence": "AVAILABLE",
+      "stage_3_interpretation": "AVAILABLE",
+      "stage_4_action_framework": "AVAILABLE",
+      "stage_5_action_explanation": "AVAILABLE",
+      "stage_6_scenario_engine": "AVAILABLE",
+      "stage_7_scenario_explanation": "AVAILABLE",
+      "stage_8_convergence": "AVAILABLE"
+    },
+    "primary_scenario": "BULL",
+    "decision_quality": "HIGH",
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true
+  },
+  "governance": {
+    "read_only": true,
+    "execution_blocked": true,
+    "non_mutation_invariant": true,
+    "allow_order_creation": false,
+    "allow_broker_submission": false,
+    "allow_live_execution": false,
+    "allow_portfolio_mutation": false,
+    "allow_valuation_mutation": false,
+    "allow_performance_mutation": false,
+    "allow_risk_mutation": false,
+    "allow_optimization": false
+  }
+}
+
+6. TRACEABILITY STRUCTURE
+------------------------------------------------------------------------
+symbol                              : PASS
+price                               : PASS
+decision                            : PASS
+trace                               : PASS
+evidence_chain                      : PASS
+scenario_trace                      : PASS
+interpretation                      : PASS
+conclusion                          : PASS
+traceability_status                 : PASS
+traceability                        : PASS
+governance                          : PASS
+
+7. TRACEABILITY DATA TYPES
+------------------------------------------------------------------------
+decision                            : dict
+trace                               : dict
+evidence_chain                      : dict
+scenario_trace                      : dict
+interpretation                      : dict
+traceability                        : dict
+governance                          : dict
+
+8. CONVERGENCE EXECUTION
+------------------------------------------------------------------------
+CALL : adapter.decision_convergence("RELIANCE.NS")
+
+CONVERGENCE CALL : PASS
+RESULT TYPE     : dict
+
+CONVERGENCE KEYS
+------------------------------------------------------------------------
+symbol                              : str
+price                               : float
+decision                            : dict
+convergence                         : dict
+interpretation                      : dict
+conclusion                          : str
+governance                          : dict
+
+9. DECISION AUDIT EXECUTION
+------------------------------------------------------------------------
+SYMBOL : RELIANCE.NS
+
+CALL : adapter.decision_audit("RELIANCE.NS")
+
+AUDIT CALL : FAIL
+EXCEPTION TYPE : NameError
+EXCEPTION      : name '_v382_trace' is not defined
+
+FULL AUDIT TRACEBACK
+------------------------------------------------------------------------

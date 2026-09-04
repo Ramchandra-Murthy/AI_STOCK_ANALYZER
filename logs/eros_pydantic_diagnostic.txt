@@ -1,0 +1,63 @@
+﻿Python 3.13.14
+.\.venv\Scripts\python.exe : Traceback (most recent call last):
+At line:23 char:5
++     .\.venv\Scripts\python.exe -c "import pydantic; print('Version:', ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<string>", line 1, in <module>
+    import pydantic; print('Version:', pydantic.__version__); print('Location:', pydantic.__file__)
+    ^^^^^^^^^^^^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pydantic\__init__.py", line 422, in <module>
+    _getattr_migration = getattr_migration(__name__)
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pydantic\_migration.py", line 262, in 
+getattr_migration
+    from .errors import PydanticImportError
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pydantic\errors.py", line 11, in <module>
+    from pydantic._internal import _repr
+ModuleNotFoundError: No module named 'pydantic._internal'
+Name: pydantic
+Version: 2.13.4
+Summary: Data validation using Python type hints
+Home-page: https://github.com/pydantic/pydantic
+Author: 
+Author-email: Samuel Colvin <s@muelcolvin.com>, Eric Jolibois <em.jolibois@gmail.com>, Hasan Ramezani <hasan.r67@gmail.com>, Adrian Garcia Badaracco <1755071+adriangb@users.noreply.github.com>, Terrence Dorsey <terry@pydantic.dev>, David Montague <david@pydantic.dev>, Serge Matveenko <lig@countzero.co>, Marcelo Trylesinski <marcelotryle@gmail.com>, Sydney Runkle <sydneymarierunkle@gmail.com>, David Hewitt <mail@davidhewitt.dev>, Alex Hall <alex.mojaki@gmail.com>, Victorien Plot <contact@vctrn.dev>
+License-Expression: MIT
+Location: D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages
+Requires: annotated-types, pydantic-core, typing-extensions, typing-inspection
+Required-by: fastapi, pydantic-settings
+Name: pydantic_core
+Version: 2.46.4
+Summary: Core functionality for Pydantic validation and serialization
+Home-page: https://github.com/pydantic/pydantic
+Author: 
+Author-email: Samuel Colvin <s@muelcolvin.com>, Adrian Garcia Badaracco <1755071+adriangb@users.noreply.github.com>, David Montague <david@pydantic.dev>, David Hewitt <mail@davidhewitt.dev>, Sydney Runkle <sydneymarierunkle@gmail.com>, Victorien Plot <contact@vctrn.dev>
+License-Expression: MIT
+Location: D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages
+Requires: typing-extensions
+Required-by: pydantic
+No broken requirements found.
+.\.venv\Scripts\python.exe : Traceback (most recent call last):
+At line:48 char:5
++     .\.venv\Scripts\python.exe -c "from pydantic._internal import _re ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<string>", line 1, in <module>
+    from pydantic._internal import _repr; print('PASS: pydantic._internal._repr available')
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pydantic\__init__.py", line 422, in <module>
+    _getattr_migration = getattr_migration(__name__)
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pydantic\_migration.py", line 262, in 
+getattr_migration
+    from .errors import PydanticImportError
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pydantic\errors.py", line 11, in <module>
+    from pydantic._internal import _repr
+ModuleNotFoundError: No module named 'pydantic._internal'
+
+requirements.txt:9:pydantic>=2.6.0
+
+
+

@@ -1,0 +1,11 @@
+﻿python.exe : Traceback (most recent call last):
+At line:84 char:11
++ $output = & .\.venv\Scripts\python.exe $TempPy 2>&1 | Out-String
++           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_block29b_queue_diagnostic.py", line 1, in <module>
+    from backend.tasks.celery_config import celery_broker
+ModuleNotFoundError: No module named 'backend'
+

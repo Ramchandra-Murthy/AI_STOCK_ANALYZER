@@ -1,4 +1,4 @@
-﻿import os
+import os
 import pytest
 from backend.tasks.task_control import task_control
 from backend.tasks.celery_app import celery_instance
@@ -34,6 +34,7 @@ def test_block30d_live_celery_task_dispatch():
         pytest.skip(f"Live Redis daemon is not running at {redis_url}: {exc}")
 
     # Temporarily enable real celery mode for live dispatch test
+    old_use_real_celery = os.environ.get("USE_REAL_CELERY")
     os.environ["USE_REAL_CELERY"] = "true"
     try:
         submission = task_control.submit_task(
@@ -44,4 +45,9 @@ def test_block30d_live_celery_task_dispatch():
         assert submission is not None
         assert "task_id" in submission
     finally:
-        os.environ["USE_REAL_CELERY"] = "false"
+        if old_use_real_celery is None:
+            os.environ.pop("USE_REAL_CELERY", None)
+        else:
+            os.environ["USE_REAL_CELERY"] = old_use_real_celery
+
+
