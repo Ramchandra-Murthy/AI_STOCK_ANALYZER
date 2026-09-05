@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -238,3 +238,77 @@ class SOTPLongTermValuationService:
                 "segment_count": len(segment_results),
             },
         )
+
+# ==========================================================
+# COMPATIBILITY ADAPTER
+# Stage 14 -> Long-Term Equity Valuation Service
+# ==========================================================
+
+def get_sotp_long_term_equity_valuation(
+    symbol: str,
+) -> dict[str, Any]:
+    """
+    Compatibility adapter consumed by the Stage 14 SOTP
+    aggregation service.
+
+    The existing SOTPLongTermValuationService is retained as
+    the underlying valuation implementation.
+
+    This adapter exposes the legacy Stage 14 payload contract:
+        {
+            "status": "OK",
+            "symbol": ...,
+            "valuation_records": [...]
+        }
+    """
+
+    # Import the entity population / evidence layer.
+    from services.sotp_long_term_equity_entity_data_service import (
+        RELIANCE_LONG_TERM_EQUITY_POPULATION,
+    )
+
+    from services.sotp_long_term_equity_domain_constants import (
+        STATUS_OK,
+        EXPECTED_ENTITY_COUNT,
+    )
+
+    records = []
+
+    for entity in RELIANCE_LONG_TERM_EQUITY_POPULATION:
+        record = dict(entity)
+
+        # Preserve the existing Stage 14 aggregation contract.
+        record.setdefault("enterprise_value", 0.0)
+        record.setdefault("cash", 0.0)
+        record.setdefault("net_debt", 0.0)
+        record.setdefault("minority_interest", 0.0)
+
+        # These are intentionally conservative until the
+        # classification/authorization layer resolves them.
+        record.setdefault(
+            "separate_sotp_value_authorized",
+            False,
+        )
+
+        record.setdefault("framework_complete", True)
+        record.setdefault("model_complete", False)
+
+        records.append(record)
+
+    if len(records) != EXPECTED_ENTITY_COUNT:
+        return {
+            "status": "UNAVAILABLE",
+            "symbol": symbol,
+            "valuation_records": records,
+            "message": (
+                f"Expected {EXPECTED_ENTITY_COUNT} valuation records, "
+                f"found {len(records)}."
+            ),
+        }
+
+    return {
+        "status": STATUS_OK,
+        "symbol": symbol,
+        "valuation_records": records,
+    }
+
