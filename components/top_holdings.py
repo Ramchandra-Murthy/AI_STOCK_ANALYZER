@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 
 from portfolio.portfolio import delete_stock
 
@@ -40,10 +40,10 @@ def show_top_holdings(df, top_n=5):
         "Return %",
     ]
 
-    display["Buy Price"] = display["Buy Price"].map(lambda x: f"₹{x:,.2f}")
-    display["CMP"] = display["CMP"].map(lambda x: f"₹{x:,.2f}")
-    display["Current Value"] = display["Current Value"].map(lambda x: f"₹{x:,.2f}")
-    display["Profit"] = display["Profit"].map(lambda x: f"₹{x:,.2f}")
+    display["Buy Price"] = display["Buy Price"].map(lambda x: f"â‚¹{x:,.2f}")
+    display["CMP"] = display["CMP"].map(lambda x: f"â‚¹{x:,.2f}")
+    display["Current Value"] = display["Current Value"].map(lambda x: f"â‚¹{x:,.2f}")
+    display["Profit"] = display["Profit"].map(lambda x: f"â‚¹{x:,.2f}")
     display["Return %"] = display["Return %"].map(lambda x: f"{x:.2f}%")
 
     st.dataframe(display, use_container_width=True, hide_index=True)
@@ -69,7 +69,8 @@ def show_top_holdings(df, top_n=5):
         st.write("")
         st.write("")
 
-        if st.button("🗑 Delete", use_container_width=True):
+        if st.button("ðŸ—‘ Delete", use_container_width=True):
             delete_stock(selected)
             st.success("Holding deleted.")
             st.rerun()
+

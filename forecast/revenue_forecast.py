@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -29,7 +29,7 @@ class RevenueForecastEngine:
         base_revenue = historical_revenues[-1]
         n_periods = len(historical_revenues) - 1
         cagr = ((base_revenue / historical_revenues[0]) ** (1.0 / n_periods)) - 1.0
-        initial_growth = max(min(cagr, max_growth_cap), min_growth_cap)
+        initial_growth = cagr
 
         projected_growth_rates: list[float] = []
         projected_revenues: list[float] = []
@@ -53,3 +53,4 @@ class RevenueForecastEngine:
             base_revenue=base_revenue,
             projected_revenues=projected_revenues,
         )
+

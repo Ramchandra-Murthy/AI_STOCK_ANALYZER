@@ -1,11 +1,6 @@
-def calculate_support_resistance(df, window=10):
-    """
-    Calculate simple support and resistance using
-    rolling lows and rolling highs.
-    """
-
-    df["Support"] = df["Low"].rolling(window=window).min()
-
-    df["Resistance"] = df["High"].rolling(window=window).max()
-
+﻿def calculate_support_resistance(df, window=10):
+    df["Resistance"] = df["High"].rolling(window=window, center=True).max()
+    df["Support"] = df["Low"].rolling(window=window, center=True).min()
+    df["Resistance"] = df["Resistance"].fillna(method="ffill")
+    df["Support"] = df["Support"].fillna(method="ffill")
     return df
