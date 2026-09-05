@@ -248,67 +248,133 @@ def get_sotp_long_term_equity_valuation(
     symbol: str,
 ) -> dict[str, Any]:
     """
-    Compatibility adapter consumed by the Stage 14 SOTP
-    aggregation service.
+    Stage 14 compatibility adapter.
 
-    The existing SOTPLongTermValuationService is retained as
-    the underlying valuation implementation.
+    The authoritative Note 39 population is the structural source of
+    valuation records. Annexure A evidence is merged only when the
+    entity names reconcile. No entity is authorized for a separate
+    SOTP valuation by this adapter.
 
-    This adapter exposes the legacy Stage 14 payload contract:
-        {
-            "status": "OK",
-            "symbol": ...,
-            "valuation_records": [...]
-        }
+    This boundary deliberately prevents:
+    - Annexure A from replacing the 58-company population
+    - accounting carrying values from being treated as fair values
+    - unresolved entities from receiving fabricated valuations
+    - placeholder zeroes from being interpreted as completed models
     """
 
-    # Import the entity population / evidence layer.
     from services.sotp_long_term_equity_entity_data_service import (
-        RELIANCE_LONG_TERM_EQUITY_POPULATION,
+        get_sotp_long_term_equity_entity_data,
     )
-
     from services.sotp_long_term_equity_domain_constants import (
         STATUS_OK,
+        STATUS_UNAVAILABLE,
+        STATUS_UNRESOLVED,
         EXPECTED_ENTITY_COUNT,
+        VALUATION_METHOD_NONE,
+        VALUATION_STATUS_UNAUTHORIZED,
     )
 
-    records = []
+    evidence = get_sotp_long_term_equity_entity_data(symbol)
 
-    for entity in RELIANCE_LONG_TERM_EQUITY_POPULATION:
-        record = dict(entity)
-
-        # Preserve the existing Stage 14 aggregation contract.
-        record.setdefault("enterprise_value", 0.0)
-        record.setdefault("cash", 0.0)
-        record.setdefault("net_debt", 0.0)
-        record.setdefault("minority_interest", 0.0)
-
-        # These are intentionally conservative until the
-        # classification/authorization layer resolves them.
-        record.setdefault(
-            "separate_sotp_value_authorized",
-            False,
-        )
-
-        record.setdefault("framework_complete", True)
-        record.setdefault("model_complete", False)
-
-        records.append(record)
-
-    if len(records) != EXPECTED_ENTITY_COUNT:
+    if (
+        not isinstance(evidence, dict)
+        or evidence.get("status") != STATUS_OK
+    ):
         return {
-            "status": "UNAVAILABLE",
+            "status": STATUS_UNAVAILABLE,
             "symbol": symbol,
-            "valuation_records": records,
+            "valuation_records": [],
+            "message": "Entity evidence service unavailable.",
+        }
+
+    population = evidence.get("population", [])
+    annexure_entities = evidence.get("annexure_entities", [])
+
+    if not isinstance(population, list) or len(population) != EXPECTED_ENTITY_COUNT:
+        return {
+            "status": STATUS_UNAVAILABLE,
+            "symbol": symbol,
+            "valuation_records": population if isinstance(population, list) else [],
             "message": (
-                f"Expected {EXPECTED_ENTITY_COUNT} valuation records, "
-                f"found {len(records)}."
+                f"Expected {EXPECTED_ENTITY_COUNT} authoritative Note 39 "
+                f"records, found {len(population) if isinstance(population, list) else 0}."
             ),
         }
+
+    # Evidence enrichment is name-based and never changes the authoritative
+    # population membership. The authoritative population remains the 58 rows.
+    annexure_by_name = {
+        str(entity.get("name", "")).strip().casefold(): entity
+        for entity in annexure_entities
+        if isinstance(entity, dict) and entity.get("name")
+    }
+
+    records: list[dict[str, Any]] = []
+
+    for entity in population:
+        record = dict(entity)
+        evidence_entity = annexure_by_name.get(
+            str(entity.get("name", "")).strip().casefold()
+        )
+
+        if evidence_entity:
+            for key in (
+                "reported_investment_value",
+                "reported_amount_basis",
+                "comparable_to_consolidated_carrying_value",
+                "relationship",
+                "classification",
+                "operating_segment",
+                "operating_overlap",
+                "valuation_basis",
+                "source",
+            ):
+                if key in evidence_entity:
+                    record[key] = evidence_entity[key]
+
+            record["entity_level_evidence_available"] = True
+        else:
+            record["entity_level_evidence_available"] = False
+
+        # Explicit Stage 13C/13D gate state. These values are intentionally
+        # blocked until classification, operating-overlap, valuation basis,
+        # and authorization evidence are resolved upstream.
+        record.setdefault("classification", STATUS_UNRESOLVED)
+        record.setdefault("relationship", None)
+        record.setdefault("operating_segment", None)
+        record.setdefault("operating_overlap", None)
+        record.setdefault("valuation_basis", None)
+
+        record["valuation_status"] = VALUATION_STATUS_UNAUTHORIZED
+        record["valuation_method"] = VALUATION_METHOD_NONE
+        record["authorization_reason"] = (
+            "Separate SOTP valuation is blocked until Stage 13C "
+            "classification/operating-overlap and valuation evidence are resolved."
+        )
+        record["separate_sotp_value_authorized"] = False
+
+        # Numeric fields remain explicit, but are not claimed as valuations.
+        record["enterprise_value"] = 0.0
+        record["cash"] = 0.0
+        record["net_debt"] = 0.0
+        record["minority_interest"] = 0.0
+        record["equity_value"] = 0.0
+
+        record["framework_complete"] = True
+        record["model_complete"] = False
+
+        records.append(record)
 
     return {
         "status": STATUS_OK,
         "symbol": symbol,
         "valuation_records": records,
+        "total_records": len(records),
+        "authorized_records": 0,
+        "valuation_blocked": True,
+        "valuation_block_reason": (
+            "All separate SOTP components remain blocked pending "
+            "classification and valuation authorization."
+        ),
     }
 
