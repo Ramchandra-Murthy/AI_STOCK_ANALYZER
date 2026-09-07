@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
@@ -21,11 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class EROSResearchService:
-    """Single application boundary for the legacy EROS research pipeline.
-
-    This facade preserves the existing service implementations while preventing
-    UI/CLI entry points from orchestrating individual engines themselves.
-    """
+    """Application boundary for the legacy EROS research pipeline."""
 
     VERSION = "EROS-3.0-REPAIR"
 
@@ -36,34 +32,22 @@ class EROSResearchService:
             raise RuntimeError(f"No stock profile data returned for {symbol}")
 
         history = get_price_history(symbol)
+        errors: list[str] = []
+        result: dict[str, Any] = {"status": "OK", "version": self.VERSION,
+                                  "symbol": symbol, "data": data,
+                                  "history": history, "errors": errors}
 
-        result: dict[str, Any] = {
-            "status": "OK",
-            "version": self.VERSION,
-            "symbol": symbol,
-            "data": data,
-            "history": history,
-        }
-
-        result["ai"] = self._safe(
-            "ai", lambda: get_ai_recommendation(data, history), {}
-        )
-        result["news"] = self._safe(
-            "news", lambda: get_company_news(symbol), []
-        )
+        result["ai"] = self._safe("ai", lambda: get_ai_recommendation(data, history), {}, errors)
+        result["news"] = self._safe("news", lambda: get_company_news(symbol), [], errors)
 
         technical_score, technical_reasons = self._safe(
             "technical_score",
-            lambda: calculate_technical_score(history)
-            if history is not None and not history.empty
+            lambda: calculate_technical_score(history) if history is not None and not history.empty
             else (0, ["Historical price data unavailable."]),
-            (0, ["Technical scoring unavailable."]),
-        )
+            (0, ["Technical scoring unavailable."]), errors)
         fundamental_score, fundamental_reasons = self._safe(
-            "fundamental_score",
-            lambda: calculate_fundamental_score(data),
-            (0, ["Fundamental scoring unavailable."]),
-        )
+            "fundamental_score", lambda: calculate_fundamental_score(data),
+            (0, ["Fundamental scoring unavailable."]), errors)
 
         result["technical_score"] = technical_score
         result["technical_reasons"] = technical_reasons
@@ -75,75 +59,47 @@ class EROSResearchService:
             lambda: calculate_investment_score(
                 technical_score=technical_score,
                 fundamental_score=fundamental_score,
-                ai_result=result["ai"],
-                data=data,
-            ),
-            (0, {}),
-        )
+                ai_result=result["ai"], data=data),
+            (0, {}), errors)
         result["investment_score"] = investment_score
         result["score_breakdown"] = score_breakdown
 
         result["recommendation"] = self._safe(
-            "recommendation",
-            lambda: generate_recommendation(investment_score=investment_score),
-            {},
-        )
+            "recommendation", lambda: generate_recommendation(investment_score=investment_score),
+            {}, errors)
         result["trade_plan"] = self._safe(
-            "trade_plan",
-            lambda: generate_trade_plan(
-                history=history, technical_score=technical_score
-            ),
-            {},
-        )
+            "trade_plan", lambda: generate_trade_plan(history=history, technical_score=technical_score),
+            {}, errors)
         result["investment_thesis"] = self._safe(
             "investment_thesis",
             lambda: generate_investment_thesis(
-                data=data,
-                investment_score=investment_score,
-                technical_score=technical_score,
-                fundamental_score=fundamental_score,
-                ai_result=result["ai"],
-                score_breakdown=score_breakdown,
-                technical_reasons=technical_reasons,
-                fundamental_reasons=fundamental_reasons,
-                trade_plan=result["trade_plan"],
-            ),
-            {},
-        )
+                data=data, investment_score=investment_score,
+                technical_score=technical_score, fundamental_score=fundamental_score,
+                ai_result=result["ai"], score_breakdown=score_breakdown,
+                technical_reasons=technical_reasons, fundamental_reasons=fundamental_reasons,
+                trade_plan=result["trade_plan"]),
+            {}, errors)
         result["scenario_analysis"] = self._safe(
             "scenario_analysis",
             lambda: generate_scenario_analysis(
-                data=data,
-                investment_score=investment_score,
-                technical_score=technical_score,
-                fundamental_score=fundamental_score,
-                ai_result=result["ai"],
-                score_breakdown=score_breakdown,
-                trade_plan=result["trade_plan"],
-            ),
-            {},
-        )
+                data=data, investment_score=investment_score,
+                technical_score=technical_score, fundamental_score=fundamental_score,
+                ai_result=result["ai"], score_breakdown=score_breakdown,
+                trade_plan=result["trade_plan"]),
+            {}, errors)
         result["valuation"] = self._safe(
             "valuation",
             lambda: generate_valuation_analysis(
-                data=data,
-                fundamental_score=fundamental_score,
-                investment_score=investment_score,
-            ),
-            {"status": "UNAVAILABLE"},
-        )
+                data=data, fundamental_score=fundamental_score,
+                investment_score=investment_score),
+            {"status": "UNAVAILABLE"}, errors)
         result["valuation_v43"] = self._safe(
             "valuation_v43",
             lambda: generate_valuation_v43(symbol=symbol, company_data=data),
-            {"status": "UNAVAILABLE"},
-        )
+            {"status": "UNAVAILABLE"}, errors)
 
-        result["errors"] = [
-            message for message in result.pop("_errors", []) if message
-        ]
-        if result["errors"]:
+        if errors:
             result["status"] = "PARTIAL"
-
         return result
 
     @staticmethod
@@ -154,11 +110,10 @@ class EROSResearchService:
         return symbol
 
     @staticmethod
-    def _safe(name: str, operation: Any, fallback: Any) -> Any:
+    def _safe(name: str, operation: Callable[[], Any], fallback: Any, errors: list[str]) -> Any:
         try:
             return operation()
         except Exception as exc:
             logger.exception("EROS stage '%s' failed", name)
-            if isinstance(fallback, dict):
-                fallback = dict(fallback)
+            errors.append(f"{name}: {exc}")
             return fallback
