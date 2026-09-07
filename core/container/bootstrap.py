@@ -1,20 +1,22 @@
-﻿"""
-==========================================================
-Container Bootstrap / Composition Root
-==========================================================
-"""
-from core.container.container import container
-from core.container.registry import ServiceKey
-from services.research_service import _calculate_roe # Or instantiate ResearchService if it's a class
+from __future__ import annotations
 
-class ResearchServiceFacade:
-    """Service wrapper for research pipeline execution."""
-    def run_pipeline(self, ticker: str) -> dict:
-        return {"ticker": ticker, "status": "analyzed"}
+"""Composition root for the legacy EROS application pipeline."""
+
+from core.container.container import container
+from core.container.exceptions import ServiceNotFoundError
+from core.container.registry import ServiceKey
+from services.eros_research_service import EROSResearchService
+
 
 def bootstrap_container() -> None:
-    """Wire up core services into the container."""
+    """Register the real EROS application service exactly once."""
     try:
-        container.register_singleton(ServiceKey.RESEARCH, ResearchServiceFacade())
-    except Exception:
+        container.resolve(ServiceKey.RESEARCH)
+        return
+    except ServiceNotFoundError:
         pass
+
+    container.register_singleton(
+        ServiceKey.RESEARCH,
+        EROSResearchService(),
+    )
