@@ -13,9 +13,13 @@ def get_price_history(symbol, period="1y"):
     if "." not in symbol:
         symbol += ".NS"
 
-    df = yf.download(symbol, period=period, auto_adjust=False, progress=False)
+    try:
+        df = yf.download(symbol, period=period, auto_adjust=False, progress=False)
+    except Exception as error:
+        print(f"Price History Error: {error}")
+        return None
 
-    if df.empty:
+    if df is None or df.empty:
         return None
 
     # --------------------------------------------------------
@@ -25,7 +29,21 @@ def get_price_history(symbol, period="1y"):
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
 
+    required_columns = {"Open", "High", "Low", "Close", "Volume"}
+    if not required_columns.issubset(df.columns):
+        return None
+
     df = df[["Open", "High", "Low", "Close", "Volume"]].copy()
+
+    # Preserve provenance for downstream data-quality checks without
+    # changing the DataFrame schema consumed by technical scoring.
+    df.attrs["data_source"] = "yfinance.download"
+    df.attrs["requested_period"] = period
+    try:
+        last_timestamp = df.index[-1]
+        df.attrs["last_bar_timestamp"] = last_timestamp.isoformat()
+    except Exception:
+        df.attrs["last_bar_timestamp"] = None
 
     # ========================================================
     # Exponential Moving Averages (EMA)
