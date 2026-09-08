@@ -817,7 +817,13 @@ def show():
         # AI Engine Summary
         st.subheader("AI Engine Summary")
         confidence = recommendation_result.get("confidence", 0)
-        recommendation = recommendation_result.get("recommendation", "HOLD")
+        recommendation = recommendation_result.get("recommendation", "INSUFFICIENT DATA")
+
+        # Never manufacture a HOLD when the authoritative recommendation
+        # engine reports missing/invalid evidence.
+        if investment_score is None or recommendation in (None, "", "HOLD") and recommendation_result.get("overall_score") is None:
+            recommendation = "INSUFFICIENT DATA"
+            confidence = 0
 
         try:
             default_overall_score = round(
