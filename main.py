@@ -27,7 +27,7 @@ def run_analysis(ticker: str) -> dict:
     if history is not None and not history.empty:
         technical_score, technical_reasons = calculate_technical_score(history)
     else:
-        technical_score = 50
+        technical_score = None
         technical_reasons = ["Historical price data unavailable."]
 
     fundamental_score, fundamental_reasons = calculate_fundamental_score(data)
