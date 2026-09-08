@@ -1,33 +1,54 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from typing import Any, Callable, Type, TypeVar
-from core.container.registry import ServiceRegistry
+"""Small, deterministic EROS application service container.
+
+The restored EROS runtime uses one process-local container. Registrations are
+explicit and production code never silently substitutes a fake service.
+"""
+
+from typing import Any, Callable, TypeVar
+
+from core.container.exceptions import DuplicateServiceError, ServiceNotFoundError
+from core.container.registry import ServiceKey
 
 T = TypeVar("T")
 
 
-class Container:
-    """Enterprise Dependency Injection Container for AIERP V6."""
+class ServiceContainer:
+    def __init__(self) -> None:
+        self._singletons: dict[str, Any] = {}
+        self._factories: dict[str, Callable[[], Any]] = {}
 
-    def __init__(self, registry: ServiceRegistry | None = None) -> None:
-        self._registry = registry or ServiceRegistry()
+    @staticmethod
+    def _key(key: str | ServiceKey) -> str:
+        return str(key.value if isinstance(key, ServiceKey) else key)
 
-    @property
-    def registry(self) -> ServiceRegistry:
-        """Access the underlying service registry."""
-        return self._registry
+    def register(self, key: str | ServiceKey, instance: Any) -> None:
+        self.register_singleton(key, instance)
 
-    def register_singleton(self, interface: Type[T] | str, factory: Callable[..., T]) -> None:
-        """Register a singleton service factory."""
-        self._registry.register_singleton(interface, factory)
+    def register_singleton(self, key: str | ServiceKey, instance: Any) -> None:
+        normalized = self._key(key)
+        if normalized in self._singletons or normalized in self._factories:
+            raise DuplicateServiceError(f"Service '{normalized}' is already registered.")
+        self._singletons[normalized] = instance
 
-    def register_transient(self, interface: Type[T] | str, factory: Callable[..., T]) -> None:
-        """Register a transient service factory."""
-        self._registry.register_transient(interface, factory)
+    def register_factory(self, key: str | ServiceKey, factory: Callable[[], Any]) -> None:
+        normalized = self._key(key)
+        if normalized in self._singletons or normalized in self._factories:
+            raise DuplicateServiceError(f"Service '{normalized}' is already registered.")
+        self._factories[normalized] = factory
 
-    def resolve(self, interface: Type[T] | str) -> T:
-        """Resolve an instance for the given interface or key."""
-        provider = self._registry.get_provider(interface)
-        if provider is None:
-            raise KeyError(f"No service registered for interface/key: {interface}")
-        return provider.get()
+    def resolve(self, key: str | ServiceKey) -> Any:
+        normalized = self._key(key)
+        if normalized in self._singletons:
+            return self._singletons[normalized]
+        if normalized in self._factories:
+            return self._factories[normalized]()
+        raise ServiceNotFoundError(f"Service '{normalized}' not found in container.")
+
+    def clear(self) -> None:
+        self._singletons.clear()
+        self._factories.clear()
+
+
+container = ServiceContainer()
