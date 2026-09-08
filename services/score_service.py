@@ -288,6 +288,26 @@ def calculate_investment_score(
         }
 
     total_weight = sum(weight for _, weight, _ in components)
+
+    # Technical + Fundamental are the core evidence for an investment score.
+    # Do not produce a legitimate-looking 0-100 score from only AI/Stability.
+    available_names = {name for _, _, name in components}
+    if not {"Technical", "Fundamental"}.issubset(available_names):
+        return None, {
+            "Technical": technical[0] if technical is not None else None,
+            "Fundamental": fundamental[0] if fundamental is not None else None,
+            "AI": ai[0] if ai is not None else None,
+            "Stability": stability[0] if stability is not None else None,
+            "Technical Contribution": None,
+            "Fundamental Contribution": None,
+            "AI Contribution": None,
+            "Stability Contribution": None,
+            "Stability Reasons": stability_reasons,
+            "Available Evidence": [name for _, _, name in components],
+            "Evidence Weight": total_weight,
+            "Score Status": "INSUFFICIENT CORE EVIDENCE",
+        }
+
     overall = sum(score * weight for score, weight, _ in components) / total_weight
     overall = round(_clamp(overall))
 
