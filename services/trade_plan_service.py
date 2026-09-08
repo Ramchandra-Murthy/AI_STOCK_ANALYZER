@@ -20,7 +20,7 @@ def _clamp(value, minimum, maximum):
     return max(minimum, min(value, maximum))
 
 
-def generate_trade_plan(history: pd.DataFrame, technical_score: float = 50, symbol: str | None = None):
+def generate_trade_plan(history: pd.DataFrame, technical_score: float | None = None, symbol: str | None = None):
     """Generate a technical research trade plan using a canonical market quote when available."""
     if history is None or history.empty:
         return {"status": "ERROR", "message": "No historical price data available."}
@@ -65,7 +65,17 @@ def generate_trade_plan(history: pd.DataFrame, technical_score: float = 50, symb
 
     score = _safe_float(technical_score)
     if score is None:
-        score = 50.0
+        return {
+            "status": "INSUFFICIENT DATA",
+            "message": "Technical score is unavailable; trade plan cannot be generated safely.",
+            "technical_score": None,
+            "current_price": round(current_price, 2),
+            "price_source": price_source,
+            "quote_timestamp": quote_timestamp,
+            "quote_frequency": quote_frequency,
+            "is_intraday": is_intraday,
+            "is_tick_live": is_tick_live,
+        }
     score = _clamp(score, 0.0, 100.0)
 
     previous_close = df["Close"].shift(1)
