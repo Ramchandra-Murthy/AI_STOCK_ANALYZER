@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 
 from services.market_data.packet import MarketDataPacket
@@ -46,13 +47,11 @@ def test_block23d_integrity_gate_invalid():
 
 def test_block23d_stale_is_not_valid_for_live_scoring():
     packet = live_packet()
-    stale = MarketDataPacket(
-        **{
-            **packet.__dict__,
-            "freshness_timestamp": (
-                datetime.now(timezone.utc) - timedelta(minutes=30)
-            ).isoformat(),
-        }
+    stale = replace(
+        packet,
+        freshness_timestamp=(
+            datetime.now(timezone.utc) - timedelta(minutes=30)
+        ).isoformat(),
     )
     report = MarketDataIntegrityGate.validate_packet(stale, max_age_seconds=900)
     assert report.data_state == "STALE"
@@ -61,11 +60,9 @@ def test_block23d_stale_is_not_valid_for_live_scoring():
 
 def test_block23d_fallback_is_not_valid_for_live_scoring():
     packet = live_packet()
-    fallback = MarketDataPacket(
-        **{
-            **packet.__dict__,
-            "details": {"source": "fallback-parity-adapter"},
-        }
+    fallback = replace(
+        packet,
+        details={"source": "fallback-parity-adapter"},
     )
     report = MarketDataIntegrityGate.validate_packet(fallback)
     assert report.data_state == "FALLBACK"
