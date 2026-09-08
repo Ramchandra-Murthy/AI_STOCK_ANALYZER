@@ -201,6 +201,32 @@ class EROSBlock85ExecutionCertificationEngine:
                 blocking.append(f"{symbol}: missing positive execution price")
                 continue
 
+            current_price = _number(order.get("current_price"), 0.0)
+            market_state = str(order.get("market_data_state", "")).upper()
+            market_source = str(order.get("market_price_source", "")).lower()
+
+            # Block 85 must never certify an order whose reference price is
+            # detached from the canonical live-market path.
+            if current_price <= 0:
+                blocking.append(
+                    f"{symbol}: current live market price is missing"
+                )
+            if market_state != "LIVE":
+                blocking.append(
+                    f"{symbol}: market data state is not LIVE: "
+                    f"{market_state or 'UNKNOWN'}"
+                )
+            if not market_source or market_source in {
+                "mock",
+                "sample",
+                "fallback-parity-adapter",
+                "market-data-unavailable",
+            }:
+                blocking.append(
+                    f"{symbol}: market price source is not trusted: "
+                    f"{market_source or 'UNKNOWN'}"
+                )
+
             notional = abs(quantity * price)
             total_notional += notional
 
