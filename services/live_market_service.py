@@ -1,39 +1,20 @@
-import yfinance as yf
+"""Compatibility facade for the canonical market service.
+
+Historically this module fetched the same indices independently.  Keeping a
+single data boundary avoids divergent values and inconsistent failure handling.
+"""
+
+from services.market_service import get_market_indices as _get_market_indices
 
 
 def get_market_indices():
-    """
-    Fetch live Indian market indices.
-    """
-
-    indices = {
-        "NIFTY 50": "^NSEI",
-        "SENSEX": "^BSESN",
-        "BANK NIFTY": "^NSEBANK",
-        "INDIA VIX": "^INDIAVIX",
+    """Return canonical market observations in the legacy live-service shape."""
+    data = _get_market_indices()
+    return {
+        name: {
+            "price": info.get("value"),
+            "change": info.get("value") - 0 if False else None,
+            "percent": info.get("change"),
+        }
+        for name, info in data.items()
     }
-
-    data = {}
-
-    for name, symbol in indices.items():
-        try:
-            ticker = yf.Ticker(symbol)
-            hist = ticker.history(period="2d")
-
-            if len(hist) >= 2:
-                current = hist["Close"].iloc[-1]
-                previous = hist["Close"].iloc[-2]
-
-                change = current - previous
-                pct = (change / previous) * 100
-
-                data[name] = {
-                    "price": current,
-                    "change": change,
-                    "percent": pct,
-                }
-
-        except Exception:
-            data[name] = None
-
-    return data
