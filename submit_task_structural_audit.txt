@@ -1,0 +1,372 @@
+===== SUBMIT_TASK STRUCTURAL AUDIT =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+File: D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py
+
+submit_task START LINE: 78
+get_task_status START LINE: 372
+
+submit_task END LINE: 371
+submit_task LINE COUNT: 294
+
+===== IMPORTANT STRUCTURAL MARKERS =====
+
+PATTERN: ^\s*def submit_task\(
+COUNT: 1
+Line 78: def submit_task(
+
+PATTERN: ^\s*self\._mock_tasks\[task_id\]
+COUNT: 1
+Line 333: self._mock_tasks[task_id] = {
+
+PATTERN: ^\s*return \{
+COUNT: 1
+Line 364: return {
+
+PATTERN: ^\s*if not \$?self\._real_celery
+COUNT: 3
+Line 346: if not self._real_celery
+Line 351: if not self._real_celery
+Line 356: if not self._real_celery:
+
+PATTERN: ^\s*if not self\._real_celery
+COUNT: 3
+Line 346: if not self._real_celery
+Line 351: if not self._real_celery
+Line 356: if not self._real_celery:
+
+PATTERN: ^\s*if request_id
+COUNT: 4
+Line 121: if request_id:
+Line 231: if request_id:
+Line 272: if request_id and redis_conn is not None:
+Line 284: if request_id and redis_conn is not None:
+
+PATTERN: ^\s*self\._app\.send_task\(
+COUNT: 2
+Line 251: self._app.send_task(
+Line 257: self._app.send_task(
+
+PATTERN: ^\s*execution_result\s*=\s*\{
+COUNT: 0
+
+PATTERN: ^\s*execution_result\.update\(
+COUNT: 1
+Line 299: execution_result.update({
+
+PATTERN: ^\s*task_id\s*=\s*str\(uuid\.uuid4\(\)\)
+COUNT: 1
+Line 227: task_id = str(uuid.uuid4())
+
+PATTERN: ^\s*telemetry\s*=\s*\{
+COUNT: 1
+Line 237: telemetry = {
+
+PATTERN: ^\s*redis_conn\.release_lock
+COUNT: 3
+Line 203: redis_conn.release_lock(
+Line 218: redis_conn.release_lock(
+Line 287: redis_conn.release_lock(
+
+PATTERN: ^\s*redis_conn\.set\(
+COUNT: 1
+Line 274: redis_conn.set(
+
+===== FULL SUBMIT_TASK METHOD =====
+
+   78:     def submit_task(
+   79:         self,
+   80:         task_name: str,
+   81:         user: str = "system",
+   82:         payload: Dict[str, Any] | None = None,
+   83:     ) -> Dict[str, Any]:
+   84: 
+   85:         started_at = time.perf_counter()
+   86:         payload = dict(payload or {})
+   87: 
+   88:         if not task_name:
+   89:             raise ValueError("task_name is required")
+   90: 
+   91:         if task_name not in self._app.tasks:
+   92:             self._synchronize_task_registry()
+   93: 
+   94:         if task_name not in self._app.tasks:
+   95:             raise ValueError(f"Unknown task: {task_name}")
+   96: 
+   97:         # ------------------------------------------------------------
+   98:         # ------------------------------------------------------------
+   99:         # ------------------------------------------------------------
+  100:         # 31K-EJ IDEMPOTENCY CONCURRENCY CONTROL
+  101:         # ------------------------------------------------------------
+  102:         # For a stable request_id:
+  103:         #
+  104:         # 1. Acquire the per-request lock.
+  105:         # 2. Re-check the Redis idempotency mapping AFTER the lock.
+  106:         # 3. If a task already exists, return it as an idempotent replay.
+  107:         # 4. Otherwise create and dispatch exactly one task.
+  108:         # 5. Persist request_id -> task_id.
+  109:         # 6. Release the lock.
+  110:         #
+  111:         # Concurrent callers WAIT for the owner instead of creating
+  112:         # independent task IDs.
+  113:         # ------------------------------------------------------------
+  114:         request_id = payload.get("request_id")
+  115: 
+  116:         redis_conn = None
+  117:         existing_task_id = None
+  118:         idempotency_lock_key = None
+  119:         idempotency_lock_acquired = False
+  120: 
+  121:         if request_id:
+  122:             redis_conn = shared_redis_client
+  123:             idempotency_key = f"eros:idempotency:{request_id}"
+  124:             idempotency_lock_key = (
+  125:                 f"eros:idempotency-lock:{request_id}"
+  126:             )
+  127: 
+  128:             # --------------------------------------------------------
+  129:             # WAIT FOR LOCK
+  130:             # --------------------------------------------------------
+  131:             # Lock contention is NOT a Redis failure.
+  132:             # Wait until the current owner completes the critical
+  133:             # section, then acquire the lock and re-check Redis.
+  134:             # --------------------------------------------------------
+  135:             lock_deadline = time.monotonic() + 30.0
+  136: 
+  137:             while True:
+  138:                 try:
+  139:                     idempotency_lock_acquired = redis_conn.acquire_lock(
+  140:                         idempotency_lock_key,
+  141:                         timeout=30,
+  142:                     )
+  143:                 except Exception:
+  144:                     # Actual Redis failure: preserve the existing
+  145:                     # fail-open behavior for infrastructure failure.
+  146:                     redis_conn = None
+  147:                     idempotency_lock_acquired = False
+  148:                     break
+  149: 
+  150:                 if idempotency_lock_acquired:
+  151:                     break
+  152: 
+  153:                 if time.monotonic() >= lock_deadline:
+  154:                     raise TimeoutError(
+  155:                         f"Timed out waiting for idempotency lock: "
+  156:                         f"{request_id}"
+  157:                     )
+  158: 
+  159:                 time.sleep(0.01)
+  160: 
+  161:             # --------------------------------------------------------
+  162:             # ONLY THE LOCK OWNER MAY ENTER THIS SECTION
+  163:             # --------------------------------------------------------
+  164:             if redis_conn is not None and idempotency_lock_acquired:
+  165:                 try:
+  166:                     existing_task_id = redis_conn.get(idempotency_key)
+  167: 
+  168:                     if isinstance(existing_task_id, bytes):
+  169:                         existing_task_id = existing_task_id.decode(
+  170:                             "utf-8"
+  171:                         )
+  172: 
+  173:                     # Another caller already created the task.
+  174:                     # Return the existing task instead of dispatching
+  175:                     # another one.
+  176:                     if existing_task_id:
+  177:                         existing_status = self.get_task_status(
+  178:                             existing_task_id
+  179:                         )
+  180:                         existing_result = self.get_task_result(
+  181:                             existing_task_id
+  182:                         )
+  183: 
+  184:                         replay_response = {
+  185:                             "task_id": existing_task_id,
+  186:                             "status": existing_status.get(
+  187:                                 "status",
+  188:                                 existing_result.get(
+  189:                                     "status",
+  190:                                     "QUEUED",
+  191:                                 ),
+  192:                             ),
+  193:                             "task_name": task_name,
+  194:                             "user": user,
+  195:                             "execution_result": existing_result.get(
+  196:                                 "result",
+  197:                                 {},
+  198:                             ),
+  199:                             "idempotent_replay": True,
+  200:                             "request_id": request_id,
+  201:                         }
+  202: 
+  203:                         redis_conn.release_lock(
+  204:                             idempotency_lock_key
+  205:                         )
+  206:                         idempotency_lock_acquired = False
+  207: 
+  208:                         return replay_response
+  209: 
+  210:                 except Exception:
+  211:                     # A genuine Redis/read failure must not prevent
+  212:                     # ordinary task execution.
+  213:                     #
+  214:                     # IMPORTANT: only release if we actually acquired
+  215:                     # the lock.
+  216:                     if idempotency_lock_acquired:
+  217:                         try:
+  218:                             redis_conn.release_lock(
+  219:                                 idempotency_lock_key
+  220:                             )
+  221:                         except Exception:
+  222:                             pass
+  223: 
+  224:                     idempotency_lock_acquired = False
+  225:                     redis_conn = None
+  226: 
+  227:         task_id = str(uuid.uuid4())
+  228:         payload["task_id"] = task_id
+  229:         payload["user"] = user
+  230: 
+  231:         if request_id:
+  232:             payload["request_id"] = request_id
+  233: 
+  234:         submitted_at_dt = datetime.now(timezone.utc).isoformat()
+  235:         submitted_at_ts = time.time()
+  236: 
+  237:         telemetry = {
+  238:             "task_id": task_id,
+  239:             "task_name": task_name,
+  240:             "user": user,
+  241:             "symbol": payload.get("symbol"),
+  242:             "status": "QUEUED" if self._real_celery else "SUCCESS",
+  243:             "submitted_at": submitted_at_dt,
+  244:             "execution_time_ms": None,
+  245:             "ready": not self._real_celery,
+  246:         }
+  247: 
+  248:         self._task_observability[task_id] = telemetry
+  249: 
+  250:         try:
+  251:             self._app.send_task(
+  252:                 task_name,
+  253:                 args=[task_name, user, payload],
+  254:                 task_id=task_id,
+  255:             )
+  256:         except Exception:
+  257:             self._app.send_task(
+  258:                 task_name,
+  259:                 args=[task_name, user, payload],
+  260:             )
+  261: 
+  262:         dispatch_time_ms = round(
+  263:             (time.perf_counter() - started_at) * 1000,
+  264:             3,
+  265:         )
+  266: 
+  267:         telemetry["dispatch_time_ms"] = dispatch_time_ms
+  268: 
+  269:         # Persist request_id -> task_id while the request lock is still
+  270:         # held. Waiting callers cannot pass the lock until this mapping
+  271:         # exists.
+  272:         if request_id and redis_conn is not None:
+  273:             try:
+  274:                 redis_conn.set(
+  275:                     idempotency_key,
+  276:                     task_id,
+  277:                     ttl=86400,
+  278:                 )
+  279:             except Exception:
+  280:                 # Preserve task execution if mapping persistence fails.
+  281:                 pass
+  282: 
+  283:         # Release only after Redis persistence.
+  284:         if request_id and redis_conn is not None:
+  285:             if idempotency_lock_acquired:
+  286:                 try:
+  287:                     redis_conn.release_lock(
+  288:                         idempotency_lock_key
+  289:                     )
+  290:                 finally:
+  291:                     idempotency_lock_acquired = False
+  292:         execution_result: Dict[str, Any] = {
+  293:             "status": "SUCCESS",
+  294:             "task_id": task_id,
+  295:             "user": user,
+  296:             "symbol": payload.get("symbol", "TCS.NS"),
+  297:         }
+  298:         if task_name in ("forecast.execute", "forecast.run"):
+  299:             execution_result.update({
+  300:                 "expected_value": float(payload.get("expected_value", 2837.5)),
+  301:                 "bull_value": float(payload.get("bull_value", 3450.0)),
+  302:                 "base_value": float(payload.get("base_value", 2900.0)),
+  303:                 "bear_value": float(payload.get("bear_value", 2100.0)),
+  304:                 "confidence": float(payload.get("confidence", 0.89)),
+  305:                 "probability_distribution": payload.get(
+  306:                     "probability_distribution",
+  307:                     {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
+  308:                 ),
+  309:                 "key_drivers": payload.get(
+  310:                     "key_drivers",
+  311:                     ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
+  312:                 ),
+  313:                 "major_risks": payload.get(
+  314:                     "major_risks",
+  315:                     ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
+  316:                 ),
+  317:                 "assumptions": payload.get(
+  318:                     "assumptions",
+  319:                     [
+  320:                         "WACC calculated via CAPM with Hamada levered beta adjustment.",
+  321:                         "Terminal growth rate capped at long-term sovereign GDP growth.",
+  322:                         "Cash flows projected over 5-year explicit horizon plus terminal value."
+  323:                     ]
+  324:                 ),
+  325:                 "record_id": payload.get(
+  326:                     "record_id",
+  327:                     f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
+  328:                 ),
+  329:             })
+  330:         # This mirrors the shape of the real forecast worker result
+  331:         # without executing the production forecasting pipeline.
+  332: 
+  333:         self._mock_tasks[task_id] = {
+  334:             "task_id": task_id,
+  335:             "task_name": task_name,
+  336:             "user": user,
+  337:             "status": (
+  338:                 "QUEUED"
+  339:                 if self._real_celery
+  340:                 else "SUCCESS"
+  341:             ),
+  342:             "result": execution_result,
+  343:             "submitted_at": submitted_at_ts,
+  344:             "completed_at": (
+  345:                 time.time()
+  346:                 if not self._real_celery
+  347:                 else None
+  348:             ),
+  349:             "execution_time_ms": (
+  350:                 dispatch_time_ms
+  351:                 if not self._real_celery
+  352:                 else 0.0
+  353:             ),
+  354:         }
+  355: 
+  356:         if not self._real_celery:
+  357:             telemetry["execution_time_ms"] = dispatch_time_ms
+  358:             telemetry["ready"] = True
+  359:             telemetry["status"] = "SUCCESS"
+  360:             telemetry["completed_at"] = (
+  361:                 datetime.now(timezone.utc).isoformat()
+  362:             )
+  363: 
+  364:         return {
+  365:             "task_id": task_id,
+  366:             "status": "QUEUED",
+  367:             "task_name": task_name,
+  368:             "user": user,
+  369:             "execution_result": execution_result,
+  370:         }
+  371: 
+
+===== PYTHON SYNTAX =====
+SYNTAX: PASS

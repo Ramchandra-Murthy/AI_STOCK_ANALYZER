@@ -1,9 +1,9 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import logging
 from typing import Any, List
 from services.ratios.models import FinancialRatios
-from services.fundamentals.models import FinancialStatements
+from services.financials.financial_statement import FinancialStatements
 
 logger = logging.getLogger(__name__)
 
@@ -116,4 +116,3 @@ class FinancialRatioEngine:
             quality_scores=quality_scores,
             metadata={"version": "6.3", "metrics_computed": 55}
         )
-

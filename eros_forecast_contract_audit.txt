@@ -1,0 +1,1239 @@
+﻿============================================================
+EROS 3.0 — CHECKPOINT 02
+FORECAST CONTRACT AUDIT
+============================================================
+Date: 09/07/2026 20:24:05
+
+TASK CONTROL: PROTECTED / DO NOT TOUCH
+
+
+============================================================
+FILE: .\services\forecast\engine.py
+============================================================
+from __future__ import annotations
+
+import logging
+from typing import Any, Optional
+from services.forecast.cagr import CAGRCalculator
+from services.forecast.growth import ExponentialForecaster
+from services.forecast.models import ForecastResult
+from services.forecast.regression import RegressionForecaster
+from services.financials.financial_statement import FinancialStatements
+
+logger = logging.getLogger(__name__)
+
+
+class ForecastEngine:
+    """Institutional forecast engine integrating CAGR, Linear Regression, and Exponential models."""
+
+    def __init__(self) -> None:
+        self.cagr_calc = CAGRCalculator()
+        self.regression_calc = RegressionForecaster()
+        self.exponential_calc = ExponentialForecaster()
+
+    def generate_forecast(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+        symbol = financials.symbol
+        logger.info("Generating %s forecast for symbol: %s based on actual fundamentals", model_type, symbol)
+
+        # Extract historical series or fall back to defaults
+        # Normalize historical ordering before forecasting.
+        # Yahoo Finance commonly returns periods newest -> oldest,
+        # while all forecast models require oldest -> newest.
+        income_history = sorted(
+            financials.income_statements,
+            key=lambda item: item.period,
+        )
+        cashflow_history = sorted(
+            financials.cash_flows,
+            key=lambda item: item.period,
+        )
+
+        revenues = [inc.revenue for inc in income_history] if income_history else [1000000.0, 1100000.0, 1250000.0]
+        ebits = [inc.ebit for inc in income_history] if income_history else [200000.0, 220000.0, 250000.0]
+        eps_list = [inc.eps for inc in income_history] if income_history else [40.0, 45.0, 50.0]
+        fcf_list = [cf.free_cash_flow for cf in cashflow_history] if cashflow_history else [150000.0, 170000.0, 190000.0]
+
+        last_rev = revenues[-1]
+        last_ebit = ebits[-1]
+        last_eps = eps_list[-1]
+        last_fcf = fcf_list[-1]
+
+        if model_type == "LINEAR_REGRESSION":
+            rev_proj = self.regression_calc.project(revenues, periods=5)
+            ebit_proj = self.regression_calc.project(ebits, periods=5)
+            eps_proj = self.regression_calc.project(eps_list, periods=5)
+            fcf_proj = self.regression_calc.project(fcf_list, periods=5)
+        elif model_type == "EXPONENTIAL":
+            rev_proj = self.exponential_calc.project(revenues, growth_rate=0.12, periods=5)
+            ebit_proj = self.exponential_calc.project(ebits, growth_rate=0.10, periods=5)
+            eps_proj = self.exponential_calc.project(eps_list, growth_rate=0.10, periods=5)
+            fcf_proj = self.exponential_calc.project(fcf_list, growth_rate=0.12, periods=5)
+        else:  # Default CAGR
+            cagr = self.cagr_calc.calculate_cagr(revenues[0], revenues[-1], max(1, len(revenues) - 1))
+            rev_proj = self.cagr_calc.project(last_rev, cagr, periods=5)
+            ebit_proj = self.cagr_calc.project(last_ebit, cagr * 0.9, periods=5)
+            eps_proj = self.cagr_calc.project(last_eps, cagr * 0.95, periods=5)
+            fcf_proj = self.cagr_calc.project(last_fcf, cagr, periods=5)
+
+        capex_proj = [r * 0.08 for r in rev_proj]
+        wc_proj = [r * 0.05 for r in rev_proj]
+        dep_proj = [e * 0.3 for e in ebit_proj]
+
+        return ForecastResult(
+            symbol=symbol,
+            model_type=model_type,
+            forecast_periods=5,
+            revenue_forecast=rev_proj,
+            ebit_forecast=ebit_proj,
+            eps_forecast=eps_proj,
+            free_cash_flow_forecast=fcf_proj,
+            capex_forecast=capex_proj,
+            working_capital_forecast=wc_proj,
+            depreciation_forecast=dep_proj,
+            assumptions={"base_revenue": last_rev, "model": model_type},
+        )
+
+
+============================================================
+FILE: .\services\forecast\service.py
+============================================================
+from __future__ import annotations
+
+import logging
+import time
+from typing import Any, Optional
+from core.events.dispatcher import EventDispatcher
+from services.forecast.engine import ForecastEngine
+from services.forecast.events import ForecastCompleted
+from services.forecast.models import ForecastResult
+from services.financials.financial_statement import FinancialStatements
+
+logger = logging.getLogger(__name__)
+
+
+class ForecastService:
+    """Service managing financial forecasting computations triggered by fundamental statements events."""
+
+    def __init__(
+        self,
+        engine: ForecastEngine,
+        bus: Any,
+        dispatcher: EventDispatcher,
+    ) -> None:
+        self._engine = engine
+        self._bus = bus
+        self._dispatcher = dispatcher
+        self._bus.subscribe("fundamentals.downloaded", self.handle_fundamentals_downloaded)
+
+    async def handle_fundamentals_downloaded(self, event: Any) -> None:
+        """Event handler triggered when fundamentals are successfully downloaded and normalized."""
+        financials = event.payload.get("financial_statements")
+        symbol = event.symbol
+
+        if not financials:
+            logger.warning("No financial statements found in payload for symbol: %s", symbol)
+            return
+
+        await self.compute_and_publish(financials)
+
+    async def compute_and_publish(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+        """Run forecast calculations using actual FinancialStatements and publish ForecastCompleted event."""
+        symbol = financials.symbol
+        result = self._engine.generate_forecast(financials, model_type=model_type)
+
+        event = ForecastCompleted(
+            symbol=symbol,
+            timestamp=time.time(),
+            payload={
+                "forecast_result": result,
+                "model_type": model_type,
+                "symbol": symbol,
+            },
+        )
+
+        await self._dispatcher.dispatch(event)
+        logger.info("ForecastCompleted event published for symbol: %s using model: %s", symbol, model_type)
+        return result
+
+
+============================================================
+FILE: .\services\forecast\models.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any, Dict, List
+
+
+@dataclass(frozen=True, slots=True)
+class FinancialMetricForecast:
+    """Forecast details for an individual financial metric (e.g., Revenue, EBIT)."""
+    metric_name: str
+    historical_values: List[float] = field(default_factory=list)
+    projected_values: List[float] = field(default_factory=list)
+    growth_rate: float = 0.10
+    model_used: str = "CAGR"
+
+
+@dataclass(frozen=True, slots=True)
+class ForecastResult:
+    """Comprehensive multi-period forecast result based on financial statements."""
+    symbol: str
+    model_type: str
+    forecast_periods: int = 5
+    revenue_forecast: List[float] = field(default_factory=list)
+    ebit_forecast: List[float] = field(default_factory=list)
+    eps_forecast: List[float] = field(default_factory=list)
+    free_cash_flow_forecast: List[float] = field(default_factory=list)
+    capex_forecast: List[float] = field(default_factory=list)
+    working_capital_forecast: List[float] = field(default_factory=list)
+    depreciation_forecast: List[float] = field(default_factory=list)
+    assumptions: Dict[str, Any] = field(default_factory=dict)
+
+
+============================================================
+FILE: .\services\forecast\events.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+from core.events.event import BaseDomainEvent
+
+
+@dataclass(frozen=True, slots=True)
+class ForecastCompleted(BaseDomainEvent):
+    """Event emitted when financial forecasting is completed."""
+    name: str = "forecast.completed"
+
+
+============================================================
+FILE: .\services\forecast\__init__.py
+============================================================
+from __future__ import annotations
+
+from services.forecast.models import (
+    ForecastResult,
+    FinancialMetricForecast,
+)
+
+__all__ = [
+    "ForecastResult",
+    "FinancialMetricForecast",
+]
+
+
+============================================================
+FORECAST TEST FILES
+============================================================
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_forecast_report_repositories.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import pytest
+from backend.database.engine import init_db, SessionLocal
+from backend.database.repositories.forecast_report_repository import ForecastRepository, ReportRepository
+
+def test_forecast_and_report_repositories() -> None:
+    init_db()
+    session = SessionLocal()
+    try:
+        # Test Forecast Repository
+        forecast = ForecastRepository.save_forecast(
+            session=session,
+            record_id="FCST-RELIANCE-2026",
+            symbol="RELIANCE.NS",
+            revenue_cagr=0.145,
+            eps_forecast=125.50,
+            confidence=0.88
+        )
+        assert forecast.id == "FCST-RELIANCE-2026"
+        fetched_fcst = ForecastRepository.get_forecast(session, "FCST-RELIANCE-2026")
+        assert fetched_fcst is not None
+        assert fetched_fcst.revenue_cagr == 0.145
+
+        # Test Report Repository
+        report = ReportRepository.save_report(
+            session=session,
+            report_id="REP-RELIANCE-Q4",
+            symbol="RELIANCE.NS",
+            report_type="Institutional Valuation Summary",
+            content_summary="Strong operating margins across retail and O2C segments with robust DCF valuation support."
+        )
+        assert report.id == "REP-RELIANCE-Q4"
+        fetched_rep = ReportRepository.get_report(session, "REP-RELIANCE-Q4")
+        assert fetched_rep is not None
+        assert fetched_rep.report_type == "Institutional Valuation Summary"
+    finally:
+        session.close()
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecast_system\test_ifis.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import pytest
+from services.forecast_system.models import ForecastResult
+from services.forecast_system.forecast_engine import InstitutionalForecastEngine
+
+def test_forecast_result_immutability() -> None:
+    fc = ForecastResult(
+        symbol="RELIANCE.NS",
+        revenue_forecast=100000.0,
+        ebit_forecast=22000.0,
+        eps_forecast=125.5,
+        fcf_forecast=15000.0,
+        forecast_confidence=0.90,
+        bull_case_eps=150.0,
+        base_case_eps=125.5,
+        bear_case_eps=100.0,
+        key_assumptions=["Growth tailwinds"]
+    )
+    assert fc.symbol == "RELIANCE.NS"
+    assert fc.eps_forecast == 125.5
+    assert fc.timestamp is not None
+    assert isinstance(fc.metadata, dict)
+
+def test_institutional_forecast_engine() -> None:
+    fc = InstitutionalForecastEngine.generate_forecast("RELIANCE.NS", 800000.0, 110.0)
+    assert fc.symbol == "RELIANCE.NS"
+    assert fc.revenue_forecast > 800000.0
+    assert fc.bull_case_eps > fc.base_case_eps
+    assert fc.base_case_eps > fc.bear_case_eps
+    assert len(fc.key_assumptions) > 0
+
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\forecasting\test_forecasting.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import pytest
+from services.forecasting.models import ForecastScenario
+from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
+
+def test_forecasting_and_scenario_engine() -> None:
+    scenarios = [
+        ForecastScenario(
+            scenario_id="SCEN-001",
+            name="BULL",
+            probability=0.25,
+            revenue_growth=0.15,
+            margin=0.21,
+            wacc=0.095,
+            terminal_growth=0.045,
+            inflation=0.04,
+            interest_rate=0.065,
+            intrinsic_value=3450.0,
+            expected_return=0.22,
+            risk_score=0.30
+        ),
+        ForecastScenario(
+            scenario_id="SCEN-002",
+            name="BASE",
+            probability=0.50,
+            revenue_growth=0.10,
+            margin=0.18,
+            wacc=0.10,
+            terminal_growth=0.04,
+            inflation=0.05,
+            interest_rate=0.07,
+            intrinsic_value=2900.0,
+            expected_return=0.15,
+            risk_score=0.45
+        ),
+        ForecastScenario(
+            scenario_id="SCEN-003",
+            name="BEAR",
+            probability=0.25,
+            revenue_growth=0.04,
+            margin=0.14,
+            wacc=0.115,
+            terminal_growth=0.03,
+            inflation=0.07,
+            interest_rate=0.085,
+            intrinsic_value=2100.0,
+            expected_return=0.02,
+            risk_score=0.70
+        )
+    ]
+
+    result = ScenarioIntelligenceEngine.evaluate_scenarios("RELIANCE.NS", scenarios)
+    
+    assert result.symbol == "RELIANCE.NS"
+    assert result.expected_value > 0.0
+    assert result.bull_value == 3450.0
+    assert result.base_value == 2900.0
+    assert result.bear_value == 2100.0
+    assert result.confidence > 0.80
+    assert len(result.probability_distribution) == 3
+
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block28_worker.py
+------------------------------------------------------------
+import os
+from backend.tasks.celery_app import celery_app, MockCeleryApp, CeleryFacade
+from backend.tasks.task_control import task_control
+from backend.tasks.task_registry import register_all_tasks
+
+def test_block28_worker_facade_and_registry():
+    """Validates that the task control facade and task registry are operational."""
+    assert celery_app is not None
+    tasks = task_control.get_registered_tasks()
+    assert isinstance(tasks, list)
+    assert len(tasks) > 0
+    assert "valuation.execute" in tasks
+    assert "forecast.execute" in tasks
+
+def test_block28_task_submission_and_status():
+    """Validates asynchronous task submission and status retrieval."""
+    submission = task_control.submit_task(
+        task_name="valuation.execute",
+        user="institutional_tester",
+        payload={"symbol": "INFY.NS"}
+    )
+    assert "task_id" in submission
+    task_id = submission["task_id"]
+
+    status_info = task_control.get_task_status(task_id)
+    assert status_info["task_id"] == task_id
+    assert "status" in status_info
+
+    result_info = task_control.get_task_result(task_id)
+    assert result_info["task_id"] == task_id
+    assert "result" in result_info
+
+def test_block28_queue_and_metrics_observability():
+    """Validates queue telemetry and execution metrics."""
+    queues = task_control.get_queue_status()
+    assert "queues" in queues
+    assert queues["status"] == "HEALTHY"
+
+    metrics = task_control.get_task_metrics()
+    assert "total_submitted" in metrics
+    assert metrics["status"] == "HEALTHY"
+
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30c_real_worker_execution.py
+------------------------------------------------------------
+import time
+import os
+import pytest
+from backend.tasks.celery_app import celery_app, celery_instance
+from backend.tasks.task_control import task_control
+from backend.tasks.celery_config import celery_broker
+
+def test_block30c_real_worker_task_lifecycle():
+    """
+    Validates the complete asynchronous worker task lifecycle:
+    Submission -> Broker Dispatch -> Task Control Tracking -> Result Retrieval.
+    """
+    # 1. Ensure task control is synchronized
+    tasks = task_control.get_registered_tasks()
+    assert "valuation.execute" in tasks
+    assert "forecast.execute" in tasks
+
+    # 2. Submit a production task
+    submission = task_control.submit_task(
+        task_name="valuation.execute",
+        user="institutional_director",
+        payload={
+            "symbol": "TCS.NS",
+            "policy_profile": "Institutional",
+            "workflow_id": "WF-BLOCK-30C-001"
+        }
+    )
+    assert submission is not None
+    assert "task_id" in submission
+    task_id = submission["task_id"]
+    assert submission["status"] in ["QUEUED", "SUCCESS"]
+
+    # 3. Verify task status probe
+    status_info = task_control.get_task_status(task_id)
+    assert status_info["task_id"] == task_id
+    assert "status" in status_info
+
+    # 4. Verify task result retrieval and workflow correlation
+    # Poll briefly for result availability
+    result_info = {}
+    for _ in range(10):
+        result_info = task_control.get_task_result(task_id)
+        if result_info.get('result') is not None:
+            break
+        time.sleep(0.5)
+
+    assert result_info["task_id"] == task_id
+    assert "result" in result_info
+
+    res_payload = result_info.get('result')
+    assert result_info["task_id"] == task_id
+    assert "result" in result_info
+    
+    res_payload = result_info.get('result')
+    assert res_payload is not None
+    if isinstance(res_payload, dict):
+        assert res_payload.get("symbol") in ["TCS.NS", "RELIANCE.NS"] or "result" in res_payload
+
+
+
+
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edpp.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import pytest
+from fastapi.testclient import TestClient
+from backend.main import app
+from backend.tasks.celery_app import celery_app
+from backend.tasks.task_context import TaskContext
+from backend.tasks.task_executor import BackgroundWorkers
+
+client = TestClient(app)
+
+def test_celery_task_registration_and_dispatch() -> None:
+    assert "valuation.execute" in celery_app.tasks
+    assert "forecast.execute" in celery_app.tasks
+    
+    task_id = celery_app.send_task("forecast.execute")
+    assert task_id
+    assert isinstance(task_id, str)
+
+def test_background_valuation_worker() -> None:
+    ctx = TaskContext(task_id="TASK-9999", task_name="valuation.execute", user="admin", payload={"symbol": "RELIANCE.NS"})
+    result = BackgroundWorkers.execute_valuation_task(ctx)
+    assert result["status"] == "SUCCESS"
+    assert result["result"]["symbol"] == "RELIANCE.NS"
+
+def test_task_submission_api_endpoint(auth_headers) -> None:
+    payload = {
+        "task_name": "forecast.execute",
+        "user": "analyst1",
+        "payload": {"symbol": "INFY.NS"}
+    }
+    response = client.post("/api/v1/tasks/submit", json=payload, headers=auth_headers("ANALYST"))
+    assert response.status_code == 202
+    data = response.json()
+    assert "task_id" in data
+    assert data["status"] == "QUEUED"
+    assert data["execution_result"]["status"] == "SUCCESS"
+
+
+
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py
+------------------------------------------------------------
+import time
+from fastapi.testclient import TestClient
+from backend.main import app
+from backend.tasks.task_control import TaskControlService
+
+client = TestClient(app)
+
+
+def test_task_control_forecast_lifecycle():
+    control = TaskControlService()
+    submission = control.submit_task(
+        task_name="forecast.execute",
+        user="sprint19c_test",
+        payload={"symbol": "TCS.NS"},
+    )
+    assert submission["task_id"]
+    assert submission["status"] == "QUEUED"
+
+    task_id = submission["task_id"]
+    status = None
+    for _ in range(20):
+        status = control.get_task_status(task_id)
+        if status["status"] in ("SUCCESS", "FAILURE"):
+            break
+        time.sleep(0.5)
+
+    assert status is not None
+    assert status["task_id"] == task_id
+    assert status["status"] == "SUCCESS"
+    assert status["ready"] is True
+
+    result = control.get_task_result(task_id)
+    assert result["task_id"] == task_id
+    assert result["status"] == "SUCCESS"
+    assert result["result"]["symbol"] == "TCS.NS"
+    assert result["result"]["expected_value"] == 2837.5
+
+
+def test_task_control_registered_tasks():
+    control = TaskControlService()
+    tasks = control.get_registered_tasks()
+
+    assert "valuation.execute" in tasks
+    assert "forecast.execute" in tasks
+    assert "report.generate" in tasks
+
+
+def test_task_control_queue_status():
+    control = TaskControlService()
+    queue_status = control.get_queue_status()
+
+    assert queue_status["status"] == "HEALTHY"
+    assert "forecast_queue" in queue_status["queues"]
+    assert "report_queue" in queue_status["queues"]
+    assert queue_status["real_celery"] is True
+
+
+def test_task_control_unknown_task():
+    control = TaskControlService()
+
+    try:
+        control.submit_task(
+            task_name="unknown.task",
+            user="sprint19c_test",
+            payload={},
+        )
+        assert False, "Expected ValueError"
+    except ValueError as exc:
+        assert "Unknown task" in str(exc)
+
+
+def test_task_router_lifecycle(auth_headers):
+    client = TestClient(app)
+    headers = auth_headers("ANALYST")
+
+    response = client.post(
+        "/api/v1/tasks/submit",
+        json={
+            "task_name": "forecast.execute",
+            "user": "sprint19c_api",
+            "payload": {"symbol": "TCS.NS"},
+        },
+        headers=headers,
+    )
+
+    assert response.status_code == 202
+
+    body = response.json()
+    task_id = body["task_id"]
+
+    assert body["execution_result"]["status"] == "SUCCESS"
+    assert body["execution_result"]["symbol"] == "TCS.NS"
+
+    status_response = client.get(
+        f"/api/v1/tasks/{task_id}/status",
+        headers=headers,
+    )
+
+    assert status_response.status_code == 200
+
+    status_body = status_response.json()
+    assert status_body["task_id"] == task_id
+    assert status_body["status"] == "SUCCESS"
+
+    result_response = client.get(
+        f"/api/v1/tasks/{task_id}/result",
+        headers=headers,
+    )
+
+    assert result_response.status_code == 200
+
+    result_body = result_response.json()
+    assert result_body["task_id"] == task_id
+    assert result_body["result"]["symbol"] == "TCS.NS"
+
+
+def test_task_router_unknown_task(auth_headers):
+    client = TestClient(app)
+    headers = auth_headers("ANALYST")
+
+    response = client.get(
+        "/api/v1/tasks/TASK-SPRINT19C-NOT-FOUND/status",
+        headers=headers,
+    )
+
+    assert response.status_code == 404
+
+    response = client.get(
+        "/api/v1/tasks/TASK-SPRINT19C-NOT-FOUND/result",
+        headers=headers,
+    )
+
+    assert response.status_code == 404
+
+
+def test_task_router_queue_status(auth_headers):
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/v1/tasks/queues/status",
+        headers=auth_headers("ANALYST"),
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["status"] == "HEALTHY"
+    assert "forecast_queue" in body["queues"]
+    assert "report_queue" in body["queues"]
+
+
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20a_observability.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import time
+import pytest
+from fastapi.testclient import TestClient
+from backend.main import app
+from backend.tasks.task_control import TaskControlService
+
+def test_task_observability_metrics():
+    control = TaskControlService()
+    
+    # Submit task to generate mock execution metrics
+    submission = control.submit_task(
+        task_name="forecast.execute",
+        user="sprint20a_analyst",
+        payload={"symbol": "INFY.NS"}
+    )
+    task_id = submission["task_id"]
+
+    # Wait for real Celery execution to complete before checking metrics.
+    status = None
+    for _ in range(20):
+        status = control.get_task_status(task_id)
+        if status["status"] in ("SUCCESS", "FAILURE"):
+            break
+        time.sleep(0.5)
+
+    assert status is not None
+    assert status["status"] == "SUCCESS"
+    assert status["ready"] is True
+
+    # Check metrics payload
+    metrics = control.get_task_metrics()
+    assert "total_submitted" in metrics
+    assert metrics["total_submitted"] >= 1
+    assert "success_count" in metrics
+    assert metrics["success_count"] >= 1
+    assert "average_execution_time_ms" in metrics
+
+def test_task_observability_router_endpoint(auth_headers):
+    client = TestClient(app)
+    response = client.get("/api/v1/tasks/observability/metrics", headers=auth_headers("ANALYST"))
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert data["status"] == "SUCCESS"
+    assert "metrics" in data
+    assert "total_submitted" in data["metrics"]
+
+
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import asyncio
+from typing import Any
+import pytest
+
+from core.events import InMemoryEventBus, EventDispatcher
+from services.fundamentals.provider import YahooFinanceProvider
+from services.fundamentals.normalizer import FinancialNormalizer
+from services.fundamentals.service import FundamentalsService
+from services.forecast.engine import ForecastEngine
+from services.forecast.service import ForecastService
+from services.valuation.engine import ValuationEngine
+from services.valuation.service import ValuationService
+from services.research.engine import ResearchEngine
+from services.research.service import ResearchService
+from services.report.engine import ReportEngine
+from services.report.service import ReportService
+
+
+def test_end_to_end_pipeline() -> None:
+    """Synchronous wrapper running async end-to-end integration test with foundational Fundamentals pipeline trigger."""
+    async def run_pipeline() -> None:
+        bus = InMemoryEventBus()
+        dispatcher = EventDispatcher(bus)
+
+        provider = YahooFinanceProvider()
+        normalizer = FinancialNormalizer()
+        fundamentals_service = FundamentalsService(provider, normalizer, dispatcher)
+
+        forecast_engine = ForecastEngine()
+        forecast_service = ForecastService(forecast_engine, bus, dispatcher)
+
+        valuation_engine = ValuationEngine()
+        valuation_service = ValuationService(valuation_engine, bus, dispatcher)
+
+        research_engine = ResearchEngine()
+        research_service = ResearchService(research_engine, bus, dispatcher)
+
+        report_engine = ReportEngine()
+        report_service = ReportService(report_engine, bus, dispatcher)
+
+        events_received: list[Any] = []
+        valuation_events: list[Any] = []
+        research_events: list[Any] = []
+        report_events: list[Any] = []
+
+        pipeline_completed = asyncio.Event()
+
+        async def spy_handler(event: Any) -> None:
+            events_received.append(event)
+
+        async def valuation_listener(event: Any) -> None:
+            valuation_events.append(event)
+
+        async def research_listener(event: Any) -> None:
+            research_events.append(event)
+
+        async def report_listener(event: Any) -> None:
+            report_events.append(event)
+            pipeline_completed.set()
+
+        bus.subscribe("fundamentals.downloaded", spy_handler)
+        bus.subscribe("forecast.completed", spy_handler)
+        bus.subscribe("valuation.completed", valuation_listener)
+        bus.subscribe("research.completed", research_listener)
+        bus.subscribe("report.completed", report_listener)
+
+        symbol = "RELIANCE.NS"
+        await fundamentals_service.get_or_download(symbol)
+
+        try:
+            await asyncio.wait_for(pipeline_completed.wait(), timeout=2.0)
+        except asyncio.TimeoutError:
+            raise AssertionError("Pipeline execution timed out waiting for ReportCompleted event.")
+
+        event_names = [e.name for e in events_received]
+
+        assert event_names.count("fundamentals.downloaded") == 1
+        assert event_names.count("forecast.completed") == 1
+        assert len(valuation_events) == 1
+        assert len(research_events) == 1
+        assert len(report_events) == 1
+
+        # Verify valuation payload
+        assert valuation_events[0].symbol == symbol
+        assert valuation_events[0].payload["blended_fair_value"] > 0.0
+        assert valuation_events[0].payload["recommendation"] in {"BUY", "HOLD", "SELL"}
+
+        # Verify research payload
+        assert research_events[0].symbol == symbol
+        assert research_events[0].payload["ai_recommendation"] in {"BUY", "HOLD", "SELL"}
+        assert research_events[0].payload["confidence_score"] > 0.0
+
+        # Verify report payload
+        assert report_events[0].symbol == symbol
+        assert report_events[0].payload["format_type"] == "MULTI-FORMAT"
+
+    asyncio.run(run_pipeline())
+
+
+------------------------------------------------------------
+TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py
+------------------------------------------------------------
+from __future__ import annotations
+
+import pytest
+from services.forecast.models import ForecastResult
+from services.valuation.dcf.engine import ProductionDCFEngine
+
+
+def test_production_dcf_calculation() -> None:
+    forecast = ForecastResult(
+        symbol="RELIANCE.NS",
+        model_type="CAGR",
+        free_cash_flow_forecast=[100000.0, 115000.0, 132000.0, 151000.0, 173000.0],
+    )
+
+    engine = ProductionDCFEngine()
+    result = engine.calculate(forecast, wacc=0.10, terminal_growth_rate=0.04)
+
+    assert result.symbol == "RELIANCE.NS"
+    assert result.enterprise_value > 0.0
+    assert result.equity_value > 0.0
+    assert result.fair_value_per_share > 0.0
+    assert len(result.pv_cash_flows) == 5
+
+
+============================================================
+FORECAST IMPORT / CALL GRAPH
+============================================================
+backend/tasks/celery_app.py:52:            "forecast.execute": lambda *a, **kw: {"status": "success"},
+backend/tasks/task_control.py:47:            if "forecast.execute" not in target_app.tasks:
+backend/tasks/task_control.py:49:                    name="forecast.execute",
+backend/tasks/task_control.py:298:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSM_backup:45:            if "forecast.execute" not in target_app.tasks:
+backend/tasks/task_control.py.31K_DSM_backup:47:                    name="forecast.execute",
+backend/tasks/task_control.py.31K_DSM_backup:206:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSM_backup:238:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSM_backup:273:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSM_backup:330:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSM_backup:387:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSP_backup:46:            if "forecast.execute" not in target_app.tasks:
+backend/tasks/task_control.py.31K_DSP_backup:48:                    name="forecast.execute",
+backend/tasks/task_control.py.31K_DSP_backup:207:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSP_backup:239:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSP_backup:274:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSP_backup:331:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DSP_backup:388:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DV_backup:46:            if "forecast.execute" not in target_app.tasks:
+backend/tasks/task_control.py.31K_DV_backup:48:                    name="forecast.execute",
+backend/tasks/task_control.py.31K_DV_backup:207:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DV_backup:239:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DV_backup:274:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DV_backup:331:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_DV_backup:388:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_backup:46:            if "forecast.execute" not in target_app.tasks:
+backend/tasks/task_control.py.31K_EH_backup:48:                    name="forecast.execute",
+backend/tasks/task_control.py.31K_EH_backup:234:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_backup:266:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_backup:301:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_backup:358:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_backup:415:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_patch_backup:46:            if "forecast.execute" not in target_app.tasks:
+backend/tasks/task_control.py.31K_EH_patch_backup:48:                    name="forecast.execute",
+backend/tasks/task_control.py.31K_EH_patch_backup:234:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_patch_backup:266:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_patch_backup:301:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_patch_backup:358:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EH_patch_backup:415:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EJ_backup:46:            if "forecast.execute" not in target_app.tasks:
+backend/tasks/task_control.py.31K_EJ_backup:48:                    name="forecast.execute",
+backend/tasks/task_control.py.31K_EJ_backup:234:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EJ_backup:266:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EJ_backup:301:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EJ_backup:358:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_control.py.31K_EJ_backup:415:        if task_name in ("forecast.execute", "forecast.run"):
+backend/tasks/task_executor.py:10:from services.forecasting.models import ForecastScenario
+backend/tasks/task_executor.py:11:from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
+backend/tasks/task_executor.py:166:    task_name = "forecast.execute"
+backend/tasks/task_registry.py:18:    # Register forecast.execute with auto-retry and strict time limits
+backend/tasks/task_registry.py:19:    if "forecast.execute" not in celery_instance.tasks:
+backend/tasks/task_registry.py:21:            name="forecast.execute",
+backend/tasks/task_registry.py:31:        logger.info("Registered task: forecast.execute with enterprise retry & timeout policy")
+services/copilot_v2/copilot.py:20:            cited_engines=["ValuationEngine", "RiskEngine", "ForecastEngine", "DecisionIntelligence"],
+services/forecast/README.md:1:# Forecast Subsystem (`services/forecast`)
+services/forecast/__init__.py:3:from services.forecast.models import (
+services/forecast/__init__.py:4:    ForecastResult,
+services/forecast/__init__.py:9:    "ForecastResult",
+services/forecast/algorithms/base.py:5:from services.forecast.input import ForecastInput
+services/forecast/algorithms/cagr.py:3:from services.forecast.algorithms.base import BaseForecastAlgorithm
+services/forecast/algorithms/cagr.py:4:from services.forecast.exceptions import ForecastAlgorithmError
+services/forecast/algorithms/cagr.py:5:from services.forecast.input import ForecastInput
+services/forecast/algorithms/linear_regression.py:3:from services.forecast.algorithms.base import BaseForecastAlgorithm
+services/forecast/algorithms/linear_regression.py:4:from services.forecast.exceptions import ForecastAlgorithmError
+services/forecast/algorithms/linear_regression.py:5:from services.forecast.input import ForecastInput
+services/forecast/algorithms/mean_reversion.py:4:Module  : services.forecast.algorithms.mean_reversion
+services/forecast/algorithms/mean_reversion.py:16:from services.forecast.exceptions import ValuationError
+services/forecast/algorithms/rolling_average.py:2:Module: services.forecast.algorithms.rolling_average
+services/forecast/algorithms/rolling_average.py:11:class RollingAverageForecastEngine:
+services/forecast/assumption_engine.py:4:Module  : services.forecast.assumption_engine
+services/forecast/assumption_engine.py:14:from services.forecast.models import ForecastAssumption, ForecastMethod
+services/forecast/capex_forecast.py:4:Module  : services.forecast.capex_forecast
+services/forecast/capex_forecast.py:15:from services.forecast.forecast_input import ForecastInput
+services/forecast/capex_forecast.py:16:from services.forecast.models import (
+services/forecast/capex_forecast.py:23:class CapexForecastEngine:
+services/forecast/capex_forecast.py:73:CapExForecastEngine = CapexForecastEngine
+services/forecast/confidence_engine.py:4:Module  : services.forecast.confidence_engine
+services/forecast/confidence_engine.py:14:from services.forecast.models import ConfidenceLevel
+services/forecast/depreciation_forecast.py:4:Module  : services.forecast.depreciation_forecast
+services/forecast/depreciation_forecast.py:15:from services.forecast.forecast_input import ForecastInput
+services/forecast/depreciation_forecast.py:16:from services.forecast.models import (
+services/forecast/depreciation_forecast.py:23:class DepreciationForecastEngine:
+services/forecast/engine.py:5:from services.forecast.cagr import CAGRCalculator
+services/forecast/engine.py:6:from services.forecast.growth import ExponentialForecaster
+services/forecast/engine.py:7:from services.forecast.models import ForecastResult
+services/forecast/engine.py:8:from services.forecast.regression import RegressionForecaster
+services/forecast/engine.py:14:class ForecastEngine:
+services/forecast/engine.py:22:    def generate_forecast(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+services/forecast/engine.py:70:        return ForecastResult(
+services/forecast/examples/basic_forecast.py:5:from services.forecast.models import ForecastLineItem, ForecastPackage
+services/forecast/examples/run_models_example.py:9:from services.forecast.models import (
+services/forecast/forecast_input.py:4:Module  : services.forecast.forecast_input
+services/forecast/forecast_input.py:16:from services.forecast.exceptions import ValuationError
+services/forecast/forecast_input.py:17:from services.forecast.forecast_models import ForecastMethod
+services/forecast/forecast_result.py:4:Module  : services.forecast.forecast_result
+services/forecast/forecast_result.py:16:from services.forecast.forecast_models import (
+services/forecast/forecast_result.py:50:class ForecastResult:
+services/forecast/margin_forecast.py:4:Module  : services.forecast.margin_forecast
+services/forecast/margin_forecast.py:16:from services.forecast.algorithms.mean_reversion import MeanReversionAlgorithm
+services/forecast/margin_forecast.py:17:from services.forecast.forecast_input import ForecastInput
+services/forecast/margin_forecast.py:18:from services.forecast.forecast_models import (
+services/forecast/margin_forecast.py:26:class MarginForecastEngine:
+services/forecast/models.py:18:class ForecastResult:
+services/forecast/result.py:6:from services.forecast.models import ForecastPackage
+services/forecast/result.py:10:class ForecastResult:
+services/forecast/result.py:29:    def from_dict(cls, data: dict[str, Any]) -> ForecastResult:
+services/forecast/revenue_forecast.py:4:Module  : services.forecast.revenue_forecast
+services/forecast/revenue_forecast.py:16:from services.forecast.algorithms.cagr import CAGRAlgorithm
+services/forecast/revenue_forecast.py:17:from services.forecast.algorithms.linear_regression import LinearRegressionAlgorithm
+services/forecast/revenue_forecast.py:18:from services.forecast.algorithms.rolling_average import RollingAverageAlgorithm
+services/forecast/revenue_forecast.py:19:from services.forecast.forecast_input import ForecastInput
+services/forecast/revenue_forecast.py:20:from services.forecast.forecast_models import (
+services/forecast/revenue_forecast.py:28:class RevenueForecastEngine:
+services/forecast/scenario_engine.py:4:from services.forecast.forecast_models import ScenarioType
+services/forecast/scenario_engine.py:5:from services.forecast.forecast_result import ForecastResult, YearForecast
+services/forecast/scenario_engine.py:12:        self, base_result: ForecastResult
+services/forecast/scenario_engine.py:13:    ) -> dict[ScenarioType, ForecastResult]:
+services/forecast/scenario_engine.py:33:        base: ForecastResult,
+services/forecast/scenario_engine.py:37:    ) -> ForecastResult:
+services/forecast/scenario_engine.py:67:        return ForecastResult(
+services/forecast/service.py:7:from services.forecast.engine import ForecastEngine
+services/forecast/service.py:8:from services.forecast.events import ForecastCompleted
+services/forecast/service.py:9:from services.forecast.models import ForecastResult
+services/forecast/service.py:15:class ForecastService:
+services/forecast/service.py:20:        engine: ForecastEngine,
+services/forecast/service.py:40:    async def compute_and_publish(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+services/forecast/tax_forecast.py:4:Module  : services.forecast.tax_forecast
+services/forecast/tax_forecast.py:15:from services.forecast.forecast_input import ForecastInput
+services/forecast/tax_forecast.py:16:from services.forecast.models import (
+services/forecast/tax_forecast.py:23:class TaxForecastEngine:
+services/forecast/terminal_growth.py:4:Module  : services.forecast.terminal_growth
+services/forecast/test_forecast_input.py:11:from services.forecast.exceptions import ValuationError
+services/forecast/test_forecast_input.py:12:from services.forecast.forecast_input import (
+services/forecast/test_forecast_input.py:17:from services.forecast.forecast_models import ForecastMethod
+services/forecast/test_validation.py:13:from services.forecast.exceptions import ValuationError
+services/forecast/test_validation.py:14:from services.forecast.forecast_input import (
+services/forecast/test_validation.py:19:from services.forecast.forecast_models import ForecastMethod
+services/forecast/test_validation.py:20:from services.forecast.validation import (
+services/forecast/tests/test_models.py:4:Module  : services.forecast.tests.test_models
+services/forecast/tests/test_models.py:12:from services.forecast.exceptions import ForecastValidationError
+services/forecast/tests/test_models.py:13:from services.forecast.models import (
+services/forecast/validation.py:5:from services.forecast.exceptions import ForecastValidationError
+services/forecast/validation.py:6:from services.forecast.input import ForecastInput
+services/forecast/working_capital_forecast.py:4:Module  : services.forecast.working_capital_forecast
+services/forecast/working_capital_forecast.py:16:from services.forecast.forecast_input import ForecastInput
+services/forecast/working_capital_forecast.py:17:from services.forecast.forecast_models import ForecastMethod
+services/forecast/working_capital_forecast.py:29:class WorkingCapitalForecastEngine:
+services/forecast/working_capital_forecast.py:86:WorkingCapitalForecastService = WorkingCapitalForecastEngine
+services/forecast_system/forecast_engine.py:5:from services.forecast_system.models import ForecastResult
+services/forecast_system/forecast_engine.py:9:class InstitutionalForecastEngine:
+services/forecast_system/forecast_engine.py:13:    def generate_forecast(symbol: str, base_revenue: float, base_eps: float) -> ForecastResult:
+services/forecast_system/forecast_engine.py:21:        return ForecastResult(
+services/forecast_system/models.py:8:class ForecastResult:
+services/forecasting/models.py:23:class ForecastResult:
+services/forecasting/scenario_engine.py:5:from services.forecasting.models import ForecastScenario, ForecastResult
+services/forecasting/scenario_engine.py:13:    def evaluate_scenarios(cls, symbol: str, scenarios: List[ForecastScenario]) -> ForecastResult:
+services/forecasting/scenario_engine.py:37:        return ForecastResult(
+services/valuation/dcf/engine.py:6:from services.forecast.models import ForecastResult
+services/valuation/dcf/engine.py:16:        forecast: ForecastResult,
+services/valuation/service.py:10:from services.forecast.models import ForecastResult
+services/valuation/service.py:32:        forecast_result: ForecastResult = event.payload.get("forecast_result")
+services/valuation/service.py:41:    async def compute_and_publish(self, forecast: ForecastResult) -> Any:
+tests/forecast_system/test_ifis.py:4:from services.forecast_system.models import ForecastResult
+tests/forecast_system/test_ifis.py:5:from services.forecast_system.forecast_engine import InstitutionalForecastEngine
+tests/forecast_system/test_ifis.py:8:    fc = ForecastResult(
+tests/forecast_system/test_ifis.py:26:    fc = InstitutionalForecastEngine.generate_forecast("RELIANCE.NS", 800000.0, 110.0)
+tests/forecasting/test_forecasting.py:4:from services.forecasting.models import ForecastScenario
+tests/forecasting/test_forecasting.py:5:from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
+tests/production/test_block28_worker.py:13:    assert "forecast.execute" in tasks
+tests/production/test_block30c_real_worker_execution.py:16:    assert "forecast.execute" in tasks
+tests/tasks/test_edpp.py:14:    assert "forecast.execute" in celery_app.tasks
+tests/tasks/test_edpp.py:16:    task_id = celery_app.send_task("forecast.execute")
+tests/tasks/test_edpp.py:28:        "task_name": "forecast.execute",
+tests/tasks/test_sprint19c_control_plane.py:12:        task_name="forecast.execute",
+tests/tasks/test_sprint19c_control_plane.py:44:    assert "forecast.execute" in tasks
+tests/tasks/test_sprint19c_control_plane.py:79:            "task_name": "forecast.execute",
+tests/tasks/test_sprint20a_observability.py:14:        task_name="forecast.execute",
+tests/test_event_contracts.py:6:from services.forecast.events import ForecastCompleted
+tests/test_pipeline.py:11:from services.forecast.engine import ForecastEngine
+tests/test_pipeline.py:12:from services.forecast.service import ForecastService
+tests/test_pipeline.py:31:        forecast_engine = ForecastEngine()
+tests/test_pipeline.py:32:        forecast_service = ForecastService(forecast_engine, bus, dispatcher)
+tests/valuation/test_dcf.py:4:from services.forecast.models import ForecastResult
+tests/valuation/test_dcf.py:9:    forecast = ForecastResult(
+
+
+============================================================
+FORECAST MODEL REFERENCES
+============================================================
+backend/tasks/task_executor.py:59:            ForecastScenario(
+backend/tasks/task_executor.py:73:            ForecastScenario(
+backend/tasks/task_executor.py:87:            ForecastScenario(
+services/forecast/engine.py:70:        return ForecastResult(
+services/forecast/examples/run_models_example.py:28:    scenario = ForecastScenario(
+services/forecast/forecast_result.py:4:Module  : services.forecast.forecast_result
+services/forecast/scenario_engine.py:5:from services.forecast.forecast_result import ForecastResult, YearForecast
+services/forecast/scenario_engine.py:67:        return ForecastResult(
+services/forecast/service.py:49:                "forecast_result": result,
+services/forecast/tests/test_models.py:84:    scenario = ForecastScenario(
+services/forecast_system/forecast_engine.py:21:        return ForecastResult(
+services/forecasting/scenario_engine.py:37:        return ForecastResult(
+services/memory/models.py:14:    forecast_snapshot: Dict[str, float]
+services/reporting/report_builder.py:13:    def build_report(symbol: str, committee_decision: Any, forecast_result: Any, portfolio_decision: Any = None) -> InstitutionalResearchReport:
+services/reporting/report_builder.py:54:            f"Γé╣{forecast_result.expected_value if forecast_result else 2900.0:,.2f}."
+services/valuation/service.py:32:        forecast_result: ForecastResult = event.payload.get("forecast_result")
+services/valuation/service.py:35:        if not forecast_result:
+services/valuation/service.py:39:        await self.compute_and_publish(forecast_result)
+tests/forecast_system/test_ifis.py:7:def test_forecast_result_immutability() -> None:
+tests/forecast_system/test_ifis.py:8:    fc = ForecastResult(
+tests/forecasting/test_forecasting.py:9:        ForecastScenario(
+tests/forecasting/test_forecasting.py:23:        ForecastScenario(
+tests/forecasting/test_forecasting.py:37:        ForecastScenario(
+tests/memory/test_ikme.py:14:        forecast_snapshot={"eps": 110.0},
+tests/memory/test_ikme.py:29:        forecast_snapshot={"eps": 100.0},
+tests/memory/test_ikme.py:38:        forecast_snapshot={"eps": 125.0},
+tests/valuation/test_dcf.py:9:    forecast = ForecastResult(
+
+
+============================================================
+FORECAST EVENT CONTRACTS
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass
+from core.events.event import BaseDomainEvent
+
+
+@dataclass(frozen=True, slots=True)
+class ForecastCompleted(BaseDomainEvent):
+    """Event emitted when financial forecasting is completed."""
+    name: str = "forecast.completed"
+
+
+services/forecast/events.py:10:    name: str = "forecast.completed"
+services/valuation/service.py:28:        self._bus.subscribe("forecast.completed", self.handle_forecast_completed)
+services/valuation/service.py:30:    async def handle_forecast_completed(self, event: Any) -> None:
+tests/test_event_contracts.py:16:        (ForecastCompleted, "forecast.completed"),
+tests/test_pipeline.py:64:        bus.subscribe("forecast.completed", spy_handler)
+tests/test_pipeline.py:80:        assert event_names.count("forecast.completed") == 1
+
+
+============================================================
+FORECAST COMPILE
+============================================================
+.\services\forecast\engine.py : PASS
+.\services\forecast\service.py : PASS
+.\services\forecast\models.py : PASS
+.\services\forecast\events.py : PASS
+.\services\forecast\__init__.py : PASS
+
+============================================================
+TARGETED FORECAST TESTS
+============================================================
+......                                                                   [100%]
+6 passed, 299 deselected in 3.01s
+
+FORECAST EXIT CODE: 0
+
+============================================================
+PIPELINE REGRESSION
+============================================================
+.                                                                        [100%]
+1 passed in 2.87s
+
+PIPELINE EXIT CODE: 0
+
+============================================================
+TASK CONTROL PROTECTION
+============================================================
+FF7AAE4059AEE14350F1D8DA1D6FE070A944507DFA3CEAE0D114BD69FCCEDA7E
+
+============================================================
+FORECAST DIFF
+============================================================
+ services/forecast/engine.py  | 4 ++--
+ services/forecast/service.py | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+
+============================================================
+GIT STATUS
+============================================================
+ M app.py
+ M backend/tasks/task_control.py
+ M celerybeat-schedule-shm
+ M celerybeat-schedule-wal
+ M components/top_holdings.py
+ M services/financials/balance_sheet.py
+ M services/financials/financial_statement.py
+ M services/forecast/engine.py
+ M services/forecast/service.py
+ M services/fundamentals/normalizer.py
+ M services/fundamentals/service.py
+ M services/ratios/engine.py
+ M services/scoring/engine.py
+ M services/sotp_long_term_equity_classification_service.py
+ M services/valuation/base_engine.py
+ M services/valuation/dcf/engine.py
+ M services/valuation/dcf_adapter.py
+ M services/valuation/dcf_engine.py
+ M services/valuation/dispatcher.py
+ M services/valuation/nav_engine.py
+ M services/valuation/relative/engine.py
+ M services/valuation/sotp/engine.py
+ M services/valuation/sotp_engine.py
+ M services/workflow/production_orchestrator.py
+ M tests/fundamentals/test_models.py
+ M tests/ratios/test_quality_engine.py
+ M tests/ratios/test_ratios.py
+ M tests/scoring/test_scoring.py
+ M tests/valuation/test_sotp.py
+?? S
+?? backend/tasks/task_control.py.backup-before-comment-cleanup
+?? backend/tasks/task_control.py.backup-before-forecast-cleanup
+?? backups/
+?? celery_runtime_diagnostic.txt
+?? docker_celery_test.txt
+?? eros_3_rebuild_architecture_audit.txt
+?? eros_fundamentals_baseline.txt
+?? eros_fundamentals_canonical_path.txt
+?? eros_fundamentals_contract_extraction.txt
+?? eros_modification_triage.txt
+?? eros_normalizer_contract.txt
+?? eros_normalizer_rebuild_audit.txt
+?? eros_stage1_fundamentals_audit.txt
+?? eros_test_discovery.txt
+?? forecast_blocks_inspection.txt
+?? forecast_cleanup_result.txt
+?? forecast_comment_cleanup_result.txt
+?? forecast_post_cleanup_inspection.txt
+?? fundamentals_normalizer_audit.txt
+?? fundamentals_normalizer_triage.txt
+?? next_repair_diff.txt
+?? next_repair_target.txt
+?? next_repair_triage.txt
+?? normalizer_repair_audit.txt
+?? post_cleanup_task_control_audit.txt
+?? queue_status_investigation.txt
+?? services/scoring/engine.py.pre_canonical_migration.bak
+?? services/scoring/engine.py.pre_canonical_result_fix.bak
+?? services/scoring/engine.py.pre_valuation_migration.bak
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+?? services/valuation/__init__.py.pre_valuation_migration.bak
+?? services/valuation/service.py.pre_valuation_migration.bak
+?? submit_task_structural_audit.txt
+?? task_control_diff_review.txt
+?? task_control_docker_final.txt
+?? task_control_environment_comparison.txt
+?? task_control_final_audit.txt
+?? task_control_final_docker_validation.txt
+?? task_control_final_safety_check.txt
+?? task_control_final_validation.txt
+?? task_control_forecast_section.txt
+?? task_control_structural_audit.txt
+?? task_control_targeted_validation.txt
+?? task_control_test_result.txt
+?? test_discovery.txt
+?? test_discovery_result.txt
+?? test_suite_discovery.txt
+?? valuation_execution_trace.txt
+
+
+============================================================
+CHECKPOINT 02 COMPLETE
+============================================================

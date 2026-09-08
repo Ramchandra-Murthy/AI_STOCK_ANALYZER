@@ -1,0 +1,237 @@
+﻿===== TASK_CONTROL.PY GIT DIFF REVIEW =====
+
+diff --git a/backend/tasks/task_control.py b/backend/tasks/task_control.py
+index 743acbb..00c7ba9 100644
+--- a/backend/tasks/task_control.py
++++ b/backend/tasks/task_control.py
+@@ -1,4 +1,4 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ from backend.exceptions import ValidationError
+ import logging
+ import os
+@@ -327,209 +327,8 @@ class TaskControlService:
+                     f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
+                 ),
+             })
+-        if task_name in ("forecast.execute", "forecast.run"):
+-            execution_result.update({
+-                "expected_value": float(payload.get("expected_value", 2837.5)),
+-                "bull_value": float(payload.get("bull_value", 3450.0)),
+-                "base_value": float(payload.get("base_value", 2900.0)),
+-                "bear_value": float(payload.get("bear_value", 2100.0)),
+-                "confidence": float(payload.get("confidence", 0.89)),
+-                "probability_distribution": payload.get(
+-                    "probability_distribution",
+-                    {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
+-                ),
+-                "key_drivers": payload.get(
+-                    "key_drivers",
+-                    ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
+-                ),
+-                "major_risks": payload.get(
+-                    "major_risks",
+-                    ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
+-                ),
+-                "assumptions": payload.get(
+-                    "assumptions",
+-                    [
+-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
+-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
+-                        "Cash flows projected over 5-year explicit horizon plus terminal value."
+-                    ]
+-                ),
+-                "record_id": payload.get(
+-                    "record_id",
+-                    f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
+-                ),
+-            })
+-        # Deterministic legacy/mock result contract.
+-        # This mirrors the shape of the real forecast worker result
+-        # without executing the production forecasting pipeline.
+-        if task_name in ("forecast.execute", "forecast.run"):
+-            execution_result.update({
+-                "expected_value": float(
+-                    payload.get("expected_value", 2837.5)
+-                ),
+-                "bull_value": float(
+-                    payload.get("bull_value", 3450.0)
+-                ),
+-                "base_value": float(
+-                    payload.get("base_value", 2900.0)
+-                ),
+-                "bear_value": float(
+-                    payload.get("bear_value", 2100.0)
+-                ),
+-                "confidence": float(
+-                    payload.get("confidence", 0.89)
+-                ),
+-                "probability_distribution": payload.get(
+-                    "probability_distribution",
+-                    {
+-                        "BULL": 0.25,
+-                        "BASE": 0.50,
+-                        "BEAR": 0.25,
+-                    },
+-                ),
+-                "key_drivers": payload.get(
+-                    "key_drivers",
+-                    [
+-                        "Revenue Growth Acceleration",
+-                        "Operating Margin Expansion",
+-                        "Capital Cost Discipline",
+-                    ],
+-                ),
+-                "major_risks": payload.get(
+-                    "major_risks",
+-                    [
+-                        "Interest Rate Volatility",
+-                        "Input Cost Inflation",
+-                        "Demand Compression",
+-                    ],
+-                ),
+-                "assumptions": payload.get(
+-                    "assumptions",
+-                    [
+-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
+-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
+-                        "Cash flows projected over 5-year explicit horizon plus terminal value.",
+-                    ],
+-                ),
+-                "record_id": payload.get(
+-                    "record_id",
+-                    f'{payload.get("symbol", "TCS.NS")}-FCST-2026-Q2',
+-                ),
+-            })
+-        # Deterministic legacy/mock result contract.
+         # This mirrors the shape of the real forecast worker result
+         # without executing the production forecasting pipeline.
+-        if task_name in ("forecast.execute", "forecast.run"):
+-            execution_result.update({
+-                "expected_value": float(
+-                    payload.get("expected_value", 2837.5)
+-                ),
+-                "bull_value": float(
+-                    payload.get("bull_value", 3450.0)
+-                ),
+-                "base_value": float(
+-                    payload.get("base_value", 2900.0)
+-                ),
+-                "bear_value": float(
+-                    payload.get("bear_value", 2100.0)
+-                ),
+-                "confidence": float(
+-                    payload.get("confidence", 0.89)
+-                ),
+-                "probability_distribution": payload.get(
+-                    "probability_distribution",
+-                    {
+-                        "BULL": 0.25,
+-                        "BASE": 0.50,
+-                        "BEAR": 0.25,
+-                    },
+-                ),
+-                "key_drivers": payload.get(
+-                    "key_drivers",
+-                    [
+-                        "Revenue Growth Acceleration",
+-                        "Operating Margin Expansion",
+-                        "Capital Cost Discipline",
+-                    ],
+-                ),
+-                "major_risks": payload.get(
+-                    "major_risks",
+-                    [
+-                        "Interest Rate Volatility",
+-                        "Input Cost Inflation",
+-                        "Demand Compression",
+-                    ],
+-                ),
+-                "assumptions": payload.get(
+-                    "assumptions",
+-                    [
+-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
+-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
+-                        "Cash flows projected over 5-year explicit horizon plus terminal value.",
+-                    ],
+-                ),
+-                "record_id": payload.get(
+-                    "record_id",
+-                    f'{payload.get("symbol", "TCS.NS")}-FCST-2026-Q2',
+-                ),
+-            })
+-        # Deterministic legacy/mock result contract.
+-        # This mirrors the shape of the real forecast worker result
+-        # without executing the production forecasting pipeline.
+-        if task_name in ("forecast.execute", "forecast.run"):
+-            execution_result.update({
+-                "expected_value": float(
+-                    payload.get("expected_value", 2837.5)
+-                ),
+-                "bull_value": float(
+-                    payload.get("bull_value", 3450.0)
+-                ),
+-                "base_value": float(
+-                    payload.get("base_value", 2900.0)
+-                ),
+-                "bear_value": float(
+-                    payload.get("bear_value", 2100.0)
+-                ),
+-                "confidence": float(
+-                    payload.get("confidence", 0.89)
+-                ),
+-                "probability_distribution": payload.get(
+-                    "probability_distribution",
+-                    {
+-                        "BULL": 0.25,
+-                        "BASE": 0.50,
+-                        "BEAR": 0.25,
+-                    },
+-                ),
+-                "key_drivers": payload.get(
+-                    "key_drivers",
+-                    [
+-                        "Revenue Growth Acceleration",
+-                        "Operating Margin Expansion",
+-                        "Capital Cost Discipline",
+-                    ],
+-                ),
+-                "major_risks": payload.get(
+-                    "major_risks",
+-                    [
+-                        "Interest Rate Volatility",
+-                        "Input Cost Inflation",
+-                        "Demand Compression",
+-                    ],
+-                ),
+-                "assumptions": payload.get(
+-                    "assumptions",
+-                    [
+-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
+-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
+-                        "Cash flows projected over 5-year explicit horizon plus terminal value.",
+-                    ],
+-                ),
+-                "record_id": payload.get(
+-                    "record_id",
+-                    f'{payload.get("symbol", "TCS.NS")}-FCST-2026-Q2',
+-                ),
+-            })
+ 
+         self._mock_tasks[task_id] = {
+             "task_id": task_id,
+@@ -877,7 +676,3 @@ class TaskControlService:
+ task_control = TaskControlService()
+ 
+ 
+-
+-
+-
+-
+
+===== DIFF SUMMARY =====
+1	206	backend/tasks/task_control.py
+
+
+===== PYTHON SYNTAX =====
+

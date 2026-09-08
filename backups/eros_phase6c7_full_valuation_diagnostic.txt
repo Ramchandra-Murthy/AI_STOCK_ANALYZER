@@ -1,0 +1,1115 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.7 FULL VALUATION PIPELINE DIAGNOSTIC
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+===== eros\decision\pipeline.py =====
+"""
+EROS 3.0 Decision Pipeline.
+
+Orchestration only.
+Existing business mathematics remains owned by canonical engines.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from eros.data import prepare_raw_data
+from eros.normalization import normalize
+from eros.scoring import fundamental_score, risk_score
+from eros.valuation.adapter import evaluate_valuation
+from eros.valuation.bridge import build_bridge
+@dataclass
+class PipelineContext:
+    symbol: str
+
+    raw_data: Any = None
+    financials: Any = None
+    normalized: Any = None
+
+    quality: Any = None
+    score: Any = None
+    risk: Any = None
+    classification: Any = None
+
+    sotp: Any = None
+    dcf: Any = None
+    valuation_bridge: Any = None
+
+    stage13c: Any = None
+    stage14: Any = None
+
+    evidence: list = field(default_factory=list)
+    warnings: list = field(default_factory=list)
+
+    status: str = "INITIALIZED"
+
+
+def create_context(symbol: str) -> PipelineContext:
+    prepared = prepare_raw_data(symbol)
+
+    return PipelineContext(
+        symbol=prepared["symbol"],
+        raw_data=prepared,
+    )
+
+
+def attach(context: PipelineContext, name: str, value: Any):
+    setattr(context, name, value)
+    return context
+
+
+def add_warning(context: PipelineContext, message: str):
+    if message:
+        context.warnings.append(str(message))
+
+
+def add_evidence(context: PipelineContext, evidence: Any):
+    if evidence is not None:
+        context.evidence.append(evidence)
+
+
+def run_foundation(
+    context: PipelineContext,
+    raw_data: Any = None,
+):
+    if raw_data is not None:
+        context.raw_data = prepare_raw_data(
+            context.symbol,
+            raw_data,
+        )
+
+    payload = context.raw_data.get("data")
+
+    if not payload:
+        add_warning(
+            context,
+            "No financial payload supplied; foundation execution skipped.",
+        )
+        context.status = "INPUT_REQUIRED"
+        return context
+
+    try:
+        context.financials = normalize(payload)
+        context.normalized = context.financials
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Normalization failed: {type(exc).__name__}: {exc}",
+        )
+        context.status = "NORMALIZATION_FAILED"
+        return context
+
+    try:
+        context.score = fundamental_score(context.financials)
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Fundamental scoring failed: {type(exc).__name__}: {exc}",
+        )
+
+    try:
+        context.risk = risk_score(context.financials)
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Risk scoring failed: {type(exc).__name__}: {exc}",
+        )
+
+    context.status = "FOUNDATION_COMPLETE"
+    return context
+
+
+def run_valuation(context):
+    """
+    Execute the EROS valuation stage.
+
+    Public valuation execution returns the canonical result dictionary.
+    PipelineContext, however, retains the executable ValuationBoundary
+    object so downstream stages can independently access SOTP and DCF.
+
+    No valuation mathematics is performed here.
+    """
+
+    from eros.valuation.adapter import evaluate_valuation
+    from eros.valuation.bridge import build_bridge
+
+    # --------------------------------------------------------
+    # Pre-foundation safety
+    # --------------------------------------------------------
+
+    if context.raw_data is None:
+        context.valuation_bridge = build_bridge(
+            sotp=None,
+            dcf=None,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+                "valuation_status": "INPUT_REQUIRED",
+            },
+        )
+
+        if hasattr(context, "warnings"):
+            context.warnings.append(
+                "Valuation requires foundation data."
+            )
+
+        return context
+
+    # --------------------------------------------------------
+    # Execute canonical valuation adapter
+    # --------------------------------------------------------
+
+    try:
+        result = evaluate_valuation(
+            context.raw_data,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+            },
+        )
+
+        # ----------------------------------------------------
+        # IMPORTANT:
+        # evaluate_valuation() intentionally returns a dict.
+        # The pipeline stores the boundary object internally.
+        # ----------------------------------------------------
+
+        context.valuation_bridge = build_bridge(
+            sotp=result.get("sotp"),
+            dcf=result.get("dcf"),
+            provenance=result.get("provenance", {}),
+        )
+
+        # Preserve valuation warnings at pipeline level.
+        warnings = result.get("warnings", [])
+
+        if warnings and hasattr(context, "warnings"):
+            context.warnings.extend(warnings)
+
+        # Do not overwrite a valid foundation state merely
+        # because valuation inputs are incomplete.
+        if result.get("status") == "EXECUTED":
+            context.status = "VALUATION_COMPLETE"
+        elif result.get("status") == "INPUT_REQUIRED":
+            if hasattr(context, "warnings"):
+                context.warnings.append(
+                    "Valuation input is incomplete."
+                )
+
+        return context
+
+    except Exception as exc:
+
+        if hasattr(context, "warnings"):
+            context.warnings.append(
+                f"Valuation execution failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        context.valuation_bridge = build_bridge(
+            sotp=None,
+            dcf=None,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+                "valuation_status": "ERROR",
+                "error_type": type(exc).__name__,
+            },
+        )
+
+        return context
+
+def finalize(context: PipelineContext):
+    if context.status == "INITIALIZED":
+        context.status = "INPUT_REQUIRED"
+        add_warning(
+            context,
+            "Pipeline was finalized before foundation execution.",
+        )
+
+    return {
+        "symbol": context.symbol,
+        "status": context.status,
+
+        "raw_data": context.raw_data,
+        "financials": context.financials,
+        "normalized": context.normalized,
+
+        "quality": context.quality,
+        "score": context.score,
+        "risk": context.risk,
+        "classification": context.classification,
+
+        "sotp": context.sotp,
+        "dcf": context.dcf,
+        "valuation_bridge": context.valuation_bridge,
+
+        "stage13c": context.stage13c,
+        "stage14": context.stage14,
+
+        "evidence": context.evidence,
+        "warnings": context.warnings,
+
+        "provenance": {
+            "orchestrator": "EROS_3.0",
+            "pipeline_status": context.status,
+            "symbol": context.symbol,
+        },
+    }
+
+
+__all__ = [
+    "PipelineContext",
+    "create_context",
+    "attach",
+    "add_warning",
+    "add_evidence",
+    "run_foundation",
+    "run_valuation",
+    "finalize",
+]
+
+
+===== eros\valuation\adapter.py =====
+"""EROS valuation execution adapter."""
+
+from typing import Any
+
+from eros.valuation.bridge import ValuationBoundary
+
+
+def valuation_available(data: Any) -> bool:
+    """Return whether enough data exists to attempt valuation."""
+
+    if not isinstance(data, dict):
+        return False
+
+    if not data:
+        return False
+
+    valuation_keys = {
+        "company_name",
+        "shares_outstanding",
+        "dcf_segments",
+        "other_segments",
+        "holdco_discount",
+        "revenue",
+        "ebitda",
+        "ebit",
+        "pat",
+        "free_cash_flow",
+    }
+
+    return any(
+        key in data and data.get(key) is not None
+        for key in valuation_keys
+    )
+
+
+def evaluate_valuation(
+    data: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    """Execute the EROS valuation boundary."""
+
+    boundary = ValuationBoundary()
+
+    if not valuation_available(data):
+        return boundary.evaluate(
+            {},
+            provenance=provenance,
+        )
+
+    return boundary.evaluate(
+        data,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "evaluate_valuation",
+    "valuation_available",
+]
+
+===== eros\valuation\bridge\engine.py =====
+"""EROS valuation bridge and executable boundary.
+
+EROS owns orchestration and result contracts.
+Canonical SOTP and DCF engines remain the authorities for
+valuation mathematics.
+
+SOTP and DCF are intentionally preserved independently.
+No simple mean is calculated here.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class ValuationBoundary:
+    """Executable EROS valuation boundary."""
+
+    sotp: Any = None
+    dcf: Any = None
+    provenance: dict[str, Any] = field(default_factory=dict)
+
+    def evaluate_sotp(
+        self,
+        data: dict[str, Any] | None = None,
+    ):
+        """Execute the canonical SOTP engine."""
+
+        from eros.valuation.sotp import evaluate_sotp
+
+        if data is None:
+            data = {}
+
+        try:
+            self.sotp = evaluate_sotp(data)
+        except Exception as exc:
+            self.sotp = None
+            self.provenance["sotp_error"] = (
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        return self.sotp
+
+    def evaluate_dcf(
+        self,
+        data: dict[str, Any] | None = None,
+    ):
+        """Execute the canonical DCF engine."""
+
+        from eros.valuation.dcf import evaluate_dcf
+
+        if data is None:
+            data = {}
+
+        try:
+            self.dcf = evaluate_dcf(data)
+        except Exception as exc:
+            self.dcf = None
+            self.provenance["dcf_error"] = (
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        return self.dcf
+
+    def evaluate(
+        self,
+        data: dict[str, Any] | None = None,
+        provenance: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Evaluate valuation and return the canonical EROS result.
+
+        Empty input and incomplete boundary input remain safe.
+
+        The returned dictionary deliberately exposes SOTP and DCF
+        independently. No averaging or synthetic valuation is created.
+        """
+
+        if data is None:
+            data = {}
+
+        base_provenance = {
+            **(provenance or {}),
+            "sotp_executed": False,
+            "dcf_executed": False,
+        }
+
+        # --------------------------------------------------------
+        # EMPTY INPUT
+        # --------------------------------------------------------
+
+        if not isinstance(data, dict) or not data:
+            self.sotp = None
+            self.dcf = None
+            self.provenance = {
+                **base_provenance,
+                "valuation_status": "INPUT_REQUIRED",
+            }
+
+            return {
+                "status": "INPUT_REQUIRED",
+                "sotp": None,
+                "dcf": None,
+                "provenance": self.provenance,
+                "warnings": [
+                    "Valuation input is required."
+                ],
+            }
+
+        # --------------------------------------------------------
+        # EXPLICIT BOUNDARY PAYLOAD
+        # --------------------------------------------------------
+
+        if set(data.keys()).issubset(
+            {"sotp", "dcf", "provenance"}
+        ):
+            self.sotp = data.get("sotp")
+            self.dcf = data.get("dcf")
+
+            supplied_provenance = data.get("provenance")
+
+            if isinstance(supplied_provenance, dict):
+                self.provenance = {
+                    **base_provenance,
+                    **supplied_provenance,
+                }
+            else:
+                self.provenance = {
+                    **base_provenance,
+                }
+
+            self.provenance["valuation_status"] = (
+                "INPUT_REQUIRED"
+            )
+
+            return {
+                "status": "INPUT_REQUIRED",
+                "sotp": self.sotp,
+                "dcf": self.dcf,
+                "provenance": self.provenance,
+                "warnings": [
+                    "Valuation input is required."
+                ],
+            }
+
+        # --------------------------------------------------------
+        # REAL VALUATION EXECUTION
+        # --------------------------------------------------------
+
+        self.provenance = {
+            **base_provenance,
+            "valuation_status": "EXECUTED",
+        }
+
+        warnings: list[str] = []
+
+        try:
+            self.evaluate_sotp(data)
+        except Exception as exc:
+            warnings.append(
+                f"SOTP valuation failed: {type(exc).__name__}: {exc}"
+            )
+
+        try:
+            self.evaluate_dcf(data)
+        except Exception as exc:
+            warnings.append(
+                f"DCF valuation failed: {type(exc).__name__}: {exc}"
+            )
+
+        self.provenance["sotp_executed"] = (
+            self.sotp is not None
+        )
+        self.provenance["dcf_executed"] = (
+            self.dcf is not None
+        )
+        self.provenance["warnings"] = warnings
+
+        return {
+            "status": "COMPLETE",
+            "sotp": self.sotp,
+            "dcf": self.dcf,
+            "provenance": self.provenance,
+            "warnings": warnings,
+        }
+
+
+def create_valuation_boundary(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    """Create an executable valuation boundary."""
+
+    return ValuationBoundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance or {},
+    )
+
+
+def build_bridge(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    """Build an independent SOTP/DCF valuation bridge."""
+
+    return create_valuation_boundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "ValuationBoundary",
+    "create_valuation_boundary",
+    "build_bridge",
+]
+
+===== eros\valuation\__init__.py =====
+"""Public EROS valuation API."""
+
+from .adapter import evaluate_valuation, valuation_available
+from .bridge import (
+    ValuationBoundary,
+    build_bridge,
+    create_valuation_boundary,
+)
+
+__all__ = [
+    "ValuationBoundary",
+    "build_bridge",
+    "create_valuation_boundary",
+    "evaluate_valuation",
+    "valuation_available",
+]
+
+
+===== eros\valuation\sotp\engine.py =====
+"""EROS SOTP valuation boundary."""
+
+from typing import Any
+
+from services.valuation.sotp_engine import SOTPValuationEngine
+
+
+def evaluate_sotp(data: dict[str, Any]):
+    """
+    Execute the canonical SOTP engine.
+
+    EROS owns the boundary only.
+    SOTP mathematics remains in services.valuation.sotp_engine.
+    """
+    engine = SOTPValuationEngine()
+    return engine.evaluate(data)
+
+
+__all__ = ["evaluate_sotp", "SOTPValuationEngine"]
+
+
+===== eros\valuation\dcf\engine.py =====
+"""EROS DCF valuation boundary."""
+
+from typing import Any
+
+from services.valuation.dcf_engine import DCFValuationEngine
+
+
+def evaluate_dcf(data: dict[str, Any]):
+    """
+    Execute the canonical DCF engine.
+
+    EROS owns the boundary only.
+    DCF mathematics remains in services.valuation.dcf_engine.
+    """
+    engine = DCFValuationEngine()
+    return engine.evaluate(data)
+
+
+__all__ = ["evaluate_dcf", "DCFValuationEngine"]
+
+===== eros\api\service.py =====
+"""
+EROS 3.0 public service facade.
+
+The API always executes the foundation boundary. When no financial
+payload is supplied, the pipeline deliberately returns INPUT_REQUIRED
+rather than pretending evaluation completed.
+"""
+
+from eros.decision.pipeline import (
+    create_context,
+    finalize,
+    run_foundation,
+)
+
+
+def evaluate(
+    symbol: str,
+    raw_data=None,
+    **kwargs,
+):
+    context = create_context(symbol)
+
+    # Always enter the foundation boundary.
+    #
+    # With raw_data=None, run_foundation safely produces
+    # INPUT_REQUIRED.
+    #
+    # With raw_data supplied, it performs:
+    # raw input -> normalization -> scoring.
+    run_foundation(
+        context,
+        raw_data=raw_data,
+    )
+
+    for key, value in kwargs.items():
+        if hasattr(context, key):
+            setattr(context, key, value)
+
+    return finalize(context)
+
+
+__all__ = ["evaluate"]
+
+===== VALUATION REFERENCES =====
+
+Path                                                                                        LineNumber Line            
+----                                                                                        ---------- ----            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                   14 from eros.valuat
+                                                                                                       ion.adapter     
+                                                                                                       import evaluate_
+                                                                                                       valuation       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                   15 from eros.valuat
+                                                                                                       ion.bridge      
+                                                                                                       import          
+                                                                                                       build_bridge    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                   31     valuation_br
+                                                                                                       idge: Any = None
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  117 def run_valuatio
+                                                                                                       n(context):     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  122     PipelineCont
+                                                                                                       ext, however,   
+                                                                                                       retains the     
+                                                                                                       executable Valua
+                                                                                                       tionBoundary    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  128     from eros.va
+                                                                                                       luation.adapter 
+                                                                                                       import evaluate_
+                                                                                                       valuation       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  129     from eros.va
+                                                                                                       luation.bridge  
+                                                                                                       import          
+                                                                                                       build_bridge    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  136         context.
+                                                                                                       valuation_bridge
+                                                                                                        = build_bridge(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  158         result  
+                                                                                                       = evaluate_valua
+                                                                                                       tion(           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  168         # evalua
+                                                                                                       te_valuation()  
+                                                                                                       intentionally   
+                                                                                                       returns a dict. 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  172         context.
+                                                                                                       valuation_bridge
+                                                                                                        = build_bridge(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  204         context.
+                                                                                                       valuation_bridge
+                                                                                                        = build_bridge(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  240         "valuati
+                                                                                                       on_bridge": cont
+                                                                                                       ext.valuation_br
+                                                                                                       idge,           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                  263                 
+                                                                                                       "run_valuation",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py            1 from            
+                                                                                                       eros.valuation  
+                                                                                                       import Valuation
+                                                                                                       Boundary        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py            5     result = Val
+                                                                                                       uationBoundary()
+                                                                                                       .evaluate({})   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py           14     result = Val
+                                                                                                       uationBoundary()
+                                                                                                       .evaluate(      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py           27     boundary = V
+                                                                                                       aluationBoundary
+                                                                                                       ()              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py           29     assert hasat
+                                                                                                       tr(boundary,    
+                                                                                                       "evaluate_sotp")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py           30     assert hasat
+                                                                                                       tr(boundary,    
+                                                                                                       "evaluate_dcf") 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py           5                 
+                                                                                                       run_valuation,  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          12     run_valuatio
+                                                                                                       n(context)      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          16     assert conte
+                                                                                                       xt.valuation_bri
+                                                                                                       dge is None     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          24     run_valuatio
+                                                                                                       n(context)      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          45     run_valuatio
+                                                                                                       n(context)      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          49     if context.v
+                                                                                                       aluation_bridge 
+                                                                                                       is not None:    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          50         assert h
+                                                                                                       asattr(context.v
+                                                                                                       aluation_bridge,
+                                                                                                        "sotp")        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          51         assert h
+                                                                                                       asattr(context.v
+                                                                                                       aluation_bridge,
+                                                                                                        "dcf")         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          52         assert  
+                                                                                                       context.sotp is 
+                                                                                                       context.valuatio
+                                                                                                       n_bridge.sotp   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          53         assert  
+                                                                                                       context.dcf is c
+                                                                                                       ontext.valuation
+                                                                                                       _bridge.dcf     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py          63     assert "valu
+                                                                                                       ation_bridge"   
+                                                                                                       in result       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                             16 class ValuationB
+                                                                                                       oundary:        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                             23     def         
+                                                                                                       evaluate_sotp(  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                             29         from ero
+                                                                                                       s.valuation.sotp
+                                                                                                        import         
+                                                                                                       evaluate_sotp   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                             35                 
+                                                                                                       self.sotp = eval
+                                                                                                       uate_sotp(data) 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                             44     def         
+                                                                                                       evaluate_dcf(   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                             50         from ero
+                                                                                                       s.valuation.dcf 
+                                                                                                       import          
+                                                                                                       evaluate_dcf    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                             56                 
+                                                                                                       self.dcf = evalu
+                                                                                                       ate_dcf(data)   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                            157             self
+                                                                                                       .evaluate_sotp(d
+                                                                                                       ata)            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                            164             self
+                                                                                                       .evaluate_dcf(da
+                                                                                                       ta)             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                            191 ) -> ValuationBo
+                                                                                                       undary:         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                            194     return Valua
+                                                                                                       tionBoundary(   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                            201 def             
+                                                                                                       build_bridge(   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                            205 ) -> ValuationBo
+                                                                                                       undary:         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                            216     "ValuationBo
+                                                                                                       undary",        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                            218                 
+                                                                                                       "build_bridge", 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py                            4     ValuationBou
+                                                                                                       ndary,          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py                            5                 
+                                                                                                       build_bridge,   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py                           10     "ValuationBo
+                                                                                                       undary",        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py                           11                 
+                                                                                                       "build_bridge", 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py                                 8 def evaluate_dcf
+                                                                                                       (data:          
+                                                                                                       dict[str, Any]):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py                                19 __all__ = ["eval
+                                                                                                       uate_dcf", "DCFV
+                                                                                                       aluationEngine"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__init__.py                               3 from .engine    
+                                                                                                       import          
+                                                                                                       evaluate_dcf, DC
+                                                                                                       FValuationEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__init__.py                               6                 
+                                                                                                       "evaluate_dcf", 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py                                8 def evaluate_sot
+                                                                                                       p(data:         
+                                                                                                       dict[str, Any]):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py                               19 __all__ = ["eval
+                                                                                                       uate_sotp", "SOT
+                                                                                                       PValuationEngine
+                                                                                                       "]              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__init__.py                              3 from .engine    
+                                                                                                       import          
+                                                                                                       evaluate_sotp, S
+                                                                                                       OTPValuationEngi
+                                                                                                       ne              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__init__.py                              6                 
+                                                                                                       "evaluate_sotp",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                    5 from eros.valuat
+                                                                                                       ion.bridge      
+                                                                                                       import Valuation
+                                                                                                       Boundary        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                   36 def evaluate_val
+                                                                                                       uation(         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                   39 ) -> ValuationBo
+                                                                                                       undary:         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                   42     boundary = V
+                                                                                                       aluationBoundary
+                                                                                                       ()              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                   57     "evaluate_va
+                                                                                                       luation",       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                   3 from .adapter   
+                                                                                                       import evaluate_
+                                                                                                       valuation, valua
+                                                                                                       tion_available  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                   5     ValuationBou
+                                                                                                       ndary,          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                   6                 
+                                                                                                       build_bridge,   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                  11     "ValuationBo
+                                                                                                       undary",        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                  12                 
+                                                                                                       "build_bridge", 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                  14     "evaluate_va
+                                                                                                       luation",       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\alerts\alert_engine.py                             13     def evaluate
+                                                                                                       _valuation_alert
+                                                                                                       (symbol: str, in
+                                                                                                       trinsic_value:  
+                                                                                                       float,          
+                                                                                                       market_price:   
+                                                                                                       float) -> Instit
+                                                                                                       utionalAlert |  
+                                                                                                       None:           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                           37         res = se
+                                                                                                       rvice.evaluate_s
+                                                                                                       otp(            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py         38     def evaluate
+                                                                                                       _dcf_segment(sel
+                                                                                                       f,              
+                                                                                                       segment_params: 
+                                                                                                       dict[str, Any]) 
+                                                                                                       -> SOTPSegmentRe
+                                                                                                       sult:           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py        185     def         
+                                                                                                       evaluate_sotp(  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py        196             res 
+                                                                                                       = self.evaluate_
+                                                                                                       dcf_segment(seg)
+
+
+
+
+===== eros\tests\integration\test_valuation_boundary.py =====
+from eros.valuation import ValuationBoundary
+
+
+def test_empty_valuation_input_is_safe():
+    result = ValuationBoundary().evaluate({})
+
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["sotp"] is None
+    assert result["dcf"] is None
+    assert result["warnings"]
+
+
+def test_partial_valuation_input_does_not_create_fake_values():
+    result = ValuationBoundary().evaluate(
+        {
+            "sotp": None,
+            "dcf": None,
+        }
+    )
+
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["sotp"] is None
+    assert result["dcf"] is None
+
+
+def test_valuation_boundary_exposes_independent_authorities():
+    boundary = ValuationBoundary()
+
+    assert hasattr(boundary, "evaluate_sotp")
+    assert hasattr(boundary, "evaluate_dcf")
+
+
+def test_sotp_engine_import_is_canonical():
+    from services.valuation.sotp_engine import SOTPValuationEngine
+
+    engine = SOTPValuationEngine()
+
+    assert engine.valuation_method == "SOTP"
+
+
+def test_dcf_engine_import_is_canonical():
+    from services.valuation.dcf_engine import DCFValuationEngine
+
+    engine = DCFValuationEngine()
+
+    assert engine.valuation_method == "DCF"
+
+
+===== eros\tests\integration\test_valuation_execution.py =====
+from eros.decision.pipeline import (
+    create_context,
+    finalize,
+    run_foundation,
+    run_valuation,
+)
+
+
+def test_valuation_is_not_run_without_foundation():
+    context = create_context("RELIANCE")
+
+    run_valuation(context)
+
+    assert context.sotp is None
+    assert context.dcf is None
+    assert context.valuation_bridge is None
+    assert context.warnings
+
+
+def test_empty_evaluate_path_remains_safe():
+    context = create_context("RELIANCE")
+
+    run_foundation(context)
+    run_valuation(context)
+
+    assert context.status == "INPUT_REQUIRED"
+    assert context.sotp is None
+    assert context.dcf is None
+
+
+def test_valuation_boundary_preserves_independence():
+    context = create_context("RELIANCE")
+
+    raw = {
+        "data": {
+            "company_name": "Reliance Industries",
+            "shares_outstanding": 100.0,
+            "dcf_segments": [],
+            "other_segments": [],
+            "holdco_discount": 0.0,
+        }
+    }
+
+    run_foundation(context, raw)
+    run_valuation(context)
+
+    # The exact legacy engines may reject incomplete valuation
+    # data, but the EROS boundary must remain intact.
+    if context.valuation_bridge is not None:
+        assert hasattr(context.valuation_bridge, "sotp")
+        assert hasattr(context.valuation_bridge, "dcf")
+        assert context.sotp is context.valuation_bridge.sotp
+        assert context.dcf is context.valuation_bridge.dcf
+
+
+def test_finalize_still_exposes_valuation_fields():
+    context = create_context("RELIANCE")
+
+    result = finalize(context)
+
+    assert "sotp" in result
+    assert "dcf" in result
+    assert "valuation_bridge" in result
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+
+
+===== eros\tests\integration\test_valuation_provenance.py =====
+from eros.api.service import evaluate
+
+
+def test_pipeline_result_preserves_eros_provenance():
+    result = evaluate("RELIANCE")
+
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+    assert result["provenance"]["symbol"] == "RELIANCE"
+
+
+===== eros\tests\unit\test_pipeline.py =====
+from eros.api.service import evaluate
+from eros.decision.pipeline import create_context
+
+
+def test_context():
+    context = create_context("RELIANCE")
+
+    assert context.symbol == "RELIANCE"
+    assert context.status == "INITIALIZED"
+
+
+def test_finalize():
+    result = evaluate("RELIANCE")
+
+    assert result["symbol"] == "RELIANCE"
+
+    # No financial payload was supplied.
+    # EROS must not claim that evaluation completed.
+    assert result["status"] == "INPUT_REQUIRED"
+
+    assert result["warnings"]
+
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+    assert result["provenance"]["pipeline_status"] == "INPUT_REQUIRED"
+
+
+COMPILE EXIT CODE: 0
+
+===== IMPORT CONTRACT =====
+
+IMPORT EXIT CODE: 1
+
+===== DIRECT BOUNDARY CONTRACT =====
+
+BOUNDARY EXIT CODE: 1
+
+===== PIPELINE VALUATION CONTRACT =====
+
+PIPELINE EXIT CODE: 1
+
+===== FULL EROS PYTEST =====
+...........F......                                                       [100%]
+================================== FAILURES ===================================
+________________ test_valuation_is_not_run_without_foundation _________________
+
+    def test_valuation_is_not_run_without_foundation():
+        context = create_context("RELIANCE")
+    
+        run_valuation(context)
+    
+        assert context.sotp is None
+        assert context.dcf is None
+>       assert context.valuation_bridge is None
+E       AssertionError: assert ValuationBoundary(sotp=None, dcf=None, provenance={'orchestrator': 'EROS_3.0', 'symbol': 'RELIANCE', 'sotp_executed': False, 'dcf_executed': False, 'valuation_status': 'INPUT_REQUIRED'}) is None
+E        +  where ValuationBoundary(sotp=None, dcf=None, provenance={'orchestrator': 'EROS_3.0', 'symbol': 'RELIANCE', 'sotp_executed': False, 'dcf_executed': False, 'valuation_status': 'INPUT_REQUIRED'}) = PipelineContext(symbol='RELIANCE', raw_data={'symbol': 'RELIANCE', 'data': {}, 'source': 'caller'}, financials=None, n...4=None, evidence=[], warnings=['Valuation input is required.', 'Valuation input is incomplete.'], status='INITIALIZED').valuation_bridge
+
+eros\tests\integration\test_valuation_execution.py:16: AssertionError
+=========================== short test summary info ===========================
+FAILED eros/tests/integration/test_valuation_execution.py::test_valuation_is_not_run_without_foundation
+1 failed, 17 passed in 0.47s
+
+PYTEST EXIT CODE: 1
+
+===== GIT DIFF SUMMARY =====
+ app.py                                             | 121 ++++------
+ components/top_holdings.py                         |  56 ++++-
+ database/stock_data.db                             | Bin 380928 -> 12288 bytes
+ modules/backtesting.py                             | 265 ++++++++++++++++++++-
+ ...sotp_long_term_equity_classification_service.py | 171 +++++++++++--
+ 5 files changed, 506 insertions(+), 107 deletions(-)
+
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+PHASE 6C.7 DIAGNOSTIC SUMMARY
+============================================================
+COMPILE EXIT: 0
+IMPORT EXIT: 1
+BOUNDARY EXIT: 1
+PIPELINE EXIT: 1
+PYTEST EXIT: 1
+
+

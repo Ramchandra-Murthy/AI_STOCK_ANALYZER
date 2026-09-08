@@ -1,0 +1,88 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.5 VALUATION RESULT CONTRACT REPAIR
+============================================================
+
+BRANCH:
+rebuild/eros-3-0-clean
+
+ROOT CAUSE:
+ValuationBoundary.evaluate() returned the boundary object,
+while EROS tests require the canonical result dictionary.
+
+FIX:
+- evaluate() now returns a dictionary.
+- result["status"] is supported.
+- result["sotp"] is independently exposed.
+- result["dcf"] is independently exposed.
+- result["warnings"] is exposed.
+- provenance remains attached.
+- evaluate_sotp() remains independently callable.
+- evaluate_dcf() remains independently callable.
+- No simple mean introduced.
+- No valuation mathematics duplicated.
+- Legacy valuation engines remain untouched.
+
+COMPILE:
+PASS
+
+IMPORT:
+PASS
+
+EMPTY / PARTIAL CONTRACT:
+PASS
+
+FULL EROS PYTEST EXIT CODE:
+1
+
+FULL PYTEST OUTPUT:
+.............F....                                                       [100%]
+================================== FAILURES ===================================
+_______________ test_valuation_boundary_preserves_independence ________________
+
+    def test_valuation_boundary_preserves_independence():
+        context = create_context("RELIANCE")
+    
+        raw = {
+            "data": {
+                "company_name": "Reliance Industries",
+                "shares_outstanding": 100.0,
+                "dcf_segments": [],
+                "other_segments": [],
+                "holdco_discount": 0.0,
+            }
+        }
+    
+        run_foundation(context, raw)
+        run_valuation(context)
+    
+        # The exact legacy engines may reject incomplete valuation
+        # data, but the EROS boundary must remain intact.
+        if context.valuation_bridge is not None:
+>           assert hasattr(context.valuation_bridge, "sotp")
+E           assert False
+E            +  where False = hasattr({'status': 'INPUT_REQUIRED', 'sotp': None, 'dcf': None, 'provenance': {'orchestrator': 'EROS_3.0', 'symbol': 'RELIANCE', 'sotp_executed': False, 'dcf_executed': False, ...}, ...}, 'sotp')
+E            +    where {'status': 'INPUT_REQUIRED', 'sotp': None, 'dcf': None, 'provenance': {'orchestrator': 'EROS_3.0', 'symbol': 'RELIANCE', 'sotp_executed': False, 'dcf_executed': False, ...}, ...} = PipelineContext(symbol='RELIANCE', raw_data={'symbol': 'RELIANCE', 'data': {'data': {'company_name': 'Reliance Industr...'", "Valuation execution failed: AttributeError: 'dict' object has no attribute 'sotp'"], status='FOUNDATION_COMPLETE').valuation_bridge
+
+eros\tests\integration\test_valuation_execution.py:50: AssertionError
+=========================== short test summary info ===========================
+FAILED eros/tests/integration/test_valuation_execution.py::test_valuation_boundary_preserves_independence
+1 failed, 17 passed in 0.33s
+
+
+GIT STATUS:
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 6C.5
+============================================================

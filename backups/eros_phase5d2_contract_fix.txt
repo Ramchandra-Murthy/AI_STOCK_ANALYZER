@@ -1,0 +1,43 @@
+﻿
+============================================================
+EROS 3.0 — PHASE 5D.2 FOUNDATION CONTRACT FIX
+============================================================
+
+BRANCH:
+rebuild/eros-3-0-clean
+
+ROOT CAUSE:
+evaluate() did not invoke run_foundation() when raw_data was omitted.
+finalize() therefore converted INITIALIZED -> COMPLETE.
+
+FIX:
+- evaluate() always enters the foundation boundary
+- empty input now produces INPUT_REQUIRED
+- finalize() no longer falsely reports unexecuted pipelines as COMPLETE
+- provenance remains attached to the result
+- foundation regression tests strengthened
+
+COMPILE:
+PASS
+
+IMPORT:
+PASS
+
+EMPTY INPUT CONTRACT:
+PASS
+
+PYTEST EXIT CODE:
+1
+
+DATABASE:
+NOT MODIFIED
+
+LEGACY ENGINES:
+NOT MODIFIED
+
+GIT STATUS:
+ M app.py  M components/top_holdings.py  M database/stock_data.db  M modules/backtesting.py  M services/sotp_long_term_equity_classification_service.py ?? backups/ ?? eros/ ?? services/sotp_long_term_equity_classification_service.py.bak ?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak ?? services/sotp_long_term_equity_classification_stage_service.py ?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+============================================================
+END PHASE 5D.2
+============================================================

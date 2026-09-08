@@ -1,0 +1,49 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C REAL VALUATION EXECUTION
+============================================================
+
+BRANCH:
+rebuild/eros-3-0-clean
+
+IMPLEMENTED:
+- EROS SOTP execution boundary
+- EROS DCF execution boundary
+- EROS valuation adapter
+- Pipeline valuation stage
+- Independent SOTP/DCF preservation
+- Valuation provenance
+- Safe pre-foundation valuation behavior
+- Phase 6C regression tests
+
+DESIGN:
+EROS
+ -> Foundation
+ -> Valuation Adapter
+ -> SOTP
+ -> DCF
+ -> Valuation Bridge
+
+IMPORTANT:
+- No SOTP mathematics duplicated
+- No DCF mathematics duplicated
+- No simple mean introduced
+- SOTP and DCF remain independently observable
+
+COMPILE:
+PASS
+
+IMPORT:
+PASS
+
+PYTEST EXIT CODE:
+2
+
+LEGACY VALUATION FILES:
+UNMODIFIED
+
+GIT STATUS:
+ M app.py  M components/top_holdings.py  M database/stock_data.db  M modules/backtesting.py  M services/sotp_long_term_equity_classification_service.py ?? backups/ ?? eros/ ?? services/sotp_long_term_equity_classification_service.py.bak ?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak ?? services/sotp_long_term_equity_classification_stage_service.py ?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+============================================================
+END PHASE 6C
+============================================================

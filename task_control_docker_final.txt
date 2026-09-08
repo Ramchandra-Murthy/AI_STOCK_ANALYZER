@@ -1,0 +1,8 @@
+﻿===== FINAL TASK_CONTROL DOCKER CHECK =====
+
+....                                                                     [100%]
+4 passed, 15 deselected in 2.89s
+
+
+===== RESULT =====
+Docker is the production-like environment.

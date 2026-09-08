@@ -1,0 +1,82 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.4 VALUATION BOUNDARY CONTRACT REPAIR
+============================================================
+
+BRANCH:
+rebuild/eros-3-0-clean
+
+FIX:
+- ValuationBoundary is now executable.
+- Added evaluate().
+- Added evaluate_sotp().
+- Added evaluate_dcf().
+- Empty input remains INPUT_REQUIRED.
+- Partial boundary input preserves None values.
+- SOTP and DCF remain independently observable.
+- No simple mean introduced.
+- No valuation mathematics duplicated.
+- Legacy valuation engines remain authorities.
+
+COMPILE:
+PASS
+
+IMPORT CONTRACT:
+PASS
+
+DIRECT BOUNDARY CONTRACT:
+PASS
+
+FULL EROS PYTEST EXIT CODE:
+1
+
+FULL PYTEST OUTPUT:
+......FF..........                                                       [100%]
+================================== FAILURES ===================================
+_____________________ test_empty_valuation_input_is_safe ______________________
+
+    def test_empty_valuation_input_is_safe():
+        result = ValuationBoundary().evaluate({})
+    
+>       assert result["status"] == "INPUT_REQUIRED"
+               ^^^^^^^^^^^^^^^^
+E       TypeError: 'ValuationBoundary' object is not subscriptable
+
+eros\tests\integration\test_valuation_boundary.py:7: TypeError
+__________ test_partial_valuation_input_does_not_create_fake_values ___________
+
+    def test_partial_valuation_input_does_not_create_fake_values():
+        result = ValuationBoundary().evaluate(
+            {
+                "sotp": None,
+                "dcf": None,
+            }
+        )
+    
+>       assert result["status"] == "INPUT_REQUIRED"
+               ^^^^^^^^^^^^^^^^
+E       TypeError: 'ValuationBoundary' object is not subscriptable
+
+eros\tests\integration\test_valuation_boundary.py:21: TypeError
+=========================== short test summary info ===========================
+FAILED eros/tests/integration/test_valuation_boundary.py::test_empty_valuation_input_is_safe
+FAILED eros/tests/integration/test_valuation_boundary.py::test_partial_valuation_input_does_not_create_fake_values
+2 failed, 16 passed in 0.34s
+
+
+GIT STATUS:
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 6C.4
+============================================================

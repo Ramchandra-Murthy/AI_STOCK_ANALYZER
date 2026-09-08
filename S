@@ -1,0 +1,97 @@
+warning: in the working copy of 'modules/backtesting.py', LF will be replaced by CRLF the next time Git touches it
+modules/backtesting.py:11: trailing whitespace.
+[32m+[m[32mdef run_backtest(df, initial_capital=100000, fast_sma=20, slow_sma=50,[m[41m [m
+modules/backtesting.py:22: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:39: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:46: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:52: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:55: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:68: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:73: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:92: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:106: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:108: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:116: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:120: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:133: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:140: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:143: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:145: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:152: trailing whitespace.
+[32m+[m[41m        [m
+modules/backtesting.py:157: trailing whitespace.
+[32m+[m[41m        [m
+modules/backtesting.py:161: trailing whitespace.
+[32m+[m[41m        [m
+modules/backtesting.py:163: trailing whitespace.
+[32m+[m[41m    [m
+modules/backtesting.py:173: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:178: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:181: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:189: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:192: trailing whitespace.
+[32m+[m[32m                    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,[m[41m [m
+modules/backtesting.py:193: trailing whitespace.
+[32m+[m[32m                                        vertical_spacing=0.1,[m[41m [m
+modules/backtesting.py:195: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:196: trailing whitespace.
+[32m+[m[32m                    fig.add_trace(go.Scatter(x=data.index, y=data["Equity"],[m[41m [m
+modules/backtesting.py:197: trailing whitespace.
+[32m+[m[32m                                             mode="lines", name="Equity",[m[41m [m
+modules/backtesting.py:199: trailing whitespace.
+[32m+[m[32m                    fig.add_trace(go.Scatter(x=data.index, y=[initial_capital]*len(data),[m[41m [m
+modules/backtesting.py:200: trailing whitespace.
+[32m+[m[32m                                             mode="lines", name="Benchmark",[m[41m [m
+modules/backtesting.py:202: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:203: trailing whitespace.
+[32m+[m[32m                    fig.add_trace(go.Scatter(x=data.index, y=data["Drawdown"]*100,[m[41m [m
+modules/backtesting.py:204: trailing whitespace.
+[32m+[m[32m                                             mode="lines", name="Drawdown %",[m[41m [m
+modules/backtesting.py:205: trailing whitespace.
+[32m+[m[32m                                             fill="tozeroy", line=dict(color="red"),[m[41m [m
+modules/backtesting.py:207: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:212: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:216: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:224: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:228: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:237: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:239: trailing whitespace.
+[32m+[m[32m                    fig2.add_trace(go.Scatter(x=data.index, y=data[f"SMA_{fast_sma}"],[m[41m [m
+modules/backtesting.py:241: trailing whitespace.
+[32m+[m[32m                    fig2.add_trace(go.Scatter(x=data.index, y=data[f"SMA_{slow_sma}"],[m[41m [m
+modules/backtesting.py:243: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:244: trailing whitespace.
+[32m+[m[32m                    fig2.update_layout(height=500, template="plotly_dark",[m[41m [m
+modules/backtesting.py:248: trailing whitespace.
+[32m+[m[41m                    [m
+modules/backtesting.py:259: trailing whitespace.
+[32m+[m[41m                    [m

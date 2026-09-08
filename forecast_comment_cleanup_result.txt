@@ -1,0 +1,23 @@
+===== FORECAST COMMENT CLEANUP =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+File: D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py
+
+===== BACKUP =====
+Backup created: D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py.backup-before-comment-cleanup
+
+Duplicate legacy/mock comment sequences BEFORE: 2
+
+===== AFTER CLEANUP =====
+Remaining forecast execution blocks: 1
+Remaining duplicate legacy/mock comment sequences: 0
+
+COMMENT CLEANUP: PASS
+
+===== PYTHON SYNTAX CHECK =====
+SYNTAX: PASS
+
+===== REMAINING FORECAST BLOCK LINE =====
+Line 298: if task_name in ("forecast.execute", "forecast.run"):
+
+===== FINAL FILE =====
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py

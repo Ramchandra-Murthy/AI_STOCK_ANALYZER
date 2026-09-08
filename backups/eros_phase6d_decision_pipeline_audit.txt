@@ -1,0 +1,114 @@
+﻿============================================================
+EROS 3.0 ù PHASE 6D DECISION PIPELINE INTEGRATION AUDIT
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+ROOT: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+============================================================
+===== DECISION PIPELINE SOURCE =====
+============================================================
+PIPELINE IMPORT ERROR: ModuleNotFoundError No module named 'eros'
+
+============================================================
+===== PUBLIC DECISION CONTRACT =====
+============================================================
+IMPORT CONTRACT: FAIL
+ModuleNotFoundError No module named 'eros'
+
+============================================================
+===== PIPELINE CONTEXT CONTRACT =====
+============================================================
+CONTEXT CONTRACT: FAIL
+NameError name 'create_context' is not defined
+
+============================================================
+===== PRE-FOUNDATION DECISION SAFETY =====
+============================================================
+PRE-FOUNDATION CONTRACT: FAIL
+NameError name 'create_context' is not defined
+
+============================================================
+===== FOUNDATION -> VALUATION -> FINALIZE =====
+============================================================
+FOUNDATION -> VALUATION -> FINALIZE: FAIL
+NameError name 'create_context' is not defined
+
+============================================================
+===== PUBLIC API CONTRACT =====
+============================================================
+PUBLIC API CONTRACT: FAIL
+ModuleNotFoundError No module named 'eros'
+
+============================================================
+===== VALUATION BOUNDARY CONTRACT =====
+============================================================
+VALUATION BOUNDARY CONTRACT: FAIL
+ModuleNotFoundError No module named 'eros'
+
+============================================================
+===== DECISION STAGE DEPENDENCY INSPECTION =====
+============================================================
+STAGE DEPENDENCY INSPECTION: FAIL
+ModuleNotFoundError No module named 'eros'
+
+============================================================
+===== FULL EROS PYTEST =====
+============================================================
+..................                                                       [100%]
+18 passed in 0.25s
+
+
+EROS PYTEST EXIT: 0
+
+============================================================
+===== VALUATION PYTEST =====
+============================================================
+..........                                                               [100%]
+10 passed in 0.24s
+
+
+VALUATION PYTEST EXIT: 0
+
+============================================================
+===== EROS COMPILE =====
+============================================================
+
+
+COMPILE EXIT: 0
+
+============================================================
+===== EROS GIT STATUS =====
+============================================================
+?? eros/
+
+
+
+============================================================
+===== OUTSIDE EROS GIT STATUS =====
+============================================================
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+
+============================================================
+===== PHASE 6D READ-ONLY SUMMARY =====
+============================================================
+EROS PYTEST EXIT: 0
+VALUATION PYTEST EXIT: 0
+COMPILE EXIT: 0
+CORE AUTOMATED VALIDATION: PASS
+
+============================================================
+END PHASE 6D DECISION PIPELINE INTEGRATION AUDIT
+============================================================
+

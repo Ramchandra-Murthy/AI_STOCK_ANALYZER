@@ -1,0 +1,84 @@
+﻿===== QUEUE STATUS FAILURE INVESTIGATION =====
+
+===== TEST: test_task_control_queue_status =====
+
+
+def test_task_control_queue_status():
+    control = TaskControlService()
+    queue_status = control.get_queue_status()
+
+    assert queue_status["status"] == "HEALTHY"
+    assert "forecast_queue" in queue_status["queues"]
+    assert "report_queue" in queue_status["queues"]
+    assert queue_status["real_celery"] is True
+
+
+def test_task_control_unknown_task():
+    control = TaskControlService()
+
+    try:
+        control.submit_task(
+            task_name="unknown.task",
+            user="sprint19c_test",
+            payload={},
+        )
+        assert False, "Expected ValueError"
+    except ValueError as exc:
+        assert "Unknown task" in str(exc)
+
+
+
+===== CURRENT get_queue_status METHOD =====
+
+>     def get_queue_status(self) -> Dict[str, Any]:
+          queues = [
+              "default",
+              "forecast_queue",
+              "valuation_queue",
+              "report_queue",
+          ]
+          return {
+              "queues": queues,
+              "status": "HEALTHY",
+              "real_celery": self._real_celery,
+          }
+  
+      def get_task_metrics(self) -> Dict[str, Any]:
+          total_submitted = len(self._mock_tasks)
+          success_count = 0
+          failure_count = 0
+          pending_count = 0
+          execution_times = []
+  
+          for task_id, meta in self._mock_tasks.items():
+              status = meta.get("status", "PENDING")
+  
+              if self._real_celery and celery_instance is not None:
+                  try:
+                      from celery.result import AsyncResult
+                      result = AsyncResult(task_id, app=celery_instance)
+                      status = result.status
+                      meta["status"] = status
+                      if result.ready() and meta.get("completed_at") is None:
+                          meta["completed_at"] = time.time()
+                          submitted_ts = meta.get("submitted_at")
+                          if submitted_ts is not None:
+                              meta["execution_time_ms"] = round(
+                                  (meta["completed_at"] - submitted_ts) * 1000,
+                                  3,
+
+
+
+
+===== CURRENT QUEUE NAMES =====
+
+          queues = [
+              "default",
+>             "forecast_queue",
+>             "valuation_queue",
+>             "report_queue",
+          ]
+          return {
+
+
+

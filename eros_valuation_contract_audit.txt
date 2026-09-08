@@ -1,0 +1,1641 @@
+﻿============================================================
+EROS 3.0 — VALUATION CONTRACT AUDIT
+============================================================
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+Date: 09/07/2026 20:28:30
+
+TASK CONTROL: PROTECTED / DO NOT TOUCH
+
+============================================================
+VALUATION FILE INVENTORY
+============================================================
+
+FullName                                                                                                              Length LastWriteTime         
+--------                                                                                                              ------ -------------         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py                                                   450 06-08-2026 08:06:12 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py.pre_valuation_migration.bak                       450 06-08-2026 08:06:12 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\__init__.cpython-313.pyc                          595 06-09-2026 08:14:18 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\base_engine.cpython-313.pyc                      1735 07-09-2026 03:30:24 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\blended_engine.cpython-313.pyc                   3749 07-09-2026 07:10:40 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\contracts.cpython-313.pyc                        4172 06-09-2026 08:14:18 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\dcf_adapter.cpython-313.pyc                      3840 06-09-2026 09:50:13 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\dcf_engine.cpython-313.pyc                       6060 07-09-2026 05:56:32 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\dispatcher.cpython-313.pyc                       3676 07-09-2026 05:56:32 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\engine.cpython-313.pyc                           2845 07-09-2026 07:10:40 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\enums.cpython-313.pyc                            1023 06-09-2026 08:14:18 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\events.cpython-313.pyc                            774 06-09-2026 08:14:18 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\models.cpython-313.pyc                           1766 06-09-2026 08:14:18 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\nav_engine.cpython-313.pyc                       2425 07-09-2026 03:30:24 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\service.cpython-313.pyc                          3321 07-09-2026 07:10:40 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\sotp_adapter_fix.cpython-313.pyc                  823 06-09-2026 08:14:18 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\sotp_engine.cpython-313.pyc                      2742 07-09-2026 03:30:24 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\stub_adapters.cpython-313.pyc                    3458 06-09-2026 08:14:18 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py                                               1203 07-09-2026 03:28:25 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                            2516 06-08-2026 10:28:43 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\__pycache__\comparable_input.cpython-313.pyc      1904 25-08-2026 04:28:06 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\__pycache__\comparable_model.cpython-313.pyc      4706 25-08-2026 04:28:06 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\__pycache__\comparable_result.cpython-313.pyc     2061 25-08-2026 04:28:06 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\__pycache__\multiple_calculator.cpython-313.pyc   2120 25-08-2026 04:28:06 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\__pycache__\peer_selection.cpython-313.pyc        1708 25-08-2026 04:28:06 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\__pycache__\statistics.cpython-313.pyc            3476 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\__pycache__\validation.cpython-313.pyc            2739 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\__pycache__\weighting.cpython-313.pyc             1473 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_input.py                               1797 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_model.py                               5194 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_result.py                              2047 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\multiple_calculator.py                            2074 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\peer_selection.py                                 2123 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\statistics.py                                     3371 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\validation.py                                     2369 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\weighting.py                                      1614 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\contracts.py                                                 2654 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                              1705 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\__init__.cpython-313.pyc                     1596 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\dcf_input.cpython-313.pyc                    4986 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\dcf_model.cpython-313.pyc                    4687 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\dcf_result.cpython-313.pyc                   3021 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\discounting.cpython-313.pyc                  2815 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\engine.cpython-313.pyc                       2788 07-09-2026 06:19:39 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\forecast.cpython-313.pyc                     3031 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\models.cpython-313.pyc                       1116 25-08-2026 09:29:40 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\professional_engine.cpython-313.pyc          3974 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\sensitivity.cpython-313.pyc                  2830 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\terminal_value.cpython-313.pyc               3125 25-08-2026 04:28:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\validation.cpython-313.pyc                   4587 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py                                             4230 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                             5605 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py                                            4123 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\discounting.py                                           3042 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py                                                2246 07-09-2026 06:19:22 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py                                              3159 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\models.py                                                 537 06-08-2026 09:01:04 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py                                   3248 11-08-2026 11:01:13 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\sensitivity.py                                           2969 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\terminal_value.py                                        4131 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                            4469 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py                                               2882 06-09-2026 09:49:09 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py                                                5694 07-09-2026 03:29:17 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                                2511 07-09-2026 03:40:43 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py                                                    2493 06-08-2026 08:42:40 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__init__.py                                            32 06-08-2026 05:29:48 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__pycache__\__init__.cpython-313.pyc                  175 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__pycache__\dcf_engine.cpython-313.pyc                252 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__pycache__\nav_engine.cpython-313.pyc                252 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__pycache__\sotp_engine.cpython-313.pyc               255 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py                                          65 06-08-2026 05:29:48 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\nav_engine.py                                          65 06-08-2026 05:29:48 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py                                         67 06-08-2026 05:29:48 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\enums.py                                                      510 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\events.py                                                     306 06-08-2026 08:51:15 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py                                                     902 06-08-2026 08:06:12 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__init__.py                                              1675 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\__init__.cpython-313.pyc                     1466 25-08-2026 04:28:09 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\adjustments.cpython-313.pyc                  2718 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\asset_registry.cpython-313.pyc               2063 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\liability_registry.cpython-313.pyc           1739 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\nav_engine.cpython-313.pyc                   4871 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\nav_input.cpython-313.pyc                    2123 25-08-2026 04:28:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\nav_model.cpython-313.pyc                    4752 25-08-2026 04:28:09 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\nav_result.cpython-313.pyc                   1929 25-08-2026 04:28:09 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\sensitivity.cpython-313.pyc                  2749 25-08-2026 04:28:09 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__pycache__\validation.cpython-313.pyc                   3201 25-08-2026 04:28:09 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\adjustments.py                                           2740 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\asset_registry.py                                        2548 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\liability_registry.py                                    2372 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_engine.py                                            3890 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_input.py                                             1759 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_model.py                                             4469 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_result.py                                            1805 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\sensitivity.py                                           2963 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\validation.py                                            2817 06-08-2026 09:27:15 AM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py                                                1376 07-09-2026 03:29:17 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\__pycache__\engine.cpython-313.pyc                  4824 06-09-2026 07:58:50 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\__pycache__\models.cpython-313.pyc                  1144 25-08-2026 04:28:09 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                           4901 06-09-2026 07:58:36 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\models.py                                            552 06-08-2026 09:03:08 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py                                                   2425 06-08-2026 09:01:04 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py.pre_valuation_migration.bak                       2425 06-08-2026 09:01:04 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\__pycache__\engine.cpython-313.pyc                      3244 06-09-2026 07:58:50 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\__pycache__\models.cpython-313.pyc                      1712 25-08-2026 04:28:09 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py                                               2942 06-09-2026 07:58:36 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\models.py                                                845 06-08-2026 09:04:07 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_adapter_fix.py                                           475 25-08-2026 08:45:53 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                               1700 07-09-2026 03:29:17 PM
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\stub_adapters.py                                             2438 06-08-2026 09:27:15 AM
+
+
+
+
+============================================================
+FILE: .\services\valuation\base_engine.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+BASE VALUATION ENGINE
+Module  : base_engine
+Version : V1.1
+==========================================================
+
+Canonical abstract interface for all valuation engines.
+
+All concrete valuation engines must return the canonical
+domain-level ValuationResult.
+"""
+
+from abc import ABC, abstractmethod
+from typing import Any
+
+from domain.valuation.result import ValuationResult
+
+
+class BaseValuationEngine(ABC):
+    """
+    Abstract base class for all valuation engines.
+    """
+
+    @property
+    @abstractmethod
+    def valuation_method(self) -> str:
+        """Return the valuation methodology identifier."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def value(self, entity: Any) -> ValuationResult:
+        """
+        Execute valuation and return the canonical
+        domain-level ValuationResult.
+        """
+        raise NotImplementedError
+
+    @property
+    def engine_name(self) -> str:
+        """Human-readable engine name."""
+        return self.__class__.__name__
+
+    def __repr__(self) -> str:
+        return f"{self.engine_name}(method={self.valuation_method})"
+
+
+============================================================
+FILE: .\services\valuation\dispatcher.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+VALUATION DISPATCHER (STRATEGY REGISTRY)
+Module  : dispatcher
+Version : V2.0
+==========================================================
+
+Central registry routing valuation tasks to engine strategies.
+"""
+
+from typing import Any
+
+from services.valuation.base_engine import BaseValuationEngine
+from domain.valuation.result import ValuationResult
+from services.valuation.engines.dcf_engine import DCFValuationEngine
+from services.valuation.engines.nav_engine import NAVValuationEngine
+from services.valuation.engines.sotp_engine import SOTPValuationEngine
+
+
+class ValuationDispatcher:
+    def __init__(self):
+        self._engines: dict[str, BaseValuationEngine] = {}
+        self.engines = self._engines  # Backwards compatibility alias
+        
+        # Register default engines
+        try:
+            self.register(DCFValuationEngine())
+        except Exception:
+            pass
+        try:
+            self.register(NAVValuationEngine())
+        except Exception:
+            pass
+        try:
+            self.register(SOTPValuationEngine())
+        except Exception:
+            pass
+
+    def list_supported_methods(self) -> list[str]:
+        """Return a list of supported valuation method names."""
+        return list(self._engines.keys())
+
+    def register_engine(self, name: str, engine: Any) -> None:
+        """Register a valuation engine."""
+        self._engines[name.upper()] = engine
+
+    def register(self, engine: BaseValuationEngine) -> None:
+        """Registers a valuation engine adapter."""
+        method_key = getattr(engine, "valuation_method", engine.__class__.__name__.replace("ValuationEngine", "")).upper()
+        self._engines[method_key] = engine
+
+    def get_engine(self, method: str) -> BaseValuationEngine:
+        """Retrieves an engine strategy by method key."""
+        key = method.upper()
+        if key not in self._engines:
+            raise KeyError(f"No valuation engine registered for method: '{method}'.")
+        return self._engines[key]
+
+    def value(self, method: str, entity: Any) -> ValuationResult:
+        """Executes valuation using the requested method key."""
+        engine = self.get_engine(method)
+        return engine.value(entity)
+
+    def dispatch(self, method: str, entity: Any) -> ValuationResult:
+        """Alias for value()."""
+        return self.value(method, entity)
+
+
+============================================================
+FILE: .\services\valuation\service.py
+============================================================
+from __future__ import annotations
+
+import logging
+import time
+from typing import Any
+from core.events.dispatcher import EventDispatcher
+from services.valuation.engine import ValuationEngine  # Legacy wrapper compatibility
+from services.valuation.dcf.engine import ProductionDCFEngine
+from services.valuation.events import ValuationCompleted
+from services.forecast.models import ForecastResult
+
+logger = logging.getLogger(__name__)
+
+
+class ValuationService:
+    """Service managing production-grade DCF valuation and event publishing triggered by forecast completion."""
+
+    def __init__(
+        self,
+        engine: Any,
+        bus: Any,
+        dispatcher: EventDispatcher,
+    ) -> None:
+        self._engine = engine
+        self._dcf_engine = ProductionDCFEngine()
+        self._bus = bus
+        self._dispatcher = dispatcher
+        self._bus.subscribe("forecast.completed", self.handle_forecast_completed)
+
+    async def handle_forecast_completed(self, event: Any) -> None:
+        """Event handler triggered when forecasting is completed."""
+        forecast_result: ForecastResult = event.payload.get("forecast_result")
+        symbol = event.symbol
+
+        if not forecast_result:
+            logger.warning("No forecast result found in payload for symbol: %s", symbol)
+            return
+
+        await self.compute_and_publish(forecast_result)
+
+    async def compute_and_publish(self, forecast: ForecastResult) -> Any:
+        """Run production DCF valuation and publish ValuationCompleted event."""
+        symbol = forecast.symbol
+        dcf_result = self._dcf_engine.calculate(forecast)
+
+        # Determine recommendation based on fair value vs benchmark (e.g., current price mock ~1400)
+        fair_value = dcf_result.fair_value_per_share
+        recommendation = "BUY" if fair_value > 1200 else ("HOLD" if fair_value > 900 else "SELL")
+
+        event = ValuationCompleted(
+            symbol=symbol,
+            timestamp=time.time(),
+            payload={
+                "blended_fair_value": fair_value,
+                "recommendation": recommendation,
+                "dcf_result": dcf_result,
+                "valuation_result": dcf_result,
+                "symbol": symbol,
+            },
+        )
+
+        await self._dispatcher.dispatch(event)
+        logger.info("ValuationCompleted event published for symbol: %s with fair value: %.2f", symbol, fair_value)
+        return dcf_result
+
+
+============================================================
+FILE: .\services\valuation\dcf_engine.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+
+from domain.valuation.result import (
+    ValuationResult,
+    ValuationMethod,
+    ValuationStatus,
+)
+
+from services.valuation.base_engine import BaseValuationEngine
+
+
+class DCFValuationEngine(BaseValuationEngine):
+    """
+    Adapter for the canonical DCF valuation engine.
+
+    EROS may provide either:
+    1. A complete DCFInput instance, or
+    2. A dictionary containing a DCF payload.
+
+    The adapter deliberately strips orchestration-only keys such as
+    dcf_segments before constructing DCFInput.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    @property
+    def valuation_method(self) -> str:
+        return ValuationMethod.DCF.value
+
+    def value(self, data: Any) -> ValuationResult:
+        from services.valuation.dcf import DCFInput, DCFModel
+
+        if isinstance(data, DCFInput):
+            dcf_input = data
+
+        elif isinstance(data, dict):
+            payload = dict(data)
+
+            dcf_segments = payload.get("dcf_segments")
+
+            if isinstance(dcf_segments, list) and dcf_segments:
+                segment = dcf_segments[0]
+
+                if isinstance(segment, dict):
+                    merged = dict(segment)
+
+                    for key, value in payload.items():
+                        if key not in {
+                            "dcf_segments",
+                            "other_segments",
+                            "holdco_discount",
+                            "provenance",
+                        }:
+                            merged.setdefault(key, value)
+
+                    payload = merged
+
+            excluded_keys = {
+                "dcf_segments",
+                "other_segments",
+                "holdco_discount",
+                "provenance",
+                "status",
+                "warnings",
+                "source",
+                "data",
+            }
+
+            for key in excluded_keys:
+                payload.pop(key, None)
+
+            if "ebit_margins" in payload and "ebit_margin_forecast" not in payload:
+                payload["ebit_margin_forecast"] = payload.pop("ebit_margins")
+
+            if (
+                "working_capital_ratios" in payload
+                and "nwc_pct_rev" not in payload
+            ):
+                payload["nwc_pct_rev"] = payload.pop(
+                    "working_capital_ratios"
+                )
+
+            payload.setdefault(
+                "company_name",
+                payload.get("symbol", "Target Co"),
+            )
+            payload.setdefault("currency", "INR")
+
+            payload.setdefault(
+                "last_historical_revenue",
+                payload.get("revenue", 1000.0),
+            )
+
+            payload.setdefault("revenue_growth_rates", [0.08] * 5)
+            payload.setdefault("ebit_margin_forecast", [0.20] * 5)
+            payload.setdefault("capex_pct_rev", [0.05] * 5)
+            payload.setdefault("nwc_pct_rev", [0.02] * 5)
+            payload.setdefault("dna_pct_rev", [0.03] * 5)
+
+            payload.setdefault("tax_rate", 0.25)
+            payload.setdefault("cost_of_equity", 0.12)
+            payload.setdefault("cost_of_debt_post_tax", 0.06)
+            payload.setdefault("equity_weight", 0.80)
+            payload.setdefault("debt_weight", 0.20)
+            payload.setdefault("terminal_growth_rate", 0.03)
+
+            payload.setdefault("total_debt", 0.0)
+            payload.setdefault("cash_and_equivalents", 0.0)
+            payload.setdefault("shares_outstanding", 1.0)
+            payload.setdefault("minority_interest", 0.0)
+            payload.setdefault("preferred_stock", 0.0)
+
+            dcf_fields = {
+                "company_name",
+                "currency",
+                "last_historical_revenue",
+                "revenue_growth_rates",
+                "ebit_margin_forecast",
+                "capex_pct_rev",
+                "nwc_pct_rev",
+                "dna_pct_rev",
+                "tax_rate",
+                "cost_of_equity",
+                "cost_of_debt_post_tax",
+                "equity_weight",
+                "debt_weight",
+                "terminal_growth_rate",
+                "total_debt",
+                "cash_and_equivalents",
+                "shares_outstanding",
+                "minority_interest",
+                "preferred_stock",
+            }
+
+            dcf_payload = {
+                key: value
+                for key, value in payload.items()
+                if key in dcf_fields
+            }
+
+            dcf_input = DCFInput(**dcf_payload)
+
+        else:
+            raise TypeError(
+                "DCFValuationEngine requires DCFInput or dict payload; "
+                f"received {type(data).__name__}"
+            )
+
+        dcf_input.validate()
+
+        model = DCFModel(dcf_input)
+        result = model.run_model()
+
+        return ValuationResult(
+            method=ValuationMethod.DCF,
+            enterprise_value=result.enterprise_value,
+            equity_value=result.equity_value,
+            implied_share_price=result.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={
+                "company_name": dcf_input.company_name,
+                "currency": dcf_input.currency,
+                "wacc": result.wacc,
+                "terminal_value_pct": result.terminal_value_pct_of_ev,
+                "forecast_years": result.forecast_period,
+                "notes": "Evaluated successfully via modular DCF engine",
+            },
+        )
+
+    def evaluate(self, data: Any) -> ValuationResult:
+        """Backward-compatible alias for value()."""
+        return self.value(data)
+
+
+DCFEngine = DCFValuationEngine
+
+
+============================================================
+FILE: .\services\valuation\dcf_adapter.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+
+from domain.valuation.result import (
+    ValuationMethod,
+    ValuationResult,
+    ValuationStatus,
+)
+
+from services.valuation.base_engine import BaseValuationEngine
+from services.valuation.contracts import SOTPSegmentInput
+from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+
+
+class DCFValuationEngine(BaseValuationEngine):
+    """
+    Canonical DCF valuation adapter.
+
+    Converts the EROS valuation boundary input into the
+    canonical DCF model input and returns the domain-level
+    ValuationResult contract.
+    """
+
+    @property
+    def valuation_method(self) -> str:
+        return ValuationMethod.DCF.value
+
+    def value(self, entity: Any) -> ValuationResult:
+        if isinstance(entity, SOTPSegmentInput):
+            dcf_input = DCFInput(
+                last_historical_revenue=entity.last_historical_revenue,
+                revenue_growth_rates=entity.revenue_growth_rates,
+                ebit_margin_forecast=entity.ebit_margin_forecast,
+                dna_pct_rev=entity.dna_pct_rev,
+                capex_pct_rev=entity.capex_pct_rev,
+                nwc_pct_rev=entity.nwc_pct_rev,
+                tax_rate=entity.tax_rate,
+                cost_of_equity=entity.cost_of_equity,
+                cost_of_debt_post_tax=entity.cost_of_debt_post_tax,
+                equity_weight=entity.equity_weight,
+                debt_weight=entity.debt_weight,
+                terminal_growth_rate=entity.terminal_growth_rate,
+                total_debt=entity.segment_debt,
+                cash_and_equivalents=entity.segment_cash,
+                shares_outstanding=entity.shares_outstanding,
+                company_name=entity.segment_name,
+                currency=entity.currency,
+            )
+
+        elif isinstance(entity, DCFInput):
+            dcf_input = entity
+
+        elif isinstance(entity, dict):
+            dcf_input = DCFInput(**entity)
+
+        else:
+            raise TypeError(
+                "DCFValuationEngine requires SOTPSegmentInput, "
+                "DCFInput, or dict payload; "
+                f"received {type(entity).__name__}"
+            )
+
+        dcf_input.validate()
+
+        dcf_result: DCFResult = DCFModel(dcf_input).run_model()
+
+        return ValuationResult(
+            method=ValuationMethod.DCF,
+            enterprise_value=dcf_result.enterprise_value,
+            equity_value=dcf_result.equity_value,
+            implied_share_price=dcf_result.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={
+                "company_name": dcf_input.company_name,
+                "currency": dcf_input.currency,
+                "wacc": dcf_result.wacc,
+                "terminal_value_pct": dcf_result.terminal_value_pct_of_ev,
+                "forecast_years": dcf_result.forecast_period,
+            },
+        )
+
+
+============================================================
+FILE: .\services\valuation\dcf\engine.py
+============================================================
+from __future__ import annotations
+
+import logging
+from typing import Any
+from services.valuation.dcf.models import DCFResult
+from services.forecast.models import ForecastResult
+
+logger = logging.getLogger(__name__)
+
+
+class ProductionDCFEngine:
+    """Production-grade DCF valuation engine calculating Enterprise and Equity values from FCFF and WACC."""
+
+    def calculate(
+        self,
+        forecast: ForecastResult,
+        wacc: float = 0.10,
+        terminal_growth_rate: float = 0.04,
+        net_debt: float = 200000.0,
+        shares_outstanding: float = 6760.0,
+    ) -> DCFResult:
+        logger.info("Running Production DCF valuation for symbol: %s with WACC: %.2f%%", forecast.symbol, wacc * 100)
+
+        fcff_list = forecast.free_cash_flow_forecast
+        if not fcff_list:
+            fcff_list = [100000.0 * (1.1 ** i) for i in range(5)]
+
+        pv_cash_flows = []
+        for i, fcff in enumerate(fcff_list, start=1):
+            df = (1.0 + wacc) ** i
+            pv_cash_flows.append(fcff / df)
+
+        sum_pv_fcff = sum(pv_cash_flows)
+
+        # Terminal Value via Gordon Growth Model
+        final_fcff = fcff_list[-1]
+        terminal_value = (final_fcff * (1.0 + terminal_growth_rate)) / (wacc - terminal_growth_rate)
+        pv_terminal_value = terminal_value / ((1.0 + wacc) ** len(fcff_list))
+
+        enterprise_value = sum_pv_fcff + pv_terminal_value
+        equity_value = enterprise_value - net_debt
+        fair_value_per_share = max(0.0, equity_value / shares_outstanding) if shares_outstanding > 0 else 0.0
+
+        return DCFResult(
+            symbol=forecast.symbol,
+            enterprise_value=round(enterprise_value, 2),
+            equity_value=round(equity_value, 2),
+            fair_value_per_share=round(fair_value_per_share, 2),
+            wacc=wacc,
+            terminal_value=round(terminal_value, 2),
+            pv_cash_flows=[round(p, 2) for p in pv_cash_flows],
+            pv_terminal_value=round(pv_terminal_value, 2),
+            assumptions={
+                "terminal_growth_rate": terminal_growth_rate,
+                "net_debt": net_debt,
+                "shares_outstanding": shares_outstanding,
+            },
+        )
+
+
+============================================================
+FILE: .\services\valuation\dcf\models.py
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any, Dict, List
+
+
+@dataclass(frozen=True, slots=True)
+class DCFResult:
+    """Production-grade Discounted Cash Flow valuation result."""
+    symbol: str
+    enterprise_value: float
+    equity_value: float
+    fair_value_per_share: float
+    wacc: float
+    terminal_value: float
+    pv_cash_flows: List[float] = field(default_factory=list)
+    pv_terminal_value: float = 0.0
+    assumptions: Dict[str, Any] = field(default_factory=dict)
+
+
+============================================================
+FILE: .\services\valuation\nav_engine.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+
+from domain.valuation.result import (
+    ValuationResult,
+    ValuationMethod,
+    ValuationStatus,
+)
+
+from services.valuation.base_engine import BaseValuationEngine
+
+
+class NAVValuationEngine(BaseValuationEngine):
+    """Adapter for the canonical NAV valuation engine."""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    @property
+    def valuation_method(self) -> str:
+        return ValuationMethod.NAV.value
+
+    def value(self, data: Any) -> ValuationResult:
+        from services.valuation.nav.nav_input import NAVInput
+        from services.valuation.nav.nav_model import NAVModel
+
+        nav_input = NAVInput(**data) if isinstance(data, dict) else data
+
+        model = NAVModel(nav_input)
+        res = model.evaluate()
+
+        return ValuationResult(
+            method=ValuationMethod.NAV,
+            enterprise_value=res.total_asset_value,
+            equity_value=res.net_asset_value,
+            implied_share_price=res.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={
+                "notes": "Evaluated successfully via modular NAV engine"
+            },
+        )
+
+    def evaluate(self, data: Any) -> ValuationResult:
+        """Backward-compatible alias for value()."""
+        return self.value(data)
+
+
+NAVEngine = NAVValuationEngine
+
+
+============================================================
+FILE: .\services\valuation\relative\engine.py
+============================================================
+from __future__ import annotations
+
+import logging
+from typing import Any
+from services.valuation.relative.models import RelativeValuationResult
+from services.financials.financial_statement import FinancialStatements
+
+logger = logging.getLogger(__name__)
+
+
+class RelativeValuationEngine:
+    """Engine computing relative valuation metrics (P/E, EV/EBITDA, EV/Sales, P/B, PEG) vs industry benchmarks."""
+
+    def evaluate(
+        self,
+        financials: FinancialStatements,
+        current_price: float = 1400.0,
+        yahoo_ebitda: float | None = None,
+        shares_outstanding: float | None = None,
+    ) -> RelativeValuationResult:
+        symbol = financials.ticker
+        logger.info("Running Relative Valuation for symbol: %s", symbol)
+
+        inc = financials.income_statement
+        bs = financials.balance_sheet
+
+        eps = inc.eps if inc and inc.eps > 0 else 45.0
+        # EBITDA lineage:
+        # 1. Prefer normalized EBITDA when available.
+        # 2. Otherwise use explicitly supplied live Yahoo EBITDA.
+        # 3. Never fabricate a unit-incompatible fallback.
+        normalized_ebitda = getattr(inc, "ebitda", 0.0) if inc else 0.0
+
+        if normalized_ebitda and normalized_ebitda > 0:
+            ebitda = float(normalized_ebitda)
+            ebitda_source = "normalized"
+        elif yahoo_ebitda is not None and float(yahoo_ebitda) > 0:
+            ebitda = float(yahoo_ebitda)
+            ebitda_source = "yahoo"
+        else:
+            raise ValueError(
+                f"EBITDA unavailable for {symbol}; "
+                "Relative Valuation requires a valid normalized or Yahoo EBITDA value."
+            )
+
+        logger.info(
+            "Relative Valuation EBITDA source=%s value=%s",
+            ebitda_source,
+            ebitda,
+        )
+        revenue = inc.revenue if inc else 1000000.0
+        equity = getattr(bs, "shareholders_equity", 0.0)
+        if not equity:
+            equity = getattr(bs, "total_equity", 0.0)
+        if not (bs and equity > 0):
+            raise ValueError(
+                f"Equity unavailable for {symbol}; "
+                "Relative Valuation requires valid shareholders equity."
+            )
+        debt = ((getattr(bs, "short_term_debt", 0.0) or 0.0) + (getattr(bs, "long_term_debt", getattr(bs, "debt", 0.0)) or 0.0)) if bs else 500000.0
+        cash = ((getattr(bs, "cash", 0.0) or 0.0) + (getattr(bs, "cash_equivalents", 0.0) or 0.0)) if bs else 300000.0
+
+        # Live shares lineage:
+        # 1. Prefer explicitly supplied live shares.
+        # 2. Otherwise use normalized shares if available.
+        # 3. Never fabricate a unit-incompatible fallback.
+
+        normalized_shares = (
+            getattr(inc, "shares_outstanding", 0.0)
+            if inc else 0.0
+        )
+
+        if shares_outstanding is not None and float(shares_outstanding) > 0:
+            shares = float(shares_outstanding)
+            shares_source = "explicit_live"
+        elif normalized_shares and normalized_shares > 0:
+            shares = float(normalized_shares)
+            shares_source = "normalized"
+        else:
+            raise ValueError(
+                f"Shares outstanding unavailable for {symbol}; "
+                "Relative Valuation requires a valid live or normalized share count."
+            )
+
+        logger.info(
+            "Relative Valuation shares source=%s value=%s",
+            shares_source,
+            shares,
+        )
+
+        market_cap = current_price * shares
+        net_debt = debt - cash
+        ev = market_cap + net_debt
+
+        pe_ratio = round(current_price / eps, 2) if eps > 0 else 20.0
+        ev_ebitda = round(ev / ebitda, 2) if ebitda > 0 else 12.0
+        ev_sales = round(ev / revenue, 2) if revenue > 0 else 2.5
+        pb_ratio = round(market_cap / equity, 2) if equity > 0 else 2.0
+        peg_ratio = round(pe_ratio / 15.0, 2)  # Assuming 15% growth
+
+        # Implied valuation based on sector median multiples (Sector P/E = 22, Sector EV/EBITDA = 14)
+        implied_pe_val = eps * 22.0
+        implied_ev_ebitda_val = (ebitda * 14.0 - net_debt) / shares
+        blend_val = round((implied_pe_val + implied_ev_ebitda_val) / 2.0, 2)
+
+        benchmarks = {
+            "sector_pe": 22.0,
+            "sector_ev_ebitda": 14.0,
+            "industry": "Conglomerate / Energy",
+        }
+
+        return RelativeValuationResult(
+            symbol=symbol,
+            pe_ratio=pe_ratio,
+            ev_ebitda=ev_ebitda,
+            ev_sales=ev_sales,
+            pb_ratio=pb_ratio,
+            peg_ratio=peg_ratio,
+            implied_value_pe=round(implied_pe_val, 2),
+            implied_value_ev_ebitda=round(implied_ev_ebitda_val, 2),
+            blend_relative_value=blend_val,
+            comparison_benchmarks=benchmarks,
+        )
+
+
+============================================================
+FILE: .\services\valuation\sotp\engine.py
+============================================================
+from __future__ import annotations
+
+import logging
+from typing import Any
+from services.valuation.sotp.models import SOTPResult, SegmentValuation
+from services.financials.financial_statement import FinancialStatements
+
+logger = logging.getLogger(__name__)
+
+
+class SOTPEngine:
+    """Sum-of-the-Parts (SOTP) valuation engine for multi-segment conglomerates like Reliance."""
+
+    def calculate(
+        self,
+        financials: FinancialStatements,
+        holding_discount: float = 0.15,
+        shares_outstanding: float = 6760.0,
+    ) -> SOTPResult:
+        symbol = financials.ticker
+        logger.info("Running Sum-of-the-Parts (SOTP) valuation for conglomerate: %s", symbol)
+
+        # Segment breakdown for a conglomerate (e.g., Reliance: O2C, Jio, Retail, New Energy)
+        raw_segments = [
+            {"name": "O2C (Oil-to-Chemicals)", "revenue": 600000.0, "ebitda": 75000.0, "multiple": 7.0},
+            {"name": "Jio Platforms (Telecom/Digital)", "revenue": 120000.0, "ebitda": 50000.0, "multiple": 18.0},
+            {"name": "Reliance Retail", "revenue": 300000.0, "ebitda": 22000.0, "multiple": 22.0},
+            {"name": "New Energy & Others", "revenue": 30000.0, "ebitda": 5000.0, "multiple": 15.0},
+        ]
+
+        segment_results = []
+        total_ev = 0.0
+
+        for seg in raw_segments:
+            ev = seg["ebitda"] * seg["multiple"]
+            total_ev += ev
+            segment_results.append(
+                SegmentValuation(
+                    segment_name=seg["name"],
+                    revenue=seg["revenue"],
+                    ebitda=seg["ebitda"],
+                    multiple=seg["multiple"],
+                    enterprise_value=round(ev, 2),
+                )
+            )
+
+        # Balance sheet net debt extraction or fallback
+        bs = financials.balance_sheet
+        debt_val = ((getattr(bs, "short_term_debt", 0.0) or 0.0) + (getattr(bs, "long_term_debt", getattr(bs, "debt", 0.0)) or 0.0)) if bs else 0.0
+        cash_val = ((getattr(bs, "cash", 0.0) or 0.0) + (getattr(bs, "cash_equivalents", 0.0) or 0.0)) if bs else 0.0
+        net_debt = (debt_val - cash_val) if bs else 250000.0
+
+        raw_equity_value = total_ev - net_debt
+        discounted_equity_value = raw_equity_value * (1.0 - holding_discount)
+        fair_value_per_share = max(0.0, discounted_equity_value / shares_outstanding) if shares_outstanding > 0 else 0.0
+
+        return SOTPResult(
+            symbol=symbol,
+            segments=segment_results,
+            sum_of_segments_ev=round(total_ev, 2),
+            net_debt=round(net_debt, 2),
+            holding_company_discount_pct=holding_discount,
+            conglomerate_equity_value=round(discounted_equity_value, 2),
+            fair_value_per_share=round(fair_value_per_share, 2),
+            assumptions={
+                "holding_discount": holding_discount,
+                "shares_outstanding": shares_outstanding,
+            },
+        )
+
+
+============================================================
+FILE: .\services\valuation\sotp_engine.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+
+from domain.valuation.result import (
+    ValuationResult,
+    ValuationMethod,
+    ValuationStatus,
+)
+
+from services.valuation.base_engine import BaseValuationEngine
+
+
+class SOTPValuationEngine(BaseValuationEngine):
+    """Adapter for the canonical SOTP valuation engine."""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    @property
+    def valuation_method(self) -> str:
+        return ValuationMethod.SOTP.value
+
+    def value(self, data: Any) -> ValuationResult:
+        from services.sotp_long_term_equity_valuation_service import (
+            SOTPLongTermValuationService,
+        )
+
+        company_name = data.get("company_name", "Target Co")
+        shares = data.get("shares_outstanding", 1.0)
+
+        service = SOTPLongTermValuationService(
+            company_name,
+            shares,
+        )
+
+        res = service.evaluate_sotp(
+            dcf_segments_raw=data.get("dcf_segments", []),
+            other_segments_raw=data.get("other_segments", []),
+            holdco_discount=data.get("holdco_discount", 0.0),
+        )
+
+        return ValuationResult(
+            method=ValuationMethod.SOTP,
+            enterprise_value=res.total_enterprise_value,
+            equity_value=res.total_equity_value,
+            implied_share_price=res.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={
+                "notes": "Evaluated successfully via modular SOTP engine"
+            },
+        )
+
+    def evaluate(self, data: Any) -> ValuationResult:
+        """Backward-compatible alias for value()."""
+        return self.value(data)
+
+
+SOTPEngine = SOTPValuationEngine
+
+
+============================================================
+FILE: .\services\valuation\engine.py
+============================================================
+from __future__ import annotations
+
+import logging
+from typing import Any
+from services.valuation.models import ValuationResult, DCFValuation, RelativeValuation
+
+logger = logging.getLogger(__name__)
+
+
+class ValuationEngine:
+    """Executes institutional valuation models (DCF, NAV, Relative / Multiples)."""
+
+    def compute(self, symbol: str, forecast_data: Any = None) -> ValuationResult:
+        """Run valuation models based on forecast fundamentals."""
+        logger.info("Running valuation engine for symbol: %s", symbol)
+
+        current_price = 2500.0
+        if forecast_data:
+            rev_forecast = getattr(forecast_data, "revenue", None)
+            if rev_forecast and hasattr(rev_forecast, "projections") and rev_forecast.projections:
+                current_price = float(rev_forecast.projections[0]) / 2.0
+            elif isinstance(forecast_data, dict):
+                rev_dict = forecast_data.get("revenue")
+                if isinstance(rev_dict, dict) and "projections" in rev_dict:
+                    projs = rev_dict["projections"]
+                    if projs:
+                        current_price = float(projs[0]) / 2.0
+
+        wacc = 0.105
+        g = 0.05
+        pv_cf = current_price * 12.5
+        pv_tv = current_price * 18.2
+        dcf_implied = pv_cf + pv_tv
+
+        pe_implied = current_price * 1.12
+        ev_ebitda_implied = current_price * 1.08
+        sector_pe = 24.5
+
+        relative = RelativeValuation(
+            pe_implied_value=pe_implied,
+            ev_ebitda_implied_value=ev_ebitda_implied,
+            sector_pe_benchmark=sector_pe
+        )
+
+        dcf = DCFValuation(
+            implied_value=dcf_implied,
+            wacc=wacc,
+            terminal_growth_rate=g,
+            pv_cash_flows=pv_cf,
+            pv_terminal_value=pv_tv
+        )
+
+        nav_value = current_price * 0.85
+        blended_fair_value = round((dcf_implied * 0.4) + (pe_implied * 0.3) + (ev_ebitda_implied * 0.3), 2)
+        
+        mos_pct = round(((blended_fair_value - current_price) / current_price) * 100.0, 2)
+        recommendation = "BUY" if mos_pct > 15 else ("HOLD" if mos_pct >= 0 else "SELL")
+
+        return ValuationResult(
+            symbol=symbol,
+            dcf=dcf,
+            relative=relative,
+            nav_value=nav_value,
+            blended_fair_value=blended_fair_value,
+            current_market_price=current_price,
+            margin_of_safety_pct=mos_pct,
+            recommendation=recommendation
+        )
+
+
+============================================================
+VALUATION IMPORT / CALL GRAPH
+============================================================
+backend/api/routers/valuation_router.py:10:from backend.services.valuation_service import ValuationService
+backend/api/routers/valuation_router.py:27:    result = ValuationService.execute_and_persist_valuation(
+backend/api/routers/valuation_router.py.sotp_backup:10:from backend.services.valuation_service import ValuationService
+backend/api/routers/valuation_router.py.sotp_backup:22:    result = ValuationService.execute_and_persist_valuation(
+backend/research/evidence/adapters/evidence_adapters.py:90:                source="ValuationEngine",
+backend/research/evidence/adapters/evidence_adapters.py:106:                source="ValuationEngine",
+backend/services/dto/valuation_dto.py:7:class ValuationResultDTO:
+backend/services/valuation_service.py:9:from backend.valuation.sotp import SOTPValuationEngine
+backend/services/valuation_service.py:15:class ValuationService:
+backend/services/valuation_service.py:78:            engine = SOTPValuationEngine(
+backend/tasks/task_executor.py:7:from backend.services.valuation_service import ValuationService
+backend/tasks/task_executor.py:146:            result = ValuationService.execute_and_persist_valuation(session, symbol, context.payload)
+backend/valuation/adapter.py:2:from backend.valuation.sotp import SOTPValuationEngine
+backend/valuation/adapter.py:4:def adapt_sotp_to_valuation_payload(sotp_engine: SOTPValuationEngine, user: str) -> Dict[str, Any]:
+backend/valuation/sotp.py:3:class SOTPValuationEngine:
+services/copilot_v2/copilot.py:20:            cited_engines=["ValuationEngine", "RiskEngine", "ForecastEngine", "DecisionIntelligence"],
+services/quantitative/block91_portfolio_valuation_engine.py:107:class EROSBlock91PortfolioValuationEngine:
+services/quantitative/block91_test_harness.py:4:    EROSBlock91PortfolioValuationEngine,
+services/quantitative/block91_test_harness.py:60:    engine = EROSBlock91PortfolioValuationEngine()
+services/quantitative/golden_path_85_94_orchestrator.py:224:        EROSBlock91PortfolioValuationEngine,
+services/quantitative/golden_path_85_94_orchestrator.py:243:        block91=EROSBlock91PortfolioValuationEngine(),
+services/quantitative/golden_path_85_94_test_harness.py:424:        == "EROSBlock91PortfolioValuationEngine"
+services/quantitative/golden_path_85_94_test_harness.py:666:        == "EROSBlock91PortfolioValuationEngine"
+services/scoring/engine.py:8:from services.valuation.dispatcher import ValuationDispatcher
+services/scoring/engine.py:38:        self.valuation_dispatcher = ValuationDispatcher()
+services/sotp_long_term_equity_valuation_service.py:31:class SOTPLongTermValuationService:
+services/valuation/__init__.py:3:from services.valuation.service import ValuationService
+services/valuation/__init__.py:4:from services.valuation.engine import ValuationEngine
+services/valuation/__init__.py:5:from services.valuation.models import ValuationResult, DCFValuation, RelativeValuation
+services/valuation/__init__.py:9:    "ValuationService",
+services/valuation/__init__.py:10:    "ValuationEngine",
+services/valuation/__init__.py:11:    "ValuationResult",
+services/valuation/base_engine.py:13:domain-level ValuationResult.
+services/valuation/base_engine.py:19:from domain.valuation.result import ValuationResult
+services/valuation/base_engine.py:22:class BaseValuationEngine(ABC):
+services/valuation/base_engine.py:34:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/base_engine.py:37:        domain-level ValuationResult.
+services/valuation/blended_engine.py:7:from services.valuation.dcf.professional_engine import ProfessionalDCFEngine, ProfessionalDCFResult
+services/valuation/blended_engine.py:8:from services.valuation.relative.engine import RelativeValuationEngine
+services/valuation/blended_engine.py:14:class BlendedValuationResult:
+services/valuation/blended_engine.py:22:class BlendedValuationEngine:
+services/valuation/blended_engine.py:26:        self.dcf_engine = ProfessionalDCFEngine()
+services/valuation/blended_engine.py:27:        self.relative_engine = RelativeValuationEngine()
+services/valuation/blended_engine.py:41:    ) -> BlendedValuationResult:
+services/valuation/blended_engine.py:64:        return BlendedValuationResult(
+services/valuation/dcf/engine.py:11:class ProductionDCFEngine:
+services/valuation/dcf/professional_engine.py:22:class ProfessionalDCFEngine:
+services/valuation/dcf_adapter.py:7:    ValuationResult,
+services/valuation/dcf_adapter.py:11:from services.valuation.base_engine import BaseValuationEngine
+services/valuation/dcf_adapter.py:16:class DCFValuationEngine(BaseValuationEngine):
+services/valuation/dcf_adapter.py:22:    ValuationResult contract.
+services/valuation/dcf_adapter.py:29:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/dcf_adapter.py:59:                "DCFValuationEngine requires SOTPSegmentInput, "
+services/valuation/dcf_adapter.py:68:        return ValuationResult(
+services/valuation/dcf_engine.py:6:    ValuationResult,
+services/valuation/dcf_engine.py:11:from services.valuation.base_engine import BaseValuationEngine
+services/valuation/dcf_engine.py:14:class DCFValuationEngine(BaseValuationEngine):
+services/valuation/dcf_engine.py:33:    def value(self, data: Any) -> ValuationResult:
+services/valuation/dcf_engine.py:148:                "DCFValuationEngine requires DCFInput or dict payload; "
+services/valuation/dcf_engine.py:157:        return ValuationResult(
+services/valuation/dcf_engine.py:173:    def evaluate(self, data: Any) -> ValuationResult:
+services/valuation/dcf_engine.py:178:DCFEngine = DCFValuationEngine
+services/valuation/dispatcher.py:15:from services.valuation.base_engine import BaseValuationEngine
+services/valuation/dispatcher.py:16:from domain.valuation.result import ValuationResult
+services/valuation/dispatcher.py:17:from services.valuation.engines.dcf_engine import DCFValuationEngine
+services/valuation/dispatcher.py:18:from services.valuation.engines.nav_engine import NAVValuationEngine
+services/valuation/dispatcher.py:19:from services.valuation.engines.sotp_engine import SOTPValuationEngine
+services/valuation/dispatcher.py:22:class ValuationDispatcher:
+services/valuation/dispatcher.py:24:        self._engines: dict[str, BaseValuationEngine] = {}
+services/valuation/dispatcher.py:29:            self.register(DCFValuationEngine())
+services/valuation/dispatcher.py:33:            self.register(NAVValuationEngine())
+services/valuation/dispatcher.py:37:            self.register(SOTPValuationEngine())
+services/valuation/dispatcher.py:49:    def register(self, engine: BaseValuationEngine) -> None:
+services/valuation/dispatcher.py:51:        method_key = getattr(engine, "valuation_method", engine.__class__.__name__.replace("ValuationEngine", "")).upper()
+services/valuation/dispatcher.py:54:    def get_engine(self, method: str) -> BaseValuationEngine:
+services/valuation/dispatcher.py:61:    def value(self, method: str, entity: Any) -> ValuationResult:
+services/valuation/dispatcher.py:66:    def dispatch(self, method: str, entity: Any) -> ValuationResult:
+services/valuation/engine.py:5:from services.valuation.models import ValuationResult, DCFValuation, RelativeValuation
+services/valuation/engine.py:10:class ValuationEngine:
+services/valuation/engine.py:13:    def compute(self, symbol: str, forecast_data: Any = None) -> ValuationResult:
+services/valuation/engine.py:59:        return ValuationResult(
+services/valuation/engines/dcf_engine.py:1:∩╗┐from services.valuation.dcf_engine import DCFValuationEngine
+services/valuation/engines/nav_engine.py:1:∩╗┐from services.valuation.nav_engine import NAVValuationEngine
+services/valuation/engines/sotp_engine.py:1:∩╗┐from services.valuation.sotp_engine import SOTPValuationEngine
+services/valuation/models.py:26:class ValuationResult:
+services/valuation/nav/nav_engine.py:10:Adapter exposing the NAV package via the BaseValuationEngine interface.
+services/valuation/nav/nav_engine.py:15:from services.valuation.base_engine import BaseValuationEngine
+services/valuation/nav/nav_engine.py:18:    ValuationResult,
+services/valuation/nav/nav_engine.py:25:class NAVEngine(BaseValuationEngine):
+services/valuation/nav/nav_engine.py:26:    """Adapter class wrapping NAVModel for the ValuationDispatcher framework."""
+services/valuation/nav/nav_engine.py:32:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/nav/nav_engine.py:45:        return ValuationResult(
+services/valuation/nav_engine.py:6:    ValuationResult,
+services/valuation/nav_engine.py:11:from services.valuation.base_engine import BaseValuationEngine
+services/valuation/nav_engine.py:14:class NAVValuationEngine(BaseValuationEngine):
+services/valuation/nav_engine.py:24:    def value(self, data: Any) -> ValuationResult:
+services/valuation/nav_engine.py:33:        return ValuationResult(
+services/valuation/nav_engine.py:44:    def evaluate(self, data: Any) -> ValuationResult:
+services/valuation/nav_engine.py:49:NAVEngine = NAVValuationEngine
+services/valuation/relative/engine.py:5:from services.valuation.relative.models import RelativeValuationResult
+services/valuation/relative/engine.py:11:class RelativeValuationEngine:
+services/valuation/relative/engine.py:20:    ) -> RelativeValuationResult:
+services/valuation/relative/engine.py:112:        return RelativeValuationResult(
+services/valuation/relative/models.py:8:class RelativeValuationResult:
+services/valuation/service.py:7:from services.valuation.engine import ValuationEngine  # Legacy wrapper compatibility
+services/valuation/service.py:8:from services.valuation.dcf.engine import ProductionDCFEngine
+services/valuation/service.py:15:class ValuationService:
+services/valuation/service.py:25:        self._dcf_engine = ProductionDCFEngine()
+services/valuation/sotp_engine.py:6:    ValuationResult,
+services/valuation/sotp_engine.py:11:from services.valuation.base_engine import BaseValuationEngine
+services/valuation/sotp_engine.py:14:class SOTPValuationEngine(BaseValuationEngine):
+services/valuation/sotp_engine.py:24:    def value(self, data: Any) -> ValuationResult:
+services/valuation/sotp_engine.py:26:            SOTPLongTermValuationService,
+services/valuation/sotp_engine.py:32:        service = SOTPLongTermValuationService(
+services/valuation/sotp_engine.py:43:        return ValuationResult(
+services/valuation/sotp_engine.py:54:    def evaluate(self, data: Any) -> ValuationResult:
+services/valuation/sotp_engine.py:59:SOTPEngine = SOTPValuationEngine
+services/valuation/stub_adapters.py:5:from services.valuation.base_engine import BaseValuationEngine
+services/valuation/stub_adapters.py:6:from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
+services/valuation/stub_adapters.py:9:class NAVValuationEngine(BaseValuationEngine):
+services/valuation/stub_adapters.py:16:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/stub_adapters.py:18:        return ValuationResult(
+services/valuation/stub_adapters.py:30:class MarketValuationEngine(BaseValuationEngine):
+services/valuation/stub_adapters.py:37:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/stub_adapters.py:39:        return ValuationResult(
+services/valuation/stub_adapters.py:51:class BookValueEngine(BaseValuationEngine):
+services/valuation/stub_adapters.py:58:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/stub_adapters.py:60:        return ValuationResult(
+services/workflow/orchestration.py:45:                # Example: if step == "Valuation Engine": ValuationService.calculate(...)
+tests/copilot_v2/test_copilot_v2.py:12:        cited_engines=["ValuationEngine"],
+tests/dashboard/test_dashboard.py:12:    assert "ProductionDCFEngine" in content
+tests/services/test_valuation_service.py:5:from backend.services.valuation_service import ValuationService
+tests/services/test_valuation_service.py:19:        result = ValuationService.execute_and_persist_valuation(
+tests/services/test_valuation_service.py:41:        result = ValuationService.execute_and_persist_valuation(
+tests/test_pipeline.py:13:from services.valuation.engine import ValuationEngine
+tests/test_pipeline.py:14:from services.valuation.service import ValuationService
+tests/test_pipeline.py:34:        valuation_engine = ValuationEngine()
+tests/test_pipeline.py:35:        valuation_service = ValuationService(valuation_engine, bus, dispatcher)
+tests/valuation/test_blended_valuation.py:2:from services.valuation.blended_engine import BlendedValuationEngine
+tests/valuation/test_blended_valuation.py:5:    engine = BlendedValuationEngine()
+tests/valuation/test_dcf.py:5:from services.valuation.dcf.engine import ProductionDCFEngine
+tests/valuation/test_dcf.py:15:    engine = ProductionDCFEngine()
+tests/valuation/test_professional_dcf.py:4:from services.valuation.dcf.professional_engine import ProfessionalDCFEngine
+tests/valuation/test_professional_dcf.py:7:    engine = ProfessionalDCFEngine()
+tests/valuation/test_relative.py:7:from services.valuation.relative.engine import RelativeValuationEngine
+tests/valuation/test_relative.py:50:    engine = RelativeValuationEngine()
+
+
+============================================================
+FORECAST -> VALUATION HANDOFF
+============================================================
+services/forecast/__init__.py:4:    ForecastResult,
+services/forecast/__init__.py:9:    "ForecastResult",
+services/forecast/engine.py:7:from services.forecast.models import ForecastResult
+services/forecast/engine.py:22:    def generate_forecast(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+services/forecast/engine.py:70:        return ForecastResult(
+services/forecast/events.py:10:    name: str = "forecast.completed"
+services/forecast/forecast_result.py:50:class ForecastResult:
+services/forecast/models.py:18:class ForecastResult:
+services/forecast/result.py:10:class ForecastResult:
+services/forecast/result.py:29:    def from_dict(cls, data: dict[str, Any]) -> ForecastResult:
+services/forecast/scenario_engine.py:5:from services.forecast.forecast_result import ForecastResult, YearForecast
+services/forecast/scenario_engine.py:12:        self, base_result: ForecastResult
+services/forecast/scenario_engine.py:13:    ) -> dict[ScenarioType, ForecastResult]:
+services/forecast/scenario_engine.py:33:        base: ForecastResult,
+services/forecast/scenario_engine.py:37:    ) -> ForecastResult:
+services/forecast/scenario_engine.py:67:        return ForecastResult(
+services/forecast/service.py:9:from services.forecast.models import ForecastResult
+services/forecast/service.py:38:        await self.compute_and_publish(financials)
+services/forecast/service.py:40:    async def compute_and_publish(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+services/forecast_system/forecast_engine.py:5:from services.forecast_system.models import ForecastResult
+services/forecast_system/forecast_engine.py:13:    def generate_forecast(symbol: str, base_revenue: float, base_eps: float) -> ForecastResult:
+services/forecast_system/forecast_engine.py:21:        return ForecastResult(
+services/forecast_system/models.py:8:class ForecastResult:
+services/forecasting/models.py:23:class ForecastResult:
+services/forecasting/scenario_engine.py:5:from services.forecasting.models import ForecastScenario, ForecastResult
+services/forecasting/scenario_engine.py:13:    def evaluate_scenarios(cls, symbol: str, scenarios: List[ForecastScenario]) -> ForecastResult:
+services/forecasting/scenario_engine.py:37:        return ForecastResult(
+services/research/service.py:29:        await self.compute_and_publish(symbol, event)
+services/research/service.py:31:    async def compute_and_publish(self, symbol: str, event: Any = None) -> Any:
+services/valuation/dcf/engine.py:6:from services.forecast.models import ForecastResult
+services/valuation/dcf/engine.py:16:        forecast: ForecastResult,
+services/valuation/service.py:10:from services.forecast.models import ForecastResult
+services/valuation/service.py:28:        self._bus.subscribe("forecast.completed", self.handle_forecast_completed)
+services/valuation/service.py:30:    async def handle_forecast_completed(self, event: Any) -> None:
+services/valuation/service.py:32:        forecast_result: ForecastResult = event.payload.get("forecast_result")
+services/valuation/service.py:39:        await self.compute_and_publish(forecast_result)
+services/valuation/service.py:41:    async def compute_and_publish(self, forecast: ForecastResult) -> Any:
+services/valuation/service.py:44:        dcf_result = self._dcf_engine.calculate(forecast)
+tests/forecast_system/test_ifis.py:4:from services.forecast_system.models import ForecastResult
+tests/forecast_system/test_ifis.py:8:    fc = ForecastResult(
+tests/test_event_contracts.py:16:        (ForecastCompleted, "forecast.completed"),
+tests/test_pipeline.py:64:        bus.subscribe("forecast.completed", spy_handler)
+tests/test_pipeline.py:80:        assert event_names.count("forecast.completed") == 1
+tests/valuation/test_dcf.py:4:from services.forecast.models import ForecastResult
+tests/valuation/test_dcf.py:9:    forecast = ForecastResult(
+tests/valuation/test_dcf.py:16:    result = engine.calculate(forecast, wacc=0.10, terminal_growth_rate=0.04)
+
+
+============================================================
+VALUATION TEST DISCOVERY
+============================================================
+
+Path                                                                                                 LineNumber Line                                                                           
+----                                                                                                 ---------- ----                                                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_engine_audit.py                                          12             "valuation_engine": {                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_engine_audit.py                                          33             "valuation_engine": {                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_eros_golden_chain.py                                     192         assert safety["allow_valuation_mutation"] is False                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py                                         7 from services.valuation.events import ValuationCompleted                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_event_contracts.py                                        17         (ValuationCompleted, "valuation.completed"),                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               13 from services.valuation.engine import ValuationEngine                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               14 from services.valuation.service import ValuationService                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               34         valuation_engine = ValuationEngine()                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               35         valuation_service = ValuationService(valuation_engine, bus, dispatcher)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               44         valuation_events: list[Any] = []                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               53         async def valuation_listener(event: Any) -> None:                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               54             valuation_events.append(event)                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               65         bus.subscribe("valuation.completed", valuation_listener)               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               81         assert len(valuation_events) == 1                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               85         # Verify valuation payload                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               86         assert valuation_events[0].symbol == symbol                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               87         assert valuation_events[0].payload["blended_fair_value"] > 0.0         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               88         assert valuation_events[0].payload["recommendation"] in {"BUY", "HOL...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\agents\test_agents.py                                           4 from services.agents.base_agent import AgentOpinion, ValuationAgent, Quality...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\agents\test_agents.py                                          22     val_agent = ValuationAgent()                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\agents\test_agents.py                                          24     assert op.agent_name == "ValuationAgent"                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alerts\test_ianp.py                                            10         alert_type="VALUATION_DISCOUNT",                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alerts\test_ianp.py                                            20     # Trigger valuation discount > 25% (Intrinsic 3500, Market 2500 -> 28.5%...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alerts\test_ianp.py                                            21     alert = InstitutionalAlertEngine.evaluate_valuation_alert("RELIANCE.NS",...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alerts\test_ianp.py                                            24     assert alert.alert_type == "VALUATION_DISCOUNT"                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\alpha_factory\test_iarf.py                                     15         valuation_score=0.88,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api\test_eap.py                                                29 def test_valuation_api_endpoint() -> None:                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api\test_eap.py                                                70         "/api/v1/valuation",                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api_gateway\test_eag.py                                         9         endpoint="/valuation/RELIANCE.NS",                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api_gateway\test_eag.py                                        14     assert resp.endpoint == "/valuation/RELIANCE.NS"                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\api_gateway\test_eag.py                                        20     val_resp = EnterpriseAPIGateway.route_request("/valuation/RELIANCE.NS", ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\committee\test_committee.py                                    10             department="Valuation Analyst",                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\committee\test_committee.py                                    15             concerns=["Valuation multiple sensitivity"],                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\committee\test_committee.py                                    16             evidence=["DCF Model", "SOTP Model"],                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\committee\test_committee.py                                    17             explanation="Valuation offers substantial margin of safety."       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot\test_copilot.py                                         9     assert IntentClassifier.classify("Value Reliance using DCF") == "VALUATION"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot\test_copilot.py                                        19     assert "Valuation" in response.answer                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot_v2\test_copilot_v2.py                                  12         cited_engines=["ValuationEngine"],                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\dashboard\test_dashboard.py                                    12     assert "ProductionDCFEngine" in content                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_forecast_report_repositories.py                  30             report_type="Institutional Valuation Summary",                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_forecast_report_repositories.py                  31             content_summary="Strong operating margins across retail and O2C ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_forecast_report_repositories.py                  36         assert fetched_rep.report_type == "Institutional Valuation Summary"    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_production_db.py                                  7     table = "valuations"                                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_production_db.py                                  9     data = {"intrinsic_value": 3520.0, "model": "Professional DCF", "margin_...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_production_db.py                                 17     assert retrieved["model"] == "Professional DCF"                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_sqlalchemy_production.py                          5 from backend.database.repositories.valuation_repository import ValuationRepo...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_sqlalchemy_production.py                         14         saved = ValuationRepository.save_valuation(                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_sqlalchemy_production.py                         19             model_type="Professional DCF",                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_sqlalchemy_production.py                         25         retrieved = ValuationRepository.get_valuation(session, record_id)      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\database\test_sqlalchemy_production.py                         28         assert retrieved.model_type == "Professional DCF"                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\decision\test_decision.py                                      16         evidence=["DCF positive"]                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py                          15         valuation_score=78.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\governance\test_block20_governance.py                          32         valuation_score=78.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\learning\test_learning.py                                      34     assert "Valuation Analyst" in result.analyst_scores                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_block23_real_market.py                        12 def test_block23b_real_stock_pipeline_evaluation():                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\memory\test_ikme.py                                            13         valuation_snapshot={"dcf_value": 3200.0},                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\memory\test_ikme.py                                            28         valuation_snapshot={"dcf_value": 3000.0},                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\memory\test_ikme.py                                            37         valuation_snapshot={"dcf_value": 3500.0},                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py                          13         valuation_score=75.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\monitoring\test_block20_monitoring.py                          33         valuation_score=75.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio\test_portfolio.py                                     7 def test_portfolio_analytics_evaluation() -> None:                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\portfolio_intelligence\test_portfolio_intelligence.py          50     assert "Portfolio evaluation complete" in decision.rebalance_summary       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21b_backtest.py                           14             "DCF": 0.40,                                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21b_backtest.py                           26     assert result.model_attribution["DCF"] == 0.40                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21b_backtest.py                           49         "DCF": 0.4,                                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py                      18         valuation_score=80.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block21c_e2e_lifecycle.py                      45         valuation_score=80.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block25a_api_contract.py                       17         "EROS production evaluation route is not registered "                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26d_observability.py                       8     Validates that production evaluations maintain complete observability,     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26d_observability.py                      43     Validates that repeated evaluations do not corrupt system state            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26d_observability.py                      46     # 1. First evaluation                                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26d_observability.py                      50     # 2. Second consecutive evaluation                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block26d_observability.py                      54     # 3. Health & Readiness remain healthy post-evaluation                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block27_operations.py                         121         task_name="valuation.execute",                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block28_worker.py                              12     assert "valuation.execute" in tasks                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block28_worker.py                              18         task_name="valuation.execute",                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py                         19     assert "valuation_queue" in queue_names                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py                         25     assert "valuation.*" in routes                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py                         38         task_name="valuation.execute",                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block29_real_celery.py                         39         queue="valuation_queue",                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30c_real_worker_execution.py              15     assert "valuation.execute" in tasks                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30c_real_worker_execution.py              20         task_name="valuation.execute",                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30d_live_redis_worker.py                  41             task_name="valuation.execute",                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30g_infra.py                              26         task_name="valuation.execute",                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block30q_diagnostic.py                         36             f"Redis broker is unavailable at {BROKER_URL}: {exc}"              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py                    43         6. valuation.execute dispatch                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py                   184         required_task = "valuation.execute"                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31g_canonical_smoke.py                   197         # STEP 9 - Dispatch REAL valuation task                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31l3c_failure_probe.py                    23         # 2. Submit a task with invalid payload designed to trigger a failur...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\production\test_block31l3c_failure_probe.py                    26             task_name="valuation.execute",                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_edpf.py                                         40         raise RuntimeError("Service Unavailable")                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\realtime\test_realtime.py                                      26     assert alert.category == "VALUATION"                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\reporting\test_block19_report.py                               12         valuation_score=80.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_block17_research.py                              23         valuation_score=78.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\test_research_case.py                                 40         objective="Evaluate quality and valuation",                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                      58         objective="Evaluate quality and valuation",                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                      62         category="valuation",                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                      63         statement="Current valuation provides a margin of safety",             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                     129             category="valuation",                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                     130             statement="Valuation requires monitoring",                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py            7     ValuationEvidenceAdapter,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py           21 def test_valuation_evidence_adapter() -> None:                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py           22     case = ResearchCaseService.create_case(symbol="INFY.NS", objective="Test...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py           24     items = ValuationEvidenceAdapter.extract(case, val_data)                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py           26     assert items[0].category == "VALUATION"                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\test_evidence_graph.py                 20     ev2 = EvidenceService.create_evidence(case, category="VALUATION", statem...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\test_evidence_reasoning.py         27         case, category="VALUATION", statement="Attractive entry point", pola...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\test_evidence_reasoning.py         30         case, category="VALUATION", statement="Strong margin of safety", pol...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\test_evidence_reasoning.py         36 def test_net_stance_evaluation() -> None:                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research_director\test_ard.py                                  12         assigned_agents=["ValuationAgent"],                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\risk_management\test_irmst.py                                  24 def test_risk_resilience_evaluation() -> None:                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                    61     assert 0.0 <= result.valuation_score <= 100.0                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py                      10 def test_block13_valuation_scoring_integration() -> None:                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py                      55     assert 0.0 <= result.valuation_score <= 100.0                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py                      57     assert "valuation_engine" in result.breakdown_details                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py                      58     assert result.breakdown_details["valuation_engine"]["blended_fair_value"...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_decision.py                               11         valuation_score=78.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_execution.py                              11         valuation_score=80.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_portfolio_context.py                      11         valuation_score=78.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block16_position_sizing.py                        11         valuation_score=82.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block18_orchestrator.py                           11         valuation_score=82.0,                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_scoring.py                                        10 def test_ai_scoring_evaluation() -> None:                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                              5 from backend.services.valuation_service import ValuationService                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                              6 from backend.database.repositories.valuation_repository import ValuationRepo...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                              8 def test_valuation_service_orchestration() -> None:                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                             19         result = ValuationService.execute_and_persist_valuation(               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                             30         saved_record = ValuationRepository.get_valuation(session, result["re...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                             36 def test_valuation_service_edge_cases() -> None:                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                             41         result = ValuationService.execute_and_persist_valuation(               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py                                             16     assert redis_client.acquire_lock("valuation_tcs") is True                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py                                             17     assert redis_client.acquire_lock("valuation_tcs") is False # Duplicate l...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py                                             18     assert redis_client.release_lock("valuation_tcs") is True                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py                                             19     assert redis_client.acquire_lock("valuation_tcs") is True                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py                                             22     task_id = celery_broker.dispatch("valuation.execute", "valuation_queue",...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edcp.py                                             30     assert "valuation_queue" in data["queues"]                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edpp.py                                             13     assert "valuation.execute" in celery_app.tasks                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edpp.py                                             20 def test_background_valuation_worker() -> None:                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edpp.py                                             21     ctx = TaskContext(task_id="TASK-9999", task_name="valuation.execute", us...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_edpp.py                                             22     result = BackgroundWorkers.execute_valuation_task(ctx)                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint19c_control_plane.py                          43     assert "valuation.execute" in tasks                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20b_observability_details.py                  12         task_name="valuation.execute",                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\tasks\test_sprint20c_unified_observability.py                  10     control.submit_task(task_name="valuation.execute", user="sprint20c_analy...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_backtest.py                                     6 def test_backtest_evaluation() -> None:                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_backtest.py                                    17     assert "DCF" in result.model_attribution                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22c_stress.py                              8     assert report.total_evaluations == 20                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22c_stress.py                              9     assert report.successful_evaluations == 20                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22c_stress.py                             10     assert report.failed_evaluations == 0                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22_hardening.py                           18 def test_block22b_conflicting_signals_growth_vs_valuation():                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22_hardening.py                           19     eval_res = DecisionRobustnessEngine.evaluate_conflicting_signals("INFY.N...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_blended_valuation.py                             2 from services.valuation.blended_engine import BlendedValuationEngine           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_blended_valuation.py                             4 def test_blended_valuation_engine() -> None:                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_blended_valuation.py                             5     engine = BlendedValuationEngine()                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py                                           5 from services.valuation.dcf.engine import ProductionDCFEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py                                           8 def test_production_dcf_calculation() -> None:                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py                                          15     engine = ProductionDCFEngine()                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_professional_dcf.py                              4 from services.valuation.dcf.professional_engine import ProfessionalDCFEngine   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_professional_dcf.py                              6 def test_professional_dcf_calculation() -> None:                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_professional_dcf.py                              7     engine = ProfessionalDCFEngine()                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_relative.py                                      7 from services.valuation.relative.engine import RelativeValuationEngine         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_relative.py                                     10 def test_relative_valuation_calculation() -> None:                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_relative.py                                     50     engine = RelativeValuationEngine()                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_sotp.py                                          7 from services.valuation.sotp.engine import SOTPEngine                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_sotp.py                                         10 def test_sotp_valuation_calculation() -> None:                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_sotp.py                                         48     engine = SOTPEngine()                                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_erwe.py                                   12         completed_steps=["Valuation", "Risk"],                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_erwe.py                                   23     steps = ["DataPlatform", "KnowledgeGraph", "Valuation", "Risk", "Committ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_ewop.py                                   14         return {"valuation": 3200.0, "recommendation": "BUY"}                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\workflow_engine\test_ewop.py                                   20     assert result_context.shared_data["valuation"] == 3200.0                   
+
+
+
+
+============================================================
+VALUATION TESTS
+============================================================
+......F............                                                      [100%]
+================================== FAILURES ===================================
+_________________ test_block13_valuation_scoring_integration __________________
+
+    def test_block13_valuation_scoring_integration() -> None:
+        income = IncomeStatement(
+            revenue=120000.0,
+            cost_of_goods_sold=70000.0,
+            ebitda=30000.0,
+            ebit=24000.0,
+            net_income=18000.0,
+            eps=18.0,
+            shares_outstanding=1000.0,
+        )
+        balance = BalanceSheet(
+            cash=25000.0,
+            cash_equivalents=5000.0,
+            accounts_receivable=15000.0,
+            inventory=10000.0,
+            total_assets=220000.0,
+            total_liabilities=70000.0,
+            total_equity=150000.0,
+            short_term_debt=5000.0,
+            long_term_debt=15000.0,
+        )
+        cashflow = CashFlowStatement(
+            operating_cash_flow=22000.0,
+            capital_expenditure=6000.0,
+            beginning_cash=20000.0,
+            net_change_in_cash=5000.0,
+            ending_cash=25000.0,
+        )
+    
+        statements = FinancialStatements(
+            company_name="Larsen & Toubro",
+            ticker="LT.NS",
+            currency="INR",
+            fiscal_year="FY2025",
+            income_statement=income,
+            balance_sheet=balance,
+            cash_flow_statement=cashflow,
+            periods=[],
+        )
+    
+        engine = AIScoringEngine()
+        result = engine.evaluate(statements)
+    
+        assert result.symbol == "LT.NS"
+        assert 0.0 <= result.composite_score <= 100.0
+        assert 0.0 <= result.valuation_score <= 100.0
+        assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
+        assert "valuation_engine" in result.breakdown_details
+>       assert result.breakdown_details["valuation_engine"]["blended_fair_value"] > 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'blended_fair_value'
+
+tests\scoring\test_block13_valuation_scoring.py:58: KeyError
+=========================== short test summary info ===========================
+FAILED tests/scoring/test_block13_valuation_scoring.py::test_block13_valuation_scoring_integration
+1 failed, 18 passed, 286 deselected in 4.20s
+
+VALUATION EXIT CODE: 1
+
+============================================================
+PIPELINE REGRESSION
+============================================================
+.                                                                        [100%]
+1 passed in 3.11s
+
+PIPELINE EXIT CODE: 0
+
+============================================================
+VALUATION COMPILE
+============================================================
+
+VALUATION COMPILE EXIT CODE: 0
+
+============================================================
+TASK CONTROL PROTECTION
+============================================================
+FF7AAE4059AEE14350F1D8DA1D6FE070A944507DFA3CEAE0D114BD69FCCEDA7E
+task_control.py PRESENT / PROTECTED
+
+============================================================
+VALUATION DIFF STAT
+============================================================
+ services/valuation/base_engine.py     |  40 +++-----
+ services/valuation/dcf/engine.py      |   2 +-
+ services/valuation/dcf_adapter.py     |  41 ++++++--
+ services/valuation/dcf_engine.py      | 181 +++++++++++++++++++++++++++++-----
+ services/valuation/dispatcher.py      |   4 +-
+ services/valuation/nav_engine.py      |  41 ++++----
+ services/valuation/relative/engine.py |   5 +-
+ services/valuation/sotp/engine.py     |   2 +-
+ services/valuation/sotp_engine.py     |  50 +++++-----
+ 9 files changed, 255 insertions(+), 111 deletions(-)
+
+
+============================================================
+GIT STATUS
+============================================================
+ M app.py
+ M backend/tasks/task_control.py
+ M celerybeat-schedule-shm
+ M celerybeat-schedule-wal
+ M components/top_holdings.py
+ M services/financials/balance_sheet.py
+ M services/financials/financial_statement.py
+ M services/forecast/engine.py
+ M services/forecast/service.py
+ M services/fundamentals/normalizer.py
+ M services/fundamentals/service.py
+ M services/ratios/engine.py
+ M services/scoring/engine.py
+ M services/sotp_long_term_equity_classification_service.py
+ M services/valuation/base_engine.py
+ M services/valuation/dcf/engine.py
+ M services/valuation/dcf_adapter.py
+ M services/valuation/dcf_engine.py
+ M services/valuation/dispatcher.py
+ M services/valuation/nav_engine.py
+ M services/valuation/relative/engine.py
+ M services/valuation/sotp/engine.py
+ M services/valuation/sotp_engine.py
+ M services/workflow/production_orchestrator.py
+ M tests/fundamentals/test_models.py
+ M tests/ratios/test_quality_engine.py
+ M tests/ratios/test_ratios.py
+ M tests/scoring/test_scoring.py
+ M tests/valuation/test_sotp.py
+?? S
+?? backend/tasks/task_control.py.backup-before-comment-cleanup
+?? backend/tasks/task_control.py.backup-before-forecast-cleanup
+?? backups/
+?? celery_runtime_diagnostic.txt
+?? docker_celery_test.txt
+?? eros_3_rebuild_architecture_audit.txt
+?? eros_forecast_contract_audit.txt
+?? eros_fundamentals_baseline.txt
+?? eros_fundamentals_canonical_path.txt
+?? eros_fundamentals_contract_extraction.txt
+?? eros_modification_triage.txt
+?? eros_normalizer_contract.txt
+?? eros_normalizer_rebuild_audit.txt
+?? eros_stage1_fundamentals_audit.txt
+?? eros_test_discovery.txt
+?? forecast_blocks_inspection.txt
+?? forecast_cleanup_result.txt
+?? forecast_comment_cleanup_result.txt
+?? forecast_post_cleanup_inspection.txt
+?? fundamentals_normalizer_audit.txt
+?? fundamentals_normalizer_triage.txt
+?? next_repair_diff.txt
+?? next_repair_target.txt
+?? next_repair_triage.txt
+?? normalizer_repair_audit.txt
+?? post_cleanup_task_control_audit.txt
+?? queue_status_investigation.txt
+?? services/scoring/engine.py.pre_canonical_migration.bak
+?? services/scoring/engine.py.pre_canonical_result_fix.bak
+?? services/scoring/engine.py.pre_valuation_migration.bak
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+?? services/valuation/__init__.py.pre_valuation_migration.bak
+?? services/valuation/service.py.pre_valuation_migration.bak
+?? submit_task_structural_audit.txt
+?? task_control_diff_review.txt
+?? task_control_docker_final.txt
+?? task_control_environment_comparison.txt
+?? task_control_final_audit.txt
+?? task_control_final_docker_validation.txt
+?? task_control_final_safety_check.txt
+?? task_control_final_validation.txt
+?? task_control_forecast_section.txt
+?? task_control_structural_audit.txt
+?? task_control_targeted_validation.txt
+?? task_control_test_result.txt
+?? test_discovery.txt
+?? test_discovery_result.txt
+?? test_suite_discovery.txt
+?? valuation_execution_trace.txt
+
+
+============================================================
+CHECKPOINT 03 COMPLETE
+============================================================

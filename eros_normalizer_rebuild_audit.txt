@@ -1,0 +1,783 @@
+﻿===== EROS 3.0 REBUILD — FUNDAMENTALS NORMALIZER =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+Date: 09/07/2026 19:59:08
+
+===== PROTECTED FILE =====
+backend/tasks/task_control.py = DO NOT TOUCH
+
+===== NORMALIZER FILE =====
+
+
+FullName      : D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py
+Length        : 12800
+LastWriteTime : 06-09-2026 06:12:51 PM
+
+
+
+
+
+===== NORMALIZER DIFF STAT =====
+ services/fundamentals/normalizer.py | 406 ++++++++++++++++++++++++++----------
+ 1 file changed, 292 insertions(+), 114 deletions(-)
+
+
+===== NORMALIZER DIFF =====
+diff --git a/services/fundamentals/normalizer.py b/services/fundamentals/normalizer.py
+index dd8423b..5cddfee 100644
+--- a/services/fundamentals/normalizer.py
++++ b/services/fundamentals/normalizer.py
+@@ -3,22 +3,34 @@
+ import logging
+ from typing import Any
+ 
+-from services.fundamentals.models import (
+-    BalanceSheet,
+-    CashFlowStatement,
++from services.financials.balance_sheet import BalanceSheet
++from services.financials.cash_flow import CashFlowStatement
++from services.financials.financial_statement import (
+     FinancialStatements,
++    PeriodFinancials,
+ )
+ from services.financials.income_statement import IncomeStatement
+ 
+ logger = logging.getLogger(__name__)
+ 
+ 
++def _float(value: Any) -> float:
++    """Safely convert provider values to float."""
++    if value is None:
++        return 0.0
++
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return 0.0
++
++
+ class FinancialNormalizer:
+-    """Normalize provider payloads into canonical FinancialStatements objects."""
++    """Normalize provider payloads into canonical FinancialStatements."""
+ 
+     def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+-        symbol = raw_data.get("symbol", "RELIANCE.NS")
+-        provider = raw_data.get("provider", "YahooFinance")
++        symbol = str(raw_data.get("symbol", "RELIANCE.NS"))
++        provider = str(raw_data.get("provider", "YahooFinance"))
+ 
+         logger.info(
+             "Normalizing financial data for symbol: %s from provider: %s",
+@@ -26,6 +38,8 @@ class FinancialNormalizer:
+             provider,
+         )
+ 
++        # Support both current plural provider payloads
++        # and legacy singular payloads.
+         raw_income = raw_data.get("income_statements")
+         if raw_income is None:
+             legacy_income = raw_data.get("income_statement", {})
+@@ -41,122 +55,286 @@ class FinancialNormalizer:
+             legacy_cashflow = raw_data.get("cash_flow", {})
+             raw_cashflow = [legacy_cashflow] if legacy_cashflow else []
+ 
+-        income_statements = []
+-
+-        for item in raw_income:
+-            income_statements.append(
+-                IncomeStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    revenue=float(item.get("revenue", 0.0)),
+-                    other_operating_income=float(
+-                        item.get("other_operating_income", 0.0)
+-                    ),
+-                    total_operating_income=float(
+-                        item.get(
+-                            "total_operating_income",
+-                            item.get("operating_income", 0.0),
+-                        )
+-                    ),
+-                    cost_of_goods_sold=float(
+-                        item.get("cost_of_goods_sold", 0.0)
+-                    ),
+-                    operating_expenses=float(
+-                        item.get("operating_expenses", 0.0)
+-                    ),
+-                    depreciation_and_amortization=float(
+-                        item.get("depreciation_and_amortization", 0.0)
+-                    ),
+-                    ebitda=float(item.get("ebitda", 0.0)),
+-                    ebit=float(item.get("ebit", 0.0)),
+-                    finance_cost=float(item.get("finance_cost", 0.0)),
+-                    finance_income=float(item.get("finance_income", 0.0)),
+-                    profit_before_tax=float(
+-                        item.get("profit_before_tax", 0.0)
+-                    ),
+-                    tax_expense=float(item.get("tax_expense", 0.0)),
+-                    net_income=float(item.get("net_income", 0.0)),
+-                    shares_outstanding=float(
+-                        item.get("shares_outstanding", 0.0)
+-                    ),
+-                    eps=float(item.get("eps", 0.0)),
+-                )
++        income_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_income
++        }
++
++        balance_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_balance
++        }
++
++        cashflow_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_cashflow
++        }
++
++        periods = sorted(
++            set(income_by_period)
++            | set(balance_by_period)
++            | set(cashflow_by_period)
++        )
++
++        period_financials: list[PeriodFinancials] = []
++
++        for period in periods:
++            income_raw = income_by_period.get(period, {})
++            balance_raw = balance_by_period.get(period, {})
++            cashflow_raw = cashflow_by_period.get(period, {})
++
++            income = IncomeStatement(
++                period=period,
++                revenue=_float(income_raw.get("revenue")),
++                operating_income=_float(
++                    income_raw.get("operating_income")
++                ),
++                other_operating_income=_float(
++                    income_raw.get("other_operating_income")
++                ),
++                total_operating_income=_float(
++                    income_raw.get(
++                        "total_operating_income",
++                        income_raw.get("operating_income"),
++                    )
++                ),
++                cost_of_goods_sold=_float(
++                    income_raw.get("cost_of_goods_sold")
++                ),
++                operating_expenses=_float(
++                    income_raw.get("operating_expenses")
++                ),
++                depreciation_and_amortization=_float(
++                    income_raw.get("depreciation_and_amortization")
++                ),
++                ebitda=_float(income_raw.get("ebitda")),
++                ebit=_float(income_raw.get("ebit")),
++                finance_cost=_float(income_raw.get("finance_cost")),
++                finance_income=_float(income_raw.get("finance_income")),
++                profit_before_tax=_float(
++                    income_raw.get("profit_before_tax")
++                ),
++                tax_expense=_float(income_raw.get("tax_expense")),
++                net_income=_float(income_raw.get("net_income")),
++                shares_outstanding=_float(
++                    income_raw.get("shares_outstanding")
++                ),
++                eps=_float(income_raw.get("eps")),
+             )
+ 
+-        balance_sheets = []
+-
+-        for item in raw_balance:
+-            balance_sheets.append(
+-                BalanceSheet(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    cash=float(item.get("cash", 0.0)),
+-                    cash_equivalents=float(
+-                        item.get("cash_equivalents", 0.0)
+-                    ),
+-                    short_term_investments=float(
+-                        item.get("short_term_investments", 0.0)
+-                    ),
+-                    accounts_receivable=float(
+-                        item.get("accounts_receivable", 0.0)
+-                    ),
+-                    inventory=float(item.get("inventory", 0.0)),
+-                    total_current_assets=float(
+-                        item.get("total_current_assets", 0.0)
+-                    ),
+-                    total_assets=float(item.get("total_assets", 0.0)),
+-                    short_term_debt=float(
+-                        item.get("short_term_debt", 0.0)
+-                    ),
+-                    total_current_liabilities=float(
+-                        item.get("total_current_liabilities", 0.0)
+-                    ),
+-                    long_term_debt=float(
+-                        item.get(
+-                            "long_term_debt",
+-                            item.get("debt", 0.0),
+-                        )
+-                    ),
+-                    total_liabilities=float(
+-                        item.get("total_liabilities", 0.0)
+-                    ),
+-                    total_equity=float(
+-                        item.get(
+-                            "total_equity",
+-                            item.get("shareholders_equity", 0.0),
+-                        )
+-                    ),
+-                )
++            balance = BalanceSheet(
++                period=period,
++                cash=_float(balance_raw.get("cash")),
++                cash_equivalents=_float(
++                    balance_raw.get("cash_equivalents")
++                ),
++                short_term_investments=_float(
++                    balance_raw.get("short_term_investments")
++                ),
++                accounts_receivable=_float(
++                    balance_raw.get("accounts_receivable")
++                ),
++                inventory=_float(balance_raw.get("inventory")),
++                other_current_assets=_float(
++                    balance_raw.get("other_current_assets")
++                ),
++                total_current_assets=_float(
++                    balance_raw.get("total_current_assets")
++                ),
++                property_plant_equipment=_float(
++                    balance_raw.get("property_plant_equipment")
++                ),
++                right_of_use_assets=_float(
++                    balance_raw.get("right_of_use_assets")
++                ),
++                goodwill=_float(balance_raw.get("goodwill")),
++                intangible_assets=_float(
++                    balance_raw.get("intangible_assets")
++                ),
++                long_term_investments=_float(
++                    balance_raw.get("long_term_investments")
++                ),
++                associates_and_joint_ventures=_float(
++                    balance_raw.get("associates_and_joint_ventures")
++                ),
++                deferred_tax_assets=_float(
++                    balance_raw.get("deferred_tax_assets")
++                ),
++                other_non_current_assets=_float(
++                    balance_raw.get("other_non_current_assets")
++                ),
++                total_non_current_assets=_float(
++                    balance_raw.get("total_non_current_assets")
++                ),
++                total_assets=_float(
++                    balance_raw.get("total_assets")
++                ),
++                accounts_payable=_float(
++                    balance_raw.get("accounts_payable")
++                ),
++                short_term_debt=_float(
++                    balance_raw.get("short_term_debt")
++                ),
++                current_lease_liabilities=_float(
++                    balance_raw.get("current_lease_liabilities")
++                ),
++                accrued_expenses=_float(
++                    balance_raw.get("accrued_expenses")
++                ),
++                other_current_liabilities=_float(
++                    balance_raw.get("other_current_liabilities")
++                ),
++                total_current_liabilities=_float(
++                    balance_raw.get("total_current_liabilities")
++                ),
++                long_term_debt=_float(
++                    balance_raw.get("long_term_debt")
++                ),
++                long_term_lease_liabilities=_float(
++                    balance_raw.get("long_term_lease_liabilities")
++                ),
++                deferred_tax_liabilities=_float(
++                    balance_raw.get("deferred_tax_liabilities")
++                ),
++                pension_liabilities=_float(
++                    balance_raw.get("pension_liabilities")
++                ),
++                other_non_current_liabilities=_float(
++                    balance_raw.get("other_non_current_liabilities")
++                ),
++                total_non_current_liabilities=_float(
++                    balance_raw.get("total_non_current_liabilities")
++                ),
++                total_liabilities=_float(
++                    balance_raw.get("total_liabilities")
++                ),
++                share_capital=_float(
++                    balance_raw.get("share_capital")
++                ),
++                retained_earnings=_float(
++                    balance_raw.get("retained_earnings")
++                ),
++                reserves=_float(balance_raw.get("reserves")),
++                minority_interest=_float(
++                    balance_raw.get("minority_interest")
++                ),
++                total_equity=_float(
++                    balance_raw.get(
++                        "total_equity",
++                        balance_raw.get("shareholders_equity"),
++                    )
++                ),
++                shareholders_equity=_float(
++                    balance_raw.get("shareholders_equity")
++                ),
++                debt=_float(balance_raw.get("debt")),
++            )
++
++            cashflow = CashFlowStatement(
++                period=period,
++                net_income=_float(
++                    cashflow_raw.get("net_income")
++                ),
++                depreciation_and_amortization=_float(
++                    cashflow_raw.get("depreciation_and_amortization")
++                ),
++                share_based_compensation=_float(
++                    cashflow_raw.get("share_based_compensation")
++                ),
++                deferred_tax=_float(
++                    cashflow_raw.get("deferred_tax")
++                ),
++                change_in_working_capital=_float(
++                    cashflow_raw.get("change_in_working_capital")
++                ),
++                other_operating_items=_float(
++                    cashflow_raw.get("other_operating_items")
++                ),
++                operating_cash_flow=_float(
++                    cashflow_raw.get("operating_cash_flow")
++                ),
++                capital_expenditure=_float(
++                    cashflow_raw.get(
++                        "capital_expenditure",
++                        cashflow_raw.get("capex"),
++                    )
++                ),
++                capex=_float(cashflow_raw.get("capex")),
++                acquisitions=_float(
++                    cashflow_raw.get("acquisitions")
++                ),
++                asset_sales=_float(
++                    cashflow_raw.get("asset_sales")
++                ),
++                investment_purchases=_float(
++                    cashflow_raw.get("investment_purchases")
++                ),
++                investment_sales=_float(
++                    cashflow_raw.get("investment_sales")
++                ),
++                investing_cash_flow=_float(
++                    cashflow_raw.get("investing_cash_flow")
++                ),
++                debt_issued=_float(
++                    cashflow_raw.get("debt_issued")
++                ),
++                debt_repaid=_float(
++                    cashflow_raw.get("debt_repaid")
++                ),
++                dividends_paid=_float(
++                    cashflow_raw.get("dividends_paid")
++                ),
++                share_repurchases=_float(
++                    cashflow_raw.get("share_repurchases")
++                ),
++                equity_issued=_float(
++                    cashflow_raw.get("equity_issued")
++                ),
++                financing_cash_flow=_float(
++                    cashflow_raw.get("financing_cash_flow")
++                ),
++                net_change_in_cash=_float(
++                    cashflow_raw.get("net_change_in_cash")
++                ),
++                beginning_cash=_float(
++                    cashflow_raw.get("beginning_cash")
++                ),
++                ending_cash=_float(
++                    cashflow_raw.get("ending_cash")
++                ),
++                free_cash_flow=_float(
++                    cashflow_raw.get("free_cash_flow")
++                ),
+             )
+ 
+-        cash_flows = []
+-
+-        for item in raw_cashflow:
+-            cash_flows.append(
+-                CashFlowStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    operating_cash_flow=float(
+-                        item.get("operating_cash_flow", 0.0)
+-                    ),
+-                    capital_expenditure=float(
+-                        item.get(
+-                            "capital_expenditure",
+-                            item.get("capex", 0.0),
+-                        )
+-                    ),
+-                    investing_cash_flow=float(
+-                        item.get("investing_cash_flow", 0.0)
+-                    ),
+-                    financing_cash_flow=float(
+-                        item.get("financing_cash_flow", 0.0)
+-                    ),
++            period_financials.append(
++                PeriodFinancials(
++                    period=period,
++                    income_statement=income,
++                    balance_sheet=balance,
++                    cash_flow_statement=cashflow,
+                 )
+             )
+ 
++        if not period_financials:
++            raise ValueError(
++                f"No usable financial periods found for {symbol}"
++            )
++
++        # Use the first available period as the canonical current statement.
++        primary = period_financials[0]
++
+         return FinancialStatements(
+-            symbol=symbol,
+-            income_statements=income_statements,
+-            balance_sheets=balance_sheets,
+-            cash_flows=cash_flows,
++            company_name=symbol,
++            ticker=symbol,
++            currency=str(raw_data.get("currency", "INR")),
++            fiscal_year=primary.period,
++            income_statement=primary.income_statement,
++            balance_sheet=primary.balance_sheet,
++            cash_flow_statement=primary.cash_flow_statement,
++            periods=period_financials,
+             metadata={
+                 "provider": provider,
++                "period_count": len(period_financials),
+             },
+-        )
++        )
+\ No newline at end of file
+
+
+===== NORMALIZER REFERENCES =====
+
+Path                                                                                                         LineNumber Line                                                                   
+----                                                                                                         ---------- ----                                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py                                           365         EROS V2.9 normalized read-only decision evidence.              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py                                           485             into a normalized read-only intelligence object.           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py                                           637         # NORMALIZED V3.0 OBJECT                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py                                          1040         # NORMALIZED V3.1 OBJECT                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py                                          2595         # It normalizes the existing V3.8 audit result so that         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py                                          2994         # Final V3.8.1 normalized result                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py                                          3047         # Hydrate the normalized output contract from the already      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                        81 def _normalize_category(metric_scores, maximum=20):                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                        83     Normalize available metric scores to a category maximum.           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                       133     # Read and normalize data                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                       215     valuation_score = _normalize_category(metrics)                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                       307     profitability_score = _normalize_category(metrics)                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                       363     growth_score = _normalize_category(metrics)                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                       466     health_score = _normalize_category(metrics)                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                       506     cash_flow_score = _normalize_category(metrics)                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py                                       525     # Each category is normalized to 20.                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py                                                      6     Fetch and normalize company news from Yahoo Finance.               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py                                                     29         normalized_news = []                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py                                                    121             normalized_news.append(                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\news_service.py                                                    131         return normalized_news                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_relevance_service.py                                           22     Normalize text for classification comparisons.                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_relevance_service.py                                          245     renormalized.                                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_relevance_service.py                                          253     # NORMALIZE DEBT / EQUITY                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_relevance_service.py                                          256     def normalize_debt_to_equity(value):                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_relevance_service.py                                          294     company_de = normalize_debt_to_equity(company_metrics.get("debt_...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_relevance_service.py                                          296     peer_de = normalize_debt_to_equity(peer_metrics.get("debt_to_equ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_relevance_service.py                                          387         "normalized_debt_to_equity": {                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_relevance_service.py                                          462     Normalize NSE symbols for profile lookup.                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\score_service.py                                                    52     Missing metrics are availability-normalized so that                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\score_service.py                                                   205     # Normalize available components to 100                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                     59     """Normalize NSE symbol."""                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       28     """Normalize NSE symbol."""                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       59     Extract and normalize balance-sheet fields required                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                      200         "source": ("Normalized stock profile data from " "research_s...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                           27     """Normalize NSE symbol."""                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py                              36     normalized_symbol = symbol.upper().replace(".NS", "")              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py                              37     ticker_symbol = f"{normalized_symbol}.NS"                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py                              46             "symbol": normalized_symbol,                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py                              53             "symbol": normalized_symbol,                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py                             155         "symbol": normalized_symbol,                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py                                         455     normalized_symbol = str(symbol).upper().strip()                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py                                         457     if not normalized_symbol.endswith(".NS"):                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py                                         458         ticker_symbol = f"{normalized_symbol}.NS"                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py                                         460         ticker_symbol = normalized_symbol                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py                                         557         "symbol": normalized_symbol.replace(                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       579     normalized_names = [name.casefold() for name in names]             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       584             for index, normalized_name in enumerate(normalized_names)  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       585             if normalized_names.count(normalized_name) > 1             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       622 def _normalize_entity_name(value: Any) -> str:                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       624     Normalize an entity name for conservative exact matching.          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       632     normalized = str(value or "").casefold().strip()                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       634     normalized = normalized.replace("\u2010", "-")                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       635     normalized = normalized.replace("\u2011", "-")                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       636     normalized = normalized.replace("\u2012", "-")                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       637     normalized = normalized.replace("\u2013", "-")                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       638     normalized = normalized.replace("\u2014", "-")                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       639     normalized = normalized.replace("\u2212", "-")                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       641     return " ".join(normalized.split())                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       689     A match requires the normalized legal entity name                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       699         normalized_name = _normalize_entity_name(entity.get("name"))   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       701         if normalized_name:                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       702             population_by_name[normalized_name] = entity               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       711         normalized_name = _normalize_entity_name(annexure_name)        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       713         population_entity = population_by_name.get(normalized_name)    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                       717             exception = RELIANCE_ANNEXURE_NOTE_39_EXCEPTIONS.get(nor...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                             70     # 1. NORMALIZE SYMBOL                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py                     61     # 1. NORMALIZE SYMBOL                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py                              133     Preserves framework/model completion status and normalizes missi...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_data_service.py                                        19     """Normalize NSE symbol."""                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_valuation_service.py                                   31     """Normalize NSE symbol."""                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                           39     """Normalize NSE symbol."""                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_service.py                                     202             normalized_de = debt_to_equity / 100.0                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_service.py                                     204             if normalized_de > 1.5:                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_service.py                                     207             elif normalized_de < 0.50:                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_quality_adjustment_service.py                            353 def _normalize_debt_to_equity(value):                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_quality_adjustment_service.py                            355     Normalize debt-to-equity into ratio form.                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_quality_adjustment_service.py                            393     company_de = _normalize_debt_to_equity(company_de)                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_quality_adjustment_service.py                            395     peer_de = _normalize_debt_to_equity(peer_de)                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_quality_adjustment_service.py                            581     # Renormalize if one or more factors are unavailable.              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v4_service.py                                            314     # We use normalized equity FCF yield as a secondary                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v4_service.py                                            389         normalized_weight = method["raw_weight"] / total_raw_weight    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v4_service.py                                            391         method["weight"] = normalized_weight                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v4_service.py                                            393         composite_fair_value += method["fair_value"] * normalized_we...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py                                         48 def normalize_income_statement(                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py                                        100 def normalize_balance_sheet(                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py                                        170 def normalize_cash_flow(                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py                                        213 def normalize_financial_statements(                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py                                        231         income_statement=normalize_income_statement(income_raw),       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py                                        232         balance_sheet=normalize_balance_sheet(balance_raw),            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py                                        233         cash_flow_statement=normalize_cash_flow(cashflow_raw),         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py                                                29     normalize_financial_statements,                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py                                                52     Normalizes, validates and stores a FinancialStatements object.     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\parser.py                                                55     statements = normalize_financial_statements(                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\engine.py                                                  27         # Normalize historical ordering before forecasting.            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\forecast_input.py                                          65         """Normalizes and validates input state upon instantiation.""" 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast\service.py                                                 30         """Event handler triggered when fundamentals are successfull...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\forecast_system\forecast_engine.py                                  33                 "Normalized capital expenditure cycle",                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\events.py                                              10     """Event emitted when company fundamental financial statements a...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py                                          28 class FinancialNormalizer:                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py                                          29     """Normalize provider payloads into canonical FinancialStatement...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py                                          31     def normalize(self, raw_data: dict[str, Any]) -> FinancialStatem...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py                                              9 from services.fundamentals.normalizer import FinancialNormalizer       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py                                             21         normalizer: FinancialNormalizer,                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py                                             26         self._normalizer = normalizer                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py                                             31         """Retrieve financial statements from cache or download and ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\service.py                                             37             statements = self._normalizer.normalize(raw)               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                      51         normalized_symbol = str(symbol).strip().upper()                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                      53         if not normalized_symbol:                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                      55                 "symbol": normalized_symbol,                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                      70                 normalized_symbol                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                      90                 "symbol": normalized_symbol,                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     107                 normalized_symbol,                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     111                 "symbol": normalized_symbol,                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     130         normalized_symbols: List[str] = []                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     134             normalized_symbol = str(symbol).strip().upper()            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     136             if normalized_symbol and normalized_symbol not in seen:    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     137                 normalized_symbols.append(normalized_symbol)           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     138                 seen.add(normalized_symbol)                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     142             len(normalized_symbols),                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     143             normalized_symbols,                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     150             max(1, len(normalized_symbols)),                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\batch_screener.py                                     162                 for symbol in normalized_symbols                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_execution_certification.py                    421         # If the caller supplies execution intents, normalize their ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_execution_certification.py                    423         normalized: List[Dict[str, Any]] = []                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_execution_certification.py                    427                 normalized.append({                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_execution_certification.py                    433                 normalized.append(row)                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block85_execution_certification.py                    436             orders=normalized,                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                           233         normalized: List[Dict[str, Any]] = []                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                           284             normalized.append(                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                           296         return normalized                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                           466             normalized = self._validate_allocations(                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                           483             normalized,                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block93_performance_risk_attribution_engine.py        126     normalized = repr(sorted((str(k), repr(v)) for k, v in payload.i...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block93_performance_risk_attribution_engine.py        127     return sha256(normalized).hexdigest().upper()                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           184             normalized = str(key).strip().lower()                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           185             if normalized in _FORBIDDEN_KEYS:                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           225     def normalized(self) -> "ScenarioDefinition":                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           338         normalized_scenario = self._normalize_scenario(scenario)       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           339         exposures = self._normalize_positions(positions)               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           346             scenario=normalized_scenario,                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           353             "scenario": normalized_scenario.to_dict(),                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           739             normalized = self._normalize_scenario_safe(scenario)       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           741             if normalized is None:                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           750     def _normalize_scenario_safe(                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           755             normalized = self._normalize_scenario(scenario)            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           759         if not normalized.scenario_id:                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           762         if normalized.scenario_type not in ALLOWED_SCENARIO_TYPES:     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           765         if not normalized.name:                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           769             normalized.price_shock_pct,                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           770             normalized.market_shock_pct,                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           771             normalized.volatility_shock_pct,                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           772             normalized.benchmark_shock_pct,                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           773             normalized.sector_shock_pct,                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           774             normalized.liquidity_shock_pct,                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           775             normalized.correlation_shock_pct,                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           776             normalized.default_shock_pct,                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           782         return normalized                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           784     def _normalize_scenario(                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           855         ).normalized()                                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           857     def _normalize_positions(                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           861         normalized: List[PositionExposure] = []                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           886             normalized.append(                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           924         if not normalized:                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block94_portfolio_stress_scenario_engine.py           927         return normalized                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       189         normalized_policy = self._normalize_policy(policy)             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       193             policy=normalized_policy,                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       212             "policy": normalized_policy,                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       249             "policy": _deepcopy(normalized_policy),                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       301     def _normalize_policy(                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       318         normalized: Dict[str, Any] = {                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       325                 normalized["max_stressed_drawdown_pct"] = None         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       327                 normalized["max_stressed_drawdown_pct"] = converted    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block95_stress_evidence_gate.py                       329         return normalized                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       118         normalized_policy = self._normalize_policy(policy)             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       122             policy=normalized_policy,                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       135             policy=normalized_policy,                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       162             "policy": normalized_policy,                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       205             "policy": _deepcopy(normalized_policy),                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       249     def _normalize_policy(                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       279         normalized = {                                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       292                 normalized[                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py                       296         return normalized                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_optimizer.py                                 14     target weights into a normalized portfolio allocation.             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_optimizer.py                                 50     def _normalize_symbol(symbol: Any) -> str:                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\portfolio_optimizer.py                                 74             symbol = self._normalize_symbol(item.get("symbol", ""))    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\engine.py                                                    11     """Institutional-grade financial ratio calculation engine derivi...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py                                              52     All pillar scores are normalized to 0-100.                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\data_hardening.py                                        33             errors.append("Volume cannot be negative. Normalized to ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        29         # 1. Prefer normalized EBITDA when available.                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        32         normalized_ebitda = getattr(inc, "ebitda", 0.0) if inc else 0.0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        34         if normalized_ebitda and normalized_ebitda > 0:                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        35             ebitda = float(normalized_ebitda)                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        36             ebitda_source = "normalized"                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        43                 "Relative Valuation requires a valid normalized or Y...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        65         # 2. Otherwise use normalized shares if available.             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        68         normalized_shares = (                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        76         elif normalized_shares and normalized_shares > 0:              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        77             shares = float(normalized_shares)                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        78             shares_source = "normalized"                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                                        82                 "Relative Valuation requires a valid live or normali...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\normalizer.py                                                  9 class CanonicalEventNormalizer:                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\normalizer.py                                                 10     """Normalizes heterogeneous provider payloads into a unified Mar...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\normalizer.py                                                 13     def normalize_quote(raw_payload: Dict[str, Any]) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\normalizer.py                                                 26             "normalized": True                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\bus\event_bus.py                                               9     """Centralized publish-subscribe event bus for routing normalize...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\market_data\analytics\streaming_analytics.py                          9     """Computes real-time technical indicators on incoming normalize...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\adapters\provider_adapters.py                               5 from backend.providers.normalizer.event_normalizer import EventNorma...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\adapters\provider_adapters.py                              28         return EventNormalizer.normalize_quote(raw_data, self.provid...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\adapters\provider_adapters.py                              42         return EventNormalizer.normalize_quote(raw_data, self.provid...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py                              9 class EventNormalizer:                                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py                             10     """Normalizes disparate provider payloads into a unified EROS in...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py                             13     def normalize_quote(raw_payload: Dict[str, Any], provider_name: ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py                             20             normalized = {                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py                             26                 "normalized": True                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py                             28             logger.info("Successfully normalized quote for %s from p...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py                             29             return normalized                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py                             31             logger.error("Failed to normalize payload from %s: %s", ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py                       41         normalized_category = str(category).strip().upper()            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py                       47             category=normalized_category,                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                                        9 from services.fundamentals.normalizer import FinancialNormalizer       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                                       28         normalizer = FinancialNormalizer()                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                                       29         fundamentals_service = FundamentalsService(provider, normali...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                                         4 from services.fundamentals.normalizer import FinancialNormalizer       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                                         7 def test_financial_normalizer() -> None:                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                                        16     normalizer = FinancialNormalizer()                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                                        17     fs = normalizer.normalize(raw)                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                            7 from services.fundamentals.normalizer import FinancialNormalizer       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                           17         normalizer = FinancialNormalizer()                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                           18         service = FundamentalsService(provider, normalizer, dispatcher)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                                5 from backend.events.normalizer import CanonicalEventNormalizer         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                               14     normalized = CanonicalEventNormalizer.normalize_quote(quote)       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                               15     assert normalized["symbol"] == "TCS.NS"                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                               16     assert normalized["price"] == 3525.40                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                               17     assert normalized["normalized"] is True                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                               29     normalized = CanonicalEventNormalizer.normalize_quote(quote)       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                               30     assert normalized["symbol"] == "INFY.NS"                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                               31     assert normalized["price"] == 3526.10                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                               32     assert normalized["provider"] == "alphavantage"                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                         4 from backend.providers.normalizer.event_normalizer import EventNorma...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                         9     normalized = EventNormalizer.normalize_quote(raw_payload, "TestP...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                        11     assert normalized["symbol"] == "TCS.NS"                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                        12     assert normalized["price"] == 3450.75                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                        13     assert normalized["volume"] == 15000                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                        14     assert normalized["provider"] == "TestProvider"                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                        15     assert normalized["normalized"] is True                            
+
+
+
+
+===== FUNDAMENTALS DIRECTORY =====
+
+Name                  Length LastWriteTime         
+----                  ------ -------------         
+canonical_models.py     2816 07-08-2026 06:53:40 PM
+events.py                517 06-08-2026 08:57:42 PM
+models.py.backup2       2220 04-09-2026 03:33:49 PM
+normalizer.py          12800 06-09-2026 06:12:51 PM
+normalizer.py.backup3   5828 04-09-2026 03:37:00 PM
+provider.py             6173 26-08-2026 01:28:37 PM
+service.py              1985 06-09-2026 07:58:36 PM
+validator.py            2558 07-08-2026 06:53:40 PM
+__init__.py               40 06-08-2026 08:58:18 PM
+
+
+
+
+===== FINANCIALS DIRECTORY =====
+
+Name                                            Length LastWriteTime         
+----                                            ------ -------------         
+balance_sheet.py                                  2656 05-09-2026 09:02:48 PM
+balance_sheet.py.backup-final                     2382 04-09-2026 06:29:00 PM
+balance_sheet.py.backup2                          2382 04-09-2026 06:29:00 PM
+balance_sheet.py.backup_before_equity_fix         1887 04-09-2026 06:40:09 PM
+balance_sheet.py.backup_before_final_equity_fix   1887 04-09-2026 06:40:09 PM
+balance_sheet.py.backup_final                     1887 04-09-2026 06:40:09 PM
+balance_sheet.py.final_backup                     1887 04-09-2026 06:40:09 PM
+balance_sheet.py.pre_compat_backup                1874 04-09-2026 06:25:33 PM
+builders.py                                       3893 06-09-2026 08:02:36 PM
+cash_flow.py                                      1348 04-09-2026 06:40:09 PM
+cash_flow.py.backup-final                         1981 04-09-2026 06:29:06 PM
+cash_flow.py.backup2                              1981 04-09-2026 06:29:06 PM
+cash_flow.py.backup_final                         1348 04-09-2026 06:40:09 PM
+cash_flow.py.final_backup                         1348 04-09-2026 06:40:09 PM
+cash_flow.py.pre_compat_backup                    1869 04-09-2026 06:25:41 PM
+financial_ratios.py                               4158 06-08-2026 09:27:14 AM
+financial_statement.py                            2708 06-09-2026 06:08:01 PM
+income_statement.py                               1048 04-09-2026 06:40:09 PM
+income_statement.py.backup-final                  1460 04-09-2026 06:28:52 PM
+income_statement.py.backup2                       1460 04-09-2026 06:28:52 PM
+income_statement.py.backup_final                  1048 04-09-2026 06:40:09 PM
+income_statement.py.final_backup                  1048 04-09-2026 06:40:09 PM
+income_statement.py.pre_compat_backup             1142 04-09-2026 06:25:27 PM
+normalization.py                                  5672 24-08-2026 05:38:55 PM
+normalization.py.31K-FI10-backup                  5542 12-08-2026 10:02:26 AM
+normalization.py.31K-FI13-backup                  5542 12-08-2026 10:02:26 AM
+parser.py                                         1827 11-08-2026 10:46:47 PM
+repository.py                                     1985 06-08-2026 09:27:14 AM
+validator.py                                      3454 06-08-2026 09:27:14 AM
+__init__.py                                        439 06-08-2026 09:27:14 AM
+
+
+

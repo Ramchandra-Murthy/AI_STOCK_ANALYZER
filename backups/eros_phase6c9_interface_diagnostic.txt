@@ -1,0 +1,502 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.9 INTERFACE DIAGNOSTIC
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+===== VALUATION PACKAGE EXPORTS =====
+python :   File "<string>", line 2
+At line:45 char:8
++ $out = python -c $cmd 2>&1
++        ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 2:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(MODULE:, v.__file__)
+                ^
+SyntaxError: invalid syntax
+
+EXIT: 1
+
+===== VALUATION BOUNDARY SIGNATURES =====
+python :   File "<string>", line 4
+At line:86 char:8
++ $out = python -c $cmd 2>&1
++        ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 4:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(CLASS:, ValuationBoundary)
+               ^
+SyntaxError: invalid syntax
+
+EXIT: 1
+
+===== DIRECT EMPTY BOUNDARY CONTRACT =====
+python :   File "<string>", line 6
+At line:115 char:8
++ $out = python -c $cmd 2>&1
++        ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 6:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(RESULT
+         ^
+SyntaxError: '(' was never closed
+
+EXIT: 1
+
+===== DIRECT PARTIAL BOUNDARY CONTRACT =====
+python :   File "<string>", line 12
+At line:148 char:8
++ $out = python -c $cmd 2>&1
++        ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 12:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(RESULT
+         ^
+SyntaxError: '(' was never closed
+
+EXIT: 1
+
+===== PRE-FOUNDATION PIPELINE CONTRACT =====
+python :   File "<string>", line 5
+At line:186 char:8
++ $out = python -c $cmd 2>&1
++        ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 5:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(INITIAL
+         ^
+SyntaxError: '(' was never closed
+
+EXIT: 1
+
+===== EMPTY FOUNDATION -> VALUATION CONTRACT =====
+python :   File "<string>", line 9
+At line:236 char:8
++ $out = python -c $cmd 2>&1
++        ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 9:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(BEFORE
+         ^
+SyntaxError: '(' was never closed
+
+EXIT: 1
+
+===== CURRENT PIPELINE run_valuation SOURCE =====
+(context)
+
+def run_valuation(context):
+    """
+    Execute the EROS valuation stage.
+
+    Public valuation execution returns the canonical result dictionary.
+    PipelineContext, however, retains the executable ValuationBoundary
+    object so downstream stages can independently access SOTP and DCF.
+
+    No valuation mathematics is performed here.
+    """
+
+    from eros.valuation.adapter import evaluate_valuation
+    from eros.valuation.bridge import build_bridge
+
+    # --------------------------------------------------------
+    # Pre-foundation safety
+    # --------------------------------------------------------
+
+    if context.financials is None:
+        if hasattr(context, "warnings"):
+            context.warnings.append(
+                "Valuation requires foundation data."
+            )
+
+        return context
+
+    # --------------------------------------------------------
+    # Execute canonical valuation adapter
+    # --------------------------------------------------------
+
+    try:
+        result = evaluate_valuation(
+            context.raw_data,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+            },
+        )
+
+        # ----------------------------------------------------
+        # IMPORTANT:
+        # evaluate_valuation() intentionally returns a dict.
+        # The pipeline stores the boundary object internally.
+        # ----------------------------------------------------
+
+        context.valuation_bridge = build_bridge(
+            sotp=result.get("sotp"),
+            dcf=result.get("dcf"),
+            provenance=result.get("provenance", {}),
+        )
+
+        # Preserve valuation warnings at pipeline level.
+        warnings = result.get("warnings", [])
+
+        if warnings and hasattr(context, "warnings"):
+            context.warnings.extend(warnings)
+
+        # Do not overwrite a valid foundation state merely
+        # because valuation inputs are incomplete.
+        if result.get("status") == "EXECUTED":
+            context.status = "VALUATION_COMPLETE"
+        elif result.get("status") == "INPUT_REQUIRED":
+            if hasattr(context, "warnings"):
+                context.warnings.append(
+                    "Valuation input is incomplete."
+                )
+
+        return context
+
+    except Exception as exc:
+
+        if hasattr(context, "warnings"):
+            context.warnings.append(
+                f"Valuation execution failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        context.valuation_bridge = build_bridge(
+            sotp=None,
+            dcf=None,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+                "valuation_status": "ERROR",
+                "error_type": type(exc).__name__,
+            },
+        )
+
+        return context
+
+
+EXIT: 0
+
+===== CURRENT VALUATION ADAPTER SOURCE =====
+"""EROS valuation execution adapter."""
+
+from typing import Any
+
+from eros.valuation.bridge import ValuationBoundary
+
+
+def valuation_available(data: Any) -> bool:
+    """Return whether enough data exists to attempt valuation."""
+
+    if not isinstance(data, dict):
+        return False
+
+    if not data:
+        return False
+
+    valuation_keys = {
+        "company_name",
+        "shares_outstanding",
+        "dcf_segments",
+        "other_segments",
+        "holdco_discount",
+        "revenue",
+        "ebitda",
+        "ebit",
+        "pat",
+        "free_cash_flow",
+    }
+
+    return any(
+        key in data and data.get(key) is not None
+        for key in valuation_keys
+    )
+
+
+def evaluate_valuation(
+    data: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    """Execute the EROS valuation boundary."""
+
+    boundary = ValuationBoundary()
+
+    if not valuation_available(data):
+        return boundary.evaluate(
+            {},
+            provenance=provenance,
+        )
+
+    return boundary.evaluate(
+        data,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "evaluate_valuation",
+    "valuation_available",
+]
+
+
+===== CURRENT VALUATION BRIDGE SOURCE =====
+"""EROS valuation bridge and executable boundary.
+
+EROS owns orchestration and result contracts.
+Canonical SOTP and DCF engines remain the authorities for
+valuation mathematics.
+
+SOTP and DCF are intentionally preserved independently.
+No simple mean is calculated here.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class ValuationBoundary:
+    """Executable EROS valuation boundary."""
+
+    sotp: Any = None
+    dcf: Any = None
+    provenance: dict[str, Any] = field(default_factory=dict)
+
+    def evaluate_sotp(
+        self,
+        data: dict[str, Any] | None = None,
+    ):
+        """Execute the canonical SOTP engine."""
+
+        from eros.valuation.sotp import evaluate_sotp
+
+        if data is None:
+            data = {}
+
+        try:
+            self.sotp = evaluate_sotp(data)
+        except Exception as exc:
+            self.sotp = None
+            self.provenance["sotp_error"] = (
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        return self.sotp
+
+    def evaluate_dcf(
+        self,
+        data: dict[str, Any] | None = None,
+    ):
+        """Execute the canonical DCF engine."""
+
+        from eros.valuation.dcf import evaluate_dcf
+
+        if data is None:
+            data = {}
+
+        try:
+            self.dcf = evaluate_dcf(data)
+        except Exception as exc:
+            self.dcf = None
+            self.provenance["dcf_error"] = (
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        return self.dcf
+
+    def evaluate(
+        self,
+        data: dict[str, Any] | None = None,
+        provenance: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Evaluate valuation and return the canonical EROS result.
+
+        Empty input and incomplete boundary input remain safe.
+
+        The returned dictionary deliberately exposes SOTP and DCF
+        independently. No averaging or synthetic valuation is created.
+        """
+
+        if data is None:
+            data = {}
+
+        base_provenance = {
+            **(provenance or {}),
+            "sotp_executed": False,
+            "dcf_executed": False,
+        }
+
+        # --------------------------------------------------------
+        # EMPTY INPUT
+        # --------------------------------------------------------
+
+        if not isinstance(data, dict) or not data:
+            self.sotp = None
+            self.dcf = None
+            self.provenance = {
+                **base_provenance,
+                "valuation_status": "INPUT_REQUIRED",
+            }
+
+            return {
+                "status": "INPUT_REQUIRED",
+                "sotp": None,
+                "dcf": None,
+                "provenance": self.provenance,
+                "warnings": [
+                    "Valuation input is required."
+                ],
+            }
+
+        # --------------------------------------------------------
+        # EXPLICIT BOUNDARY PAYLOAD
+        # --------------------------------------------------------
+
+        if set(data.keys()).issubset(
+            {"sotp", "dcf", "provenance"}
+        ):
+            self.sotp = data.get("sotp")
+            self.dcf = data.get("dcf")
+
+            supplied_provenance = data.get("provenance")
+
+            if isinstance(supplied_provenance, dict):
+                self.provenance = {
+                    **base_provenance,
+                    **supplied_provenance,
+                }
+            else:
+                self.provenance = {
+                    **base_provenance,
+                }
+
+            self.provenance["valuation_status"] = (
+                "INPUT_REQUIRED"
+            )
+
+            return {
+                "status": "INPUT_REQUIRED",
+                "sotp": self.sotp,
+                "dcf": self.dcf,
+                "provenance": self.provenance,
+                "warnings": [
+                    "Valuation input is required."
+                ],
+            }
+
+        # --------------------------------------------------------
+        # REAL VALUATION EXECUTION
+        # --------------------------------------------------------
+
+        self.provenance = {
+            **base_provenance,
+            "valuation_status": "EXECUTED",
+        }
+
+        warnings: list[str] = []
+
+        try:
+            self.evaluate_sotp(data)
+        except Exception as exc:
+            warnings.append(
+                f"SOTP valuation failed: {type(exc).__name__}: {exc}"
+            )
+
+        try:
+            self.evaluate_dcf(data)
+        except Exception as exc:
+            warnings.append(
+                f"DCF valuation failed: {type(exc).__name__}: {exc}"
+            )
+
+        self.provenance["sotp_executed"] = (
+            self.sotp is not None
+        )
+        self.provenance["dcf_executed"] = (
+            self.dcf is not None
+        )
+        self.provenance["warnings"] = warnings
+
+        return {
+            "status": "COMPLETE",
+            "sotp": self.sotp,
+            "dcf": self.dcf,
+            "provenance": self.provenance,
+            "warnings": warnings,
+        }
+
+
+def create_valuation_boundary(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    """Create an executable valuation boundary."""
+
+    return ValuationBoundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance or {},
+    )
+
+
+def build_bridge(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    """Build an independent SOTP/DCF valuation bridge."""
+
+    return create_valuation_boundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "ValuationBoundary",
+    "create_valuation_boundary",
+    "build_bridge",
+]
+
+
+===== FULL EROS PYTEST =====
+..................                                                       [100%]
+18 passed in 0.25s
+
+PYTEST EXIT: 0
+
+===== VALUATION PYTEST =====
+..........                                                               [100%]
+10 passed in 0.24s
+
+VALUATION PYTEST EXIT: 0
+
+===== EROS GIT DIFF =====
+
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 6C.9 INTERFACE DIAGNOSTIC
+============================================================
+

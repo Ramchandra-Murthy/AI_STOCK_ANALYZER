@@ -1,0 +1,893 @@
+﻿============================================================
+EROS 3.0 — PHASE 5C PIPELINE HEALTH REPORT
+============================================================
+DATE: 09/05/2026 19:36:07
+BRANCH: rebuild/eros-3-0-clean
+
+===== EROS TREE =====
+
+FullName                                                                         Length
+--------                                                                         ------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\__init__.py                            165
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\api\__init__.py                         58
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\api\service.py                         543
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\classification\__init__.py               0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\classification\rule_engine.py         7172
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\config\__init__.py                      36
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\config\domain_constants.py            8843
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\contracts\__init__.py                  329
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\contracts\models.py                   2735
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\data\__init__.py                         0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\data\providers\__init__.py               0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\__init__.py                   261
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                  2364
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage13c\__init__.py          780
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage13c\classification.py   8121
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage14\__init__.py             0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\evidence\__init__.py                     0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\normalization\__init__.py                0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\quality\__init__.py                      0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\scoring\__init__.py                      0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\__init__.py                        0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\e2e\__init__.py                    0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__init__.py            0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\__init__.py                   0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\test_pipeline.py            420
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                   87
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                  2016
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py            72
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py            1831
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__init__.py               72
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py                725
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__init__.py              74
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py              1061
+
+
+
+
+===== CURRENT PIPELINE =====
+"""
+EROS 3.0 Decision Pipeline.
+
+This is orchestration only.
+
+The pipeline does not duplicate:
+- data provider mathematics
+- quality mathematics
+- scoring mathematics
+- classification rules
+- SOTP mathematics
+- DCF mathematics
+- Stage 13C mathematics
+- Stage 14 mathematics
+
+Those remain owned by their respective modules.
+
+EROS coordinates them and preserves provenance.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
+
+@dataclass
+class PipelineContext:
+    symbol: str
+
+    financials: Any = None
+    normalized: Any = None
+    quality: Any = None
+    score: Any = None
+    classification: Any = None
+
+    sotp: Any = None
+    dcf: Any = None
+    valuation_bridge: Any = None
+
+    stage13c: Any = None
+    stage14: Any = None
+
+    evidence: list = field(default_factory=list)
+    warnings: list = field(default_factory=list)
+
+    status: str = "INITIALIZED"
+
+
+def create_context(symbol: str) -> PipelineContext:
+    if not symbol or not str(symbol).strip():
+        raise ValueError("symbol is required")
+
+    return PipelineContext(
+        symbol=str(symbol).strip().upper()
+    )
+
+
+def attach(context: PipelineContext, name: str, value: Any):
+    setattr(context, name, value)
+    return context
+
+
+def add_warning(context: PipelineContext, message: str):
+    if message:
+        context.warnings.append(str(message))
+
+
+def add_evidence(context: PipelineContext, evidence: Any):
+    if evidence is not None:
+        context.evidence.append(evidence)
+
+
+def finalize(context: PipelineContext):
+    context.status = "COMPLETE"
+
+    return {
+        "symbol": context.symbol,
+        "status": context.status,
+
+        "financials": context.financials,
+        "normalized": context.normalized,
+        "quality": context.quality,
+        "score": context.score,
+        "classification": context.classification,
+
+        "sotp": context.sotp,
+        "dcf": context.dcf,
+        "valuation_bridge": context.valuation_bridge,
+
+        "stage13c": context.stage13c,
+        "stage14": context.stage14,
+
+        "evidence": context.evidence,
+        "warnings": context.warnings,
+
+        "provenance": {
+            "orchestrator": "EROS_3.0",
+            "symbol": context.symbol,
+        },
+    }
+
+
+__all__ = [
+    "PipelineContext",
+    "create_context",
+    "attach",
+    "add_warning",
+    "add_evidence",
+    "finalize",
+]
+
+
+===== API SERVICE =====
+"""
+EROS 3.0 public service facade.
+
+The facade currently performs orchestration validation.
+Individual engines are integrated behind explicit boundaries.
+"""
+
+from eros.decision.pipeline import (
+    create_context,
+    finalize,
+)
+
+
+def evaluate(symbol: str, **kwargs):
+
+    context = create_context(symbol)
+
+    # Inputs are attached without changing their semantics.
+    for key, value in kwargs.items():
+        if hasattr(context, key):
+            setattr(context, key, value)
+
+    return finalize(context)
+
+
+__all__ = ["evaluate"]
+
+
+===== CONTRACTS =====
+"""
+EROS 3.0 - Canonical Data Contracts
+
+The canonical objects passed between:
+data -> normalization -> quality -> scoring
+-> classification -> valuation -> decision -> evidence -> API
+"""
+
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
+
+@dataclass
+class FinancialSnapshot:
+    symbol: str
+
+    revenue: Optional[float] = None
+    ebitda: Optional[float] = None
+    ebit: Optional[float] = None
+    pat: Optional[float] = None
+    eps: Optional[float] = None
+
+    total_assets: Optional[float] = None
+    total_debt: Optional[float] = None
+    cash: Optional[float] = None
+    equity: Optional[float] = None
+
+    operating_cash_flow: Optional[float] = None
+    free_cash_flow: Optional[float] = None
+
+    shares_outstanding: Optional[float] = None
+    market_cap: Optional[float] = None
+    current_price: Optional[float] = None
+
+    currency: str = "INR"
+    period: Optional[str] = None
+
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class QualityResult:
+    passed: bool
+    score: float = 0.0
+    missing_fields: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ScoreResult:
+    score: Optional[float] = None
+    components: dict[str, float] = field(default_factory=dict)
+    rationale: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ClassificationResult:
+    classification: Optional[str] = None
+    confidence: Optional[float] = None
+    rationale: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ValuationResult:
+    value: Optional[float] = None
+    low: Optional[float] = None
+    high: Optional[float] = None
+    method: Optional[str] = None
+    currency: str = "INR"
+    assumptions: dict[str, Any] = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class Evidence:
+    source: str
+    field: str
+    value: Any = None
+    period: Optional[str] = None
+    confidence: Optional[float] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EROSResult:
+    symbol: str
+
+    financials: Optional[FinancialSnapshot] = None
+    quality: Optional[QualityResult] = None
+    score: Optional[ScoreResult] = None
+    classification: Optional[ClassificationResult] = None
+
+    sotp: Optional[ValuationResult] = None
+    dcf: Optional[ValuationResult] = None
+    bridge: Optional[ValuationResult] = None
+
+    stage13c: Optional[dict[str, Any]] = None
+    stage14: Optional[dict[str, Any]] = None
+
+    evidence: list[Evidence] = field(default_factory=list)
+
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+
+===== COMPILE EROS =====
+COMPILE: PASS
+
+===== EROS IMPORT =====
+EROS IMPORT: PASS
+
+===== CONTRACT IMPORT =====
+CONTRACT IMPORT: PASS
+
+===== PIPELINE IMPORT =====
+PIPELINE IMPORT: PASS
+
+===== API IMPORT =====
+API IMPORT: PASS
+
+===== EROS TEST SUITE =====
+PYTEST: PASS
+
+===== STREAMLIT IMPORT CHECK =====
+python : 2026-09-05 19:36:12.337 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': 
+missing ScriptRunContext! This warning can be ignored when running in bare mode.
+At line:247 char:1
++ python -c "import app; print('APP IMPORT: PASS')" 2>&1 |
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (2026-09-05 19:3...g in bare mode.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+2026-09-05 19:36:12.337 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.675 WARNING streamlit: 
+  [33m[1mWarning:[0m to view a Streamlit app on a browser, use Streamlit in a file and
+  run it with the following command:
+
+    streamlit run [FILE_NAME] [ARGUMENTS]
+2026-09-05 19:36:12.675 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.676 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.676 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.676 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.676 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.676 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.676 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.677 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.677 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.677 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.678 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.678 WARNING streamlit.runtime.state.session_state_proxy: Session state does not function when 
+running a script without `streamlit run`
+2026-09-05 19:36:12.678 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.678 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.678 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.678 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.679 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.679 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.679 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.679 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.679 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.680 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.680 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.680 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.681 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.681 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.681 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.682 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.682 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:12.682 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.253 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.253 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.253 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.253 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.253 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.253 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.253 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.254 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.254 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.254 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.254 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.254 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.254 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.255 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.255 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.255 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.256 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.256 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.257 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.257 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.257 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.257 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.257 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.258 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.258 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.258 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.258 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.258 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.666 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.666 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.666 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.666 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.666 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.667 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.667 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.667 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.667 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.667 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.667 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.667 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.668 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.669 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.670 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.670 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.670 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.670 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.670 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.670 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing 
+ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-05 19:36:14.921 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 19:36:14.928 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.928 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.928 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.929 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.930 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.930 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.930 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.930 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.930 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.931 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.931 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.931 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.931 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.931 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.931 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.932 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.932 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.932 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.932 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.932 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.932 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.933 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.933 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.933 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:14.997 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 19:36:15.001 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.001 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.001 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.002 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.002 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.002 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.002 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.002 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.002 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.003 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.003 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.017 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 19:36:15.019 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.019 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.019 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.020 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.020 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.020 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.020 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.020 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.020 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.020 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.021 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.021 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.021 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.021 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.037 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.037 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.037 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.037 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.037 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.038 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.038 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.038 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.038 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.038 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.038 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.046 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.046 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.049 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.049 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.049 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.050 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.050 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.050 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.050 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.051 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.051 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.051 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.051 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.051 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.051 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.051 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.052 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.052 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:15.052 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.610 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.610 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.610 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.611 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.611 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.611 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.611 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.611 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.611 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.611 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 19:36:16.612 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.613 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.613 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.613 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.613 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.613 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.613 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.613 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+2026-09-05 19:36:16.615 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.615 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.615 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.615 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.616 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.616 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.616 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.616 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.616 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.616 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.617 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.617 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.617 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.617 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.617 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.617 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.617 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.618 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+2026-09-05 19:36:16.619 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in 
+bare mode.
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import app; print('APP IMPORT: PASS')
+    ^^^^^^^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\app.py", line 59, in <module>
+    page_func()
+    ~~~~~~~~~^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\dashboard.py", line 106, in show
+    show_portfolio_analytics(df)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\portfolio_analytics.py", line 13, in 
+show_portfolio_analytics
+    best = df.loc[df["Return %"].idxmax()]
+                  ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pandas\core\series.py", line 2545, in idxmax
+    iloc = self.argmax(axis, skipna, *args, **kwargs)
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pandas\core\base.py", line 814, in argmax
+    result = nanops.nanargmax(delegate, skipna=skipna)
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pandas\core\nanops.py", line 1170, in nanargmax
+    result = _maybe_arg_null_out(result, axis, mask, skipna)  # type: ignore[arg-type]
+  File "D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Lib\site-packages\pandas\core\nanops.py", line 1485, in 
+_maybe_arg_null_out
+    raise ValueError("Encountered all NA values")
+ValueError: Encountered all NA values
+
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+===== RECENT COMMITS =====
+044828d CRITICAL FIXES: Fixed data pipeline (Date index), missing MACD histogram, RSI division by zero, revenue caps removed, NoneType errors in dashboard, and Docker entry point
+bc3f260 Repair Stage 13C valuation gate and evidence propagation
+4d7ec99 Remove temporary domain constants backup
+e90c393 Repair Stage 13C and Stage 14 integration
+2ad41b9 checkpoint before valuation consolidation
+e728411 Fix production valuation router FastAPI dependency
+dd47bf2 feat: bridge SOTP valuation to modern DCF
+b6be2cf EROS 3.0 green checkpoint - 15 contract tests passing
+48b9a40 EROS 3.0 green checkpoint - 15 contract tests passing
+22257e4 EROS 3.0 V3.8.19 golden traceability integration
+
+

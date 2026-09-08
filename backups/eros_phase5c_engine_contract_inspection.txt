@@ -1,0 +1,2095 @@
+﻿============================================================
+EROS 3.0 — PHASE 5C ENGINE CONTRACT INSPECTION
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+
+========================================================================
+DATA_QUALITY :: services.data_platform.quality
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: DataQualityEngine
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: DataQualityEngine
+MODULE: services.data_platform.quality
+SIGNATURE: ()
+
+CLASS METHODS:
+   inspect_metric (metric_name: 'str', value: 'float', min_val: 'float' = -1000000000000.0, max_val: 'float' = 1000000000000.0) -> 'QualityCheckResult'
+
+SOURCE:
+    @staticmethod
+    def inspect_metric(metric_name: str, value: float, min_val: float = -1e12, max_val: float = 1e12) -> QualityCheckResult:
+        logger.info("Inspecting data quality for metric '%s' with value %s", metric_name, value)
+        if not isinstance(value, (int, float)):
+            return QualityCheckResult(
+                metric_name=metric_name,
+                value=value,
+                passed=False,
+                confidence=0.0,
+                message=f"Metric {metric_name} is not numeric."
+            )
+
+        passed = min_val <= value <= max_val
+        confidence = 0.99 if passed else 0.20
+        message = "Passed institutional range and validity checks." if passed else f"Value {value} out of acceptable bounds [{min_val}, {max_val}]."
+
+        return QualityCheckResult(
+            metric_name=metric_name,
+            value=value,
+            passed=passed,
+            confidence=confidence,
+            message=message
+        )
+
+
+========================================================================
+FINANCIAL_RATIOS :: services.financials.financial_ratios
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: FinancialRatios
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: FinancialRatios
+MODULE: services.financials.financial_ratios
+SIGNATURE: (gross_margin: 'float', ebitda_margin: 'float', ebit_margin: 'float', net_margin: 'float', roe: 'float', roa: 'float', roce: 'float', roic: 'float', current_ratio: 'float', quick_ratio: 'float', debt_to_equity: 'float', net_debt_to_ebitda: 'float', fcf_margin: 'float', cash_conversion_ratio: 'float', asset_turnover: 'float', inventory_turnover: 'float') -> None
+
+CLASS METHODS:
+   __init__ (self, gross_margin: 'float', ebitda_margin: 'float', ebit_margin: 'float', net_margin: 'float', roe: 'float', roa: 'float', roce: 'float', roic: 'float', current_ratio: 'float', quick_ratio: 'float', debt_to_equity: 'float', net_debt_to_ebitda: 'float', fcf_margin: 'float', cash_conversion_ratio: 'float', asset_turnover: 'float', inventory_turnover: 'float') -> None
+
+------------------------------------------------------------------------
+SYMBOL: calculate_financial_ratios
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: calculate_financial_ratios
+MODULE: services.financials.financial_ratios
+SIGNATURE: (income: 'IncomeStatement', balance: 'BalanceSheet', cashflow: 'CashFlowStatement') -> 'FinancialRatios'
+
+SOURCE:
+def calculate_financial_ratios(
+    income: IncomeStatement,
+    balance: BalanceSheet,
+    cashflow: CashFlowStatement,
+) -> FinancialRatios:
+
+    gross_profit = income.revenue - income.cost_of_goods_sold
+
+    invested_capital = balance.total_equity + balance.total_debt - balance.total_cash
+
+    current_ratio = _safe_divide(
+        balance.total_current_assets,
+        balance.total_current_liabilities,
+    )
+
+    quick_assets = balance.total_cash + balance.accounts_receivable
+
+    quick_ratio = _safe_divide(
+        quick_assets,
+        balance.total_current_liabilities,
+    )
+
+    return FinancialRatios(
+        # Profitability
+        gross_margin=_safe_divide(
+            gross_profit,
+            income.revenue,
+        ),
+        ebitda_margin=_safe_divide(
+            income.ebitda,
+            income.revenue,
+        ),
+        ebit_margin=_safe_divide(
+            income.ebit,
+            income.revenue,
+        ),
+        net_margin=_safe_divide(
+            income.net_income,
+            income.revenue,
+        ),
+        # Returns
+        roe=_safe_divide(
+            income.net_income,
+            balance.total_equity,
+        ),
+        roa=_safe_divide(
+            income.net_income,
+            balance.total_assets,
+        ),
+        roce=_safe_divide(
+            income.ebit,
+            invested_capital,
+        ),
+        roic=_safe_divide(
+            income.ebit * (1 - 0.25),
+            invested_capital,
+        ),
+        # Liquidity
+        current_ratio=current_ratio,
+        quick_ratio=quick_ratio,
+        # Leverage
+        debt_to_equity=_safe_divide(
+            balance.total_debt,
+            balance.total_equity,
+        ),
+        net_debt_to_ebitda=_safe_divide(
+            balance.net_debt,
+            income.ebitda,
+        ),
+        # Cash Flow
+        fcf_margin=_safe_divide(
+            cashflow.free_cash_flow,
+            income.revenue,
+        ),
+        cash_conversion_ratio=_safe_divide(
+            cashflow.operating_cash_flow,
+            income.net_income,
+        ),
+        # Efficiency
+        asset_turnover=_safe_divide(
+            income.revenue,
+            balance.total_assets,
+        ),
+        inventory_turnover=_safe_divide(
+            income.cost_of_goods_sold,
+            balance.inventory,
+        ),
+    )
+
+
+========================================================================
+FINANCIAL_STATEMENTS :: services.financials.financial_statement
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: PeriodFinancials
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: PeriodFinancials
+MODULE: services.financials.financial_statement
+SIGNATURE: (period: 'str', income_statement: 'IncomeStatement', balance_sheet: 'BalanceSheet', cash_flow_statement: 'CashFlowStatement') -> None
+
+CLASS METHODS:
+   __init__ (self, period: 'str', income_statement: 'IncomeStatement', balance_sheet: 'BalanceSheet', cash_flow_statement: 'CashFlowStatement') -> None
+
+------------------------------------------------------------------------
+SYMBOL: FinancialStatements
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: FinancialStatements
+MODULE: services.financials.financial_statement
+SIGNATURE: (company_name: 'str', ticker: 'str', currency: 'str', fiscal_year: 'str', income_statement: 'IncomeStatement', balance_sheet: 'BalanceSheet', cash_flow_statement: 'CashFlowStatement', periods: 'list[PeriodFinancials]' = <factory>, metadata: 'dict[str, Any]' = <factory>) -> None
+
+CLASS METHODS:
+   __init__ (self, company_name: 'str', ticker: 'str', currency: 'str', fiscal_year: 'str', income_statement: 'IncomeStatement', balance_sheet: 'BalanceSheet', cash_flow_statement: 'CashFlowStatement', periods: 'list[PeriodFinancials]' = <factory>, metadata: 'dict[str, Any]' = <factory>) -> None
+   summary (self) -> 'dict[str, Any]'
+
+SOURCE:
+    def summary(self) -> dict[str, Any]:
+        return {
+            "company": self.company_name,
+            "year": self.fiscal_year,
+            "revenue": self.income_statement.revenue,
+            "ebit": self.income_statement.ebit,
+            "net_income": self.income_statement.net_income,
+            "cash": self.balance_sheet.total_cash,
+            "debt": self.balance_sheet.total_debt,
+        }
+
+
+========================================================================
+NORMALIZATION :: services.financials.normalization
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: normalize_income_statement
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: normalize_income_statement
+MODULE: services.financials.normalization
+SIGNATURE: (raw: 'dict[str, Any]') -> 'IncomeStatement'
+
+SOURCE:
+def normalize_income_statement(
+    raw: dict[str, Any],
+) -> IncomeStatement:
+
+    return IncomeStatement(
+        revenue=_get(
+            raw,
+            "revenue",
+            "totalRevenue",
+            "Revenue",
+        ),
+        cost_of_goods_sold=_get(
+            raw,
+            "costOfRevenue",
+            "costOfGoodsSold",
+            "cost_of_goods_sold",
+            "COGS",
+        ),
+        ebitda=_get(
+            raw,
+            "ebitda",
+            "EBITDA",
+        ),
+        ebit=_get(
+            raw,
+            "ebit",
+            "operatingIncome",
+        ),
+        net_income=_get(
+            raw,
+            "netIncome","net_income",
+            "profitAfterTax",
+        ),
+        depreciation_and_amortization=_get(
+            raw,
+            "depreciation",
+            "depreciationAndAmortization",
+        ),
+        eps=_get(
+            raw,
+            "eps",
+            "EPS",
+            "earningsPerShare",
+        ),
+        shares_outstanding=_get(
+            raw,
+            "sharesOutstanding",
+            "shares_outstanding",
+        ),
+    )
+
+
+------------------------------------------------------------------------
+SYMBOL: normalize_balance_sheet
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: normalize_balance_sheet
+MODULE: services.financials.normalization
+SIGNATURE: (raw: 'dict[str, Any]') -> 'BalanceSheet'
+
+SOURCE:
+def normalize_balance_sheet(
+    raw: dict[str, Any],
+) -> BalanceSheet:
+
+    return BalanceSheet(
+        cash=_get(raw, "cash"),
+        cash_equivalents=_get(
+            raw,
+            "cashEquivalents",
+        ),
+        short_term_investments=_get(
+            raw,
+            "shortTermInvestments",
+        ),
+        accounts_receivable=_get(
+            raw,
+            "accountsReceivable",
+        ),
+        inventory=_get(
+            raw,
+            "inventory",
+        ),
+        property_plant_equipment=_get(
+            raw,
+            "propertyPlantEquipment",
+            "ppe",
+        ),
+        goodwill=_get(
+            raw,
+            "goodwill",
+        ),
+        intangible_assets=_get(
+            raw,
+            "intangibles",
+        ),
+        total_current_assets=_get(
+            raw,
+            "totalCurrentAssets",
+            "total_current_assets",
+        ),
+        total_current_liabilities=_get(
+            raw,
+            "totalCurrentLiabilities",
+            "total_current_liabilities",
+        ),
+        total_assets=_get(
+            raw,
+            "totalAssets",
+            "total_assets",
+        ),
+        short_term_debt=_get(
+            raw,
+            "shortTermDebt",
+        ),
+        long_term_debt=_get(
+            raw,
+            "longTermDebt","debt",
+        ),
+        total_liabilities=_get(
+            raw,
+            "totalLiabilities","total_liabilities",
+        ),
+        total_equity=_get(
+            raw,
+            "totalEquity",
+            "shareholdersEquity","shareholders_equity",
+        ),
+    )
+
+
+------------------------------------------------------------------------
+SYMBOL: normalize_cash_flow
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: normalize_cash_flow
+MODULE: services.financials.normalization
+SIGNATURE: (raw: 'dict[str, Any]') -> 'CashFlowStatement'
+
+SOURCE:
+def normalize_cash_flow(
+    raw: dict[str, Any],
+) -> CashFlowStatement:
+
+    return CashFlowStatement(
+        operating_cash_flow=_get(
+            raw,
+            "operatingCashFlow","operating_cash_flow",
+        ),
+        capital_expenditure=_get(
+            raw,
+            "capitalExpenditure",
+            "capex",
+        ),
+        investing_cash_flow=_get(
+            raw,
+            "investingCashFlow","investing_cash_flow",
+        ),
+        financing_cash_flow=_get(
+            raw,
+            "financingCashFlow","financing_cash_flow",
+        ),
+        dividends_paid=_get(
+            raw,
+            "dividendsPaid",
+        ),
+        net_change_in_cash=_get(
+            raw,
+            "changeInCash",
+        ),
+                beginning_cash=_get(
+            raw,
+            "beginningCash",
+            "beginning_cash",
+        ),
+        ending_cash=_get(
+            raw,
+            "endingCash",
+            "ending_cash",
+        ),
+    )
+
+
+------------------------------------------------------------------------
+SYMBOL: normalize_financial_statements
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: normalize_financial_statements
+MODULE: services.financials.normalization
+SIGNATURE: (company_name: 'str', ticker: 'str', currency: 'str', fiscal_year: 'str', income_raw: 'dict[str, Any]', balance_raw: 'dict[str, Any]', cashflow_raw: 'dict[str, Any]') -> 'FinancialStatements'
+
+SOURCE:
+def normalize_financial_statements(
+    company_name: str,
+    ticker: str,
+    currency: str,
+    fiscal_year: str,
+    income_raw: dict[str, Any],
+    balance_raw: dict[str, Any],
+    cashflow_raw: dict[str, Any],
+) -> FinancialStatements:
+    """
+    Builds the platform's canonical FinancialStatements object.
+    """
+
+    return FinancialStatements(
+        company_name=company_name,
+        ticker=ticker,
+        currency=currency,
+        fiscal_year=fiscal_year,
+        income_statement=normalize_income_statement(income_raw),
+        balance_sheet=normalize_balance_sheet(balance_raw),
+        cash_flow_statement=normalize_cash_flow(cashflow_raw),
+    )
+
+
+========================================================================
+FUNDAMENTAL_NORMALIZER :: services.fundamentals.normalizer
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: FinancialNormalizer
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: FinancialNormalizer
+MODULE: services.fundamentals.normalizer
+SIGNATURE: ()
+
+CLASS METHODS:
+   normalize (self, raw_data: 'dict[str, Any]') -> 'FinancialStatements'
+
+SOURCE:
+    def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+        symbol = raw_data.get("symbol", "RELIANCE.NS")
+        provider = raw_data.get("provider", "YahooFinance")
+
+        logger.info(
+            "Normalizing financial data for symbol: %s from provider: %s",
+            symbol,
+            provider,
+        )
+
+        raw_income = raw_data.get("income_statements")
+        if raw_income is None:
+            legacy_income = raw_data.get("income_statement", {})
+            raw_income = [legacy_income] if legacy_income else []
+
+        raw_balance = raw_data.get("balance_sheets")
+        if raw_balance is None:
+            legacy_balance = raw_data.get("balance_sheet", {})
+            raw_balance = [legacy_balance] if legacy_balance else []
+
+        raw_cashflow = raw_data.get("cash_flows")
+        if raw_cashflow is None:
+            legacy_cashflow = raw_data.get("cash_flow", {})
+            raw_cashflow = [legacy_cashflow] if legacy_cashflow else []
+
+        income_statements = []
+
+        for item in raw_income:
+            income_statements.append(
+                IncomeStatement(
+                    period=str(item.get("period", "UNKNOWN")),
+                    revenue=float(item.get("revenue", 0.0)),
+                    other_operating_income=float(
+                        item.get("other_operating_income", 0.0)
+                    ),
+                    total_operating_income=float(
+                        item.get(
+                            "total_operating_income",
+                            item.get("operating_income", 0.0),
+                        )
+                    ),
+                    cost_of_goods_sold=float(
+                        item.get("cost_of_goods_sold", 0.0)
+                    ),
+                    operating_expenses=float(
+                        item.get("operating_expenses", 0.0)
+                    ),
+                    depreciation_and_amortization=float(
+                        item.get("depreciation_and_amortization", 0.0)
+                    ),
+                    ebitda=float(item.get("ebitda", 0.0)),
+                    ebit=float(item.get("ebit", 0.0)),
+                    finance_cost=float(item.get("finance_cost", 0.0)),
+                    finance_income=float(item.get("finance_income", 0.0)),
+                    profit_before_tax=float(
+                        item.get("profit_before_tax", 0.0)
+                    ),
+                    tax_expense=float(item.get("tax_expense", 0.0)),
+                    net_income=float(item.get("net_income", 0.0)),
+                    shares_outstanding=float(
+                        item.get("shares_outstanding", 0.0)
+                    ),
+                    eps=float(item.get("eps", 0.0)),
+                )
+            )
+
+        balance_sheets = []
+
+        for item in raw_balance:
+            balance_sheets.append(
+                BalanceSheet(
+                    period=str(item.get("period", "UNKNOWN")),
+                    cash=float(item.get("cash", 0.0)),
+                    cash_equivalents=float(
+                        item.get("cash_equivalents", 0.0)
+                    ),
+                    short_term_investments=float(
+                        item.get("short_term_investments", 0.0)
+                    ),
+                    accounts_receivable=float(
+                        item.get("accounts_receivable", 0.0)
+                    ),
+                    inventory=float(item.get("inventory", 0.0)),
+                    total_current_assets=float(
+                        item.get("total_current_assets", 0.0)
+                    ),
+                    total_assets=float(item.get("total_assets", 0.0)),
+                    short_term_debt=float(
+                        item.get("short_term_debt", 0.0)
+                    ),
+                    total_current_liabilities=float(
+                        item.get("total_current_liabilities", 0.0)
+                    ),
+                    long_term_debt=float(
+                        item.get(
+                            "long_term_debt",
+                            item.get("debt", 0.0),
+                        )
+                    ),
+                    total_liabilities=float(
+                        item.get("total_liabilities", 0.0)
+                    ),
+                    total_equity=float(
+                        item.get(
+                            "total_equity",
+                            item.get("shareholders_equity", 0.0),
+                        )
+                    ),
+                )
+            )
+
+        cash_flows = []
+
+        for item in raw_cashflow:
+            cash_flows.append(
+                CashFlowStatement(
+                    period=str(item.get("period", "UNKNOWN")),
+                    operating_cash_flow=float(
+                        item.get("operating_cash_flow", 0.0)
+                    ),
+                    capital_expenditure=float(
+                        item.get(
+                            "capital_expenditure",
+                            item.get("capex", 0.0),
+                        )
+                    ),
+                    investing_cash_flow=float(
+                        item.get("investing_cash_flow", 0.0)
+                    ),
+                    financing_cash_flow=float(
+                        item.get("financing_cash_flow", 0.0)
+                    ),
+                )
+            )
+
+        return FinancialStatements(
+            symbol=symbol,
+            income_statements=income_statements,
+            balance_sheets=balance_sheets,
+            cash_flows=cash_flows,
+            metadata={
+                "provider": provider,
+            },
+        )
+
+
+========================================================================
+ADVANCED_QUALITY :: services.ratios.quality_engine
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: AdvancedQualityEngine
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: AdvancedQualityEngine
+MODULE: services.ratios.quality_engine
+SIGNATURE: ()
+
+CLASS METHODS:
+   compute_altman_z (bs: 'Any', inc: 'Any') -> 'float'
+   compute_cash_conversion_cycle (bs: 'Any', inc: 'Any') -> 'Dict[str, float]'
+
+========================================================================
+LEGACY_SCORE :: services.score_service
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: calculate_stability_score
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: calculate_stability_score
+MODULE: services.score_service
+SIGNATURE: (data)
+
+SOURCE:
+def calculate_stability_score(data):
+    """
+    Calculate a 0-100 stability score.
+
+    Uses:
+        Beta             40%
+        Debt / Equity    30%
+        Current Ratio    30%
+
+    Missing metrics are availability-normalized so that
+    unavailable data does not automatically receive zero.
+    """
+
+    if not isinstance(data, dict):
+        return 50.0, ["Stability data unavailable."]
+
+    components = []
+    reasons = []
+
+    # ------------------------------------------------------
+    # Beta ù 40 points
+    # ------------------------------------------------------
+
+    beta = _safe_float(data.get("beta"))
+
+    if beta is not None:
+
+        if beta < 0:
+            beta_points = 20
+
+            reasons.append(f"Beta of {beta:.2f} requires cautious interpretation.")
+
+        elif beta <= 0.75:
+            beta_points = 40
+
+            reasons.append(
+                f"Beta of {beta:.2f} indicates relatively low market volatility."
+            )
+
+        elif beta <= 1.00:
+            beta_points = 35
+
+            reasons.append(f"Beta of {beta:.2f} indicates below-market volatility.")
+
+        elif beta <= 1.25:
+            beta_points = 28
+
+            reasons.append(f"Beta of {beta:.2f} indicates moderate market volatility.")
+
+        elif beta <= 1.50:
+            beta_points = 20
+
+            reasons.append(f"Beta of {beta:.2f} indicates elevated volatility.")
+
+        elif beta <= 2.00:
+            beta_points = 10
+
+            reasons.append(f"Beta of {beta:.2f} indicates high market volatility.")
+
+        else:
+            beta_points = 0
+
+            reasons.append(f"Beta of {beta:.2f} indicates very high market volatility.")
+
+        components.append((beta_points, 40))
+
+    # ------------------------------------------------------
+    # Debt / Equity ù 30 points
+    #
+    # Yahoo debtToEquity is percentage-style:
+    #     36.653 -> 0.36653x
+    # ------------------------------------------------------
+
+    debt_to_equity_raw = _safe_float(data.get("debt_to_equity"))
+
+    if debt_to_equity_raw is not None:
+
+        debt_to_equity = debt_to_equity_raw / 100.0
+
+        if debt_to_equity <= 0.30:
+            debt_points = 30
+
+            reasons.append(
+                f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage."
+            )
+
+        elif debt_to_equity <= 0.75:
+            debt_points = 26
+
+            reasons.append(
+                f"Debt-to-equity of {debt_to_equity:.2f}x indicates manageable leverage."
+            )
+
+        elif debt_to_equity <= 1.50:
+            debt_points = 18
+
+            reasons.append(
+                f"Debt-to-equity of {debt_to_equity:.2f}x indicates moderate leverage."
+            )
+
+        elif debt_to_equity <= 2.00:
+            debt_points = 10
+
+            reasons.append(
+                f"Debt-to-equity of {debt_to_equity:.2f}x indicates elevated leverage."
+            )
+
+        else:
+            debt_points = 0
+
+            reasons.append(
+                f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage."
+            )
+
+        components.append((debt_points, 30))
+
+    # ------------------------------------------------------
+    # Current Ratio ù 30 points
+    # ------------------------------------------------------
+
+    current_ratio = _safe_float(data.get("current_ratio"))
+
+    if current_ratio is not None:
+
+        if 1.50 <= current_ratio <= 3.00:
+            liquidity_points = 30
+
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity."
+            )
+
+        elif 1.00 <= current_ratio < 1.50:
+            liquidity_points = 24
+
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity."
+            )
+
+        elif current_ratio > 3.00:
+            liquidity_points = 24
+
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates strong liquidity."
+            )
+
+        elif current_ratio >= 0.75:
+            liquidity_points = 12
+
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates tight liquidity."
+            )
+
+        else:
+            liquidity_points = 0
+
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates weak liquidity."
+            )
+
+        components.append((liquidity_points, 30))
+
+    # ------------------------------------------------------
+    # Normalize available components to 100
+    # ------------------------------------------------------
+
+    if not components:
+        return 50.0, ["Insufficient data to calculate stability score."]
+
+    earned = sum(item[0] for item in components)
+
+    possible = sum(item[1] for item in components)
+
+    stability_score = (earned / possible) * 100.0
+
+    stability_score = round(
+        _clamp(stability_score),
+        2,
+    )
+
+    return stability_score, reasons
+
+
+------------------------------------------------------------------------
+SYMBOL: calculate_investment_score
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: calculate_investment_score
+MODULE: services.score_service
+SIGNATURE: (technical_score, fundamental_score, ai_result=None, data=None)
+
+SOURCE:
+def calculate_investment_score(
+    technical_score,
+    fundamental_score,
+    ai_result=None,
+    data=None,
+):
+    """
+    Calculate Investment Score V2.
+
+    Weighting
+    ---------
+    Technical Score       35%
+    Fundamental Score V2  40%
+    AI Score              15%
+    Stability / Risk      10%
+
+    Total                 100%
+
+    Returns
+    -------
+    investment_score : int
+        Final score from 0 to 100.
+
+    breakdown : dict
+        Detailed component scores and weighted
+        contributions.
+    """
+
+    # ------------------------------------------------------
+    # Technical score
+    # ------------------------------------------------------
+
+    technical = _safe_float(technical_score)
+
+    if technical is None:
+        technical = 50.0
+
+    technical = _clamp(technical)
+
+    # ------------------------------------------------------
+    # Fundamental score
+    # ------------------------------------------------------
+
+    fundamental = _safe_float(fundamental_score)
+
+    if fundamental is None:
+        fundamental = 50.0
+
+    fundamental = _clamp(fundamental)
+
+    # ------------------------------------------------------
+    # AI score
+    # ------------------------------------------------------
+
+    ai_score = None
+
+    if isinstance(ai_result, dict):
+        ai_score = _safe_float(ai_result.get("score"))
+
+    if ai_score is None:
+        ai_score = 50.0
+
+    ai_score = _clamp(ai_score)
+
+    # ------------------------------------------------------
+    # Stability score
+    # ------------------------------------------------------
+
+    stability_score, stability_reasons = calculate_stability_score(
+        data if isinstance(data, dict) else {}
+    )
+
+    stability_score = _clamp(stability_score)
+
+    # ------------------------------------------------------
+    # Weighted contributions
+    # ------------------------------------------------------
+
+    technical_contribution = technical * 0.35
+
+    fundamental_contribution = fundamental * 0.40
+
+    ai_contribution = ai_score * 0.15
+
+    stability_contribution = stability_score * 0.10
+
+    overall = (
+        technical_contribution
+        + fundamental_contribution
+        + ai_contribution
+        + stability_contribution
+    )
+
+    overall = round(_clamp(overall))
+
+    # ------------------------------------------------------
+    # Breakdown
+    # ------------------------------------------------------
+
+    breakdown = {
+        "Technical": round(
+            technical,
+            2,
+        ),
+        "Fundamental": round(
+            fundamental,
+            2,
+        ),
+        "AI": round(
+            ai_score,
+            2,
+        ),
+        "Stability": round(
+            stability_score,
+            2,
+        ),
+        "Technical Contribution": round(
+            technical_contribution,
+            2,
+        ),
+        "Fundamental Contribution": round(
+            fundamental_contribution,
+            2,
+        ),
+        "AI Contribution": round(
+            ai_contribution,
+            2,
+        ),
+        "Stability Contribution": round(
+            stability_contribution,
+            2,
+        ),
+        "Stability Reasons": stability_reasons,
+    }
+
+    return overall, breakdown
+
+
+========================================================================
+FUNDAMENTAL_SCORE :: services.fundamental_score_service
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: calculate_fundamental_score
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: calculate_fundamental_score
+MODULE: services.fundamental_score_service
+SIGNATURE: (data)
+
+SOURCE:
+def calculate_fundamental_score(data):
+    """
+    Fundamental Score V2.
+
+    Categories:
+        Valuation          20
+        Profitability      20
+        Growth             20
+        Financial Health   20
+        Cash Flow          20
+
+    Total:
+        100
+
+    Missing metrics do not automatically receive zero.
+    """
+
+    if not isinstance(data, dict):
+        return 0, ["Fundamental data unavailable."]
+
+    reasons = []
+
+    # ------------------------------------------------------
+    # Read and normalize data
+    # ------------------------------------------------------
+
+    pe = to_float(data.get("pe"))
+    pb = to_float(data.get("pb"))
+
+    roe = _percent(data.get("roe"))
+    roa = _percent(data.get("roa"))
+    profit_margin = _percent(data.get("profit_margin"))
+    operating_margin = _percent(data.get("operating_margin"))
+
+    revenue_growth = _percent(data.get("revenue_growth"))
+    earnings_growth = _percent(data.get("earnings_growth"))
+
+    debt_to_equity = _debt_equity_ratio(data.get("debt_to_equity"))
+
+    current_ratio = to_float(data.get("current_ratio"))
+
+    total_debt = to_float(data.get("total_debt"))
+
+    total_cash = to_float(data.get("total_cash"))
+
+    operating_cash_flow = to_float(data.get("operating_cash_flow"))
+
+    free_cash_flow = to_float(data.get("free_cash_flow"))
+
+    # ======================================================
+    # 1. VALUATION ù 20
+    # ======================================================
+
+    metrics = []
+
+    if pe is not None:
+
+        if 0 < pe <= 15:
+            points = 10
+            reasons.append(f"P/E of {pe:.2f} indicates attractive valuation.")
+
+        elif pe <= 25:
+            points = 8
+            reasons.append(f"P/E of {pe:.2f} indicates reasonable valuation.")
+
+        elif pe <= 35:
+            points = 5
+            reasons.append(f"P/E of {pe:.2f} indicates moderate valuation.")
+
+        elif pe <= 50:
+            points = 2
+            reasons.append(f"P/E of {pe:.2f} indicates an expensive valuation.")
+
+        else:
+            points = 0
+            reasons.append(f"P/E of {pe:.2f} indicates a very high valuation.")
+
+        metrics.append((points, 10))
+
+    if pb is not None:
+
+        if 0 < pb <= 1.5:
+            points = 10
+            reasons.append(
+                f"P/B of {pb:.2f} indicates attractive book-value valuation."
+            )
+
+        elif pb <= 3:
+            points = 8
+            reasons.append(f"P/B of {pb:.2f} is reasonable.")
+
+        elif pb <= 5:
+            points = 5
+            reasons.append(f"P/B of {pb:.2f} is moderately elevated.")
+
+        elif pb <= 8:
+            points = 2
+            reasons.append(f"P/B of {pb:.2f} is high.")
+
+        else:
+            points = 0
+            reasons.append(f"P/B of {pb:.2f} indicates a very high valuation.")
+
+        metrics.append((points, 10))
+
+    valuation_score = _normalize_category(metrics)
+
+    # ======================================================
+    # 2. PROFITABILITY ù 20
+    # ======================================================
+
+    metrics = []
+
+    if roe is not None:
+
+        if roe >= 20:
+            points = 6
+            reasons.append(
+                f"ROE of {roe:.2f}% indicates excellent shareholder returns."
+            )
+
+        elif roe >= 15:
+            points = 5
+            reasons.append(f"ROE of {roe:.2f}% indicates strong profitability.")
+
+        elif roe >= 10:
+            points = 4
+            reasons.append(f"ROE of {roe:.2f}% is healthy.")
+
+        elif roe >= 5:
+            points = 2
+            reasons.append(f"ROE of {roe:.2f}% indicates modest profitability.")
+
+        else:
+            points = 0
+            reasons.append(f"ROE of {roe:.2f}% is weak.")
+
+        metrics.append((points, 6))
+
+    if roa is not None:
+
+        if roa >= 10:
+            points = 4
+            reasons.append(f"ROA of {roa:.2f}% indicates strong asset efficiency.")
+
+        elif roa >= 5:
+            points = 3
+            reasons.append(f"ROA of {roa:.2f}% indicates healthy asset efficiency.")
+
+        elif roa >= 2:
+            points = 2
+            reasons.append(f"ROA of {roa:.2f}% indicates moderate asset efficiency.")
+
+        elif roa > 0:
+            points = 1
+            reasons.append(f"ROA of {roa:.2f}% is positive but low.")
+
+        else:
+            points = 0
+            reasons.append(f"ROA of {roa:.2f}% is weak.")
+
+        metrics.append((points, 4))
+
+    if profit_margin is not None:
+
+        if profit_margin >= 20:
+            points = 5
+        elif profit_margin >= 10:
+            points = 4
+        elif profit_margin >= 5:
+            points = 3
+        elif profit_margin > 0:
+            points = 1
+        else:
+            points = 0
+
+        metrics.append((points, 5))
+
+        reasons.append(f"Net profit margin is {profit_margin:.2f}%.")
+
+    if operating_margin is not None:
+
+        if operating_margin >= 25:
+            points = 5
+        elif operating_margin >= 15:
+            points = 4
+        elif operating_margin >= 10:
+            points = 3
+        elif operating_margin > 0:
+            points = 1
+        else:
+            points = 0
+
+        metrics.append((points, 5))
+
+        reasons.append(f"Operating margin is {operating_margin:.2f}%.")
+
+    profitability_score = _normalize_category(metrics)
+
+    # ======================================================
+    # 3. GROWTH ù 20
+    # ======================================================
+
+    metrics = []
+
+    if revenue_growth is not None:
+
+        if revenue_growth >= 20:
+            points = 10
+            reasons.append(f"Revenue growth of {revenue_growth:.2f}% is strong.")
+
+        elif revenue_growth >= 10:
+            points = 8
+            reasons.append(f"Revenue growth of {revenue_growth:.2f}% is healthy.")
+
+        elif revenue_growth >= 5:
+            points = 6
+            reasons.append(f"Revenue growth of {revenue_growth:.2f}% is moderate.")
+
+        elif revenue_growth >= 0:
+            points = 4
+            reasons.append(f"Revenue growth of {revenue_growth:.2f}% is modest.")
+
+        else:
+            points = 0
+            reasons.append(f"Revenue declined {abs(revenue_growth):.2f}%.")
+
+        metrics.append((points, 10))
+
+    if earnings_growth is not None:
+
+        if earnings_growth >= 20:
+            points = 10
+            reasons.append(f"Earnings growth of {earnings_growth:.2f}% is strong.")
+
+        elif earnings_growth >= 10:
+            points = 8
+            reasons.append(f"Earnings growth of {earnings_growth:.2f}% is healthy.")
+
+        elif earnings_growth >= 5:
+            points = 6
+            reasons.append(f"Earnings growth of {earnings_growth:.2f}% is moderate.")
+
+        elif earnings_growth >= 0:
+            points = 4
+            reasons.append(f"Earnings growth of {earnings_growth:.2f}% is modest.")
+
+        else:
+            points = 0
+            reasons.append(f"Earnings declined {abs(earnings_growth):.2f}%.")
+
+        metrics.append((points, 10))
+
+    growth_score = _normalize_category(metrics)
+
+    # ======================================================
+    # 4. FINANCIAL HEALTH ù 20
+    # ======================================================
+
+    metrics = []
+
+    if debt_to_equity is not None:
+
+        if debt_to_equity <= 0.30:
+            points = 8
+            reasons.append(
+                f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage."
+            )
+
+        elif debt_to_equity <= 0.75:
+            points = 7
+            reasons.append(
+                f"Debt-to-equity of {debt_to_equity:.2f}x indicates manageable leverage."
+            )
+
+        elif debt_to_equity <= 1.50:
+            points = 5
+            reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x is moderate.")
+
+        elif debt_to_equity <= 2:
+            points = 3
+            reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x is elevated.")
+
+        else:
+            points = 0
+            reasons.append(
+                f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage."
+            )
+
+        metrics.append((points, 8))
+
+    if current_ratio is not None:
+
+        if 1.5 <= current_ratio <= 3:
+            points = 7
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity."
+            )
+
+        elif 1 <= current_ratio < 1.5:
+            points = 5
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity."
+            )
+
+        elif current_ratio > 3:
+            points = 5
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates strong liquidity."
+            )
+
+        elif current_ratio >= 0.75:
+            points = 2
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates tight liquidity."
+            )
+
+        else:
+            points = 0
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x indicates weak liquidity."
+            )
+
+        metrics.append((points, 7))
+
+    if total_cash is not None and total_debt is not None:
+
+        if total_debt <= 0:
+            points = 5
+            reasons.append("The company reports little or no financial debt.")
+
+        else:
+            cash_debt_ratio = total_cash / total_debt
+
+            if cash_debt_ratio >= 1:
+                points = 5
+                reasons.append("Cash is sufficient to cover reported debt.")
+
+            elif cash_debt_ratio >= 0.50:
+                points = 4
+                reasons.append(
+                    f"Cash covers approximately {cash_debt_ratio * 100:.1f}% of debt."
+                )
+
+            elif cash_debt_ratio >= 0.25:
+                points = 2
+                reasons.append(
+                    f"Cash covers approximately {cash_debt_ratio * 100:.1f}% of debt."
+                )
+
+            else:
+                points = 0
+                reasons.append("Cash coverage of debt is relatively low.")
+
+        metrics.append((points, 5))
+
+    health_score = _normalize_category(metrics)
+
+    # ======================================================
+    # 5. CASH FLOW ù 20
+    # ======================================================
+
+    metrics = []
+
+    if operating_cash_flow is not None:
+
+        if operating_cash_flow > 0:
+            points = 10
+            reasons.append("Operating cash flow is positive.")
+
+        elif operating_cash_flow == 0:
+            points = 3
+            reasons.append("Operating cash flow is approximately neutral.")
+
+        else:
+            points = 0
+            reasons.append("Operating cash flow is negative.")
+
+        metrics.append((points, 10))
+
+    if free_cash_flow is not None:
+
+        if free_cash_flow > 0:
+            points = 10
+            reasons.append("Free cash flow is positive.")
+
+        elif free_cash_flow == 0:
+            points = 3
+            reasons.append("Free cash flow is approximately neutral.")
+
+        else:
+            points = 0
+            reasons.append("Free cash flow is negative.")
+
+        metrics.append((points, 10))
+
+    cash_flow_score = _normalize_category(metrics)
+
+    # ======================================================
+    # FINAL SCORE
+    # ======================================================
+
+    category_scores = [
+        valuation_score,
+        profitability_score,
+        growth_score,
+        health_score,
+        cash_flow_score,
+    ]
+
+    available_scores = [score for score in category_scores if score is not None]
+
+    if not available_scores:
+        return 0, ["Insufficient fundamental data to calculate a score."]
+
+    # Each category is normalized to 20.
+    # Average category score * 5 gives a 0-100 result.
+
+    final_score = (sum(available_scores) / len(available_scores)) * 5
+
+    final_score = round(
+        max(
+            0,
+            min(final_score, 100),
+        )
+    )
+
+    return final_score, reasons
+
+
+========================================================================
+FUNDAMENTAL_ENGINE :: services.scoring.fundamental
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: FundamentalScoreResult
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: FundamentalScoreResult
+MODULE: services.scoring.fundamental
+SIGNATURE: (symbol: 'str', profitability_score: 'float', quality_score: 'float', financial_strength_score: 'float', capital_efficiency_score: 'float', cash_flow_quality_score: 'float', fundamental_score: 'float', pillar_details: 'Dict[str, Any]') -> None
+
+CLASS METHODS:
+   __init__ (self, symbol: 'str', profitability_score: 'float', quality_score: 'float', financial_strength_score: 'float', capital_efficiency_score: 'float', cash_flow_quality_score: 'float', fundamental_score: 'float', pillar_details: 'Dict[str, Any]') -> None
+
+------------------------------------------------------------------------
+SYMBOL: FundamentalScoringEngine
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: FundamentalScoringEngine
+MODULE: services.scoring.fundamental
+SIGNATURE: ()
+
+CLASS METHODS:
+   evaluate (self, financials: 'FinancialStatements') -> 'FundamentalScoreResult'
+
+SOURCE:
+    def evaluate(
+        self,
+        financials: FinancialStatements,
+    ) -> FundamentalScoreResult:
+        ratios: FinancialRatios = calculate_financial_ratios(
+            income=financials.income_statement,
+            balance=financials.balance_sheet,
+            cashflow=financials.cash_flow_statement,
+        )
+
+        # ======================================================
+        # PROFITABILITY
+        # ======================================================
+        profitability_components = {
+            "gross_margin": _score_positive(
+                ratios.gross_margin,
+                weak=0.20,
+                strong=0.60,
+            ),
+            "ebitda_margin": _score_positive(
+                ratios.ebitda_margin,
+                weak=0.05,
+                strong=0.30,
+            ),
+            "ebit_margin": _score_positive(
+                ratios.ebit_margin,
+                weak=0.03,
+                strong=0.25,
+            ),
+            "net_margin": _score_positive(
+                ratios.net_margin,
+                weak=0.02,
+                strong=0.20,
+            ),
+            "roe": _score_positive(
+                ratios.roe,
+                weak=0.05,
+                strong=0.25,
+            ),
+            "roa": _score_positive(
+                ratios.roa,
+                weak=0.02,
+                strong=0.15,
+            ),
+            "roce": _score_positive(
+                ratios.roce,
+                weak=0.05,
+                strong=0.25,
+            ),
+            "roic": _score_positive(
+                ratios.roic,
+                weak=0.04,
+                strong=0.20,
+            ),
+        }
+        profitability_score = _average(
+            list(profitability_components.values())
+        )
+
+        # ======================================================
+        # QUALITY
+        # ======================================================
+        quality_components = {
+            "cash_conversion_ratio": _score_positive(
+                ratios.cash_conversion_ratio,
+                weak=0.70,
+                strong=1.20,
+            ),
+            "fcf_margin": _score_positive(
+                ratios.fcf_margin,
+                weak=0.02,
+                strong=0.20,
+            ),
+            "roic": _score_positive(
+                ratios.roic,
+                weak=0.04,
+                strong=0.20,
+            ),
+            "roe": _score_positive(
+                ratios.roe,
+                weak=0.05,
+                strong=0.25,
+            ),
+        }
+        quality_score = _average(
+            list(quality_components.values())
+        )
+
+        # ======================================================
+        # FINANCIAL STRENGTH
+        # ======================================================
+        financial_strength_components = {
+            "current_ratio": _score_positive(
+                ratios.current_ratio,
+                weak=1.00,
+                strong=2.00,
+            ),
+            "quick_ratio": _score_positive(
+                ratios.quick_ratio,
+                weak=0.50,
+                strong=1.50,
+            ),
+            "debt_to_equity": _score_negative(
+                ratios.debt_to_equity,
+                good=0.25,
+                bad=1.50,
+            ),
+            "net_debt_to_ebitda": _score_negative(
+                ratios.net_debt_to_ebitda,
+                good=0.50,
+                bad=4.00,
+            ),
+        }
+        financial_strength_score = _average(
+            list(financial_strength_components.values())
+        )
+
+        # ======================================================
+        # CAPITAL EFFICIENCY
+        # ======================================================
+        capital_efficiency_components = {
+            "roic": _score_positive(
+                ratios.roic,
+                weak=0.04,
+                strong=0.20,
+            ),
+            "roce": _score_positive(
+                ratios.roce,
+                weak=0.05,
+                strong=0.25,
+            ),
+            "roa": _score_positive(
+                ratios.roa,
+                weak=0.02,
+                strong=0.15,
+            ),
+            "asset_turnover": _score_positive(
+                ratios.asset_turnover,
+                weak=0.30,
+                strong=1.50,
+            ),
+            "inventory_turnover": _score_positive(
+                ratios.inventory_turnover,
+                weak=2.00,
+                strong=12.00,
+            ),
+        }
+        capital_efficiency_score = _average(
+            list(capital_efficiency_components.values())
+        )
+
+        # ======================================================
+        # CASH FLOW QUALITY
+        # ======================================================
+        cash_flow_components = {
+            "fcf_margin": _score_positive(
+                ratios.fcf_margin,
+                weak=0.02,
+                strong=0.20,
+            ),
+            "cash_conversion_ratio": _score_positive(
+                ratios.cash_conversion_ratio,
+                weak=0.70,
+                strong=1.20,
+            ),
+        }
+        cash_flow_quality_score = _average(
+            list(cash_flow_components.values())
+        )
+
+        # ======================================================
+        # FUNDAMENTAL COMPOSITE
+        # ======================================================
+        pillar_weights = {
+            "profitability": 0.25,
+            "quality": 0.20,
+            "financial_strength": 0.20,
+            "capital_efficiency": 0.20,
+            "cash_flow_quality": 0.15,
+        }
+        fundamental_score = round(
+            profitability_score * pillar_weights["profitability"]
+            + quality_score * pillar_weights["quality"]
+            + financial_strength_score * pillar_weights["financial_strength"]
+            + capital_efficiency_score * pillar_weights["capital_efficiency"]
+            + cash_flow_quality_score * pillar_weights["cash_flow_quality"],
+            2,
+        )
+
+        raw_ratios = {
+            "gross_margin": ratios.gross_margin,
+            "ebitda_margin": ratios.ebitda_margin,
+            "ebit_margin": ratios.ebit_margin,
+            "net_margin": ratios.net_margin,
+            "roe": ratios.roe,
+            "roa": ratios.roa,
+            "roce": ratios.roce,
+            "roic": ratios.roic,
+            "current_ratio": ratios.current_ratio,
+            "quick_ratio": ratios.quick_ratio,
+            "debt_to_equity": ratios.debt_to_equity,
+            "net_debt_to_ebitda": ratios.net_debt_to_ebitda,
+            "fcf_margin": ratios.fcf_margin,
+            "cash_conversion_ratio": ratios.cash_conversion_ratio,
+            "asset_turnover": ratios.asset_turnover,
+            "inventory_turnover": ratios.inventory_turnover,
+        }
+
+        details = {
+            # Block 10 audit identity
+            "engine_version": "EROS-3.0-BLOCK-10",
+
+            # Canonical Block 10 audit contract
+            "raw_ratios": raw_ratios,
+            "profitability_components": profitability_components,
+            "quality_components": quality_components,
+            "capital_allocation_components": capital_efficiency_components,
+
+            # Existing detailed contract retained for compatibility
+            "ratios": raw_ratios,
+            "profitability": profitability_components,
+            "quality": quality_components,
+            "financial_strength": financial_strength_components,
+            "capital_efficiency": capital_efficiency_components,
+            "cash_flow_quality": cash_flow_components,
+            "weights": pillar_weights,
+        }
+
+        return FundamentalScoreResult(
+            symbol=financials.ticker,
+            profitability_score=profitability_score,
+            quality_score=quality_score,
+            financial_strength_score=financial_strength_score,
+            capital_efficiency_score=capital_efficiency_score,
+            cash_flow_quality_score=cash_flow_quality_score,
+            fundamental_score=fundamental_score,
+            pillar_details=details,
+        )
+
+
+========================================================================
+RISK_ENGINE :: services.scoring.risk_scoring
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: RiskScoreResult
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: RiskScoreResult
+MODULE: services.scoring.risk_scoring
+SIGNATURE: (symbol: 'str', risk_score: 'float', volatility: 'float', drawdown: 'float', liquidity_score: 'float', leverage_ratio: 'float', resilience_score: 'float', stress_impact: 'float', details: 'Dict[str, Any]') -> None
+
+CLASS METHODS:
+   __init__ (self, symbol: 'str', risk_score: 'float', volatility: 'float', drawdown: 'float', liquidity_score: 'float', leverage_ratio: 'float', resilience_score: 'float', stress_impact: 'float', details: 'Dict[str, Any]') -> None
+
+------------------------------------------------------------------------
+SYMBOL: RiskScoringEngine
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: RiskScoringEngine
+MODULE: services.scoring.risk_scoring
+SIGNATURE: () -> 'None'
+
+CLASS METHODS:
+   __init__ (self) -> 'None'
+   evaluate (self, symbol: 'str', profile: 'PortfolioRiskProfile | None' = None) -> 'RiskScoreResult'
+
+SOURCE:
+    def evaluate(
+        self,
+        symbol: str,
+        profile: PortfolioRiskProfile | None = None,
+    ) -> RiskScoreResult:
+        if not profile:
+            try:
+                profile = PortfolioRiskProfile()
+            except Exception:
+                profile = None
+
+        # Extract attributes safely with institutional defaults
+        volatility = float(getattr(profile, "volatility", 0.20)) if profile else 0.20
+        drawdown = float(getattr(profile, "drawdown", 0.15)) if profile else 0.15
+        liquidity_score = float(getattr(profile, "liquidity_score", 80.0)) if profile else 80.0
+        leverage_ratio = float(getattr(profile, "leverage_ratio", 1.2)) if profile else 1.2
+
+        resilience = 85.0
+        try:
+            if profile and hasattr(self.resilience_engine, "evaluate"):
+                resilience = float(self.resilience_engine.evaluate(profile))
+        except Exception:
+            pass
+
+        stress_result = {}
+        try:
+            if hasattr(self.stress_engine, "run_stress_test"):
+                stress_result = self.stress_engine.run_stress_test("Market Crash -20%")
+            elif callable(self.stress_engine):
+                stress_result = self.stress_engine()
+        except Exception:
+            pass
+
+        stress_impact = float(stress_result.get("impact", -0.1) if isinstance(stress_result, dict) else -0.1)
+
+        vol_score = _clamp(100.0 - (volatility * 200.0))
+        dd_score = _clamp(100.0 - (drawdown * 250.0))
+        liq_score = _clamp(liquidity_score)
+        lev_score = _clamp(100.0 - max(0.0, (leverage_ratio - 1.0) * 50.0))
+
+        risk_score = round(
+            vol_score * 0.25
+            + dd_score * 0.25
+            + liq_score * 0.20
+            + lev_score * 0.15
+            + resilience * 0.15,
+            2,
+        )
+
+        details = {
+            "engine_version": "EROS-3.0-BLOCK-15",
+            "volatility_score": vol_score,
+            "drawdown_score": dd_score,
+            "liquidity_component": liq_score,
+            "leverage_score": lev_score,
+            "resilience_score": resilience,
+            "stress_test": stress_result,
+        }
+
+        return RiskScoreResult(
+            symbol=symbol,
+            risk_score=risk_score,
+            volatility=volatility,
+            drawdown=drawdown,
+            liquidity_score=liquidity_score,
+            leverage_ratio=leverage_ratio,
+            resilience_score=resilience,
+            stress_impact=stress_impact,
+            details=details,
+        )
+
+
+========================================================================
+TECHNICAL_SCORE :: services.technical_score_service
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: calculate_technical_score
+------------------------------------------------------------------------
+TYPE: <class 'function'>
+QUALNAME: calculate_technical_score
+MODULE: services.technical_score_service
+SIGNATURE: (df)
+
+SOURCE:
+def calculate_technical_score(df):
+    """
+    Calculate a technical score from technical indicators.
+
+    Returns:
+        score (0-100)
+        reasons (list of technical observations)
+    """
+
+    if df is None or df.empty:
+        return 0, ["Historical price data is unavailable"]
+
+    score = 50
+    reasons = []
+
+    latest = df.iloc[-1]
+
+    # ======================================================
+    # RSI
+    # ======================================================
+
+    if "RSI" in latest.index and _valid_number(latest["RSI"]):
+
+        rsi = float(latest["RSI"])
+
+        if rsi < 30:
+            score += 15
+            reasons.append(f"RSI is oversold at {rsi:.1f}")
+
+        elif rsi > 70:
+            score -= 15
+            reasons.append(f"RSI is overbought at {rsi:.1f}")
+
+        else:
+            score += 5
+            reasons.append(f"RSI is neutral at {rsi:.1f}")
+
+    else:
+        reasons.append("RSI data is unavailable")
+
+    # ======================================================
+    # EMA 20 vs EMA 50
+    # ======================================================
+
+    if (
+        "EMA20" in latest.index
+        and "EMA50" in latest.index
+        and _valid_number(latest["EMA20"])
+        and _valid_number(latest["EMA50"])
+    ):
+
+        ema20 = float(latest["EMA20"])
+        ema50 = float(latest["EMA50"])
+
+        if ema20 > ema50:
+            score += 10
+            reasons.append(
+                "EMA20 is above EMA50, indicating short-term bullish momentum"
+            )
+
+        else:
+            score -= 5
+            reasons.append("EMA20 is below EMA50, indicating short-term weakness")
+
+    # ======================================================
+    # EMA 50 vs EMA 200
+    # ======================================================
+
+    if (
+        "EMA50" in latest.index
+        and "EMA200" in latest.index
+        and _valid_number(latest["EMA50"])
+        and _valid_number(latest["EMA200"])
+    ):
+
+        ema50 = float(latest["EMA50"])
+        ema200 = float(latest["EMA200"])
+
+        if ema50 > ema200:
+            score += 10
+            reasons.append(
+                "EMA50 is above EMA200, indicating a bullish long-term trend"
+            )
+
+        else:
+            score -= 10
+            reasons.append(
+                "EMA50 is below EMA200, indicating a bearish long-term trend"
+            )
+
+    # ======================================================
+    # MACD
+    # ======================================================
+
+    if (
+        "MACD" in latest.index
+        and "MACD_Signal" in latest.index
+        and _valid_number(latest["MACD"])
+        and _valid_number(latest["MACD_Signal"])
+    ):
+
+        macd = float(latest["MACD"])
+        macd_signal = float(latest["MACD_Signal"])
+
+        if macd > macd_signal:
+            score += 10
+            reasons.append("MACD is above its signal line, indicating bullish momentum")
+
+        elif macd < macd_signal:
+            score -= 10
+            reasons.append("MACD is below its signal line, indicating bearish momentum")
+
+        else:
+            reasons.append("MACD is equal to its signal line")
+
+    else:
+        reasons.append("MACD data is unavailable")
+
+    # ======================================================
+    # Breakout / Resistance
+    # ======================================================
+
+    if (
+        "Close" in latest.index
+        and "Resistance" in latest.index
+        and _valid_number(latest["Close"])
+        and _valid_number(latest["Resistance"])
+    ):
+
+        close = float(latest["Close"])
+        resistance = float(latest["Resistance"])
+
+        if close > resistance:
+            score += 10
+            reasons.append("Price has broken above resistance")
+
+        else:
+            reasons.append("Price remains below resistance")
+
+    # ======================================================
+    # Support
+    # ======================================================
+
+    if (
+        "Close" in latest.index
+        and "Support" in latest.index
+        and _valid_number(latest["Close"])
+        and _valid_number(latest["Support"])
+    ):
+
+        close = float(latest["Close"])
+        support = float(latest["Support"])
+
+        if close > support:
+            score += 5
+            reasons.append("Price is trading above support")
+
+        elif close < support:
+            score -= 10
+            reasons.append("Price is trading below support")
+
+        else:
+            reasons.append("Price is trading at support")
+
+    # ======================================================
+    # Clamp Score
+    # ======================================================
+
+    score = max(
+        0,
+        min(round(score), 100),
+    )
+
+    if not reasons:
+        reasons.append("Insufficient technical indicators for detailed analysis")
+
+    return score, reasons
+
+
+========================================================================
+SOTP_CANONICAL :: services.sotp.sotp_engine
+========================================================================
+MODULE IMPORT: PASS
+
+------------------------------------------------------------------------
+SYMBOL: SegmentValuation
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: SegmentValuation
+MODULE: services.sotp.sotp_engine
+SIGNATURE: (segment_name: 'str', valuation_method: 'ValuationMethod', value_amount: 'float', stake_percentage: 'float' = 1.0, notes: 'str' = '') -> None
+
+CLASS METHODS:
+   __init__ (self, segment_name: 'str', valuation_method: 'ValuationMethod', value_amount: 'float', stake_percentage: 'float' = 1.0, notes: 'str' = '') -> None
+
+------------------------------------------------------------------------
+SYMBOL: SOTPInput
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: SOTPInput
+MODULE: services.sotp.sotp_engine
+SIGNATURE: (company_name: 'str', currency: 'str', segments: 'list[SegmentValuation]', conglomerate_discount_pct: 'float' = 0.0, net_debt: 'float' = 0.0, shares_outstanding: 'float' = 1.0) -> None
+
+CLASS METHODS:
+   __init__ (self, company_name: 'str', currency: 'str', segments: 'list[SegmentValuation]', conglomerate_discount_pct: 'float' = 0.0, net_debt: 'float' = 0.0, shares_outstanding: 'float' = 1.0) -> None
+
+------------------------------------------------------------------------
+SYMBOL: SOTPResult
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: SOTPResult
+MODULE: services.sotp.sotp_engine
+SIGNATURE: (company_name: 'str', gross_enterprise_value: 'float', gross_equity_value: 'float', net_equity_value: 'float', value_per_share: 'float', status: 'Status' = <Status.OK: 'OK'>) -> None
+
+CLASS METHODS:
+   __init__ (self, company_name: 'str', gross_enterprise_value: 'float', gross_equity_value: 'float', net_equity_value: 'float', value_per_share: 'float', status: 'Status' = <Status.OK: 'OK'>) -> None
+
+------------------------------------------------------------------------
+SYMBOL: SOTPAggregator
+------------------------------------------------------------------------
+TYPE: <class 'type'>
+QUALNAME: SOTPAggregator
+MODULE: services.sotp.sotp_engine
+SIGNATURE: ()
+
+CLASS METHODS:
+   calculate (sotp_input: 'SOTPInput') -> 'SOTPResult'
+
+SOURCE:
+    @staticmethod
+    def calculate(sotp_input: SOTPInput) -> SOTPResult:
+        if not sotp_input.segments:
+            raise ValuationError(
+                "SOTP calculation requires at least one business segment."
+            )
+
+        gross_ev = sum(s.value_amount * s.stake_percentage for s in sotp_input.segments)
+        gross_equity = gross_ev - sotp_input.net_debt
+        net_equity = gross_equity * (1.0 - sotp_input.conglomerate_discount_pct)
+        value_per_share = net_equity / max(sotp_input.shares_outstanding, 1e-4)
+
+        logger.info(
+            f"[{sotp_input.company_name}] Gross EV: {gross_ev:.2f} | Net Equity: {net_equity:.2f} | Per Share: {value_per_share:.2f}"
+        )
+
+        return SOTPResult(
+            company_name=sotp_input.company_name,
+            gross_enterprise_value=round(gross_ev, 2),
+            gross_equity_value=round(gross_equity, 2),
+            net_equity_value=round(net_equity, 2),
+            value_per_share=round(value_per_share, 2),
+        )
+
+
+========================================================================
+SOTP_VALUATION :: services.valuation.sotp_engine
+========================================================================
+MODULE IMPORT: FAIL
+ModuleNotFoundError: No module named 'domain'
+
+========================================================================
+DCF_VALUATION :: services.valuation.dcf_engine
+========================================================================
+MODULE IMPORT: FAIL
+ModuleNotFoundError: No module named 'domain'
+
+========================================================================
+DCF_ADAPTER :: services.valuation.dcf_adapter
+========================================================================
+MODULE IMPORT: FAIL
+ImportError: cannot import name 'ValuationMethod' from 'services.valuation.models' (D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py)
+
+========================================================================
+CURRENT EROS PIPELINE
+========================================================================
+PIPELINE IMPORT: FAIL
+ModuleNotFoundError: No module named 'eros'
+
+========================================================================
+CURRENT EROS API
+========================================================================
+API IMPORT: FAIL
+ModuleNotFoundError: No module named 'eros'
+
+========================================================================
+EROS CONTRACTS
+========================================================================
+CONTRACT IMPORT: FAIL
+ModuleNotFoundError: No module named 'eros'
+
+========================================================================
+END PHASE 5C ENGINE CONTRACT INSPECTION
+========================================================================
+
+
+============================================================
+GIT STATUS
+============================================================
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+

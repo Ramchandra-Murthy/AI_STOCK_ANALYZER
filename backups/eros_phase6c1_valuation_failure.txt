@@ -1,0 +1,761 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.1 DIAGNOSTIC
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+===== EROS VALUATION FILES =====
+
+FullName                                                                                           Length
+--------                                                                                           ------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                    146
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\__init__.cpython-313.pyc           250
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc           2615
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                    2170
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py                             193
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__pycache__\__init__.cpython-313.pyc    271
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__pycache__\engine.cpython-313.pyc     1447
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py                               913
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__init__.py                                131
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__pycache__\__init__.cpython-313.pyc       246
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__pycache__\engine.cpython-313.pyc         700
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py                                  435
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__init__.py                               135
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__pycache__\__init__.cpython-313.pyc      249
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__pycache__\engine.cpython-313.pyc        708
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py                                 445
+
+
+
+
+===== eros\valuation\sotp\engine.py =====
+"""EROS SOTP valuation boundary."""
+
+from typing import Any
+
+from services.valuation.sotp_engine import SOTPValuationEngine
+
+
+def evaluate_sotp(data: dict[str, Any]):
+    """
+    Execute the canonical SOTP engine.
+
+    EROS owns the boundary only.
+    SOTP mathematics remains in services.valuation.sotp_engine.
+    """
+    engine = SOTPValuationEngine()
+    return engine.evaluate(data)
+
+
+__all__ = ["evaluate_sotp", "SOTPValuationEngine"]
+
+
+===== eros\valuation\dcf\engine.py =====
+"""EROS DCF valuation boundary."""
+
+from typing import Any
+
+from services.valuation.dcf_engine import DCFValuationEngine
+
+
+def evaluate_dcf(data: dict[str, Any]):
+    """
+    Execute the canonical DCF engine.
+
+    EROS owns the boundary only.
+    DCF mathematics remains in services.valuation.dcf_engine.
+    """
+    engine = DCFValuationEngine()
+    return engine.evaluate(data)
+
+
+__all__ = ["evaluate_dcf", "DCFValuationEngine"]
+
+
+===== eros\valuation\bridge\engine.py =====
+"""EROS valuation bridge.
+
+The bridge intentionally preserves SOTP and DCF independently.
+It does not calculate a simple average.
+"""
+
+from dataclasses import dataclass
+from typing import Any
+
+
+@dataclass
+class ValuationBoundary:
+    sotp: Any = None
+    dcf: Any = None
+    provenance: dict[str, Any] | None = None
+
+
+def create_valuation_boundary(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    return ValuationBoundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance or {},
+    )
+
+
+def build_bridge(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    return create_valuation_boundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "ValuationBoundary",
+    "create_valuation_boundary",
+    "build_bridge",
+]
+
+
+===== eros\valuation\adapter.py =====
+"""EROS valuation execution adapter."""
+
+from typing import Any
+
+from eros.valuation.bridge import build_bridge
+from eros.valuation.dcf import evaluate_dcf
+from eros.valuation.sotp import evaluate_sotp
+
+
+def valuation_available(data: Any) -> bool:
+    if not isinstance(data, dict):
+        return False
+
+    if not data:
+        return False
+
+    # A valuation payload must contain at least one useful
+    # valuation input. Empty API calls must remain safe.
+    valuation_keys = {
+        "company_name",
+        "shares_outstanding",
+        "dcf_segments",
+        "other_segments",
+        "holdco_discount",
+        "revenue",
+        "ebitda",
+        "ebit",
+        "pat",
+        "free_cash_flow",
+    }
+
+    return any(
+        key in data and data.get(key) is not None
+        for key in valuation_keys
+    )
+
+
+def evaluate_valuation(
+    data: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+):
+    """
+    Execute SOTP and DCF independently and preserve both results
+    inside the EROS valuation boundary.
+    """
+
+    if not valuation_available(data):
+        return build_bridge(
+            sotp=None,
+            dcf=None,
+            provenance={
+                **(provenance or {}),
+                "valuation_status": "INPUT_REQUIRED",
+            },
+        )
+
+    sotp_result = None
+    dcf_result = None
+    warnings = []
+
+    # SOTP
+    try:
+        sotp_result = evaluate_sotp(data)
+    except Exception as exc:
+        warnings.append(
+            f"SOTP valuation failed: {type(exc).__name__}: {exc}"
+        )
+
+    # DCF
+    try:
+        dcf_result = evaluate_dcf(data)
+    except Exception as exc:
+        warnings.append(
+            f"DCF valuation failed: {type(exc).__name__}: {exc}"
+        )
+
+    bridge = build_bridge(
+        sotp=sotp_result,
+        dcf=dcf_result,
+        provenance={
+            **(provenance or {}),
+            "valuation_status": "EXECUTED",
+            "sotp_executed": sotp_result is not None,
+            "dcf_executed": dcf_result is not None,
+            "warnings": warnings,
+        },
+    )
+
+    return bridge
+
+
+__all__ = [
+    "evaluate_valuation",
+    "valuation_available",
+]
+
+
+===== VALUATION TEST FILES =====
+
+FullName                                                                                                               
+--------                                                                                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_foundation.cpython-313.pyc             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_foundation.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_boundary.cpython-313.pyc     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_boundary.cpython-313-pytes...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_execution.cpython-313.pyc    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_execution.cpython-313-pyte...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_provenance.cpython-313.pyc   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_provenance.cpython-313-pyt...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_foundation.py                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_provenance.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\__pycache__\test_pipeline.cpython-313.pyc                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\__pycache__\test_pipeline.cpython-313-pytest-9.1.1.pyc         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\test_pipeline.py                                               
+
+
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_foundation.cpython-313.pyc =====
+ó
+    }&œjZ  ã                   óH   • S SK Jr  S SKJrJrJr  S rS rS rS r	S r
+S rg	)
+é    ©Úevaluate)Úcreate_contextÚfinalizeÚrun_foundationc                  óP   •  [        S5        [        S5      e! [         a     g f = f)NÚ zEmpty symbol must be rejected)r   Ú
+ValueErrorÚAssertionError© ó    Ú)eros\tests\integration\test_foundation.pyÚtest_empty_symbol_rejectedr   	   s1   € ðÜrÔô Ð8Ó
+9Ð9øô ó Ùðús   ‚ ˜
+%¤%c                  ó>   • [        S5      n U R                  S:X  d   eg )Nz
+ reliance ÚRELIANCE)r   Úsymbol©Úcontexts    r   Útest_context_symbol_normalizedr      s   € Ü˜\Ó*€GØ>‰>˜ZÓ'Ð'Ñ'r   c                  ó^   • [        S5      n U S   S:X  d   eU S   S:X  d   eU S   (       d   eg )Nr   r   ÚstatusÚINPUT_REQUIREDÚwarningsr   ©Úresults    r   Útest_empty_input_is_safer      sA   € ÜjÓ!€Fà(Ñ˜zÓ)Ð)Ð)Ø(ÑÐ/Ó/Ð/Ð/Ø*×ÐÑr   c                  ó®   • [        S5      n [        U 5        U R                  S:X  d   eU R                  b   eU R                  b   eU R
+                  b   eg )Nr   r   )r   r   r   ÚscoreÚriskÚ
+financialsr   s    r   Ú-test_foundation_does_not_execute_without_datar!      sY   € Ü˜ZÓ(€Gä7Ôà>‰>Ð-Ó-Ð-Ð-Ø=‰=Ñ Ð Ð Ø<‰<ÑÐÐØ×ÑÑ%Ð%Ñ%r   c                  ó^   • [        S5      n [        U 5      nUS   S:X  d   eUS   (       d   eg )Nr   r   r   r   )r   r   )r   r   s     r   Ú0test_finalize_unexecuted_context_is_not_completer#   *   s8   € Ü˜ZÓ(€GägÓ€Fà(ÑÐ/Ó/Ð/Ð/Ø*×ÐÑr   c                  ón   • [        S5      n U S   S   S:X  d   eU S   S   S:X  d   eU S   S   S:X  d   eg )	NÚrelianceÚ
+provenanceÚorchestratorzEROS_3.0r   r   Úpipeline_statusr   r   r   s    r   Ú#test_api_result_contains_provenancer)   3   sV   € ÜjÓ!€Fà,Ñ Ñ/°:Ó=Ð=Ð=Ø,Ñ Ñ)¨ZÓ7Ð7Ð7Ø,ÑÐ 1Ñ2Ð6FÓFÐFÑFr   N)Úeros.api.servicer   Úeros.decision.pipeliner   r   r   r   r   r   r!   r#   r)   r   r   r   Ú<module>r,      s1   ðÝ %÷ñ ò:ò(ò
+ò&òóGr   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_foundation.cpython-313-pytest-9.1.1.pyc =====
+ó
+    }&œjZ  ã                   ób   • S SK rS SKJs  Jr  S SKJr  S SKJ	r	J
+r
+Jr  S rS rS rS rS rS	 rg)
+é    N)Úevaluate)Úcreate_contextÚfinalizeÚrun_foundationc                  óP   •  [        S5        [        S5      e! [         a     g f = f)NÚ zEmpty symbol must be rejected)r   Ú
+ValueErrorÚAssertionError© ó    ÚQD:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_foundation.pyÚtest_empty_symbol_rejectedr   	   s1   € ðÜrÔô Ð8Ó
+9Ð9øô ó Ùðús   ‚ ˜
+%¤%c                  óÈ  • [        S5      n U R                  nSo!U:H  o3(       dº  [        R                  " SU4SX45      S[        R
+                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2g )	Nz
+ reliance ÚRELIANCE©ú==)z.%(py2)s
+{%(py2)s = %(py0)s.symbol
+} == %(py5)sÚcontext©Úpy0Úpy2Úpy5úassert %(py7)sÚpy7)
+r   ÚsymbolÚ
+@pytest_arÚ_call_reprcompareÚ@py_builtinsÚlocalsÚ_should_repr_global_nameÚ	_safereprr
+   Ú_format_explanation©r   Ú@py_assert1Ú@py_assert4Ú@py_assert3Ú@py_format6Ú@py_format8s         r   Útest_context_symbol_normalizedr(      s{   € Ü˜\Ó*€GØ>‰>Ð'˜ZÐ'˜ZÑ'×'×'×'Ò'ˆ>×'×'×'×'×'Õ'ˆ7×'×'×'Ñ'ˆ7×'×'Õ'ˆ>×'×'Ó'˜Z×'×'×'×'×'×'Ô'r   c                  ó¼  • [        S5      n U S   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[	        [        R
+                  " U5      5      eS =n=p2U S   nS	o!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[	        [        R
+                  " U5      5      eS =n=p2U S
+   o(       d:  SS[        R                  " U5      0-  n[	        [        R
+                  " U5      5      eS ng )Nr   r   r   ©z%(py1)s == %(py4)s©Úpy1Úpy4úassert %(py6)sÚpy6ÚstatusÚINPUT_REQUIREDÚwarningsúassert %(py1)sr,   ©r   r   r   r    r
+   r!   )ÚresultÚ@py_assert0r%   Ú@py_assert2Ú@py_format5Ú@py_format7Ú@py_format2s          r   Útest_empty_input_is_safer;      sÛ   € ÜjÓ!€Fà(ÑÐ)˜zÐ)˜zÑ)×)×)×)Ò)Ð×)×)Ô)Ð×)×)Ó)˜z×)×)×)×)×)×)Ó)Ø(ÑÐ/Ð/Ð/Ð/Ñ/×/×/×/Ò/Ð×/×/Ô/Ð×/×/Ó/Ð/×/×/×/×/×/×/Ó/Ø*ÑÐÕ××ÑÐ×××××Ñr   c                  óâ  • [        S5      n [        U 5        U R                  nSo!U:H  o3(       dº  [        R                  " SU4SX45      S[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  nS o!UL o3(       dº  [        R                  " S	U4S
+X45      S[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  nS o!UL o3(       dº  [        R                  " S	U4SX45      S[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  nS o!UL o3(       dº  [        R                  " S	U4SX45      S[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2g )Nr   r1   r   )z.%(py2)s
+{%(py2)s = %(py0)s.status
+} == %(py5)sr   r   r   r   )Úis)z-%(py2)s
+{%(py2)s = %(py0)s.score
+} is %(py5)s)z,%(py2)s
+{%(py2)s = %(py0)s.risk
+} is %(py5)s)z2%(py2)s
+{%(py2)s = %(py0)s.financials
+} is %(py5)s)r   r   r0   r   r   r   r   r   r    r
+   r!   ÚscoreÚriskÚ
+financialsr"   s         r   Ú-test_foundation_does_not_execute_without_datarA      s×  € Ü˜ZÓ(€Gä7Ôà>‰>Ð-Ð-Ð-Ð-Ñ-×-×-×-Ò-ˆ>×-×-×-×-×-Õ-ˆ7×-×-×-Ñ-ˆ7×-×-Õ-ˆ>×-×-Ó-Ð-×-×-×-×-×-×-Ó-Ø=‰=Ð ˜DÐ ˜DÐ × × × Ò ˆ=× × × × × Õ ˆ7× × × Ñ ˆ7× × Õ ˆ=× × Ó ˜D× × × × × × Ó Ø<‰<Ð˜4Ð˜4Ð×××Òˆ<×××××Õˆ7×××Ñˆ7××Õˆ<××Ó˜4××××××ÓØ×ÑÐ% Ð% Ð%×%×%×%Ò%Ð×%×%×%×%×%Õ%ˆ7×%×%×%Ñ%ˆ7×%×%Õ%Ð×%×%Ó% ×%×%×%×%×%×%Ô%r   c                  óÈ  • [        S5      n [        U 5      nUS   nSo2U:H  oD(       do  [        R                  " SU4SX#45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=pCUS	   o"(       d:  S
+S[        R                  " U5      0-  n[        [        R                  " U5      5      eS ng )Nr   r0   r1   r   r*   r+   r.   r/   r2   r3   r,   )r   r   r   r   r    r
+   r!   )r   r5   r6   r%   r7   r8   r9   r:   s           r   Ú0test_finalize_unexecuted_context_is_not_completerC   *   s•   € Ü˜ZÓ(€GägÓ€Fà(ÑÐ/Ð/Ð/Ð/Ñ/×/×/×/Ò/Ð×/×/Ô/Ð×/×/Ó/Ð/×/×/×/×/×/×/Ó/Ø*ÑÐÕ××ÑÐ×××××Ñr   c                  óJ  • [        S5      n U S   S   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSS	U0-  n[	        [        R
+                  " U5      5      eS =n=p2U S   S
+   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSS	U0-  n[	        [        R
+                  " U5      5      eS =n=p2U S   S   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSS	U0-  n[	        [        R
+                  " U5      5      eS =n=p2g )NÚrelianceÚ
+provenanceÚorchestratorzEROS_3.0r   r*   r+   r.   r/   r   r   Úpipeline_statusr1   r4   )r5   r6   r%   r7   r8   r9   s         r   Ú#test_api_result_contains_provenancerI   3   s  € ÜjÓ!€Fà,Ñ Ñ/Ð=°:Ð=°:Ñ=×=×=×=Ò=Ð/×=×=Ô=Ð/×=×=Ó=°:×=×=×=×=×=×=Ó=Ø,Ñ Ñ)Ð7¨ZÐ7¨ZÑ7×7×7×7Ò7Ð)×7×7Ô7Ð)×7×7Ó7¨Z×7×7×7×7×7×7Ó7Ø,ÑÐ 1Ñ2ÐFÐ6FÐFÐ6FÑF×F×F×FÒFÐ2×F×FÔFÐ2×F×FÓFÐ6F×F×F×F×F×F×FÔFr   )Úbuiltinsr   Ú_pytest.assertion.rewriteÚ	assertionÚrewriter   Úeros.api.servicer   Úeros.decision.pipeliner   r   r   r   r(   r;   rA   rC   rI   r   r   r   Ú<module>rP      s6   ðß  „ Õ %÷ñ ò:ò(ò
+ò&òóGr   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_boundary.cpython-313.pyc =====
+ó
+    ('œjŒ  ã                   ó.   • S SK Jr  S rS rS rS rS rg)é    )ÚValuationBoundaryc                  ó„   • [        5       R                  0 5      n U S   S:X  d   eU S   b   eU S   b   eU S   (       d   eg )NÚstatusÚINPUT_REQUIREDÚsotpÚdcfÚwarnings©r   Úevaluate©Úresults    Ú1eros\tests\integration\test_valuation_boundary.pyÚ"test_empty_valuation_input_is_safer      sW   € ÜÓ ×)Ñ)¨"Ó-€Fà(ÑÐ/Ó/Ð/Ð/Ø&‰>Ñ!Ð!Ð!Ø%‰=Ñ Ð Ð Ø*×ÐÑó    c                  ór   • [        5       R                  S S S.5      n U S   S:X  d   eU S   b   eU S   b   eg )N)r   r   r   r   r   r   r
+   r   s    r   Ú8test_partial_valuation_input_does_not_create_fake_valuesr      sV   € ÜÓ ×)Ñ)àØñ	
+ó€Fð (ÑÐ/Ó/Ð/Ð/Ø&‰>Ñ!Ð!Ð!Ø%‰=Ñ Ð Ñ r   c                  ód   • [        5       n [        U S5      (       d   e[        U S5      (       d   eg )NÚevaluate_sotpÚevaluate_dcf)r   Úhasattr)Úboundarys    r   Ú7test_valuation_boundary_exposes_independent_authoritiesr      s0   € Ü Ó"€Hä8˜_×-Ñ-Ð-Ð-Ü8˜^×,Ñ,Ð,Ñ,r   c                  óB   • SSK Jn   U " 5       nUR                  S:X  d   eg )Nr   )ÚSOTPValuationEngineÚSOTP)Úservices.valuation.sotp_enginer   Úvaluation_method)r   Úengines     r   Ú$test_sotp_engine_import_is_canonicalr   !   s!   € ÝBá Ó"€Fà×"Ñ" fÓ,Ð,Ñ,r   c                  óB   • SSK Jn   U " 5       nUR                  S:X  d   eg )Nr   )ÚDCFValuationEngineÚDCF)Úservices.valuation.dcf_enginer!   r   )r!   r   s     r   Ú#test_dcf_engine_import_is_canonicalr$   )   s!   € Ý@áÓ!€Fà×"Ñ" eÓ+Ð+Ñ+r   N)Úeros.valuationr   r   r   r   r   r$   © r   r   Ú<module>r'      s!   ðÝ ,òò
+!ò-ò-ó,r   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_boundary.cpython-313-pytest-9.1.1.pyc =====
+ó
+    ('œjŒ  ã                   óH   • S SK rS SKJs  Jr  S SKJr  S rS r	S r
+S rS rg)é    N)ÚValuationBoundaryc                  óÞ  • [        5       R                  0 5      n U S   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U S   nS o!UL o3(       do  [        R                  " S	U4S
+X45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U S   nS o!UL o3(       do  [        R                  " S	U4S
+X45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U S   o(       d:  SS[        R                  " U5      0-  n[        [        R                  " U5      5      eS ng )NÚstatusÚINPUT_REQUIRED©ú==©z%(py1)s == %(py4)s©Úpy1Úpy4úassert %(py6)sÚpy6Úsotp©Úis©z%(py1)s is %(py4)sÚdcfÚwarningszassert %(py1)sr   ©r   ÚevaluateÚ
+@pytest_arÚ_call_reprcompareÚ	_safereprÚAssertionErrorÚ_format_explanation)ÚresultÚ@py_assert0Ú@py_assert3Ú@py_assert2Ú@py_format5Ú@py_format7Ú@py_format2s          ÚYD:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.pyÚ"test_empty_valuation_input_is_safer$      s.  € ÜÓ ×)Ñ)¨"Ó-€Fà(ÑÐ/Ð/Ð/Ð/Ñ/×/×/×/Ò/Ð×/×/Ô/Ð×/×/Ó/Ð/×/×/×/×/×/×/Ó/Ø&‰>Ð!˜TÐ!˜TÐ!×!×!×!Ò!ˆ>×!×!Ô!ˆ>×!×!Ó!˜T×!×!×!×!×!×!Ó!Ø%‰=Ð ˜DÐ ˜DÐ × × × Ò ˆ=× × Ô ˆ=× × Ó ˜D× × × × × × Ó Ø*ÑÐÕ××ÑÐ×××××Ñó    c                  óV  • [        5       R                  S S S.5      n U S   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U S	   nS o!UL o3(       do  [        R                  " S
+U4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U S   nS o!UL o3(       do  [        R                  " S
+U4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2g )N)r   r   r   r   r   r	   r
+   r   r   r   r   r   r   r   )r   r   r   r   r    r!   s         r#   Ú8test_partial_valuation_input_does_not_create_fake_valuesr'      s  € ÜÓ ×)Ñ)àØñ	
+ó€Fð (ÑÐ/Ð/Ð/Ð/Ñ/×/×/×/Ò/Ð×/×/Ô/Ð×/×/Ó/Ð/×/×/×/×/×/×/Ó/Ø&‰>Ð!˜TÐ!˜TÐ!×!×!×!Ò!ˆ>×!×!Ô!ˆ>×!×!Ó!˜T×!×!×!×!×!×!Ó!Ø%‰=Ð ˜DÐ ˜DÐ × × × Ò ˆ=× × Ô ˆ=× × Ó ˜D× × × × × × Ô r%   c                  ó$  • [        5       n Sn[        X5      o"(       dí  SS[        R                  " 5       ;   d  [        R
+                  " [        5      (       a  [        R                  " [        5      OSS[        R                  " 5       ;   d  [        R
+                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  n[        [        R                  " U5      5      eS =pSn[        X5      o"(       dí  SS[        R                  " 5       ;   d  [        R
+                  " [        5      (       a  [        R                  " [        5      OSS[        R                  " 5       ;   d  [        R
+                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  n[        [        R                  " U5      5      eS =pg )NÚevaluate_sotpz5assert %(py5)s
+{%(py5)s = %(py0)s(%(py1)s, %(py3)s)
+}ÚhasattrÚboundary)Úpy0r   Úpy3Úpy5Úevaluate_dcf)	r   r*   Ú@py_builtinsÚlocalsr   Ú_should_repr_global_namer   r   r   )r+   r   Ú@py_assert4Ú@py_format6s       r#   Ú7test_valuation_boundary_exposes_independent_authoritiesr5      s
+  € Ü Ó"€Hà,Ð-Œ78Ó-Ð-Õ-×-×-×-×-×-Ñ-Œ7×-×-×-Ñ-Œ7×-×-×-×-×-Ö-8×-×-×-Ñ-8×-×-Õ-˜_×-×-Ó-Ð-×-×-×-×-×-Ò-Ø+Ð,Œ78Ó,Ð,Õ,×,×,×,×,×,Ñ,Œ7×,×,×,Ñ,Œ7×,×,×,×,×,Ö,8×,×,×,Ñ,8×,×,Õ,˜^×,×,Ó,Ð,×,×,×,×,×,Ó,r%   c                  óÌ  • SSK Jn   U " 5       nUR                  nSo2U:H  oD(       dº  [        R                  " SU4SX#45      S[
+        R                  " 5       ;   d  [        R                  " U5      (       a  [        R                  " U5      OS[        R                  " U5      [        R                  " U5      S.-  nSS	U0-  n[        [        R                  " U5      5      eS =n=pCg )
+Nr   )ÚSOTPValuationEngineÚSOTPr   ©z8%(py2)s
+{%(py2)s = %(py0)s.valuation_method
+} == %(py5)sÚengine©r,   Úpy2r.   úassert %(py7)sÚpy7)Úservices.valuation.sotp_enginer7   Úvaluation_methodr   r   r0   r1   r2   r   r   r   )r7   r:   Ú@py_assert1r3   r   r4   Ú@py_format8s          r#   Ú$test_sotp_engine_import_is_canonicalrC   !   s€   € ÝBá Ó"€Fà×"Ñ"Ð, fÐ, fÑ,×,×,×,Ò,Ð"×,×,×,×,×,Õ,ˆ6×,×,×,Ñ,ˆ6×,×,Õ,Ð"×,×,Ó, f×,×,×,×,×,×,Ô,r%   c                  óÌ  • SSK Jn   U " 5       nUR                  nSo2U:H  oD(       dº  [        R                  " SU4SX#45      S[
+        R                  " 5       ;   d  [        R                  " U5      (       a  [        R                  " U5      OS[        R                  " U5      [        R                  " U5      S.-  nSS	U0-  n[        [        R                  " U5      5      eS =n=pCg )
+Nr   )ÚDCFValuationEngineÚDCFr   r9   r:   r;   r=   r>   )Úservices.valuation.dcf_enginerE   r@   r   r   r0   r1   r2   r   r   r   )rE   r:   rA   r3   r   r4   rB   s          r#   Ú#test_dcf_engine_import_is_canonicalrH   )   s€   € Ý@áÓ!€Fà×"Ñ"Ð+ eÐ+ eÑ+×+×+×+Ò+Ð"×+×+×+×+×+Õ+ˆ6×+×+×+Ñ+ˆ6×+×+Õ+Ð"×+×+Ó+ e×+×+×+×+×+×+Ô+r%   )Úbuiltinsr0   Ú_pytest.assertion.rewriteÚ	assertionÚrewriter   Úeros.valuationr   r$   r'   r5   rC   rH   © r%   r#   Ú<module>rO      s&   ðß  „ Õ ,òò
+!ò-ò-ó,r%   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_execution.cpython-313.pyc =====
+ó
+    ß(œj­  ã                   ó4   • S SK JrJrJrJr  S rS rS rS rg)é    )Úcreate_contextÚfinalizeÚrun_foundationÚrun_valuationc                  ó°   • [        S5      n [        U 5        U R                  b   eU R                  b   eU R                  b   eU R
+                  (       d   eg )NÚRELIANCE)r   r   ÚsotpÚdcfÚvaluation_bridgeÚwarnings©Úcontexts    Ú2eros\tests\integration\test_valuation_execution.pyÚ,test_valuation_is_not_run_without_foundationr   	   sU   € Ü˜ZÓ(€Gä'Ôà<‰<ÑÐÐØ;‰;ÑÐÐØ×#Ñ#Ñ+Ð+Ð+Ø××ÐÑó    c                  ó¦   • [        S5      n [        U 5        [        U 5        U R                  S:X  d   eU R                  b   eU R
+                  b   eg )Nr   ÚINPUT_REQUIRED)r   r   r   Ústatusr	   r
+   r   s    r   Ú%test_empty_evaluate_path_remains_safer      sO   € Ü˜ZÓ(€Gä7ÔÜ'Ôà>‰>Ð-Ó-Ð-Ð-Ø<‰<ÑÐÐØ;‰;ÑÐÑr   c                  ó~  • [        S5      n SSS/ / SS.0n[        X5        [        U 5        U R                  b…  [	        U R                  S5      (       d   e[	        U R                  S5      (       d   eU R
+                  U R                  R
+                  L d   eU R                  U R                  R                  L d   eg g )	Nr   ÚdatazReliance Industriesg      Y@g        )Úcompany_nameÚshares_outstandingÚdcf_segmentsÚother_segmentsÚholdco_discountr	   r
+   )r   r   r   r   Úhasattrr	   r
+   )r   Úraws     r   Ú.test_valuation_boundary_preserves_independencer      s¿   € Ü˜ZÓ(€Gð 	Ø1Ø"'ØØ Ø"ñ
+ð€Cô 7Ô Ü'Ôð ×ÑÑ+Üw×/Ñ/°×8Ñ8Ð8Ð8Üw×/Ñ/°×7Ñ7Ð7Ð7Ø|‰|˜w×7Ñ7×<Ñ<Ò<Ð<Ð<Ø{‰{˜g×6Ñ6×:Ñ:Ò:Ð:Ñ:ð	 ,r   c                  ó|   • [        S5      n [        U 5      nSU;   d   eSU;   d   eSU;   d   eUS   S   S:X  d   eg )Nr   r	   r
+   r   Ú
+provenanceÚorchestratorzEROS_3.0)r   r   )r   Úresults     r   Ú,test_finalize_still_exposes_valuation_fieldsr$   8   sV   € Ü˜ZÓ(€GägÓ€FàVÓÐÐØF‹?Ðˆ?Ø Ó'Ð'Ð'Ø,Ñ Ñ/°:Ó=Ð=Ñ=r   N)	Úeros.decision.pipeliner   r   r   r   r   r   r   r$   © r   r   Ú<module>r'      s#   ð÷ó òòò;ó2>r   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_execution.cpython-313-pytest-9.1.1.pyc =====
+ó
+    ß(œj­  ã                   óN   • S SK rS SKJs  Jr  S SKJrJrJ	r	J
+r
+  S rS rS rS rg)é    N)Úcreate_contextÚfinalizeÚrun_foundationÚrun_valuationc                  óf  • [        S5      n [        U 5        U R                  nS o!UL o3(       dº  [        R                  " SU4SX45      S[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  nS o!UL o3(       dº  [        R                  " SU4SX45      S[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  nS o!UL o3(       dº  [        R                  " SU4S	X45      S[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  o(       d…  S
+S[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      S.-  n[        [        R                  " U5      5      eS ng )NÚRELIANCE©Úis©z,%(py2)s
+{%(py2)s = %(py0)s.sotp
+} is %(py5)sÚcontext©Úpy0Úpy2Úpy5úassert %(py7)sÚpy7©z+%(py2)s
+{%(py2)s = %(py0)s.dcf
+} is %(py5)s)z8%(py2)s
+{%(py2)s = %(py0)s.valuation_bridge
+} is %(py5)sz,assert %(py2)s
+{%(py2)s = %(py0)s.warnings
+})r   r   )r   r   ÚsotpÚ
+@pytest_arÚ_call_reprcompareÚ@py_builtinsÚlocalsÚ_should_repr_global_nameÚ	_safereprÚAssertionErrorÚ_format_explanationÚdcfÚvaluation_bridgeÚwarnings)r   Ú@py_assert1Ú@py_assert4Ú@py_assert3Ú@py_format6Ú@py_format8Ú@py_format3s          ÚZD:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.pyÚ,test_valuation_is_not_run_without_foundationr'   	   s´  € Ü˜ZÓ(€Gä'Ôà<‰<Ð˜4Ð˜4Ð×××Òˆ<×××××Õˆ7×××Ñˆ7××Õˆ<××Ó˜4××××××ÓØ;‰;Ð˜$Ð˜$Ð×××Òˆ;×××××Õˆ7×××Ñˆ7××Õˆ;××Ó˜$××××××ÓØ×#Ñ#Ð+ tÐ+ tÐ+×+×+×+Ò+Ð#×+×+×+×+×+Õ+ˆ7×+×+×+Ñ+ˆ7×+×+Õ+Ð#×+×+Ó+ t×+×+×+×+×+×+Ó+Ø×ÑÐÕ×××××Ñˆ7×××Ñˆ7××ÕÐ×××××Òó    c                  óL  • [        S5      n [        U 5        [        U 5        U R                  nSo!U:H  o3(       dº  [        R
+                  " SU4SX45      S[        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  nS o!UL o3(       dº  [        R
+                  " S	U4S
+X45      S[        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  nS o!UL o3(       dº  [        R
+                  " S	U4SX45      S[        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2g )Nr   ÚINPUT_REQUIRED©ú==)z.%(py2)s
+{%(py2)s = %(py0)s.status
+} == %(py5)sr   r   r   r   r	   r   r   )r   r   r   Ústatusr   r   r   r   r   r   r   r   r   r   )r   r    r!   r"   r#   r$   s         r&   Ú%test_empty_evaluate_path_remains_safer.      sl  € Ü˜ZÓ(€Gä7ÔÜ'Ôà>‰>Ð-Ð-Ð-Ð-Ñ-×-×-×-Ò-ˆ>×-×-×-×-×-Õ-ˆ7×-×-×-Ñ-ˆ7×-×-Õ-ˆ>×-×-Ó-Ð-×-×-×-×-×-×-Ó-Ø<‰<Ð˜4Ð˜4Ð×××Òˆ<×××××Õˆ7×××Ñˆ7××Õˆ<××Ó˜4××××××ÓØ;‰;Ð˜$Ð˜$Ð×××Òˆ;×××××Õˆ7×××Ñˆ7××Õˆ;××Ó˜$××××××Ôr(   c                  óH
+  • [        S5      n SSS/ / SS.0n[        X5        [        U 5        U R                  Gbé  U R                  nSn[	        X#5      oD(       Gd  SS	[
+        R                  " 5       ;   d  [        R                  " [        5      (       a  [        R                  " [        5      OS	S
+[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS
+[        R                  " U5      [        R                  " U5      [        R                  " U5      S.-  n[        [        R                  " U5      5      eS =n=p4U R                  nSn[	        X#5      oD(       Gd  SS	[
+        R                  " 5       ;   d  [        R                  " [        5      (       a  [        R                  " [        5      OS	S
+[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS
+[        R                  " U5      [        R                  " U5      [        R                  " U5      S.-  n[        [        R                  " U5      5      eS =n=p4U R                  o`R                  owR                  o†UL o™(       Gd  [        R                  " SU	4SXh45      S
+[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS
+[        R                  " U5      S
+[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS
+[        R                  " U5      [        R                  " U5      S.-  n
+SSU
+0-  n[        [        R                  " U5      5      eS =n=n	=pxU R                  o`R                  owR                  o†UL o™(       Gd  [        R                  " SU	4SXh45      S
+[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS
+[        R                  " U5      S
+[
+        R                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS
+[        R                  " U5      [        R                  " U5      S.-  n
+SSU
+0-  n[        [        R                  " U5      5      eS =n=n	=pxg g )Nr   ÚdatazReliance Industriesg      Y@g        )Úcompany_nameÚshares_outstandingÚdcf_segmentsÚother_segmentsÚholdco_discountr   z[assert %(py7)s
+{%(py7)s = %(py0)s(%(py3)s
+{%(py3)s = %(py1)s.valuation_bridge
+}, %(py5)s)
+}Úhasattrr   )r   Úpy1Úpy3r   r   r   r	   )zl%(py2)s
+{%(py2)s = %(py0)s.sotp
+} is %(py8)s
+{%(py8)s = %(py6)s
+{%(py6)s = %(py4)s.valuation_bridge
+}.sotp
+})r   r   Úpy4Úpy6Úpy8zassert %(py10)sÚpy10)zj%(py2)s
+{%(py2)s = %(py0)s.dcf
+} is %(py8)s
+{%(py8)s = %(py6)s
+{%(py6)s = %(py4)s.valuation_bridge
+}.dcf
+})r   r   r   r   r6   r   r   r   r   r   r   r   r   r   r   )r   ÚrawÚ@py_assert2r!   Ú@py_assert6r$   r    Ú@py_assert5Ú@py_assert7r"   Ú@py_format9Ú@py_format11s               r&   Ú.test_valuation_boundary_preserves_independencerD      sÙ  € Ü˜ZÓ(€Gð 	Ø1Ø"'ØØ Ø"ñ
+ð€Cô 7Ô Ü'Ôð ×ÑÒ+Ø×/Ñ/Ð8°Ð8ŒwÐ/Ó8Ð8Ö8×8×8×8×8×8Ñ8Œw×8×8×8Ñ8Œw×8×8×8×8×8Ö8w×8×8×8Ñ8w×8×8Õ8Ð/×8×8Ó8°×8×8Ó8Ð8×8×8×8×8×8Ô8Ø×/Ñ/Ð7°Ð7ŒwÐ/Ó7Ð7Ö7×7×7×7×7×7Ñ7Œw×7×7×7Ñ7Œw×7×7×7×7×7Ö7w×7×7×7Ñ7w×7×7Õ7Ð/×7×7Ó7°×7×7Ó7Ð7×7×7×7×7×7Ô7Ø|‰|Ð<×7Ñ7Ð<×<Ñ<Ð<Ð<Ð<×<×<×<Ó<ˆ|×<×<×<×<×<Õ<ˆw×<×<×<Ñ<ˆw×<×<Õ<ˆ|×<×<×<×<×<Ô<˜w×<×<×<Ñ<˜w×<×<Õ<Ð7×<×<Ó<Ð<×<×<×<×<×<×<Õ<Ø{‰{Ð:×6Ñ6Ð:×:Ñ:Ð:Ð:Ð:×:×:×:Ó:ˆ{×:×:×:×:×:Õ:ˆw×:×:×:Ñ:ˆw×:×:Õ:ˆ{×:×:×:×:×:Ô:˜g×:×:×:Ñ:˜g×:×:Õ:Ð6×:×:Ó:Ð:×:×:×:×:×:×:Ö:ð	 ,r(   c                  óx  • [        S5      n [        U 5      nSo"U;   o3(       d¥  [        R                  " SU4SX!45      [        R                  " U5      S[
+        R                  " 5       ;   d  [        R                  " U5      (       a  [        R                  " U5      OSS.-  nSSU0-  n[        [        R                  " U5      5      eS =p#S	o"U;   o3(       d¥  [        R                  " SU4SX!45      [        R                  " U5      S[
+        R                  " 5       ;   d  [        R                  " U5      (       a  [        R                  " U5      OSS.-  nSSU0-  n[        [        R                  " U5      5      eS =p#S
+o"U;   o3(       d¥  [        R                  " SU4SX!45      [        R                  " U5      S[
+        R                  " 5       ;   d  [        R                  " U5      (       a  [        R                  " U5      OSS.-  nSSU0-  n[        [        R                  " U5      5      eS =p#US   S   nSobU:H  o3(       do  [        R                  " SU4SX&45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p6g )Nr   r   )Úin)z%(py1)s in %(py3)sÚresult)r7   r8   zassert %(py5)sr   r   r   Ú
+provenanceÚorchestratorzEROS_3.0r+   )z%(py1)s == %(py4)s)r7   r9   zassert %(py6)sr:   )
+r   r   r   r   r   r   r   r   r   r   )	r   rG   Ú@py_assert0r>   Ú@py_format4r#   r"   Ú@py_format5Ú@py_format7s	            r&   Ú,test_finalize_still_exposes_valuation_fieldsrN   8   s}  € Ü˜ZÓ(€GägÓ€FàÐVÑ×××Òˆ6××Ôˆ6×××××ÔV×××ÑV××××××ÓØÐF‰?×××Òˆ5××Ôˆ5×××××ÔF×××ÑF××××××ÓØÐ' Ñ'×'×'×'Ò'Ð×'×'Ô'Ð×'×'×'×'×'Ô' ×'×'×'Ñ' ×'×'×'×'×'×'Ó'Ø,Ñ Ñ/Ð=°:Ð=°:Ñ=×=×=×=Ò=Ð/×=×=Ô=Ð/×=×=Ó=°:×=×=×=×=×=×=Ô=r(   )Úbuiltinsr   Ú_pytest.assertion.rewriteÚ	assertionÚrewriter   Úeros.decision.pipeliner   r   r   r   r'   r.   rD   rN   © r(   r&   Ú<module>rU      s(   ðß  „ ÷ ó òòò;ó2>r(   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_provenance.cpython-313.pyc =====
+ó
+    ('œjû   ã                   ó   • S SK Jr  S rg)é    ©Úevaluatec                  óR   • [        S5      n U S   S   S:X  d   eU S   S   S:X  d   eg )NÚRELIANCEÚ
+provenanceÚorchestratorzEROS_3.0Úsymbolr   )Úresults    Ú3eros\tests\integration\test_valuation_provenance.pyÚ.test_pipeline_result_preserves_eros_provenancer      s<   € ÜjÓ!€Fà,Ñ Ñ/°:Ó=Ð=Ð=Ø,Ñ Ñ)¨ZÓ7Ð7Ñ7ó    N)Úeros.api.servicer   r   © r   r   Ú<module>r      s   ðÝ %ó8r   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_provenance.cpython-313-pytest-9.1.1.pyc =====
+ó
+    ('œjû   ã                   ó0   • S SK rS SKJs  Jr  S SKJr  S rg)é    N)Úevaluatec                  ó:  • [        S5      n U S   S   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSS	U0-  n[	        [        R
+                  " U5      5      eS =n=p2U S   S
+   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSS	U0-  n[	        [        R
+                  " U5      5      eS =n=p2g )NÚRELIANCEÚ
+provenanceÚorchestratorzEROS_3.0)ú==)z%(py1)s == %(py4)s)Úpy1Úpy4zassert %(py6)sÚpy6Úsymbol)r   Ú
+@pytest_arÚ_call_reprcompareÚ	_safereprÚAssertionErrorÚ_format_explanation)ÚresultÚ@py_assert0Ú@py_assert3Ú@py_assert2Ú@py_format5Ú@py_format7s         Ú[D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_provenance.pyÚ.test_pipeline_result_preserves_eros_provenancer      s¶   € ÜjÓ!€Fà,Ñ Ñ/Ð=°:Ð=°:Ñ=×=×=×=Ò=Ð/×=×=Ô=Ð/×=×=Ó=°:×=×=×=×=×=×=Ó=Ø,Ñ Ñ)Ð7¨ZÐ7¨ZÑ7×7×7×7Ò7Ð)×7×7Ô7Ð)×7×7Ó7¨Z×7×7×7×7×7×7Ô7ó    )	ÚbuiltinsÚ@py_builtinsÚ_pytest.assertion.rewriteÚ	assertionÚrewriter   Úeros.api.servicer   r   © r   r   Ú<module>r"      s   ðß  „ Õ %ó8r   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_foundation.py =====
+from eros.api.service import evaluate
+from eros.decision.pipeline import (
+    create_context,
+    finalize,
+    run_foundation,
+)
+
+
+def test_empty_symbol_rejected():
+    try:
+        create_context("")
+    except ValueError:
+        return
+
+    raise AssertionError("Empty symbol must be rejected")
+
+
+def test_context_symbol_normalized():
+    context = create_context(" reliance ")
+    assert context.symbol == "RELIANCE"
+
+
+def test_empty_input_is_safe():
+    result = evaluate("RELIANCE")
+
+    assert result["symbol"] == "RELIANCE"
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["warnings"]
+
+
+def test_foundation_does_not_execute_without_data():
+    context = create_context("RELIANCE")
+
+    run_foundation(context)
+
+    assert context.status == "INPUT_REQUIRED"
+    assert context.score is None
+    assert context.risk is None
+    assert context.financials is None
+
+
+def test_finalize_unexecuted_context_is_not_complete():
+    context = create_context("RELIANCE")
+
+    result = finalize(context)
+
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["warnings"]
+
+
+def test_api_result_contains_provenance():
+    result = evaluate("reliance")
+
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+    assert result["provenance"]["symbol"] == "RELIANCE"
+    assert result["provenance"]["pipeline_status"] == "INPUT_REQUIRED"
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py =====
+from eros.valuation import ValuationBoundary
+
+
+def test_empty_valuation_input_is_safe():
+    result = ValuationBoundary().evaluate({})
+
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["sotp"] is None
+    assert result["dcf"] is None
+    assert result["warnings"]
+
+
+def test_partial_valuation_input_does_not_create_fake_values():
+    result = ValuationBoundary().evaluate(
+        {
+            "sotp": None,
+            "dcf": None,
+        }
+    )
+
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["sotp"] is None
+    assert result["dcf"] is None
+
+
+def test_valuation_boundary_exposes_independent_authorities():
+    boundary = ValuationBoundary()
+
+    assert hasattr(boundary, "evaluate_sotp")
+    assert hasattr(boundary, "evaluate_dcf")
+
+
+def test_sotp_engine_import_is_canonical():
+    from services.valuation.sotp_engine import SOTPValuationEngine
+
+    engine = SOTPValuationEngine()
+
+    assert engine.valuation_method == "SOTP"
+
+
+def test_dcf_engine_import_is_canonical():
+    from services.valuation.dcf_engine import DCFValuationEngine
+
+    engine = DCFValuationEngine()
+
+    assert engine.valuation_method == "DCF"
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py =====
+from eros.decision.pipeline import (
+    create_context,
+    finalize,
+    run_foundation,
+    run_valuation,
+)
+
+
+def test_valuation_is_not_run_without_foundation():
+    context = create_context("RELIANCE")
+
+    run_valuation(context)
+
+    assert context.sotp is None
+    assert context.dcf is None
+    assert context.valuation_bridge is None
+    assert context.warnings
+
+
+def test_empty_evaluate_path_remains_safe():
+    context = create_context("RELIANCE")
+
+    run_foundation(context)
+    run_valuation(context)
+
+    assert context.status == "INPUT_REQUIRED"
+    assert context.sotp is None
+    assert context.dcf is None
+
+
+def test_valuation_boundary_preserves_independence():
+    context = create_context("RELIANCE")
+
+    raw = {
+        "data": {
+            "company_name": "Reliance Industries",
+            "shares_outstanding": 100.0,
+            "dcf_segments": [],
+            "other_segments": [],
+            "holdco_discount": 0.0,
+        }
+    }
+
+    run_foundation(context, raw)
+    run_valuation(context)
+
+    # The exact legacy engines may reject incomplete valuation
+    # data, but the EROS boundary must remain intact.
+    if context.valuation_bridge is not None:
+        assert hasattr(context.valuation_bridge, "sotp")
+        assert hasattr(context.valuation_bridge, "dcf")
+        assert context.sotp is context.valuation_bridge.sotp
+        assert context.dcf is context.valuation_bridge.dcf
+
+
+def test_finalize_still_exposes_valuation_fields():
+    context = create_context("RELIANCE")
+
+    result = finalize(context)
+
+    assert "sotp" in result
+    assert "dcf" in result
+    assert "valuation_bridge" in result
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_provenance.py =====
+from eros.api.service import evaluate
+
+
+def test_pipeline_result_preserves_eros_provenance():
+    result = evaluate("RELIANCE")
+
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+    assert result["provenance"]["symbol"] == "RELIANCE"
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\__pycache__\test_pipeline.cpython-313.pyc =====
+ó
+    ·&œj‡  ã                   ó(   • S SK Jr  S SKJr  S rS rg)é    ©Úevaluate)Úcreate_contextc                  ób   • [        S5      n U R                  S:X  d   eU R                  S:X  d   eg )NÚRELIANCEÚINITIALIZED)r   ÚsymbolÚstatus)Úcontexts    Ú eros\tests\unit\test_pipeline.pyÚtest_contextr      s0   € Ü˜ZÓ(€Gà>‰>˜ZÓ'Ð'Ð'Ø>‰>˜]Ó*Ð*Ñ*ó    c                  ó–   • [        S5      n U S   S:X  d   eU S   S:X  d   eU S   (       d   eU S   S   S:X  d   eU S   S	   S:X  d   eg )
+Nr   r	   r
+   ÚINPUT_REQUIREDÚwarningsÚ
+provenanceÚorchestratorzEROS_3.0Úpipeline_statusr   )Úresults    r   Útest_finalizer      su   € ÜjÓ!€Fà(Ñ˜zÓ)Ð)Ð)ð (ÑÐ/Ó/Ð/Ð/à*×ÐÐà,Ñ Ñ/°:Ó=Ð=Ð=Ø,ÑÐ 1Ñ2Ð6FÓFÐFÑFr   N)Úeros.api.servicer   Úeros.decision.pipeliner   r   r   © r   r   Ú<module>r      s   ðÝ %Ý 1ò+óGr   
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\__pycache__\test_pipeline.cpython-313-pytest-9.1.1.pyc =====
+ó
+    ·&œj‡  ã                   óB   • S SK rS SKJs  Jr  S SKJr  S SKJ	r	  S r
+S rg)é    N)Úevaluate)Úcreate_contextc                  óv  • [        S5      n U R                  nSo!U:H  o3(       dº  [        R                  " SU4SX45      S[        R
+                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2U R                  nSo!U:H  o3(       dº  [        R                  " SU4S	X45      S[        R
+                  " 5       ;   d  [        R                  " U 5      (       a  [        R                  " U 5      OS[        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[        [        R                  " U5      5      eS =n=p2g )
+NÚRELIANCE©ú==)z.%(py2)s
+{%(py2)s = %(py0)s.symbol
+} == %(py5)sÚcontext)Úpy0Úpy2Úpy5zassert %(py7)sÚpy7ÚINITIALIZED)z.%(py2)s
+{%(py2)s = %(py0)s.status
+} == %(py5)s)r   ÚsymbolÚ
+@pytest_arÚ_call_reprcompareÚ@py_builtinsÚlocalsÚ_should_repr_global_nameÚ	_safereprÚAssertionErrorÚ_format_explanationÚstatus)r	   Ú@py_assert1Ú@py_assert4Ú@py_assert3Ú@py_format6Ú@py_format8s         ÚHD:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\test_pipeline.pyÚtest_contextr      sê   € Ü˜ZÓ(€Gà>‰>Ð'˜ZÐ'˜ZÑ'×'×'×'Ò'ˆ>×'×'×'×'×'Õ'ˆ7×'×'×'Ñ'ˆ7×'×'Õ'ˆ>×'×'Ó'˜Z×'×'×'×'×'×'Ó'Ø>‰>Ð*˜]Ð*˜]Ñ*×*×*×*Ò*ˆ>×*×*×*×*×*Õ*ˆ7×*×*×*Ñ*ˆ7×*×*Õ*ˆ>×*×*Ó*˜]×*×*×*×*×*×*Ô*ó    c                  óÜ  • [        S5      n U S   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[	        [        R
+                  " U5      5      eS =n=p2U S   nS	o!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[	        [        R
+                  " U5      5      eS =n=p2U S
+   o(       d:  SS[        R                  " U5      0-  n[	        [        R
+                  " U5      5      eS nU S   S   nSo!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[	        [        R
+                  " U5      5      eS =n=p2U S   S   nS	o!U:H  o3(       do  [        R                  " SU4SX45      [        R                  " U5      [        R                  " U5      S.-  nSSU0-  n[	        [        R
+                  " U5      5      eS =n=p2g )Nr   r   r   )z%(py1)s == %(py4)s)Úpy1Úpy4zassert %(py6)sÚpy6r   ÚINPUT_REQUIREDÚwarningszassert %(py1)sr"   Ú
+provenanceÚorchestratorzEROS_3.0Úpipeline_status)r   r   r   r   r   r   )ÚresultÚ@py_assert0r   Ú@py_assert2Ú@py_format5Ú@py_format7Ú@py_format2s          r   Útest_finalizer0      s‹  € ÜjÓ!€Fà(ÑÐ)˜zÐ)˜zÑ)×)×)×)Ò)Ð×)×)Ô)Ð×)×)Ó)˜z×)×)×)×)×)×)Ó)ð (ÑÐ/Ð/Ð/Ð/Ñ/×/×/×/Ò/Ð×/×/Ô/Ð×/×/Ó/Ð/×/×/×/×/×/×/Ó/à*ÑÐÕ××ÑÐ×××××Ðà,Ñ Ñ/Ð=°:Ð=°:Ñ=×=×=×=Ò=Ð/×=×=Ô=Ð/×=×=Ó=°:×=×=×=×=×=×=Ó=Ø,ÑÐ 1Ñ2ÐFÐ6FÐFÐ6FÑF×F×F×FÒFÐ2×F×FÔFÐ2×F×FÓFÐ6F×F×F×F×F×F×FÔFr    )Úbuiltinsr   Ú_pytest.assertion.rewriteÚ	assertionÚrewriter   Úeros.api.servicer   Úeros.decision.pipeliner   r   r0   © r    r   Ú<module>r8      s   ðß  „ Õ %Ý 1ò+óGr    
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\test_pipeline.py =====
+from eros.api.service import evaluate
+from eros.decision.pipeline import create_context
+
+
+def test_context():
+    context = create_context("RELIANCE")
+
+    assert context.symbol == "RELIANCE"
+    assert context.status == "INITIALIZED"
+
+
+def test_finalize():
+    result = evaluate("RELIANCE")
+
+    assert result["symbol"] == "RELIANCE"
+
+    # No financial payload was supplied.
+    # EROS must not claim that evaluation completed.
+    assert result["status"] == "INPUT_REQUIRED"
+
+    assert result["warnings"]
+
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+    assert result["provenance"]["pipeline_status"] == "INPUT_REQUIRED"
+
+
+COMPILE EXIT CODE: 0
+
+===== VALUATION IMPORT TEST =====
+python :   File "<string>", line 5
+At line:126 char:17
++ $importOutput = python -c @"
++                 ~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 5:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(SOTP:, SOTPBoundary)
+              ^
+SyntaxError: invalid syntax
+
+IMPORT EXIT CODE: 1
+
+===== FULL EROS PYTEST =====
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-9.1.1, pluggy-1.6.0 -- D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.14.2, cov-7.1.0
+collecting ... collected 13 items / 1 error
+
+=================================== ERRORS ====================================
+_____ ERROR collecting eros/tests/integration/test_valuation_boundary.py ______
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+.venv\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1395: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+.venv\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+eros\tests\integration\test_valuation_boundary.py:1: in <module>
+    from eros.valuation import ValuationBoundary
+E   ImportError: cannot import name 'ValuationBoundary' from 'eros.valuation' (D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py)
+=========================== short test summary info ===========================
+ERROR eros/tests/integration/test_valuation_boundary.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 0.68s ===============================
+
+PYTEST EXIT CODE: 2
+
+===== GIT DIFF SUMMARY =====
+ app.py                                             | 121 ++++------
+ components/top_holdings.py                         |  56 ++++-
+ database/stock_data.db                             | Bin 380928 -> 12288 bytes
+ modules/backtesting.py                             | 265 ++++++++++++++++++++-
+ ...sotp_long_term_equity_classification_service.py | 171 +++++++++++--
+ 5 files changed, 506 insertions(+), 107 deletions(-)
+
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 6C.1 DIAGNOSTIC
+============================================================
+

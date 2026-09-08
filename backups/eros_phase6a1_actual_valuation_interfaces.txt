@@ -1,0 +1,514 @@
+﻿============================================================
+EROS 3.0 — PHASE 6A.1 DISCOVERY: ACTUAL VALUATION INTERFACES
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+
+============================================================
+FILE: eros\valuation\sotp\engine.py
+============================================================
+"""
+EROS 3.0 SOTP boundary.
+
+Calculation authority:
+services.valuation.sotp_engine
+"""
+
+from typing import Any
+
+from eros.valuation.adapter import normalize_valuation
+
+
+def evaluate_sotp(
+    data: dict[str, Any],
+) :
+
+    from services.valuation.sotp_engine import SOTPEngine
+
+    if not isinstance(data, dict):
+        raise TypeError(
+            "EROS SOTP input must be a dictionary."
+        )
+
+    company_name = data.get(
+        "company_name",
+        data.get("symbol", "UNKNOWN"),
+    )
+
+    shares_outstanding = data.get(
+        "shares_outstanding"
+    )
+
+    if shares_outstanding is None:
+        raise ValueError(
+            "shares_outstanding is required for SOTP."
+        )
+
+    engine = SOTPEngine(
+        company_name=company_name,
+        shares_outstanding=float(shares_outstanding),
+    )
+
+    result = engine.evaluate(
+        data
+    )
+
+    return normalize_valuation(
+        result,
+        method="SOTP",
+        currency=data.get(
+            "currency",
+            "INR",
+        ),
+    )
+
+
+__all__ = ["evaluate_sotp"]
+
+def evaluate_sotp(
+
+============================================================
+FILE: eros\valuation\dcf\engine.py
+============================================================
+"""
+EROS 3.0 Modern DCF boundary.
+
+Calculation authority:
+services.valuation.dcf_engine
+services.valuation.dcf
+"""
+
+from typing import Any
+
+from eros.valuation.adapter import normalize_valuation
+
+
+def evaluate_dcf(
+    data: dict[str, Any],
+):
+
+    from services.valuation.dcf_engine import (
+        DCFValuationEngine,
+    )
+
+    if not isinstance(data, dict):
+        raise TypeError(
+            "EROS DCF input must be a dictionary."
+        )
+
+    engine = DCFValuationEngine()
+
+    result = engine.evaluate(
+        data
+    )
+
+    return normalize_valuation(
+        result,
+        method="DCF",
+        currency=data.get(
+            "currency",
+            "INR",
+        ),
+    )
+
+
+__all__ = ["evaluate_dcf"]
+
+def evaluate_dcf(
+
+============================================================
+FILE: eros\valuation\bridge\engine.py
+============================================================
+"""
+EROS 3.0 SOTP / DCF Bridge.
+
+Important:
+This is NOT a valuation calculator.
+
+It does not invent a weighting methodology.
+It preserves the independently calculated SOTP and DCF
+results and exposes their relationship for the decision layer.
+
+Final investment decision authority remains downstream.
+"""
+
+from typing import Optional
+
+from eros.contracts import ValuationResult
+
+
+def build_bridge(
+    sotp: Optional[ValuationResult],
+    dcf: Optional[ValuationResult],
+) -> dict:
+
+    warnings = []
+
+    if sotp is None:
+        warnings.append(
+            "SOTP valuation unavailable."
+        )
+
+    if dcf is None:
+        warnings.append(
+            "DCF valuation unavailable."
+        )
+
+    return {
+        "method": "SOTP_DCF_BRIDGE",
+        "sotp": sotp,
+        "dcf": dcf,
+        "sotp_value": (
+            sotp.value
+            if sotp is not None
+            else None
+        ),
+        "dcf_value": (
+            dcf.value
+            if dcf is not None
+            else None
+        ),
+        "spread": (
+            abs(
+                float(sotp.value)
+                - float(dcf.value)
+            )
+            if (
+                sotp is not None
+                and dcf is not None
+                and sotp.value is not None
+                and dcf.value is not None
+            )
+            else None
+        ),
+        "warnings": warnings,
+        "provenance": {
+            "sotp": (
+                sotp.method
+                if sotp is not None
+                else None
+            ),
+            "dcf": (
+                dcf.method
+                if dcf is not None
+                else None
+            ),
+            "combination": None,
+            "decision_authority": (
+                "DOWNSTREAM_DECISION_LAYER"
+            ),
+        },
+    }
+
+
+__all__ = ["build_bridge"]
+
+def build_bridge(
+
+============================================================
+FILE: eros\valuation\sotp\__init__.py
+============================================================
+from .engine import evaluate_sotp
+
+__all__ = [
+    "evaluate_sotp",
+]
+
+No public definitions found.
+
+============================================================
+FILE: eros\valuation\dcf\__init__.py
+============================================================
+from .engine import evaluate_dcf
+
+__all__ = [
+    "evaluate_dcf",
+]
+
+No public definitions found.
+
+============================================================
+FILE: eros\valuation\bridge\__init__.py
+============================================================
+from .engine import build_bridge
+
+__all__ = [
+    "build_bridge",
+]
+
+No public definitions found.
+
+============================================================
+FILE: eros\valuation\__init__.py
+============================================================
+from .adapter import ValuationBoundary
+
+__all__ = ["ValuationBoundary"]
+
+No public definitions found.
+
+============================================================
+FILE: services\valuation\sotp_engine.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+
+class BaseValuationEngine:
+    """Abstract base class for valuation engines."""
+    def __init__(self) -> None:
+        pass
+    
+    @property
+    def valuation_method(self) -> str:
+        raise NotImplementedError
+
+    def evaluate(self, data: Any) -> Any:
+        raise NotImplementedError
+
+    def value(self, data: Any) -> Any:
+        return self.evaluate(data)
+
+class SOTPValuationEngine(BaseValuationEngine):
+    """Adapter for SOTP Valuation Engine conforming to BaseValuationEngine."""
+    def __init__(self) -> None:
+        super().__init__()
+
+    @property
+    def valuation_method(self) -> str:
+        return "SOTP"
+
+    def evaluate(self, data: Any) -> ValuationResult:
+        from sotp_long_term_equity_valuation_service import (
+            SOTPLongTermValuationService,
+        )
+        company_name = data.get("company_name", "Target Co")
+        shares = data.get("shares_outstanding", 1.0)
+        service = SOTPLongTermValuationService(company_name, shares)
+        res = service.evaluate_sotp(
+            dcf_segments_raw=data.get("dcf_segments", []),
+            other_segments_raw=data.get("other_segments", []),
+            holdco_discount=data.get("holdco_discount", 0.0)
+        )
+        return ValuationResult(
+            method=ValuationMethod.SOTP,
+            enterprise_value=res.total_enterprise_value,
+            equity_value=res.total_equity_value,
+            implied_share_price=res.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={"notes": "Evaluated successfully via modular SOTP engine"}
+        )
+
+# Backward compatibility alias
+SOTPEngine = SOTPValuationEngine
+
+
+class BaseValuationEngine:
+    def __init__(self) -> None:
+    def valuation_method(self) -> str:
+    def evaluate(self, data: Any) -> Any:
+    def value(self, data: Any) -> Any:
+class SOTPValuationEngine(BaseValuationEngine):
+    def __init__(self) -> None:
+    def valuation_method(self) -> str:
+    def evaluate(self, data: Any) -> ValuationResult:
+
+============================================================
+FILE: services\valuation\dcf_engine.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+
+class BaseValuationEngine:
+    """Abstract base class for valuation engines."""
+    def __init__(self) -> None:
+        pass
+    
+    @property
+    def valuation_method(self) -> str:
+        raise NotImplementedError
+
+    def evaluate(self, data: Any) -> Any:
+        raise NotImplementedError
+
+    def value(self, data: Any) -> Any:
+        return self.evaluate(data)
+
+class DCFValuationEngine(BaseValuationEngine):
+    """Adapter for DCF Valuation Engine conforming to BaseValuationEngine."""
+    def __init__(self) -> None:
+        super().__init__()
+
+    @property
+    def valuation_method(self) -> str:
+        return "DCF"
+
+    def evaluate(self, data: Any) -> ValuationResult:
+        from services.valuation.dcf import DCFInput, DCFModel
+        dcf_input = DCFInput(**data) if isinstance(data, dict) else data
+        model = DCFModel(dcf_input)
+        res = model.evaluate()
+        return ValuationResult(
+            method=ValuationMethod.DCF,
+            enterprise_value=res.enterprise_value,
+            equity_value=res.equity_value,
+            implied_share_price=res.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={"notes": "Evaluated successfully via modular DCF engine"}
+        )
+
+# Backward compatibility alias
+DCFEngine = DCFValuationEngine
+
+class BaseValuationEngine:
+    def __init__(self) -> None:
+    def valuation_method(self) -> str:
+    def evaluate(self, data: Any) -> Any:
+    def value(self, data: Any) -> Any:
+class DCFValuationEngine(BaseValuationEngine):
+    def __init__(self) -> None:
+    def valuation_method(self) -> str:
+    def evaluate(self, data: Any) -> ValuationResult:
+
+============================================================
+CANONICAL DCF DIRECTORY
+============================================================
+
+FullName                                                                                                       Length
+--------                                                                                                       ------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                       1705
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\__init__.cpython-313.pyc              1596
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\dcf_input.cpython-313.pyc             4986
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\dcf_model.cpython-313.pyc             4687
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\dcf_result.cpython-313.pyc            3021
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\discounting.cpython-313.pyc           2815
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\engine.cpython-313.pyc                2750
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\forecast.cpython-313.pyc              3031
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\models.cpython-313.pyc                1116
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\professional_engine.cpython-313.pyc   3974
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\sensitivity.cpython-313.pyc           2830
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\terminal_value.cpython-313.pyc        3125
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__pycache__\validation.cpython-313.pyc            4587
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py                                      4230
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                      5605
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py                                     4123
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\discounting.py                                    3042
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py                                         2192
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py                                       3159
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\models.py                                          537
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py                            3248
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\sensitivity.py                                    2969
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\terminal_value.py                                 4131
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                     4469
+
+
+
+
+============================================================
+VALUATION REFERENCES
+============================================================
+
+Path                                                                                                               Line
+                                                                                                                   Numb
+                                                                                                                     er
+----                                                                                                               ----
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                                    33
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py                                                   169
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\__pycache__\pipeline.cpython-313.pyc                           27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                             1
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                             5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                            14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                            27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                            33
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                            34
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                            41
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py                            42
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_boundary.cpython-313.pyc    3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_boundary.cpython-313.pyc   16
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__pycache__\test_valuation_boundary.cpython-313.pyc   18
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                                     8
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                                    23
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                                    31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py                                                    95
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                                    1
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py                                                    3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__pycache__\engine.cpython-313.pyc                     19
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__pycache__\__init__.cpython-313.pyc                    3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py                                                  5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py                                                 18
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__pycache__\engine.cpython-313.pyc                         7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__pycache__\engine.cpython-313.pyc                        10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py                                                 5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py                                                17
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__pycache__\engine.cpython-313.pyc                        7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__pycache__\engine.cpython-313.pyc                       14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc                            6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc                           12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc                           14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc                           15
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc                           16
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc                           20
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc                           23
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\adapter.cpython-313.pyc                           31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__pycache__\__init__.cpython-313.pyc                           3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\__pycache__\sotp_engine.cpython-313.pyc                        12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                         26
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                         28
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                         44
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                         54
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                             17
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                             19
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py                                                25
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py                                                44
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py                                      1
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py                                     1
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__pycache__\dcf_engine.cpython-313.pyc             3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__pycache__\sotp_engine.cpython-313.pyc            3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\blended_engine.cpython-313.pyc                16
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\dcf_engine.cpython-313.pyc                     6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\dispatcher.cpython-313.pyc                    27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\service.cpython-313.pyc                        8
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__pycache__\sotp_engine.cpython-313.pyc                    6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py                                                            154
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py                                                            156
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py                                                            181
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py                                                            205
+
+
+
+
+===== MODULE IMPORT TEST =====
+
+MODULE: eros.valuation.sotp.engine
+
+IMPORT EXIT CODE: 1
+
+COMPILE EXIT CODE: 0
+
+===== PYTEST =====
+..............                                                           [100%]
+14 passed in 1.25s
+
+PYTEST EXIT CODE: 0
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 6A.1 DISCOVERY
+============================================================
+

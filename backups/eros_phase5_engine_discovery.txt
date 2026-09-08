@@ -1,0 +1,194 @@
+﻿============================================================
+EROS 3.0 — PHASE 5 ENGINE DISCOVERY
+============================================================
+
+BRANCH:
+rebuild/eros-3-0-clean
+
+DATE:
+09/05/2026 19:33:02
+
+===== PYTHON FILES =====
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py | 1642 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_financial_pipeline.py | 1828 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_financial_ratios.py | 1329 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_fundamental_score.py | 643 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py | 627 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py | 2238 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py | 2398 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_technical_score.py | 555 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_technical_score_contract.py | 1360 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_score_v2.py | 26558 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py | 58586 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\fundamental_score_service_backup.py | 2578 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py | 9249 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py | 6747 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py | 17182 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py | 17674 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py | 3521 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py | 1720 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py | 1274 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py | 1164 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\events\normalizer.py | 977 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py | 1317 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\quality\evidence_quality.py | 3672 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py | 339 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py | 6464 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py | 1895 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backup_before_v2\fundamental_score_service.py | 15450 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backup_before_v2\score_service.py | 2802 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\components\ai_score.py | 1054 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\exceptions\valuation.py | 187 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\identifiers\classification.py | 1233 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py | 1331 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation_engine.py | 278 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\types\financial.py | 1309 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage13c\classification.py | 8121 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\examples\core\financial_types.py | 767 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\examples\core\types\example_financial_types.py | 576 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_post_normalization_verification.py | 2587 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_97_execution_blocked_normalization_preview.py | 1845 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_97_safety_normalization.py | 3058 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_v36_runtime_test.py | 5587 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\stock_dashboard_before_eros_frontend_v2_3.py | 23195 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\modules\fundamentals.py | 142 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py | 1373 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py | 1483 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py | 1556 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\data_platform\quality.py | 1317 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\financial_ratios.py | 4158 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\financial_statement.py | 1730 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\normalization.py | 5672 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamental_score_service.py | 14566 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py | 6100 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py | 12523 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py | 17450 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\ratios\quality_engine.py | 2673 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\score_service.py | 9480 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\fundamental.py | 10149 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\risk_scoring.py | 3561 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py | 2048 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py | 3765 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py | 19452 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py | 7356 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py | 6513 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py | 18958 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_clock.py | 168 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py | 5553 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py | 7278 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py | 10044 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_evidence_service.py | 7946 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_overlap_service.py | 4751 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py | 7002 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_classification_service.py | 8974 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_policy_service.py | 7939 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py | 22478 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_liquidity_policy_service.py | 4310 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_service.py | 7172 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_stage_service.py | 8121 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_domain_constants.py | 8969 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_economic_evidence_service.py | 90730 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py | 32076 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py | 19961 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py | 12256 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py | 7740 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py | 11876 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py | 11920 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_templates.py | 2227 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py | 11957 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_target_price_service.py | 2227 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py | 13571 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_net_debt_service.py | 7261 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_data_service.py | 12600 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_overlap_service.py | 10352 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_policy_service.py | 7400 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_scenario_policy_service.py | 8952 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_scenario_service.py | 5130 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_valuation_service.py | 5090 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_ownership_service.py | 4389 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_peer_ev_consistency_service.py | 8438 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_accounting_basis_service.py | 2894 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_data_service.py | 4804 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_valuation_service.py | 9934 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py | 11489 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py | 14345 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\technical_score_service.py | 10509 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py | 4230 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py | 5605 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py | 4123 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py | 2508 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py | 1496 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py | 65 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py | 67 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_adapter_fix.py | 475 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py | 1852 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_resolver.py | 7101 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_service.py | 8149 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_quality_adjustment_service.py | 19124 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_service.py | 7244 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v4_service.py | 17674 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v43_service.py | 3521 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\sotp_long_term_equity_domain_constants.py | 8843 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py | 995 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_fundamental.py | 3203 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_quality_engine.py | 792 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\test_evidence_quality.py | 1947 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py | 3453 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block12_unified_scoring.py | 1710 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py | 1798 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_scoring.py | 494 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py | 1557 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_blended_valuation.py | 1543 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py | 717 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_professional_dcf.py | 685 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_sotp.py | 913 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\unit\test_financials.py | 3132 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\unit\test_research_and_sotp.py | 1959 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pandas\io\json\_normalize.py | 20797 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pandas\tests\indexes\datetimes\methods\test_normalize.py | 3181 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pandas\tests\io\json\test_normalize.py | 32565 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pandas\tests\scalar\timestamp\methods\test_normalize.py | 1009 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pandas_ta\statistics\zscore.py | 1422 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_trustregion_constr\equality_constrained_sqp.py | 9391 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\callback\_scoring_monitor.py | 11991 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\callback\tests\test_scoring_monitor.py | 14575 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\metrics\_classification.py | 158896 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\metrics\_scorer.py | 41793 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\metrics\tests\test_classification.py | 135852 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\metrics\tests\test_score_objects.py | 62658 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\model_selection\_classification_threshold.py | 33919 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\model_selection\tests\test_classification_threshold.py | 24451 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\sklearn\neighbors\_classification.py | 36077 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\yfinance\scrapers\fundamentals.py | 8361 bytes
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+===== GIT LOG =====
+044828d CRITICAL FIXES: Fixed data pipeline (Date index), missing MACD histogram, RSI division by zero, revenue caps removed, NoneType errors in dashboard, and Docker entry point
+bc3f260 Repair Stage 13C valuation gate and evidence propagation
+4d7ec99 Remove temporary domain constants backup
+e90c393 Repair Stage 13C and Stage 14 integration
+2ad41b9 checkpoint before valuation consolidation
+e728411 Fix production valuation router FastAPI dependency
+dd47bf2 feat: bridge SOTP valuation to modern DCF
+b6be2cf EROS 3.0 green checkpoint - 15 contract tests passing
+48b9a40 EROS 3.0 green checkpoint - 15 contract tests passing
+22257e4 EROS 3.0 V3.8.19 golden traceability integration
+
+
+============================================================
+END ENGINE DISCOVERY
+============================================================
+

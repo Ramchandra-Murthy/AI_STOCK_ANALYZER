@@ -1,0 +1,24 @@
+﻿===== TASK_CONTROL FINAL VALIDATION =====
+
+===== PYTHON COMPILE =====
+
+
+===== FORECAST BLOCK COUNT =====
+Count: 1
+
+===== REGISTERED FORECAST TASKS =====
+Line 47: if "forecast.execute" not in target_app.tasks:
+Line 49: name="forecast.execute",
+Line 53: if "forecast.run" not in target_app.tasks:
+Line 55: name="forecast.run",
+Line 298: if task_name in ("forecast.execute", "forecast.run"):
+
+
+===== GIT DIFF STAT =====
+ backend/tasks/task_control.py | 207 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 206 deletions(-)
+
+
+===== GIT STATUS =====
+ M backend/tasks/task_control.py
+

@@ -1,0 +1,3255 @@
+﻿
+============================================================
+GIT STATE
+============================================================
+BRANCH:
+rebuild/eros-3-0-clean
+
+STATUS:
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+HEAD:
+044828d CRITICAL FIXES: Fixed data pipeline (Date index), missing MACD histogram, RSI division by zero, revenue caps removed, NoneType errors in dashboard, and Docker entry point
+bc3f260 Repair Stage 13C valuation gate and evidence propagation
+4d7ec99 Remove temporary domain constants backup
+e90c393 Repair Stage 13C and Stage 14 integration
+2ad41b9 checkpoint before valuation consolidation
+
+
+============================================================
+SOTP CANDIDATES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py | 13571 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py | 11957 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py | 14345 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_valuation_service.py | 9934 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py | 10044 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py | 2048 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py | 1852 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_adapter_fix.py | 475 bytes
+
+============================================================
+SOTP FUNCTIONS / CLASSES
+============================================================
+
+### services\sotp_long_term_equity_valuation_service.py
+6: from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+10: class SOTPSegmentResult:
+12: valuation_method: str  # e.g., "DCF", "EV/EBITDA", "Book Value"
+13: enterprise_value: float
+14: equity_value: float
+21: class SOTPValuationOutput:
+24: total_enterprise_value: float
+25: total_equity_value: float
+31: class SOTPLongTermValuationService:
+32: """Enterprise-grade Sum-of-the-Parts (SOTP) Valuation Service."""
+34: def __init__(self, company_name: str, shares_outstanding: float):
+38: def evaluate_dcf_segment(self, segment_params: dict[str, Any]) -> SOTPSegmentResult:
+165: ev = dcf_result.enterprise_value
+174: valuation_method="DCF",
+175: enterprise_value=ev,
+176: equity_value=equity_val,
+185: def evaluate_sotp(
+190: ) -> SOTPValuationOutput:
+192: sum_enterprise_value = 0.0
+193: sum_equity_value = 0.0
+198: sum_enterprise_value += res.enterprise_value * res.weight
+199: sum_equity_value += res.equity_value * res.weight
+203: ev = seg.get("enterprise_value", 0.0)
+209: valuation_method=seg.get("valuation_method", "Comparable / NAV"),
+210: enterprise_value=ev,
+211: equity_value=eq,
+217: sum_enterprise_value += ev * wt
+218: sum_equity_value += eq * wt
+221: sum_equity_value *= 1.0 - holdco_discount
+224: sum_equity_value / self.shares_outstanding
+229: return SOTPValuationOutput(
+232: total_enterprise_value=sum_enterprise_value,
+233: total_equity_value=sum_equity_value,
+244: # Stage 14 -> Long-Term Equity Valuation Service
+247: def get_sotp_long_term_equity_valuation(
+254: valuation records. Annexure A evidence is merged only when the
+256: SOTP valuation by this adapter.
+261: - unresolved entities from receiving fabricated valuations
+273: VALUATION_METHOD_NONE,
+274: VALUATION_STATUS_UNAUTHORIZED,
+286: "valuation_records": [],
+297: "valuation_records": population if isinstance(population, list) else [],
+329: "valuation_basis",
+340: # blocked until classification, operating-overlap, valuation basis,
+346: record.setdefault("valuation_basis", None)
+348: record["valuation_status"] = VALUATION_STATUS_UNAUTHORIZED
+349: record["valuation_method"] = VALUATION_METHOD_NONE
+351: "Separate SOTP valuation is blocked until Stage 13C "
+352: "classification/operating-overlap and valuation evidence are resolved."
+356: # Numeric fields remain explicit, but are not claimed as valuations.
+357: record["enterprise_value"] = 0.0
+361: record["equity_value"] = 0.0
+371: "valuation_records": records,
+374: "valuation_blocked": True,
+375: "valuation_block_reason": (
+377: "classification and valuation authorization."
+
+### services\sotp_long_term_equity_sotp_service.py
+10: Aggregates individual entity valuation records into the consolidated
+16: 58 Valuation Records (Validated Population)
+46: from services.sotp_long_term_equity_valuation_service import (
+47: get_sotp_long_term_equity_valuation,
+62: def _get_authorized_entities(
+63: valuation_records: list[dict[str, Any]],
+65: """Filters valuation records to only authorized SOTP components."""
+68: for record in valuation_records
+73: def _compute_enterprise_value(eligible_records: list[dict[str, Any]]) -> float:
+76: float(record.get("enterprise_value") or 0.0) for record in eligible_records
+80: def _compute_total_cash(eligible_records: list[dict[str, Any]]) -> float:
+85: def _compute_total_net_debt(eligible_records: list[dict[str, Any]]) -> float:
+90: def _compute_minority_interest(eligible_records: list[dict[str, Any]]) -> float:
+97: def _compute_equity_value(
+98: enterprise_value: float,
+107: return enterprise_value + cash - debt - minority_interest
+110: def _compute_intrinsic_value(
+111: equity_value: float, holding_discount_pct: float = 0.0
+117: return equity_value * (1.0 - holding_discount_pct)
+120: def _compute_value_per_share(
+130: def _generate_breakdown(eligible_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+137: ev = float(record.get("enterprise_value") or 0.0)
+138: eq = float(record.get("equity_value") or 0.0)
+147: "method": record.get("valuation_method"),
+148: "status": record.get("valuation_status"),
+151: "enterprise_value": ev,
+152: "equity_value": eq,
+161: def _validate_sotp(payload: dict[str, Any]) -> bool:
+164: "enterprise_value",
+168: "equity_value",
+181: "enterprise_value",
+182: "equity_value",
+202: def audit_sotp(
+226: def get_sotp_long_term_equity_sotp_service(
+232: Consumes ONLY get_sotp_long_term_equity_valuation(symbol).
+234: # 1. Fetch and guard upstream Valuation Service status
+235: valuation_payload = get_sotp_long_term_equity_valuation(symbol)
+237: not isinstance(valuation_payload, dict)
+238: or valuation_payload.get("status") != STATUS_OK
+243: "message": "Valuation service unavailable or returned non-OK status.",
+247: all_records = valuation_payload["valuation_records"]
+252: f"Expected {EXPECTED_ENTITY_COUNT} valuation records, "
+261: ev = _compute_enterprise_value(eligible_records)
+266: equity_val = _compute_equity_value(
+267: enterprise_value=ev,
+273: intrinsic_val = _compute_intrinsic_value(equity_value=equity_val)
+292: "enterprise_value": ev,
+296: "equity_value": equity_val,
+345: assert "enterprise_value" in result
+349: assert "equity_value" in result
+
+### services\sotp_valuation_service.py
+12: def _safe_float(value):
+27: def _valid_positive(value):
+38: def _clean_symbol(symbol):
+64: "valuation_method": "EV/EBITDA",
+68: "valuation_method": "EV/EBITDA",
+72: "valuation_method": "EV/EBITDA",
+76: "valuation_method": "EV/EBITDA",
+80: "valuation_method": "STRATEGIC_VALUE",
+84: "valuation_method": "ASSET_VALUE",
+96: def get_sotp_configuration(symbol):
+118: "message": (f"SOTP valuation is disabled for {base_symbol}."),
+136: def _build_segment_template(segment_key, segment_config):
+138: Build an empty segment valuation record.
+140: Financial inputs and valuation multiples will be added
+153: "valuation_method": segment_config.get(
+154: "valuation_method",
+159: "valuation_multiple": None,
+160: "enterprise_value": None,
+161: "equity_value": None,
+173: def generate_sotp_valuation(symbol, company_data=None):
+175: Final Sum-of-the-Parts Valuation Engine V5.
+180: - expose operating segment valuations
+185: - expose pending valuation items
+186: - expose confidence and valuation status
+278: "valuation_multiple": (
+281: "enterprise_value": (
+282: _safe_float(operating_result.get("enterprise_value"))
+357: "operating_enterprise_value": (
+358: _safe_float(scenario.get("operating_enterprise_value"))
+360: "new_energy_enterprise_value": (
+361: _safe_float(scenario.get("new_energy_enterprise_value"))
+363: "gross_enterprise_value": (
+364: _safe_float(scenario.get("gross_enterprise_value"))
+369: "equity_value": (_safe_float(scenario.get("equity_value"))),
+383: base_gross_ev = _safe_float(base_case.get("gross_enterprise_value"))
+385: base_equity_value = _safe_float(base_case.get("equity_value"))
+433: "operating_enterprise_value": (
+434: _safe_float(bridge.get("operating_enterprise_value"))
+436: "gross_enterprise_value": (base_gross_ev),
+440: "equity_value": (base_equity_value),
+446: "valuation_status": bridge.get(
+447: "valuation_status",
+471: "valuation while Bear and Bull cases "
+
+### services\sotp_segment_valuation_service.py
+15: def _safe_float(value):
+30: def _clean_symbol(symbol):
+45: # SINGLE SEGMENT VALUATION
+49: def _value_operating_segment(
+93: "enterprise_value": None,
+110: "enterprise_value": None,
+112: "message": (f"{method} is not an operating " "EV/EBITDA valuation."),
+123: "enterprise_value": None,
+125: "message": ("EV/EBITDA valuation requires " "an EBITDA financial input."),
+140: "enterprise_value": None,
+149: enterprise_value = metric_value * multiple
+200: "enterprise_value": round(
+201: enterprise_value,
+216: def generate_operating_sotp_valuation(symbol):
+271: operating_enterprise_value = 0.0
+301: enterprise_value = _safe_float(result.get("enterprise_value"))
+305: if enterprise_value is None:
+308: operating_enterprise_value += enterprise_value
+312: if reliability is not None and enterprise_value > 0:
+313: reliability_numerator += enterprise_value * reliability
+315: reliability_denominator += enterprise_value
+355: "operating_enterprise_value": round(
+356: operating_enterprise_value,
+
+### services\sotp_equity_bridge_service.py
+12: from services.sotp_segment_valuation_service import (
+13: generate_operating_sotp_valuation,
+17: def _num(value: Any):
+33: def _round(value, digits=2):
+42: def _crore_to_rupees(value: float) -> float:
+46: def generate_sotp_equity_bridge(
+56: operating = generate_operating_sotp_valuation(symbol)
+63: "message": "Operating SOTP valuation unavailable.",
+67: operating_ev = _num(operating.get("operating_enterprise_value"))
+167: gross_enterprise_value = operating_ev + new_energy_ev
+169: equity_value = gross_enterprise_value + bridge_adjustment
+176: fair_value_per_share = _crore_to_rupees(equity_value) / shares
+187: "operating_enterprise_value": (_round(operating_ev)),
+188: "new_energy_enterprise_value": (_round(new_energy_ev)),
+189: "gross_enterprise_value": (_round(gross_enterprise_value)),
+191: "equity_value": (_round(equity_value)),
+218: # 7. VALUATION STATUS
+223: valuation_status = "NEW_ENERGY_SCENARIOS_UNAVAILABLE"
+227: valuation_status = "FINAL"
+231: valuation_status = "PROVISIONAL"
+243: if valuation_status != "FINAL":
+277: "operating_enterprise_value": (_round(operating_ev)),
+295: "valuation_status": (valuation_status),
+315: "A PROVISIONAL valuation must not be "
+
+### services\sotp\sotp_engine.py
+5: from core.enums import Status, ValuationMethod
+6: from core.exceptions import ValuationError
+11: class SegmentValuation:
+13: valuation_method: ValuationMethod
+20: class SOTPInput:
+23: segments: list[SegmentValuation]
+30: class SOTPResult:
+32: gross_enterprise_value: float
+33: gross_equity_value: float
+34: net_equity_value: float
+39: class SOTPAggregator:
+40: """Aggregates multi-segment valuations into a consolidated Target Price per Share."""
+43: def calculate(sotp_input: SOTPInput) -> SOTPResult:
+45: raise ValuationError(
+58: return SOTPResult(
+60: gross_enterprise_value=round(gross_ev, 2),
+61: gross_equity_value=round(gross_equity, 2),
+62: net_equity_value=round(net_equity, 2),
+
+### services\valuation\sotp_engine.py
+4: from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+6: class BaseValuationEngine:
+7: """Abstract base class for valuation engines."""
+8: def __init__(self) -> None:
+12: def valuation_method(self) -> str:
+15: def evaluate(self, data: Any) -> Any:
+18: def value(self, data: Any) -> Any:
+21: class SOTPValuationEngine(BaseValuationEngine):
+22: """Adapter for SOTP Valuation Engine conforming to BaseValuationEngine."""
+23: def __init__(self) -> None:
+27: def valuation_method(self) -> str:
+30: def evaluate(self, data: Any) -> ValuationResult:
+31: from sotp_long_term_equity_valuation_service import (
+32: SOTPLongTermValuationService,
+36: service = SOTPLongTermValuationService(company_name, shares)
+42: return ValuationResult(
+43: method=ValuationMethod.SOTP,
+44: enterprise_value=res.total_enterprise_value,
+45: equity_value=res.total_equity_value,
+47: status=ValuationStatus.SUCCESS,
+52: SOTPEngine = SOTPValuationEngine
+
+### services\valuation\sotp_adapter_fix.py
+7: def clean_legacy_sotp_payload(raw_segment: dict) -> dict:
+
+============================================================
+SOTP IMPORTS
+============================================================
+
+### services\sotp_long_term_equity_valuation_service.py
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Any
+from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+from services.sotp_long_term_equity_entity_data_service import (
+from services.sotp_long_term_equity_domain_constants import (
+
+### services\sotp_long_term_equity_sotp_service.py
+from typing import Any
+from services.sotp_clock import get_current_timestamp
+from services.sotp_long_term_equity_valuation_service import (
+from services.sotp_long_term_equity_domain_constants import (
+
+### services\sotp_valuation_service.py
+import math
+from services.sotp_equity_bridge_service import (
+
+### services\sotp_segment_valuation_service.py
+import math
+from services.sotp_benchmark_service import (
+from services.sotp_segment_data_service import (
+
+### services\sotp_equity_bridge_service.py
+from __future__ import annotations
+from typing import Any
+from services.research_service import get_stock_profile
+from services.sotp_adjustment_service import (
+from services.sotp_new_energy_scenario_policy_service import (
+from services.sotp_segment_valuation_service import (
+
+### services\sotp\sotp_engine.py
+from __future__ import annotations
+from dataclasses import dataclass
+from core.enums import Status, ValuationMethod
+from core.exceptions import ValuationError
+from core.logger import logger
+
+### services\valuation\sotp_engine.py
+from __future__ import annotations
+from typing import Any
+from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+from sotp_long_term_equity_valuation_service import (
+
+### services\valuation\sotp_adapter_fix.py
+
+============================================================
+FILE: services\sotp_long_term_equity_valuation_service.py
+============================================================
+LINES: 380
+SIZE: 13571
+
+   1: from __future__ import annotations
+   2: 
+   3: from dataclasses import dataclass, field
+   4: from typing import Any
+   5: 
+   6: from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+   7: 
+   8: 
+   9: @dataclass(frozen=True)
+  10: class SOTPSegmentResult:
+  11:     segment_name: str
+  12:     valuation_method: str  # e.g., "DCF", "EV/EBITDA", "Book Value"
+  13:     enterprise_value: float
+  14:     equity_value: float
+  15:     net_debt: float
+  16:     weight: float = 1.00
+  17:     notes: str = ""
+  18: 
+  19: 
+  20: @dataclass(frozen=True)
+  21: class SOTPValuationOutput:
+  22:     company_name: str
+  23:     segments: list[SOTPSegmentResult]
+  24:     total_enterprise_value: float
+  25:     total_equity_value: float
+  26:     implied_share_price: float
+  27:     shares_outstanding: float
+  28:     diagnostics: dict[str, Any] = field(default_factory=dict)
+  29: 
+  30: 
+  31: class SOTPLongTermValuationService:
+  32:     """Enterprise-grade Sum-of-the-Parts (SOTP) Valuation Service."""
+  33: 
+  34:     def __init__(self, company_name: str, shares_outstanding: float):
+  35:         self.company_name = company_name
+  36:         self.shares_outstanding = shares_outstanding
+  37: 
+  38:     def evaluate_dcf_segment(self, segment_params: dict[str, Any]) -> SOTPSegmentResult:
+  39:         """
+  40:         Translate legacy SOTP segment parameters into the modern DCFInput contract.
+  41: 
+  42:         Compatibility is intentionally preserved:
+  43:         - Modern keys take precedence.
+  44:         - Legacy EBIT / working-capital keys remain accepted.
+  45:         - Legacy net_debt remains accepted.
+  46:         - Explicit total_debt / cash_and_equivalents take precedence
+  47:           over net_debt when supplied.
+  48:         """
+  49: 
+  50:         # -------------------------------------------------------------
+  51:         # LEGACY -> MODERN OPERATING DRIVER BRIDGE
+  52:         # -------------------------------------------------------------
+  53:         ebit_margin_forecast = segment_params.get(
+  54:             "ebit_margin_forecast",
+  55:             segment_params.get(
+  56:                 "ebit_margins",
+  57:                 [0.20, 0.20, 0.22, 0.22, 0.25],
+  58:             ),
+  59:         )
+  60: 
+  61:         nwc_pct_rev = segment_params.get(
+  62:             "nwc_pct_rev",
+  63:             segment_params.get(
+  64:                 "working_capital_ratios",
+  65:                 [0.02] * 5,
+  66:             ),
+  67:         )
+  68: 
+  69:         capex_pct_rev = segment_params.get(
+  70:             "capex_pct_rev",
+  71:             [0.05] * 5,
+  72:         )
+  73: 
+  74:         dna_pct_rev = segment_params.get(
+  75:             "dna_pct_rev",
+  76:             [0.03] * 5,
+  77:         )
+  78: 
+  79:         # -------------------------------------------------------------
+  80:         # DEBT / CASH BRIDGE
+  81:         # -------------------------------------------------------------
+  82:         if (
+  83:             "total_debt" in segment_params
+  84:             or "cash_and_equivalents" in segment_params
+  85:         ):
+  86:             total_debt = segment_params.get("total_debt", 0.0)
+  87:             cash_and_equivalents = segment_params.get(
+  88:                 "cash_and_equivalents",
+  89:                 0.0,
+  90:             )
+  91:         else:
+  92:             net_debt = segment_params.get("net_debt", 0.0)
+  93: 
+  94:             total_debt = max(0.0, net_debt)
+  95:             cash_and_equivalents = max(0.0, -net_debt)
+  96: 
+  97:         # -------------------------------------------------------------
+  98:         # MODERN DCF INPUT
+  99:         # -------------------------------------------------------------
+ 100:         dcf_input = DCFInput(
+ 101:             company_name=segment_params.get(
+ 102:                 "segment_name",
+ 103:                 self.company_name,
+ 104:             ),
+ 105:             currency=segment_params.get(
+ 106:                 "currency",
+ 107:                 "INR",
+ 108:             ),
+ 109:             last_historical_revenue=segment_params.get(
+ 110:                 "last_historical_revenue",
+ 111:                 1000.0,
+ 112:             ),
+ 113:             revenue_growth_rates=segment_params.get(
+ 114:                 "revenue_growth_rates",
+ 115:                 [0.10, 0.10, 0.08, 0.08, 0.06],
+ 116:             ),
+ 117:             ebit_margin_forecast=ebit_margin_forecast,
+ 118:             capex_pct_rev=capex_pct_rev,
+ 119:             nwc_pct_rev=nwc_pct_rev,
+ 120:             dna_pct_rev=dna_pct_rev,
+ 121:             tax_rate=segment_params.get(
+ 122:                 "tax_rate",
+ 123:                 0.25,
+ 124:             ),
+ 125:             cost_of_equity=segment_params.get(
+ 126:                 "cost_of_equity",
+ 127:                 0.12,
+ 128:             ),
+ 129:             cost_of_debt_post_tax=segment_params.get(
+ 130:                 "cost_of_debt_post_tax",
+ 131:                 0.05,
+ 132:             ),
+ 133:             equity_weight=segment_params.get(
+ 134:                 "equity_weight",
+ 135:                 0.80,
+ 136:             ),
+ 137:             debt_weight=segment_params.get(
+ 138:                 "debt_weight",
+ 139:                 0.20,
+ 140:             ),
+ 141:             terminal_growth_rate=segment_params.get(
+ 142:                 "terminal_growth_rate",
+ 143:                 0.04,
+ 144:             ),
+ 145:             total_debt=total_debt,
+ 146:             cash_and_equivalents=cash_and_equivalents,
+ 147:             shares_outstanding=segment_params.get(
+ 148:                 "shares_outstanding",
+ 149:                 self.shares_outstanding,
+ 150:             ),
+ 151:         )
+ 152: 
+ 153:         # -------------------------------------------------------------
+ 154:         # VALIDATE BEFORE MODEL EXECUTION
+ 155:         # -------------------------------------------------------------
+ 156:         dcf_input.validate()
+ 157: 
+ 158:         # Modern DCF engine execution path.
+ 159:         dcf_model = DCFModel(dcf_input)
+ 160:         dcf_result: DCFResult = dcf_model.run_model()
+ 161: 
+ 162:         # -------------------------------------------------------------
+ 163:         # ENTERPRISE -> EQUITY BRIDGE
+ 164:         # -------------------------------------------------------------
+ 165:         ev = dcf_result.enterprise_value
+ 166:         net_debt = total_debt - cash_and_equivalents
+ 167:         equity_val = ev - net_debt
+ 168: 
+ 169:         return SOTPSegmentResult(
+ 170:             segment_name=segment_params.get(
+ 171:                 "segment_name",
+ 172:                 "Core Segment",
+ 173:             ),
+ 174:             valuation_method="DCF",
+ 175:             enterprise_value=ev,
+ 176:             equity_value=equity_val,
+ 177:             net_debt=net_debt,
+ 178:             weight=segment_params.get(
+ 179:                 "weight",
+ 180:                 1.0,
+ 181:             ),
+ 182:             notes="Evaluated via modern EROS DCF engine with legacy-to-modern bridge",
+ 183:         )
+ 184: 
+ 185:     def evaluate_sotp(
+ 186:         self,
+ 187:         dcf_segments_raw: list[dict[str, Any]],
+ 188:         other_segments_raw: list[dict[str, Any]] | None = None,
+ 189:         holdco_discount: float = 0.0,
+ 190:     ) -> SOTPValuationOutput:
+ 191:         segment_results: list[SOTPSegmentResult] = []
+ 192:         sum_enterprise_value = 0.0
+ 193:         sum_equity_value = 0.0
+ 194: 
+ 195:         for seg in dcf_segments_raw:
+ 196:             res = self.evaluate_dcf_segment(seg)
+ 197:             segment_results.append(res)
+ 198:             sum_enterprise_value += res.enterprise_value * res.weight
+ 199:             sum_equity_value += res.equity_value * res.weight
+ 200: 
+ 201:         if other_segments_raw:
+ 202:             for seg in other_segments_raw:
+ 203:                 ev = seg.get("enterprise_value", 0.0)
+ 204:                 nd = seg.get("net_debt", 0.0)
+ 205:                 eq = ev - nd
+ 206:                 wt = seg.get("weight", 1.0)
+ 207:                 res = SOTPSegmentResult(
+ 208:                     segment_name=seg.get("segment_name", "Other Segment"),
+ 209:                     valuation_method=seg.get("valuation_method", "Comparable / NAV"),
+ 210:                     enterprise_value=ev,
+ 211:                     equity_value=eq,
+ 212:                     net_debt=nd,
+ 213:                     weight=wt,
+ 214:                     notes=seg.get("notes", ""),
+ 215:                 )
+ 216:                 segment_results.append(res)
+ 217:                 sum_enterprise_value += ev * wt
+ 218:                 sum_equity_value += eq * wt
+ 219: 
+ 220:         if holdco_discount > 0.0:
+ 221:             sum_equity_value *= 1.0 - holdco_discount
+ 222: 
+ 223:         implied_price = (
+ 224:             sum_equity_value / self.shares_outstanding
+ 225:             if self.shares_outstanding > 0
+ 226:             else 0.0
+ 227:         )
+ 228: 
+ 229:         return SOTPValuationOutput(
+ 230:             company_name=self.company_name,
+ 231:             segments=segment_results,
+ 232:             total_enterprise_value=sum_enterprise_value,
+ 233:             total_equity_value=sum_equity_value,
+ 234:             implied_share_price=implied_price,
+ 235:             shares_outstanding=self.shares_outstanding,
+ 236:             diagnostics={
+ 237:                 "holdco_discount_applied": holdco_discount,
+ 238:                 "segment_count": len(segment_results),
+ 239:             },
+ 240:         )
+ 241: 
+ 242: # ==========================================================
+ 243: # COMPATIBILITY ADAPTER
+ 244: # Stage 14 -> Long-Term Equity Valuation Service
+ 245: # ==========================================================
+ 246: 
+ 247: def get_sotp_long_term_equity_valuation(
+ 248:     symbol: str,
+ 249: ) -> dict[str, Any]:
+ 250:     """
+ 251:     Stage 14 compatibility adapter.
+ 252: 
+ 253:     The authoritative Note 39 population is the structural source of
+ 254:     valuation records. Annexure A evidence is merged only when the
+ 255:     entity names reconcile. No entity is authorized for a separate
+ 256:     SOTP valuation by this adapter.
+ 257: 
+ 258:     This boundary deliberately prevents:
+ 259:     - Annexure A from replacing the 58-company population
+ 260:     - accounting carrying values from being treated as fair values
+ 261:     - unresolved entities from receiving fabricated valuations
+ 262:     - placeholder zeroes from being interpreted as completed models
+ 263:     """
+ 264: 
+ 265:     from services.sotp_long_term_equity_entity_data_service import (
+ 266:         get_sotp_long_term_equity_entity_data,
+ 267:     )
+ 268:     from services.sotp_long_term_equity_domain_constants import (
+ 269:         STATUS_OK,
+ 270:         STATUS_UNAVAILABLE,
+ 271:         STATUS_UNRESOLVED,
+ 272:         EXPECTED_ENTITY_COUNT,
+ 273:         VALUATION_METHOD_NONE,
+ 274:         VALUATION_STATUS_UNAUTHORIZED,
+ 275:     )
+ 276: 
+ 277:     evidence = get_sotp_long_term_equity_entity_data(symbol)
+ 278: 
+ 279:     if (
+ 280:         not isinstance(evidence, dict)
+ 281:         or evidence.get("status") != STATUS_OK
+ 282:     ):
+ 283:         return {
+ 284:             "status": STATUS_UNAVAILABLE,
+ 285:             "symbol": symbol,
+ 286:             "valuation_records": [],
+ 287:             "message": "Entity evidence service unavailable.",
+ 288:         }
+ 289: 
+ 290:     population = evidence.get("population", [])
+ 291:     annexure_entities = evidence.get("annexure_entities", [])
+ 292: 
+ 293:     if not isinstance(population, list) or len(population) != EXPECTED_ENTITY_COUNT:
+ 294:         return {
+ 295:             "status": STATUS_UNAVAILABLE,
+ 296:             "symbol": symbol,
+ 297:             "valuation_records": population if isinstance(population, list) else [],
+ 298:             "message": (
+ 299:                 f"Expected {EXPECTED_ENTITY_COUNT} authoritative Note 39 "
+ 300:                 f"records, found {len(population) if isinstance(population, list) else 0}."
+ 301:             ),
+ 302:         }
+ 303: 
+ 304:     # Evidence enrichment is name-based and never changes the authoritative
+ 305:     # population membership. The authoritative population remains the 58 rows.
+ 306:     annexure_by_name = {
+ 307:         str(entity.get("name", "")).strip().casefold(): entity
+ 308:         for entity in annexure_entities
+ 309:         if isinstance(entity, dict) and entity.get("name")
+ 310:     }
+ 311: 
+ 312:     records: list[dict[str, Any]] = []
+ 313: 
+ 314:     for entity in population:
+ 315:         record = dict(entity)
+ 316:         evidence_entity = annexure_by_name.get(
+ 317:             str(entity.get("name", "")).strip().casefold()
+ 318:         )
+ 319: 
+ 320:         if evidence_entity:
+ 321:             for key in (
+ 322:                 "reported_investment_value",
+ 323:                 "reported_amount_basis",
+ 324:                 "comparable_to_consolidated_carrying_value",
+ 325:                 "relationship",
+ 326:                 "classification",
+ 327:                 "operating_segment",
+ 328:                 "operating_overlap",
+ 329:                 "valuation_basis",
+ 330:                 "source",
+ 331:             ):
+ 332:                 if key in evidence_entity:
+ 333:                     record[key] = evidence_entity[key]
+ 334: 
+ 335:             record["entity_level_evidence_available"] = True
+ 336:         else:
+ 337:             record["entity_level_evidence_available"] = False
+ 338: 
+ 339:         # Explicit Stage 13C/13D gate state. These values are intentionally
+ 340:         # blocked until classification, operating-overlap, valuation basis,
+ 341:         # and authorization evidence are resolved upstream.
+ 342:         record.setdefault("classification", STATUS_UNRESOLVED)
+ 343:         record.setdefault("relationship", None)
+ 344:         record.setdefault("operating_segment", None)
+ 345:         record.setdefault("operating_overlap", None)
+ 346:         record.setdefault("valuation_basis", None)
+ 347: 
+ 348:         record["valuation_status"] = VALUATION_STATUS_UNAUTHORIZED
+ 349:         record["valuation_method"] = VALUATION_METHOD_NONE
+ 350:         record["authorization_reason"] = (
+
+============================================================
+FILE: services\sotp_long_term_equity_sotp_service.py
+============================================================
+LINES: 360
+SIZE: 11957
+
+   1: """
+   2: ==========================================================
+   3: SUM-OF-THE-PARTS (SOTP) AGGREGATION SERVICE
+   4: Stage   : 14 (SOTP Aggregation)
+   5: Version : V1.2 (Frozen Architecture)
+   6: ==========================================================
+   7: 
+   8: Purpose
+   9: -------
+  10: Aggregates individual entity valuation records into the consolidated
+  11: Sum-of-the-Parts (SOTP) Enterprise Value, Financial Adjustments,
+  12: Equity Value, Intrinsic Value, and Intrinsic Value Per Share.
+  13: 
+  14: Flow
+  15: ----
+  16: 58 Valuation Records (Validated Population)
+  17:         â”‚
+  18:         â–¼
+  19: Eligible Investments (separate_sotp_value_authorized == True)
+  20:         â”‚
+  21:         â–¼
+  22: Enterprise Value (Î£ EV)
+  23:         â”‚
+  24:         â–¼
+  25: Cash Adjustment (+ Î£ Cash)
+  26:         â”‚
+  27:         â–¼
+  28: Debt Adjustment (- Î£ Debt)
+  29:         â”‚
+  30:         â–¼
+  31: Minority Interest (- Î£ Minority Interest)
+  32:         â”‚
+  33:         â–¼
+  34: Equity Value
+  35:         â”‚
+  36:         â–¼
+  37: Intrinsic Value
+  38:         â”‚
+  39:         â–¼
+  40: Intrinsic Value / Share
+  41: """
+  42: 
+  43: from typing import Any
+  44: 
+  45: from services.sotp_clock import get_current_timestamp
+  46: from services.sotp_long_term_equity_valuation_service import (
+  47:     get_sotp_long_term_equity_valuation,
+  48: )
+  49: 
+  50: from services.sotp_long_term_equity_domain_constants import (
+  51:     DEFAULT_PARENT_SHARES_OUTSTANDING_MILLIONS,
+  52:     EXPECTED_ENTITY_COUNT,
+  53:     STATUS_OK,
+  54:     STATUS_UNAVAILABLE,
+  55: )
+  56: 
+  57: # ==========================================================
+  58: # 1. Single-Responsibility Helper Functions
+  59: # ==========================================================
+  60: 
+  61: 
+  62: def _get_authorized_entities(
+  63:     valuation_records: list[dict[str, Any]],
+  64: ) -> list[dict[str, Any]]:
+  65:     """Filters valuation records to only authorized SOTP components."""
+  66:     return [
+  67:         record
+  68:         for record in valuation_records
+  69:         if record.get("separate_sotp_value_authorized") is True
+  70:     ]
+  71: 
+  72: 
+  73: def _compute_enterprise_value(eligible_records: list[dict[str, Any]]) -> float:
+  74:     """Computes total Enterprise Value across eligible components (nulls treated as 0.0)."""
+  75:     return sum(
+  76:         float(record.get("enterprise_value") or 0.0) for record in eligible_records
+  77:     )
+  78: 
+  79: 
+  80: def _compute_total_cash(eligible_records: list[dict[str, Any]]) -> float:
+  81:     """Computes total standalone cash across eligible components."""
+  82:     return sum(float(record.get("cash") or 0.0) for record in eligible_records)
+  83: 
+  84: 
+  85: def _compute_total_net_debt(eligible_records: list[dict[str, Any]]) -> float:
+  86:     """Computes total net debt across eligible components."""
+  87:     return sum(float(record.get("net_debt") or 0.0) for record in eligible_records)
+  88: 
+  89: 
+  90: def _compute_minority_interest(eligible_records: list[dict[str, Any]]) -> float:
+  91:     """Computes total minority interest across eligible components."""
+  92:     return sum(
+  93:         float(record.get("minority_interest") or 0.0) for record in eligible_records
+  94:     )
+  95: 
+  96: 
+  97: def _compute_equity_value(
+  98:     enterprise_value: float,
+  99:     cash: float,
+ 100:     debt: float,
+ 101:     minority_interest: float,
+ 102: ) -> float:
+ 103:     """
+ 104:     Computes Equity Value using standard bridge equation:
+ 105:     Equity Value = Enterprise Value + Cash - Debt - Minority Interest
+ 106:     """
+ 107:     return enterprise_value + cash - debt - minority_interest
+ 108: 
+ 109: 
+ 110: def _compute_intrinsic_value(
+ 111:     equity_value: float, holding_discount_pct: float = 0.0
+ 112: ) -> float:
+ 113:     """
+ 114:     Computes Intrinsic Value from Equity Value.
+ 115:     Allows for future holding company / cross-holding adjustments.
+ 116:     """
+ 117:     return equity_value * (1.0 - holding_discount_pct)
+ 118: 
+ 119: 
+ 120: def _compute_value_per_share(
+ 121:     intrinsic_value: float,
+ 122:     shares_outstanding_millions: float = DEFAULT_PARENT_SHARES_OUTSTANDING_MILLIONS,
+ 123: ) -> float:
+ 124:     """Computes Intrinsic Value Per Share."""
+ 125:     if shares_outstanding_millions <= 0:
+ 126:         return 0.0
+ 127:     return intrinsic_value / shares_outstanding_millions
+ 128: 
+ 129: 
+ 130: def _generate_breakdown(eligible_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+ 131:     """
+ 132:     Generates a structured component breakdown for audit and research reporting.
+ 133:     Preserves framework/model completion status and normalizes missing numbers to 0.0.
+ 134:     """
+ 135:     breakdown = []
+ 136:     for record in eligible_records:
+ 137:         ev = float(record.get("enterprise_value") or 0.0)
+ 138:         eq = float(record.get("equity_value") or 0.0)
+ 139:         nd = float(record.get("net_debt") or 0.0)
+ 140:         mi = float(record.get("minority_interest") or 0.0)
+ 141:         contrib = ev if ev != 0.0 else eq
+ 142: 
+ 143:         breakdown.append(
+ 144:             {
+ 145:                 "entity": record.get("name", "UNKNOWN"),
+ 146:                 "classification": record.get("classification"),
+ 147:                 "method": record.get("valuation_method"),
+ 148:                 "status": record.get("valuation_status"),
+ 149:                 "framework_complete": record.get("framework_complete", True),
+ 150:                 "model_complete": record.get("model_complete", False),
+ 151:                 "enterprise_value": ev,
+ 152:                 "equity_value": eq,
+ 153:                 "net_debt": nd,
+ 154:                 "minority_interest": mi,
+ 155:                 "value_contribution": contrib,
+ 156:             }
+ 157:         )
+ 158:     return breakdown
+ 159: 
+ 160: 
+ 161: def _validate_sotp(payload: dict[str, Any]) -> bool:
+ 162:     """Validates SOTP summary keys, numeric types, and structural relationships."""
+ 163:     required_keys = [
+ 164:         "enterprise_value",
+ 165:         "cash",
+ 166:         "debt",
+ 167:         "minority_interest",
+ 168:         "equity_value",
+ 169:         "intrinsic_value",
+ 170:         "intrinsic_value_per_share",
+ 171:         "component_count",
+ 172:         "total_records_processed",
+ 173:         "component_breakdown",
+ 174:     ]
+ 175:     for key in required_keys:
+ 176:         if key not in payload:
+ 177:             return False
+ 178: 
+ 179:     # Structural numeric type checks
+ 180:     for field in (
+ 181:         "enterprise_value",
+ 182:         "equity_value",
+ 183:         "intrinsic_value",
+ 184:         "intrinsic_value_per_share",
+ 185:     ):
+ 186:         if not isinstance(payload.get(field), (int, float)):
+ 187:             return False
+ 188: 
+ 189:     # Stronger population and boundary checks
+ 190:     comp_count = payload["component_count"]
+ 191:     total_processed = payload["total_records_processed"]
+ 192:     breakdown = payload["component_breakdown"]
+ 193: 
+ 194:     if comp_count > total_processed:
+ 195:         return False
+ 196:     if len(breakdown) != comp_count:
+ 197:         return False
+ 198: 
+ 199:     return True
+ 200: 
+ 201: 
+ 202: def audit_sotp(
+ 203:     eligible_count: int,
+ 204:     ev: float,
+ 205:     equity_val: float,
+ 206:     intrinsic_val: float,
+ 207:     error_count: int,
+ 208: ) -> None:
+ 209:     """Prints standard SOTP Audit summary."""
+ 210:     print("\n==========================================================")
+ 211:     print("SOTP Audit")
+ 212:     print("==========================================================")
+ 213:     print(f"Eligible Components : {eligible_count}")
+ 214:     print(f"Enterprise Value    : ${ev:,.2f} M")
+ 215:     print(f"Equity Value        : ${equity_val:,.2f} M")
+ 216:     print(f"Intrinsic Value     : ${intrinsic_val:,.2f} M")
+ 217:     print(f"Errors              : {error_count}")
+ 218:     print("==========================================================\n")
+ 219: 
+ 220: 
+ 221: # ==========================================================
+ 222: # 2. Main Service Function
+ 223: # ==========================================================
+ 224: 
+ 225: 
+ 226: def get_sotp_long_term_equity_sotp_service(
+ 227:     symbol: str,
+ 228:     shares_outstanding_millions: float = DEFAULT_PARENT_SHARES_OUTSTANDING_MILLIONS,
+ 229: ) -> dict[str, Any]:
+ 230:     """
+ 231:     Main SOTP Aggregation Routine.
+ 232:     Consumes ONLY get_sotp_long_term_equity_valuation(symbol).
+ 233:     """
+ 234:     # 1. Fetch and guard upstream Valuation Service status
+ 235:     valuation_payload = get_sotp_long_term_equity_valuation(symbol)
+ 236:     if (
+ 237:         not isinstance(valuation_payload, dict)
+ 238:         or valuation_payload.get("status") != STATUS_OK
+ 239:     ):
+ 240:         return {
+ 241:             "status": STATUS_UNAVAILABLE,
+ 242:             "symbol": symbol,
+ 243:             "message": "Valuation service unavailable or returned non-OK status.",
+ 244:             "aggregation_complete": False,
+ 245:         }
+ 246: 
+ 247:     all_records = valuation_payload["valuation_records"]
+ 248: 
+ 249:     # 2. Validate expected entity population
+ 250:     if len(all_records) != EXPECTED_ENTITY_COUNT:
+ 251:         raise RuntimeError(
+ 252:             f"Expected {EXPECTED_ENTITY_COUNT} valuation records, "
+ 253:             f"found {len(all_records)}."
+ 254:         )
+ 255: 
+ 256:     # 3. Filter authorized components
+ 257:     eligible_records = _get_authorized_entities(all_records)
+ 258:     eligible_count = len(eligible_records)
+ 259: 
+ 260:     # 4. Perform financial aggregations & adjustments
+ 261:     ev = _compute_enterprise_value(eligible_records)
+ 262:     cash = _compute_total_cash(eligible_records)
+ 263:     debt = _compute_total_net_debt(eligible_records)
+ 264:     mi = _compute_minority_interest(eligible_records)
+ 265: 
+ 266:     equity_val = _compute_equity_value(
+ 267:         enterprise_value=ev,
+ 268:         cash=cash,
+ 269:         debt=debt,
+ 270:         minority_interest=mi,
+ 271:     )
+ 272: 
+ 273:     intrinsic_val = _compute_intrinsic_value(equity_value=equity_val)
+ 274:     per_share_val = _compute_value_per_share(
+ 275:         intrinsic_value=intrinsic_val,
+ 276:         shares_outstanding_millions=shares_outstanding_millions,
+ 277:     )
+ 278: 
+ 279:     # 5. Generate component breakdown
+ 280:     breakdown = _generate_breakdown(eligible_records)
+ 281: 
+ 282:     # 6. Build output payload structure
+ 283:     timestamp = get_current_timestamp()
+ 284:     validation_error_count = 0
+ 285: 
+ 286:     sotp_payload = {
+ 287:         "status": STATUS_OK,
+ 288:         "symbol": symbol,
+ 289:         "timestamp": timestamp,
+ 290:         "component_count": eligible_count,
+ 291:         "total_records_processed": len(all_records),
+ 292:         "enterprise_value": ev,
+ 293:         "cash": cash,
+ 294:         "debt": debt,
+ 295:         "minority_interest": mi,
+ 296:         "equity_value": equity_val,
+ 297:         "intrinsic_value": intrinsic_val,
+ 298:         "intrinsic_value_per_share": per_share_val,
+ 299:         "shares_outstanding_millions": shares_outstanding_millions,
+ 300:         "component_breakdown": breakdown,
+ 301:         "validation_error_count": validation_error_count,
+ 302:         "aggregation_complete": True,
+ 303:     }
+ 304: 
+ 305:     # 7. Validate summary integrity
+ 306:     if not _validate_sotp(sotp_payload):
+ 307:         validation_error_count += 1
+ 308:         sotp_payload["validation_error_count"] = validation_error_count
+ 309:         sotp_payload["aggregation_complete"] = False
+ 310: 
+ 311:     # 8. Print Audit Output
+ 312:     audit_sotp(
+ 313:         eligible_count=eligible_count,
+ 314:         ev=ev,
+ 315:         equity_val=equity_val,
+ 316:         intrinsic_val=intrinsic_val,
+ 317:         error_count=validation_error_count,
+ 318:     )
+ 319: 
+ 320:     return sotp_payload
+ 321: 
+ 322: 
+ 323: # ==========================================================
+ 324: # 3. Self-Test Routine
+ 325: # ==========================================================
+ 326: 
+ 327: if __name__ == "__main__":
+ 328:     result = get_sotp_long_term_equity_sotp_service("RELIANCE")
+ 329: 
+ 330:     # Required Self-Test Assertions
+ 331:     assert (
+ 332:         result["status"] == STATUS_OK
+ 333:     ), f"Expected {STATUS_OK}, got {result['status']}"
+ 334:     assert (
+ 335:         result["aggregation_complete"] is True
+ 336:     ), "Aggregation stage not marked complete"
+ 337:     assert (
+ 338:         result["validation_error_count"] == 0
+ 339:     ), f"Expected 0 errors, got {result['validation_error_count']}"
+ 340:     assert (
+ 341:         result["total_records_processed"] == EXPECTED_ENTITY_COUNT
+ 342:     ), f"Expected {EXPECTED_ENTITY_COUNT} total records, got {result['total_records_processed']}"
+ 343: 
+ 344:     # Output Schema Verification
+ 345:     assert "enterprise_value" in result
+ 346:     assert "cash" in result
+ 347:     assert "debt" in result
+ 348:     assert "minority_interest" in result
+ 349:     assert "equity_value" in result
+ 350:     assert "intrinsic_value" in result
+
+============================================================
+FILE: services\sotp_valuation_service.py
+============================================================
+LINES: 479
+SIZE: 14345
+
+   1: import math
+   2: 
+   3: from services.sotp_equity_bridge_service import (
+   4:     generate_sotp_equity_bridge,
+   5: )
+   6: 
+   7: # ==========================================================
+   8: # HELPERS
+   9: # ==========================================================
+  10: 
+  11: 
+  12: def _safe_float(value):
+  13:     """Convert a value to a finite float or return None."""
+  14: 
+  15:     try:
+  16:         value = float(value)
+  17: 
+  18:         if math.isnan(value) or math.isinf(value):
+  19:             return None
+  20: 
+  21:         return value
+  22: 
+  23:     except (TypeError, ValueError):
+  24:         return None
+  25: 
+  26: 
+  27: def _valid_positive(value):
+  28:     """Return positive finite float or None."""
+  29: 
+  30:     value = _safe_float(value)
+  31: 
+  32:     if value is None or value <= 0:
+  33:         return None
+  34: 
+  35:     return value
+  36: 
+  37: 
+  38: def _clean_symbol(symbol):
+  39:     """Normalize NSE symbol."""
+  40: 
+  41:     if not symbol:
+  42:         return ""
+  43: 
+  44:     symbol = str(symbol).strip().upper()
+  45: 
+  46:     if symbol.endswith(".NS"):
+  47:         symbol = symbol[:-3]
+  48: 
+  49:     return symbol
+  50: 
+  51: 
+  52: # ==========================================================
+  53: # SOTP COMPANY CONFIGURATION
+  54: # ==========================================================
+  55: 
+  56: SOTP_CONFIG = {
+  57:     "RELIANCE": {
+  58:         "company": "Reliance Industries Limited",
+  59:         "enabled": True,
+  60:         "profile": "HIGHLY DIVERSIFIED",
+  61:         "segments": {
+  62:             "o2c": {
+  63:                 "name": "Oil-to-Chemicals",
+  64:                 "valuation_method": "EV/EBITDA",
+  65:             },
+  66:             "digital": {
+  67:                 "name": "Digital Services / Jio",
+  68:                 "valuation_method": "EV/EBITDA",
+  69:             },
+  70:             "retail": {
+  71:                 "name": "Retail",
+  72:                 "valuation_method": "EV/EBITDA",
+  73:             },
+  74:             "upstream": {
+  75:                 "name": "Oil & Gas Exploration and Production",
+  76:                 "valuation_method": "EV/EBITDA",
+  77:             },
+  78:             "new_energy": {
+  79:                 "name": "New Energy",
+  80:                 "valuation_method": "STRATEGIC_VALUE",
+  81:             },
+  82:             "other": {
+  83:                 "name": "Other Businesses and Investments",
+  84:                 "valuation_method": "ASSET_VALUE",
+  85:             },
+  86:         },
+  87:     },
+  88: }
+  89: 
+  90: 
+  91: # ==========================================================
+  92: # CONFIGURATION
+  93: # ==========================================================
+  94: 
+  95: 
+  96: def get_sotp_configuration(symbol):
+  97:     """
+  98:     Return SOTP configuration for a company.
+  99:     """
+ 100: 
+ 101:     base_symbol = _clean_symbol(symbol)
+ 102: 
+ 103:     config = SOTP_CONFIG.get(base_symbol)
+ 104: 
+ 105:     if not isinstance(config, dict):
+ 106:         return {
+ 107:             "status": "UNAVAILABLE",
+ 108:             "symbol": base_symbol,
+ 109:             "eligible": False,
+ 110:             "message": ("No SOTP configuration is available for " f"{base_symbol}."),
+ 111:         }
+ 112: 
+ 113:     if not config.get("enabled", False):
+ 114:         return {
+ 115:             "status": "UNAVAILABLE",
+ 116:             "symbol": base_symbol,
+ 117:             "eligible": False,
+ 118:             "message": (f"SOTP valuation is disabled for {base_symbol}."),
+ 119:         }
+ 120: 
+ 121:     return {
+ 122:         "status": "OK",
+ 123:         "symbol": base_symbol,
+ 124:         "eligible": True,
+ 125:         "company": config.get("company", base_symbol),
+ 126:         "profile": config.get("profile", "DIVERSIFIED"),
+ 127:         "segments": config.get("segments", {}),
+ 128:     }
+ 129: 
+ 130: 
+ 131: # ==========================================================
+ 132: # SEGMENT TEMPLATE
+ 133: # ==========================================================
+ 134: 
+ 135: 
+ 136: def _build_segment_template(segment_key, segment_config):
+ 137:     """
+ 138:     Build an empty segment valuation record.
+ 139: 
+ 140:     Financial inputs and valuation multiples will be added
+ 141:     in later V5 stages.
+ 142:     """
+ 143: 
+ 144:     if not isinstance(segment_config, dict):
+ 145:         segment_config = {}
+ 146: 
+ 147:     return {
+ 148:         "segment_key": segment_key,
+ 149:         "name": segment_config.get(
+ 150:             "name",
+ 151:             segment_key,
+ 152:         ),
+ 153:         "valuation_method": segment_config.get(
+ 154:             "valuation_method",
+ 155:             "UNKNOWN",
+ 156:         ),
+ 157:         "financial_metric": None,
+ 158:         "financial_metric_name": None,
+ 159:         "valuation_multiple": None,
+ 160:         "enterprise_value": None,
+ 161:         "equity_value": None,
+ 162:         "reliability": None,
+ 163:         "source": None,
+ 164:         "status": "PENDING",
+ 165:     }
+ 166: 
+ 167: 
+ 168: # ==========================================================
+ 169: # SOTP ENGINE V5
+ 170: # ==========================================================
+ 171: 
+ 172: 
+ 173: def generate_sotp_valuation(symbol, company_data=None):
+ 174:     """
+ 175:     Final Sum-of-the-Parts Valuation Engine V5.
+ 176: 
+ 177:     Responsibilities:
+ 178:         - validate SOTP eligibility
+ 179:         - consume the V5 scenario equity bridge
+ 180:         - expose operating segment valuations
+ 181:         - expose New Energy Bear/Base/Bull scenarios
+ 182:         - expose authorized equity-bridge adjustments
+ 183:         - calculate scenario equity values
+ 184:         - calculate scenario fair values per share
+ 185:         - expose pending valuation items
+ 186:         - expose confidence and valuation status
+ 187: 
+ 188:     This service does not independently recalculate
+ 189:     segment EV, New Energy value, or bridge adjustments.
+ 190:     Those calculations remain owned by their respective
+ 191:     lower-level V5 services.
+ 192:     """
+ 193: 
+ 194:     base_symbol = _clean_symbol(symbol)
+ 195: 
+ 196:     # ======================================================
+ 197:     # 1. CONFIGURATION / ELIGIBILITY
+ 198:     # ======================================================
+ 199: 
+ 200:     configuration = get_sotp_configuration(base_symbol)
+ 201: 
+ 202:     if configuration.get("status") != "OK":
+ 203:         return configuration
+ 204: 
+ 205:     # ======================================================
+ 206:     # 2. FINAL V5 EQUITY BRIDGE
+ 207:     # ======================================================
+ 208: 
+ 209:     bridge = generate_sotp_equity_bridge(base_symbol)
+ 210: 
+ 211:     if not isinstance(bridge, dict) or bridge.get("status") != "OK":
+ 212:         return {
+ 213:             "status": "ERROR",
+ 214:             "version": "V5.0",
+ 215:             "symbol": base_symbol,
+ 216:             "company": configuration.get(
+ 217:                 "company",
+ 218:                 base_symbol,
+ 219:             ),
+ 220:             "eligible": True,
+ 221:             "message": "V5 SOTP equity bridge is unavailable.",
+ 222:             "bridge": bridge,
+ 223:         }
+ 224: 
+ 225:     # ======================================================
+ 226:     # 3. COMPONENTS
+ 227:     # ======================================================
+ 228: 
+ 229:     components = bridge.get("components", {})
+ 230: 
+ 231:     if not isinstance(components, dict):
+ 232:         components = {}
+ 233: 
+ 234:     operating = components.get("operating", {})
+ 235: 
+ 236:     if not isinstance(operating, dict):
+ 237:         operating = {}
+ 238: 
+ 239:     operating_segments = operating.get(
+ 240:         "segments",
+ 241:         {},
+ 242:     )
+ 243: 
+ 244:     if not isinstance(operating_segments, dict):
+ 245:         operating_segments = {}
+ 246: 
+ 247:     # ======================================================
+ 248:     # 4. BUILD FINAL SEGMENT VIEW
+ 249:     # ======================================================
+ 250: 
+ 251:     segments_config = configuration.get(
+ 252:         "segments",
+ 253:         {},
+ 254:     )
+ 255: 
+ 256:     if not isinstance(segments_config, dict):
+ 257:         segments_config = {}
+ 258: 
+ 259:     segments = {}
+ 260: 
+ 261:     for segment_key, segment_config in segments_config.items():
+ 262: 
+ 263:         template = _build_segment_template(
+ 264:             segment_key,
+ 265:             segment_config,
+ 266:         )
+ 267: 
+ 268:         operating_result = operating_segments.get(segment_key)
+ 269: 
+ 270:         if isinstance(operating_result, dict):
+ 271: 
+ 272:             template.update(
+ 273:                 {
+ 274:                     "financial_metric": (
+ 275:                         _safe_float(operating_result.get("metric_value"))
+ 276:                     ),
+ 277:                     "financial_metric_name": (operating_result.get("metric_name")),
+ 278:                     "valuation_multiple": (
+ 279:                         _safe_float(operating_result.get("benchmark_multiple"))
+ 280:                     ),
+ 281:                     "enterprise_value": (
+ 282:                         _safe_float(operating_result.get("enterprise_value"))
+ 283:                     ),
+ 284:                     "reliability": (_safe_float(operating_result.get("reliability"))),
+ 285:                     "source": (operating_result.get("financial_source")),
+ 286:                     "benchmark_source": (operating_result.get("benchmark_source")),
+ 287:                     "status": (
+ 288:                         operating_result.get(
+ 289:                             "status",
+ 290:                             "PENDING",
+ 291:                         )
+ 292:                     ),
+ 293:                 }
+ 294:             )
+ 295: 
+ 296:         elif segment_key == "new_energy":
+ 297: 
+ 298:             new_energy = bridge.get(
+ 299:                 "new_energy",
+ 300:                 {},
+ 301:             )
+ 302: 
+ 303:             template.update(
+ 304:                 {
+ 305:                     "status": (
+ 306:                         "SCENARIO_VALUED"
+ 307:                         if new_energy.get("scenario_range_authorized")
+ 308:                         else "PENDING"
+ 309:                     ),
+ 310:                     "scenario_values": (
+ 311:                         new_energy.get(
+ 312:                             "scenario_values",
+ 313:                             {},
+ 314:                         )
+ 315:                     ),
+ 316:                     "source": ("V5 New Energy scenario policy"),
+ 317:                 }
+ 318:             )
+ 319: 
+ 320:         elif segment_key == "other":
+ 321: 
+ 322:             template.update(
+ 323:                 {
+ 324:                     "status": "PENDING_POLICY",
+ 325:                     "source": ("V5 investment and asset " "classification services"),
+ 326:                 }
+ 327:             )
+ 328: 
+ 329:         segments[segment_key] = template
+ 330: 
+ 331:     # ======================================================
+ 332:     # 5. SCENARIO OUTPUT
+ 333:     # ======================================================
+ 334: 
+ 335:     raw_scenarios = bridge.get(
+ 336:         "scenarios",
+ 337:         {},
+ 338:     )
+ 339: 
+ 340:     if not isinstance(raw_scenarios, dict):
+ 341:         raw_scenarios = {}
+ 342: 
+ 343:     scenarios = {}
+ 344: 
+ 345:     for scenario_name in (
+ 346:         "BEAR",
+ 347:         "BASE",
+ 348:         "BULL",
+ 349:     ):
+ 350: 
+
+============================================================
+FILE: services\sotp_segment_valuation_service.py
+============================================================
+LINES: 364
+SIZE: 9934
+
+   1: import math
+   2: 
+   3: from services.sotp_benchmark_service import (
+   4:     generate_validated_sotp_benchmarks,
+   5: )
+   6: from services.sotp_segment_data_service import (
+   7:     get_sotp_segment_data,
+   8: )
+   9: 
+  10: # ==========================================================
+  11: # HELPERS
+  12: # ==========================================================
+  13: 
+  14: 
+  15: def _safe_float(value):
+  16:     """Convert value to finite float or return None."""
+  17: 
+  18:     try:
+  19:         value = float(value)
+  20: 
+  21:         if math.isnan(value) or math.isinf(value):
+  22:             return None
+  23: 
+  24:         return value
+  25: 
+  26:     except (TypeError, ValueError):
+  27:         return None
+  28: 
+  29: 
+  30: def _clean_symbol(symbol):
+  31:     """Normalize NSE symbol."""
+  32: 
+  33:     if not symbol:
+  34:         return ""
+  35: 
+  36:     symbol = str(symbol).strip().upper()
+  37: 
+  38:     if symbol.endswith(".NS"):
+  39:         symbol = symbol[:-3]
+  40: 
+  41:     return symbol
+  42: 
+  43: 
+  44: # ==========================================================
+  45: # SINGLE SEGMENT VALUATION
+  46: # ==========================================================
+  47: 
+  48: 
+  49: def _value_operating_segment(
+  50:     segment_key,
+  51:     financial_block,
+  52:     benchmark_block,
+  53: ):
+  54:     """
+  55:     Value one operating segment using:
+  56: 
+  57:         EBITDA Ã— EV/EBITDA
+  58: 
+  59:     Monetary values remain in the same unit as the
+  60:     segment financial input, currently INR crore.
+  61:     """
+  62: 
+  63:     if not isinstance(financial_block, dict):
+  64:         financial_block = {}
+  65: 
+  66:     if not isinstance(benchmark_block, dict):
+  67:         benchmark_block = {}
+  68: 
+  69:     metric_name = financial_block.get("metric_name")
+  70: 
+  71:     metric_value = _safe_float(financial_block.get("value"))
+  72: 
+  73:     data_reliability = _safe_float(financial_block.get("reliability"))
+  74: 
+  75:     method = benchmark_block.get("method")
+  76: 
+  77:     multiple = _safe_float(benchmark_block.get("benchmark_multiple"))
+  78: 
+  79:     benchmark_reliability = _safe_float(benchmark_block.get("reliability"))
+  80: 
+  81:     # ------------------------------------------------------
+  82:     # FINANCIAL DATA CHECK
+  83:     # ------------------------------------------------------
+  84: 
+  85:     if metric_value is None:
+  86:         return {
+  87:             "status": "PENDING",
+  88:             "segment": segment_key,
+  89:             "method": method,
+  90:             "metric_name": metric_name,
+  91:             "metric_value": None,
+  92:             "benchmark_multiple": multiple,
+  93:             "enterprise_value": None,
+  94:             "reliability": None,
+  95:             "message": "Segment financial input is unavailable.",
+  96:         }
+  97: 
+  98:     # ------------------------------------------------------
+  99:     # METHOD CHECK
+ 100:     # ------------------------------------------------------
+ 101: 
+ 102:     if method != "EV/EBITDA":
+ 103:         return {
+ 104:             "status": "PENDING",
+ 105:             "segment": segment_key,
+ 106:             "method": method,
+ 107:             "metric_name": metric_name,
+ 108:             "metric_value": metric_value,
+ 109:             "benchmark_multiple": multiple,
+ 110:             "enterprise_value": None,
+ 111:             "reliability": None,
+ 112:             "message": (f"{method} is not an operating " "EV/EBITDA valuation."),
+ 113:         }
+ 114: 
+ 115:     if metric_name != "EBITDA":
+ 116:         return {
+ 117:             "status": "UNAVAILABLE",
+ 118:             "segment": segment_key,
+ 119:             "method": method,
+ 120:             "metric_name": metric_name,
+ 121:             "metric_value": metric_value,
+ 122:             "benchmark_multiple": multiple,
+ 123:             "enterprise_value": None,
+ 124:             "reliability": 0.0,
+ 125:             "message": ("EV/EBITDA valuation requires " "an EBITDA financial input."),
+ 126:         }
+ 127: 
+ 128:     # ------------------------------------------------------
+ 129:     # BENCHMARK CHECK
+ 130:     # ------------------------------------------------------
+ 131: 
+ 132:     if benchmark_block.get("status") != "OK" or multiple is None or multiple <= 0:
+ 133:         return {
+ 134:             "status": "UNAVAILABLE",
+ 135:             "segment": segment_key,
+ 136:             "method": method,
+ 137:             "metric_name": metric_name,
+ 138:             "metric_value": metric_value,
+ 139:             "benchmark_multiple": multiple,
+ 140:             "enterprise_value": None,
+ 141:             "reliability": 0.0,
+ 142:             "message": ("Valid segment benchmark is unavailable."),
+ 143:         }
+ 144: 
+ 145:     # ------------------------------------------------------
+ 146:     # ENTERPRISE VALUE
+ 147:     # ------------------------------------------------------
+ 148: 
+ 149:     enterprise_value = metric_value * multiple
+ 150: 
+ 151:     # ------------------------------------------------------
+ 152:     # COMBINED RELIABILITY
+ 153:     # ------------------------------------------------------
+ 154: 
+ 155:     if data_reliability is None:
+ 156:         data_reliability = 0.0
+ 157: 
+ 158:     if benchmark_reliability is None:
+ 159:         benchmark_reliability = 0.0
+ 160: 
+ 161:     data_reliability = max(
+ 162:         0.0,
+ 163:         min(1.0, data_reliability),
+ 164:     )
+ 165: 
+ 166:     benchmark_reliability = max(
+ 167:         0.0,
+ 168:         min(1.0, benchmark_reliability),
+ 169:     )
+ 170: 
+ 171:     # Conservative combination:
+ 172:     # weak benchmark quality should not be hidden by
+ 173:     # excellent reported financial data.
+ 174:     combined_reliability = math.sqrt(data_reliability * benchmark_reliability)
+ 175: 
+ 176:     return {
+ 177:         "status": "OK",
+ 178:         "segment": segment_key,
+ 179:         "method": method,
+ 180:         "metric_name": metric_name,
+ 181:         "metric_value": round(
+ 182:             metric_value,
+ 183:             2,
+ 184:         ),
+ 185:         "financial_source": financial_block.get("source"),
+ 186:         "data_reliability": round(
+ 187:             data_reliability,
+ 188:             4,
+ 189:         ),
+ 190:         "raw_benchmark_multiple": benchmark_block.get("raw_benchmark_multiple"),
+ 191:         "benchmark_multiple": round(
+ 192:             multiple,
+ 193:             4,
+ 194:         ),
+ 195:         "benchmark_source": benchmark_block.get("source"),
+ 196:         "benchmark_reliability": round(
+ 197:             benchmark_reliability,
+ 198:             4,
+ 199:         ),
+ 200:         "enterprise_value": round(
+ 201:             enterprise_value,
+ 202:             2,
+ 203:         ),
+ 204:         "reliability": round(
+ 205:             combined_reliability,
+ 206:             4,
+ 207:         ),
+ 208:     }
+ 209: 
+ 210: 
+ 211: # ==========================================================
+ 212: # OPERATING SOTP ENGINE
+ 213: # ==========================================================
+ 214: 
+ 215: 
+ 216: def generate_operating_sotp_valuation(symbol):
+ 217:     """
+ 218:     Calculate SOTP enterprise values for operating segments.
+ 219: 
+ 220:     This stage does NOT calculate:
+ 221:         - New Energy value
+ 222:         - Other investments
+ 223:         - net debt
+ 224:         - equity value
+ 225:         - fair value per share
+ 226:     """
+ 227: 
+ 228:     base_symbol = _clean_symbol(symbol)
+ 229: 
+ 230:     financial_data = get_sotp_segment_data(base_symbol)
+ 231: 
+ 232:     if financial_data.get("status") != "OK":
+ 233:         return financial_data
+ 234: 
+ 235:     benchmark_data = generate_validated_sotp_benchmarks(base_symbol)
+ 236: 
+ 237:     if benchmark_data.get("status") != "OK":
+ 238:         return benchmark_data
+ 239: 
+ 240:     financial_segments = financial_data.get(
+ 241:         "segments",
+ 242:         {},
+ 243:     )
+ 244: 
+ 245:     benchmark_segments = benchmark_data.get(
+ 246:         "segments",
+ 247:         {},
+ 248:     )
+ 249: 
+ 250:     if not isinstance(financial_segments, dict):
+ 251:         financial_segments = {}
+ 252: 
+ 253:     if not isinstance(benchmark_segments, dict):
+ 254:         benchmark_segments = {}
+ 255: 
+ 256:     # Only true operating businesses belong in the
+ 257:     # EBITDA/multiple-based operating SOTP engine.
+ 258:     #
+ 259:     # New Energy is handled separately by the scenario engine.
+ 260:     # Other businesses/investments are handled separately by
+ 261:     # the investment / asset policy and equity bridge.
+ 262:     segment_keys = [
+ 263:         "o2c",
+ 264:         "digital",
+ 265:         "retail",
+ 266:         "upstream",
+ 267:     ]
+ 268: 
+ 269:     results = {}
+ 270: 
+ 271:     operating_enterprise_value = 0.0
+ 272: 
+ 273:     valued_count = 0
+ 274: 
+ 275:     reliability_numerator = 0.0
+ 276:     reliability_denominator = 0.0
+ 277: 
+ 278:     for segment_key in segment_keys:
+ 279: 
+ 280:         financial_block = financial_segments.get(
+ 281:             segment_key,
+ 282:             {},
+ 283:         )
+ 284: 
+ 285:         benchmark_block = benchmark_segments.get(
+ 286:             segment_key,
+ 287:             {},
+ 288:         )
+ 289: 
+ 290:         result = _value_operating_segment(
+ 291:             segment_key=segment_key,
+ 292:             financial_block=financial_block,
+ 293:             benchmark_block=benchmark_block,
+ 294:         )
+ 295: 
+ 296:         results[segment_key] = result
+ 297: 
+ 298:         if result.get("status") != "OK":
+ 299:             continue
+ 300: 
+ 301:         enterprise_value = _safe_float(result.get("enterprise_value"))
+ 302: 
+ 303:         reliability = _safe_float(result.get("reliability"))
+ 304: 
+ 305:         if enterprise_value is None:
+ 306:             continue
+ 307: 
+ 308:         operating_enterprise_value += enterprise_value
+ 309: 
+ 310:         valued_count += 1
+ 311: 
+ 312:         if reliability is not None and enterprise_value > 0:
+ 313:             reliability_numerator += enterprise_value * reliability
+ 314: 
+ 315:             reliability_denominator += enterprise_value
+ 316: 
+ 317:     operating_segment_count = benchmark_data.get(
+ 318:         "multiple_segment_count",
+ 319:         0,
+ 320:     )
+ 321: 
+ 322:     coverage = (
+ 323:         valued_count / operating_segment_count if operating_segment_count > 0 else 0.0
+ 324:     )
+ 325: 
+ 326:     weighted_reliability = (
+ 327:         reliability_numerator / reliability_denominator
+ 328:         if reliability_denominator > 0
+ 329:         else 0.0
+ 330:     )
+ 331: 
+ 332:     return {
+ 333:         "status": "OK",
+ 334:         "version": "V5.0",
+ 335:         "symbol": base_symbol,
+ 336:         "currency": financial_data.get(
+ 337:             "currency",
+ 338:             "INR",
+ 339:         ),
+ 340:         "unit": financial_data.get(
+ 341:             "unit",
+ 342:             "crore",
+ 343:         ),
+ 344:         "period": financial_data.get("period"),
+ 345:         "operating_segment_count": operating_segment_count,
+ 346:         "valued_operating_segment_count": valued_count,
+ 347:         "operating_coverage": round(
+ 348:             coverage,
+ 349:             4,
+ 350:         ),
+
+============================================================
+FILE: services\sotp_equity_bridge_service.py
+============================================================
+LINES: 331
+SIZE: 10044
+
+   1: from __future__ import annotations
+   2: 
+   3: from typing import Any
+   4: 
+   5: from services.research_service import get_stock_profile
+   6: from services.sotp_adjustment_service import (
+   7:     build_sotp_adjustments,
+   8: )
+   9: from services.sotp_new_energy_scenario_policy_service import (
+  10:     authorize_sotp_new_energy_scenarios,
+  11: )
+  12: from services.sotp_segment_valuation_service import (
+  13:     generate_operating_sotp_valuation,
+  14: )
+  15: 
+  16: 
+  17: def _num(value: Any):
+  18:     try:
+  19:         if value is None:
+  20:             return None
+  21: 
+  22:         value = float(value)
+  23: 
+  24:         if value != value:
+  25:             return None
+  26: 
+  27:         return value
+  28: 
+  29:     except (TypeError, ValueError):
+  30:         return None
+  31: 
+  32: 
+  33: def _round(value, digits=2):
+  34:     value = _num(value)
+  35: 
+  36:     if value is None:
+  37:         return None
+  38: 
+  39:     return round(value, digits)
+  40: 
+  41: 
+  42: def _crore_to_rupees(value: float) -> float:
+  43:     return value * 1e7
+  44: 
+  45: 
+  46: def generate_sotp_equity_bridge(
+  47:     symbol: str,
+  48: ) -> dict[str, Any]:
+  49: 
+  50:     symbol = symbol.upper().replace(".NS", "").strip()
+  51: 
+  52:     # ======================================================
+  53:     # 1. OPERATING ENTERPRISE VALUE
+  54:     # ======================================================
+  55: 
+  56:     operating = generate_operating_sotp_valuation(symbol)
+  57: 
+  58:     if not isinstance(operating, dict) or operating.get("status") != "OK":
+  59:         return {
+  60:             "status": "ERROR",
+  61:             "version": "V5.0",
+  62:             "symbol": symbol,
+  63:             "message": "Operating SOTP valuation unavailable.",
+  64:             "operating": operating,
+  65:         }
+  66: 
+  67:     operating_ev = _num(operating.get("operating_enterprise_value"))
+  68: 
+  69:     if operating_ev is None:
+  70:         return {
+  71:             "status": "ERROR",
+  72:             "version": "V5.0",
+  73:             "symbol": symbol,
+  74:             "message": "Operating enterprise value unavailable.",
+  75:             "operating": operating,
+  76:         }
+  77: 
+  78:     # ======================================================
+  79:     # 2. NEW ENERGY SCENARIO VALUES
+  80:     # ======================================================
+  81: 
+  82:     new_energy = authorize_sotp_new_energy_scenarios(symbol)
+  83: 
+  84:     scenario_range_authorized = False
+  85:     scenario_values = {}
+  86: 
+  87:     if (
+  88:         isinstance(new_energy, dict)
+  89:         and new_energy.get("status") == "OK"
+  90:         and new_energy.get("scenario_range_authorized") is True
+  91:     ):
+  92:         raw_scenarios = new_energy.get(
+  93:             "authorized_scenario_values",
+  94:             {},
+  95:         )
+  96: 
+  97:         if isinstance(raw_scenarios, dict):
+  98: 
+  99:             for scenario in ("BEAR", "BASE", "BULL"):
+ 100: 
+ 101:                 value = _num(raw_scenarios.get(scenario))
+ 102: 
+ 103:                 if value is not None:
+ 104:                     scenario_values[scenario] = value
+ 105: 
+ 106:         scenario_range_authorized = all(
+ 107:             scenario in scenario_values for scenario in ("BEAR", "BASE", "BULL")
+ 108:         )
+ 109: 
+ 110:     # ======================================================
+ 111:     # 3. CENTRALIZED EQUITY-BRIDGE ADJUSTMENTS
+ 112:     # ======================================================
+ 113: 
+ 114:     adjustments = build_sotp_adjustments(symbol)
+ 115: 
+ 116:     if not isinstance(adjustments, dict) or adjustments.get("status") != "OK":
+ 117:         return {
+ 118:             "status": "ERROR",
+ 119:             "version": "V5.0",
+ 120:             "symbol": symbol,
+ 121:             "message": "SOTP adjustment engine unavailable.",
+ 122:             "operating": operating,
+ 123:             "new_energy": new_energy,
+ 124:             "adjustments": adjustments,
+ 125:         }
+ 126: 
+ 127:     bridge = adjustments.get(
+ 128:         "equity_bridge",
+ 129:         {},
+ 130:     )
+ 131: 
+ 132:     bridge_adjustment = _num(bridge.get("final_equity_bridge_adjustment"))
+ 133: 
+ 134:     if bridge_adjustment is None:
+ 135:         return {
+ 136:             "status": "ERROR",
+ 137:             "version": "V5.0",
+ 138:             "symbol": symbol,
+ 139:             "message": ("Authorized equity bridge adjustment " "is unavailable."),
+ 140:             "operating": operating,
+ 141:             "new_energy": new_energy,
+ 142:             "adjustments": adjustments,
+ 143:         }
+ 144: 
+ 145:     # ======================================================
+ 146:     # 4. SHARES AND CURRENT PRICE
+ 147:     # ======================================================
+ 148: 
+ 149:     profile = get_stock_profile(symbol) or {}
+ 150: 
+ 151:     shares = _num(profile.get("shares_outstanding"))
+ 152: 
+ 153:     current_price = _num(profile.get("price"))
+ 154: 
+ 155:     # ======================================================
+ 156:     # 5. BUILD BEAR / BASE / BULL SOTP
+ 157:     # ======================================================
+ 158: 
+ 159:     scenarios = {}
+ 160: 
+ 161:     if scenario_range_authorized:
+ 162: 
+ 163:         for scenario in ("BEAR", "BASE", "BULL"):
+ 164: 
+ 165:             new_energy_ev = scenario_values[scenario]
+ 166: 
+ 167:             gross_enterprise_value = operating_ev + new_energy_ev
+ 168: 
+ 169:             equity_value = gross_enterprise_value + bridge_adjustment
+ 170: 
+ 171:             fair_value_per_share = None
+ 172:             upside_percent = None
+ 173: 
+ 174:             if shares is not None and shares > 0:
+ 175: 
+ 176:                 fair_value_per_share = _crore_to_rupees(equity_value) / shares
+ 177: 
+ 178:             if (
+ 179:                 fair_value_per_share is not None
+ 180:                 and current_price is not None
+ 181:                 and current_price > 0
+ 182:             ):
+ 183: 
+ 184:                 upside_percent = (fair_value_per_share / current_price - 1) * 100
+ 185: 
+ 186:             scenarios[scenario] = {
+ 187:                 "operating_enterprise_value": (_round(operating_ev)),
+ 188:                 "new_energy_enterprise_value": (_round(new_energy_ev)),
+ 189:                 "gross_enterprise_value": (_round(gross_enterprise_value)),
+ 190:                 "equity_bridge_adjustment": (_round(bridge_adjustment)),
+ 191:                 "equity_value": (_round(equity_value)),
+ 192:                 "fair_value_per_share": (_round(fair_value_per_share)),
+ 193:                 "upside_percent": (_round(upside_percent)),
+ 194:             }
+ 195: 
+ 196:     # ======================================================
+ 197:     # 6. PENDING ITEMS
+ 198:     # ======================================================
+ 199: 
+ 200:     pending_items = bridge.get(
+ 201:         "pending_items",
+ 202:         [],
+ 203:     )
+ 204: 
+ 205:     if not isinstance(pending_items, list):
+ 206:         pending_items = []
+ 207: 
+ 208:     pending_exposure = _num(bridge.get("pending_exposure"))
+ 209: 
+ 210:     pending_item_count = bridge.get(
+ 211:         "pending_item_count",
+ 212:         len(pending_items),
+ 213:     )
+ 214: 
+ 215:     bridge_status = bridge.get("status")
+ 216: 
+ 217:     # ======================================================
+ 218:     # 7. VALUATION STATUS
+ 219:     # ======================================================
+ 220: 
+ 221:     if not scenario_range_authorized:
+ 222: 
+ 223:         valuation_status = "NEW_ENERGY_SCENARIOS_UNAVAILABLE"
+ 224: 
+ 225:     elif bridge_status == "FINAL":
+ 226: 
+ 227:         valuation_status = "FINAL"
+ 228: 
+ 229:     else:
+ 230: 
+ 231:         valuation_status = "PROVISIONAL"
+ 232: 
+ 233:     # ======================================================
+ 234:     # 8. CONFIDENCE
+ 235:     # ======================================================
+ 236: 
+ 237:     operating_coverage = _num(operating.get("operating_coverage")) or 0.0
+ 238: 
+ 239:     operating_reliability = _num(operating.get("weighted_reliability")) or 0.0
+ 240: 
+ 241:     confidence_score = operating_coverage * operating_reliability * 100.0
+ 242: 
+ 243:     if valuation_status != "FINAL":
+ 244:         confidence_score *= 0.75
+ 245: 
+ 246:     confidence_score = round(
+ 247:         confidence_score,
+ 248:         2,
+ 249:     )
+ 250: 
+ 251:     if confidence_score >= 80:
+ 252:         confidence = "HIGH"
+ 253: 
+ 254:     elif confidence_score >= 60:
+ 255:         confidence = "MODERATE"
+ 256: 
+ 257:     else:
+ 258:         confidence = "LOW"
+ 259: 
+ 260:     # ======================================================
+ 261:     # OUTPUT
+ 262:     # ======================================================
+ 263: 
+ 264:     return {
+ 265:         "status": "OK",
+ 266:         "version": "V5.0",
+ 267:         "symbol": symbol,
+ 268:         "currency": operating.get(
+ 269:             "currency",
+ 270:             "INR",
+ 271:         ),
+ 272:         "unit": operating.get(
+ 273:             "unit",
+ 274:             "crore",
+ 275:         ),
+ 276:         "period": operating.get("period"),
+ 277:         "operating_enterprise_value": (_round(operating_ev)),
+ 278:         "new_energy": {
+ 279:             "scenario_range_authorized": (scenario_range_authorized),
+ 280:             "scenario_values": {
+ 281:                 key: _round(value) for key, value in scenario_values.items()
+ 282:             },
+ 283:             "treatment": ("INCLUDE_IN_GROSS_SOTP_EV"),
+ 284:         },
+ 285:         "equity_bridge": {
+ 286:             "authorized_adjustment": (_round(bridge_adjustment)),
+ 287:             "status": bridge_status,
+ 288:             "pending_exposure": (_round(pending_exposure)),
+ 289:             "pending_item_count": (pending_item_count),
+ 290:             "pending_items": pending_items,
+ 291:         },
+ 292:         "shares_outstanding": shares,
+ 293:         "current_price": current_price,
+ 294:         "scenarios": scenarios,
+ 295:         "valuation_status": (valuation_status),
+ 296:         "confidence": confidence,
+ 297:         "confidence_score": (confidence_score),
+ 298:         "interpretation": (
+ 299:             "Operating enterprise value is combined "
+ 300:             "with the authorized New Energy Bear, Base "
+ 301:             "and Bull scenario values. The centralized "
+ 302:             "SOTP adjustment engine then converts gross "
+ 303:             "enterprise value into scenario equity "
+ 304:             "values. Unresolved investment and ownership "
+ 305:             "items remain excluded until explicitly "
+ 306:             "authorized."
+ 307:         ),
+ 308:         "warnings": [
+ 309:             (
+ 310:                 "New Energy scenario values are "
+ 311:                 "model-derived and are not reported "
+ 312:                 "enterprise values."
+ 313:             ),
+ 314:             (
+ 315:                 "A PROVISIONAL valuation must not be "
+ 316:                 "presented as a completed SOTP fair "
+ 317:                 "value."
+ 318:             ),
+ 319:             ("Pending positive assets may increase " "equity value when authorized."),
+ 320:             (
+ 321:                 "Pending ownership or debt-like claims "
+ 322:                 "may reduce equity value when "
+ 323:                 "authorized."
+ 324:             ),
+ 325:         ],
+ 326:         "components": {
+ 327:             "operating": operating,
+ 328:             "new_energy_policy": new_energy,
+ 329:             "adjustments": adjustments,
+ 330:         },
+ 331:     }
+
+============================================================
+FILE: services\sotp\sotp_engine.py
+============================================================
+LINES: 64
+SIZE: 2048
+
+   1: from __future__ import annotations
+   2: 
+   3: from dataclasses import dataclass
+   4: 
+   5: from core.enums import Status, ValuationMethod
+   6: from core.exceptions import ValuationError
+   7: from core.logger import logger
+   8: 
+   9: 
+  10: @dataclass(slots=True, frozen=True)
+  11: class SegmentValuation:
+  12:     segment_name: str
+  13:     valuation_method: ValuationMethod
+  14:     value_amount: float
+  15:     stake_percentage: float = 1.00
+  16:     notes: str = ""
+  17: 
+  18: 
+  19: @dataclass(slots=True, frozen=True)
+  20: class SOTPInput:
+  21:     company_name: str
+  22:     currency: str
+  23:     segments: list[SegmentValuation]
+  24:     conglomerate_discount_pct: float = 0.0
+  25:     net_debt: float = 0.0
+  26:     shares_outstanding: float = 1.0
+  27: 
+  28: 
+  29: @dataclass(slots=True, frozen=True)
+  30: class SOTPResult:
+  31:     company_name: str
+  32:     gross_enterprise_value: float
+  33:     gross_equity_value: float
+  34:     net_equity_value: float
+  35:     value_per_share: float
+  36:     status: Status = Status.OK
+  37: 
+  38: 
+  39: class SOTPAggregator:
+  40:     """Aggregates multi-segment valuations into a consolidated Target Price per Share."""
+  41: 
+  42:     @staticmethod
+  43:     def calculate(sotp_input: SOTPInput) -> SOTPResult:
+  44:         if not sotp_input.segments:
+  45:             raise ValuationError(
+  46:                 "SOTP calculation requires at least one business segment."
+  47:             )
+  48: 
+  49:         gross_ev = sum(s.value_amount * s.stake_percentage for s in sotp_input.segments)
+  50:         gross_equity = gross_ev - sotp_input.net_debt
+  51:         net_equity = gross_equity * (1.0 - sotp_input.conglomerate_discount_pct)
+  52:         value_per_share = net_equity / max(sotp_input.shares_outstanding, 1e-4)
+  53: 
+  54:         logger.info(
+  55:             f"[{sotp_input.company_name}] Gross EV: {gross_ev:.2f} | Net Equity: {net_equity:.2f} | Per Share: {value_per_share:.2f}"
+  56:         )
+  57: 
+  58:         return SOTPResult(
+  59:             company_name=sotp_input.company_name,
+  60:             gross_enterprise_value=round(gross_ev, 2),
+  61:             gross_equity_value=round(gross_equity, 2),
+  62:             net_equity_value=round(net_equity, 2),
+  63:             value_per_share=round(value_per_share, 2),
+  64:         )
+
+============================================================
+FILE: services\valuation\sotp_engine.py
+============================================================
+LINES: 53
+SIZE: 1852
+
+   1: from __future__ import annotations
+   2: 
+   3: from typing import Any
+   4: from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+   5: 
+   6: class BaseValuationEngine:
+   7:     """Abstract base class for valuation engines."""
+   8:     def __init__(self) -> None:
+   9:         pass
+  10:     
+  11:     @property
+  12:     def valuation_method(self) -> str:
+  13:         raise NotImplementedError
+  14: 
+  15:     def evaluate(self, data: Any) -> Any:
+  16:         raise NotImplementedError
+  17: 
+  18:     def value(self, data: Any) -> Any:
+  19:         return self.evaluate(data)
+  20: 
+  21: class SOTPValuationEngine(BaseValuationEngine):
+  22:     """Adapter for SOTP Valuation Engine conforming to BaseValuationEngine."""
+  23:     def __init__(self) -> None:
+  24:         super().__init__()
+  25: 
+  26:     @property
+  27:     def valuation_method(self) -> str:
+  28:         return "SOTP"
+  29: 
+  30:     def evaluate(self, data: Any) -> ValuationResult:
+  31:         from sotp_long_term_equity_valuation_service import (
+  32:             SOTPLongTermValuationService,
+  33:         )
+  34:         company_name = data.get("company_name", "Target Co")
+  35:         shares = data.get("shares_outstanding", 1.0)
+  36:         service = SOTPLongTermValuationService(company_name, shares)
+  37:         res = service.evaluate_sotp(
+  38:             dcf_segments_raw=data.get("dcf_segments", []),
+  39:             other_segments_raw=data.get("other_segments", []),
+  40:             holdco_discount=data.get("holdco_discount", 0.0)
+  41:         )
+  42:         return ValuationResult(
+  43:             method=ValuationMethod.SOTP,
+  44:             enterprise_value=res.total_enterprise_value,
+  45:             equity_value=res.total_equity_value,
+  46:             implied_share_price=res.implied_share_price,
+  47:             status=ValuationStatus.SUCCESS,
+  48:             details={"notes": "Evaluated successfully via modular SOTP engine"}
+  49:         )
+  50: 
+  51: # Backward compatibility alias
+  52: SOTPEngine = SOTPValuationEngine
+  53: 
+
+============================================================
+FILE: services\valuation\sotp_adapter_fix.py
+============================================================
+LINES: 14
+SIZE: 475
+
+   1: """
+   2: SOTP Legacy Payload Cleaner
+   3: Strips unsupported legacy keys (ebit_margins, working_capital_ratios, etc.) 
+   4: before passing data to modern DCFInput / EROS 3.0 engines.
+   5: """
+   6: 
+   7: def clean_legacy_sotp_payload(raw_segment: dict) -> dict:
+   8:     legacy_keys_to_purge = {
+   9:         "ebit_margins", 
+  10:         "working_capital_ratios", 
+  11:         "sales_to_capital_ratios", 
+  12:         "cost_of_capital"
+  13:     }
+  14:     return {k: v for k, v in raw_segment.items() if k not in legacy_keys_to_purge}
+
+============================================================
+DCF CANONICAL FILES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py | 1496 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py | 2508 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py | 4230 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py | 5605 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py | 4123 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py | 3159 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\discounting.py | 3042 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\terminal_value.py | 4131 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\sensitivity.py | 2969 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py | 4469 bytes
+
+============================================================
+DCF ENTRY POINTS
+============================================================
+
+### services\valuation\dcf_engine.py
+6: class BaseValuationEngine:
+8: def __init__(self) -> None:
+12: def valuation_method(self) -> str:
+15: def evaluate(self, data: Any) -> Any:
+18: def value(self, data: Any) -> Any:
+19: return self.evaluate(data)
+21: class DCFValuationEngine(BaseValuationEngine):
+23: def __init__(self) -> None:
+27: def valuation_method(self) -> str:
+30: def evaluate(self, data: Any) -> ValuationResult:
+31: from services.valuation.dcf import DCFInput, DCFModel
+32: dcf_input = DCFInput(**data) if isinstance(data, dict) else data
+33: model = DCFModel(dcf_input)
+34: res = model.evaluate()
+37: enterprise_value=res.enterprise_value,
+38: equity_value=res.equity_value,
+41: details={"notes": "Evaluated successfully via modular DCF engine"}
+
+### services\valuation\dcf_adapter.py
+7: from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+11: class DCFValuationEngine(BaseValuationEngine):
+15: def valuation_method(self) -> str:
+16: return ValuationMethod.DCF.value
+18: def value(self, entity: Any) -> ValuationResult:
+20: dcf_input = DCFInput(
+42: dcf_result: DCFResult = DCFModel(dcf_input).run_model()
+48: enterprise_value=dcf_result.enterprise_value,
+49: equity_value=dcf_result.equity_value,
+54: "terminal_value_pct": dcf_result.terminal_value_pct_of_ev,
+
+### services\valuation\dcf\dcf_input.py
+6: class DCFInput:
+29: # Terminal Value Parameter
+32: # Capital Structure Bridge to Equity Value
+46: def forecast_years(self) -> int:
+52: def calculate_wacc(self) -> float:
+61: def validate(self) -> None:
+67: raise ValueError("Forecast period must be at least 1 year long.")
+77: raise ValueError(
+82: raise ValueError("last_historical_revenue must be strictly greater than 0.")
+84: raise ValueError("shares_outstanding must be strictly greater than 0.")
+86: raise ValueError("total_debt cannot be negative.")
+88: raise ValueError("cash_and_equivalents cannot be negative.")
+91: raise ValueError(
+97: raise ValueError(
+103: raise ValueError(
+108: def to_dict(self) -> dict[str, Any]:
+
+### services\valuation\dcf\dcf_model.py
+20: Terminal Value
+22: Enterprise Value
+24: Equity Value
+34: from .dcf_input import DCFInput
+39: from .terminal_value import build_terminal_value
+43: class DCFModel:
+48: def __init__(self, data: DCFInput):
+55: def calculate_wacc(self) -> float:
+66: def run_model(self) -> DCFResult:
+96: # Terminal Value
+99: terminal = build_terminal_value(
+108: # Enterprise Value
+111: enterprise_value = discount.pv_fcff_total + terminal.present_value_terminal
+117: equity_value = (
+118: enterprise_value - self.data.total_debt + self.data.cash_and_equivalents
+121: implied_share_price = equity_value / self.data.shares_outstanding
+149: present_value_fcff=discount.present_value_fcff,
+152: terminal_value=terminal.terminal_value,
+153: present_value_terminal=terminal.present_value_terminal,
+154: terminal_value_pct_of_ev=terminal.terminal_value_pct_of_ev,
+155: enterprise_value=enterprise_value,
+158: equity_value=equity_value,
+
+### services\valuation\dcf\dcf_result.py
+20: class DCFResult:
+53: present_value_fcff: list[float]
+58: # Terminal Value
+63: terminal_value: float
+65: present_value_terminal: float
+67: terminal_value_pct_of_ev: float
+70: # Enterprise Value Bridge
+73: enterprise_value: float
+79: equity_value: float
+118: def discrete_value(self) -> float:
+119: """Present value of explicit forecast cash flows."""
+123: def terminal_value_contribution(self) -> float:
+124: """Contribution of terminal value to enterprise value."""
+125: return self.present_value_terminal
+128: def enterprise_bridge(self) -> dict[str, float]:
+129: """Enterprise value bridge."""
+131: "enterprise_value": self.enterprise_value,
+134: "equity_value": self.equity_value,
+137: def summary(self) -> dict[str, float]:
+143: "enterprise_value": self.enterprise_value,
+144: "equity_value": self.equity_value,
+146: "terminal_value_pct": self.terminal_value_pct_of_ev,
+
+### services\valuation\dcf\forecast.py
+18: from services.valuation.dcf.dcf_input import DCFInput
+22: class ForecastSchedule:
+37: def forecast_revenue(last_revenue: float, growth_rates: list[float]) -> list[float]:
+53: def build_forecast_schedule(data: DCFInput) -> ForecastSchedule:
+
+### services\valuation\dcf\discounting.py
+11: to Firm (FCFF) into present value.
+15: • Present Value of FCFF
+20: • Terminal Value Logic
+21: • Enterprise Value Logic
+32: class DiscountSchedule:
+40: present_value_fcff: list[float]
+45: def years(self) -> int:
+48: def summary(self) -> dict:
+60: def compute_discount_factors(
+74: # Present Value of FCFF
+78: def discount_fcff(
+94: def aggregate_present_value(
+109: def build_discount_schedule(
+127: total = aggregate_present_value(
+133: present_value_fcff=pv,
+
+### services\valuation\dcf\terminal_value.py
+5: DCF TERMINAL VALUE ENGINE
+6: Module  : terminal_value
+10: Computes the terminal value using the Gordon Growth Model
+11: and discounts it back to present value.
+15: • Terminal Value
+16: • Present Value of Terminal Value
+17: • Terminal Value Contribution
+27: # Terminal Value Result
+32: class TerminalValueResult:
+34: Terminal value calculation results.
+39: terminal_value: float
+41: present_value_terminal: float
+43: terminal_value_pct_of_ev: float = 0.0
+45: def summary(self) -> dict:
+48: "terminal_value": self.terminal_value,
+49: "present_value_terminal": self.present_value_terminal,
+50: "terminal_value_pct_of_ev": self.terminal_value_pct_of_ev,
+59: def compute_terminal_fcff(
+71: # Gordon Growth Terminal Value
+75: def compute_terminal_value(
+85: raise ValueError("Terminal growth rate must be less than WACC.")
+91: # Present Value of Terminal Value
+95: def discount_terminal_value(
+96: terminal_value: float,
+101: Discount terminal value to present value.
+104: return terminal_value / ((1.0 + wacc) ** forecast_years)
+112: def terminal_value_contribution(
+114: enterprise_value: float,
+117: Returns percentage contribution of terminal value to EV.
+120: if enterprise_value == 0:
+123: return (pv_terminal / enterprise_value) * 100.0
+131: def build_terminal_value(
+137: ) -> TerminalValueResult:
+139: Complete terminal value routine.
+147: terminal_value = compute_terminal_value(
+153: pv_terminal = discount_terminal_value(
+154: terminal_value,
+159: enterprise_value = pv_fcff_total + pv_terminal
+161: contribution = terminal_value_contribution(
+163: enterprise_value,
+166: return TerminalValueResult(
+168: terminal_value=terminal_value,
+169: present_value_terminal=pv_terminal,
+170: terminal_value_pct_of_ev=contribution,
+
+### services\valuation\dcf\sensitivity.py
+34: class SensitivityResult:
+42: def summary(self) -> dict:
+54: def _equity_value_to_share_price(
+55: enterprise_value: float,
+61: equity = enterprise_value - debt + cash
+71: def build_sensitivity_matrix(
+112: terminal_value = terminal_fcff / (wacc - growth)
+114: pv_terminal = terminal_value / ((1 + wacc) ** forecast_years)
+116: enterprise_value = pv_fcff_total + pv_terminal
+118: price = _equity_value_to_share_price(
+119: enterprise_value,
+
+### services\valuation\dcf\validation.py
+11: Raises ValueError whenever assumptions are inconsistent or mathematically invalid.
+14: from .dcf_input import DCFInput
+17: def validate_input(data: DCFInput) -> None:
+35: def _validate_history(data: DCFInput) -> None:
+37: raise ValueError("last_historical_revenue must be strictly greater than 0.")
+45: def _validate_forecast_lengths(data: DCFInput) -> None:
+48: raise ValueError("Revenue growth rates forecast cannot be empty.")
+59: raise ValueError(
+69: def _validate_rates(data: DCFInput) -> None:
+71: raise ValueError("Tax rate must be between 0 and 1.")
+74: raise ValueError("Cost of equity must be positive.")
+77: raise ValueError("Cost of debt cannot be negative.")
+80: raise ValueError("Cost of equity should be expressed as a decimal (e.g. 0.12).")
+83: raise ValueError("Cost of debt should be expressed as a decimal.")
+91: def _validate_capital_structure(data: DCFInput) -> None:
+95: raise ValueError(
+100: raise ValueError("Equity weight cannot be negative.")
+103: raise ValueError("Debt weight cannot be negative.")
+111: def _validate_terminal_growth(data: DCFInput) -> None:
+115: raise ValueError(
+120: raise ValueError("Terminal growth assumption appears unrealistic.")
+128: def _validate_balance_sheet(data: DCFInput) -> None:
+130: raise ValueError("Debt cannot be negative.")
+133: raise ValueError("Cash cannot be negative.")
+141: def _validate_share_count(data: DCFInput) -> None:
+143: raise ValueError("Shares outstanding must be greater than zero.")
+
+============================================================
+FILE: services\valuation\dcf_engine.py
+============================================================
+LINES: 45
+SIZE: 1496
+
+   1: from __future__ import annotations
+   2: 
+   3: from typing import Any
+   4: from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+   5: 
+   6: class BaseValuationEngine:
+   7:     """Abstract base class for valuation engines."""
+   8:     def __init__(self) -> None:
+   9:         pass
+  10:     
+  11:     @property
+  12:     def valuation_method(self) -> str:
+  13:         raise NotImplementedError
+  14: 
+  15:     def evaluate(self, data: Any) -> Any:
+  16:         raise NotImplementedError
+  17: 
+  18:     def value(self, data: Any) -> Any:
+  19:         return self.evaluate(data)
+  20: 
+  21: class DCFValuationEngine(BaseValuationEngine):
+  22:     """Adapter for DCF Valuation Engine conforming to BaseValuationEngine."""
+  23:     def __init__(self) -> None:
+  24:         super().__init__()
+  25: 
+  26:     @property
+  27:     def valuation_method(self) -> str:
+  28:         return "DCF"
+  29: 
+  30:     def evaluate(self, data: Any) -> ValuationResult:
+  31:         from services.valuation.dcf import DCFInput, DCFModel
+  32:         dcf_input = DCFInput(**data) if isinstance(data, dict) else data
+  33:         model = DCFModel(dcf_input)
+  34:         res = model.evaluate()
+  35:         return ValuationResult(
+  36:             method=ValuationMethod.DCF,
+  37:             enterprise_value=res.enterprise_value,
+  38:             equity_value=res.equity_value,
+  39:             implied_share_price=res.implied_share_price,
+  40:             status=ValuationStatus.SUCCESS,
+  41:             details={"notes": "Evaluated successfully via modular DCF engine"}
+  42:         )
+  43: 
+  44: # Backward compatibility alias
+  45: DCFEngine = DCFValuationEngine
+
+============================================================
+FILE: services\valuation\dcf_adapter.py
+============================================================
+LINES: 58
+SIZE: 2508
+
+   1: from __future__ import annotations
+   2: 
+   3: from typing import Any
+   4: 
+   5: from services.valuation.base_engine import BaseValuationEngine
+   6: from services.valuation.contracts import SOTPSegmentInput
+   7: from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+   8: from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
+   9: 
+  10: 
+  11: class DCFValuationEngine(BaseValuationEngine):
+  12:     """Adapter wrapping the standalone DCF package into the unified engine interface."""
+  13: 
+  14:     @property
+  15:     def valuation_method(self) -> str:
+  16:         return ValuationMethod.DCF.value
+  17: 
+  18:     def value(self, entity: Any) -> ValuationResult:
+  19:         if isinstance(entity, SOTPSegmentInput):
+  20:             dcf_input = DCFInput(
+  21:                 last_historical_revenue=entity.last_historical_revenue,
+  22:                 revenue_growth_rates=entity.revenue_growth_rates,
+  23:                 ebit_margin_forecast=entity.ebit_margin_forecast,
+  24:                 dna_pct_rev=entity.dna_pct_rev,
+  25:                 capex_pct_rev=entity.capex_pct_rev,
+  26:                 nwc_pct_rev=entity.nwc_pct_rev,
+  27:                 tax_rate=entity.tax_rate,
+  28:                 cost_of_equity=entity.cost_of_equity,
+  29:                 cost_of_debt_post_tax=entity.cost_of_debt_post_tax,
+  30:                 equity_weight=entity.equity_weight,
+  31:                 debt_weight=entity.debt_weight,
+  32:                 terminal_growth_rate=entity.terminal_growth_rate,
+  33:                 total_debt=entity.segment_debt,
+  34:                 cash_and_equivalents=entity.segment_cash,
+  35:                 shares_outstanding=entity.shares_outstanding,
+  36:                 company_name=entity.segment_name,
+  37:                 currency=entity.currency,
+  38:             )
+  39:         else:
+  40:             dcf_input = entity
+  41: 
+  42:         dcf_result: DCFResult = DCFModel(dcf_input).run_model()
+  43: 
+  44:         return ValuationResult(
+  45:             entity_name=dcf_input.company_name,
+  46:             valuation_method=ValuationMethod.DCF,
+  47:             valuation_status=ValuationStatus.COMPLETE,
+  48:             enterprise_value=dcf_result.enterprise_value,
+  49:             equity_value=dcf_result.equity_value,
+  50:             diagnostics={
+  51:                 "currency": dcf_input.currency,
+  52:                 "implied_share_price": dcf_result.implied_share_price,
+  53:                 "wacc": dcf_result.wacc,
+  54:                 "terminal_value_pct": dcf_result.terminal_value_pct_of_ev,
+  55:                 "forecast_years": dcf_result.forecast_period,
+  56:             },
+  57:             raw_result=dcf_result,
+  58:         )
+
+============================================================
+FILE: services\valuation\dcf\dcf_input.py
+============================================================
+LINES: 118
+SIZE: 4230
+
+   1: from dataclasses import dataclass
+   2: from typing import Any
+   3: 
+   4: 
+   5: @dataclass
+   6: class DCFInput:
+   7:     """
+   8:     Input data container for the Discounted Cash Flow (DCF) valuation engine.
+   9:     Includes strict validation to ensure structural and economic sanity.
+  10:     """
+  11: 
+  12:     # Historical Base
+  13:     last_historical_revenue: float
+  14: 
+  15:     # Forecast Driver Vectors (Must all match forecast period length)
+  16:     revenue_growth_rates: list[float]
+  17:     ebit_margin_forecast: list[float]
+  18:     capex_pct_rev: list[float]
+  19:     nwc_pct_rev: list[float]
+  20:     dna_pct_rev: list[float]
+  21: 
+  22:     # Capital Structure & Discount Parameters
+  23:     tax_rate: float
+  24:     cost_of_equity: float
+  25:     cost_of_debt_post_tax: float
+  26:     equity_weight: float
+  27:     debt_weight: float
+  28: 
+  29:     # Terminal Value Parameter
+  30:     terminal_growth_rate: float
+  31: 
+  32:     # Capital Structure Bridge to Equity Value
+  33:     total_debt: float
+  34:     cash_and_equivalents: float
+  35:     shares_outstanding: float
+  36: 
+  37:     # Non-Operating Balance Sheet Adjustments
+  38:     minority_interest: float = 0.0
+  39:     preferred_stock: float = 0.0
+  40: 
+  41:     # Optional metadata
+  42:     company_name: str = "Operating Subsidiary"
+  43:     currency: str = "INR"
+  44: 
+  45:     @property
+  46:     def forecast_years(self) -> int:
+  47:         """
+  48:         Dynamically returns the number of explicit forecast years.
+  49:         """
+  50:         return len(self.revenue_growth_rates)
+  51: 
+  52:     def calculate_wacc(self) -> float:
+  53:         """
+  54:         Calculates the Weighted Average Cost of Capital (WACC).
+  55:         WACC = (We * Ke) + (Wd * Kd_post_tax)
+  56:         """
+  57:         return (self.equity_weight * self.cost_of_equity) + (
+  58:             self.debt_weight * self.cost_of_debt_post_tax
+  59:         )
+  60: 
+  61:     def validate(self) -> None:
+  62:         """
+  63:         Executes comprehensive input validation checks before model execution.
+  64:         """
+  65:         forecast_len = self.forecast_years
+  66:         if forecast_len == 0:
+  67:             raise ValueError("Forecast period must be at least 1 year long.")
+  68: 
+  69:         vectors = {
+  70:             "ebit_margin_forecast": len(self.ebit_margin_forecast),
+  71:             "capex_pct_rev": len(self.capex_pct_rev),
+  72:             "nwc_pct_rev": len(self.nwc_pct_rev),
+  73:             "dna_pct_rev": len(self.dna_pct_rev),
+  74:         }
+  75:         for vec_name, length in vectors.items():
+  76:             if length != forecast_len:
+  77:                 raise ValueError(
+  78:                     f"Array length mismatch for '{vec_name}': expected {forecast_len}, got {length}."
+  79:                 )
+  80: 
+  81:         if self.last_historical_revenue <= 0:
+  82:             raise ValueError("last_historical_revenue must be strictly greater than 0.")
+  83:         if self.shares_outstanding <= 0:
+  84:             raise ValueError("shares_outstanding must be strictly greater than 0.")
+  85:         if self.total_debt < 0:
+  86:             raise ValueError("total_debt cannot be negative.")
+  87:         if self.cash_and_equivalents < 0:
+  88:             raise ValueError("cash_and_equivalents cannot be negative.")
+  89: 
+  90:         if not (0.0 <= self.tax_rate <= 1.0):
+  91:             raise ValueError(
+  92:                 f"tax_rate must be between 0.0 and 1.0 (got {self.tax_rate})."
+  93:             )
+  94: 
+  95:         weight_sum = self.equity_weight + self.debt_weight
+  96:         if abs(weight_sum - 1.0) > 1e-4:
+  97:             raise ValueError(
+  98:                 f"Equity and Debt weights must sum to 1.0 (got {weight_sum:.4f})."
+  99:             )
+ 100: 
+ 101:         wacc = self.calculate_wacc()
+ 102:         if self.terminal_growth_rate >= wacc:
+ 103:             raise ValueError(
+ 104:                 f"Terminal growth rate ({self.terminal_growth_rate:.2%}) must be strictly less "
+ 105:                 f"than WACC ({wacc:.2%}) to prevent mathematical singularity."
+ 106:             )
+ 107: 
+ 108:     def to_dict(self) -> dict[str, Any]:
+ 109:         """Returns assumptions as a dictionary."""
+ 110:         return {
+ 111:             "last_historical_revenue": self.last_historical_revenue,
+ 112:             "forecast_years": self.forecast_years,
+ 113:             "revenue_growth_rates": self.revenue_growth_rates,
+ 114:             "ebit_margin_forecast": self.ebit_margin_forecast,
+ 115:             "wacc": self.calculate_wacc(),
+ 116:             "terminal_growth_rate": self.terminal_growth_rate,
+ 117:             "shares_outstanding": self.shares_outstanding,
+ 118:         }
+
+============================================================
+FILE: services\valuation\dcf\dcf_model.py
+============================================================
+LINES: 171
+SIZE: 5605
+
+   1: from __future__ import annotations
+   2: 
+   3: """
+   4: ==========================================================
+   5: DCF VALUATION ENGINE
+   6: Module  : dcf_model
+   7: Version : V3.0
+   8: ==========================================================
+   9: 
+  10: Institutional Discounted Cash Flow (DCF) valuation engine.
+  11: 
+  12: Pipeline
+  13: --------
+  14: Validate
+  15:     ↓
+  16: Forecast
+  17:     ↓
+  18: Discount Explicit FCFF
+  19:     ↓
+  20: Terminal Value
+  21:     ↓
+  22: Enterprise Value
+  23:     ↓
+  24: Equity Value
+  25:     ↓
+  26: Sensitivity Analysis
+  27:     ↓
+  28: Return DCFResult
+  29: 
+  30: Contains no embedded financial formulas other than
+  31: high-level orchestration.
+  32: """
+  33: 
+  34: from .dcf_input import DCFInput
+  35: from .dcf_result import DCFResult
+  36: from .discounting import build_discount_schedule
+  37: from .forecast import build_forecast_schedule
+  38: from .sensitivity import build_sensitivity_matrix
+  39: from .terminal_value import build_terminal_value
+  40: from .validation import validate_input
+  41: 
+  42: 
+  43: class DCFModel:
+  44:     """
+  45:     Institutional FCFF DCF valuation model.
+  46:     """
+  47: 
+  48:     def __init__(self, data: DCFInput):
+  49:         self.data = data
+  50: 
+  51:     # ======================================================
+  52:     # WACC
+  53:     # ======================================================
+  54: 
+  55:     def calculate_wacc(self) -> float:
+  56: 
+  57:         return (
+  58:             self.data.equity_weight * self.data.cost_of_equity
+  59:             + self.data.debt_weight * self.data.cost_of_debt_post_tax
+  60:         )
+  61: 
+  62:     # ======================================================
+  63:     # Main Valuation
+  64:     # ======================================================
+  65: 
+  66:     def run_model(self) -> DCFResult:
+  67: 
+  68:         # ------------------------------------------
+  69:         # Validation
+  70:         # ------------------------------------------
+  71: 
+  72:         validate_input(self.data)
+  73: 
+  74:         # ------------------------------------------
+  75:         # WACC
+  76:         # ------------------------------------------
+  77: 
+  78:         wacc = self.calculate_wacc()
+  79: 
+  80:         # ------------------------------------------
+  81:         # Forecast
+  82:         # ------------------------------------------
+  83: 
+  84:         forecast = build_forecast_schedule(self.data)
+  85: 
+  86:         # ------------------------------------------
+  87:         # Discount Explicit Cash Flows
+  88:         # ------------------------------------------
+  89: 
+  90:         discount = build_discount_schedule(
+  91:             projected_fcff=forecast.projected_fcff,
+  92:             wacc=wacc,
+  93:         )
+  94: 
+  95:         # ------------------------------------------
+  96:         # Terminal Value
+  97:         # ------------------------------------------
+  98: 
+  99:         terminal = build_terminal_value(
+ 100:             final_year_fcff=forecast.projected_fcff[-1],
+ 101:             wacc=wacc,
+ 102:             terminal_growth_rate=self.data.terminal_growth_rate,
+ 103:             forecast_years=self.data.forecast_years,
+ 104:             pv_fcff_total=discount.pv_fcff_total,
+ 105:         )
+ 106: 
+ 107:         # ------------------------------------------
+ 108:         # Enterprise Value
+ 109:         # ------------------------------------------
+ 110: 
+ 111:         enterprise_value = discount.pv_fcff_total + terminal.present_value_terminal
+ 112: 
+ 113:         # ------------------------------------------
+ 114:         # Equity Bridge
+ 115:         # ------------------------------------------
+ 116: 
+ 117:         equity_value = (
+ 118:             enterprise_value - self.data.total_debt + self.data.cash_and_equivalents
+ 119:         )
+ 120: 
+ 121:         implied_share_price = equity_value / self.data.shares_outstanding
+ 122: 
+ 123:         # ------------------------------------------
+ 124:         # Sensitivity
+ 125:         # ------------------------------------------
+ 126: 
+ 127:         sensitivity = build_sensitivity_matrix(
+ 128:             final_year_fcff=forecast.projected_fcff[-1],
+ 129:             pv_fcff_total=discount.pv_fcff_total,
+ 130:             base_wacc=wacc,
+ 131:             base_terminal_growth=self.data.terminal_growth_rate,
+ 132:             forecast_years=self.data.forecast_years,
+ 133:             debt=self.data.total_debt,
+ 134:             cash=self.data.cash_and_equivalents,
+ 135:             shares=self.data.shares_outstanding,
+ 136:         )
+ 137: 
+ 138:         # ------------------------------------------
+ 139:         # Assemble Result
+ 140:         # ------------------------------------------
+ 141: 
+ 142:         return DCFResult(
+ 143:             wacc=wacc,
+ 144:             projected_revenue=forecast.projected_revenue,
+ 145:             projected_ebit=forecast.projected_ebit,
+ 146:             projected_nopat=forecast.projected_nopat,
+ 147:             projected_fcff=forecast.projected_fcff,
+ 148:             discount_factors=discount.discount_factors,
+ 149:             present_value_fcff=discount.present_value_fcff,
+ 150:             pv_fcff_total=discount.pv_fcff_total,
+ 151:             terminal_fcff=terminal.terminal_fcff,
+ 152:             terminal_value=terminal.terminal_value,
+ 153:             present_value_terminal=terminal.present_value_terminal,
+ 154:             terminal_value_pct_of_ev=terminal.terminal_value_pct_of_ev,
+ 155:             enterprise_value=enterprise_value,
+ 156:             total_debt=self.data.total_debt,
+ 157:             cash_and_equivalents=self.data.cash_and_equivalents,
+ 158:             equity_value=equity_value,
+ 159:             shares_outstanding=self.data.shares_outstanding,
+ 160:             implied_share_price=implied_share_price,
+ 161:             forecast_period=self.data.forecast_years,
+ 162:             currency=self.data.currency,
+ 163:             company_name=self.data.company_name,
+ 164:             validation_passed=True,
+ 165:             warnings=[],
+ 166:             sensitivity_matrix={
+ 167:                 "wacc_axis": sensitivity.wacc_axis,
+ 168:                 "terminal_growth_axis": sensitivity.terminal_growth_axis,
+ 169:                 "price_matrix": sensitivity.implied_share_price_matrix,
+ 170:             },
+ 171:         )
+
+============================================================
+FILE: services\valuation\dcf\dcf_result.py
+============================================================
+LINES: 147
+SIZE: 4123
+
+   1: from __future__ import annotations
+   2: 
+   3: """
+   4: ==========================================================
+   5: DCF RESULT MODEL
+   6: Module  : dcf_result
+   7: Version : V2.0
+   8: ==========================================================
+   9: 
+  10: Defines the standardized output produced by the
+  11: Discounted Cash Flow (DCF) valuation engine.
+  12: 
+  13: This module contains no valuation logic.
+  14: """
+  15: 
+  16: from dataclasses import dataclass, field
+  17: 
+  18: 
+  19: @dataclass(slots=True)
+  20: class DCFResult:
+  21:     """
+  22:     Standard output produced by the DCF valuation engine.
+  23:     """
+  24: 
+  25:     # ======================================================
+  26:     # Discount Rate
+  27:     # ======================================================
+  28: 
+  29:     wacc: float
+  30: 
+  31:     # ======================================================
+  32:     # Revenue Forecast
+  33:     # ======================================================
+  34: 
+  35:     projected_revenue: list[float]
+  36: 
+  37:     # ======================================================
+  38:     # Operating Forecast
+  39:     # ======================================================
+  40: 
+  41:     projected_ebit: list[float]
+  42: 
+  43:     projected_nopat: list[float]
+  44: 
+  45:     # ======================================================
+  46:     # Free Cash Flow Forecast
+  47:     # ======================================================
+  48: 
+  49:     projected_fcff: list[float]
+  50: 
+  51:     discount_factors: list[float]
+  52: 
+  53:     present_value_fcff: list[float]
+  54: 
+  55:     pv_fcff_total: float
+  56: 
+  57:     # ======================================================
+  58:     # Terminal Value
+  59:     # ======================================================
+  60: 
+  61:     terminal_fcff: float
+  62: 
+  63:     terminal_value: float
+  64: 
+  65:     present_value_terminal: float
+  66: 
+  67:     terminal_value_pct_of_ev: float
+  68: 
+  69:     # ======================================================
+  70:     # Enterprise Value Bridge
+  71:     # ======================================================
+  72: 
+  73:     enterprise_value: float
+  74: 
+  75:     total_debt: float
+  76: 
+  77:     cash_and_equivalents: float
+  78: 
+  79:     equity_value: float
+  80: 
+  81:     # ======================================================
+  82:     # Per Share Valuation
+  83:     # ======================================================
+  84: 
+  85:     shares_outstanding: float
+  86: 
+  87:     implied_share_price: float
+  88: 
+  89:     # ======================================================
+  90:     # Forecast Metadata
+  91:     # ======================================================
+  92: 
+  93:     forecast_period: int
+  94: 
+  95:     currency: str = "INR"
+  96: 
+  97:     company_name: str = ""
+  98: 
+  99:     # ======================================================
+ 100:     # Validation
+ 101:     # ======================================================
+ 102: 
+ 103:     validation_passed: bool = True
+ 104: 
+ 105:     warnings: list[str] = field(default_factory=list)
+ 106: 
+ 107:     # ======================================================
+ 108:     # Sensitivity Analysis
+ 109:     # ======================================================
+ 110: 
+ 111:     sensitivity_matrix: dict[str, object] = field(default_factory=dict)
+ 112: 
+ 113:     # ======================================================
+ 114:     # Convenience Properties
+ 115:     # ======================================================
+ 116: 
+ 117:     @property
+ 118:     def discrete_value(self) -> float:
+ 119:         """Present value of explicit forecast cash flows."""
+ 120:         return self.pv_fcff_total
+ 121: 
+ 122:     @property
+ 123:     def terminal_value_contribution(self) -> float:
+ 124:         """Contribution of terminal value to enterprise value."""
+ 125:         return self.present_value_terminal
+ 126: 
+ 127:     @property
+ 128:     def enterprise_bridge(self) -> dict[str, float]:
+ 129:         """Enterprise value bridge."""
+ 130:         return {
+ 131:             "enterprise_value": self.enterprise_value,
+ 132:             "less_debt": self.total_debt,
+ 133:             "add_cash": self.cash_and_equivalents,
+ 134:             "equity_value": self.equity_value,
+ 135:         }
+ 136: 
+ 137:     def summary(self) -> dict[str, float]:
+ 138:         """
+ 139:         Returns a concise valuation summary.
+ 140:         """
+ 141:         return {
+ 142:             "wacc": self.wacc,
+ 143:             "enterprise_value": self.enterprise_value,
+ 144:             "equity_value": self.equity_value,
+ 145:             "share_price": self.implied_share_price,
+ 146:             "terminal_value_pct": self.terminal_value_pct_of_ev,
+ 147:         }
+
+============================================================
+SOTP CONSUMERS
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py:7: from services.sotp.sotp_engine import SOTPResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py:18: sotp_result: SOTPResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py:31: sotp_result: SOTPResult,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_integration.py:1: from services.valuation.sotp_engine import SOTPEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_integration.py:5: def test_sotp_engine_contract():
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_integration.py:27: def test_sotp_engine_default_data():
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py:3: from services.valuation.sotp_engine import SOTPEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py:15: from services.sotp_segment_valuation_service import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\adapter.py:4: def adapt_sotp_to_valuation_payload(sotp_engine: SOTPValuationEngine, user: str) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\adapter.py:5: sotp_result = sotp_engine.compute_intrinsic_value()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\adapter.py:9: "symbol": sotp_engine.symbol,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\adapter.py:24: "record_id": f"{sotp_engine.symbol}-SOTP-2026-Q2"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py:156: sotp_engine = SOTPEngine()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py:205: sotp_res = sotp_engine.calculate(financials, holding_discount=holding_disc)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py:5: from services.sotp_equity_bridge_service import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py:12: from services.sotp_segment_valuation_service import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py:39: from services.sotp_long_term_equity_sotp_service import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py:40: get_sotp_long_term_equity_sotp_service,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py:210: sotp_payload = get_sotp_long_term_equity_sotp_service(symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py:46: from services.sotp_long_term_equity_valuation_service import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py:226: def get_sotp_long_term_equity_sotp_service(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py:328: result = get_sotp_long_term_equity_sotp_service("RELIANCE")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py:5: from services.sotp_valuation_service import generate_sotp_valuation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py:3: from services.sotp_equity_bridge_service import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py:30: class SOTPResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py:43: def calculate(sotp_input: SOTPInput) -> SOTPResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py:58: return SOTPResult(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py:28: self.sotp_engine = SOTPEngine()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py:54: sotp_res = self.sotp_engine.calculate(financials, holding_discount=0.15)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:19: from services.valuation.engines.sotp_engine import SOTPValuationEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py:31: from sotp_long_term_equity_valuation_service import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py:1: from services.valuation.sotp_engine import SOTPValuationEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py:5: from services.valuation.sotp.models import SOTPResult, SegmentValuation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py:19: ) -> SOTPResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py:57: return SOTPResult(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\models.py:18: class SOTPResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\unit\test_research_and_sotp.py:7: from services.sotp.sotp_engine import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\unit\test_research_and_sotp.py:11: SOTPResult,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\unit\test_research_and_sotp.py:37: result: SOTPResult = aggregator.calculate(sample_sotp_input)
+
+============================================================
+DCF CONSUMERS
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_comp_model.py:62: res = model.run_model()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_comp_weighting.py:62: res = model.run_model()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py:1: from services.valuation.dcf_engine import DCFEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py:154: dcf_engine = ProductionDCFEngine()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\dashboard\app.py:181: dcf_res = dcf_engine.calculate(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py:12: def evaluate_dcf(*args, **kwargs):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py:26: __all__ = ["evaluate_dcf"]
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__init__.py:1: from .engine import evaluate_dcf
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py:6: from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py:38: def evaluate_dcf_segment(self, segment_params: dict[str, Any]) -> SOTPSegmentResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py:40: Translate legacy SOTP segment parameters into the modern DCFInput contract.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py:100: dcf_input = DCFInput(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py:159: dcf_model = DCFModel(dcf_input)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py:160: dcf_result: DCFResult = dcf_model.run_model()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py:196: res = self.evaluate_dcf_segment(seg)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py:23: from services.valuation.dcf.dcf_input import DCFInput
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py:37: ) -> DCFInput:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py:39: Converts FinancialStatements into DCFInput.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py:53: return DCFInput(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py:26: self.dcf_engine = ProfessionalDCFEngine()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py:44: dcf_res = self.dcf_engine.calculate_fcff(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py:7: from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py:11: class DCFValuationEngine(BaseValuationEngine):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py:20: dcf_input = DCFInput(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py:42: dcf_result: DCFResult = DCFModel(dcf_input).run_model()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:21: class DCFValuationEngine(BaseValuationEngine):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:31: from services.valuation.dcf import DCFInput, DCFModel
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:32: dcf_input = DCFInput(**data) if isinstance(data, dict) else data
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:33: model = DCFModel(dcf_input)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py:45: DCFEngine = DCFValuationEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:17: from services.valuation.engines.dcf_engine import DCFValuationEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py:29: self.register(DCFValuationEngine())
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:25: self._dcf_engine = ProductionDCFEngine()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py:44: dcf_result = self._dcf_engine.calculate(forecast)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_adapter_fix.py:4: before passing data to modern DCFInput / EROS 3.0 engines.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_model.py:47: def run_model(self) -> ComparableResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py:6: class DCFInput:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py:34: from .dcf_input import DCFInput
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py:43: class DCFModel:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py:48: def __init__(self, data: DCFInput):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py:66: def run_model(self) -> DCFResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py:18: from services.valuation.dcf.dcf_input import DCFInput
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py:53: def build_forecast_schedule(data: DCFInput) -> ForecastSchedule:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:14: from .dcf_input import DCFInput
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:17: def validate_input(data: DCFInput) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:35: def _validate_history(data: DCFInput) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:45: def _validate_forecast_lengths(data: DCFInput) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:69: def _validate_rates(data: DCFInput) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:91: def _validate_capital_structure(data: DCFInput) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:111: def _validate_terminal_growth(data: DCFInput) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:128: def _validate_balance_sheet(data: DCFInput) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py:141: def _validate_share_count(data: DCFInput) -> None:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py:13: from services.valuation.dcf.dcf_input import DCFInput
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py:14: from services.valuation.dcf.dcf_model import DCFModel
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py:36: def run_dcf(data: DCFInput) -> DCFResult:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py:38: Convenience wrapper around DCFModel.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py:42: return DCFModel(data).run_model()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py:46: "DCFInput",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py:48: "DCFModel",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py:1: from services.valuation.dcf_engine import DCFValuationEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_engine.py:43: nav_res = model.run_model()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_model.py:51: def run_model(self) -> NAVResult:
+
+============================================================
+CURRENT EROS VALUATION CONTRACT
+============================================================
+  55: 
+  56: 
+  57: @dataclass
+  58: class ClassificationResult:
+  59:     classification: Optional[str] = None
+  60:     confidence: Optional[float] = None
+  61:     rationale: list[str] = field(default_factory=list)
+  62: 
+  63: 
+  64: @dataclass
+  65: class ValuationResult:
+  66:     value: Optional[float] = None
+  67:     low: Optional[float] = None
+  68:     high: Optional[float] = None
+  69:     method: Optional[str] = None
+  70:     currency: str = "INR"
+  71:     assumptions: dict[str, Any] = field(default_factory=dict)
+  72:     warnings: list[str] = field(default_factory=list)
+  73: 
+  74: 
+  75: @dataclass
+  76: class Evidence:
+  77:     source: str
+  78:     field: str
+  79:     value: Any = None
+  80:     period: Optional[str] = None
+  81:     confidence: Optional[float] = None
+  82:     metadata: dict[str, Any] = field(default_factory=dict)
+  83: 
+  84: 
+  85: @dataclass
+  86: class EROSResult:
+  87:     symbol: str
+  88: 
+  89:     financials: Optional[FinancialSnapshot] = None
+  90:     quality: Optional[QualityResult] = None
+  91:     score: Optional[ScoreResult] = None
+  92:     classification: Optional[ClassificationResult] = None
+  93: 
+  94:     sotp: Optional[ValuationResult] = None
+  95:     dcf: Optional[ValuationResult] = None
+  96:     bridge: Optional[ValuationResult] = None
+  97: 
+  98:     stage13c: Optional[dict[str, Any]] = None
+  99:     stage14: Optional[dict[str, Any]] = None
+ 100: 
+ 101:     evidence: list[Evidence] = field(default_factory=list)
+ 102: 
+ 103:     errors: list[str] = field(default_factory=list)
+ 104:     warnings: list[str] = field(default_factory=list)
+  76: class Evidence:
+  77:     source: str
+  78:     field: str
+  79:     value: Any = None
+  80:     period: Optional[str] = None
+  81:     confidence: Optional[float] = None
+  82:     metadata: dict[str, Any] = field(default_factory=dict)
+  83: 
+  84: 
+  85: @dataclass
+  86: class EROSResult:
+  87:     symbol: str
+  88: 
+  89:     financials: Optional[FinancialSnapshot] = None
+  90:     quality: Optional[QualityResult] = None
+  91:     score: Optional[ScoreResult] = None
+  92:     classification: Optional[ClassificationResult] = None
+  93: 
+  94:     sotp: Optional[ValuationResult] = None
+  95:     dcf: Optional[ValuationResult] = None
+  96:     bridge: Optional[ValuationResult] = None
+  97: 
+  98:     stage13c: Optional[dict[str, Any]] = None
+  99:     stage14: Optional[dict[str, Any]] = None
+ 100: 
+ 101:     evidence: list[Evidence] = field(default_factory=list)
+ 102: 
+ 103:     errors: list[str] = field(default_factory=list)
+ 104:     warnings: list[str] = field(default_factory=list)

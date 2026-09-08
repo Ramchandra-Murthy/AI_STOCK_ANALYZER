@@ -1,0 +1,280 @@
+﻿============================================================
+EROS 3.0 — FUNDAMENTALS BASELINE
+============================================================
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+Date: 09/07/2026 20:21:39
+
+TASK CONTROL: PROTECTED / DO NOT TOUCH
+
+============================================================
+SOURCE HASHES
+============================================================
+services\fundamentals\normalizer.py : D99ADA4AC311208AB9A7DBCB0FFC11C58132EB9164145CE1050E6CE2FFDBA119
+services\fundamentals\service.py : E71BA9676DFB0E5BAFB49C7988F3D718DAA59E4CD4C0BB9B12F5AD7D2BB394AC
+services\fundamentals\provider.py : E157EDE637F6F3649BBD70E814F4FA025A864253F5C1B2AB4B8CA56E08560AA8
+services\fundamentals\models.py : MISSING
+services\fundamentals\canonical_models.py : B0A9EA31104E455B651EFE0B435CA7D4A8CB49E28862394D8BB085E3B3965689
+services\fundamentals\parser.py : MISSING
+services\financials\financial_statement.py : 72045F46EFFAA02F18BAF44A736C8FD00BF6EFD86FD18AE3BA87DF42DE06716F
+services\financials\income_statement.py : D006EC84E9794D7C4C44DB084205C103CB2CB1B7989FF4B933C0E94EEDE4458B
+services\financials\balance_sheet.py : 2FE838BC03E8A029CC7427FE7DCF5341B31410FCE505955F1C6610F3A29BA664
+services\financials\cash_flow.py : C874C8E8979FD3C968CF3AE004E103D7A2933B45BD335F37DB6A66C36A03B8AA
+services\financials\normalization.py : 2977C9BD1EE0B27207ACB95F37CC2AC591CA644F66FE7C508081556A56AEFE6E
+services\ratios\engine.py : 859091C9619FDB7B52440F425F7547C6022A6D615327ABD1D09684283201118F
+services\scoring\engine.py : DF395A4A681C1C85FE374DF7A95B9AD7E6605CFF6F7C38BDA13A1118A1F17616
+
+============================================================
+NORMALIZER PUBLIC API
+============================================================
+17: def _float(value: Any) -> float:
+28: class FinancialNormalizer:
+31: def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+
+============================================================
+FINANCIAL STATEMENT PUBLIC API
+============================================================
+22: class PeriodFinancials:
+32: class FinancialStatements:
+48: def symbol(self) -> str:
+53: def income_statements(self) -> list[IncomeStatement]:
+60: def balance_sheets(self) -> list[BalanceSheet]:
+67: def cash_flows(self) -> list[CashFlowStatement]:
+73: def summary(self) -> dict[str, Any]:
+
+============================================================
+NORMALIZER IMPORT GRAPH
+============================================================
+dashboard/app.py:12:from services.fundamentals.normalizer import FinancialNormalizer
+dashboard/app.py:147:            normalizer = FinancialNormalizer()
+services/fundamentals/normalizer.py:28:class FinancialNormalizer:
+services/fundamentals/normalizer.py.backup3:16:class FinancialNormalizer:
+services/fundamentals/service.py:9:from services.fundamentals.normalizer import FinancialNormalizer
+services/fundamentals/service.py:21:        normalizer: FinancialNormalizer,
+tests/fundamentals/test_normalizer.py:4:from services.fundamentals.normalizer import FinancialNormalizer
+tests/fundamentals/test_normalizer.py:16:    normalizer = FinancialNormalizer()
+tests/fundamentals/test_service.py:7:from services.fundamentals.normalizer import FinancialNormalizer
+tests/fundamentals/test_service.py:17:        normalizer = FinancialNormalizer()
+tests/test_pipeline.py:9:from services.fundamentals.normalizer import FinancialNormalizer
+tests/test_pipeline.py:28:        normalizer = FinancialNormalizer()
+
+============================================================
+FINANCIAL STATEMENTS IMPORT GRAPH
+============================================================
+services/financials/__init__.py:4:    FinancialStatements,
+services/financials/__init__.py:13:    "FinancialStatements",
+services/financials/builders.py:10:Transforms validated FinancialStatements into the specific
+services/financials/builders.py:14:from services.financials.financial_statement import FinancialStatements
+services/financials/builders.py:36:    fs: FinancialStatements,
+services/financials/builders.py:39:    Converts FinancialStatements into DCFInput.
+services/financials/builders.py:82:    fs: FinancialStatements,
+services/financials/builders.py:85:    Converts FinancialStatements into NAVInput.
+services/financials/builders.py:105:    fs: FinancialStatements,
+services/financials/builders.py:108:    Converts FinancialStatements into ComparableInput.
+services/financials/financial_statement.py:32:class FinancialStatements:
+services/financials/normalization.py:29:    FinancialStatements,
+services/financials/normalization.py:221:) -> FinancialStatements:
+services/financials/normalization.py:223:    Builds the platform's canonical FinancialStatements object.
+services/financials/normalization.py:226:    return FinancialStatements(
+services/financials/normalization.py.31K-FI10-backup:29:    FinancialStatements,
+services/financials/normalization.py.31K-FI10-backup:221:) -> FinancialStatements:
+services/financials/normalization.py.31K-FI10-backup:223:    Builds the platform's canonical FinancialStatements object.
+services/financials/normalization.py.31K-FI10-backup:226:    return FinancialStatements(
+services/financials/normalization.py.31K-FI13-backup:29:    FinancialStatements,
+services/financials/normalization.py.31K-FI13-backup:221:) -> FinancialStatements:
+services/financials/normalization.py.31K-FI13-backup:223:    Builds the platform's canonical FinancialStatements object.
+services/financials/normalization.py.31K-FI13-backup:226:    return FinancialStatements(
+services/financials/parser.py:23:FinancialStatements
+services/financials/parser.py:52:    Normalizes, validates and stores a FinancialStatements object.
+services/financials/repository.py:5:from services.financials.financial_statement import FinancialStatements
+services/financials/repository.py:9:    """In-memory singleton repository for validated FinancialStatements."""
+services/financials/repository.py:19:    def store(self, fs: FinancialStatements) -> None:
+services/financials/repository.py:20:        """Stores a validated FinancialStatements object using composite key (company_name, fiscal_year)."""
+services/financials/repository.py:25:    def get(self, company_name: str, fiscal_year: str) -> FinancialStatements:
+services/financials/repository.py:26:        """Retrieves FinancialStatements from storage or raises RepositoryError."""
+services/financials/validator.py:10:Validates standardized FinancialStatements before they
+services/financials/validator.py:22:    FinancialStatements,
+services/financials/validator.py:47:    fs: FinancialStatements,
+services/forecast/engine.py:9:from services.financials.financial_statement import FinancialStatements
+services/forecast/engine.py:22:    def generate_forecast(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+services/forecast/service.py:10:from services.financials.financial_statement import FinancialStatements
+services/forecast/service.py:40:    async def compute_and_publish(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+services/forecast/service.py:41:        """Run forecast calculations using actual FinancialStatements and publish ForecastCompleted event."""
+services/fundamentals/models.py.backup2:12:class FinancialStatements:
+services/fundamentals/normalizer.py:9:    FinancialStatements,
+services/fundamentals/normalizer.py:29:    """Normalize provider payloads into canonical FinancialStatements."""
+services/fundamentals/normalizer.py:31:    def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+services/fundamentals/normalizer.py:327:        return FinancialStatements(
+services/fundamentals/normalizer.py.backup3:9:    FinancialStatements,
+services/fundamentals/normalizer.py.backup3:17:    """Normalize provider payloads into canonical FinancialStatements objects."""
+services/fundamentals/normalizer.py.backup3:19:    def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+services/fundamentals/normalizer.py.backup3:148:        return FinancialStatements(
+services/fundamentals/service.py:8:from services.financials.financial_statement import FinancialStatements
+services/fundamentals/service.py:23:        cache: Optional[dict[str, FinancialStatements]] = None,
+services/fundamentals/service.py:30:    async def get_or_download(self, symbol: str) -> FinancialStatements:
+services/ratios/engine.py:6:from services.financials.financial_statement import FinancialStatements
+services/ratios/engine.py:22:    def compute_ratios(self, financials: FinancialStatements) -> FinancialRatios:
+services/ratios/engine.py.backup_before_ratio_fix:6:from services.fundamentals.models import FinancialStatements
+services/ratios/engine.py.backup_before_ratio_fix:22:    def compute_ratios(self, financials: FinancialStatements) -> FinancialRatios:
+services/scoring/engine.py:4:from services.financials.financial_statement import FinancialStatements
+services/scoring/engine.py:44:        financials: FinancialStatements,
+services/scoring/fundamental.py:8:from services.financials.financial_statement import FinancialStatements
+services/scoring/fundamental.py:72:        financials: FinancialStatements,
+services/scoring/growth.py:4:from services.financials.financial_statement import FinancialStatements
+services/scoring/growth.py:51:        financials: FinancialStatements,
+services/valuation/relative/engine.py:6:from services.financials.financial_statement import FinancialStatements
+services/valuation/relative/engine.py:16:        financials: FinancialStatements,
+services/valuation/sotp/engine.py:6:from services.financials.financial_statement import FinancialStatements
+services/valuation/sotp/engine.py:16:        financials: FinancialStatements,
+tests/fundamentals/test_models.py:5:from services.financials.financial_statement import FinancialStatements, PeriodFinancials
+tests/fundamentals/test_models.py:38:    fs = FinancialStatements(
+tests/ratios/test_ratios.py:4:from services.financials.financial_statement import FinancialStatements, PeriodFinancials
+tests/ratios/test_ratios.py:39:    fin = FinancialStatements(
+tests/scoring/test_block11_historical_growth.py:3:    FinancialStatements,
+tests/scoring/test_block11_historical_growth.py:30:    statements = FinancialStatements(
+tests/scoring/test_block12_unified_scoring.py:3:    FinancialStatements,
+tests/scoring/test_block12_unified_scoring.py:39:    statements = FinancialStatements(
+tests/scoring/test_block13_valuation_scoring.py:3:    FinancialStatements,
+tests/scoring/test_block13_valuation_scoring.py:39:    statements = FinancialStatements(
+tests/scoring/test_block14_integration.py:3:    FinancialStatements,
+tests/scoring/test_block14_integration.py:40:    statements = FinancialStatements(
+tests/scoring/test_block15_integration.py:3:    FinancialStatements,
+tests/scoring/test_block15_integration.py:41:    statements = FinancialStatements(
+tests/scoring/test_block16_e2e.py:2:    FinancialStatements,
+tests/scoring/test_block16_e2e.py:26:    statements = FinancialStatements(
+tests/scoring/test_block16_e2e.py:71:    statements = FinancialStatements(
+tests/scoring/test_scoring.py:3:from services.financials.financial_statement import FinancialStatements
+tests/scoring/test_scoring.py:11:    fs = FinancialStatements(
+tests/valuation/test_relative.py:6:from services.financials.financial_statement import FinancialStatements
+tests/valuation/test_relative.py:40:    fs = FinancialStatements(
+tests/valuation/test_sotp.py:3:from services.financials.financial_statement import FinancialStatements
+tests/valuation/test_sotp.py:38:    fs = FinancialStatements(
+
+============================================================
+FUNDAMENTALS TESTS
+============================================================
+......                                                                   [100%]
+6 passed in 3.67s
+FUNDAMENTALS EXIT CODE: 0
+
+============================================================
+END-TO-END PIPELINE TEST
+============================================================
+.                                                                        [100%]
+1 passed in 2.99s
+PIPELINE EXIT CODE: 0
+
+============================================================
+PYTHON COMPILE
+============================================================
+services\fundamentals\normalizer.py : COMPILE PASS
+services\fundamentals\service.py : COMPILE PASS
+services\fundamentals\provider.py : COMPILE PASS
+services\fundamentals\canonical_models.py : COMPILE PASS
+services\financials\financial_statement.py : COMPILE PASS
+services\financials\income_statement.py : COMPILE PASS
+services\financials\balance_sheet.py : COMPILE PASS
+services\financials\cash_flow.py : COMPILE PASS
+services\financials\normalization.py : COMPILE PASS
+services\ratios\engine.py : COMPILE PASS
+services\scoring\engine.py : COMPILE PASS
+
+============================================================
+CURRENT FUNDAMENTALS DIFF
+============================================================
+ services/financials/balance_sheet.py       |  10 +
+ services/financials/financial_statement.py |  45 +++-
+ services/fundamentals/normalizer.py        | 406 +++++++++++++++++++++--------
+ services/fundamentals/service.py           |   4 +-
+ services/ratios/engine.py                  |   5 +-
+ services/scoring/engine.py                 |  43 ++-
+ 6 files changed, 372 insertions(+), 141 deletions(-)
+
+
+============================================================
+GIT STATUS
+============================================================
+ M app.py
+ M backend/tasks/task_control.py
+ M celerybeat-schedule-shm
+ M celerybeat-schedule-wal
+ M components/top_holdings.py
+ M services/financials/balance_sheet.py
+ M services/financials/financial_statement.py
+ M services/forecast/engine.py
+ M services/forecast/service.py
+ M services/fundamentals/normalizer.py
+ M services/fundamentals/service.py
+ M services/ratios/engine.py
+ M services/scoring/engine.py
+ M services/sotp_long_term_equity_classification_service.py
+ M services/valuation/base_engine.py
+ M services/valuation/dcf/engine.py
+ M services/valuation/dcf_adapter.py
+ M services/valuation/dcf_engine.py
+ M services/valuation/dispatcher.py
+ M services/valuation/nav_engine.py
+ M services/valuation/relative/engine.py
+ M services/valuation/sotp/engine.py
+ M services/valuation/sotp_engine.py
+ M services/workflow/production_orchestrator.py
+ M tests/fundamentals/test_models.py
+ M tests/ratios/test_quality_engine.py
+ M tests/ratios/test_ratios.py
+ M tests/scoring/test_scoring.py
+ M tests/valuation/test_sotp.py
+?? S
+?? backend/tasks/task_control.py.backup-before-comment-cleanup
+?? backend/tasks/task_control.py.backup-before-forecast-cleanup
+?? backups/
+?? celery_runtime_diagnostic.txt
+?? docker_celery_test.txt
+?? eros_3_rebuild_architecture_audit.txt
+?? eros_fundamentals_canonical_path.txt
+?? eros_fundamentals_contract_extraction.txt
+?? eros_modification_triage.txt
+?? eros_normalizer_contract.txt
+?? eros_normalizer_rebuild_audit.txt
+?? eros_stage1_fundamentals_audit.txt
+?? eros_test_discovery.txt
+?? forecast_blocks_inspection.txt
+?? forecast_cleanup_result.txt
+?? forecast_comment_cleanup_result.txt
+?? forecast_post_cleanup_inspection.txt
+?? fundamentals_normalizer_audit.txt
+?? fundamentals_normalizer_triage.txt
+?? next_repair_diff.txt
+?? next_repair_target.txt
+?? next_repair_triage.txt
+?? normalizer_repair_audit.txt
+?? post_cleanup_task_control_audit.txt
+?? queue_status_investigation.txt
+?? services/scoring/engine.py.pre_canonical_migration.bak
+?? services/scoring/engine.py.pre_canonical_result_fix.bak
+?? services/scoring/engine.py.pre_valuation_migration.bak
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+?? services/valuation/__init__.py.pre_valuation_migration.bak
+?? services/valuation/service.py.pre_valuation_migration.bak
+?? submit_task_structural_audit.txt
+?? task_control_diff_review.txt
+?? task_control_docker_final.txt
+?? task_control_environment_comparison.txt
+?? task_control_final_audit.txt
+?? task_control_final_docker_validation.txt
+?? task_control_final_safety_check.txt
+?? task_control_final_validation.txt
+?? task_control_forecast_section.txt
+?? task_control_structural_audit.txt
+?? task_control_targeted_validation.txt
+?? task_control_test_result.txt
+?? test_discovery.txt
+?? test_discovery_result.txt
+?? test_suite_discovery.txt
+?? valuation_execution_trace.txt
+
+
+============================================================
+BASELINE COMPLETE
+============================================================

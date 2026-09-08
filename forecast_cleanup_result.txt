@@ -1,0 +1,23 @@
+﻿===== FORECAST BLOCK CLEANUP =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+File: D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py
+
+Backup created: D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py.backup-before-forecast-cleanup
+
+Forecast blocks BEFORE cleanup: 5
+Line 298: if task_name in ("forecast.execute", "forecast.run"):
+Line 330: if task_name in ("forecast.execute", "forecast.run"):
+Line 365: if task_name in ("forecast.execute", "forecast.run"):
+Line 422: if task_name in ("forecast.execute", "forecast.run"):
+Line 479: if task_name in ("forecast.execute", "forecast.run"):
+
+Forecast blocks AFTER cleanup: 1
+Line 298: if task_name in ("forecast.execute", "forecast.run"):
+
+FORECAST DUPLICATE CLEANUP: PASS
+
+===== SYNTAX CHECK =====
+SYNTAX: PASS
+
+===== FINAL FILE LOCATION =====
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py

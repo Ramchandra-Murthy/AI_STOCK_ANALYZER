@@ -1,0 +1,102 @@
+﻿===== EROS MODIFICATION TRIAGE =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+===== MODIFIED SOURCE FILES =====
+backend/tasks/task_control.py
+components/top_holdings.py
+services/financials/balance_sheet.py
+services/financials/financial_statement.py
+services/forecast/engine.py
+services/forecast/service.py
+services/fundamentals/normalizer.py
+services/fundamentals/service.py
+services/ratios/engine.py
+services/scoring/engine.py
+services/sotp_long_term_equity_classification_service.py
+services/valuation/base_engine.py
+services/valuation/dcf/engine.py
+services/valuation/dcf_adapter.py
+services/valuation/dcf_engine.py
+services/valuation/dispatcher.py
+services/valuation/nav_engine.py
+services/valuation/relative/engine.py
+services/valuation/sotp/engine.py
+services/valuation/sotp_engine.py
+services/workflow/production_orchestrator.py
+
+===== MODIFIED TEST FILES =====
+tests/fundamentals/test_models.py
+tests/ratios/test_quality_engine.py
+tests/ratios/test_ratios.py
+tests/scoring/test_scoring.py
+tests/valuation/test_sotp.py
+
+===== UNTRACKED BACKUP / LOG ARTIFACTS =====
+?? backend/tasks/task_control.py.backup-before-comment-cleanup
+?? backend/tasks/task_control.py.backup-before-forecast-cleanup
+?? celery_runtime_diagnostic.txt
+?? docker_celery_test.txt
+?? eros_test_discovery.txt
+?? forecast_blocks_inspection.txt
+?? forecast_cleanup_result.txt
+?? forecast_comment_cleanup_result.txt
+?? forecast_post_cleanup_inspection.txt
+?? next_repair_target.txt
+?? post_cleanup_task_control_audit.txt
+?? queue_status_investigation.txt
+?? services/scoring/engine.py.pre_canonical_migration.bak
+?? services/scoring/engine.py.pre_canonical_result_fix.bak
+?? services/scoring/engine.py.pre_valuation_migration.bak
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+?? services/valuation/__init__.py.pre_valuation_migration.bak
+?? services/valuation/service.py.pre_valuation_migration.bak
+?? submit_task_structural_audit.txt
+?? task_control_diff_review.txt
+?? task_control_docker_final.txt
+?? task_control_environment_comparison.txt
+?? task_control_final_audit.txt
+?? task_control_final_docker_validation.txt
+?? task_control_final_safety_check.txt
+?? task_control_final_validation.txt
+?? task_control_forecast_section.txt
+?? task_control_structural_audit.txt
+?? task_control_targeted_validation.txt
+?? task_control_test_result.txt
+?? test_discovery.txt
+?? test_discovery_result.txt
+?? test_suite_discovery.txt
+?? valuation_execution_trace.txt
+
+===== TASK_CONTROL =====
+backend/tasks/task_control.py = REPAIRED — DO NOT TOUCH
+===== MODIFIED SOURCE DIFF SIZE =====
+44	77	app.py
+1	206	backend/tasks/task_control.py
+45	11	components/top_holdings.py
+10	0	services/financials/balance_sheet.py
+35	10	services/financials/financial_statement.py
+2	2	services/forecast/engine.py
+2	2	services/forecast/service.py
+292	114	services/fundamentals/normalizer.py
+2	2	services/fundamentals/service.py
+2	3	services/ratios/engine.py
+31	12	services/scoring/engine.py
+155	16	services/sotp_long_term_equity_classification_service.py
+11	29	services/valuation/base_engine.py
+1	1	services/valuation/dcf/engine.py
+32	9	services/valuation/dcf_adapter.py
+157	24	services/valuation/dcf_engine.py
+2	2	services/valuation/dispatcher.py
+22	19	services/valuation/nav_engine.py
+1	4	services/valuation/relative/engine.py
+1	1	services/valuation/sotp/engine.py
+28	22	services/valuation/sotp_engine.py
+88	23	services/workflow/production_orchestrator.py
+55	13	tests/fundamentals/test_models.py
+21	6	tests/ratios/test_quality_engine.py
+47	14	tests/ratios/test_ratios.py
+35	4	tests/scoring/test_scoring.py
+29	4	tests/valuation/test_sotp.py
+

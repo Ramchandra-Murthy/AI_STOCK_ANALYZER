@@ -1,0 +1,123 @@
+﻿===== TASK_CONTROL.PY STRUCTURAL AUDIT =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+File: D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py
+
+===== CLASS / METHOD STRUCTURE =====
+
+class TaskControlService:
+    def __init__(self) -> None:
+    def real_celery_enabled(self) -> bool:
+    def _synchronize_task_registry(self) -> None:
+    def submit_task(
+    def get_task_status(
+    def get_task_result(
+    def get_registered_tasks(self) -> list[str]:
+    def get_queue_status(self) -> Dict[str, Any]:
+    def get_task_metrics(self) -> Dict[str, Any]:
+    def get_task_observability_details(
+    def get_observability_summary(
+
+
+
+
+===== SUBMIT_TASK BOUNDARIES =====
+
+              raise
+  
+>     def submit_task(
+          self,
+          task_name: str,
+          }
+  
+>     def get_task_status(
+          self,
+          task_id: str,
+          }
+  
+>     def get_task_result(
+          self,
+          task_id: str,
+
+
+
+
+===== FORECAST BLOCK =====
+
+                  finally:
+                      idempotency_lock_acquired = False
+          execution_result: Dict[str, Any] = {
+              "status": "SUCCESS",
+              "task_id": task_id,
+              "user": user,
+              "symbol": payload.get("symbol", "TCS.NS"),
+          }
+>         if task_name in ("forecast.execute", "forecast.run"):
+              execution_result.update({
+                  "expected_value": float(payload.get("expected_value", 2837.5)),
+                  "bull_value": float(payload.get("bull_value", 3450.0)),
+                  "base_value": float(payload.get("base_value", 2900.0)),
+                  "bear_value": float(payload.get("bear_value", 2100.0)),
+                  "confidence": float(payload.get("confidence", 0.89)),
+                  "probability_distribution": payload.get(
+                      "probability_distribution",
+                      {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
+                  ),
+                  "key_drivers": payload.get(
+                      "key_drivers",
+                      ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
+                  ),
+                  "major_risks": payload.get(
+                      "major_risks",
+                      ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
+                  ),
+                  "assumptions": payload.get(
+                      "assumptions",
+                      [
+                          "WACC calculated via CAPM with Hamada levered beta adjustment.",
+                          "Terminal growth rate capped at long-term sovereign GDP growth.",
+                          "Cash flows projected over 5-year explicit horizon plus terminal value."
+                      ]
+                  ),
+                  "record_id": payload.get(
+                      "record_id",
+                      f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
+                  ),
+              })
+          # This mirrors the shape of the real forecast worker result
+          # without executing the production forecasting pipeline.
+  
+          self._mock_tasks[task_id] = {
+              "task_id": task_id,
+              "task_name": task_name,
+              "user": user,
+              "status": (
+                  "QUEUED"
+                  if self._real_celery
+                  else "SUCCESS"
+              ),
+              "result": execution_result,
+              "submitted_at": submitted_at_ts,
+
+
+
+
+===== REGISTERED TASKS =====
+
+            if "forecast.execute" not in target_app.tasks:
+                    name="forecast.execute",
+            if "forecast.run" not in target_app.tasks:
+                    name="forecast.run",
+            if "valuation.execute" not in target_app.tasks:
+                    name="valuation.execute",
+            if "report.generate" not in target_app.tasks:
+                    name="report.generate",
+        if task_name in ("forecast.execute", "forecast.run"):
+
+
+
+
+===== FORECAST BLOCK COUNT =====
+Count: 1
+
+===== PYTHON SYNTAX =====
+

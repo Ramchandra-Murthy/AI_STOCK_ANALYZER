@@ -1,0 +1,1051 @@
+﻿============================================================
+EROS 3.0 — PHASE 5B REAL ENGINE MAP
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+
+============================================================
+FILE: services\data_platform\quality.py
+============================================================
+SIZE: 1317 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+import logging
+from typing import Dict, Any
+from services.data_platform.contracts import QualityCheckResult
+
+--- CLASSES ---
+9: class DataQualityEngine:
+
+--- FUNCTIONS ---
+13:     def inspect_metric(metric_name: str, value: float, min_val: float = -1e12, max_val: float = 1e12) -> QualityCheckResult:
+
+--- RELEVANT SYMBOLS ---
+5: from services.data_platform.contracts import QualityCheckResult
+9: class DataQualityEngine:
+10:     """Institutional data quality assurance engine performing range checks, historical consistency, and identity validation."""
+13:     def inspect_metric(metric_name: str, value: float, min_val: float = -1e12, max_val: float = 1e12) -> QualityCheckResult:
+14:         logger.info("Inspecting data quality for metric '%s' with value %s", metric_name, value)
+16:             return QualityCheckResult(
+28:         return QualityCheckResult(
+
+============================================================
+FILE: services\financials\financial_ratios.py
+============================================================
+SIZE: 4158 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from dataclasses import dataclass
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.financials.income_statement import IncomeStatement
+
+--- CLASSES ---
+35: class FinancialRatios:
+
+--- FUNCTIONS ---
+71: def _safe_divide(a: float, b: float) -> float:
+82: def calculate_financial_ratios(
+
+--- RELEVANT SYMBOLS ---
+5: FINANCIAL RATIO ENGINE
+6: Module  : financial_ratios
+10: Computes standardized financial ratios from the
+11: Financial Statement Layer.
+14: • DCF
+25: from services.financials.balance_sheet import BalanceSheet
+26: from services.financials.cash_flow import CashFlowStatement
+27: from services.financials.income_statement import IncomeStatement
+30: # Ratio Container
+35: class FinancialRatios:
+50:     current_ratio: float
+51:     quick_ratio: float
+59:     cash_conversion_ratio: float
+82: def calculate_financial_ratios(
+86: ) -> FinancialRatios:
+92:     current_ratio = _safe_divide(
+99:     quick_ratio = _safe_divide(
+104:     return FinancialRatios(
+140:         current_ratio=current_ratio,
+141:         quick_ratio=quick_ratio,
+156:         cash_conversion_ratio=_safe_divide(
+
+============================================================
+FILE: services\financials\financial_statement.py
+============================================================
+SIZE: 1730 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Any
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.financials.income_statement import IncomeStatement
+
+--- CLASSES ---
+23: class PeriodFinancials:
+35: class FinancialStatements:
+
+--- FUNCTIONS ---
+50:     def summary(self) -> dict[str, Any]:
+
+--- RELEVANT SYMBOLS ---
+5: STANDARD FINANCIAL STATEMENT MODEL
+6: Module  : financial_statement
+10: Defines the master financial statement object used
+11: throughout the valuation platform.
+17: from services.financials.balance_sheet import BalanceSheet
+18: from services.financials.cash_flow import CashFlowStatement
+19: from services.financials.income_statement import IncomeStatement
+23: class PeriodFinancials:
+35: class FinancialStatements:
+37:     Standardized financial statement container.
+47:     periods: list[PeriodFinancials] = field(default_factory=list)
+
+============================================================
+FILE: services\financials\normalization.py
+============================================================
+SIZE: 5672 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from typing import Any
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.financials.financial_statement import (
+from services.financials.income_statement import IncomeStatement
+
+--- CLASSES ---
+
+--- FUNCTIONS ---
+34: def _get(
+48: def normalize_income_statement(
+100: def normalize_balance_sheet(
+170: def normalize_cash_flow(
+213: def normalize_financial_statements(
+
+--- RELEVANT SYMBOLS ---
+5: FINANCIAL STATEMENT NORMALIZATION
+6: Module  : normalization
+10: Converts raw financial statement data from different
+11: providers into the platform's standardized financial
+26: from services.financials.balance_sheet import BalanceSheet
+27: from services.financials.cash_flow import CashFlowStatement
+28: from services.financials.financial_statement import (
+29:     FinancialStatements,
+31: from services.financials.income_statement import IncomeStatement
+48: def normalize_income_statement(
+100: def normalize_balance_sheet(
+170: def normalize_cash_flow(
+213: def normalize_financial_statements(
+221: ) -> FinancialStatements:
+223:     Builds the platform's canonical FinancialStatements object.
+226:     return FinancialStatements(
+231:         income_statement=normalize_income_statement(income_raw),
+232:         balance_sheet=normalize_balance_sheet(balance_raw),
+233:         cash_flow_statement=normalize_cash_flow(cashflow_raw),
+
+============================================================
+FILE: services\fundamentals\normalizer.py
+============================================================
+SIZE: 6100 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+import logging
+from typing import Any
+from services.fundamentals.models import (
+from services.financials.income_statement import IncomeStatement
+
+--- CLASSES ---
+16: class FinancialNormalizer:
+
+--- FUNCTIONS ---
+19:     def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+
+--- RELEVANT SYMBOLS ---
+9:     FinancialStatements,
+11: from services.financials.income_statement import IncomeStatement
+16: class FinancialNormalizer:
+17:     """Normalize provider payloads into canonical FinancialStatements objects."""
+19:     def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+24:             "Normalizing financial data for symbol: %s from provider: %s",
+154:         return FinancialStatements(
+
+============================================================
+FILE: services\ratios\quality_engine.py
+============================================================
+SIZE: 2673 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+import logging
+from typing import Any, Dict
+
+--- CLASSES ---
+7: class AdvancedQualityEngine:
+
+--- FUNCTIONS ---
+11:     def compute_altman_z(bs: Any, inc: Any) -> float:
+34:     def compute_cash_conversion_cycle(bs: Any, inc: Any) -> Dict[str, float]:
+
+--- RELEVANT SYMBOLS ---
+7: class AdvancedQualityEngine:
+8:     """Computes advanced accounting quality and financial distress scores."""
+11:     def compute_altman_z(bs: Any, inc: Any) -> float:
+30:             logger.warning("Error calculating Altman Z-Score: %s", e)
+34:     def compute_cash_conversion_cycle(bs: Any, inc: Any) -> Dict[str, float]:
+
+============================================================
+FILE: services\score_service.py
+============================================================
+SIZE: 9480 bytes
+
+--- IMPORTS ---
+import math
+
+--- CLASSES ---
+
+--- FUNCTIONS ---
+8: def _safe_float(value):
+27: def _clamp(value, minimum=0.0, maximum=100.0):
+43: def calculate_stability_score(data):
+230: def calculate_investment_score(
+
+--- RELEVANT SYMBOLS ---
+39: # STABILITY / RISK SCORE
+43: def calculate_stability_score(data):
+45:     Calculate a 0-100 stability score.
+50:         Current Ratio    30%
+52:     Missing metrics are availability-normalized so that
+160:     # Current Ratio â€” 30 points
+163:     current_ratio = _safe_float(data.get("current_ratio"))
+165:     if current_ratio is not None:
+167:         if 1.50 <= current_ratio <= 3.00:
+171:                 f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity."
+174:         elif 1.00 <= current_ratio < 1.50:
+178:                 f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity."
+181:         elif current_ratio > 3.00:
+185:                 f"Current ratio of {current_ratio:.2f}x indicates strong liquidity."
+188:         elif current_ratio >= 0.75:
+192:                 f"Current ratio of {current_ratio:.2f}x indicates tight liquidity."
+199:                 f"Current ratio of {current_ratio:.2f}x indicates weak liquidity."
+205:     # Normalize available components to 100
+209:         return 50.0, ["Insufficient data to calculate stability score."]
+215:     stability_score = (earned / possible) * 100.0
+217:     stability_score = round(
+218:         _clamp(stability_score),
+222:     return stability_score, reasons
+226: # INVESTMENT SCORE V2
+230: def calculate_investment_score(
+231:     technical_score,
+232:     fundamental_score,
+237:     Calculate Investment Score V2.
+241:     Technical Score       35%
+242:     Fundamental Score V2  40%
+243:     AI Score              15%
+250:     investment_score : int
+251:         Final score from 0 to 100.
+254:         Detailed component scores and weighted
+259:     # Technical score
+262:     technical = _safe_float(technical_score)
+270:     # Fundamental score
+273:     fundamental = _safe_float(fundamental_score)
+281:     # AI score
+284:     ai_score = None
+287:         ai_score = _safe_float(ai_result.get("score"))
+289:     if ai_score is None:
+290:         ai_score = 50.0
+292:     ai_score = _clamp(ai_score)
+295:     # Stability score
+298:     stability_score, stability_reasons = calculate_stability_score(
+302:     stability_score = _clamp(stability_score)
+312:     ai_contribution = ai_score * 0.15
+314:     stability_contribution = stability_score * 0.10
+339:             ai_score,
+343:             stability_score,
+
+============================================================
+FILE: services\fundamental_score_service.py
+============================================================
+SIZE: 14566 bytes
+
+--- IMPORTS ---
+import math
+
+--- CLASSES ---
+
+--- FUNCTIONS ---
+8: def to_float(value):
+49: def _percent(value):
+65: def _debt_equity_ratio(value):
+81: def _normalize_category(metric_scores, maximum=20):
+110: def calculate_fundamental_score(data):
+
+--- RELEVANT SYMBOLS ---
+65: def _debt_equity_ratio(value):
+67:     Convert Yahoo debtToEquity to a normal ratio.
+81: def _normalize_category(metric_scores, maximum=20):
+83:     Normalize available metric scores to a category maximum.
+85:     metric_scores:
+91:     if not metric_scores:
+94:     earned = sum(item[0] for item in metric_scores)
+95:     possible = sum(item[1] for item in metric_scores)
+100:     score = (earned / possible) * maximum
+102:     return max(0.0, min(score, maximum))
+106: # FUNDAMENTAL SCORE V2
+110: def calculate_fundamental_score(data):
+112:     Fundamental Score V2.
+115:         Valuation          20
+118:         Financial Health   20
+133:     # Read and normalize data
+147:     debt_to_equity = _debt_equity_ratio(data.get("debt_to_equity"))
+149:     current_ratio = to_float(data.get("current_ratio"))
+160:     # 1. VALUATION â€” 20
+169:             reasons.append(f"P/E of {pe:.2f} indicates attractive valuation.")
+173:             reasons.append(f"P/E of {pe:.2f} indicates reasonable valuation.")
+177:             reasons.append(f"P/E of {pe:.2f} indicates moderate valuation.")
+181:             reasons.append(f"P/E of {pe:.2f} indicates an expensive valuation.")
+185:             reasons.append(f"P/E of {pe:.2f} indicates a very high valuation.")
+194:                 f"P/B of {pb:.2f} indicates attractive book-value valuation."
+211:             reasons.append(f"P/B of {pb:.2f} indicates a very high valuation.")
+215:     valuation_score = _normalize_category(metrics)
+307:     profitability_score = _normalize_category(metrics)
+363:     growth_score = _normalize_category(metrics)
+366:     # 4. FINANCIAL HEALTH â€” 20
+401:     if current_ratio is not None:
+403:         if 1.5 <= current_ratio <= 3:
+406:                 f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity."
+409:         elif 1 <= current_ratio < 1.5:
+412:                 f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity."
+415:         elif current_ratio > 3:
+418:                 f"Current ratio of {current_ratio:.2f}x indicates strong liquidity."
+421:         elif current_ratio >= 0.75:
+424:                 f"Current ratio of {current_ratio:.2f}x indicates tight liquidity."
+430:                 f"Current ratio of {current_ratio:.2f}x indicates weak liquidity."
+439:             reasons.append("The company reports little or no financial debt.")
+442:             cash_debt_ratio = total_cash / total_debt
+444:             if cash_debt_ratio >= 1:
+448:             elif cash_debt_ratio >= 0.50:
+451:                     f"Cash covers approximately {cash_debt_ratio * 100:.1f}% of debt."
+454:             elif cash_debt_ratio >= 0.25:
+457:                     f"Cash covers approximately {cash_debt_ratio * 100:.1f}% of debt."
+466:     health_score = _normalize_category(metrics)
+506:     cash_flow_score = _normalize_category(metrics)
+509:     # FINAL SCORE
+512:     category_scores = [
+513:         valuation_score,
+514:         profitability_score,
+515:         growth_score,
+516:         health_score,
+517:         cash_flow_score,
+520:     available_scores = [score for score in category_scores if score is not None]
+522:     if not available_scores:
+523:         return 0, ["Insufficient fundamental data to calculate a score."]
+525:     # Each category is normalized to 20.
+526:     # Average category score * 5 gives a 0-100 result.
+528:     final_score = (sum(available_scores) / len(available_scores)) * 5
+530:     final_score = round(
+533:             min(final_score, 100),
+537:     return final_score, reasons
+
+============================================================
+FILE: services\scoring\fundamental.py
+============================================================
+SIZE: 10149 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import Any, Dict
+from services.financials.financial_ratios import (
+from services.financials.financial_statement import FinancialStatements
+
+--- CLASSES ---
+49: class FundamentalScoreResult:
+63: class FundamentalScoringEngine:
+
+--- FUNCTIONS ---
+10: def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
+13: def _score_positive(
+28: def _score_negative(
+43: def _average(values: list[float]) -> float:
+70:     def evaluate(
+
+--- RELEVANT SYMBOLS ---
+4: from services.financials.financial_ratios import (
+5:     FinancialRatios,
+6:     calculate_financial_ratios,
+8: from services.financials.financial_statement import FinancialStatements
+13: def _score_positive(
+19:     Score a metric where higher values are better.
+25:     score = ((value - weak) / (strong - weak)) * 100.0
+26:     return round(_clamp(score), 2)
+28: def _score_negative(
+34:     Score a metric where lower values are better.
+40:     score = ((bad - value) / (bad - good)) * 100.0
+41:     return round(_clamp(score), 2)
+49: class FundamentalScoreResult:
+52:     All pillar scores are normalized to 0-100.
+55:     profitability_score: float
+56:     quality_score: float
+57:     financial_strength_score: float
+58:     capital_efficiency_score: float
+59:     cash_flow_quality_score: float
+60:     fundamental_score: float
+66:     This engine intentionally uses only validated canonical financial
+67:     statements and calculated financial ratios.
+68:     Growth, momentum and valuation are deliberately excluded here.
+70:     def evaluate(
+72:         financials: FinancialStatements,
+73:     ) -> FundamentalScoreResult:
+74:         ratios: FinancialRatios = calculate_financial_ratios(
+75:             income=financials.income_statement,
+76:             balance=financials.balance_sheet,
+77:             cashflow=financials.cash_flow_statement,
+84:             "gross_margin": _score_positive(
+85:                 ratios.gross_margin,
+89:             "ebitda_margin": _score_positive(
+90:                 ratios.ebitda_margin,
+94:             "ebit_margin": _score_positive(
+95:                 ratios.ebit_margin,
+99:             "net_margin": _score_positive(
+100:                 ratios.net_margin,
+104:             "roe": _score_positive(
+105:                 ratios.roe,
+109:             "roa": _score_positive(
+110:                 ratios.roa,
+114:             "roce": _score_positive(
+115:                 ratios.roce,
+119:             "roic": _score_positive(
+120:                 ratios.roic,
+125:         profitability_score = _average(
+130:         # QUALITY
+132:         quality_components = {
+133:             "cash_conversion_ratio": _score_positive(
+134:                 ratios.cash_conversion_ratio,
+138:             "fcf_margin": _score_positive(
+139:                 ratios.fcf_margin,
+143:             "roic": _score_positive(
+144:                 ratios.roic,
+148:             "roe": _score_positive(
+149:                 ratios.roe,
+154:         quality_score = _average(
+155:             list(quality_components.values())
+159:         # FINANCIAL STRENGTH
+161:         financial_strength_components = {
+162:             "current_ratio": _score_positive(
+163:                 ratios.current_ratio,
+167:             "quick_ratio": _score_positive(
+168:                 ratios.quick_ratio,
+172:             "debt_to_equity": _score_negative(
+173:                 ratios.debt_to_equity,
+177:             "net_debt_to_ebitda": _score_negative(
+178:                 ratios.net_debt_to_ebitda,
+183:         financial_strength_score = _average(
+184:             list(financial_strength_components.values())
+191:             "roic": _score_positive(
+192:                 ratios.roic,
+196:             "roce": _score_positive(
+197:                 ratios.roce,
+201:             "roa": _score_positive(
+202:                 ratios.roa,
+206:             "asset_turnover": _score_positive(
+207:                 ratios.asset_turnover,
+211:             "inventory_turnover": _score_positive(
+212:                 ratios.inventory_turnover,
+217:         capital_efficiency_score = _average(
+222:         # CASH FLOW QUALITY
+225:             "fcf_margin": _score_positive(
+226:                 ratios.fcf_margin,
+230:             "cash_conversion_ratio": _score_positive(
+231:                 ratios.cash_conversion_ratio,
+236:         cash_flow_quality_score = _average(
+245:             "quality": 0.20,
+246:             "financial_strength": 0.20,
+248:             "cash_flow_quality": 0.15,
+250:         fundamental_score = round(
+251:             profitability_score * pillar_weights["profitability"]
+252:             + quality_score * pillar_weights["quality"]
+253:             + financial_strength_score * pillar_weights["financial_strength"]
+254:             + capital_efficiency_score * pillar_weights["capital_efficiency"]
+255:             + cash_flow_quality_score * pillar_weights["cash_flow_quality"],
+259:         raw_ratios = {
+260:             "gross_margin": ratios.gross_margin,
+261:             "ebitda_margin": ratios.ebitda_margin,
+262:             "ebit_margin": ratios.ebit_margin,
+263:             "net_margin": ratios.net_margin,
+264:             "roe": ratios.roe,
+265:             "roa": ratios.roa,
+266:             "roce": ratios.roce,
+267:             "roic": ratios.roic,
+268:             "current_ratio": ratios.current_ratio,
+269:             "quick_ratio": ratios.quick_ratio,
+270:             "debt_to_equity": ratios.debt_to_equity,
+271:             "net_debt_to_ebitda": ratios.net_debt_to_ebitda,
+272:             "fcf_margin": ratios.fcf_margin,
+273:             "cash_conversion_ratio": ratios.cash_conversion_ratio,
+274:             "asset_turnover": ratios.asset_turnover,
+275:             "inventory_turnover": ratios.inventory_turnover,
+283:             "raw_ratios": raw_ratios,
+285:             "quality_components": quality_components,
+289:             "ratios": raw_ratios,
+291:             "quality": quality_components,
+292:             "financial_strength": financial_strength_components,
+294:             "cash_flow_quality": cash_flow_components,
+298:         return FundamentalScoreResult(
+299:             symbol=financials.ticker,
+300:             profitability_score=profitability_score,
+301:             quality_score=quality_score,
+302:             financial_strength_score=financial_strength_score,
+303:             capital_efficiency_score=capital_efficiency_score,
+304:             cash_flow_quality_score=cash_flow_quality_score,
+305:             fundamental_score=fundamental_score,
+
+============================================================
+FILE: services\scoring\risk_scoring.py
+============================================================
+SIZE: 3561 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import Any, Dict
+from services.risk_management.models import PortfolioRiskProfile
+from services.risk_management.resilience import RiskResilienceEngine
+from services.risk_management.stress_engine import StressTestingEngine
+
+--- CLASSES ---
+12: class RiskScoreResult:
+23: class RiskScoringEngine:
+
+--- FUNCTIONS ---
+8: def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
+28:     def __init__(self) -> None:
+32:     def evaluate(
+
+--- RELEVANT SYMBOLS ---
+12: class RiskScoreResult:
+14:     risk_score: float
+17:     liquidity_score: float
+18:     leverage_ratio: float
+19:     resilience_score: float
+26:     Safely handles PortfolioRiskProfile attributes and evaluates institutional risk scores (0-100).
+32:     def evaluate(
+36:     ) -> RiskScoreResult:
+46:         liquidity_score = float(getattr(profile, "liquidity_score", 80.0)) if profile else 80.0
+47:         leverage_ratio = float(getattr(profile, "leverage_ratio", 1.2)) if profile else 1.2
+51:             if profile and hasattr(self.resilience_engine, "evaluate"):
+52:                 resilience = float(self.resilience_engine.evaluate(profile))
+67:         vol_score = _clamp(100.0 - (volatility * 200.0))
+68:         dd_score = _clamp(100.0 - (drawdown * 250.0))
+69:         liq_score = _clamp(liquidity_score)
+70:         lev_score = _clamp(100.0 - max(0.0, (leverage_ratio - 1.0) * 50.0))
+72:         risk_score = round(
+73:             vol_score * 0.25
+74:             + dd_score * 0.25
+75:             + liq_score * 0.20
+76:             + lev_score * 0.15
+83:             "volatility_score": vol_score,
+84:             "drawdown_score": dd_score,
+85:             "liquidity_component": liq_score,
+86:             "leverage_score": lev_score,
+87:             "resilience_score": resilience,
+91:         return RiskScoreResult(
+93:             risk_score=risk_score,
+96:             liquidity_score=liquidity_score,
+97:             leverage_ratio=leverage_ratio,
+98:             resilience_score=resilience,
+
+============================================================
+FILE: services\technical_score_service.py
+============================================================
+SIZE: 10509 bytes
+
+--- IMPORTS ---
+import math
+
+--- CLASSES ---
+
+--- FUNCTIONS ---
+4: def _valid_number(value):
+12: def calculate_technical_score(df):
+191: def _valid_number(value):
+199: def calculate_technical_score(df):
+
+--- RELEVANT SYMBOLS ---
+12: def calculate_technical_score(df):
+14:     Calculate a technical score from technical indicators.
+17:         score (0-100)
+24:     score = 50
+38:             score += 15
+42:             score -= 15
+46:             score += 5
+67:             score += 10
+73:             score -= 5
+91:             score += 10
+97:             score -= 10
+117:             score += 10
+121:             score -= 10
+145:             score += 10
+166:             score += 5
+170:             score -= 10
+177:     # Clamp Score
+180:     score = max(
+182:         min(round(score), 100),
+188:     return score, reasons
+199: def calculate_technical_score(df):
+201:     Calculate a technical score from technical indicators.
+204:         score (0-100)
+211:     score = 50
+225:             score += 15
+229:             score -= 15
+233:             score += 5
+254:             score += 10
+260:             score -= 5
+278:             score += 10
+284:             score -= 10
+304:             score += 10
+308:             score -= 10
+332:             score += 10
+353:             score += 5
+357:             score -= 10
+364:     # Clamp Score
+367:     score = max(
+369:         min(round(score), 100),
+375:     return score, reasons
+
+============================================================
+FILE: services\sotp\sotp_engine.py
+============================================================
+SIZE: 2048 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from dataclasses import dataclass
+from core.enums import Status, ValuationMethod
+from core.exceptions import ValuationError
+from core.logger import logger
+
+--- CLASSES ---
+11: class SegmentValuation:
+20: class SOTPInput:
+30: class SOTPResult:
+39: class SOTPAggregator:
+
+--- FUNCTIONS ---
+43:     def calculate(sotp_input: SOTPInput) -> SOTPResult:
+
+--- RELEVANT SYMBOLS ---
+5: from core.enums import Status, ValuationMethod
+6: from core.exceptions import ValuationError
+11: class SegmentValuation:
+13:     valuation_method: ValuationMethod
+20: class SOTPInput:
+23:     segments: list[SegmentValuation]
+30: class SOTPResult:
+39: class SOTPAggregator:
+40:     """Aggregates multi-segment valuations into a consolidated Target Price per Share."""
+43:     def calculate(sotp_input: SOTPInput) -> SOTPResult:
+44:         if not sotp_input.segments:
+45:             raise ValuationError(
+46:                 "SOTP calculation requires at least one business segment."
+49:         gross_ev = sum(s.value_amount * s.stake_percentage for s in sotp_input.segments)
+50:         gross_equity = gross_ev - sotp_input.net_debt
+51:         net_equity = gross_equity * (1.0 - sotp_input.conglomerate_discount_pct)
+52:         value_per_share = net_equity / max(sotp_input.shares_outstanding, 1e-4)
+55:             f"[{sotp_input.company_name}] Gross EV: {gross_ev:.2f} | Net Equity: {net_equity:.2f} | Per Share: {value_per_share:.2f}"
+58:         return SOTPResult(
+59:             company_name=sotp_input.company_name,
+
+============================================================
+FILE: services\valuation\sotp_engine.py
+============================================================
+SIZE: 1852 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from typing import Any
+from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+        from sotp_long_term_equity_valuation_service import (
+
+--- CLASSES ---
+6: class BaseValuationEngine:
+21: class SOTPValuationEngine(BaseValuationEngine):
+
+--- FUNCTIONS ---
+8:     def __init__(self) -> None:
+12:     def valuation_method(self) -> str:
+15:     def evaluate(self, data: Any) -> Any:
+18:     def value(self, data: Any) -> Any:
+23:     def __init__(self) -> None:
+27:     def valuation_method(self) -> str:
+30:     def evaluate(self, data: Any) -> ValuationResult:
+
+--- RELEVANT SYMBOLS ---
+4: from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+6: class BaseValuationEngine:
+7:     """Abstract base class for valuation engines."""
+12:     def valuation_method(self) -> str:
+15:     def evaluate(self, data: Any) -> Any:
+19:         return self.evaluate(data)
+21: class SOTPValuationEngine(BaseValuationEngine):
+22:     """Adapter for SOTP Valuation Engine conforming to BaseValuationEngine."""
+27:     def valuation_method(self) -> str:
+28:         return "SOTP"
+30:     def evaluate(self, data: Any) -> ValuationResult:
+31:         from sotp_long_term_equity_valuation_service import (
+32:             SOTPLongTermValuationService,
+36:         service = SOTPLongTermValuationService(company_name, shares)
+37:         res = service.evaluate_sotp(
+38:             dcf_segments_raw=data.get("dcf_segments", []),
+42:         return ValuationResult(
+43:             method=ValuationMethod.SOTP,
+47:             status=ValuationStatus.SUCCESS,
+48:             details={"notes": "Evaluated successfully via modular SOTP engine"}
+52: SOTPEngine = SOTPValuationEngine
+
+============================================================
+FILE: services\valuation\dcf_engine.py
+============================================================
+SIZE: 1496 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from typing import Any
+from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+        from services.valuation.dcf import DCFInput, DCFModel
+
+--- CLASSES ---
+6: class BaseValuationEngine:
+21: class DCFValuationEngine(BaseValuationEngine):
+
+--- FUNCTIONS ---
+8:     def __init__(self) -> None:
+12:     def valuation_method(self) -> str:
+15:     def evaluate(self, data: Any) -> Any:
+18:     def value(self, data: Any) -> Any:
+23:     def __init__(self) -> None:
+27:     def valuation_method(self) -> str:
+30:     def evaluate(self, data: Any) -> ValuationResult:
+
+--- RELEVANT SYMBOLS ---
+4: from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+6: class BaseValuationEngine:
+7:     """Abstract base class for valuation engines."""
+12:     def valuation_method(self) -> str:
+15:     def evaluate(self, data: Any) -> Any:
+19:         return self.evaluate(data)
+21: class DCFValuationEngine(BaseValuationEngine):
+22:     """Adapter for DCF Valuation Engine conforming to BaseValuationEngine."""
+27:     def valuation_method(self) -> str:
+28:         return "DCF"
+30:     def evaluate(self, data: Any) -> ValuationResult:
+31:         from services.valuation.dcf import DCFInput, DCFModel
+32:         dcf_input = DCFInput(**data) if isinstance(data, dict) else data
+33:         model = DCFModel(dcf_input)
+34:         res = model.evaluate()
+35:         return ValuationResult(
+36:             method=ValuationMethod.DCF,
+40:             status=ValuationStatus.SUCCESS,
+41:             details={"notes": "Evaluated successfully via modular DCF engine"}
+45: DCFEngine = DCFValuationEngine
+
+============================================================
+FILE: services\valuation\dcf_adapter.py
+============================================================
+SIZE: 2508 bytes
+
+--- IMPORTS ---
+from __future__ import annotations
+from typing import Any
+from services.valuation.base_engine import BaseValuationEngine
+from services.valuation.contracts import SOTPSegmentInput
+from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
+
+--- CLASSES ---
+11: class DCFValuationEngine(BaseValuationEngine):
+
+--- FUNCTIONS ---
+15:     def valuation_method(self) -> str:
+18:     def value(self, entity: Any) -> ValuationResult:
+
+--- RELEVANT SYMBOLS ---
+5: from services.valuation.base_engine import BaseValuationEngine
+6: from services.valuation.contracts import SOTPSegmentInput
+7: from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+8: from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
+11: class DCFValuationEngine(BaseValuationEngine):
+12:     """Adapter wrapping the standalone DCF package into the unified engine interface."""
+15:     def valuation_method(self) -> str:
+16:         return ValuationMethod.DCF.value
+18:     def value(self, entity: Any) -> ValuationResult:
+19:         if isinstance(entity, SOTPSegmentInput):
+20:             dcf_input = DCFInput(
+40:             dcf_input = entity
+42:         dcf_result: DCFResult = DCFModel(dcf_input).run_model()
+44:         return ValuationResult(
+45:             entity_name=dcf_input.company_name,
+46:             valuation_method=ValuationMethod.DCF,
+47:             valuation_status=ValuationStatus.COMPLETE,
+48:             enterprise_value=dcf_result.enterprise_value,
+49:             equity_value=dcf_result.equity_value,
+51:                 "currency": dcf_input.currency,
+52:                 "implied_share_price": dcf_result.implied_share_price,
+53:                 "wacc": dcf_result.wacc,
+54:                 "terminal_value_pct": dcf_result.terminal_value_pct_of_ev,
+55:                 "forecast_years": dcf_result.forecast_period,
+57:             raw_result=dcf_result,
+
+============================================================
+FILE: services\valuation_service.py
+============================================================
+SIZE: 7244 bytes
+
+--- IMPORTS ---
+
+--- CLASSES ---
+
+--- FUNCTIONS ---
+1: def _safe_float(value, default=None):
+18: def generate_valuation_analysis(
+
+--- RELEVANT SYMBOLS ---
+18: def generate_valuation_analysis(
+20:     fundamental_score,
+21:     investment_score,
+24:     Fundamental Valuation Engine V3.
+32:     - Fundamental quality
+48:     fundamental_score = _safe_float(fundamental_score, 0) or 0
+50:     investment_score = _safe_float(investment_score, 0) or 0
+60:                 "Insufficient price or earnings data " "for earnings-based valuation."
+81:     # Prevent extreme multiples from dominating valuation.
+85:     # FUNDAMENTAL QUALITY ADJUSTMENT
+88:     if fundamental_score >= 80:
+89:         quality_adjustment = 1.10
+91:     elif fundamental_score >= 70:
+92:         quality_adjustment = 1.05
+94:     elif fundamental_score >= 60:
+95:         quality_adjustment = 1.00
+97:     elif fundamental_score >= 50:
+98:         quality_adjustment = 0.95
+101:         quality_adjustment = 0.90
+140:     fair_pe = base_pe * quality_adjustment * growth_adjustment
+159:     # VALUATION STATUS
+163:         valuation_status = "UNDERVALUED"
+166:         valuation_status = "SLIGHTLY UNDERVALUED"
+169:         valuation_status = "FAIRLY VALUED"
+172:         valuation_status = "SLIGHTLY OVERVALUED"
+175:         valuation_status = "OVERVALUED"
+178:     # VALUATION CONVICTION
+181:     if fundamental_score >= 75 and upside_percent >= 15:
+182:         valuation_conviction = "HIGH"
+184:     elif fundamental_score >= 60 and upside_percent >= 5:
+185:         valuation_conviction = "MODERATE"
+188:         valuation_conviction = "NEUTRAL"
+191:         valuation_conviction = "LOW"
+194:     # VALUATION RANGE
+209:     reasons.append(f"EPS used for valuation: " f"{eps:.2f}.")
+214:         f"Quality-adjusted and growth-adjusted " f"fair P/E: {fair_pe:.2f}x."
+223:     reasons.append(f"Fundamental score: " f"{fundamental_score:.0f}/100.")
+242:         "valuation_status": valuation_status,
+243:         "valuation_conviction": (valuation_conviction),
+244:         "fundamental_score": round(fundamental_score),
+245:         "investment_score": round(investment_score),
+
+============================================================
+FILE: services\sotp_valuation_service.py
+============================================================
+SIZE: 14345 bytes
+
+--- IMPORTS ---
+import math
+from services.sotp_equity_bridge_service import (
+
+--- CLASSES ---
+
+--- FUNCTIONS ---
+12: def _safe_float(value):
+27: def _valid_positive(value):
+38: def _clean_symbol(symbol):
+96: def get_sotp_configuration(symbol):
+136: def _build_segment_template(segment_key, segment_config):
+173: def generate_sotp_valuation(symbol, company_data=None):
+
+--- RELEVANT SYMBOLS ---
+3: from services.sotp_equity_bridge_service import (
+4:     generate_sotp_equity_bridge,
+39:     """Normalize NSE symbol."""
+53: # SOTP COMPANY CONFIGURATION
+56: SOTP_CONFIG = {
+64:                 "valuation_method": "EV/EBITDA",
+68:                 "valuation_method": "EV/EBITDA",
+72:                 "valuation_method": "EV/EBITDA",
+75:                 "name": "Oil & Gas Exploration and Production",
+76:                 "valuation_method": "EV/EBITDA",
+80:                 "valuation_method": "STRATEGIC_VALUE",
+84:                 "valuation_method": "ASSET_VALUE",
+92: # CONFIGURATION
+96: def get_sotp_configuration(symbol):
+98:     Return SOTP configuration for a company.
+103:     config = SOTP_CONFIG.get(base_symbol)
+110:             "message": ("No SOTP configuration is available for " f"{base_symbol}."),
+118:             "message": (f"SOTP valuation is disabled for {base_symbol}."),
+138:     Build an empty segment valuation record.
+140:     Financial inputs and valuation multiples will be added
+153:         "valuation_method": segment_config.get(
+154:             "valuation_method",
+157:         "financial_metric": None,
+158:         "financial_metric_name": None,
+159:         "valuation_multiple": None,
+169: # SOTP ENGINE V5
+173: def generate_sotp_valuation(symbol, company_data=None):
+175:     Final Sum-of-the-Parts Valuation Engine V5.
+178:         - validate SOTP eligibility
+179:         - consume the V5 scenario equity bridge
+180:         - expose operating segment valuations
+182:         - expose authorized equity-bridge adjustments
+183:         - calculate scenario equity values
+184:         - calculate scenario fair values per share
+185:         - expose pending valuation items
+186:         - expose confidence and valuation status
+188:     This service does not independently recalculate
+189:     segment EV, New Energy value, or bridge adjustments.
+197:     # 1. CONFIGURATION / ELIGIBILITY
+200:     configuration = get_sotp_configuration(base_symbol)
+202:     if configuration.get("status") != "OK":
+203:         return configuration
+206:     # 2. FINAL V5 EQUITY BRIDGE
+209:     bridge = generate_sotp_equity_bridge(base_symbol)
+211:     if not isinstance(bridge, dict) or bridge.get("status") != "OK":
+216:             "company": configuration.get(
+221:             "message": "V5 SOTP equity bridge is unavailable.",
+222:             "bridge": bridge,
+229:     components = bridge.get("components", {})
+251:     segments_config = configuration.get(
+274:                     "financial_metric": (
+277:                     "financial_metric_name": (operating_result.get("metric_name")),
+278:                     "valuation_multiple": (
+285:                     "source": (operating_result.get("financial_source")),
+298:             new_energy = bridge.get(
+325:                     "source": ("V5 investment and asset " "classification services"),
+335:     raw_scenarios = bridge.get(
+366:             "equity_bridge_adjustment": (
+367:                 _safe_float(scenario.get("equity_bridge_adjustment"))
+392:     # 7. EQUITY-BRIDGE VIEW
+395:     equity_bridge = bridge.get(
+396:         "equity_bridge",
+400:     if not isinstance(equity_bridge, dict):
+401:         equity_bridge = {}
+411:         "company": configuration.get(
+416:         "profile": configuration.get(
+420:         "currency": bridge.get(
+424:         "unit": bridge.get(
+428:         "period": bridge.get("period"),
+429:         "current_price": (_safe_float(bridge.get("current_price"))),
+430:         "shares_outstanding": (_safe_float(bridge.get("shares_outstanding"))),
+434:             _safe_float(bridge.get("operating_enterprise_value"))
+437:         "equity_bridge_adjustment": (
+438:             _safe_float(equity_bridge.get("authorized_adjustment"))
+444:         "confidence": bridge.get("confidence"),
+445:         "confidence_score": (_safe_float(bridge.get("confidence_score"))),
+446:         "valuation_status": bridge.get(
+447:             "valuation_status",
+450:         "pending_exposure": (_safe_float(equity_bridge.get("pending_exposure"))),
+452:             equity_bridge.get(
+458:             equity_bridge.get(
+464:             "SOTP V5 values Reliance's operating "
+469:             "equity-bridge adjustments. The BASE "
+471:             "valuation while Bear and Bull cases "
+474:         "warnings": bridge.get(
+
+============================================================
+CURRENT EROS FILES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\__init__.py | 165 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\api\__init__.py | 58 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\api\service.py | 543 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\classification\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\classification\rule_engine.py | 7172 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\config\__init__.py | 36 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\config\domain_constants.py | 8843 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\contracts\__init__.py | 329 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\contracts\models.py | 2735 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\data\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\data\providers\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\__init__.py | 261 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py | 2364 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage13c\__init__.py | 780 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage13c\classification.py | 8121 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage14\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\evidence\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\normalization\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\quality\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\scoring\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\e2e\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\__init__.py | 0 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\test_pipeline.py | 420 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py | 87 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py | 2016 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py | 72 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py | 1831 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__init__.py | 72 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py | 725 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__init__.py | 74 bytes
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py | 1061 bytes
+
+============================================================
+IMPORT SMOKE TEST
+============================================================
+services.data_platform.quality : PASS
+services.financials.financial_ratios : PASS
+services.financials.financial_statement : PASS
+services.financials.normalization : PASS
+services.fundamentals.normalizer : PASS
+services.ratios.quality_engine : PASS
+services.score_service : PASS
+services.fundamental_score_service : PASS
+services.scoring.fundamental : PASS
+services.scoring.risk_scoring : PASS
+services.technical_score_service : PASS
+services.sotp.sotp_engine : PASS
+services.valuation.sotp_engine : PASS
+services.valuation.dcf_engine : PASS
+
+============================================================
+GIT STATUS
+============================================================
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+RECENT COMMITS
+============================================================
+044828d CRITICAL FIXES: Fixed data pipeline (Date index), missing MACD histogram, RSI division by zero, revenue caps removed, NoneType errors in dashboard, and Docker entry point
+bc3f260 Repair Stage 13C valuation gate and evidence propagation
+4d7ec99 Remove temporary domain constants backup
+e90c393 Repair Stage 13C and Stage 14 integration
+2ad41b9 checkpoint before valuation consolidation
+e728411 Fix production valuation router FastAPI dependency
+dd47bf2 feat: bridge SOTP valuation to modern DCF
+b6be2cf EROS 3.0 green checkpoint - 15 contract tests passing
+48b9a40 EROS 3.0 green checkpoint - 15 contract tests passing
+22257e4 EROS 3.0 V3.8.19 golden traceability integration
+
+

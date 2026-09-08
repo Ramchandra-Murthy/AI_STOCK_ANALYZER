@@ -1,0 +1,242 @@
+﻿===== REMAINING FORECAST BLOCK =====
+
+              "status": "SUCCESS",
+              "task_id": task_id,
+              "user": user,
+              "symbol": payload.get("symbol", "TCS.NS"),
+          }
+>         if task_name in ("forecast.execute", "forecast.run"):
+              execution_result.update({
+                  "expected_value": float(payload.get("expected_value", 2837.5)),
+                  "bull_value": float(payload.get("bull_value", 3450.0)),
+                  "base_value": float(payload.get("base_value", 2900.0)),
+                  "bear_value": float(payload.get("bear_value", 2100.0)),
+                  "confidence": float(payload.get("confidence", 0.89)),
+                  "probability_distribution": payload.get(
+                      "probability_distribution",
+                      {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
+                  ),
+                  "key_drivers": payload.get(
+                      "key_drivers",
+                      ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
+                  ),
+                  "major_risks": payload.get(
+                      "major_risks",
+                      ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
+                  ),
+                  "assumptions": payload.get(
+                      "assumptions",
+                      [
+                          "WACC calculated via CAPM with Hamada levered beta adjustment.",
+                          "Terminal growth rate capped at long-term sovereign GDP growth.",
+                          "Cash flows projected over 5-year explicit horizon plus terminal value."
+                      ]
+                  ),
+                  "record_id": payload.get(
+                      "record_id",
+                      f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
+                  ),
+              })
+          # This mirrors the shape of the real forecast worker result
+          # without executing the production forecasting pipeline.
+          # Deterministic legacy/mock result contract.
+          # This mirrors the shape of the real forecast worker result
+          # without executing the production forecasting pipeline.
+          # Deterministic legacy/mock result contract.
+          # This mirrors the shape of the real forecast worker result
+          # without executing the production forecasting pipeline.
+  
+          self._mock_tasks[task_id] = {
+              "task_id": task_id,
+              "task_name": task_name,
+              "user": user,
+              "status": (
+                  "QUEUED"
+                  if self._real_celery
+                  else "SUCCESS"
+              ),
+              "result": execution_result,
+              "submitted_at": submitted_at_ts,
+              "completed_at": (
+                  time.time()
+                  if not self._real_celery
+                  else None
+              ),
+              "execution_time_ms": (
+                  dispatch_time_ms
+                  if not self._real_celery
+                  else 0.0
+              ),
+          }
+  
+          if not self._real_celery:
+              telemetry["execution_time_ms"] = dispatch_time_ms
+
+
+
+===== SUBMIT_TASK STRUCTURE =====
+
+              raise
+  
+>     def submit_task(
+          self,
+          task_name: str,
+          user: str = "system",
+          payload: Dict[str, Any] | None = None,
+      ) -> Dict[str, Any]:
+  
+          started_at = time.perf_counter()
+          payload = dict(payload or {})
+          # without executing the production forecasting pipeline.
+  
+>         self._mock_tasks[task_id] = {
+              "task_id": task_id,
+              "task_name": task_name,
+              "user": user,
+              "status": (
+                  "QUEUED"
+                  if self._real_celery
+                  else "SUCCESS"
+              ),
+              )
+  
+>         return {
+              "task_id": task_id,
+              "status": "QUEUED",
+              "task_name": task_name,
+              "user": user,
+              "execution_result": execution_result,
+          }
+  
+      def get_task_status(
+          if not self._real_celery or celery_instance is None:
+              if telemetry is None:
+>                 return {
+                      "task_id": task_id,
+                      "status": "NOT_FOUND",
+                  }
+  
+>             return {
+                  "task_id": task_id,
+                  "status": telemetry.get("status", "SUCCESS"),
+                  "ready": True,
+                  "execution_time_ms": telemetry.get(
+                      "execution_time_ms"
+                  ),
+              }
+  
+              and telemetry is None
+          ):
+>             return {
+                  "task_id": task_id,
+                  "status": "NOT_FOUND",
+                  "ready": False,
+                  "execution_time_ms": None,
+              }
+  
+          if meta is not None:
+              if ready and meta.get("completed_at") is None:
+                          pass
+  
+>         return {
+              "task_id": task_id,
+              "status": status_value,
+              "ready": ready,
+              "execution_time_ms": telemetry.get(
+                  "execution_time_ms"
+              ),
+          }
+  
+              meta = self._mock_tasks.get(task_id)
+              if not meta:
+>                 return {
+                      "task_id": task_id,
+                      "status": "NOT_FOUND",
+                  }
+>             return {
+                  "task_id": task_id,
+                  "status": "SUCCESS",
+                  "result": meta.get("result"),
+              }
+  
+          from celery.result import AsyncResult
+  
+          result = AsyncResult(
+              meta = self._mock_tasks.get(task_id)
+              if meta:
+>                 return {
+                      "task_id": task_id,
+                      "status": "PENDING",
+                      "result": None,
+                  }
+>             return {
+                  "task_id": task_id,
+                  "status": "NOT_FOUND",
+                  "result": None,
+              }
+  
+          res_data = None
+          if result.ready():
+              try:
+                  self.get_task_status(task_id)
+  
+>         return {
+              "task_id": task_id,
+              "status": result.status,
+              "result": res_data,
+          }
+  
+      def get_registered_tasks(self) -> list[str]:
+          if not self._app.tasks:
+              self._synchronize_task_registry()
+              "report_queue",
+          ]
+>         return {
+              "queues": queues,
+              "status": "HEALTHY",
+              "real_celery": self._real_celery,
+          }
+  
+      def get_task_metrics(self) -> Dict[str, Any]:
+          total_submitted = len(self._mock_tasks)
+          success_count = 0
+          )
+  
+>         return {
+              "total_submitted": total_submitted,
+              "success_count": success_count,
+              "failure_count": failure_count,
+              "pending_count": pending_count,
+              "average_execution_time_ms": average_execution_time_ms,
+              "status": "HEALTHY",
+          }
+  
+              })
+  
+>         return {
+              "tasks": tasks,
+              "total_tasks": len(tasks),
+              "status": "HEALTHY",
+          }
+  
+      def get_observability_summary(
+          self,
+      ) -> Dict[str, Any]:
+          registered_tasks = self.get_registered_tasks()
+  
+>         return {
+              "status": "HEALTHY",
+              "metrics": metrics,
+              "tasks": details["tasks"],
+              "queues": queues,
+              "registered_tasks": registered_tasks,
+          }
+  
+  task_control = TaskControlService()
+
+
+
+===== FORECAST BLOCK COUNT =====
+Count: 1
+===== PYTHON SYNTAX =====
+

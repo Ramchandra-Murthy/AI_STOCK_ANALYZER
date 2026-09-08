@@ -1,0 +1,2502 @@
+﻿============================================================
+EROS 3.0 — REBUILD STAGE 1
+FUNDAMENTALS ARCHITECTURE + CANONICAL PATH AUDIT
+============================================================
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+Date: 09/07/2026 20:03:42
+
+============================================================
+PROTECTED COMPONENTS
+============================================================
+backend/tasks/task_control.py = REPAIRED / DO NOT TOUCH
+
+============================================================
+GIT STATUS
+============================================================
+ M app.py
+ M backend/tasks/task_control.py
+ M celerybeat-schedule-shm
+ M celerybeat-schedule-wal
+ M components/top_holdings.py
+ M services/financials/balance_sheet.py
+ M services/financials/financial_statement.py
+ M services/forecast/engine.py
+ M services/forecast/service.py
+ M services/fundamentals/normalizer.py
+ M services/fundamentals/service.py
+ M services/ratios/engine.py
+ M services/scoring/engine.py
+ M services/sotp_long_term_equity_classification_service.py
+ M services/valuation/base_engine.py
+ M services/valuation/dcf/engine.py
+ M services/valuation/dcf_adapter.py
+ M services/valuation/dcf_engine.py
+ M services/valuation/dispatcher.py
+ M services/valuation/nav_engine.py
+ M services/valuation/relative/engine.py
+ M services/valuation/sotp/engine.py
+ M services/valuation/sotp_engine.py
+ M services/workflow/production_orchestrator.py
+ M tests/fundamentals/test_models.py
+ M tests/ratios/test_quality_engine.py
+ M tests/ratios/test_ratios.py
+ M tests/scoring/test_scoring.py
+ M tests/valuation/test_sotp.py
+?? S
+?? backend/tasks/task_control.py.backup-before-comment-cleanup
+?? backend/tasks/task_control.py.backup-before-forecast-cleanup
+?? backups/
+?? celery_runtime_diagnostic.txt
+?? docker_celery_test.txt
+?? eros_3_rebuild_architecture_audit.txt
+?? eros_fundamentals_canonical_path.txt
+?? eros_modification_triage.txt
+?? eros_normalizer_contract.txt
+?? eros_normalizer_rebuild_audit.txt
+?? eros_test_discovery.txt
+?? forecast_blocks_inspection.txt
+?? forecast_cleanup_result.txt
+?? forecast_comment_cleanup_result.txt
+?? forecast_post_cleanup_inspection.txt
+?? fundamentals_normalizer_audit.txt
+?? fundamentals_normalizer_triage.txt
+?? next_repair_diff.txt
+?? next_repair_target.txt
+?? next_repair_triage.txt
+?? normalizer_repair_audit.txt
+?? post_cleanup_task_control_audit.txt
+?? queue_status_investigation.txt
+?? services/scoring/engine.py.pre_canonical_migration.bak
+?? services/scoring/engine.py.pre_canonical_result_fix.bak
+?? services/scoring/engine.py.pre_valuation_migration.bak
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+?? services/valuation/__init__.py.pre_valuation_migration.bak
+?? services/valuation/service.py.pre_valuation_migration.bak
+?? submit_task_structural_audit.txt
+?? task_control_diff_review.txt
+?? task_control_docker_final.txt
+?? task_control_environment_comparison.txt
+?? task_control_final_audit.txt
+?? task_control_final_docker_validation.txt
+?? task_control_final_safety_check.txt
+?? task_control_final_validation.txt
+?? task_control_forecast_section.txt
+?? task_control_structural_audit.txt
+?? task_control_targeted_validation.txt
+?? task_control_test_result.txt
+?? test_discovery.txt
+?? test_discovery_result.txt
+?? test_suite_discovery.txt
+?? valuation_execution_trace.txt
+
+
+============================================================
+NORMALIZER FILE
+============================================================
+
+
+FullName      : D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py
+Length        : 12800
+LastWriteTime : 06-09-2026 06:12:51 PM
+
+
+
+
+
+============================================================
+NORMALIZER GIT DIFF STAT
+============================================================
+ services/fundamentals/normalizer.py | 406 ++++++++++++++++++++++++++----------
+ 1 file changed, 292 insertions(+), 114 deletions(-)
+
+
+============================================================
+NORMALIZER DIFF
+============================================================
+diff --git a/services/fundamentals/normalizer.py b/services/fundamentals/normalizer.py
+index dd8423b..5cddfee 100644
+--- a/services/fundamentals/normalizer.py
++++ b/services/fundamentals/normalizer.py
+@@ -3,22 +3,34 @@
+ import logging
+ from typing import Any
+ 
+-from services.fundamentals.models import (
+-    BalanceSheet,
+-    CashFlowStatement,
++from services.financials.balance_sheet import BalanceSheet
++from services.financials.cash_flow import CashFlowStatement
++from services.financials.financial_statement import (
+     FinancialStatements,
++    PeriodFinancials,
+ )
+ from services.financials.income_statement import IncomeStatement
+ 
+ logger = logging.getLogger(__name__)
+ 
+ 
++def _float(value: Any) -> float:
++    """Safely convert provider values to float."""
++    if value is None:
++        return 0.0
++
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return 0.0
++
++
+ class FinancialNormalizer:
+-    """Normalize provider payloads into canonical FinancialStatements objects."""
++    """Normalize provider payloads into canonical FinancialStatements."""
+ 
+     def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+-        symbol = raw_data.get("symbol", "RELIANCE.NS")
+-        provider = raw_data.get("provider", "YahooFinance")
++        symbol = str(raw_data.get("symbol", "RELIANCE.NS"))
++        provider = str(raw_data.get("provider", "YahooFinance"))
+ 
+         logger.info(
+             "Normalizing financial data for symbol: %s from provider: %s",
+@@ -26,6 +38,8 @@ class FinancialNormalizer:
+             provider,
+         )
+ 
++        # Support both current plural provider payloads
++        # and legacy singular payloads.
+         raw_income = raw_data.get("income_statements")
+         if raw_income is None:
+             legacy_income = raw_data.get("income_statement", {})
+@@ -41,122 +55,286 @@ class FinancialNormalizer:
+             legacy_cashflow = raw_data.get("cash_flow", {})
+             raw_cashflow = [legacy_cashflow] if legacy_cashflow else []
+ 
+-        income_statements = []
+-
+-        for item in raw_income:
+-            income_statements.append(
+-                IncomeStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    revenue=float(item.get("revenue", 0.0)),
+-                    other_operating_income=float(
+-                        item.get("other_operating_income", 0.0)
+-                    ),
+-                    total_operating_income=float(
+-                        item.get(
+-                            "total_operating_income",
+-                            item.get("operating_income", 0.0),
+-                        )
+-                    ),
+-                    cost_of_goods_sold=float(
+-                        item.get("cost_of_goods_sold", 0.0)
+-                    ),
+-                    operating_expenses=float(
+-                        item.get("operating_expenses", 0.0)
+-                    ),
+-                    depreciation_and_amortization=float(
+-                        item.get("depreciation_and_amortization", 0.0)
+-                    ),
+-                    ebitda=float(item.get("ebitda", 0.0)),
+-                    ebit=float(item.get("ebit", 0.0)),
+-                    finance_cost=float(item.get("finance_cost", 0.0)),
+-                    finance_income=float(item.get("finance_income", 0.0)),
+-                    profit_before_tax=float(
+-                        item.get("profit_before_tax", 0.0)
+-                    ),
+-                    tax_expense=float(item.get("tax_expense", 0.0)),
+-                    net_income=float(item.get("net_income", 0.0)),
+-                    shares_outstanding=float(
+-                        item.get("shares_outstanding", 0.0)
+-                    ),
+-                    eps=float(item.get("eps", 0.0)),
+-                )
++        income_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_income
++        }
++
++        balance_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_balance
++        }
++
++        cashflow_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_cashflow
++        }
++
++        periods = sorted(
++            set(income_by_period)
++            | set(balance_by_period)
++            | set(cashflow_by_period)
++        )
++
++        period_financials: list[PeriodFinancials] = []
++
++        for period in periods:
++            income_raw = income_by_period.get(period, {})
++            balance_raw = balance_by_period.get(period, {})
++            cashflow_raw = cashflow_by_period.get(period, {})
++
++            income = IncomeStatement(
++                period=period,
++                revenue=_float(income_raw.get("revenue")),
++                operating_income=_float(
++                    income_raw.get("operating_income")
++                ),
++                other_operating_income=_float(
++                    income_raw.get("other_operating_income")
++                ),
++                total_operating_income=_float(
++                    income_raw.get(
++                        "total_operating_income",
++                        income_raw.get("operating_income"),
++                    )
++                ),
++                cost_of_goods_sold=_float(
++                    income_raw.get("cost_of_goods_sold")
++                ),
++                operating_expenses=_float(
++                    income_raw.get("operating_expenses")
++                ),
++                depreciation_and_amortization=_float(
++                    income_raw.get("depreciation_and_amortization")
++                ),
++                ebitda=_float(income_raw.get("ebitda")),
++                ebit=_float(income_raw.get("ebit")),
++                finance_cost=_float(income_raw.get("finance_cost")),
++                finance_income=_float(income_raw.get("finance_income")),
++                profit_before_tax=_float(
++                    income_raw.get("profit_before_tax")
++                ),
++                tax_expense=_float(income_raw.get("tax_expense")),
++                net_income=_float(income_raw.get("net_income")),
++                shares_outstanding=_float(
++                    income_raw.get("shares_outstanding")
++                ),
++                eps=_float(income_raw.get("eps")),
+             )
+ 
+-        balance_sheets = []
+-
+-        for item in raw_balance:
+-            balance_sheets.append(
+-                BalanceSheet(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    cash=float(item.get("cash", 0.0)),
+-                    cash_equivalents=float(
+-                        item.get("cash_equivalents", 0.0)
+-                    ),
+-                    short_term_investments=float(
+-                        item.get("short_term_investments", 0.0)
+-                    ),
+-                    accounts_receivable=float(
+-                        item.get("accounts_receivable", 0.0)
+-                    ),
+-                    inventory=float(item.get("inventory", 0.0)),
+-                    total_current_assets=float(
+-                        item.get("total_current_assets", 0.0)
+-                    ),
+-                    total_assets=float(item.get("total_assets", 0.0)),
+-                    short_term_debt=float(
+-                        item.get("short_term_debt", 0.0)
+-                    ),
+-                    total_current_liabilities=float(
+-                        item.get("total_current_liabilities", 0.0)
+-                    ),
+-                    long_term_debt=float(
+-                        item.get(
+-                            "long_term_debt",
+-                            item.get("debt", 0.0),
+-                        )
+-                    ),
+-                    total_liabilities=float(
+-                        item.get("total_liabilities", 0.0)
+-                    ),
+-                    total_equity=float(
+-                        item.get(
+-                            "total_equity",
+-                            item.get("shareholders_equity", 0.0),
+-                        )
+-                    ),
+-                )
++            balance = BalanceSheet(
++                period=period,
++                cash=_float(balance_raw.get("cash")),
++                cash_equivalents=_float(
++                    balance_raw.get("cash_equivalents")
++                ),
++                short_term_investments=_float(
++                    balance_raw.get("short_term_investments")
++                ),
++                accounts_receivable=_float(
++                    balance_raw.get("accounts_receivable")
++                ),
++                inventory=_float(balance_raw.get("inventory")),
++                other_current_assets=_float(
++                    balance_raw.get("other_current_assets")
++                ),
++                total_current_assets=_float(
++                    balance_raw.get("total_current_assets")
++                ),
++                property_plant_equipment=_float(
++                    balance_raw.get("property_plant_equipment")
++                ),
++                right_of_use_assets=_float(
++                    balance_raw.get("right_of_use_assets")
++                ),
++                goodwill=_float(balance_raw.get("goodwill")),
++                intangible_assets=_float(
++                    balance_raw.get("intangible_assets")
++                ),
++                long_term_investments=_float(
++                    balance_raw.get("long_term_investments")
++                ),
++                associates_and_joint_ventures=_float(
++                    balance_raw.get("associates_and_joint_ventures")
++                ),
++                deferred_tax_assets=_float(
++                    balance_raw.get("deferred_tax_assets")
++                ),
++                other_non_current_assets=_float(
++                    balance_raw.get("other_non_current_assets")
++                ),
++                total_non_current_assets=_float(
++                    balance_raw.get("total_non_current_assets")
++                ),
++                total_assets=_float(
++                    balance_raw.get("total_assets")
++                ),
++                accounts_payable=_float(
++                    balance_raw.get("accounts_payable")
++                ),
++                short_term_debt=_float(
++                    balance_raw.get("short_term_debt")
++                ),
++                current_lease_liabilities=_float(
++                    balance_raw.get("current_lease_liabilities")
++                ),
++                accrued_expenses=_float(
++                    balance_raw.get("accrued_expenses")
++                ),
++                other_current_liabilities=_float(
++                    balance_raw.get("other_current_liabilities")
++                ),
++                total_current_liabilities=_float(
++                    balance_raw.get("total_current_liabilities")
++                ),
++                long_term_debt=_float(
++                    balance_raw.get("long_term_debt")
++                ),
++                long_term_lease_liabilities=_float(
++                    balance_raw.get("long_term_lease_liabilities")
++                ),
++                deferred_tax_liabilities=_float(
++                    balance_raw.get("deferred_tax_liabilities")
++                ),
++                pension_liabilities=_float(
++                    balance_raw.get("pension_liabilities")
++                ),
++                other_non_current_liabilities=_float(
++                    balance_raw.get("other_non_current_liabilities")
++                ),
++                total_non_current_liabilities=_float(
++                    balance_raw.get("total_non_current_liabilities")
++                ),
++                total_liabilities=_float(
++                    balance_raw.get("total_liabilities")
++                ),
++                share_capital=_float(
++                    balance_raw.get("share_capital")
++                ),
++                retained_earnings=_float(
++                    balance_raw.get("retained_earnings")
++                ),
++                reserves=_float(balance_raw.get("reserves")),
++                minority_interest=_float(
++                    balance_raw.get("minority_interest")
++                ),
++                total_equity=_float(
++                    balance_raw.get(
++                        "total_equity",
++                        balance_raw.get("shareholders_equity"),
++                    )
++                ),
++                shareholders_equity=_float(
++                    balance_raw.get("shareholders_equity")
++                ),
++                debt=_float(balance_raw.get("debt")),
++            )
++
++            cashflow = CashFlowStatement(
++                period=period,
++                net_income=_float(
++                    cashflow_raw.get("net_income")
++                ),
++                depreciation_and_amortization=_float(
++                    cashflow_raw.get("depreciation_and_amortization")
++                ),
++                share_based_compensation=_float(
++                    cashflow_raw.get("share_based_compensation")
++                ),
++                deferred_tax=_float(
++                    cashflow_raw.get("deferred_tax")
++                ),
++                change_in_working_capital=_float(
++                    cashflow_raw.get("change_in_working_capital")
++                ),
++                other_operating_items=_float(
++                    cashflow_raw.get("other_operating_items")
++                ),
++                operating_cash_flow=_float(
++                    cashflow_raw.get("operating_cash_flow")
++                ),
++                capital_expenditure=_float(
++                    cashflow_raw.get(
++                        "capital_expenditure",
++                        cashflow_raw.get("capex"),
++                    )
++                ),
++                capex=_float(cashflow_raw.get("capex")),
++                acquisitions=_float(
++                    cashflow_raw.get("acquisitions")
++                ),
++                asset_sales=_float(
++                    cashflow_raw.get("asset_sales")
++                ),
++                investment_purchases=_float(
++                    cashflow_raw.get("investment_purchases")
++                ),
++                investment_sales=_float(
++                    cashflow_raw.get("investment_sales")
++                ),
++                investing_cash_flow=_float(
++                    cashflow_raw.get("investing_cash_flow")
++                ),
++                debt_issued=_float(
++                    cashflow_raw.get("debt_issued")
++                ),
++                debt_repaid=_float(
++                    cashflow_raw.get("debt_repaid")
++                ),
++                dividends_paid=_float(
++                    cashflow_raw.get("dividends_paid")
++                ),
++                share_repurchases=_float(
++                    cashflow_raw.get("share_repurchases")
++                ),
++                equity_issued=_float(
++                    cashflow_raw.get("equity_issued")
++                ),
++                financing_cash_flow=_float(
++                    cashflow_raw.get("financing_cash_flow")
++                ),
++                net_change_in_cash=_float(
++                    cashflow_raw.get("net_change_in_cash")
++                ),
++                beginning_cash=_float(
++                    cashflow_raw.get("beginning_cash")
++                ),
++                ending_cash=_float(
++                    cashflow_raw.get("ending_cash")
++                ),
++                free_cash_flow=_float(
++                    cashflow_raw.get("free_cash_flow")
++                ),
+             )
+ 
+-        cash_flows = []
+-
+-        for item in raw_cashflow:
+-            cash_flows.append(
+-                CashFlowStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    operating_cash_flow=float(
+-                        item.get("operating_cash_flow", 0.0)
+-                    ),
+-                    capital_expenditure=float(
+-                        item.get(
+-                            "capital_expenditure",
+-                            item.get("capex", 0.0),
+-                        )
+-                    ),
+-                    investing_cash_flow=float(
+-                        item.get("investing_cash_flow", 0.0)
+-                    ),
+-                    financing_cash_flow=float(
+-                        item.get("financing_cash_flow", 0.0)
+-                    ),
++            period_financials.append(
++                PeriodFinancials(
++                    period=period,
++                    income_statement=income,
++                    balance_sheet=balance,
++                    cash_flow_statement=cashflow,
+                 )
+             )
+ 
++        if not period_financials:
++            raise ValueError(
++                f"No usable financial periods found for {symbol}"
++            )
++
++        # Use the first available period as the canonical current statement.
++        primary = period_financials[0]
++
+         return FinancialStatements(
+-            symbol=symbol,
+-            income_statements=income_statements,
+-            balance_sheets=balance_sheets,
+-            cash_flows=cash_flows,
++            company_name=symbol,
++            ticker=symbol,
++            currency=str(raw_data.get("currency", "INR")),
++            fiscal_year=primary.period,
++            income_statement=primary.income_statement,
++            balance_sheet=primary.balance_sheet,
++            cash_flow_statement=primary.cash_flow_statement,
++            periods=period_financials,
+             metadata={
+                 "provider": provider,
++                "period_count": len(period_financials),
+             },
+-        )
++        )
+\ No newline at end of file
+
+
+============================================================
+FUNDAMENTALS DIRECTORY
+============================================================
+
+Name                  Length LastWriteTime         
+----                  ------ -------------         
+__init__.py               40 06-08-2026 08:58:18 PM
+canonical_models.py     2816 07-08-2026 06:53:40 PM
+events.py                517 06-08-2026 08:57:42 PM
+models.py.backup2       2220 04-09-2026 03:33:49 PM
+normalizer.py          12800 06-09-2026 06:12:51 PM
+normalizer.py.backup3   5828 04-09-2026 03:37:00 PM
+provider.py             6173 26-08-2026 01:28:37 PM
+service.py              1985 06-09-2026 07:58:36 PM
+validator.py            2558 07-08-2026 06:53:40 PM
+
+
+
+
+============================================================
+FINANCIALS DIRECTORY
+============================================================
+
+Name                                            Length LastWriteTime         
+----                                            ------ -------------         
+__init__.py                                        439 06-08-2026 09:27:14 AM
+balance_sheet.py                                  2656 05-09-2026 09:02:48 PM
+balance_sheet.py.backup_before_equity_fix         1887 04-09-2026 06:40:09 PM
+balance_sheet.py.backup_before_final_equity_fix   1887 04-09-2026 06:40:09 PM
+balance_sheet.py.backup_final                     1887 04-09-2026 06:40:09 PM
+balance_sheet.py.backup2                          2382 04-09-2026 06:29:00 PM
+balance_sheet.py.backup-final                     2382 04-09-2026 06:29:00 PM
+balance_sheet.py.final_backup                     1887 04-09-2026 06:40:09 PM
+balance_sheet.py.pre_compat_backup                1874 04-09-2026 06:25:33 PM
+builders.py                                       3893 06-09-2026 08:02:36 PM
+cash_flow.py                                      1348 04-09-2026 06:40:09 PM
+cash_flow.py.backup_final                         1348 04-09-2026 06:40:09 PM
+cash_flow.py.backup2                              1981 04-09-2026 06:29:06 PM
+cash_flow.py.backup-final                         1981 04-09-2026 06:29:06 PM
+cash_flow.py.final_backup                         1348 04-09-2026 06:40:09 PM
+cash_flow.py.pre_compat_backup                    1869 04-09-2026 06:25:41 PM
+financial_ratios.py                               4158 06-08-2026 09:27:14 AM
+financial_statement.py                            2708 06-09-2026 06:08:01 PM
+income_statement.py                               1048 04-09-2026 06:40:09 PM
+income_statement.py.backup_final                  1048 04-09-2026 06:40:09 PM
+income_statement.py.backup2                       1460 04-09-2026 06:28:52 PM
+income_statement.py.backup-final                  1460 04-09-2026 06:28:52 PM
+income_statement.py.final_backup                  1048 04-09-2026 06:40:09 PM
+income_statement.py.pre_compat_backup             1142 04-09-2026 06:25:27 PM
+normalization.py                                  5672 24-08-2026 05:38:55 PM
+normalization.py.31K-FI10-backup                  5542 12-08-2026 10:02:26 AM
+normalization.py.31K-FI13-backup                  5542 12-08-2026 10:02:26 AM
+parser.py                                         1827 11-08-2026 10:46:47 PM
+repository.py                                     1985 06-08-2026 09:27:14 AM
+validator.py                                      3454 06-08-2026 09:27:14 AM
+
+
+
+
+============================================================
+NORMALIZER SOURCE
+============================================================
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.financials.financial_statement import (
+    FinancialStatements,
+    PeriodFinancials,
+)
+from services.financials.income_statement import IncomeStatement
+
+logger = logging.getLogger(__name__)
+
+
+def _float(value: Any) -> float:
+    """Safely convert provider values to float."""
+    if value is None:
+        return 0.0
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+class FinancialNormalizer:
+    """Normalize provider payloads into canonical FinancialStatements."""
+
+    def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+        symbol = str(raw_data.get("symbol", "RELIANCE.NS"))
+        provider = str(raw_data.get("provider", "YahooFinance"))
+
+        logger.info(
+            "Normalizing financial data for symbol: %s from provider: %s",
+            symbol,
+            provider,
+        )
+
+        # Support both current plural provider payloads
+        # and legacy singular payloads.
+        raw_income = raw_data.get("income_statements")
+        if raw_income is None:
+            legacy_income = raw_data.get("income_statement", {})
+            raw_income = [legacy_income] if legacy_income else []
+
+        raw_balance = raw_data.get("balance_sheets")
+        if raw_balance is None:
+            legacy_balance = raw_data.get("balance_sheet", {})
+            raw_balance = [legacy_balance] if legacy_balance else []
+
+        raw_cashflow = raw_data.get("cash_flows")
+        if raw_cashflow is None:
+            legacy_cashflow = raw_data.get("cash_flow", {})
+            raw_cashflow = [legacy_cashflow] if legacy_cashflow else []
+
+        income_by_period = {
+            str(item.get("period", "UNKNOWN")): item
+            for item in raw_income
+        }
+
+        balance_by_period = {
+            str(item.get("period", "UNKNOWN")): item
+            for item in raw_balance
+        }
+
+        cashflow_by_period = {
+            str(item.get("period", "UNKNOWN")): item
+            for item in raw_cashflow
+        }
+
+        periods = sorted(
+            set(income_by_period)
+            | set(balance_by_period)
+            | set(cashflow_by_period)
+        )
+
+        period_financials: list[PeriodFinancials] = []
+
+        for period in periods:
+            income_raw = income_by_period.get(period, {})
+            balance_raw = balance_by_period.get(period, {})
+            cashflow_raw = cashflow_by_period.get(period, {})
+
+            income = IncomeStatement(
+                period=period,
+                revenue=_float(income_raw.get("revenue")),
+                operating_income=_float(
+                    income_raw.get("operating_income")
+                ),
+                other_operating_income=_float(
+                    income_raw.get("other_operating_income")
+                ),
+                total_operating_income=_float(
+                    income_raw.get(
+                        "total_operating_income",
+                        income_raw.get("operating_income"),
+                    )
+                ),
+                cost_of_goods_sold=_float(
+                    income_raw.get("cost_of_goods_sold")
+                ),
+                operating_expenses=_float(
+                    income_raw.get("operating_expenses")
+                ),
+                depreciation_and_amortization=_float(
+                    income_raw.get("depreciation_and_amortization")
+                ),
+                ebitda=_float(income_raw.get("ebitda")),
+                ebit=_float(income_raw.get("ebit")),
+                finance_cost=_float(income_raw.get("finance_cost")),
+                finance_income=_float(income_raw.get("finance_income")),
+                profit_before_tax=_float(
+                    income_raw.get("profit_before_tax")
+                ),
+                tax_expense=_float(income_raw.get("tax_expense")),
+                net_income=_float(income_raw.get("net_income")),
+                shares_outstanding=_float(
+                    income_raw.get("shares_outstanding")
+                ),
+                eps=_float(income_raw.get("eps")),
+            )
+
+            balance = BalanceSheet(
+                period=period,
+                cash=_float(balance_raw.get("cash")),
+                cash_equivalents=_float(
+                    balance_raw.get("cash_equivalents")
+                ),
+                short_term_investments=_float(
+                    balance_raw.get("short_term_investments")
+                ),
+                accounts_receivable=_float(
+                    balance_raw.get("accounts_receivable")
+                ),
+                inventory=_float(balance_raw.get("inventory")),
+                other_current_assets=_float(
+                    balance_raw.get("other_current_assets")
+                ),
+                total_current_assets=_float(
+                    balance_raw.get("total_current_assets")
+                ),
+                property_plant_equipment=_float(
+                    balance_raw.get("property_plant_equipment")
+                ),
+                right_of_use_assets=_float(
+                    balance_raw.get("right_of_use_assets")
+                ),
+                goodwill=_float(balance_raw.get("goodwill")),
+                intangible_assets=_float(
+                    balance_raw.get("intangible_assets")
+                ),
+                long_term_investments=_float(
+                    balance_raw.get("long_term_investments")
+                ),
+                associates_and_joint_ventures=_float(
+                    balance_raw.get("associates_and_joint_ventures")
+                ),
+                deferred_tax_assets=_float(
+                    balance_raw.get("deferred_tax_assets")
+                ),
+                other_non_current_assets=_float(
+                    balance_raw.get("other_non_current_assets")
+                ),
+                total_non_current_assets=_float(
+                    balance_raw.get("total_non_current_assets")
+                ),
+                total_assets=_float(
+                    balance_raw.get("total_assets")
+                ),
+                accounts_payable=_float(
+                    balance_raw.get("accounts_payable")
+                ),
+                short_term_debt=_float(
+                    balance_raw.get("short_term_debt")
+                ),
+                current_lease_liabilities=_float(
+                    balance_raw.get("current_lease_liabilities")
+                ),
+                accrued_expenses=_float(
+                    balance_raw.get("accrued_expenses")
+                ),
+                other_current_liabilities=_float(
+                    balance_raw.get("other_current_liabilities")
+                ),
+                total_current_liabilities=_float(
+                    balance_raw.get("total_current_liabilities")
+                ),
+                long_term_debt=_float(
+                    balance_raw.get("long_term_debt")
+                ),
+                long_term_lease_liabilities=_float(
+                    balance_raw.get("long_term_lease_liabilities")
+                ),
+                deferred_tax_liabilities=_float(
+                    balance_raw.get("deferred_tax_liabilities")
+                ),
+                pension_liabilities=_float(
+                    balance_raw.get("pension_liabilities")
+                ),
+                other_non_current_liabilities=_float(
+                    balance_raw.get("other_non_current_liabilities")
+                ),
+                total_non_current_liabilities=_float(
+                    balance_raw.get("total_non_current_liabilities")
+                ),
+                total_liabilities=_float(
+                    balance_raw.get("total_liabilities")
+                ),
+                share_capital=_float(
+                    balance_raw.get("share_capital")
+                ),
+                retained_earnings=_float(
+                    balance_raw.get("retained_earnings")
+                ),
+                reserves=_float(balance_raw.get("reserves")),
+                minority_interest=_float(
+                    balance_raw.get("minority_interest")
+                ),
+                total_equity=_float(
+                    balance_raw.get(
+                        "total_equity",
+                        balance_raw.get("shareholders_equity"),
+                    )
+                ),
+                shareholders_equity=_float(
+                    balance_raw.get("shareholders_equity")
+                ),
+                debt=_float(balance_raw.get("debt")),
+            )
+
+            cashflow = CashFlowStatement(
+                period=period,
+                net_income=_float(
+                    cashflow_raw.get("net_income")
+                ),
+                depreciation_and_amortization=_float(
+                    cashflow_raw.get("depreciation_and_amortization")
+                ),
+                share_based_compensation=_float(
+                    cashflow_raw.get("share_based_compensation")
+                ),
+                deferred_tax=_float(
+                    cashflow_raw.get("deferred_tax")
+                ),
+                change_in_working_capital=_float(
+                    cashflow_raw.get("change_in_working_capital")
+                ),
+                other_operating_items=_float(
+                    cashflow_raw.get("other_operating_items")
+                ),
+                operating_cash_flow=_float(
+                    cashflow_raw.get("operating_cash_flow")
+                ),
+                capital_expenditure=_float(
+                    cashflow_raw.get(
+                        "capital_expenditure",
+                        cashflow_raw.get("capex"),
+                    )
+                ),
+                capex=_float(cashflow_raw.get("capex")),
+                acquisitions=_float(
+                    cashflow_raw.get("acquisitions")
+                ),
+                asset_sales=_float(
+                    cashflow_raw.get("asset_sales")
+                ),
+                investment_purchases=_float(
+                    cashflow_raw.get("investment_purchases")
+                ),
+                investment_sales=_float(
+                    cashflow_raw.get("investment_sales")
+                ),
+                investing_cash_flow=_float(
+                    cashflow_raw.get("investing_cash_flow")
+                ),
+                debt_issued=_float(
+                    cashflow_raw.get("debt_issued")
+                ),
+                debt_repaid=_float(
+                    cashflow_raw.get("debt_repaid")
+                ),
+                dividends_paid=_float(
+                    cashflow_raw.get("dividends_paid")
+                ),
+                share_repurchases=_float(
+                    cashflow_raw.get("share_repurchases")
+                ),
+                equity_issued=_float(
+                    cashflow_raw.get("equity_issued")
+                ),
+                financing_cash_flow=_float(
+                    cashflow_raw.get("financing_cash_flow")
+                ),
+                net_change_in_cash=_float(
+                    cashflow_raw.get("net_change_in_cash")
+                ),
+                beginning_cash=_float(
+                    cashflow_raw.get("beginning_cash")
+                ),
+                ending_cash=_float(
+                    cashflow_raw.get("ending_cash")
+                ),
+                free_cash_flow=_float(
+                    cashflow_raw.get("free_cash_flow")
+                ),
+            )
+
+            period_financials.append(
+                PeriodFinancials(
+                    period=period,
+                    income_statement=income,
+                    balance_sheet=balance,
+                    cash_flow_statement=cashflow,
+                )
+            )
+
+        if not period_financials:
+            raise ValueError(
+                f"No usable financial periods found for {symbol}"
+            )
+
+        # Use the first available period as the canonical current statement.
+        primary = period_financials[0]
+
+        return FinancialStatements(
+            company_name=symbol,
+            ticker=symbol,
+            currency=str(raw_data.get("currency", "INR")),
+            fiscal_year=primary.period,
+            income_statement=primary.income_statement,
+            balance_sheet=primary.balance_sheet,
+            cash_flow_statement=primary.cash_flow_statement,
+            periods=period_financials,
+            metadata={
+                "provider": provider,
+                "period_count": len(period_financials),
+            },
+        )
+
+============================================================
+FINANCIALS NORMALIZATION SOURCE
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+FINANCIAL STATEMENT NORMALIZATION
+Module  : normalization
+Version : V1.0
+==========================================================
+
+Converts raw financial statement data from different
+providers into the platform's standardized financial
+statement models.
+
+Supported Sources
+-----------------
+• Annual Reports
+• XBRL
+• Yahoo Finance
+• NSE/BSE APIs
+• Alpha Vantage
+• Manual Import
+"""
+
+from typing import Any
+
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.financials.financial_statement import (
+    FinancialStatements,
+)
+from services.financials.income_statement import IncomeStatement
+
+
+def _get(
+    data: dict[str, Any],
+    *aliases: str,
+    default: float = 0.0,
+):
+    """
+    Returns the first matching field from multiple aliases.
+    """
+    for key in aliases:
+        if key in data:
+            return data[key]
+    return default
+
+
+def normalize_income_statement(
+    raw: dict[str, Any],
+) -> IncomeStatement:
+
+    return IncomeStatement(
+        revenue=_get(
+            raw,
+            "revenue",
+            "totalRevenue",
+            "Revenue",
+        ),
+        cost_of_goods_sold=_get(
+            raw,
+            "costOfRevenue",
+            "costOfGoodsSold",
+            "cost_of_goods_sold",
+            "COGS",
+        ),
+        ebitda=_get(
+            raw,
+            "ebitda",
+            "EBITDA",
+        ),
+        ebit=_get(
+            raw,
+            "ebit",
+            "operatingIncome",
+        ),
+        net_income=_get(
+            raw,
+            "netIncome","net_income",
+            "profitAfterTax",
+        ),
+        depreciation_and_amortization=_get(
+            raw,
+            "depreciation",
+            "depreciationAndAmortization",
+        ),
+        eps=_get(
+            raw,
+            "eps",
+            "EPS",
+            "earningsPerShare",
+        ),
+        shares_outstanding=_get(
+            raw,
+            "sharesOutstanding",
+            "shares_outstanding",
+        ),
+    )
+
+
+def normalize_balance_sheet(
+    raw: dict[str, Any],
+) -> BalanceSheet:
+
+    return BalanceSheet(
+        cash=_get(raw, "cash"),
+        cash_equivalents=_get(
+            raw,
+            "cashEquivalents",
+        ),
+        short_term_investments=_get(
+            raw,
+            "shortTermInvestments",
+        ),
+        accounts_receivable=_get(
+            raw,
+            "accountsReceivable",
+        ),
+        inventory=_get(
+            raw,
+            "inventory",
+        ),
+        property_plant_equipment=_get(
+            raw,
+            "propertyPlantEquipment",
+            "ppe",
+        ),
+        goodwill=_get(
+            raw,
+            "goodwill",
+        ),
+        intangible_assets=_get(
+            raw,
+            "intangibles",
+        ),
+        total_current_assets=_get(
+            raw,
+            "totalCurrentAssets",
+            "total_current_assets",
+        ),
+        total_current_liabilities=_get(
+            raw,
+            "totalCurrentLiabilities",
+            "total_current_liabilities",
+        ),
+        total_assets=_get(
+            raw,
+            "totalAssets",
+            "total_assets",
+        ),
+        short_term_debt=_get(
+            raw,
+            "shortTermDebt",
+        ),
+        long_term_debt=_get(
+            raw,
+            "longTermDebt","debt",
+        ),
+        total_liabilities=_get(
+            raw,
+            "totalLiabilities","total_liabilities",
+        ),
+        total_equity=_get(
+            raw,
+            "totalEquity",
+            "shareholdersEquity","shareholders_equity",
+        ),
+    )
+
+
+def normalize_cash_flow(
+    raw: dict[str, Any],
+) -> CashFlowStatement:
+
+    return CashFlowStatement(
+        operating_cash_flow=_get(
+            raw,
+            "operatingCashFlow","operating_cash_flow",
+        ),
+        capital_expenditure=_get(
+            raw,
+            "capitalExpenditure",
+            "capex",
+        ),
+        investing_cash_flow=_get(
+            raw,
+            "investingCashFlow","investing_cash_flow",
+        ),
+        financing_cash_flow=_get(
+            raw,
+            "financingCashFlow","financing_cash_flow",
+        ),
+        dividends_paid=_get(
+            raw,
+            "dividendsPaid",
+        ),
+        net_change_in_cash=_get(
+            raw,
+            "changeInCash",
+        ),
+                beginning_cash=_get(
+            raw,
+            "beginningCash",
+            "beginning_cash",
+        ),
+        ending_cash=_get(
+            raw,
+            "endingCash",
+            "ending_cash",
+        ),
+    )
+
+
+def normalize_financial_statements(
+    company_name: str,
+    ticker: str,
+    currency: str,
+    fiscal_year: str,
+    income_raw: dict[str, Any],
+    balance_raw: dict[str, Any],
+    cashflow_raw: dict[str, Any],
+) -> FinancialStatements:
+    """
+    Builds the platform's canonical FinancialStatements object.
+    """
+
+    return FinancialStatements(
+        company_name=company_name,
+        ticker=ticker,
+        currency=currency,
+        fiscal_year=fiscal_year,
+        income_statement=normalize_income_statement(income_raw),
+        balance_sheet=normalize_balance_sheet(balance_raw),
+        cash_flow_statement=normalize_cash_flow(cashflow_raw),
+    )
+
+
+
+
+
+
+
+
+============================================================
+FUNDAMENTALS MODELS
+============================================================
+NO services/fundamentals/models.py
+
+============================================================
+CANONICAL MODELS
+============================================================
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
+
+@dataclass(frozen=True)
+class CanonicalIncomeStatement:
+    period: str
+    revenue: float
+    other_revenue: float = 0.0
+    total_revenue: float = 0.0
+    cost_of_revenue: float = 0.0
+    gross_profit: float = 0.0
+    gross_margin: float = 0.0
+    research_development: float = 0.0
+    sales_marketing: float = 0.0
+    general_administrative: float = 0.0
+    operating_expenses: float = 0.0
+    operating_income: float = 0.0
+    ebitda: float = 0.0
+    ebit: float = 0.0
+    interest_expense: float = 0.0
+    pretax_income: float = 0.0
+    tax_expense: float = 0.0
+    net_income: float = 0.0
+    eps: float = 0.0
+    diluted_eps: float = 0.0
+    shares_outstanding: float = 0.0
+    diluted_shares: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass(frozen=True)
+class CanonicalBalanceSheet:
+    period: str
+    cash: float = 0.0
+    cash_equivalents: float = 0.0
+    short_term_investments: float = 0.0
+    accounts_receivable: float = 0.0
+    inventory: float = 0.0
+    other_current_assets: float = 0.0
+    total_current_assets: float = 0.0
+    property_plant_equipment: float = 0.0
+    goodwill: float = 0.0
+    intangible_assets: float = 0.0
+    long_term_investments: float = 0.0
+    deferred_tax_assets: float = 0.0
+    total_assets: float = 0.0
+    accounts_payable: float = 0.0
+    accrued_expenses: float = 0.0
+    short_term_debt: float = 0.0
+    current_portion_long_term_debt: float = 0.0
+    other_current_liabilities: float = 0.0
+    total_current_liabilities: float = 0.0
+    long_term_debt: float = 0.0
+    deferred_tax_liabilities: float = 0.0
+    total_liabilities: float = 0.0
+    common_stock: float = 0.0
+    additional_paid_in_capital: float = 0.0
+    retained_earnings: float = 0.0
+    treasury_stock: float = 0.0
+    minority_interest: float = 0.0
+    shareholders_equity: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass(frozen=True)
+class CanonicalCashFlowStatement:
+    period: str
+    operating_cash_flow: float = 0.0
+    net_income: float = 0.0
+    depreciation: float = 0.0
+    amortization: float = 0.0
+    stock_compensation: float = 0.0
+    deferred_taxes: float = 0.0
+    change_in_receivables: float = 0.0
+    change_in_inventory: float = 0.0
+    change_in_payables: float = 0.0
+    capital_expenditures: float = 0.0
+    acquisitions: float = 0.0
+    investments_purchased: float = 0.0
+    investments_sold: float = 0.0
+    debt_issued: float = 0.0
+    debt_repaid: float = 0.0
+    share_buybacks: float = 0.0
+    dividends: float = 0.0
+    equity_issued: float = 0.0
+    free_cash_flow: float = 0.0
+    owner_earnings: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+============================================================
+FINANCIAL STATEMENT
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+STANDARD FINANCIAL STATEMENT MODEL
+Module  : financial_statement
+Version : V1.1
+==========================================================
+
+Canonical financial statement container used throughout EROS.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.financials.income_statement import IncomeStatement
+
+
+@dataclass(slots=True)
+class PeriodFinancials:
+    """Financial statements for a single reporting period."""
+
+    period: str
+    income_statement: IncomeStatement
+    balance_sheet: BalanceSheet
+    cash_flow_statement: CashFlowStatement
+
+
+@dataclass(slots=True)
+class FinancialStatements:
+    """Canonical standardized financial statement container."""
+
+    company_name: str
+    ticker: str
+    currency: str
+    fiscal_year: str
+
+    income_statement: IncomeStatement
+    balance_sheet: BalanceSheet
+    cash_flow_statement: CashFlowStatement
+
+    periods: list[PeriodFinancials] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def symbol(self) -> str:
+        """Compatibility alias for callers using symbol terminology."""
+        return self.ticker
+
+    @property
+    def income_statements(self) -> list[IncomeStatement]:
+        """Compatibility view of all income statements."""
+        if self.periods:
+            return [p.income_statement for p in self.periods]
+        return [self.income_statement]
+
+    @property
+    def balance_sheets(self) -> list[BalanceSheet]:
+        """Compatibility view of all balance sheets."""
+        if self.periods:
+            return [p.balance_sheet for p in self.periods]
+        return [self.balance_sheet]
+
+    @property
+    def cash_flows(self) -> list[CashFlowStatement]:
+        """Compatibility view of all cash-flow statements."""
+        if self.periods:
+            return [p.cash_flow_statement for p in self.periods]
+        return [self.cash_flow_statement]
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "company": self.company_name,
+            "ticker": self.ticker,
+            "currency": self.currency,
+            "year": self.fiscal_year,
+            "revenue": self.income_statement.revenue,
+            "ebit": self.income_statement.ebit,
+            "net_income": self.income_statement.net_income,
+            "cash": self.balance_sheet.total_cash,
+            "debt": self.balance_sheet.total_debt,
+        }
+
+============================================================
+INCOME STATEMENT
+============================================================
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(slots=True)
+class IncomeStatement:
+    """Standardized income statement for one reporting period."""
+    period: str = "FY2025"
+    revenue: float = 0.0
+    operating_income: float = 0.0
+    other_operating_income: float = 0.0
+    total_operating_income: float = 0.0
+    cost_of_goods_sold: float = 0.0
+    operating_expenses: float = 0.0
+    depreciation_and_amortization: float = 0.0
+    ebitda: float = 0.0
+    ebit: float = 0.0
+    finance_cost: float = 0.0
+    finance_income: float = 0.0
+    profit_before_tax: float = 0.0
+    tax_expense: float = 0.0
+    net_income: float = 0.0
+    shares_outstanding: float = 0.0
+    eps: float = 0.0
+
+    def operating_margin(self) -> float:
+        return self.ebit / self.revenue if self.revenue else 0.0
+
+    def ebitda_margin(self) -> float:
+        return self.ebitda / self.revenue if self.revenue else 0.0
+
+    def net_margin(self) -> float:
+        return self.net_income / self.revenue if self.revenue else 0.0
+
+
+============================================================
+BALANCE SHEET
+============================================================
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(slots=True)
+class BalanceSheet:
+    """Standardized balance sheet for one reporting period."""
+    period: str = "FY2025"
+    cash: float = 0.0
+    cash_equivalents: float = 0.0
+    short_term_investments: float = 0.0
+    accounts_receivable: float = 0.0
+    inventory: float = 0.0
+    other_current_assets: float = 0.0
+    total_current_assets: float = 0.0
+    property_plant_equipment: float = 0.0
+    right_of_use_assets: float = 0.0
+    goodwill: float = 0.0
+    intangible_assets: float = 0.0
+    long_term_investments: float = 0.0
+    associates_and_joint_ventures: float = 0.0
+    deferred_tax_assets: float = 0.0
+    other_non_current_assets: float = 0.0
+    total_non_current_assets: float = 0.0
+    total_assets: float = 0.0
+    accounts_payable: float = 0.0
+    short_term_debt: float = 0.0
+    current_lease_liabilities: float = 0.0
+    accrued_expenses: float = 0.0
+    other_current_liabilities: float = 0.0
+    total_current_liabilities: float = 0.0
+    long_term_debt: float = 0.0
+    long_term_lease_liabilities: float = 0.0
+    deferred_tax_liabilities: float = 0.0
+    pension_liabilities: float = 0.0
+    other_non_current_liabilities: float = 0.0
+    total_non_current_liabilities: float = 0.0
+    total_liabilities: float = 0.0
+    share_capital: float = 0.0
+    retained_earnings: float = 0.0
+    reserves: float = 0.0
+    minority_interest: float = 0.0
+    total_equity: float = 0.0
+    shareholders_equity: float = 0.0
+    debt: float = 0.0
+
+    def __post_init__(self) -> None:
+        if self.total_equity == 0.0 and self.shareholders_equity != 0.0:
+            self.total_equity = self.shareholders_equity
+        elif self.shareholders_equity == 0.0 and self.total_equity != 0.0:
+            self.shareholders_equity = self.total_equity
+
+    @property
+    def total_cash(self) -> float:
+        """Canonical total cash resources used by EROS valuation and ratio engines."""
+        return self.cash + self.cash_equivalents + self.short_term_investments
+
+    @property
+    def total_debt(self) -> float:
+        return self.debt if self.debt else self.short_term_debt + self.long_term_debt
+
+    @property
+    def net_debt(self) -> float:
+        """Canonical net debt used by EROS financial-ratio and valuation engines."""
+        return self.total_debt - self.total_cash
+
+    @property
+    def current_assets(self) -> float:
+        return self.total_current_assets
+
+    @property
+    def current_liabilities(self) -> float:
+        return self.total_current_liabilities
+
+
+============================================================
+CASH FLOW
+============================================================
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(slots=True)
+class CashFlowStatement:
+    """Standardized cash flow statement for one reporting period."""
+    period: str = "FY2025"
+    net_income: float = 0.0
+    depreciation_and_amortization: float = 0.0
+    share_based_compensation: float = 0.0
+    deferred_tax: float = 0.0
+    change_in_working_capital: float = 0.0
+    other_operating_items: float = 0.0
+    operating_cash_flow: float = 0.0
+    capital_expenditure: float = 0.0
+    capex: float = 0.0
+    acquisitions: float = 0.0
+    asset_sales: float = 0.0
+    investment_purchases: float = 0.0
+    investment_sales: float = 0.0
+    investing_cash_flow: float = 0.0
+    debt_issued: float = 0.0
+    debt_repaid: float = 0.0
+    dividends_paid: float = 0.0
+    share_repurchases: float = 0.0
+    equity_issued: float = 0.0
+    financing_cash_flow: float = 0.0
+    net_change_in_cash: float = 0.0
+    beginning_cash: float = 0.0
+    ending_cash: float = 0.0
+    free_cash_flow: float = 0.0
+
+    def __post_init__(self) -> None:
+        if not self.capex:
+            self.capex = self.capital_expenditure
+        if not self.capital_expenditure:
+            self.capital_expenditure = self.capex
+        if not self.free_cash_flow:
+            self.free_cash_flow = self.operating_cash_flow - self.capex
+
+
+============================================================
+FUNDAMENTALS SERVICE
+============================================================
+from __future__ import annotations
+
+import logging
+import time
+from typing import Any, Optional
+from core.events.dispatcher import EventDispatcher
+from services.fundamentals.events import FundamentalsDownloaded
+from services.financials.financial_statement import FinancialStatements
+from services.fundamentals.normalizer import FinancialNormalizer
+from services.fundamentals.provider import IFundamentalProvider
+
+logger = logging.getLogger(__name__)
+
+
+class FundamentalsService:
+    """Service managing financial statements acquisition, normalization, caching, and event dispatching."""
+
+    def __init__(
+        self,
+        provider: IFundamentalProvider,
+        normalizer: FinancialNormalizer,
+        dispatcher: EventDispatcher,
+        cache: Optional[dict[str, FinancialStatements]] = None,
+    ) -> None:
+        self._provider = provider
+        self._normalizer = normalizer
+        self._dispatcher = dispatcher
+        self._cache = cache if cache is not None else {}
+
+    async def get_or_download(self, symbol: str) -> FinancialStatements:
+        """Retrieve financial statements from cache or download and normalize them, then dispatch event."""
+        if symbol in self._cache:
+            logger.info("Serving financial statements from cache for symbol: %s", symbol)
+            statements = self._cache[symbol]
+        else:
+            raw = self._provider.download(symbol)
+            statements = self._normalizer.normalize(raw)
+            self._cache[symbol] = statements
+
+        event = FundamentalsDownloaded(
+            symbol=symbol,
+            provider=statements.metadata.get("provider", "YahooFinance"),
+            timestamp=time.time(),
+            payload={
+                "financial_statements": statements,
+                "symbol": symbol,
+            },
+        )
+
+        await self._dispatcher.dispatch(event)
+        logger.info("FundamentalsDownloaded event dispatched successfully for symbol: %s", symbol)
+        return statements
+
+
+============================================================
+FUNDAMENTALS TEST FILES
+============================================================
+
+----- TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_canonical_models.py -----
+from __future__ import annotations
+
+import pytest
+from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet, CanonicalCashFlowStatement
+from services.fundamentals.validator import CanonicalFinancialValidator
+
+def test_canonical_models_and_validation() -> None:
+    bs = CanonicalBalanceSheet(
+        period="2025",
+        cash=10000.0,
+        total_current_assets=50000.0,
+        property_plant_equipment=50000.0,
+        total_assets=100000.0,
+        total_current_liabilities=20000.0,
+        long_term_debt=20000.0,
+        total_liabilities=40000.0,
+        shareholders_equity=60000.0
+    )
+    inc = CanonicalIncomeStatement(
+        period="2025",
+        revenue=150000.0,
+        gross_profit=60000.0,
+        operating_income=25000.0,
+        net_income=18000.0,
+        shares_outstanding=1000.0,
+        eps=18.0
+    )
+    cf = CanonicalCashFlowStatement(
+        period="2025",
+        operating_cash_flow=30000.0,
+        capital_expenditures=-10000.0,
+        free_cash_flow=20000.0
+    )
+
+    bs_errors = CanonicalFinancialValidator.validate_balance_sheet(bs)
+    inc_errors = CanonicalFinancialValidator.validate_income_statement(inc)
+    analytics = CanonicalFinancialValidator.compute_analytics(bs, inc, cf)
+
+    assert len(bs_errors) == 0
+    assert len(inc_errors) == 0
+    assert analytics["net_debt"] == 10000.0
+    assert analytics["working_capital"] == 30000.0
+    assert analytics["free_cash_flow"] == 20000.0
+
+
+----- TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py -----
+from __future__ import annotations
+
+import pytest
+from services.fundamentals.events import FundamentalsDownloaded
+
+
+def test_fundamentals_downloaded_event_contract() -> None:
+    event = FundamentalsDownloaded(symbol="RELIANCE.NS", provider="YahooFinance")
+    assert event.name == "fundamentals.downloaded"
+    assert event.symbol == "RELIANCE.NS"
+    assert event.provider == "YahooFinance"
+
+
+----- TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_models.py -----
+from __future__ import annotations
+
+import pytest
+
+from services.financials.financial_statement import FinancialStatements, PeriodFinancials
+from services.financials.income_statement import IncomeStatement
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+
+
+def test_financial_statements_immutability_and_structure() -> None:
+    inc = IncomeStatement(
+        period="FY2025",
+        revenue=100.0,
+        total_operating_income=20.0,
+        ebit=18.0,
+        net_income=10.0,
+        eps=2.0,
+    )
+
+    bs = BalanceSheet(
+        period="FY2025",
+        total_assets=500.0,
+        total_liabilities=200.0,
+        total_equity=300.0,
+        cash=50.0,
+        long_term_debt=100.0,
+    )
+
+    cf = CashFlowStatement(
+        period="FY2025",
+        operating_cash_flow=30.0,
+        capital_expenditure=10.0,
+        investing_cash_flow=-10.0,
+        financing_cash_flow=-5.0,
+    )
+
+    fs = FinancialStatements(
+        company_name="RELIANCE",
+        ticker="RELIANCE.NS",
+        currency="INR",
+        fiscal_year="FY2025",
+        income_statement=inc,
+        balance_sheet=bs,
+        cash_flow_statement=cf,
+        periods=[
+            PeriodFinancials(
+                period="FY2025",
+                income_statement=inc,
+                balance_sheet=bs,
+                cash_flow_statement=cf,
+            )
+        ],
+    )
+
+    assert fs.symbol == "RELIANCE.NS"
+    assert fs.ticker == "RELIANCE.NS"
+
+    assert len(fs.income_statements) == 1
+    assert fs.income_statements[0].revenue == 100.0
+
+    assert len(fs.balance_sheets) == 1
+    assert fs.balance_sheets[0].shareholders_equity == 300.0
+
+    assert len(fs.cash_flows) == 1
+    assert fs.cash_flows[0].free_cash_flow == 20.0
+
+    with pytest.raises(AttributeError):
+        fs.symbol = "TCS.NS"  # type: ignore[misc]
+
+
+----- TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py -----
+from __future__ import annotations
+
+import pytest
+from services.fundamentals.normalizer import FinancialNormalizer
+
+
+def test_financial_normalizer() -> None:
+    raw = {
+        "symbol": "RELIANCE.NS",
+        "provider": "YahooFinance",
+        "income_statement": {"revenue": 5000.0, "operating_income": 1000.0, "ebit": 900.0, "net_income": 600.0, "eps": 10.0},
+        "balance_sheet": {"total_assets": 10000.0, "total_liabilities": 4000.0, "shareholders_equity": 6000.0, "cash": 1000.0, "debt": 2000.0},
+        "cash_flow": {"operating_cash_flow": 1200.0, "capex": 300.0, "free_cash_flow": 900.0, "investing_cash_flow": -300.0, "financing_cash_flow": -200.0},
+    }
+
+    normalizer = FinancialNormalizer()
+    fs = normalizer.normalize(raw)
+
+    assert fs.symbol == "RELIANCE.NS"
+    assert fs.income_statements[0].revenue == 5000.0
+    assert fs.balance_sheets[0].cash == 1000.0
+    assert fs.cash_flows[0].free_cash_flow == 900.0
+    assert fs.metadata["provider"] == "YahooFinance"
+
+
+----- TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_provider.py -----
+from __future__ import annotations
+
+import pytest
+from services.fundamentals.provider import YahooFinanceProvider, IFundamentalProvider
+
+
+def test_yahoo_finance_provider() -> None:
+    provider = YahooFinanceProvider()
+    assert isinstance(provider, IFundamentalProvider)
+    
+    data = provider.download("RELIANCE.NS")
+    assert data["symbol"] == "RELIANCE.NS"
+    assert "income_statements" in data
+    assert "balance_sheets" in data
+    assert "cash_flows" in data
+
+
+
+----- TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py -----
+from __future__ import annotations
+
+import asyncio
+import pytest
+from typing import Any
+from core.events import InMemoryEventBus, EventDispatcher
+from services.fundamentals.normalizer import FinancialNormalizer
+from services.fundamentals.provider import YahooFinanceProvider
+from services.fundamentals.service import FundamentalsService
+
+
+def test_fundamentals_service_get_or_download_and_cache() -> None:
+    async def run() -> None:
+        bus = InMemoryEventBus()
+        dispatcher = EventDispatcher(bus)
+        provider = YahooFinanceProvider()
+        normalizer = FinancialNormalizer()
+        service = FundamentalsService(provider, normalizer, dispatcher)
+
+        events_received = []
+        async def listener(event: Any) -> None:
+            events_received.append(event)
+
+        bus.subscribe("fundamentals.downloaded", listener)
+
+        symbol = "RELIANCE.NS"
+        fs1 = await service.get_or_download(symbol)
+        assert fs1.symbol == symbol
+        assert len(events_received) == 1
+
+        # Second call should hit cache
+        fs2 = await service.get_or_download(symbol)
+        assert fs2 == fs1
+        assert len(events_received) == 2
+
+    asyncio.run(run())
+
+
+----- TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_fundamental.py -----
+from pathlib import Path
+
+p = Path("/app/services/scoring/fundamental.py")
+text = p.read_text(encoding="utf-8-sig")
+
+old = '''        details = {
+            "ratios": {
+                "gross_margin": ratios.gross_margin,
+                "ebitda_margin": ratios.ebitda_margin,
+                "ebit_margin": ratios.ebit_margin,
+                "net_margin": ratios.net_margin,
+                "roe": ratios.roe,
+                "roa": ratios.roa,
+                "roce": ratios.roce,
+                "roic": ratios.roic,
+                "current_ratio": ratios.current_ratio,
+                "quick_ratio": ratios.quick_ratio,
+                "debt_to_equity": ratios.debt_to_equity,
+                "net_debt_to_ebitda": ratios.net_debt_to_ebitda,
+                "fcf_margin": ratios.fcf_margin,
+                "cash_conversion_ratio": ratios.cash_conversion_ratio,
+                "asset_turnover": ratios.asset_turnover,
+                "inventory_turnover": ratios.inventory_turnover,
+            },
+            "profitability": profitability_components,
+            "quality": quality_components,
+            "financial_strength": financial_strength_components,
+            "capital_efficiency": capital_efficiency_components,
+            "cash_flow_quality": cash_flow_components,
+            "weights": pillar_weights,
+        }
+'''
+
+new = '''        raw_ratios = {
+            "gross_margin": ratios.gross_margin,
+            "ebitda_margin": ratios.ebitda_margin,
+            "ebit_margin": ratios.ebit_margin,
+            "net_margin": ratios.net_margin,
+            "roe": ratios.roe,
+            "roa": ratios.roa,
+            "roce": ratios.roce,
+            "roic": ratios.roic,
+            "current_ratio": ratios.current_ratio,
+            "quick_ratio": ratios.quick_ratio,
+            "debt_to_equity": ratios.debt_to_equity,
+            "net_debt_to_ebitda": ratios.net_debt_to_ebitda,
+            "fcf_margin": ratios.fcf_margin,
+            "cash_conversion_ratio": ratios.cash_conversion_ratio,
+            "asset_turnover": ratios.asset_turnover,
+            "inventory_turnover": ratios.inventory_turnover,
+        }
+
+        details = {
+            # Block 10 audit identity
+            "engine_version": "EROS-3.0-BLOCK-10",
+
+            # Canonical Block 10 audit contract
+            "raw_ratios": raw_ratios,
+            "profitability_components": profitability_components,
+            "quality_components": quality_components,
+            "capital_allocation_components": capital_efficiency_components,
+
+            # Existing detailed contract retained for compatibility
+            "ratios": raw_ratios,
+            "profitability": profitability_components,
+            "quality": quality_components,
+            "financial_strength": financial_strength_components,
+            "capital_efficiency": capital_efficiency_components,
+            "cash_flow_quality": cash_flow_components,
+            "weights": pillar_weights,
+        }
+'''
+
+if old not in text:
+    raise SystemExit("PATCH ABORTED: expected details block not found")
+
+p.write_text(text.replace(old, new, 1), encoding="utf-8")
+print("SUCCESS: Added Block 10 audit contract to FundamentalScoringEngine")
+
+----- TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py -----
+from services.financials.parser import (
+    parse_financial_statements,
+    repository,
+)
+from services.scoring.engine import AIScoringEngine
+
+def test_block10_fundamental_scoring() -> None:
+    income = {
+        "revenue": 100000.0,
+        "costOfRevenue": 60000.0,
+        "ebitda": 20000.0,
+        "ebit": 15000.0,
+        "netIncome": 10000.0,
+        "eps": 10.0,
+        "sharesOutstanding": 1000.0,
+    }
+    balance = {
+        "cash": 10000.0,
+        "cashEquivalents": 2000.0,
+        "accountsReceivable": 15000.0,
+        "inventory": 10000.0,
+        "totalAssets": 200000.0,
+        "totalLiabilities": 100000.0,
+        "totalEquity": 100000.0,
+        "shortTermDebt": 20000.0,
+        "longTermDebt": 40000.0,
+    }
+    cashflow = {
+        "operatingCashFlow": 18000.0,
+        "capitalExpenditure": 5000.0,
+        "beginningCash": 9000.0,
+        "changeInCash": 1000.0,
+        "endingCash": 10000.0,
+    }
+
+    statements = parse_financial_statements(
+        company_name="Reliance Industries",
+        ticker="RELIANCE.NS",
+        currency="INR",
+        fiscal_year="FY2025",
+        income_statement=income,
+        balance_sheet=balance,
+        cash_flow=cashflow,
+    )
+
+    engine = AIScoringEngine()
+    result = engine.evaluate(statements)
+
+    # --------------------------------------------------
+    # Identity contract
+    # --------------------------------------------------
+    assert result.symbol == "RELIANCE.NS"
+
+    # --------------------------------------------------
+    # Score range contract
+    # --------------------------------------------------
+    assert 0.0 <= result.growth_score <= 100.0
+    assert 0.0 <= result.quality_score <= 100.0
+    assert 0.0 <= result.profitability_score <= 100.0
+    assert 0.0 <= result.capital_allocation_score <= 100.0
+    assert 0.0 <= result.valuation_score <= 100.0
+    assert 0.0 <= result.momentum_score <= 100.0
+    assert 0.0 <= result.risk_score <= 100.0
+    assert 0.0 <= result.composite_score <= 100.0
+
+    # --------------------------------------------------
+    # Fundamental integration contract
+    # --------------------------------------------------
+    assert result.quality_score > 0.0
+    assert result.profitability_score > 0.0
+    assert result.capital_allocation_score > 0.0
+    assert result.risk_score > 0.0
+
+    # --------------------------------------------------
+    # Audit payload contract
+    # --------------------------------------------------
+    details = result.breakdown_details
+    # AIScoringEngine is the unified Block 15 engine.
+    assert details["engine_version"] == "EROS-3.0-BLOCK-15"
+
+    # Fundamental scoring remains independently versioned as Block 10.
+    assert details["fundamental_engine"]["engine_version"] == "EROS-3.0-BLOCK-10"
+    assert "fundamental_engine" in details
+    assert "raw_ratios" in details
+    assert "quality_components" in details["fundamental_engine"]
+    assert "profitability_components" in details["fundamental_engine"]
+    assert "capital_allocation_components" in details["fundamental_engine"]
+    assert "ebitda_margin" in details["raw_ratios"]
+    assert "roe" in details["raw_ratios"]
+    assert "roic" in details["raw_ratios"]
+
+    # --------------------------------------------------
+    # Weight contract
+    # --------------------------------------------------
+    weights = details["weights_used"]
+    assert abs(sum(weights.values()) - 1.0) < 1e-9
+
+    repository().clear()
+
+
+============================================================
+ALL FUNDAMENTALS / FINANCIAL IMPORT REFERENCES
+============================================================
+services/financials/__init__.py:1:∩╗┐from services.financials.balance_sheet import BalanceSheet
+services/financials/__init__.py:2:from services.financials.cash_flow import CashFlowStatement
+services/financials/__init__.py:3:from services.financials.financial_statement import (
+services/financials/__init__.py:7:from services.financials.income_statement import IncomeStatement
+services/financials/builders.py:14:from services.financials.financial_statement import FinancialStatements
+services/financials/financial_ratios.py:25:from services.financials.balance_sheet import BalanceSheet
+services/financials/financial_ratios.py:26:from services.financials.cash_flow import CashFlowStatement
+services/financials/financial_ratios.py:27:from services.financials.income_statement import IncomeStatement
+services/financials/financial_statement.py:16:from services.financials.balance_sheet import BalanceSheet
+services/financials/financial_statement.py:17:from services.financials.cash_flow import CashFlowStatement
+services/financials/financial_statement.py:18:from services.financials.income_statement import IncomeStatement
+services/financials/normalization.py:26:from services.financials.balance_sheet import BalanceSheet
+services/financials/normalization.py:27:from services.financials.cash_flow import CashFlowStatement
+services/financials/normalization.py:28:from services.financials.financial_statement import (
+services/financials/normalization.py:31:from services.financials.income_statement import IncomeStatement
+services/financials/normalization.py.31K-FI10-backup:26:from services.financials.balance_sheet import BalanceSheet
+services/financials/normalization.py.31K-FI10-backup:27:from services.financials.cash_flow import CashFlowStatement
+services/financials/normalization.py.31K-FI10-backup:28:from services.financials.financial_statement import (
+services/financials/normalization.py.31K-FI10-backup:31:from services.financials.income_statement import IncomeStatement
+services/financials/normalization.py.31K-FI13-backup:26:from services.financials.balance_sheet import BalanceSheet
+services/financials/normalization.py.31K-FI13-backup:27:from services.financials.cash_flow import CashFlowStatement
+services/financials/normalization.py.31K-FI13-backup:28:from services.financials.financial_statement import (
+services/financials/normalization.py.31K-FI13-backup:31:from services.financials.income_statement import IncomeStatement
+services/financials/parser.py:28:from services.financials.normalization import (
+services/financials/parser.py:31:from services.financials.repository import (
+services/financials/parser.py:34:from services.financials.validator import (
+services/financials/repository.py:5:from services.financials.financial_statement import FinancialStatements
+services/financials/validator.py:21:from services.financials.financial_statement import (
+services/forecast/engine.py:9:from services.financials.financial_statement import FinancialStatements
+services/forecast/service.py:10:from services.financials.financial_statement import FinancialStatements
+services/fundamentals/models.py.backup2:6:from services.financials.income_statement import IncomeStatement
+services/fundamentals/models.py.backup2:7:from services.financials.balance_sheet import BalanceSheet
+services/fundamentals/models.py.backup2:8:from services.financials.cash_flow import CashFlowStatement
+services/fundamentals/normalizer.py:6:from services.financials.balance_sheet import BalanceSheet
+services/fundamentals/normalizer.py:7:from services.financials.cash_flow import CashFlowStatement
+services/fundamentals/normalizer.py:8:from services.financials.financial_statement import (
+services/fundamentals/normalizer.py:12:from services.financials.income_statement import IncomeStatement
+services/fundamentals/normalizer.py.backup3:6:from services.fundamentals.models import (
+services/fundamentals/normalizer.py.backup3:11:from services.financials.income_statement import IncomeStatement
+services/fundamentals/service.py:7:from services.fundamentals.events import FundamentalsDownloaded
+services/fundamentals/service.py:8:from services.financials.financial_statement import FinancialStatements
+services/fundamentals/service.py:9:from services.fundamentals.normalizer import FinancialNormalizer
+services/fundamentals/service.py:10:from services.fundamentals.provider import IFundamentalProvider
+services/fundamentals/validator.py:5:from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet, CanonicalCashFlowStatement
+services/ratios/efficiency.py:5:from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
+services/ratios/engine.py:6:from services.financials.financial_statement import FinancialStatements
+services/ratios/engine.py.backup_before_ratio_fix:6:from services.fundamentals.models import FinancialStatements
+services/ratios/leverage.py:5:from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
+services/ratios/liquidity.py:5:from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
+services/ratios/profitability.py:5:from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet, CanonicalCashFlowStatement
+services/scoring/engine.py:4:from services.financials.financial_statement import FinancialStatements
+services/scoring/fundamental.py:4:from services.financials.financial_ratios import (
+services/scoring/fundamental.py:8:from services.financials.financial_statement import FinancialStatements
+services/scoring/growth.py:4:from services.financials.financial_statement import FinancialStatements
+services/valuation/relative/engine.py:6:from services.financials.financial_statement import FinancialStatements
+services/valuation/sotp/engine.py:6:from services.financials.financial_statement import FinancialStatements
+tests/fundamentals/test_canonical_models.py:4:from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet, CanonicalCashFlowStatement
+tests/fundamentals/test_canonical_models.py:5:from services.fundamentals.validator import CanonicalFinancialValidator
+tests/fundamentals/test_events.py:4:from services.fundamentals.events import FundamentalsDownloaded
+tests/fundamentals/test_models.py:5:from services.financials.financial_statement import FinancialStatements, PeriodFinancials
+tests/fundamentals/test_models.py:6:from services.financials.income_statement import IncomeStatement
+tests/fundamentals/test_models.py:7:from services.financials.balance_sheet import BalanceSheet
+tests/fundamentals/test_models.py:8:from services.financials.cash_flow import CashFlowStatement
+tests/fundamentals/test_normalizer.py:4:from services.fundamentals.normalizer import FinancialNormalizer
+tests/fundamentals/test_provider.py:4:from services.fundamentals.provider import YahooFinanceProvider, IFundamentalProvider
+tests/fundamentals/test_service.py:7:from services.fundamentals.normalizer import FinancialNormalizer
+tests/fundamentals/test_service.py:8:from services.fundamentals.provider import YahooFinanceProvider
+tests/fundamentals/test_service.py:9:from services.fundamentals.service import FundamentalsService
+tests/ratios/test_profitability_ratios.py:4:from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
+tests/ratios/test_quality_engine.py:4:from services.financials.income_statement import IncomeStatement
+tests/ratios/test_quality_engine.py:5:from services.financials.balance_sheet import BalanceSheet
+tests/ratios/test_ratios.py:4:from services.financials.financial_statement import FinancialStatements, PeriodFinancials
+tests/ratios/test_ratios.py:5:from services.financials.income_statement import IncomeStatement
+tests/ratios/test_ratios.py:6:from services.financials.balance_sheet import BalanceSheet
+tests/ratios/test_ratios.py:7:from services.financials.cash_flow import CashFlowStatement
+tests/ratios/test_sprint7_ratios.py:4:from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
+tests/scoring/test_block10_fundamental_scoring.py:1:from services.financials.parser import (
+tests/scoring/test_block11_historical_growth.py:1:∩╗┐from services.financials.parser import repository
+tests/scoring/test_block11_historical_growth.py:2:from services.financials.financial_statement import (
+tests/scoring/test_block12_unified_scoring.py:1:∩╗┐from services.financials.parser import repository
+tests/scoring/test_block12_unified_scoring.py:2:from services.financials.financial_statement import (
+tests/scoring/test_block13_valuation_scoring.py:1:∩╗┐from services.financials.parser import repository
+tests/scoring/test_block13_valuation_scoring.py:2:from services.financials.financial_statement import (
+tests/scoring/test_block14_integration.py:1:∩╗┐from services.financials.parser import repository
+tests/scoring/test_block14_integration.py:2:from services.financials.financial_statement import (
+tests/scoring/test_block15_integration.py:1:∩╗┐from services.financials.parser import repository
+tests/scoring/test_block15_integration.py:2:from services.financials.financial_statement import (
+tests/scoring/test_block16_e2e.py:1:∩╗┐from services.financials.financial_statement import (
+tests/scoring/test_scoring.py:3:from services.financials.financial_statement import FinancialStatements
+tests/scoring/test_scoring.py:4:from services.financials.income_statement import IncomeStatement
+tests/scoring/test_scoring.py:5:from services.financials.balance_sheet import BalanceSheet
+tests/scoring/test_scoring.py:6:from services.financials.cash_flow import CashFlowStatement
+tests/test_pipeline.py:8:from services.fundamentals.provider import YahooFinanceProvider
+tests/test_pipeline.py:9:from services.fundamentals.normalizer import FinancialNormalizer
+tests/test_pipeline.py:10:from services.fundamentals.service import FundamentalsService
+tests/valuation/test_blended_valuation.py:1:∩╗┐from services.financials.parser import parse_financial_statements, repository
+tests/valuation/test_relative.py:3:from services.financials.income_statement import IncomeStatement
+tests/valuation/test_relative.py:4:from services.financials.balance_sheet import BalanceSheet
+tests/valuation/test_relative.py:5:from services.financials.cash_flow import CashFlowStatement
+tests/valuation/test_relative.py:6:from services.financials.financial_statement import FinancialStatements
+tests/valuation/test_sotp.py:3:from services.financials.financial_statement import FinancialStatements
+tests/valuation/test_sotp.py:4:from services.financials.income_statement import IncomeStatement
+tests/valuation/test_sotp.py:5:from services.financials.balance_sheet import BalanceSheet
+tests/valuation/test_sotp.py:6:from services.financials.cash_flow import CashFlowStatement
+
+
+============================================================
+NORMALIZATION SYMBOL REFERENCES
+============================================================
+backend/events/bus/event_bus.py:9:    """Centralized publish-subscribe event bus for routing normalized market events to subscribers."""
+backend/events/normalizer.py:9:class CanonicalEventNormalizer:
+backend/events/normalizer.py:13:    def normalize_quote(raw_payload: Dict[str, Any]) -> Dict[str, Any]:
+backend/events/normalizer.py:26:            "normalized": True
+backend/market_data/analytics/streaming_analytics.py:9:    """Computes real-time technical indicators on incoming normalized tick streams."""
+backend/providers/adapters/provider_adapters.py:5:from backend.providers.normalizer.event_normalizer import EventNormalizer
+backend/providers/adapters/provider_adapters.py:28:        return EventNormalizer.normalize_quote(raw_data, self.provider_name)
+backend/providers/adapters/provider_adapters.py:42:        return EventNormalizer.normalize_quote(raw_data, self.provider_name)
+backend/providers/normalizer/event_normalizer.py:9:class EventNormalizer:
+backend/providers/normalizer/event_normalizer.py:13:    def normalize_quote(raw_payload: Dict[str, Any], provider_name: str) -> Dict[str, Any]:
+backend/providers/normalizer/event_normalizer.py:20:            normalized = {
+backend/providers/normalizer/event_normalizer.py:26:                "normalized": True
+backend/providers/normalizer/event_normalizer.py:28:            logger.info("Successfully normalized quote for %s from provider %s", symbol, provider_name)
+backend/providers/normalizer/event_normalizer.py:29:            return normalized
+backend/providers/normalizer/event_normalizer.py:31:            logger.error("Failed to normalize payload from %s: %s", provider_name, e)
+backend/providers/normalizer/event_normalizer.py:32:            raise ValueError(f"Event normalization error: {e}")
+backend/research/evidence/services/evidence_service.py:41:        normalized_category = str(category).strip().upper()
+backend/research/evidence/services/evidence_service.py:47:            category=normalized_category,
+services/alpha_factory/ranking_engine.py:32:                thesis="Deposit mobilization normalization and asset quality resilience driving re-rating.",
+services/eros_frontend_adapter.py:365:        EROS V2.9 normalized read-only decision evidence.
+services/eros_frontend_adapter.py:485:            into a normalized read-only intelligence object.
+services/eros_frontend_adapter.py:2595:        # It normalizes the existing V3.8 audit result so that
+services/eros_frontend_adapter.py:2739:        # Audit object normalization
+services/eros_frontend_adapter.py:2853:        # Findings normalization
+services/eros_frontend_adapter.py:2866:        # Conclusion normalization
+services/eros_frontend_adapter.py:2889:        # Audit summary normalization
+services/eros_frontend_adapter.py:2920:        # Governance normalization
+services/eros_frontend_adapter.py:2994:        # Final V3.8.1 normalized result
+services/eros_frontend_adapter.py:3047:        # Hydrate the normalized output contract from the already
+services/eros_frontend_adapter.py:3267:        # The previous V3.8.2 normalization was returning a stale/incomplete
+services/financials/normalization.py:6:Module  : normalization
+services/financials/normalization.py:48:def normalize_income_statement(
+services/financials/normalization.py:100:def normalize_balance_sheet(
+services/financials/normalization.py:170:def normalize_cash_flow(
+services/financials/normalization.py:213:def normalize_financial_statements(
+services/financials/normalization.py:231:        income_statement=normalize_income_statement(income_raw),
+services/financials/normalization.py:232:        balance_sheet=normalize_balance_sheet(balance_raw),
+services/financials/normalization.py:233:        cash_flow_statement=normalize_cash_flow(cashflow_raw),
+services/financials/normalization.py.31K-FI10-backup:6:Module  : normalization
+services/financials/normalization.py.31K-FI10-backup:48:def normalize_income_statement(
+services/financials/normalization.py.31K-FI10-backup:100:def normalize_balance_sheet(
+services/financials/normalization.py.31K-FI10-backup:170:def normalize_cash_flow(
+services/financials/normalization.py.31K-FI10-backup:213:def normalize_financial_statements(
+services/financials/normalization.py.31K-FI10-backup:231:        income_statement=normalize_income_statement(income_raw),
+services/financials/normalization.py.31K-FI10-backup:232:        balance_sheet=normalize_balance_sheet(balance_raw),
+services/financials/normalization.py.31K-FI10-backup:233:        cash_flow_statement=normalize_cash_flow(cashflow_raw),
+services/financials/normalization.py.31K-FI13-backup:6:Module  : normalization
+services/financials/normalization.py.31K-FI13-backup:48:def normalize_income_statement(
+services/financials/normalization.py.31K-FI13-backup:100:def normalize_balance_sheet(
+services/financials/normalization.py.31K-FI13-backup:170:def normalize_cash_flow(
+services/financials/normalization.py.31K-FI13-backup:213:def normalize_financial_statements(
+services/financials/normalization.py.31K-FI13-backup:231:        income_statement=normalize_income_statement(income_raw),
+services/financials/normalization.py.31K-FI13-backup:232:        balance_sheet=normalize_balance_sheet(balance_raw),
+services/financials/normalization.py.31K-FI13-backup:233:        cash_flow_statement=normalize_cash_flow(cashflow_raw),
+services/financials/parser.py:28:from services.financials.normalization import (
+services/financials/parser.py:29:    normalize_financial_statements,
+services/financials/parser.py:55:    statements = normalize_financial_statements(
+services/forecast/service.py:30:        """Event handler triggered when fundamentals are successfully downloaded and normalized."""
+services/fundamental_score_service.py:81:def _normalize_category(metric_scores, maximum=20):
+services/fundamental_score_service.py:133:    # Read and normalize data
+services/fundamental_score_service.py:215:    valuation_score = _normalize_category(metrics)
+services/fundamental_score_service.py:307:    profitability_score = _normalize_category(metrics)
+services/fundamental_score_service.py:363:    growth_score = _normalize_category(metrics)
+services/fundamental_score_service.py:466:    health_score = _normalize_category(metrics)
+services/fundamental_score_service.py:506:    cash_flow_score = _normalize_category(metrics)
+services/fundamental_score_service.py:525:    # Each category is normalized to 20.
+services/fundamentals/events.py:10:    """Event emitted when company fundamental financial statements are successfully downloaded and normalized."""
+services/fundamentals/normalizer.py:28:class FinancialNormalizer:
+services/fundamentals/normalizer.py:31:    def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+services/fundamentals/normalizer.py.backup3:16:class FinancialNormalizer:
+services/fundamentals/normalizer.py.backup3:19:    def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+services/fundamentals/service.py:9:from services.fundamentals.normalizer import FinancialNormalizer
+services/fundamentals/service.py:16:    """Service managing financial statements acquisition, normalization, caching, and event dispatching."""
+services/fundamentals/service.py:21:        normalizer: FinancialNormalizer,
+services/fundamentals/service.py:26:        self._normalizer = normalizer
+services/fundamentals/service.py:31:        """Retrieve financial statements from cache or download and normalize them, then dispatch event."""
+services/fundamentals/service.py:37:            statements = self._normalizer.normalize(raw)
+services/news_service.py:6:    Fetch and normalize company news from Yahoo Finance.
+services/news_service.py:29:        normalized_news = []
+services/news_service.py:121:            normalized_news.append(
+services/news_service.py:131:        return normalized_news
+services/peer_relevance_service.py:245:    renormalized.
+services/peer_relevance_service.py:256:    def normalize_debt_to_equity(value):
+services/peer_relevance_service.py:294:    company_de = normalize_debt_to_equity(company_metrics.get("debt_to_equity"))
+services/peer_relevance_service.py:296:    peer_de = normalize_debt_to_equity(peer_metrics.get("debt_to_equity"))
+services/peer_relevance_service.py:387:        "normalized_debt_to_equity": {
+services/quantitative/batch_screener.py:51:        normalized_symbol = str(symbol).strip().upper()
+services/quantitative/batch_screener.py:53:        if not normalized_symbol:
+services/quantitative/batch_screener.py:55:                "symbol": normalized_symbol,
+services/quantitative/batch_screener.py:70:                normalized_symbol
+services/quantitative/batch_screener.py:90:                "symbol": normalized_symbol,
+services/quantitative/batch_screener.py:107:                normalized_symbol,
+services/quantitative/batch_screener.py:111:                "symbol": normalized_symbol,
+services/quantitative/batch_screener.py:130:        normalized_symbols: List[str] = []
+services/quantitative/batch_screener.py:134:            normalized_symbol = str(symbol).strip().upper()
+services/quantitative/batch_screener.py:136:            if normalized_symbol and normalized_symbol not in seen:
+services/quantitative/batch_screener.py:137:                normalized_symbols.append(normalized_symbol)
+services/quantitative/batch_screener.py:138:                seen.add(normalized_symbol)
+services/quantitative/batch_screener.py:142:            len(normalized_symbols),
+services/quantitative/batch_screener.py:143:            normalized_symbols,
+services/quantitative/batch_screener.py:150:            max(1, len(normalized_symbols)),
+services/quantitative/batch_screener.py:162:                for symbol in normalized_symbols
+services/quantitative/block85_execution_certification.py:421:        # If the caller supplies execution intents, normalize their explicit
+services/quantitative/block85_execution_certification.py:423:        normalized: List[Dict[str, Any]] = []
+services/quantitative/block85_execution_certification.py:427:                normalized.append({
+services/quantitative/block85_execution_certification.py:433:                normalized.append(row)
+services/quantitative/block85_execution_certification.py:436:            orders=normalized,
+services/quantitative/block87_execution_bridge.py:233:        normalized: List[Dict[str, Any]] = []
+services/quantitative/block87_execution_bridge.py:284:            normalized.append(
+services/quantitative/block87_execution_bridge.py:296:        return normalized
+services/quantitative/block87_execution_bridge.py:466:            normalized = self._validate_allocations(
+services/quantitative/block87_execution_bridge.py:483:            normalized,
+services/quantitative/block93_performance_risk_attribution_engine.py:126:    normalized = repr(sorted((str(k), repr(v)) for k, v in payload.items())).encode("utf-8")
+services/quantitative/block93_performance_risk_attribution_engine.py:127:    return sha256(normalized).hexdigest().upper()
+services/quantitative/block94_portfolio_stress_scenario_engine.py:184:            normalized = str(key).strip().lower()
+services/quantitative/block94_portfolio_stress_scenario_engine.py:185:            if normalized in _FORBIDDEN_KEYS:
+services/quantitative/block94_portfolio_stress_scenario_engine.py:225:    def normalized(self) -> "ScenarioDefinition":
+services/quantitative/block94_portfolio_stress_scenario_engine.py:300:    normalization.
+services/quantitative/block94_portfolio_stress_scenario_engine.py:338:        normalized_scenario = self._normalize_scenario(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py:339:        exposures = self._normalize_positions(positions)
+services/quantitative/block94_portfolio_stress_scenario_engine.py:346:            scenario=normalized_scenario,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:353:            "scenario": normalized_scenario.to_dict(),
+services/quantitative/block94_portfolio_stress_scenario_engine.py:739:            normalized = self._normalize_scenario_safe(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py:741:            if normalized is None:
+services/quantitative/block94_portfolio_stress_scenario_engine.py:750:    def _normalize_scenario_safe(
+services/quantitative/block94_portfolio_stress_scenario_engine.py:755:            normalized = self._normalize_scenario(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py:759:        if not normalized.scenario_id:
+services/quantitative/block94_portfolio_stress_scenario_engine.py:762:        if normalized.scenario_type not in ALLOWED_SCENARIO_TYPES:
+services/quantitative/block94_portfolio_stress_scenario_engine.py:765:        if not normalized.name:
+services/quantitative/block94_portfolio_stress_scenario_engine.py:769:            normalized.price_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:770:            normalized.market_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:771:            normalized.volatility_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:772:            normalized.benchmark_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:773:            normalized.sector_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:774:            normalized.liquidity_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:775:            normalized.correlation_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:776:            normalized.default_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py:782:        return normalized
+services/quantitative/block94_portfolio_stress_scenario_engine.py:784:    def _normalize_scenario(
+services/quantitative/block94_portfolio_stress_scenario_engine.py:855:        ).normalized()
+services/quantitative/block94_portfolio_stress_scenario_engine.py:857:    def _normalize_positions(
+services/quantitative/block94_portfolio_stress_scenario_engine.py:861:        normalized: List[PositionExposure] = []
+services/quantitative/block94_portfolio_stress_scenario_engine.py:886:            normalized.append(
+services/quantitative/block94_portfolio_stress_scenario_engine.py:924:        if not normalized:
+services/quantitative/block94_portfolio_stress_scenario_engine.py:927:        return normalized
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:184:            normalized = str(key).strip().lower()
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:185:            if normalized in _FORBIDDEN_KEYS:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:225:    def normalized(self) -> "ScenarioDefinition":
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:300:    normalization.
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:338:        normalized_scenario = self._normalize_scenario(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:339:        exposures = self._normalize_positions(positions)
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:346:            scenario=normalized_scenario,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:353:            "scenario": normalized_scenario.to_dict(),
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:738:            normalized = self._normalize_scenario_safe(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:740:            if normalized is None:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:749:    def _normalize_scenario_safe(
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:754:            normalized = self._normalize_scenario(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:758:        if not normalized.scenario_id:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:761:        if normalized.scenario_type not in ALLOWED_SCENARIO_TYPES:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:764:        if not normalized.name:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:768:            normalized.price_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:769:            normalized.market_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:770:            normalized.volatility_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:771:            normalized.benchmark_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:772:            normalized.sector_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:773:            normalized.liquidity_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:774:            normalized.correlation_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:775:            normalized.default_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:781:        return normalized
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:783:    def _normalize_scenario(
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:854:        ).normalized()
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:856:    def _normalize_positions(
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:860:        normalized: List[PositionExposure] = []
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:885:            normalized.append(
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:923:        if not normalized:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_20260820_204658:926:        return normalized
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:184:            normalized = str(key).strip().lower()
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:185:            if normalized in _FORBIDDEN_KEYS:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:225:    def normalized(self) -> "ScenarioDefinition":
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:300:    normalization.
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:338:        normalized_scenario = self._normalize_scenario(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:339:        exposures = self._normalize_positions(positions)
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:346:            scenario=normalized_scenario,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:353:            "scenario": normalized_scenario.to_dict(),
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:739:            normalized = self._normalize_scenario_safe(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:741:            if normalized is None:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:750:    def _normalize_scenario_safe(
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:755:            normalized = self._normalize_scenario(scenario)
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:759:        if not normalized.scenario_id:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:762:        if normalized.scenario_type not in ALLOWED_SCENARIO_TYPES:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:765:        if not normalized.name:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:769:            normalized.price_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:770:            normalized.market_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:771:            normalized.volatility_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:772:            normalized.benchmark_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:773:            normalized.sector_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:774:            normalized.liquidity_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:775:            normalized.correlation_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:776:            normalized.default_shock_pct,
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:782:        return normalized
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:784:    def _normalize_scenario(
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:855:        ).normalized()
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:857:    def _normalize_positions(
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:861:        normalized: List[PositionExposure] = []
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:886:            normalized.append(
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:924:        if not normalized:
+services/quantitative/block94_portfolio_stress_scenario_engine.py.backup_block94_safety_20260820_211510:927:        return normalized
+services/quantitative/block95_stress_evidence_gate.py:189:        normalized_policy = self._normalize_policy(policy)
+services/quantitative/block95_stress_evidence_gate.py:193:            policy=normalized_policy,
+services/quantitative/block95_stress_evidence_gate.py:212:            "policy": normalized_policy,
+services/quantitative/block95_stress_evidence_gate.py:249:            "policy": _deepcopy(normalized_policy),
+services/quantitative/block95_stress_evidence_gate.py:301:    def _normalize_policy(
+services/quantitative/block95_stress_evidence_gate.py:318:        normalized: Dict[str, Any] = {
+services/quantitative/block95_stress_evidence_gate.py:325:                normalized["max_stressed_drawdown_pct"] = None
+services/quantitative/block95_stress_evidence_gate.py:327:                normalized["max_stressed_drawdown_pct"] = converted
+services/quantitative/block95_stress_evidence_gate.py:329:        return normalized
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:189:        normalized_policy = self._normalize_policy(policy)
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:193:            policy=normalized_policy,
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:212:            "policy": normalized_policy,
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:249:            "policy": _deepcopy(normalized_policy),
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:300:    def _normalize_policy(
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:317:        normalized: Dict[str, Any] = {
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:324:                normalized["max_stressed_drawdown_pct"] = None
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:326:                normalized["max_stressed_drawdown_pct"] = converted
+services/quantitative/block95_stress_evidence_gate.py.backup_20260820_204658:328:        return normalized
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:189:        normalized_policy = self._normalize_policy(policy)
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:193:            policy=normalized_policy,
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:212:            "policy": normalized_policy,
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:249:            "policy": _deepcopy(normalized_policy),
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:301:    def _normalize_policy(
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:318:        normalized: Dict[str, Any] = {
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:325:                normalized["max_stressed_drawdown_pct"] = None
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:327:                normalized["max_stressed_drawdown_pct"] = converted
+services/quantitative/block95_stress_evidence_gate.py.backup_block95_safety_20260820_211801:329:        return normalized
+services/quantitative/block96_stress_decision_gate.py:118:        normalized_policy = self._normalize_policy(policy)
+services/quantitative/block96_stress_decision_gate.py:122:            policy=normalized_policy,
+services/quantitative/block96_stress_decision_gate.py:135:            policy=normalized_policy,
+services/quantitative/block96_stress_decision_gate.py:162:            "policy": normalized_policy,
+services/quantitative/block96_stress_decision_gate.py:205:            "policy": _deepcopy(normalized_policy),
+services/quantitative/block96_stress_decision_gate.py:249:    def _normalize_policy(
+services/quantitative/block96_stress_decision_gate.py:279:        normalized = {
+services/quantitative/block96_stress_decision_gate.py:292:                normalized[
+services/quantitative/block96_stress_decision_gate.py:296:        return normalized
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:118:        normalized_policy = self._normalize_policy(policy)
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:122:            policy=normalized_policy,
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:135:            policy=normalized_policy,
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:162:            "policy": normalized_policy,
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:205:            "policy": _deepcopy(normalized_policy),
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:248:    def _normalize_policy(
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:278:        normalized = {
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:291:                normalized[
+services/quantitative/block96_stress_decision_gate.py.backup_20260820_204658:295:        return normalized
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:118:        normalized_policy = self._normalize_policy(policy)
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:122:            policy=normalized_policy,
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:135:            policy=normalized_policy,
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:162:            "policy": normalized_policy,
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:205:            "policy": _deepcopy(normalized_policy),
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:249:    def _normalize_policy(
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:279:        normalized = {
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:292:                normalized[
+services/quantitative/block96_stress_decision_gate.py.backup_block96_safety_20260820_211714:296:        return normalized
+services/quantitative/portfolio_optimizer.py:14:    target weights into a normalized portfolio allocation.
+services/quantitative/portfolio_optimizer.py:50:    def _normalize_symbol(symbol: Any) -> str:
+services/quantitative/portfolio_optimizer.py:74:            symbol = self._normalize_symbol(item.get("symbol", ""))
+services/ratios/engine.py:11:    """Institutional-grade financial ratio calculation engine deriving over 50 deep financial metrics from normalized financial statements."""
+services/ratios/engine.py.backup_before_ratio_fix:11:    """Institutional-grade financial ratio calculation engine deriving over 50 deep financial metrics from normalized financial statements."""
+services/score_service.py:52:    Missing metrics are availability-normalized so that
+services/scoring/fundamental.py:52:    All pillar scores are normalized to 0-100.
+services/sotp_balance_sheet_service.py:59:    Extract and normalize balance-sheet fields required
+services/sotp_financial_asset_policy_service.py:36:    normalized_symbol = symbol.upper().replace(".NS", "")
+services/sotp_financial_asset_policy_service.py:37:    ticker_symbol = f"{normalized_symbol}.NS"
+services/sotp_financial_asset_policy_service.py:46:            "symbol": normalized_symbol,
+services/sotp_financial_asset_policy_service.py:53:            "symbol": normalized_symbol,
+services/sotp_financial_asset_policy_service.py:155:        "symbol": normalized_symbol,
+services/sotp_investment_service.py:455:    normalized_symbol = str(symbol).upper().strip()
+services/sotp_investment_service.py:457:    if not normalized_symbol.endswith(".NS"):
+services/sotp_investment_service.py:458:        ticker_symbol = f"{normalized_symbol}.NS"
+services/sotp_investment_service.py:460:        ticker_symbol = normalized_symbol
+services/sotp_investment_service.py:557:        "symbol": normalized_symbol.replace(
+services/sotp_long_term_equity_entity_data_service.py:579:    normalized_names = [name.casefold() for name in names]
+services/sotp_long_term_equity_entity_data_service.py:584:            for index, normalized_name in enumerate(normalized_names)
+services/sotp_long_term_equity_entity_data_service.py:585:            if normalized_names.count(normalized_name) > 1
+services/sotp_long_term_equity_entity_data_service.py:622:def _normalize_entity_name(value: Any) -> str:
+services/sotp_long_term_equity_entity_data_service.py:627:    and dash normalization. It does not perform fuzzy
+services/sotp_long_term_equity_entity_data_service.py:632:    normalized = str(value or "").casefold().strip()
+services/sotp_long_term_equity_entity_data_service.py:634:    normalized = normalized.replace("\u2010", "-")
+services/sotp_long_term_equity_entity_data_service.py:635:    normalized = normalized.replace("\u2011", "-")
+services/sotp_long_term_equity_entity_data_service.py:636:    normalized = normalized.replace("\u2012", "-")
+services/sotp_long_term_equity_entity_data_service.py:637:    normalized = normalized.replace("\u2013", "-")
+services/sotp_long_term_equity_entity_data_service.py:638:    normalized = normalized.replace("\u2014", "-")
+services/sotp_long_term_equity_entity_data_service.py:639:    normalized = normalized.replace("\u2212", "-")
+services/sotp_long_term_equity_entity_data_service.py:641:    return " ".join(normalized.split())
+services/sotp_long_term_equity_entity_data_service.py:689:    A match requires the normalized legal entity name
+services/sotp_long_term_equity_entity_data_service.py:699:        normalized_name = _normalize_entity_name(entity.get("name"))
+services/sotp_long_term_equity_entity_data_service.py:701:        if normalized_name:
+services/sotp_long_term_equity_entity_data_service.py:702:            population_by_name[normalized_name] = entity
+services/sotp_long_term_equity_entity_data_service.py:711:        normalized_name = _normalize_entity_name(annexure_name)
+services/sotp_long_term_equity_entity_data_service.py:713:        population_entity = population_by_name.get(normalized_name)
+services/sotp_long_term_equity_entity_data_service.py:717:            exception = RELIANCE_ANNEXURE_NOTE_39_EXCEPTIONS.get(normalized_name)
+services/sotp_long_term_equity_sotp_service.py:133:    Preserves framework/model completion status and normalizes missing numbers to 0.0.
+services/valuation/relative/engine.py:29:        # 1. Prefer normalized EBITDA when available.
+services/valuation/relative/engine.py:32:        normalized_ebitda = getattr(inc, "ebitda", 0.0) if inc else 0.0
+services/valuation/relative/engine.py:34:        if normalized_ebitda and normalized_ebitda > 0:
+services/valuation/relative/engine.py:35:            ebitda = float(normalized_ebitda)
+services/valuation/relative/engine.py:36:            ebitda_source = "normalized"
+services/valuation/relative/engine.py:43:                "Relative Valuation requires a valid normalized or Yahoo EBITDA value."
+services/valuation/relative/engine.py:65:        # 2. Otherwise use normalized shares if available.
+services/valuation/relative/engine.py:68:        normalized_shares = (
+services/valuation/relative/engine.py:76:        elif normalized_shares and normalized_shares > 0:
+services/valuation/relative/engine.py:77:            shares = float(normalized_shares)
+services/valuation/relative/engine.py:78:            shares_source = "normalized"
+services/valuation/relative/engine.py:82:                "Relative Valuation requires a valid live or normalized share count."
+services/valuation_benchmark_service.py:202:            normalized_de = debt_to_equity / 100.0
+services/valuation_benchmark_service.py:204:            if normalized_de > 1.5:
+services/valuation_benchmark_service.py:207:            elif normalized_de < 0.50:
+services/valuation_quality_adjustment_service.py:353:def _normalize_debt_to_equity(value):
+services/valuation_quality_adjustment_service.py:393:    company_de = _normalize_debt_to_equity(company_de)
+services/valuation_quality_adjustment_service.py:395:    peer_de = _normalize_debt_to_equity(peer_de)
+services/valuation_quality_adjustment_service.py:581:    # Renormalize if one or more factors are unavailable.
+services/valuation_v4_service.py:314:    # We use normalized equity FCF yield as a secondary
+services/valuation_v4_service.py:389:        normalized_weight = method["raw_weight"] / total_raw_weight
+services/valuation_v4_service.py:391:        method["weight"] = normalized_weight
+services/valuation_v4_service.py:393:        composite_fair_value += method["fair_value"] * normalized_weight
+tests/fundamentals/test_normalizer.py:4:from services.fundamentals.normalizer import FinancialNormalizer
+tests/fundamentals/test_normalizer.py:7:def test_financial_normalizer() -> None:
+tests/fundamentals/test_normalizer.py:16:    normalizer = FinancialNormalizer()
+tests/fundamentals/test_normalizer.py:17:    fs = normalizer.normalize(raw)
+tests/fundamentals/test_service.py:7:from services.fundamentals.normalizer import FinancialNormalizer
+tests/fundamentals/test_service.py:17:        normalizer = FinancialNormalizer()
+tests/fundamentals/test_service.py:18:        service = FundamentalsService(provider, normalizer, dispatcher)
+tests/market_data/test_emdp.py:5:from backend.events.normalizer import CanonicalEventNormalizer
+tests/market_data/test_emdp.py:14:    normalized = CanonicalEventNormalizer.normalize_quote(quote)
+tests/market_data/test_emdp.py:15:    assert normalized["symbol"] == "TCS.NS"
+tests/market_data/test_emdp.py:16:    assert normalized["price"] == 3525.40
+tests/market_data/test_emdp.py:17:    assert normalized["normalized"] is True
+tests/market_data/test_emdp.py:26:    # Map ticker to symbol for normalization testing
+tests/market_data/test_emdp.py:29:    normalized = CanonicalEventNormalizer.normalize_quote(quote)
+tests/market_data/test_emdp.py:30:    assert normalized["symbol"] == "INFY.NS"
+tests/market_data/test_emdp.py:31:    assert normalized["price"] == 3526.10
+tests/market_data/test_emdp.py:32:    assert normalized["provider"] == "alphavantage"
+tests/providers/test_eepp_adapters.py:4:from backend.providers.normalizer.event_normalizer import EventNormalizer
+tests/providers/test_eepp_adapters.py:7:def test_event_normalization_engine() -> None:
+tests/providers/test_eepp_adapters.py:9:    normalized = EventNormalizer.normalize_quote(raw_payload, "TestProvider")
+tests/providers/test_eepp_adapters.py:11:    assert normalized["symbol"] == "TCS.NS"
+tests/providers/test_eepp_adapters.py:12:    assert normalized["price"] == 3450.75
+tests/providers/test_eepp_adapters.py:13:    assert normalized["volume"] == 15000
+tests/providers/test_eepp_adapters.py:14:    assert normalized["provider"] == "TestProvider"
+tests/providers/test_eepp_adapters.py:15:    assert normalized["normalized"] is True
+tests/providers/test_eepp_adapters.py:17:def test_yahoo_finance_adapter_normalization() -> None:
+tests/providers/test_eepp_adapters.py:25:def test_alpha_vantage_adapter_normalization() -> None:
+tests/test_pipeline.py:9:from services.fundamentals.normalizer import FinancialNormalizer
+tests/test_pipeline.py:28:        normalizer = FinancialNormalizer()
+tests/test_pipeline.py:29:        fundamentals_service = FundamentalsService(provider, normalizer, dispatcher)
+
+
+============================================================
+PYTHON COMPILE CHECK — FUNDAMENTALS
+============================================================
+.\services\fundamentals\normalizer.py : COMPILE PASS
+.\services\fundamentals\service.py : COMPILE PASS
+.\services\fundamentals\canonical_models.py : COMPILE PASS
+.\services\financials\normalization.py : COMPILE PASS
+.\services\financials\financial_statement.py : COMPILE PASS
+.\services\financials\income_statement.py : COMPILE PASS
+.\services\financials\balance_sheet.py : COMPILE PASS
+.\services\financials\cash_flow.py : COMPILE PASS
+
+============================================================
+END STAGE 1 AUDIT
+============================================================

@@ -1,0 +1,406 @@
+EROS 3.0 — PHASE 6D.2 DECISION-STAGE INTEGRATION AUDIT
+ROOT: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+
+============================================================
+===== ENVIRONMENT / EROS IMPORT =====
+============================================================
+EROS IMPORT: PASS
+EROS PATH: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\__init__.py
+
+============================================================
+===== DECISION PIPELINE IMPORT =====
+============================================================
+PIPELINE IMPORT: PASS
+PIPELINE PATH: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\pipeline.py
+run_foundation: (context: eros.decision.pipeline.PipelineContext, raw_data: Any = None)
+run_valuation: (context)
+finalize: (context: eros.decision.pipeline.PipelineContext)
+
+============================================================
+===== PIPELINE CONTEXT CONTRACT =====
+============================================================
+symbol: RELIANCE
+status: INITIALIZED
+financials: None
+score: None
+risk: None
+classification: None
+sotp: None
+dcf: None
+valuation_bridge: None
+CONTEXT CONTRACT: PASS
+
+============================================================
+===== DECISION STAGE MODULE INSPECTION =====
+============================================================
+eros.decision.stage13c: PASS
+PATH: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage13c\__init__.py
+PUBLIC SYMBOLS: Any, STAGE_ID, classification, classify_record, evaluate_stage13c
+eros.decision.stage13c.classification: PASS
+PATH: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage13c\classification.py
+PUBLIC SYMBOLS: Any, CLASSIFICATION_STAGE, CLASSIFICATION_STATUS_COMPLETE, CLASSIFICATION_STATUS_CONFLICTING, CLASSIFICATION_STATUS_PARTIAL, CLASSIFICATION_STATUS_UNRESOLVED, ClassificationRuleEvaluator, INTERPRETATION_ELIMINATED_ENTITY, INTERPRETATION_FINANCIAL_INVESTMENT, INTERPRETATION_INCUBATION_INVESTMENT, INTERPRETATION_NON_OPERATING_ASSET, INTERPRETATION_OPERATING_ENTITY, INTERPRETATION_OPERATING_INFRASTRUCTURE, INTERPRETATION_PASSIVE_INVESTMENT, INTERPRETATION_STRATEGIC_INVESTMENT, INTERPRETATION_UNRESOLVED, STAGE_13C_2_ID, annotations, audit_classification_records, classify_record, classify_records
+eros.decision.stage14: PASS
+PATH: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage14\__init__.py
+PUBLIC SYMBOLS: 
+
+============================================================
+===== CURRENT PIPELINE SOURCE =====
+============================================================
+----- run_foundation -----
+def run_foundation(
+    context: PipelineContext,
+    raw_data: Any = None,
+):
+    if raw_data is not None:
+        context.raw_data = prepare_raw_data(
+            context.symbol,
+            raw_data,
+        )
+
+    payload = context.raw_data.get("data")
+
+    if not payload:
+        add_warning(
+            context,
+            "No financial payload supplied; foundation execution skipped.",
+        )
+        context.status = "INPUT_REQUIRED"
+        return context
+
+    try:
+        context.financials = normalize(payload)
+        context.normalized = context.financials
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Normalization failed: {type(exc).__name__}: {exc}",
+        )
+        context.status = "NORMALIZATION_FAILED"
+        return context
+
+    try:
+        context.score = fundamental_score(context.financials)
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Fundamental scoring failed: {type(exc).__name__}: {exc}",
+        )
+
+    try:
+        context.risk = risk_score(context.financials)
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Risk scoring failed: {type(exc).__name__}: {exc}",
+        )
+
+    context.status = "FOUNDATION_COMPLETE"
+    return context
+
+----- run_valuation -----
+def run_valuation(context):
+    """
+    Execute the EROS valuation stage.
+
+    Public valuation execution returns the canonical result dictionary.
+    PipelineContext, however, retains the executable ValuationBoundary
+    object so downstream stages can independently access SOTP and DCF.
+
+    No valuation mathematics is performed here.
+    """
+
+    from eros.valuation.adapter import evaluate_valuation
+    from eros.valuation.bridge import build_bridge
+
+    # --------------------------------------------------------
+    # Pre-foundation safety
+    # --------------------------------------------------------
+
+    if context.financials is None:
+        if hasattr(context, "warnings"):
+            context.warnings.append(
+                "Valuation requires foundation data."
+            )
+
+        return context
+
+    # --------------------------------------------------------
+    # Execute canonical valuation adapter
+    # --------------------------------------------------------
+
+    try:
+        result = evaluate_valuation(
+            context.raw_data,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+            },
+        )
+
+        # ----------------------------------------------------
+        # IMPORTANT:
+        # evaluate_valuation() intentionally returns a dict.
+        # The pipeline stores the boundary object internally.
+        # ----------------------------------------------------
+
+        context.valuation_bridge = build_bridge(
+            sotp=result.get("sotp"),
+            dcf=result.get("dcf"),
+            provenance=result.get("provenance", {}),
+        )
+
+        # Preserve valuation warnings at pipeline level.
+        warnings = result.get("warnings", [])
+
+        if warnings and hasattr(context, "warnings"):
+            context.warnings.extend(warnings)
+
+        # Do not overwrite a valid foundation state merely
+        # because valuation inputs are incomplete.
+        if result.get("status") == "EXECUTED":
+            context.status = "VALUATION_COMPLETE"
+        elif result.get("status") == "INPUT_REQUIRED":
+            if hasattr(context, "warnings"):
+                context.warnings.append(
+                    "Valuation input is incomplete."
+                )
+
+        return context
+
+    except Exception as exc:
+
+        if hasattr(context, "warnings"):
+            context.warnings.append(
+                f"Valuation execution failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        context.valuation_bridge = build_bridge(
+            sotp=None,
+            dcf=None,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+                "valuation_status": "ERROR",
+                "error_type": type(exc).__name__,
+            },
+        )
+
+        return context
+
+----- finalize -----
+def finalize(context: PipelineContext):
+    if context.status == "INITIALIZED":
+        context.status = "INPUT_REQUIRED"
+        add_warning(
+            context,
+            "Pipeline was finalized before foundation execution.",
+        )
+
+    return {
+        "symbol": context.symbol,
+        "status": context.status,
+
+        "raw_data": context.raw_data,
+        "financials": context.financials,
+        "normalized": context.normalized,
+
+        "quality": context.quality,
+        "score": context.score,
+        "risk": context.risk,
+        "classification": context.classification,
+
+        "sotp": context.sotp,
+        "dcf": context.dcf,
+        "valuation_bridge": context.valuation_bridge,
+
+        "stage13c": context.stage13c,
+        "stage14": context.stage14,
+
+        "evidence": context.evidence,
+        "warnings": context.warnings,
+
+        "provenance": {
+            "orchestrator": "EROS_3.0",
+            "pipeline_status": context.status,
+            "symbol": context.symbol,
+        },
+    }
+
+
+============================================================
+===== PRE-FOUNDATION DECISION SAFETY =====
+============================================================
+BEFORE:
+status=INITIALIZED
+financials=None
+classification=None
+stage13c=None
+stage14=None
+AFTER run_valuation:
+status=INITIALIZED
+financials=None
+classification=None
+stage13c=None
+stage14=None
+sotp=None
+dcf=None
+valuation_bridge=None
+warnings=['Valuation requires foundation data.']
+PRE-FOUNDATION SAFETY: PASS
+
+============================================================
+===== EMPTY FOUNDATION -> VALUATION -> DECISION =====
+============================================================
+AFTER FOUNDATION:
+status=INPUT_REQUIRED
+financials=None
+score=None
+risk=None
+classification=None
+AFTER VALUATION:
+status=INPUT_REQUIRED
+sotp=None
+dcf=None
+valuation_bridge=None
+AFTER FINALIZE:
+result_type=dict
+result_status=INPUT_REQUIRED
+classification=None
+stage13c=None
+stage14=None
+warnings=['No financial payload supplied; foundation execution skipped.', 'Valuation requires foundation data.']
+EMPTY DECISION PATH: PASS
+
+============================================================
+===== FOUNDATION -> VALUATION -> DECISION -> FINALIZE =====
+============================================================
+FOUNDATION:
+status=FOUNDATION_COMPLETE
+financials=FinancialStatements(symbol='RELIANCE', income_statements=[], balance_sheets=[], cash_flows=[], metadata={'provider': 'YahooFinance'})
+normalized=FinancialStatements(symbol='RELIANCE', income_statements=[], balance_sheets=[], cash_flows=[], metadata={'provider': 'YahooFinance'})
+quality=None
+score=None
+risk=RiskScoreResult(symbol=FinancialStatements(symbol='RELIANCE', income_statements=[], balance_sheets=[], cash_flows=[], metadata={'provider': 'YahooFinance'}), risk_score=72.88, volatility=0.2, drawdown=0.15, liquidity_score=80.0, leverage_ratio=1.2, resilience_score=85.0, stress_impact=-0.1, details={'engine_version': 'EROS-3.0-BLOCK-15', 'volatility_score': 60.0, 'drawdown_score': 62.5, 'liquidity_component': 80.0, 'leverage_score': 90.0, 'resilience_score': 85.0, 'stress_test': {'scenario': 'Market Crash -20%', 'projected_return': -0.05, 'largest_contributors': ['General Market'], 'portfolio_resilience': 'Moderate'}})
+classification=None
+warnings=["Fundamental scoring failed: AttributeError: 'BalanceSheet' object has no attribute 'total_cash'"]
+VALUATION:
+status=FOUNDATION_COMPLETE
+sotp=None
+dcf=None
+valuation_bridge=ValuationBoundary(sotp=None, dcf=None, provenance={'orchestrator': 'EROS_3.0', 'symbol': 'RELIANCE', 'sotp_executed': False, 'dcf_executed': False, 'valuation_status': 'INPUT_REQUIRED'})
+bridge_type=ValuationBoundary
+bridge.sotp=None
+bridge.dcf=None
+FINALIZE:
+type=dict
+status=FOUNDATION_COMPLETE
+classification=None
+stage13c=None
+stage14=None
+sotp=None
+dcf=None
+valuation_bridge=ValuationBoundary(sotp=None, dcf=None, provenance={'orchestrator': 'EROS_3.0', 'symbol': 'RELIANCE', 'sotp_executed': False, 'dcf_executed': False, 'valuation_status': 'INPUT_REQUIRED'})
+provenance={'orchestrator': 'EROS_3.0', 'pipeline_status': 'FOUNDATION_COMPLETE', 'symbol': 'RELIANCE'}
+warnings=["Fundamental scoring failed: AttributeError: 'BalanceSheet' object has no attribute 'total_cash'", 'Valuation input is required.', 'Valuation input is incomplete.']
+FOUNDATION -> VALUATION -> DECISION: PASS
+
+============================================================
+===== DECISION STAGE REFERENCES IN PIPELINE =====
+============================================================
+
+--- stage13c ---
+    stage13c: Any = None
+        "stage13c": context.stage13c,
+
+--- stage14 ---
+    stage14: Any = None
+        "stage14": context.stage14,
+
+--- classification ---
+    classification: Any = None
+        "classification": context.classification,
+
+--- decision ---
+EROS 3.0 Decision Pipeline.
+
+--- run_stage ---
+NO DIRECT REFERENCE
+
+============================================================
+===== PUBLIC API EMPTY INPUT =====
+============================================================
+type=dict
+status=INPUT_REQUIRED
+classification=None
+stage13c=None
+stage14=None
+sotp=None
+dcf=None
+provenance={'orchestrator': 'EROS_3.0', 'pipeline_status': 'INPUT_REQUIRED', 'symbol': 'RELIANCE'}
+warnings=['No financial payload supplied; foundation execution skipped.']
+PUBLIC API CONTRACT: PASS
+
+============================================================
+===== VALUATION BOUNDARY CONTRACT =====
+============================================================
+ValuationBoundary=<class 'eros.valuation.bridge.engine.ValuationBoundary'>
+build_bridge=<function build_bridge at 0x0000025306928E00>
+create_valuation_boundary=<function create_valuation_boundary at 0x0000025306928A40>
+evaluate_valuation=<function evaluate_valuation at 0x00000253069285E0>
+valuation_available=<function valuation_available at 0x00000253069284A0>
+evaluate=True
+evaluate_sotp=True
+evaluate_dcf=True
+empty={'status': 'INPUT_REQUIRED', 'sotp': None, 'dcf': None, 'provenance': {'sotp_executed': False, 'dcf_executed': False, 'valuation_status': 'INPUT_REQUIRED'}, 'warnings': ['Valuation input is required.']}
+VALUATION BOUNDARY CONTRACT: PASS
+
+============================================================
+===== EROS COMPILE =====
+============================================================
+
+EXIT: 0
+
+============================================================
+===== FULL EROS PYTEST =====
+============================================================
+..................                                                       [100%]
+18 passed in 0.28s
+
+EXIT: 0
+
+============================================================
+===== VALUATION PYTEST =====
+============================================================
+..........                                                               [100%]
+10 passed in 0.24s
+
+EXIT: 0
+
+============================================================
+===== EROS GIT STATUS =====
+============================================================
+?? eros/
+
+EXIT: 0
+
+============================================================
+===== OUTSIDE EROS GIT STATUS =====
+============================================================
+
+fatal: ':!eros': '':!eros'' is outside repository at 'D:/Users/User/Desktop/AI_STOCK_ANALYZER'
+
+EXIT: 128
+
+============================================================
+===== PHASE 6D.2 SUMMARY =====
+============================================================
+COMPILE EXIT: 0
+FULL EROS PYTEST EXIT: 0
+VALUATION PYTEST EXIT: 0
+CORE AUTOMATED VALIDATION: PASS
+
+============================================================
+END PHASE 6D.2 DECISION-STAGE INTEGRATION AUDIT
+============================================================

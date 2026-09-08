@@ -1,0 +1,413 @@
+﻿============================================================
+EROS 3.0 — PHASE 5D.1 TEST FAILURE DIAGNOSTIC
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+===== PYTEST OUTPUT =====
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-9.1.1, pluggy-1.6.0 -- D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.14.2, cov-7.1.0
+collecting ... collected 6 items
+
+eros/tests/integration/test_foundation.py::test_empty_symbol_rejected PASSED [ 16%]
+eros/tests/integration/test_foundation.py::test_context_symbol_normalized PASSED [ 33%]
+eros/tests/integration/test_foundation.py::test_empty_input_is_safe FAILED [ 50%]
+eros/tests/integration/test_foundation.py::test_foundation_does_not_execute_without_data PASSED [ 66%]
+eros/tests/unit/test_pipeline.py::test_context PASSED                    [ 83%]
+eros/tests/unit/test_pipeline.py::test_finalize PASSED                   [100%]
+
+================================== FAILURES ===================================
+__________________________ test_empty_input_is_safe ___________________________
+
+    def test_empty_input_is_safe():
+        result = evaluate("RELIANCE")
+    
+        assert result["symbol"] == "RELIANCE"
+>       assert result["status"] == "INPUT_REQUIRED"
+E       AssertionError: assert 'COMPLETE' == 'INPUT_REQUIRED'
+E         
+E         - INPUT_REQUIRED
+E         + COMPLETE
+
+eros\tests\integration\test_foundation.py:23: AssertionError
+=========================== short test summary info ===========================
+FAILED eros/tests/integration/test_foundation.py::test_empty_input_is_safe - AssertionError: assert 'COMPLETE' == 'INPUT_REQUIRED'
+  
+  - INPUT_REQUIRED
+  + COMPLETE
+========================= 1 failed, 5 passed in 0.22s =========================
+
+
+PYTEST EXIT CODE: 1
+
+===== TEST FILES =====
+
+FullName                                                                          Length
+--------                                                                          ------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\__init__.py                         0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\e2e\__init__.py                     0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\__init__.py             0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_foundation.py    761
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\__init__.py                    0
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\test_pipeline.py             420
+
+
+
+
+===== test_foundation.py =====
+from eros.api.service import evaluate
+from eros.decision.pipeline import create_context, run_foundation
+
+
+def test_empty_symbol_rejected():
+    try:
+        create_context("")
+    except ValueError:
+        return
+
+    raise AssertionError("Empty symbol must be rejected")
+
+
+def test_context_symbol_normalized():
+    context = create_context(" reliance ")
+    assert context.symbol == "RELIANCE"
+
+
+def test_empty_input_is_safe():
+    result = evaluate("RELIANCE")
+
+    assert result["symbol"] == "RELIANCE"
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["warnings"]
+
+
+def test_foundation_does_not_execute_without_data():
+    context = create_context("RELIANCE")
+
+    run_foundation(context)
+
+    assert context.status == "INPUT_REQUIRED"
+
+
+===== pipeline.py =====
+"""
+EROS 3.0 Decision Pipeline.
+
+This module is orchestration only.
+
+Existing business mathematics remains owned by the legacy/canonical
+engines. EROS provides the stable execution boundary and provenance.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from eros.data import prepare_raw_data
+from eros.normalization import normalize
+from eros.scoring import fundamental_score, risk_score
+
+
+@dataclass
+class PipelineContext:
+    symbol: str
+
+    raw_data: Any = None
+    financials: Any = None
+    normalized: Any = None
+
+    quality: Any = None
+    score: Any = None
+    risk: Any = None
+    classification: Any = None
+
+    sotp: Any = None
+    dcf: Any = None
+    valuation_bridge: Any = None
+
+    stage13c: Any = None
+    stage14: Any = None
+
+    evidence: list = field(default_factory=list)
+    warnings: list = field(default_factory=list)
+
+    status: str = "INITIALIZED"
+
+
+def create_context(symbol: str) -> PipelineContext:
+    prepared = prepare_raw_data(symbol)
+
+    return PipelineContext(
+        symbol=prepared["symbol"],
+        raw_data=prepared,
+    )
+
+
+def attach(context: PipelineContext, name: str, value: Any):
+    setattr(context, name, value)
+    return context
+
+
+def add_warning(context: PipelineContext, message: str):
+    if message:
+        context.warnings.append(str(message))
+
+
+def add_evidence(context: PipelineContext, evidence: Any):
+    if evidence is not None:
+        context.evidence.append(evidence)
+
+
+def run_foundation(
+    context: PipelineContext,
+    raw_data: Any = None,
+):
+    """
+    Execute the safe foundation path:
+
+        raw input
+          -> normalization
+          -> fundamental scoring
+          -> risk scoring
+
+    Valuation and decision stages remain downstream.
+    """
+
+    if raw_data is not None:
+        context.raw_data = prepare_raw_data(
+            context.symbol,
+            raw_data,
+        )
+
+    payload = context.raw_data["data"]
+
+    if not payload:
+        add_warning(
+            context,
+            "No financial payload supplied; foundation execution skipped.",
+        )
+        context.status = "INPUT_REQUIRED"
+        return context
+
+    try:
+        context.financials = normalize(payload)
+        context.normalized = context.financials
+
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Normalization failed: {type(exc).__name__}: {exc}",
+        )
+        context.status = "NORMALIZATION_FAILED"
+        return context
+
+    try:
+        context.score = fundamental_score(
+            context.financials
+        )
+
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Fundamental scoring failed: {type(exc).__name__}: {exc}",
+        )
+
+    try:
+        context.risk = risk_score(
+            context.financials
+        )
+
+    except Exception as exc:
+        add_warning(
+            context,
+            f"Risk scoring failed: {type(exc).__name__}: {exc}",
+        )
+
+    context.status = "FOUNDATION_COMPLETE"
+
+    return context
+
+
+def finalize(context: PipelineContext):
+    if context.status == "INITIALIZED":
+        context.status = "COMPLETE"
+
+    return {
+        "symbol": context.symbol,
+        "status": context.status,
+
+        "raw_data": context.raw_data,
+        "financials": context.financials,
+        "normalized": context.normalized,
+
+        "quality": context.quality,
+        "score": context.score,
+        "risk": context.risk,
+        "classification": context.classification,
+
+        "sotp": context.sotp,
+        "dcf": context.dcf,
+        "valuation_bridge": context.valuation_bridge,
+
+        "stage13c": context.stage13c,
+        "stage14": context.stage14,
+
+        "evidence": context.evidence,
+        "warnings": context.warnings,
+
+        "provenance": {
+            "orchestrator": "EROS_3.0",
+            "pipeline_status": context.status,
+            "symbol": context.symbol,
+        },
+    }
+
+
+__all__ = [
+    "PipelineContext",
+    "create_context",
+    "attach",
+    "add_warning",
+    "add_evidence",
+    "run_foundation",
+    "finalize",
+]
+
+
+===== contracts\models.py =====
+"""
+EROS 3.0 - Canonical Data Contracts
+
+The canonical objects passed between:
+data -> normalization -> quality -> scoring
+-> classification -> valuation -> decision -> evidence -> API
+"""
+
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
+
+@dataclass
+class FinancialSnapshot:
+    symbol: str
+
+    revenue: Optional[float] = None
+    ebitda: Optional[float] = None
+    ebit: Optional[float] = None
+    pat: Optional[float] = None
+    eps: Optional[float] = None
+
+    total_assets: Optional[float] = None
+    total_debt: Optional[float] = None
+    cash: Optional[float] = None
+    equity: Optional[float] = None
+
+    operating_cash_flow: Optional[float] = None
+    free_cash_flow: Optional[float] = None
+
+    shares_outstanding: Optional[float] = None
+    market_cap: Optional[float] = None
+    current_price: Optional[float] = None
+
+    currency: str = "INR"
+    period: Optional[str] = None
+
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class QualityResult:
+    passed: bool
+    score: float = 0.0
+    missing_fields: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ScoreResult:
+    score: Optional[float] = None
+    components: dict[str, float] = field(default_factory=dict)
+    rationale: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ClassificationResult:
+    classification: Optional[str] = None
+    confidence: Optional[float] = None
+    rationale: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ValuationResult:
+    value: Optional[float] = None
+    low: Optional[float] = None
+    high: Optional[float] = None
+    method: Optional[str] = None
+    currency: str = "INR"
+    assumptions: dict[str, Any] = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)
+
+
+@dataclass
+class Evidence:
+    source: str
+    field: str
+    value: Any = None
+    period: Optional[str] = None
+    confidence: Optional[float] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EROSResult:
+    symbol: str
+
+    financials: Optional[FinancialSnapshot] = None
+    quality: Optional[QualityResult] = None
+    score: Optional[ScoreResult] = None
+    classification: Optional[ClassificationResult] = None
+
+    sotp: Optional[ValuationResult] = None
+    dcf: Optional[ValuationResult] = None
+    bridge: Optional[ValuationResult] = None
+
+    stage13c: Optional[dict[str, Any]] = None
+    stage14: Optional[dict[str, Any]] = None
+
+    evidence: list[Evidence] = field(default_factory=list)
+
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+
+===== DIRECT ENGINE TEST =====
+FundamentalScoringEngine: <class 'services.scoring.fundamental.FundamentalScoringEngine'>
+Fundamental evaluate: <function FundamentalScoringEngine.evaluate at 0x000001579F49A160>
+RiskScoringEngine: <class 'services.scoring.risk_scoring.RiskScoringEngine'>
+Risk evaluate: <function RiskScoringEngine.evaluate at 0x000001579F5500E0>
+DIRECT ENGINE IMPORT: PASS
+
+
+COMPILE EXIT CODE: 0
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 5D.1
+============================================================
+

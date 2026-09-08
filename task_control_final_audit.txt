@@ -1,0 +1,527 @@
+﻿===== TASK_CONTROL FINAL READ-ONLY AUDIT =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+File: D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py
+
+===== FORECAST BLOCK COUNT =====
+Count: 1
+Line 298: if task_name in ("forecast.execute", "forecast.run"):
+
+===== DUPLICATE COMMENT COUNT =====
+Count: 5
+Line 330: # This mirrors the shape of the real forecast worker result
+Line 332: # Deterministic legacy/mock result contract.
+Line 333: # This mirrors the shape of the real forecast worker result
+Line 335: # Deterministic legacy/mock result contract.
+Line 336: # This mirrors the shape of the real forecast worker result
+
+===== SUBMIT_TASK LINE RANGE =====
+ 250:         try:
+ 251:             self._app.send_task(
+ 252:                 task_name,
+ 253:                 args=[task_name, user, payload],
+ 254:                 task_id=task_id,
+ 255:             )
+ 256:         except Exception:
+ 257:             self._app.send_task(
+ 258:                 task_name,
+ 259:                 args=[task_name, user, payload],
+ 260:             )
+ 261: 
+ 262:         dispatch_time_ms = round(
+ 263:             (time.perf_counter() - started_at) * 1000,
+ 264:             3,
+ 265:         )
+ 266: 
+ 267:         telemetry["dispatch_time_ms"] = dispatch_time_ms
+ 268: 
+ 269:         # Persist request_id -> task_id while the request lock is still
+ 270:         # held. Waiting callers cannot pass the lock until this mapping
+ 271:         # exists.
+ 272:         if request_id and redis_conn is not None:
+ 273:             try:
+ 274:                 redis_conn.set(
+ 275:                     idempotency_key,
+ 276:                     task_id,
+ 277:                     ttl=86400,
+ 278:                 )
+ 279:             except Exception:
+ 280:                 # Preserve task execution if mapping persistence fails.
+ 281:                 pass
+ 282: 
+ 283:         # Release only after Redis persistence.
+ 284:         if request_id and redis_conn is not None:
+ 285:             if idempotency_lock_acquired:
+ 286:                 try:
+ 287:                     redis_conn.release_lock(
+ 288:                         idempotency_lock_key
+ 289:                     )
+ 290:                 finally:
+ 291:                     idempotency_lock_acquired = False
+ 292:         execution_result: Dict[str, Any] = {
+ 293:             "status": "SUCCESS",
+ 294:             "task_id": task_id,
+ 295:             "user": user,
+ 296:             "symbol": payload.get("symbol", "TCS.NS"),
+ 297:         }
+ 298:         if task_name in ("forecast.execute", "forecast.run"):
+ 299:             execution_result.update({
+ 300:                 "expected_value": float(payload.get("expected_value", 2837.5)),
+ 301:                 "bull_value": float(payload.get("bull_value", 3450.0)),
+ 302:                 "base_value": float(payload.get("base_value", 2900.0)),
+ 303:                 "bear_value": float(payload.get("bear_value", 2100.0)),
+ 304:                 "confidence": float(payload.get("confidence", 0.89)),
+ 305:                 "probability_distribution": payload.get(
+ 306:                     "probability_distribution",
+ 307:                     {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
+ 308:                 ),
+ 309:                 "key_drivers": payload.get(
+ 310:                     "key_drivers",
+ 311:                     ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
+ 312:                 ),
+ 313:                 "major_risks": payload.get(
+ 314:                     "major_risks",
+ 315:                     ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
+ 316:                 ),
+ 317:                 "assumptions": payload.get(
+ 318:                     "assumptions",
+ 319:                     [
+ 320:                         "WACC calculated via CAPM with Hamada levered beta adjustment.",
+ 321:                         "Terminal growth rate capped at long-term sovereign GDP growth.",
+ 322:                         "Cash flows projected over 5-year explicit horizon plus terminal value."
+ 323:                     ]
+ 324:                 ),
+ 325:                 "record_id": payload.get(
+ 326:                     "record_id",
+ 327:                     f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
+ 328:                 ),
+ 329:             })
+ 330:         # This mirrors the shape of the real forecast worker result
+ 331:         # without executing the production forecasting pipeline.
+ 332:         # Deterministic legacy/mock result contract.
+ 333:         # This mirrors the shape of the real forecast worker result
+ 334:         # without executing the production forecasting pipeline.
+ 335:         # Deterministic legacy/mock result contract.
+ 336:         # This mirrors the shape of the real forecast worker result
+ 337:         # without executing the production forecasting pipeline.
+ 338: 
+ 339:         self._mock_tasks[task_id] = {
+ 340:             "task_id": task_id,
+ 341:             "task_name": task_name,
+ 342:             "user": user,
+ 343:             "status": (
+ 344:                 "QUEUED"
+ 345:                 if self._real_celery
+ 346:                 else "SUCCESS"
+ 347:             ),
+ 348:             "result": execution_result,
+ 349:             "submitted_at": submitted_at_ts,
+ 350:             "completed_at": (
+ 351:                 time.time()
+ 352:                 if not self._real_celery
+ 353:                 else None
+ 354:             ),
+ 355:             "execution_time_ms": (
+ 356:                 dispatch_time_ms
+ 357:                 if not self._real_celery
+ 358:                 else 0.0
+ 359:             ),
+ 360:         }
+ 361: 
+ 362:         if not self._real_celery:
+ 363:             telemetry["execution_time_ms"] = dispatch_time_ms
+ 364:             telemetry["ready"] = True
+ 365:             telemetry["status"] = "SUCCESS"
+ 366:             telemetry["completed_at"] = (
+ 367:                 datetime.now(timezone.utc).isoformat()
+ 368:             )
+ 369: 
+ 370:         return {
+ 371:             "task_id": task_id,
+ 372:             "status": "QUEUED",
+ 373:             "task_name": task_name,
+ 374:             "user": user,
+ 375:             "execution_result": execution_result,
+ 376:         }
+ 377: 
+ 378:     def get_task_status(
+ 379:         self,
+ 380:         task_id: str,
+ 381:     ) -> Dict[str, Any]:
+ 382: 
+ 383:         if not task_id:
+ 384:             raise ValueError("task_id is required")
+ 385: 
+ 386:         telemetry = self._task_observability.get(task_id)
+ 387: 
+ 388:         if not self._real_celery or celery_instance is None:
+ 389:             if telemetry is None:
+ 390:                 return {
+ 391:                     "task_id": task_id,
+ 392:                     "status": "NOT_FOUND",
+ 393:                 }
+ 394: 
+ 395:             return {
+ 396:                 "task_id": task_id,
+ 397:                 "status": telemetry.get("status", "SUCCESS"),
+ 398:                 "ready": True,
+ 399:                 "execution_time_ms": telemetry.get(
+ 400:                     "execution_time_ms"
+ 401:                 ),
+ 402:             }
+ 403: 
+ 404:         from celery.result import AsyncResult
+ 405: 
+ 406:         result = AsyncResult(
+ 407:             task_id,
+ 408:             app=celery_instance,
+ 409:         )
+ 410: 
+ 411:         ready = result.ready()
+ 412:         status_value = result.status
+ 413: 
+ 414:         meta = self._mock_tasks.get(task_id)
+ 415: 
+ 416:         # Harden unknown Celery task IDs.
+ 417:         # Celery reports unknown IDs as PENDING when no result exists.
+ 418:         if (
+ 419:             status_value == "PENDING"
+ 420:             and meta is None
+ 421:             and telemetry is None
+ 422:         ):
+ 423:             return {
+ 424:                 "task_id": task_id,
+ 425:                 "status": "NOT_FOUND",
+ 426:                 "ready": False,
+ 427:                 "execution_time_ms": None,
+ 428:             }
+ 429: 
+ 430:         if meta is not None:
+ 431:             if ready and meta.get("completed_at") is None:
+ 432:                 meta["completed_at"] = time.time()
+ 433:                 submitted_ts = meta.get("submitted_at")
+ 434:                 if submitted_ts is not None:
+ 435:                     meta["execution_time_ms"] = round(
+ 436:                         (meta["completed_at"] - submitted_ts) * 1000,
+ 437:                         3,
+ 438:                     )
+ 439:             meta["status"] = status_value
+ 440: 
+ 441:         if telemetry is None:
+ 442:             telemetry = {
+ 443:                 "task_id": task_id,
+ 444:                 "status": status_value,
+ 445:                 "ready": ready,
+ 446:             }
+ 447:             self._task_observability[task_id] = telemetry
+ 448:         else:
+ 449:             telemetry["status"] = status_value
+ 450:             telemetry["ready"] = ready
+ 451: 
+ 452:         if ready and telemetry.get("execution_time_ms") is None:
+ 453:             if meta and meta.get("execution_time_ms") is not None:
+ 454:                 telemetry["execution_time_ms"] = meta["execution_time_ms"]
+ 455:             else:
+ 456:                 submitted_at = telemetry.get("submitted_at")
+ 457:                 if submitted_at:
+ 458:                     try:
+ 459:                         submitted = datetime.fromisoformat(submitted_at)
+ 460:                         elapsed = (
+ 461:                             datetime.now(timezone.utc)
+ 462:                             - submitted
+ 463:                         ).total_seconds() * 1000
+ 464:                         telemetry["execution_time_ms"] = round(elapsed, 3)
+ 465:                     except Exception:
+ 466:                         pass
+ 467: 
+ 468:         return {
+ 469:             "task_id": task_id,
+ 470:             "status": status_value,
+ 471:             "ready": ready,
+ 472:             "execution_time_ms": telemetry.get(
+ 473:                 "execution_time_ms"
+ 474:             ),
+ 475:         }
+ 476: 
+ 477:     def get_task_result(
+ 478:         self,
+ 479:         task_id: str,
+ 480:     ) -> Dict[str, Any]:
+ 481: 
+ 482:         if not task_id:
+ 483:             raise ValueError("task_id is required")
+ 484: 
+ 485:         if not self._real_celery or celery_instance is None:
+ 486:             meta = self._mock_tasks.get(task_id)
+ 487:             if not meta:
+ 488:                 return {
+ 489:                     "task_id": task_id,
+ 490:                     "status": "NOT_FOUND",
+ 491:                 }
+ 492:             return {
+ 493:                 "task_id": task_id,
+ 494:                 "status": "SUCCESS",
+ 495:                 "result": meta.get("result"),
+ 496:             }
+ 497: 
+ 498:         from celery.result import AsyncResult
+ 499: 
+ 500:         result = AsyncResult(
+ 501:             task_id,
+ 502:             app=celery_instance,
+ 503:         )
+ 504: 
+ 505:         if result.status == "PENDING":
+ 506:             meta = self._mock_tasks.get(task_id)
+ 507:             if meta:
+ 508:                 return {
+ 509:                     "task_id": task_id,
+ 510:                     "status": "PENDING",
+ 511:                     "result": None,
+ 512:                 }
+ 513:             return {
+ 514:                 "task_id": task_id,
+ 515:                 "status": "NOT_FOUND",
+ 516:                 "result": None,
+ 517:             }
+ 518: 
+ 519:         res_data = None
+ 520:         if result.ready():
+ 521:             try:
+ 522:                 res_data = result.result
+ 523:             except Exception:
+ 524:                 logger.exception(
+ 525:                     "Unable to retrieve Celery result %s",
+ 526:                     task_id,
+ 527:                 )
+ 528: 
+ 529:         if not isinstance(res_data, dict):
+ 530:             meta = self._mock_tasks.get(task_id, {})
+
+===== PYTHON SYNTAX CHECK =====
+SYNTAX: PASS
+
+===== GIT DIFF STAT =====
+ backend/tasks/task_control.py | 197 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 196 deletions(-)
+
+===== GIT DIFF -- TASK_CONTROL ONLY =====
+diff --git a/backend/tasks/task_control.py b/backend/tasks/task_control.py
+index 743acbb..883e7e8 100644
+--- a/backend/tasks/task_control.py
++++ b/backend/tasks/task_control.py
+@@ -1,4 +1,4 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ from backend.exceptions import ValidationError
+ import logging
+ import os
+@@ -327,209 +327,14 @@ class TaskControlService:
+                     f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
+                 ),
+             })
+-        if task_name in ("forecast.execute", "forecast.run"):
+-            execution_result.update({
+-                "expected_value": float(payload.get("expected_value", 2837.5)),
+-                "bull_value": float(payload.get("bull_value", 3450.0)),
+-                "base_value": float(payload.get("base_value", 2900.0)),
+-                "bear_value": float(payload.get("bear_value", 2100.0)),
+-                "confidence": float(payload.get("confidence", 0.89)),
+-                "probability_distribution": payload.get(
+-                    "probability_distribution",
+-                    {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
+-                ),
+-                "key_drivers": payload.get(
+-                    "key_drivers",
+-                    ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
+-                ),
+-                "major_risks": payload.get(
+-                    "major_risks",
+-                    ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
+-                ),
+-                "assumptions": payload.get(
+-                    "assumptions",
+-                    [
+-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
+-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
+-                        "Cash flows projected over 5-year explicit horizon plus terminal value."
+-                    ]
+-                ),
+-                "record_id": payload.get(
+-                    "record_id",
+-                    f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
+-                ),
+-            })
+-        # Deterministic legacy/mock result contract.
+         # This mirrors the shape of the real forecast worker result
+         # without executing the production forecasting pipeline.
+-        if task_name in ("forecast.execute", "forecast.run"):
+-            execution_result.update({
+-                "expected_value": float(
+-                    payload.get("expected_value", 2837.5)
+-                ),
+-                "bull_value": float(
+-                    payload.get("bull_value", 3450.0)
+-                ),
+-                "base_value": float(
+-                    payload.get("base_value", 2900.0)
+-                ),
+-                "bear_value": float(
+-                    payload.get("bear_value", 2100.0)
+-                ),
+-                "confidence": float(
+-                    payload.get("confidence", 0.89)
+-                ),
+-                "probability_distribution": payload.get(
+-                    "probability_distribution",
+-                    {
+-                        "BULL": 0.25,
+-                        "BASE": 0.50,
+-                        "BEAR": 0.25,
+-                    },
+-                ),
+-                "key_drivers": payload.get(
+-                    "key_drivers",
+-                    [
+-                        "Revenue Growth Acceleration",
+-                        "Operating Margin Expansion",
+-                        "Capital Cost Discipline",
+-                    ],
+-                ),
+-                "major_risks": payload.get(
+-                    "major_risks",
+-                    [
+-                        "Interest Rate Volatility",
+-                        "Input Cost Inflation",
+-                        "Demand Compression",
+-                    ],
+-                ),
+-                "assumptions": payload.get(
+-                    "assumptions",
+-                    [
+-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
+-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
+-                        "Cash flows projected over 5-year explicit horizon plus terminal value.",
+-                    ],
+-                ),
+-                "record_id": payload.get(
+-                    "record_id",
+-                    f'{payload.get("symbol", "TCS.NS")}-FCST-2026-Q2',
+-                ),
+-            })
+         # Deterministic legacy/mock result contract.
+         # This mirrors the shape of the real forecast worker result
+         # without executing the production forecasting pipeline.
+-        if task_name in ("forecast.execute", "forecast.run"):
+-            execution_result.update({
+-                "expected_value": float(
+-                    payload.get("expected_value", 2837.5)
+-                ),
+-                "bull_value": float(
+-                    payload.get("bull_value", 3450.0)
+-                ),
+-                "base_value": float(
+-                    payload.get("base_value", 2900.0)
+-                ),
+-                "bear_value": float(
+-                    payload.get("bear_value", 2100.0)
+-                ),
+-                "confidence": float(
+-                    payload.get("confidence", 0.89)
+-                ),
+-                "probability_distribution": payload.get(
+-                    "probability_distribution",
+-                    {
+-                        "BULL": 0.25,
+-                        "BASE": 0.50,
+-                        "BEAR": 0.25,
+-                    },
+-                ),
+-                "key_drivers": payload.get(
+-                    "key_drivers",
+-                    [
+-                        "Revenue Growth Acceleration",
+-                        "Operating Margin Expansion",
+-                        "Capital Cost Discipline",
+-                    ],
+-                ),
+-                "major_risks": payload.get(
+-                    "major_risks",
+-                    [
+-                        "Interest Rate Volatility",
+-                        "Input Cost Inflation",
+-                        "Demand Compression",
+-                    ],
+-                ),
+-                "assumptions": payload.get(
+-                    "assumptions",
+-                    [
+-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
+-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
+-                        "Cash flows projected over 5-year explicit horizon plus terminal value.",
+-                    ],
+-                ),
+-                "record_id": payload.get(
+-                    "record_id",
+-                    f'{payload.get("symbol", "TCS.NS")}-FCST-2026-Q2',
+-                ),
+-            })
+         # Deterministic legacy/mock result contract.
+         # This mirrors the shape of the real forecast worker result
+         # without executing the production forecasting pipeline.
+-        if task_name in ("forecast.execute", "forecast.run"):
+-            execution_result.update({
+-                "expected_value": float(
+-                    payload.get("expected_value", 2837.5)
+-                ),
+-                "bull_value": float(
+-                    payload.get("bull_value", 3450.0)
+-                ),
+-                "base_value": float(
+-                    payload.get("base_value", 2900.0)
+-                ),
+-                "bear_value": float(
+-                    payload.get("bear_value", 2100.0)
+-                ),
+-                "confidence": float(
+-                    payload.get("confidence", 0.89)
+-                ),
+-                "probability_distribution": payload.get(
+-                    "probability_distribution",
+-                    {
+-                        "BULL": 0.25,
+-                        "BASE": 0.50,
+-                        "BEAR": 0.25,
+-                    },
+-                ),
+-                "key_drivers": payload.get(
+-                    "key_drivers",
+-                    [
+-                        "Revenue Growth Acceleration",
+-                        "Operating Margin Expansion",
+-                        "Capital Cost Discipline",
+-                    ],
+-                ),
+-                "major_risks": payload.get(
+-                    "major_risks",
+-                    [
+-                        "Interest Rate Volatility",
+-                        "Input Cost Inflation",
+-                        "Demand Compression",
+-                    ],
+-                ),
+-                "assumptions": payload.get(
+-                    "assumptions",
+-                    [
+-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
+-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
+-                        "Cash flows projected over 5-year explicit horizon plus terminal value.",
+-                    ],
+-                ),
+-                "record_id": payload.get(
+-                    "record_id",
+-                    f'{payload.get("symbol", "TCS.NS")}-FCST-2026-Q2',
+-                ),
+-            })
+ 
+         self._mock_tasks[task_id] = {
+             "task_id": task_id,

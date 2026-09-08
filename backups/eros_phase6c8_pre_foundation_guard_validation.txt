@@ -1,0 +1,174 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.8 PRE-FOUNDATION GUARD REPAIR + VALIDATION
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+===== PIPELINE BACKUP =====
+BACKUP: PASS
+BACKUP FILE: backups\pipeline_phase6c8_before_guard.py
+===== GUARD PATCH =====
+GUARD PATCH: PASS
+Changed pre-foundation condition:
+    if context.raw_data is None:
+to:
+    if context.financials is None:
+
+===== CURRENT run_valuation() SOURCE =====
+(context)
+
+def run_valuation(context):
+    """
+    Execute the EROS valuation stage.
+
+    Public valuation execution returns the canonical result dictionary.
+    PipelineContext, however, retains the executable ValuationBoundary
+    object so downstream stages can independently access SOTP and DCF.
+
+    No valuation mathematics is performed here.
+    """
+
+    from eros.valuation.adapter import evaluate_valuation
+    from eros.valuation.bridge import build_bridge
+
+    # --------------------------------------------------------
+    # Pre-foundation safety
+    # --------------------------------------------------------
+
+    if context.financials is None:
+        if hasattr(context, "warnings"):
+            context.warnings.append(
+                "Valuation requires foundation data."
+            )
+
+        return context
+
+    # --------------------------------------------------------
+    # Execute canonical valuation adapter
+    # --------------------------------------------------------
+
+    try:
+        result = evaluate_valuation(
+            context.raw_data,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+            },
+        )
+
+        # ----------------------------------------------------
+        # IMPORTANT:
+        # evaluate_valuation() intentionally returns a dict.
+        # The pipeline stores the boundary object internally.
+        # ----------------------------------------------------
+
+        context.valuation_bridge = build_bridge(
+            sotp=result.get("sotp"),
+            dcf=result.get("dcf"),
+            provenance=result.get("provenance", {}),
+        )
+
+        # Preserve valuation warnings at pipeline level.
+        warnings = result.get("warnings", [])
+
+        if warnings and hasattr(context, "warnings"):
+            context.warnings.extend(warnings)
+
+        # Do not overwrite a valid foundation state merely
+        # because valuation inputs are incomplete.
+        if result.get("status") == "EXECUTED":
+            context.status = "VALUATION_COMPLETE"
+        elif result.get("status") == "INPUT_REQUIRED":
+            if hasattr(context, "warnings"):
+                context.warnings.append(
+                    "Valuation input is incomplete."
+                )
+
+        return context
+
+    except Exception as exc:
+
+        if hasattr(context, "warnings"):
+            context.warnings.append(
+                f"Valuation execution failed: "
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        context.valuation_bridge = build_bridge(
+            sotp=None,
+            dcf=None,
+            provenance={
+                "orchestrator": "EROS_3.0",
+                "symbol": context.symbol,
+                "valuation_status": "ERROR",
+                "error_type": type(exc).__name__,
+            },
+        )
+
+        return context
+
+
+===== PYTHON COMPILE =====
+COMPILE EXIT CODE: 0
+
+===== IMPORT CONTRACT =====
+
+IMPORT EXIT CODE: 1
+
+===== DIRECT VALUATION BOUNDARY CONTRACT =====
+
+DIRECT EXIT CODE: 1
+
+===== PRE-FOUNDATION PIPELINE CONTRACT =====
+
+PRE-FOUNDATION EXIT CODE: 1
+
+===== EMPTY FOUNDATION -> VALUATION CONTRACT =====
+
+EMPTY PATH EXIT CODE: 1
+
+===== FULL EROS PYTEST =====
+..................                                                       [100%]
+18 passed in 0.94s
+
+PYTEST EXIT CODE: 0
+
+===== VALUATION PYTEST =====
+..........                                                               [100%]
+10 passed in 0.24s
+
+VALUATION PYTEST EXIT CODE: 0
+
+===== EROS GIT DIFF =====
+
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+PHASE 6C.8 VALIDATION SUMMARY
+============================================================
+COMPILE EXIT: 0
+IMPORT EXIT: 1
+DIRECT BOUNDARY EXIT: 1
+PRE-FOUNDATION EXIT: 1
+EMPTY FOUNDATION EXIT: 1
+FULL EROS PYTEST EXIT: 0
+VALUATION PYTEST EXIT: 0
+
+OVERALL: FAIL
+
+============================================================
+END PHASE 6C.8 VALIDATION
+============================================================
+

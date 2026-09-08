@@ -1,0 +1,104 @@
+﻿===== NEXT REPAIR TARGET =====
+
+===== GIT STATUS =====
+ M app.py
+ M backend/tasks/task_control.py
+ M celerybeat-schedule-shm
+ M celerybeat-schedule-wal
+ M components/top_holdings.py
+ M services/financials/balance_sheet.py
+ M services/financials/financial_statement.py
+ M services/forecast/engine.py
+ M services/forecast/service.py
+ M services/fundamentals/normalizer.py
+ M services/fundamentals/service.py
+ M services/ratios/engine.py
+ M services/scoring/engine.py
+ M services/sotp_long_term_equity_classification_service.py
+ M services/valuation/base_engine.py
+ M services/valuation/dcf/engine.py
+ M services/valuation/dcf_adapter.py
+ M services/valuation/dcf_engine.py
+ M services/valuation/dispatcher.py
+ M services/valuation/nav_engine.py
+ M services/valuation/relative/engine.py
+ M services/valuation/sotp/engine.py
+ M services/valuation/sotp_engine.py
+ M services/workflow/production_orchestrator.py
+ M tests/fundamentals/test_models.py
+ M tests/ratios/test_quality_engine.py
+ M tests/ratios/test_ratios.py
+ M tests/scoring/test_scoring.py
+ M tests/valuation/test_sotp.py
+?? S
+?? backend/tasks/task_control.py.backup-before-comment-cleanup
+?? backend/tasks/task_control.py.backup-before-forecast-cleanup
+?? backups/
+?? celery_runtime_diagnostic.txt
+?? docker_celery_test.txt
+?? eros_test_discovery.txt
+?? forecast_blocks_inspection.txt
+?? forecast_cleanup_result.txt
+?? forecast_comment_cleanup_result.txt
+?? forecast_post_cleanup_inspection.txt
+?? post_cleanup_task_control_audit.txt
+?? queue_status_investigation.txt
+?? services/scoring/engine.py.pre_canonical_migration.bak
+?? services/scoring/engine.py.pre_canonical_result_fix.bak
+?? services/scoring/engine.py.pre_valuation_migration.bak
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+?? services/valuation/__init__.py.pre_valuation_migration.bak
+?? services/valuation/service.py.pre_valuation_migration.bak
+?? submit_task_structural_audit.txt
+?? task_control_diff_review.txt
+?? task_control_docker_final.txt
+?? task_control_environment_comparison.txt
+?? task_control_final_audit.txt
+?? task_control_final_docker_validation.txt
+?? task_control_final_safety_check.txt
+?? task_control_final_validation.txt
+?? task_control_forecast_section.txt
+?? task_control_structural_audit.txt
+?? task_control_targeted_validation.txt
+?? task_control_test_result.txt
+?? test_discovery.txt
+?? test_discovery_result.txt
+?? test_suite_discovery.txt
+?? valuation_execution_trace.txt
+
+===== MODIFIED FILES =====
+app.py
+backend/tasks/task_control.py
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+components/top_holdings.py
+services/financials/balance_sheet.py
+services/financials/financial_statement.py
+services/forecast/engine.py
+services/forecast/service.py
+services/fundamentals/normalizer.py
+services/fundamentals/service.py
+services/ratios/engine.py
+services/scoring/engine.py
+services/sotp_long_term_equity_classification_service.py
+services/valuation/base_engine.py
+services/valuation/dcf/engine.py
+services/valuation/dcf_adapter.py
+services/valuation/dcf_engine.py
+services/valuation/dispatcher.py
+services/valuation/nav_engine.py
+services/valuation/relative/engine.py
+services/valuation/sotp/engine.py
+services/valuation/sotp_engine.py
+services/workflow/production_orchestrator.py
+tests/fundamentals/test_models.py
+tests/ratios/test_quality_engine.py
+tests/ratios/test_ratios.py
+tests/scoring/test_scoring.py
+tests/valuation/test_sotp.py
+
+===== TASK_CONTROL STATUS =====
+task_control.py = REPAIRED / DO NOT TOUCH

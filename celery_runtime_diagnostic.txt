@@ -1,0 +1,29 @@
+﻿===== CELERY RUNTIME DIAGNOSTIC =====
+
+USE_REAL_CELERY=[]
+
+===== PYTHON IMPORT TEST =====
+celery_app= <class 'backend.tasks.celery_app.MockCeleryApp'>
+celery_instance= <class 'NoneType'>
+celery_instance_is_none= True
+
+
+===== TASK CONTROL STATE =====
+real_celery_enabled= False
+queue_status= {'queues': ['default', 'forecast_queue', 'valuation_queue', 'report_queue'], 'status': 'HEALTHY', 'real_celery': False}
+
+
+===== ENV FILE REFERENCES =====
+
+  docker-compose.yml:49:      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+> docker-compose.yml:50:      - USE_REAL_CELERY=true
+  docker-compose.yml:51:      - APP_ENVIRONMENT=${APP_ENVIRONMENT:-production}
+  docker-compose.yml:71:      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+> docker-compose.yml:72:      - USE_REAL_CELERY=true
+  docker-compose.yml:73:    depends_on:
+  docker-compose.yml:89:      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+> docker-compose.yml:90:      - USE_REAL_CELERY=true
+  docker-compose.yml:91:    depends_on:
+
+
+

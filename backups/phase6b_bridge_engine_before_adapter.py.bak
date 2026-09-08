@@ -1,0 +1,102 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Optional
+
+
+@dataclass
+class ValuationBoundary:
+    """
+    EROS valuation boundary.
+
+    This object preserves SOTP and DCF independently.
+    It does not average, override, or alter either valuation.
+    """
+
+    symbol: str
+    sotp: Optional[Any] = None
+    dcf: Optional[Any] = None
+    provenance: Optional[dict] = None
+
+    @property
+    def sotp_result(self) -> Optional[Any]:
+        return self.sotp
+
+    @property
+    def dcf_result(self) -> Optional[Any]:
+        return self.dcf
+
+    @property
+    def has_sotp(self) -> bool:
+        return self.sotp is not None
+
+    @property
+    def has_dcf(self) -> bool:
+        return self.dcf is not None
+
+    def relationship(self) -> dict:
+        return {
+            "symbol": self.symbol,
+            "sotp_present": self.has_sotp,
+            "dcf_present": self.has_dcf,
+            "independent": True,
+        }
+
+    def to_dict(self) -> dict:
+        return {
+            "symbol": self.symbol,
+            "sotp": self.sotp,
+            "dcf": self.dcf,
+            "provenance": self.provenance or {},
+            "relationship": self.relationship(),
+        }
+
+
+def create_valuation_boundary(
+    symbol: str,
+    sotp: Optional[Any] = None,
+    dcf: Optional[Any] = None,
+    provenance: Optional[dict] = None,
+) -> ValuationBoundary:
+    """
+    Construct the canonical EROS valuation boundary.
+
+    No valuation mathematics is performed here.
+    """
+    normalized_symbol = str(symbol).strip().upper()
+
+    if not normalized_symbol:
+        raise ValueError("symbol is required")
+
+    return ValuationBoundary(
+        symbol=normalized_symbol,
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance or {},
+    )
+
+
+def build_bridge(
+    symbol: str,
+    sotp: Optional[Any] = None,
+    dcf: Optional[Any] = None,
+    provenance: Optional[dict] = None,
+) -> ValuationBoundary:
+    """
+    Backward-compatible bridge constructor.
+
+    SOTP and DCF remain separate.
+    """
+    return create_valuation_boundary(
+        symbol=symbol,
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "ValuationBoundary",
+    "create_valuation_boundary",
+    "build_bridge",
+]

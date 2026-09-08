@@ -1,0 +1,47 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.6 PIPELINE BOUNDARY REPAIR
+============================================================
+
+BRANCH:
+rebuild/eros-3-0-clean
+
+REPAIR:
+- Public evaluate_valuation() remains a dictionary contract.
+- PipelineContext retains ValuationBoundary.
+- SOTP remains independently accessible.
+- DCF remains independently accessible.
+- build_bridge() reconstructs the internal boundary.
+- No SOTP mathematics duplicated.
+- No DCF mathematics duplicated.
+- No simple mean introduced.
+- Legacy valuation engines remain untouched.
+
+DIRECT CONTRACT:
+PASS
+
+PIPELINE CONTRACT:
+SEE PYTEST OUTPUT ABOVE
+
+COMPILE:
+PASS
+
+FULL EROS PYTEST EXIT CODE:
+1
+
+GIT STATUS:
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 6C.6
+============================================================

@@ -1,0 +1,1058 @@
+﻿===== EROS 3.0 REBUILD — NORMALIZER CONTRACT =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+Date: 09/07/2026 20:00:37
+
+===== PROTECTED =====
+backend/tasks/task_control.py = DO NOT TOUCH
+
+===== NORMALIZER SOURCE =====
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.financials.financial_statement import (
+    FinancialStatements,
+    PeriodFinancials,
+)
+from services.financials.income_statement import IncomeStatement
+
+logger = logging.getLogger(__name__)
+
+
+def _float(value: Any) -> float:
+    """Safely convert provider values to float."""
+    if value is None:
+        return 0.0
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+class FinancialNormalizer:
+    """Normalize provider payloads into canonical FinancialStatements."""
+
+    def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+        symbol = str(raw_data.get("symbol", "RELIANCE.NS"))
+        provider = str(raw_data.get("provider", "YahooFinance"))
+
+        logger.info(
+            "Normalizing financial data for symbol: %s from provider: %s",
+            symbol,
+            provider,
+        )
+
+        # Support both current plural provider payloads
+        # and legacy singular payloads.
+        raw_income = raw_data.get("income_statements")
+        if raw_income is None:
+            legacy_income = raw_data.get("income_statement", {})
+            raw_income = [legacy_income] if legacy_income else []
+
+        raw_balance = raw_data.get("balance_sheets")
+        if raw_balance is None:
+            legacy_balance = raw_data.get("balance_sheet", {})
+            raw_balance = [legacy_balance] if legacy_balance else []
+
+        raw_cashflow = raw_data.get("cash_flows")
+        if raw_cashflow is None:
+            legacy_cashflow = raw_data.get("cash_flow", {})
+            raw_cashflow = [legacy_cashflow] if legacy_cashflow else []
+
+        income_by_period = {
+            str(item.get("period", "UNKNOWN")): item
+            for item in raw_income
+        }
+
+        balance_by_period = {
+            str(item.get("period", "UNKNOWN")): item
+            for item in raw_balance
+        }
+
+        cashflow_by_period = {
+            str(item.get("period", "UNKNOWN")): item
+            for item in raw_cashflow
+        }
+
+        periods = sorted(
+            set(income_by_period)
+            | set(balance_by_period)
+            | set(cashflow_by_period)
+        )
+
+        period_financials: list[PeriodFinancials] = []
+
+        for period in periods:
+            income_raw = income_by_period.get(period, {})
+            balance_raw = balance_by_period.get(period, {})
+            cashflow_raw = cashflow_by_period.get(period, {})
+
+            income = IncomeStatement(
+                period=period,
+                revenue=_float(income_raw.get("revenue")),
+                operating_income=_float(
+                    income_raw.get("operating_income")
+                ),
+                other_operating_income=_float(
+                    income_raw.get("other_operating_income")
+                ),
+                total_operating_income=_float(
+                    income_raw.get(
+                        "total_operating_income",
+                        income_raw.get("operating_income"),
+                    )
+                ),
+                cost_of_goods_sold=_float(
+                    income_raw.get("cost_of_goods_sold")
+                ),
+                operating_expenses=_float(
+                    income_raw.get("operating_expenses")
+                ),
+                depreciation_and_amortization=_float(
+                    income_raw.get("depreciation_and_amortization")
+                ),
+                ebitda=_float(income_raw.get("ebitda")),
+                ebit=_float(income_raw.get("ebit")),
+                finance_cost=_float(income_raw.get("finance_cost")),
+                finance_income=_float(income_raw.get("finance_income")),
+                profit_before_tax=_float(
+                    income_raw.get("profit_before_tax")
+                ),
+                tax_expense=_float(income_raw.get("tax_expense")),
+                net_income=_float(income_raw.get("net_income")),
+                shares_outstanding=_float(
+                    income_raw.get("shares_outstanding")
+                ),
+                eps=_float(income_raw.get("eps")),
+            )
+
+            balance = BalanceSheet(
+                period=period,
+                cash=_float(balance_raw.get("cash")),
+                cash_equivalents=_float(
+                    balance_raw.get("cash_equivalents")
+                ),
+                short_term_investments=_float(
+                    balance_raw.get("short_term_investments")
+                ),
+                accounts_receivable=_float(
+                    balance_raw.get("accounts_receivable")
+                ),
+                inventory=_float(balance_raw.get("inventory")),
+                other_current_assets=_float(
+                    balance_raw.get("other_current_assets")
+                ),
+                total_current_assets=_float(
+                    balance_raw.get("total_current_assets")
+                ),
+                property_plant_equipment=_float(
+                    balance_raw.get("property_plant_equipment")
+                ),
+                right_of_use_assets=_float(
+                    balance_raw.get("right_of_use_assets")
+                ),
+                goodwill=_float(balance_raw.get("goodwill")),
+                intangible_assets=_float(
+                    balance_raw.get("intangible_assets")
+                ),
+                long_term_investments=_float(
+                    balance_raw.get("long_term_investments")
+                ),
+                associates_and_joint_ventures=_float(
+                    balance_raw.get("associates_and_joint_ventures")
+                ),
+                deferred_tax_assets=_float(
+                    balance_raw.get("deferred_tax_assets")
+                ),
+                other_non_current_assets=_float(
+                    balance_raw.get("other_non_current_assets")
+                ),
+                total_non_current_assets=_float(
+                    balance_raw.get("total_non_current_assets")
+                ),
+                total_assets=_float(
+                    balance_raw.get("total_assets")
+                ),
+                accounts_payable=_float(
+                    balance_raw.get("accounts_payable")
+                ),
+                short_term_debt=_float(
+                    balance_raw.get("short_term_debt")
+                ),
+                current_lease_liabilities=_float(
+                    balance_raw.get("current_lease_liabilities")
+                ),
+                accrued_expenses=_float(
+                    balance_raw.get("accrued_expenses")
+                ),
+                other_current_liabilities=_float(
+                    balance_raw.get("other_current_liabilities")
+                ),
+                total_current_liabilities=_float(
+                    balance_raw.get("total_current_liabilities")
+                ),
+                long_term_debt=_float(
+                    balance_raw.get("long_term_debt")
+                ),
+                long_term_lease_liabilities=_float(
+                    balance_raw.get("long_term_lease_liabilities")
+                ),
+                deferred_tax_liabilities=_float(
+                    balance_raw.get("deferred_tax_liabilities")
+                ),
+                pension_liabilities=_float(
+                    balance_raw.get("pension_liabilities")
+                ),
+                other_non_current_liabilities=_float(
+                    balance_raw.get("other_non_current_liabilities")
+                ),
+                total_non_current_liabilities=_float(
+                    balance_raw.get("total_non_current_liabilities")
+                ),
+                total_liabilities=_float(
+                    balance_raw.get("total_liabilities")
+                ),
+                share_capital=_float(
+                    balance_raw.get("share_capital")
+                ),
+                retained_earnings=_float(
+                    balance_raw.get("retained_earnings")
+                ),
+                reserves=_float(balance_raw.get("reserves")),
+                minority_interest=_float(
+                    balance_raw.get("minority_interest")
+                ),
+                total_equity=_float(
+                    balance_raw.get(
+                        "total_equity",
+                        balance_raw.get("shareholders_equity"),
+                    )
+                ),
+                shareholders_equity=_float(
+                    balance_raw.get("shareholders_equity")
+                ),
+                debt=_float(balance_raw.get("debt")),
+            )
+
+            cashflow = CashFlowStatement(
+                period=period,
+                net_income=_float(
+                    cashflow_raw.get("net_income")
+                ),
+                depreciation_and_amortization=_float(
+                    cashflow_raw.get("depreciation_and_amortization")
+                ),
+                share_based_compensation=_float(
+                    cashflow_raw.get("share_based_compensation")
+                ),
+                deferred_tax=_float(
+                    cashflow_raw.get("deferred_tax")
+                ),
+                change_in_working_capital=_float(
+                    cashflow_raw.get("change_in_working_capital")
+                ),
+                other_operating_items=_float(
+                    cashflow_raw.get("other_operating_items")
+                ),
+                operating_cash_flow=_float(
+                    cashflow_raw.get("operating_cash_flow")
+                ),
+                capital_expenditure=_float(
+                    cashflow_raw.get(
+                        "capital_expenditure",
+                        cashflow_raw.get("capex"),
+                    )
+                ),
+                capex=_float(cashflow_raw.get("capex")),
+                acquisitions=_float(
+                    cashflow_raw.get("acquisitions")
+                ),
+                asset_sales=_float(
+                    cashflow_raw.get("asset_sales")
+                ),
+                investment_purchases=_float(
+                    cashflow_raw.get("investment_purchases")
+                ),
+                investment_sales=_float(
+                    cashflow_raw.get("investment_sales")
+                ),
+                investing_cash_flow=_float(
+                    cashflow_raw.get("investing_cash_flow")
+                ),
+                debt_issued=_float(
+                    cashflow_raw.get("debt_issued")
+                ),
+                debt_repaid=_float(
+                    cashflow_raw.get("debt_repaid")
+                ),
+                dividends_paid=_float(
+                    cashflow_raw.get("dividends_paid")
+                ),
+                share_repurchases=_float(
+                    cashflow_raw.get("share_repurchases")
+                ),
+                equity_issued=_float(
+                    cashflow_raw.get("equity_issued")
+                ),
+                financing_cash_flow=_float(
+                    cashflow_raw.get("financing_cash_flow")
+                ),
+                net_change_in_cash=_float(
+                    cashflow_raw.get("net_change_in_cash")
+                ),
+                beginning_cash=_float(
+                    cashflow_raw.get("beginning_cash")
+                ),
+                ending_cash=_float(
+                    cashflow_raw.get("ending_cash")
+                ),
+                free_cash_flow=_float(
+                    cashflow_raw.get("free_cash_flow")
+                ),
+            )
+
+            period_financials.append(
+                PeriodFinancials(
+                    period=period,
+                    income_statement=income,
+                    balance_sheet=balance,
+                    cash_flow_statement=cashflow,
+                )
+            )
+
+        if not period_financials:
+            raise ValueError(
+                f"No usable financial periods found for {symbol}"
+            )
+
+        # Use the first available period as the canonical current statement.
+        primary = period_financials[0]
+
+        return FinancialStatements(
+            company_name=symbol,
+            ticker=symbol,
+            currency=str(raw_data.get("currency", "INR")),
+            fiscal_year=primary.period,
+            income_statement=primary.income_statement,
+            balance_sheet=primary.balance_sheet,
+            cash_flow_statement=primary.cash_flow_statement,
+            periods=period_financials,
+            metadata={
+                "provider": provider,
+                "period_count": len(period_financials),
+            },
+        )
+
+
+===== CANONICAL FUNDAMENTALS MODELS =====
+
+
+===== CANONICAL FINANCIAL STATEMENT =====
+from __future__ import annotations
+
+"""
+==========================================================
+STANDARD FINANCIAL STATEMENT MODEL
+Module  : financial_statement
+Version : V1.1
+==========================================================
+
+Canonical financial statement container used throughout EROS.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.financials.income_statement import IncomeStatement
+
+
+@dataclass(slots=True)
+class PeriodFinancials:
+    """Financial statements for a single reporting period."""
+
+    period: str
+    income_statement: IncomeStatement
+    balance_sheet: BalanceSheet
+    cash_flow_statement: CashFlowStatement
+
+
+@dataclass(slots=True)
+class FinancialStatements:
+    """Canonical standardized financial statement container."""
+
+    company_name: str
+    ticker: str
+    currency: str
+    fiscal_year: str
+
+    income_statement: IncomeStatement
+    balance_sheet: BalanceSheet
+    cash_flow_statement: CashFlowStatement
+
+    periods: list[PeriodFinancials] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def symbol(self) -> str:
+        """Compatibility alias for callers using symbol terminology."""
+        return self.ticker
+
+    @property
+    def income_statements(self) -> list[IncomeStatement]:
+        """Compatibility view of all income statements."""
+        if self.periods:
+            return [p.income_statement for p in self.periods]
+        return [self.income_statement]
+
+    @property
+    def balance_sheets(self) -> list[BalanceSheet]:
+        """Compatibility view of all balance sheets."""
+        if self.periods:
+            return [p.balance_sheet for p in self.periods]
+        return [self.balance_sheet]
+
+    @property
+    def cash_flows(self) -> list[CashFlowStatement]:
+        """Compatibility view of all cash-flow statements."""
+        if self.periods:
+            return [p.cash_flow_statement for p in self.periods]
+        return [self.cash_flow_statement]
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "company": self.company_name,
+            "ticker": self.ticker,
+            "currency": self.currency,
+            "year": self.fiscal_year,
+            "revenue": self.income_statement.revenue,
+            "ebit": self.income_statement.ebit,
+            "net_income": self.income_statement.net_income,
+            "cash": self.balance_sheet.total_cash,
+            "debt": self.balance_sheet.total_debt,
+        }
+
+
+===== CANONICAL INCOME STATEMENT =====
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(slots=True)
+class IncomeStatement:
+    """Standardized income statement for one reporting period."""
+    period: str = "FY2025"
+    revenue: float = 0.0
+    operating_income: float = 0.0
+    other_operating_income: float = 0.0
+    total_operating_income: float = 0.0
+    cost_of_goods_sold: float = 0.0
+    operating_expenses: float = 0.0
+    depreciation_and_amortization: float = 0.0
+    ebitda: float = 0.0
+    ebit: float = 0.0
+    finance_cost: float = 0.0
+    finance_income: float = 0.0
+    profit_before_tax: float = 0.0
+    tax_expense: float = 0.0
+    net_income: float = 0.0
+    shares_outstanding: float = 0.0
+    eps: float = 0.0
+
+    def operating_margin(self) -> float:
+        return self.ebit / self.revenue if self.revenue else 0.0
+
+    def ebitda_margin(self) -> float:
+        return self.ebitda / self.revenue if self.revenue else 0.0
+
+    def net_margin(self) -> float:
+        return self.net_income / self.revenue if self.revenue else 0.0
+
+
+===== CANONICAL BALANCE SHEET =====
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(slots=True)
+class BalanceSheet:
+    """Standardized balance sheet for one reporting period."""
+    period: str = "FY2025"
+    cash: float = 0.0
+    cash_equivalents: float = 0.0
+    short_term_investments: float = 0.0
+    accounts_receivable: float = 0.0
+    inventory: float = 0.0
+    other_current_assets: float = 0.0
+    total_current_assets: float = 0.0
+    property_plant_equipment: float = 0.0
+    right_of_use_assets: float = 0.0
+    goodwill: float = 0.0
+    intangible_assets: float = 0.0
+    long_term_investments: float = 0.0
+    associates_and_joint_ventures: float = 0.0
+    deferred_tax_assets: float = 0.0
+    other_non_current_assets: float = 0.0
+    total_non_current_assets: float = 0.0
+    total_assets: float = 0.0
+    accounts_payable: float = 0.0
+    short_term_debt: float = 0.0
+    current_lease_liabilities: float = 0.0
+    accrued_expenses: float = 0.0
+    other_current_liabilities: float = 0.0
+    total_current_liabilities: float = 0.0
+    long_term_debt: float = 0.0
+    long_term_lease_liabilities: float = 0.0
+    deferred_tax_liabilities: float = 0.0
+    pension_liabilities: float = 0.0
+    other_non_current_liabilities: float = 0.0
+    total_non_current_liabilities: float = 0.0
+    total_liabilities: float = 0.0
+    share_capital: float = 0.0
+    retained_earnings: float = 0.0
+    reserves: float = 0.0
+    minority_interest: float = 0.0
+    total_equity: float = 0.0
+    shareholders_equity: float = 0.0
+    debt: float = 0.0
+
+    def __post_init__(self) -> None:
+        if self.total_equity == 0.0 and self.shareholders_equity != 0.0:
+            self.total_equity = self.shareholders_equity
+        elif self.shareholders_equity == 0.0 and self.total_equity != 0.0:
+            self.shareholders_equity = self.total_equity
+
+    @property
+    def total_cash(self) -> float:
+        """Canonical total cash resources used by EROS valuation and ratio engines."""
+        return self.cash + self.cash_equivalents + self.short_term_investments
+
+    @property
+    def total_debt(self) -> float:
+        return self.debt if self.debt else self.short_term_debt + self.long_term_debt
+
+    @property
+    def net_debt(self) -> float:
+        """Canonical net debt used by EROS financial-ratio and valuation engines."""
+        return self.total_debt - self.total_cash
+
+    @property
+    def current_assets(self) -> float:
+        return self.total_current_assets
+
+    @property
+    def current_liabilities(self) -> float:
+        return self.total_current_liabilities
+
+
+===== CANONICAL CASH FLOW =====
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass(slots=True)
+class CashFlowStatement:
+    """Standardized cash flow statement for one reporting period."""
+    period: str = "FY2025"
+    net_income: float = 0.0
+    depreciation_and_amortization: float = 0.0
+    share_based_compensation: float = 0.0
+    deferred_tax: float = 0.0
+    change_in_working_capital: float = 0.0
+    other_operating_items: float = 0.0
+    operating_cash_flow: float = 0.0
+    capital_expenditure: float = 0.0
+    capex: float = 0.0
+    acquisitions: float = 0.0
+    asset_sales: float = 0.0
+    investment_purchases: float = 0.0
+    investment_sales: float = 0.0
+    investing_cash_flow: float = 0.0
+    debt_issued: float = 0.0
+    debt_repaid: float = 0.0
+    dividends_paid: float = 0.0
+    share_repurchases: float = 0.0
+    equity_issued: float = 0.0
+    financing_cash_flow: float = 0.0
+    net_change_in_cash: float = 0.0
+    beginning_cash: float = 0.0
+    ending_cash: float = 0.0
+    free_cash_flow: float = 0.0
+
+    def __post_init__(self) -> None:
+        if not self.capex:
+            self.capex = self.capital_expenditure
+        if not self.capital_expenditure:
+            self.capital_expenditure = self.capex
+        if not self.free_cash_flow:
+            self.free_cash_flow = self.operating_cash_flow - self.capex
+
+
+===== FUNDAMENTALS PROVIDER =====
+from __future__ import annotations
+
+import logging
+from typing import Any, Protocol, runtime_checkable
+
+import pandas as pd
+import yfinance as yf
+
+logger = logging.getLogger(__name__)
+
+
+@runtime_checkable
+class IFundamentalProvider(Protocol):
+    """Protocol defining interface for fundamental data providers."""
+
+    def download(self, symbol: str) -> dict[str, Any]:
+        ...
+
+
+class YahooFinanceProvider:
+    """Yahoo Finance adapter implementing IFundamentalProvider."""
+
+    @staticmethod
+    def _safe_value(frame: pd.DataFrame, row: str, column: Any) -> float:
+        try:
+            if row not in frame.index:
+                return 0.0
+
+            value = frame.loc[row, column]
+
+            if pd.isna(value):
+                return 0.0
+
+            return float(value)
+        except (TypeError, ValueError, KeyError):
+            return 0.0
+
+    @staticmethod
+    def _period(column: Any) -> str:
+        try:
+            return pd.Timestamp(column).strftime("%Y-%m-%d")
+        except Exception:
+            return str(column)
+
+    def download(self, symbol: str) -> dict[str, Any]:
+        logger.info(
+            "Downloading real financials from Yahoo Finance for symbol: %s",
+            symbol,
+        )
+
+        ticker = yf.Ticker(symbol)
+
+        income = ticker.income_stmt
+        balance = ticker.balance_sheet
+        cashflow = ticker.cashflow
+
+        if income is None or income.empty:
+            raise RuntimeError(f"Yahoo Finance returned no income statement for {symbol}")
+
+        if balance is None or balance.empty:
+            raise RuntimeError(f"Yahoo Finance returned no balance sheet for {symbol}")
+
+        if cashflow is None or cashflow.empty:
+            raise RuntimeError(f"Yahoo Finance returned no cash flow statement for {symbol}")
+
+        income_records = []
+        balance_records = []
+        cashflow_records = []
+
+        columns = list(income.columns)
+
+        for column in columns:
+            revenue = self._safe_value(income, "Total Revenue", column)
+            operating_income = self._safe_value(income, "Operating Income", column)
+            ebit = self._safe_value(income, "EBIT", column)
+            net_income = self._safe_value(income, "Net Income", column)
+
+            eps = self._safe_value(income, "Diluted EPS", column)
+
+            if eps == 0.0:
+                eps = self._safe_value(income, "Basic EPS", column)
+
+            if revenue == 0.0 and ebit == 0.0 and net_income == 0.0:
+                continue
+
+            income_records.append(
+                {
+                    "period": self._period(column),
+                    "revenue": revenue,
+                    "operating_income": operating_income,
+                    "ebit": ebit,
+                    "net_income": net_income,
+                    "eps": eps,
+                }
+            )
+
+        for column in list(balance.columns):
+            total_assets = self._safe_value(balance, "Total Assets", column)
+            total_liabilities = self._safe_value(
+                balance,
+                "Total Liabilities Net Minority Interest",
+                column,
+            )
+            shareholders_equity = self._safe_value(
+                balance,
+                "Stockholders Equity",
+                column,
+            )
+
+            if shareholders_equity == 0.0:
+                shareholders_equity = self._safe_value(
+                    balance,
+                    "Common Stock Equity",
+                    column,
+                )
+
+            cash = self._safe_value(
+                balance,
+                "Cash Cash Equivalents And Short Term Investments",
+                column,
+            )
+
+            debt = self._safe_value(balance, "Total Debt", column)
+
+            if total_assets == 0.0 and total_liabilities == 0.0 and shareholders_equity == 0.0:
+                continue
+
+            balance_records.append(
+                {
+                    "period": self._period(column),
+                    "total_assets": total_assets,
+                    "total_liabilities": total_liabilities,
+                    "shareholders_equity": shareholders_equity,
+                    "cash": cash,
+                    "debt": debt,
+                }
+            )
+
+        for column in list(cashflow.columns):
+            operating_cash_flow = self._safe_value(
+                cashflow,
+                "Operating Cash Flow",
+                column,
+            )
+
+            raw_capex = self._safe_value(
+                cashflow,
+                "Capital Expenditure",
+                column,
+            )
+
+            capex = abs(raw_capex)
+
+            free_cash_flow = self._safe_value(
+                cashflow,
+                "Free Cash Flow",
+                column,
+            )
+
+            if free_cash_flow == 0.0 and operating_cash_flow != 0.0:
+                free_cash_flow = operating_cash_flow - capex
+
+            investing_cash_flow = self._safe_value(
+                cashflow,
+                "Investing Cash Flow",
+                column,
+            )
+
+            financing_cash_flow = self._safe_value(
+                cashflow,
+                "Financing Cash Flow",
+                column,
+            )
+
+            if (
+                operating_cash_flow == 0.0
+                and capex == 0.0
+                and free_cash_flow == 0.0
+            ):
+                continue
+
+            cashflow_records.append(
+                {
+                    "period": self._period(column),
+                    "operating_cash_flow": operating_cash_flow,
+                    "capex": capex,
+                    "free_cash_flow": free_cash_flow,
+                    "investing_cash_flow": investing_cash_flow,
+                    "financing_cash_flow": financing_cash_flow,
+                }
+            )
+
+        if not income_records:
+            raise RuntimeError(f"No usable income records found for {symbol}")
+
+        return {
+            "symbol": symbol,
+            "provider": "YahooFinance",
+            "income_statements": income_records,
+            "balance_sheets": balance_records,
+            "cash_flows": cashflow_records,
+        }
+
+
+===== FUNDAMENTALS SERVICE =====
+from __future__ import annotations
+
+import logging
+import time
+from typing import Any, Optional
+from core.events.dispatcher import EventDispatcher
+from services.fundamentals.events import FundamentalsDownloaded
+from services.financials.financial_statement import FinancialStatements
+from services.fundamentals.normalizer import FinancialNormalizer
+from services.fundamentals.provider import IFundamentalProvider
+
+logger = logging.getLogger(__name__)
+
+
+class FundamentalsService:
+    """Service managing financial statements acquisition, normalization, caching, and event dispatching."""
+
+    def __init__(
+        self,
+        provider: IFundamentalProvider,
+        normalizer: FinancialNormalizer,
+        dispatcher: EventDispatcher,
+        cache: Optional[dict[str, FinancialStatements]] = None,
+    ) -> None:
+        self._provider = provider
+        self._normalizer = normalizer
+        self._dispatcher = dispatcher
+        self._cache = cache if cache is not None else {}
+
+    async def get_or_download(self, symbol: str) -> FinancialStatements:
+        """Retrieve financial statements from cache or download and normalize them, then dispatch event."""
+        if symbol in self._cache:
+            logger.info("Serving financial statements from cache for symbol: %s", symbol)
+            statements = self._cache[symbol]
+        else:
+            raw = self._provider.download(symbol)
+            statements = self._normalizer.normalize(raw)
+            self._cache[symbol] = statements
+
+        event = FundamentalsDownloaded(
+            symbol=symbol,
+            provider=statements.metadata.get("provider", "YahooFinance"),
+            timestamp=time.time(),
+            payload={
+                "financial_statements": statements,
+                "symbol": symbol,
+            },
+        )
+
+        await self._dispatcher.dispatch(event)
+        logger.info("FundamentalsDownloaded event dispatched successfully for symbol: %s", symbol)
+        return statements
+
+
+===== FUNDAMENTALS TESTS =====
+----- D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_canonical_models.py -----
+from __future__ import annotations
+
+import pytest
+from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet, CanonicalCashFlowStatement
+from services.fundamentals.validator import CanonicalFinancialValidator
+
+def test_canonical_models_and_validation() -> None:
+    bs = CanonicalBalanceSheet(
+        period="2025",
+        cash=10000.0,
+        total_current_assets=50000.0,
+        property_plant_equipment=50000.0,
+        total_assets=100000.0,
+        total_current_liabilities=20000.0,
+        long_term_debt=20000.0,
+        total_liabilities=40000.0,
+        shareholders_equity=60000.0
+    )
+    inc = CanonicalIncomeStatement(
+        period="2025",
+        revenue=150000.0,
+        gross_profit=60000.0,
+        operating_income=25000.0,
+        net_income=18000.0,
+        shares_outstanding=1000.0,
+        eps=18.0
+    )
+    cf = CanonicalCashFlowStatement(
+        period="2025",
+        operating_cash_flow=30000.0,
+        capital_expenditures=-10000.0,
+        free_cash_flow=20000.0
+    )
+
+    bs_errors = CanonicalFinancialValidator.validate_balance_sheet(bs)
+    inc_errors = CanonicalFinancialValidator.validate_income_statement(inc)
+    analytics = CanonicalFinancialValidator.compute_analytics(bs, inc, cf)
+
+    assert len(bs_errors) == 0
+    assert len(inc_errors) == 0
+    assert analytics["net_debt"] == 10000.0
+    assert analytics["working_capital"] == 30000.0
+    assert analytics["free_cash_flow"] == 20000.0
+----- D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py -----
+from __future__ import annotations
+
+import pytest
+from services.fundamentals.events import FundamentalsDownloaded
+
+
+def test_fundamentals_downloaded_event_contract() -> None:
+    event = FundamentalsDownloaded(symbol="RELIANCE.NS", provider="YahooFinance")
+    assert event.name == "fundamentals.downloaded"
+    assert event.symbol == "RELIANCE.NS"
+    assert event.provider == "YahooFinance"
+----- D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_models.py -----
+from __future__ import annotations
+
+import pytest
+
+from services.financials.financial_statement import FinancialStatements, PeriodFinancials
+from services.financials.income_statement import IncomeStatement
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+
+
+def test_financial_statements_immutability_and_structure() -> None:
+    inc = IncomeStatement(
+        period="FY2025",
+        revenue=100.0,
+        total_operating_income=20.0,
+        ebit=18.0,
+        net_income=10.0,
+        eps=2.0,
+    )
+
+    bs = BalanceSheet(
+        period="FY2025",
+        total_assets=500.0,
+        total_liabilities=200.0,
+        total_equity=300.0,
+        cash=50.0,
+        long_term_debt=100.0,
+    )
+
+    cf = CashFlowStatement(
+        period="FY2025",
+        operating_cash_flow=30.0,
+        capital_expenditure=10.0,
+        investing_cash_flow=-10.0,
+        financing_cash_flow=-5.0,
+    )
+
+    fs = FinancialStatements(
+        company_name="RELIANCE",
+        ticker="RELIANCE.NS",
+        currency="INR",
+        fiscal_year="FY2025",
+        income_statement=inc,
+        balance_sheet=bs,
+        cash_flow_statement=cf,
+        periods=[
+            PeriodFinancials(
+                period="FY2025",
+                income_statement=inc,
+                balance_sheet=bs,
+                cash_flow_statement=cf,
+            )
+        ],
+    )
+
+    assert fs.symbol == "RELIANCE.NS"
+    assert fs.ticker == "RELIANCE.NS"
+
+    assert len(fs.income_statements) == 1
+    assert fs.income_statements[0].revenue == 100.0
+
+    assert len(fs.balance_sheets) == 1
+    assert fs.balance_sheets[0].shareholders_equity == 300.0
+
+    assert len(fs.cash_flows) == 1
+    assert fs.cash_flows[0].free_cash_flow == 20.0
+
+    with pytest.raises(AttributeError):
+        fs.symbol = "TCS.NS"  # type: ignore[misc]
+----- D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py -----
+from __future__ import annotations
+
+import pytest
+from services.fundamentals.normalizer import FinancialNormalizer
+
+
+def test_financial_normalizer() -> None:
+    raw = {
+        "symbol": "RELIANCE.NS",
+        "provider": "YahooFinance",
+        "income_statement": {"revenue": 5000.0, "operating_income": 1000.0, "ebit": 900.0, "net_income": 600.0, "eps": 10.0},
+        "balance_sheet": {"total_assets": 10000.0, "total_liabilities": 4000.0, "shareholders_equity": 6000.0, "cash": 1000.0, "debt": 2000.0},
+        "cash_flow": {"operating_cash_flow": 1200.0, "capex": 300.0, "free_cash_flow": 900.0, "investing_cash_flow": -300.0, "financing_cash_flow": -200.0},
+    }
+
+    normalizer = FinancialNormalizer()
+    fs = normalizer.normalize(raw)
+
+    assert fs.symbol == "RELIANCE.NS"
+    assert fs.income_statements[0].revenue == 5000.0
+    assert fs.balance_sheets[0].cash == 1000.0
+    assert fs.cash_flows[0].free_cash_flow == 900.0
+    assert fs.metadata["provider"] == "YahooFinance"
+----- D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_provider.py -----
+from __future__ import annotations
+
+import pytest
+from services.fundamentals.provider import YahooFinanceProvider, IFundamentalProvider
+
+
+def test_yahoo_finance_provider() -> None:
+    provider = YahooFinanceProvider()
+    assert isinstance(provider, IFundamentalProvider)
+    
+    data = provider.download("RELIANCE.NS")
+    assert data["symbol"] == "RELIANCE.NS"
+    assert "income_statements" in data
+    assert "balance_sheets" in data
+    assert "cash_flows" in data
+
+----- D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py -----
+from __future__ import annotations
+
+import asyncio
+import pytest
+from typing import Any
+from core.events import InMemoryEventBus, EventDispatcher
+from services.fundamentals.normalizer import FinancialNormalizer
+from services.fundamentals.provider import YahooFinanceProvider
+from services.fundamentals.service import FundamentalsService
+
+
+def test_fundamentals_service_get_or_download_and_cache() -> None:
+    async def run() -> None:
+        bus = InMemoryEventBus()
+        dispatcher = EventDispatcher(bus)
+        provider = YahooFinanceProvider()
+        normalizer = FinancialNormalizer()
+        service = FundamentalsService(provider, normalizer, dispatcher)
+
+        events_received = []
+        async def listener(event: Any) -> None:
+            events_received.append(event)
+
+        bus.subscribe("fundamentals.downloaded", listener)
+
+        symbol = "RELIANCE.NS"
+        fs1 = await service.get_or_download(symbol)
+        assert fs1.symbol == symbol
+        assert len(events_received) == 1
+
+        # Second call should hit cache
+        fs2 = await service.get_or_download(symbol)
+        assert fs2 == fs1
+        assert len(events_received) == 2
+
+    asyncio.run(run())
+

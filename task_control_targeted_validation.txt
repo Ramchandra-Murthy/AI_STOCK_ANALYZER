@@ -1,0 +1,124 @@
+===== TASK_CONTROL TARGETED VALIDATION =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+Date: 09/07/2026 19:33:42
+
+===== PYTHON COMPILE =====
+
+===== TASK CONTROL / FORECAST TEST DISCOVERY =====
+
+tests\test_event_contracts.py:6:from services.forecast.events import ForecastCompleted
+tests\test_event_contracts.py:16:        (ForecastCompleted, "forecast.completed"),
+tests\test_pipeline.py:11:from services.forecast.engine import ForecastEngine
+tests\test_pipeline.py:12:from services.forecast.service import ForecastService
+tests\test_pipeline.py:31:        forecast_engine = ForecastEngine()
+tests\test_pipeline.py:32:        forecast_service = ForecastService(forecast_engine, bus, dispatcher)
+tests\test_pipeline.py:64:        bus.subscribe("forecast.completed", spy_handler)
+tests\test_pipeline.py:80:        assert event_names.count("forecast.completed") == 1
+tests\database\test_forecast_report_repositories.py:5:from backend.database.repositories.forecast_report_repository import ForecastRepository, ReportRepository
+tests\database\test_forecast_report_repositories.py:7:def test_forecast_and_report_repositories() -> None:
+tests\database\test_forecast_report_repositories.py:11:        # Test Forecast Repository
+tests\database\test_forecast_report_repositories.py:12:        forecast = ForecastRepository.save_forecast(
+tests\database\test_forecast_report_repositories.py:17:            eps_forecast=125.50,
+tests\database\test_forecast_report_repositories.py:20:        assert forecast.id == "FCST-RELIANCE-2026"
+tests\database\test_forecast_report_repositories.py:21:        fetched_fcst = ForecastRepository.get_forecast(session, "FCST-RELIANCE-2026")
+tests\forecasting\test_forecasting.py:4:from services.forecasting.models import ForecastScenario
+tests\forecasting\test_forecasting.py:5:from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
+tests\forecasting\test_forecasting.py:7:def test_forecasting_and_scenario_engine() -> None:
+tests\forecasting\test_forecasting.py:9:        ForecastScenario(
+tests\forecasting\test_forecasting.py:23:        ForecastScenario(
+tests\forecasting\test_forecasting.py:37:        ForecastScenario(
+tests\forecast_system\test_ifis.py:4:from services.forecast_system.models import ForecastResult
+tests\forecast_system\test_ifis.py:5:from services.forecast_system.forecast_engine import InstitutionalForecastEngine
+tests\forecast_system\test_ifis.py:7:def test_forecast_result_immutability() -> None:
+tests\forecast_system\test_ifis.py:8:    fc = ForecastResult(
+tests\forecast_system\test_ifis.py:10:        revenue_forecast=100000.0,
+tests\forecast_system\test_ifis.py:11:        ebit_forecast=22000.0,
+tests\forecast_system\test_ifis.py:12:        eps_forecast=125.5,
+tests\forecast_system\test_ifis.py:13:        fcf_forecast=15000.0,
+tests\forecast_system\test_ifis.py:14:        forecast_confidence=0.90,
+tests\forecast_system\test_ifis.py:21:    assert fc.eps_forecast == 125.5
+tests\forecast_system\test_ifis.py:25:def test_institutional_forecast_engine() -> None:
+tests\forecast_system\test_ifis.py:26:    fc = InstitutionalForecastEngine.generate_forecast("RELIANCE.NS", 800000.0, 110.0)
+tests\forecast_system\test_ifis.py:28:    assert fc.revenue_forecast > 800000.0
+tests\memory\test_ikme.py:14:        forecast_snapshot={"eps": 110.0},
+tests\memory\test_ikme.py:29:        forecast_snapshot={"eps": 100.0},
+tests\memory\test_ikme.py:38:        forecast_snapshot={"eps": 125.0},
+tests\production\test_block27_operations.py:11:from backend.tasks.task_control import task_control
+tests\production\test_block27_operations.py:112:    registered_tasks = task_control.get_registered_tasks()
+tests\production\test_block27_operations.py:120:    sub = task_control.submit_task(
+tests\production\test_block28_worker.py:3:from backend.tasks.task_control import task_control
+tests\production\test_block28_worker.py:9:    tasks = task_control.get_registered_tasks()
+tests\production\test_block28_worker.py:13:    assert "forecast.execute" in tasks
+tests\production\test_block28_worker.py:17:    submission = task_control.submit_task(
+tests\production\test_block28_worker.py:25:    status_info = task_control.get_task_status(task_id)
+tests\production\test_block28_worker.py:29:    result_info = task_control.get_task_result(task_id)
+tests\production\test_block28_worker.py:35:    queues = task_control.get_queue_status()
+tests\production\test_block28_worker.py:39:    metrics = task_control.get_task_metrics()
+tests\production\test_block29_real_celery.py:4:from backend.tasks.task_control import task_control
+tests\production\test_block29_real_celery.py:20:    assert "forecast_queue" in queue_names
+tests\production\test_block29_real_celery.py:26:    assert "forecast.*" in routes
+tests\production\test_block29_real_celery.py:28:def test_block29c_task_control_broker_integration():
+tests\production\test_block29_real_celery.py:30:    status = task_control.get_queue_status()
+tests\production\test_block30c_real_worker_execution.py:5:from backend.tasks.task_control import task_control
+tests\production\test_block30c_real_worker_execution.py:14:    tasks = task_control.get_registered_tasks()
+tests\production\test_block30c_real_worker_execution.py:16:    assert "forecast.execute" in tasks
+tests\production\test_block30c_real_worker_execution.py:19:    submission = task_control.submit_task(
+tests\production\test_block30c_real_worker_execution.py:34:    status_info = task_control.get_task_status(task_id)
+tests\production\test_block30c_real_worker_execution.py:42:        result_info = task_control.get_task_result(task_id)
+tests\production\test_block30d_live_redis_worker.py:3:from backend.tasks.task_control import task_control
+tests\production\test_block30d_live_redis_worker.py:40:        submission = task_control.submit_task(
+tests\production\test_block30g_infra.py:3:from backend.tasks.task_control import task_control
+tests\production\test_block30g_infra.py:17:def test_block30g_task_control_fallback():
+tests\production\test_block30g_infra.py:22:    tasks = task_control.get_registered_tasks()
+tests\production\test_block30g_infra.py:25:    sub = task_control.submit_task(
+tests\production\test_block31l3c_failure_probe.py:4:from backend.tasks.task_control import TaskControlService
+tests\reporting\test_reporting.py:13:    class MockForecast:
+tests\reporting\test_reporting.py:16:    report = ResearchReportBuilder.build_report("RELIANCE.NS", MockCommittee(), MockForecast())
+tests\tasks\test_edpp.py:14:    assert "forecast.execute" in celery_app.tasks
+tests\tasks\test_edpp.py:16:    task_id = celery_app.send_task("forecast.execute")
+tests\tasks\test_edpp.py:28:        "task_name": "forecast.execute",
+tests\tasks\test_sprint19c_control_plane.py:4:from backend.tasks.task_control import TaskControlService
+tests\tasks\test_sprint19c_control_plane.py:9:def test_task_control_forecast_lifecycle():
+tests\tasks\test_sprint19c_control_plane.py:12:        task_name="forecast.execute",
+tests\tasks\test_sprint19c_control_plane.py:39:def test_task_control_registered_tasks():
+tests\tasks\test_sprint19c_control_plane.py:44:    assert "forecast.execute" in tasks
+tests\tasks\test_sprint19c_control_plane.py:48:def test_task_control_queue_status():
+tests\tasks\test_sprint19c_control_plane.py:53:    assert "forecast_queue" in queue_status["queues"]
+tests\tasks\test_sprint19c_control_plane.py:58:def test_task_control_unknown_task():
+tests\tasks\test_sprint19c_control_plane.py:79:            "task_name": "forecast.execute",
+tests\tasks\test_sprint19c_control_plane.py:149:    assert "forecast_queue" in body["queues"]
+tests\tasks\test_sprint20a_observability.py:7:from backend.tasks.task_control import TaskControlService
+tests\tasks\test_sprint20a_observability.py:14:        task_name="forecast.execute",
+tests\tasks\test_sprint20b_observability_details.py:6:from backend.tasks.task_control import TaskControlService
+tests\tasks\test_sprint20c_unified_observability.py:6:from backend.tasks.task_control import TaskControlService
+tests\valuation\test_dcf.py:4:from services.forecast.models import ForecastResult
+tests\valuation\test_dcf.py:9:    forecast = ForecastResult(
+tests\valuation\test_dcf.py:12:        free_cash_flow_forecast=[100000.0, 115000.0, 132000.0, 151000.0, 173000.0],
+tests\valuation\test_dcf.py:16:    result = engine.calculate(forecast, wacc=0.10, terminal_growth_rate=0.04)
+
+
+
+===== TARGETED PYTEST =====
+........F..                                                              [100%]
+================================== FAILURES ===================================
+_______________________ test_task_control_queue_status ________________________
+
+>   ???
+E   assert False is True
+
+/app/tests/tasks/test_sprint19c_control_plane.py:55: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/tasks/test_sprint19c_control_plane.py::test_task_control_queue_status
+1 failed, 10 passed, 294 deselected in 3.59s
+
+===== PYTEST EXIT STATUS =====
+1
+===== GIT DIFF STAT =====
+ backend/tasks/task_control.py | 207 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 206 deletions(-)
+
+===== GIT STATUS TASK_CONTROL =====
+ M backend/tasks/task_control.py
+
+===== FINAL =====
+Paste ALL output above into ChatGPT.

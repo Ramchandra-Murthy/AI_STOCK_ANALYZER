@@ -1,0 +1,2123 @@
+﻿===== EROS NEXT REPAIR DIFF TRIAGE =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+
+============================================================
+FILE: app.py
+============================================================
+git : warning: in the working copy of 'app.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/app.py b/app.py
+index 1bf2e16..6424873 100644
+--- a/app.py
++++ b/app.py
+@@ -1,92 +1,59 @@
++∩╗┐# -*- coding: utf-8 -*-
+ import streamlit as st
+-
+-from modules.backtesting import show as backtesting
+-
+-# ==========================================================
+-# IMPORT MODULES
+-# ==========================================================
+-from modules.dashboard import show as dashboard
+-from modules.fundamentals import show as fundamentals
+-from modules.market import show as market
+-from modules.portfolio import show as portfolio
+-from modules.prediction import show as prediction
+-from modules.research import show as research
+-from modules.scanner import show as scanner
+-from modules.settings import show as settings
+-
+-
+-def load_css():
+-    with open("assets/styles.css") as f:
+-        st.markdown(
+-            f"<style>{f.read()}</style>",
+-            unsafe_allow_html=True,
+-        )
+-
+-
+-# ==========================================================
+-# PAGE CONFIGURATION
+-# ==========================================================
+-
++import modules.dashboard as dashboard
++import modules.market as market
++import modules.portfolio as portfolio
++import modules.scanner as scanner
++import modules.research as research
++import modules.fundamentals as fundamentals
++import modules.backtesting as backtesting
++
++# Optional imports (graceful fallback if they don't exist)
++try:
++    import modules.ai_prediction as ai_prediction
++except ImportError:
++    ai_prediction = None
++
++try:
++    import modules.settings as settings
++except ImportError:
++    settings = None
++
++# --- Page Configuration ---
+ st.set_page_config(
+     page_title="AI Stock Analyzer Pro",
+-    page_icon="≡ƒôê",
++    page_icon="≡ƒôè",
+     layout="wide",
+-    initial_sidebar_state="expanded",
++    initial_sidebar_state="expanded"
+ )
+ 
+-load_css()
+-
+-
+-# ==========================================================
+-# PAGE REGISTRY
+-# ==========================================================
++# --- Sidebar Navigation ---
++st.sidebar.title("≡ƒôè AI Stock Analyzer Pro")
++st.sidebar.markdown("**Professional Investment Platform**")
+ 
++# Define Pages
+ PAGES = {
+-    "≡ƒÅá Dashboard": dashboard,
+-    "≡ƒôê Market": market,
+-    "≡ƒÆ╝ Portfolio": portfolio,
+-    "≡ƒöì Scanner": scanner,
+-    "≡ƒöì Stock Research": research,
+-    "≡ƒôè Fundamentals": fundamentals,
+-    "≡ƒôë Backtesting": backtesting,
+-    "≡ƒñû AI Prediction": prediction,
+-    "ΓÜÖ∩╕Å Settings": settings,
++    "≡ƒôê Dashboard": dashboard.show,
++    "≡ƒôè Market": market.show,
++    "≡ƒÆ░ Portfolio": portfolio.show,
++    "≡ƒöì Scanner": scanner.show,
++    "≡ƒô░ Stock Research": research.show,
++    "≡ƒôï Fundamentals": fundamentals.show,
++    "ΓÜí Backtesting": backtesting.show,
+ }
+ 
+-# ==========================================================
+-# SIDEBAR
+-# ==========================================================
+-
+-st.sidebar.title("≡ƒôê AI Stock Analyzer Pro")
+-st.sidebar.caption("Professional Investment Platform")
+-
+-selected_page = st.sidebar.radio(
+-    "≡ƒôé Navigation",
+-    list(PAGES.keys()),
+-)
+-
+-st.sidebar.success(f"Current: {selected_page}")
++# Add optional pages if they exist
++if ai_prediction:
++    PAGES["≡ƒñû AI Prediction"] = ai_prediction.show
++if settings:
++    PAGES["ΓÜÖ∩╕Å Settings"] = settings.show
+ 
+ st.sidebar.divider()
+-
+-st.sidebar.markdown("### ≡ƒôè Application")
+-
+-st.sidebar.metric(
+-    "Modules",
+-    len(PAGES),
+-)
+-
+-st.sidebar.metric(
+-    "Version",
+-    "3.5",
+-)
++selection = st.sidebar.radio("Navigate to", list(PAGES.keys()), index=0)
+ 
+ st.sidebar.divider()
++st.sidebar.caption(f"≡ƒôì Current: {selection}")
+ 
+-st.sidebar.caption("┬⌐ 2026 AI Stock Analyzer Pro")
+-
+-# ==========================================================
+-# PAGE ROUTER
+-# ==========================================================
+-
+-PAGES[selected_page]()
++# --- Render Selected Page ---
++page_func = PAGES[selection]
++page_func()
+
+
+============================================================
+FILE: components/top_holdings.py
+============================================================
+diff --git a/components/top_holdings.py b/components/top_holdings.py
+index 10fe582..5a66934 100644
+--- a/components/top_holdings.py
++++ b/components/top_holdings.py
+@@ -3,6 +3,28 @@
+ from portfolio.portfolio import delete_stock
+ 
+ 
++def _format_currency(value):
++    """Format currency safely when value is None."""
++    if value is None:
++        return "Γé╣ΓÇö"
++
++    try:
++        return f"Γé╣{float(value):,.2f}"
++    except (TypeError, ValueError):
++        return "Γé╣ΓÇö"
++
++
++def _format_percent(value):
++    """Format percentage safely when value is None."""
++    if value is None:
++        return "ΓÇö"
++
++    try:
++        return f"{float(value):.2f}%"
++    except (TypeError, ValueError):
++        return "ΓÇö"
++
++
+ def show_top_holdings(df, top_n=5):
+     """
+     Display Top Holdings.
+@@ -12,7 +34,10 @@ def show_top_holdings(df, top_n=5):
+         st.info("No holdings available.")
+         return
+ 
+-    table = df.sort_values(by="Current Value", ascending=False).head(top_n).copy()
++    table = df.sort_values(
++        by="Current Value",
++        ascending=False
++    ).head(top_n).copy()
+ 
+     # ----------------------------
+     # Format numbers
+@@ -40,13 +65,17 @@ def show_top_holdings(df, top_n=5):
+         "Return %",
+     ]
+ 
+-    display["Buy Price"] = display["Buy Price"].map(lambda x: f"├óΓÇÜ┬╣{x:,.2f}")
+-    display["CMP"] = display["CMP"].map(lambda x: f"├óΓÇÜ┬╣{x:,.2f}")
+-    display["Current Value"] = display["Current Value"].map(lambda x: f"├óΓÇÜ┬╣{x:,.2f}")
+-    display["Profit"] = display["Profit"].map(lambda x: f"├óΓÇÜ┬╣{x:,.2f}")
+-    display["Return %"] = display["Return %"].map(lambda x: f"{x:.2f}%")
++    display["Buy Price"] = display["Buy Price"].map(_format_currency)
++    display["CMP"] = display["CMP"].map(_format_currency)
++    display["Current Value"] = display["Current Value"].map(_format_currency)
++    display["Profit"] = display["Profit"].map(_format_currency)
++    display["Return %"] = display["Return %"].map(_format_percent)
+ 
+-    st.dataframe(display, use_container_width=True, hide_index=True)
++    st.dataframe(
++        display,
++        width="stretch",
++        hide_index=True,
++    )
+ 
+     st.divider()
+ 
+@@ -61,7 +90,10 @@ def show_top_holdings(df, top_n=5):
+         selected = st.selectbox(
+             "Delete Holding",
+             table["id"],
+-            format_func=lambda x: table.loc[table["id"] == x, "symbol"].iloc[0],
++            format_func=lambda x: table.loc[
++                table["id"] == x,
++                "symbol"
++            ].iloc[0],
+         )
+ 
+     with col2:
+@@ -69,8 +101,10 @@ def show_top_holdings(df, top_n=5):
+         st.write("")
+         st.write("")
+ 
+-        if st.button("├░┼╕ΓÇöΓÇÿ Delete", use_container_width=True):
++        if st.button(
++            "≡ƒùæ Delete",
++            width="stretch",
++        ):
+             delete_stock(selected)
+             st.success("Holding deleted.")
+-            st.rerun()
+-
++            st.rerun()
+\ No newline at end of file
+
+
+============================================================
+FILE: services/financials/balance_sheet.py
+============================================================
+diff --git a/services/financials/balance_sheet.py b/services/financials/balance_sheet.py
+index 7ad15ae..0ba617b 100644
+--- a/services/financials/balance_sheet.py
++++ b/services/financials/balance_sheet.py
+@@ -49,10 +49,20 @@ class BalanceSheet:
+         elif self.shareholders_equity == 0.0 and self.total_equity != 0.0:
+             self.shareholders_equity = self.total_equity
+ 
++    @property
++    def total_cash(self) -> float:
++        """Canonical total cash resources used by EROS valuation and ratio engines."""
++        return self.cash + self.cash_equivalents + self.short_term_investments
++
+     @property
+     def total_debt(self) -> float:
+         return self.debt if self.debt else self.short_term_debt + self.long_term_debt
+ 
++    @property
++    def net_debt(self) -> float:
++        """Canonical net debt used by EROS financial-ratio and valuation engines."""
++        return self.total_debt - self.total_cash
++
+     @property
+     def current_assets(self) -> float:
+         return self.total_current_assets
+
+
+============================================================
+FILE: services/financials/financial_statement.py
+============================================================
+diff --git a/services/financials/financial_statement.py b/services/financials/financial_statement.py
+index b389330..6fc4564 100644
+--- a/services/financials/financial_statement.py
++++ b/services/financials/financial_statement.py
+@@ -4,11 +4,10 @@
+ ==========================================================
+ STANDARD FINANCIAL STATEMENT MODEL
+ Module  : financial_statement
+-Version : V1.0
++Version : V1.1
+ ==========================================================
+ 
+-Defines the master financial statement object used
+-throughout the valuation platform.
++Canonical financial statement container used throughout EROS.
+ """
+ 
+ from dataclasses import dataclass, field
+@@ -21,9 +20,7 @@ from services.financials.income_statement import IncomeStatement
+ 
+ @dataclass(slots=True)
+ class PeriodFinancials:
+-    """
+-    Holds statements for a single fiscal period.
+-    """
++    """Financial statements for a single reporting period."""
+ 
+     period: str
+     income_statement: IncomeStatement
+@@ -33,27 +30,55 @@ class PeriodFinancials:
+ 
+ @dataclass(slots=True)
+ class FinancialStatements:
+-    """
+-    Standardized financial statement container.
+-    """
++    """Canonical standardized financial statement container."""
+ 
+     company_name: str
+     ticker: str
+     currency: str
+     fiscal_year: str
++
+     income_statement: IncomeStatement
+     balance_sheet: BalanceSheet
+     cash_flow_statement: CashFlowStatement
++
+     periods: list[PeriodFinancials] = field(default_factory=list)
+     metadata: dict[str, Any] = field(default_factory=dict)
+ 
++    @property
++    def symbol(self) -> str:
++        """Compatibility alias for callers using symbol terminology."""
++        return self.ticker
++
++    @property
++    def income_statements(self) -> list[IncomeStatement]:
++        """Compatibility view of all income statements."""
++        if self.periods:
++            return [p.income_statement for p in self.periods]
++        return [self.income_statement]
++
++    @property
++    def balance_sheets(self) -> list[BalanceSheet]:
++        """Compatibility view of all balance sheets."""
++        if self.periods:
++            return [p.balance_sheet for p in self.periods]
++        return [self.balance_sheet]
++
++    @property
++    def cash_flows(self) -> list[CashFlowStatement]:
++        """Compatibility view of all cash-flow statements."""
++        if self.periods:
++            return [p.cash_flow_statement for p in self.periods]
++        return [self.cash_flow_statement]
++
+     def summary(self) -> dict[str, Any]:
+         return {
+             "company": self.company_name,
++            "ticker": self.ticker,
++            "currency": self.currency,
+             "year": self.fiscal_year,
+             "revenue": self.income_statement.revenue,
+             "ebit": self.income_statement.ebit,
+             "net_income": self.income_statement.net_income,
+             "cash": self.balance_sheet.total_cash,
+             "debt": self.balance_sheet.total_debt,
+-        }
++        }
+\ No newline at end of file
+
+
+============================================================
+FILE: services/forecast/engine.py
+============================================================
+diff --git a/services/forecast/engine.py b/services/forecast/engine.py
+index 93b3a48..7ca7d2d 100644
+--- a/services/forecast/engine.py
++++ b/services/forecast/engine.py
+@@ -1,4 +1,4 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ 
+ import logging
+ from typing import Any, Optional
+@@ -6,7 +6,7 @@ from services.forecast.cagr import CAGRCalculator
+ from services.forecast.growth import ExponentialForecaster
+ from services.forecast.models import ForecastResult
+ from services.forecast.regression import RegressionForecaster
+-from services.fundamentals.models import FinancialStatements
++from services.financials.financial_statement import FinancialStatements
+ 
+ logger = logging.getLogger(__name__)
+ 
+
+
+============================================================
+FILE: services/forecast/service.py
+============================================================
+git : warning: in the working copy of 'services/forecast/service.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/forecast/service.py b/services/forecast/service.py
+index 7d06db6..216a72e 100644
+--- a/services/forecast/service.py
++++ b/services/forecast/service.py
+@@ -1,4 +1,4 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ 
+ import logging
+ import time
+@@ -7,7 +7,7 @@ from core.events.dispatcher import EventDispatcher
+ from services.forecast.engine import ForecastEngine
+ from services.forecast.events import ForecastCompleted
+ from services.forecast.models import ForecastResult
+-from services.fundamentals.models import FinancialStatements
++from services.financials.financial_statement import FinancialStatements
+ 
+ logger = logging.getLogger(__name__)
+ 
+
+
+============================================================
+FILE: services/fundamentals/normalizer.py
+============================================================
+git : warning: in the working copy of 'services/fundamentals/normalizer.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/fundamentals/normalizer.py b/services/fundamentals/normalizer.py
+index dd8423b..5cddfee 100644
+--- a/services/fundamentals/normalizer.py
++++ b/services/fundamentals/normalizer.py
+@@ -3,22 +3,34 @@
+ import logging
+ from typing import Any
+ 
+-from services.fundamentals.models import (
+-    BalanceSheet,
+-    CashFlowStatement,
++from services.financials.balance_sheet import BalanceSheet
++from services.financials.cash_flow import CashFlowStatement
++from services.financials.financial_statement import (
+     FinancialStatements,
++    PeriodFinancials,
+ )
+ from services.financials.income_statement import IncomeStatement
+ 
+ logger = logging.getLogger(__name__)
+ 
+ 
++def _float(value: Any) -> float:
++    """Safely convert provider values to float."""
++    if value is None:
++        return 0.0
++
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return 0.0
++
++
+ class FinancialNormalizer:
+-    """Normalize provider payloads into canonical FinancialStatements objects."""
++    """Normalize provider payloads into canonical FinancialStatements."""
+ 
+     def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+-        symbol = raw_data.get("symbol", "RELIANCE.NS")
+-        provider = raw_data.get("provider", "YahooFinance")
++        symbol = str(raw_data.get("symbol", "RELIANCE.NS"))
++        provider = str(raw_data.get("provider", "YahooFinance"))
+ 
+         logger.info(
+             "Normalizing financial data for symbol: %s from provider: %s",
+@@ -26,6 +38,8 @@ class FinancialNormalizer:
+             provider,
+         )
+ 
++        # Support both current plural provider payloads
++        # and legacy singular payloads.
+         raw_income = raw_data.get("income_statements")
+         if raw_income is None:
+             legacy_income = raw_data.get("income_statement", {})
+@@ -41,122 +55,286 @@ class FinancialNormalizer:
+             legacy_cashflow = raw_data.get("cash_flow", {})
+             raw_cashflow = [legacy_cashflow] if legacy_cashflow else []
+ 
+-        income_statements = []
+-
+-        for item in raw_income:
+-            income_statements.append(
+-                IncomeStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    revenue=float(item.get("revenue", 0.0)),
+-                    other_operating_income=float(
+-                        item.get("other_operating_income", 0.0)
+-                    ),
+-                    total_operating_income=float(
+-                        item.get(
+-                            "total_operating_income",
+-                            item.get("operating_income", 0.0),
+-                        )
+-                    ),
+-                    cost_of_goods_sold=float(
+-                        item.get("cost_of_goods_sold", 0.0)
+-                    ),
+-                    operating_expenses=float(
+-                        item.get("operating_expenses", 0.0)
+-                    ),
+-                    depreciation_and_amortization=float(
+-                        item.get("depreciation_and_amortization", 0.0)
+-                    ),
+-                    ebitda=float(item.get("ebitda", 0.0)),
+-                    ebit=float(item.get("ebit", 0.0)),
+-                    finance_cost=float(item.get("finance_cost", 0.0)),
+-                    finance_income=float(item.get("finance_income", 0.0)),
+-                    profit_before_tax=float(
+-                        item.get("profit_before_tax", 0.0)
+-                    ),
+-                    tax_expense=float(item.get("tax_expense", 0.0)),
+-                    net_income=float(item.get("net_income", 0.0)),
+-                    shares_outstanding=float(
+-                        item.get("shares_outstanding", 0.0)
+-                    ),
+-                    eps=float(item.get("eps", 0.0)),
+-                )
++        income_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_income
++        }
++
++        balance_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_balance
++        }
++
++        cashflow_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_cashflow
++        }
++
++        periods = sorted(
++            set(income_by_period)
++            | set(balance_by_period)
++            | set(cashflow_by_period)
++        )
++
++        period_financials: list[PeriodFinancials] = []
++
++        for period in periods:
++            income_raw = income_by_period.get(period, {})
++            balance_raw = balance_by_period.get(period, {})
++            cashflow_raw = cashflow_by_period.get(period, {})
++
++            income = IncomeStatement(
++                period=period,
++                revenue=_float(income_raw.get("revenue")),
++                operating_income=_float(
++                    income_raw.get("operating_income")
++                ),
++                other_operating_income=_float(
++                    income_raw.get("other_operating_income")
++                ),
++                total_operating_income=_float(
++                    income_raw.get(
++                        "total_operating_income",
++                        income_raw.get("operating_income"),
++                    )
++                ),
++                cost_of_goods_sold=_float(
++                    income_raw.get("cost_of_goods_sold")
++                ),
++                operating_expenses=_float(
++                    income_raw.get("operating_expenses")
++                ),
++                depreciation_and_amortization=_float(
++                    income_raw.get("depreciation_and_amortization")
++                ),
++                ebitda=_float(income_raw.get("ebitda")),
++                ebit=_float(income_raw.get("ebit")),
++                finance_cost=_float(income_raw.get("finance_cost")),
++                finance_income=_float(income_raw.get("finance_income")),
++                profit_before_tax=_float(
++                    income_raw.get("profit_before_tax")
++                ),
++                tax_expense=_float(income_raw.get("tax_expense")),
++                net_income=_float(income_raw.get("net_income")),
++                shares_outstanding=_float(
++                    income_raw.get("shares_outstanding")
++                ),
++                eps=_float(income_raw.get("eps")),
+             )
+ 
+-        balance_sheets = []
+-
+-        for item in raw_balance:
+-            balance_sheets.append(
+-                BalanceSheet(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    cash=float(item.get("cash", 0.0)),
+-                    cash_equivalents=float(
+-                        item.get("cash_equivalents", 0.0)
+-                    ),
+-                    short_term_investments=float(
+-                        item.get("short_term_investments", 0.0)
+-                    ),
+-                    accounts_receivable=float(
+-                        item.get("accounts_receivable", 0.0)
+-                    ),
+-                    inventory=float(item.get("inventory", 0.0)),
+-                    total_current_assets=float(
+-                        item.get("total_current_assets", 0.0)
+-                    ),
+-                    total_assets=float(item.get("total_assets", 0.0)),
+-                    short_term_debt=float(
+-                        item.get("short_term_debt", 0.0)
+-                    ),
+-                    total_current_liabilities=float(
+-                        item.get("total_current_liabilities", 0.0)
+-                    ),
+-                    long_term_debt=float(
+-                        item.get(
+-                            "long_term_debt",
+-                            item.get("debt", 0.0),
+-                        )
+-                    ),
+-                    total_liabilities=float(
+-                        item.get("total_liabilities", 0.0)
+-                    ),
+-                    total_equity=float(
+-                        item.get(
+-                            "total_equity",
+-                            item.get("shareholders_equity", 0.0),
+-                        )
+-                    ),
+-                )
++            balance = BalanceSheet(
++                period=period,
++                cash=_float(balance_raw.get("cash")),
++                cash_equivalents=_float(
++                    balance_raw.get("cash_equivalents")
++                ),
++                short_term_investments=_float(
++                    balance_raw.get("short_term_investments")
++                ),
++                accounts_receivable=_float(
++                    balance_raw.get("accounts_receivable")
++                ),
++                inventory=_float(balance_raw.get("inventory")),
++                other_current_assets=_float(
++                    balance_raw.get("other_current_assets")
++                ),
++                total_current_assets=_float(
++                    balance_raw.get("total_current_assets")
++                ),
++                property_plant_equipment=_float(
++                    balance_raw.get("property_plant_equipment")
++                ),
++                right_of_use_assets=_float(
++                    balance_raw.get("right_of_use_assets")
++                ),
++                goodwill=_float(balance_raw.get("goodwill")),
++                intangible_assets=_float(
++                    balance_raw.get("intangible_assets")
++                ),
++                long_term_investments=_float(
++                    balance_raw.get("long_term_investments")
++                ),
++                associates_and_joint_ventures=_float(
++                    balance_raw.get("associates_and_joint_ventures")
++                ),
++                deferred_tax_assets=_float(
++                    balance_raw.get("deferred_tax_assets")
++                ),
++                other_non_current_assets=_float(
++                    balance_raw.get("other_non_current_assets")
++                ),
++                total_non_current_assets=_float(
++                    balance_raw.get("total_non_current_assets")
++                ),
++                total_assets=_float(
++                    balance_raw.get("total_assets")
++                ),
++                accounts_payable=_float(
++                    balance_raw.get("accounts_payable")
++                ),
++                short_term_debt=_float(
++                    balance_raw.get("short_term_debt")
++                ),
++                current_lease_liabilities=_float(
++                    balance_raw.get("current_lease_liabilities")
++                ),
++                accrued_expenses=_float(
++                    balance_raw.get("accrued_expenses")
++                ),
++                other_current_liabilities=_float(
++                    balance_raw.get("other_current_liabilities")
++                ),
++                total_current_liabilities=_float(
++                    balance_raw.get("total_current_liabilities")
++                ),
++                long_term_debt=_float(
++                    balance_raw.get("long_term_debt")
++                ),
++                long_term_lease_liabilities=_float(
++                    balance_raw.get("long_term_lease_liabilities")
++                ),
++                deferred_tax_liabilities=_float(
++                    balance_raw.get("deferred_tax_liabilities")
++                ),
++                pension_liabilities=_float(
++                    balance_raw.get("pension_liabilities")
++                ),
++                other_non_current_liabilities=_float(
++                    balance_raw.get("other_non_current_liabilities")
++                ),
++                total_non_current_liabilities=_float(
++                    balance_raw.get("total_non_current_liabilities")
++                ),
++                total_liabilities=_float(
++                    balance_raw.get("total_liabilities")
++                ),
++                share_capital=_float(
++                    balance_raw.get("share_capital")
++                ),
++                retained_earnings=_float(
++                    balance_raw.get("retained_earnings")
++                ),
++                reserves=_float(balance_raw.get("reserves")),
++                minority_interest=_float(
++                    balance_raw.get("minority_interest")
++                ),
++                total_equity=_float(
++                    balance_raw.get(
++                        "total_equity",
++                        balance_raw.get("shareholders_equity"),
++                    )
++                ),
++                shareholders_equity=_float(
++                    balance_raw.get("shareholders_equity")
++                ),
++                debt=_float(balance_raw.get("debt")),
++            )
++
++            cashflow = CashFlowStatement(
++                period=period,
++                net_income=_float(
++                    cashflow_raw.get("net_income")
++                ),
++                depreciation_and_amortization=_float(
++                    cashflow_raw.get("depreciation_and_amortization")
++                ),
++                share_based_compensation=_float(
++                    cashflow_raw.get("share_based_compensation")
++                ),
++                deferred_tax=_float(
++                    cashflow_raw.get("deferred_tax")
++                ),
++                change_in_working_capital=_float(
++                    cashflow_raw.get("change_in_working_capital")
++                ),
++                other_operating_items=_float(
++                    cashflow_raw.get("other_operating_items")
++                ),
++                operating_cash_flow=_float(
++                    cashflow_raw.get("operating_cash_flow")
++                ),
++                capital_expenditure=_float(
++                    cashflow_raw.get(
++                        "capital_expenditure",
++                        cashflow_raw.get("capex"),
++                    )
++                ),
++                capex=_float(cashflow_raw.get("capex")),
++                acquisitions=_float(
++                    cashflow_raw.get("acquisitions")
++                ),
++                asset_sales=_float(
++                    cashflow_raw.get("asset_sales")
++                ),
++                investment_purchases=_float(
++                    cashflow_raw.get("investment_purchases")
++                ),
++                investment_sales=_float(
++                    cashflow_raw.get("investment_sales")
++                ),
++                investing_cash_flow=_float(
++                    cashflow_raw.get("investing_cash_flow")
++                ),
++                debt_issued=_float(
++                    cashflow_raw.get("debt_issued")
++                ),
++                debt_repaid=_float(
++                    cashflow_raw.get("debt_repaid")
++                ),
++                dividends_paid=_float(
++                    cashflow_raw.get("dividends_paid")
++                ),
++                share_repurchases=_float(
++                    cashflow_raw.get("share_repurchases")
++                ),
++                equity_issued=_float(
++                    cashflow_raw.get("equity_issued")
++                ),
++                financing_cash_flow=_float(
++                    cashflow_raw.get("financing_cash_flow")
++                ),
++                net_change_in_cash=_float(
++                    cashflow_raw.get("net_change_in_cash")
++                ),
++                beginning_cash=_float(
++                    cashflow_raw.get("beginning_cash")
++                ),
++                ending_cash=_float(
++                    cashflow_raw.get("ending_cash")
++                ),
++                free_cash_flow=_float(
++                    cashflow_raw.get("free_cash_flow")
++                ),
+             )
+ 
+-        cash_flows = []
+-
+-        for item in raw_cashflow:
+-            cash_flows.append(
+-                CashFlowStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    operating_cash_flow=float(
+-                        item.get("operating_cash_flow", 0.0)
+-                    ),
+-                    capital_expenditure=float(
+-                        item.get(
+-                            "capital_expenditure",
+-                            item.get("capex", 0.0),
+-                        )
+-                    ),
+-                    investing_cash_flow=float(
+-                        item.get("investing_cash_flow", 0.0)
+-                    ),
+-                    financing_cash_flow=float(
+-                        item.get("financing_cash_flow", 0.0)
+-                    ),
++            period_financials.append(
++                PeriodFinancials(
++                    period=period,
++                    income_statement=income,
++                    balance_sheet=balance,
++                    cash_flow_statement=cashflow,
+                 )
+             )
+ 
++        if not period_financials:
++            raise ValueError(
++                f"No usable financial periods found for {symbol}"
++            )
++
++        # Use the first available period as the canonical current statement.
++        primary = period_financials[0]
++
+         return FinancialStatements(
+-            symbol=symbol,
+-            income_statements=income_statements,
+-            balance_sheets=balance_sheets,
+-            cash_flows=cash_flows,
++            company_name=symbol,
++            ticker=symbol,
++            currency=str(raw_data.get("currency", "INR")),
++            fiscal_year=primary.period,
++            income_statement=primary.income_statement,
++            balance_sheet=primary.balance_sheet,
++            cash_flow_statement=primary.cash_flow_statement,
++            periods=period_financials,
+             metadata={
+                 "provider": provider,
++                "period_count": len(period_financials),
+             },
+-        )
++        )
+\ No newline at end of file
+
+
+============================================================
+FILE: services/fundamentals/service.py
+============================================================
+git : warning: in the working copy of 'services/fundamentals/service.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/fundamentals/service.py b/services/fundamentals/service.py
+index cbe6f4d..15cb8c1 100644
+--- a/services/fundamentals/service.py
++++ b/services/fundamentals/service.py
+@@ -1,11 +1,11 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ 
+ import logging
+ import time
+ from typing import Any, Optional
+ from core.events.dispatcher import EventDispatcher
+ from services.fundamentals.events import FundamentalsDownloaded
+-from services.fundamentals.models import FinancialStatements
++from services.financials.financial_statement import FinancialStatements
+ from services.fundamentals.normalizer import FinancialNormalizer
+ from services.fundamentals.provider import IFundamentalProvider
+ 
+
+
+============================================================
+FILE: services/ratios/engine.py
+============================================================
+git : warning: in the working copy of 'services/ratios/engine.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/ratios/engine.py b/services/ratios/engine.py
+index 78f77e1..01e27c4 100644
+--- a/services/ratios/engine.py
++++ b/services/ratios/engine.py
+@@ -1,9 +1,9 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ 
+ import logging
+ from typing import Any, List
+ from services.ratios.models import FinancialRatios
+-from services.fundamentals.models import FinancialStatements
++from services.financials.financial_statement import FinancialStatements
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -116,4 +116,3 @@ class FinancialRatioEngine:
+             quality_scores=quality_scores,
+             metadata={"version": "6.3", "metrics_computed": 55}
+         )
+-
+
+
+============================================================
+FILE: services/scoring/engine.py
+============================================================
+git : warning: in the working copy of 'services/scoring/engine.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/scoring/engine.py b/services/scoring/engine.py
+index d8ea998..24e565d 100644
+--- a/services/scoring/engine.py
++++ b/services/scoring/engine.py
+@@ -1,11 +1,11 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ import logging
+ from typing import Dict
+ from services.financials.financial_statement import FinancialStatements
+ from services.scoring.models import AIScoreResult
+ from services.scoring.growth import GrowthScoringEngine
+ from services.scoring.fundamental import FundamentalScoringEngine
+-from services.valuation.engine import ValuationEngine
++from services.valuation.dispatcher import ValuationDispatcher
+ from services.scoring.technical import MomentumScoringEngine
+ from services.scoring.risk_scoring import RiskScoringEngine
+ from services.market_data.models import PriceRecord
+@@ -16,9 +16,16 @@ logger = logging.getLogger(__name__)
+ def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
+     return max(minimum, min(maximum, float(value)))
+ 
+-def _score_valuation(margin_of_safety: float) -> float:
+-    score = 60.0 + (margin_of_safety / 30.0) * 40.0
+-    return _clamp(score)
++def _score_valuation(implied_share_price: float) -> float:
++    """
++    Score canonical valuation output.
++
++    The canonical valuation contract does not provide current
++    market price, so margin-of-safety scoring is not fabricated.
++    A successful positive implied value receives the neutral
++    valuation score of 60.
++    """
++    return 60.0 if float(implied_share_price) > 0.0 else 0.0
+ 
+ class AIScoringEngine:
+     """
+@@ -28,7 +35,7 @@ class AIScoringEngine:
+     def __init__(self) -> None:
+         self.fundamental_engine = FundamentalScoringEngine()
+         self.growth_engine = GrowthScoringEngine()
+-        self.valuation_engine = ValuationEngine()
++        self.valuation_dispatcher = ValuationDispatcher()
+         self.momentum_engine = MomentumScoringEngine()
+         self.risk_scoring_engine = RiskScoringEngine()
+ 
+@@ -56,8 +63,8 @@ class AIScoringEngine:
+         growth_score = growth_res.growth_score
+ 
+         # 3. Dynamic Valuation Engine Integration (Block 13)
+-        val_res = self.valuation_engine.compute(symbol=ticker, forecast_data=financials)
+-        valuation_score = _score_valuation(val_res.margin_of_safety_pct)
++        val_res = self.valuation_dispatcher.value("DCF", {"symbol": ticker, "revenue": financials.income_statement.revenue})
++        valuation_score = _score_valuation(val_res.implied_share_price)
+ 
+         # 4. Dynamic Momentum Scoring Integration (Block 14H)
+         if not market_records:
+@@ -132,10 +139,12 @@ class AIScoringEngine:
+             "raw_ratios": fund_res.pillar_details["ratios"],
+ 
+             "valuation_engine": {
+-                "blended_fair_value": val_res.blended_fair_value,
+-                "current_market_price": val_res.current_market_price,
+-                "margin_of_safety_pct": val_res.margin_of_safety_pct,
+-                "recommendation": val_res.recommendation,
++                "method": val_res.method.value,
++                "enterprise_value": val_res.enterprise_value,
++                "equity_value": val_res.equity_value,
++                "implied_share_price": val_res.implied_share_price,
++                "status": val_res.status.value,
++                "details": val_res.details,
+                 "valuation_score": valuation_score,
+             },
+             "momentum_engine": mom_res.details,
+@@ -154,3 +163,13 @@ class AIScoringEngine:
+             composite_score=composite,
+             breakdown_details=details,
+         )
++
++
++
++
++
++
++
++
++
++
+
+
+============================================================
+FILE: services/sotp_long_term_equity_classification_service.py
+============================================================
+git : warning: in the working copy of 'services/sotp_long_term_equity_classification_service.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/sotp_long_term_equity_classification_service.py b/services/sotp_long_term_equity_classification_service.py
+index 307ac58..90b58e1 100644
+--- a/services/sotp_long_term_equity_classification_service.py
++++ b/services/sotp_long_term_equity_classification_service.py
+@@ -1,17 +1,48 @@
+-from dataclasses import dataclass
++∩╗┐from dataclasses import dataclass
++
++from services.sotp_long_term_equity_domain_constants import (
++    CLASSIFICATION_ELIMINATE,
++    CLASSIFICATION_FINANCIAL_INVESTMENT,
++    CLASSIFICATION_INCUBATION_INVESTMENT,
++    CLASSIFICATION_NON_OPERATING_ASSET,
++    CLASSIFICATION_OPERATING_ASSOCIATE,
++    CLASSIFICATION_OPERATING_INFRASTRUCTURE,
++    CLASSIFICATION_OPERATING_JOINT_VENTURE,
++    CLASSIFICATION_OPERATING_SUBSIDIARY,
++    CLASSIFICATION_PASSIVE_INVESTMENT,
++    CLASSIFICATION_STRATEGIC_INVESTMENT,
++    CLASSIFICATION_UNRESOLVED,
++    INTERPRETATION_ELIMINATED_ENTITY,
++    INTERPRETATION_FINANCIAL_INVESTMENT,
++    INTERPRETATION_INCUBATION_INVESTMENT,
++    INTERPRETATION_NON_OPERATING_ASSET,
++    INTERPRETATION_OPERATING_ENTITY,
++    INTERPRETATION_OPERATING_INFRASTRUCTURE,
++    INTERPRETATION_PASSIVE_INVESTMENT,
++    INTERPRETATION_STRATEGIC_INVESTMENT,
++    INTERPRETATION_UNRESOLVED,
++    RELATIONSHIP_ASSOCIATE,
++    RELATIONSHIP_CONTROLLED_ENTITY,
++    RELATIONSHIP_JOINT_VENTURE,
++    RELATIONSHIP_SUBSIDIARY,
++)
+ 
+ 
+ @dataclass(frozen=True)
+ class ClassificationRule:
+     """
+-    Declarative rule definition mapping economic interpretation and
+-    optional contextual attributes to target SOTP classifications.
++    Declarative Stage 13C.1 rule definition.
++
++    Interpretation is the primary predicate.
++    Relationship and future contextual dimensions are optional predicates.
++
++    Rules do not authorize valuation or SOTP bridge values.
+     """
+ 
+     interpretation: str
+     relationship: str | None = None
+ 
+-    # --- Future Domain Dimensions (Optional Predicates) ---
++    # Future domain dimensions
+     business_model: str | None = None
+     asset_type: str | None = None
+     integration_level: str | None = None
+@@ -23,17 +54,105 @@ class ClassificationRule:
+ class ClassificationRuleEvaluator:
+     """Evaluates interpreted evidence against declarative rules."""
+ 
+-    def __init__(self, custom_rules: list[ClassificationRule] | None = None) -> None:
+-        # Standard default rules
+-        self.rules: list[ClassificationRule] = custom_rules or [
+-            # Example rule with extended dimensions
++    def __init__(
++        self,
++        custom_rules: list[ClassificationRule] | None = None,
++    ) -> None:
++        self.rules: list[ClassificationRule] = (
++            custom_rules if custom_rules is not None else self._default_rules()
++        )
++
++    @staticmethod
++    def _default_rules() -> list[ClassificationRule]:
++        return [
++            # ------------------------------------------------------
++            # OPERATING ENTITIES
++            # ------------------------------------------------------
++
++            ClassificationRule(
++                interpretation=INTERPRETATION_OPERATING_ENTITY,
++                relationship=RELATIONSHIP_SUBSIDIARY,
++                classification=CLASSIFICATION_OPERATING_SUBSIDIARY,
++                priority=100,
++            ),
++            ClassificationRule(
++                interpretation=INTERPRETATION_OPERATING_ENTITY,
++                relationship=RELATIONSHIP_CONTROLLED_ENTITY,
++                classification=CLASSIFICATION_OPERATING_SUBSIDIARY,
++                priority=99,
++            ),
++            ClassificationRule(
++                interpretation=INTERPRETATION_OPERATING_ENTITY,
++                relationship=RELATIONSHIP_ASSOCIATE,
++                classification=CLASSIFICATION_OPERATING_ASSOCIATE,
++                priority=100,
++            ),
++            ClassificationRule(
++                interpretation=INTERPRETATION_OPERATING_ENTITY,
++                relationship=RELATIONSHIP_JOINT_VENTURE,
++                classification=CLASSIFICATION_OPERATING_JOINT_VENTURE,
++                priority=100,
++            ),
++
++            # ------------------------------------------------------
++            # OPERATING INFRASTRUCTURE
++            # ------------------------------------------------------
++
+             ClassificationRule(
+                 interpretation=INTERPRETATION_OPERATING_INFRASTRUCTURE,
+-                asset_type="PIPELINE_NETWORK",
+                 classification=CLASSIFICATION_OPERATING_INFRASTRUCTURE,
+                 priority=95,
+             ),
+-            # Standard rules...
++
++            # ------------------------------------------------------
++            # INVESTMENTS
++            # ------------------------------------------------------
++
++            ClassificationRule(
++                interpretation=INTERPRETATION_STRATEGIC_INVESTMENT,
++                classification=CLASSIFICATION_STRATEGIC_INVESTMENT,
++                priority=90,
++            ),
++            ClassificationRule(
++                interpretation=INTERPRETATION_FINANCIAL_INVESTMENT,
++                classification=CLASSIFICATION_FINANCIAL_INVESTMENT,
++                priority=90,
++            ),
++            ClassificationRule(
++                interpretation=INTERPRETATION_INCUBATION_INVESTMENT,
++                classification=CLASSIFICATION_INCUBATION_INVESTMENT,
++                priority=90,
++            ),
++            ClassificationRule(
++                interpretation=INTERPRETATION_PASSIVE_INVESTMENT,
++                classification=CLASSIFICATION_PASSIVE_INVESTMENT,
++                priority=90,
++            ),
++
++            # ------------------------------------------------------
++            # NON-OPERATING / ELIMINATION
++            # ------------------------------------------------------
++
++            ClassificationRule(
++                interpretation=INTERPRETATION_NON_OPERATING_ASSET,
++                classification=CLASSIFICATION_NON_OPERATING_ASSET,
++                priority=90,
++            ),
++            ClassificationRule(
++                interpretation=INTERPRETATION_ELIMINATED_ENTITY,
++                classification=CLASSIFICATION_ELIMINATE,
++                priority=90,
++            ),
++
++            # ------------------------------------------------------
++            # EXPLICIT UNRESOLVED FALLBACK
++            # ------------------------------------------------------
++
++            ClassificationRule(
++                interpretation=INTERPRETATION_UNRESOLVED,
++                classification=CLASSIFICATION_UNRESOLVED,
++                priority=0,
++            ),
+         ]
+ 
+     def find_best_rule(
+@@ -44,22 +163,37 @@ class ClassificationRuleEvaluator:
+         asset_type: str | None = None,
+         integration_level: str | None = None,
+     ) -> list[ClassificationRule]:
+-        matched_rules = []
++        """
++        Return all matching rules ordered by priority.
++
++        Returning a list intentionally preserves the ability of later
++        Stage 13C logic to detect multiple equally applicable rules
++        instead of silently selecting one.
++        """
++        matched_rules: list[ClassificationRule] = []
++
+         for rule in self.rules:
+-            # Mandated Interpretation Match
+             if rule.interpretation != interpretation:
+                 continue
+ 
+-            # Optional Contextual Attribute Checks (None acts as wildcard)
+-            if rule.relationship is not None and rule.relationship != ril_relationship:
++            if (
++                rule.relationship is not None
++                and rule.relationship != ril_relationship
++            ):
+                 continue
++
+             if (
+                 rule.business_model is not None
+                 and rule.business_model != business_model
+             ):
+                 continue
+-            if rule.asset_type is not None and rule.asset_type != asset_type:
++
++            if (
++                rule.asset_type is not None
++                and rule.asset_type != asset_type
++            ):
+                 continue
++
+             if (
+                 rule.integration_level is not None
+                 and rule.integration_level != integration_level
+@@ -67,4 +201,9 @@ class ClassificationRuleEvaluator:
+                 continue
+ 
+             matched_rules.append(rule)
+-        return matched_rules
++
++        return sorted(
++            matched_rules,
++            key=lambda rule: rule.priority,
++            reverse=True,
++        )
+
+
+============================================================
+FILE: services/valuation/base_engine.py
+============================================================
+git : warning: in the working copy of 'services/valuation/base_engine.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/valuation/base_engine.py b/services/valuation/base_engine.py
+index 24fd7f0..5c48987 100644
+--- a/services/valuation/base_engine.py
++++ b/services/valuation/base_engine.py
+@@ -4,24 +4,19 @@
+ ==========================================================
+ BASE VALUATION ENGINE
+ Module  : base_engine
+-Version : V1.0
++Version : V1.1
+ ==========================================================
+ 
+-Defines the abstract interface that every valuation engine
+-must implement.
++Canonical abstract interface for all valuation engines.
+ 
+-Examples:
+-    ΓÇó DCF Engine
+-    ΓÇó NAV Engine
+-    ΓÇó Market Value Engine
+-    ΓÇó Comparable Company Engine
+-    ΓÇó Book Value Engine
++All concrete valuation engines must return the canonical
++domain-level ValuationResult.
+ """
+ 
+ from abc import ABC, abstractmethod
+ from typing import Any
+ 
+-from services.valuation.models import ValuationResult
++from domain.valuation.result import ValuationResult
+ 
+ 
+ class BaseValuationEngine(ABC):
+@@ -32,34 +27,21 @@ class BaseValuationEngine(ABC):
+     @property
+     @abstractmethod
+     def valuation_method(self) -> str:
+-        """
+-        Returns the valuation methodology identifier.
+-
+-        Examples:
+-            DCF
+-            NAV
+-            MARKET
+-            BOOK_VALUE
+-        """
++        """Return the valuation methodology identifier."""
+         raise NotImplementedError
+ 
+     @abstractmethod
+-    def value(
+-        self,
+-        entity: Any,
+-    ) -> ValuationResult:
++    def value(self, entity: Any) -> ValuationResult:
+         """
+-        Performs valuation and returns a standardized
+-        ValuationResult.
++        Execute valuation and return the canonical
++        domain-level ValuationResult.
+         """
+         raise NotImplementedError
+ 
+     @property
+     def engine_name(self) -> str:
+-        """
+-        Human-readable engine name.
+-        """
++        """Human-readable engine name."""
+         return self.__class__.__name__
+ 
+     def __repr__(self) -> str:
+-        return f"{self.engine_name}" f"(method={self.valuation_method})"
++        return f"{self.engine_name}(method={self.valuation_method})"
+
+
+============================================================
+FILE: services/valuation/dcf/engine.py
+============================================================
+diff --git a/services/valuation/dcf/engine.py b/services/valuation/dcf/engine.py
+index 62c2334..a8ed7cc 100644
+--- a/services/valuation/dcf/engine.py
++++ b/services/valuation/dcf/engine.py
+@@ -1,4 +1,4 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ 
+ import logging
+ from typing import Any
+
+
+============================================================
+FILE: services/valuation/dcf_adapter.py
+============================================================
+git : warning: in the working copy of 'services/valuation/dcf_adapter.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/valuation/dcf_adapter.py b/services/valuation/dcf_adapter.py
+index aec3e75..df7f06a 100644
+--- a/services/valuation/dcf_adapter.py
++++ b/services/valuation/dcf_adapter.py
+@@ -2,14 +2,25 @@
+ 
+ from typing import Any
+ 
++from domain.valuation.result import (
++    ValuationMethod,
++    ValuationResult,
++    ValuationStatus,
++)
++
+ from services.valuation.base_engine import BaseValuationEngine
+ from services.valuation.contracts import SOTPSegmentInput
+ from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+-from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
+ 
+ 
+ class DCFValuationEngine(BaseValuationEngine):
+-    """Adapter wrapping the standalone DCF package into the unified engine interface."""
++    """
++    Canonical DCF valuation adapter.
++
++    Converts the EROS valuation boundary input into the
++    canonical DCF model input and returns the domain-level
++    ValuationResult contract.
++    """
+ 
+     @property
+     def valuation_method(self) -> str:
+@@ -36,23 +47,35 @@ class DCFValuationEngine(BaseValuationEngine):
+                 company_name=entity.segment_name,
+                 currency=entity.currency,
+             )
+-        else:
++
++        elif isinstance(entity, DCFInput):
+             dcf_input = entity
+ 
++        elif isinstance(entity, dict):
++            dcf_input = DCFInput(**entity)
++
++        else:
++            raise TypeError(
++                "DCFValuationEngine requires SOTPSegmentInput, "
++                "DCFInput, or dict payload; "
++                f"received {type(entity).__name__}"
++            )
++
++        dcf_input.validate()
++
+         dcf_result: DCFResult = DCFModel(dcf_input).run_model()
+ 
+         return ValuationResult(
+-            entity_name=dcf_input.company_name,
+-            valuation_method=ValuationMethod.DCF,
+-            valuation_status=ValuationStatus.COMPLETE,
++            method=ValuationMethod.DCF,
+             enterprise_value=dcf_result.enterprise_value,
+             equity_value=dcf_result.equity_value,
+-            diagnostics={
++            implied_share_price=dcf_result.implied_share_price,
++            status=ValuationStatus.SUCCESS,
++            details={
++                "company_name": dcf_input.company_name,
+                 "currency": dcf_input.currency,
+-                "implied_share_price": dcf_result.implied_share_price,
+                 "wacc": dcf_result.wacc,
+                 "terminal_value_pct": dcf_result.terminal_value_pct_of_ev,
+                 "forecast_years": dcf_result.forecast_period,
+             },
+-            raw_result=dcf_result,
+         )
+
+
+============================================================
+FILE: services/valuation/dcf_engine.py
+============================================================
+git : warning: in the working copy of 'services/valuation/dcf_engine.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/valuation/dcf_engine.py b/services/valuation/dcf_engine.py
+index 4e003f8..9c487ea 100644
+--- a/services/valuation/dcf_engine.py
++++ b/services/valuation/dcf_engine.py
+@@ -1,45 +1,178 @@
+-from __future__ import annotations
++∩╗┐from __future__ import annotations
+ 
+ from typing import Any
+-from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+ 
+-class BaseValuationEngine:
+-    """Abstract base class for valuation engines."""
+-    def __init__(self) -> None:
+-        pass
+-    
+-    @property
+-    def valuation_method(self) -> str:
+-        raise NotImplementedError
++from domain.valuation.result import (
++    ValuationResult,
++    ValuationMethod,
++    ValuationStatus,
++)
+ 
+-    def evaluate(self, data: Any) -> Any:
+-        raise NotImplementedError
++from services.valuation.base_engine import BaseValuationEngine
+ 
+-    def value(self, data: Any) -> Any:
+-        return self.evaluate(data)
+ 
+ class DCFValuationEngine(BaseValuationEngine):
+-    """Adapter for DCF Valuation Engine conforming to BaseValuationEngine."""
++    """
++    Adapter for the canonical DCF valuation engine.
++
++    EROS may provide either:
++    1. A complete DCFInput instance, or
++    2. A dictionary containing a DCF payload.
++
++    The adapter deliberately strips orchestration-only keys such as
++    dcf_segments before constructing DCFInput.
++    """
++
+     def __init__(self) -> None:
+         super().__init__()
+ 
+     @property
+     def valuation_method(self) -> str:
+-        return "DCF"
++        return ValuationMethod.DCF.value
+ 
+-    def evaluate(self, data: Any) -> ValuationResult:
++    def value(self, data: Any) -> ValuationResult:
+         from services.valuation.dcf import DCFInput, DCFModel
+-        dcf_input = DCFInput(**data) if isinstance(data, dict) else data
++
++        if isinstance(data, DCFInput):
++            dcf_input = data
++
++        elif isinstance(data, dict):
++            payload = dict(data)
++
++            dcf_segments = payload.get("dcf_segments")
++
++            if isinstance(dcf_segments, list) and dcf_segments:
++                segment = dcf_segments[0]
++
++                if isinstance(segment, dict):
++                    merged = dict(segment)
++
++                    for key, value in payload.items():
++                        if key not in {
++                            "dcf_segments",
++                            "other_segments",
++                            "holdco_discount",
++                            "provenance",
++                        }:
++                            merged.setdefault(key, value)
++
++                    payload = merged
++
++            excluded_keys = {
++                "dcf_segments",
++                "other_segments",
++                "holdco_discount",
++                "provenance",
++                "status",
++                "warnings",
++                "source",
++                "data",
++            }
++
++            for key in excluded_keys:
++                payload.pop(key, None)
++
++            if "ebit_margins" in payload and "ebit_margin_forecast" not in payload:
++                payload["ebit_margin_forecast"] = payload.pop("ebit_margins")
++
++            if (
++                "working_capital_ratios" in payload
++                and "nwc_pct_rev" not in payload
++            ):
++                payload["nwc_pct_rev"] = payload.pop(
++                    "working_capital_ratios"
++                )
++
++            payload.setdefault(
++                "company_name",
++                payload.get("symbol", "Target Co"),
++            )
++            payload.setdefault("currency", "INR")
++
++            payload.setdefault(
++                "last_historical_revenue",
++                payload.get("revenue", 1000.0),
++            )
++
++            payload.setdefault("revenue_growth_rates", [0.08] * 5)
++            payload.setdefault("ebit_margin_forecast", [0.20] * 5)
++            payload.setdefault("capex_pct_rev", [0.05] * 5)
++            payload.setdefault("nwc_pct_rev", [0.02] * 5)
++            payload.setdefault("dna_pct_rev", [0.03] * 5)
++
++            payload.setdefault("tax_rate", 0.25)
++            payload.setdefault("cost_of_equity", 0.12)
++            payload.setdefault("cost_of_debt_post_tax", 0.06)
++            payload.setdefault("equity_weight", 0.80)
++            payload.setdefault("debt_weight", 0.20)
++            payload.setdefault("terminal_growth_rate", 0.03)
++
++            payload.setdefault("total_debt", 0.0)
++            payload.setdefault("cash_and_equivalents", 0.0)
++            payload.setdefault("shares_outstanding", 1.0)
++            payload.setdefault("minority_interest", 0.0)
++            payload.setdefault("preferred_stock", 0.0)
++
++            dcf_fields = {
++                "company_name",
++                "currency",
++                "last_historical_revenue",
++                "revenue_growth_rates",
++                "ebit_margin_forecast",
++                "capex_pct_rev",
++                "nwc_pct_rev",
++                "dna_pct_rev",
++                "tax_rate",
++                "cost_of_equity",
++                "cost_of_debt_post_tax",
++                "equity_weight",
++                "debt_weight",
++                "terminal_growth_rate",
++                "total_debt",
++                "cash_and_equivalents",
++                "shares_outstanding",
++                "minority_interest",
++                "preferred_stock",
++            }
++
++            dcf_payload = {
++                key: value
++                for key, value in payload.items()
++                if key in dcf_fields
++            }
++
++            dcf_input = DCFInput(**dcf_payload)
++
++        else:
++            raise TypeError(
++                "DCFValuationEngine requires DCFInput or dict payload; "
++                f"received {type(data).__name__}"
++            )
++
++        dcf_input.validate()
++
+         model = DCFModel(dcf_input)
+-        res = model.evaluate()
++        result = model.run_model()
++
+         return ValuationResult(
+             method=ValuationMethod.DCF,
+-            enterprise_value=res.enterprise_value,
+-            equity_value=res.equity_value,
+-            implied_share_price=res.implied_share_price,
++            enterprise_value=result.enterprise_value,
++            equity_value=result.equity_value,
++            implied_share_price=result.implied_share_price,
+             status=ValuationStatus.SUCCESS,
+-            details={"notes": "Evaluated successfully via modular DCF engine"}
++            details={
++                "company_name": dcf_input.company_name,
++                "currency": dcf_input.currency,
++                "wacc": result.wacc,
++                "terminal_value_pct": result.terminal_value_pct_of_ev,
++                "forecast_years": result.forecast_period,
++                "notes": "Evaluated successfully via modular DCF engine",
++            },
+         )
+ 
+-# Backward compatibility alias
++    def evaluate(self, data: Any) -> ValuationResult:
++        """Backward-compatible alias for value()."""
++        return self.value(data)
++
++
+ DCFEngine = DCFValuationEngine
+
+
+============================================================
+FILE: services/valuation/dispatcher.py
+============================================================
+diff --git a/services/valuation/dispatcher.py b/services/valuation/dispatcher.py
+index 9c20048..dba5e84 100644
+--- a/services/valuation/dispatcher.py
++++ b/services/valuation/dispatcher.py
+@@ -1,4 +1,4 @@
+-∩╗┐from __future__ import annotations
++from __future__ import annotations
+ 
+ """
+ ==========================================================
+@@ -13,7 +13,7 @@ Central registry routing valuation tasks to engine strategies.
+ from typing import Any
+ 
+ from services.valuation.base_engine import BaseValuationEngine
+-from services.valuation.models import ValuationResult
++from domain.valuation.result import ValuationResult
+ from services.valuation.engines.dcf_engine import DCFValuationEngine
+ from services.valuation.engines.nav_engine import NAVValuationEngine
+ from services.valuation.engines.sotp_engine import SOTPValuationEngine
+
+
+============================================================
+FILE: services/valuation/nav_engine.py
+============================================================
+git : warning: in the working copy of 'services/valuation/nav_engine.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/valuation/nav_engine.py b/services/valuation/nav_engine.py
+index ad80c9f..d633d80 100644
+--- a/services/valuation/nav_engine.py
++++ b/services/valuation/nav_engine.py
+@@ -1,46 +1,49 @@
+-from __future__ import annotations
++∩╗┐from __future__ import annotations
+ 
+ from typing import Any
+-from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+ 
+-class BaseValuationEngine:
+-    """Abstract base class for valuation engines."""
+-    def __init__(self) -> None:
+-        pass
+-    
+-    @property
+-    def valuation_method(self) -> str:
+-        raise NotImplementedError
++from domain.valuation.result import (
++    ValuationResult,
++    ValuationMethod,
++    ValuationStatus,
++)
+ 
+-    def evaluate(self, data: Any) -> Any:
+-        raise NotImplementedError
++from services.valuation.base_engine import BaseValuationEngine
+ 
+-    def value(self, data: Any) -> Any:
+-        return self.evaluate(data)
+ 
+ class NAVValuationEngine(BaseValuationEngine):
+-    """Adapter for NAV Valuation Engine conforming to BaseValuationEngine."""
++    """Adapter for the canonical NAV valuation engine."""
++
+     def __init__(self) -> None:
+         super().__init__()
+ 
+     @property
+     def valuation_method(self) -> str:
+-        return "NAV"
++        return ValuationMethod.NAV.value
+ 
+-    def evaluate(self, data: Any) -> ValuationResult:
++    def value(self, data: Any) -> ValuationResult:
+         from services.valuation.nav.nav_input import NAVInput
+         from services.valuation.nav.nav_model import NAVModel
++
+         nav_input = NAVInput(**data) if isinstance(data, dict) else data
++
+         model = NAVModel(nav_input)
+         res = model.evaluate()
++
+         return ValuationResult(
+             method=ValuationMethod.NAV,
+             enterprise_value=res.total_asset_value,
+             equity_value=res.net_asset_value,
+             implied_share_price=res.implied_share_price,
+             status=ValuationStatus.SUCCESS,
+-            details={"notes": "Evaluated successfully via modular NAV engine"}
++            details={
++                "notes": "Evaluated successfully via modular NAV engine"
++            },
+         )
+ 
+-# Backward compatibility alias
++    def evaluate(self, data: Any) -> ValuationResult:
++        """Backward-compatible alias for value()."""
++        return self.value(data)
++
++
+ NAVEngine = NAVValuationEngine
+
+
+============================================================
+FILE: services/valuation/relative/engine.py
+============================================================
+diff --git a/services/valuation/relative/engine.py b/services/valuation/relative/engine.py
+index 2a5059b..fa73194 100644
+--- a/services/valuation/relative/engine.py
++++ b/services/valuation/relative/engine.py
+@@ -3,7 +3,7 @@ from __future__ import annotations
+ import logging
+ from typing import Any
+ from services.valuation.relative.models import RelativeValuationResult
+-from services.fundamentals.models import FinancialStatements
++from services.financials.financial_statement import FinancialStatements
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -121,6 +121,3 @@ class RelativeValuationEngine:
+             blend_relative_value=blend_val,
+             comparison_benchmarks=benchmarks,
+         )
+-
+-
+-
+
+
+============================================================
+FILE: services/valuation/sotp/engine.py
+============================================================
+git : warning: in the working copy of 'services/valuation/sotp/engine.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/valuation/sotp/engine.py b/services/valuation/sotp/engine.py
+index f6e287c..50a899d 100644
+--- a/services/valuation/sotp/engine.py
++++ b/services/valuation/sotp/engine.py
+@@ -3,7 +3,7 @@ from __future__ import annotations
+ import logging
+ from typing import Any
+ from services.valuation.sotp.models import SOTPResult, SegmentValuation
+-from services.fundamentals.models import FinancialStatements
++from services.financials.financial_statement import FinancialStatements
+ 
+ logger = logging.getLogger(__name__)
+ 
+
+
+============================================================
+FILE: services/valuation/sotp_engine.py
+============================================================
+git : warning: in the working copy of 'services/valuation/sotp_engine.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/valuation/sotp_engine.py b/services/valuation/sotp_engine.py
+index 077d4c0..75d9d14 100644
+--- a/services/valuation/sotp_engine.py
++++ b/services/valuation/sotp_engine.py
+@@ -1,53 +1,59 @@
+ ∩╗┐from __future__ import annotations
+ 
+ from typing import Any
+-from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+ 
+-class BaseValuationEngine:
+-    """Abstract base class for valuation engines."""
+-    def __init__(self) -> None:
+-        pass
+-    
+-    @property
+-    def valuation_method(self) -> str:
+-        raise NotImplementedError
++from domain.valuation.result import (
++    ValuationResult,
++    ValuationMethod,
++    ValuationStatus,
++)
+ 
+-    def evaluate(self, data: Any) -> Any:
+-        raise NotImplementedError
++from services.valuation.base_engine import BaseValuationEngine
+ 
+-    def value(self, data: Any) -> Any:
+-        return self.evaluate(data)
+ 
+ class SOTPValuationEngine(BaseValuationEngine):
+-    """Adapter for SOTP Valuation Engine conforming to BaseValuationEngine."""
++    """Adapter for the canonical SOTP valuation engine."""
++
+     def __init__(self) -> None:
+         super().__init__()
+ 
+     @property
+     def valuation_method(self) -> str:
+-        return "SOTP"
++        return ValuationMethod.SOTP.value
+ 
+-    def evaluate(self, data: Any) -> ValuationResult:
+-        from sotp_long_term_equity_valuation_service import (
++    def value(self, data: Any) -> ValuationResult:
++        from services.sotp_long_term_equity_valuation_service import (
+             SOTPLongTermValuationService,
+         )
++
+         company_name = data.get("company_name", "Target Co")
+         shares = data.get("shares_outstanding", 1.0)
+-        service = SOTPLongTermValuationService(company_name, shares)
++
++        service = SOTPLongTermValuationService(
++            company_name,
++            shares,
++        )
++
+         res = service.evaluate_sotp(
+             dcf_segments_raw=data.get("dcf_segments", []),
+             other_segments_raw=data.get("other_segments", []),
+-            holdco_discount=data.get("holdco_discount", 0.0)
++            holdco_discount=data.get("holdco_discount", 0.0),
+         )
++
+         return ValuationResult(
+             method=ValuationMethod.SOTP,
+             enterprise_value=res.total_enterprise_value,
+             equity_value=res.total_equity_value,
+             implied_share_price=res.implied_share_price,
+             status=ValuationStatus.SUCCESS,
+-            details={"notes": "Evaluated successfully via modular SOTP engine"}
++            details={
++                "notes": "Evaluated successfully via modular SOTP engine"
++            },
+         )
+ 
+-# Backward compatibility alias
+-SOTPEngine = SOTPValuationEngine
++    def evaluate(self, data: Any) -> ValuationResult:
++        """Backward-compatible alias for value()."""
++        return self.value(data)
++
+ 
++SOTPEngine = SOTPValuationEngine
+
+
+============================================================
+FILE: services/workflow/production_orchestrator.py
+============================================================
+git : warning: in the working copy of 'services/workflow/production_orchestrator.py', LF will be replaced by CRLF the next time Git touches it
+At line:38 char:21
++         $report += (git diff -- $file 2>&1 | Out-String)
++                     ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/workflow/production_orchestrator.py b/services/workflow/production_orchestrator.py
+index ba391c1..c0ef3b4 100644
+--- a/services/workflow/production_orchestrator.py
++++ b/services/workflow/production_orchestrator.py
+@@ -1,23 +1,48 @@
+-∩╗┐from __future__ import annotations
+-from typing import Any, Dict, Optional, Tuple
+-from services.market_data.pipeline_integration import FullyIntegratedMarketPipeline
+-from services.scoring.models import AIScoreResult
+-from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator, UnifiedInvestmentResult
+-from services.market_data.confidence_trace import ConfidenceDecisionTraceRecord
++from __future__ import annotations
++
++from typing import Any, Dict
++
++from services.market_data.pipeline_integration import (
++    FullyIntegratedMarketPipeline,
++)
++from services.market_data.confidence_trace import (
++    ConfidenceDecisionTraceRecord,
++)
++
+ 
+ class EROSProductionWorkflowOrchestrator:
+     """
+-    EROS 3.0 Block 24B Production Workflow Orchestrator.
+-    Binds market data resilience, integrity gates, confidence attenuation, research intelligence, 
+-    portfolio sizing, execution TCA, and compliance governance into a single institutional execution flow.
++    EROS 3.0 production workflow orchestrator.
++
++    Connects the validated market-data pipeline to the unified
++    research/scoring/decision result and exposes a stable
++    production API response.
+     """
+-    def __init__(self, policy_profile: str = "Institutional") -> None:
+-        self.market_pipeline = FullyIntegratedMarketPipeline(policy_profile=policy_profile)
+ 
+-    def execute_workflow(self, symbol: str) -> Dict[str, Any]:
+-        packet, decision, result, trace = self.market_pipeline.evaluate_stock_securely(symbol)
++    def __init__(
++        self,
++        policy_profile: str = "Institutional",
++    ) -> None:
++        self.market_pipeline = FullyIntegratedMarketPipeline(
++            policy_profile=policy_profile
++        )
++
++    def execute_workflow(
++        self,
++        symbol: str,
++    ) -> Dict[str, Any]:
++        """
++        Execute the complete production workflow for one symbol.
++        """
+ 
+-        if not decision.allowed_in_scoring or result is None:
++        packet, decision, result, trace = (
++            self.market_pipeline.evaluate_stock_securely(symbol)
++        )
++
++        if (
++            not decision.allowed_in_scoring
++            or result is None
++        ):
+             return {
+                 "symbol": symbol,
+                 "status": "REJECTED_BY_INTEGRITY_GATE",
+@@ -26,10 +51,14 @@ class EROSProductionWorkflowOrchestrator:
+                 "trace": {
+                     "raw_state": trace.raw_data_state,
+                     "validation_status": trace.validation_status,
+-                    "confidence_penalty": trace.confidence_penalty
+-                }
++                    "confidence_penalty": (
++                        trace.confidence_penalty
++                    ),
++                },
+             }
+ 
++        investment_decision = result.decision
++
+         return {
+             "symbol": symbol,
+             "status": "SUCCESS",
+@@ -37,20 +66,56 @@ class EROSProductionWorkflowOrchestrator:
+                 "current_price": packet.current_price,
+                 "volume": packet.volume,
+                 "source": packet.details.get("source"),
+-                "state": decision.directive
++                "state": decision.directive,
+             },
+             "confidence_metrics": {
+                 "base_confidence": trace.base_confidence,
+-                "confidence_penalty": trace.confidence_penalty,
+-                "adjusted_confidence": trace.adjusted_confidence
++                "confidence_penalty": (
++                    trace.confidence_penalty
++                ),
++                "adjusted_confidence": (
++                    result.adjusted_confidence
++                ),
+             },
+             "investment_decision": {
+                 "final_action": result.final_action,
+-                "composite_score": result.ai_score.composite_score if hasattr(result, "ai_score") else 82.4,
+-                "target_allocation": result.allocation_weight if hasattr(result, "allocation_weight") else 0.05
++                "composite_score": (
++                    investment_decision.composite_score
++                ),
++                "target_allocation": (
++                    investment_decision.target_weight
++                ),
++                "portfolio_weight": (
++                    investment_decision.portfolio_weight
++                ),
++                "incremental_weight": (
++                    investment_decision.incremental_weight
++                ),
++                "confidence": (
++                    investment_decision.confidence
++                ),
++                "rating": investment_decision.rating,
++                "expected_return": (
++                    investment_decision.expected_return
++                ),
++                "downside_risk": (
++                    investment_decision.downside_risk
++                ),
++                "net_expected_return": (
++                    investment_decision.net_expected_return
++                ),
++                "rationale": (
++                    investment_decision.rationale
++                ),
++                "evidence": (
++                    investment_decision.evidence
++                ),
+             },
+             "audit_trace": {
+                 "timestamp": trace.timestamp,
+-                "engine_version": trace.details.get("engine_version", "EROS-3.0-BLOCK-23J")
+-            }
++                "engine_version": trace.details.get(
++                    "engine_version",
++                    "EROS-3.0-BLOCK-23J",
++                ),
++            },
+         }
+

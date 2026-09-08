@@ -1,0 +1,1973 @@
+﻿
+============================================================
+CURRENT GIT STATE
+============================================================
+BRANCH:
+rebuild/eros-3-0-clean
+
+STATUS:
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+RECENT COMMITS:
+044828d CRITICAL FIXES: Fixed data pipeline (Date index), missing MACD histogram, RSI division by zero, revenue caps removed, NoneType errors in dashboard, and Docker entry point
+bc3f260 Repair Stage 13C valuation gate and evidence propagation
+4d7ec99 Remove temporary domain constants backup
+e90c393 Repair Stage 13C and Stage 14 integration
+2ad41b9 checkpoint before valuation consolidation
+e728411 Fix production valuation router FastAPI dependency
+dd47bf2 feat: bridge SOTP valuation to modern DCF
+b6be2cf EROS 3.0 green checkpoint - 15 contract tests passing
+
+
+============================================================
+SOTP IMPLEMENTATION FILES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py | 9249
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py | 6747
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py | 1895
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py | 2048
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py | 3765
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py | 19452
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py | 7356
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py | 6513
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py | 18958
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_clock.py | 168
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py | 5553
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py | 7278
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py | 10044
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_evidence_service.py | 7946
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_overlap_service.py | 4751
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py | 7002
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_classification_service.py | 8974
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_policy_service.py | 7939
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py | 22478
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_liquidity_policy_service.py | 4310
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_service.py | 7172
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_stage_service.py | 8121
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_domain_constants.py | 8969
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_economic_evidence_service.py | 90730
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py | 32076
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py | 19961
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py | 12256
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py | 7740
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py | 11876
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py | 11920
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_templates.py | 2227
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py | 11957
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_target_price_service.py | 2227
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py | 13571
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_net_debt_service.py | 7261
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_data_service.py | 12600
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_overlap_service.py | 10352
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_policy_service.py | 7400
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_scenario_policy_service.py | 8952
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_scenario_service.py | 5130
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_valuation_service.py | 5090
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_ownership_service.py | 4389
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_peer_ev_consistency_service.py | 8438
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_accounting_basis_service.py | 2894
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_data_service.py | 4804
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_valuation_service.py | 9934
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py | 11489
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py | 14345
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py | 67
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_adapter_fix.py | 475
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py | 1852
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\sotp_long_term_equity_domain_constants.py | 8843
+
+============================================================
+DCF IMPLEMENTATION FILES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py | 450
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py | 1484
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py | 2516
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_input.py | 1797
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_model.py | 5194
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\comparable_result.py | 2047
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\multiple_calculator.py | 2074
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\peer_selection.py | 2123
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\statistics.py | 3371
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\validation.py | 2369
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\comparable\weighting.py | 1614
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\contracts.py | 2654
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py | 1705
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py | 4230
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py | 5605
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py | 4123
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\discounting.py | 3042
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py | 2192
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py | 3159
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\models.py | 537
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py | 3248
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\sensitivity.py | 2969
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\terminal_value.py | 4131
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py | 4469
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py | 2508
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py | 1496
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py | 2449
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py | 2493
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\__init__.py | 32
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py | 65
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\nav_engine.py | 65
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py | 67
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\enums.py | 510
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\events.py | 306
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py | 902
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\__init__.py | 1675
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\adjustments.py | 2740
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\asset_registry.py | 2548
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\liability_registry.py | 2372
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_engine.py | 3890
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_input.py | 1759
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_model.py | 4469
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_result.py | 1805
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\sensitivity.py | 2963
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\validation.py | 2817
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py | 1563
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py | 4896
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\models.py | 552
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py | 2425
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py | 2930
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\models.py | 845
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_adapter_fix.py | 475
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py | 1852
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\stub_adapters.py | 2438
+
+============================================================
+CLASSIFICATION / STAGE SERVICES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\decision\decision_engine.py | 2626
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\decision_gate.py | 2685
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block96_stress_decision_gate.py | 14386
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\investment_decision.py | 8799
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_classification_service.py | 8974
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_service.py | 7172
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_stage_service.py | 8121
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py | 12256
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\validation\decision_robustness.py | 2376
+
+============================================================
+FILE: services\sotp_long_term_equity_classification_service.py
+============================================================
+from dataclasses import dataclass
+
+from services.sotp_long_term_equity_domain_constants import (
+    CLASSIFICATION_ELIMINATE,
+    CLASSIFICATION_FINANCIAL_INVESTMENT,
+    CLASSIFICATION_INCUBATION_INVESTMENT,
+    CLASSIFICATION_NON_OPERATING_ASSET,
+    CLASSIFICATION_OPERATING_ASSOCIATE,
+    CLASSIFICATION_OPERATING_INFRASTRUCTURE,
+    CLASSIFICATION_OPERATING_JOINT_VENTURE,
+    CLASSIFICATION_OPERATING_SUBSIDIARY,
+    CLASSIFICATION_PASSIVE_INVESTMENT,
+    CLASSIFICATION_STRATEGIC_INVESTMENT,
+    CLASSIFICATION_UNRESOLVED,
+    INTERPRETATION_ELIMINATED_ENTITY,
+    INTERPRETATION_FINANCIAL_INVESTMENT,
+    INTERPRETATION_INCUBATION_INVESTMENT,
+    INTERPRETATION_NON_OPERATING_ASSET,
+    INTERPRETATION_OPERATING_ENTITY,
+    INTERPRETATION_OPERATING_INFRASTRUCTURE,
+    INTERPRETATION_PASSIVE_INVESTMENT,
+    INTERPRETATION_STRATEGIC_INVESTMENT,
+    INTERPRETATION_UNRESOLVED,
+    RELATIONSHIP_ASSOCIATE,
+    RELATIONSHIP_CONTROLLED_ENTITY,
+    RELATIONSHIP_JOINT_VENTURE,
+    RELATIONSHIP_SUBSIDIARY,
+)
+
+
+@dataclass(frozen=True)
+class ClassificationRule:
+    """
+    Declarative Stage 13C.1 rule definition.
+
+    Interpretation is the primary predicate.
+    Relationship and future contextual dimensions are optional predicates.
+
+    Rules do not authorize valuation or SOTP bridge values.
+    """
+
+    interpretation: str
+    relationship: str | None = None
+
+    # Future domain dimensions
+    business_model: str | None = None
+    asset_type: str | None = None
+    integration_level: str | None = None
+
+    classification: str = CLASSIFICATION_UNRESOLVED
+    priority: int = 1
+
+
+class ClassificationRuleEvaluator:
+    """Evaluates interpreted evidence against declarative rules."""
+
+    def __init__(
+        self,
+        custom_rules: list[ClassificationRule] | None = None,
+    ) -> None:
+        self.rules: list[ClassificationRule] = (
+            custom_rules if custom_rules is not None else self._default_rules()
+        )
+
+    @staticmethod
+    def _default_rules() -> list[ClassificationRule]:
+        return [
+            # ------------------------------------------------------
+            # OPERATING ENTITIES
+            # ------------------------------------------------------
+
+            ClassificationRule(
+                interpretation=INTERPRETATION_OPERATING_ENTITY,
+                relationship=RELATIONSHIP_SUBSIDIARY,
+                classification=CLASSIFICATION_OPERATING_SUBSIDIARY,
+                priority=100,
+            ),
+            ClassificationRule(
+                interpretation=INTERPRETATION_OPERATING_ENTITY,
+                relationship=RELATIONSHIP_CONTROLLED_ENTITY,
+                classification=CLASSIFICATION_OPERATING_SUBSIDIARY,
+                priority=99,
+            ),
+            ClassificationRule(
+                interpretation=INTERPRETATION_OPERATING_ENTITY,
+                relationship=RELATIONSHIP_ASSOCIATE,
+                classification=CLASSIFICATION_OPERATING_ASSOCIATE,
+                priority=100,
+            ),
+            ClassificationRule(
+                interpretation=INTERPRETATION_OPERATING_ENTITY,
+                relationship=RELATIONSHIP_JOINT_VENTURE,
+                classification=CLASSIFICATION_OPERATING_JOINT_VENTURE,
+                priority=100,
+            ),
+
+            # ------------------------------------------------------
+            # OPERATING INFRASTRUCTURE
+            # ------------------------------------------------------
+
+            ClassificationRule(
+                interpretation=INTERPRETATION_OPERATING_INFRASTRUCTURE,
+                classification=CLASSIFICATION_OPERATING_INFRASTRUCTURE,
+                priority=95,
+            ),
+
+            # ------------------------------------------------------
+            # INVESTMENTS
+            # ------------------------------------------------------
+
+            ClassificationRule(
+                interpretation=INTERPRETATION_STRATEGIC_INVESTMENT,
+                classification=CLASSIFICATION_STRATEGIC_INVESTMENT,
+                priority=90,
+            ),
+            ClassificationRule(
+                interpretation=INTERPRETATION_FINANCIAL_INVESTMENT,
+                classification=CLASSIFICATION_FINANCIAL_INVESTMENT,
+                priority=90,
+            ),
+            ClassificationRule(
+                interpretation=INTERPRETATION_INCUBATION_INVESTMENT,
+                classification=CLASSIFICATION_INCUBATION_INVESTMENT,
+                priority=90,
+            ),
+            ClassificationRule(
+                interpretation=INTERPRETATION_PASSIVE_INVESTMENT,
+                classification=CLASSIFICATION_PASSIVE_INVESTMENT,
+                priority=90,
+            ),
+
+            # ------------------------------------------------------
+            # NON-OPERATING / ELIMINATION
+            # ------------------------------------------------------
+
+            ClassificationRule(
+                interpretation=INTERPRETATION_NON_OPERATING_ASSET,
+                classification=CLASSIFICATION_NON_OPERATING_ASSET,
+                priority=90,
+            ),
+            ClassificationRule(
+                interpretation=INTERPRETATION_ELIMINATED_ENTITY,
+                classification=CLASSIFICATION_ELIMINATE,
+                priority=90,
+            ),
+
+            # ------------------------------------------------------
+            # EXPLICIT UNRESOLVED FALLBACK
+            # ------------------------------------------------------
+
+            ClassificationRule(
+                interpretation=INTERPRETATION_UNRESOLVED,
+                classification=CLASSIFICATION_UNRESOLVED,
+                priority=0,
+            ),
+        ]
+
+    def find_best_rule(
+        self,
+        interpretation: str,
+        ril_relationship: str | None,
+        business_model: str | None = None,
+        asset_type: str | None = None,
+        integration_level: str | None = None,
+    ) -> list[ClassificationRule]:
+        """
+        Return all matching rules ordered by priority.
+
+        Returning a list intentionally preserves the ability of later
+        Stage 13C logic to detect multiple equally applicable rules
+        instead of silently selecting one.
+        """
+        matched_rules: list[ClassificationRule] = []
+
+        for rule in self.rules:
+            if rule.interpretation != interpretation:
+                continue
+
+            if (
+                rule.relationship is not None
+                and rule.relationship != ril_relationship
+            ):
+                continue
+
+            if (
+                rule.business_model is not None
+                and rule.business_model != business_model
+            ):
+                continue
+
+            if (
+                rule.asset_type is not None
+                and rule.asset_type != asset_type
+            ):
+                continue
+
+            if (
+                rule.integration_level is not None
+                and rule.integration_level != integration_level
+            ):
+                continue
+
+            matched_rules.append(rule)
+
+        return sorted(
+            matched_rules,
+            key=lambda rule: rule.priority,
+            reverse=True,
+        )
+
+
+============================================================
+FILE: services\sotp_long_term_equity_classification_stage_service.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+LONG-TERM EQUITY CLASSIFICATION DECISION SERVICE
+Stage   : 13C.2
+Status  : CONTROLLED
+==========================================================
+
+Purpose
+-------
+Consumes the authoritative Stage 13C.1 evidence records and
+applies the declarative ClassificationRuleEvaluator.
+
+This service:
+    - does classify entities
+    - does not perform valuation
+    - does not calculate SOTP
+    - does not authorize separate SOTP values
+
+Stage 13C.1 remains responsible for evidence ingestion.
+Stage 13C.2 is responsible for classification decisions.
+"""
+
+from typing import Any
+
+from services.sotp_long_term_equity_classification_service import (
+    ClassificationRuleEvaluator,
+)
+
+from services.sotp_long_term_equity_domain_constants import (
+    CLASSIFICATION_STATUS_COMPLETE,
+    CLASSIFICATION_STATUS_CONFLICTING,
+    CLASSIFICATION_STATUS_PARTIAL,
+    CLASSIFICATION_STATUS_UNRESOLVED,
+    INTERPRETATION_ELIMINATED_ENTITY,
+    INTERPRETATION_FINANCIAL_INVESTMENT,
+    INTERPRETATION_INCUBATION_INVESTMENT,
+    INTERPRETATION_NON_OPERATING_ASSET,
+    INTERPRETATION_OPERATING_ENTITY,
+    INTERPRETATION_OPERATING_INFRASTRUCTURE,
+    INTERPRETATION_PASSIVE_INVESTMENT,
+    INTERPRETATION_STRATEGIC_INVESTMENT,
+    INTERPRETATION_UNRESOLVED,
+)
+
+
+STAGE_13C_2_ID = "STAGE_13C_2"
+CLASSIFICATION_STAGE = "13C.2"
+
+
+def _derive_interpretation(
+    record: dict[str, Any],
+) -> str:
+    """
+    Translate Stage 13C.1 economic evidence into the primary
+    interpretation expected by the declarative rule engine.
+
+    Conservative design:
+    unsupported or ambiguous evidence remains UNRESOLVED.
+    """
+
+    economic_category = record.get("economic_category")
+    relationship = record.get("ril_relationship")
+
+    if economic_category == "STRATEGIC_INVESTMENT":
+        return INTERPRETATION_STRATEGIC_INVESTMENT
+
+    if economic_category == "FINANCIAL_INVESTMENT":
+        return INTERPRETATION_FINANCIAL_INVESTMENT
+
+    if economic_category == "INCUBATION_INVESTMENT":
+        return INTERPRETATION_INCUBATION_INVESTMENT
+
+    if economic_category == "PASSIVE_INVESTMENT":
+        return INTERPRETATION_PASSIVE_INVESTMENT
+
+    if economic_category == "INFRASTRUCTURE_INVESTMENT":
+        return INTERPRETATION_OPERATING_INFRASTRUCTURE
+
+    if economic_category == "NON_OPERATING_ASSET":
+        return INTERPRETATION_NON_OPERATING_ASSET
+
+    if economic_category == "ELIMINATED_ENTITY":
+        return INTERPRETATION_ELIMINATED_ENTITY
+
+    if economic_category == "OPERATING_ASSOCIATE":
+        return INTERPRETATION_OPERATING_ENTITY
+
+    if economic_category == "JOINT_OPERATION_EXPOSURE":
+        if relationship == "JOINT_VENTURE":
+            return INTERPRETATION_OPERATING_ENTITY
+        return INTERPRETATION_UNRESOLVED
+
+    return INTERPRETATION_UNRESOLVED
+
+
+def classify_record(
+    record: dict[str, Any],
+    evaluator: ClassificationRuleEvaluator | None = None,
+) -> dict[str, Any]:
+    """
+    Apply Stage 13C.2 declarative classification to one
+    Stage 13C.1 evidence record.
+
+    No valuation or SOTP authorization is performed here.
+    """
+
+    if not isinstance(record, dict):
+        raise TypeError("Classification record must be a dictionary.")
+
+    evaluator = evaluator or ClassificationRuleEvaluator()
+
+    result = dict(record)
+
+    interpretation = _derive_interpretation(record)
+
+    relationship = record.get("ril_relationship")
+
+    matches = evaluator.find_best_rule(
+        interpretation=interpretation,
+        ril_relationship=relationship,
+        business_model=record.get("business_model"),
+        asset_type=record.get("asset_type"),
+        integration_level=record.get("integration_level"),
+    )
+
+    result["classification_stage"] = CLASSIFICATION_STAGE
+    result["classification_interpretation"] = interpretation
+    result["classification_rule_count"] = len(matches)
+
+    # Hard control: no match means unresolved.
+    if not matches:
+        result["classification_status"] = CLASSIFICATION_STATUS_UNRESOLVED
+        result["classification"] = CLASSIFICATION_STATUS_UNRESOLVED
+        result["classification_source"] = None
+        result["classification_reason"] = (
+            "No declarative classification rule matched the available "
+            "economic interpretation and contextual evidence."
+        )
+        result["separate_sotp_value_authorized"] = False
+        return result
+
+    highest_priority = matches[0].priority
+    highest_priority_matches = [
+        rule for rule in matches
+        if rule.priority == highest_priority
+    ]
+
+    # Multiple equally authoritative rules are a conflict.
+    if len(highest_priority_matches) > 1:
+        result["classification_status"] = CLASSIFICATION_STATUS_CONFLICTING
+        result["classification"] = CLASSIFICATION_STATUS_UNRESOLVED
+        result["classification_source"] = "DECLARATIVE_RULE_ENGINE"
+        result["classification_reason"] = (
+            "Multiple equally prioritized classification rules matched."
+        )
+        result["classification_rule_matches"] = [
+            {
+                "interpretation": rule.interpretation,
+                "relationship": rule.relationship,
+                "classification": rule.classification,
+                "priority": rule.priority,
+            }
+            for rule in matches
+        ]
+        result["separate_sotp_value_authorized"] = False
+        return result
+
+    rule = highest_priority_matches[0]
+
+    result["classification_status"] = CLASSIFICATION_STATUS_COMPLETE
+    result["classification"] = rule.classification
+    result["classification_source"] = "DECLARATIVE_RULE_ENGINE"
+    result["classification_reason"] = (
+        f"Rule matched interpretation={rule.interpretation!r}, "
+        f"relationship={rule.relationship!r}, "
+        f"priority={rule.priority}."
+    )
+
+    result["classification_rule_matches"] = [
+        {
+            "interpretation": matched.interpretation,
+            "relationship": matched.relationship,
+            "classification": matched.classification,
+            "priority": matched.priority,
+        }
+        for matched in matches
+    ]
+
+    # Stage 13C.2 does not authorize valuation.
+    result["separate_sotp_value_authorized"] = False
+
+    return result
+
+
+def classify_records(
+    records: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """
+    Classify a complete Stage 13C.1 population.
+    """
+
+    evaluator = ClassificationRuleEvaluator()
+
+    return [
+        classify_record(record, evaluator=evaluator)
+        for record in records
+    ]
+
+
+def audit_classification_records(
+    records: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Produce a controlled Stage 13C.2 classification audit.
+    """
+
+    classified = classify_records(records)
+
+    complete_count = sum(
+        1
+        for record in classified
+        if record.get("classification_status")
+        == CLASSIFICATION_STATUS_COMPLETE
+    )
+
+    partial_count = sum(
+        1
+        for record in classified
+        if record.get("classification_status")
+        == CLASSIFICATION_STATUS_PARTIAL
+    )
+
+    conflicting_count = sum(
+        1
+        for record in classified
+        if record.get("classification_status")
+        == CLASSIFICATION_STATUS_CONFLICTING
+    )
+
+    unresolved_count = sum(
+        1
+        for record in classified
+        if record.get("classification_status")
+        == CLASSIFICATION_STATUS_UNRESOLVED
+    )
+
+    return {
+        "status": "OK",
+        "stage": CLASSIFICATION_STAGE,
+        "entity_count": len(classified),
+        "complete_count": complete_count,
+        "partial_count": partial_count,
+        "conflicting_count": conflicting_count,
+        "unresolved_count": unresolved_count,
+        "classification_complete": (
+            len(classified) > 0
+            and complete_count == len(classified)
+            and partial_count == 0
+            and conflicting_count == 0
+            and unresolved_count == 0
+        ),
+        "bridge_ready": False,
+        "separate_sotp_value_authorized": False,
+        "records": classified,
+    }
+
+
+============================================================
+FILE: services\sotp_long_term_equity_interpretation_service.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+LONG-TERM EQUITY CLASSIFICATION BRIDGE
+Stage   : 13C.1
+Version : V5.0
+Status  : FROZEN
+==========================================================
+
+Purpose
+-------
+Bridge between:
+    Entity Data Service
+    Economic Evidence Service
+
+This service DOES NOT:
+    - classify entities
+    - value entities
+    - compute SOTP
+
+It only transports and validates evidence.
+
+Future classification logic belongs in:
+    sotp_long_term_equity_interpretation_service.py
+"""
+
+from typing import Any
+
+from services.sotp_long_term_equity_economic_evidence_service import (
+    get_sotp_long_term_equity_economic_evidence,
+)
+from services.sotp_long_term_equity_entity_data_service import (
+    get_sotp_long_term_equity_entity_data,
+)
+
+# ==========================================================
+# SHARED CONSTANTS & DOMAIN TYPES
+# ==========================================================
+BRIDGE_STAGE = "13C.1"
+STAGE_13C_1_ID = "STAGE_13C_1"
+CLASSIFICATION_VERSION = "V5.0"
+EXPECTED_ENTITY_COUNT = 58
+
+STATUS_UNRESOLVED = "UNRESOLVED"
+STATUS_RESOLVED = "RESOLVED"
+
+CATEGORY_OPERATING_ASSOCIATE = "OPERATING_ASSOCIATE"
+CATEGORY_STRATEGIC_INVESTMENT = "STRATEGIC_INVESTMENT"
+CATEGORY_FINANCIAL_INVESTMENT = "FINANCIAL_INVESTMENT"
+CATEGORY_INFRASTRUCTURE_INVESTMENT = "INFRASTRUCTURE_INVESTMENT"
+CATEGORY_JOINT_OPERATION_EXPOSURE = "JOINT_OPERATION_EXPOSURE"
+CATEGORY_OTHER = "OTHER"
+
+OVERLAP_NO = "NO_OVERLAP"
+OVERLAP_PARTIAL = "PARTIAL_OVERLAP"
+OVERLAP_FULL = "FULL_OVERLAP"
+
+ELIGIBILITY_ELIGIBLE = "ELIGIBLE"
+ELIGIBILITY_INELIGIBLE = "INELIGIBLE"
+ELIGIBILITY_CONDITIONAL = "CONDITIONAL"
+
+ECONOMIC_CATEGORIES = {
+    CATEGORY_OPERATING_ASSOCIATE,
+    CATEGORY_STRATEGIC_INVESTMENT,
+    CATEGORY_FINANCIAL_INVESTMENT,
+    CATEGORY_INFRASTRUCTURE_INVESTMENT,
+    CATEGORY_JOINT_OPERATION_EXPOSURE,
+    CATEGORY_OTHER,
+    STATUS_UNRESOLVED,
+}
+
+OVERLAP_STATUSES = {
+    OVERLAP_NO,
+    OVERLAP_PARTIAL,
+    OVERLAP_FULL,
+    STATUS_UNRESOLVED,
+}
+
+VALUATION_ELIGIBILITY_STATUSES = {
+    ELIGIBILITY_ELIGIBLE,
+    ELIGIBILITY_INELIGIBLE,
+    ELIGIBILITY_CONDITIONAL,
+    STATUS_UNRESOLVED,
+}
+
+CLASSIFICATION_STATUSES = {
+    STATUS_RESOLVED,
+    STATUS_UNRESOLVED,
+}
+
+EVIDENCE_FIELDS = (
+    "business_activity",
+    "ril_relationship",
+    "relationship_evidence",
+    "business_activity_evidence",
+    "transaction_evidence",
+    "segment_evidence",
+    "candidate_operating_segment",
+    "operating_overlap_evidence",
+    "economic_independence_evidence",
+    "valuation_evidence",
+    "classification_evidence",
+    "source",
+    "evidence_complete",
+)
+
+
+def _build_unresolved_classification(
+    entity: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "note_39_serial": entity.get("note_39_serial"),
+        "name": entity.get("name"),
+        "country": entity.get("country"),
+        "ownership_percent": entity.get("ownership_percent"),
+        "operating_segment": None,
+        "economic_category": STATUS_UNRESOLVED,
+        "operating_overlap": STATUS_UNRESOLVED,
+        "overlap_with_segment": None,
+        "valuation_eligibility": STATUS_UNRESOLVED,
+        "valuation_basis": None,
+        "classification_status": STATUS_UNRESOLVED,
+        "classification_source": None,
+        "classification_reason": None,
+        "separate_sotp_value_authorized": False,
+    }
+
+
+def _merge_economic_evidence(
+    record: dict[str, Any],
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
+    merged = dict(record)
+
+    if not isinstance(evidence, dict):
+        evidence = {}
+
+    merged["economic_evidence_available"] = bool(evidence)
+    merged["economic_evidence_complete"] = bool(evidence.get("evidence_complete"))
+
+    for field in EVIDENCE_FIELDS:
+        merged[field] = evidence.get(field)
+
+    # Hard Control: Ingestion layer cannot resolve classification or authorize SOTP bridge values
+    merged["classification_status"] = STATUS_UNRESOLVED
+    merged["separate_sotp_value_authorized"] = False
+
+    return merged
+
+
+def _validate_classification_record(
+    record: dict[str, Any],
+) -> list[str]:
+    errors: list[str] = []
+
+    if record.get("economic_category") not in ECONOMIC_CATEGORIES:
+        errors.append("INVALID_ECONOMIC_CATEGORY")
+
+    if record.get("operating_overlap") not in OVERLAP_STATUSES:
+        errors.append("INVALID_OPERATING_OVERLAP")
+
+    if record.get("valuation_eligibility") not in VALUATION_ELIGIBILITY_STATUSES:
+        errors.append("INVALID_VALUATION_ELIGIBILITY")
+
+    if record.get("classification_status") not in CLASSIFICATION_STATUSES:
+        errors.append("INVALID_CLASSIFICATION_STATUS")
+
+    if record.get("separate_sotp_value_authorized") is not False:
+        errors.append(f"SOTP_VALUE_AUTHORIZATION_NOT_ALLOWED_AT_{STAGE_13C_1_ID}")
+
+    return errors
+
+
+def get_sotp_long_term_equity_classification(
+    symbol: str,
+) -> dict[str, Any]:
+    entity_data = get_sotp_long_term_equity_entity_data(symbol)
+
+    if not isinstance(entity_data, dict) or entity_data.get("status") != "OK":
+        return {
+            "status": "UNAVAILABLE",
+            "version": CLASSIFICATION_VERSION,
+            "bridge_stage": BRIDGE_STAGE,
+            "symbol": symbol,
+            "message": (
+                "Long-term equity entity data is unavailable; "
+                "economic classification cannot proceed."
+            ),
+        }
+
+    economic_evidence = get_sotp_long_term_equity_economic_evidence(symbol)
+
+    if (
+        not isinstance(economic_evidence, dict)
+        or economic_evidence.get("status") != "OK"
+    ):
+        return {
+            "status": "UNAVAILABLE",
+            "version": CLASSIFICATION_VERSION,
+            "bridge_stage": BRIDGE_STAGE,
+            "symbol": entity_data.get("symbol"),
+            "message": (
+                "Economic evidence is unavailable; " "classification cannot proceed."
+            ),
+        }
+
+    population = entity_data.get("population") or []
+
+    # Assertion 1: Validate Population Count against EXPECTED_ENTITY_COUNT
+    if len(population) != EXPECTED_ENTITY_COUNT:
+        raise RuntimeError(
+            f"Expected {EXPECTED_ENTITY_COUNT} entities, " f"found {len(population)}."
+        )
+
+    evidence_entities = economic_evidence.get("entities") or []
+
+    # Assertion 2: Validate Duplicate Names in Economic Evidence
+    names = [e.get("name") for e in evidence_entities if isinstance(e, dict)]
+    if len(names) != len(set(names)):
+        raise RuntimeError("Duplicate entity names detected in economic evidence.")
+
+    evidence_by_name = {
+        item.get("name"): item
+        for item in evidence_entities
+        if isinstance(item, dict) and item.get("name") is not None
+    }
+
+    # Assertion 3: Registry Consistency Check
+    missing = [
+        e["name"]
+        for e in population
+        if isinstance(e, dict) and e.get("name") not in evidence_by_name
+    ]
+    if missing:
+        raise RuntimeError(f"Economic evidence missing for: {missing}")
+
+    classifications: list[dict[str, Any]] = []
+
+    for entity in population:
+        record = _build_unresolved_classification(entity)
+        entity_evidence = evidence_by_name.get(entity.get("name"), {})
+        record = _merge_economic_evidence(record, entity_evidence)
+        classifications.append(record)
+
+    validation_errors: list[dict[str, Any]] = []
+
+    for record in classifications:
+        errors = _validate_classification_record(record)
+        if errors:
+            validation_errors.append(
+                {
+                    "note_39_serial": record.get("note_39_serial"),
+                    "name": record.get("name"),
+                    "errors": errors,
+                }
+            )
+
+    classification_count = len(classifications)
+    resolved_count = sum(
+        1
+        for record in classifications
+        if record.get("classification_status") == STATUS_RESOLVED
+    )
+    unresolved_count = classification_count - resolved_count
+
+    classification_complete = bool(
+        entity_data.get("entity_population_complete")
+        and classification_count == entity_data.get("population_count")
+        and unresolved_count == 0
+        and not validation_errors
+    )
+
+    # Stage 13C.1 establishes schema only; bridge is explicitly NOT ready
+    bridge_ready = False
+
+    return {
+        "status": "OK",
+        "version": CLASSIFICATION_VERSION,
+        "bridge_stage": BRIDGE_STAGE,
+        "symbol": entity_data.get("symbol"),
+        "period": entity_data.get("period"),
+        # Upstream evidence state
+        "population_count": entity_data.get("population_count"),
+        "population_integrity_valid": entity_data.get("population_integrity_valid"),
+        "population_complete": entity_data.get("entity_population_complete"),
+        "entity_level_evidence_complete": entity_data.get(
+            "entity_level_evidence_complete"
+        ),
+        # Economic evidence state
+        "economic_evidence_registered_count": economic_evidence.get(
+            "evidence_registered_count", 0
+        ),
+        "economic_evidence_complete_count": economic_evidence.get(
+            "evidence_complete_count", 0
+        ),
+        "economic_evidence_all_registered": economic_evidence.get(
+            "all_entities_registered", False
+        ),
+        "economic_evidence_all_complete": economic_evidence.get(
+            "all_evidence_complete", False
+        ),
+        # Classification state
+        "classification_count": classification_count,
+        "resolved_count": resolved_count,
+        "unresolved_count": unresolved_count,
+        "classification_complete": classification_complete,
+        "validation_error_count": len(validation_errors),
+        "validation_errors": validation_errors,
+        "classification_records": classifications,
+        # SOTP control
+        "bridge_ready": bridge_ready,
+        "interpretation": (
+            "The authoritative Note 39 population and V6 economic evidence have been "
+            f"successfully ingested into Stage {BRIDGE_STAGE} classification bridge. All 58 entities "
+            f"remain {STATUS_UNRESOLVED} as designed. No separate SOTP value is authorized."
+        ),
+    }
+
+
+def audit_classifications() -> None:
+    res = get_sotp_long_term_equity_classification("RELIANCE")
+    print()
+    print(f"Stage {BRIDGE_STAGE} Classification Bridge Audit:")
+    print("---------------------------------")
+    print(f"Total Registry Entities Ingested : {res.get('classification_count')}")
+    print(f"Resolved Count                  : {res.get('resolved_count')}")
+    print(f"Unresolved Count                : {res.get('unresolved_count')}")
+    print(f"Validation Errors               : {res.get('validation_error_count')}")
+    print(f"Bridge Ready                    : {res.get('bridge_ready')}")
+
+
+if __name__ == "__main__":
+    audit_classifications()
+
+    test_result = get_sotp_long_term_equity_classification("RELIANCE")
+
+    assert test_result["status"] == "OK", "Service status should be OK"
+    assert (
+        test_result["classification_count"] == EXPECTED_ENTITY_COUNT
+    ), f"Expected {EXPECTED_ENTITY_COUNT} classification records, got {test_result['classification_count']}"
+    assert (
+        test_result["unresolved_count"] == EXPECTED_ENTITY_COUNT
+    ), f"Expected {EXPECTED_ENTITY_COUNT} unresolved records, got {test_result['unresolved_count']}"
+    assert test_result["resolved_count"] == 0, "Expected resolved_count == 0"
+    assert test_result["validation_error_count"] == 0, "Expected 0 validation errors"
+    assert (
+        test_result["bridge_ready"] is False
+    ), f"Expected bridge_ready == False in Stage {BRIDGE_STAGE}"
+    assert (
+        "classification_records" in test_result
+    ), "Expected 'classification_records' key in output"
+
+    print(
+        f"\nStage {BRIDGE_STAGE} Self-Test Passed: All {EXPECTED_ENTITY_COUNT} unresolved records validated."
+    )
+
+
+============================================================
+FILE: sotp_long_term_equity_valuation_service.py
+============================================================
+FILE NOT FOUND
+
+============================================================
+FILE: sotp_long_term_equity_domain_constants.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+SOTP LONG-TERM EQUITY DOMAIN CONSTANTS
+Stage   : Shared / Pipeline-Wide
+Version : V1.1 (Complete Taxonomy)
+==========================================================
+
+Authoritative vocabulary and defaults used across the entire
+Long-Term Equity SOTP valuation pipeline.
+
+This module contains:
+â€¢ Pipeline metadata & stage IDs
+â€¢ Base pipeline status values
+â€¢ Relationship & segment taxonomies
+â€¢ Economic interpretation & classification taxonomies
+â€¢ Stage-specific status taxonomies (Classification, Valuation, SOTP)
+â€¢ Valuation methods
+â€¢ Parent capital structure defaults
+â€¢ Reporting & numeric defaults
+â€¢ Investment recommendation types
+â€¢ Confidence & importance levels
+"""
+
+# ==========================================================
+# PIPELINE METADATA
+# ==========================================================
+
+PIPELINE_VERSION = "1.0"
+EXPECTED_ENTITY_COUNT = 58
+
+
+# ==========================================================
+# STAGE IDS
+# ==========================================================
+
+STAGE_13A = "13A"
+STAGE_13B = "13B"
+STAGE_13C_1 = "13C.1"
+STAGE_13C_2 = "13C.2"
+STAGE_13C_3 = "13C.3"
+STAGE_13D = "13D"
+STAGE_14 = "14"
+STAGE_15 = "15"
+STAGE_16 = "16"
+
+
+# ==========================================================
+# BASE PIPELINE STATUS
+# ==========================================================
+
+STATUS_OK = "OK"
+STATUS_UNAVAILABLE = "UNAVAILABLE"
+STATUS_UNRESOLVED = "UNRESOLVED"
+STATUS_RESOLVED = "RESOLVED"
+
+PIPELINE_STATUSES = {
+    STATUS_OK,
+    STATUS_UNAVAILABLE,
+    STATUS_UNRESOLVED,
+    STATUS_RESOLVED,
+}
+
+
+# ==========================================================
+# REPORTING DEFAULTS
+# ==========================================================
+
+DEFAULT_CURRENCY = "INR"
+DEFAULT_REPORTING_UNIT = "Million"
+DEFAULT_TIMEZONE = "UTC"
+
+
+# ==========================================================
+# NUMERIC DEFAULTS
+# ==========================================================
+
+DEFAULT_NUMERIC_VALUE = 0.0
+DEFAULT_PERCENTAGE = 0.0
+DEFAULT_NULL_TEXT = "N/A"
+
+
+# ==========================================================
+# RELATIONSHIPS
+# ==========================================================
+
+RELATIONSHIP_ASSOCIATE = "ASSOCIATE"
+RELATIONSHIP_JOINT_VENTURE = "JOINT_VENTURE"
+RELATIONSHIP_SUBSIDIARY = "SUBSIDIARY"
+RELATIONSHIP_CONTROLLED_ENTITY = "CONTROLLED_ENTITY"
+
+RELATIONSHIP_TYPES = {
+    RELATIONSHIP_ASSOCIATE,
+    RELATIONSHIP_JOINT_VENTURE,
+    RELATIONSHIP_SUBSIDIARY,
+    RELATIONSHIP_CONTROLLED_ENTITY,
+}
+
+
+# ==========================================================
+# OPERATING SEGMENTS
+# ==========================================================
+
+SEGMENT_RETAIL = "RETAIL"
+SEGMENT_DIGITAL_SERVICES = "DIGITAL_SERVICES"
+SEGMENT_OIL_TO_CHEMICALS = "OIL_TO_CHEMICALS"
+SEGMENT_OIL_AND_GAS = "OIL_AND_GAS"
+SEGMENT_NEW_ENERGY = "NEW_ENERGY"
+SEGMENT_FINANCIAL_SERVICES = "FINANCIAL_SERVICES"
+SEGMENT_OTHER = "OTHER"
+
+OPERATING_SEGMENTS = {
+    SEGMENT_RETAIL,
+    SEGMENT_DIGITAL_SERVICES,
+    SEGMENT_OIL_TO_CHEMICALS,
+    SEGMENT_OIL_AND_GAS,
+    SEGMENT_NEW_ENERGY,
+    SEGMENT_FINANCIAL_SERVICES,
+    SEGMENT_OTHER,
+}
+
+
+# ==========================================================
+# INTERPRETATION TYPES
+# ==========================================================
+
+INTERPRETATION_OPERATING_ENTITY = "OPERATING_ENTITY"
+INTERPRETATION_OPERATING_INFRASTRUCTURE = "OPERATING_INFRASTRUCTURE"
+INTERPRETATION_STRATEGIC_INVESTMENT = "STRATEGIC_INVESTMENT"
+INTERPRETATION_FINANCIAL_INVESTMENT = "FINANCIAL_INVESTMENT"
+INTERPRETATION_INCUBATION_INVESTMENT = "INCUBATION_INVESTMENT"
+INTERPRETATION_PASSIVE_INVESTMENT = "PASSIVE_INVESTMENT"
+INTERPRETATION_NON_OPERATING_ASSET = "NON_OPERATING_ASSET"
+INTERPRETATION_ELIMINATED_ENTITY = "ELIMINATED_ENTITY"
+INTERPRETATION_UNRESOLVED = STATUS_UNRESOLVED
+
+INTERPRETATION_TYPES = {
+    INTERPRETATION_OPERATING_ENTITY,
+    INTERPRETATION_OPERATING_INFRASTRUCTURE,
+    INTERPRETATION_STRATEGIC_INVESTMENT,
+    INTERPRETATION_FINANCIAL_INVESTMENT,
+    INTERPRETATION_INCUBATION_INVESTMENT,
+    INTERPRETATION_PASSIVE_INVESTMENT,
+    INTERPRETATION_NON_OPERATING_ASSET,
+    INTERPRETATION_ELIMINATED_ENTITY,
+    INTERPRETATION_UNRESOLVED,
+}
+
+
+# ==========================================================
+# CLASSIFICATION TYPES
+# ==========================================================
+
+CLASSIFICATION_OPERATING_SUBSIDIARY = "OPERATING_SUBSIDIARY"
+CLASSIFICATION_OPERATING_ASSOCIATE = "OPERATING_ASSOCIATE"
+CLASSIFICATION_OPERATING_JOINT_VENTURE = "OPERATING_JOINT_VENTURE"
+CLASSIFICATION_OPERATING_INFRASTRUCTURE = "OPERATING_INFRASTRUCTURE"
+
+CLASSIFICATION_STRATEGIC_INVESTMENT = "STRATEGIC_INVESTMENT"
+CLASSIFICATION_FINANCIAL_INVESTMENT = "FINANCIAL_INVESTMENT"
+CLASSIFICATION_INCUBATION_INVESTMENT = "INCUBATION_INVESTMENT"
+CLASSIFICATION_PASSIVE_INVESTMENT = "PASSIVE_INVESTMENT"
+
+CLASSIFICATION_NON_OPERATING_ASSET = "NON_OPERATING_ASSET"
+CLASSIFICATION_ELIMINATE = "ELIMINATE"
+CLASSIFICATION_UNRESOLVED = STATUS_UNRESOLVED
+
+CLASSIFICATION_TYPES = {
+    CLASSIFICATION_OPERATING_SUBSIDIARY,
+    CLASSIFICATION_OPERATING_ASSOCIATE,
+    CLASSIFICATION_OPERATING_JOINT_VENTURE,
+    CLASSIFICATION_OPERATING_INFRASTRUCTURE,
+    CLASSIFICATION_STRATEGIC_INVESTMENT,
+    CLASSIFICATION_FINANCIAL_INVESTMENT,
+    CLASSIFICATION_INCUBATION_INVESTMENT,
+    CLASSIFICATION_PASSIVE_INVESTMENT,
+    CLASSIFICATION_NON_OPERATING_ASSET,
+    CLASSIFICATION_ELIMINATE,
+    CLASSIFICATION_UNRESOLVED,
+}
+
+
+# ==========================================================
+# STAGE-SPECIFIC STATUS TAXONOMIES
+# ==========================================================
+
+# Classification Statuses (Stage 13C)
+CLASSIFICATION_STATUS_COMPLETE = "COMPLETE"
+CLASSIFICATION_STATUS_PARTIAL = "PARTIAL"
+CLASSIFICATION_STATUS_UNRESOLVED = STATUS_UNRESOLVED
+CLASSIFICATION_STATUS_CONFLICTING = "CONFLICTING"
+
+CLASSIFICATION_STATUSES = {
+    CLASSIFICATION_STATUS_COMPLETE,
+    CLASSIFICATION_STATUS_PARTIAL,
+    CLASSIFICATION_STATUS_UNRESOLVED,
+    CLASSIFICATION_STATUS_CONFLICTING,
+}
+
+# Valuation Statuses (Stage 13D)
+VALUATION_STATUS_COMPLETE = "COMPLETE"
+VALUATION_STATUS_PENDING_MODEL = "PENDING_MODEL"
+VALUATION_STATUS_UNAUTHORIZED = "UNAUTHORIZED"
+VALUATION_STATUS_EXCLUDED = "EXCLUDED"
+VALUATION_STATUS_FAILED = "FAILED"
+
+VALUATION_STATUSES = {
+    VALUATION_STATUS_COMPLETE,
+    VALUATION_STATUS_PENDING_MODEL,
+    VALUATION_STATUS_UNAUTHORIZED,
+    VALUATION_STATUS_EXCLUDED,
+    VALUATION_STATUS_FAILED,
+}
+
+# SOTP Aggregation Statuses (Stage 14)
+SOTP_STATUS_COMPLETE = "COMPLETE"
+SOTP_STATUS_PARTIAL = "PARTIAL"
+SOTP_STATUS_FAILED = "FAILED"
+
+SOTP_STATUSES = {
+    SOTP_STATUS_COMPLETE,
+    SOTP_STATUS_PARTIAL,
+    SOTP_STATUS_FAILED,
+}
+
+
+# ==========================================================
+# VALUATION METHODS
+# ==========================================================
+
+VALUATION_METHOD_DCF = "DCF"
+VALUATION_METHOD_MARKET_VALUE = "MARKET_VALUE"
+VALUATION_METHOD_FAIR_VALUE = "FAIR_VALUE"
+VALUATION_METHOD_BOOK_VALUE = "BOOK_VALUE"
+VALUATION_METHOD_COST = "COST"
+VALUATION_METHOD_NONE = "NONE"
+
+VALUATION_METHODS = {
+    VALUATION_METHOD_DCF,
+    VALUATION_METHOD_MARKET_VALUE,
+    VALUATION_METHOD_FAIR_VALUE,
+    VALUATION_METHOD_BOOK_VALUE,
+    VALUATION_METHOD_COST,
+    VALUATION_METHOD_NONE,
+}
+
+
+# ==========================================================
+# PARENT CAPITAL STRUCTURE & SOTP DEFAULTS
+# ==========================================================
+
+DEFAULT_PARENT_SHARES_OUTSTANDING_MN = 6765.0
+DEFAULT_CONGLOMERATE_DISCOUNT_PCT = 0.15
+
+
+# ==========================================================
+# RECOMMENDATION TYPES (Stage 15 & 16)
+# ==========================================================
+
+RECOMMENDATION_STRONG_BUY = "STRONG_BUY"
+RECOMMENDATION_BUY = "BUY"
+RECOMMENDATION_HOLD = "HOLD"
+RECOMMENDATION_SELL = "SELL"
+RECOMMENDATION_STRONG_SELL = "STRONG_SELL"
+
+RECOMMENDATION_TYPES = {
+    RECOMMENDATION_STRONG_BUY,
+    RECOMMENDATION_BUY,
+    RECOMMENDATION_HOLD,
+    RECOMMENDATION_SELL,
+    RECOMMENDATION_STRONG_SELL,
+}
+
+
+# ==========================================================
+# CONFIDENCE & IMPORTANCE
+# ==========================================================
+
+CONFIDENCE_HIGH = "HIGH"
+CONFIDENCE_MEDIUM = "MEDIUM"
+CONFIDENCE_LOW = "LOW"
+
+CONFIDENCE_LEVELS = {
+    CONFIDENCE_HIGH,
+    CONFIDENCE_MEDIUM,
+    CONFIDENCE_LOW,
+}
+
+IMPORTANCE_HIGH = "HIGH"
+IMPORTANCE_MEDIUM = "MEDIUM"
+IMPORTANCE_LOW = "LOW"
+
+IMPORTANCE_LEVELS = {
+    IMPORTANCE_HIGH,
+    IMPORTANCE_MEDIUM,
+    IMPORTANCE_LOW,
+}
+
+
+============================================================
+FILE: services\valuation\dcf_engine.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+from domain.valuation.result import ValuationResult, ValuationMethod, ValuationStatus
+
+class BaseValuationEngine:
+    """Abstract base class for valuation engines."""
+    def __init__(self) -> None:
+        pass
+    
+    @property
+    def valuation_method(self) -> str:
+        raise NotImplementedError
+
+    def evaluate(self, data: Any) -> Any:
+        raise NotImplementedError
+
+    def value(self, data: Any) -> Any:
+        return self.evaluate(data)
+
+class DCFValuationEngine(BaseValuationEngine):
+    """Adapter for DCF Valuation Engine conforming to BaseValuationEngine."""
+    def __init__(self) -> None:
+        super().__init__()
+
+    @property
+    def valuation_method(self) -> str:
+        return "DCF"
+
+    def evaluate(self, data: Any) -> ValuationResult:
+        from services.valuation.dcf import DCFInput, DCFModel
+        dcf_input = DCFInput(**data) if isinstance(data, dict) else data
+        model = DCFModel(dcf_input)
+        res = model.evaluate()
+        return ValuationResult(
+            method=ValuationMethod.DCF,
+            enterprise_value=res.enterprise_value,
+            equity_value=res.equity_value,
+            implied_share_price=res.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={"notes": "Evaluated successfully via modular DCF engine"}
+        )
+
+# Backward compatibility alias
+DCFEngine = DCFValuationEngine
+
+
+============================================================
+FILE: services\valuation\dcf\dcf_input.py
+============================================================
+from dataclasses import dataclass
+from typing import Any
+
+
+@dataclass
+class DCFInput:
+    """
+    Input data container for the Discounted Cash Flow (DCF) valuation engine.
+    Includes strict validation to ensure structural and economic sanity.
+    """
+
+    # Historical Base
+    last_historical_revenue: float
+
+    # Forecast Driver Vectors (Must all match forecast period length)
+    revenue_growth_rates: list[float]
+    ebit_margin_forecast: list[float]
+    capex_pct_rev: list[float]
+    nwc_pct_rev: list[float]
+    dna_pct_rev: list[float]
+
+    # Capital Structure & Discount Parameters
+    tax_rate: float
+    cost_of_equity: float
+    cost_of_debt_post_tax: float
+    equity_weight: float
+    debt_weight: float
+
+    # Terminal Value Parameter
+    terminal_growth_rate: float
+
+    # Capital Structure Bridge to Equity Value
+    total_debt: float
+    cash_and_equivalents: float
+    shares_outstanding: float
+
+    # Non-Operating Balance Sheet Adjustments
+    minority_interest: float = 0.0
+    preferred_stock: float = 0.0
+
+    # Optional metadata
+    company_name: str = "Operating Subsidiary"
+    currency: str = "INR"
+
+    @property
+    def forecast_years(self) -> int:
+        """
+        Dynamically returns the number of explicit forecast years.
+        """
+        return len(self.revenue_growth_rates)
+
+    def calculate_wacc(self) -> float:
+        """
+        Calculates the Weighted Average Cost of Capital (WACC).
+        WACC = (We * Ke) + (Wd * Kd_post_tax)
+        """
+        return (self.equity_weight * self.cost_of_equity) + (
+            self.debt_weight * self.cost_of_debt_post_tax
+        )
+
+    def validate(self) -> None:
+        """
+        Executes comprehensive input validation checks before model execution.
+        """
+        forecast_len = self.forecast_years
+        if forecast_len == 0:
+            raise ValueError("Forecast period must be at least 1 year long.")
+
+        vectors = {
+            "ebit_margin_forecast": len(self.ebit_margin_forecast),
+            "capex_pct_rev": len(self.capex_pct_rev),
+            "nwc_pct_rev": len(self.nwc_pct_rev),
+            "dna_pct_rev": len(self.dna_pct_rev),
+        }
+        for vec_name, length in vectors.items():
+            if length != forecast_len:
+                raise ValueError(
+                    f"Array length mismatch for '{vec_name}': expected {forecast_len}, got {length}."
+                )
+
+        if self.last_historical_revenue <= 0:
+            raise ValueError("last_historical_revenue must be strictly greater than 0.")
+        if self.shares_outstanding <= 0:
+            raise ValueError("shares_outstanding must be strictly greater than 0.")
+        if self.total_debt < 0:
+            raise ValueError("total_debt cannot be negative.")
+        if self.cash_and_equivalents < 0:
+            raise ValueError("cash_and_equivalents cannot be negative.")
+
+        if not (0.0 <= self.tax_rate <= 1.0):
+            raise ValueError(
+                f"tax_rate must be between 0.0 and 1.0 (got {self.tax_rate})."
+            )
+
+        weight_sum = self.equity_weight + self.debt_weight
+        if abs(weight_sum - 1.0) > 1e-4:
+            raise ValueError(
+                f"Equity and Debt weights must sum to 1.0 (got {weight_sum:.4f})."
+            )
+
+        wacc = self.calculate_wacc()
+        if self.terminal_growth_rate >= wacc:
+            raise ValueError(
+                f"Terminal growth rate ({self.terminal_growth_rate:.2%}) must be strictly less "
+                f"than WACC ({wacc:.2%}) to prevent mathematical singularity."
+            )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Returns assumptions as a dictionary."""
+        return {
+            "last_historical_revenue": self.last_historical_revenue,
+            "forecast_years": self.forecast_years,
+            "revenue_growth_rates": self.revenue_growth_rates,
+            "ebit_margin_forecast": self.ebit_margin_forecast,
+            "wacc": self.calculate_wacc(),
+            "terminal_growth_rate": self.terminal_growth_rate,
+            "shares_outstanding": self.shares_outstanding,
+        }
+
+
+============================================================
+FILE: services\valuation\dcf\dcf_model.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+DCF VALUATION ENGINE
+Module  : dcf_model
+Version : V3.0
+==========================================================
+
+Institutional Discounted Cash Flow (DCF) valuation engine.
+
+Pipeline
+--------
+Validate
+    ↓
+Forecast
+    ↓
+Discount Explicit FCFF
+    ↓
+Terminal Value
+    ↓
+Enterprise Value
+    ↓
+Equity Value
+    ↓
+Sensitivity Analysis
+    ↓
+Return DCFResult
+
+Contains no embedded financial formulas other than
+high-level orchestration.
+"""
+
+from .dcf_input import DCFInput
+from .dcf_result import DCFResult
+from .discounting import build_discount_schedule
+from .forecast import build_forecast_schedule
+from .sensitivity import build_sensitivity_matrix
+from .terminal_value import build_terminal_value
+from .validation import validate_input
+
+
+class DCFModel:
+    """
+    Institutional FCFF DCF valuation model.
+    """
+
+    def __init__(self, data: DCFInput):
+        self.data = data
+
+    # ======================================================
+    # WACC
+    # ======================================================
+
+    def calculate_wacc(self) -> float:
+
+        return (
+            self.data.equity_weight * self.data.cost_of_equity
+            + self.data.debt_weight * self.data.cost_of_debt_post_tax
+        )
+
+    # ======================================================
+    # Main Valuation
+    # ======================================================
+
+    def run_model(self) -> DCFResult:
+
+        # ------------------------------------------
+        # Validation
+        # ------------------------------------------
+
+        validate_input(self.data)
+
+        # ------------------------------------------
+        # WACC
+        # ------------------------------------------
+
+        wacc = self.calculate_wacc()
+
+        # ------------------------------------------
+        # Forecast
+        # ------------------------------------------
+
+        forecast = build_forecast_schedule(self.data)
+
+        # ------------------------------------------
+        # Discount Explicit Cash Flows
+        # ------------------------------------------
+
+        discount = build_discount_schedule(
+            projected_fcff=forecast.projected_fcff,
+            wacc=wacc,
+        )
+
+        # ------------------------------------------
+        # Terminal Value
+        # ------------------------------------------
+
+        terminal = build_terminal_value(
+            final_year_fcff=forecast.projected_fcff[-1],
+            wacc=wacc,
+            terminal_growth_rate=self.data.terminal_growth_rate,
+            forecast_years=self.data.forecast_years,
+            pv_fcff_total=discount.pv_fcff_total,
+        )
+
+        # ------------------------------------------
+        # Enterprise Value
+        # ------------------------------------------
+
+        enterprise_value = discount.pv_fcff_total + terminal.present_value_terminal
+
+        # ------------------------------------------
+        # Equity Bridge
+        # ------------------------------------------
+
+        equity_value = (
+            enterprise_value - self.data.total_debt + self.data.cash_and_equivalents
+        )
+
+        implied_share_price = equity_value / self.data.shares_outstanding
+
+        # ------------------------------------------
+        # Sensitivity
+        # ------------------------------------------
+
+        sensitivity = build_sensitivity_matrix(
+            final_year_fcff=forecast.projected_fcff[-1],
+            pv_fcff_total=discount.pv_fcff_total,
+            base_wacc=wacc,
+            base_terminal_growth=self.data.terminal_growth_rate,
+            forecast_years=self.data.forecast_years,
+            debt=self.data.total_debt,
+            cash=self.data.cash_and_equivalents,
+            shares=self.data.shares_outstanding,
+        )
+
+        # ------------------------------------------
+        # Assemble Result
+        # ------------------------------------------
+
+        return DCFResult(
+            wacc=wacc,
+            projected_revenue=forecast.projected_revenue,
+            projected_ebit=forecast.projected_ebit,
+            projected_nopat=forecast.projected_nopat,
+            projected_fcff=forecast.projected_fcff,
+            discount_factors=discount.discount_factors,
+            present_value_fcff=discount.present_value_fcff,
+            pv_fcff_total=discount.pv_fcff_total,
+            terminal_fcff=terminal.terminal_fcff,
+            terminal_value=terminal.terminal_value,
+            present_value_terminal=terminal.present_value_terminal,
+            terminal_value_pct_of_ev=terminal.terminal_value_pct_of_ev,
+            enterprise_value=enterprise_value,
+            total_debt=self.data.total_debt,
+            cash_and_equivalents=self.data.cash_and_equivalents,
+            equity_value=equity_value,
+            shares_outstanding=self.data.shares_outstanding,
+            implied_share_price=implied_share_price,
+            forecast_period=self.data.forecast_years,
+            currency=self.data.currency,
+            company_name=self.data.company_name,
+            validation_passed=True,
+            warnings=[],
+            sensitivity_matrix={
+                "wacc_axis": sensitivity.wacc_axis,
+                "terminal_growth_axis": sensitivity.terminal_growth_axis,
+                "price_matrix": sensitivity.implied_share_price_matrix,
+            },
+        )
+
+
+============================================================
+FILE: services\valuation\dcf\dcf_result.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+DCF RESULT MODEL
+Module  : dcf_result
+Version : V2.0
+==========================================================
+
+Defines the standardized output produced by the
+Discounted Cash Flow (DCF) valuation engine.
+
+This module contains no valuation logic.
+"""
+
+from dataclasses import dataclass, field
+
+
+@dataclass(slots=True)
+class DCFResult:
+    """
+    Standard output produced by the DCF valuation engine.
+    """
+
+    # ======================================================
+    # Discount Rate
+    # ======================================================
+
+    wacc: float
+
+    # ======================================================
+    # Revenue Forecast
+    # ======================================================
+
+    projected_revenue: list[float]
+
+    # ======================================================
+    # Operating Forecast
+    # ======================================================
+
+    projected_ebit: list[float]
+
+    projected_nopat: list[float]
+
+    # ======================================================
+    # Free Cash Flow Forecast
+    # ======================================================
+
+    projected_fcff: list[float]
+
+    discount_factors: list[float]
+
+    present_value_fcff: list[float]
+
+    pv_fcff_total: float
+
+    # ======================================================
+    # Terminal Value
+    # ======================================================
+
+    terminal_fcff: float
+
+    terminal_value: float
+
+    present_value_terminal: float
+
+    terminal_value_pct_of_ev: float
+
+    # ======================================================
+    # Enterprise Value Bridge
+    # ======================================================
+
+    enterprise_value: float
+
+    total_debt: float
+
+    cash_and_equivalents: float
+
+    equity_value: float
+
+    # ======================================================
+    # Per Share Valuation
+    # ======================================================
+
+    shares_outstanding: float
+
+    implied_share_price: float
+
+    # ======================================================
+    # Forecast Metadata
+    # ======================================================
+
+    forecast_period: int
+
+    currency: str = "INR"
+
+    company_name: str = ""
+
+    # ======================================================
+    # Validation
+    # ======================================================
+
+    validation_passed: bool = True
+
+    warnings: list[str] = field(default_factory=list)
+
+    # ======================================================
+    # Sensitivity Analysis
+    # ======================================================
+
+    sensitivity_matrix: dict[str, object] = field(default_factory=dict)
+
+    # ======================================================
+    # Convenience Properties
+    # ======================================================
+
+    @property
+    def discrete_value(self) -> float:
+        """Present value of explicit forecast cash flows."""
+        return self.pv_fcff_total
+
+    @property
+    def terminal_value_contribution(self) -> float:
+        """Contribution of terminal value to enterprise value."""
+        return self.present_value_terminal
+
+    @property
+    def enterprise_bridge(self) -> dict[str, float]:
+        """Enterprise value bridge."""
+        return {
+            "enterprise_value": self.enterprise_value,
+            "less_debt": self.total_debt,
+            "add_cash": self.cash_and_equivalents,
+            "equity_value": self.equity_value,
+        }
+
+    def summary(self) -> dict[str, float]:
+        """
+        Returns a concise valuation summary.
+        """
+        return {
+            "wacc": self.wacc,
+            "enterprise_value": self.enterprise_value,
+            "equity_value": self.equity_value,
+            "share_price": self.implied_share_price,
+            "terminal_value_pct": self.terminal_value_pct_of_ev,
+        }
+
+
+============================================================
+EROS API SOURCE FILES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\api\app.py:11: class EROSAPIApp:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\api\app.py:12: """Enterprise API Gateway for EROS Institutional Research Platform."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\api\routes\health.py:19: metadata={"service": "EROS Enterprise API"}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:17: from backend.api.routers.valuation_router import router as valuation_router
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:59: app.include_router(valuation_router)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:74: from backend.api.routers.eros_production_router import (
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:75: router as eros_production_router,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\main.py:77: app.include_router(eros_production_router)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\exceptions\handlers.py:5: from backend.exceptions import ValidationError, RepositoryError, ValuationError, ServiceError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\exceptions\handlers.py:12: @app.exception_handler(ValuationError)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\exceptions\handlers.py:13: async def valuation_exception_handler(request: Request, exc: ValuationError) -> JSONResponse:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\exceptions\handlers.py:14: return JSONResponse(status_code=422, content={"error": "ValuationError", "detail": str(exc)})
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\eros_production_router.py:4: from services.workflow.production_orchestrator import EROSProductionWorkflowOrchestrator
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\eros_production_router.py:6: router = APIRouter(prefix="/api/v1/eros", tags=["EROS 3.0 Production Workflow"])
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\eros_production_router.py:15: orchestrator = EROSProductionWorkflowOrchestrator(policy_profile=request.policy_profile)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\task_router.py:22: Submit an EROS task through the unified TaskControlService facade.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:9: from backend.api.schemas.valuation import ValuationRequest, ValuationResponse
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:10: from backend.services.valuation_service import ValuationService
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:12: router = APIRouter(prefix="/api/v1", tags=["Valuation"])
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:14: @router.post("/valuation", response_model=ValuationResponse, dependencies=[Depends(get_current_user)])
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:15: def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_session)) -> ValuationResponse:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:27: result = ValuationService.execute_and_persist_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:38: return ValuationResponse(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py:45: valuation_model=result["model_type"],
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\system\health_router.py:26: "eros_http_requests_total": 14250,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\system\health_router.py:27: "eros_active_websocket_subscribers": 42,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\system\health_router.py:28: "eros_queue_depth": 0,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\system\health_router.py:29: "eros_db_connection_pool_active": 3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py:7: class ValuationRequest(BaseModel):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py:14: net_debt: Optional[float] = Field(0.0, description="Net debt for SOTP valuation")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py:19: class ValuationResponse(BaseModel):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py:26: valuation_model: str
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\config\settings.py:7: PROJECT_NAME: str = "EROS 3.0 Institutional Research Platform"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\config\settings.py:10: DATABASE_URL: str = "sqlite:///./eros_production.db"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\config\settings.py:16: SECRET_KEY: str = "eros_3_0_change_me"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\core\config\settings.py:7: PROJECT_NAME: str = "EROS 3.0 Institutional Research Platform"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\core\config\settings.py:9: DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@postgres:5432/eros_prod")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\engine.py:13: "sqlite:///./eros_production.db",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\models\company.py:15: class ValuationRecordModel(Base):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\models\company.py:16: __tablename__ = "valuations"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:6: from backend.database.models.company import ValuationRecordModel
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:10: class ValuationRepository:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:11: """Canonical repository for persisting and retrieving valuation records."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:14: def save_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:21: ) -> ValuationRecordModel:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:22: logger.info("Persisting valuation record %s for symbol %s", record_id, symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:23: record = ValuationRecordModel(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:35: def get_valuation(session: Session, record_id: str) -> Optional[ValuationRecordModel]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py:36: return session.query(ValuationRecordModel).filter(ValuationRecordModel.id == record_id).first()
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:3: class EROSError(Exception):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:4: """Base exception for all EROS platform errors."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:7: class ServiceError(EROSError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:11: class RepositoryError(EROSError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:15: class ValidationError(EROSError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:19: class ValuationError(ServiceError):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:20: """Raised when financial valuation calculation fails."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\exceptions\__init__.py:28: """Raised when portfolio optimization or risk evaluation fails."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\infrastructure\runtime_probe.py:12: for containerized EROS runtime.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\infrastructure\runtime_probe.py:14: print("--- EROS 3.0 Production Runtime Readiness Probe ---")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\providers\normalizer\event_normalizer.py:10: """Normalizes disparate provider payloads into a unified EROS institutional event schema."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:13: Base adapter for translating core EROS engine outputs
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:71: class ValuationEvidenceAdapter(EvidenceAdapter):
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:73: Extracts valuation model outputs (DCF / Margin of Safety)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:78: def extract(case: ResearchCase, valuation_result: Dict[str, Any]) -> List[ResearchEvidence]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:81: intrinsic_value = valuation_result.get("intrinsic_value") or valuation_result.get("blended_valuation")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:82: margin_of_safety = valuation_result.get("margin_of_safety")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:87: category="VALUATION",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:88: statement=f"Calculated intrinsic valuation stands at {intrinsic_value:.2f}",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:90: source="ValuationEngine",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:103: category="VALUATION",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py:106: source="ValuationEngine",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\models\research_evidence.py:22: source: str = "EROS"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\services\evidence_service.py:24: source: str = "EROS",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\models\research_case.py:18: analyst: str = "EROS"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\services\research_case_service.py:20: analyst: str = "EROS",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\security\jwt.py:34: "iss": "eros-enterprise-platform"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:8: from backend.database.repositories.valuation_repository import ValuationRepository
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:9: from backend.valuation.sotp import SOTPValuationEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:10: from backend.valuation.adapter import adapt_sotp_to_valuation_payload
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:11: from backend.exceptions import ValidationError, ValuationError
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:15: class ValuationService:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:16: """Orchestrates financial valuation workflows and coordinates persistence via ValuationRepository."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:19: def execute_and_persist_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:24: logger.info("Executing institutional valuation pipeline for %s", symbol)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:31: raise ValidationError("SOTP valuation requires a non-empty list of segments.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:34: if not isinstance(seg, dict) or "name" not in seg or "valuation" not in seg:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:35: raise ValidationError(f"Segment at index {idx} must be a dictionary containing 'name' and 'valuation'.")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:36: val = seg.get("valuation")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:44: f"Segment '{seg.get('name')}' has an invalid or negative valuation: {val}."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:55: "Shares outstanding must be a finite number greater than zero for SOTP valuation."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:71: f"{field_name} must be a finite numeric value for SOTP valuation."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:78: engine = SOTPValuationEngine(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:87: sotp_payload = adapt_sotp_to_valuation_payload(engine, user)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:94: f"SOTP valuation produced non-positive equity value: {intrinsic_value}."
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:100: model_type = "Sum-of-the-Parts (SOTP) Valuation"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:102: ValuationRepository.save_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:111: logger.info("SOTP Valuation successfully calculated and persisted for %s: IV = %s", symbol, intrinsic_value)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:122: # Fallback to standard DCF valuation flow only when segments is None
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:141: ValuationRepository.save_valuation(
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py:150: logger.info("Valuation successfully calculated and persisted for %s: IV = %s", symbol, intrinsic_value)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py:7: class ValuationResultDTO:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py:14: valuation_model: str
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:19: "eros_enterprise",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:34: # Automatically register all EROS application tasks upon real Celery instantiation
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py:51: "valuation.execute": lambda *a, **kw: {"status": "success"},
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:20: Queue("valuation_queue", Exchange("valuation_exchange"), routing_key="valuation.#"),
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_config.py:28: "valuation.*": "valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_worker.py:14: # Register all EROS application tasks AFTER Celery has been created.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_worker.py:18: "EROS Celery worker application initialized with %d tasks",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\eros_diagnostic_worker.py:6: "eros_diagnostic_worker",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\eros_diagnostic_worker.py:20: @celery_app.task(name="eros.diagnostic.worker_echo")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\eros_separate_process_worker.py:6: "eros_separate_process_worker",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\eros_separate_process_worker.py:20: @celery_app.task(name="eros.diagnostic.separate_process_echo")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:13: celery_valuation_wrapper,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:22: EROS 3.0 unified task control-plane service.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:59: if "valuation.execute" not in target_app.tasks:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:61: name="valuation.execute",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:63: )(celery_valuation_wrapper)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:73: "Failed to synchronize EROS task registry: %s",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:123: idempotency_key = f"eros:idempotency:{request_id}"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:125: f"eros:idempotency-lock:{request_id}"
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py:764: "valuation_queue",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:7: from backend.services.valuation_service import ValuationService
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:141: def execute_valuation_task(context: TaskContext) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:142: logger.info("Worker processing valuation task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:146: result = ValuationService.execute_and_persist_valuation(session, symbol, context.payload)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:159: Extract the EROS task execution context.
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:189: # Direct EROS invocation:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:235: def celery_valuation_wrapper(*args, **kwargs) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py:244: res = BackgroundWorkers.execute_valuation_task(context)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:7: celery_valuation_wrapper,
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:46: # Register valuation.execute
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:47: if "valuation.execute" not in celery_instance.tasks:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:49: name="valuation.execute",
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:58: )(celery_valuation_wrapper)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py:59: logger.info("Registered task: valuation.execute with enterprise retry & timeout policy")
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\adapter.py:2: from backend.valuation.sotp import SOTPValuationEngine
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\adapter.py:4: def adapt_sotp_to_valuation_payload(sotp_engine: SOTPValuationEngine, user: str) -> Dict[str, Any]:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py:3: class SOTPValuationEngine:
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py:4: """Computes Sum-of-the-Parts valuation for multi-segment enterprises."""
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py:21: segment_valuations = {}
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py:26: value = segment.get("valuation", 0.0)
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py:27: segment_valuations[name] = value
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py:31: "segment_breakdown": segment_valuations,
+
+============================================================
+VALUATION / EROS TEST FILES
+============================================================
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py | 1798
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py | 1557
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_eros_golden_chain.py | 8579
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_blended_valuation.py | 1543
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py | 717
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_professional_dcf.py | 685
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_sotp.py | 913

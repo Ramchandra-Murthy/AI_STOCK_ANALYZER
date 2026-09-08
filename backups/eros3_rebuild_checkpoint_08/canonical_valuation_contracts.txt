@@ -1,0 +1,91 @@
+﻿domain/valuation/result.py:6:class ValuationMethod(str, Enum):
+domain/valuation/result.py:11:class ValuationStatus(str, Enum):
+domain/valuation/result.py:17:class ValuationResult:
+domain/valuation/result.py:18:    method: ValuationMethod
+domain/valuation/result.py:22:    status: ValuationStatus = ValuationStatus.SUCCESS
+services/valuation/__init__.py:5:from services.valuation.models import ValuationResult, DCFValuation, RelativeValuation
+services/valuation/__init__.py:11:    "ValuationResult",
+services/valuation/base_engine.py:13:domain-level ValuationResult.
+services/valuation/base_engine.py:19:from domain.valuation.result import ValuationResult
+services/valuation/base_engine.py:34:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/base_engine.py:37:        domain-level ValuationResult.
+services/valuation/blended_engine.py:14:class BlendedValuationResult:
+services/valuation/blended_engine.py:41:    ) -> BlendedValuationResult:
+services/valuation/blended_engine.py:64:        return BlendedValuationResult(
+services/valuation/contracts.py:6:from services.valuation.enums import ValuationMethod, ValuationStatus
+services/valuation/contracts.py:14:    valuation_method: ValuationMethod = ValuationMethod.DCF
+services/valuation/contracts.py:67:    valuation_method: ValuationMethod
+services/valuation/contracts.py:68:    valuation_status: ValuationStatus
+services/valuation/dcf_adapter.py:6:    ValuationMethod,
+services/valuation/dcf_adapter.py:7:    ValuationResult,
+services/valuation/dcf_adapter.py:8:    ValuationStatus,
+services/valuation/dcf_adapter.py:22:    ValuationResult contract.
+services/valuation/dcf_adapter.py:27:        return ValuationMethod.DCF.value
+services/valuation/dcf_adapter.py:29:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/dcf_adapter.py:68:        return ValuationResult(
+services/valuation/dcf_adapter.py:69:            method=ValuationMethod.DCF,
+services/valuation/dcf_adapter.py:73:            status=ValuationStatus.SUCCESS,
+services/valuation/dcf_engine.py:6:    ValuationResult,
+services/valuation/dcf_engine.py:7:    ValuationMethod,
+services/valuation/dcf_engine.py:8:    ValuationStatus,
+services/valuation/dcf_engine.py:31:        return ValuationMethod.DCF.value
+services/valuation/dcf_engine.py:33:    def value(self, data: Any) -> ValuationResult:
+services/valuation/dcf_engine.py:157:        return ValuationResult(
+services/valuation/dcf_engine.py:158:            method=ValuationMethod.DCF,
+services/valuation/dcf_engine.py:162:            status=ValuationStatus.SUCCESS,
+services/valuation/dcf_engine.py:173:    def evaluate(self, data: Any) -> ValuationResult:
+services/valuation/dispatcher.py:16:from domain.valuation.result import ValuationResult
+services/valuation/dispatcher.py:61:    def value(self, method: str, entity: Any) -> ValuationResult:
+services/valuation/dispatcher.py:66:    def dispatch(self, method: str, entity: Any) -> ValuationResult:
+services/valuation/engine.py:5:from services.valuation.models import ValuationResult, DCFValuation, RelativeValuation
+services/valuation/engine.py:13:    def compute(self, symbol: str, forecast_data: Any = None) -> ValuationResult:
+services/valuation/engine.py:59:        return ValuationResult(
+services/valuation/enums.py:4:class ValuationMethod(StrEnum):
+services/valuation/enums.py:14:class ValuationStatus(StrEnum):
+services/valuation/models.py:26:class ValuationResult:
+services/valuation/nav/nav_engine.py:17:    ValuationMethod,
+services/valuation/nav/nav_engine.py:18:    ValuationResult,
+services/valuation/nav/nav_engine.py:19:    ValuationStatus,
+services/valuation/nav/nav_engine.py:30:        return ValuationMethod.NAV.value
+services/valuation/nav/nav_engine.py:32:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/nav/nav_engine.py:45:        return ValuationResult(
+services/valuation/nav/nav_engine.py:47:            valuation_method=ValuationMethod.NAV,
+services/valuation/nav/nav_engine.py:48:            valuation_status=ValuationStatus.COMPLETE,
+services/valuation/nav_engine.py:6:    ValuationResult,
+services/valuation/nav_engine.py:7:    ValuationMethod,
+services/valuation/nav_engine.py:8:    ValuationStatus,
+services/valuation/nav_engine.py:22:        return ValuationMethod.NAV.value
+services/valuation/nav_engine.py:24:    def value(self, data: Any) -> ValuationResult:
+services/valuation/nav_engine.py:33:        return ValuationResult(
+services/valuation/nav_engine.py:34:            method=ValuationMethod.NAV,
+services/valuation/nav_engine.py:38:            status=ValuationStatus.SUCCESS,
+services/valuation/nav_engine.py:44:    def evaluate(self, data: Any) -> ValuationResult:
+services/valuation/relative/engine.py:5:from services.valuation.relative.models import RelativeValuationResult
+services/valuation/relative/engine.py:20:    ) -> RelativeValuationResult:
+services/valuation/relative/engine.py:112:        return RelativeValuationResult(
+services/valuation/relative/models.py:8:class RelativeValuationResult:
+services/valuation/sotp_engine.py:6:    ValuationResult,
+services/valuation/sotp_engine.py:7:    ValuationMethod,
+services/valuation/sotp_engine.py:8:    ValuationStatus,
+services/valuation/sotp_engine.py:22:        return ValuationMethod.SOTP.value
+services/valuation/sotp_engine.py:24:    def value(self, data: Any) -> ValuationResult:
+services/valuation/sotp_engine.py:43:        return ValuationResult(
+services/valuation/sotp_engine.py:44:            method=ValuationMethod.SOTP,
+services/valuation/sotp_engine.py:48:            status=ValuationStatus.SUCCESS,
+services/valuation/sotp_engine.py:54:    def evaluate(self, data: Any) -> ValuationResult:
+services/valuation/stub_adapters.py:6:from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
+services/valuation/stub_adapters.py:14:        return ValuationMethod.NAV.value
+services/valuation/stub_adapters.py:16:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/stub_adapters.py:18:        return ValuationResult(
+services/valuation/stub_adapters.py:20:            valuation_method=ValuationMethod.NAV,
+services/valuation/stub_adapters.py:21:            valuation_status=ValuationStatus.PENDING,
+services/valuation/stub_adapters.py:35:        return ValuationMethod.MARKET.value
+services/valuation/stub_adapters.py:37:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/stub_adapters.py:39:        return ValuationResult(
+services/valuation/stub_adapters.py:41:            valuation_method=ValuationMethod.MARKET,
+services/valuation/stub_adapters.py:42:            valuation_status=ValuationStatus.PENDING,
+services/valuation/stub_adapters.py:56:        return ValuationMethod.BOOK_VALUE.value
+services/valuation/stub_adapters.py:58:    def value(self, entity: Any) -> ValuationResult:
+services/valuation/stub_adapters.py:60:        return ValuationResult(
+services/valuation/stub_adapters.py:62:            valuation_method=ValuationMethod.BOOK_VALUE,
+services/valuation/stub_adapters.py:63:            valuation_status=ValuationStatus.PENDING,

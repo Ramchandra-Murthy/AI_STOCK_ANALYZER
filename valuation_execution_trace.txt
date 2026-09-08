@@ -1,0 +1,634 @@
+﻿===== EROS VALUATION EXECUTION TRACE =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+
+===== FILE: .\backend\tasks\task_executor.py =====
+Path: D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py
+
+from __future__ import annotations
+from backend.exceptions import ValidationError
+import logging
+import os
+from typing import Dict, Any
+from backend.tasks.task_context import TaskContext
+from backend.services.valuation_service import ValuationService
+from backend.database.engine import SessionLocal
+from backend.database.repositories.forecast_report_repository import ForecastRepository, ReportRepository
+from services.forecasting.models import ForecastScenario
+from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
+from services.report.engine import ReportEngine
+
+logger = logging.getLogger(__name__)
+
+class BackgroundWorkers:
+    @staticmethod
+    def execute_report_task(context: TaskContext) -> Dict[str, Any]:
+        logger.info("Worker processing report task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+        symbol = context.payload.get("symbol", "TCS.NS")
+        format_type = context.payload.get("format_type", "MULTI-FORMAT")
+        analysis_data = context.payload.get("analysis_data", {})
+
+        engine = ReportEngine()
+        report = engine.generate(symbol=symbol, format_type=format_type, analysis_data=analysis_data)
+        report_id = f"{symbol}-REPORT-2026-Q2"
+
+        session = SessionLocal()
+        try:
+            saved_report = ReportRepository.save_report(
+                session=session,
+                report_id=report_id,
+                symbol=report.symbol,
+                report_type=report.format_type,
+                content_summary=report.content,
+            )
+        finally:
+            session.close()
+
+        return {
+            "status": "SUCCESS",
+            "task_id": str(context.task_id),
+            "user": str(context.user),
+            "symbol": report.symbol,
+            "format_type": report.format_type,
+            "file_path": report.file_path,
+            "content": report.content,
+            "metadata": report.metadata,
+            "report_id": saved_report.id,
+            "timestamp": context.payload.get("timestamp"),
+        }
+
+    @staticmethod
+    def execute_forecast_task(context: TaskContext) -> Dict[str, Any]:
+        logger.info("Worker processing forecast task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+        symbol = context.payload.get("symbol", "TCS.NS")
+
+        scenarios = [
+            ForecastScenario(
+                scenario_id=f"{symbol}-BULL",
+                name="BULL",
+                probability=0.25,
+                revenue_growth=0.15,
+                margin=0.21,
+                wacc=0.095,
+                terminal_growth=0.045,
+                inflation=0.04,
+                interest_rate=0.065,
+                intrinsic_value=float(context.payload.get("bull_value", 3450.0)),
+                expected_return=0.22,
+                risk_score=0.30,
+            ),
+            ForecastScenario(
+                scenario_id=f"{symbol}-BASE",
+                name="BASE",
+                probability=0.50,
+                revenue_growth=0.10,
+                margin=0.18,
+                wacc=0.10,
+                terminal_growth=0.04,
+                inflation=0.05,
+                interest_rate=0.07,
+                intrinsic_value=float(context.payload.get("base_value", 2900.0)),
+                expected_return=0.15,
+                risk_score=0.45,
+            ),
+            ForecastScenario(
+                scenario_id=f"{symbol}-BEAR",
+                name="BEAR",
+                probability=0.25,
+                revenue_growth=0.04,
+                margin=0.14,
+                wacc=0.115,
+                terminal_growth=0.03,
+                inflation=0.07,
+                interest_rate=0.085,
+                intrinsic_value=float(context.payload.get("bear_value", 2100.0)),
+                expected_return=0.02,
+                risk_score=0.70,
+            ),
+        ]
+
+        forecast = ScenarioIntelligenceEngine.evaluate_scenarios(
+            symbol=symbol,
+            scenarios=scenarios,
+        )
+
+        record_id = f"{symbol}-FCST-2026-Q2"
+        session = SessionLocal()
+        try:
+            ForecastRepository.save_forecast(
+                session=session,
+                record_id=record_id,
+                symbol=symbol,
+                revenue_cagr=scenarios[1].revenue_growth,
+                eps_forecast=forecast.expected_value,
+                confidence=forecast.confidence,
+            )
+        finally:
+            session.close()
+
+        return {
+            "status": "SUCCESS",
+            "task_id": str(context.task_id),
+            "user": str(context.user),
+            "symbol": forecast.symbol,
+            "expected_value": forecast.expected_value,
+            "bull_value": float(context.payload.get("bull_value", forecast.bull_value)),
+            "base_value": float(context.payload.get("base_value", forecast.base_value)),
+            "bear_value": float(context.payload.get("bear_value", forecast.bear_value)),
+            "confidence": forecast.confidence,
+            "probability_distribution": forecast.probability_distribution,
+            "key_drivers": forecast.key_drivers,
+            "major_risks": forecast.major_risks,
+            "assumptions": forecast.assumptions,
+            "record_id": record_id,
+            "timestamp": forecast.timestamp,
+        }
+
+    @staticmethod
+    def execute_valuation_task(context: TaskContext) -> Dict[str, Any]:
+        logger.info("Worker processing valuation task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+        session = SessionLocal()
+        try:
+            symbol = context.payload.get("symbol", "TCS.NS")
+            result = ValuationService.execute_and_persist_valuation(session, symbol, context.payload)
+            return {
+                "status": "SUCCESS",
+                "task_id": str(context.task_id),
+                "user": str(context.user),
+                "symbol": symbol,
+                "result": result
+            }
+        finally:
+            session.close()
+
+def _extract_context(*args, **kwargs):
+    """
+    Extract the EROS task execution context.
+    Supported calling conventions:
+        _extract_context(task_name, user, payload)
+    and Celery-bound invocation where args[0] may be the
+    bound task instance containing request.id.
+    """
+    task_id = "UNKNOWN"
+    task_name = "forecast.execute"
+    user = "system"
+    payload = {}
+
+    # --------------------------------------------------
+    # Celery-bound task invocation
+    # --------------------------------------------------
+    if args:
+        first = args[0]
+        if (
+            hasattr(first, "request")
+            and first.request is not None
+            and getattr(first.request, "id", None)
+        ):
+            task_id = str(first.request.id)
+            remaining_args = list(args[1:])
+            if len(remaining_args) >= 1 and isinstance(remaining_args[0], str):
+                task_name = remaining_args[0]
+            if len(remaining_args) >= 2 and isinstance(remaining_args[1], str):
+                user = remaining_args[1]
+            if len(remaining_args) >= 3 and isinstance(remaining_args[2], dict):
+                payload = remaining_args[2]
+        # --------------------------------------------------
+        # Direct EROS invocation:
+        # (task_name, user, payload)
+        # --------------------------------------------------
+        else:
+            if isinstance(first, str):
+                task_name = first
+            if len(args) >= 2 and isinstance(args[1], str):
+                user = args[1]
+            if len(args) >= 3 and isinstance(args[2], dict):
+                payload = args[2]
+
+    # --------------------------------------------------
+    # Keyword overrides
+    # --------------------------------------------------
+    if "task_id" in kwargs and kwargs["task_id"] is not None:
+        task_id = str(kwargs["task_id"])
+    if "task_name" in kwargs and kwargs["task_name"] is not None:
+        task_name = str(kwargs["task_name"])
+    if "user" in kwargs and kwargs["user"] is not None:
+        user = str(kwargs["user"])
+    if "payload" in kwargs and isinstance(kwargs["payload"], dict):
+        payload = kwargs["payload"]
+
+    # --------------------------------------------------
+    # Payload task_id fallback
+    # --------------------------------------------------
+    if task_id == "UNKNOWN":
+        if isinstance(payload, dict) and payload.get("task_id"):
+            task_id = str(payload["task_id"])
+
+    # --------------------------------------------------
+    # Workflow correlation
+    # --------------------------------------------------
+    workflow_id = None
+    if isinstance(payload, dict):
+        workflow_id = payload.get("workflow_id")
+    if workflow_id is not None:
+        workflow_id = str(workflow_id)
+
+    return (
+        str(task_id),
+        str(task_name),
+        str(user),
+        payload,
+        workflow_id,
+    )
+def celery_valuation_wrapper(*args, **kwargs) -> Dict[str, Any]:
+    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
+    context = TaskContext(
+        task_id=task_id,
+        task_name=task_name,
+        user=user,
+        workflow_id=workflow_id,
+        payload=payload,
+    )
+    res = BackgroundWorkers.execute_valuation_task(context)
+    if isinstance(res, dict) and workflow_id is not None:
+        res["workflow_id"] = workflow_id
+    return res
+
+def celery_forecast_wrapper(*args, **kwargs) -> Dict[str, Any]:
+    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
+    context = TaskContext(
+        task_id=task_id,
+        task_name=task_name,
+        user=user,
+        workflow_id=workflow_id,
+        payload=payload,
+    )
+    res = BackgroundWorkers.execute_forecast_task(context)
+    if not isinstance(res, dict):
+        res = {"result": res}
+    res["task_id"] = task_id
+    res["user"] = user
+    if workflow_id is not None:
+        if isinstance(res, dict):
+            res["workflow_id"] = workflow_id
+    return res
+
+def celery_report_wrapper(*args, **kwargs) -> Dict[str, Any]:
+    task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
+    context = TaskContext(
+        task_id=task_id,
+        task_name=task_name,
+        user=user,
+        workflow_id=workflow_id,
+        payload=payload,
+    )
+    res = BackgroundWorkers.execute_report_task(context)
+    res["task_id"] = task_id
+    res["user"] = user
+    if workflow_id is not None:
+        if isinstance(res, dict):
+            res["workflow_id"] = workflow_id
+    return res
+
+
+
+
+===== FILE: .\services\valuation\engine.py =====
+Path: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+from services.valuation.models import ValuationResult, DCFValuation, RelativeValuation
+
+logger = logging.getLogger(__name__)
+
+
+class ValuationEngine:
+    """Executes institutional valuation models (DCF, NAV, Relative / Multiples)."""
+
+    def compute(self, symbol: str, forecast_data: Any = None) -> ValuationResult:
+        """Run valuation models based on forecast fundamentals."""
+        logger.info("Running valuation engine for symbol: %s", symbol)
+
+        current_price = 2500.0
+        if forecast_data:
+            rev_forecast = getattr(forecast_data, "revenue", None)
+            if rev_forecast and hasattr(rev_forecast, "projections") and rev_forecast.projections:
+                current_price = float(rev_forecast.projections[0]) / 2.0
+            elif isinstance(forecast_data, dict):
+                rev_dict = forecast_data.get("revenue")
+                if isinstance(rev_dict, dict) and "projections" in rev_dict:
+                    projs = rev_dict["projections"]
+                    if projs:
+                        current_price = float(projs[0]) / 2.0
+
+        wacc = 0.105
+        g = 0.05
+        pv_cf = current_price * 12.5
+        pv_tv = current_price * 18.2
+        dcf_implied = pv_cf + pv_tv
+
+        pe_implied = current_price * 1.12
+        ev_ebitda_implied = current_price * 1.08
+        sector_pe = 24.5
+
+        relative = RelativeValuation(
+            pe_implied_value=pe_implied,
+            ev_ebitda_implied_value=ev_ebitda_implied,
+            sector_pe_benchmark=sector_pe
+        )
+
+        dcf = DCFValuation(
+            implied_value=dcf_implied,
+            wacc=wacc,
+            terminal_growth_rate=g,
+            pv_cash_flows=pv_cf,
+            pv_terminal_value=pv_tv
+        )
+
+        nav_value = current_price * 0.85
+        blended_fair_value = round((dcf_implied * 0.4) + (pe_implied * 0.3) + (ev_ebitda_implied * 0.3), 2)
+        
+        mos_pct = round(((blended_fair_value - current_price) / current_price) * 100.0, 2)
+        recommendation = "BUY" if mos_pct > 15 else ("HOLD" if mos_pct >= 0 else "SELL")
+
+        return ValuationResult(
+            symbol=symbol,
+            dcf=dcf,
+            relative=relative,
+            nav_value=nav_value,
+            blended_fair_value=blended_fair_value,
+            current_market_price=current_price,
+            margin_of_safety_pct=mos_pct,
+            recommendation=recommendation
+        )
+
+
+===== FILE: .\services\valuation\service.py =====
+Path: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py
+
+from __future__ import annotations
+
+import logging
+import time
+from typing import Any
+from core.events.dispatcher import EventDispatcher
+from services.valuation.engine import ValuationEngine  # Legacy wrapper compatibility
+from services.valuation.dcf.engine import ProductionDCFEngine
+from services.valuation.events import ValuationCompleted
+from services.forecast.models import ForecastResult
+
+logger = logging.getLogger(__name__)
+
+
+class ValuationService:
+    """Service managing production-grade DCF valuation and event publishing triggered by forecast completion."""
+
+    def __init__(
+        self,
+        engine: Any,
+        bus: Any,
+        dispatcher: EventDispatcher,
+    ) -> None:
+        self._engine = engine
+        self._dcf_engine = ProductionDCFEngine()
+        self._bus = bus
+        self._dispatcher = dispatcher
+        self._bus.subscribe("forecast.completed", self.handle_forecast_completed)
+
+    async def handle_forecast_completed(self, event: Any) -> None:
+        """Event handler triggered when forecasting is completed."""
+        forecast_result: ForecastResult = event.payload.get("forecast_result")
+        symbol = event.symbol
+
+        if not forecast_result:
+            logger.warning("No forecast result found in payload for symbol: %s", symbol)
+            return
+
+        await self.compute_and_publish(forecast_result)
+
+    async def compute_and_publish(self, forecast: ForecastResult) -> Any:
+        """Run production DCF valuation and publish ValuationCompleted event."""
+        symbol = forecast.symbol
+        dcf_result = self._dcf_engine.calculate(forecast)
+
+        # Determine recommendation based on fair value vs benchmark (e.g., current price mock ~1400)
+        fair_value = dcf_result.fair_value_per_share
+        recommendation = "BUY" if fair_value > 1200 else ("HOLD" if fair_value > 900 else "SELL")
+
+        event = ValuationCompleted(
+            symbol=symbol,
+            timestamp=time.time(),
+            payload={
+                "blended_fair_value": fair_value,
+                "recommendation": recommendation,
+                "dcf_result": dcf_result,
+                "valuation_result": dcf_result,
+                "symbol": symbol,
+            },
+        )
+
+        await self._dispatcher.dispatch(event)
+        logger.info("ValuationCompleted event published for symbol: %s with fair value: %.2f", symbol, fair_value)
+        return dcf_result
+
+
+===== FILE: .\services\valuation\blended_engine.py =====
+Path: D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass, field
+from typing import Dict, Any, List
+
+from services.valuation.dcf.professional_engine import ProfessionalDCFEngine, ProfessionalDCFResult
+from services.valuation.relative.engine import RelativeValuationEngine
+from services.valuation.sotp.engine import SOTPEngine
+
+logger = logging.getLogger(__name__)
+
+@dataclass
+class BlendedValuationResult:
+    symbol: str
+    dcf_fair_value: float
+    relative_fair_value: float
+    sotp_fair_value: float
+    blended_fair_value: float
+    model_weights: Dict[str, float] = field(default_factory=lambda: {"DCF": 0.5, "Relative": 0.3, "SOTP": 0.2})
+
+class BlendedValuationEngine:
+    """Synthesizes DCF, Relative Valuation, and SOTP into a single institutional blended intrinsic value."""
+
+    def __init__(self) -> None:
+        self.dcf_engine = ProfessionalDCFEngine()
+        self.relative_engine = RelativeValuationEngine()
+        self.sotp_engine = SOTPEngine()
+
+    def evaluate(
+        self,
+        symbol: str,
+        fcff_projections: List[float],
+        wacc: float,
+        terminal_growth_rate: float,
+        net_debt: float,
+        shares_outstanding: float,
+        current_price: float,
+        financials: Any,
+        weights: Dict[str, float] | None = None
+    ) -> BlendedValuationResult:
+        logger.info("Computing blended institutional valuation for %s", symbol)
+        
+        dcf_res = self.dcf_engine.calculate_fcff(
+            symbol=symbol,
+            fcff_projections=fcff_projections,
+            wacc=wacc,
+            terminal_growth_rate=terminal_growth_rate,
+            net_debt=net_debt,
+            shares_outstanding=shares_outstanding
+        )
+        
+        rel_res = self.relative_engine.evaluate(financials, current_price=current_price)
+        sotp_res = self.sotp_engine.calculate(financials, holding_discount=0.15)
+
+        w = weights or {"DCF": 0.5, "Relative": 0.3, "SOTP": 0.2}
+        
+        dcf_val = dcf_res.fair_value_per_share
+        rel_val = rel_res.blend_relative_value
+        sotp_val = sotp_res.fair_value_per_share
+
+        blended = (dcf_val * w.get("DCF", 0.5)) + (rel_val * w.get("Relative", 0.3)) + (sotp_val * w.get("SOTP", 0.2))
+
+        return BlendedValuationResult(
+            symbol=symbol,
+            dcf_fair_value=dcf_val,
+            relative_fair_value=rel_val,
+            sotp_fair_value=sotp_val,
+            blended_fair_value=round(blended, 2),
+            model_weights=w
+        )
+
+
+===== VALUATION REFERENCES ACROSS BACKEND/SERVICES =====
+
+Path                                                                                                LineNumber Line                                                                            
+----                                                                                                ---------- ----                                                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                             10 from backend.services.valuation_service import ValuationService                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                             27     result = ValuationService.execute_and_persist_valuation(                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py             90                 source="ValuationEngine",                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\research\evidence\adapters\evidence_adapters.py            106                 source="ValuationEngine",                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                9 from backend.valuation.sotp import SOTPValuationEngine                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                               15 class ValuationService:                                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                               78             engine = SOTPValuationEngine(                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\celery_app.py                                         51             "valuation.execute": lambda *a, **kw: {"status": "success"},        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py                                       13     celery_valuation_wrapper,                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py                                       59             if "valuation.execute" not in target_app.tasks:                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py                                       61                     name="valuation.execute",                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_control.py                                       63                 )(celery_valuation_wrapper)                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py                                       7 from backend.services.valuation_service import ValuationService                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py                                     146             result = ValuationService.execute_and_persist_valuation(session, ...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_executor.py                                     235 def celery_valuation_wrapper(*args, **kwargs) -> Dict[str, Any]:                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py                                       7     celery_valuation_wrapper,                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py                                      46     # Register valuation.execute                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py                                      47     if "valuation.execute" not in celery_instance.tasks:                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py                                      49             name="valuation.execute",                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py                                      58         )(celery_valuation_wrapper)                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\tasks\task_registry.py                                      59         logger.info("Registered task: valuation.execute with enterprise retry...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\adapter.py                                         2 from backend.valuation.sotp import SOTPValuationEngine                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\adapter.py                                         4 def adapt_sotp_to_valuation_payload(sotp_engine: SOTPValuationEngine, user: s...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py                                            3 class SOTPValuationEngine:                                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                              12 from services.sotp_segment_valuation_service import (                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py                      46 from services.sotp_long_term_equity_valuation_service import (                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                 31 class SOTPLongTermValuationService:                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_scenario_service.py                         8 from services.sotp_new_energy_valuation_service import (                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                  5 from services.sotp_valuation_service import generate_sotp_valuation             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v43_service.py                                    5 from services.peer_valuation_service import generate_peer_benchmarks            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\copilot_v2\copilot.py                                      20             cited_engines=["ValuationEngine", "RiskEngine", "ForecastEngine",...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py        107 class EROSBlock91PortfolioValuationEngine:                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_test_harness.py                        3 from services.quantitative.block91_portfolio_valuation_engine import (          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_test_harness.py                        4     EROSBlock91PortfolioValuationEngine,                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_test_harness.py                       60     engine = EROSBlock91PortfolioValuationEngine()                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py            223     from services.quantitative.block91_portfolio_valuation_engine import (      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py            224         EROSBlock91PortfolioValuationEngine,                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py            243         block91=EROSBlock91PortfolioValuationEngine(),                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py            112     91: "services.quantitative.block91_portfolio_valuation_engine",             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py            424         == "EROSBlock91PortfolioValuationEngine"                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py            666         == "EROSBlock91PortfolioValuationEngine"                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\engine.py                                           24 - **Blended Fair Value**: Rs.{analysis_data.get('blended_fair_value', 1650.0)...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\report\engine.py                                           42     <p><b>Blended Fair Value:</b> Rs.{analysis_data.get('blended_fair_value',...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\engine.py                                         141             "valuation_engine": {                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\base_engine.py                                   22 class BaseValuationEngine(ABC):                                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                 8 from services.valuation.relative.engine import RelativeValuationEngine          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                19     blended_fair_value: float                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                22 class BlendedValuationEngine:                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                27         self.relative_engine = RelativeValuationEngine()                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                69             blended_fair_value=round(blended, 2),                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py                                   11 from services.valuation.base_engine import BaseValuationEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py                                   16 class DCFValuationEngine(BaseValuationEngine):                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py                                   59                 "DCFValuationEngine requires SOTPSegmentInput, "                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py                                    11 from services.valuation.base_engine import BaseValuationEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py                                    14 class DCFValuationEngine(BaseValuationEngine):                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py                                   148                 "DCFValuationEngine requires DCFInput or dict payload; "        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py                                   178 DCFEngine = DCFValuationEngine                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    15 from services.valuation.base_engine import BaseValuationEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    17 from services.valuation.engines.dcf_engine import DCFValuationEngine            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    18 from services.valuation.engines.nav_engine import NAVValuationEngine            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    19 from services.valuation.engines.sotp_engine import SOTPValuationEngine          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    24         self._engines: dict[str, BaseValuationEngine] = {}                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    29             self.register(DCFValuationEngine())                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    33             self.register(NAVValuationEngine())                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    37             self.register(SOTPValuationEngine())                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    49     def register(self, engine: BaseValuationEngine) -> None:                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    51         method_key = getattr(engine, "valuation_method", engine.__class__.__n...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dispatcher.py                                    54     def get_engine(self, method: str) -> BaseValuationEngine:                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py                                        10 class ValuationEngine:                                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py                                        54         blended_fair_value = round((dcf_implied * 0.4) + (pe_implied * 0.3) +...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py                                        56         mos_pct = round(((blended_fair_value - current_price) / current_price...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engine.py                                        64             blended_fair_value=blended_fair_value,                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\models.py                                        32     blended_fair_value: float                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py                                    11 from services.valuation.base_engine import BaseValuationEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py                                    14 class NAVValuationEngine(BaseValuationEngine):                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav_engine.py                                    49 NAVEngine = NAVValuationEngine                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py                                        7 from services.valuation.engine import ValuationEngine  # Legacy wrapper compa...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py                                       15 class ValuationService:                                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\service.py                                       54                 "blended_fair_value": fair_value,                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                   11 from services.valuation.base_engine import BaseValuationEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                   14 class SOTPValuationEngine(BaseValuationEngine):                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                   25         from services.sotp_long_term_equity_valuation_service import (          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                   26             SOTPLongTermValuationService,                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                   32         service = SOTPLongTermValuationService(                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                   59 SOTPEngine = SOTPValuationEngine                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\stub_adapters.py                                  5 from services.valuation.base_engine import BaseValuationEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\stub_adapters.py                                  9 class NAVValuationEngine(BaseValuationEngine):                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\stub_adapters.py                                 30 class MarketValuationEngine(BaseValuationEngine):                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\stub_adapters.py                                 51 class BookValueEngine(BaseValuationEngine):                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py                                       3 from services.valuation.service import ValuationService                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py                                       4 from services.valuation.engine import ValuationEngine                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py                                       9     "ValuationService",                                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\__init__.py                                      10     "ValuationEngine",                                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py                             1 from services.valuation.dcf_engine import DCFValuationEngine                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\nav_engine.py                             1 from services.valuation.nav_engine import NAVValuationEngine                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py                            1 from services.valuation.sotp_engine import SOTPValuationEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_engine.py                                10 Adapter exposing the NAV package via the BaseValuationEngine interface.         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_engine.py                                15 from services.valuation.base_engine import BaseValuationEngine                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_engine.py                                25 class NAVEngine(BaseValuationEngine):                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\relative\engine.py                               11 class RelativeValuationEngine:                                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\workflow\orchestration.py                                  45                 # Example: if step == "Valuation Engine": ValuationService.ca...
+
+
+
+
+===== PYTHON SYNTAX CHECK =====
+
+.\backend\tasks\task_executor.py
+SYNTAX: PASS
+
+.\services\valuation\engine.py
+SYNTAX: PASS
+
+.\services\valuation\service.py
+SYNTAX: PASS
+
+.\services\valuation\blended_engine.py
+SYNTAX: PASS

@@ -1,0 +1,24 @@
+﻿===== DOCKER CELERY TEST =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+===== DOCKER COMPOSE STATUS =====
+NAME                 IMAGE                      COMMAND                  SERVICE    CREATED        STATUS                 PORTS
+eros_api             ai_stock_analyzer-api      "uvicorn backend.maiΓÇª"   api        44 hours ago   Up 3 hours             0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+eros_celery_beat     ai_stock_analyzer-beat     "celery -A backend.tΓÇª"   beat       2 days ago     Up 3 hours             8000/tcp
+eros_celery_worker   ai_stock_analyzer-worker   "celery -A backend.tΓÇª"   worker     2 days ago     Up 3 hours             8000/tcp
+eros_postgres        postgres:15-alpine         "docker-entrypoint.sΓÇª"   postgres   8 days ago     Up 3 hours (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+eros_redis           redis:7-alpine             "docker-entrypoint.sΓÇª"   redis      8 days ago     Up 3 hours (healthy)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
+
+
+===== TARGETED QUEUE TEST INSIDE API =====
+..                                                                       [100%]
+2 passed, 5 deselected in 3.52s
+
+
+===== TASK CONTROL + CELERY STATE INSIDE API =====
+USE_REAL_CELERY= true
+celery_app= <class 'backend.tasks.celery_app.CeleryFacade'>
+celery_instance= <class 'celery.app.base.Celery'>
+real_celery_enabled= True
+queue_status= {'queues': ['default', 'forecast_queue', 'valuation_queue', 'report_queue'], 'status': 'HEALTHY', 'real_celery': True}
+

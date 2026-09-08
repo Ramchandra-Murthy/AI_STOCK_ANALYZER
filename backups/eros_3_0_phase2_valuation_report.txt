@@ -1,0 +1,1257 @@
+﻿============================================================
+EROS 3.0 PHASE 2 — VALUATION MIGRATION
+============================================================
+
+BRANCH:
+rebuild/eros-3-0-clean
+
+VALUATION FILES:
+
+FullName                                                                                                          Lengt
+                                                                                                                      h
+--------                                                                                                          -----
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py  1642
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py          627
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py          2238
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py        2398
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py               58586
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py               9249
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py          6747
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                    17182
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py             17674
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py             3521
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                    1720
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py                                           1274
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                      1164
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py                                       339
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                      6464
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py                                                  1895
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\exceptions\valuation.py                                                187
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                               1331
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation_engine.py                                         278
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                 1373
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py             1483
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                 1556
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                        12523
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                         16844
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py               17450
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py              12839
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                               2048
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                   3765
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                       19452
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py                              7356
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                     6513
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                        18958
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_clock.py                                                      168
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                      5553
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                               7278
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                    10044
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_evidence_service.py                          7946
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_overlap_service.py                           4751
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py                            7002
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_classification_service.py                         8974
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_policy_service.py                                 7939
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py                                       22478
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_liquidity_policy_service.py                                  4310
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_service.py                   7172
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_stage_service.py             8121
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_domain_constants.py                         8969
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_economic_evidence_service.py               90730
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                     32076
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                          19961
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                  12256
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                          7740
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py                  11876
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py                          11920
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_templates.py                         2227
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py                            11957
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_target_price_service.py                     2227
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                       13571
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_net_debt_service.py                                          7261
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_data_service.py                                  12600
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_overlap_service.py                               10352
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_policy_service.py                                 7400
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_scenario_policy_service.py                        8952
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_scenario_service.py                               5130
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_valuation_service.py                              5090
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_ownership_service.py                                         4389
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_peer_ev_consistency_service.py                               8438
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_accounting_basis_service.py                          2894
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_data_service.py                                      4804
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_valuation_service.py                                 9934
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                       11489
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                        14345
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py                                        4230
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                        5605
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py                                       4123
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py                                          2508
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py                                           1496
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\dcf_engine.py                                     65
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\engines\sotp_engine.py                                    67
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_adapter_fix.py                                      475
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                          1852
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_resolver.py                                   7101
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_benchmark_service.py                                    8149
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_quality_adjustment_service.py                          19124
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_service.py                                              7244
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v4_service.py                                          17674
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation_v43_service.py                                          3521
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\sotp_long_term_equity_domain_constants.py                                  8843
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block13_valuation_scoring.py                            1798
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\services\test_valuation_service.py                                   1557
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_blended_valuation.py                                  1543
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_dcf.py                                                 717
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_professional_dcf.py                                    685
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\test_sotp.py                                                913
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\unit\test_research_and_sotp.py                                1959
+
+
+
+
+VALUATION DEFINITIONS:
+
+Path                                                                                                              LineN
+                                                                                                                  umber
+----                                                                                                              -----
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py     7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py    11
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py    18
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py    22
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py    23
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py    31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py    58
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py            1
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py            2
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py            4
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py            7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py            8
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py            9
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_adapter.py           16
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py             3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py             4
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py            21
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py            26
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py            27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py            31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py            63
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py            66
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py            67
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_engine.py            68
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py           1
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py           2
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py           3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py           4
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py           6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py           7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          11
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          21
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          40
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          44
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          48
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          52
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          53
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          62
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\test_sotp_pipeline.py          71
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                  28
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                  35
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                  58
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                  70
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                  87
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                  97
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 109
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 126
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 147
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 181
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 410
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 414
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 420
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 421
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 423
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 427
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                 429
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1312
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1315
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1317
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1319
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1320
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1321
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1322
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1324
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1325
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1327
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1328
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1329
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1330
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1332
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1333
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1337
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1338
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1342
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1348
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1372
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1384
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1385
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1390
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1391
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1408
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1411
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1437
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1490
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1493
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1495
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1497
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1501
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1503
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1507
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1513
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1519
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1526
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1532
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1534
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1536
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1540
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1541
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1549
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1551
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1558
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1561
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1563
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1565
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1566
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1567
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1568
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1570
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1571
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1573
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1574
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1575
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1576
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1578
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1579
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1583
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1584
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1588
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1618
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1630
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1631
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1636
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1637
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1654
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1657
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1680
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1683
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1715
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1717
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1723
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1729
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1735
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1741
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1748
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1751
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1754
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1756
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1758
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1762
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1770
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\modules\research_before_valuation_cleanup.py                1772
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                  6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                  7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                  9
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 15
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 16
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 20
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 35
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 42
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 45
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 51
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 68
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 70
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 79
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 82
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 88
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 90
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 92
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                 98
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                102
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                153
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                164
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                173
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                174
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                190
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                204
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                206
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                207
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                209
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                214
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                250
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                251
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                257
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                262
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                263
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py             8
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            23
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            34
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            49
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            52
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            60
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            64
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            68
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            72
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            76
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            80
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            92
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            94
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py            99
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           106
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           114
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           132
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           134
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           136
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           149
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           150
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           155
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           165
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           169
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           171
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           174
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           176
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           193
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           249
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_valuation_service_STAGE13A_BACKUP.py           251
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                        4
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       18
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       38
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       39
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       64
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       78
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       80
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       83
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       84
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       85
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       86
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                       87
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      105
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      113
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      152
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      187
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      225
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      260
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      309
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      312
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      315
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      352
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      382
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      396
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      417
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      484
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      489
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      496
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      564
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_BACKUP.py                      600
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                 4
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                18
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                38
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                39
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                64
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                78
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                80
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                83
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                84
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                85
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                86
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py                87
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               105
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               113
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               152
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               187
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               225
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               260
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               309
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               312
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               315
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               352
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               382
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               396
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               417
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               497
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               502
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               509
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               577
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               583
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v4_service_STEP12_BACKUP.py               614
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py                5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py                6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py               10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py               13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py               18
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py               29
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py               94
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py               97
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py              107
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\valuation_v43_service_STEP12_BACKUP.py              113
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                       9
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                      10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                      12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                      14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                      15
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                      27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                      38
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\routers\valuation_router.py                                      45
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py                                              7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py                                             13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py                                             14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py                                             15
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py                                             19
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\api\schemas\valuation.py                                             26
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                         6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                        10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                        11
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                        14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                        21
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                        22
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                        23
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                        35
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\database\repositories\valuation_repository.py                        36
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py                                         7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\dto\valuation_dto.py                                        14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                         8
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                         9
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        11
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        15
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        16
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        19
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        24
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        28
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        34
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        35
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        36
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        44
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        55
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        71
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        78
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        87
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        89
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        90
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        94
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                        99
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                       100
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                       102
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                       111
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                       122
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                       139
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                       141
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\services\valuation_service.py                                       150
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py                                                     3
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py                                                     4
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py                                                    21
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py                                                    26
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py                                                    27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\backend\valuation\sotp.py                                                    31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\exceptions\valuation.py                                                  6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\exceptions\valuation.py                                                  7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                                 12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                                 13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                                 22
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                                 23
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                                 33
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                                 34
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                                 39
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation.py                                                 44
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation_engine.py                                           5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\core\interfaces\valuation_engine.py                                           8
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                    7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                    8
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                   10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                   12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                   13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                   20
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                   31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_BG\valuation_router.py                                   38
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py                8
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py                9
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py               11
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py               13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py               14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py               21
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py               32
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\backend\api\routers\valuation_router.py               39
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                    9
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                   10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                   12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                   14
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                   15
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                   22
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                   33
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\security_backup_31K_CG\valuation_router.py                                   40
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                            7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                           21
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                           37
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                          110
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                          119
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                          121
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                          140
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                          172
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\peer_valuation_service.py                                          174
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                             5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                            33
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                            37
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                            57
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                            65
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                            77
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                           101
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                           103
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                           582
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  17
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  21
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  34
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  46
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  47
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  48
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  79
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  81
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  83
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                  90
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 107
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 112
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 125
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 126
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 230
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 253
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 258
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 260
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 261
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 266
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 278
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 279
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 280
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 367
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 372
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 374
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 376
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 377
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 378
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 381
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 383
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 503
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 504
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 505
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 527
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 528
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 531
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 532
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 533
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 552
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 554
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 555
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 560
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 581
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 588
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 589
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 592
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 600
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 601
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 603
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 604
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 606
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 607
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 611
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block91_portfolio_valuation_engine.py                 612
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                 32
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                 36
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                 40
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                 46
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                 55
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                 66
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                 75
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                209
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                482
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                  5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                  6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 11
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 20
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 23
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 30
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 39
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 40
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 43
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 44
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 45
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 46
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 49
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 50
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 51
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 52
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 55
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 58
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                 59
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                      2
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                      6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                     58
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                     77
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                     79
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                     87
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                     93
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                           1
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                           2
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                           4
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                           5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                           7
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          11
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          13
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          16
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          17
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          25
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          43
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          55
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          59
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          61
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          74
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          78
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          80
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          81
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          88
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                          89
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         128
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         136
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         222
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         225
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         248
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         271
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         292
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         294
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         343
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         382
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         389
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         392
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         394
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         395
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         396
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         432
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         433
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         436
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         439
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         500
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         518
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         519
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         522
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         524
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         531
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         535
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         568
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         576
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         581
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                         582
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py                                 6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py                                22
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py                                31
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py                                49
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py                                52
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py                                58
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_detail_service.py                               248
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       12
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       41
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       53
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       57
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       60
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                       63
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                      209
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                      217
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                           11
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                           26
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                           49
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                           57
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          117
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          120
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          142
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          149
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          153
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          179
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          257
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          259
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          265
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          364
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          366
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          371
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          378
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          464
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          496
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          533
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          538
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          580
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          588
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          668
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          672
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_benchmark_service.py                                          684
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_clock.py                                                        6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                         5
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                         6
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        10
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        21
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        27
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        29
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        33
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        34
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        37
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        83
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        86
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        91
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        92
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                        94
+
+
+
+
+VALUATION CONSUMERS:
+
+Path                                                                                                                   
+----                                                                                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv_wsl\lib\python3.14\site-packages\pip\_vendor\rich\_emoji_codes.py        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_cleanup_20260824\report_generator_pre_sotp_consolidation.py      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\eros3_quarantine_20260904\root_audits\run_gates_96_99.py               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\archive\legacy\services\sotp_equity_bridge_service_BACKUP.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\classification\rule_engine.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\contracts\models.py                                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\decision\stage13c\classification.py                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\EROS_3_0_Block87_Block88_complete\services\quantitative\block88_audit_reconcili
+ation.py                                                                                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\EROS_3_0_Block87_Block88_complete\services\quantitative\block88_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\EROS_3_0_Block87_Block88_complete\services\quantitative\block88_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\EROS_3_0_Block87_Block88_complete\services\quantitative\block88_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\EROS_3_0_Block87_Block88_complete\services\quantitative\block88_test_harness.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block106_102_103_104_106_final_runtime_runner.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_actual_certify_payload_trace.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_actual_certify_payload_trace.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_actual_certify_payload_trace.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_actual_safety_schema_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_complete_real_dataflow_trace.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_complete_real_dataflow_trace.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_complete_safety_dataflow_trace.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_complete_safety_dataflow_trace.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_complete_safety_dataflow_trace.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_deep_safety_contract_audit.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_deep_safety_contract_audit.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_deep_safety_contract_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_deep_safety_contract_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_deep_safety_contract_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_definitive_contract_flow_audit.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_definitive_contract_flow_audit.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_definitive_contract_flow_audit.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_definitive_safety_trace.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_definitive_safety_trace.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_definitive_safety_trace.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_definitive_safety_trace.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_end_to_end_contract_test.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_end_to_end_contract_test.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_end_to_end_contract_test.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_end_to_end_contract_test.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_end_to_end_contract_trace.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_end_to_end_contract_trace.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_end_to_end_contract_trace.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_full_real_contract_safety_diagnostic.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_post_normalization_verification.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_contract_flow_test.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_contract_flow_test.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_contract_flow_test.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_contract_safety_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_contract_safety_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_contract_safety_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_dataflow_audit.py                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_safety_contract_propagation.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_safety_contract_propagation.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_safety_dataflow_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_real_safety_dataflow_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_return_value_safety_test.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_return_value_safety_test.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_safety_contract_construction_audit.py                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_safety_contract_construction_audit.py                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_safety_field_inspection.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_101_safety_propagation_trace.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_architecture_inspection.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_audit.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_contract_certification.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_contract_certification.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_contract_certification.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_contract_certification.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_contract_trace.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_contract_trace.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_contract_trace.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_end_to_end_contract_trace.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_full_contract_safety_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_full_contract_safety_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_full_contract_safety_trace.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_full_end_to_end_trace.py                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block94_106_full_end_to_end_trace.py                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_actual_return_safety_trace.py                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_actual_return_safety_trace_fixed.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_execution_governance_safety_trace.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_execution_governance_safety_trace.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_readonly_audit.py                                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_readonly_audit.py                                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_readonly_return_safety_audit.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_readonly_safety_audit.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_return_safety_trace.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_return_safety_trace.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_runtime_safety_verification.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_runtime_safety_verification.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_runtime_safety_verification.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_safety_discovery.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\block98_safety_discovery.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_94_106_comprehensive_audit.py                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_94_106_end_to_end_certification.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_94_106_end_to_end_certification.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_94_106_end_to_end_certification.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\logs\eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_data_service.py                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_adjustment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_balance_sheet_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_completeness_service.py                                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_debt_like_liability_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_equity_bridge_service.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_evidence_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_overlap_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_overlap_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_overlap_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_financial_asset_policy_service.py                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_classification_service.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_policy_service.py                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_policy_service.py                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_policy_service.py                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_investment_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_liquidity_policy_service.py                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_liquidity_policy_service.py                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_classification_stage_service.py                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_data_service.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_entity_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_interpretation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_overlap_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_reconciliation_service.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_report_service.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_sotp_service.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_long_term_equity_valuation_service.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_net_debt_service.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_net_debt_service.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_net_debt_service.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_net_debt_service.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_net_debt_service.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_policy_service.py                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_scenario_service.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_new_energy_valuation_service.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_accounting_basis_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_accounting_basis_service.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_segment_valuation_service.py                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_validation_service.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp_valuation_service.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\financials\builders.py                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\market_data\pipeline.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block102_frontend_contract.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_execution_bridge.py                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block87_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_audit_reconciliation.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block88_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block89_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_execution_governance_bridge.py                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\block98_test_harness.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_orchestrator.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\quantitative\golden_path_85_94_test_harness.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\scoring\block18_orchestrator.py                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\sotp\sotp_engine.py                                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\blended_engine.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\contracts.py                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_adapter.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf_engine.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_adapter_fix.py                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp_engine.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_input.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_model.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\dcf_result.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\engine.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\forecast.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\models.py                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\professional_engine.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\validation.py                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\dcf\__init__.py                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\nav\nav_model.py                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\engine.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\valuation\sotp\models.py                                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\unit\test_research_and_sotp.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests_legacy\unit\test_research_and_sotp.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\altair\utils\html.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\curl_cffi\requests\streams.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\greenlet\tests\fail_issue_515_freethread_gc.py          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\greenlet\tests\fail_issue_515_freethread_gc.py          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\greenlet\tests\fail_issue_515_freethread_gc.py          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\greenlet\tests\fail_issue_515_freethread_gc.py          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\greenlet\tests\fail_issue_515_freethread_gc.py          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\narwhals\plugins.py                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\core\config.py                                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\cpython\randomimpl.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\cuda\cudadrv\driver.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\tests\test_extending.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\tests\test_extending.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\tests\test_extending.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\tests\test_extending.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\tests\test_extending.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\tests\test_extending.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\tests\test_extending.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numba\tests\test_extending.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numpy\fft\__init__.py                                   
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numpy\lib\_function_base_impl.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numpy\lib\_function_base_impl.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numpy\lib\_function_base_impl.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numpy\lib\_polynomial_impl.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numpy\lib\_polynomial_impl.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numpy\linalg\_linalg.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\numpy\_core\_machar.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pandas\tests\io\xml\test_xml.py                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pip\_vendor\rich\_emoji_codes.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\playhouse\pwasyncio.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\playhouse\pwasyncio.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\playhouse\pwasyncio.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\playhouse\pwasyncio.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\playhouse\pwasyncio.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\playhouse\pwasyncio.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\playhouse\pwasyncio.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\playhouse\pwasyncio.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\c_like.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\dalvik.py                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\igor.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\igor.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\igor.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\jvm.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\objective.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\objective.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\perl.py                                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\_cocoa_builtins.py                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pygments\lexers\_cocoa_builtins.py                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pytz\__init__.py                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\pytz\__init__.py                                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\redis\commands\search\query.py                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\linalg\_basic.py                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\linalg\_decomp_polar.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\linalg\_special_matrices.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\linalg\_special_matrices.py                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_basinhopping.py                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_basinhopping.py                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_basinhopping.py                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_cobyla_py.py                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_minimize.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_minimize.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_minimize.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_optimize.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\optimize\_zeros_py.py                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\signal\windows\_windows.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\signal\windows\_windows.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\signal\windows\_windows.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\signal\windows\_windows.py                        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\spatial\transform\_rigid_transform.py             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\special\_add_newdocs.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\special\_add_newdocs.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\special\_add_newdocs.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\special\_add_newdocs.py                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\stats\qmc.py                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\stats\qmc.py                                      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\stats\_mgc.py                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\venv\Lib\site-packages\scipy\stats\_mgc.py                                     
+
+
+
+
+NEW EROS VALUATION TREE:
+
+FullName                                                                  Length
+--------                                                                  ------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py           1663
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py            45
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py     1628
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py     37
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py         578
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__init__.py        37
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py        681
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__init__.py       38
+
+
+
+
+GIT STATUS:
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+

@@ -1,0 +1,75 @@
+﻿domain/valuation/result.py:21:    implied_share_price: float = 0.0
+services/report/engine.py:24:- **Blended Fair Value**: Rs.{analysis_data.get('blended_fair_value', 1650.0):,.2f}
+services/report/engine.py:42:    <p><b>Blended Fair Value:</b> Rs.{analysis_data.get('blended_fair_value', 1650.0):,.2f}</p>
+services/scoring/engine.py:19:def _score_valuation(implied_share_price: float) -> float:
+services/scoring/engine.py:28:    return 60.0 if float(implied_share_price) > 0.0 else 0.0
+services/scoring/engine.py:67:        valuation_score = _score_valuation(val_res.implied_share_price)
+services/scoring/engine.py:145:                "implied_share_price": val_res.implied_share_price,
+services/sotp_completeness_service.py:185:        "provisional_fair_value_per_share": (bridge.get("fair_value_per_share")),
+services/sotp_equity_bridge_service.py:171:            fair_value_per_share = None
+services/sotp_equity_bridge_service.py:176:                fair_value_per_share = _crore_to_rupees(equity_value) / shares
+services/sotp_equity_bridge_service.py:179:                fair_value_per_share is not None
+services/sotp_equity_bridge_service.py:184:                upside_percent = (fair_value_per_share / current_price - 1) * 100
+services/sotp_equity_bridge_service.py:192:                "fair_value_per_share": (_round(fair_value_per_share)),
+services/sotp_long_term_equity_valuation_service.py:26:    implied_share_price: float
+services/sotp_long_term_equity_valuation_service.py:234:            implied_share_price=implied_price,
+services/sotp_validation_service.py:169:    headline_fair_value = _num(valuation.get("fair_value_per_share"))
+services/sotp_validation_service.py:183:                base.get("fair_value_per_share"),
+services/sotp_validation_service.py:357:            "calculated_fair_value_per_share": (
+services/sotp_validation_service.py:362:            "reported_fair_value_per_share": (headline_fair_value),
+services/sotp_valuation_service.py:370:            "fair_value_per_share": (_safe_float(scenario.get("fair_value_per_share"))),
+services/sotp_valuation_service.py:387:    base_fair_value = _safe_float(base_case.get("fair_value_per_share"))
+services/sotp_valuation_service.py:441:        "fair_value_per_share": (base_fair_value),
+services/valuation/blended_engine.py:14:class BlendedValuationResult:
+services/valuation/blended_engine.py:19:    blended_fair_value: float
+services/valuation/blended_engine.py:22:class BlendedValuationEngine:
+services/valuation/blended_engine.py:41:    ) -> BlendedValuationResult:
+services/valuation/blended_engine.py:58:        dcf_val = dcf_res.fair_value_per_share
+services/valuation/blended_engine.py:60:        sotp_val = sotp_res.fair_value_per_share
+services/valuation/blended_engine.py:64:        return BlendedValuationResult(
+services/valuation/blended_engine.py:69:            blended_fair_value=round(blended, 2),
+services/valuation/comparable/comparable_model.py:116:        implied_share_price = recommended_equity / target.shares_outstanding
+services/valuation/comparable/comparable_model.py:133:            implied_share_price=implied_share_price,
+services/valuation/comparable/comparable_result.py:56:    implied_share_price: float
+services/valuation/comparable/comparable_result.py:88:            "share_price": self.implied_share_price,
+services/valuation/contracts.py:72:    implied_share_price: float = 0.0
+services/valuation/dcf/dcf_model.py:121:        implied_share_price = equity_value / self.data.shares_outstanding
+services/valuation/dcf/dcf_model.py:160:            implied_share_price=implied_share_price,
+services/valuation/dcf/dcf_model.py:169:                "price_matrix": sensitivity.implied_share_price_matrix,
+services/valuation/dcf/dcf_result.py:87:    implied_share_price: float
+services/valuation/dcf/dcf_result.py:145:            "share_price": self.implied_share_price,
+services/valuation/dcf/engine.py:42:        fair_value_per_share = max(0.0, equity_value / shares_outstanding) if shares_outstanding > 0 else 0.0
+services/valuation/dcf/engine.py:48:            fair_value_per_share=round(fair_value_per_share, 2),
+services/valuation/dcf/models.py:13:    fair_value_per_share: float
+services/valuation/dcf/professional_engine.py:15:    fair_value_per_share: float
+services/valuation/dcf/professional_engine.py:46:        fair_value_per_share = equity_value / shares_outstanding if shares_outstanding > 0 else 0.0
+services/valuation/dcf/professional_engine.py:73:            fair_value_per_share=round(fair_value_per_share, 2),
+services/valuation/dcf/sensitivity.py:40:    implied_share_price_matrix: list[list[float]]
+services/valuation/dcf/sensitivity.py:132:        implied_share_price_matrix=matrix,
+services/valuation/dcf_adapter.py:72:            implied_share_price=dcf_result.implied_share_price,
+services/valuation/dcf_engine.py:161:            implied_share_price=result.implied_share_price,
+services/valuation/engine.py:54:        blended_fair_value = round((dcf_implied * 0.4) + (pe_implied * 0.3) + (ev_ebitda_implied * 0.3), 2)
+services/valuation/engine.py:56:        mos_pct = round(((blended_fair_value - current_price) / current_price) * 100.0, 2)
+services/valuation/engine.py:64:            blended_fair_value=blended_fair_value,
+services/valuation/models.py:32:    blended_fair_value: float
+services/valuation/nav/nav_engine.py:58:                "implied_share_price": nav_res.implied_share_price,
+services/valuation/nav/nav_model.py:130:            implied_share_price=share_price,
+services/valuation/nav/nav_result.py:56:    implied_share_price: float
+services/valuation/nav/nav_result.py:83:            "share_price": self.implied_share_price,
+services/valuation/nav/sensitivity.py:42:    implied_share_price_matrix: list[list[float]]
+services/valuation/nav/sensitivity.py:113:        implied_share_price_matrix=price_matrix,
+services/valuation/nav_engine.py:37:            implied_share_price=res.implied_share_price,
+services/valuation/service.py:47:        fair_value = dcf_result.fair_value_per_share
+services/valuation/service.py:54:                "blended_fair_value": fair_value,
+services/valuation/sotp/engine.py:55:        fair_value_per_share = max(0.0, discounted_equity_value / shares_outstanding) if shares_outstanding > 0 else 0.0
+services/valuation/sotp/engine.py:64:            fair_value_per_share=round(fair_value_per_share, 2),
+services/valuation/sotp/models.py:26:    fair_value_per_share: float = 0.0
+services/valuation/sotp_engine.py:47:            implied_share_price=res.implied_share_price,
+tests/scoring/test_block13_valuation_scoring.py:58:    assert result.breakdown_details["valuation_engine"]["blended_fair_value"] > 0
+tests/test_pipeline.py:87:        assert valuation_events[0].payload["blended_fair_value"] > 0.0
+tests/valuation/test_blended_valuation.py:2:from services.valuation.blended_engine import BlendedValuationEngine
+tests/valuation/test_blended_valuation.py:5:    engine = BlendedValuationEngine()
+tests/valuation/test_blended_valuation.py:57:    assert result.blended_fair_value > 0
+tests/valuation/test_dcf.py:21:    assert result.fair_value_per_share > 0.0
+tests/valuation/test_professional_dcf.py:18:    assert result.fair_value_per_share > 0
+tests/valuation/test_sotp.py:58:    assert result.fair_value_per_share > 0.0

@@ -1,0 +1,95 @@
+﻿"""EROS valuation execution adapter."""
+
+from typing import Any
+
+from eros.valuation.bridge import build_bridge
+from eros.valuation.dcf import evaluate_dcf
+from eros.valuation.sotp import evaluate_sotp
+
+
+def valuation_available(data: Any) -> bool:
+    if not isinstance(data, dict):
+        return False
+
+    if not data:
+        return False
+
+    # A valuation payload must contain at least one useful
+    # valuation input. Empty API calls must remain safe.
+    valuation_keys = {
+        "company_name",
+        "shares_outstanding",
+        "dcf_segments",
+        "other_segments",
+        "holdco_discount",
+        "revenue",
+        "ebitda",
+        "ebit",
+        "pat",
+        "free_cash_flow",
+    }
+
+    return any(
+        key in data and data.get(key) is not None
+        for key in valuation_keys
+    )
+
+
+def evaluate_valuation(
+    data: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+):
+    """
+    Execute SOTP and DCF independently and preserve both results
+    inside the EROS valuation boundary.
+    """
+
+    if not valuation_available(data):
+        return build_bridge(
+            sotp=None,
+            dcf=None,
+            provenance={
+                **(provenance or {}),
+                "valuation_status": "INPUT_REQUIRED",
+            },
+        )
+
+    sotp_result = None
+    dcf_result = None
+    warnings = []
+
+    # SOTP
+    try:
+        sotp_result = evaluate_sotp(data)
+    except Exception as exc:
+        warnings.append(
+            f"SOTP valuation failed: {type(exc).__name__}: {exc}"
+        )
+
+    # DCF
+    try:
+        dcf_result = evaluate_dcf(data)
+    except Exception as exc:
+        warnings.append(
+            f"DCF valuation failed: {type(exc).__name__}: {exc}"
+        )
+
+    bridge = build_bridge(
+        sotp=sotp_result,
+        dcf=dcf_result,
+        provenance={
+            **(provenance or {}),
+            "valuation_status": "EXECUTED",
+            "sotp_executed": sotp_result is not None,
+            "dcf_executed": dcf_result is not None,
+            "warnings": warnings,
+        },
+    )
+
+    return bridge
+
+
+__all__ = [
+    "evaluate_valuation",
+    "valuation_available",
+]

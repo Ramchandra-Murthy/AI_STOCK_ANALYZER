@@ -1,0 +1,636 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.2 EXACT FAILURE ISOLATION
+============================================================
+BRANCH: rebuild/eros-3-0-clean
+
+===== PYTHON CACHE =====
+CLEANED
+
+===== EROS VALUATION SOURCE TREE =====
+
+FullName                                                                  Length
+--------                                                                  ------
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py           146
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\adapter.py           2170
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\__init__.py    193
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\bridge\engine.py      913
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\__init__.py       131
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\dcf\engine.py         435
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\__init__.py      135
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\sotp\engine.py        445
+
+
+
+
+===== eros\valuation\adapter.py =====
+"""EROS valuation execution adapter."""
+
+from typing import Any
+
+from eros.valuation.bridge import build_bridge
+from eros.valuation.dcf import evaluate_dcf
+from eros.valuation.sotp import evaluate_sotp
+
+
+def valuation_available(data: Any) -> bool:
+    if not isinstance(data, dict):
+        return False
+
+    if not data:
+        return False
+
+    # A valuation payload must contain at least one useful
+    # valuation input. Empty API calls must remain safe.
+    valuation_keys = {
+        "company_name",
+        "shares_outstanding",
+        "dcf_segments",
+        "other_segments",
+        "holdco_discount",
+        "revenue",
+        "ebitda",
+        "ebit",
+        "pat",
+        "free_cash_flow",
+    }
+
+    return any(
+        key in data and data.get(key) is not None
+        for key in valuation_keys
+    )
+
+
+def evaluate_valuation(
+    data: dict[str, Any],
+    provenance: dict[str, Any] | None = None,
+):
+    """
+    Execute SOTP and DCF independently and preserve both results
+    inside the EROS valuation boundary.
+    """
+
+    if not valuation_available(data):
+        return build_bridge(
+            sotp=None,
+            dcf=None,
+            provenance={
+                **(provenance or {}),
+                "valuation_status": "INPUT_REQUIRED",
+            },
+        )
+
+    sotp_result = None
+    dcf_result = None
+    warnings = []
+
+    # SOTP
+    try:
+        sotp_result = evaluate_sotp(data)
+    except Exception as exc:
+        warnings.append(
+            f"SOTP valuation failed: {type(exc).__name__}: {exc}"
+        )
+
+    # DCF
+    try:
+        dcf_result = evaluate_dcf(data)
+    except Exception as exc:
+        warnings.append(
+            f"DCF valuation failed: {type(exc).__name__}: {exc}"
+        )
+
+    bridge = build_bridge(
+        sotp=sotp_result,
+        dcf=dcf_result,
+        provenance={
+            **(provenance or {}),
+            "valuation_status": "EXECUTED",
+            "sotp_executed": sotp_result is not None,
+            "dcf_executed": dcf_result is not None,
+            "warnings": warnings,
+        },
+    )
+
+    return bridge
+
+
+__all__ = [
+    "evaluate_valuation",
+    "valuation_available",
+]
+
+
+===== eros\valuation\sotp\engine.py =====
+"""EROS SOTP valuation boundary."""
+
+from typing import Any
+
+from services.valuation.sotp_engine import SOTPValuationEngine
+
+
+def evaluate_sotp(data: dict[str, Any]):
+    """
+    Execute the canonical SOTP engine.
+
+    EROS owns the boundary only.
+    SOTP mathematics remains in services.valuation.sotp_engine.
+    """
+    engine = SOTPValuationEngine()
+    return engine.evaluate(data)
+
+
+__all__ = ["evaluate_sotp", "SOTPValuationEngine"]
+
+
+===== eros\valuation\dcf\engine.py =====
+"""EROS DCF valuation boundary."""
+
+from typing import Any
+
+from services.valuation.dcf_engine import DCFValuationEngine
+
+
+def evaluate_dcf(data: dict[str, Any]):
+    """
+    Execute the canonical DCF engine.
+
+    EROS owns the boundary only.
+    DCF mathematics remains in services.valuation.dcf_engine.
+    """
+    engine = DCFValuationEngine()
+    return engine.evaluate(data)
+
+
+__all__ = ["evaluate_dcf", "DCFValuationEngine"]
+
+
+===== eros\valuation\bridge\engine.py =====
+"""EROS valuation bridge.
+
+The bridge intentionally preserves SOTP and DCF independently.
+It does not calculate a simple average.
+"""
+
+from dataclasses import dataclass
+from typing import Any
+
+
+@dataclass
+class ValuationBoundary:
+    sotp: Any = None
+    dcf: Any = None
+    provenance: dict[str, Any] | None = None
+
+
+def create_valuation_boundary(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    return ValuationBoundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance or {},
+    )
+
+
+def build_bridge(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    return create_valuation_boundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "ValuationBoundary",
+    "create_valuation_boundary",
+    "build_bridge",
+]
+
+
+===== eros\valuation\__init__.py =====
+from .adapter import (
+    evaluate_valuation,
+    valuation_available,
+)
+
+__all__ = [
+    "evaluate_valuation",
+    "valuation_available",
+]
+
+
+===== eros\valuation\sotp\__init__.py =====
+from .engine import (
+    SOTPValuationEngine,
+    evaluate_sotp,
+)
+
+__all__ = [
+    "SOTPValuationEngine",
+    "evaluate_sotp",
+]
+
+
+===== eros\valuation\dcf\__init__.py =====
+from .engine import (
+    DCFValuationEngine,
+    evaluate_dcf,
+)
+
+__all__ = [
+    "DCFValuationEngine",
+    "evaluate_dcf",
+]
+
+
+===== eros\valuation\bridge\__init__.py =====
+from .engine import (
+    ValuationBoundary,
+    build_bridge,
+    create_valuation_boundary,
+)
+
+__all__ = [
+    "ValuationBoundary",
+    "build_bridge",
+    "create_valuation_boundary",
+]
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_foundation.py =====
+from eros.api.service import evaluate
+from eros.decision.pipeline import (
+    create_context,
+    finalize,
+    run_foundation,
+)
+
+
+def test_empty_symbol_rejected():
+    try:
+        create_context("")
+    except ValueError:
+        return
+
+    raise AssertionError("Empty symbol must be rejected")
+
+
+def test_context_symbol_normalized():
+    context = create_context(" reliance ")
+    assert context.symbol == "RELIANCE"
+
+
+def test_empty_input_is_safe():
+    result = evaluate("RELIANCE")
+
+    assert result["symbol"] == "RELIANCE"
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["warnings"]
+
+
+def test_foundation_does_not_execute_without_data():
+    context = create_context("RELIANCE")
+
+    run_foundation(context)
+
+    assert context.status == "INPUT_REQUIRED"
+    assert context.score is None
+    assert context.risk is None
+    assert context.financials is None
+
+
+def test_finalize_unexecuted_context_is_not_complete():
+    context = create_context("RELIANCE")
+
+    result = finalize(context)
+
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["warnings"]
+
+
+def test_api_result_contains_provenance():
+    result = evaluate("reliance")
+
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+    assert result["provenance"]["symbol"] == "RELIANCE"
+    assert result["provenance"]["pipeline_status"] == "INPUT_REQUIRED"
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py =====
+from eros.valuation import ValuationBoundary
+
+
+def test_empty_valuation_input_is_safe():
+    result = ValuationBoundary().evaluate({})
+
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["sotp"] is None
+    assert result["dcf"] is None
+    assert result["warnings"]
+
+
+def test_partial_valuation_input_does_not_create_fake_values():
+    result = ValuationBoundary().evaluate(
+        {
+            "sotp": None,
+            "dcf": None,
+        }
+    )
+
+    assert result["status"] == "INPUT_REQUIRED"
+    assert result["sotp"] is None
+    assert result["dcf"] is None
+
+
+def test_valuation_boundary_exposes_independent_authorities():
+    boundary = ValuationBoundary()
+
+    assert hasattr(boundary, "evaluate_sotp")
+    assert hasattr(boundary, "evaluate_dcf")
+
+
+def test_sotp_engine_import_is_canonical():
+    from services.valuation.sotp_engine import SOTPValuationEngine
+
+    engine = SOTPValuationEngine()
+
+    assert engine.valuation_method == "SOTP"
+
+
+def test_dcf_engine_import_is_canonical():
+    from services.valuation.dcf_engine import DCFValuationEngine
+
+    engine = DCFValuationEngine()
+
+    assert engine.valuation_method == "DCF"
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_execution.py =====
+from eros.decision.pipeline import (
+    create_context,
+    finalize,
+    run_foundation,
+    run_valuation,
+)
+
+
+def test_valuation_is_not_run_without_foundation():
+    context = create_context("RELIANCE")
+
+    run_valuation(context)
+
+    assert context.sotp is None
+    assert context.dcf is None
+    assert context.valuation_bridge is None
+    assert context.warnings
+
+
+def test_empty_evaluate_path_remains_safe():
+    context = create_context("RELIANCE")
+
+    run_foundation(context)
+    run_valuation(context)
+
+    assert context.status == "INPUT_REQUIRED"
+    assert context.sotp is None
+    assert context.dcf is None
+
+
+def test_valuation_boundary_preserves_independence():
+    context = create_context("RELIANCE")
+
+    raw = {
+        "data": {
+            "company_name": "Reliance Industries",
+            "shares_outstanding": 100.0,
+            "dcf_segments": [],
+            "other_segments": [],
+            "holdco_discount": 0.0,
+        }
+    }
+
+    run_foundation(context, raw)
+    run_valuation(context)
+
+    # The exact legacy engines may reject incomplete valuation
+    # data, but the EROS boundary must remain intact.
+    if context.valuation_bridge is not None:
+        assert hasattr(context.valuation_bridge, "sotp")
+        assert hasattr(context.valuation_bridge, "dcf")
+        assert context.sotp is context.valuation_bridge.sotp
+        assert context.dcf is context.valuation_bridge.dcf
+
+
+def test_finalize_still_exposes_valuation_fields():
+    context = create_context("RELIANCE")
+
+    result = finalize(context)
+
+    assert "sotp" in result
+    assert "dcf" in result
+    assert "valuation_bridge" in result
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_provenance.py =====
+from eros.api.service import evaluate
+
+
+def test_pipeline_result_preserves_eros_provenance():
+    result = evaluate("RELIANCE")
+
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+    assert result["provenance"]["symbol"] == "RELIANCE"
+
+
+===== TEST: D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\unit\test_pipeline.py =====
+from eros.api.service import evaluate
+from eros.decision.pipeline import create_context
+
+
+def test_context():
+    context = create_context("RELIANCE")
+
+    assert context.symbol == "RELIANCE"
+    assert context.status == "INITIALIZED"
+
+
+def test_finalize():
+    result = evaluate("RELIANCE")
+
+    assert result["symbol"] == "RELIANCE"
+
+    # No financial payload was supplied.
+    # EROS must not claim that evaluation completed.
+    assert result["status"] == "INPUT_REQUIRED"
+
+    assert result["warnings"]
+
+    assert result["provenance"]["orchestrator"] == "EROS_3.0"
+    assert result["provenance"]["pipeline_status"] == "INPUT_REQUIRED"
+
+
+===== CANONICAL ENGINE IMPORT =====
+python :   File "<string>", line 4
+At line:121 char:17
++ $importOutput = python -c @"
++                 ~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 4:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(CANONICAL
+         ^
+SyntaxError: '(' was never closed
+
+EXIT CODE: 1
+
+===== EROS VALUATION IMPORT =====
+python :   File "<string>", line 13
+At line:146 char:15
++ $erosImport = python -c @"
++               ~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 13:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    print(evaluate_sotp:, evaluate_sotp)
+                       ^
+SyntaxError: invalid syntax
+
+EXIT CODE: 1
+
+===== EMPTY VALUATION TEST =====
+python :   File "<string>", line 5
+At line:185 char:14
++ $emptyTest = python -c @"
++              ~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "<string>", line 5:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    provenance={orchestrator: EROS_3.0}
+                              ^^^^^^^^
+SyntaxError: invalid syntax. Perhaps you forgot a comma?
+
+EXIT CODE: 1
+
+===== FULL EROS PYTEST =====
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-9.1.1, pluggy-1.6.0 -- D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.14.2, cov-7.1.0
+collecting ... collected 13 items / 1 error
+
+=================================== ERRORS ====================================
+_____ ERROR collecting eros/tests/integration/test_valuation_boundary.py ______
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+.venv\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1395: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+.venv\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+eros\tests\integration\test_valuation_boundary.py:1: in <module>
+    from eros.valuation import ValuationBoundary
+E   ImportError: cannot import name 'ValuationBoundary' from 'eros.valuation' (D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py)
+=========================== short test summary info ===========================
+ERROR eros/tests/integration/test_valuation_boundary.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 0.68s ===============================
+
+PYTEST EXIT CODE: 2
+
+===== VALUATION TESTS ONLY =====
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-9.1.1, pluggy-1.6.0 -- D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.14.2, cov-7.1.0
+collecting ... collected 5 items / 1 error
+
+=================================== ERRORS ====================================
+_____ ERROR collecting eros/tests/integration/test_valuation_boundary.py ______
+ImportError while importing test module 'D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\tests\integration\test_valuation_boundary.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+.venv\Lib\site-packages\_pytest\python.py:508: in importtestmodule
+    mod = import_path(
+.venv\Lib\site-packages\_pytest\pathlib.py:596: in import_path
+    importlib.import_module(module_name)
+C:\Users\Ramchandra Murthy\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1395: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+.venv\Lib\site-packages\_pytest\assertion\rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+eros\tests\integration\test_valuation_boundary.py:1: in <module>
+    from eros.valuation import ValuationBoundary
+E   ImportError: cannot import name 'ValuationBoundary' from 'eros.valuation' (D:\Users\User\Desktop\AI_STOCK_ANALYZER\eros\valuation\__init__.py)
+=========================== short test summary info ===========================
+ERROR eros/tests/integration/test_valuation_boundary.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+============================== 1 error in 0.49s ===============================
+
+VALUATION PYTEST EXIT CODE: 2
+
+===== PIPELINE TESTS =====
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-9.1.1, pluggy-1.6.0 -- D:\Users\User\Desktop\AI_STOCK_ANALYZER\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.14.2, cov-7.1.0
+collecting ... collected 2 items
+
+eros/tests/unit/test_pipeline.py::test_context PASSED                    [ 50%]
+eros/tests/unit/test_pipeline.py::test_finalize PASSED                   [100%]
+
+============================== 2 passed in 0.26s ==============================
+
+PIPELINE EXIT CODE: 0
+
+===== GIT STATUS =====
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 6C.2
+============================================================
+

@@ -1,0 +1,192 @@
+﻿"""EROS valuation boundary.
+
+This module defines the canonical EROS-facing valuation boundary.
+
+Important architectural rule:
+    EROS orchestrates valuation.
+    Legacy valuation engines remain the authorities for mathematics.
+
+The boundary preserves SOTP and DCF independently.
+It never calculates a simple mean or replaces either authority.
+"""
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class ValuationBoundary:
+    """Executable EROS valuation boundary.
+
+    The boundary can be used in two ways:
+
+    1. As a container for already-computed SOTP/DCF results.
+    2. As the executable boundary through evaluate(),
+       evaluate_sotp(), and evaluate_dcf().
+
+    No valuation mathematics lives here.
+    """
+
+    sotp: Any = None
+    dcf: Any = None
+    provenance: dict[str, Any] = field(default_factory=dict)
+
+    def evaluate_sotp(self, data: dict[str, Any] | None = None):
+        """Execute the canonical SOTP authority.
+
+        The actual SOTP mathematics remains in:
+            services.valuation.sotp_engine
+        """
+
+        from eros.valuation.sotp import evaluate_sotp
+
+        if data is None:
+            data = {}
+
+        try:
+            self.sotp = evaluate_sotp(data)
+            return self.sotp
+        except Exception as exc:
+            self.provenance["sotp_error"] = (
+                f"{type(exc).__name__}: {exc}"
+            )
+            self.sotp = None
+            return None
+
+    def evaluate_dcf(self, data: dict[str, Any] | None = None):
+        """Execute the canonical DCF authority.
+
+        The actual DCF mathematics remains in:
+            services.valuation.dcf_engine
+        """
+
+        from eros.valuation.dcf import evaluate_dcf
+
+        if data is None:
+            data = {}
+
+        try:
+            self.dcf = evaluate_dcf(data)
+            return self.dcf
+        except Exception as exc:
+            self.provenance["dcf_error"] = (
+                f"{type(exc).__name__}: {exc}"
+            )
+            self.dcf = None
+            return None
+
+    def evaluate(
+        self,
+        data: dict[str, Any] | None = None,
+        provenance: dict[str, Any] | None = None,
+    ):
+        """Execute valuation safely and preserve SOTP/DCF independently.
+
+        Empty or unusable input must not manufacture valuation values.
+
+        No averaging is performed.
+        """
+
+        if data is None:
+            data = {}
+
+        if not isinstance(data, dict) or not data:
+            self.sotp = None
+            self.dcf = None
+
+            self.provenance = {
+                **(provenance or {}),
+                "valuation_status": "INPUT_REQUIRED",
+                "sotp_executed": False,
+                "dcf_executed": False,
+            }
+
+            return self
+
+        # Explicit partial boundary payloads are also safe.
+        # If the caller provides only the already-computed boundary
+        # fields, preserve them without inventing values.
+        if set(data.keys()).issubset({"sotp", "dcf", "provenance"}):
+            self.sotp = data.get("sotp")
+            self.dcf = data.get("dcf")
+
+            supplied_provenance = data.get("provenance")
+            if isinstance(supplied_provenance, dict):
+                self.provenance = {
+                    **(provenance or {}),
+                    **supplied_provenance,
+                    "valuation_status": "PRESERVED",
+                }
+            else:
+                self.provenance = {
+                    **(provenance or {}),
+                    "valuation_status": "PRESERVED",
+                }
+
+            return self
+
+        warnings = []
+
+        self.provenance = {
+            **(provenance or {}),
+            "valuation_status": "EXECUTED",
+        }
+
+        # SOTP and DCF are deliberately executed independently.
+        try:
+            self.evaluate_sotp(data)
+        except Exception as exc:
+            warnings.append(
+                f"SOTP valuation failed: {type(exc).__name__}: {exc}"
+            )
+
+        try:
+            self.evaluate_dcf(data)
+        except Exception as exc:
+            warnings.append(
+                f"DCF valuation failed: {type(exc).__name__}: {exc}"
+            )
+
+        self.provenance["sotp_executed"] = self.sotp is not None
+        self.provenance["dcf_executed"] = self.dcf is not None
+        self.provenance["warnings"] = warnings
+
+        return self
+
+
+def create_valuation_boundary(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    """Create an EROS valuation boundary."""
+
+    return ValuationBoundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance or {},
+    )
+
+
+def build_bridge(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    """Build the valuation bridge.
+
+    SOTP and DCF remain separate authorities.
+    """
+
+    return create_valuation_boundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "ValuationBoundary",
+    "create_valuation_boundary",
+    "build_bridge",
+]

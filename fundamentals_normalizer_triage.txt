@@ -1,0 +1,563 @@
+﻿===== EROS NEXT TARGET: FUNDAMENTALS NORMALIZER =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+===== FILE =====
+
+
+FullName      : D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\fundamentals\normalizer.py
+Length        : 12800
+LastWriteTime : 06-09-2026 06:12:51 PM
+
+
+
+
+===== GIT DIFF STAT =====
+git : warning: in the working copy of 'services/fundamentals/normalizer.py', LF will be replaced by CRLF the next time Git touches it
+At line:11 char:6
++     (git diff --stat -- .\services\fundamentals\normalizer.py 2>&1 |  ...
++      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ services/fundamentals/normalizer.py | 406 ++++++++++++++++++++++++++----------
+ 1 file changed, 292 insertions(+), 114 deletions(-)
+
+===== DIFF =====
+git : warning: in the working copy of 'services/fundamentals/normalizer.py', LF will be replaced by CRLF the next time Git touches it
+At line:14 char:6
++     (git diff -- .\services\fundamentals\normalizer.py 2>&1 | Out-Str ...
++      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/services/fundamentals/normalizer.py b/services/fundamentals/normalizer.py
+index dd8423b..5cddfee 100644
+--- a/services/fundamentals/normalizer.py
++++ b/services/fundamentals/normalizer.py
+@@ -3,22 +3,34 @@
+ import logging
+ from typing import Any
+ 
+-from services.fundamentals.models import (
+-    BalanceSheet,
+-    CashFlowStatement,
++from services.financials.balance_sheet import BalanceSheet
++from services.financials.cash_flow import CashFlowStatement
++from services.financials.financial_statement import (
+     FinancialStatements,
++    PeriodFinancials,
+ )
+ from services.financials.income_statement import IncomeStatement
+ 
+ logger = logging.getLogger(__name__)
+ 
+ 
++def _float(value: Any) -> float:
++    """Safely convert provider values to float."""
++    if value is None:
++        return 0.0
++
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return 0.0
++
++
+ class FinancialNormalizer:
+-    """Normalize provider payloads into canonical FinancialStatements objects."""
++    """Normalize provider payloads into canonical FinancialStatements."""
+ 
+     def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+-        symbol = raw_data.get("symbol", "RELIANCE.NS")
+-        provider = raw_data.get("provider", "YahooFinance")
++        symbol = str(raw_data.get("symbol", "RELIANCE.NS"))
++        provider = str(raw_data.get("provider", "YahooFinance"))
+ 
+         logger.info(
+             "Normalizing financial data for symbol: %s from provider: %s",
+@@ -26,6 +38,8 @@ class FinancialNormalizer:
+             provider,
+         )
+ 
++        # Support both current plural provider payloads
++        # and legacy singular payloads.
+         raw_income = raw_data.get("income_statements")
+         if raw_income is None:
+             legacy_income = raw_data.get("income_statement", {})
+@@ -41,122 +55,286 @@ class FinancialNormalizer:
+             legacy_cashflow = raw_data.get("cash_flow", {})
+             raw_cashflow = [legacy_cashflow] if legacy_cashflow else []
+ 
+-        income_statements = []
+-
+-        for item in raw_income:
+-            income_statements.append(
+-                IncomeStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    revenue=float(item.get("revenue", 0.0)),
+-                    other_operating_income=float(
+-                        item.get("other_operating_income", 0.0)
+-                    ),
+-                    total_operating_income=float(
+-                        item.get(
+-                            "total_operating_income",
+-                            item.get("operating_income", 0.0),
+-                        )
+-                    ),
+-                    cost_of_goods_sold=float(
+-                        item.get("cost_of_goods_sold", 0.0)
+-                    ),
+-                    operating_expenses=float(
+-                        item.get("operating_expenses", 0.0)
+-                    ),
+-                    depreciation_and_amortization=float(
+-                        item.get("depreciation_and_amortization", 0.0)
+-                    ),
+-                    ebitda=float(item.get("ebitda", 0.0)),
+-                    ebit=float(item.get("ebit", 0.0)),
+-                    finance_cost=float(item.get("finance_cost", 0.0)),
+-                    finance_income=float(item.get("finance_income", 0.0)),
+-                    profit_before_tax=float(
+-                        item.get("profit_before_tax", 0.0)
+-                    ),
+-                    tax_expense=float(item.get("tax_expense", 0.0)),
+-                    net_income=float(item.get("net_income", 0.0)),
+-                    shares_outstanding=float(
+-                        item.get("shares_outstanding", 0.0)
+-                    ),
+-                    eps=float(item.get("eps", 0.0)),
+-                )
++        income_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_income
++        }
++
++        balance_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_balance
++        }
++
++        cashflow_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_cashflow
++        }
++
++        periods = sorted(
++            set(income_by_period)
++            | set(balance_by_period)
++            | set(cashflow_by_period)
++        )
++
++        period_financials: list[PeriodFinancials] = []
++
++        for period in periods:
++            income_raw = income_by_period.get(period, {})
++            balance_raw = balance_by_period.get(period, {})
++            cashflow_raw = cashflow_by_period.get(period, {})
++
++            income = IncomeStatement(
++                period=period,
++                revenue=_float(income_raw.get("revenue")),
++                operating_income=_float(
++                    income_raw.get("operating_income")
++                ),
++                other_operating_income=_float(
++                    income_raw.get("other_operating_income")
++                ),
++                total_operating_income=_float(
++                    income_raw.get(
++                        "total_operating_income",
++                        income_raw.get("operating_income"),
++                    )
++                ),
++                cost_of_goods_sold=_float(
++                    income_raw.get("cost_of_goods_sold")
++                ),
++                operating_expenses=_float(
++                    income_raw.get("operating_expenses")
++                ),
++                depreciation_and_amortization=_float(
++                    income_raw.get("depreciation_and_amortization")
++                ),
++                ebitda=_float(income_raw.get("ebitda")),
++                ebit=_float(income_raw.get("ebit")),
++                finance_cost=_float(income_raw.get("finance_cost")),
++                finance_income=_float(income_raw.get("finance_income")),
++                profit_before_tax=_float(
++                    income_raw.get("profit_before_tax")
++                ),
++                tax_expense=_float(income_raw.get("tax_expense")),
++                net_income=_float(income_raw.get("net_income")),
++                shares_outstanding=_float(
++                    income_raw.get("shares_outstanding")
++                ),
++                eps=_float(income_raw.get("eps")),
+             )
+ 
+-        balance_sheets = []
+-
+-        for item in raw_balance:
+-            balance_sheets.append(
+-                BalanceSheet(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    cash=float(item.get("cash", 0.0)),
+-                    cash_equivalents=float(
+-                        item.get("cash_equivalents", 0.0)
+-                    ),
+-                    short_term_investments=float(
+-                        item.get("short_term_investments", 0.0)
+-                    ),
+-                    accounts_receivable=float(
+-                        item.get("accounts_receivable", 0.0)
+-                    ),
+-                    inventory=float(item.get("inventory", 0.0)),
+-                    total_current_assets=float(
+-                        item.get("total_current_assets", 0.0)
+-                    ),
+-                    total_assets=float(item.get("total_assets", 0.0)),
+-                    short_term_debt=float(
+-                        item.get("short_term_debt", 0.0)
+-                    ),
+-                    total_current_liabilities=float(
+-                        item.get("total_current_liabilities", 0.0)
+-                    ),
+-                    long_term_debt=float(
+-                        item.get(
+-                            "long_term_debt",
+-                            item.get("debt", 0.0),
+-                        )
+-                    ),
+-                    total_liabilities=float(
+-                        item.get("total_liabilities", 0.0)
+-                    ),
+-                    total_equity=float(
+-                        item.get(
+-                            "total_equity",
+-                            item.get("shareholders_equity", 0.0),
+-                        )
+-                    ),
+-                )
++            balance = BalanceSheet(
++                period=period,
++                cash=_float(balance_raw.get("cash")),
++                cash_equivalents=_float(
++                    balance_raw.get("cash_equivalents")
++                ),
++                short_term_investments=_float(
++                    balance_raw.get("short_term_investments")
++                ),
++                accounts_receivable=_float(
++                    balance_raw.get("accounts_receivable")
++                ),
++                inventory=_float(balance_raw.get("inventory")),
++                other_current_assets=_float(
++                    balance_raw.get("other_current_assets")
++                ),
++                total_current_assets=_float(
++                    balance_raw.get("total_current_assets")
++                ),
++                property_plant_equipment=_float(
++                    balance_raw.get("property_plant_equipment")
++                ),
++                right_of_use_assets=_float(
++                    balance_raw.get("right_of_use_assets")
++                ),
++                goodwill=_float(balance_raw.get("goodwill")),
++                intangible_assets=_float(
++                    balance_raw.get("intangible_assets")
++                ),
++                long_term_investments=_float(
++                    balance_raw.get("long_term_investments")
++                ),
++                associates_and_joint_ventures=_float(
++                    balance_raw.get("associates_and_joint_ventures")
++                ),
++                deferred_tax_assets=_float(
++                    balance_raw.get("deferred_tax_assets")
++                ),
++                other_non_current_assets=_float(
++                    balance_raw.get("other_non_current_assets")
++                ),
++                total_non_current_assets=_float(
++                    balance_raw.get("total_non_current_assets")
++                ),
++                total_assets=_float(
++                    balance_raw.get("total_assets")
++                ),
++                accounts_payable=_float(
++                    balance_raw.get("accounts_payable")
++                ),
++                short_term_debt=_float(
++                    balance_raw.get("short_term_debt")
++                ),
++                current_lease_liabilities=_float(
++                    balance_raw.get("current_lease_liabilities")
++                ),
++                accrued_expenses=_float(
++                    balance_raw.get("accrued_expenses")
++                ),
++                other_current_liabilities=_float(
++                    balance_raw.get("other_current_liabilities")
++                ),
++                total_current_liabilities=_float(
++                    balance_raw.get("total_current_liabilities")
++                ),
++                long_term_debt=_float(
++                    balance_raw.get("long_term_debt")
++                ),
++                long_term_lease_liabilities=_float(
++                    balance_raw.get("long_term_lease_liabilities")
++                ),
++                deferred_tax_liabilities=_float(
++                    balance_raw.get("deferred_tax_liabilities")
++                ),
++                pension_liabilities=_float(
++                    balance_raw.get("pension_liabilities")
++                ),
++                other_non_current_liabilities=_float(
++                    balance_raw.get("other_non_current_liabilities")
++                ),
++                total_non_current_liabilities=_float(
++                    balance_raw.get("total_non_current_liabilities")
++                ),
++                total_liabilities=_float(
++                    balance_raw.get("total_liabilities")
++                ),
++                share_capital=_float(
++                    balance_raw.get("share_capital")
++                ),
++                retained_earnings=_float(
++                    balance_raw.get("retained_earnings")
++                ),
++                reserves=_float(balance_raw.get("reserves")),
++                minority_interest=_float(
++                    balance_raw.get("minority_interest")
++                ),
++                total_equity=_float(
++                    balance_raw.get(
++                        "total_equity",
++                        balance_raw.get("shareholders_equity"),
++                    )
++                ),
++                shareholders_equity=_float(
++                    balance_raw.get("shareholders_equity")
++                ),
++                debt=_float(balance_raw.get("debt")),
++            )
++
++            cashflow = CashFlowStatement(
++                period=period,
++                net_income=_float(
++                    cashflow_raw.get("net_income")
++                ),
++                depreciation_and_amortization=_float(
++                    cashflow_raw.get("depreciation_and_amortization")
++                ),
++                share_based_compensation=_float(
++                    cashflow_raw.get("share_based_compensation")
++                ),
++                deferred_tax=_float(
++                    cashflow_raw.get("deferred_tax")
++                ),
++                change_in_working_capital=_float(
++                    cashflow_raw.get("change_in_working_capital")
++                ),
++                other_operating_items=_float(
++                    cashflow_raw.get("other_operating_items")
++                ),
++                operating_cash_flow=_float(
++                    cashflow_raw.get("operating_cash_flow")
++                ),
++                capital_expenditure=_float(
++                    cashflow_raw.get(
++                        "capital_expenditure",
++                        cashflow_raw.get("capex"),
++                    )
++                ),
++                capex=_float(cashflow_raw.get("capex")),
++                acquisitions=_float(
++                    cashflow_raw.get("acquisitions")
++                ),
++                asset_sales=_float(
++                    cashflow_raw.get("asset_sales")
++                ),
++                investment_purchases=_float(
++                    cashflow_raw.get("investment_purchases")
++                ),
++                investment_sales=_float(
++                    cashflow_raw.get("investment_sales")
++                ),
++                investing_cash_flow=_float(
++                    cashflow_raw.get("investing_cash_flow")
++                ),
++                debt_issued=_float(
++                    cashflow_raw.get("debt_issued")
++                ),
++                debt_repaid=_float(
++                    cashflow_raw.get("debt_repaid")
++                ),
++                dividends_paid=_float(
++                    cashflow_raw.get("dividends_paid")
++                ),
++                share_repurchases=_float(
++                    cashflow_raw.get("share_repurchases")
++                ),
++                equity_issued=_float(
++                    cashflow_raw.get("equity_issued")
++                ),
++                financing_cash_flow=_float(
++                    cashflow_raw.get("financing_cash_flow")
++                ),
++                net_change_in_cash=_float(
++                    cashflow_raw.get("net_change_in_cash")
++                ),
++                beginning_cash=_float(
++                    cashflow_raw.get("beginning_cash")
++                ),
++                ending_cash=_float(
++                    cashflow_raw.get("ending_cash")
++                ),
++                free_cash_flow=_float(
++                    cashflow_raw.get("free_cash_flow")
++                ),
+             )
+ 
+-        cash_flows = []
+-
+-        for item in raw_cashflow:
+-            cash_flows.append(
+-                CashFlowStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    operating_cash_flow=float(
+-                        item.get("operating_cash_flow", 0.0)
+-                    ),
+-                    capital_expenditure=float(
+-                        item.get(
+-                            "capital_expenditure",
+-                            item.get("capex", 0.0),
+-                        )
+-                    ),
+-                    investing_cash_flow=float(
+-                        item.get("investing_cash_flow", 0.0)
+-                    ),
+-                    financing_cash_flow=float(
+-                        item.get("financing_cash_flow", 0.0)
+-                    ),
++            period_financials.append(
++                PeriodFinancials(
++                    period=period,
++                    income_statement=income,
++                    balance_sheet=balance,
++                    cash_flow_statement=cashflow,
+                 )
+             )
+ 
++        if not period_financials:
++            raise ValueError(
++                f"No usable financial periods found for {symbol}"
++            )
++
++        # Use the first available period as the canonical current statement.
++        primary = period_financials[0]
++
+         return FinancialStatements(
+-            symbol=symbol,
+-            income_statements=income_statements,
+-            balance_sheets=balance_sheets,
+-            cash_flows=cash_flows,
++            company_name=symbol,
++            ticker=symbol,
++            currency=str(raw_data.get("currency", "INR")),
++            fiscal_year=primary.period,
++            income_statement=primary.income_statement,
++            balance_sheet=primary.balance_sheet,
++            cash_flow_statement=primary.cash_flow_statement,
++            periods=period_financials,
+             metadata={
+                 "provider": provider,
++                "period_count": len(period_financials),
+             },
+-        )
++        )
+\ No newline at end of file
+
+===== PYTHON COMPILE =====
+
+===== RELATED TEST DISCOVERY =====
+
+Path                                                                                                 LineNumber Line                                                                           
+----                                                                                                 ---------- ----                                                                           
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_block10_contract.py                                       3 p = Path("/app/tests/scoring/test_block10_fundamental_scoring.py")             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_block10_contract.py                                      12     # Fundamental scoring remains independently versioned as Block 10.         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_block10_contract.py                                      13     assert details["fundamental_engine"]["engine_version"] == "EROS-3.0-BLOC...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_engine_audit.py                                          11             "fundamental_engine": fund_res.pillar_details,                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_engine_audit.py                                          22             # existing FundamentalScoringEngine payload.                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_engine_audit.py                                          23             "fundamental_engine": {                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_fundamental.py                                            3 p = Path("/app/services/scoring/fundamental.py")                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_fundamental.py                                           78 print("SUCCESS: Added Block 10 audit contract to FundamentalScoringEngine")    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                                8 from services.fundamentals.provider import YahooFinanceProvider                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                                9 from services.fundamentals.normalizer import FinancialNormalizer               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               10 from services.fundamentals.service import FundamentalsService                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               22     """Synchronous wrapper running async end-to-end integration test with fo...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               28         normalizer = FinancialNormalizer()                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               29         fundamentals_service = FundamentalsService(provider, normalizer, dis...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               63         bus.subscribe("fundamentals.downloaded", spy_handler)                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               70         await fundamentals_service.get_or_download(symbol)                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py                                               79         assert event_names.count("fundamentals.downloaded") == 1               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot_v2\test_copilot_v2.py                                  10         answer="Strong fundamentals.",                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\decision\test_decision.py                                      15         rationale=["Strong fundamentals"],                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_canonical_models.py                           4 from services.fundamentals.canonical_models import CanonicalIncomeStatement,...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_canonical_models.py                           5 from services.fundamentals.validator import CanonicalFinancialValidator        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py                                     4 from services.fundamentals.events import FundamentalsDownloaded                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py                                     7 def test_fundamentals_downloaded_event_contract() -> None:                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py                                     8     event = FundamentalsDownloaded(symbol="RELIANCE.NS", provider="YahooFina...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py                                     9     assert event.name == "fundamentals.downloaded"                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                                 4 from services.fundamentals.normalizer import FinancialNormalizer               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                                 7 def test_financial_normalizer() -> None:                                       
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                                16     normalizer = FinancialNormalizer()                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py                                17     fs = normalizer.normalize(raw)                                             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_provider.py                                   4 from services.fundamentals.provider import YahooFinanceProvider, IFundamenta...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_provider.py                                   9     assert isinstance(provider, IFundamentalProvider)                          
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                    7 from services.fundamentals.normalizer import FinancialNormalizer               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                    8 from services.fundamentals.provider import YahooFinanceProvider                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                    9 from services.fundamentals.service import FundamentalsService                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                   12 def test_fundamentals_service_get_or_download_and_cache() -> None:             
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                   17         normalizer = FinancialNormalizer()                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                   18         service = FundamentalsService(provider, normalizer, dispatcher)        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py                                   24         bus.subscribe("fundamentals.downloaded", listener)                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                        5 from backend.events.normalizer import CanonicalEventNormalizer                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                       14     normalized = CanonicalEventNormalizer.normalize_quote(quote)               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py                                       29     normalized = CanonicalEventNormalizer.normalize_quote(quote)               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                 4 from backend.providers.normalizer.event_normalizer import EventNormalizer      
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py                                 9     normalized = EventNormalizer.normalize_quote(raw_payload, "TestProvider")  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_profitability_ratios.py                             4 from services.fundamentals.canonical_models import CanonicalIncomeStatement,...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_sprint7_ratios.py                                   4 from services.fundamentals.canonical_models import CanonicalIncomeStatement,...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                      21         category="fundamental",                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                      33     assert evidence.category == "FUNDAMENTAL"                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                     111             category="fundamental",                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                     154             category="fundamental",                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py                     167             category="fundamental",                                            
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py            6     FundamentalsEvidenceAdapter,                                               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py           11 def test_fundamentals_evidence_adapter() -> None:                              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py           14     items = FundamentalsEvidenceAdapter.extract(case, metrics)                 
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py           16     assert items[0].category == "FUNDAMENTAL"                                  
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\test_evidence_graph.py                 10     ev = EvidenceService.create_evidence(case, category="FUNDAMENTAL", state...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\test_evidence_graph.py                 19     ev1 = EvidenceService.create_evidence(case, category="FUNDAMENTAL", stat...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\test_evidence_graph.py                 31     target_cat = all_categories[0] if all_categories else "FUNDAMENTAL"        
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\test_evidence_quality.py             19         category="fundamental",                                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\test_evidence_reasoning.py         14         case, category="FUNDAMENTAL", statement="Margins expanding", polarit...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\test_evidence_reasoning.py         17         case, category="FUNDAMENTAL", statement="Margins compressing", polar...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                     7 def test_block10_fundamental_scoring() -> None:                                
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                    67     # Fundamental integration contract                                         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                    81     # Fundamental scoring remains independently versioned as Block 10.         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                    82     assert details["fundamental_engine"]["engine_version"] == "EROS-3.0-BLOC...
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                    83     assert "fundamental_engine" in details                                     
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                    85     assert "quality_components" in details["fundamental_engine"]               
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                    86     assert "profitability_components" in details["fundamental_engine"]         
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py                    87     assert "capital_allocation_components" in details["fundamental_engine"]    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block12_unified_scoring.py                        56     assert "fundamental_engine" in result.breakdown_details                    
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22_hardening.py                           24 def test_block22b_conflicting_signals_momentum_vs_fundamentals():              
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22_hardening.py                           25     eval_res = DecisionRobustnessEngine.evaluate_conflicting_signals("RELIAN...
+
+
+

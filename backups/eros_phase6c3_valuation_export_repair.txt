@@ -1,0 +1,85 @@
+﻿============================================================
+EROS 3.0 — PHASE 6C.3 VALUATION EXPORT REPAIR
+============================================================
+
+BRANCH:
+rebuild/eros-3-0-clean
+
+FIX:
+eros\valuation\__init__.py now publicly exports:
+- ValuationBoundary
+- build_bridge
+- create_valuation_boundary
+- evaluate_valuation
+- valuation_available
+
+VALUATION BOUNDARY:
+SOTP and DCF remain independently preserved.
+
+VALUATION EXIT:
+1
+
+PIPELINE EXIT:
+0
+
+FULL EROS PYTEST EXIT:
+1
+
+FULL PYTEST OUTPUT:
+......FFF.........                                                       [100%]
+================================== FAILURES ===================================
+_____________________ test_empty_valuation_input_is_safe ______________________
+
+    def test_empty_valuation_input_is_safe():
+>       result = ValuationBoundary().evaluate({})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ValuationBoundary' object has no attribute 'evaluate'
+
+eros\tests\integration\test_valuation_boundary.py:5: AttributeError
+__________ test_partial_valuation_input_does_not_create_fake_values ___________
+
+    def test_partial_valuation_input_does_not_create_fake_values():
+>       result = ValuationBoundary().evaluate(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            {
+                "sotp": None,
+                "dcf": None,
+            }
+        )
+E       AttributeError: 'ValuationBoundary' object has no attribute 'evaluate'
+
+eros\tests\integration\test_valuation_boundary.py:14: AttributeError
+___________ test_valuation_boundary_exposes_independent_authorities ___________
+
+    def test_valuation_boundary_exposes_independent_authorities():
+        boundary = ValuationBoundary()
+    
+>       assert hasattr(boundary, "evaluate_sotp")
+E       AssertionError: assert False
+E        +  where False = hasattr(ValuationBoundary(sotp=None, dcf=None, provenance=None), 'evaluate_sotp')
+
+eros\tests\integration\test_valuation_boundary.py:29: AssertionError
+=========================== short test summary info ===========================
+FAILED eros/tests/integration/test_valuation_boundary.py::test_empty_valuation_input_is_safe
+FAILED eros/tests/integration/test_valuation_boundary.py::test_partial_valuation_input_does_not_create_fake_values
+FAILED eros/tests/integration/test_valuation_boundary.py::test_valuation_boundary_exposes_independent_authorities
+3 failed, 15 passed in 0.34s
+
+
+GIT STATUS:
+ M app.py
+ M components/top_holdings.py
+ M database/stock_data.db
+ M modules/backtesting.py
+ M services/sotp_long_term_equity_classification_service.py
+?? backups/
+?? eros/
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+
+
+============================================================
+END PHASE 6C.3
+============================================================

@@ -1,0 +1,21 @@
+﻿===== TASK_CONTROL ENVIRONMENT COMPARISON =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+
+===== WINDOWS HOST =====
+USE_REAL_CELERY=[]
+celery_app= <class 'backend.tasks.celery_app.MockCeleryApp'>
+celery_instance= <class 'NoneType'>
+celery_instance_is_none= True
+real_celery_enabled= False
+queue_status= {'queues': ['default', 'forecast_queue', 'valuation_queue', 'report_queue'], 'status': 'HEALTHY', 'real_celery': False}
+
+===== DOCKER API =====
+USE_REAL_CELERY= true
+celery_app= <class 'backend.tasks.celery_app.CeleryFacade'>
+celery_instance= <class 'celery.app.base.Celery'>
+celery_instance_is_none= False
+real_celery_enabled= True
+queue_status= {'queues': ['default', 'forecast_queue', 'valuation_queue', 'report_queue'], 'status': 'HEALTHY', 'real_celery': True}
+
+===== CONCLUSION =====
+Host and Docker environment comparison complete.

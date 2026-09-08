@@ -1,0 +1,128 @@
+﻿===== EROS 3.0 NEXT REPAIR TRIAGE =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+Date: 09/07/2026 19:47:16
+
+===== TASK_CONTROL PROTECTION =====
+backend/tasks/task_control.py = REPAIRED / DO NOT TOUCH
+
+===== MODIFIED SOURCE FILES =====
+ M app.py
+ M components/top_holdings.py
+ M services/financials/balance_sheet.py
+ M services/financials/financial_statement.py
+ M services/forecast/engine.py
+ M services/forecast/service.py
+ M services/fundamentals/normalizer.py
+ M services/fundamentals/service.py
+ M services/ratios/engine.py
+ M services/scoring/engine.py
+ M services/sotp_long_term_equity_classification_service.py
+ M services/valuation/base_engine.py
+ M services/valuation/dcf/engine.py
+ M services/valuation/dcf_adapter.py
+ M services/valuation/dcf_engine.py
+ M services/valuation/dispatcher.py
+ M services/valuation/nav_engine.py
+ M services/valuation/relative/engine.py
+ M services/valuation/sotp/engine.py
+ M services/valuation/sotp_engine.py
+ M services/workflow/production_orchestrator.py
+
+
+===== DIFF STATISTICS =====
+ app.py                                             | 121 +++---
+ components/top_holdings.py                         |  56 ++-
+ services/financials/balance_sheet.py               |  10 +
+ services/financials/financial_statement.py         |  45 ++-
+ services/forecast/engine.py                        |   4 +-
+ services/forecast/service.py                       |   4 +-
+ services/fundamentals/normalizer.py                | 406 +++++++++++++++------
+ services/fundamentals/service.py                   |   4 +-
+ services/ratios/engine.py                          |   5 +-
+ services/scoring/engine.py                         |  43 ++-
+ ...sotp_long_term_equity_classification_service.py | 171 ++++++++-
+ services/valuation/base_engine.py                  |  40 +-
+ services/valuation/dcf/engine.py                   |   2 +-
+ services/valuation/dcf_adapter.py                  |  41 ++-
+ services/valuation/dcf_engine.py                   | 181 +++++++--
+ services/valuation/dispatcher.py                   |   4 +-
+ services/valuation/nav_engine.py                   |  41 ++-
+ services/valuation/relative/engine.py              |   5 +-
+ services/valuation/sotp/engine.py                  |   2 +-
+ services/valuation/sotp_engine.py                  |  50 +--
+ services/workflow/production_orchestrator.py       | 111 ++++--
+ 21 files changed, 963 insertions(+), 383 deletions(-)
+
+
+===== FILE-BY-FILE DIFF SIZE =====
+44	77	app.py
+45	11	components/top_holdings.py
+10	0	services/financials/balance_sheet.py
+35	10	services/financials/financial_statement.py
+2	2	services/forecast/engine.py
+2	2	services/forecast/service.py
+292	114	services/fundamentals/normalizer.py
+2	2	services/fundamentals/service.py
+2	3	services/ratios/engine.py
+31	12	services/scoring/engine.py
+155	16	services/sotp_long_term_equity_classification_service.py
+11	29	services/valuation/base_engine.py
+1	1	services/valuation/dcf/engine.py
+32	9	services/valuation/dcf_adapter.py
+157	24	services/valuation/dcf_engine.py
+2	2	services/valuation/dispatcher.py
+22	19	services/valuation/nav_engine.py
+1	4	services/valuation/relative/engine.py
+1	1	services/valuation/sotp/engine.py
+28	22	services/valuation/sotp_engine.py
+88	23	services/workflow/production_orchestrator.py
+
+
+===== LARGE MODIFIED FILES — PRIORITY CANDIDATES =====
+
+Changed Added Deleted File                                                    
+------- ----- ------- ----                                                    
+    406   292     114 services/fundamentals/normalizer.py                     
+    181   157      24 services/valuation/dcf_engine.py                        
+    171   155      16 services/sotp_long_term_equity_classification_service.py
+    121    44      77 app.py                                                  
+    111    88      23 services/workflow/production_orchestrator.py            
+     56    45      11 components/top_holdings.py                              
+     50    28      22 services/valuation/sotp_engine.py                       
+     45    35      10 services/financials/financial_statement.py              
+     43    31      12 services/scoring/engine.py                              
+     41    22      19 services/valuation/nav_engine.py                        
+     41    32       9 services/valuation/dcf_adapter.py                       
+     40    11      29 services/valuation/base_engine.py                       
+     10    10       0 services/financials/balance_sheet.py                    
+      5     2       3 services/ratios/engine.py                               
+      5     1       4 services/valuation/relative/engine.py                   
+      4     2       2 services/valuation/dispatcher.py                        
+      4     2       2 services/forecast/service.py                            
+      4     2       2 services/fundamentals/service.py                        
+      4     2       2 services/forecast/engine.py                             
+      2     1       1 services/valuation/dcf/engine.py                        
+      2     1       1 services/valuation/sotp/engine.py                       
+
+
+
+
+===== MODIFIED TEST FILES =====
+ M tests/fundamentals/test_models.py
+ M tests/ratios/test_quality_engine.py
+ M tests/ratios/test_ratios.py
+ M tests/scoring/test_scoring.py
+ M tests/valuation/test_sotp.py
+
+
+===== UNTRACKED SOURCE/BACKUP ARTIFACTS =====
+?? services/scoring/engine.py.pre_canonical_migration.bak
+?? services/scoring/engine.py.pre_canonical_result_fix.bak
+?? services/scoring/engine.py.pre_valuation_migration.bak
+?? services/sotp_long_term_equity_classification_service.py.bak
+?? services/sotp_long_term_equity_classification_service.py.stage13c2.bak
+?? services/sotp_long_term_equity_classification_stage_service.py
+?? services/sotp_long_term_equity_interpretation_service.py.stage13c1.bak
+?? services/valuation/__init__.py.pre_valuation_migration.bak
+?? services/valuation/service.py.pre_valuation_migration.bak
+

@@ -1,0 +1,566 @@
+﻿===== EROS 3.0 FUNDAMENTALS NORMALIZER AUDIT =====
+Project: D:\Users\User\Desktop\AI_STOCK_ANALYZER
+Date: 09/07/2026 19:48:03
+
+===== PROTECTED FILE =====
+backend/tasks/task_control.py = REPAIRED / DO NOT TOUCH
+
+===== TARGET =====
+services/fundamentals/normalizer.py
+
+===== GIT DIFF STAT =====
+ services/fundamentals/normalizer.py | 406 ++++++++++++++++++++++++++----------
+ 1 file changed, 292 insertions(+), 114 deletions(-)
+
+
+===== CHANGED FUNCTIONS / DEFINITIONS =====
+
++def _float(value: Any) -> float:
++    if value is None:
++        return 0.0
++        return float(value)
++        return 0.0
++        if not period_financials:
+
+
+
+
+===== FULL NORMALIZER DIFF =====
+diff --git a/services/fundamentals/normalizer.py b/services/fundamentals/normalizer.py
+index dd8423b..5cddfee 100644
+--- a/services/fundamentals/normalizer.py
++++ b/services/fundamentals/normalizer.py
+@@ -1,33 +1,47 @@
+ ∩╗┐from __future__ import annotations
+ 
+ import logging
+ from typing import Any
+ 
+-from services.fundamentals.models import (
+-    BalanceSheet,
+-    CashFlowStatement,
++from services.financials.balance_sheet import BalanceSheet
++from services.financials.cash_flow import CashFlowStatement
++from services.financials.financial_statement import (
+     FinancialStatements,
++    PeriodFinancials,
+ )
+ from services.financials.income_statement import IncomeStatement
+ 
+ logger = logging.getLogger(__name__)
+ 
+ 
++def _float(value: Any) -> float:
++    """Safely convert provider values to float."""
++    if value is None:
++        return 0.0
++
++    try:
++        return float(value)
++    except (TypeError, ValueError):
++        return 0.0
++
++
+ class FinancialNormalizer:
+-    """Normalize provider payloads into canonical FinancialStatements objects."""
++    """Normalize provider payloads into canonical FinancialStatements."""
+ 
+     def normalize(self, raw_data: dict[str, Any]) -> FinancialStatements:
+-        symbol = raw_data.get("symbol", "RELIANCE.NS")
+-        provider = raw_data.get("provider", "YahooFinance")
++        symbol = str(raw_data.get("symbol", "RELIANCE.NS"))
++        provider = str(raw_data.get("provider", "YahooFinance"))
+ 
+         logger.info(
+             "Normalizing financial data for symbol: %s from provider: %s",
+             symbol,
+             provider,
+         )
+ 
++        # Support both current plural provider payloads
++        # and legacy singular payloads.
+         raw_income = raw_data.get("income_statements")
+         if raw_income is None:
+             legacy_income = raw_data.get("income_statement", {})
+             raw_income = [legacy_income] if legacy_income else []
+ 
+@@ -39,124 +53,288 @@ class FinancialNormalizer:
+         raw_cashflow = raw_data.get("cash_flows")
+         if raw_cashflow is None:
+             legacy_cashflow = raw_data.get("cash_flow", {})
+             raw_cashflow = [legacy_cashflow] if legacy_cashflow else []
+ 
+-        income_statements = []
+-
+-        for item in raw_income:
+-            income_statements.append(
+-                IncomeStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    revenue=float(item.get("revenue", 0.0)),
+-                    other_operating_income=float(
+-                        item.get("other_operating_income", 0.0)
+-                    ),
+-                    total_operating_income=float(
+-                        item.get(
+-                            "total_operating_income",
+-                            item.get("operating_income", 0.0),
+-                        )
+-                    ),
+-                    cost_of_goods_sold=float(
+-                        item.get("cost_of_goods_sold", 0.0)
+-                    ),
+-                    operating_expenses=float(
+-                        item.get("operating_expenses", 0.0)
+-                    ),
+-                    depreciation_and_amortization=float(
+-                        item.get("depreciation_and_amortization", 0.0)
+-                    ),
+-                    ebitda=float(item.get("ebitda", 0.0)),
+-                    ebit=float(item.get("ebit", 0.0)),
+-                    finance_cost=float(item.get("finance_cost", 0.0)),
+-                    finance_income=float(item.get("finance_income", 0.0)),
+-                    profit_before_tax=float(
+-                        item.get("profit_before_tax", 0.0)
+-                    ),
+-                    tax_expense=float(item.get("tax_expense", 0.0)),
+-                    net_income=float(item.get("net_income", 0.0)),
+-                    shares_outstanding=float(
+-                        item.get("shares_outstanding", 0.0)
+-                    ),
+-                    eps=float(item.get("eps", 0.0)),
+-                )
++        income_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_income
++        }
++
++        balance_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_balance
++        }
++
++        cashflow_by_period = {
++            str(item.get("period", "UNKNOWN")): item
++            for item in raw_cashflow
++        }
++
++        periods = sorted(
++            set(income_by_period)
++            | set(balance_by_period)
++            | set(cashflow_by_period)
++        )
++
++        period_financials: list[PeriodFinancials] = []
++
++        for period in periods:
++            income_raw = income_by_period.get(period, {})
++            balance_raw = balance_by_period.get(period, {})
++            cashflow_raw = cashflow_by_period.get(period, {})
++
++            income = IncomeStatement(
++                period=period,
++                revenue=_float(income_raw.get("revenue")),
++                operating_income=_float(
++                    income_raw.get("operating_income")
++                ),
++                other_operating_income=_float(
++                    income_raw.get("other_operating_income")
++                ),
++                total_operating_income=_float(
++                    income_raw.get(
++                        "total_operating_income",
++                        income_raw.get("operating_income"),
++                    )
++                ),
++                cost_of_goods_sold=_float(
++                    income_raw.get("cost_of_goods_sold")
++                ),
++                operating_expenses=_float(
++                    income_raw.get("operating_expenses")
++                ),
++                depreciation_and_amortization=_float(
++                    income_raw.get("depreciation_and_amortization")
++                ),
++                ebitda=_float(income_raw.get("ebitda")),
++                ebit=_float(income_raw.get("ebit")),
++                finance_cost=_float(income_raw.get("finance_cost")),
++                finance_income=_float(income_raw.get("finance_income")),
++                profit_before_tax=_float(
++                    income_raw.get("profit_before_tax")
++                ),
++                tax_expense=_float(income_raw.get("tax_expense")),
++                net_income=_float(income_raw.get("net_income")),
++                shares_outstanding=_float(
++                    income_raw.get("shares_outstanding")
++                ),
++                eps=_float(income_raw.get("eps")),
+             )
+ 
+-        balance_sheets = []
+-
+-        for item in raw_balance:
+-            balance_sheets.append(
+-                BalanceSheet(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    cash=float(item.get("cash", 0.0)),
+-                    cash_equivalents=float(
+-                        item.get("cash_equivalents", 0.0)
+-                    ),
+-                    short_term_investments=float(
+-                        item.get("short_term_investments", 0.0)
+-                    ),
+-                    accounts_receivable=float(
+-                        item.get("accounts_receivable", 0.0)
+-                    ),
+-                    inventory=float(item.get("inventory", 0.0)),
+-                    total_current_assets=float(
+-                        item.get("total_current_assets", 0.0)
+-                    ),
+-                    total_assets=float(item.get("total_assets", 0.0)),
+-                    short_term_debt=float(
+-                        item.get("short_term_debt", 0.0)
+-                    ),
+-                    total_current_liabilities=float(
+-                        item.get("total_current_liabilities", 0.0)
+-                    ),
+-                    long_term_debt=float(
+-                        item.get(
+-                            "long_term_debt",
+-                            item.get("debt", 0.0),
+-                        )
+-                    ),
+-                    total_liabilities=float(
+-                        item.get("total_liabilities", 0.0)
+-                    ),
+-                    total_equity=float(
+-                        item.get(
+-                            "total_equity",
+-                            item.get("shareholders_equity", 0.0),
+-                        )
+-                    ),
+-                )
++            balance = BalanceSheet(
++                period=period,
++                cash=_float(balance_raw.get("cash")),
++                cash_equivalents=_float(
++                    balance_raw.get("cash_equivalents")
++                ),
++                short_term_investments=_float(
++                    balance_raw.get("short_term_investments")
++                ),
++                accounts_receivable=_float(
++                    balance_raw.get("accounts_receivable")
++                ),
++                inventory=_float(balance_raw.get("inventory")),
++                other_current_assets=_float(
++                    balance_raw.get("other_current_assets")
++                ),
++                total_current_assets=_float(
++                    balance_raw.get("total_current_assets")
++                ),
++                property_plant_equipment=_float(
++                    balance_raw.get("property_plant_equipment")
++                ),
++                right_of_use_assets=_float(
++                    balance_raw.get("right_of_use_assets")
++                ),
++                goodwill=_float(balance_raw.get("goodwill")),
++                intangible_assets=_float(
++                    balance_raw.get("intangible_assets")
++                ),
++                long_term_investments=_float(
++                    balance_raw.get("long_term_investments")
++                ),
++                associates_and_joint_ventures=_float(
++                    balance_raw.get("associates_and_joint_ventures")
++                ),
++                deferred_tax_assets=_float(
++                    balance_raw.get("deferred_tax_assets")
++                ),
++                other_non_current_assets=_float(
++                    balance_raw.get("other_non_current_assets")
++                ),
++                total_non_current_assets=_float(
++                    balance_raw.get("total_non_current_assets")
++                ),
++                total_assets=_float(
++                    balance_raw.get("total_assets")
++                ),
++                accounts_payable=_float(
++                    balance_raw.get("accounts_payable")
++                ),
++                short_term_debt=_float(
++                    balance_raw.get("short_term_debt")
++                ),
++                current_lease_liabilities=_float(
++                    balance_raw.get("current_lease_liabilities")
++                ),
++                accrued_expenses=_float(
++                    balance_raw.get("accrued_expenses")
++                ),
++                other_current_liabilities=_float(
++                    balance_raw.get("other_current_liabilities")
++                ),
++                total_current_liabilities=_float(
++                    balance_raw.get("total_current_liabilities")
++                ),
++                long_term_debt=_float(
++                    balance_raw.get("long_term_debt")
++                ),
++                long_term_lease_liabilities=_float(
++                    balance_raw.get("long_term_lease_liabilities")
++                ),
++                deferred_tax_liabilities=_float(
++                    balance_raw.get("deferred_tax_liabilities")
++                ),
++                pension_liabilities=_float(
++                    balance_raw.get("pension_liabilities")
++                ),
++                other_non_current_liabilities=_float(
++                    balance_raw.get("other_non_current_liabilities")
++                ),
++                total_non_current_liabilities=_float(
++                    balance_raw.get("total_non_current_liabilities")
++                ),
++                total_liabilities=_float(
++                    balance_raw.get("total_liabilities")
++                ),
++                share_capital=_float(
++                    balance_raw.get("share_capital")
++                ),
++                retained_earnings=_float(
++                    balance_raw.get("retained_earnings")
++                ),
++                reserves=_float(balance_raw.get("reserves")),
++                minority_interest=_float(
++                    balance_raw.get("minority_interest")
++                ),
++                total_equity=_float(
++                    balance_raw.get(
++                        "total_equity",
++                        balance_raw.get("shareholders_equity"),
++                    )
++                ),
++                shareholders_equity=_float(
++                    balance_raw.get("shareholders_equity")
++                ),
++                debt=_float(balance_raw.get("debt")),
++            )
++
++            cashflow = CashFlowStatement(
++                period=period,
++                net_income=_float(
++                    cashflow_raw.get("net_income")
++                ),
++                depreciation_and_amortization=_float(
++                    cashflow_raw.get("depreciation_and_amortization")
++                ),
++                share_based_compensation=_float(
++                    cashflow_raw.get("share_based_compensation")
++                ),
++                deferred_tax=_float(
++                    cashflow_raw.get("deferred_tax")
++                ),
++                change_in_working_capital=_float(
++                    cashflow_raw.get("change_in_working_capital")
++                ),
++                other_operating_items=_float(
++                    cashflow_raw.get("other_operating_items")
++                ),
++                operating_cash_flow=_float(
++                    cashflow_raw.get("operating_cash_flow")
++                ),
++                capital_expenditure=_float(
++                    cashflow_raw.get(
++                        "capital_expenditure",
++                        cashflow_raw.get("capex"),
++                    )
++                ),
++                capex=_float(cashflow_raw.get("capex")),
++                acquisitions=_float(
++                    cashflow_raw.get("acquisitions")
++                ),
++                asset_sales=_float(
++                    cashflow_raw.get("asset_sales")
++                ),
++                investment_purchases=_float(
++                    cashflow_raw.get("investment_purchases")
++                ),
++                investment_sales=_float(
++                    cashflow_raw.get("investment_sales")
++                ),
++                investing_cash_flow=_float(
++                    cashflow_raw.get("investing_cash_flow")
++                ),
++                debt_issued=_float(
++                    cashflow_raw.get("debt_issued")
++                ),
++                debt_repaid=_float(
++                    cashflow_raw.get("debt_repaid")
++                ),
++                dividends_paid=_float(
++                    cashflow_raw.get("dividends_paid")
++                ),
++                share_repurchases=_float(
++                    cashflow_raw.get("share_repurchases")
++                ),
++                equity_issued=_float(
++                    cashflow_raw.get("equity_issued")
++                ),
++                financing_cash_flow=_float(
++                    cashflow_raw.get("financing_cash_flow")
++                ),
++                net_change_in_cash=_float(
++                    cashflow_raw.get("net_change_in_cash")
++                ),
++                beginning_cash=_float(
++                    cashflow_raw.get("beginning_cash")
++                ),
++                ending_cash=_float(
++                    cashflow_raw.get("ending_cash")
++                ),
++                free_cash_flow=_float(
++                    cashflow_raw.get("free_cash_flow")
++                ),
+             )
+ 
+-        cash_flows = []
+-
+-        for item in raw_cashflow:
+-            cash_flows.append(
+-                CashFlowStatement(
+-                    period=str(item.get("period", "UNKNOWN")),
+-                    operating_cash_flow=float(
+-                        item.get("operating_cash_flow", 0.0)
+-                    ),
+-                    capital_expenditure=float(
+-                        item.get(
+-                            "capital_expenditure",
+-                            item.get("capex", 0.0),
+-                        )
+-                    ),
+-                    investing_cash_flow=float(
+-                        item.get("investing_cash_flow", 0.0)
+-                    ),
+-                    financing_cash_flow=float(
+-                        item.get("financing_cash_flow", 0.0)
+-                    ),
++            period_financials.append(
++                PeriodFinancials(
++                    period=period,
++                    income_statement=income,
++                    balance_sheet=balance,
++                    cash_flow_statement=cashflow,
+                 )
+             )
+ 
++        if not period_financials:
++            raise ValueError(
++                f"No usable financial periods found for {symbol}"
++            )
++
++        # Use the first available period as the canonical current statement.
++        primary = period_financials[0]
++
+         return FinancialStatements(
+-            symbol=symbol,
+-            income_statements=income_statements,
+-            balance_sheets=balance_sheets,
+-            cash_flows=cash_flows,
++            company_name=symbol,
++            ticker=symbol,
++            currency=str(raw_data.get("currency", "INR")),
++            fiscal_year=primary.period,
++            income_statement=primary.income_statement,
++            balance_sheet=primary.balance_sheet,
++            cash_flow_statement=primary.cash_flow_statement,
++            periods=period_financials,
+             metadata={
+                 "provider": provider,
++                "period_count": len(period_financials),
+             },
+-        )
++        )
+\ No newline at end of file
+
+
+===== FUNDAMENTALS TEST DISCOVERY =====
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_block10_contract.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_engine_audit.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\patch_fundamental.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\test_pipeline.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot_v2\test_copilot_v2.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot_v2\__pycache__\test_copilot_v2.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\copilot_v2\__pycache__\test_copilot_v2.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\decision\test_decision.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\decision\__pycache__\test_decision.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\decision\__pycache__\test_decision.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_canonical_models.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_events.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_normalizer.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_provider.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\test_service.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_canonical_models.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_canonical_models.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_events.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_events.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_models.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_models.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_normalizer.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_normalizer.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_provider.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_provider.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_service.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\fundamentals\__pycache__\test_service.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\test_emdp.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\__pycache__\test_emdp.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\market_data\__pycache__\test_emdp.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\test_eepp_adapters.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\__pycache__\test_eepp_adapters.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\providers\__pycache__\test_eepp_adapters.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_profitability_ratios.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\test_sprint7_ratios.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\__pycache__\test_profitability_ratios.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\__pycache__\test_profitability_ratios.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\__pycache__\test_quality_engine.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\__pycache__\test_ratios.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\__pycache__\test_sprint7_ratios.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\ratios\__pycache__\test_sprint7_ratios.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\test_evidence_engine.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\test_evidence_adapters.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\__pycache__\test_evidence_adapters.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\adapters\__pycache__\test_evidence_adapters.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\test_evidence_graph.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\__pycache__\test_evidence_graph.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\graph\__pycache__\test_evidence_graph.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\test_evidence_quality.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\__pycache__\test_evidence_quality.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\quality\__pycache__\test_evidence_quality.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\test_evidence_reasoning.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\__pycache__\test_evidence_reasoning.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\reasoning\__pycache__\test_evidence_reasoning.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\__pycache__\test_evidence_engine.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\research\evidence\__pycache__\test_evidence_engine.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block10_fundamental_scoring.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\test_block12_unified_scoring.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\__pycache__\test_block10_fundamental_scoring.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\__pycache__\test_block10_fundamental_scoring.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\__pycache__\test_block12_unified_scoring.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\__pycache__\test_block12_unified_scoring.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\scoring\__pycache__\test_scoring.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\test_block22_hardening.py
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\__pycache__\test_block22_hardening.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\validation\__pycache__\test_block22_hardening.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\__pycache__\test_relative.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\valuation\__pycache__\test_sotp.cpython-313.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\__pycache__\test_pipeline.cpython-313-pytest-9.1.1.pyc
+D:\Users\User\Desktop\AI_STOCK_ANALYZER\tests\__pycache__\test_pipeline.cpython-313.pyc
+
+
+===== FUNDAMENTALS TESTS =====
+......                                                                   [100%]
+6 passed in 2.99s
+
+
+===== PYTHON COMPILE =====
+

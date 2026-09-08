@@ -1,0 +1,1449 @@
+﻿EROS 3.0 CHECKPOINT 06A
+Date: 09/07/2026 20:35:01
+
+TASK CONTROL SHA256:
+FF7AAE4059AEE14350F1D8DA1D6FE070A944507DFA3CEAE0D114BD69FCCEDA7E
+
+
+============================================================
+.\services\valuation\dispatcher.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+VALUATION DISPATCHER (STRATEGY REGISTRY)
+Module  : dispatcher
+Version : V2.0
+==========================================================
+
+Central registry routing valuation tasks to engine strategies.
+"""
+
+from typing import Any
+
+from services.valuation.base_engine import BaseValuationEngine
+from domain.valuation.result import ValuationResult
+from services.valuation.engines.dcf_engine import DCFValuationEngine
+from services.valuation.engines.nav_engine import NAVValuationEngine
+from services.valuation.engines.sotp_engine import SOTPValuationEngine
+
+
+class ValuationDispatcher:
+    def __init__(self):
+        self._engines: dict[str, BaseValuationEngine] = {}
+        self.engines = self._engines  # Backwards compatibility alias
+        
+        # Register default engines
+        try:
+            self.register(DCFValuationEngine())
+        except Exception:
+            pass
+        try:
+            self.register(NAVValuationEngine())
+        except Exception:
+            pass
+        try:
+            self.register(SOTPValuationEngine())
+        except Exception:
+            pass
+
+    def list_supported_methods(self) -> list[str]:
+        """Return a list of supported valuation method names."""
+        return list(self._engines.keys())
+
+    def register_engine(self, name: str, engine: Any) -> None:
+        """Register a valuation engine."""
+        self._engines[name.upper()] = engine
+
+    def register(self, engine: BaseValuationEngine) -> None:
+        """Registers a valuation engine adapter."""
+        method_key = getattr(engine, "valuation_method", engine.__class__.__name__.replace("ValuationEngine", "")).upper()
+        self._engines[method_key] = engine
+
+    def get_engine(self, method: str) -> BaseValuationEngine:
+        """Retrieves an engine strategy by method key."""
+        key = method.upper()
+        if key not in self._engines:
+            raise KeyError(f"No valuation engine registered for method: '{method}'.")
+        return self._engines[key]
+
+    def value(self, method: str, entity: Any) -> ValuationResult:
+        """Executes valuation using the requested method key."""
+        engine = self.get_engine(method)
+        return engine.value(entity)
+
+    def dispatch(self, method: str, entity: Any) -> ValuationResult:
+        """Alias for value()."""
+        return self.value(method, entity)
+
+
+============================================================
+.\services\valuation\base_engine.py
+============================================================
+from __future__ import annotations
+
+"""
+==========================================================
+BASE VALUATION ENGINE
+Module  : base_engine
+Version : V1.1
+==========================================================
+
+Canonical abstract interface for all valuation engines.
+
+All concrete valuation engines must return the canonical
+domain-level ValuationResult.
+"""
+
+from abc import ABC, abstractmethod
+from typing import Any
+
+from domain.valuation.result import ValuationResult
+
+
+class BaseValuationEngine(ABC):
+    """
+    Abstract base class for all valuation engines.
+    """
+
+    @property
+    @abstractmethod
+    def valuation_method(self) -> str:
+        """Return the valuation methodology identifier."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def value(self, entity: Any) -> ValuationResult:
+        """
+        Execute valuation and return the canonical
+        domain-level ValuationResult.
+        """
+        raise NotImplementedError
+
+    @property
+    def engine_name(self) -> str:
+        """Human-readable engine name."""
+        return self.__class__.__name__
+
+    def __repr__(self) -> str:
+        return f"{self.engine_name}(method={self.valuation_method})"
+
+
+============================================================
+.\services\valuation\dcf_engine.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+
+from domain.valuation.result import (
+    ValuationResult,
+    ValuationMethod,
+    ValuationStatus,
+)
+
+from services.valuation.base_engine import BaseValuationEngine
+
+
+class DCFValuationEngine(BaseValuationEngine):
+    """
+    Adapter for the canonical DCF valuation engine.
+
+    EROS may provide either:
+    1. A complete DCFInput instance, or
+    2. A dictionary containing a DCF payload.
+
+    The adapter deliberately strips orchestration-only keys such as
+    dcf_segments before constructing DCFInput.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    @property
+    def valuation_method(self) -> str:
+        return ValuationMethod.DCF.value
+
+    def value(self, data: Any) -> ValuationResult:
+        from services.valuation.dcf import DCFInput, DCFModel
+
+        if isinstance(data, DCFInput):
+            dcf_input = data
+
+        elif isinstance(data, dict):
+            payload = dict(data)
+
+            dcf_segments = payload.get("dcf_segments")
+
+            if isinstance(dcf_segments, list) and dcf_segments:
+                segment = dcf_segments[0]
+
+                if isinstance(segment, dict):
+                    merged = dict(segment)
+
+                    for key, value in payload.items():
+                        if key not in {
+                            "dcf_segments",
+                            "other_segments",
+                            "holdco_discount",
+                            "provenance",
+                        }:
+                            merged.setdefault(key, value)
+
+                    payload = merged
+
+            excluded_keys = {
+                "dcf_segments",
+                "other_segments",
+                "holdco_discount",
+                "provenance",
+                "status",
+                "warnings",
+                "source",
+                "data",
+            }
+
+            for key in excluded_keys:
+                payload.pop(key, None)
+
+            if "ebit_margins" in payload and "ebit_margin_forecast" not in payload:
+                payload["ebit_margin_forecast"] = payload.pop("ebit_margins")
+
+            if (
+                "working_capital_ratios" in payload
+                and "nwc_pct_rev" not in payload
+            ):
+                payload["nwc_pct_rev"] = payload.pop(
+                    "working_capital_ratios"
+                )
+
+            payload.setdefault(
+                "company_name",
+                payload.get("symbol", "Target Co"),
+            )
+            payload.setdefault("currency", "INR")
+
+            payload.setdefault(
+                "last_historical_revenue",
+                payload.get("revenue", 1000.0),
+            )
+
+            payload.setdefault("revenue_growth_rates", [0.08] * 5)
+            payload.setdefault("ebit_margin_forecast", [0.20] * 5)
+            payload.setdefault("capex_pct_rev", [0.05] * 5)
+            payload.setdefault("nwc_pct_rev", [0.02] * 5)
+            payload.setdefault("dna_pct_rev", [0.03] * 5)
+
+            payload.setdefault("tax_rate", 0.25)
+            payload.setdefault("cost_of_equity", 0.12)
+            payload.setdefault("cost_of_debt_post_tax", 0.06)
+            payload.setdefault("equity_weight", 0.80)
+            payload.setdefault("debt_weight", 0.20)
+            payload.setdefault("terminal_growth_rate", 0.03)
+
+            payload.setdefault("total_debt", 0.0)
+            payload.setdefault("cash_and_equivalents", 0.0)
+            payload.setdefault("shares_outstanding", 1.0)
+            payload.setdefault("minority_interest", 0.0)
+            payload.setdefault("preferred_stock", 0.0)
+
+            dcf_fields = {
+                "company_name",
+                "currency",
+                "last_historical_revenue",
+                "revenue_growth_rates",
+                "ebit_margin_forecast",
+                "capex_pct_rev",
+                "nwc_pct_rev",
+                "dna_pct_rev",
+                "tax_rate",
+                "cost_of_equity",
+                "cost_of_debt_post_tax",
+                "equity_weight",
+                "debt_weight",
+                "terminal_growth_rate",
+                "total_debt",
+                "cash_and_equivalents",
+                "shares_outstanding",
+                "minority_interest",
+                "preferred_stock",
+            }
+
+            dcf_payload = {
+                key: value
+                for key, value in payload.items()
+                if key in dcf_fields
+            }
+
+            dcf_input = DCFInput(**dcf_payload)
+
+        else:
+            raise TypeError(
+                "DCFValuationEngine requires DCFInput or dict payload; "
+                f"received {type(data).__name__}"
+            )
+
+        dcf_input.validate()
+
+        model = DCFModel(dcf_input)
+        result = model.run_model()
+
+        return ValuationResult(
+            method=ValuationMethod.DCF,
+            enterprise_value=result.enterprise_value,
+            equity_value=result.equity_value,
+            implied_share_price=result.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={
+                "company_name": dcf_input.company_name,
+                "currency": dcf_input.currency,
+                "wacc": result.wacc,
+                "terminal_value_pct": result.terminal_value_pct_of_ev,
+                "forecast_years": result.forecast_period,
+                "notes": "Evaluated successfully via modular DCF engine",
+            },
+        )
+
+    def evaluate(self, data: Any) -> ValuationResult:
+        """Backward-compatible alias for value()."""
+        return self.value(data)
+
+
+DCFEngine = DCFValuationEngine
+
+
+============================================================
+.\services\valuation\dcf_adapter.py
+============================================================
+from __future__ import annotations
+
+from typing import Any
+
+from domain.valuation.result import (
+    ValuationMethod,
+    ValuationResult,
+    ValuationStatus,
+)
+
+from services.valuation.base_engine import BaseValuationEngine
+from services.valuation.contracts import SOTPSegmentInput
+from services.valuation.dcf import DCFInput, DCFModel, DCFResult
+
+
+class DCFValuationEngine(BaseValuationEngine):
+    """
+    Canonical DCF valuation adapter.
+
+    Converts the EROS valuation boundary input into the
+    canonical DCF model input and returns the domain-level
+    ValuationResult contract.
+    """
+
+    @property
+    def valuation_method(self) -> str:
+        return ValuationMethod.DCF.value
+
+    def value(self, entity: Any) -> ValuationResult:
+        if isinstance(entity, SOTPSegmentInput):
+            dcf_input = DCFInput(
+                last_historical_revenue=entity.last_historical_revenue,
+                revenue_growth_rates=entity.revenue_growth_rates,
+                ebit_margin_forecast=entity.ebit_margin_forecast,
+                dna_pct_rev=entity.dna_pct_rev,
+                capex_pct_rev=entity.capex_pct_rev,
+                nwc_pct_rev=entity.nwc_pct_rev,
+                tax_rate=entity.tax_rate,
+                cost_of_equity=entity.cost_of_equity,
+                cost_of_debt_post_tax=entity.cost_of_debt_post_tax,
+                equity_weight=entity.equity_weight,
+                debt_weight=entity.debt_weight,
+                terminal_growth_rate=entity.terminal_growth_rate,
+                total_debt=entity.segment_debt,
+                cash_and_equivalents=entity.segment_cash,
+                shares_outstanding=entity.shares_outstanding,
+                company_name=entity.segment_name,
+                currency=entity.currency,
+            )
+
+        elif isinstance(entity, DCFInput):
+            dcf_input = entity
+
+        elif isinstance(entity, dict):
+            dcf_input = DCFInput(**entity)
+
+        else:
+            raise TypeError(
+                "DCFValuationEngine requires SOTPSegmentInput, "
+                "DCFInput, or dict payload; "
+                f"received {type(entity).__name__}"
+            )
+
+        dcf_input.validate()
+
+        dcf_result: DCFResult = DCFModel(dcf_input).run_model()
+
+        return ValuationResult(
+            method=ValuationMethod.DCF,
+            enterprise_value=dcf_result.enterprise_value,
+            equity_value=dcf_result.equity_value,
+            implied_share_price=dcf_result.implied_share_price,
+            status=ValuationStatus.SUCCESS,
+            details={
+                "company_name": dcf_input.company_name,
+                "currency": dcf_input.currency,
+                "wacc": dcf_result.wacc,
+                "terminal_value_pct": dcf_result.terminal_value_pct_of_ev,
+                "forecast_years": dcf_result.forecast_period,
+            },
+        )
+
+
+============================================================
+.\services\scoring\engine.py
+============================================================
+from __future__ import annotations
+import logging
+from typing import Dict
+from services.financials.financial_statement import FinancialStatements
+from services.scoring.models import AIScoreResult
+from services.scoring.growth import GrowthScoringEngine
+from services.scoring.fundamental import FundamentalScoringEngine
+from services.valuation.dispatcher import ValuationDispatcher
+from services.scoring.technical import MomentumScoringEngine
+from services.scoring.risk_scoring import RiskScoringEngine
+from services.market_data.models import PriceRecord
+from services.risk_management.models import PortfolioRiskProfile
+
+logger = logging.getLogger(__name__)
+
+def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
+    return max(minimum, min(maximum, float(value)))
+
+def _score_valuation(implied_share_price: float) -> float:
+    """
+    Score canonical valuation output.
+
+    The canonical valuation contract does not provide current
+    market price, so margin-of-safety scoring is not fabricated.
+    A successful positive implied value receives the neutral
+    valuation score of 60.
+    """
+    return 60.0 if float(implied_share_price) > 0.0 else 0.0
+
+class AIScoringEngine:
+    """
+    Institutional Fundamental, Growth, Valuation, Momentum, & Risk AI Scoring Engine.
+    Block 15H integrates RiskScoringEngine for dynamic institutional risk scoring.
+    """
+    def __init__(self) -> None:
+        self.fundamental_engine = FundamentalScoringEngine()
+        self.growth_engine = GrowthScoringEngine()
+        self.valuation_dispatcher = ValuationDispatcher()
+        self.momentum_engine = MomentumScoringEngine()
+        self.risk_scoring_engine = RiskScoringEngine()
+
+    def evaluate(
+        self,
+        financials: FinancialStatements,
+        market_records: list[PriceRecord] | None = None,
+        risk_profile: PortfolioRiskProfile | None = None,
+    ) -> AIScoreResult:
+        ticker = financials.ticker
+        logger.info(
+            "Running unified institutional AI scoring with valuation, momentum, and risk for symbol: %s",
+            ticker,
+        )
+
+        # 1. Fundamental Scoring (Blocks 12A-12C)
+        fund_res = self.fundamental_engine.evaluate(financials)
+
+        profitability_score = fund_res.profitability_score
+        quality_score = fund_res.quality_score
+        capital_allocation_score = fund_res.cash_flow_quality_score
+
+        # 2. Historical Growth Scoring (Block 11)
+        growth_res = self.growth_engine.evaluate(financials)
+        growth_score = growth_res.growth_score
+
+        # 3. Dynamic Valuation Engine Integration (Block 13)
+        val_res = self.valuation_dispatcher.value("DCF", {"symbol": ticker, "revenue": financials.income_statement.revenue})
+        valuation_score = _score_valuation(val_res.implied_share_price)
+
+        # 4. Dynamic Momentum Scoring Integration (Block 14H)
+        if not market_records:
+            base_price = 1000.0
+            market_records = [
+                PriceRecord(
+                    date=f"2026-07-{i+1:02d}",
+                    open=base_price + i,
+                    high=base_price + i + 5,
+                    low=base_price + i - 5,
+                    close=base_price + i + 2,
+                    volume=1000000 + i * 10000,
+                )
+                for i in range(30)
+            ]
+
+        mom_res = self.momentum_engine.evaluate(symbol=ticker, records=market_records)
+        momentum_score = mom_res.momentum_score
+
+        # 5. Dynamic Risk Scoring Integration (Block 15H)
+        risk_res = self.risk_scoring_engine.evaluate(symbol=ticker, profile=risk_profile)
+        risk_score = risk_res.risk_score
+
+        # 6. Weighted Composite
+        weights: Dict[str, float] = {
+            "growth": 0.15,
+            "quality": 0.20,
+            "profitability": 0.20,
+            "capital_allocation": 0.10,
+            "valuation": 0.15,
+            "momentum": 0.10,
+            "risk": 0.10,
+        }
+        composite = (
+            growth_score * weights["growth"]
+            + quality_score * weights["quality"]
+            + profitability_score * weights["profitability"]
+            + capital_allocation_score * weights["capital_allocation"]
+            + valuation_score * weights["valuation"]
+            + momentum_score * weights["momentum"]
+            + risk_score * weights["risk"]
+        )
+        composite = round(_clamp(composite), 2)
+
+        if composite >= 75.0:
+            rating = "STRONG BUY"
+        elif composite >= 60.0:
+            rating = "BUY"
+        elif composite >= 45.0:
+            rating = "HOLD"
+        elif composite >= 30.0:
+            rating = "SELL"
+        else:
+            rating = "STRONG SELL"
+
+        details = {
+            "rating": rating,
+            "engine_version": "EROS-3.0-BLOCK-15",
+            "weights_used": weights,
+            "growth_engine": growth_res.growth_details,
+
+            # Block 10 audit contract while preserving the
+            # existing FundamentalScoringEngine payload.
+            "fundamental_engine": {
+                **fund_res.pillar_details,
+                "profitability_components": fund_res.pillar_details["profitability"],
+                "quality_components": fund_res.pillar_details["quality"],
+                "capital_allocation_components": fund_res.pillar_details["capital_efficiency"],
+            },
+
+            # Block 10 audit contract.
+            "raw_ratios": fund_res.pillar_details["ratios"],
+
+            "valuation_engine": {
+                "method": val_res.method.value,
+                "enterprise_value": val_res.enterprise_value,
+                "equity_value": val_res.equity_value,
+                "implied_share_price": val_res.implied_share_price,
+                "status": val_res.status.value,
+                "details": val_res.details,
+                "valuation_score": valuation_score,
+            },
+            "momentum_engine": mom_res.details,
+            "risk_engine": risk_res.details,
+        }
+
+        return AIScoreResult(
+            symbol=ticker,
+            growth_score=round(growth_score, 2),
+            quality_score=round(quality_score, 2),
+            profitability_score=round(profitability_score, 2),
+            capital_allocation_score=round(capital_allocation_score, 2),
+            valuation_score=round(valuation_score, 2),
+            momentum_score=round(momentum_score, 2),
+            risk_score=round(risk_score, 2),
+            composite_score=composite,
+            breakdown_details=details,
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+============================================================
+TEST: .\tests\scoring\test_block13_valuation_scoring.py
+============================================================
+from services.financials.parser import repository
+from services.financials.financial_statement import (
+    FinancialStatements,
+    IncomeStatement,
+    BalanceSheet,
+    CashFlowStatement,
+)
+from services.scoring.engine import AIScoringEngine
+
+def test_block13_valuation_scoring_integration() -> None:
+    income = IncomeStatement(
+        revenue=120000.0,
+        cost_of_goods_sold=70000.0,
+        ebitda=30000.0,
+        ebit=24000.0,
+        net_income=18000.0,
+        eps=18.0,
+        shares_outstanding=1000.0,
+    )
+    balance = BalanceSheet(
+        cash=25000.0,
+        cash_equivalents=5000.0,
+        accounts_receivable=15000.0,
+        inventory=10000.0,
+        total_assets=220000.0,
+        total_liabilities=70000.0,
+        total_equity=150000.0,
+        short_term_debt=5000.0,
+        long_term_debt=15000.0,
+    )
+    cashflow = CashFlowStatement(
+        operating_cash_flow=22000.0,
+        capital_expenditure=6000.0,
+        beginning_cash=20000.0,
+        net_change_in_cash=5000.0,
+        ending_cash=25000.0,
+    )
+
+    statements = FinancialStatements(
+        company_name="Larsen & Toubro",
+        ticker="LT.NS",
+        currency="INR",
+        fiscal_year="FY2025",
+        income_statement=income,
+        balance_sheet=balance,
+        cash_flow_statement=cashflow,
+        periods=[],
+    )
+
+    engine = AIScoringEngine()
+    result = engine.evaluate(statements)
+
+    assert result.symbol == "LT.NS"
+    assert 0.0 <= result.composite_score <= 100.0
+    assert 0.0 <= result.valuation_score <= 100.0
+    assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
+    assert "valuation_engine" in result.breakdown_details
+    assert result.breakdown_details["valuation_engine"]["blended_fair_value"] > 0
+
+    repository().clear()
+
+
+
+
+============================================================
+TEST: .\tests\valuation\test_dcf.py
+============================================================
+from __future__ import annotations
+
+import pytest
+from services.forecast.models import ForecastResult
+from services.valuation.dcf.engine import ProductionDCFEngine
+
+
+def test_production_dcf_calculation() -> None:
+    forecast = ForecastResult(
+        symbol="RELIANCE.NS",
+        model_type="CAGR",
+        free_cash_flow_forecast=[100000.0, 115000.0, 132000.0, 151000.0, 173000.0],
+    )
+
+    engine = ProductionDCFEngine()
+    result = engine.calculate(forecast, wacc=0.10, terminal_growth_rate=0.04)
+
+    assert result.symbol == "RELIANCE.NS"
+    assert result.enterprise_value > 0.0
+    assert result.equity_value > 0.0
+    assert result.fair_value_per_share > 0.0
+    assert len(result.pv_cash_flows) == 5
+
+
+============================================================
+TEST: .\tests\valuation\test_sotp.py
+============================================================
+from __future__ import annotations
+
+from services.financials.financial_statement import FinancialStatements
+from services.financials.income_statement import IncomeStatement
+from services.financials.balance_sheet import BalanceSheet
+from services.financials.cash_flow import CashFlowStatement
+from services.valuation.sotp.engine import SOTPEngine
+
+
+def test_sotp_valuation_calculation() -> None:
+    bs = BalanceSheet(
+        total_assets=3_000_000.0,
+        total_liabilities=1_200_000.0,
+        total_equity=1_800_000.0,
+        cash=300_000.0,
+        short_term_debt=250_000.0,
+        long_term_debt=300_000.0,
+    )
+
+    income = IncomeStatement(
+        period="FY2025",
+        revenue=1_000_000.0,
+        ebitda=250_000.0,
+        ebit=200_000.0,
+        net_income=150_000.0,
+        eps=45.0,
+        shares_outstanding=1_000.0,
+    )
+
+    cashflow = CashFlowStatement(
+        period="FY2025",
+        operating_cash_flow=180_000.0,
+        capital_expenditure=30_000.0,
+        investing_cash_flow=0.0,
+        financing_cash_flow=0.0,
+    )
+
+    fs = FinancialStatements(
+        company_name="RELIANCE",
+        ticker="RELIANCE.NS",
+        currency="INR",
+        fiscal_year="FY2025",
+        income_statement=income,
+        balance_sheet=bs,
+        cash_flow_statement=cashflow,
+    )
+
+    engine = SOTPEngine()
+    result = engine.calculate(
+        fs,
+        holding_discount=0.15,
+    )
+
+    assert result.symbol == "RELIANCE.NS"
+    assert len(result.segments) == 4
+    assert result.sum_of_segments_ev > 0.0
+    assert result.conglomerate_equity_value > 0.0
+    assert result.fair_value_per_share > 0.0
+
+
+============================================================
+VALUATION FIELD REFERENCES
+============================================================
+backend/valuation/sotp.py:20:    def calculate_enterprise_value(self) -> Dict[str, Any]:
+backend/valuation/sotp.py:32:            "total_enterprise_value": total_ev
+backend/valuation/sotp.py:36:        ev_data = self.calculate_enterprise_value()
+backend/valuation/sotp.py:37:        total_ev = ev_data["total_enterprise_value"]
+backend/valuation/sotp.py:39:        equity_value = (
+backend/valuation/sotp.py:46:            equity_value / self.shares_outstanding
+backend/valuation/sotp.py:53:            "enterprise_value": total_ev,
+backend/valuation/sotp.py:57:            "equity_value": equity_value,
+services/capital/capital_models.py:17:    def enterprise_value(self) -> float:
+services/peer_valuation_service.py:226:    debt_to_equity_values = [item.get("debt_to_equity") for item in peer_data]
+services/peer_valuation_service.py:248:    debt_to_equity_median = _median(debt_to_equity_values)
+services/peer_valuation_service.py:405:                "observations": count_valid(debt_to_equity_values),
+services/report/engine.py:24:- **Blended Fair Value**: Rs.{analysis_data.get('blended_fair_value', 1650.0):,.2f}
+services/report/engine.py:42:    <p><b>Blended Fair Value:</b> Rs.{analysis_data.get('blended_fair_value', 1650.0):,.2f}</p>
+services/research.py:85:            st.metric("Enterprise Value", format_number(data["enterprise_value"]))
+services/research/target_price.py:14:    weighted_fair_value: float
+services/research/target_price.py:40:        weighted_fair_value = sum(
+services/research/target_price.py:43:        target_price = weighted_fair_value * (1.0 - margin_of_safety_pct)
+services/research/target_price.py:49:            f"[{ticker}] Fair Value: {weighted_fair_value:.2f} | Target: {target_price:.2f} | Upside: {implied_upside:.2%}"
+services/research/target_price.py:55:            weighted_fair_value=round(weighted_fair_value, 2),
+services/research_service.py:467:        enterprise_value = _safe_float(info.get("enterpriseValue"))
+services/research_service.py:596:            "enterprise_value": (
+services/research_service.py:597:                enterprise_value if enterprise_value is not None else "N/A"
+services/scoring/engine.py:19:def _score_valuation(implied_share_price: float) -> float:
+services/scoring/engine.py:28:    return 60.0 if float(implied_share_price) > 0.0 else 0.0
+services/scoring/engine.py:67:        valuation_score = _score_valuation(val_res.implied_share_price)
+services/scoring/engine.py:143:                "enterprise_value": val_res.enterprise_value,
+services/scoring/engine.py:144:                "equity_value": val_res.equity_value,
+services/scoring/engine.py:145:                "implied_share_price": val_res.implied_share_price,
+services/sotp/sotp_engine.py:32:    gross_enterprise_value: float
+services/sotp/sotp_engine.py:33:    gross_equity_value: float
+services/sotp/sotp_engine.py:34:    net_equity_value: float
+services/sotp/sotp_engine.py:60:            gross_enterprise_value=round(gross_ev, 2),
+services/sotp/sotp_engine.py:61:            gross_equity_value=round(gross_equity, 2),
+services/sotp/sotp_engine.py:62:            net_equity_value=round(net_equity, 2),
+services/sotp_adjustment_service.py:541:            "summary_reported_enterprise_value": (
+services/sotp_adjustment_service.py:542:                summary.get("reported_enterprise_value")
+services/sotp_balance_sheet_service.py:94:    enterprise_value_raw = _safe_float(profile.get("enterprise_value"))
+services/sotp_balance_sheet_service.py:104:    enterprise_value = _inr_to_crore(enterprise_value_raw)
+services/sotp_balance_sheet_service.py:128:    if enterprise_value is not None and implied_ev is not None:
+services/sotp_balance_sheet_service.py:129:        ev_reconciliation_gap = enterprise_value - implied_ev
+services/sotp_balance_sheet_service.py:175:        "reported_enterprise_value": (
+services/sotp_balance_sheet_service.py:176:            round(enterprise_value, 2) if enterprise_value is not None else None
+services/sotp_completeness_service.py:63:        valued = status == "OK" and _num(item.get("enterprise_value")) is not None
+services/sotp_completeness_service.py:74:            "enterprise_value": _num(item.get("enterprise_value")),
+services/sotp_completeness_service.py:147:    elif valued_segment_count > 0 and bridge.get("authorized_equity_value") is not None:
+services/sotp_completeness_service.py:185:        "provisional_fair_value_per_share": (bridge.get("fair_value_per_share")),
+services/sotp_equity_bridge_service.py:67:    operating_ev = _num(operating.get("operating_enterprise_value"))
+services/sotp_equity_bridge_service.py:167:            gross_enterprise_value = operating_ev + new_energy_ev
+services/sotp_equity_bridge_service.py:169:            equity_value = gross_enterprise_value + bridge_adjustment
+services/sotp_equity_bridge_service.py:171:            fair_value_per_share = None
+services/sotp_equity_bridge_service.py:176:                fair_value_per_share = _crore_to_rupees(equity_value) / shares
+services/sotp_equity_bridge_service.py:179:                fair_value_per_share is not None
+services/sotp_equity_bridge_service.py:184:                upside_percent = (fair_value_per_share / current_price - 1) * 100
+services/sotp_equity_bridge_service.py:187:                "operating_enterprise_value": (_round(operating_ev)),
+services/sotp_equity_bridge_service.py:188:                "new_energy_enterprise_value": (_round(new_energy_ev)),
+services/sotp_equity_bridge_service.py:189:                "gross_enterprise_value": (_round(gross_enterprise_value)),
+services/sotp_equity_bridge_service.py:191:                "equity_value": (_round(equity_value)),
+services/sotp_equity_bridge_service.py:192:                "fair_value_per_share": (_round(fair_value_per_share)),
+services/sotp_equity_bridge_service.py:277:        "operating_enterprise_value": (_round(operating_ev)),
+services/sotp_long_term_equity_report_service.py:74:        "consolidated_equity_value": sotp_payload.get("equity_value"),
+services/sotp_long_term_equity_report_service.py:84:        "enterprise_value": sotp_payload.get("enterprise_value"),
+services/sotp_long_term_equity_report_service.py:85:        "equity_value": sotp_payload.get("equity_value"),
+services/sotp_long_term_equity_report_service.py:97:        "gross_enterprise_value": sotp_payload.get("enterprise_value"),
+services/sotp_long_term_equity_report_service.py:101:        "consolidated_equity_value": sotp_payload.get("equity_value"),
+services/sotp_long_term_equity_report_service.py:130:                "enterprise_value_mn": item.get("enterprise_value"),
+services/sotp_long_term_equity_report_service.py:131:                "equity_value_mn": item.get("equity_value"),
+services/sotp_long_term_equity_report_service.py:305:    assert "enterprise_value" in val_sum
+services/sotp_long_term_equity_sotp_service.py:73:def _compute_enterprise_value(eligible_records: list[dict[str, Any]]) -> float:
+services/sotp_long_term_equity_sotp_service.py:76:        float(record.get("enterprise_value") or 0.0) for record in eligible_records
+services/sotp_long_term_equity_sotp_service.py:97:def _compute_equity_value(
+services/sotp_long_term_equity_sotp_service.py:98:    enterprise_value: float,
+services/sotp_long_term_equity_sotp_service.py:107:    return enterprise_value + cash - debt - minority_interest
+services/sotp_long_term_equity_sotp_service.py:111:    equity_value: float, holding_discount_pct: float = 0.0
+services/sotp_long_term_equity_sotp_service.py:117:    return equity_value * (1.0 - holding_discount_pct)
+services/sotp_long_term_equity_sotp_service.py:137:        ev = float(record.get("enterprise_value") or 0.0)
+services/sotp_long_term_equity_sotp_service.py:138:        eq = float(record.get("equity_value") or 0.0)
+services/sotp_long_term_equity_sotp_service.py:151:                "enterprise_value": ev,
+services/sotp_long_term_equity_sotp_service.py:152:                "equity_value": eq,
+services/sotp_long_term_equity_sotp_service.py:164:        "enterprise_value",
+services/sotp_long_term_equity_sotp_service.py:168:        "equity_value",
+services/sotp_long_term_equity_sotp_service.py:181:        "enterprise_value",
+services/sotp_long_term_equity_sotp_service.py:182:        "equity_value",
+services/sotp_long_term_equity_sotp_service.py:261:    ev = _compute_enterprise_value(eligible_records)
+services/sotp_long_term_equity_sotp_service.py:266:    equity_val = _compute_equity_value(
+services/sotp_long_term_equity_sotp_service.py:267:        enterprise_value=ev,
+services/sotp_long_term_equity_sotp_service.py:273:    intrinsic_val = _compute_intrinsic_value(equity_value=equity_val)
+services/sotp_long_term_equity_sotp_service.py:292:        "enterprise_value": ev,
+services/sotp_long_term_equity_sotp_service.py:296:        "equity_value": equity_val,
+services/sotp_long_term_equity_sotp_service.py:345:    assert "enterprise_value" in result
+services/sotp_long_term_equity_sotp_service.py:349:    assert "equity_value" in result
+services/sotp_long_term_equity_valuation_service.py:13:    enterprise_value: float
+services/sotp_long_term_equity_valuation_service.py:14:    equity_value: float
+services/sotp_long_term_equity_valuation_service.py:24:    total_enterprise_value: float
+services/sotp_long_term_equity_valuation_service.py:25:    total_equity_value: float
+services/sotp_long_term_equity_valuation_service.py:26:    implied_share_price: float
+services/sotp_long_term_equity_valuation_service.py:165:        ev = dcf_result.enterprise_value
+services/sotp_long_term_equity_valuation_service.py:175:            enterprise_value=ev,
+services/sotp_long_term_equity_valuation_service.py:176:            equity_value=equity_val,
+services/sotp_long_term_equity_valuation_service.py:192:        sum_enterprise_value = 0.0
+services/sotp_long_term_equity_valuation_service.py:193:        sum_equity_value = 0.0
+services/sotp_long_term_equity_valuation_service.py:198:            sum_enterprise_value += res.enterprise_value * res.weight
+services/sotp_long_term_equity_valuation_service.py:199:            sum_equity_value += res.equity_value * res.weight
+services/sotp_long_term_equity_valuation_service.py:203:                ev = seg.get("enterprise_value", 0.0)
+services/sotp_long_term_equity_valuation_service.py:210:                    enterprise_value=ev,
+services/sotp_long_term_equity_valuation_service.py:211:                    equity_value=eq,
+services/sotp_long_term_equity_valuation_service.py:217:                sum_enterprise_value += ev * wt
+services/sotp_long_term_equity_valuation_service.py:218:                sum_equity_value += eq * wt
+services/sotp_long_term_equity_valuation_service.py:221:            sum_equity_value *= 1.0 - holdco_discount
+services/sotp_long_term_equity_valuation_service.py:224:            sum_equity_value / self.shares_outstanding
+services/sotp_long_term_equity_valuation_service.py:232:            total_enterprise_value=sum_enterprise_value,
+services/sotp_long_term_equity_valuation_service.py:233:            total_equity_value=sum_equity_value,
+services/sotp_long_term_equity_valuation_service.py:234:            implied_share_price=implied_price,
+services/sotp_long_term_equity_valuation_service.py:357:        record["enterprise_value"] = 0.0
+services/sotp_long_term_equity_valuation_service.py:361:        record["equity_value"] = 0.0
+services/sotp_new_energy_policy_service.py:172:        "authorized_enterprise_value": None,
+services/sotp_new_energy_scenario_policy_service.py:108:    reported_enterprise_value = _num(scenario_data.get("reported_enterprise_value"))
+services/sotp_new_energy_scenario_policy_service.py:113:        reported_enterprise_value is None and not reported_valuation_ready
+services/sotp_new_energy_scenario_policy_service.py:238:        "reported_enterprise_value": (reported_enterprise_value),
+services/sotp_new_energy_scenario_policy_service.py:240:        "authorized_enterprise_value": None,
+services/sotp_new_energy_scenario_service.py:135:        "reported_enterprise_value": (valuation.get("enterprise_value")),
+services/sotp_new_energy_valuation_service.py:104:        enterprise_value = authorized_candidates[selected_method]["value"]
+services/sotp_new_energy_valuation_service.py:111:        enterprise_value = None
+services/sotp_new_energy_valuation_service.py:144:        "enterprise_value": enterprise_value,
+services/sotp_peer_ev_consistency_service.py:77:    enterprise_value = _to_crore(info.get("enterpriseValue"))
+services/sotp_peer_ev_consistency_service.py:141:    if enterprise_value is not None and reconstructed_ev is not None:
+services/sotp_peer_ev_consistency_service.py:142:        ev_residual = enterprise_value - reconstructed_ev
+services/sotp_peer_ev_consistency_service.py:144:        if enterprise_value != 0:
+services/sotp_peer_ev_consistency_service.py:145:            ev_residual_percent = ev_residual / enterprise_value * 100
+services/sotp_peer_ev_consistency_service.py:154:    if enterprise_value is not None and ebitda is not None and ebitda != 0:
+services/sotp_peer_ev_consistency_service.py:155:        calculated_ev_ebitda = enterprise_value / ebitda
+services/sotp_peer_ev_consistency_service.py:192:            "enterprise_value": enterprise_value,
+services/sotp_peer_ev_consistency_service.py:216:            "provider_ev": enterprise_value,
+services/sotp_segment_valuation_service.py:93:            "enterprise_value": None,
+services/sotp_segment_valuation_service.py:110:            "enterprise_value": None,
+services/sotp_segment_valuation_service.py:123:            "enterprise_value": None,
+services/sotp_segment_valuation_service.py:140:            "enterprise_value": None,
+services/sotp_segment_valuation_service.py:149:    enterprise_value = metric_value * multiple
+services/sotp_segment_valuation_service.py:200:        "enterprise_value": round(
+services/sotp_segment_valuation_service.py:201:            enterprise_value,
+services/sotp_segment_valuation_service.py:271:    operating_enterprise_value = 0.0
+services/sotp_segment_valuation_service.py:301:        enterprise_value = _safe_float(result.get("enterprise_value"))
+services/sotp_segment_valuation_service.py:305:        if enterprise_value is None:
+services/sotp_segment_valuation_service.py:308:        operating_enterprise_value += enterprise_value
+services/sotp_segment_valuation_service.py:312:        if reliability is not None and enterprise_value > 0:
+services/sotp_segment_valuation_service.py:313:            reliability_numerator += enterprise_value * reliability
+services/sotp_segment_valuation_service.py:315:            reliability_denominator += enterprise_value
+services/sotp_segment_valuation_service.py:355:        "operating_enterprise_value": round(
+services/sotp_segment_valuation_service.py:356:            operating_enterprise_value,
+services/sotp_validation_service.py:75:        ev = _num(block.get("enterprise_value"))
+services/sotp_validation_service.py:84:    reported_operating_ev = _num(valuation.get("operating_enterprise_value"))
+services/sotp_validation_service.py:106:        operating_ev = _num(scenario.get("operating_enterprise_value"))
+services/sotp_validation_service.py:108:        new_energy_ev = _num(scenario.get("new_energy_enterprise_value"))
+services/sotp_validation_service.py:110:        gross_ev = _num(scenario.get("gross_enterprise_value"))
+services/sotp_validation_service.py:114:        equity_value = _num(scenario.get("equity_value"))
+services/sotp_validation_service.py:117:        expected_equity_value = None
+services/sotp_validation_service.py:131:            expected_equity_value = gross_ev + bridge_adjustment
+services/sotp_validation_service.py:134:                expected_equity_value,
+services/sotp_validation_service.py:135:                equity_value,
+services/sotp_validation_service.py:145:            "expected_gross_enterprise_value": (
+services/sotp_validation_service.py:148:            "reported_gross_enterprise_value": gross_ev,
+services/sotp_validation_service.py:150:            "expected_equity_value": (
+services/sotp_validation_service.py:151:                round(expected_equity_value, 2)
+services/sotp_validation_service.py:152:                if expected_equity_value is not None
+services/sotp_validation_service.py:155:            "reported_equity_value": equity_value,
+services/sotp_validation_service.py:156:            "equity_value_reconciles": equity_reconciles,
+services/sotp_validation_service.py:165:    headline_gross_ev = _num(valuation.get("gross_enterprise_value"))
+services/sotp_validation_service.py:167:    headline_equity_value = _num(valuation.get("equity_value"))
+services/sotp_validation_service.py:169:    headline_fair_value = _num(valuation.get("fair_value_per_share"))
+services/sotp_validation_service.py:175:                base.get("gross_enterprise_value"),
+services/sotp_validation_service.py:178:                headline_equity_value,
+services/sotp_validation_service.py:179:                base.get("equity_value"),
+services/sotp_validation_service.py:182:                headline_fair_value,
+services/sotp_validation_service.py:183:                base.get("fair_value_per_share"),
+services/sotp_validation_service.py:198:    calculated_fair_value = None
+services/sotp_validation_service.py:202:    if shares is not None and shares > 0 and headline_equity_value is not None:
+services/sotp_validation_service.py:203:        calculated_fair_value = headline_equity_value * 1e7 / shares
+services/sotp_validation_service.py:206:            calculated_fair_value,
+services/sotp_validation_service.py:207:            headline_fair_value,
+services/sotp_validation_service.py:218:    bear_value = _num(scenarios.get("BEAR", {}).get("new_energy_enterprise_value"))
+services/sotp_validation_service.py:220:    base_value = _num(scenarios.get("BASE", {}).get("new_energy_enterprise_value"))
+services/sotp_validation_service.py:222:    bull_value = _num(scenarios.get("BULL", {}).get("new_energy_enterprise_value"))
+services/sotp_validation_service.py:353:            "calculated_operating_enterprise_value": (
+services/sotp_validation_service.py:356:            "reported_operating_enterprise_value": (reported_operating_ev),
+services/sotp_validation_service.py:357:            "calculated_fair_value_per_share": (
+services/sotp_validation_service.py:358:                round(calculated_fair_value, 2)
+services/sotp_validation_service.py:359:                if calculated_fair_value is not None
+services/sotp_validation_service.py:362:            "reported_fair_value_per_share": (headline_fair_value),
+services/sotp_valuation_service.py:160:        "enterprise_value": None,
+services/sotp_valuation_service.py:161:        "equity_value": None,
+services/sotp_valuation_service.py:281:                    "enterprise_value": (
+services/sotp_valuation_service.py:282:                        _safe_float(operating_result.get("enterprise_value"))
+services/sotp_valuation_service.py:357:            "operating_enterprise_value": (
+services/sotp_valuation_service.py:358:                _safe_float(scenario.get("operating_enterprise_value"))
+services/sotp_valuation_service.py:360:            "new_energy_enterprise_value": (
+services/sotp_valuation_service.py:361:                _safe_float(scenario.get("new_energy_enterprise_value"))
+services/sotp_valuation_service.py:363:            "gross_enterprise_value": (
+services/sotp_valuation_service.py:364:                _safe_float(scenario.get("gross_enterprise_value"))
+services/sotp_valuation_service.py:369:            "equity_value": (_safe_float(scenario.get("equity_value"))),
+services/sotp_valuation_service.py:370:            "fair_value_per_share": (_safe_float(scenario.get("fair_value_per_share"))),
+services/sotp_valuation_service.py:383:    base_gross_ev = _safe_float(base_case.get("gross_enterprise_value"))
+services/sotp_valuation_service.py:385:    base_equity_value = _safe_float(base_case.get("equity_value"))
+services/sotp_valuation_service.py:387:    base_fair_value = _safe_float(base_case.get("fair_value_per_share"))
+services/sotp_valuation_service.py:433:        "operating_enterprise_value": (
+services/sotp_valuation_service.py:434:            _safe_float(bridge.get("operating_enterprise_value"))
+services/sotp_valuation_service.py:436:        "gross_enterprise_value": (base_gross_ev),
+services/sotp_valuation_service.py:440:        "equity_value": (base_equity_value),
+services/sotp_valuation_service.py:441:        "fair_value_per_share": (base_fair_value),
+services/valuation/blended_engine.py:16:    dcf_fair_value: float
+services/valuation/blended_engine.py:17:    relative_fair_value: float
+services/valuation/blended_engine.py:18:    sotp_fair_value: float
+services/valuation/blended_engine.py:19:    blended_fair_value: float
+services/valuation/blended_engine.py:58:        dcf_val = dcf_res.fair_value_per_share
+services/valuation/blended_engine.py:60:        sotp_val = sotp_res.fair_value_per_share
+services/valuation/blended_engine.py:66:            dcf_fair_value=dcf_val,
+services/valuation/blended_engine.py:67:            relative_fair_value=rel_val,
+services/valuation/blended_engine.py:68:            sotp_fair_value=sotp_val,
+services/valuation/blended_engine.py:69:            blended_fair_value=round(blended, 2),
+services/valuation/comparable/comparable_input.py:34:    enterprise_value: float
+services/valuation/comparable/comparable_model.py:116:        implied_share_price = recommended_equity / target.shares_outstanding
+services/valuation/comparable/comparable_model.py:126:            implied_enterprise_value_ev_sales=implied_ev_sales,
+services/valuation/comparable/comparable_model.py:127:            implied_enterprise_value_ev_ebit=implied_ev_ebit,
+services/valuation/comparable/comparable_model.py:128:            implied_enterprise_value_ev_ebitda=implied_ev_ebitda,
+services/valuation/comparable/comparable_model.py:129:            implied_equity_value_pe=implied_equity_pe,
+services/valuation/comparable/comparable_model.py:130:            implied_equity_value_pb=implied_equity_pb,
+services/valuation/comparable/comparable_model.py:131:            recommended_enterprise_value=recommended_ev,
+services/valuation/comparable/comparable_model.py:132:            recommended_equity_value=recommended_equity,
+services/valuation/comparable/comparable_model.py:133:            implied_share_price=implied_share_price,
+services/valuation/comparable/comparable_result.py:40:    implied_enterprise_value_ev_sales: float
+services/valuation/comparable/comparable_result.py:42:    implied_enterprise_value_ev_ebit: float
+services/valuation/comparable/comparable_result.py:44:    implied_enterprise_value_ev_ebitda: float
+services/valuation/comparable/comparable_result.py:47:    implied_equity_value_pe: float
+services/valuation/comparable/comparable_result.py:49:    implied_equity_value_pb: float
+services/valuation/comparable/comparable_result.py:52:    recommended_enterprise_value: float
+services/valuation/comparable/comparable_result.py:54:    recommended_equity_value: float
+services/valuation/comparable/comparable_result.py:56:    implied_share_price: float
+services/valuation/comparable/comparable_result.py:86:            "enterprise_value": self.recommended_enterprise_value,
+services/valuation/comparable/comparable_result.py:87:            "equity_value": self.recommended_equity_value,
+services/valuation/comparable/comparable_result.py:88:            "share_price": self.implied_share_price,
+services/valuation/comparable/multiple_calculator.py:56:    return peer.enterprise_value / peer.revenue
+services/valuation/comparable/multiple_calculator.py:61:    return peer.enterprise_value / peer.ebit
+services/valuation/comparable/multiple_calculator.py:66:    return peer.enterprise_value / peer.ebitda
+services/valuation/comparable/peer_selection.py:65:            peer.enterprise_value > 0
+services/valuation/comparable/validation.py:34:    if peer.enterprise_value <= 0:
+services/valuation/contracts.py:70:    enterprise_value: float = 0.0
+services/valuation/contracts.py:71:    equity_value: float = 0.0
+services/valuation/contracts.py:72:    implied_share_price: float = 0.0
+services/valuation/dcf/dcf_model.py:111:        enterprise_value = discount.pv_fcff_total + terminal.present_value_terminal
+services/valuation/dcf/dcf_model.py:117:        equity_value = (
+services/valuation/dcf/dcf_model.py:118:            enterprise_value - self.data.total_debt + self.data.cash_and_equivalents
+services/valuation/dcf/dcf_model.py:121:        implied_share_price = equity_value / self.data.shares_outstanding
+services/valuation/dcf/dcf_model.py:155:            enterprise_value=enterprise_value,
+services/valuation/dcf/dcf_model.py:158:            equity_value=equity_value,
+services/valuation/dcf/dcf_model.py:160:            implied_share_price=implied_share_price,
+services/valuation/dcf/dcf_model.py:169:                "price_matrix": sensitivity.implied_share_price_matrix,
+services/valuation/dcf/dcf_result.py:73:    enterprise_value: float
+services/valuation/dcf/dcf_result.py:79:    equity_value: float
+services/valuation/dcf/dcf_result.py:87:    implied_share_price: float
+services/valuation/dcf/dcf_result.py:131:            "enterprise_value": self.enterprise_value,
+services/valuation/dcf/dcf_result.py:134:            "equity_value": self.equity_value,
+services/valuation/dcf/dcf_result.py:143:            "enterprise_value": self.enterprise_value,
+services/valuation/dcf/dcf_result.py:144:            "equity_value": self.equity_value,
+services/valuation/dcf/dcf_result.py:145:            "share_price": self.implied_share_price,
+services/valuation/dcf/engine.py:40:        enterprise_value = sum_pv_fcff + pv_terminal_value
+services/valuation/dcf/engine.py:41:        equity_value = enterprise_value - net_debt
+services/valuation/dcf/engine.py:42:        fair_value_per_share = max(0.0, equity_value / shares_outstanding) if shares_outstanding > 0 else 0.0
+services/valuation/dcf/engine.py:46:            enterprise_value=round(enterprise_value, 2),
+services/valuation/dcf/engine.py:47:            equity_value=round(equity_value, 2),
+services/valuation/dcf/engine.py:48:            fair_value_per_share=round(fair_value_per_share, 2),
+services/valuation/dcf/models.py:11:    enterprise_value: float
+services/valuation/dcf/models.py:12:    equity_value: float
+services/valuation/dcf/models.py:13:    fair_value_per_share: float
+services/valuation/dcf/professional_engine.py:13:    enterprise_value: float
+services/valuation/dcf/professional_engine.py:14:    equity_value: float
+services/valuation/dcf/professional_engine.py:15:    fair_value_per_share: float
+services/valuation/dcf/professional_engine.py:44:        enterprise_value = pv_explicit + pv_terminal
+services/valuation/dcf/professional_engine.py:45:        equity_value = enterprise_value - net_debt
+services/valuation/dcf/professional_engine.py:46:        fair_value_per_share = equity_value / shares_outstanding if shares_outstanding > 0 else 0.0
+services/valuation/dcf/professional_engine.py:71:            enterprise_value=round(enterprise_value, 2),
+services/valuation/dcf/professional_engine.py:72:            equity_value=round(equity_value, 2),
+services/valuation/dcf/professional_engine.py:73:            fair_value_per_share=round(fair_value_per_share, 2),
+services/valuation/dcf/sensitivity.py:40:    implied_share_price_matrix: list[list[float]]
+services/valuation/dcf/sensitivity.py:54:def _equity_value_to_share_price(
+services/valuation/dcf/sensitivity.py:55:    enterprise_value: float,
+services/valuation/dcf/sensitivity.py:61:    equity = enterprise_value - debt + cash
+services/valuation/dcf/sensitivity.py:116:            enterprise_value = pv_fcff_total + pv_terminal
+services/valuation/dcf/sensitivity.py:118:            price = _equity_value_to_share_price(
+services/valuation/dcf/sensitivity.py:119:                enterprise_value,
+services/valuation/dcf/sensitivity.py:132:        implied_share_price_matrix=matrix,
+services/valuation/dcf/terminal_value.py:114:    enterprise_value: float,
+services/valuation/dcf/terminal_value.py:120:    if enterprise_value == 0:
+services/valuation/dcf/terminal_value.py:123:    return (pv_terminal / enterprise_value) * 100.0
+services/valuation/dcf/terminal_value.py:159:    enterprise_value = pv_fcff_total + pv_terminal
+services/valuation/dcf/terminal_value.py:163:        enterprise_value,
+services/valuation/dcf_adapter.py:70:            enterprise_value=dcf_result.enterprise_value,
+services/valuation/dcf_adapter.py:71:            equity_value=dcf_result.equity_value,
+services/valuation/dcf_adapter.py:72:            implied_share_price=dcf_result.implied_share_price,
+services/valuation/dcf_engine.py:159:            enterprise_value=result.enterprise_value,
+services/valuation/dcf_engine.py:160:            equity_value=result.equity_value,
+services/valuation/dcf_engine.py:161:            implied_share_price=result.implied_share_price,
+services/valuation/engine.py:54:        blended_fair_value = round((dcf_implied * 0.4) + (pe_implied * 0.3) + (ev_ebitda_implied * 0.3), 2)
+services/valuation/engine.py:56:        mos_pct = round(((blended_fair_value - current_price) / current_price) * 100.0, 2)
+services/valuation/engine.py:64:            blended_fair_value=blended_fair_value,
+services/valuation/models.py:32:    blended_fair_value: float
+services/valuation/nav/__init__.py:5:    fair_value_adjustment,
+services/valuation/nav/__init__.py:7:    total_fair_value_adjustment,
+services/valuation/nav/__init__.py:51:    "fair_value_adjustment",
+services/valuation/nav/__init__.py:55:    "total_fair_value_adjustment",
+services/valuation/nav/adjustments.py:44:    return asset.fair_value * (asset.ownership_pct / 100.0)
+services/valuation/nav/adjustments.py:47:def fair_value_adjustment(asset: NAVAsset) -> float:
+services/valuation/nav/adjustments.py:84:    equity_value: float,
+services/valuation/nav/adjustments.py:94:    return equity_value * (1.0 - discount_pct)
+services/valuation/nav/adjustments.py:112:def total_fair_value_adjustment(
+services/valuation/nav/adjustments.py:119:    return sum(fair_value_adjustment(asset) for asset in assets)
+services/valuation/nav/nav_engine.py:49:            enterprise_value=nav_res.gross_asset_fair_value,
+services/valuation/nav/nav_engine.py:50:            equity_value=nav_res.equity_nav,
+services/valuation/nav/nav_engine.py:53:                "gross_asset_fair_value": nav_res.gross_asset_fair_value,
+services/valuation/nav/nav_engine.py:58:                "implied_share_price": nav_res.implied_share_price,
+services/valuation/nav/nav_engine.py:70:                fair_value=float(a.get("fair_value", a.get("book_value", 0.0))),
+services/valuation/nav/nav_input.py:33:    fair_value: float
+services/valuation/nav/nav_model.py:33:    total_fair_value_adjustment,
+services/valuation/nav/nav_model.py:71:        fair_value_adjustment = total_fair_value_adjustment(self.data.assets)
+services/valuation/nav/nav_model.py:94:        equity_value = apply_holdco_discount(
+services/valuation/nav/nav_model.py:99:        share_price = equity_value / self.data.shares_outstanding
+services/valuation/nav/nav_model.py:122:            total_fair_value_adjustment=fair_value_adjustment,
+services/valuation/nav/nav_model.py:128:            equity_value=equity_value,
+services/valuation/nav/nav_model.py:130:            implied_share_price=share_price,
+services/valuation/nav/nav_result.py:38:    total_fair_value_adjustment: float
+services/valuation/nav/nav_result.py:52:    equity_value: float
+services/valuation/nav/nav_result.py:56:    implied_share_price: float
+services/valuation/nav/nav_result.py:82:            "equity_value": self.equity_value,
+services/valuation/nav/nav_result.py:83:            "share_price": self.implied_share_price,
+services/valuation/nav/sensitivity.py:40:    fair_value_multiplier_axis: list[float]
+services/valuation/nav/sensitivity.py:41:    equity_value_matrix: list[list[float]]
+services/valuation/nav/sensitivity.py:42:    implied_share_price_matrix: list[list[float]]
+services/valuation/nav/sensitivity.py:47:            "columns": len(self.fair_value_multiplier_axis),
+services/valuation/nav/sensitivity.py:63:    fair_value_delta: float = 0.10,
+services/valuation/nav/sensitivity.py:75:    fair_value_axis = np.linspace(
+services/valuation/nav/sensitivity.py:76:        1.0 - fair_value_delta,
+services/valuation/nav/sensitivity.py:77:        1.0 + fair_value_delta,
+services/valuation/nav/sensitivity.py:89:        for multiplier in fair_value_axis:
+services/valuation/nav/sensitivity.py:97:            equity_value = adjusted_nav * (1.0 - discount)
+services/valuation/nav/sensitivity.py:100:                equity_value / shares_outstanding if shares_outstanding > 0 else 0.0
+services/valuation/nav/sensitivity.py:103:            equity_row.append(equity_value)
+services/valuation/nav/sensitivity.py:111:        fair_value_multiplier_axis=fair_value_axis.tolist(),
+services/valuation/nav/sensitivity.py:112:        equity_value_matrix=equity_matrix,
+services/valuation/nav/sensitivity.py:113:        implied_share_price_matrix=price_matrix,
+services/valuation/nav/validation.py:40:    if asset.fair_value < 0:
+services/valuation/nav/validation.py:41:        raise ValueError(f"{asset.name}: fair_value cannot be negative.")
+services/valuation/nav_engine.py:35:            enterprise_value=res.total_asset_value,
+services/valuation/nav_engine.py:36:            equity_value=res.net_asset_value,
+services/valuation/nav_engine.py:37:            implied_share_price=res.implied_share_price,
+services/valuation/service.py:47:        fair_value = dcf_result.fair_value_per_share
+services/valuation/service.py:48:        recommendation = "BUY" if fair_value > 1200 else ("HOLD" if fair_value > 900 else "SELL")
+services/valuation/service.py:54:                "blended_fair_value": fair_value,
+services/valuation/service.py:63:        logger.info("ValuationCompleted event published for symbol: %s with fair value: %.2f", symbol, fair_value)
+services/valuation/sotp/engine.py:43:                    enterprise_value=round(ev, 2),
+services/valuation/sotp/engine.py:53:        raw_equity_value = total_ev - net_debt
+services/valuation/sotp/engine.py:54:        discounted_equity_value = raw_equity_value * (1.0 - holding_discount)
+services/valuation/sotp/engine.py:55:        fair_value_per_share = max(0.0, discounted_equity_value / shares_outstanding) if shares_outstanding > 0 else 0.0
+services/valuation/sotp/engine.py:63:            conglomerate_equity_value=round(discounted_equity_value, 2),
+services/valuation/sotp/engine.py:64:            fair_value_per_share=round(fair_value_per_share, 2),
+services/valuation/sotp/models.py:14:    enterprise_value: float
+services/valuation/sotp/models.py:25:    conglomerate_equity_value: float = 0.0
+services/valuation/sotp/models.py:26:    fair_value_per_share: float = 0.0
+services/valuation/sotp_engine.py:45:            enterprise_value=res.total_enterprise_value,
+services/valuation/sotp_engine.py:46:            equity_value=res.total_equity_value,
+services/valuation/sotp_engine.py:47:            implied_share_price=res.implied_share_price,
+services/valuation/stub_adapters.py:22:            enterprise_value=0.0,
+services/valuation/stub_adapters.py:23:            equity_value=0.0,
+services/valuation/stub_adapters.py:43:            enterprise_value=0.0,
+services/valuation/stub_adapters.py:44:            equity_value=0.0,
+services/valuation/stub_adapters.py:64:            enterprise_value=0.0,
+services/valuation/stub_adapters.py:65:            equity_value=0.0,
+services/valuation_service.py:151:    fair_value = eps * fair_pe
+services/valuation_service.py:153:    upside_percent = ((fair_value - current_price) / current_price) * 100
+services/valuation_service.py:156:    margin_of_safety = ((fair_value - current_price) / fair_value) * 100
+services/valuation_service.py:237:        "fair_value": round(fair_value, 2),
+services/valuation_v4_service.py:27:def _calculate_return(fair_value, current_price):
+services/valuation_v4_service.py:29:    if fair_value is None or current_price is None:
+services/valuation_v4_service.py:35:    return ((fair_value / current_price) - 1.0) * 100.0
+services/valuation_v4_service.py:167:        pe_fair_value = eps * pe_multiple
+services/valuation_v4_service.py:171:            "fair_value": pe_fair_value,
+services/valuation_v4_service.py:173:                pe_fair_value,
+services/valuation_v4_service.py:205:        forward_fair_value = forward_eps * forward_multiple
+services/valuation_v4_service.py:209:            "fair_value": forward_fair_value,
+services/valuation_v4_service.py:211:                forward_fair_value,
+services/valuation_v4_service.py:240:        pb_fair_value = book_value * pb_multiple
+services/valuation_v4_service.py:244:            "fair_value": pb_fair_value,
+services/valuation_v4_service.py:246:                pb_fair_value,
+services/valuation_v4_service.py:283:        implied_enterprise_value = ebitda * ev_multiple
+services/valuation_v4_service.py:285:        implied_equity_value = implied_enterprise_value - debt + cash
+services/valuation_v4_service.py:287:        if implied_equity_value > 0:
+services/valuation_v4_service.py:289:            ev_fair_value = implied_equity_value / shares
+services/valuation_v4_service.py:293:                "fair_value": ev_fair_value,
+services/valuation_v4_service.py:295:                    ev_fair_value,
+services/valuation_v4_service.py:329:        fcf_fair_value = fcf_per_share / required_fcf_yield
+services/valuation_v4_service.py:333:            "fair_value": fcf_fair_value,
+services/valuation_v4_service.py:335:                fcf_fair_value,
+services/valuation_v4_service.py:385:    composite_fair_value = 0.0
+services/valuation_v4_service.py:393:        composite_fair_value += method["fair_value"] * normalized_weight
+services/valuation_v4_service.py:399:    fair_values = [
+services/valuation_v4_service.py:400:        method["fair_value"]
+services/valuation_v4_service.py:402:        if method.get("fair_value") is not None
+services/valuation_v4_service.py:405:    low_value = min(fair_values)
+services/valuation_v4_service.py:406:    high_value = max(fair_values)
+services/valuation_v4_service.py:413:        composite_fair_value,
+services/valuation_v4_service.py:423:    if composite_fair_value > 0:
+services/valuation_v4_service.py:426:            abs(value - composite_fair_value) / composite_fair_value
+services/valuation_v4_service.py:427:            for value in fair_values
+services/valuation_v4_service.py:486:        ((composite_fair_value - current_price) / composite_fair_value) * 100.0
+services/valuation_v4_service.py:487:        if composite_fair_value > 0
+services/valuation_v4_service.py:544:            "fair_value": round(
+services/valuation_v4_service.py:545:                method["fair_value"],
+services/valuation_v4_service.py:594:        "composite_fair_value": round(
+services/valuation_v4_service.py:595:            composite_fair_value,
+tests/scoring/test_block13_valuation_scoring.py:58:    assert result.breakdown_details["valuation_engine"]["blended_fair_value"] > 0
+tests/test_pipeline.py:87:        assert valuation_events[0].payload["blended_fair_value"] > 0.0
+tests/valuation/test_blended_valuation.py:57:    assert result.blended_fair_value > 0
+tests/valuation/test_dcf.py:19:    assert result.enterprise_value > 0.0
+tests/valuation/test_dcf.py:20:    assert result.equity_value > 0.0
+tests/valuation/test_dcf.py:21:    assert result.fair_value_per_share > 0.0
+tests/valuation/test_professional_dcf.py:18:    assert result.fair_value_per_share > 0
+tests/valuation/test_sotp.py:57:    assert result.conglomerate_equity_value > 0.0
+tests/valuation/test_sotp.py:58:    assert result.fair_value_per_share > 0.0
+
+
+============================================================
+SCORING -> VALUATION REFERENCES
+============================================================
+services/scoring/block18_orchestrator.py:69:            (ai_score.breakdown_details or {}).get("current_price", 2500.0)
+services/scoring/engine.py:8:from services.valuation.dispatcher import ValuationDispatcher
+services/scoring/engine.py:38:        self.valuation_dispatcher = ValuationDispatcher()
+services/scoring/engine.py:67:        valuation_score = _score_valuation(val_res.implied_share_price)
+services/scoring/engine.py:106:            + valuation_score * weights["valuation"]
+services/scoring/engine.py:141:            "valuation_engine": {
+services/scoring/engine.py:148:                "valuation_score": valuation_score,
+services/scoring/engine.py:160:            valuation_score=round(valuation_score, 2),
+services/scoring/engine.py:164:            breakdown_details=details,
+services/scoring/investment_decision.py:21:    valuation_score: float
+services/scoring/investment_decision.py:80:        action = best_option.action if best_option else ai_score.breakdown_details.get("rating", "HOLD")
+services/scoring/investment_decision.py:163:            "underlying_scoring_breakdown": ai_score.breakdown_details,
+services/scoring/investment_decision.py:171:            rating=ai_score.breakdown_details.get("rating", "HOLD"),
+services/scoring/investment_decision.py:176:            valuation_score=ai_score.valuation_score,
+services/scoring/models.py:15:    valuation_score: float
+services/scoring/models.py:19:    breakdown_details: Dict[str, Any] = field(default_factory=dict)
+tests/scoring/test_block10_fundamental_scoring.py:61:    assert 0.0 <= result.valuation_score <= 100.0
+tests/scoring/test_block10_fundamental_scoring.py:77:    details = result.breakdown_details
+tests/scoring/test_block11_historical_growth.py:47:    assert "growth_engine" in result.breakdown_details
+tests/scoring/test_block11_historical_growth.py:48:    assert "EROS-3.0" in result.breakdown_details["engine_version"]
+tests/scoring/test_block12_unified_scoring.py:55:    assert "EROS-3.0" in result.breakdown_details["engine_version"]
+tests/scoring/test_block12_unified_scoring.py:56:    assert "fundamental_engine" in result.breakdown_details
+tests/scoring/test_block12_unified_scoring.py:57:    assert "growth_engine" in result.breakdown_details
+tests/scoring/test_block13_valuation_scoring.py:55:    assert 0.0 <= result.valuation_score <= 100.0
+tests/scoring/test_block13_valuation_scoring.py:56:    assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
+tests/scoring/test_block13_valuation_scoring.py:57:    assert "valuation_engine" in result.breakdown_details
+tests/scoring/test_block13_valuation_scoring.py:58:    assert result.breakdown_details["valuation_engine"]["blended_fair_value"] > 0
+tests/scoring/test_block14_integration.py:69:    assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
+tests/scoring/test_block14_integration.py:70:    assert "momentum_engine" in result.breakdown_details
+tests/scoring/test_block14_integration.py:71:    assert result.breakdown_details["momentum_engine"]["engine_version"] == "EROS-3.0-BLOCK-14"
+tests/scoring/test_block15_integration.py:69:    assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
+tests/scoring/test_block15_integration.py:70:    assert "risk_engine" in result.breakdown_details
+tests/scoring/test_block15_integration.py:71:    assert result.breakdown_details["risk_engine"]["engine_version"] == "EROS-3.0-BLOCK-15"
+tests/scoring/test_block16_decision.py:11:        valuation_score=78.0,
+tests/scoring/test_block16_decision.py:15:        breakdown_details={
+tests/scoring/test_block16_execution.py:11:        valuation_score=80.0,
+tests/scoring/test_block16_execution.py:15:        breakdown_details={
+tests/scoring/test_block16_portfolio_context.py:11:        valuation_score=78.0,
+tests/scoring/test_block16_portfolio_context.py:15:        breakdown_details={
+tests/scoring/test_block16_position_sizing.py:11:        valuation_score=82.0,
+tests/scoring/test_block16_position_sizing.py:15:        breakdown_details={
+tests/scoring/test_block18_orchestrator.py:11:        valuation_score=82.0,
+tests/scoring/test_block18_orchestrator.py:15:        breakdown_details={
+
+
+============================================================
+VALUATION IMPORT / INIT PROBE
+============================================================
+DISPATCHER TYPE: <class 'services.valuation.dispatcher.ValuationDispatcher'>
+DISPATCHER INSTANCE: <class 'services.valuation.dispatcher.ValuationDispatcher'>
+
+
+============================================================
+BLOCK 13 TEST
+============================================================
+F                                                                        [100%]
+================================== FAILURES ===================================
+_________________ test_block13_valuation_scoring_integration __________________
+
+    def test_block13_valuation_scoring_integration() -> None:
+        income = IncomeStatement(
+            revenue=120000.0,
+            cost_of_goods_sold=70000.0,
+            ebitda=30000.0,
+            ebit=24000.0,
+            net_income=18000.0,
+            eps=18.0,
+            shares_outstanding=1000.0,
+        )
+        balance = BalanceSheet(
+            cash=25000.0,
+            cash_equivalents=5000.0,
+            accounts_receivable=15000.0,
+            inventory=10000.0,
+            total_assets=220000.0,
+            total_liabilities=70000.0,
+            total_equity=150000.0,
+            short_term_debt=5000.0,
+            long_term_debt=15000.0,
+        )
+        cashflow = CashFlowStatement(
+            operating_cash_flow=22000.0,
+            capital_expenditure=6000.0,
+            beginning_cash=20000.0,
+            net_change_in_cash=5000.0,
+            ending_cash=25000.0,
+        )
+    
+        statements = FinancialStatements(
+            company_name="Larsen & Toubro",
+            ticker="LT.NS",
+            currency="INR",
+            fiscal_year="FY2025",
+            income_statement=income,
+            balance_sheet=balance,
+            cash_flow_statement=cashflow,
+            periods=[],
+        )
+    
+        engine = AIScoringEngine()
+        result = engine.evaluate(statements)
+    
+        assert result.symbol == "LT.NS"
+        assert 0.0 <= result.composite_score <= 100.0
+        assert 0.0 <= result.valuation_score <= 100.0
+        assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
+        assert "valuation_engine" in result.breakdown_details
+>       assert result.breakdown_details["valuation_engine"]["blended_fair_value"] > 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'blended_fair_value'
+
+tests\scoring\test_block13_valuation_scoring.py:58: KeyError
+=========================== short test summary info ===========================
+FAILED tests/scoring/test_block13_valuation_scoring.py::test_block13_valuation_scoring_integration
+1 failed in 0.38s
+
+BLOCK 13 EXIT CODE: 1
+
+============================================================
+SCORING TESTS
+============================================================
+...F.............                                                        [100%]
+================================== FAILURES ===================================
+_________________ test_block13_valuation_scoring_integration __________________
+
+    def test_block13_valuation_scoring_integration() -> None:
+        income = IncomeStatement(
+            revenue=120000.0,
+            cost_of_goods_sold=70000.0,
+            ebitda=30000.0,
+            ebit=24000.0,
+            net_income=18000.0,
+            eps=18.0,
+            shares_outstanding=1000.0,
+        )
+        balance = BalanceSheet(
+            cash=25000.0,
+            cash_equivalents=5000.0,
+            accounts_receivable=15000.0,
+            inventory=10000.0,
+            total_assets=220000.0,
+            total_liabilities=70000.0,
+            total_equity=150000.0,
+            short_term_debt=5000.0,
+            long_term_debt=15000.0,
+        )
+        cashflow = CashFlowStatement(
+            operating_cash_flow=22000.0,
+            capital_expenditure=6000.0,
+            beginning_cash=20000.0,
+            net_change_in_cash=5000.0,
+            ending_cash=25000.0,
+        )
+    
+        statements = FinancialStatements(
+            company_name="Larsen & Toubro",
+            ticker="LT.NS",
+            currency="INR",
+            fiscal_year="FY2025",
+            income_statement=income,
+            balance_sheet=balance,
+            cash_flow_statement=cashflow,
+            periods=[],
+        )
+    
+        engine = AIScoringEngine()
+        result = engine.evaluate(statements)
+    
+        assert result.symbol == "LT.NS"
+        assert 0.0 <= result.composite_score <= 100.0
+        assert 0.0 <= result.valuation_score <= 100.0
+        assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
+        assert "valuation_engine" in result.breakdown_details
+>       assert result.breakdown_details["valuation_engine"]["blended_fair_value"] > 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'blended_fair_value'
+
+tests\scoring\test_block13_valuation_scoring.py:58: KeyError
+=========================== short test summary info ===========================
+FAILED tests/scoring/test_block13_valuation_scoring.py::test_block13_valuation_scoring_integration
+1 failed, 16 passed in 0.62s
+
+SCORING EXIT CODE: 1
+
+============================================================
+VALUATION TESTS
+============================================================
+......F............                                                      [100%]
+================================== FAILURES ===================================
+_________________ test_block13_valuation_scoring_integration __________________
+
+    def test_block13_valuation_scoring_integration() -> None:
+        income = IncomeStatement(
+            revenue=120000.0,
+            cost_of_goods_sold=70000.0,
+            ebitda=30000.0,
+            ebit=24000.0,
+            net_income=18000.0,
+            eps=18.0,
+            shares_outstanding=1000.0,
+        )
+        balance = BalanceSheet(
+            cash=25000.0,
+            cash_equivalents=5000.0,
+            accounts_receivable=15000.0,
+            inventory=10000.0,
+            total_assets=220000.0,
+            total_liabilities=70000.0,
+            total_equity=150000.0,
+            short_term_debt=5000.0,
+            long_term_debt=15000.0,
+        )
+        cashflow = CashFlowStatement(
+            operating_cash_flow=22000.0,
+            capital_expenditure=6000.0,
+            beginning_cash=20000.0,
+            net_change_in_cash=5000.0,
+            ending_cash=25000.0,
+        )
+    
+        statements = FinancialStatements(
+            company_name="Larsen & Toubro",
+            ticker="LT.NS",
+            currency="INR",
+            fiscal_year="FY2025",
+            income_statement=income,
+            balance_sheet=balance,
+            cash_flow_statement=cashflow,
+            periods=[],
+        )
+    
+        engine = AIScoringEngine()
+        result = engine.evaluate(statements)
+    
+        assert result.symbol == "LT.NS"
+        assert 0.0 <= result.composite_score <= 100.0
+        assert 0.0 <= result.valuation_score <= 100.0
+        assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
+        assert "valuation_engine" in result.breakdown_details
+>       assert result.breakdown_details["valuation_engine"]["blended_fair_value"] > 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'blended_fair_value'
+
+tests\scoring\test_block13_valuation_scoring.py:58: KeyError
+=========================== short test summary info ===========================
+FAILED tests/scoring/test_block13_valuation_scoring.py::test_block13_valuation_scoring_integration
+1 failed, 18 passed, 286 deselected in 4.72s
+
+VALUATION EXIT CODE: 1
+
+============================================================
+COMPILE
+============================================================
+
+COMPILE EXIT CODE: 0
+
+============================================================
+TASK CONTROL INTEGRITY
+============================================================
+BEFORE: FF7AAE4059AEE14350F1D8DA1D6FE070A944507DFA3CEAE0D114BD69FCCEDA7E
+AFTER : FF7AAE4059AEE14350F1D8DA1D6FE070A944507DFA3CEAE0D114BD69FCCEDA7E
+RESULT: PROTECTED / UNCHANGED
+
+============================================================
+CURRENT SCORING / VALUATION DIFF
+============================================================
+ services/scoring/engine.py            |  43 +++++---
+ services/valuation/base_engine.py     |  40 +++-----
+ services/valuation/dcf/engine.py      |   2 +-
+ services/valuation/dcf_adapter.py     |  41 ++++++--
+ services/valuation/dcf_engine.py      | 181 +++++++++++++++++++++++++++++-----
+ services/valuation/dispatcher.py      |   4 +-
+ services/valuation/nav_engine.py      |  41 ++++----
+ services/valuation/relative/engine.py |   5 +-
+ services/valuation/sotp/engine.py     |   2 +-
+ services/valuation/sotp_engine.py     |  50 +++++-----
+ 10 files changed, 286 insertions(+), 123 deletions(-)
+

@@ -1,0 +1,46 @@
+﻿"""EROS valuation bridge.
+
+The bridge intentionally preserves SOTP and DCF independently.
+It does not calculate a simple average.
+"""
+
+from dataclasses import dataclass
+from typing import Any
+
+
+@dataclass
+class ValuationBoundary:
+    sotp: Any = None
+    dcf: Any = None
+    provenance: dict[str, Any] | None = None
+
+
+def create_valuation_boundary(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    return ValuationBoundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance or {},
+    )
+
+
+def build_bridge(
+    sotp: Any = None,
+    dcf: Any = None,
+    provenance: dict[str, Any] | None = None,
+) -> ValuationBoundary:
+    return create_valuation_boundary(
+        sotp=sotp,
+        dcf=dcf,
+        provenance=provenance,
+    )
+
+
+__all__ = [
+    "ValuationBoundary",
+    "create_valuation_boundary",
+    "build_bridge",
+]
