@@ -866,6 +866,10 @@ def show():
             risk_reward = trade_plan.get("risk_reward")
             atr = trade_plan.get("atr")
             support = trade_plan.get("support")
+            quote_timestamp = trade_plan.get("quote_timestamp")
+            quote_frequency = trade_plan.get("quote_frequency", "unavailable")
+            price_source = trade_plan.get("price_source", "Unknown")
+            is_tick_live = bool(trade_plan.get("is_tick_live", False))
             resistance = trade_plan.get("resistance")
             trade_signal = trade_plan.get("signal", "N/A")
 
@@ -873,6 +877,9 @@ def show():
             c1, c2, c3 = st.columns(3)
             with c1:
                 st.metric("Current Price", format_price(current_price))
+                if quote_timestamp:
+                    freshness = "Tick live" if is_tick_live else f"Latest {quote_frequency}"
+                    st.caption(f"{freshness} • {price_source} • {quote_timestamp}")
             with c2:
                 st.metric("Target Price", format_price(target_price))
             with c3:
