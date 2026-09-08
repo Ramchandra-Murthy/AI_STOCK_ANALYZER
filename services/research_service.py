@@ -3,6 +3,17 @@ import math
 import yfinance as yf
 
 
+def _get_fast_info(ticker):
+    """Return Yahoo's fast quote snapshot when available."""
+    try:
+        fast_info = ticker.fast_info
+        if fast_info is None:
+            return {}
+        return fast_info
+    except Exception:
+        return {}
+
+
 def _safe_float(value):
     """Convert a value to a finite float or return None."""
     try:
@@ -410,6 +421,16 @@ def get_stock_profile(symbol):
     try:
         ticker = yf.Ticker(symbol)
         info = ticker.info or {}
+        fast_info = _get_fast_info(ticker)
+
+        # --------------------------------------------------
+        # Prefer the fast quote snapshot for the current price.
+        # Yahoo's broad info payload can be cached/stale; fast_info
+        # is the narrower market-quote path and is therefore preferred.
+        # --------------------------------------------------
+        fast_price = _safe_float(fast_info.get("last_price"))
+        fast_previous_close = _safe_float(fast_info.get("previous_close"))
+        fast_volume = _safe_float(fast_info.get("last_volume"))
 
         # --------------------------------------------------
         # ROE
@@ -507,9 +528,20 @@ def get_stock_profile(symbol):
             # ==============================================
             # MARKET
             # ==============================================
-            "price": info.get(
-                "currentPrice",
-                "N/A",
+            "price": (
+                fast_price
+                if fast_price is not None
+                else info.get("currentPrice", "N/A")
+            ),
+            "previous_close": (
+                fast_previous_close
+                if fast_previous_close is not None
+                else info.get("previousClose", "N/A")
+            ),
+            "price_source": (
+                "yfinance.fast_info"
+                if fast_price is not None
+                else "yfinance.info"
             ),
             "currency": info.get(
                 "currency",
@@ -621,6 +653,11 @@ def get_stock_profile(symbol):
             "avg_volume": info.get(
                 "averageVolume",
                 "N/A",
+            ),
+            "last_volume": (
+                fast_volume
+                if fast_volume is not None
+                else info.get("volume", "N/A")
             ),
         }
 
