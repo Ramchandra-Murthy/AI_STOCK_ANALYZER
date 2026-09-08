@@ -29,17 +29,25 @@ def generate_scenario_analysis(
     score_breakdown = score_breakdown if isinstance(score_breakdown, dict) else {}
     trade_plan = trade_plan if isinstance(trade_plan, dict) else {}
 
-    investment_score = _safe_float(investment_score, 0) or 0
-    technical_score = _safe_float(technical_score, 0) or 0
-    fundamental_score = _safe_float(fundamental_score, 0) or 0
+    investment_score = _safe_float(investment_score)
+    technical_score = _safe_float(technical_score)
+    fundamental_score = _safe_float(fundamental_score)
+    ai_score = _safe_float(ai_result.get("score"))
 
-    ai_score = (
-        _safe_float(
-            ai_result.get("score"),
-            0,
-        )
-        or 0
-    )
+    # Do not fabricate scenarios when the upstream investment score is missing.
+    if investment_score is None:
+        return {
+            "status": "UNAVAILABLE",
+            "message": "Scenario analysis unavailable because the Investment Score was not produced.",
+            "bull_case": None,
+            "base_case": None,
+            "bear_case": None,
+            "reward_risk": None,
+        }
+
+    technical_score = technical_score if technical_score is not None else 50.0
+    fundamental_score = fundamental_score if fundamental_score is not None else 50.0
+    ai_score = ai_score if ai_score is not None else 50.0
 
     stability_score = (
         _safe_float(
