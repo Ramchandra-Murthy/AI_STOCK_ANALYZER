@@ -347,7 +347,9 @@ def show():
     # ======================================================
     try:
         trade_plan = generate_trade_plan(
-            history=history, technical_score=technical_score
+            history=history,
+            technical_score=technical_score,
+            symbol=symbol,
         )
         if not isinstance(trade_plan, dict):
             trade_plan = {
