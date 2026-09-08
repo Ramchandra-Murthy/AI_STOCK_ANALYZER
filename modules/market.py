@@ -8,7 +8,8 @@ def metric_card(title, value, change):
     if value is None:
         st.metric(title, "N/A", "-")
     else:
-        st.metric(title, value, f"{change}%")
+        delta = f"{change:+.2f}%" if isinstance(change, (int, float)) else None
+        st.metric(title, value, delta)
 
 
 def show():
@@ -16,6 +17,11 @@ def show():
     st.title("📈 Indian Market Dashboard")
 
     market = get_market_indices()
+
+    st.caption(
+        "Prices and percentage changes are the latest available daily observations "
+        "from Yahoo Finance, not exchange-tick live data."
+    )
 
     st.subheader("Market Overview")
 
