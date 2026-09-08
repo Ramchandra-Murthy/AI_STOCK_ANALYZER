@@ -23,6 +23,11 @@ def get_market_indices():
             "price": price,
             "change": absolute_change,
             "percent": percent,
+            "observed_at": info.get("observed_at"),
+            "source": info.get("source"),
+            "frequency": info.get("frequency"),
+            "is_intraday": info.get("is_intraday", False),
+            "is_tick_live": info.get("is_tick_live", False),
         }
 
     return result
