@@ -22,7 +22,7 @@ def test_last_observation_prefers_intraday(monkeypatch):
 
     monkeypatch.setattr(market_service.yf, "Ticker", lambda _: FakeTicker())
 
-    value, change, observed_at, frequency, is_intraday = market_service._get_last_observation("TEST")
+    value, change, previous_close, observed_at, frequency, is_intraday = market_service._get_last_observation("TEST")
     assert value == 105.0
     assert change == 5.0
     assert frequency == "intraday_1m"
@@ -52,12 +52,12 @@ def test_last_observation_rejects_empty_provider_data(monkeypatch):
 
     monkeypatch.setattr(market_service.yf, "Ticker", lambda _: FakeTicker())
 
-    assert market_service._get_last_observation("TEST") == (None, None, None, "unavailable", False)
+    assert market_service._get_last_observation("TEST") == (None, None, None, None, "unavailable", False)
 
 
 def test_indices_keep_all_expected_keys(monkeypatch):
     def fake_observation(ticker):
-        return (100.0, 1.0, "2026-09-08T10:00:00", "intraday_1m", True)
+        return (100.0, 1.0, 99.0, "2026-09-08T10:00:00", "intraday_1m", True)
 
     monkeypatch.setattr(market_service, "_get_last_observation", fake_observation)
 
