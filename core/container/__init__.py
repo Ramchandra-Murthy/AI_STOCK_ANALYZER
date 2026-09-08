@@ -1,15 +1,24 @@
-﻿from __future__ import annotations
+"""Public compatibility boundary for the restored EROS container."""
 
-from core.container.container import Container
-from core.container.registry import ServiceRegistry
-from core.container.providers import BaseProvider, SingletonProvider, TransientProvider
-from core.container.bootstrap import ContainerBootstrap
+from core.container.container import ServiceContainer, container
+from core.container.exceptions import (
+    ContainerError,
+    DuplicateServiceError,
+    ServiceNotFoundError,
+)
+from core.container.registry import ServiceKey
+from core.container.bootstrap import ContainerBootstrap, bootstrap_container
+
+Container = ServiceContainer
 
 __all__ = [
     "Container",
-    "ServiceRegistry",
-    "BaseProvider",
-    "SingletonProvider",
-    "TransientProvider",
+    "ServiceContainer",
+    "container",
+    "ServiceKey",
+    "bootstrap_container",
     "ContainerBootstrap",
+    "ContainerError",
+    "ServiceNotFoundError",
+    "DuplicateServiceError",
 ]
