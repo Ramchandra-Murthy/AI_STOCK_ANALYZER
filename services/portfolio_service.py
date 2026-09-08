@@ -1,63 +1,65 @@
+"""Portfolio valuation service.
+
+Portfolio valuation uses the canonical market-data service directly.  It does
+not run the full technical analyzer for every holding, avoiding database
+writes and avoiding a misleading "live" label for daily market data.
+"""
+
+import pandas as pd
+
 from portfolio.portfolio import load_portfolio
-from services.analyzer import analyze_stock
+from services.market_service import get_latest_available_price
 
 
 def get_live_price(symbol):
-    """
-    Returns latest market price using the analyzer.
-    """
-
-    try:
-        result = analyze_stock(symbol)
-
-        last = result["last"]
-
-        return round(float(last["Close"]), 2)
-
-    except Exception:
-        return None
+    """Backward-compatible price helper returning the latest available price."""
+    data = get_latest_available_price(symbol)
+    return data["price"]
 
 
 def get_portfolio():
-    """
-    Returns portfolio with live prices and calculations.
-    """
-
+    """Return portfolio with latest available prices and valuation metadata."""
     df = load_portfolio()
 
     if df.empty:
         return df
 
-    cmp_list = []
+    prices = []
+    observed_at = []
+    sources = []
+    frequencies = []
     current_values = []
     profits = []
     returns = []
 
     for _, row in df.iterrows():
+        quote = get_latest_available_price(row["symbol"])
+        cmp = quote["price"]
 
-        cmp = get_live_price(row["symbol"])
+        prices.append(cmp)
+        observed_at.append(quote["observed_at"])
+        sources.append(quote["source"])
+        frequencies.append(quote["frequency"])
 
         if cmp is None:
-            cmp_list.append(None)
             current_values.append(None)
             profits.append(None)
             returns.append(None)
             continue
 
         investment = row["quantity"] * row["buy_price"]
-
         current_value = row["quantity"] * cmp
-
         profit = current_value - investment
-
         ret = (profit / investment) * 100 if investment else 0
 
-        cmp_list.append(cmp)
         current_values.append(round(current_value, 2))
         profits.append(round(profit, 2))
         returns.append(round(ret, 2))
 
-    df["CMP"] = cmp_list
+    df["CMP"] = prices
+    df["Price Observed"] = observed_at
+    df["Price Source"] = sources
+    df["Price Frequency"] = frequencies
     df["Current Value"] = current_values
     df["Profit"] = profits
     df["Return %"] = returns
@@ -66,7 +68,7 @@ def get_portfolio():
 
 
 def get_summary(df):
-
+    """Return portfolio summary using only successfully valued holdings."""
     if df.empty:
         return {
             "investment": 0,
@@ -77,11 +79,8 @@ def get_summary(df):
         }
 
     investment = (df["quantity"] * df["buy_price"]).sum()
-
     current_value = df["Current Value"].fillna(0).sum()
-
     profit = current_value - investment
-
     returns = (profit / investment) * 100 if investment else 0
 
     return {
