@@ -431,6 +431,11 @@ def get_stock_profile(symbol):
         fast_price = _safe_float(fast_info.get("last_price"))
         fast_previous_close = _safe_float(fast_info.get("previous_close"))
         fast_volume = _safe_float(fast_info.get("last_volume"))
+        fast_trade_time = fast_info.get("last_trade_time")
+        if hasattr(fast_trade_time, "isoformat"):
+            fast_trade_time = fast_trade_time.isoformat()
+        elif fast_trade_time is not None:
+            fast_trade_time = str(fast_trade_time)
 
         # --------------------------------------------------
         # ROE
@@ -543,6 +548,8 @@ def get_stock_profile(symbol):
                 if fast_price is not None
                 else "yfinance.info"
             ),
+            "quote_timestamp": fast_trade_time,
+            "market_state": info.get("marketState", "UNKNOWN"),
             "currency": info.get(
                 "currency",
                 "N/A",
