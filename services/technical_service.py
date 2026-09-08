@@ -95,7 +95,7 @@ def get_price_history(symbol, period="1y"):
     # Support & Resistance (20-Day)
     # ========================================================
 
-    df["Support"] = df["Low"].rolling(window=20).min()
-    df["Resistance"] = df["High"].rolling(window=20).max()
+    df["Support"] = df["Low"].rolling(window=20).min().shift(1)
+    df["Resistance"] = df["High"].rolling(window=20).max().shift(1)
 
     return df
