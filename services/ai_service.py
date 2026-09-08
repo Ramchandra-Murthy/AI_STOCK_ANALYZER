@@ -1,52 +1,41 @@
+"""AI component scoring service.
+
+This module supplies the AI component score used by Investment Score V2.
+It deliberately does not generate the final BUY/HOLD/SELL recommendation.
+The final recommendation belongs exclusively to recommendation_service.
 """
-AI Recommendation Service
-AI Stock Analyzer Pro
-Version 3.6
-"""
+
+import math
+
+
+def _number(value):
+    try:
+        value = float(value)
+        return value if math.isfinite(value) else None
+    except (TypeError, ValueError):
+        return None
 
 
 def get_ai_recommendation(stock_data, history=None):
-    """
-    Generate a rule-based AI recommendation.
-
-    Parameters
-    ----------
-    stock_data : dict
-        Dictionary returned by research_service.
-
-    history : pandas.DataFrame, optional
-        Historical OHLC data with EMA200.
-
-    Returns
-    -------
-    dict
-    """
-
-    score = 50
+    """Return the AI component score and supporting reasons."""
+    data = stock_data if isinstance(stock_data, dict) else {}
+    score = 50.0
     reasons = []
 
-    # -----------------------------
-    # PE Ratio
-    # -----------------------------
-    pe = stock_data.get("pe")
-
-    if isinstance(pe, (int, float)):
-        if pe <= 20:
+    pe = _number(data.get("pe"))
+    if pe is not None:
+        if 0 < pe <= 20:
             score += 10
             reasons.append("Attractive PE Ratio")
         elif pe <= 30:
             score += 5
             reasons.append("Reasonable PE Ratio")
-        else:
+        elif pe > 30:
             score -= 5
             reasons.append("High PE Ratio")
 
-    # -----------------------------
-    # EPS
-    # -----------------------------
-    eps = stock_data.get("eps")
-
-    if isinstance(eps, (int, float)):
+    eps = _number(data.get("eps"))
+    if eps is not None:
         if eps > 0:
             score += 10
             reasons.append("Positive Earnings")
@@ -54,12 +43,8 @@ def get_ai_recommendation(stock_data, history=None):
             score -= 15
             reasons.append("Negative Earnings")
 
-    # -----------------------------
-    # Profit Margin
-    # -----------------------------
-    margin = stock_data.get("profit_margin")
-
-    if isinstance(margin, (int, float)):
+    margin = _number(data.get("profit_margin"))
+    if margin is not None:
         if margin > 0.15:
             score += 10
             reasons.append("Excellent Profit Margin")
@@ -70,12 +55,8 @@ def get_ai_recommendation(stock_data, history=None):
             score -= 5
             reasons.append("Weak Profit Margin")
 
-    # -----------------------------
-    # ROE
-    # -----------------------------
-    roe = stock_data.get("roe")
-
-    if isinstance(roe, (int, float)):
+    roe = _number(data.get("roe"))
+    if roe is not None:
         if roe > 0.15:
             score += 10
             reasons.append("Strong ROE")
@@ -83,12 +64,8 @@ def get_ai_recommendation(stock_data, history=None):
             score += 5
             reasons.append("Good ROE")
 
-    # -----------------------------
-    # Beta
-    # -----------------------------
-    beta = stock_data.get("beta")
-
-    if isinstance(beta, (int, float)):
+    beta = _number(data.get("beta"))
+    if beta is not None:
         if beta < 1:
             score += 5
             reasons.append("Lower Market Risk")
@@ -96,50 +73,22 @@ def get_ai_recommendation(stock_data, history=None):
             score -= 5
             reasons.append("High Volatility")
 
-    # -----------------------------
-    # EMA200 Trend
-    # -----------------------------
-    if history is not None:
+    if history is not None and not getattr(history, "empty", True):
+        if "EMA200" in history.columns and "Close" in history.columns:
+            close = _number(history["Close"].iloc[-1])
+            ema200 = _number(history["EMA200"].iloc[-1])
+            if close is not None and ema200 is not None:
+                if close > ema200:
+                    score += 15
+                    reasons.append("Price Above EMA200")
+                else:
+                    score -= 10
+                    reasons.append("Price Below EMA200")
 
-        if (
-            not history.empty
-            and "EMA200" in history.columns
-            and "Close" in history.columns
-        ):
-
-            close = history["Close"].iloc[-1]
-            ema200 = history["EMA200"].iloc[-1]
-
-            if close > ema200:
-                score += 15
-                reasons.append("Price Above EMA200")
-            else:
-                score -= 10
-                reasons.append("Price Below EMA200")
-
-    # -----------------------------
-    # Clamp
-    # -----------------------------
-    score = max(0, min(score, 100))
-
-    # -----------------------------
-    # Recommendation
-    # -----------------------------
-    if score >= 80:
-        recommendation = "BUY"
-        risk = "Low"
-
-    elif score >= 60:
-        recommendation = "HOLD"
-        risk = "Medium"
-
-    else:
-        recommendation = "SELL"
-        risk = "High"
+    score = round(max(0.0, min(score, 100.0)))
 
     return {
         "score": score,
-        "recommendation": recommendation,
-        "risk": risk,
         "reasons": reasons,
+        "component": "AI",
     }
