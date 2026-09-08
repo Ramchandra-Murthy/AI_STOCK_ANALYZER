@@ -48,11 +48,34 @@ def generate_investment_thesis(
     fundamental_reasons = _clean_reasons(fundamental_reasons)
     _clean_reasons(ai_result.get("reasons", []))
 
-    investment_score = _safe_float(investment_score, 0) or 0
-    technical_score = _safe_float(technical_score, 0) or 0
-    fundamental_score = _safe_float(fundamental_score, 0) or 0
+    investment_score = _safe_float(investment_score)
+    technical_score = _safe_float(technical_score)
+    fundamental_score = _safe_float(fundamental_score)
+    ai_score = _safe_float(ai_result.get("score"))
 
-    ai_score = _safe_float(ai_result.get("score"), 0) or 0
+    # Never manufacture a thesis from missing upstream evidence.
+    if investment_score is None:
+        return {
+            "company": data.get("company", "The company"),
+            "sector": data.get("sector", "N/A"),
+            "industry": data.get("industry", "N/A"),
+            "investment_score": None,
+            "conviction": "UNAVAILABLE",
+            "thesis": "Investment thesis unavailable because the Investment Score was not produced.",
+            "strengths": [],
+            "concerns": ["Upstream scoring data is unavailable."],
+            "catalysts": [],
+            "bull_case": None,
+            "base_case": None,
+            "bear_case": None,
+            "current_price": None,
+            "target_price": None,
+            "stop_loss": None,
+        }
+
+    technical_score = technical_score if technical_score is not None else 50.0
+    fundamental_score = fundamental_score if fundamental_score is not None else 50.0
+    ai_score = ai_score if ai_score is not None else 50.0
 
     stability_score = (
         _safe_float(
