@@ -19,8 +19,9 @@ def show():
     market = get_market_indices()
 
     st.caption(
-        "Prices and percentage changes are the latest available daily observations "
-        "from Yahoo Finance, not exchange-tick live data."
+        "Prices are the latest available Yahoo Finance observations. "
+        "Intraday data is provider-sourced 1-minute data, not exchange-tick live data; "
+        "percentage change is measured against the prior daily close."
     )
 
     st.subheader("Market Overview")
