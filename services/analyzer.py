@@ -12,6 +12,7 @@ from indicators.moving_average import calculate_ema, calculate_sma
 from indicators.rsi import calculate_rsi
 from indicators.support_resistance import calculate_support_resistance
 from indicators.trend import detect_trend
+from services.market_service import get_latest_available_price
 
 
 def analyze_stock(symbol):
@@ -47,6 +48,13 @@ def analyze_stock(symbol):
     trend = detect_trend(df)
 
     signal = generate_signal(df)
+
+    # Reconcile the analysis with the canonical freshest market observation.
+    # Historical indicators remain historical; the current price is explicitly
+    # identified so downstream consumers cannot mistake it for a tick quote.
+    observation = get_latest_available_price(symbol)
+    if observation.get("price") is not None:
+        signal["MarketObservation"] = observation
 
     breakout = detect_breakout(df)
 
