@@ -55,7 +55,22 @@ class InvestmentDecisionOrchestrator:
             current_weight = portfolio_weight
 
         symbol = ai_score.symbol
-        
+
+        # Market price must come from the canonical market-data path.
+        # The old 2500.0 fallback could silently turn unavailable data into a
+        # seemingly valid execution price, so it is intentionally removed.
+        live_price = assumed_price
+        if live_price is None:
+            live_price = (ai_score.breakdown_details or {}).get("current_price")
+        try:
+            live_price = float(live_price)
+        except (TypeError, ValueError):
+            live_price = 0.0
+        if live_price <= 0.0:
+            raise ValueError(
+                f"{symbol}: positive current market price is required for EROS decision/execution"
+            )
+
         # 1. Run Portfolio Analytics if holdings provided
         portfolio_metrics = {}
         if holdings:
