@@ -24,26 +24,53 @@ def download_stock(symbol):
 
 
 def predict_prices(df, days=30):
+    """
+    Deterministic technical trend forecast.
 
-    close = df["Close"].astype(float)
+    Combines recent log-return momentum, EMA20/EMA50 trend direction,
+    and volatility damping. It is deliberately not labelled as an AI/ML
+    model because this module does not train or load a machine-learning model.
+    """
+    if df is None or df.empty or "Close" not in df.columns:
+        return []
+
+    close = pd.to_numeric(df["Close"], errors="coerce").dropna()
+    if len(close) < 20:
+        return []
 
     last_price = float(close.iloc[-1])
+    if last_price <= 0:
+        return []
 
-    ma20 = float(close.rolling(20).mean().iloc[-1])
+    log_returns = (close / close.shift(1)).apply(
+        lambda x: __import__("math").log(x) if x > 0 else float("nan")
+    ).dropna()
 
-    if pd.isna(ma20):
-        ma20 = last_price
+    recent_momentum = float(log_returns.tail(10).mean())
 
-    trend = last_price - ma20
+    ema20 = float(df["EMA20"].iloc[-1]) if "EMA20" in df else float(
+        close.ewm(span=20, adjust=False).mean().iloc[-1]
+    )
+    ema50 = float(df["EMA50"].iloc[-1]) if "EMA50" in df else float(
+        close.ewm(span=50, adjust=False).mean().iloc[-1]
+    )
+
+    trend_strength = ((ema20 - ema50) / last_price) if ema20 > 0 and ema50 > 0 else 0.0
+
+    volatility = float(log_returns.tail(20).std())
+    if pd.isna(volatility):
+        volatility = 0.0
+
+    raw_daily_drift = (0.65 * recent_momentum) + (0.35 * trend_strength / 20.0)
+    damping = 1.0 / (1.0 + 8.0 * max(volatility, 0.0))
+    daily_drift = max(-0.02, min(0.02, raw_daily_drift * damping))
 
     forecast = []
-
     price = last_price
 
-    for _ in range(days):
-
-        price = price + trend * 0.10
-
+    for step in range(1, days + 1):
+        horizon_drift = daily_drift * (0.97 ** (step - 1))
+        price *= float(__import__("math").exp(horizon_drift))
         forecast.append(round(price, 2))
 
     return forecast
@@ -56,9 +83,9 @@ def predict_prices(df, days=30):
 
 def show():
 
-    st.title("🤖 AI Stock Price Prediction")
+    st.title("📈 Stock Price Trend Forecast")
 
-    st.write("Simple AI prediction using moving-average trend forecasting.")
+    st.write("Deterministic technical trend forecast using momentum, EMA trend, and volatility damping.")
 
     symbol = st.text_input("Stock Symbol", value="RELIANCE.NS")
 
@@ -114,7 +141,7 @@ def show():
 
         fig.add_trace(
             go.Scatter(
-                x=future_dates, y=prediction, mode="lines+markers", name="AI Prediction"
+                x=future_dates, y=prediction, mode="lines+markers", name="Trend Forecast"
             )
         )
 
@@ -172,5 +199,5 @@ def show():
         st.table(summary)
 
         st.info(
-            "This is an educational trend-based forecasting model and should not be treated as investment advice."
+            "This is an educational technical trend forecast, not a guaranteed prediction or investment advice."
         )
