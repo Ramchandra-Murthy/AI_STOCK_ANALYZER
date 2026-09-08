@@ -34,6 +34,14 @@ def predict_prices(df, days=30):
     if df is None or df.empty or "Close" not in df.columns:
         return []
 
+    try:
+        days = int(days)
+    except (TypeError, ValueError):
+        return []
+
+    if days <= 0:
+        return []
+
     close = pd.to_numeric(df["Close"], errors="coerce").dropna()
     if len(close) < 20:
         return []
@@ -111,6 +119,10 @@ def show():
 
         prediction = predict_prices(df, forecast_days)
 
+        if not prediction:
+            st.error("Insufficient valid price history to calculate a trend forecast.")
+            return
+
         current_price = float(df["Close"].iloc[-1])
 
         predicted_price = prediction[-1]
@@ -146,7 +158,7 @@ def show():
         )
 
         fig.update_layout(
-            title=f"{symbol} Price Prediction",
+            title=f"{symbol} Technical Trend Forecast",
             xaxis_title="Date",
             yaxis_title="Price",
             height=600,
