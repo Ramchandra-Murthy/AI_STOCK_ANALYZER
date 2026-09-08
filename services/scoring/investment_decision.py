@@ -36,12 +36,7 @@ class InvestmentDecisionResult:
 
 
 class InvestmentDecisionOrchestrator:
-    """
-    EROS 3.0 Block 16 Investment Decision, Position Sizing, Execution, & TCA.
-
-    Decisions are derived from the supplied AIScoreResult. No independent
-    hard-coded BUY/SELL thesis is allowed to override the scoring evidence.
-    """
+    """EROS 3.0 Block 16 evidence-bound investment decision and execution."""
 
     def __init__(
         self,
@@ -66,17 +61,40 @@ class InvestmentDecisionOrchestrator:
             current_weight = portfolio_weight
 
         symbol = ai_score.symbol
+        details = dict(ai_score.breakdown_details or {})
+        observed_price = details.get("current_price")
+        market_state = str(
+            details.get("market_data_state") or details.get("data_state") or ""
+        ).upper()
 
-        live_price = assumed_price
-        if live_price is None:
-            live_price = (ai_score.breakdown_details or {}).get("current_price")
+        # Compatibility parameter: it may only repeat the canonical observed
+        # price and may never override or introduce market evidence.
+        if assumed_price is not None:
+            try:
+                supplied_price = float(assumed_price)
+                canonical_price = float(observed_price)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"{symbol}: assumed_price is invalid; use canonical observed market evidence"
+                ) from None
+            if canonical_price <= 0.0 or supplied_price != canonical_price:
+                raise ValueError(
+                    f"{symbol}: assumed_price cannot override canonical market price"
+                )
+
         try:
-            live_price = float(live_price)
+            live_price = float(observed_price)
         except (TypeError, ValueError):
             live_price = 0.0
+
         if live_price <= 0.0:
             raise ValueError(
                 f"{symbol}: positive current market price is required for EROS decision/execution"
+            )
+        if market_state != "LIVE":
+            raise ValueError(
+                f"{symbol}: market data state must be LIVE for EROS decision/execution; "
+                f"received {market_state or 'UNKNOWN'}"
             )
 
         portfolio_metrics: Dict[str, Any] = {}
@@ -99,8 +117,6 @@ class InvestmentDecisionOrchestrator:
         risk_score = float(ai_score.risk_score)
         momentum_score = float(ai_score.momentum_score)
 
-        # Evidence-derived action policy. Thresholds are policy, while the
-        # underlying score is supplied by the scoring pipeline.
         if score >= 75.0 and risk_score >= 60.0:
             action = "BUY"
             confidence = min(0.95, round(0.55 + (score - 75.0) / 100.0, 2))
@@ -108,7 +124,10 @@ class InvestmentDecisionOrchestrator:
             downside_risk = round(max(0.02, (100.0 - risk_score) / 1000.0), 4)
         elif score <= 35.0 or risk_score < 30.0:
             action = "SELL"
-            confidence = min(0.90, round(0.55 + (35.0 - min(score, 35.0)) / 100.0, 2))
+            confidence = min(
+                0.90,
+                round(0.55 + (35.0 - min(score, 35.0)) / 100.0, 2),
+            )
             expected_return = round(min(-0.01, (score - 50.0) / 250.0), 4)
             downside_risk = round(max(0.08, (100.0 - risk_score) / 500.0), 4)
         else:
@@ -121,12 +140,16 @@ class InvestmentDecisionOrchestrator:
             f"Composite score derived from observed EROS evidence: {score:.2f}/100.",
             f"Momentum score: {momentum_score:.2f}; market-risk score: {risk_score:.2f}.",
         ]
-        if not (ai_score.breakdown_details or {}).get("fundamental_pillars_available", True):
-            rationale.append("Fundamental pillars were unavailable and were not synthesized.")
+        if not details.get("fundamental_pillars_available", True):
+            rationale.append(
+                "Fundamental pillars were unavailable and were not synthesized."
+            )
 
         evidence = [
-            f"Scoring source: {(ai_score.breakdown_details or {}).get('scoring_source', 'unspecified')}",
-            f"Observed pillars: {', '.join((ai_score.breakdown_details or {}).get('observed_pillars', []))}",
+            f"Scoring source: {details.get('scoring_source', 'unspecified')}",
+            f"Observed pillars: {', '.join(details.get('observed_pillars', []))}",
+            f"Market data state: {market_state}",
+            f"Market price source: {details.get('market_price_source', 'unspecified')}",
         ]
 
         risk_adjustment = risk_score / 100.0
@@ -155,7 +178,10 @@ class InvestmentDecisionOrchestrator:
                 evidence.append("Action downgraded to HOLD due to concentration limit.")
 
         notional_trade_value = abs(incremental_weight) * self.aum_baseline
-        order_action = "BUY" if incremental_weight > 0 else ("SELL" if incremental_weight < 0 else "HOLD")
+        order_action = (
+            "BUY" if incremental_weight > 0
+            else ("SELL" if incremental_weight < 0 else "HOLD")
+        )
 
         execution_orders = []
         tca_result: Dict[str, Any] = {}
@@ -167,18 +193,17 @@ class InvestmentDecisionOrchestrator:
                 "action": order_action,
                 "trade_weight": abs(incremental_weight),
                 "current_price": live_price,
-                "market_price_source": (ai_score.breakdown_details or {}).get("market_price_source"),
-                "market_data_state": (ai_score.breakdown_details or {}).get("market_data_state"),
+                "market_price_source": details.get("market_price_source"),
+                "market_data_state": market_state,
             }]
             execution_orders = InstitutionalExecutionEngine.generate_orders(
                 allocation_payload,
                 execution_policy="VWAP-oriented",
                 aum_baseline=self.aum_baseline,
             )
-            adv_participation = 0.015
             tca_result = TransactionCostAnalyzer.analyze_order_costs(
                 notional_trade_value,
-                adv_participation,
+                0.015,
             )
             total_execution_cost = tca_result.get("total_transaction_cost", 0.0)
 
@@ -189,10 +214,16 @@ class InvestmentDecisionOrchestrator:
         )
         net_expected_return = round(expected_return - cost_percentage_of_aum, 4)
 
-        details = {
-            "engine_version": "EROS-3.0-BLOCK-16EVIDENCE",
+        decision_details = {
+            "engine_version": "EROS-3.0-BLOCK-16EVIDENCE-REPAIRED",
             "policy_profile": self.policy_profile,
             "max_position_limit": self.max_position_limit,
+            "market_evidence": {
+                "current_price": live_price,
+                "market_data_state": market_state,
+                "market_price_source": details.get("market_price_source"),
+                "synthetic_price_used": False,
+            },
             "portfolio_context": portfolio_metrics,
             "sizing_metrics": {
                 "conviction_factor": conviction_factor,
@@ -215,7 +246,7 @@ class InvestmentDecisionOrchestrator:
                 ],
                 "transaction_cost_analysis": tca_result,
             },
-            "underlying_scoring_breakdown": ai_score.breakdown_details,
+            "underlying_scoring_breakdown": details,
         }
 
         return InvestmentDecisionResult(
@@ -240,5 +271,5 @@ class InvestmentDecisionOrchestrator:
             net_expected_return=net_expected_return,
             rationale=rationale,
             evidence=evidence,
-            details=details,
+            details=decision_details,
         )
