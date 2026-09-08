@@ -45,6 +45,11 @@ def generate_trade_plan(history: pd.DataFrame, technical_score: float = 50, symb
     # an older close when a newer provider observation exists.
     current_price = history_close
     market_observation = None
+    price_source = "historical_close"
+    quote_timestamp = None
+    quote_frequency = "historical"
+    is_intraday = False
+    is_tick_live = False
     if symbol:
         normalized = symbol.strip().upper()
         if normalized:
@@ -52,6 +57,11 @@ def generate_trade_plan(history: pd.DataFrame, technical_score: float = 50, symb
             provider_price = _safe_float(market_observation.get("price"))
             if provider_price is not None and provider_price > 0:
                 current_price = provider_price
+                price_source = market_observation.get("source", "market_observation")
+                quote_timestamp = market_observation.get("observed_at")
+                quote_frequency = market_observation.get("frequency", "available")
+                is_intraday = bool(market_observation.get("is_intraday", False))
+                is_tick_live = bool(market_observation.get("is_tick_live", False))
 
     score = _safe_float(technical_score)
     if score is None:
@@ -165,6 +175,11 @@ def generate_trade_plan(history: pd.DataFrame, technical_score: float = 50, symb
     result = {
         "status": "OK",
         "current_price": round(current_price, 2),
+        "price_source": price_source,
+        "quote_timestamp": quote_timestamp,
+        "quote_frequency": quote_frequency,
+        "is_intraday": is_intraday,
+        "is_tick_live": is_tick_live,
         "target_price": round(target_price, 2),
         "stop_loss": round(stop_loss, 2),
         "upside_percent": round(upside_percent, 2),
