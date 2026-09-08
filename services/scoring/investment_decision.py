@@ -1,11 +1,13 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
 from services.scoring.models import AIScoreResult
-from services.decision.decision_engine import InstitutionalDecisionEngine
 from services.portfolio.engine import PortfolioAnalyticsEngine
 from services.execution.execution_engine import InstitutionalExecutionEngine
 from services.execution.transaction_cost import TransactionCostAnalyzer
+
 
 @dataclass(frozen=True, slots=True)
 class InvestmentDecisionResult:
@@ -32,12 +34,21 @@ class InvestmentDecisionResult:
     evidence: List[str]
     details: Dict[str, Any]
 
+
 class InvestmentDecisionOrchestrator:
     """
-    EROS 3.0 Block 16 Investment Decision, Position Sizing, Execution, & TCA Orchestration Layer.
-    Consumes AIScoreResult, holdings, and integrates InstitutionalExecutionEngine & TransactionCostAnalyzer.
+    EROS 3.0 Block 16 Investment Decision, Position Sizing, Execution, & TCA.
+
+    Decisions are derived from the supplied AIScoreResult. No independent
+    hard-coded BUY/SELL thesis is allowed to override the scoring evidence.
     """
-    def __init__(self, policy_profile: str = "Institutional", max_position_limit: float = 0.12, aum_baseline: float = 100000000.0) -> None:
+
+    def __init__(
+        self,
+        policy_profile: str = "Institutional",
+        max_position_limit: float = 0.12,
+        aum_baseline: float = 100000000.0,
+    ) -> None:
         self.policy_profile = policy_profile
         self.max_position_limit = max_position_limit
         self.aum_baseline = aum_baseline
@@ -56,9 +67,6 @@ class InvestmentDecisionOrchestrator:
 
         symbol = ai_score.symbol
 
-        # Market price must come from the canonical market-data path.
-        # The old 2500.0 fallback could silently turn unavailable data into a
-        # seemingly valid execution price, so it is intentionally removed.
         live_price = assumed_price
         if live_price is None:
             live_price = (ai_score.breakdown_details or {}).get("current_price")
@@ -71,8 +79,7 @@ class InvestmentDecisionOrchestrator:
                 f"{symbol}: positive current market price is required for EROS decision/execution"
             )
 
-        # 1. Run Portfolio Analytics if holdings provided
-        portfolio_metrics = {}
+        portfolio_metrics: Dict[str, Any] = {}
         if holdings:
             p_result = self.portfolio_engine.analyze(holdings)
             portfolio_metrics = {
@@ -88,69 +95,102 @@ class InvestmentDecisionOrchestrator:
                 if p_result.total_portfolio_value > 0:
                     current_weight = round(mval / p_result.total_portfolio_value, 4)
 
-        # 2. Evaluate candidate institutional decision options
-        options = InstitutionalDecisionEngine.evaluate_options(symbol=symbol, policy_profile=self.policy_profile)
-        best_option = options[0] if options else None
-        
-        action = best_option.action if best_option else ai_score.breakdown_details.get("rating", "HOLD")
-        confidence = best_option.confidence if best_option else 0.75
-        expected_return = best_option.expected_return if best_option else 0.10
-        downside_risk = best_option.downside_risk if best_option else 0.05
-        rationale = list(best_option.rationale) if best_option else ["Default fallback rationale."]
-        evidence = list(best_option.evidence) if best_option else [f"Composite Score: {ai_score.composite_score}"]
+        score = float(ai_score.composite_score)
+        risk_score = float(ai_score.risk_score)
+        momentum_score = float(ai_score.momentum_score)
 
-        # 3. Position Sizing & Risk-Budget Calculation
-        risk_adjustment = ai_score.risk_score / 100.0
-        conviction_factor = ai_score.composite_score / 100.0
-        
-        if action in ["BUY", "STRONG BUY"] and ai_score.composite_score >= 60.0:
+        # Evidence-derived action policy. Thresholds are policy, while the
+        # underlying score is supplied by the scoring pipeline.
+        if score >= 75.0 and risk_score >= 60.0:
+            action = "BUY"
+            confidence = min(0.95, round(0.55 + (score - 75.0) / 100.0, 2))
+            expected_return = round(max(0.05, (score - 50.0) / 250.0), 4)
+            downside_risk = round(max(0.02, (100.0 - risk_score) / 1000.0), 4)
+        elif score <= 35.0 or risk_score < 30.0:
+            action = "SELL"
+            confidence = min(0.90, round(0.55 + (35.0 - min(score, 35.0)) / 100.0, 2))
+            expected_return = round(min(-0.01, (score - 50.0) / 250.0), 4)
+            downside_risk = round(max(0.08, (100.0 - risk_score) / 500.0), 4)
+        else:
+            action = "HOLD"
+            confidence = min(0.85, round(0.55 + abs(score - 50.0) / 200.0, 2))
+            expected_return = round((score - 50.0) / 500.0, 4)
+            downside_risk = round(max(0.03, (100.0 - risk_score) / 1000.0), 4)
+
+        rationale = [
+            f"Composite score derived from observed EROS evidence: {score:.2f}/100.",
+            f"Momentum score: {momentum_score:.2f}; market-risk score: {risk_score:.2f}.",
+        ]
+        if not (ai_score.breakdown_details or {}).get("fundamental_pillars_available", True):
+            rationale.append("Fundamental pillars were unavailable and were not synthesized.")
+
+        evidence = [
+            f"Scoring source: {(ai_score.breakdown_details or {}).get('scoring_source', 'unspecified')}",
+            f"Observed pillars: {', '.join((ai_score.breakdown_details or {}).get('observed_pillars', []))}",
+        ]
+
+        risk_adjustment = risk_score / 100.0
+        conviction_factor = score / 100.0
+
+        if action == "BUY" and score >= 60.0:
             raw_target = self.max_position_limit * conviction_factor * risk_adjustment
             target_weight = round(min(raw_target, self.max_position_limit), 4)
-        elif action in ["SELL", "STRONG SELL"]:
+        elif action == "SELL":
             target_weight = 0.0
         else:
             target_weight = round(current_weight, 4)
 
         incremental_weight = round(target_weight - current_weight, 4)
 
-        # 4. Portfolio Concentration Constraint Check
         if current_weight > self.max_position_limit:
-            rationale.append(f"Portfolio concentration warning: Current weight {current_weight*100:.1f}% exceeds institutional limit ({self.max_position_limit*100:.1f}%).")
-            if action in ["BUY", "STRONG BUY"]:
+            rationale.append(
+                f"Portfolio concentration warning: Current weight {current_weight*100:.1f}% "
+                f"exceeds institutional limit ({self.max_position_limit*100:.1f}%)."
+            )
+            if action == "BUY":
                 action = "HOLD"
                 confidence = round(confidence * 0.85, 2)
                 target_weight = current_weight
                 incremental_weight = 0.0
-                evidence.append("Action downgraded to HOLD and incremental target set to 0.0 due to concentration limit.")
+                evidence.append("Action downgraded to HOLD due to concentration limit.")
 
-        # 5. Block 16D Execution & Transaction Cost Integration
         notional_trade_value = abs(incremental_weight) * self.aum_baseline
         order_action = "BUY" if incremental_weight > 0 else ("SELL" if incremental_weight < 0 else "HOLD")
-        
+
         execution_orders = []
-        tca_result = {}
+        tca_result: Dict[str, Any] = {}
         total_execution_cost = 0.0
 
-        if order_action in ["BUY", "SELL"] and notional_trade_value > 0.0:
+        if order_action in {"BUY", "SELL"} and notional_trade_value > 0.0:
             allocation_payload = [{
                 "symbol": symbol,
                 "action": order_action,
                 "trade_weight": abs(incremental_weight),
                 "current_price": live_price,
+                "market_price_source": (ai_score.breakdown_details or {}).get("market_price_source"),
+                "market_data_state": (ai_score.breakdown_details or {}).get("market_data_state"),
             }]
-            execution_orders = InstitutionalExecutionEngine.generate_orders(allocation_payload, execution_policy="VWAP-oriented")
-            
+            execution_orders = InstitutionalExecutionEngine.generate_orders(
+                allocation_payload,
+                execution_policy="VWAP-oriented",
+                aum_baseline=self.aum_baseline,
+            )
             adv_participation = 0.015
-            tca_result = TransactionCostAnalyzer.analyze_order_costs(notional_trade_value, adv_participation)
-            total_execution_cost = tca_result.get("total_transaction_cost", notional_trade_value * 0.0015)
-        else:
-            total_execution_cost = 0.0
+            tca_result = TransactionCostAnalyzer.analyze_order_costs(
+                notional_trade_value,
+                adv_participation,
+            )
+            total_execution_cost = tca_result.get("total_transaction_cost", 0.0)
 
-        cost_percentage_of_aum = (total_execution_cost / self.aum_baseline) if self.aum_baseline > 0 else 0.0
+        cost_percentage_of_aum = (
+            total_execution_cost / self.aum_baseline
+            if self.aum_baseline > 0
+            else 0.0
+        )
         net_expected_return = round(expected_return - cost_percentage_of_aum, 4)
 
         details = {
-            "engine_version": "EROS-3.0-BLOCK-16D",
+            "engine_version": "EROS-3.0-BLOCK-16EVIDENCE",
             "policy_profile": self.policy_profile,
             "max_position_limit": self.max_position_limit,
             "portfolio_context": portfolio_metrics,
@@ -182,15 +222,15 @@ class InvestmentDecisionOrchestrator:
             symbol=symbol,
             action=action,
             confidence=confidence,
-            composite_score=ai_score.composite_score,
-            rating=ai_score.breakdown_details.get("rating", "HOLD"),
+            composite_score=score,
+            rating=action,
             growth_score=ai_score.growth_score,
             quality_score=ai_score.quality_score,
             profitability_score=ai_score.profitability_score,
             capital_allocation_score=ai_score.capital_allocation_score,
             valuation_score=ai_score.valuation_score,
-            momentum_score=ai_score.momentum_score,
-            risk_score=ai_score.risk_score,
+            momentum_score=momentum_score,
+            risk_score=risk_score,
             expected_return=expected_return,
             downside_risk=downside_risk,
             portfolio_weight=current_weight,
