@@ -54,7 +54,7 @@ def calculate_stability_score(data):
     """
 
     if not isinstance(data, dict):
-        return 50.0, ["Stability data unavailable."]
+        return None, ["Stability data unavailable."]
 
     components = []
     reasons = []
@@ -206,7 +206,7 @@ def calculate_stability_score(data):
     # ------------------------------------------------------
 
     if not components:
-        return 50.0, ["Insufficient data to calculate stability score."]
+        return None, ["Insufficient data to calculate stability score."]
 
     earned = sum(item[0] for item in components)
 
@@ -234,132 +234,99 @@ def calculate_investment_score(
     data=None,
 ):
     """
-    Calculate Investment Score V2.
+    Calculate the Investment Score using only available evidence.
 
-    Weighting
-    ---------
-    Technical Score       35%
-    Fundamental Score V2  40%
-    AI Score              15%
-    Stability / Risk      10%
-
-    Total                 100%
-
-    Returns
-    -------
-    investment_score : int
-        Final score from 0 to 100.
-
-    breakdown : dict
-        Detailed component scores and weighted
-        contributions.
+    Missing evidence is not converted into a neutral 50 or a punitive zero.
+    Available component weights are renormalized to the evidence actually
+    present. AI remains optional; when absent, its 15% weight is excluded.
+    Returns (None, breakdown) when no scoring evidence is available.
     """
 
-    # ------------------------------------------------------
-    # Technical score
-    # ------------------------------------------------------
+    def _component(value, weight, name):
+        score = _safe_float(value)
+        if score is None:
+            return None
+        return _clamp(score), float(weight), name
 
-    technical = _safe_float(technical_score)
+    components = []
 
-    if technical is None:
-        technical = 50.0
+    technical = _component(technical_score, 0.35, "Technical")
+    if technical is not None:
+        components.append(technical)
 
-    technical = _clamp(technical)
+    fundamental = _component(fundamental_score, 0.40, "Fundamental")
+    if fundamental is not None:
+        components.append(fundamental)
 
-    # ------------------------------------------------------
-    # Fundamental score
-    # ------------------------------------------------------
-
-    fundamental = _safe_float(fundamental_score)
-
-    if fundamental is None:
-        fundamental = 50.0
-
-    fundamental = _clamp(fundamental)
-
-    # ------------------------------------------------------
-    # AI score
-    # ------------------------------------------------------
-
-    ai_score = None
-
+    ai_value = None
     if isinstance(ai_result, dict):
-        ai_score = _safe_float(ai_result.get("score"))
-
-    if ai_score is None:
-        ai_score = 50.0
-
-    ai_score = _clamp(ai_score)
-
-    # ------------------------------------------------------
-    # Stability score
-    # ------------------------------------------------------
+        ai_value = ai_result.get("score")
+    ai = _component(ai_value, 0.15, "AI")
+    if ai is not None:
+        components.append(ai)
 
     stability_score, stability_reasons = calculate_stability_score(
         data if isinstance(data, dict) else {}
     )
+    stability = _component(stability_score, 0.10, "Stability")
+    if stability is not None:
+        components.append(stability)
 
-    stability_score = _clamp(stability_score)
+    if not components:
+        return None, {
+            "Technical": None,
+            "Fundamental": None,
+            "AI": None,
+            "Stability": None,
+            "Technical Contribution": None,
+            "Fundamental Contribution": None,
+            "AI Contribution": None,
+            "Stability Contribution": None,
+            "Stability Reasons": stability_reasons,
+            "Available Evidence": [],
+            "Evidence Weight": 0.0,
+        }
 
-    # ------------------------------------------------------
-    # Weighted contributions
-    # ------------------------------------------------------
-
-    technical_contribution = technical * 0.35
-
-    fundamental_contribution = fundamental * 0.40
-
-    ai_contribution = ai_score * 0.15
-
-    stability_contribution = stability_score * 0.10
-
-    overall = (
-        technical_contribution
-        + fundamental_contribution
-        + ai_contribution
-        + stability_contribution
-    )
-
+    total_weight = sum(weight for _, weight, _ in components)
+    overall = sum(score * weight for score, weight, _ in components) / total_weight
     overall = round(_clamp(overall))
 
-    # ------------------------------------------------------
-    # Breakdown
-    # ------------------------------------------------------
+    raw = {name: score for score, _, name in components}
+    raw_weights = {name: weight for _, weight, name in components}
 
     breakdown = {
-        "Technical": round(
-            technical,
-            2,
+        "Technical": raw.get("Technical"),
+        "Fundamental": raw.get("Fundamental"),
+        "AI": raw.get("AI"),
+        "Stability": raw.get("Stability"),
+        "Technical Contribution": (
+            raw["Technical"] * raw_weights["Technical"] / total_weight
+            if "Technical" in raw else None
         ),
-        "Fundamental": round(
-            fundamental,
-            2,
+        "Fundamental Contribution": (
+            raw["Fundamental"] * raw_weights["Fundamental"] / total_weight
+            if "Fundamental" in raw else None
         ),
-        "AI": round(
-            ai_score,
-            2,
+        "AI Contribution": (
+            raw["AI"] * raw_weights["AI"] / total_weight
+            if "AI" in raw else None
         ),
-        "Stability": round(
-            stability_score,
-            2,
-        ),
-        "Technical Contribution": round(
-            technical_contribution,
-            2,
-        ),
-        "Fundamental Contribution": round(
-            fundamental_contribution,
-            2,
-        ),
-        "AI Contribution": round(
-            ai_contribution,
-            2,
-        ),
-        "Stability Contribution": round(
-            stability_contribution,
-            2,
+        "Stability Contribution": (
+            raw["Stability"] * raw_weights["Stability"] / total_weight
+            if "Stability" in raw else None
         ),
         "Stability Reasons": stability_reasons,
+        "Available Evidence": [name for _, _, name in components],
+        "Evidence Weight": total_weight,
     }
+
+    for key in (
+        "Technical Contribution",
+        "Fundamental Contribution",
+        "AI Contribution",
+        "Stability Contribution",
+    ):
+        if breakdown[key] is not None:
+            breakdown[key] = round(breakdown[key], 2)
 
     return overall, breakdown
