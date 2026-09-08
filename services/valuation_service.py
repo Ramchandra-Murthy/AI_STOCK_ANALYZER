@@ -229,6 +229,11 @@ def generate_valuation_analysis(
     return {
         "status": "OK",
         "current_price": round(current_price, 2),
+        "price_source": data.get("price_source", "Unknown"),
+        "quote_timestamp": data.get("quote_timestamp"),
+        "quote_frequency": data.get("quote_frequency", "unavailable"),
+        "is_intraday": bool(data.get("is_intraday", False)),
+        "is_tick_live": bool(data.get("is_tick_live", False)),
         "eps": round(eps, 2),
         "trailing_pe": (round(trailing_pe, 2) if trailing_pe is not None else None),
         "forward_pe": (round(forward_pe, 2) if forward_pe is not None else None),
