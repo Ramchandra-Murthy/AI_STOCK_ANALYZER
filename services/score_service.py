@@ -233,133 +233,69 @@ def calculate_investment_score(
     ai_result=None,
     data=None,
 ):
+    """Calculate an evidence-aware Investment Score V2.
+
+    Missing components are excluded and their weights are renormalized.
+    A score is never manufactured from a neutral 50.0 fallback.
     """
-    Calculate Investment Score V2.
-
-    Weighting
-    ---------
-    Technical Score       35%
-    Fundamental Score V2  40%
-    AI Score              15%
-    Stability / Risk      10%
-
-    Total                 100%
-
-    Returns
-    -------
-    investment_score : int
-        Final score from 0 to 100.
-
-    breakdown : dict
-        Detailed component scores and weighted
-        contributions.
-    """
-
-    # ------------------------------------------------------
-    # Technical score
-    # ------------------------------------------------------
-
-    technical = _safe_float(technical_score)
-
-    if technical is None:
-        technical = 50.0
-
-    technical = _clamp(technical)
-
-    # ------------------------------------------------------
-    # Fundamental score
-    # ------------------------------------------------------
-
-    fundamental = _safe_float(fundamental_score)
-
-    if fundamental is None:
-        fundamental = 50.0
-
-    fundamental = _clamp(fundamental)
-
-    # ------------------------------------------------------
-    # AI score
-    # ------------------------------------------------------
+    candidates = [
+        ("Technical", _safe_float(technical_score), 0.35),
+        ("Fundamental", _safe_float(fundamental_score), 0.40),
+    ]
 
     ai_score = None
-
     if isinstance(ai_result, dict):
         ai_score = _safe_float(ai_result.get("score"))
-
-    if ai_score is None:
-        ai_score = 50.0
-
-    ai_score = _clamp(ai_score)
-
-    # ------------------------------------------------------
-    # Stability score
-    # ------------------------------------------------------
+    candidates.append(("AI", ai_score, 0.15))
 
     stability_score, stability_reasons = calculate_stability_score(
         data if isinstance(data, dict) else {}
     )
-
-    stability_score = _clamp(stability_score)
-
-    # ------------------------------------------------------
-    # Weighted contributions
-    # ------------------------------------------------------
-
-    technical_contribution = technical * 0.35
-
-    fundamental_contribution = fundamental * 0.40
-
-    ai_contribution = ai_score * 0.15
-
-    stability_contribution = stability_score * 0.10
-
-    overall = (
-        technical_contribution
-        + fundamental_contribution
-        + ai_contribution
-        + stability_contribution
+    stability_available = isinstance(data, dict) and bool(
+        any(data.get(k) is not None for k in ("beta", "debt_to_equity", "current_ratio"))
+    )
+    candidates.append(
+        ("Stability", stability_score if stability_available else None, 0.10)
     )
 
-    overall = round(_clamp(overall))
+    available = [
+        (name, _clamp(value), weight)
+        for name, value, weight in candidates
+        if value is not None
+    ]
 
-    # ------------------------------------------------------
-    # Breakdown
-    # ------------------------------------------------------
+    if not available:
+        return 0, {
+            "status": "UNAVAILABLE",
+            "message": "Insufficient evidence to calculate Investment Score.",
+            "available_components": [],
+            "missing_components": [name for name, _, _ in candidates],
+            "Stability Reasons": stability_reasons,
+        }
+
+    total_weight = sum(weight for _, _, weight in available)
+    overall = round(
+        _clamp(sum(value * weight for _, value, weight in available) / total_weight)
+    )
 
     breakdown = {
-        "Technical": round(
-            technical,
-            2,
-        ),
-        "Fundamental": round(
-            fundamental,
-            2,
-        ),
-        "AI": round(
-            ai_score,
-            2,
-        ),
-        "Stability": round(
-            stability_score,
-            2,
-        ),
-        "Technical Contribution": round(
-            technical_contribution,
-            2,
-        ),
-        "Fundamental Contribution": round(
-            fundamental_contribution,
-            2,
-        ),
-        "AI Contribution": round(
-            ai_contribution,
-            2,
-        ),
-        "Stability Contribution": round(
-            stability_contribution,
-            2,
-        ),
+        "status": "OK",
+        "available_components": [name for name, _, _ in available],
+        "missing_components": [name for name, _, _ in candidates if name not in {x[0] for x in available}],
+        "weight_normalization": round(total_weight, 4),
+        "Technical": None,
+        "Fundamental": None,
+        "AI": None,
+        "Stability": None,
+        "Technical Contribution": 0.0,
+        "Fundamental Contribution": 0.0,
+        "AI Contribution": 0.0,
+        "Stability Contribution": 0.0,
         "Stability Reasons": stability_reasons,
     }
+
+    for name, value, weight in available:
+        breakdown[name] = round(value, 2)
+        breakdown[f"{name} Contribution"] = round((value * weight) / total_weight, 2)
 
     return overall, breakdown
