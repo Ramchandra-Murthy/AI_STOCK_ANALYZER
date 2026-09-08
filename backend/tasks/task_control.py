@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 import logging
 import os
 import time
@@ -79,128 +79,103 @@ class TaskControlService:
         user: str = "system",
         payload: Dict[str, Any] | None = None,
     ) -> Dict[str, Any]:
-
         started_at = time.perf_counter()
-        payload = dict(payload or {})
-
         if not task_name:
             raise ValueError("task_name is required")
-
+        payload = dict(payload or {})
         if task_name not in self._app.tasks:
             self._synchronize_task_registry()
-
         if task_name not in self._app.tasks:
             raise ValueError(f"Unknown task: {task_name}")
 
         task_id = str(uuid.uuid4())
         payload["task_id"] = task_id
         payload["user"] = user
-
         submitted_at_dt = datetime.now(timezone.utc).isoformat()
         submitted_at_ts = time.time()
-
         telemetry = {
             "task_id": task_id,
             "task_name": task_name,
             "user": user,
             "symbol": payload.get("symbol"),
-            "status": "QUEUED" if self._real_celery else "SUCCESS",
+            "status": "QUEUED" if self._real_celery else "PENDING",
             "submitted_at": submitted_at_dt,
             "execution_time_ms": None,
-            "ready": not self._real_celery,
+            "ready": False,
         }
-
         self._task_observability[task_id] = telemetry
 
-        try:
-            self._app.send_task(
-                task_name,
-                args=[task_name, user, payload],
-                task_id=task_id,
-            )
-        except Exception:
-            self._app.send_task(
-                task_name,
-                args=[task_name, user, payload],
-            )
+        if self._real_celery:
+            try:
+                result = self._app.send_task(
+                    task_name,
+                    args=(task_name, user, payload),
+                    task_id=task_id,
+                )
+                task_id = str(result)
+            except Exception as exc:
+                telemetry["status"] = "FAILURE"
+                telemetry["ready"] = True
+                telemetry["error"] = str(exc)
+                telemetry["execution_time_ms"] = round((time.perf_counter() - started_at) * 1000, 3)
+                raise
+        else:
+            workers = {
+                "forecast.execute": celery_forecast_wrapper,
+                "forecast.run": celery_forecast_wrapper,
+                "valuation.execute": celery_valuation_wrapper,
+                "report.generate": celery_report_wrapper,
+            }
+            try:
+                result = workers[task_name](task_name, user, payload)
+                completed_at = time.time()
+                execution_ms = round((completed_at - submitted_at_ts) * 1000, 3)
+                self._mock_tasks[task_id] = {
+                    "task_id": task_id,
+                    "task_name": task_name,
+                    "user": user,
+                    "symbol": payload.get("symbol"),
+                    "status": "SUCCESS",
+                    "result": result,
+                    "submitted_at": submitted_at_ts,
+                    "completed_at": completed_at,
+                    "execution_time_ms": execution_ms,
+                }
+                telemetry.update({
+                    "status": "SUCCESS",
+                    "ready": True,
+                    "execution_time_ms": execution_ms,
+                })
+            except Exception as exc:
+                completed_at = time.time()
+                execution_ms = round((completed_at - submitted_at_ts) * 1000, 3)
+                self._mock_tasks[task_id] = {
+                    "task_id": task_id,
+                    "task_name": task_name,
+                    "user": user,
+                    "symbol": payload.get("symbol"),
+                    "status": "FAILURE",
+                    "error": str(exc),
+                    "submitted_at": submitted_at_ts,
+                    "completed_at": completed_at,
+                    "execution_time_ms": execution_ms,
+                }
+                telemetry.update({
+                    "status": "FAILURE",
+                    "ready": True,
+                    "execution_time_ms": execution_ms,
+                    "error": str(exc),
+                })
+                raise
 
-        dispatch_time_ms = round(
-            (time.perf_counter() - started_at) * 1000,
-            3,
-        )
-
-        telemetry["dispatch_time_ms"] = dispatch_time_ms
-
-        execution_result: Dict[str, Any] = {
-            "status": "SUCCESS",
+        telemetry["dispatch_time_ms"] = round((time.perf_counter() - started_at) * 1000, 3)
+        return {
+            "status": telemetry["status"],
             "task_id": task_id,
             "user": user,
-            "symbol": payload.get("symbol", "TCS.NS"),
+            "symbol": payload.get("symbol"),
         }
-        if task_name in ("forecast.execute", "forecast.run"):
-            execution_result.update({
-                "expected_value": float(payload.get("expected_value", 2837.5)),
-                "bull_value": float(payload.get("bull_value", 3450.0)),
-                "base_value": float(payload.get("base_value", 2900.0)),
-                "bear_value": float(payload.get("bear_value", 2100.0)),
-                "confidence": float(payload.get("confidence", 0.89)),
-                "probability_distribution": payload.get(
-                    "probability_distribution",
-                    {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
-                ),
-                "key_drivers": payload.get(
-                    "key_drivers",
-                    ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
-                ),
-                "major_risks": payload.get(
-                    "major_risks",
-                    ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
-                ),
-                "assumptions": payload.get(
-                    "assumptions",
-                    [
-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
-                        "Cash flows projected over 5-year explicit horizon plus terminal value."
-                    ]
-                ),
-                "record_id": payload.get(
-                    "record_id",
-                    f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
-                ),
-            })
-        if task_name in ("forecast.execute", "forecast.run"):
-            execution_result.update({
-                "expected_value": float(payload.get("expected_value", 2837.5)),
-                "bull_value": float(payload.get("bull_value", 3450.0)),
-                "base_value": float(payload.get("base_value", 2900.0)),
-                "bear_value": float(payload.get("bear_value", 2100.0)),
-                "confidence": float(payload.get("confidence", 0.89)),
-                "probability_distribution": payload.get(
-                    "probability_distribution",
-                    {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
-                ),
-                "key_drivers": payload.get(
-                    "key_drivers",
-                    ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
-                ),
-                "major_risks": payload.get(
-                    "major_risks",
-                    ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
-                ),
-                "assumptions": payload.get(
-                    "assumptions",
-                    [
-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
-                        "Cash flows projected over 5-year explicit horizon plus terminal value."
-                    ]
-                ),
-                "record_id": payload.get(
-                    "record_id",
-                    f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
-                ),
-            })
+
     def get_task_status(
         self,
         task_id: str,
