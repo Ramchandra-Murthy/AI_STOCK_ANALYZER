@@ -1,5 +1,5 @@
 ﻿from __future__ import annotations
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 from services.market_data.provider_resilience import ResilientMarketDataProvider
 from services.market_data.decision_gate import MarketDataDecisionGate, MarketDataDecisionResult
 from services.market_data.confidence_trace import ConfidenceAuditLogger, ConfidenceDecisionTraceRecord
@@ -14,8 +14,15 @@ class FullyIntegratedMarketPipeline:
     def __init__(self, policy_profile: str = "Institutional") -> None:
         self.orchestrator = UnifiedResearchToDecisionOrchestrator(policy_profile=policy_profile)
 
-    def evaluate_stock_securely(self, symbol: str) -> Tuple[Any, MarketDataDecisionResult, Optional[UnifiedInvestmentResult], ConfidenceDecisionTraceRecord]:
-        packet, report = ResilientMarketDataProvider.get_validated_market_data(symbol)
+    def evaluate_stock_securely(
+        self,
+        symbol: str,
+        ticker_factory: Optional[Callable[[str], Any]] = None,
+    ) -> Tuple[Any, MarketDataDecisionResult, Optional[UnifiedInvestmentResult], ConfidenceDecisionTraceRecord]:
+        packet, report = ResilientMarketDataProvider.get_validated_market_data(
+            symbol,
+            ticker_factory=ticker_factory,
+        )
         decision = MarketDataDecisionGate.evaluate_decision(report)
 
         base_confidence = 0.85
@@ -50,7 +57,9 @@ class FullyIntegratedMarketPipeline:
                 "current_price": packet.current_price,
                 "data_state": decision.directive,
                 "confidence_penalty": decision.confidence_penalty,
-                "adjusted_confidence": adjusted_conf
+                "adjusted_confidence": adjusted_conf,
+                "market_price_source": packet.details.get("source"),
+                "market_data_state": report.data_state,
             }
         )
 
