@@ -591,6 +591,11 @@ def generate_valuation_v4(data, benchmarks):
             current_price,
             2,
         ),
+        "price_source": data.get("price_source", "Unknown"),
+        "quote_timestamp": data.get("quote_timestamp"),
+        "quote_frequency": data.get("quote_frequency", "unavailable"),
+        "is_intraday": bool(data.get("is_intraday", False)),
+        "is_tick_live": bool(data.get("is_tick_live", False)),
         "composite_fair_value": round(
             composite_fair_value,
             2,
