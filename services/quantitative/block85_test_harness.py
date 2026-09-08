@@ -21,6 +21,9 @@ def run_block85_self_test() -> dict:
             "quantity": 100.0,
             "limit_price": 2500.0,
             "allocation_pct": 0.10,
+            "current_price": 2500.0,
+            "market_data_state": "LIVE",
+            "market_price_source": "yfinance-live-api",
         },
         {
             "symbol": "TCS.NS",
@@ -28,6 +31,9 @@ def run_block85_self_test() -> dict:
             "quantity": 50.0,
             "limit_price": 3500.0,
             "allocation_pct": 0.08,
+            "current_price": 3500.0,
+            "market_data_state": "LIVE",
+            "market_price_source": "yfinance-live-api",
         },
     ]
 
