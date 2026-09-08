@@ -1357,6 +1357,10 @@ def show():
 
             upside_percent = valuation_analysis.get("upside_percent")
             margin_of_safety = valuation_analysis.get("margin_of_safety")
+            v3_quote_timestamp = valuation_analysis.get("quote_timestamp")
+            v3_quote_frequency = valuation_analysis.get("quote_frequency", "unavailable")
+            v3_price_source = valuation_analysis.get("price_source", "Unknown")
+            v3_is_tick_live = bool(valuation_analysis.get("is_tick_live", False))
 
             trailing_pe = valuation_analysis.get("trailing_pe")
             forward_pe = valuation_analysis.get("forward_pe")
@@ -1406,6 +1410,10 @@ def show():
                     "Valuation Upside / Downside",
                     upside_text,
                 )
+
+            if v3_quote_timestamp:
+                freshness = "Tick live" if v3_is_tick_live else f"Latest {v3_quote_frequency}"
+                st.caption(f"Valuation price: {freshness} • {v3_price_source} • {v3_quote_timestamp}")
 
             # ==============================================
             # STATUS
@@ -1607,6 +1615,10 @@ def show():
             v43_current_price = v43_result.get("current_price")
             v43_fair_value = v43_result.get("composite_fair_value")
             v43_upside = v43_result.get("upside_percent")
+            v43_quote_timestamp = v43_result.get("quote_timestamp")
+            v43_quote_frequency = v43_result.get("quote_frequency", "unavailable")
+            v43_price_source = v43_result.get("price_source", "Unknown")
+            v43_is_tick_live = bool(v43_result.get("is_tick_live", False))
 
             v43_status = v43_result.get(
                 "valuation_status",
@@ -1657,6 +1669,10 @@ def show():
                         else "N/A"
                     ),
                 )
+
+            if v43_quote_timestamp:
+                freshness = "Tick live" if v43_is_tick_live else f"Latest {v43_quote_frequency}"
+                st.caption(f"Valuation price: {freshness} • {v43_price_source} • {v43_quote_timestamp}")
 
             # ==============================================
             # STATUS / CONFIDENCE
