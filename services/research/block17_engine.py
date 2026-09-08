@@ -32,19 +32,21 @@ class Block17ResearchOrchestrator:
         # 1. Synthesize Research Report
         raw_research = self.research_engine.synthesize(symbol)
         
-        # 2. Evaluate Economic Moat if ratios provided, else default mock ratios
-        if not ratios:
-            ratios = FinancialRatios(
-                period="FY2025",
-                symbol=symbol,
-                roe=18.5,
-                roic=16.0,
-                net_margin=15.2
-            )
-        moat_res = self.moat_engine.evaluate_moat(ratios)
-
-        # 3. Align research score with EROS composite score
-        research_score = round((moat_res.moat_score * 0.5) + (composite_score * 0.5), 2)
+        # 2. Evaluate Economic Moat only when real financial ratios are supplied.
+        # Never substitute sample FY2025 ratios for missing fundamentals.
+        if ratios is not None:
+            moat_res = self.moat_engine.evaluate_moat(ratios)
+            moat_score = moat_res.moat_score
+            moat_classification = moat_res.moat_classification
+            moat_factors = moat_res.factors
+            moat_metadata = moat_res.metadata
+            research_score = round((moat_score * 0.5) + (composite_score * 0.5), 2)
+        else:
+            moat_score = 0.0
+            moat_classification = "UNASSESSED"
+            moat_factors = []
+            moat_metadata = {"reason": "financial_ratios_unavailable"}
+            research_score = round(composite_score, 2)
 
         # Safely extract thesis and risks across different research result implementations
         raw_thesis = getattr(raw_research, "thesis", "Strong market position and robust cash flows.")
@@ -69,7 +71,7 @@ class Block17ResearchOrchestrator:
         return ResearchIntelligenceResult(
             symbol=symbol,
             research_score=research_score,
-            moat_score=moat_res.moat_score,
+            moat_score=moat_score,
             moat_classification=moat_res.moat_classification,
             ai_recommendation=getattr(raw_research, "ai_recommendation", "BUY"),
             confidence_score=getattr(raw_research, "confidence_score", 0.88),
@@ -78,7 +80,7 @@ class Block17ResearchOrchestrator:
             primary_risk=primary_risk,
             details={
                 "engine_version": "EROS-3.0-BLOCK-17B",
-                "moat_factors": moat_res.factors,
-                "moat_metadata": moat_res.metadata,
+                "moat_factors": moat_factors,
+                "moat_metadata": moat_metadata,
             }
         )
