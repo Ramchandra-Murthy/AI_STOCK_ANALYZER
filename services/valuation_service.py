@@ -76,7 +76,10 @@ def generate_valuation_analysis(
     if pe_candidates:
         base_pe = sum(pe_candidates) / len(pe_candidates)
     else:
-        base_pe = 18.0
+        return {
+            "status": "UNAVAILABLE",
+            "message": "No observed trailing or forward P/E is available; refusing to inject a synthetic valuation multiple.",
+        }
 
     # Prevent extreme multiples from dominating valuation.
     base_pe = max(8.0, min(base_pe, 35.0))
