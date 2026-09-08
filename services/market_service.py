@@ -68,7 +68,7 @@ def _get_last_observation(ticker: str) -> tuple[float | None, float | None, floa
         observed_at = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
         return round(latest, 2), round(change, 2) if change is not None else None, round(previous, 2) if previous is not None else None, observed_at, "daily", False
     except Exception:
-        return None, None, None, "unavailable", False
+        return None, None, None, None, "unavailable", False
 
 
 def get_latest_available_price(symbol: str) -> dict[str, Any]:
