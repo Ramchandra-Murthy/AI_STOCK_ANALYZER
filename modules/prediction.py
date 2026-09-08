@@ -1,7 +1,8 @@
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-import yfinance as yf
+
+from services.technical_service import get_price_history
 
 # ==========================================================
 # Download Stock Data
@@ -9,29 +10,10 @@ import yfinance as yf
 
 
 def download_stock(symbol):
-
+    """Use the canonical technical-data service for historical prices."""
     try:
-
-        df = yf.download(
-            symbol.strip().upper(),
-            period="1y",
-            interval="1d",
-            auto_adjust=True,
-            progress=False,
-            threads=False,
-        )
-
-        if df is None or df.empty:
-            return None
-
-        # Handle MultiIndex columns (new yfinance versions)
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-
-        return df
-
+        return get_price_history(symbol, period="1y")
     except Exception as e:
-
         st.exception(e)
         return None
 
