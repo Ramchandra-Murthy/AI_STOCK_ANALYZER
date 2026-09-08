@@ -28,44 +28,57 @@ def _clean_close_series(history: pd.DataFrame) -> pd.Series:
     return pd.to_numeric(close, errors="coerce").dropna()
 
 
-def _get_last_observation(ticker: str) -> tuple[float | None, float | None, str | None]:
+def _get_last_observation(ticker: str) -> tuple[float | None, float | None, str | None, str, bool]:
+    """Return the freshest provider observation without claiming tick-level data."""
     try:
-        history = yf.Ticker(ticker).history(period="5d", interval="1d", auto_adjust=True)
-        close = _clean_close_series(history)
+        symbol = yf.Ticker(ticker)
+
+        intraday = symbol.history(period="1d", interval="1m", auto_adjust=True)
+        close = _clean_close_series(intraday)
+        if not close.empty:
+            latest = float(close.iloc[-1])
+            previous = float(close.iloc[-2]) if len(close) > 1 else None
+            change = ((latest - previous) / previous) * 100 if previous else None
+            timestamp = close.index[-1]
+            observed_at = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
+            return round(latest, 2), round(change, 2) if change is not None else None, observed_at, "intraday_1m", True
+
+        daily = symbol.history(period="5d", interval="1d", auto_adjust=True)
+        close = _clean_close_series(daily)
         if close.empty:
-            return None, None, None
+            return None, None, None, "unavailable", False
         latest = float(close.iloc[-1])
         previous = float(close.iloc[-2]) if len(close) > 1 else None
         change = ((latest - previous) / previous) * 100 if previous else None
         timestamp = close.index[-1]
         observed_at = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
-        return round(latest, 2), round(change, 2) if change is not None else None, observed_at
+        return round(latest, 2), round(change, 2) if change is not None else None, observed_at, "daily", False
     except Exception:
-        return None, None, None
+        return None, None, None, "unavailable", False
 
 
 def get_latest_available_price(symbol: str) -> dict[str, Any]:
     normalized = symbol.strip().upper()
     if "." not in normalized:
         normalized += ".NS"
-    value, change, observed_at = _get_last_observation(normalized)
-    return {"symbol": normalized, "price": value, "change_pct": change, "observed_at": observed_at, "source": "Yahoo Finance", "frequency": "daily", "is_tick_live": False}
+    value, change, observed_at, frequency, is_intraday = _get_last_observation(normalized)
+    return {"symbol": normalized, "price": value, "change_pct": change, "observed_at": observed_at, "source": "Yahoo Finance", "frequency": frequency, "is_tick_live": False, "is_intraday": is_intraday}
 
 
 def get_market_indices() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     for name, ticker in MARKET_INDICES.items():
-        value, change, observed_at = _get_last_observation(ticker)
-        result[name] = {"value": value, "change": change, "observed_at": observed_at, "source": "Yahoo Finance", "frequency": "daily", "is_tick_live": False}
+        value, change, observed_at, frequency, is_intraday = _get_last_observation(ticker)
+        result[name] = {"value": value, "change": change, "observed_at": observed_at, "source": "Yahoo Finance", "frequency": frequency, "is_tick_live": False, "is_intraday": is_intraday}
     return result
 
 
 def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
     rows: list[dict[str, Any]] = []
     for name, ticker in WATCHLIST.items():
-        value, change, observed_at = _get_last_observation(ticker)
+        value, change, observed_at, frequency, is_intraday = _get_last_observation(ticker)
         if value is not None and change is not None:
-            rows.append({"Symbol": name, "Price": value, "Change %": change, "Observed": observed_at})
+            rows.append({"Symbol": name, "Price": value, "Change %": change, "Observed": observed_at, "Frequency": frequency, "Intraday": is_intraday})
     columns = ["Symbol", "Price", "Change %", "Observed"]
     if not rows:
         empty = pd.DataFrame(columns=columns)
