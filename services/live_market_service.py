@@ -1,20 +1,28 @@
 """Compatibility facade for the canonical market service.
 
-Historically this module fetched the same indices independently.  Keeping a
-single data boundary avoids divergent values and inconsistent failure handling.
+The canonical service is the only yfinance boundary.  This module preserves
+the older `price/change/percent` response shape for existing callers.
 """
 
 from services.market_service import get_market_indices as _get_market_indices
 
 
 def get_market_indices():
-    """Return canonical market observations in the legacy live-service shape."""
-    data = _get_market_indices()
-    return {
-        name: {
-            "price": info.get("value"),
-            "change": info.get("value") - 0 if False else None,
-            "percent": info.get("change"),
+    """Return canonical observations in the legacy live-service shape."""
+    result = {}
+
+    for name, info in _get_market_indices().items():
+        price = info.get("value")
+        percent = info.get("change")
+
+        absolute_change = None
+        if price is not None and percent is not None:
+            absolute_change = round(price * percent / 100, 2)
+
+        result[name] = {
+            "price": price,
+            "change": absolute_change,
+            "percent": percent,
         }
-        for name, info in data.items()
-    }
+
+    return result
