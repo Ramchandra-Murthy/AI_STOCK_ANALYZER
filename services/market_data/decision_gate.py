@@ -1,59 +1,106 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
 from services.market_data.integrity import MarketDataValidationReport
+
+
+ENGINE_VERSION = "EROS-3.0-BLOCK-23F-REPAIRED"
+
 
 @dataclass(frozen=True, slots=True)
 class MarketDataDecisionResult:
     symbol: str
-    directive: str  # "USE_LIVE", "USE_FALLBACK_WITH_WARNING", "USE_STALE_WITH_WARNING", "REJECT_DATA"
-    confidence_penalty: float  # e.g., 0.0, 0.15, 0.30, 1.0
+    directive: str
+    confidence_penalty: float
     allowed_in_scoring: bool
     warning_message: Optional[str]
     details: Dict[str, Any] = field(default_factory=dict)
 
+
 class MarketDataDecisionGate:
     """
-    EROS 3.0 Block 23F Market Data Decision Gate.
-    Governs whether market data packets can proceed into EROS scoring and calculates confidence penalties.
+    Non-bypassable decision boundary for market-data quality.
+
+    LIVE is the only state permitted into live scoring. FALLBACK and STALE are
+    preserved as diagnostic states, but are blocked rather than confidence-
+    attenuated. INVALID is also blocked.
     """
+
     @staticmethod
-    def evaluate_decision(report: MarketDataValidationReport) -> MarketDataDecisionResult:
+    def evaluate_decision(
+        report: MarketDataValidationReport,
+    ) -> MarketDataDecisionResult:
         state = report.data_state
 
-        if state == "LIVE":
+        if state == "LIVE" and report.is_valid:
             return MarketDataDecisionResult(
                 symbol=report.symbol,
                 directive="USE_LIVE",
                 confidence_penalty=0.0,
                 allowed_in_scoring=True,
                 warning_message=None,
-                details={"engine_version": "EROS-3.0-BLOCK-23F", "state": state}
+                details={
+                    "engine_version": ENGINE_VERSION,
+                    "state": state,
+                    "live_scoring_allowed": True,
+                },
             )
-        elif state == "FALLBACK":
+
+        if state == "FALLBACK":
             return MarketDataDecisionResult(
                 symbol=report.symbol,
-                directive="USE_FALLBACK_WITH_WARNING",
-                confidence_penalty=0.15,
-                allowed_in_scoring=True,
-                warning_message=f"Data retrieved via fallback parity adapter for {report.symbol}. Confidence penalized by 15%.",
-                details={"engine_version": "EROS-3.0-BLOCK-23F", "state": state}
-            )
-        elif state == "STALE":
-            return MarketDataDecisionResult(
-                symbol=report.symbol,
-                directive="USE_STALE_WITH_WARNING",
-                confidence_penalty=0.30,
-                allowed_in_scoring=True,
-                warning_message=f"Market data for {report.symbol} is stale (age: {report.freshness_age_seconds}s). Confidence penalized by 30%.",
-                details={"engine_version": "EROS-3.0-BLOCK-23F", "state": state}
-            )
-        else:
-            return MarketDataDecisionResult(
-                symbol=report.symbol,
-                directive="REJECT_DATA",
+                directive="REJECT_FALLBACK",
                 confidence_penalty=1.0,
                 allowed_in_scoring=False,
-                warning_message=f"Market data for {report.symbol} is INVALID. Errors: {report.errors}. Rejected from scoring pipeline.",
-                details={"engine_version": "EROS-3.0-BLOCK-23F", "state": state}
+                warning_message=(
+                    f"Fallback market data for {report.symbol} is diagnostic-only "
+                    "and cannot enter live scoring."
+                ),
+                details={
+                    "engine_version": ENGINE_VERSION,
+                    "state": state,
+                    "live_scoring_allowed": False,
+                },
             )
+
+        if state == "STALE":
+            return MarketDataDecisionResult(
+                symbol=report.symbol,
+                directive="REJECT_STALE",
+                confidence_penalty=1.0,
+                allowed_in_scoring=False,
+                warning_message=(
+                    f"Market data for {report.symbol} is stale "
+                    f"(age: {report.freshness_age_seconds}s)."
+                ),
+                details={
+                    "engine_version": ENGINE_VERSION,
+                    "state": state,
+                    "live_scoring_allowed": False,
+                },
+            )
+
+        return MarketDataDecisionResult(
+            symbol=report.symbol,
+            directive="REJECT_DATA",
+            confidence_penalty=1.0,
+            allowed_in_scoring=False,
+            warning_message=(
+                f"Market data for {report.symbol} is invalid and was rejected. "
+                f"Errors: {report.errors}"
+            ),
+            details={
+                "engine_version": ENGINE_VERSION,
+                "state": state,
+                "live_scoring_allowed": False,
+            },
+        )
+
+
+__all__ = [
+    "ENGINE_VERSION",
+    "MarketDataDecisionGate",
+    "MarketDataDecisionResult",
+]
