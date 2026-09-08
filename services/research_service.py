@@ -2,6 +2,8 @@ import math
 
 import yfinance as yf
 
+from services.market_service import get_latest_available_price
+
 
 def _get_fast_info(ticker):
     """Return Yahoo's fast quote snapshot when available."""
@@ -428,10 +430,18 @@ def get_stock_profile(symbol):
         # Yahoo's broad info payload can be cached/stale; fast_info
         # is the narrower market-quote path and is therefore preferred.
         # --------------------------------------------------
-        fast_price = _safe_float(fast_info.get("last_price"))
-        fast_previous_close = _safe_float(fast_info.get("previous_close"))
+        # Use the canonical market boundary for price/freshness metadata so
+        # research and the market dashboard cannot disagree about what "latest"
+        # means. Fundamental data continues to come from this service.
+        market_quote = get_latest_available_price(symbol)
+        canonical_price = _safe_float(market_quote.get("price"))
+        canonical_previous_close = _safe_float(
+            fast_info.get("previous_close")
+        )
+        fast_price = canonical_price
+        fast_previous_close = canonical_previous_close
         fast_volume = _safe_float(fast_info.get("last_volume"))
-        fast_trade_time = fast_info.get("last_trade_time")
+        fast_trade_time = market_quote.get("observed_at")
         if hasattr(fast_trade_time, "isoformat"):
             fast_trade_time = fast_trade_time.isoformat()
         elif fast_trade_time is not None:
@@ -543,12 +553,11 @@ def get_stock_profile(symbol):
                 if fast_previous_close is not None
                 else info.get("previousClose", "N/A")
             ),
-            "price_source": (
-                "yfinance.fast_info"
-                if fast_price is not None
-                else "yfinance.info"
-            ),
-            "quote_timestamp": fast_trade_time,
+            "price_source": market_quote.get("source", "Yahoo Finance"),
+            "quote_timestamp": market_quote.get("observed_at"),
+            "quote_frequency": market_quote.get("frequency", "unavailable"),
+            "is_intraday": bool(market_quote.get("is_intraday", False)),
+            "is_tick_live": bool(market_quote.get("is_tick_live", False)),
             "market_state": info.get("marketState", "UNKNOWN"),
             "currency": info.get(
                 "currency",
