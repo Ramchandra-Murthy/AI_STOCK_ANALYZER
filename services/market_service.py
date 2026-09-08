@@ -79,7 +79,7 @@ def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
         value, change, observed_at, frequency, is_intraday = _get_last_observation(ticker)
         if value is not None and change is not None:
             rows.append({"Symbol": name, "Price": value, "Change %": change, "Observed": observed_at, "Frequency": frequency, "Intraday": is_intraday})
-    columns = ["Symbol", "Price", "Change %", "Observed"]
+    columns = ["Symbol", "Price", "Change %", "Observed", "Frequency", "Intraday"]
     if not rows:
         empty = pd.DataFrame(columns=columns)
         return empty, empty.copy()
