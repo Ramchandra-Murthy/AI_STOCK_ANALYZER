@@ -12,23 +12,9 @@ from portfolio.portfolio import (
 )
 
 # ----------------------------------------------------------
-# LIVE PRICE
+# PORTFOLIO DATA
 # ----------------------------------------------------------
-from services.analyzer import analyze_stock
-
-
-def get_live_price(symbol):
-    try:
-        result = analyze_stock(symbol)
-
-        last = result["last"]
-
-        return round(float(last["Close"]), 2)
-
-    except Exception as e:
-        st.error(f"{symbol}: {e}")
-        return None
-
+from services.portfolio_service import get_portfolio
 
 # ----------------------------------------------------------
 # PORTFOLIO PAGE
@@ -71,44 +57,19 @@ def show():
     st.divider()
 
     # ======================================================
-    # LOAD DATA
+    # LOAD + VALUE DATA
     # ======================================================
 
-    df = load_portfolio()
+    df = get_portfolio()
 
     if df.empty:
         st.info("Your portfolio is empty.")
         return
 
-    cmp_list = []
-    current_values = []
-    profits = []
-    returns = []
-
-    for _, row in df.iterrows():
-
-        cmp = get_live_price(row["symbol"])
-        if cmp is None:
-            cmp_list.append(None)
-            current_values.append(None)
-            profits.append(None)
-            returns.append(None)
-            continue
-
-        investment = row["quantity"] * row["buy_price"]
-        current_value = row["quantity"] * cmp
-        profit = current_value - investment
-        ret = (profit / investment) * 100 if investment else 0
-
-        cmp_list.append(cmp)
-        current_values.append(round(current_value, 2))
-        profits.append(round(profit, 2))
-        returns.append(round(ret, 2))
-
-    df["CMP"] = cmp_list
-    df["Current Value"] = current_values
-    df["Profit"] = profits
-    df["Return %"] = returns
+    st.caption(
+        "Portfolio prices are the latest available daily observations from Yahoo Finance; "
+        "they are not exchange-tick live prices."
+    )
 
     # ======================================================
     # SUMMARY
