@@ -23,9 +23,14 @@ def generate_recommendation(investment_score):
 
     try:
         overall_score = float(investment_score)
-
     except (TypeError, ValueError):
-        overall_score = 50.0
+        return {
+            "recommendation": "UNAVAILABLE",
+            "confidence": 0,
+            "overall_score": None,
+            "status": "UNAVAILABLE",
+            "message": "Investment score is unavailable; no recommendation is generated.",
+        }
 
     # Keep score inside 0-100
     overall_score = max(
