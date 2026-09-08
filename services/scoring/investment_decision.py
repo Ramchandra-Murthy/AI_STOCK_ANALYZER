@@ -49,7 +49,7 @@ class InvestmentDecisionOrchestrator:
         holdings: Optional[Dict[str, Dict[str, float]]] = None,
         current_weight: float = 0.0,
         portfolio_weight: Optional[float] = None,
-        assumed_price: float = 2500.0,
+        assumed_price: Optional[float] = None,
     ) -> InvestmentDecisionResult:
         if portfolio_weight is not None:
             current_weight = portfolio_weight
@@ -69,7 +69,7 @@ class InvestmentDecisionOrchestrator:
             }
             if symbol in holdings:
                 pos_data = holdings[symbol]
-                mval = pos_data.get("shares", 0.0) * pos_data.get("price", assumed_price)
+                mval = pos_data.get("shares", 0.0) * pos_data.get("price", live_price)
                 if p_result.total_portfolio_value > 0:
                     current_weight = round(mval / p_result.total_portfolio_value, 4)
 
@@ -121,7 +121,7 @@ class InvestmentDecisionOrchestrator:
                 "symbol": symbol,
                 "action": order_action,
                 "trade_weight": abs(incremental_weight),
-                "current_price": assumed_price,
+                "current_price": live_price,
             }]
             execution_orders = InstitutionalExecutionEngine.generate_orders(allocation_payload, execution_policy="VWAP-oriented")
             
