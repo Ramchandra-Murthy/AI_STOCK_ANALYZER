@@ -21,11 +21,23 @@ def generate_recommendation(investment_score):
     # Validate score
     # ------------------------------------------------------
 
+    # Missing evidence is not a HOLD signal.
+    if investment_score is None:
+        return {
+            "recommendation": "INSUFFICIENT DATA",
+            "confidence": 0,
+            "overall_score": None,
+        }
+
     try:
         overall_score = float(investment_score)
 
     except (TypeError, ValueError):
-        overall_score = 50.0
+        return {
+            "recommendation": "INSUFFICIENT DATA",
+            "confidence": 0,
+            "overall_score": None,
+        }
 
     # Keep score inside 0-100
     overall_score = max(
