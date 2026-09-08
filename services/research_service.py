@@ -436,10 +436,15 @@ def get_stock_profile(symbol):
         market_quote = get_latest_available_price(symbol)
         canonical_price = _safe_float(market_quote.get("price"))
         canonical_previous_close = _safe_float(
-            fast_info.get("previous_close")
+            market_quote.get("previous_close")
         )
         fast_price = canonical_price
         fast_previous_close = canonical_previous_close
+
+        # Research is an input to EROS decisions. Never silently substitute a
+        # broad, potentially stale Yahoo info price when the canonical market
+        # boundary is unavailable. Downstream gates can now distinguish
+        # "unavailable" from an observed market price.
         fast_volume = _safe_float(fast_info.get("last_volume"))
         fast_trade_time = market_quote.get("observed_at")
         if hasattr(fast_trade_time, "isoformat"):
@@ -543,16 +548,8 @@ def get_stock_profile(symbol):
             # ==============================================
             # MARKET
             # ==============================================
-            "price": (
-                fast_price
-                if fast_price is not None
-                else info.get("currentPrice", "N/A")
-            ),
-            "previous_close": (
-                fast_previous_close
-                if fast_previous_close is not None
-                else info.get("previousClose", "N/A")
-            ),
+            "price": fast_price,
+            "previous_close": fast_previous_close,
             "price_source": market_quote.get("source", "Yahoo Finance"),
             "quote_timestamp": market_quote.get("observed_at"),
             "quote_frequency": market_quote.get("frequency", "unavailable"),
