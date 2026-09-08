@@ -297,10 +297,10 @@ def show():
         if history is not None and not history.empty:
             technical_score, technical_reasons = calculate_technical_score(history)
         else:
-            technical_score = 0
+            technical_score = None
             technical_reasons = ["Historical price data unavailable."]
     except Exception as error:
-        technical_score = 0
+        technical_score = None
         technical_reasons = [f"Technical scoring unavailable: {error}"]
 
     # ======================================================
@@ -309,7 +309,7 @@ def show():
     try:
         fundamental_score, fundamental_reasons = calculate_fundamental_score(data)
     except Exception as error:
-        fundamental_score = 0
+        fundamental_score = None
         fundamental_reasons = [f"Fundamental scoring unavailable: {error}"]
 
     # ======================================================
@@ -324,7 +324,7 @@ def show():
         )
     except Exception as error:
         st.warning(f"Investment score unavailable: {error}")
-        investment_score = 0
+        investment_score = None
         score_breakdown = {}
 
     # ======================================================
