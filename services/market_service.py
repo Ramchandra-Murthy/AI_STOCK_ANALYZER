@@ -37,7 +37,21 @@ def _get_last_observation(ticker: str) -> tuple[float | None, float | None, str 
         close = _clean_close_series(intraday)
         if not close.empty:
             latest = float(close.iloc[-1])
-            previous = float(close.iloc[-2]) if len(close) > 1 else None
+            # Percentage change is a session move, not a one-minute move.
+            # Prefer the previous daily close; fall back to the previous intraday
+            # bar only when the provider cannot supply a daily reference.
+            previous = None
+            try:
+                daily = symbol.history(period="5d", interval="1d", auto_adjust=True)
+                daily_close = _clean_close_series(daily)
+                if len(daily_close) >= 2:
+                    previous = float(daily_close.iloc[-2])
+                elif len(daily_close) == 1:
+                    previous = float(daily_close.iloc[-1])
+            except Exception:
+                previous = None
+            if previous is None and len(close) > 1:
+                previous = float(close.iloc[-2])
             change = ((latest - previous) / previous) * 100 if previous else None
             timestamp = close.index[-1]
             observed_at = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
