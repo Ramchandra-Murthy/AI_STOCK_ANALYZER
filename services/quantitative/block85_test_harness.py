@@ -62,6 +62,26 @@ def run_block85_self_test() -> dict:
     assert blocked.status == "BLOCKED"
     assert blocked.execution_allowed is False
 
+    no_live_evidence = engine.certify(
+        orders=[{
+            "symbol": "INFY.NS",
+            "action": "BUY",
+            "quantity": 10,
+            "limit_price": 1500.0,
+        }],
+        risk={"status": "PASS"},
+        governance={"status": "APPROVED"},
+        validation={"status": "PASS"},
+        simulation={"status": "PASS"},
+    )
+
+    assert no_live_evidence.status == "BLOCKED"
+    assert no_live_evidence.execution_allowed is False
+    assert any(
+        "market" in reason.lower()
+        for reason in no_live_evidence.blocking_reasons
+    )
+
     return {
         "status": "PASS",
         "certified_status": certified.status,
