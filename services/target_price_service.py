@@ -28,8 +28,10 @@ def calculate_target_price(history, technical_score=None):
     history : pandas.DataFrame
         Historical OHLC price data.
 
-    technical_score : float
-        Technical score between 0 and 100.
+    technical_score : float or None
+        Technical score between 0 and 100. A missing or invalid score
+        is treated as insufficient evidence and never replaced by a
+        fabricated neutral score.
 
     Returns
     -------
@@ -136,14 +138,33 @@ def calculate_target_price(history, technical_score=None):
         0.0,
     )
 
+    if atr is None or atr < 0:
+        return {
+            "current_price": round(current_price, 2),
+            "target_price": None,
+            "stop_loss": None,
+            "upside_percent": None,
+            "risk_reward": None,
+            "atr": None,
+            "status": "ATR unavailable",
+        }
+
     # --------------------------------------------------
     # Technical Score
     # --------------------------------------------------
 
-    score = _safe_float(
-        technical_score,
-        50.0,
-    )
+    score = _safe_float(technical_score)
+
+    if score is None:
+        return {
+            "current_price": round(current_price, 2),
+            "target_price": None,
+            "stop_loss": None,
+            "upside_percent": None,
+            "risk_reward": None,
+            "atr": round(atr, 2),
+            "status": "Insufficient technical evidence",
+        }
 
     score = max(
         0.0,
