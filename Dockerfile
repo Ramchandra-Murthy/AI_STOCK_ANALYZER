@@ -6,7 +6,12 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt
 
-COPY . .
+COPY app.py ./app.py
+COPY backend ./backend
+COPY core ./core
+COPY services ./services
+COPY setup.py ./setup.py
+COPY pyproject.toml ./pyproject.toml
 
 RUN pip install --no-cache-dir -e .
 
