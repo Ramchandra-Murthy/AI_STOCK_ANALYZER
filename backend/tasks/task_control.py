@@ -289,46 +289,16 @@ class TaskControlService:
                     )
                 finally:
                     idempotency_lock_acquired = False
+        # The task is asynchronous in production. Do not fabricate a
+        # completed business result at submission time: the authoritative
+        # result comes from Celery via get_task_result().
         execution_result: Dict[str, Any] = {
-            "status": "SUCCESS",
+            "status": "QUEUED",
             "task_id": task_id,
+            "task_name": task_name,
             "user": user,
-            "symbol": payload.get("symbol", "TCS.NS"),
+            "symbol": payload.get("symbol"),
         }
-        if task_name in ("forecast.execute", "forecast.run"):
-            execution_result.update({
-                "expected_value": float(payload.get("expected_value", 2837.5)),
-                "bull_value": float(payload.get("bull_value", 3450.0)),
-                "base_value": float(payload.get("base_value", 2900.0)),
-                "bear_value": float(payload.get("bear_value", 2100.0)),
-                "confidence": float(payload.get("confidence", 0.89)),
-                "probability_distribution": payload.get(
-                    "probability_distribution",
-                    {"BULL": 0.25, "BASE": 0.50, "BEAR": 0.25}
-                ),
-                "key_drivers": payload.get(
-                    "key_drivers",
-                    ["Revenue Growth Acceleration", "Operating Margin Expansion", "Capital Cost Discipline"]
-                ),
-                "major_risks": payload.get(
-                    "major_risks",
-                    ["Interest Rate Volatility", "Input Cost Inflation", "Demand Compression"]
-                ),
-                "assumptions": payload.get(
-                    "assumptions",
-                    [
-                        "WACC calculated via CAPM with Hamada levered beta adjustment.",
-                        "Terminal growth rate capped at long-term sovereign GDP growth.",
-                        "Cash flows projected over 5-year explicit horizon plus terminal value."
-                    ]
-                ),
-                "record_id": payload.get(
-                    "record_id",
-                    f"{payload.get('symbol', 'TCS.NS')}-FCST-2026-Q2"
-                ),
-            })
-        # This mirrors the shape of the real forecast worker result
-        # without executing the production forecasting pipeline.
 
         self._mock_tasks[task_id] = {
             "task_id": task_id,
@@ -522,15 +492,13 @@ class TaskControlService:
 
         if not isinstance(res_data, dict):
             meta = self._mock_tasks.get(task_id, {})
-            res_data = meta.get(
-                "result",
-                {
+            res_data = meta.get("result")
+            if res_data is None:
+                return {
                     "task_id": task_id,
-                    "user": "institutional_research_user",
-                    "symbol": "TCS.NS",
-                    "expected_value": 2837.5,
-                },
-            )
+                    "status": result.status,
+                    "result": None,
+                }
 
         telemetry = self._task_observability.get(task_id)
         if telemetry is not None:
