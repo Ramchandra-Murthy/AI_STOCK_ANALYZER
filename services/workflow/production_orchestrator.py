@@ -73,7 +73,13 @@ class EROSProductionWorkflowOrchestrator:
                 "confidence_penalty": (
                     trace.confidence_penalty
                 ),
+                # Block 23J contract: this field is market-data confidence
+                # after the integrity-gate penalty. The unified research/decision
+                # confidence is exposed separately.
                 "adjusted_confidence": (
+                    trace.adjusted_confidence
+                ),
+                "decision_confidence": (
                     result.adjusted_confidence
                 ),
             },
