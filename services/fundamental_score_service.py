@@ -52,6 +52,9 @@ def _percent(value):
 
     Example:
         0.15 -> 15.0
+
+    Reject implausibly large source values so corrupted numeric payloads
+    cannot turn into artificial fundamental scores.
     """
 
     value = to_float(value)
@@ -59,7 +62,17 @@ def _percent(value):
     if value is None:
         return None
 
-    return value * 100.0
+    # Yahoo-style percentage fields are decimal fractions.  A very large
+    # source value is outside a reasonable financial-data envelope.
+    if abs(value) > 10:
+        return None
+
+    result = value * 100.0
+
+    if not math.isfinite(result) or abs(result) > 1000:
+        return None
+
+    return result
 
 
 def _debt_equity_ratio(value):
@@ -73,6 +86,10 @@ def _debt_equity_ratio(value):
     value = to_float(value)
 
     if value is None or value < 0:
+        return None
+
+    # Reject extreme/corrupt debt-to-equity payloads before normalization.
+    if value > 10000:
         return None
 
     return value / 100.0
