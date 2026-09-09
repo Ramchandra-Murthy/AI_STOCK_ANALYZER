@@ -18,7 +18,7 @@ def _safe_float(value, default=None):
         return default
 
 
-def calculate_target_price(history, technical_score=50):
+def calculate_target_price(history, technical_score=None):
     """
     Calculate a rule-based target price, stop loss,
     upside/downside and risk/reward estimate.
