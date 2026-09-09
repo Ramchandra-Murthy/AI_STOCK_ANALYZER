@@ -49,8 +49,8 @@ def calculate_stability_score(data):
         Debt / Equity    30%
         Current Ratio    30%
 
-    Missing metrics are availability-normalized so that
-    unavailable data does not automatically receive zero.
+    Missing or invalid metrics are availability-normalized so that
+    unavailable data does not automatically receive zero or full credit.
     """
 
     if not isinstance(data, dict):
@@ -63,96 +63,112 @@ def calculate_stability_score(data):
 
     if beta is not None:
         if beta < 0:
-            beta_points = 20
-            reasons.append(f"Beta of {beta:.2f} requires cautious interpretation.")
+            reasons.append(f"Beta of {beta:.2f} is invalid for scoring.")
         elif beta <= 0.75:
             beta_points = 40
             reasons.append(
                 f"Beta of {beta:.2f} indicates relatively low market volatility."
             )
+            components.append((beta_points, 40))
         elif beta <= 1.00:
             beta_points = 35
             reasons.append(f"Beta of {beta:.2f} indicates below-market volatility.")
+            components.append((beta_points, 40))
         elif beta <= 1.25:
             beta_points = 28
             reasons.append(f"Beta of {beta:.2f} indicates moderate market volatility.")
+            components.append((beta_points, 40))
         elif beta <= 1.50:
             beta_points = 20
             reasons.append(f"Beta of {beta:.2f} indicates elevated volatility.")
+            components.append((beta_points, 40))
         elif beta <= 2.00:
             beta_points = 10
             reasons.append(f"Beta of {beta:.2f} indicates high market volatility.")
+            components.append((beta_points, 40))
         else:
             beta_points = 0
             reasons.append(f"Beta of {beta:.2f} indicates very high market volatility.")
-        components.append((beta_points, 40))
+            components.append((beta_points, 40))
 
     debt_to_equity_raw = _safe_float(data.get("debt_to_equity"))
 
     if debt_to_equity_raw is not None:
-        debt_to_equity = debt_to_equity_raw / 100.0
-
-        if debt_to_equity <= 0.30:
-            debt_points = 30
+        if debt_to_equity_raw < 0:
             reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage."
-            )
-        elif debt_to_equity <= 0.75:
-            debt_points = 26
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates manageable leverage."
-            )
-        elif debt_to_equity <= 1.50:
-            debt_points = 18
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates moderate leverage."
-            )
-        elif debt_to_equity <= 2.00:
-            debt_points = 10
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates elevated leverage."
+                f"Debt-to-equity value of {debt_to_equity_raw:.2f}% is invalid for scoring."
             )
         else:
-            debt_points = 0
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage."
-            )
+            debt_to_equity = debt_to_equity_raw / 100.0
 
-        components.append((debt_points, 30))
+            if debt_to_equity <= 0.30:
+                debt_points = 30
+                reasons.append(
+                    f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage."
+                )
+            elif debt_to_equity <= 0.75:
+                debt_points = 26
+                reasons.append(
+                    f"Debt-to-equity of {debt_to_equity:.2f}x indicates manageable leverage."
+                )
+            elif debt_to_equity <= 1.50:
+                debt_points = 18
+                reasons.append(
+                    f"Debt-to-equity of {debt_to_equity:.2f}x indicates moderate leverage."
+                )
+            elif debt_to_equity <= 2.00:
+                debt_points = 10
+                reasons.append(
+                    f"Debt-to-equity of {debt_to_equity:.2f}x indicates elevated leverage."
+                )
+            else:
+                debt_points = 0
+                reasons.append(
+                    f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage."
+                )
+
+            components.append((debt_points, 30))
 
     current_ratio = _safe_float(data.get("current_ratio"))
 
     if current_ratio is not None:
-        if 1.50 <= current_ratio <= 3.00:
+        if current_ratio <= 0:
+            reasons.append(
+                f"Current ratio of {current_ratio:.2f}x is invalid for scoring."
+            )
+        elif 1.50 <= current_ratio <= 3.00:
             liquidity_points = 30
             reasons.append(
                 f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity."
             )
+            components.append((liquidity_points, 30))
         elif 1.00 <= current_ratio < 1.50:
             liquidity_points = 24
             reasons.append(
                 f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity."
             )
+            components.append((liquidity_points, 30))
         elif current_ratio > 3.00:
             liquidity_points = 24
             reasons.append(
                 f"Current ratio of {current_ratio:.2f}x indicates strong liquidity."
             )
+            components.append((liquidity_points, 30))
         elif current_ratio >= 0.75:
             liquidity_points = 12
             reasons.append(
                 f"Current ratio of {current_ratio:.2f}x indicates tight liquidity."
             )
+            components.append((liquidity_points, 30))
         else:
             liquidity_points = 0
             reasons.append(
                 f"Current ratio of {current_ratio:.2f}x indicates weak liquidity."
             )
-
-        components.append((liquidity_points, 30))
+            components.append((liquidity_points, 30))
 
     if not components:
-        return None, ["Insufficient data to calculate stability score."]
+        return None, reasons or ["Insufficient data to calculate stability score."]
 
     earned = sum(item[0] for item in components)
     possible = sum(item[1] for item in components)
