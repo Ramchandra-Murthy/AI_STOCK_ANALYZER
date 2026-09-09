@@ -32,7 +32,8 @@ def run_analysis(ticker: str) -> dict:
 
     fundamental_score, fundamental_reasons = calculate_fundamental_score(data)
 
-    # AI is optional in the CLI. The score service uses a neutral fallback.
+    # AI is optional evidence. When unavailable, the score service excludes it
+    # rather than substituting a fabricated neutral value.
     investment_score, score_breakdown = calculate_investment_score(
         technical_score=technical_score,
         fundamental_score=fundamental_score,
