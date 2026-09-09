@@ -2,6 +2,14 @@ import math
 
 import pandas as pd
 
+from modules.research import (
+    format_debt_to_equity,
+    format_market_cap,
+    format_percent,
+    format_price,
+    format_ratio,
+    safe_progress,
+)
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
 from services.recommendation_service import generate_recommendation
@@ -84,3 +92,22 @@ def test_trade_plan_rejects_invalid_ohlc_rows():
 def test_repaired_scores_remain_finite_when_present():
     score, _ = calculate_stability_score({"beta": 1.0})
     assert score is None or math.isfinite(score)
+
+
+def test_ui_formatters_reject_invalid_evidence():
+    assert format_market_cap(float("nan")) == "N/A"
+    assert format_market_cap(-1) == "N/A"
+    assert format_percent(float("inf")) == "N/A"
+    assert format_percent(11) == "N/A"
+    assert format_price(0) == "N/A"
+    assert format_price(-10) == "N/A"
+    assert format_ratio(0) == "N/A"
+    assert format_debt_to_equity(-1) == "N/A"
+    assert format_debt_to_equity(10001) == "N/A"
+
+
+def test_ui_progress_rejects_out_of_domain_scores():
+    assert safe_progress(float("nan")) == 0.0
+    assert safe_progress(-1) == 0.0
+    assert safe_progress(101) == 0.0
+    assert safe_progress(75) == 0.75
