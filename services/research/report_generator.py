@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 
 from core.enums import Status
 from core.logger import logger
@@ -35,15 +36,16 @@ class ResearchReportGenerator:
         """Build a report without creating a second investment recommendation.
 
         The recommendation supplied by the authoritative decision layer is
-        preserved. Missing or unusable recommendation evidence is surfaced as
-        INSUFFICIENT DATA rather than being inferred from valuation upside.
+        preserved. Invalid prices or unusable recommendation evidence are
+        surfaced as an error rather than producing a misleading report.
         """
-        if current_price is None or target_price is None or current_price <= 0:
-            rec = (
-                recommendation
-                if recommendation and recommendation not in ("N/A", "UNKNOWN")
-                else "INSUFFICIENT DATA"
-            )
+
+        valid_current = isinstance(current_price, (int, float)) and math.isfinite(float(current_price)) and float(current_price) > 0
+        valid_target = isinstance(target_price, (int, float)) and math.isfinite(float(target_price)) and float(target_price) > 0
+        usable_recommendation = bool(recommendation) and str(recommendation).strip().upper() not in {"N/A", "UNKNOWN"}
+
+        if not valid_current or not valid_target:
+            rec = str(recommendation).strip() if usable_recommendation else "INSUFFICIENT DATA"
             return EquityResearchReport(
                 ticker=ticker,
                 company_name=company_name,
@@ -55,10 +57,12 @@ class ResearchReportGenerator:
                 status=Status.ERROR,
             )
 
-        upside = (target_price - current_price) / current_price
+        current = float(current_price)
+        target = float(target_price)
+        upside = (target - current) / current
 
-        if recommendation and recommendation not in ("N/A", "UNKNOWN"):
-            rec = recommendation
+        if usable_recommendation:
+            rec = str(recommendation).strip()
             status = Status.OK
         else:
             rec = "INSUFFICIENT DATA"
@@ -71,8 +75,8 @@ class ResearchReportGenerator:
         return EquityResearchReport(
             ticker=ticker,
             company_name=company_name,
-            current_price=current_price,
-            target_price=target_price,
+            current_price=current,
+            target_price=target,
             recommendation=rec,
             investment_thesis=investment_thesis,
             sotp_result=sotp_result,
