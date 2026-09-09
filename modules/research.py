@@ -1,4 +1,5 @@
-﻿import streamlit as st
+﻿import math
+import streamlit as st
 
 # ==========================================================
 # COMPONENTS
@@ -33,39 +34,40 @@ from services.valuation_v43_service import generate_valuation_v43
 # ==========================================================
 
 
+def _finite_number(value):
+    """Return a finite float, or None for missing/invalid/non-finite input."""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
 def format_market_cap(value):
-    """Format market capitalization."""
-    if value in [None, "N/A"]:
+    """Format market capitalization without displaying invalid evidence as valid."""
+    number = _finite_number(value)
+    if number is None or number < 0:
         return "N/A"
 
-    try:
-        value = float(value)
-
-        if value >= 1e12:
-            return f"\u20b9{value / 1e12:.2f} Lakh Cr"
-
-        if value >= 1e9:
-            return f"\u20b9{value / 1e7:.2f} Cr"
-
-        if value >= 1e6:
-            return f"\u20b9{value / 1e5:.2f} Lakh"
-
-        return f"\u20b9{value:,.0f}"
-
-    except (TypeError, ValueError):
-        return str(value)
+    if number >= 1e12:
+        return f"₹{number / 1e12:.2f} Lakh Cr"
+    if number >= 1e9:
+        return f"₹{number / 1e7:.2f} Cr"
+    if number >= 1e6:
+        return f"₹{number / 1e5:.2f} Lakh"
+    return f"₹{number:,.0f}"
 
 
 def format_percent(value):
-    """Convert decimal values to percentages."""
+    """Convert finite decimal values to percentages."""
     if value in [None, "N/A"]:
         return "N/A"
 
-    try:
-        return f"{float(value) * 100:.2f}%"
+    number = _finite_number(value)
+    if number is None or abs(number) > 10:
+        return "N/A"
 
-    except (TypeError, ValueError):
-        return str(value)
+    return f"{number * 100:.2f}%"
 
 
 def format_dividend_yield(value):
@@ -78,50 +80,40 @@ def format_dividend_yield(value):
     if value in [None, "N/A"]:
         return "N/A"
 
-    try:
-        return f"{float(value):.2f}%"
+    number = _finite_number(value)
+    if number is None:
+        return "N/A"
 
-    except (TypeError, ValueError):
-        return str(value)
+    return f"{number:.2f}%"
 
 
 def safe_progress(value):
-    """Convert a 0-100 score into a Streamlit progress value."""
-    try:
-        score = float(value)
-    except (TypeError, ValueError):
-        score = 0.0
-
-    return max(0.0, min(score / 100.0, 1.0))
+    """Convert a finite 0-100 score into a Streamlit progress value."""
+    score = _finite_number(value)
+    if score is None or score < 0 or score > 100:
+        return 0.0
+    return score / 100.0
 
 
 def format_price(value):
-    """Safely format a price."""
-    if value is None:
+    """Safely format a finite positive price."""
+    number = _finite_number(value)
+    if number is None or number <= 0:
         return "N/A"
-
-    try:
-        return f"\u20b9{float(value):,.2f}"
-
-    except (TypeError, ValueError):
-        return "N/A"
+    return f"₹{number:,.2f}"
 
 
 def format_ratio(value):
     """
-    Format a financial ratio.
+    Format a financial ratio when it is finite and positive.
 
     Example:
         1.52 -> 1.52x
     """
-    if value in [None, "N/A"]:
+    number = _finite_number(value)
+    if number is None or number <= 0:
         return "N/A"
-
-    try:
-        return f"{float(value):.2f}x"
-
-    except (TypeError, ValueError):
-        return "N/A"
+    return f"{number:.2f}x"
 
 
 def format_debt_to_equity(value):
@@ -134,15 +126,10 @@ def format_debt_to_equity(value):
     Example:
         36.653 -> 0.37x
     """
-    if value in [None, "N/A"]:
+    number = _finite_number(value)
+    if number is None or number < 0 or number > 10000:
         return "N/A"
-
-    try:
-        ratio = float(value) / 100.0
-        return f"{ratio:.2f}x"
-
-    except (TypeError, ValueError):
-        return "N/A"
+    return f"{number / 100.0:.2f}x"
 
 
 def format_large_rupees(value):
@@ -153,25 +140,17 @@ def format_large_rupees(value):
         3.98e12 -> Rs. 3.98 Lakh Cr
         5.00e10 -> Rs. 5,000.00 Cr
     """
-    if value in [None, "N/A"]:
+    number = _finite_number(value)
+    if number is None:
         return "N/A"
 
-    try:
-        value = float(value)
-
-        if value >= 1e12:
-            return f"Rs. {value / 1e12:.2f} Lakh Cr"
-
-        if value >= 1e7:
-            return f"Rs. {value / 1e7:,.2f} Cr"
-
-        if value >= 1e5:
-            return f"Rs. {value / 1e5:,.2f} Lakh"
-
-        return f"Rs. {value:,.2f}"
-
-    except (TypeError, ValueError):
-        return "N/A"
+    if number >= 1e12:
+        return f"Rs. {number / 1e12:.2f} Lakh Cr"
+    if number >= 1e7:
+        return f"Rs. {number / 1e7:,.2f} Cr"
+    if number >= 1e5:
+        return f"Rs. {number / 1e5:,.2f} Lakh"
+    return f"Rs. {number:,.2f}"
 
 
 # ==========================================================
@@ -654,10 +633,6 @@ def show():
     with tab4:
         st.subheader("AI Investment Analysis")
 
-        # ==================================================
-        # INVESTMENT SCORE V2
-        # ==================================================
-
         recommendation = recommendation_result.get(
             "recommendation",
             "HOLD",
@@ -681,10 +656,6 @@ def show():
 
         st.divider()
 
-        # ==================================================
-        # COMPONENT SCORES
-        # ==================================================
-
         st.markdown("### Component Scores")
 
         component_col1, component_col2 = st.columns(2)
@@ -702,43 +673,55 @@ def show():
 
         ai_component = score_breakdown.get(
             "AI",
-            ai_result.get("score", 0),
+            ai_result.get("score"),
         )
 
         stability_component = score_breakdown.get(
             "Stability",
-            0,
+            None,
         )
 
         with component_col1:
             st.metric(
                 "Technical",
-                f"{technical_component:.0f}/100",
+                (
+                    f"{float(technical_component):.0f}/100"
+                    if _finite_number(technical_component) is not None
+                    else "N/A"
+                ),
             )
 
         with component_col2:
             st.metric(
                 "Fundamental",
-                f"{fundamental_component:.0f}/100",
+                (
+                    f"{float(fundamental_component):.0f}/100"
+                    if _finite_number(fundamental_component) is not None
+                    else "N/A"
+                ),
             )
 
         with component_col3:
             st.metric(
                 "AI Model",
-                f"{ai_component:.0f}/100",
+                (
+                    f"{float(ai_component):.0f}/100"
+                    if _finite_number(ai_component) is not None
+                    else "N/A"
+                ),
             )
 
         with component_col4:
             st.metric(
                 "Stability",
-                f"{stability_component:.0f}/100",
+                (
+                    f"{float(stability_component):.0f}/100"
+                    if _finite_number(stability_component) is not None
+                    else "N/A"
+                ),
             )
 
         st.divider()
-
-        # ==================================================
-        # WEIGHTED CONTRIBUTIONS
-        # ==================================================
 
         st.markdown("### Weighted Contributions")
 
@@ -789,21 +772,32 @@ def show():
                 f"{stability_contribution:.2f} / 10",
             )
 
+        contribution_values = [
+            _finite_number(technical_contribution),
+            _finite_number(fundamental_contribution),
+            _finite_number(ai_contribution),
+            _finite_number(stability_contribution),
+        ]
         weighted_total = (
-            technical_contribution
-            + fundamental_contribution
-            + ai_contribution
-            + stability_contribution
+            sum(value for value in contribution_values if value is not None)
+            if all(value is not None for value in contribution_values)
+            else None
         )
 
+        investment_score_display = (
+            f"{float(investment_score):.0f}/100"
+            if _finite_number(investment_score) is not None
+            else "N/A"
+        )
+        weighted_total_display = (
+            f"{weighted_total:.2f}/100"
+            if weighted_total is not None
+            else "N/A"
+        )
         st.caption(
-            f"Weighted total: {weighted_total:.2f}/100 "
-            f"-> Investment Score {investment_score}/100"
+            f"Weighted total: {weighted_total_display} "
+            f"-> Investment Score {investment_score_display}"
         )
-
-        # ==================================================
-        # STABILITY ASSESSMENT
-        # ==================================================
 
         stability_reasons = score_breakdown.get(
             "Stability Reasons",
@@ -818,41 +812,68 @@ def show():
 
         st.divider()
 
-        # AI Engine Summary
         st.subheader("AI Engine Summary")
         confidence = recommendation_result.get("confidence", 0)
         recommendation = recommendation_result.get("recommendation", "INSUFFICIENT DATA")
 
         # Never manufacture a HOLD when the authoritative recommendation
         # engine reports missing/invalid evidence.
-        if investment_score is None or recommendation in (None, "", "HOLD") and recommendation_result.get("overall_score") is None:
+        if investment_score is None or (
+            recommendation in (None, "", "HOLD")
+            and recommendation_result.get("overall_score") is None
+        ):
             recommendation = "INSUFFICIENT DATA"
             confidence = 0
 
         try:
-            default_overall_score = round(
-                (float(technical_score) + float(fundamental_score)) / 2
-            )
+            technical_for_default = _finite_number(technical_score)
+            fundamental_for_default = _finite_number(fundamental_score)
+            if technical_for_default is not None and fundamental_for_default is not None:
+                default_overall_score = round(
+                    (technical_for_default + fundamental_for_default) / 2
+                )
+            else:
+                default_overall_score = None
         except (TypeError, ValueError):
-            default_overall_score = 0
+            default_overall_score = None
 
         overall_score = recommendation_result.get(
             "overall_score", default_overall_score
         )
 
+        overall_score_display = (
+            f"{float(overall_score):.0f}/100"
+            if _finite_number(overall_score) is not None
+            else "N/A"
+        )
+        confidence_display = (
+            f"{float(confidence):.0f}%"
+            if _finite_number(confidence) is not None and 0 <= float(confidence) <= 100
+            else "N/A"
+        )
+
         c1, c2, c3, c4 = st.columns(4)
         with c1:
-            st.metric("Technical Score", f"{technical_score}/100")
+            technical_display = format_price(technical_score) if False else (
+                f"{float(technical_score):.0f}/100"
+                if _finite_number(technical_score) is not None
+                else "N/A"
+            )
+            st.metric("Technical Score", technical_display)
         with c2:
-            st.metric("Fundamental Score", f"{fundamental_score}/100")
+            fundamental_display = (
+                f"{float(fundamental_score):.0f}/100"
+                if _finite_number(fundamental_score) is not None
+                else "N/A"
+            )
+            st.metric("Fundamental Score", fundamental_display)
         with c3:
-            st.metric("Overall Score", f"{overall_score}/100")
+            st.metric("Overall Score", overall_score_display)
         with c4:
-            st.metric("Confidence", f"{confidence}%")
+            st.metric("Confidence", confidence_display)
 
         st.progress(safe_progress(confidence))
 
-        # Recommendation Badge
         recommendation_text = str(recommendation).strip().upper()
         if "STRONG BUY" in recommendation_text:
             st.success(f"{recommendation}")
@@ -865,7 +886,6 @@ def show():
 
         st.divider()
 
-        # Target Price & Trade Plan
         st.subheader("Target Price & Trade Plan")
 
         if trade_plan.get("status") == "OK":
@@ -883,7 +903,6 @@ def show():
             resistance = trade_plan.get("resistance")
             trade_signal = trade_plan.get("signal", "N/A")
 
-            # Row 1
             c1, c2, c3 = st.columns(3)
             with c1:
                 st.metric("Current Price", format_price(current_price))
@@ -893,32 +912,20 @@ def show():
             with c2:
                 st.metric("Target Price", format_price(target_price))
             with c3:
-                if upside is not None:
-                    try:
-                        upside_text = f"{float(upside):.2f}%"
-                    except (TypeError, ValueError):
-                        upside_text = "N/A"
-                else:
-                    upside_text = "N/A"
+                upside_number = _finite_number(upside)
+                upside_text = f"{upside_number:.2f}%" if upside_number is not None else "N/A"
                 st.metric("Potential Upside", upside_text)
 
-            # Row 2
             c4, c5, c6 = st.columns(3)
             with c4:
                 st.metric("Stop Loss", format_price(stop_loss))
             with c5:
-                if risk_reward is not None:
-                    try:
-                        risk_reward_text = f"1 : {float(risk_reward):.2f}"
-                    except (TypeError, ValueError):
-                        risk_reward_text = "N/A"
-                else:
-                    risk_reward_text = "N/A"
+                rr_number = _finite_number(risk_reward)
+                risk_reward_text = f"1 : {rr_number:.2f}" if rr_number is not None else "N/A"
                 st.metric("Risk / Reward", risk_reward_text)
             with c6:
                 st.metric("ATR", format_price(atr))
 
-            # Row 3
             c7, c8 = st.columns(2)
             with c7:
                 st.metric("Support", format_price(support))
@@ -944,16 +951,20 @@ def show():
 
         st.divider()
 
-        # Existing AI Model
         st.subheader("AI Model Analysis")
-        ai_score = ai_result.get("score", 0)
-        ai_recommendation = ai_result.get("recommendation", "HOLD")
+        ai_score = ai_result.get("score")
+        ai_recommendation = ai_result.get("recommendation", "INSUFFICIENT DATA")
         risk = ai_result.get("risk", "Unknown")
         ai_reasons = ai_result.get("reasons", [])
 
         ai_col1, ai_col2, ai_col3 = st.columns(3)
         with ai_col1:
-            st.metric("AI Score", f"{ai_score}/100")
+            ai_score_display = (
+                f"{float(ai_score):.0f}/100"
+                if _finite_number(ai_score) is not None
+                else "N/A"
+            )
+            st.metric("AI Score", ai_score_display)
         with ai_col2:
             st.metric("Risk Level", risk)
         with ai_col3:
@@ -976,7 +987,6 @@ def show():
 
         st.divider()
 
-        # Technical Reasons
         st.subheader("Technical Reasons")
         if technical_reasons:
             for reason in technical_reasons:
@@ -986,7 +996,6 @@ def show():
 
         st.divider()
 
-        # Fundamental Reasons
         st.subheader("Fundamental Reasons")
         if fundamental_reasons:
             for reason in fundamental_reasons:
@@ -996,11 +1005,11 @@ def show():
 
         st.divider()
 
-        # Final Recommendation
         st.subheader("Final Recommendation")
+
         final_col1, final_col2 = st.columns(2)
         with final_col1:
-            st.metric("Overall Score", f"{overall_score}/100")
+            st.metric("Overall Score", overall_score_display)
         with final_col2:
             st.metric("Investment Verdict", recommendation)
 
@@ -1015,99 +1024,50 @@ def show():
         st.subheader("Investment Thesis V3")
 
         if investment_thesis:
-
             thesis_text = investment_thesis.get(
                 "thesis",
                 "Investment thesis is unavailable.",
             )
-
             conviction = investment_thesis.get(
                 "conviction",
                 "N/A",
             )
-
-            strengths = investment_thesis.get(
-                "strengths",
-                [],
-            )
-
-            concerns = investment_thesis.get(
-                "concerns",
-                [],
-            )
-
-            catalysts = investment_thesis.get(
-                "catalysts",
-                [],
-            )
-
-            bull_case = investment_thesis.get(
-                "bull_case",
-                "Bull case unavailable.",
-            )
-
-            base_case = investment_thesis.get(
-                "base_case",
-                "Base case unavailable.",
-            )
-
-            bear_case = investment_thesis.get(
-                "bear_case",
-                "Bear case unavailable.",
-            )
-
-            # ----------------------------------------------
-            # CONVICTION
-            # ----------------------------------------------
+            strengths = investment_thesis.get("strengths", [])
+            concerns = investment_thesis.get("concerns", [])
+            catalysts = investment_thesis.get("catalysts", [])
+            bull_case = investment_thesis.get("bull_case", "Bull case unavailable.")
+            base_case = investment_thesis.get("base_case", "Base case unavailable.")
+            bear_case = investment_thesis.get("bear_case", "Bear case unavailable.")
 
             thesis_col1, thesis_col2 = st.columns(2)
-
             with thesis_col1:
                 st.metric(
                     "Investment Score",
-                    f"{investment_score}/100",
+                    investment_score_display,
                 )
-
             with thesis_col2:
-                st.metric(
-                    "Conviction",
-                    conviction,
-                )
+                st.metric("Conviction", conviction)
 
             st.write("### Investment Thesis")
-
             st.info(thesis_text)
 
-            # ----------------------------------------------
-            # STRENGTHS & CONCERNS
-            # ----------------------------------------------
-
             strength_col, concern_col = st.columns(2)
-
             with strength_col:
                 st.write("### Key Strengths")
-
                 if strengths:
                     for strength in strengths:
                         st.write(f"- {strength}")
                 else:
                     st.write("No major strengths identified.")
-
             with concern_col:
                 st.write("### Key Concerns")
-
                 if concerns:
                     for concern in concerns:
                         st.write(f"- {concern}")
                 else:
                     st.write("No major concerns identified.")
 
-            # ----------------------------------------------
-            # CATALYSTS
-            # ----------------------------------------------
-
             st.write("### Potential Catalysts")
-
             if catalysts:
                 for catalyst in catalysts:
                     st.write(f"- {catalyst}")
@@ -1115,27 +1075,17 @@ def show():
                 st.write("No major catalysts identified.")
 
             st.divider()
-
-            # ----------------------------------------------
-            # BULL / BASE / BEAR CASE
-            # ----------------------------------------------
-
             st.write("### Scenario Analysis")
-
             bull_col, base_col, bear_col = st.columns(3)
-
             with bull_col:
                 st.write("#### Bull Case")
                 st.success(bull_case)
-
             with base_col:
                 st.write("#### Base Case")
                 st.info(base_case)
-
             with bear_col:
                 st.write("#### Bear Case")
                 st.warning(bear_case)
-
         else:
             st.info("Investment Thesis V3 is unavailable.")
 
@@ -1148,183 +1098,80 @@ def show():
         st.subheader("Quantitative Scenario Analysis V3")
 
         if scenario_analysis:
-
             bull = scenario_analysis.get("bull", {})
             base = scenario_analysis.get("base", {})
             bear = scenario_analysis.get("bear", {})
-
-            long_term_view = scenario_analysis.get(
-                "long_term_view",
-                "N/A",
-            )
-
-            entry_quality = scenario_analysis.get(
-                "entry_quality",
-                "N/A",
-            )
-
-            action = scenario_analysis.get(
-                "action",
-                "N/A",
-            )
-
-            reward_risk = scenario_analysis.get("reward_risk")
-
-            # ----------------------------------------------
-            # DECISION SUMMARY
-            # ----------------------------------------------
+            long_term_view = scenario_analysis.get("long_term_view", "N/A")
+            entry_quality = scenario_analysis.get("entry_quality", "N/A")
+            action = scenario_analysis.get("action", "N/A")
+            reward_risk = _finite_number(scenario_analysis.get("reward_risk"))
 
             d1, d2, d3 = st.columns(3)
-
             with d1:
-                st.metric(
-                    "Long-Term View",
-                    long_term_view,
-                )
-
+                st.metric("Long-Term View", long_term_view)
             with d2:
-                st.metric(
-                    "Entry Quality",
-                    entry_quality,
-                )
-
+                st.metric("Entry Quality", entry_quality)
             with d3:
-                st.metric(
-                    "Model Action",
-                    action,
-                )
+                st.metric("Model Action", action)
 
-            if reward_risk is not None:
-                st.metric(
-                    "Reward / Risk",
-                    f"{reward_risk:.2f} : 1",
-                )
-            else:
-                st.metric(
-                    "Reward / Risk",
-                    "N/A",
-                )
+            st.metric(
+                "Reward / Risk",
+                f"{reward_risk:.2f} : 1" if reward_risk is not None else "N/A",
+            )
 
             st.divider()
 
-            # ----------------------------------------------
-            # SCENARIO CARDS
-            # ----------------------------------------------
-
             bull_col, base_col, bear_col = st.columns(3)
 
-            # BULL CASE
             with bull_col:
                 st.markdown("### Bull Case")
-
                 bull_price = bull.get("price")
-                bull_return = bull.get("return_percent")
-
-                st.metric(
-                    "Scenario Price",
-                    format_price(bull_price),
-                )
-
+                bull_return = _finite_number(bull.get("return_percent"))
+                st.metric("Scenario Price", format_price(bull_price))
                 if bull_return is not None:
                     st.metric(
                         "Potential Return",
-                        (
-                            f"+{bull_return:.2f}%"
-                            if bull_return >= 0
-                            else f"{bull_return:.2f}%"
-                        ),
+                        f"+{bull_return:.2f}%" if bull_return >= 0 else f"{bull_return:.2f}%",
                     )
                 else:
-                    st.metric(
-                        "Potential Return",
-                        "N/A",
-                    )
-
-                bull_assumptions = bull.get(
-                    "assumptions",
-                    [],
-                )
-
+                    st.metric("Potential Return", "N/A")
+                bull_assumptions = bull.get("assumptions", [])
                 if bull_assumptions:
                     st.write("**Assumptions**")
-
                     for assumption in bull_assumptions:
                         st.write(f"- {assumption}")
 
-            # BASE CASE
             with base_col:
                 st.markdown("### Base Case")
-
                 base_price = base.get("price")
-                base_return = base.get("return_percent")
-
+                base_return = _finite_number(base.get("return_percent"))
+                st.metric("Scenario Price", format_price(base_price))
                 st.metric(
-                    "Scenario Price",
-                    format_price(base_price),
+                    "Potential Return",
+                    f"{base_return:.2f}%" if base_return is not None else "N/A",
                 )
-
-                if base_return is not None:
-                    st.metric(
-                        "Potential Return",
-                        f"{base_return:.2f}%",
-                    )
-                else:
-                    st.metric(
-                        "Potential Return",
-                        "N/A",
-                    )
-
-                base_assumptions = base.get(
-                    "assumptions",
-                    [],
-                )
-
+                base_assumptions = base.get("assumptions", [])
                 if base_assumptions:
                     st.write("**Assumptions**")
-
                     for assumption in base_assumptions:
                         st.write(f"- {assumption}")
 
-            # BEAR CASE
             with bear_col:
                 st.markdown("### Bear Case")
-
                 bear_price = bear.get("price")
-                bear_return = bear.get("return_percent")
-
+                bear_return = _finite_number(bear.get("return_percent"))
+                st.metric("Scenario Price", format_price(bear_price))
                 st.metric(
-                    "Scenario Price",
-                    format_price(bear_price),
+                    "Potential Return",
+                    f"{bear_return:.2f}%" if bear_return is not None else "N/A",
                 )
-
-                if bear_return is not None:
-                    st.metric(
-                        "Potential Return",
-                        f"{bear_return:.2f}%",
-                    )
-                else:
-                    st.metric(
-                        "Potential Return",
-                        "N/A",
-                    )
-
-                bear_assumptions = bear.get(
-                    "assumptions",
-                    [],
-                )
-
+                bear_assumptions = bear.get("assumptions", [])
                 if bear_assumptions:
                     st.write("**Assumptions**")
-
                     for assumption in bear_assumptions:
                         st.write(f"- {assumption}")
 
-            # ----------------------------------------------
-            # INTERPRETATION
-            # ----------------------------------------------
-
             st.write("### Scenario Interpretation")
-
             if reward_risk is not None and reward_risk < 1:
                 st.warning(
                     "The current modeled reward is smaller than "
@@ -1333,14 +1180,12 @@ def show():
                     "current entry setup is not attractive on a "
                     "reward-to-risk basis."
                 )
-
             elif reward_risk is not None and reward_risk >= 1.5:
                 st.success(
                     "The current modeled reward-to-risk profile is "
                     "favorable, subject to confirmation from the "
                     "technical and fundamental analysis."
                 )
-
             else:
                 st.info(
                     "The current reward-to-risk profile is moderate. "
@@ -1359,232 +1204,89 @@ def show():
         st.subheader("Fundamental Valuation V3")
 
         if valuation_analysis.get("status") == "OK":
-
             current_value = valuation_analysis.get("current_price")
             fair_value = valuation_analysis.get("fair_value")
             bear_value = valuation_analysis.get("bear_value")
             bull_value = valuation_analysis.get("bull_value")
-
             upside_percent = valuation_analysis.get("upside_percent")
             margin_of_safety = valuation_analysis.get("margin_of_safety")
             v3_quote_timestamp = valuation_analysis.get("quote_timestamp")
             v3_quote_frequency = valuation_analysis.get("quote_frequency", "unavailable")
             v3_price_source = valuation_analysis.get("price_source", "Unknown")
             v3_is_tick_live = bool(valuation_analysis.get("is_tick_live", False))
-
             trailing_pe = valuation_analysis.get("trailing_pe")
             forward_pe = valuation_analysis.get("forward_pe")
             base_pe = valuation_analysis.get("base_pe")
             fair_pe = valuation_analysis.get("fair_pe")
-
-            valuation_status = valuation_analysis.get(
-                "valuation_status",
-                "N/A",
-            )
-
-            valuation_conviction = valuation_analysis.get(
-                "valuation_conviction",
-                "N/A",
-            )
-
-            valuation_reasons = valuation_analysis.get(
-                "reasons",
-                [],
-            )
-
-            # ==============================================
-            # VALUATION SUMMARY
-            # ==============================================
+            valuation_status = valuation_analysis.get("valuation_status", "N/A")
+            valuation_conviction = valuation_analysis.get("valuation_conviction", "N/A")
+            valuation_reasons = valuation_analysis.get("reasons", [])
 
             v1, v2, v3 = st.columns(3)
-
             with v1:
-                st.metric(
-                    "Current Price",
-                    format_price(current_value),
-                )
-
+                st.metric("Current Price", format_price(current_value))
             with v2:
-                st.metric(
-                    "Estimated Fair Value",
-                    format_price(fair_value),
-                )
-
+                st.metric("Estimated Fair Value", format_price(fair_value))
             with v3:
-                if upside_percent is not None:
-                    upside_text = f"{upside_percent:+.2f}%"
-                else:
-                    upside_text = "N/A"
-
+                upside_number = _finite_number(upside_percent)
                 st.metric(
                     "Valuation Upside / Downside",
-                    upside_text,
+                    f"{upside_number:+.2f}%" if upside_number is not None else "N/A",
                 )
 
             if v3_quote_timestamp:
                 freshness = "Tick live" if v3_is_tick_live else f"Latest {v3_quote_frequency}"
                 st.caption(f"Valuation price: {freshness} • {v3_price_source} • {v3_quote_timestamp}")
 
-            # ==============================================
-            # STATUS
-            # ==============================================
-
             s1, s2, s3 = st.columns(3)
-
             with s1:
-                st.metric(
-                    "Valuation Status",
-                    valuation_status,
-                )
-
+                st.metric("Valuation Status", valuation_status)
             with s2:
-                st.metric(
-                    "Valuation Conviction",
-                    valuation_conviction,
-                )
-
+                st.metric("Valuation Conviction", valuation_conviction)
             with s3:
-                if margin_of_safety is not None:
-                    mos_text = f"{margin_of_safety:.2f}%"
-                else:
-                    mos_text = "N/A"
-
+                mos_number = _finite_number(margin_of_safety)
                 st.metric(
                     "Margin of Safety",
-                    mos_text,
+                    f"{mos_number:.2f}%" if mos_number is not None else "N/A",
                 )
 
             st.divider()
-
-            # ==============================================
-            # VALUATION RANGE
-            # ==============================================
-
             st.markdown("### Valuation Range")
-
             range1, range2, range3 = st.columns(3)
-
             with range1:
-                st.metric(
-                    "Bear Value",
-                    format_price(bear_value),
-                )
-
+                st.metric("Bear Value", format_price(bear_value))
             with range2:
-                st.metric(
-                    "Base Fair Value",
-                    format_price(fair_value),
-                )
-
+                st.metric("Base Fair Value", format_price(fair_value))
             with range3:
-                st.metric(
-                    "Bull Value",
-                    format_price(bull_value),
-                )
-
-            # ==============================================
-            # P/E ANALYSIS
-            # ==============================================
+                st.metric("Bull Value", format_price(bull_value))
 
             st.markdown("### P/E Valuation")
-
             pe1, pe2, pe3, pe4 = st.columns(4)
-
             with pe1:
-                if trailing_pe is not None:
-                    st.metric(
-                        "Trailing P/E",
-                        f"{trailing_pe:.2f}x",
-                    )
-                else:
-                    st.metric(
-                        "Trailing P/E",
-                        "N/A",
-                    )
-
+                st.metric("Trailing P/E", f"{float(trailing_pe):.2f}x" if _finite_number(trailing_pe) is not None and float(trailing_pe) > 0 else "N/A")
             with pe2:
-                if forward_pe is not None:
-                    st.metric(
-                        "Forward P/E",
-                        f"{forward_pe:.2f}x",
-                    )
-                else:
-                    st.metric(
-                        "Forward P/E",
-                        "N/A",
-                    )
-
+                st.metric("Forward P/E", f"{float(forward_pe):.2f}x" if _finite_number(forward_pe) is not None and float(forward_pe) > 0 else "N/A")
             with pe3:
-                if base_pe is not None:
-                    st.metric(
-                        "Base P/E",
-                        f"{base_pe:.2f}x",
-                    )
-                else:
-                    st.metric(
-                        "Base P/E",
-                        "N/A",
-                    )
-
+                st.metric("Base P/E", f"{float(base_pe):.2f}x" if _finite_number(base_pe) is not None and float(base_pe) > 0 else "N/A")
             with pe4:
-                if fair_pe is not None:
-                    st.metric(
-                        "Model Fair P/E",
-                        f"{fair_pe:.2f}x",
-                    )
-                else:
-                    st.metric(
-                        "Model Fair P/E",
-                        "N/A",
-                    )
-
-            # ==============================================
-            # VALUATION INTERPRETATION
-            # ==============================================
+                st.metric("Model Fair P/E", f"{float(fair_pe):.2f}x" if _finite_number(fair_pe) is not None and float(fair_pe) > 0 else "N/A")
 
             st.markdown("### Valuation Interpretation")
-
             if valuation_status == "UNDERVALUED":
-                st.success(
-                    "The earnings-based valuation model indicates "
-                    "meaningful upside relative to the current market price."
-                )
-
+                st.success("The earnings-based valuation model indicates meaningful upside relative to the current market price.")
             elif valuation_status == "SLIGHTLY UNDERVALUED":
-                st.success(
-                    "The earnings-based valuation model indicates "
-                    "modest upside relative to the current market price."
-                )
-
+                st.success("The earnings-based valuation model indicates modest upside relative to the current market price.")
             elif valuation_status == "FAIRLY VALUED":
-                st.info(
-                    "The current market price is close to the model's "
-                    "estimated earnings-based fair value."
-                )
-
+                st.info("The current market price is close to the model's estimated earnings-based fair value.")
             elif valuation_status == "SLIGHTLY OVERVALUED":
-                st.warning(
-                    "The current market price is moderately above the "
-                    "model's estimated earnings-based fair value."
-                )
-
+                st.warning("The current market price is moderately above the model's estimated earnings-based fair value.")
             elif valuation_status == "OVERVALUED":
-                st.warning(
-                    "The current market price is materially above the "
-                    "model's estimated earnings-based fair value."
-                )
-
+                st.warning("The current market price is materially above the model's estimated earnings-based fair value.")
             else:
                 st.info("Valuation status is unavailable.")
 
-            # ==============================================
-            # MODEL REASONS
-            # ==============================================
-
             if valuation_reasons:
-
                 st.markdown("### Valuation Factors")
-
                 for reason in valuation_reasons:
                     st.write(f"- {reason}")
 
@@ -1594,9 +1296,7 @@ def show():
                 "target price and should not be interpreted as a "
                 "guaranteed future market price."
             )
-
         else:
-
             st.info(
                 valuation_analysis.get(
                     "message",
@@ -1613,12 +1313,7 @@ def show():
         st.subheader("Multi-Method Valuation V4.3")
 
         if valuation_v43.get("status") == "OK":
-
-            v43_result = valuation_v43.get(
-                "valuation",
-                {},
-            )
-
+            v43_result = valuation_v43.get("valuation", {})
             if not isinstance(v43_result, dict):
                 v43_result = {}
 
@@ -1629,154 +1324,52 @@ def show():
             v43_quote_frequency = v43_result.get("quote_frequency", "unavailable")
             v43_price_source = v43_result.get("price_source", "Unknown")
             v43_is_tick_live = bool(v43_result.get("is_tick_live", False))
-
-            v43_status = v43_result.get(
-                "valuation_status",
-                "N/A",
-            )
-
-            v43_confidence = v43_result.get(
-                "confidence",
-                "N/A",
-            )
-
+            v43_status = v43_result.get("valuation_status", "N/A")
+            v43_confidence = v43_result.get("confidence", "N/A")
             v43_confidence_score = v43_result.get("confidence_score")
-
             v43_agreement = v43_result.get("method_agreement_score")
 
-            # ==============================================
-            # PRIMARY VALUATION METRICS
-            # ==============================================
-
             col1, col2, col3 = st.columns(3)
-
             with col1:
-                st.metric(
-                    "Current Price",
-                    (
-                        f"₹{v43_current_price:,.2f}"
-                        if isinstance(v43_current_price, (int, float))
-                        else "N/A"
-                    ),
-                )
-
+                st.metric("Current Price", format_price(v43_current_price))
             with col2:
-                st.metric(
-                    "Composite Fair Value",
-                    (
-                        f"₹{v43_fair_value:,.2f}"
-                        if isinstance(v43_fair_value, (int, float))
-                        else "N/A"
-                    ),
-                )
-
+                st.metric("Composite Fair Value", format_price(v43_fair_value))
             with col3:
+                v43_upside_number = _finite_number(v43_upside)
                 st.metric(
                     "Valuation Upside / Downside",
-                    (
-                        f"{v43_upside:+.2f}%"
-                        if isinstance(v43_upside, (int, float))
-                        else "N/A"
-                    ),
+                    f"{v43_upside_number:+.2f}%" if v43_upside_number is not None else "N/A",
                 )
 
             if v43_quote_timestamp:
                 freshness = "Tick live" if v43_is_tick_live else f"Latest {v43_quote_frequency}"
                 st.caption(f"Valuation price: {freshness} • {v43_price_source} • {v43_quote_timestamp}")
 
-            # ==============================================
-            # STATUS / CONFIDENCE
-            # ==============================================
-
             col1, col2, col3 = st.columns(3)
-
             with col1:
-                st.metric(
-                    "Valuation Status",
-                    v43_status,
-                )
-
+                st.metric("Valuation Status", v43_status)
             with col2:
-                st.metric(
-                    "Confidence",
-                    v43_confidence,
-                )
-
+                st.metric("Confidence", v43_confidence)
             with col3:
-                st.metric(
-                    "Confidence Score",
-                    (
-                        f"{v43_confidence_score:.1f}/100"
-                        if isinstance(v43_confidence_score, (int, float))
-                        else "N/A"
-                    ),
-                )
+                confidence_score = _finite_number(v43_confidence_score)
+                st.metric("Confidence Score", f"{confidence_score:.1f}/100" if confidence_score is not None else "N/A")
 
-            # ==============================================
-            # METHOD AGREEMENT
-            # ==============================================
-
-            st.metric(
-                "Method Agreement",
-                (
-                    f"{v43_agreement:.1f}%"
-                    if isinstance(v43_agreement, (int, float))
-                    else "N/A"
-                ),
-            )
-
-            # ==============================================
-            # VALUATION RANGE
-            # ==============================================
+            agreement_number = _finite_number(v43_agreement)
+            st.metric("Method Agreement", f"{agreement_number:.1f}%" if agreement_number is not None else "N/A")
 
             v43_low_value = v43_result.get("low_value")
             v43_high_value = v43_result.get("high_value")
-
             st.markdown("### Valuation Range")
-
             col1, col2, col3 = st.columns(3)
-
             with col1:
-                st.metric(
-                    "Low Estimate",
-                    (
-                        f"₹{v43_low_value:,.2f}"
-                        if isinstance(v43_low_value, (int, float))
-                        else "N/A"
-                    ),
-                )
-
+                st.metric("Low Estimate", format_price(v43_low_value))
             with col2:
-                st.metric(
-                    "Composite Fair Value",
-                    (
-                        f"₹{v43_fair_value:,.2f}"
-                        if isinstance(v43_fair_value, (int, float))
-                        else "N/A"
-                    ),
-                )
-
+                st.metric("Composite Fair Value", format_price(v43_fair_value))
             with col3:
-                st.metric(
-                    "High Estimate",
-                    (
-                        f"₹{v43_high_value:,.2f}"
-                        if isinstance(v43_high_value, (int, float))
-                        else "N/A"
-                    ),
-                )
-
-                # ==============================================
-            # VALUATION METHODS
-            # ==============================================
+                st.metric("High Estimate", format_price(v43_high_value))
 
             st.markdown("### Valuation Methods")
-
-            v43_methods = v43_result.get(
-                "methods",
-                {},
-            )
-
+            v43_methods = v43_result.get("methods", {})
             if not isinstance(v43_methods, dict):
                 v43_methods = {}
 
@@ -1787,263 +1380,90 @@ def show():
                 "ev_ebitda": "EV / EBITDA",
                 "fcf_yield": "FCF Yield",
             }
-
             method_rows = []
-
             for method_key, method_label in method_labels.items():
-
-                method = v43_methods.get(
-                    method_key,
-                    {},
-                )
-
+                method = v43_methods.get(method_key, {})
                 if not isinstance(method, dict):
                     continue
-
-                fair_value = method.get("fair_value")
-                upside = method.get("upside_percent")
-                benchmark_label = method.get("benchmark_label")
-                reliability = method.get("reliability")
-                weight = method.get("weight")
-                source = method.get("source")
-
+                fair_value = _finite_number(method.get("fair_value"))
+                upside = _finite_number(method.get("upside_percent"))
+                reliability = _finite_number(method.get("reliability"))
+                weight = _finite_number(method.get("weight"))
                 method_rows.append(
                     {
                         "Method": method_label,
-                        "Fair Value": (
-                            f"₹{fair_value:,.2f}"
-                            if isinstance(fair_value, (int, float))
-                            else "N/A"
-                        ),
-                        "Upside / Downside": (
-                            f"{upside:+.2f}%"
-                            if isinstance(upside, (int, float))
-                            else "N/A"
-                        ),
-                        "Benchmark": benchmark_label or "N/A",
-                        "Reliability": (
-                            f"{reliability * 100:.1f}%"
-                            if isinstance(reliability, (int, float))
-                            else "N/A"
-                        ),
-                        "Weight": (
-                            f"{weight * 100:.1f}%"
-                            if isinstance(weight, (int, float))
-                            else "N/A"
-                        ),
-                        "Source": source or "N/A",
+                        "Fair Value": f"₹{fair_value:,.2f}" if fair_value is not None and fair_value > 0 else "N/A",
+                        "Upside / Downside": f"{upside:+.2f}%" if upside is not None else "N/A",
+                        "Benchmark": method.get("benchmark_label") or "N/A",
+                        "Reliability": f"{reliability * 100:.1f}%" if reliability is not None else "N/A",
+                        "Weight": f"{weight * 100:.1f}%" if weight is not None else "N/A",
+                        "Source": method.get("source") or "N/A",
                     }
                 )
-
             if method_rows:
-
-                st.dataframe(
-                    method_rows,
-                    use_container_width=True,
-                    hide_index=True,
-                )
-
+                st.dataframe(method_rows, use_container_width=True, hide_index=True)
             else:
-
                 st.info("Detailed valuation methods are unavailable.")
 
-                # ==============================================
-            # PEER RELEVANCE
-            # ==============================================
-
             st.markdown("### Peer Relevance")
-
-            peer_relevance = valuation_v43.get(
-                "peer_relevance",
-                {},
-            )
-
+            peer_relevance = valuation_v43.get("peer_relevance", {})
             if not isinstance(peer_relevance, dict):
                 peer_relevance = {}
-
-            peer_score = peer_relevance.get("score_percent")
-
-            peer_view = peer_relevance.get(
-                "relevance_view",
-                peer_relevance.get(
-                    "view",
-                    "UNKNOWN",
-                ),
-            )
-
-            components = peer_relevance.get(
-                "components",
-                {},
-            )
-
+            peer_score = _finite_number(peer_relevance.get("score_percent"))
+            peer_view = peer_relevance.get("relevance_view", peer_relevance.get("view", "UNKNOWN"))
+            components = peer_relevance.get("components", {})
             if not isinstance(components, dict):
                 components = {}
-
-            classification = components.get(
-                "classification",
-                {},
-            )
-
-            financial_profile = components.get(
-                "financial_profile",
-                {},
-            )
-
-            business_model = components.get(
-                "business_model",
-                {},
-            )
-
+            classification = components.get("classification", {})
+            financial_profile = components.get("financial_profile", {})
+            business_model = components.get("business_model", {})
             if not isinstance(classification, dict):
                 classification = {}
-
             if not isinstance(financial_profile, dict):
                 financial_profile = {}
-
             if not isinstance(business_model, dict):
                 business_model = {}
-
-            classification_score = classification.get("score_percent")
-
-            financial_score = financial_profile.get("score_percent")
-
-            business_score = business_model.get("score_percent")
-
-            # ==============================================
-            # OVERALL PEER RELEVANCE
-            # ==============================================
+            classification_score = _finite_number(classification.get("score_percent"))
+            financial_score = _finite_number(financial_profile.get("score_percent"))
+            business_score = _finite_number(business_model.get("score_percent"))
 
             col1, col2 = st.columns(2)
-
             with col1:
-                st.metric(
-                    "Peer Relevance Score",
-                    (
-                        f"{peer_score:.1f}%"
-                        if isinstance(peer_score, (int, float))
-                        else "N/A"
-                    ),
-                )
-
+                st.metric("Peer Relevance Score", f"{peer_score:.1f}%" if peer_score is not None else "N/A")
             with col2:
-                st.metric(
-                    "Peer Relevance View",
-                    peer_view,
-                )
-
-            # ==============================================
-            # COMPONENT SCORES
-            # ==============================================
+                st.metric("Peer Relevance View", peer_view)
 
             col1, col2, col3 = st.columns(3)
-
             with col1:
-                st.metric(
-                    "Classification Match",
-                    (
-                        f"{classification_score:.1f}%"
-                        if isinstance(
-                            classification_score,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
-
+                st.metric("Classification Match", f"{classification_score:.1f}%" if classification_score is not None else "N/A")
             with col2:
-                st.metric(
-                    "Financial Profile",
-                    (
-                        f"{financial_score:.1f}%"
-                        if isinstance(
-                            financial_score,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
-
+                st.metric("Financial Profile", f"{financial_score:.1f}%" if financial_score is not None else "N/A")
             with col3:
-                st.metric(
-                    "Business Model Fit",
-                    (
-                        f"{business_score:.1f}%"
-                        if isinstance(
-                            business_score,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
+                st.metric("Business Model Fit", f"{business_score:.1f}%" if business_score is not None else "N/A")
 
             business_reason = business_model.get("reason")
-
             if business_reason:
                 st.info(business_reason)
 
-            # ==============================================
-            # QUALITY ADJUSTMENT
-            # ==============================================
-
             st.markdown("### Quality Adjustment")
-
-            quality_adjustment = valuation_v43.get(
-                "quality_adjustment",
-                {},
-            )
-
+            quality_adjustment = valuation_v43.get("quality_adjustment", {})
             if not isinstance(quality_adjustment, dict):
                 quality_adjustment = {}
-
-            quality_percent = quality_adjustment.get("composite_adjustment_percent")
-
-            quality_view = quality_adjustment.get(
-                "quality_view",
-                "UNKNOWN",
-            )
-
-            active_weight = quality_adjustment.get("active_weight")
+            quality_percent = _finite_number(quality_adjustment.get("composite_adjustment_percent"))
+            quality_view = quality_adjustment.get("quality_view", "UNKNOWN")
+            active_weight = _finite_number(quality_adjustment.get("active_weight"))
 
             col1, col2, col3 = st.columns(3)
-
             with col1:
-                st.metric(
-                    "Multiple Adjustment",
-                    (
-                        f"{quality_percent:+.2f}%"
-                        if isinstance(quality_percent, (int, float))
-                        else "N/A"
-                    ),
-                )
-
+                st.metric("Multiple Adjustment", f"{quality_percent:+.2f}%" if quality_percent is not None else "N/A")
             with col2:
-                st.metric(
-                    "Quality View",
-                    quality_view,
-                )
+                st.metric("Quality View", quality_view)
+            with col3:
+                st.metric("Active Factor Weight", f"{active_weight * 100:.1f}%" if active_weight is not None else "N/A")
 
-                with col3:
-                    st.metric(
-                        "Active Factor Weight",
-                        (
-                            f"{active_weight * 100:.1f}%"
-                            if isinstance(active_weight, (int, float))
-                            else "N/A"
-                        ),
-                    )
-
-            # ==============================================
-            # QUALITY FACTOR DETAILS
-            # ==============================================
-
-            quality_factors = quality_adjustment.get(
-                "factors",
-                {},
-            )
-
+            quality_factors = quality_adjustment.get("factors", {})
             if not isinstance(quality_factors, dict):
                 quality_factors = {}
-
             quality_factor_labels = {
                 "roe": "Return on Equity",
                 "revenue_growth": "Revenue Growth",
@@ -2051,82 +1471,35 @@ def show():
                 "operating_margin": "Operating Margin",
                 "debt_to_equity": "Debt / Equity",
             }
-
             quality_rows = []
-
             for factor_key, factor_label in quality_factor_labels.items():
-
-                factor = quality_factors.get(
-                    factor_key,
-                    {},
-                )
-
+                factor = quality_factors.get(factor_key, {})
                 if not isinstance(factor, dict):
                     continue
-
-                company_value = factor.get("company_value")
-                peer_median = factor.get("peer_median")
-                adjustment = factor.get("adjustment")
+                company_value = _finite_number(factor.get("company_value"))
+                peer_median = _finite_number(factor.get("peer_median"))
+                adjustment = _finite_number(factor.get("adjustment"))
                 observations = factor.get("observations")
-
                 quality_rows.append(
                     {
                         "Factor": factor_label,
-                        "Company": (
-                            f"{company_value:.4f}"
-                            if isinstance(company_value, (int, float))
-                            else "N/A"
-                        ),
-                        "Peer Median": (
-                            f"{peer_median:.4f}"
-                            if isinstance(peer_median, (int, float))
-                            else "N/A"
-                        ),
-                        "Adjustment": (
-                            f"{adjustment * 100:+.2f}%"
-                            if isinstance(adjustment, (int, float))
-                            else "N/A"
-                        ),
-                        "Observations": (
-                            observations if isinstance(observations, int) else "N/A"
-                        ),
+                        "Company": f"{company_value:.4f}" if company_value is not None else "N/A",
+                        "Peer Median": f"{peer_median:.4f}" if peer_median is not None else "N/A",
+                        "Adjustment": f"{adjustment * 100:+.2f}%" if adjustment is not None else "N/A",
+                        "Observations": observations if isinstance(observations, int) else "N/A",
                     }
                 )
-
             if quality_rows:
-                st.dataframe(
-                    quality_rows,
-                    use_container_width=True,
-                    hide_index=True,
-                )
-
-                # ==============================================
-            # BENCHMARK TRANSFORMATION
-            # ==============================================
+                st.dataframe(quality_rows, use_container_width=True, hide_index=True)
 
             st.markdown("### Benchmark Transformation")
-
-            raw_benchmarks = valuation_v43.get(
-                "raw_peer_benchmarks",
-                {},
-            )
-
-            quality_benchmarks = valuation_v43.get(
-                "quality_adjusted_benchmarks",
-                {},
-            )
-
-            final_benchmarks = valuation_v43.get(
-                "final_benchmarks",
-                {},
-            )
-
+            raw_benchmarks = valuation_v43.get("raw_peer_benchmarks", {})
+            quality_benchmarks = valuation_v43.get("quality_adjusted_benchmarks", {})
+            final_benchmarks = valuation_v43.get("final_benchmarks", {})
             if not isinstance(raw_benchmarks, dict):
                 raw_benchmarks = {}
-
             if not isinstance(quality_benchmarks, dict):
                 quality_benchmarks = {}
-
             if not isinstance(final_benchmarks, dict):
                 final_benchmarks = {}
 
@@ -2136,516 +1509,49 @@ def show():
                 "pb": "Price / Book",
                 "ev_ebitda": "EV / EBITDA",
             }
-
             benchmark_rows = []
-
             for benchmark_key, benchmark_label in benchmark_labels.items():
-
-                raw_block = raw_benchmarks.get(
-                    benchmark_key,
-                    {},
-                )
-
-                quality_block = quality_benchmarks.get(
-                    benchmark_key,
-                    {},
-                )
-
-                final_block = final_benchmarks.get(
-                    benchmark_key,
-                    {},
-                )
-
+                raw_block = raw_benchmarks.get(benchmark_key, {})
+                quality_block = quality_benchmarks.get(benchmark_key, {})
+                final_block = final_benchmarks.get(benchmark_key, {})
                 if not isinstance(raw_block, dict):
                     raw_block = {}
-
                 if not isinstance(quality_block, dict):
                     quality_block = {}
-
                 if not isinstance(final_block, dict):
                     final_block = {}
 
-                raw_multiple = raw_block.get("multiple")
-
-                adjusted_multiple = quality_block.get("multiple")
-
-                quality_percent = quality_block.get("quality_adjustment_percent")
-
-                initial_reliability = final_block.get("pre_relevance_reliability")
-
-                relevance_multiplier = final_block.get("peer_relevance_multiplier")
-
-                final_reliability = final_block.get("reliability")
-
+                raw_multiple = _finite_number(raw_block.get("multiple"))
+                adjusted_multiple = _finite_number(quality_block.get("multiple"))
+                quality_percent = _finite_number(quality_block.get("quality_adjustment_percent"))
+                initial_reliability = _finite_number(final_block.get("pre_relevance_reliability"))
+                relevance_multiplier = _finite_number(final_block.get("peer_relevance_multiplier"))
+                final_reliability = _finite_number(final_block.get("reliability"))
                 observations = final_block.get("observations")
 
                 benchmark_rows.append(
                     {
                         "Method": benchmark_label,
-                        "Raw Peer Median": (
-                            f"{raw_multiple:.2f}x"
-                            if isinstance(raw_multiple, (int, float))
-                            else "N/A"
-                        ),
-                        "Quality Adj.": (
-                            f"{quality_percent:+.2f}%"
-                            if isinstance(quality_percent, (int, float))
-                            else "N/A"
-                        ),
-                        "Adjusted Multiple": (
-                            f"{adjusted_multiple:.2f}x"
-                            if isinstance(adjusted_multiple, (int, float))
-                            else "N/A"
-                        ),
-                        "Initial Reliability": (
-                            f"{initial_reliability * 100:.1f}%"
-                            if isinstance(
-                                initial_reliability,
-                                (int, float),
-                            )
-                            else "N/A"
-                        ),
-                        "Peer Multiplier": (
-                            f"{relevance_multiplier:.4f}"
-                            if isinstance(
-                                relevance_multiplier,
-                                (int, float),
-                            )
-                            else "N/A"
-                        ),
-                        "Final Reliability": (
-                            f"{final_reliability * 100:.1f}%"
-                            if isinstance(
-                                final_reliability,
-                                (int, float),
-                            )
-                            else "N/A"
-                        ),
-                        "Observations": (
-                            observations if isinstance(observations, int) else "N/A"
-                        ),
+                        "Raw Peer Median": f"{raw_multiple:.2f}x" if raw_multiple is not None else "N/A",
+                        "Quality Adj.": f"{quality_percent:+.2f}%" if quality_percent is not None else "N/A",
+                        "Adjusted Multiple": f"{adjusted_multiple:.2f}x" if adjusted_multiple is not None else "N/A",
+                        "Initial Reliability": f"{initial_reliability * 100:.1f}%" if initial_reliability is not None else "N/A",
+                        "Relevance Multiplier": f"{relevance_multiplier:.2f}x" if relevance_multiplier is not None else "N/A",
+                        "Final Reliability": f"{final_reliability * 100:.1f}%" if final_reliability is not None else "N/A",
+                        "Observations": observations if isinstance(observations, int) else "N/A",
                     }
                 )
 
             if benchmark_rows:
-                st.dataframe(
-                    benchmark_rows,
-                    use_container_width=True,
-                    hide_index=True,
-                )
-
-                peer_multiplier = final_benchmarks.get(
-                    "peer_relevance",
-                    {},
-                )
-
-            if not isinstance(peer_multiplier, dict):
-                peer_multiplier = {}
-
-            relevance_multiplier_value = peer_multiplier.get("reliability_multiplier")
-
-            if isinstance(
-                relevance_multiplier_value,
-                (int, float),
-            ):
-                st.caption(
-                    "Peer relevance does not change the adjusted "
-                    "valuation multiple. It reduces benchmark "
-                    "reliability. The current peer-relevance "
-                    f"multiplier is {relevance_multiplier_value:.4f}."
-                )
-
-                # ==============================================
-            # VALUATION DIAGNOSTICS
-            # ==============================================
-
-            st.markdown("### Valuation Diagnostics")
-
-            diagnostic_agreement = v43_result.get("method_agreement_score")
-
-            diagnostic_confidence = v43_result.get("confidence_score")
-
-            diagnostic_benchmark_quality = v43_result.get(
-                "benchmark_quality",
-                "UNKNOWN",
-            )
-
-            diagnostic_method_count = v43_result.get("method_count")
-
-            col1, col2, col3, col4 = st.columns(4)
-
-            with col1:
-                st.metric(
-                    "Method Agreement",
-                    (
-                        f"{diagnostic_agreement:.1f}%"
-                        if isinstance(
-                            diagnostic_agreement,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
-
-            with col2:
-                st.metric(
-                    "Confidence Score",
-                    (
-                        f"{diagnostic_confidence:.1f}/100"
-                        if isinstance(
-                            diagnostic_confidence,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
-
-            with col3:
-                st.metric(
-                    "Benchmark Quality",
-                    diagnostic_benchmark_quality,
-                )
-
-            with col4:
-                st.metric(
-                    "Methods Available",
-                    (
-                        str(diagnostic_method_count)
-                        if isinstance(
-                            diagnostic_method_count,
-                            int,
-                        )
-                        else "N/A"
-                    ),
-                )
-
-                # ==============================================
-            # VALUATION DISPERSION
-            # ==============================================
-
-            st.markdown("#### Valuation Dispersion")
-
-            diagnostic_low = v43_result.get("low_value")
-            diagnostic_fair = v43_result.get("composite_fair_value")
-            diagnostic_high = v43_result.get("high_value")
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.metric(
-                    "Low Estimate",
-                    (
-                        f"₹{diagnostic_low:,.2f}"
-                        if isinstance(
-                            diagnostic_low,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
-
-            with col2:
-                st.metric(
-                    "Composite Fair Value",
-                    (
-                        f"₹{diagnostic_fair:,.2f}"
-                        if isinstance(
-                            diagnostic_fair,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
-
-            with col3:
-                st.metric(
-                    "High Estimate",
-                    (
-                        f"₹{diagnostic_high:,.2f}"
-                        if isinstance(
-                            diagnostic_high,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
-
-                # ==============================================
-            # DIAGNOSTIC SIGNALS
-            # ==============================================
-
-            st.markdown("#### Diagnostic Signals")
-
-            diagnostic_peer_relevance = valuation_v43.get(
-                "peer_relevance",
-                {},
-            )
-
-            diagnostic_quality = valuation_v43.get(
-                "quality_adjustment",
-                {},
-            )
-
-            if not isinstance(
-                diagnostic_peer_relevance,
-                dict,
-            ):
-                diagnostic_peer_relevance = {}
-
-            if not isinstance(
-                diagnostic_quality,
-                dict,
-            ):
-                diagnostic_quality = {}
-
-            diagnostic_peer_score = diagnostic_peer_relevance.get("score_percent")
-
-            diagnostic_peer_view = diagnostic_peer_relevance.get(
-                "relevance_view",
-                "UNKNOWN",
-            )
-
-            diagnostic_quality_percent = diagnostic_quality.get(
-                "composite_adjustment_percent"
-            )
-
-            diagnostic_quality_view = diagnostic_quality.get(
-                "quality_view",
-                "UNKNOWN",
-            )
-
-            diagnostic_final_peer = final_benchmarks.get(
-                "peer_relevance",
-                {},
-            )
-
-            if not isinstance(
-                diagnostic_final_peer,
-                dict,
-            ):
-                diagnostic_final_peer = {}
-
-            diagnostic_reliability_multiplier = diagnostic_final_peer.get(
-                "reliability_multiplier"
-            )
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.metric(
-                    "Peer Relevance",
-                    (
-                        f"{diagnostic_peer_score:.1f}%"
-                        if isinstance(
-                            diagnostic_peer_score,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                    diagnostic_peer_view,
-                )
-
-            with col2:
-                st.metric(
-                    "Quality Adjustment",
-                    (
-                        f"{diagnostic_quality_percent:+.2f}%"
-                        if isinstance(
-                            diagnostic_quality_percent,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                    diagnostic_quality_view,
-                )
-
-            with col3:
-                st.metric(
-                    "Reliability Multiplier",
-                    (
-                        f"{diagnostic_reliability_multiplier:.4f}"
-                        if isinstance(
-                            diagnostic_reliability_multiplier,
-                            (int, float),
-                        )
-                        else "N/A"
-                    ),
-                )
-
-                # ==============================================
-            # VALUATION DRIVERS
-            # ==============================================
-
-            st.markdown("#### Valuation Drivers")
-
-            diagnostic_methods = v43_result.get(
-                "methods",
-                {},
-            )
-
-            if not isinstance(diagnostic_methods, dict):
-                diagnostic_methods = {}
-
-            diagnostic_rows = []
-
-            for method_key, method in diagnostic_methods.items():
-
-                if not isinstance(method, dict):
-                    continue
-
-                method_name = method.get(
-                    "name",
-                    method_key,
-                )
-
-                method_fair_value = method.get("fair_value")
-
-                method_upside = method.get("upside_percent")
-
-                method_reliability = method.get("reliability")
-
-                method_weight = method.get("weight")
-
-                method_benchmark = method.get(
-                    "benchmark_label",
-                    "N/A",
-                )
-
-                diagnostic_rows.append(
-                    {
-                        "Method": method_name,
-                        "Fair Value": (
-                            f"₹{method_fair_value:,.2f}"
-                            if isinstance(
-                                method_fair_value,
-                                (int, float),
-                            )
-                            else "N/A"
-                        ),
-                        "Upside / Downside": (
-                            f"{method_upside:+.2f}%"
-                            if isinstance(
-                                method_upside,
-                                (int, float),
-                            )
-                            else "N/A"
-                        ),
-                        "Benchmark": method_benchmark,
-                        "Reliability": (
-                            f"{method_reliability * 100:.1f}%"
-                            if isinstance(
-                                method_reliability,
-                                (int, float),
-                            )
-                            else "N/A"
-                        ),
-                        "Model Weight": (
-                            f"{method_weight * 100:.1f}%"
-                            if isinstance(
-                                method_weight,
-                                (int, float),
-                            )
-                            else "N/A"
-                        ),
-                    }
-                )
-
-            if diagnostic_rows:
-                st.dataframe(
-                    diagnostic_rows,
-                    use_container_width=True,
-                    hide_index=True,
-                )
-
-            diagnostic_interpretation = v43_result.get("interpretation")
-
-            if diagnostic_interpretation:
-                st.info(diagnostic_interpretation)
-
-            st.caption(
-                "Diagnostic scores describe the internal evidence "
-                "and consistency of the valuation model. They should "
-                "not be interpreted as probabilities that the fair "
-                "value estimate will be realized."
-            )
-
-            st.caption(
-                "V4.3 combines multiple valuation methods using "
-                "reliability-adjusted benchmarks. Independent peer "
-                "benchmarks are adjusted for company quality and "
-                "economic peer relevance."
-            )
-
+                st.dataframe(benchmark_rows, use_container_width=True, hide_index=True)
+            else:
+                st.info("Benchmark transformation data is unavailable.")
         else:
-
             st.info(
                 valuation_v43.get(
                     "message",
-                    "Multi-method valuation V4.3 is unavailable.",
+                    "Multi-method valuation is unavailable.",
                 )
-            )
-
-        st.divider()
-
-        # PDF Research Report
-        st.subheader("Professional Research Report")
-        st.caption(
-            "Generate a PDF containing company information, financial analysis, "
-            "investment scores, target price and trade planning, technical analysis, "
-            "fundamental analysis and recent news."
-        )
-
-        if st.button(
-            "Generate PDF Research Report",
-            key=f"generate_research_pdf_{symbol}",
-            use_container_width=True,
-        ):
-            try:
-                generator = ReportGenerator()
-
-                pdf_path = generator.generate(
-                    symbol=symbol,
-                    data=data,
-                    investment_score=investment_score,
-                    technical_score=technical_score,
-                    fundamental_score=fundamental_score,
-                    recommendation=recommendation,
-                    technical_reasons=technical_reasons,
-                    fundamental_reasons=fundamental_reasons,
-                    news=news,
-                    trade_plan=trade_plan,
-                    score_breakdown=score_breakdown,
-                    ai_result=ai_result,
-                    valuation_analysis=valuation_analysis,
-                )
-
-                with open(pdf_path, "rb") as pdf_file:
-                    pdf_bytes = pdf_file.read()
-
-                st.session_state["research_pdf"] = pdf_bytes
-                st.session_state["research_pdf_symbol"] = symbol
-                st.session_state["research_pdf_name"] = f"{symbol}_Research_Report.pdf"
-
-                st.success("Research report generated successfully.")
-
-            except Exception as error:
-                st.error(f"Unable to generate research report: {error}")
-
-        pdf_available = (
-            "research_pdf" in st.session_state
-            and st.session_state.get("research_pdf_symbol") == symbol
-        )
-
-        if pdf_available:
-            st.download_button(
-                label="Download PDF Research Report",
-                data=st.session_state["research_pdf"],
-                file_name=st.session_state.get(
-                    "research_pdf_name", f"{symbol}_Research_Report.pdf"
-                ),
-                mime="application/pdf",
-                key=f"download_research_pdf_{symbol}",
-                use_container_width=True,
             )
 
     # ======================================================
@@ -2654,21 +1560,76 @@ def show():
     with tab5:
         st.subheader("Latest Company News")
 
-        if not news:
-            st.info("No recent news available.")
-        else:
-            for article in news[:10]:
-                if not isinstance(article, dict):
+        if news:
+            for item in news:
+                if not isinstance(item, dict):
                     continue
 
-                title = article.get("title", "No Title")
-                publisher = article.get("publisher", "Unknown")
-                link = article.get("link", "")
+                title = item.get("title", "Untitled")
+                summary = item.get("summary", "")
+                link = item.get("link")
 
                 st.markdown(f"### {title}")
-                st.write(f"**Source:** {publisher}")
+
+                if summary:
+                    st.write(summary)
 
                 if link:
-                    st.link_button("Read Article", link)
+                    st.markdown(f"[Read Full Article]({link})")
 
                 st.divider()
+        else:
+            st.info("No recent company news available.")
+
+    # ======================================================
+    # REPORT GENERATION
+    # ======================================================
+
+    st.divider()
+
+    st.subheader("Research Report")
+
+    report_data = {
+        "company": data.get("company", symbol),
+        "symbol": symbol,
+        "price": data.get("price"),
+        "market_cap": data.get("market_cap"),
+        "technical_score": technical_score,
+        "fundamental_score": fundamental_score,
+        "investment_score": investment_score,
+        "recommendation": recommendation,
+        "ai_result": ai_result,
+        "investment_thesis": investment_thesis,
+        "scenario_analysis": scenario_analysis,
+        "valuation_analysis": valuation_analysis,
+        "valuation_v43": valuation_v43,
+        "trade_plan": trade_plan,
+        "news": news,
+        "technical_reasons": technical_reasons,
+        "fundamental_reasons": fundamental_reasons,
+        "score_breakdown": score_breakdown,
+    }
+
+    try:
+        report_generator = ReportGenerator()
+        report_result = report_generator.generate_report(report_data)
+    except Exception as error:
+        report_result = {
+            "status": "ERROR",
+            "error": str(error),
+        }
+
+    if report_result.get("status") == "OK":
+        st.download_button(
+            "Download Research Report",
+            data=report_result["content"],
+            file_name=f"{symbol}_research_report.pdf",
+            mime="application/pdf",
+        )
+    else:
+        st.warning(
+            report_result.get(
+                "error",
+                "Research report is currently unavailable.",
+            )
+        )
