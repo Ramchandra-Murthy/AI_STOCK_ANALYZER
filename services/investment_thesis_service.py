@@ -73,9 +73,25 @@ def generate_investment_thesis(
             "stop_loss": None,
         }
 
-    technical_score = technical_score if technical_score is not None else 50.0
-    fundamental_score = fundamental_score if fundamental_score is not None else 50.0
-    ai_score = ai_score if ai_score is not None else 50.0
+    # Missing component scores are evidence gaps, not neutral 50s.
+    # The Investment Score has already validated core evidence; preserve that
+    # contract here instead of manufacturing inputs for the thesis.
+    if technical_score is None or fundamental_score is None:
+        return {
+            "status": "INSUFFICIENT DATA",
+            "message": "Technical and Fundamental evidence are required for a reliable investment thesis.",
+            "investment_score": investment_score,
+            "technical_score": technical_score,
+            "fundamental_score": fundamental_score,
+            "ai_score": ai_score,
+            "current_price": None,
+            "target_price": None,
+            "recommendation": "INSUFFICIENT DATA",
+            "confidence": 0,
+        }
+
+    if ai_score is None:
+        ai_score = None
 
     stability_score = (
         _safe_float(
