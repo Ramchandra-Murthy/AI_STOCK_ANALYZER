@@ -44,8 +44,6 @@ def generate_scenario_analysis(
             "reward_risk": None,
         }
 
-    # Investment Score V2 requires Technical and Fundamental core evidence.
-    # Preserve the same contract here instead of manufacturing neutral 50s.
     if technical_score is None or fundamental_score is None:
         return {
             "status": "INSUFFICIENT DATA",
@@ -65,33 +63,56 @@ def generate_scenario_analysis(
     target_price = _safe_float(trade_plan.get("target_price"))
     stop_loss = _safe_float(trade_plan.get("stop_loss"))
 
-    bull_return = None
-    bear_return = None
+    if (
+        current_price is None
+        or current_price <= 0
+        or target_price is None
+        or target_price <= 0
+        or stop_loss is None
+        or stop_loss <= 0
+    ):
+        return {
+            "status": "INSUFFICIENT DATA",
+            "message": "Scenario price levels are unavailable or invalid.",
+            "investment_score": investment_score,
+            "technical_score": technical_score,
+            "fundamental_score": fundamental_score,
+            "ai_score": ai_score,
+            "stability_score": stability_score,
+            "current_price": current_price,
+            "bull": None,
+            "base": None,
+            "bear": None,
+            "reward_risk": None,
+        }
 
-    if current_price is not None and current_price > 0 and target_price is not None:
-        value = ((target_price - current_price) / current_price) * 100
-        bull_return = value if math.isfinite(value) else None
+    bull_return = ((target_price - current_price) / current_price) * 100
+    bear_return = ((stop_loss - current_price) / current_price) * 100
+    if not math.isfinite(bull_return) or not math.isfinite(bear_return):
+        return {
+            "status": "INSUFFICIENT DATA",
+            "message": "Scenario return calculation is non-finite.",
+            "investment_score": investment_score,
+            "technical_score": technical_score,
+            "fundamental_score": fundamental_score,
+            "ai_score": ai_score,
+            "stability_score": stability_score,
+            "current_price": current_price,
+            "bull": None,
+            "base": None,
+            "bear": None,
+            "reward_risk": None,
+        }
 
-    if current_price is not None and current_price > 0 and stop_loss is not None:
-        value = ((stop_loss - current_price) / current_price) * 100
-        bear_return = value if math.isfinite(value) else None
+    upside_amount = max(target_price - current_price, 0)
+    downside_amount = max(current_price - stop_loss, 0)
 
-    upside_amount = None
-    downside_amount = None
     reward_risk = None
+    if downside_amount > 0:
+        reward_risk = upside_amount / downside_amount
+        if not math.isfinite(reward_risk):
+            reward_risk = None
 
-    if current_price is not None and target_price is not None:
-        upside_amount = max(target_price - current_price, 0)
-
-    if current_price is not None and stop_loss is not None:
-        downside_amount = max(current_price - stop_loss, 0)
-
-    if upside_amount is not None and downside_amount is not None and downside_amount > 0:
-        value = upside_amount / downside_amount
-        reward_risk = value if math.isfinite(value) else None
-
-    # Stability is optional evidence. Do not turn missing stability into a
-    # genuine zero score or imply weak stability when the metric is absent.
     if stability_score is None:
         long_term_view = "UNAVAILABLE"
     elif fundamental_score >= 75 and stability_score >= 70:
@@ -154,17 +175,17 @@ def generate_scenario_analysis(
         "current_price": current_price,
         "bull": {
             "price": target_price,
-            "return_percent": round(bull_return, 2) if bull_return is not None else None,
+            "return_percent": round(bull_return, 2),
             "assumptions": bull_assumptions,
         },
         "base": {
             "price": current_price,
-            "return_percent": 0.0 if current_price is not None else None,
+            "return_percent": 0.0,
             "assumptions": base_assumptions,
         },
         "bear": {
             "price": stop_loss,
-            "return_percent": round(bear_return, 2) if bear_return is not None else None,
+            "return_percent": round(bear_return, 2),
             "assumptions": bear_assumptions,
         },
         "reward_risk": round(reward_risk, 2) if reward_risk is not None else None,
