@@ -33,19 +33,22 @@ def calculate_technical_score(df):
     observed_components = 0
     latest = df.iloc[-1]
 
-    # RSI
+    # RSI must be inside its valid indicator domain.
     if "RSI" in latest.index and _valid_number(latest["RSI"]):
-        observed_components += 1
         rsi = float(latest["RSI"])
-        if rsi < 30:
-            score += 15
-            reasons.append(f"RSI is oversold at {rsi:.1f}")
-        elif rsi > 70:
-            score -= 15
-            reasons.append(f"RSI is overbought at {rsi:.1f}")
+        if 0.0 <= rsi <= 100.0:
+            observed_components += 1
+            if rsi < 30:
+                score += 15
+                reasons.append(f"RSI is oversold at {rsi:.1f}")
+            elif rsi > 70:
+                score -= 15
+                reasons.append(f"RSI is overbought at {rsi:.1f}")
+            else:
+                score += 5
+                reasons.append(f"RSI is neutral at {rsi:.1f}")
         else:
-            score += 5
-            reasons.append(f"RSI is neutral at {rsi:.1f}")
+            reasons.append("RSI data is outside the valid 0-100 range")
     else:
         reasons.append("RSI data is unavailable")
 
