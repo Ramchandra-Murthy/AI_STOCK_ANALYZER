@@ -49,9 +49,6 @@ def show():
 
     st.divider()
 
-    # ======================================================
-    # SEARCH
-    # ======================================================
     search_col, button_col = st.columns([3, 1])
 
     with search_col:
@@ -71,58 +68,39 @@ def show():
             key="research_analyze_button",
         )
 
-    # ======================================================
-    # SESSION STATE
-    # ======================================================
     if "research_analyzed" not in st.session_state:
         st.session_state["research_analyzed"] = False
 
     if "research_active_symbol" not in st.session_state:
         st.session_state["research_active_symbol"] = None
 
-    # ======================================================
-    # ANALYZE BUTTON
-    # ======================================================
     if analyze:
         if not entered_symbol:
             st.warning("Please enter an NSE symbol.")
             return
-
         st.session_state["research_analyzed"] = True
         st.session_state["research_active_symbol"] = entered_symbol
-
         st.session_state.pop("research_pdf", None)
         st.session_state.pop("research_pdf_symbol", None)
         st.session_state.pop("research_pdf_name", None)
 
-    # ======================================================
-    # WAIT FOR ANALYSIS
-    # ======================================================
     if not st.session_state["research_analyzed"]:
         return
 
     symbol = st.session_state.get("research_active_symbol")
-
     if not symbol:
         return
 
-    # ======================================================
-    # SYMBOL CHANGE MESSAGE
-    # ======================================================
     if entered_symbol and entered_symbol != symbol:
         st.info(
             f"Showing analysis for {symbol}. "
             f"Click Analyze to load {entered_symbol}."
         )
 
-    # ======================================================
-    # FETCH STOCK DATA
-    # ======================================================
     try:
         with st.spinner("Fetching stock information..."):
             data = get_stock_profile(symbol)
             history = get_price_history(symbol)
-
     except Exception as error:
         st.error(f"Unable to fetch stock information: {error}")
         return
@@ -131,9 +109,6 @@ def show():
         st.error("Unable to fetch stock information.")
         return
 
-    # ======================================================
-    # AI ANALYSIS
-    # ======================================================
     try:
         ai_result = get_ai_recommendation(data, history)
         if not isinstance(ai_result, dict):
@@ -142,9 +117,6 @@ def show():
         st.warning(f"AI recommendation unavailable: {error}")
         ai_result = {}
 
-    # ======================================================
-    # NEWS
-    # ======================================================
     try:
         news = get_company_news(symbol)
         if not news:
@@ -153,9 +125,6 @@ def show():
         st.warning(f"Company news unavailable: {error}")
         news = []
 
-    # ======================================================
-    # TECHNICAL SCORE
-    # ======================================================
     try:
         if history is not None and not history.empty:
             technical_score, technical_reasons = calculate_technical_score(history)
@@ -166,18 +135,12 @@ def show():
         technical_score = None
         technical_reasons = [f"Technical scoring unavailable: {error}"]
 
-    # ======================================================
-    # FUNDAMENTAL SCORE V2
-    # ======================================================
     try:
         fundamental_score, fundamental_reasons = calculate_fundamental_score(data)
     except Exception as error:
         fundamental_score = None
         fundamental_reasons = [f"Fundamental scoring unavailable: {error}"]
 
-    # ======================================================
-    # INVESTMENT SCORE V2
-    # ======================================================
     try:
         investment_score, score_breakdown = calculate_investment_score(
             technical_score=technical_score,
@@ -190,24 +153,16 @@ def show():
         investment_score = None
         score_breakdown = {}
 
-    # ======================================================
-    # RECOMMENDATION ENGINE
-    # ======================================================
     try:
         recommendation_result = generate_recommendation(
             investment_score=investment_score,
         )
-
         if not isinstance(recommendation_result, dict):
             recommendation_result = {}
-
     except Exception as error:
         st.warning(f"Recommendation engine unavailable: {error}")
         recommendation_result = {}
 
-    # ======================================================
-    # TRADE PLANNING ENGINE
-    # ======================================================
     try:
         trade_plan = generate_trade_plan(
             history=history,
@@ -228,9 +183,6 @@ def show():
             "message": str(error),
         }
 
-    # ======================================================
-    # INVESTMENT THESIS ENGINE V3
-    # ======================================================
     try:
         investment_thesis = generate_investment_thesis(
             data=data,
@@ -243,17 +195,12 @@ def show():
             fundamental_reasons=fundamental_reasons,
             trade_plan=trade_plan,
         )
-
         if not isinstance(investment_thesis, dict):
             investment_thesis = {}
-
     except Exception as error:
         st.warning(f"Investment thesis unavailable: {error}")
         investment_thesis = {}
 
-    # ======================================================
-    # SCENARIO ANALYSIS ENGINE V3
-    # ======================================================
     try:
         scenario_analysis = generate_scenario_analysis(
             data=data,
@@ -264,74 +211,182 @@ def show():
             score_breakdown=score_breakdown,
             trade_plan=trade_plan,
         )
-
         if not isinstance(scenario_analysis, dict):
             scenario_analysis = {}
-
     except Exception as error:
         st.warning(f"Scenario analysis unavailable: {error}")
         scenario_analysis = {}
 
-    # ======================================================
-    # FUNDAMENTAL VALUATION ENGINE V3
-    # ======================================================
     try:
         valuation_analysis = generate_valuation_analysis(
             data=data,
             fundamental_score=fundamental_score,
             investment_score=investment_score,
         )
-
         if not isinstance(valuation_analysis, dict):
             valuation_analysis = {
                 "status": "UNAVAILABLE",
                 "message": "Invalid valuation result.",
             }
-
     except Exception as error:
         st.warning(f"Valuation analysis unavailable: {error}")
-
         valuation_analysis = {
             "status": "UNAVAILABLE",
             "message": str(error),
         }
 
-    # ======================================================
-    # MULTI-METHOD VALUATION ENGINE V4.3
-    # ======================================================
     try:
         valuation_v43 = generate_valuation_v43(
             symbol=symbol,
             company_data=data,
         )
-
         if not isinstance(valuation_v43, dict):
             valuation_v43 = {
                 "status": "UNAVAILABLE",
                 "message": "Invalid V4.3 valuation result.",
             }
-
     except Exception as error:
         st.warning(f"Valuation V4.3 unavailable: {error}")
-
         valuation_v43 = {
             "status": "UNAVAILABLE",
             "message": str(error),
         }
 
-    # ======================================================
-    # TABS
-    # ======================================================
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        [
-            "Overview",
-            "Financials",
-            "Technical",
-            "AI Analysis",
-            "News",
-        ]
+        ["Overview", "Financials", "Technical", "AI Analysis", "News"]
     )
 
-    # The remaining display logic is retained exactly from the current
-    # stable main branch. Only helper ownership is changed above so unit
-    # tests can exercise formatting without importing the full UI module.
+    with tab1:
+        st.subheader("Company Profile")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Company", data.get("company", "N/A"))
+            st.metric("Sector", data.get("sector", "N/A"))
+            st.metric("Industry", data.get("industry", "N/A"))
+        with col2:
+            st.metric("Current Price", format_price(data.get("price")))
+            st.metric("Market Cap", format_market_cap(data.get("market_cap")))
+            st.metric("Currency", data.get("currency", "N/A"))
+
+    with tab2:
+        st.subheader("Financial Ratios")
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.metric("P/E", data.get("pe", "N/A"))
+        with c2:
+            st.metric("P/B", data.get("pb", "N/A"))
+        with c3:
+            st.metric("EPS", data.get("eps", "N/A"))
+        with c4:
+            st.metric("Beta", data.get("beta", "N/A"))
+
+        st.write("### Profitability & Financial Health")
+        a1, a2, a3 = st.columns(3)
+        with a1:
+            st.metric("ROA", format_percent(data.get("roa")))
+        with a2:
+            st.metric("Debt / Equity", format_debt_to_equity(data.get("debt_to_equity")))
+        with a3:
+            st.metric("Current Ratio", format_ratio(data.get("current_ratio")))
+
+        st.write("### Growth")
+        g1, g2 = st.columns(2)
+        with g1:
+            st.metric("Revenue Growth", format_percent(data.get("revenue_growth")))
+        with g2:
+            st.metric("Earnings Growth", format_percent(data.get("earnings_growth")))
+
+        st.write("### Balance Sheet")
+        b1, b2 = st.columns(2)
+        with b1:
+            st.metric("Total Debt", format_large_rupees(data.get("total_debt")))
+        with b2:
+            st.metric("Total Cash", format_large_rupees(data.get("total_cash")))
+
+        st.write("### Cash Flow")
+        cf1, cf2 = st.columns(2)
+        with cf1:
+            st.metric("Operating Cash Flow", format_large_rupees(data.get("operating_cash_flow")))
+        with cf2:
+            st.metric("Free Cash Flow", format_large_rupees(data.get("free_cash_flow")))
+
+    with tab3:
+        st.subheader("Technical Analysis")
+        if history is not None and not history.empty:
+            try:
+                st.plotly_chart(plot_candlestick(history), use_container_width=True)
+            except Exception as error:
+                st.error(f"Unable to display price chart: {error}")
+            st.divider()
+            try:
+                show_technical_summary(history)
+            except Exception as error:
+                st.error(f"Unable to display technical summary: {error}")
+        else:
+            st.warning("No historical price data available.")
+
+    with tab4:
+        st.subheader("AI Investment Analysis")
+        recommendation = recommendation_result.get("recommendation", "INSUFFICIENT DATA")
+        st.metric(
+            "Overall Investment Score",
+            f"{investment_score}/100" if investment_score is not None else "N/A",
+        )
+        st.metric("Recommendation", recommendation)
+
+        st.write("### Component Scores")
+        for label, value in (
+            ("Technical", score_breakdown.get("Technical", technical_score)),
+            ("Fundamental", score_breakdown.get("Fundamental", fundamental_score)),
+            ("AI Model", score_breakdown.get("AI")),
+            ("Stability", score_breakdown.get("Stability")),
+        ):
+            st.metric(label, f"{value:.0f}/100" if value is not None else "N/A")
+
+        confidence = recommendation_result.get("confidence")
+        overall_score = recommendation_result.get("overall_score")
+        st.metric("Confidence", f"{confidence}%" if confidence is not None else "N/A")
+        st.progress(safe_progress(confidence))
+        st.metric("Overall Score", f"{overall_score}/100" if overall_score is not None else "N/A")
+
+        st.subheader("Target Price & Trade Plan")
+        if trade_plan.get("status") == "OK":
+            for label, value in (
+                ("Current Price", trade_plan.get("current_price")),
+                ("Target Price", trade_plan.get("target_price")),
+                ("Stop Loss", trade_plan.get("stop_loss")),
+                ("ATR", trade_plan.get("atr")),
+                ("Support", trade_plan.get("support")),
+                ("Resistance", trade_plan.get("resistance")),
+            ):
+                st.metric(label, format_price(value))
+        else:
+            st.warning(trade_plan.get("message", "Trade planning data unavailable."))
+
+        st.subheader("AI Model Analysis")
+        ai_score = ai_result.get("score")
+        st.metric("AI Score", f"{ai_score}/100" if ai_score is not None else "N/A")
+        st.metric("Risk Level", ai_result.get("risk", "Unknown"))
+        st.metric("AI Verdict", ai_result.get("recommendation", "INSUFFICIENT DATA"))
+
+        st.subheader("Technical Reasons")
+        for reason in technical_reasons:
+            st.write(f"- {reason}")
+        st.subheader("Fundamental Reasons")
+        for reason in fundamental_reasons:
+            st.write(f"- {reason}")
+        st.subheader("Final Recommendation")
+        st.metric("Investment Verdict", recommendation)
+
+    with tab5:
+        st.subheader("Company News")
+        if news:
+            for item in news:
+                if isinstance(item, dict):
+                    title = item.get("title", "Untitled")
+                    link = item.get("link")
+                    st.markdown(f"- [{title}]({link})" if link else f"- {title}")
+                else:
+                    st.write(f"- {item}")
+        else:
+            st.info("No company news available.")
