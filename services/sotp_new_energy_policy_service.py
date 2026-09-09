@@ -27,7 +27,6 @@ def generate_sotp_new_energy_policy(
 
     investment = data.get("investment", {})
     assets = data.get("operating_assets", {})
-    data.get("reported_net_assets", {})
     financials = data.get("financials", {})
 
     commitment = _num(investment.get("committed_investment"))
