@@ -5,27 +5,20 @@ import pandas as pd
 
 def _safe_float(value, default=None):
     """Convert a value to a finite float safely."""
-
     try:
         number = float(value)
-
         if not math.isfinite(number):
             return default
-
         return number
-
     except (TypeError, ValueError):
         return default
 
 
 def calculate_target_price(history, technical_score=None):
-    """
-    Calculate a rule-based target price, stop loss,
-    upside/downside and risk/reward estimate.
+    """Calculate rule-based target, stop, upside, and risk/reward metrics.
 
     Missing or invalid market inputs never become fabricated trade levels.
     """
-
     empty_result = {
         "current_price": None,
         "target_price": None,
@@ -40,20 +33,13 @@ def calculate_target_price(history, technical_score=None):
         empty_result["status"] = "No historical data"
         return empty_result
 
-    required_columns = {
-        "High",
-        "Low",
-        "Close",
-    }
-
+    required_columns = {"High", "Low", "Close"}
     missing = required_columns.difference(history.columns)
-
     if missing:
         empty_result["status"] = "Missing columns: " + ", ".join(sorted(missing))
         return empty_result
 
     df = history.copy()
-
     for column in required_columns:
         df[column] = pd.to_numeric(df[column], errors="coerce")
 
@@ -63,20 +49,20 @@ def calculate_target_price(history, technical_score=None):
         & (df["Low"] > 0)
         & (df["Close"] > 0)
         & (df["High"] >= df["Low"])
+        & (df["Close"] <= df["High"])
+        & (df["Close"] >= df["Low"])
     ]
 
-    if df.empty:
-        empty_result["status"] = "Price data unavailable"
+    if len(df) < 14:
+        empty_result["status"] = "Insufficient valid historical data"
         return empty_result
 
     current_price = _safe_float(df["Close"].iloc[-1])
-
     if current_price is None or current_price <= 0:
         empty_result["status"] = "Invalid current price"
         return empty_result
 
     previous_close = df["Close"].shift(1)
-
     true_range = pd.concat(
         [
             df["High"] - df["Low"],
@@ -88,8 +74,7 @@ def calculate_target_price(history, technical_score=None):
 
     atr_series = true_range.rolling(window=14, min_periods=14).mean()
     atr = _safe_float(atr_series.iloc[-1])
-
-    if atr is None or atr <= 0:
+    if atr is None or atr <= 0 or not math.isfinite(atr):
         return {
             "current_price": round(current_price, 2),
             "target_price": None,
@@ -101,7 +86,6 @@ def calculate_target_price(history, technical_score=None):
         }
 
     score = _safe_float(technical_score)
-
     if score is None:
         return {
             "current_price": round(current_price, 2),
@@ -113,7 +97,16 @@ def calculate_target_price(history, technical_score=None):
             "status": "Insufficient technical evidence",
         }
 
-    score = max(0.0, min(score, 100.0))
+    if score < 0 or score > 100:
+        return {
+            "current_price": round(current_price, 2),
+            "target_price": None,
+            "stop_loss": None,
+            "upside_percent": None,
+            "risk_reward": None,
+            "atr": round(atr, 2),
+            "status": "Invalid technical score",
+        }
 
     if score >= 80:
         target_atr_multiplier = 3.0
@@ -126,17 +119,12 @@ def calculate_target_price(history, technical_score=None):
 
     target_price = current_price + atr * target_atr_multiplier
     stop_loss = max(current_price - atr * 1.5, 0.0)
-
     reward = target_price - current_price
     risk = current_price - stop_loss
-
     upside_percent = reward / current_price * 100
     risk_reward = reward / risk if risk > 0 else None
 
-    if not all(
-        math.isfinite(value)
-        for value in (target_price, stop_loss, reward, upside_percent)
-    ):
+    if not all(math.isfinite(value) for value in (target_price, stop_loss, reward, upside_percent)):
         return {
             "current_price": round(current_price, 2),
             "target_price": None,
