@@ -72,7 +72,7 @@ def _debt_equity_ratio(value):
 
     value = to_float(value)
 
-    if value is None:
+    if value is None or value < 0:
         return None
 
     return value / 100.0
@@ -125,7 +125,7 @@ def calculate_fundamental_score(data):
     """
 
     if not isinstance(data, dict):
-        return 0, ["Fundamental data unavailable."]
+        return None, ["Fundamental data unavailable."]
 
     reasons = []
 
@@ -147,10 +147,16 @@ def calculate_fundamental_score(data):
     debt_to_equity = _debt_equity_ratio(data.get("debt_to_equity"))
 
     current_ratio = to_float(data.get("current_ratio"))
+    if current_ratio is not None and current_ratio <= 0:
+        current_ratio = None
 
     total_debt = to_float(data.get("total_debt"))
+    if total_debt is not None and total_debt < 0:
+        total_debt = None
 
     total_cash = to_float(data.get("total_cash"))
+    if total_cash is not None and total_cash < 0:
+        total_cash = None
 
     operating_cash_flow = to_float(data.get("operating_cash_flow"))
 
@@ -520,7 +526,7 @@ def calculate_fundamental_score(data):
     available_scores = [score for score in category_scores if score is not None]
 
     if not available_scores:
-        return 0, ["Insufficient fundamental data to calculate a score."]
+        return None, ["Insufficient fundamental data to calculate a score."]
 
     # Each category is normalized to 20.
     # Average category score * 5 gives a 0-100 result.
