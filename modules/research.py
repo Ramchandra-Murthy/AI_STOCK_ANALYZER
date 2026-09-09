@@ -356,6 +356,10 @@ def show():
                 "status": "ERROR",
                 "message": "Invalid trade plan result.",
             }
+        elif trade_plan.get("status") == "INSUFFICIENT DATA":
+            # Preserve the explicit evidence state; never reinterpret it as
+            # an executable trade signal.
+            trade_plan.setdefault("signal", "INSUFFICIENT DATA")
     except Exception as error:
         st.warning(f"Trade planning engine unavailable: {error}")
         trade_plan = {
