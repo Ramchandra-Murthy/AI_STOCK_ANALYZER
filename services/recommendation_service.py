@@ -2,6 +2,8 @@
 # RECOMMENDATION SERVICE
 # ==========================================================
 
+import math
+
 
 def generate_recommendation(investment_score):
     """
@@ -15,6 +17,9 @@ def generate_recommendation(investment_score):
     55 - 69  : HOLD
     40 - 54  : SELL
     0  - 39  : STRONG SELL
+
+    Missing, non-finite, or non-numeric scores are not
+    converted into a recommendation.
     """
 
     # ------------------------------------------------------
@@ -33,6 +38,13 @@ def generate_recommendation(investment_score):
         overall_score = float(investment_score)
 
     except (TypeError, ValueError):
+        return {
+            "recommendation": "INSUFFICIENT DATA",
+            "confidence": 0,
+            "overall_score": None,
+        }
+
+    if not math.isfinite(overall_score):
         return {
             "recommendation": "INSUFFICIENT DATA",
             "confidence": 0,
