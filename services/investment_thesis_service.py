@@ -1,10 +1,12 @@
+import math
+
+
 def _safe_float(value, default=None):
     """Safely convert a value to a finite float."""
     try:
         if value is None:
             return default
         number = float(value)
-        import math
         return number if math.isfinite(number) else default
     except (TypeError, ValueError):
         return default
@@ -14,7 +16,6 @@ def _clean_reasons(reasons):
     """Return a clean list of non-empty reason strings."""
     if not isinstance(reasons, (list, tuple)):
         return []
-
     return [
         str(reason).strip()
         for reason in reasons
@@ -124,7 +125,7 @@ def generate_investment_thesis(
         strengths.append(f"Stability score is strong at {stability_score:.0f}/100.")
 
     revenue_growth = _safe_float(data.get("revenue_growth"))
-    if revenue_growth is not None and revenue_growth > 0.10:
+    if revenue_growth is not None and abs(revenue_growth) <= 10 and revenue_growth > 0.10:
         strengths.append(f"Revenue growth is positive at {revenue_growth * 100:.2f}%.")
 
     operating_cash_flow = _safe_float(data.get("operating_cash_flow"))
@@ -150,7 +151,7 @@ def generate_investment_thesis(
         concerns.append(f"AI model score is weak at {ai_score:.0f}/100.")
 
     earnings_growth = _safe_float(data.get("earnings_growth"))
-    if earnings_growth is not None and earnings_growth < 0:
+    if earnings_growth is not None and abs(earnings_growth) <= 10 and earnings_growth < 0:
         concerns.append(f"Earnings growth is negative at {earnings_growth * 100:.2f}%.")
 
     for reason in technical_reasons:
@@ -160,9 +161,9 @@ def generate_investment_thesis(
                 concerns.append(reason)
 
     catalysts = []
-    if revenue_growth is not None and revenue_growth > 0.15:
+    if revenue_growth is not None and abs(revenue_growth) <= 10 and revenue_growth > 0.15:
         catalysts.append("Continued strong revenue growth could improve future earnings performance.")
-    if earnings_growth is not None and earnings_growth < 0:
+    if earnings_growth is not None and abs(earnings_growth) <= 10 and earnings_growth < 0:
         catalysts.append("A recovery in earnings growth could materially improve the investment outlook.")
     if technical_score < 50:
         catalysts.append("Improvement in technical momentum and trend confirmation could strengthen the setup.")
@@ -172,6 +173,13 @@ def generate_investment_thesis(
     current_price = _safe_float(trade_plan.get("current_price"))
     target_price = _safe_float(trade_plan.get("target_price"))
     stop_loss = _safe_float(trade_plan.get("stop_loss"))
+
+    if current_price is not None and current_price <= 0:
+        current_price = None
+    if target_price is not None and target_price <= 0:
+        target_price = None
+    if stop_loss is not None and stop_loss <= 0:
+        stop_loss = None
 
     if target_price is not None:
         bull_case = (
