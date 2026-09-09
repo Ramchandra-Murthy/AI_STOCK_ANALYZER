@@ -35,8 +35,19 @@ def test_block26d_audit_trace_observability():
         # Confidence metrics validation
         conf = data.get("confidence_metrics", {})
         assert "base_confidence" in conf
+        assert "confidence_penalty" in conf
         assert "adjusted_confidence" in conf
+        assert "decision_confidence" in conf
+
+        expected_market_confidence = max(
+            0.0,
+            float(conf["base_confidence"]) - float(conf["confidence_penalty"]),
+        )
+        assert abs(
+            float(conf["adjusted_confidence"]) - expected_market_confidence
+        ) < 1e-9
         assert float(conf["adjusted_confidence"]) <= float(conf["base_confidence"])
+        assert 0.0 <= float(conf["decision_confidence"]) <= 1.0
 
 def test_block26e_state_determinism_and_health():
     """
