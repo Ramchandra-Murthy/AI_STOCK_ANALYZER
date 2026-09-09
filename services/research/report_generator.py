@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -11,8 +11,8 @@ from services.sotp.sotp_engine import SOTPResult
 class EquityResearchReport:
     ticker: str
     company_name: str
-    current_price: float
-    target_price: float
+    current_price: float | None
+    target_price: float | None
     recommendation: str
     investment_thesis: str
     sotp_result: SOTPResult
@@ -32,8 +32,18 @@ class ResearchReportGenerator:
         investment_thesis: str,
         recommendation: str | None = None,
     ) -> EquityResearchReport:
+        """Build a report without creating a second investment recommendation.
+
+        The recommendation supplied by the authoritative decision layer is
+        preserved. Missing or unusable recommendation evidence is surfaced as
+        INSUFFICIENT DATA rather than being inferred from valuation upside.
+        """
         if current_price is None or target_price is None or current_price <= 0:
-            rec = recommendation or "INSUFFICIENT DATA"
+            rec = (
+                recommendation
+                if recommendation and recommendation not in ("N/A", "UNKNOWN")
+                else "INSUFFICIENT DATA"
+            )
             return EquityResearchReport(
                 ticker=ticker,
                 company_name=company_name,
@@ -49,16 +59,10 @@ class ResearchReportGenerator:
 
         if recommendation and recommendation not in ("N/A", "UNKNOWN"):
             rec = recommendation
-        elif upside >= 0.15:
-            rec = "BUY"
-        elif upside >= 0.05:
-            rec = "ACCUMULATE"
-        elif upside >= -0.05:
-            rec = "HOLD"
-        elif upside >= -0.15:
-            rec = "REDUCE"
+            status = Status.OK
         else:
-            rec = "SELL"
+            rec = "INSUFFICIENT DATA"
+            status = Status.ERROR
 
         logger.info(
             f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})"
@@ -72,4 +76,5 @@ class ResearchReportGenerator:
             recommendation=rec,
             investment_thesis=investment_thesis,
             sotp_result=sotp_result,
+            status=status,
         )
