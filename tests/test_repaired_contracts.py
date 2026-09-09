@@ -2,14 +2,6 @@ import math
 
 import pandas as pd
 
-from modules.research import (
-    format_debt_to_equity,
-    format_market_cap,
-    format_percent,
-    format_price,
-    format_ratio,
-    safe_progress,
-)
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
 from services.recommendation_service import generate_recommendation
@@ -17,6 +9,14 @@ from services.score_service import calculate_investment_score, calculate_stabili
 from services.target_price_service import calculate_target_price
 from services.technical_score_service import calculate_technical_score
 from services.trade_plan_service import generate_trade_plan
+from services.ui_formatters import (
+    format_debt_to_equity,
+    format_market_cap,
+    format_percent,
+    format_price,
+    format_ratio,
+    safe_progress,
+)
 
 
 def _valid_history(rows=25):
