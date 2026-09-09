@@ -31,9 +31,21 @@ def generate_trade_plan(history: pd.DataFrame, technical_score: float | None = N
     if missing:
         return {"status": "ERROR", "message": f"Missing required column: {missing[0]}"}
 
+    for column in required_columns:
+        df[column] = pd.to_numeric(df[column], errors="coerce")
+
+    # Invalid/non-positive OHLC observations are not usable market evidence.
+    # Drop them before ATR and structural calculations so corrupted candles
+    # cannot manufacture support, resistance, or volatility levels.
     df = df.dropna(subset=required_columns)
+    df = df[
+        (df["High"] > 0)
+        & (df["Low"] > 0)
+        & (df["Close"] > 0)
+        & (df["High"] >= df["Low"])
+    ]
     if len(df) < 20:
-        return {"status": "ERROR", "message": "Insufficient historical data."}
+        return {"status": "ERROR", "message": "Insufficient valid historical data."}
 
     history_close = _safe_float(df["Close"].iloc[-1])
     if history_close is None or history_close <= 0:
