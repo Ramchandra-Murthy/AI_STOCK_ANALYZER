@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 from typing import Any
 
 from services.sotp_valuation_service import generate_sotp_valuation
@@ -298,7 +300,7 @@ def validate_sotp_valuation(
     if not retail_cap_respected:
         failures.append("RETAIL_MULTIPLE_CAP_FAILED")
 
-    if retail_multiple == 30.0:
+    if retail_multiple is not None and math.isclose(retail_multiple, 30.0, rel_tol=0.0, abs_tol=1e-9):
         warnings.append(
             "Retail valuation is operating at the 30x " "EV/EBITDA policy cap."
         )
