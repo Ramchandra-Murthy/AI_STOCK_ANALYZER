@@ -122,6 +122,7 @@ def calculate_fundamental_score(data):
         100
 
     Missing metrics do not automatically receive zero.
+    Invalid metrics are excluded from scoring.
     """
 
     if not isinstance(data, dict):
@@ -134,7 +135,12 @@ def calculate_fundamental_score(data):
     # ------------------------------------------------------
 
     pe = to_float(data.get("pe"))
+    if pe is not None and pe <= 0:
+        pe = None
+
     pb = to_float(data.get("pb"))
+    if pb is not None and pb <= 0:
+        pb = None
 
     roe = _percent(data.get("roe"))
     roa = _percent(data.get("roa"))
@@ -170,7 +176,7 @@ def calculate_fundamental_score(data):
 
     if pe is not None:
 
-        if 0 < pe <= 15:
+        if pe <= 15:
             points = 10
             reasons.append(f"P/E of {pe:.2f} indicates attractive valuation.")
 
@@ -194,7 +200,7 @@ def calculate_fundamental_score(data):
 
     if pb is not None:
 
-        if 0 < pb <= 1.5:
+        if pb <= 1.5:
             points = 10
             reasons.append(
                 f"P/B of {pb:.2f} indicates attractive book-value valuation."
