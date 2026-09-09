@@ -1,9 +1,13 @@
+import math
+
+
 def _safe_float(value, default=None):
-    """Safely convert a value to float."""
+    """Safely convert a value to a finite float."""
     try:
         if value is None:
             return default
-        return float(value)
+        number = float(value)
+        return number if math.isfinite(number) else default
     except (TypeError, ValueError):
         return default
 
@@ -17,12 +21,7 @@ def generate_scenario_analysis(
     score_breakdown,
     trade_plan,
 ):
-    """
-    Generate quantitative Bull / Base / Bear scenarios.
-
-    This service interprets existing analytical outputs.
-    It does not modify Investment Score V2.
-    """
+    """Generate scenarios without replacing unavailable evidence with neutral values."""
 
     data = data if isinstance(data, dict) else {}
     ai_result = ai_result if isinstance(ai_result, dict) else {}
@@ -33,8 +32,8 @@ def generate_scenario_analysis(
     technical_score = _safe_float(technical_score)
     fundamental_score = _safe_float(fundamental_score)
     ai_score = _safe_float(ai_result.get("score"))
+    stability_score = _safe_float(score_breakdown.get("Stability"))
 
-    # Do not fabricate scenarios when the upstream investment score is missing.
     if investment_score is None:
         return {
             "status": "UNAVAILABLE",
@@ -45,103 +44,76 @@ def generate_scenario_analysis(
             "reward_risk": None,
         }
 
-    technical_score = technical_score if technical_score is not None else 50.0
-    fundamental_score = fundamental_score if fundamental_score is not None else 50.0
-    ai_score = ai_score if ai_score is not None else 50.0
-
-    stability_score = (
-        _safe_float(
-            score_breakdown.get("Stability"),
-            0,
-        )
-        or 0
-    )
+    # Investment Score V2 requires Technical and Fundamental core evidence.
+    # Preserve the same contract here instead of manufacturing neutral 50s.
+    if technical_score is None or fundamental_score is None:
+        return {
+            "status": "INSUFFICIENT DATA",
+            "message": "Technical and Fundamental evidence are required for scenario analysis.",
+            "investment_score": investment_score,
+            "technical_score": technical_score,
+            "fundamental_score": fundamental_score,
+            "ai_score": ai_score,
+            "stability_score": stability_score,
+            "bull": None,
+            "base": None,
+            "bear": None,
+            "reward_risk": None,
+        }
 
     current_price = _safe_float(trade_plan.get("current_price"))
-
     target_price = _safe_float(trade_plan.get("target_price"))
-
     stop_loss = _safe_float(trade_plan.get("stop_loss"))
-
-    # ======================================================
-    # RETURN CALCULATIONS
-    # ======================================================
 
     bull_return = None
     bear_return = None
 
     if current_price is not None and current_price > 0 and target_price is not None:
-        bull_return = ((target_price - current_price) / current_price) * 100
+        value = ((target_price - current_price) / current_price) * 100
+        bull_return = value if math.isfinite(value) else None
 
     if current_price is not None and current_price > 0 and stop_loss is not None:
-        bear_return = ((stop_loss - current_price) / current_price) * 100
-
-    # ======================================================
-    # RISK / REWARD
-    # ======================================================
+        value = ((stop_loss - current_price) / current_price) * 100
+        bear_return = value if math.isfinite(value) else None
 
     upside_amount = None
     downside_amount = None
     reward_risk = None
 
     if current_price is not None and target_price is not None:
-        upside_amount = max(
-            target_price - current_price,
-            0,
-        )
+        upside_amount = max(target_price - current_price, 0)
 
     if current_price is not None and stop_loss is not None:
-        downside_amount = max(
-            current_price - stop_loss,
-            0,
-        )
+        downside_amount = max(current_price - stop_loss, 0)
 
-    if (
-        upside_amount is not None
-        and downside_amount is not None
-        and downside_amount > 0
-    ):
-        reward_risk = upside_amount / downside_amount
+    if upside_amount is not None and downside_amount is not None and downside_amount > 0:
+        value = upside_amount / downside_amount
+        reward_risk = value if math.isfinite(value) else None
 
-    # ======================================================
-    # LONG-TERM THESIS
-    # ======================================================
-
-    if fundamental_score >= 75 and stability_score >= 70:
+    # Stability is optional evidence. Do not turn missing stability into a
+    # genuine zero score or imply weak stability when the metric is absent.
+    if stability_score is None:
+        long_term_view = "UNAVAILABLE"
+    elif fundamental_score >= 75 and stability_score >= 70:
         long_term_view = "STRONG"
-
     elif fundamental_score >= 65 and stability_score >= 60:
         long_term_view = "MODERATELY CONSTRUCTIVE"
-
     elif fundamental_score >= 50:
         long_term_view = "NEUTRAL"
-
     else:
         long_term_view = "CAUTIOUS"
 
-    # ======================================================
-    # ENTRY QUALITY
-    # ======================================================
-
     if technical_score >= 75:
         entry_quality = "STRONG"
-
     elif technical_score >= 60:
         entry_quality = "FAVORABLE"
-
     elif technical_score >= 45:
         entry_quality = "NEUTRAL"
-
     else:
         entry_quality = "WEAK"
 
-    # Penalize poor reward/risk.
     if reward_risk is not None and reward_risk < 1:
         entry_quality = "WEAK"
-
-    # ======================================================
-    # ACTION
-    # ======================================================
 
     if (
         investment_score >= 75
@@ -149,7 +121,6 @@ def generate_scenario_analysis(
         and (reward_risk is None or reward_risk >= 1.5)
     ):
         action = "BUY"
-
     elif investment_score >= 55 and fundamental_score >= 60:
         if technical_score < 50:
             action = "HOLD / WAIT FOR TECHNICAL CONFIRMATION"
@@ -157,13 +128,8 @@ def generate_scenario_analysis(
             action = "HOLD / WAIT FOR BETTER ENTRY"
         else:
             action = "HOLD"
-
     else:
         action = "AVOID / REVIEW"
-
-    # ======================================================
-    # SCENARIO ASSUMPTIONS
-    # ======================================================
 
     bull_assumptions = [
         "Technical momentum improves.",
@@ -183,38 +149,31 @@ def generate_scenario_analysis(
         "Price moves toward the current risk-control level.",
     ]
 
-    # ======================================================
-    # RETURN RESULT
-    # ======================================================
-
     return {
+        "status": "OK",
         "current_price": current_price,
         "bull": {
             "price": target_price,
-            "return_percent": (
-                round(bull_return, 2) if bull_return is not None else None
-            ),
+            "return_percent": round(bull_return, 2) if bull_return is not None else None,
             "assumptions": bull_assumptions,
         },
         "base": {
             "price": current_price,
-            "return_percent": 0.0,
+            "return_percent": 0.0 if current_price is not None else None,
             "assumptions": base_assumptions,
         },
         "bear": {
             "price": stop_loss,
-            "return_percent": (
-                round(bear_return, 2) if bear_return is not None else None
-            ),
+            "return_percent": round(bear_return, 2) if bear_return is not None else None,
             "assumptions": bear_assumptions,
         },
-        "reward_risk": (round(reward_risk, 2) if reward_risk is not None else None),
+        "reward_risk": round(reward_risk, 2) if reward_risk is not None else None,
         "long_term_view": long_term_view,
         "entry_quality": entry_quality,
         "action": action,
         "investment_score": round(investment_score),
         "technical_score": round(technical_score),
         "fundamental_score": round(fundamental_score),
-        "ai_score": round(ai_score),
-        "stability_score": round(stability_score),
+        "ai_score": round(ai_score) if ai_score is not None else None,
+        "stability_score": round(stability_score) if stability_score is not None else None,
     }
