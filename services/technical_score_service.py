@@ -21,18 +21,21 @@ def _valid_number(value) -> bool:
 def calculate_technical_score(df):
     """Calculate a technical score and the observations supporting it.
 
-    The score starts at 50 and is adjusted by RSI, moving-average structure,
-    MACD, resistance, and support. The result is always bounded to 0-100.
+    A score is only produced when at least one supported technical indicator is
+    actually available. Missing indicator evidence is never converted into the
+    neutral baseline score of 50.
     """
     if df is None or getattr(df, "empty", True):
-        return 0, ["Historical price data is unavailable"]
+        return None, ["Historical price data is unavailable"]
 
     score = 50
     reasons = []
+    observed_components = 0
     latest = df.iloc[-1]
 
     # RSI
     if "RSI" in latest.index and _valid_number(latest["RSI"]):
+        observed_components += 1
         rsi = float(latest["RSI"])
         if rsi < 30:
             score += 15
@@ -53,6 +56,7 @@ def calculate_technical_score(df):
         and _valid_number(latest["EMA20"])
         and _valid_number(latest["EMA50"])
     ):
+        observed_components += 1
         ema20 = float(latest["EMA20"])
         ema50 = float(latest["EMA50"])
         if ema20 > ema50:
@@ -75,6 +79,7 @@ def calculate_technical_score(df):
         and _valid_number(latest["EMA50"])
         and _valid_number(latest["EMA200"])
     ):
+        observed_components += 1
         ema50 = float(latest["EMA50"])
         ema200 = float(latest["EMA200"])
         if ema50 > ema200:
@@ -97,6 +102,7 @@ def calculate_technical_score(df):
         and _valid_number(latest["MACD"])
         and _valid_number(latest["MACD_Signal"])
     ):
+        observed_components += 1
         macd = float(latest["MACD"])
         macd_signal = float(latest["MACD_Signal"])
         if macd > macd_signal:
@@ -121,6 +127,7 @@ def calculate_technical_score(df):
         and _valid_number(latest["Close"])
         and _valid_number(latest["Resistance"])
     ):
+        observed_components += 1
         close = float(latest["Close"])
         resistance = float(latest["Resistance"])
         if close > resistance:
@@ -136,6 +143,7 @@ def calculate_technical_score(df):
         and _valid_number(latest["Close"])
         and _valid_number(latest["Support"])
     ):
+        observed_components += 1
         close = float(latest["Close"])
         support = float(latest["Support"])
         if close > support:
@@ -147,9 +155,9 @@ def calculate_technical_score(df):
         else:
             reasons.append("Price is trading at support")
 
-    score = max(0, min(round(score), 100))
+    if observed_components == 0:
+        return None, ["Insufficient technical indicators for scoring"]
 
-    if not reasons:
-        reasons.append("Insufficient technical indicators for detailed analysis")
+    score = max(0, min(round(score), 100))
 
     return score, reasons
