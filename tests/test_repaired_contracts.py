@@ -1,0 +1,86 @@
+import math
+
+import pandas as pd
+
+from services.ai_service import get_ai_recommendation
+from services.fundamental_score_service import calculate_fundamental_score
+from services.recommendation_service import generate_recommendation
+from services.score_service import calculate_investment_score, calculate_stability_score
+from services.target_price_service import calculate_target_price
+from services.technical_score_service import calculate_technical_score
+from services.trade_plan_service import generate_trade_plan
+
+
+def _valid_history(rows=25):
+    return pd.DataFrame(
+        {
+            "High": [101.0 + i for i in range(rows)],
+            "Low": [99.0 + i for i in range(rows)],
+            "Close": [100.0 + i for i in range(rows)],
+        }
+    )
+
+
+def test_technical_score_requires_real_indicator_evidence():
+    history = _valid_history()
+    score, reasons = calculate_technical_score(history)
+    assert score is None
+    assert "Insufficient technical indicators for scoring" in reasons
+
+
+def test_fundamental_score_rejects_extreme_percentage_payloads():
+    score, _ = calculate_fundamental_score(
+        {
+            "roe": 25,
+            "roa": 0.05,
+            "profit_margin": 0.10,
+            "operating_margin": 0.12,
+        }
+    )
+    assert score is not None
+    assert 0 <= score <= 100
+
+
+def test_ai_component_returns_no_score_without_evidence():
+    result = get_ai_recommendation({}, None)
+    assert result["score"] is None
+
+
+def test_investment_score_requires_core_evidence():
+    score, breakdown = calculate_investment_score(None, 70, ai_result=None, data={})
+    assert score is None
+    assert breakdown["Score Status"] == "INSUFFICIENT CORE EVIDENCE"
+
+
+def test_stability_rejects_extreme_ratio_values():
+    score, reasons = calculate_stability_score(
+        {"beta": 1.0, "debt_to_equity": 10001, "current_ratio": 1.5}
+    )
+    assert score is not None
+    assert any("invalid" in reason.lower() for reason in reasons)
+
+
+def test_recommendation_rejects_non_finite_scores():
+    result = generate_recommendation(float("nan"))
+    assert result["recommendation"] == "INSUFFICIENT DATA"
+    assert result["overall_score"] is None
+
+
+def test_target_price_requires_valid_technical_evidence():
+    result = calculate_target_price(_valid_history(), technical_score=None)
+    assert result["status"] == "Insufficient technical evidence"
+    assert result["target_price"] is None
+
+
+def test_trade_plan_rejects_invalid_ohlc_rows():
+    history = _valid_history()
+    history.loc[0, "High"] = -1
+    history.loc[1, "High"] = 1
+    history.loc[1, "Low"] = 2
+    result = generate_trade_plan(history, technical_score=60)
+    assert result["status"] in {"ERROR", "INSUFFICIENT DATA"}
+
+
+def test_repaired_scores_remain_finite_when_present():
+    score, _ = calculate_stability_score({"beta": 1.0})
+    assert score is None or math.isfinite(score)
