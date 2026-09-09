@@ -94,7 +94,7 @@ def calculate_stability_score(data):
     debt_to_equity_raw = _safe_float(data.get("debt_to_equity"))
 
     if debt_to_equity_raw is not None:
-        if debt_to_equity_raw < 0:
+        if debt_to_equity_raw < 0 or debt_to_equity_raw > 10000:
             reasons.append(
                 f"Debt-to-equity value of {debt_to_equity_raw:.2f}% is invalid for scoring."
             )
@@ -132,7 +132,7 @@ def calculate_stability_score(data):
     current_ratio = _safe_float(data.get("current_ratio"))
 
     if current_ratio is not None:
-        if current_ratio <= 0:
+        if current_ratio <= 0 or current_ratio > 1000:
             reasons.append(
                 f"Current ratio of {current_ratio:.2f}x is invalid for scoring."
             )
@@ -266,6 +266,22 @@ def calculate_investment_score(
         }
 
     weighted_sum = sum(score * weight for score, weight, _ in components)
+    if not math.isfinite(weighted_sum):
+        return None, {
+            "Technical": technical[0] if technical is not None else None,
+            "Fundamental": fundamental[0] if fundamental is not None else None,
+            "AI": ai[0] if ai is not None else None,
+            "Stability": stability[0] if stability is not None else None,
+            "Technical Contribution": None,
+            "Fundamental Contribution": None,
+            "AI Contribution": None,
+            "Stability Contribution": None,
+            "Stability Reasons": stability_reasons,
+            "Available Evidence": [name for _, _, name in components],
+            "Evidence Weight": total_weight,
+            "Score Status": "INVALID AGGREGATE",
+        }
+
     overall = round(_clamp(weighted_sum / total_weight))
 
     raw = {name: score for score, _, name in components}
@@ -297,8 +313,6 @@ def calculate_investment_score(
         "Evidence Weight": total_weight,
     }
 
-    # Report contributions as additive components of the unrounded aggregate.
-    # Keep the rounded displayed score consistent with the same calculation.
     for key in (
         "Technical Contribution",
         "Fundamental Contribution",
