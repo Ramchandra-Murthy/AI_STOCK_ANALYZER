@@ -1,9 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from dataclasses import dataclass
+
 
 @dataclass(slots=True)
 class CashFlowStatement:
     """Standardized cash flow statement for one reporting period."""
+
     period: str = "FY2025"
     net_income: float = 0.0
     depreciation_and_amortization: float = 0.0
