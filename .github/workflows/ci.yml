@@ -35,6 +35,16 @@ jobs:
           python -m pip install --only-binary=:all: "mypy==1.17.1"
           python -m pip install --no-deps -e .
 
+      - name: Verify Project Import
+        run: |
+          python - <<'PY'
+          import backend
+          import core
+          import services
+          import api
+          print("PROJECT IMPORTS: PASS")
+          PY
+
       - name: Source Compile Audit
         run: |
           python -m compileall -q backend core services api tests
