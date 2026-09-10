@@ -1,13 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 """
-==========================================================
-STANDARD FINANCIAL STATEMENT MODEL
-Module  : financial_statement
-Version : V1.1
-==========================================================
-
-Canonical financial statement container used throughout EROS.
+Canonical financial statement model used throughout EROS.
 """
 
 from dataclasses import dataclass, field
@@ -36,11 +30,9 @@ class FinancialStatements:
     ticker: str
     currency: str
     fiscal_year: str
-
     income_statement: IncomeStatement
     balance_sheet: BalanceSheet
     cash_flow_statement: CashFlowStatement
-
     periods: list[PeriodFinancials] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -53,24 +45,25 @@ class FinancialStatements:
     def income_statements(self) -> list[IncomeStatement]:
         """Compatibility view of all income statements."""
         if self.periods:
-            return [p.income_statement for p in self.periods]
+            return [period.income_statement for period in self.periods]
         return [self.income_statement]
 
     @property
     def balance_sheets(self) -> list[BalanceSheet]:
         """Compatibility view of all balance sheets."""
         if self.periods:
-            return [p.balance_sheet for p in self.periods]
+            return [period.balance_sheet for period in self.periods]
         return [self.balance_sheet]
 
     @property
     def cash_flows(self) -> list[CashFlowStatement]:
         """Compatibility view of all cash-flow statements."""
         if self.periods:
-            return [p.cash_flow_statement for p in self.periods]
+            return [period.cash_flow_statement for period in self.periods]
         return [self.cash_flow_statement]
 
     def summary(self) -> dict[str, Any]:
+        """Return a compact summary of the canonical current-period statements."""
         return {
             "company": self.company_name,
             "ticker": self.ticker,
