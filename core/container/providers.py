@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Any, Callable, TypeVar, Generic
@@ -18,7 +18,7 @@ class BaseProvider(ABC, Generic[T]):
 class SingletonProvider(BaseProvider[T]):
     """Provider that maintains a single shared instance across resolutions."""
 
-    def __init__(self, factory: Callable[..., T]) -> T:
+    def __init__(self, factory: Callable[..., T]) -> None:
         self._factory = factory
         self._instance: T | None = None
 
