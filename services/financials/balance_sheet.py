@@ -1,9 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from dataclasses import dataclass
+
 
 @dataclass(slots=True)
 class BalanceSheet:
     """Standardized balance sheet for one reporting period."""
+
     period: str = "FY2025"
     cash: float = 0.0
     cash_equivalents: float = 0.0
