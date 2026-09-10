@@ -1,12 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Dict
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
 class DCFValuation:
     """Discounted Cash Flow (DCF) valuation model output."""
+
     implied_value: float
     wacc: float
     terminal_growth_rate: float
@@ -17,6 +17,7 @@ class DCFValuation:
 @dataclass(frozen=True, slots=True)
 class RelativeValuation:
     """Peer comparison and relative valuation (P/E, EV/EBITDA)."""
+
     pe_implied_value: float
     ev_ebitda_implied_value: float
     sector_pe_benchmark: float
@@ -25,6 +26,7 @@ class RelativeValuation:
 @dataclass(frozen=True, slots=True)
 class ValuationResult:
     """Comprehensive institutional valuation summary."""
+
     symbol: str
     dcf: DCFValuation
     relative: RelativeValuation
