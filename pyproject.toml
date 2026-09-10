@@ -8,6 +8,10 @@ version = "0.6.0"
 description = "AI-powered stock analysis and valuation platform"
 requires-python = ">=3.13"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*", "core*", "services*", "api*"]
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q"
