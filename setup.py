@@ -1,4 +1,4 @@
-﻿from setuptools import setup, find_packages
+from setuptools import setup, find_packages
 
 setup(
     name="ai_stock_analyzer",
@@ -18,7 +18,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "analyze-stock=main:main",  # CLI command
+            "analyze-stock=main:main",
         ]
     },
     python_requires=">=3.9",
