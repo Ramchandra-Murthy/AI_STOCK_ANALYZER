@@ -1,9 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from dataclasses import dataclass
+
 
 @dataclass(slots=True)
 class IncomeStatement:
     """Standardized income statement for one reporting period."""
+
     period: str = "FY2025"
     revenue: float = 0.0
     operating_income: float = 0.0
