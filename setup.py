@@ -1,10 +1,13 @@
-from setuptools import setup, find_packages
+from setuptools import find_namespace_packages, setup
+
 
 setup(
     name="ai_stock_analyzer",
     version="1.0.0",
     author="Ramchandra-Murthy",
-    packages=find_packages(),
+    packages=find_namespace_packages(
+        include=["backend*", "core*", "services*", "api*"]
+    ),
     install_requires=[
         "streamlit",
         "yfinance",
@@ -21,5 +24,5 @@ setup(
             "analyze-stock=main:main",
         ]
     },
-    python_requires=">=3.9",
+    python_requires=">=3.13",
 )
