@@ -1,16 +1,10 @@
-﻿import streamlit as st
+import streamlit as st
 
-# ==========================================================
-# COMPONENTS
-# ==========================================================
 from components.charts.candlestick_chart import plot_candlestick
 from components.technical_summary import show_technical_summary
-
-# ==========================================================
-# SERVICES
-# ==========================================================
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
+from services.investment_thesis_service import generate_investment_thesis
 from services.news_service import get_company_news
 from services.recommendation_service import generate_recommendation
 from services.research_service import get_stock_profile
@@ -30,11 +24,6 @@ from services.ui_formatters import (
 )
 from services.valuation_service import generate_valuation_analysis
 from services.valuation_v43_service import generate_valuation_v43
-from services.investment_thesis_service import generate_investment_thesis
-
-# ==========================================================
-# MAIN SCREEN
-# ==========================================================
 
 
 def show():
