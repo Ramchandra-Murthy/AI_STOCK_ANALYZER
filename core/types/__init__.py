@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from enum import StrEnum
+from enum import Enum, StrEnum
 
 from core.exceptions import ValidationError
 
