@@ -2,56 +2,82 @@ from __future__ import annotations
 
 from typing import Any
 
-from domain.valuation.result import ValuationMethod, ValuationResult, ValuationStatus
-
-
-class BaseValuationEngine:
-    """Abstract base class for valuation engines."""
-
-    def __init__(self) -> None:
-        pass
-
-    @property
-    def valuation_method(self) -> str:
-        raise NotImplementedError
-
-    def evaluate(self, data: Any) -> Any:
-        raise NotImplementedError
-
-    def value(self, data: Any) -> Any:
-        return self.evaluate(data)
+from services.valuation.base_engine import BaseValuationEngine
+from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
 
 
 class SOTPValuationEngine(BaseValuationEngine):
-    """Adapter for SOTP Valuation Engine conforming to BaseValuationEngine."""
+    """Sum-of-the-parts valuation adapter with dispatcher compatibility."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, dispatcher: Any | None = None) -> None:
+        self.dispatcher = dispatcher
 
     @property
     def valuation_method(self) -> str:
-        return "SOTP"
+        return ValuationMethod.SOTP.value
 
-    def evaluate(self, data: Any) -> ValuationResult:
-        from services.valuation.sotp_long_term_equity_valuation_service import (
-            SOTPLongTermValuationService,
-        )
+    def value(
+        self,
+        entity: Any = None,
+        *,
+        entities: list[dict[str, Any]] | None = None,
+        net_debt: float = 0.0,
+        shares_outstanding: float = 1.0,
+        holdco_discount: float = 0.0,
+    ) -> ValuationResult:
+        """Value one entity or aggregate a collection of segment entities."""
+        if entities is None:
+            return self._value_single(entity)
 
-        company_name = data.get("company_name", "Target Co")
-        shares = data.get("shares_outstanding", 1.0)
-        service = SOTPLongTermValuationService(company_name, shares)
-        res = service.evaluate_sotp(
-            dcf_segments_raw=data.get("dcf_segments", []),
-            other_segments_raw=data.get("other_segments", []),
-            holdco_discount=data.get("holdco_discount", 0.0),
-        )
+        component_results: list[ValuationResult] = []
+        enterprise_value = 0.0
+        equity_value = 0.0
+
+        for item in entities:
+            method = str(item.get("valuation_method", "")).upper()
+            if self.dispatcher is None:
+                result = self._pending_component(item)
+            else:
+                result = self.dispatcher.value(method, item)
+            component_results.append(result)
+            enterprise_value += result.enterprise_value
+            equity_value += result.equity_value
+
+        equity_value -= net_debt
+        equity_value *= 1.0 - holdco_discount
+        implied_share_price = equity_value / shares_outstanding if shares_outstanding else 0.0
+
         return ValuationResult(
             method=ValuationMethod.SOTP,
-            enterprise_value=res.total_enterprise_value,
-            equity_value=res.total_equity_value,
-            implied_share_price=res.implied_share_price,
-            status=ValuationStatus.SUCCESS,
-            details={"notes": "Evaluated successfully via modular SOTP engine"},
+            entity_name="SOTP",
+            valuation_status=ValuationStatus.SUCCESS,
+            enterprise_value=enterprise_value,
+            equity_value=equity_value,
+            implied_share_price=implied_share_price,
+            component_results=component_results,
+            diagnostics={"net_debt": net_debt, "holdco_discount": holdco_discount},
+        )
+
+    def evaluate(self, data: Any) -> ValuationResult:
+        """Backward-compatible alias for :meth:`value`."""
+        return self.value(data)
+
+    def _value_single(self, entity: Any) -> ValuationResult:
+        if self.dispatcher is not None and isinstance(entity, dict):
+            method = str(entity.get("valuation_method", "")).upper()
+            return self.dispatcher.value(method, entity)
+        return self._pending_component(entity)
+
+    @staticmethod
+    def _pending_component(entity: Any) -> ValuationResult:
+        name = entity.get("segment_name", "Unknown") if isinstance(entity, dict) else str(entity)
+        return ValuationResult(
+            method=ValuationMethod.SOTP,
+            entity_name=name,
+            valuation_status=ValuationStatus.PENDING,
+            enterprise_value=0.0,
+            equity_value=0.0,
+            diagnostics={"error": "No valuation dispatcher is configured for this component."},
         )
 
 
