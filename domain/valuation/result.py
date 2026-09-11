@@ -1,17 +1,21 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Dict, Optional
 
-class ValuationMethod(str, Enum):
+from dataclasses import dataclass, field
+from enum import StrEnum
+from typing import Any
+
+
+class ValuationMethod(StrEnum):
     DCF = "DCF"
     NAV = "NAV"
     SOTP = "SOTP"
 
-class ValuationStatus(str, Enum):
+
+class ValuationStatus(StrEnum):
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
     PENDING = "PENDING"
+
 
 @dataclass
 class ValuationResult:
@@ -20,4 +24,4 @@ class ValuationResult:
     equity_value: float = 0.0
     implied_share_price: float = 0.0
     status: ValuationStatus = ValuationStatus.SUCCESS
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
