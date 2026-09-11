@@ -1,11 +1,13 @@
-﻿"""
+"""
 ==========================================================
 Service Registry Enums
 ==========================================================
 """
-from enum import Enum
 
-class ServiceKey(str, Enum):
+from enum import StrEnum
+
+
+class ServiceKey(StrEnum):
     RESEARCH = "research"
     FORECAST = "forecast"
     PORTFOLIO = "portfolio"
