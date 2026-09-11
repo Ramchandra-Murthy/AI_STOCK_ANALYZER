@@ -22,7 +22,9 @@ class DCFValuationEngine(BaseValuationEngine):
             entity_name=result.company_name,
             valuation_method=ValuationMethod.DCF,
             valuation_status=(
-                ValuationStatus.COMPLETE if result.validation_passed else ValuationStatus.INCOMPLETE
+                ValuationStatus.COMPLETE
+                if result.validation_passed
+                else ValuationStatus.INCOMPLETE
             ),
             enterprise_value=result.enterprise_value,
             equity_value=result.equity_value,
