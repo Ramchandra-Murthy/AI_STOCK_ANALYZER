@@ -1,57 +1,51 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import logging
-from typing import Any
+from math import isfinite
+
 from services.moat.models import EconomicMoatResult
 from services.ratios.models import FinancialRatios
 
 logger = logging.getLogger(__name__)
 
+
 class EconomicMoatEngine:
-    """Evaluates sustainable competitive advantages (Economic Moats) based on profitability, pricing power, and capital returns."""
+    """Evaluate competitive-advantage signals from supplied financial ratios."""
 
     def evaluate_moat(self, ratios: FinancialRatios) -> EconomicMoatResult:
-        logger.info("Evaluating economic moat for %s", ratios.symbol)
-        
-        roe = ratios.profitability.get("roe", 0.0)
-        roic = ratios.profitability.get("roic", 0.0)
-        net_margin = ratios.profitability.get("net_margin", 0.0)
-        
-        # Quantitative moat scoring based on return on invested capital and consistent margins
-        score = 0.0
-        if roic > 20.0:
-            score += 40.0
-        elif roic > 12.0:
-            score += 25.0
-        else:
-            score += 10.0
+        if not isinstance(ratios, FinancialRatios):
+            raise TypeError("ratios must be a FinancialRatios instance")
+        symbol = ratios.symbol.strip().upper()
+        if not symbol:
+            raise ValueError("ratios.symbol must be non-empty")
 
-        if net_margin > 15.0:
-            score += 35.0
-        elif net_margin > 8.0:
-            score += 20.0
-        else:
-            score += 5.0
+        profitability = ratios.profitability
+        roe = float(profitability.get("roe", 0.0))
+        roic = float(profitability.get("roic", 0.0))
+        net_margin = float(profitability.get("net_margin", 0.0))
+        for value in (roe, roic, net_margin):
+            if not isfinite(value):
+                raise ValueError("moat inputs must be finite")
 
-        if roe > 15.0:
-            score += 25.0
-        else:
-            score += 10.0
+        # Scores are intentionally based only on supplied, validated ratio evidence.
+        roic_score = 40.0 if roic > 20.0 else 25.0 if roic > 12.0 else 10.0 if roic >= 0.0 else 0.0
+        margin_score = 35.0 if net_margin > 15.0 else 20.0 if net_margin > 8.0 else 5.0 if net_margin >= 0.0 else 0.0
+        roe_score = 25.0 if roe > 15.0 else 10.0 if roe >= 0.0 else 0.0
+        score = min(max(roic_score + margin_score + roe_score, 0.0), 100.0)
 
-        score = min(max(score, 0.0), 100.0)
-
-        classification = "Wide Moat" if score >= 80.0 else ("Narrow Moat" if score >= 50.0 else "No Moat")
-
-        factors = {
-            "pricing_power": net_margin * 2.0,
-            "capital_returns": roic * 2.5,
-            "brand_strength": roe * 1.5
-        }
-
+        classification = "Wide Moat" if score >= 80.0 else "Narrow Moat" if score >= 50.0 else "No Moat"
         return EconomicMoatResult(
-            symbol=ratios.symbol,
+            symbol=symbol,
             moat_score=score,
             moat_classification=classification,
-            factors=factors,
-            metadata={"version": "6.4", "framework": "Buffett-Greenwald Moat Criteria"}
+            factors={
+                "roic_signal": roic_score,
+                "net_margin_signal": margin_score,
+                "roe_signal": roe_score,
+            },
+            metadata={
+                "version": "6.5",
+                "framework": "Quantitative return-and-margin screen",
+                "input_status": "VALIDATED_FINANCIAL_RATIOS",
+            },
         )
