@@ -1,17 +1,19 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class RatioCategoryResult:
     category_name: str
     symbol: str
     period: str
-    metrics: Dict[str, float] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metrics: dict[str, float] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class FinancialRatios:
     period: str
     symbol: str = "UNKNOWN"
@@ -26,12 +28,12 @@ class FinancialRatios:
     debt_to_equity: float = 0.0
     interest_coverage: float = 0.0
     asset_turnover: float = 0.0
-    profitability: Dict[str, float] = field(default_factory=dict)
-    liquidity: Dict[str, float] = field(default_factory=dict)
-    solvency: Dict[str, float] = field(default_factory=dict)
-    efficiency: Dict[str, float] = field(default_factory=dict)
-    growth: Dict[str, float] = field(default_factory=dict)
-    cash_flow: Dict[str, float] = field(default_factory=dict)
-    quality_scores: Dict[str, float] = field(default_factory=dict)
-    metrics: Dict[str, float] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    profitability: dict[str, float] = field(default_factory=dict)
+    liquidity: dict[str, float] = field(default_factory=dict)
+    solvency: dict[str, float] = field(default_factory=dict)
+    efficiency: dict[str, float] = field(default_factory=dict)
+    growth: dict[str, float] = field(default_factory=dict)
+    cash_flow: dict[str, float] = field(default_factory=dict)
+    quality_scores: dict[str, float] = field(default_factory=dict)
+    metrics: dict[str, float] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
