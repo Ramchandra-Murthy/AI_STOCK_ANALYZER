@@ -13,8 +13,26 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-MARKET_INDICES = {"NIFTY 50": "^NSEI", "SENSEX": "^BSESN", "BANK NIFTY": "^NSEBANK", "INDIA VIX": "^INDIAVIX", "USD/INR": "INR=X", "GOLD": "GC=F"}
-WATCHLIST = {"RELIANCE": "RELIANCE.NS", "TCS": "TCS.NS", "INFY": "INFY.NS", "HDFCBANK": "HDFCBANK.NS", "ICICIBANK": "ICICIBANK.NS", "SBIN": "SBIN.NS", "LT": "LT.NS", "ITC": "ITC.NS", "BHARTIARTL": "BHARTIARTL.NS", "HINDUNILVR": "HINDUNILVR.NS"}
+MARKET_INDICES = {
+    "NIFTY 50": "^NSEI",
+    "SENSEX": "^BSESN",
+    "BANK NIFTY": "^NSEBANK",
+    "INDIA VIX": "^INDIAVIX",
+    "USD/INR": "INR=X",
+    "GOLD": "GC=F",
+}
+WATCHLIST = {
+    "RELIANCE": "RELIANCE.NS",
+    "TCS": "TCS.NS",
+    "INFY": "INFY.NS",
+    "HDFCBANK": "HDFCBANK.NS",
+    "ICICIBANK": "ICICIBANK.NS",
+    "SBIN": "SBIN.NS",
+    "LT": "LT.NS",
+    "ITC": "ITC.NS",
+    "BHARTIARTL": "BHARTIARTL.NS",
+    "HINDUNILVR": "HINDUNILVR.NS",
+}
 
 
 def _clean_close_series(history: pd.DataFrame) -> pd.Series:
@@ -28,7 +46,9 @@ def _clean_close_series(history: pd.DataFrame) -> pd.Series:
     return pd.to_numeric(close, errors="coerce").dropna()
 
 
-def _get_last_observation(ticker: str) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
+def _get_last_observation(
+    ticker: str,
+) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
     """Return the freshest provider observation without claiming tick-level data."""
     try:
         symbol = yf.Ticker(ticker)
@@ -54,8 +74,17 @@ def _get_last_observation(ticker: str) -> tuple[float | None, float | None, floa
                 previous = float(close.iloc[-2])
             change = ((latest - previous) / previous) * 100 if previous else None
             timestamp = close.index[-1]
-            observed_at = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
-            return round(latest, 2), round(change, 2) if change is not None else None, round(previous, 2) if previous is not None else None, observed_at, "intraday_1m", True
+            observed_at = (
+                timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
+            )
+            return (
+                round(latest, 2),
+                round(change, 2) if change is not None else None,
+                round(previous, 2) if previous is not None else None,
+                observed_at,
+                "intraday_1m",
+                True,
+            )
 
         daily = symbol.history(period="5d", interval="1d", auto_adjust=True)
         close = _clean_close_series(daily)
@@ -66,7 +95,14 @@ def _get_last_observation(ticker: str) -> tuple[float | None, float | None, floa
         change = ((latest - previous) / previous) * 100 if previous else None
         timestamp = close.index[-1]
         observed_at = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
-        return round(latest, 2), round(change, 2) if change is not None else None, round(previous, 2) if previous is not None else None, observed_at, "daily", False
+        return (
+            round(latest, 2),
+            round(change, 2) if change is not None else None,
+            round(previous, 2) if previous is not None else None,
+            observed_at,
+            "daily",
+            False,
+        )
     except Exception:
         return None, None, None, None, "unavailable", False
 
@@ -75,27 +111,64 @@ def get_latest_available_price(symbol: str) -> dict[str, Any]:
     normalized = symbol.strip().upper()
     if "." not in normalized:
         normalized += ".NS"
-    value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(normalized)
-    return {"symbol": normalized, "price": value, "previous_close": previous_close, "change_pct": change, "observed_at": observed_at, "source": "Yahoo Finance", "frequency": frequency, "is_tick_live": False, "is_intraday": is_intraday}
+    value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+        normalized
+    )
+    return {
+        "symbol": normalized,
+        "price": value,
+        "previous_close": previous_close,
+        "change_pct": change,
+        "observed_at": observed_at,
+        "source": "Yahoo Finance",
+        "frequency": frequency,
+        "is_tick_live": False,
+        "is_intraday": is_intraday,
+    }
 
 
 def get_market_indices() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     for name, ticker in MARKET_INDICES.items():
-        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(ticker)
-        result[name] = {"value": value, "previous_close": previous_close, "change": change, "observed_at": observed_at, "source": "Yahoo Finance", "frequency": frequency, "is_tick_live": False, "is_intraday": is_intraday}
+        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+            ticker
+        )
+        result[name] = {
+            "value": value,
+            "previous_close": previous_close,
+            "change": change,
+            "observed_at": observed_at,
+            "source": "Yahoo Finance",
+            "frequency": frequency,
+            "is_tick_live": False,
+            "is_intraday": is_intraday,
+        }
     return result
 
 
 def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
     rows: list[dict[str, Any]] = []
     for name, ticker in WATCHLIST.items():
-        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(ticker)
+        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+            ticker
+        )
         if value is not None and change is not None:
-            rows.append({"Symbol": name, "Price": value, "Previous Close": previous_close, "Change %": change, "Observed": observed_at, "Frequency": frequency, "Intraday": is_intraday})
+            rows.append(
+                {
+                    "Symbol": name,
+                    "Price": value,
+                    "Previous Close": previous_close,
+                    "Change %": change,
+                    "Observed": observed_at,
+                    "Frequency": frequency,
+                    "Intraday": is_intraday,
+                }
+            )
     columns = ["Symbol", "Price", "Previous Close", "Change %", "Observed", "Frequency", "Intraday"]
     if not rows:
         empty = pd.DataFrame(columns=columns)
         return empty, empty.copy()
     frame = pd.DataFrame(rows, columns=columns)
-    return frame.sort_values("Change %", ascending=False).head(5).reset_index(drop=True), frame.sort_values("Change %", ascending=True).head(5).reset_index(drop=True)
+    return frame.sort_values("Change %", ascending=False).head(5).reset_index(
+        drop=True
+    ), frame.sort_values("Change %", ascending=True).head(5).reset_index(drop=True)

@@ -28,21 +28,15 @@ def main() -> None:
     scenario = ForecastScenario(
         scenario_name="Enterprise Base Case",
         method=ForecastMethod.CAGR,
-        revenue=RevenueForecast(
-            values=(5000.0, 5500.0, 6050.0), years=(2026, 2027, 2028)
-        ),
+        revenue=RevenueForecast(values=(5000.0, 5500.0, 6050.0), years=(2026, 2027, 2028)),
         margins=MarginForecast(values=(0.22, 0.23, 0.24), years=(2026, 2027, 2028)),
         capex=CapexForecast(values=(250.0, 275.0, 300.0), years=(2026, 2027, 2028)),
-        depreciation=DepreciationForecast(
-            values=(100.0, 110.0, 120.0), years=(2026, 2027, 2028)
-        ),
+        depreciation=DepreciationForecast(values=(100.0, 110.0, 120.0), years=(2026, 2027, 2028)),
         working_capital=WorkingCapitalForecast(
             values=(500.0, 550.0, 605.0), years=(2026, 2027, 2028)
         ),
         taxes=TaxForecast(values=(0.25, 0.25, 0.25), years=(2026, 2027, 2028)),
-        terminal_growth=TerminalGrowthForecast(
-            rate=0.03, confidence=ConfidenceLevel.HIGH
-        ),
+        terminal_growth=TerminalGrowthForecast(rate=0.03, confidence=ConfidenceLevel.HIGH),
         confidence=ForecastConfidence(score=92.5, level=ConfidenceLevel.HIGH),
         assumptions=ForecastAssumption(
             revenue_growth_rate=0.10,

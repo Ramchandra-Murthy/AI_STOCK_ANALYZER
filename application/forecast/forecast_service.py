@@ -20,6 +20,4 @@ class ForecastApplicationService:
                 method=ForecastMethod.CAGR,
             )
         else:
-            raise NotImplementedError(
-                f"Forecast method {assumption.method} is not yet supported."
-            )
+            raise NotImplementedError(f"Forecast method {assumption.method} is not yet supported.")

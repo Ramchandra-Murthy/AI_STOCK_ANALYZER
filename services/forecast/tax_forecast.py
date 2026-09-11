@@ -39,9 +39,7 @@ class TaxForecastEngine:
         # Calculate projected taxes on projected EBIT if supplied, otherwise return empty
         projected_ebits = kwargs.get("projected_ebit", ())
         if projected_ebits:
-            projected = tuple(
-                round(ebit * effective_rate, 4) for ebit in projected_ebits
-            )
+            projected = tuple(round(ebit * effective_rate, 4) for ebit in projected_ebits)
         else:
             projected = (0.0,) * inp.forecast_years
 

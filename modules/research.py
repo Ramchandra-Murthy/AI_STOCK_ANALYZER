@@ -75,10 +75,7 @@ def show():
         return
 
     if entered_symbol and entered_symbol != symbol:
-        st.info(
-            f"Showing analysis for {symbol}. "
-            f"Click Analyze to load {entered_symbol}."
-        )
+        st.info(f"Showing analysis for {symbol}. " f"Click Analyze to load {entered_symbol}.")
 
     try:
         with st.spinner("Fetching stock information..."):

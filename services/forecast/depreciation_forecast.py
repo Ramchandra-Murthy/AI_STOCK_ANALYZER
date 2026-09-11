@@ -49,9 +49,7 @@ class DepreciationForecastEngine:
         if projected_revenues is not None:
             projected = tuple(round(rev * dep_ratio, 4) for rev in projected_revenues)
         else:
-            last_dep = (
-                inp.historical_depreciation[-1] if inp.historical_depreciation else 5.0
-            )
+            last_dep = inp.historical_depreciation[-1] if inp.historical_depreciation else 5.0
             projected = (round(last_dep, 4),) * inp.forecast_years
 
         return DepreciationForecast(

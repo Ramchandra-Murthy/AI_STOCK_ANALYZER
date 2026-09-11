@@ -319,14 +319,10 @@ def generate_operating_sotp_valuation(symbol):
         0,
     )
 
-    coverage = (
-        valued_count / operating_segment_count if operating_segment_count > 0 else 0.0
-    )
+    coverage = valued_count / operating_segment_count if operating_segment_count > 0 else 0.0
 
     weighted_reliability = (
-        reliability_numerator / reliability_denominator
-        if reliability_denominator > 0
-        else 0.0
+        reliability_numerator / reliability_denominator if reliability_denominator > 0 else 0.0
     )
 
     return {

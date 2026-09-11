@@ -72,9 +72,7 @@ def _get_authorized_entities(
 
 def _compute_enterprise_value(eligible_records: list[dict[str, Any]]) -> float:
     """Computes total Enterprise Value across eligible components (nulls treated as 0.0)."""
-    return sum(
-        float(record.get("enterprise_value") or 0.0) for record in eligible_records
-    )
+    return sum(float(record.get("enterprise_value") or 0.0) for record in eligible_records)
 
 
 def _compute_total_cash(eligible_records: list[dict[str, Any]]) -> float:
@@ -89,9 +87,7 @@ def _compute_total_net_debt(eligible_records: list[dict[str, Any]]) -> float:
 
 def _compute_minority_interest(eligible_records: list[dict[str, Any]]) -> float:
     """Computes total minority interest across eligible components."""
-    return sum(
-        float(record.get("minority_interest") or 0.0) for record in eligible_records
-    )
+    return sum(float(record.get("minority_interest") or 0.0) for record in eligible_records)
 
 
 def _compute_equity_value(
@@ -107,9 +103,7 @@ def _compute_equity_value(
     return enterprise_value + cash - debt - minority_interest
 
 
-def _compute_intrinsic_value(
-    equity_value: float, holding_discount_pct: float = 0.0
-) -> float:
+def _compute_intrinsic_value(equity_value: float, holding_discount_pct: float = 0.0) -> float:
     """
     Computes Intrinsic Value from Equity Value.
     Allows for future holding company / cross-holding adjustments.
@@ -233,10 +227,7 @@ def get_sotp_long_term_equity_sotp_service(
     """
     # 1. Fetch and guard upstream Valuation Service status
     valuation_payload = get_sotp_long_term_equity_valuation(symbol)
-    if (
-        not isinstance(valuation_payload, dict)
-        or valuation_payload.get("status") != STATUS_OK
-    ):
+    if not isinstance(valuation_payload, dict) or valuation_payload.get("status") != STATUS_OK:
         return {
             "status": STATUS_UNAVAILABLE,
             "symbol": symbol,
@@ -249,8 +240,7 @@ def get_sotp_long_term_equity_sotp_service(
     # 2. Validate expected entity population
     if len(all_records) != EXPECTED_ENTITY_COUNT:
         raise RuntimeError(
-            f"Expected {EXPECTED_ENTITY_COUNT} valuation records, "
-            f"found {len(all_records)}."
+            f"Expected {EXPECTED_ENTITY_COUNT} valuation records, " f"found {len(all_records)}."
         )
 
     # 3. Filter authorized components
@@ -328,12 +318,8 @@ if __name__ == "__main__":
     result = get_sotp_long_term_equity_sotp_service("RELIANCE")
 
     # Required Self-Test Assertions
-    assert (
-        result["status"] == STATUS_OK
-    ), f"Expected {STATUS_OK}, got {result['status']}"
-    assert (
-        result["aggregation_complete"] is True
-    ), "Aggregation stage not marked complete"
+    assert result["status"] == STATUS_OK, f"Expected {STATUS_OK}, got {result['status']}"
+    assert result["aggregation_complete"] is True, "Aggregation stage not marked complete"
     assert (
         result["validation_error_count"] == 0
     ), f"Expected 0 errors, got {result['validation_error_count']}"

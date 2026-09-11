@@ -48,9 +48,7 @@ def test_validate_non_negative_series_raises():
 
 
 def test_validate_forecast_input_success():
-    hist = HistoricalDataPayload(
-        revenue=(100.0, 120.0, 150.0), capex=(10.0, 12.0, 15.0)
-    )
+    hist = HistoricalDataPayload(revenue=(100.0, 120.0, 150.0), capex=(10.0, 12.0, 15.0))
     inp = ForecastInput(
         ticker="TCS",
         historical_data=hist,
@@ -62,9 +60,7 @@ def test_validate_forecast_input_success():
 
 def test_validate_forecast_input_mismatched_override_length():
     hist = HistoricalDataPayload(revenue=(100.0, 120.0, 150.0))
-    overrides = ScenarioOverrideSpec(
-        revenue_growth_override=(0.10, 0.08)
-    )  # 2 years override
+    overrides = ScenarioOverrideSpec(revenue_growth_override=(0.10, 0.08))  # 2 years override
     inp = ForecastInput(
         ticker="TCS",
         historical_data=hist,

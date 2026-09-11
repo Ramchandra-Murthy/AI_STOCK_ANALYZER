@@ -15,9 +15,7 @@ class Money(ValueObject):
     amount: Decimal
     currency: Currency
 
-    def __init__(
-        self, amount: Decimal | int | float | str, currency: Currency | str
-    ) -> None:
+    def __init__(self, amount: Decimal | int | float | str, currency: Currency | str) -> None:
         if isinstance(currency, str):
             curr = Currency(currency)
         elif isinstance(currency, Currency):

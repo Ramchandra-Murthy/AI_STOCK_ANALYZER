@@ -66,9 +66,7 @@ def calculate_stability_score(data):
             reasons.append(f"Beta of {beta:.2f} is invalid for scoring.")
         elif beta <= 0.75:
             beta_points = 40
-            reasons.append(
-                f"Beta of {beta:.2f} indicates relatively low market volatility."
-            )
+            reasons.append(f"Beta of {beta:.2f} indicates relatively low market volatility.")
             components.append((beta_points, 40))
         elif beta <= 1.00:
             beta_points = 35
@@ -103,9 +101,7 @@ def calculate_stability_score(data):
 
             if debt_to_equity <= 0.30:
                 debt_points = 30
-                reasons.append(
-                    f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage."
-                )
+                reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage.")
             elif debt_to_equity <= 0.75:
                 debt_points = 26
                 reasons.append(
@@ -123,9 +119,7 @@ def calculate_stability_score(data):
                 )
             else:
                 debt_points = 0
-                reasons.append(
-                    f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage."
-                )
+                reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage.")
 
             components.append((debt_points, 30))
 
@@ -133,38 +127,26 @@ def calculate_stability_score(data):
 
     if current_ratio is not None:
         if current_ratio <= 0 or current_ratio > 1000:
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x is invalid for scoring."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x is invalid for scoring.")
         elif 1.50 <= current_ratio <= 3.00:
             liquidity_points = 30
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity.")
             components.append((liquidity_points, 30))
         elif 1.00 <= current_ratio < 1.50:
             liquidity_points = 24
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity.")
             components.append((liquidity_points, 30))
         elif current_ratio > 3.00:
             liquidity_points = 24
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates strong liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates strong liquidity.")
             components.append((liquidity_points, 30))
         elif current_ratio >= 0.75:
             liquidity_points = 12
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates tight liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates tight liquidity.")
             components.append((liquidity_points, 30))
         else:
             liquidity_points = 0
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates weak liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates weak liquidity.")
             components.append((liquidity_points, 30))
 
     if not components:
@@ -294,19 +276,19 @@ def calculate_investment_score(
         "Stability": raw.get("Stability"),
         "Technical Contribution": (
             raw["Technical"] * raw_weights["Technical"] / total_weight
-            if "Technical" in raw else None
+            if "Technical" in raw
+            else None
         ),
         "Fundamental Contribution": (
             raw["Fundamental"] * raw_weights["Fundamental"] / total_weight
-            if "Fundamental" in raw else None
+            if "Fundamental" in raw
+            else None
         ),
-        "AI Contribution": (
-            raw["AI"] * raw_weights["AI"] / total_weight
-            if "AI" in raw else None
-        ),
+        "AI Contribution": (raw["AI"] * raw_weights["AI"] / total_weight if "AI" in raw else None),
         "Stability Contribution": (
             raw["Stability"] * raw_weights["Stability"] / total_weight
-            if "Stability" in raw else None
+            if "Stability" in raw
+            else None
         ),
         "Stability Reasons": stability_reasons,
         "Available Evidence": [name for _, _, name in components],

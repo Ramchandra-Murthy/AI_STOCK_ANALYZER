@@ -23,10 +23,7 @@ def get_sotp_segment_accounting_basis(symbol: str) -> dict[str, Any]:
             "status": "UNAVAILABLE",
             "version": "V5.0",
             "symbol": symbol,
-            "message": (
-                "Segment accounting-basis evidence is not "
-                "configured for this symbol."
-            ),
+            "message": ("Segment accounting-basis evidence is not " "configured for this symbol."),
         }
 
     return {
@@ -73,9 +70,6 @@ def get_sotp_segment_accounting_basis(symbol: str) -> dict[str, Any]:
                 "Entity-level ownership, economic overlap and "
                 "valuation basis must still be established."
             ),
-            (
-                "Accounting carrying values must not automatically "
-                "be used as SOTP fair values."
-            ),
+            ("Accounting carrying values must not automatically " "be used as SOTP fair values."),
         ],
     }

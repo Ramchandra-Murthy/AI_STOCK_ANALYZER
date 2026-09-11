@@ -42,11 +42,7 @@ class WorkingCapitalForecastEngine:
 
         if isinstance(inp_or_revs, ForecastInput):
             inp = inp_or_revs
-            revs = (
-                projected_revenues
-                if projected_revenues is not None
-                else inp.historical_revenues
-            )
+            revs = projected_revenues if projected_revenues is not None else inp.historical_revenues
             nwc_hist = inp.historical_nwc
             forecast_years = inp.forecast_years
         else:
@@ -61,9 +57,7 @@ class WorkingCapitalForecastEngine:
         else:
             avg_ratio = 0.10
 
-        projected = (
-            [round(r * avg_ratio, 4) for r in revs] if revs else [15.0] * forecast_years
-        )
+        projected = [round(r * avg_ratio, 4) for r in revs] if revs else [15.0] * forecast_years
 
         # Calculate year-over-year Change in NWC
         last_nwc = nwc_hist[-1] if nwc_hist else (projected[0] if projected else 10.0)

@@ -28,15 +28,9 @@ class FinancialProjection(ValueObject):
             raise ValueError("Confidence score cannot exceed 1.0.")
 
         object.__setattr__(self, "period_label", self.period_label.strip().upper())
-        object.__setattr__(
-            self, "projected_revenue", Decimal(str(self.projected_revenue))
-        )
-        object.__setattr__(
-            self, "projected_ebitda", Decimal(str(self.projected_ebitda))
-        )
-        object.__setattr__(
-            self, "confidence_score", Decimal(str(self.confidence_score))
-        )
+        object.__setattr__(self, "projected_revenue", Decimal(str(self.projected_revenue)))
+        object.__setattr__(self, "projected_ebitda", Decimal(str(self.projected_ebitda)))
+        object.__setattr__(self, "confidence_score", Decimal(str(self.confidence_score)))
 
     def ebitda_margin(self) -> Decimal:
         """Calculates projected EBITDA margin."""

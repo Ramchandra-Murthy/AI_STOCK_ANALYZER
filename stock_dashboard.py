@@ -25,9 +25,7 @@ portfolio_symbol = st.sidebar.text_input("Symbol", "RELIANCE.NS")
 
 portfolio_qty = st.sidebar.number_input("Quantity", min_value=1, value=10)
 
-portfolio_price = st.sidebar.number_input(
-    "Buy Price", min_value=0.0, value=1000.0, step=1.0
-)
+portfolio_price = st.sidebar.number_input("Buy Price", min_value=0.0, value=1000.0, step=1.0)
 
 if st.sidebar.button("➕ Add To Portfolio"):
 

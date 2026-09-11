@@ -13,9 +13,7 @@ def show_add_holding_form():
 
         quantity = st.number_input("Quantity", min_value=1, step=1)
 
-        buy_price = st.number_input(
-            "Buy Price (₹)", min_value=0.0, step=0.05, format="%.2f"
-        )
+        buy_price = st.number_input("Buy Price (₹)", min_value=0.0, step=0.05, format="%.2f")
 
         submitted = st.form_submit_button("💾 Save Holding", use_container_width=True)
 

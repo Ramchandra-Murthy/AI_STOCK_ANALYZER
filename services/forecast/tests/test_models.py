@@ -88,13 +88,9 @@ def test_forecast_package_round_trip() -> None:
         margins=MarginForecast(values=(0.2, 0.22), years=(2024, 2025)),
         capex=CapexForecast(values=(50.0, 55.0), years=(2024, 2025)),
         depreciation=DepreciationForecast(values=(20.0, 22.0), years=(2024, 2025)),
-        working_capital=WorkingCapitalForecast(
-            values=(100.0, 110.0), years=(2024, 2025)
-        ),
+        working_capital=WorkingCapitalForecast(values=(100.0, 110.0), years=(2024, 2025)),
         taxes=TaxForecast(values=(0.25, 0.25), years=(2024, 2025)),
-        terminal_growth=TerminalGrowthForecast(
-            rate=0.025, confidence=ConfidenceLevel.HIGH
-        ),
+        terminal_growth=TerminalGrowthForecast(rate=0.025, confidence=ConfidenceLevel.HIGH),
         confidence=ForecastConfidence(score=90.0, level=ConfidenceLevel.HIGH),
         assumptions=ForecastAssumption(
             revenue_growth_rate=0.10,
@@ -104,9 +100,7 @@ def test_forecast_package_round_trip() -> None:
             working_capital_pct_revenue=0.10,
         ),
     )
-    package = ForecastPackage(
-        ticker="RELIANCE", scenarios=(scenario,), metadata=metadata
-    )
+    package = ForecastPackage(ticker="RELIANCE", scenarios=(scenario,), metadata=metadata)
 
     d = package.to_dict()
     restored = ForecastPackage.from_dict(d)

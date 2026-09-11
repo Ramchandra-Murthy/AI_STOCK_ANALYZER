@@ -14,9 +14,7 @@ class Currency(ValueObject):
 
     def __init__(self, code: str) -> None:
         if not code or not isinstance(code, str) or len(code.strip()) != 3:
-            raise PrimitiveTypeError(
-                "Currency code must be a valid 3-letter ISO string."
-            )
+            raise PrimitiveTypeError("Currency code must be a valid 3-letter ISO string.")
         object.__setattr__(self, "code", code.strip().upper())
 
     def __eq__(self, other: object) -> bool:

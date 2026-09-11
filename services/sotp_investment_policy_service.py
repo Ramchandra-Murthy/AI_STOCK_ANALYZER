@@ -195,9 +195,7 @@ def generate_sotp_investment_policy(symbol):
         long_term_value,
     ]
 
-    pending_exposure = sum(
-        value for value in pending_values if isinstance(value, (int, float))
-    )
+    pending_exposure = sum(value for value in pending_values if isinstance(value, (int, float)))
 
     pending_count = sum(
         1
@@ -234,17 +232,11 @@ def generate_sotp_investment_policy(symbol):
         "bridge_ready": pending_count == 0,
         "status_view": ("FINAL" if pending_count == 0 else "PENDING_CLASSIFICATION"),
         "warnings": [
-            (
-                "No unresolved investment balance is included in "
-                "the SOTP equity bridge."
-            ),
+            ("No unresolved investment balance is included in " "the SOTP equity bridge."),
             (
                 "Pending investment exposure is informational and "
                 "must not be treated as an additive adjustment."
             ),
-            (
-                "Component balances are explicitly excluded to "
-                "prevent double counting."
-            ),
+            ("Component balances are explicitly excluded to " "prevent double counting."),
         ],
     }

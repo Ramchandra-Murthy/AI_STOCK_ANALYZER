@@ -129,10 +129,7 @@ def classify_long_term_equity_entities(
 
     economic_evidence = get_sotp_long_term_equity_economic_evidence(base_symbol)
 
-    if (
-        not isinstance(economic_evidence, dict)
-        or economic_evidence.get("status") != "OK"
-    ):
+    if not isinstance(economic_evidence, dict) or economic_evidence.get("status") != "OK":
         return {
             "status": "UNAVAILABLE",
             "version": "V5.0",
@@ -278,13 +275,9 @@ def classify_long_term_equity_entities(
     # false at aggregate authorization level.
     # ------------------------------------------------------
 
-    captured_ownership_available = (
-        entity_count > 0 and entities_with_ownership == entity_count
-    )
+    captured_ownership_available = entity_count > 0 and entities_with_ownership == entity_count
 
-    ownership_structure_confirmed = (
-        entity_population_complete and captured_ownership_available
-    )
+    ownership_structure_confirmed = entity_population_complete and captured_ownership_available
 
     # ------------------------------------------------------
     # 9. SEGMENT ACCOUNTING BASIS
@@ -321,9 +314,7 @@ def classify_long_term_equity_entities(
         entity_count > 0 and entities_with_overlap_resolution == entity_count
     )
 
-    operating_segment_overlap_resolved = (
-        entity_population_complete and captured_overlap_resolved
-    )
+    operating_segment_overlap_resolved = entity_population_complete and captured_overlap_resolved
 
     # ------------------------------------------------------
     # 11. VALUATION BASIS CONTROL
@@ -333,9 +324,7 @@ def classify_long_term_equity_entities(
         entity_count > 0 and entities_with_valuation_basis == entity_count
     )
 
-    valuation_basis_confirmed = (
-        entity_population_complete and captured_valuation_basis_complete
-    )
+    valuation_basis_confirmed = entity_population_complete and captured_valuation_basis_complete
 
     # ------------------------------------------------------
     # 12. MEASUREMENT-BASIS CONTROL
@@ -478,9 +467,7 @@ def classify_long_term_equity_entities(
             "entities_with_ownership": (entities_with_ownership),
             "entities_with_overlap_resolution": (entities_with_overlap_resolution),
             "entities_with_valuation_basis": (entities_with_valuation_basis),
-            "captured_disclosed_amount": (
-                reconciliation.get("captured_disclosed_amount")
-            ),
+            "captured_disclosed_amount": (reconciliation.get("captured_disclosed_amount")),
             "disclosed_amount_ratio_percent": (
                 reconciliation.get("disclosed_amount_ratio_percent")
             ),

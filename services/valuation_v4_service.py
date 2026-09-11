@@ -397,9 +397,7 @@ def generate_valuation_v4(data, benchmarks):
     # ======================================================
 
     fair_values = [
-        method["fair_value"]
-        for method in methods.values()
-        if method.get("fair_value") is not None
+        method["fair_value"] for method in methods.values() if method.get("fair_value") is not None
     ]
 
     low_value = min(fair_values)
@@ -423,8 +421,7 @@ def generate_valuation_v4(data, benchmarks):
     if composite_fair_value > 0:
 
         deviations = [
-            abs(value - composite_fair_value) / composite_fair_value
-            for value in fair_values
+            abs(value - composite_fair_value) / composite_fair_value for value in fair_values
         ]
 
         average_deviation = sum(deviations) / len(deviations)
@@ -450,9 +447,7 @@ def generate_valuation_v4(data, benchmarks):
         1.0,
     )
 
-    confidence_score = (
-        weighted_reliability * 60.0 + agreement_score * 25.0 + method_coverage * 15.0
-    )
+    confidence_score = weighted_reliability * 60.0 + agreement_score * 25.0 + method_coverage * 15.0
 
     # ======================================================
     # BENCHMARK SOURCE CONFIDENCE
@@ -520,15 +515,13 @@ def generate_valuation_v4(data, benchmarks):
     elif composite_upside > -15:
 
         interpretation = (
-            "The current market price is moderately above "
-            "the multi-method fair-value estimate."
+            "The current market price is moderately above " "the multi-method fair-value estimate."
         )
 
     else:
 
         interpretation = (
-            "The current market price is materially above "
-            "the multi-method fair-value estimate."
+            "The current market price is materially above " "the multi-method fair-value estimate."
         )
 
     # ======================================================
@@ -574,8 +567,7 @@ def generate_valuation_v4(data, benchmarks):
     )
 
     warnings.append(
-        "FCF Yield is a simplified valuation signal "
-        "and is not a discounted cash flow model."
+        "FCF Yield is a simplified valuation signal " "and is not a discounted cash flow model."
     )
 
     if not has_independent_peer_benchmarks:

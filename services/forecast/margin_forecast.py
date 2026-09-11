@@ -44,17 +44,13 @@ class MarginForecastEngine:
         if inp.historical_ebits is not None:
             historical_margins = tuple(
                 ebit / rev if rev != 0 else 0.0
-                for ebit, rev in zip(
-                    inp.historical_ebits, inp.historical_revenues, strict=False
-                )
+                for ebit, rev in zip(inp.historical_ebits, inp.historical_revenues, strict=False)
             )
         else:
             historical_margins = (0.15,) * len(inp.historical_revenues)
 
         mean_margin = (
-            sum(historical_margins) / len(historical_margins)
-            if historical_margins
-            else 0.15
+            sum(historical_margins) / len(historical_margins) if historical_margins else 0.15
         )
 
         selected_method = method or inp.method

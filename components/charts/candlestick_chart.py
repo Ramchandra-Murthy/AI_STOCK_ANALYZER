@@ -42,9 +42,7 @@ def plot_candlestick(df):
     # ======================================================
 
     fig.add_trace(
-        go.Scatter(
-            x=df.index, y=df["EMA20"], mode="lines", name="EMA 20", line=dict(width=1.5)
-        ),
+        go.Scatter(x=df.index, y=df["EMA20"], mode="lines", name="EMA 20", line=dict(width=1.5)),
         row=1,
         col=1,
     )
@@ -54,9 +52,7 @@ def plot_candlestick(df):
     # ======================================================
 
     fig.add_trace(
-        go.Scatter(
-            x=df.index, y=df["EMA50"], mode="lines", name="EMA 50", line=dict(width=1.5)
-        ),
+        go.Scatter(x=df.index, y=df["EMA50"], mode="lines", name="EMA 50", line=dict(width=1.5)),
         row=1,
         col=1,
     )
@@ -66,9 +62,7 @@ def plot_candlestick(df):
     # ======================================================
 
     fig.add_trace(
-        go.Scatter(
-            x=df.index, y=df["EMA200"], mode="lines", name="EMA 200", line=dict(width=2)
-        ),
+        go.Scatter(x=df.index, y=df["EMA200"], mode="lines", name="EMA 200", line=dict(width=2)),
         row=1,
         col=1,
     )

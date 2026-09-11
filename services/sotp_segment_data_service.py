@@ -104,9 +104,7 @@ def get_sotp_segment_data(symbol):
         return {
             "status": "UNAVAILABLE",
             "symbol": base_symbol,
-            "message": (
-                "No SOTP segment financial data is configured " f"for {base_symbol}."
-            ),
+            "message": ("No SOTP segment financial data is configured " f"for {base_symbol}."),
         }
 
     raw_segments = company_block.get(

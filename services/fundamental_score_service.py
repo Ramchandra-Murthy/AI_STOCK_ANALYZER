@@ -16,11 +16,7 @@ def to_float(value):
 
     if isinstance(value, str):
         cleaned = (
-            value.replace("%", "")
-            .replace(",", "")
-            .replace("₹", "")
-            .replace("Rs.", "")
-            .strip()
+            value.replace("%", "").replace(",", "").replace("₹", "").replace("Rs.", "").strip()
         )
 
         if cleaned.upper() in {
@@ -219,9 +215,7 @@ def calculate_fundamental_score(data):
 
         if pb <= 1.5:
             points = 10
-            reasons.append(
-                f"P/B of {pb:.2f} indicates attractive book-value valuation."
-            )
+            reasons.append(f"P/B of {pb:.2f} indicates attractive book-value valuation.")
 
         elif pb <= 3:
             points = 8
@@ -253,9 +247,7 @@ def calculate_fundamental_score(data):
 
         if roe >= 20:
             points = 6
-            reasons.append(
-                f"ROE of {roe:.2f}% indicates excellent shareholder returns."
-            )
+            reasons.append(f"ROE of {roe:.2f}% indicates excellent shareholder returns.")
 
         elif roe >= 15:
             points = 5
@@ -401,9 +393,7 @@ def calculate_fundamental_score(data):
 
         if debt_to_equity <= 0.30:
             points = 8
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage."
-            )
+            reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage.")
 
         elif debt_to_equity <= 0.75:
             points = 7
@@ -421,9 +411,7 @@ def calculate_fundamental_score(data):
 
         else:
             points = 0
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage."
-            )
+            reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage.")
 
         metrics.append((points, 8))
 
@@ -431,33 +419,23 @@ def calculate_fundamental_score(data):
 
         if 1.5 <= current_ratio <= 3:
             points = 7
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity.")
 
         elif 1 <= current_ratio < 1.5:
             points = 5
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity.")
 
         elif current_ratio > 3:
             points = 5
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates strong liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates strong liquidity.")
 
         elif current_ratio >= 0.75:
             points = 2
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates tight liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates tight liquidity.")
 
         else:
             points = 0
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates weak liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates weak liquidity.")
 
         metrics.append((points, 7))
 
@@ -476,15 +454,11 @@ def calculate_fundamental_score(data):
 
             elif cash_debt_ratio >= 0.50:
                 points = 4
-                reasons.append(
-                    f"Cash covers approximately {cash_debt_ratio * 100:.1f}% of debt."
-                )
+                reasons.append(f"Cash covers approximately {cash_debt_ratio * 100:.1f}% of debt.")
 
             elif cash_debt_ratio >= 0.25:
                 points = 2
-                reasons.append(
-                    f"Cash covers approximately {cash_debt_ratio * 100:.1f}% of debt."
-                )
+                reasons.append(f"Cash covers approximately {cash_debt_ratio * 100:.1f}% of debt.")
 
             else:
                 points = 0

@@ -69,12 +69,7 @@ def generate_valuation_benchmarks(data):
     # P/E BENCHMARK
     # ======================================================
 
-    if (
-        trailing_pe is not None
-        and trailing_pe > 0
-        and forward_pe is not None
-        and forward_pe > 0
-    ):
+    if trailing_pe is not None and trailing_pe > 0 and forward_pe is not None and forward_pe > 0:
         pe_benchmark = trailing_pe * 0.40 + forward_pe * 0.60
 
         pe_source = "Company trailing/forward earnings anchor"
@@ -279,9 +274,7 @@ def generate_valuation_benchmarks(data):
         },
         "forward_pe": {
             "multiple": (
-                round(forward_pe_benchmark, 2)
-                if forward_pe_benchmark is not None
-                else None
+                round(forward_pe_benchmark, 2) if forward_pe_benchmark is not None else None
             ),
             "source": forward_pe_source,
             "reliability": forward_pe_reliability,
@@ -293,9 +286,7 @@ def generate_valuation_benchmarks(data):
         },
         "ev_ebitda": {
             "multiple": (
-                round(ev_ebitda_benchmark, 2)
-                if ev_ebitda_benchmark is not None
-                else None
+                round(ev_ebitda_benchmark, 2) if ev_ebitda_benchmark is not None else None
             ),
             "source": ev_ebitda_source,
             "reliability": ev_ebitda_reliability,

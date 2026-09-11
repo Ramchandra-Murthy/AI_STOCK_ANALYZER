@@ -53,11 +53,7 @@ def show_ai_market_summary():
         st.metric(
             "Market Trend",
             trend,
-            (
-                f"{average_change:+.2f}% avg"
-                if isinstance(average_change, (int, float))
-                else None
-            ),
+            (f"{average_change:+.2f}% avg" if isinstance(average_change, (int, float)) else None),
         )
 
         st.metric(

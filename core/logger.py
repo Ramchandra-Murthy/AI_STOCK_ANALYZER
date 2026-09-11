@@ -44,9 +44,7 @@ class AuditTrail:
         status: Status = Status.OK,
         details: dict[str, Any] | None = None,
     ):
-        self.steps.append(
-            {"step": step_name, "status": status, "details": details or {}}
-        )
+        self.steps.append({"step": step_name, "status": status, "details": details or {}})
 
     def __enter__(self):
         logger.info(
@@ -59,7 +57,5 @@ class AuditTrail:
             self.status = Status.FAILED
             logger.error(f"[AUDIT FAILED] {self.operation_name} | Exception: {exc_val}")
         else:
-            logger.info(
-                f"[AUDIT END] {self.operation_name} | Status: {self.status.value}"
-            )
+            logger.info(f"[AUDIT END] {self.operation_name} | Status: {self.status.value}")
         return False

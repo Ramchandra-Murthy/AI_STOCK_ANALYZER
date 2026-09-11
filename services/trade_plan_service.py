@@ -20,7 +20,9 @@ def _clamp(value, minimum, maximum):
     return max(minimum, min(value, maximum))
 
 
-def generate_trade_plan(history: pd.DataFrame, technical_score: float | None = None, symbol: str | None = None):
+def generate_trade_plan(
+    history: pd.DataFrame, technical_score: float | None = None, symbol: str | None = None
+):
     """Generate a technical research trade plan using a canonical market quote when available."""
     if history is None or history.empty:
         return {"status": "ERROR", "message": "No historical price data available."}
@@ -38,12 +40,7 @@ def generate_trade_plan(history: pd.DataFrame, technical_score: float | None = N
     # Drop them before ATR and structural calculations so corrupted candles
     # cannot manufacture support, resistance, or volatility levels.
     df = df.dropna(subset=required_columns)
-    df = df[
-        (df["High"] > 0)
-        & (df["Low"] > 0)
-        & (df["Close"] > 0)
-        & (df["High"] >= df["Low"])
-    ]
+    df = df[(df["High"] > 0) & (df["Low"] > 0) & (df["Close"] > 0) & (df["High"] >= df["Low"])]
     if len(df) < 20:
         return {"status": "ERROR", "message": "Insufficient valid historical data."}
 
@@ -96,7 +93,8 @@ def generate_trade_plan(history: pd.DataFrame, technical_score: float | None = N
             df["High"] - df["Low"],
             (df["High"] - previous_close).abs(),
             (df["Low"] - previous_close).abs(),
-        ], axis=1,
+        ],
+        axis=1,
     ).max(axis=1)
     atr = _safe_float(true_range.rolling(window=14, min_periods=14).mean().iloc[-1])
     if atr is None or atr <= 0:
@@ -124,8 +122,18 @@ def generate_trade_plan(history: pd.DataFrame, technical_score: float | None = N
     ema50 = close.ewm(span=50, adjust=False).mean()
     latest_ema20 = _safe_float(ema20.iloc[-1])
     latest_ema50 = _safe_float(ema50.iloc[-1])
-    bullish_trend = latest_ema20 is not None and latest_ema50 is not None and current_price > latest_ema20 and latest_ema20 > latest_ema50
-    bearish_trend = latest_ema20 is not None and latest_ema50 is not None and current_price < latest_ema20 and latest_ema20 < latest_ema50
+    bullish_trend = (
+        latest_ema20 is not None
+        and latest_ema50 is not None
+        and current_price > latest_ema20
+        and latest_ema20 > latest_ema50
+    )
+    bearish_trend = (
+        latest_ema20 is not None
+        and latest_ema50 is not None
+        and current_price < latest_ema20
+        and latest_ema20 < latest_ema50
+    )
 
     if score >= 80:
         signal, target_mult, stop_mult = "STRONG BUY", 3.0, 1.50

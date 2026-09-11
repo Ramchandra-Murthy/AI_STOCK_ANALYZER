@@ -39,9 +39,7 @@ class Portfolio(ValueObject):
 
     def total_unrealized_pnl(self) -> Money:
         """Calculates total unrealized profit or loss across the portfolio."""
-        total = sum(
-            (pos.unrealized_pnl().amount for pos in self.positions), Decimal("0")
-        )
+        total = sum((pos.unrealized_pnl().amount for pos in self.positions), Decimal("0"))
         return Money(total, self.currency)
 
     def to_dict(self) -> dict[str, Any]:

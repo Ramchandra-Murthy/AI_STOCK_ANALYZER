@@ -29,6 +29,7 @@ class ValuationDispatcher:
         if not hasattr(self, "engines"):
             self.engines = {}
         self.engines[name] = engine
+
     """Registry managing valuation engine adapters."""
 
     def __init__(self):

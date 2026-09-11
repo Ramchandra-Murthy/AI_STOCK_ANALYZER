@@ -112,9 +112,7 @@ class ForecastResult:
         """Calculates projected EBIT series: Revenue * Margin."""
         return tuple(
             round(rev * margin, 4)
-            for rev, margin in zip(
-                self.revenue.projected, self.margin.projected, strict=False
-            )
+            for rev, margin in zip(self.revenue.projected, self.margin.projected, strict=False)
         )
 
     @property
@@ -122,9 +120,7 @@ class ForecastResult:
         """Calculates projected Net Operating Profit After Tax (NOPAT): EBIT - Tax."""
         ebits = self.projected_ebit
         taxes = tuple(self.tax.projected)
-        return tuple(
-            round(ebit - tax, 4) for ebit, tax in zip(ebits, taxes, strict=False)
-        )
+        return tuple(round(ebit - tax, 4) for ebit, tax in zip(ebits, taxes, strict=False))
 
     @property
     def projected_fcff(self) -> tuple[float, ...]:
@@ -136,9 +132,7 @@ class ForecastResult:
 
         return tuple(
             round(nopat + dep - cap - dnwc, 4)
-            for nopat, dep, cap, dnwc in zip(
-                nopats, deps, capex, delta_nwc, strict=False
-            )
+            for nopat, dep, cap, dnwc in zip(nopats, deps, capex, delta_nwc, strict=False)
         )
 
     @property

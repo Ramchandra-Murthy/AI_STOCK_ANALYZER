@@ -180,9 +180,7 @@ def reconcile_sotp_long_term_equity_entities(
     # 7. CLASSIFICATION COMPLETENESS
     # ------------------------------------------------------
 
-    classification_complete = (
-        entity_population_complete and unresolved_entity_count == 0
-    )
+    classification_complete = entity_population_complete and unresolved_entity_count == 0
 
     # ------------------------------------------------------
     # 8. BRIDGE AUTHORIZATION
@@ -330,10 +328,7 @@ def reconcile_sotp_long_term_equity_entities(
             "available."
         ),
         "warnings": [
-            (
-                "The disclosed amount ratio is not "
-                "accounting carrying-value coverage."
-            ),
+            ("The disclosed amount ratio is not " "accounting carrying-value coverage."),
             (
                 "Annexure A investment amounts must not "
                 "be forced to reconcile to the consolidated "

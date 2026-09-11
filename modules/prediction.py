@@ -50,17 +50,23 @@ def predict_prices(df, days=30):
     if last_price <= 0:
         return []
 
-    log_returns = (close / close.shift(1)).apply(
-        lambda x: __import__("math").log(x) if x > 0 else float("nan")
-    ).dropna()
+    log_returns = (
+        (close / close.shift(1))
+        .apply(lambda x: __import__("math").log(x) if x > 0 else float("nan"))
+        .dropna()
+    )
 
     recent_momentum = float(log_returns.tail(10).mean())
 
-    ema20 = float(df["EMA20"].iloc[-1]) if "EMA20" in df else float(
-        close.ewm(span=20, adjust=False).mean().iloc[-1]
+    ema20 = (
+        float(df["EMA20"].iloc[-1])
+        if "EMA20" in df
+        else float(close.ewm(span=20, adjust=False).mean().iloc[-1])
     )
-    ema50 = float(df["EMA50"].iloc[-1]) if "EMA50" in df else float(
-        close.ewm(span=50, adjust=False).mean().iloc[-1]
+    ema50 = (
+        float(df["EMA50"].iloc[-1])
+        if "EMA50" in df
+        else float(close.ewm(span=50, adjust=False).mean().iloc[-1])
     )
 
     trend_strength = ((ema20 - ema50) / last_price) if ema20 > 0 and ema50 > 0 else 0.0
@@ -93,7 +99,9 @@ def show():
 
     st.title("📈 Stock Price Trend Forecast")
 
-    st.write("Deterministic technical trend forecast using momentum, EMA trend, and volatility damping.")
+    st.write(
+        "Deterministic technical trend forecast using momentum, EMA trend, and volatility damping."
+    )
 
     symbol = st.text_input("Stock Symbol", value="RELIANCE.NS")
 
@@ -143,18 +151,12 @@ def show():
 
         fig = go.Figure()
 
-        fig.add_trace(
-            go.Scatter(x=df.index, y=df["Close"], mode="lines", name="Historical Price")
-        )
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], mode="lines", name="Historical Price"))
 
-        future_dates = pd.date_range(
-            start=df.index[-1], periods=forecast_days + 1, freq="B"
-        )[1:]
+        future_dates = pd.date_range(start=df.index[-1], periods=forecast_days + 1, freq="B")[1:]
 
         fig.add_trace(
-            go.Scatter(
-                x=future_dates, y=prediction, mode="lines+markers", name="Trend Forecast"
-            )
+            go.Scatter(x=future_dates, y=prediction, mode="lines+markers", name="Trend Forecast")
         )
 
         fig.update_layout(

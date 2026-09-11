@@ -55,8 +55,7 @@ def value_sotp_new_energy(
     authorized_net_asset_value = _num(overlap.get("authorized_net_asset_value"))
 
     net_asset_authorized = (
-        overlap.get("valuation_floor_authorized") is True
-        and authorized_net_asset_value is not None
+        overlap.get("valuation_floor_authorized") is True and authorized_net_asset_value is not None
     )
 
     # ----------------------------------------------------
@@ -153,9 +152,6 @@ def value_sotp_new_energy(
         "warnings": [
             ("Investment commitments are not treated " "as enterprise value."),
             ("Unresolved entity-level net asset " "overlap cannot enter valuation."),
-            (
-                "Planned capacity is not valued without "
-                "explicit economic assumptions."
-            ),
+            ("Planned capacity is not valued without " "explicit economic assumptions."),
         ],
     }

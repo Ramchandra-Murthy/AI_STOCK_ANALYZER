@@ -271,16 +271,10 @@ def generate_sotp_valuation(symbol, company_data=None):
 
             template.update(
                 {
-                    "financial_metric": (
-                        _safe_float(operating_result.get("metric_value"))
-                    ),
+                    "financial_metric": (_safe_float(operating_result.get("metric_value"))),
                     "financial_metric_name": (operating_result.get("metric_name")),
-                    "valuation_multiple": (
-                        _safe_float(operating_result.get("benchmark_multiple"))
-                    ),
-                    "enterprise_value": (
-                        _safe_float(operating_result.get("enterprise_value"))
-                    ),
+                    "valuation_multiple": (_safe_float(operating_result.get("benchmark_multiple"))),
+                    "enterprise_value": (_safe_float(operating_result.get("enterprise_value"))),
                     "reliability": (_safe_float(operating_result.get("reliability"))),
                     "source": (operating_result.get("financial_source")),
                     "benchmark_source": (operating_result.get("benchmark_source")),
@@ -354,18 +348,12 @@ def generate_sotp_valuation(symbol, company_data=None):
             continue
 
         scenarios[scenario_name] = {
-            "operating_enterprise_value": (
-                _safe_float(scenario.get("operating_enterprise_value"))
-            ),
+            "operating_enterprise_value": (_safe_float(scenario.get("operating_enterprise_value"))),
             "new_energy_enterprise_value": (
                 _safe_float(scenario.get("new_energy_enterprise_value"))
             ),
-            "gross_enterprise_value": (
-                _safe_float(scenario.get("gross_enterprise_value"))
-            ),
-            "equity_bridge_adjustment": (
-                _safe_float(scenario.get("equity_bridge_adjustment"))
-            ),
+            "gross_enterprise_value": (_safe_float(scenario.get("gross_enterprise_value"))),
+            "equity_bridge_adjustment": (_safe_float(scenario.get("equity_bridge_adjustment"))),
             "equity_value": (_safe_float(scenario.get("equity_value"))),
             "fair_value_per_share": (_safe_float(scenario.get("fair_value_per_share"))),
             "upside_percent": (_safe_float(scenario.get("upside_percent"))),
@@ -430,13 +418,9 @@ def generate_sotp_valuation(symbol, company_data=None):
         "shares_outstanding": (_safe_float(bridge.get("shares_outstanding"))),
         "segment_count": len(segments),
         "segments": segments,
-        "operating_enterprise_value": (
-            _safe_float(bridge.get("operating_enterprise_value"))
-        ),
+        "operating_enterprise_value": (_safe_float(bridge.get("operating_enterprise_value"))),
         "gross_enterprise_value": (base_gross_ev),
-        "equity_bridge_adjustment": (
-            _safe_float(equity_bridge.get("authorized_adjustment"))
-        ),
+        "equity_bridge_adjustment": (_safe_float(equity_bridge.get("authorized_adjustment"))),
         "equity_value": (base_equity_value),
         "fair_value_per_share": (base_fair_value),
         "upside_percent": (base_upside),

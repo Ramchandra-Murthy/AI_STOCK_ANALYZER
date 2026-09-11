@@ -16,9 +16,7 @@ class FiscalYear(ValueObject):
         if not isinstance(self.year, int):
             object.__setattr__(self, "year", int(self.year))
         if self.year < 1900 or self.year > 2100:
-            raise ValueError(
-                f"Fiscal year out of valid operational bounds: {self.year}"
-            )
+            raise ValueError(f"Fiscal year out of valid operational bounds: {self.year}")
 
     def __str__(self) -> str:
         return f"FY{self.year}"

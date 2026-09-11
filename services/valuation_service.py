@@ -161,7 +161,9 @@ def generate_valuation_analysis(
         "is_intraday": bool(data.get("is_intraday", False)),
         "is_tick_live": bool(data.get("is_tick_live", False)),
         "eps": round(eps, 2),
-        "trailing_pe": round(trailing_pe, 2) if trailing_pe is not None and trailing_pe > 0 else None,
+        "trailing_pe": (
+            round(trailing_pe, 2) if trailing_pe is not None and trailing_pe > 0 else None
+        ),
         "forward_pe": round(forward_pe, 2) if forward_pe is not None and forward_pe > 0 else None,
         "base_pe": round(base_pe, 2),
         "fair_pe": round(fair_pe, 2),

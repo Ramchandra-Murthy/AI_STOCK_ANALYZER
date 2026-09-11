@@ -5,9 +5,7 @@
 )
 from services.valuation.comparable.validation import validate_input
 
-t = TargetCompany(
-    "Reliance Retail", 100000.0, 8000.0, 12000.0, 5000.0, 30000.0, 2000.0, 1000.0
-)
+t = TargetCompany("Reliance Retail", 100000.0, 8000.0, 12000.0, 5000.0, 30000.0, 2000.0, 1000.0)
 p1 = PeerCompany(
     "DMart",
     "DMART.NS",

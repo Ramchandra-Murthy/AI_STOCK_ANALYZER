@@ -50,9 +50,7 @@ def authorize_sotp_new_energy_scenarios(
 
     reference_capital = _num(scenario_data.get("reference_capital"))
 
-    scenario_analysis_available = (
-        scenario_data.get("scenario_analysis_available") is True
-    )
+    scenario_analysis_available = scenario_data.get("scenario_analysis_available") is True
 
     # ----------------------------------------------------
     # SCENARIO COMPLETENESS
@@ -82,10 +80,7 @@ def authorize_sotp_new_energy_scenarios(
     bull = scenario_values.get("BULL")
 
     ordered_scenarios = (
-        bear is not None
-        and base is not None
-        and bull is not None
-        and bear <= base <= bull
+        bear is not None and base is not None and bull is not None and bear <= base <= bull
     )
 
     non_negative_scenarios = all(
@@ -109,9 +104,7 @@ def authorize_sotp_new_energy_scenarios(
 
     reported_valuation_ready = scenario_data.get("reported_valuation_ready") is True
 
-    factual_ev_separate = (
-        reported_enterprise_value is None and not reported_valuation_ready
-    )
+    factual_ev_separate = reported_enterprise_value is None and not reported_valuation_ready
 
     # ----------------------------------------------------
     # OVERLAP CONTROL
@@ -251,22 +244,13 @@ def authorize_sotp_new_energy_scenarios(
             "independently authorized enterprise value."
         ),
         "warnings": [
-            (
-                "Scenario authorization does not convert "
-                "model assumptions into reported facts."
-            ),
+            ("Scenario authorization does not convert " "model assumptions into reported facts."),
             (
                 "The New Energy accounting net-asset "
                 "total remains excluded while "
                 "intercompany overlap is unresolved."
             ),
-            (
-                "Scenario values must enter only the "
-                "matching Bear, Base and Bull SOTP cases."
-            ),
-            (
-                "The factual enterprise-value field must "
-                "remain separate from scenario values."
-            ),
+            ("Scenario values must enter only the " "matching Bear, Base and Bull SOTP cases."),
+            ("The factual enterprise-value field must " "remain separate from scenario values."),
         ],
     }

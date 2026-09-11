@@ -29,29 +29,21 @@ def show():
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        metric_card(
-            "NIFTY 50", market["NIFTY 50"]["value"], market["NIFTY 50"]["change"]
-        )
+        metric_card("NIFTY 50", market["NIFTY 50"]["value"], market["NIFTY 50"]["change"])
 
     with c2:
         metric_card("SENSEX", market["SENSEX"]["value"], market["SENSEX"]["change"])
 
     with c3:
-        metric_card(
-            "BANK NIFTY", market["BANK NIFTY"]["value"], market["BANK NIFTY"]["change"]
-        )
+        metric_card("BANK NIFTY", market["BANK NIFTY"]["value"], market["BANK NIFTY"]["change"])
 
     c4, c5, c6 = st.columns(3)
 
     with c4:
-        metric_card(
-            "INDIA VIX", market["INDIA VIX"]["value"], market["INDIA VIX"]["change"]
-        )
+        metric_card("INDIA VIX", market["INDIA VIX"]["value"], market["INDIA VIX"]["change"])
 
     with c5:
-        metric_card(
-            "USD / INR", market["USD/INR"]["value"], market["USD/INR"]["change"]
-        )
+        metric_card("USD / INR", market["USD/INR"]["value"], market["USD/INR"]["change"])
 
     with c6:
         metric_card("GOLD", market["GOLD"]["value"], market["GOLD"]["change"])

@@ -26,7 +26,10 @@ class Currency(StrEnum):
             if val_str.lower() == "invalid":
                 raise ValidationError("'invalid' is not a valid Currency")
             for member in cls:
-                if member.value.upper() == val_str.upper() or member.name.upper() == val_str.upper():
+                if (
+                    member.value.upper() == val_str.upper()
+                    or member.name.upper() == val_str.upper()
+                ):
                     return member
         raise ValidationError(f"{value!r} is not a valid Currency")
 

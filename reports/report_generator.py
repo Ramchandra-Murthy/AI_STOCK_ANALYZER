@@ -340,16 +340,10 @@ class ReportGenerator:
 
         ai_score = self._safe_float(score_breakdown.get("AI", ai_result.get("score")))
         stability_score = self._safe_float(score_breakdown.get("Stability"))
-        technical_contribution = self._safe_float(
-            score_breakdown.get("Technical Contribution")
-        )
-        fundamental_contribution = self._safe_float(
-            score_breakdown.get("Fundamental Contribution")
-        )
+        technical_contribution = self._safe_float(score_breakdown.get("Technical Contribution"))
+        fundamental_contribution = self._safe_float(score_breakdown.get("Fundamental Contribution"))
         ai_contribution = self._safe_float(score_breakdown.get("AI Contribution"))
-        stability_contribution = self._safe_float(
-            score_breakdown.get("Stability Contribution")
-        )
+        stability_contribution = self._safe_float(score_breakdown.get("Stability Contribution"))
 
         contribution_values = [
             technical_contribution,
@@ -421,11 +415,7 @@ class ReportGenerator:
                     ],
                     [
                         "Stability Score",
-                        (
-                            f"{stability_score:.0f}/100"
-                            if stability_score is not None
-                            else "N/A"
-                        ),
+                        (f"{stability_score:.0f}/100" if stability_score is not None else "N/A"),
                     ],
                     ["Recommendation", pdf_recommendation],
                 ]
@@ -463,17 +453,14 @@ class ReportGenerator:
                         (
                             f"{ai_score:.0f}/100 | {ai_contribution:.2f}/15"
                             if ai_score is not None and ai_contribution is not None
-                            else (
-                                f"{ai_score:.0f}/100" if ai_score is not None else "N/A"
-                            )
+                            else (f"{ai_score:.0f}/100" if ai_score is not None else "N/A")
                         ),
                     ],
                     [
                         "Stability (10%)",
                         (
                             f"{stability_score:.0f}/100 | {stability_contribution:.2f}/10"
-                            if stability_score is not None
-                            and stability_contribution is not None
+                            if stability_score is not None and stability_contribution is not None
                             else (
                                 f"{stability_score:.0f}/100"
                                 if stability_score is not None
@@ -509,9 +496,7 @@ class ReportGenerator:
         if trade_plan and trade_plan.get("status") == "OK":
             risk_reward = self._safe_float(trade_plan.get("risk_reward"))
 
-            risk_reward_text = (
-                f"1 : {risk_reward:.2f}" if risk_reward is not None else "N/A"
-            )
+            risk_reward_text = f"1 : {risk_reward:.2f}" if risk_reward is not None else "N/A"
 
             upside = self._safe_float(trade_plan.get("upside_percent"))
 
@@ -774,37 +759,23 @@ class ReportGenerator:
 
         if valuation_analysis.get("status") == "OK":
 
-            valuation_current_price = self._safe_float(
-                valuation_analysis.get("current_price")
-            )
+            valuation_current_price = self._safe_float(valuation_analysis.get("current_price"))
 
-            valuation_fair_value = self._safe_float(
-                valuation_analysis.get("fair_value")
-            )
+            valuation_fair_value = self._safe_float(valuation_analysis.get("fair_value"))
 
-            valuation_bear_value = self._safe_float(
-                valuation_analysis.get("bear_value")
-            )
+            valuation_bear_value = self._safe_float(valuation_analysis.get("bear_value"))
 
-            valuation_bull_value = self._safe_float(
-                valuation_analysis.get("bull_value")
-            )
+            valuation_bull_value = self._safe_float(valuation_analysis.get("bull_value"))
 
-            valuation_upside = self._safe_float(
-                valuation_analysis.get("upside_percent")
-            )
+            valuation_upside = self._safe_float(valuation_analysis.get("upside_percent"))
 
             valuation_margin_of_safety = self._safe_float(
                 valuation_analysis.get("margin_of_safety")
             )
 
-            valuation_trailing_pe = self._safe_float(
-                valuation_analysis.get("trailing_pe")
-            )
+            valuation_trailing_pe = self._safe_float(valuation_analysis.get("trailing_pe"))
 
-            valuation_forward_pe = self._safe_float(
-                valuation_analysis.get("forward_pe")
-            )
+            valuation_forward_pe = self._safe_float(valuation_analysis.get("forward_pe"))
 
             valuation_base_pe = self._safe_float(valuation_analysis.get("base_pe"))
 

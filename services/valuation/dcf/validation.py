@@ -56,9 +56,7 @@ def _validate_forecast_lengths(data: DCFInput) -> None:
 
     for name, arr in arrays.items():
         if len(arr) != n:
-            raise ValueError(
-                f"Array length mismatch for '{name}': expected {n}, got {len(arr)}."
-            )
+            raise ValueError(f"Array length mismatch for '{name}': expected {n}, got {len(arr)}.")
 
 
 # ==========================================================
@@ -92,9 +90,7 @@ def _validate_capital_structure(data: DCFInput) -> None:
     total = data.equity_weight + data.debt_weight
 
     if abs(total - 1.0) > 1e-4:
-        raise ValueError(
-            f"Capital structure weights must sum to 1.0 (got {total:.4f})."
-        )
+        raise ValueError(f"Capital structure weights must sum to 1.0 (got {total:.4f}).")
 
     if data.equity_weight < 0:
         raise ValueError("Equity weight cannot be negative.")

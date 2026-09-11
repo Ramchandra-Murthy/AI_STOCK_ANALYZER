@@ -39,22 +39,14 @@ class SOTPLongTermValuationService:
         dcf_input = DCFInput(
             company_name=segment_params.get("segment_name", self.company_name),
             currency=segment_params.get("currency", "INR"),
-            last_historical_revenue=segment_params.get(
-                "last_historical_revenue", 1000.0
-            ),
+            last_historical_revenue=segment_params.get("last_historical_revenue", 1000.0),
             revenue_growth_rates=segment_params.get(
                 "revenue_growth_rates", [0.10, 0.10, 0.08, 0.08, 0.06]
             ),
-            ebit_margins=segment_params.get(
-                "ebit_margins", [0.20, 0.20, 0.22, 0.22, 0.25]
-            ),
+            ebit_margins=segment_params.get("ebit_margins", [0.20, 0.20, 0.22, 0.22, 0.25]),
             tax_rate=segment_params.get("tax_rate", 0.25),
-            working_capital_ratios=segment_params.get(
-                "working_capital_ratios", [0.15] * 5
-            ),
-            sales_to_capital_ratios=segment_params.get(
-                "sales_to_capital_ratios", [2.0] * 5
-            ),
+            working_capital_ratios=segment_params.get("working_capital_ratios", [0.15] * 5),
+            sales_to_capital_ratios=segment_params.get("sales_to_capital_ratios", [2.0] * 5),
             cost_of_capital=segment_params.get("cost_of_capital", 0.10),
             terminal_growth_rate=segment_params.get("terminal_growth_rate", 0.04),
         )
@@ -114,9 +106,7 @@ class SOTPLongTermValuationService:
             sum_equity_value *= 1.0 - holdco_discount
 
         implied_price = (
-            sum_equity_value / self.shares_outstanding
-            if self.shares_outstanding > 0
-            else 0.0
+            sum_equity_value / self.shares_outstanding if self.shares_outstanding > 0 else 0.0
         )
 
         return SOTPValuationOutput(

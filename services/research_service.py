@@ -71,9 +71,7 @@ def _calculate_roe(ticker):
         # Find latest common reporting period
         # --------------------------------------------------
         common_columns = [
-            column
-            for column in income_statement.columns
-            if column in balance_sheet.columns
+            column for column in income_statement.columns if column in balance_sheet.columns
         ]
 
         if not common_columns:
@@ -178,9 +176,7 @@ def _calculate_roa(ticker):
             return None
 
         common_columns = [
-            column
-            for column in income_statement.columns
-            if column in balance_sheet.columns
+            column for column in income_statement.columns if column in balance_sheet.columns
         ]
 
         if not common_columns:
@@ -282,11 +278,7 @@ def _calculate_current_ratio(ticker):
             latest_column,
         )
 
-        if (
-            current_assets is None
-            or current_liabilities is None
-            or current_liabilities <= 0
-        ):
+        if current_assets is None or current_liabilities is None or current_liabilities <= 0:
             return None
 
         ratio = current_assets / current_liabilities
@@ -435,9 +427,7 @@ def get_stock_profile(symbol):
         # means. Fundamental data continues to come from this service.
         market_quote = get_latest_available_price(symbol)
         canonical_price = _safe_float(market_quote.get("price"))
-        canonical_previous_close = _safe_float(
-            market_quote.get("previous_close")
-        )
+        canonical_previous_close = _safe_float(market_quote.get("previous_close"))
         fast_price = canonical_price
         fast_previous_close = canonical_previous_close
 
@@ -624,9 +614,7 @@ def get_stock_profile(symbol):
             # GROWTH
             # ==============================================
             "revenue_growth": (revenue_growth if revenue_growth is not None else "N/A"),
-            "earnings_growth": (
-                earnings_growth if earnings_growth is not None else "N/A"
-            ),
+            "earnings_growth": (earnings_growth if earnings_growth is not None else "N/A"),
             # ==============================================
             # CASH FLOW
             # ==============================================
@@ -638,12 +626,8 @@ def get_stock_profile(symbol):
             # VALUATION V4 DATA
             # ==============================================
             "ebitda": (ebitda if ebitda is not None else "N/A"),
-            "enterprise_value": (
-                enterprise_value if enterprise_value is not None else "N/A"
-            ),
-            "shares_outstanding": (
-                shares_outstanding if shares_outstanding is not None else "N/A"
-            ),
+            "enterprise_value": (enterprise_value if enterprise_value is not None else "N/A"),
+            "shares_outstanding": (shares_outstanding if shares_outstanding is not None else "N/A"),
             "total_revenue": (total_revenue if total_revenue is not None else "N/A"),
             "net_income": (net_income if net_income is not None else "N/A"),
             "enterprise_to_ebitda": (
@@ -667,11 +651,7 @@ def get_stock_profile(symbol):
                 "averageVolume",
                 "N/A",
             ),
-            "last_volume": (
-                fast_volume
-                if fast_volume is not None
-                else info.get("volume", "N/A")
-            ),
+            "last_volume": (fast_volume if fast_volume is not None else info.get("volume", "N/A")),
         }
 
     except Exception as error:

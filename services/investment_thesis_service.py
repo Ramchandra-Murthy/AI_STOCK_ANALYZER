@@ -16,11 +16,7 @@ def _clean_reasons(reasons):
     """Return a clean list of non-empty reason strings."""
     if not isinstance(reasons, (list, tuple)):
         return []
-    return [
-        str(reason).strip()
-        for reason in reasons
-        if reason is not None and str(reason).strip()
-    ]
+    return [str(reason).strip() for reason in reasons if reason is not None and str(reason).strip()]
 
 
 def generate_investment_thesis(
@@ -138,7 +134,10 @@ def generate_investment_thesis(
 
     for reason in fundamental_reasons:
         lower_reason = reason.lower()
-        if any(term in lower_reason for term in ["reasonable", "strong", "positive", "manageable", "adequate", "covers"]):
+        if any(
+            term in lower_reason
+            for term in ["reasonable", "strong", "positive", "manageable", "adequate", "covers"]
+        ):
             if reason not in strengths:
                 strengths.append(reason)
 
@@ -156,17 +155,25 @@ def generate_investment_thesis(
 
     for reason in technical_reasons:
         lower_reason = reason.lower()
-        if any(term in lower_reason for term in ["weak", "bearish", "below", "negative", "resistance"]):
+        if any(
+            term in lower_reason for term in ["weak", "bearish", "below", "negative", "resistance"]
+        ):
             if reason not in concerns:
                 concerns.append(reason)
 
     catalysts = []
     if revenue_growth is not None and abs(revenue_growth) <= 10 and revenue_growth > 0.15:
-        catalysts.append("Continued strong revenue growth could improve future earnings performance.")
+        catalysts.append(
+            "Continued strong revenue growth could improve future earnings performance."
+        )
     if earnings_growth is not None and abs(earnings_growth) <= 10 and earnings_growth < 0:
-        catalysts.append("A recovery in earnings growth could materially improve the investment outlook.")
+        catalysts.append(
+            "A recovery in earnings growth could materially improve the investment outlook."
+        )
     if technical_score < 50:
-        catalysts.append("Improvement in technical momentum and trend confirmation could strengthen the setup.")
+        catalysts.append(
+            "Improvement in technical momentum and trend confirmation could strengthen the setup."
+        )
     if fundamental_score >= 70:
         catalysts.append("Sustained fundamental performance could support longer-term valuation.")
 

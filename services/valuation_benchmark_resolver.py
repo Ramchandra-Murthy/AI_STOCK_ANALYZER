@@ -61,9 +61,7 @@ def resolve_valuation_benchmarks(
     economically perfect simply because coverage is high.
     """
 
-    company_benchmarks = (
-        company_benchmarks if isinstance(company_benchmarks, dict) else {}
-    )
+    company_benchmarks = company_benchmarks if isinstance(company_benchmarks, dict) else {}
 
     peer_benchmarks = peer_benchmarks if isinstance(peer_benchmarks, dict) else {}
 
@@ -145,11 +143,7 @@ def resolve_valuation_benchmarks(
 
         premium_discount = None
 
-        if (
-            peer_multiple is not None
-            and company_multiple is not None
-            and peer_multiple > 0
-        ):
+        if peer_multiple is not None and company_multiple is not None and peer_multiple > 0:
             premium_discount = ((company_multiple / peer_multiple) - 1.0) * 100.0
 
         resolved[method] = {
@@ -171,13 +165,9 @@ def resolve_valuation_benchmarks(
     # COVERAGE
     # ======================================================
 
-    available_methods = sum(
-        item.get("multiple") is not None for item in resolved.values()
-    )
+    available_methods = sum(item.get("multiple") is not None for item in resolved.values())
 
-    peer_selected_methods = sum(
-        item.get("selection_type") == "PEER" for item in resolved.values()
-    )
+    peer_selected_methods = sum(item.get("selection_type") == "PEER" for item in resolved.values())
 
     fallback_methods = sum(
         item.get("selection_type") == "COMPANY_FALLBACK" for item in resolved.values()

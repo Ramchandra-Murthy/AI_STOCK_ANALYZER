@@ -9,8 +9,11 @@ def get_market_overview():
     return {
         name: {
             "value": info.get("value"),
-            "change": None if info.get("value") is None or info.get("change") is None
-            else round(info["value"] * info["change"] / 100, 2),
+            "change": (
+                None
+                if info.get("value") is None or info.get("change") is None
+                else round(info["value"] * info["change"] / 100, 2)
+            ),
             "percent": info.get("change"),
         }
         for name, info in source.items()

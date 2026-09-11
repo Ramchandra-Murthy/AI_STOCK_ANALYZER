@@ -156,9 +156,7 @@ def evaluate_long_term_equity_overlap(symbol: str) -> dict:
     authorized_value = long_term_value if bridge_ready else 0.0
 
     pending_value = (
-        0.0
-        if bridge_ready
-        else (long_term_value if long_term_value is not None else 0.0)
+        0.0 if bridge_ready else (long_term_value if long_term_value is not None else 0.0)
     )
 
     return {
@@ -202,9 +200,7 @@ def evaluate_long_term_equity_overlap(symbol: str) -> dict:
             "pending_value": pending_value,
             "treatment": ("ADD_TO_EQUITY_BRIDGE" if bridge_ready else "DO_NOT_ADD_YET"),
         },
-        "status_view": (
-            "AUTHORIZED" if bridge_ready else "PENDING_ENTITY_LEVEL_REVIEW"
-        ),
+        "status_view": ("AUTHORIZED" if bridge_ready else "PENDING_ENTITY_LEVEL_REVIEW"),
         "interpretation": (
             "JV and associate investment balances "
             "reconcile to the reported Long-Term Equity "

@@ -53,17 +53,11 @@ class ClassificationRuleEvaluator:
             # Optional Contextual Attribute Checks (None acts as wildcard)
             if rule.relationship is not None and rule.relationship != ril_relationship:
                 continue
-            if (
-                rule.business_model is not None
-                and rule.business_model != business_model
-            ):
+            if rule.business_model is not None and rule.business_model != business_model:
                 continue
             if rule.asset_type is not None and rule.asset_type != asset_type:
                 continue
-            if (
-                rule.integration_level is not None
-                and rule.integration_level != integration_level
-            ):
+            if rule.integration_level is not None and rule.integration_level != integration_level:
                 continue
 
             matched_rules.append(rule)

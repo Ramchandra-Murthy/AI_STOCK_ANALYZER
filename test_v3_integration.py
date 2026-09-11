@@ -68,9 +68,7 @@ print(
 )
 
 comp_in = build_comparable_input(retrieved)
-print(
-    f"✓ Comparable Builder Input       : Target EBITDA Base = ₹{comp_in.target.ebitda:,.2f} Cr"
-)
+print(f"✓ Comparable Builder Input       : Target EBITDA Base = ₹{comp_in.target.ebitda:,.2f} Cr")
 
 print("==========================================================")
 print("ALL SYSTEMS OPERATIONAL: Financial Statement Layer V1.0 Ready!")

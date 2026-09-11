@@ -65,11 +65,7 @@ class ForecastInput:
         """Normalizes and validates input state upon instantiation."""
 
         # 1. Symbol validation
-        if (
-            not self.symbol
-            or not isinstance(self.symbol, str)
-            or not self.symbol.strip()
-        ):
+        if not self.symbol or not isinstance(self.symbol, str) or not self.symbol.strip():
             raise ValuationError("Ticker symbol cannot be empty.")
 
         # 2. Extract and freeze revenue series from flat arg or sub-container
@@ -82,13 +78,9 @@ class ForecastInput:
             raise ValuationError("Historical revenues must contain at least 2 periods.")
 
         # 3. Horizon validation & sync
-        horizon = (
-            self.forecast_years if self.forecast_years != 5 else self.forecast_horizon
-        )
+        horizon = self.forecast_years if self.forecast_years != 5 else self.forecast_horizon
         if horizon < 1 or horizon > 10:
-            raise ValuationError(
-                f"Forecast horizon ({horizon}) must be between 1 and 10 years."
-            )
+            raise ValuationError(f"Forecast horizon ({horizon}) must be between 1 and 10 years.")
 
         # 4. Series length checks
         ebits_tuple = tuple(self.historical_ebits)
@@ -111,9 +103,7 @@ class ForecastInput:
         object.__setattr__(self, "historical_ebits", ebits_tuple)
         object.__setattr__(self, "historical_nwc", tuple(self.historical_nwc))
         object.__setattr__(self, "historical_capex", tuple(self.historical_capex))
-        object.__setattr__(
-            self, "historical_depreciation", tuple(self.historical_depreciation)
-        )
+        object.__setattr__(self, "historical_depreciation", tuple(self.historical_depreciation))
         object.__setattr__(self, "forecast_horizon", horizon)
         object.__setattr__(self, "forecast_years", horizon)
 

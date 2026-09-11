@@ -96,9 +96,7 @@ def build_nav_sensitivity_matrix(
 
             equity_value = adjusted_nav * (1.0 - discount)
 
-            share_price = (
-                equity_value / shares_outstanding if shares_outstanding > 0 else 0.0
-            )
+            share_price = equity_value / shares_outstanding if shares_outstanding > 0 else 0.0
 
             equity_row.append(equity_value)
             price_row.append(share_price)

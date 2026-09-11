@@ -168,9 +168,7 @@ def get_sotp_balance_sheet_data(symbol):
         "unit": "crore",
         "gross_debt": (round(gross_debt, 2) if gross_debt is not None else None),
         "total_cash": (round(total_cash, 2) if total_cash is not None else None),
-        "simple_net_debt": (
-            round(simple_net_debt, 2) if simple_net_debt is not None else None
-        ),
+        "simple_net_debt": (round(simple_net_debt, 2) if simple_net_debt is not None else None),
         "market_cap": (round(market_cap, 2) if market_cap is not None else None),
         "reported_enterprise_value": (
             round(enterprise_value, 2) if enterprise_value is not None else None
@@ -179,9 +177,7 @@ def get_sotp_balance_sheet_data(symbol):
             round(implied_ev, 2) if implied_ev is not None else None
         ),
         "ev_reconciliation_gap": (
-            round(ev_reconciliation_gap, 2)
-            if ev_reconciliation_gap is not None
-            else None
+            round(ev_reconciliation_gap, 2) if ev_reconciliation_gap is not None else None
         ),
         "implied_total_ev_adjustment": (
             round(implied_total_ev_adjustment, 2)

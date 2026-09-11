@@ -49,9 +49,7 @@ def generate_sotp_new_energy_policy(
 
     has_commitment = commitment is not None
 
-    has_reported_net_assets = (
-        reported_net_asset_total is not None and reported_net_asset_total > 0
-    )
+    has_reported_net_assets = reported_net_asset_total is not None and reported_net_asset_total > 0
 
     has_operating_financials = any(
         value is not None
@@ -109,9 +107,7 @@ def generate_sotp_new_energy_policy(
             "ebitda": ebitda,
             "capital_employed": capital_employed,
             "classification": ("OPERATING_VALUATION_INPUT"),
-            "valuation_treatment": (
-                "UNAVAILABLE" if not has_operating_financials else "REVIEW"
-            ),
+            "valuation_treatment": ("UNAVAILABLE" if not has_operating_financials else "REVIEW"),
             "authorized": False,
         },
     }
@@ -123,9 +119,7 @@ def generate_sotp_new_energy_policy(
     method_readiness = {
         "ev_ebitda": (ebitda is not None and ebitda > 0),
         "ev_revenue": (revenue is not None and revenue > 0),
-        "capital_employed_method": (
-            capital_employed is not None and capital_employed > 0
-        ),
+        "capital_employed_method": (capital_employed is not None and capital_employed > 0),
         "net_asset_method": False,
         "capacity_method": False,
         "strategic_value_method": False,

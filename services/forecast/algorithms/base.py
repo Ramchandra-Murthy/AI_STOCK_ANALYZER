@@ -19,15 +19,11 @@ class BaseForecastAlgorithm(ABC):
         pass
 
     @abstractmethod
-    def calculate_depreciation(
-        self, forecast_input: ForecastInput
-    ) -> tuple[float, ...]:
+    def calculate_depreciation(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         pass
 
     @abstractmethod
-    def calculate_working_capital(
-        self, forecast_input: ForecastInput
-    ) -> tuple[float, ...]:
+    def calculate_working_capital(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         pass
 
     @abstractmethod

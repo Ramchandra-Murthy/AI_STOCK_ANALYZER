@@ -45,15 +45,11 @@ def test_forecast_input_invalid_parameters():
     with pytest.raises(ValuationError, match="ticker must be a non-empty string"):
         ForecastInput(ticker="", historical_data=hist)
 
-    with pytest.raises(
-        ValuationError, match="forecast_horizon must be a positive integer"
-    ):
+    with pytest.raises(ValuationError, match="forecast_horizon must be a positive integer"):
         ForecastInput(ticker="RELIANCE", historical_data=hist, forecast_horizon=0)
 
     with pytest.raises(ValuationError, match="terminal_growth_rate must be between"):
-        ForecastInput(
-            ticker="RELIANCE", historical_data=hist, terminal_growth_rate=0.15
-        )
+        ForecastInput(ticker="RELIANCE", historical_data=hist, terminal_growth_rate=0.15)
 
     with pytest.raises(ValuationError, match="discount_rate must be between"):
         ForecastInput(ticker="RELIANCE", historical_data=hist, discount_rate=-0.05)

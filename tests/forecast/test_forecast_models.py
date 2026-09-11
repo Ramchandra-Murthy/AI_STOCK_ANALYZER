@@ -69,9 +69,7 @@ def test_forecast_scenario_roundtrip() -> None:
         depreciation=DepreciationForecast(values=(30.0,), years=(2024,)),
         working_capital=WorkingCapitalForecast(values=(100.0,), years=(2024,)),
         taxes=TaxForecast(values=(0.25,), years=(2024,)),
-        terminal_growth=TerminalGrowthForecast(
-            rate=0.03, confidence=ConfidenceLevel.HIGH
-        ),
+        terminal_growth=TerminalGrowthForecast(rate=0.03, confidence=ConfidenceLevel.HIGH),
         confidence=ForecastConfidence(score=85.0, level=ConfidenceLevel.HIGH),
         assumptions=ForecastAssumption(
             revenue_growth_rate=0.10,

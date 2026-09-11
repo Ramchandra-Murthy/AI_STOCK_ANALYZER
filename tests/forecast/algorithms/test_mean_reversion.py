@@ -18,9 +18,7 @@ def test_mean_reversion_convergence() -> None:
     # Historical: 10, 20, 30 (mean = 20, last = 30)
     # Projections should pull down toward 20
     history = (10.0, 20.0, 30.0)
-    projections = MeanReversionCalculator.project(
-        history, horizon=2, reversion_speed=0.5
-    )
+    projections = MeanReversionCalculator.project(history, horizon=2, reversion_speed=0.5)
     assert len(projections) == 2
     assert projections[0] < 30.0  # Pulled down toward mean
     assert projections[1] < projections[0]  # Continues converging

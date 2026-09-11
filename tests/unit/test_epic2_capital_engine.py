@@ -29,9 +29,7 @@ def test_wacc_calculation_flow():
 
 def test_wacc_invalid_inputs():
     wacc_service = WACCService()
-    cap_struct = CapitalStructure(
-        market_cap=100.0, total_debt=50.0, cash_and_equivalents=10.0
-    )
+    cap_struct = CapitalStructure(market_cap=100.0, total_debt=50.0, cash_and_equivalents=10.0)
 
     with pytest.raises(ValuationError):
         wacc_service.compute_wacc(

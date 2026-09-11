@@ -16,9 +16,7 @@ class DateRange(ValueObject):
 
     def __post_init__(self) -> None:
         if not isinstance(self.start_date, date) or not isinstance(self.end_date, date):
-            raise TypeError(
-                "DateRange boundaries must be valid datetime.date instances."
-            )
+            raise TypeError("DateRange boundaries must be valid datetime.date instances.")
         if self.start_date > self.end_date:
             raise ValueError(
                 f"Start date {self.start_date} cannot be after end date {self.end_date}."

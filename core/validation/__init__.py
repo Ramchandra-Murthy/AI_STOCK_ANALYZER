@@ -55,9 +55,7 @@ def validate_non_empty_string(value: str, name: str | None = None) -> bool:
     return True
 
 
-def validate_non_empty_collection(
-    value: Iterable[Any], name: str | None = None
-) -> bool:
+def validate_non_empty_collection(value: Iterable[Any], name: str | None = None) -> bool:
     try:
         lst = list(value)
         if len(lst) > 0:

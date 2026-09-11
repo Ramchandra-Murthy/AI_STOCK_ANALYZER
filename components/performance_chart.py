@@ -13,9 +13,7 @@ def show_performance_chart(df):
 
     chart_df = df.copy()
 
-    chart_df["Status"] = chart_df["Profit"].apply(
-        lambda x: "Profit" if x >= 0 else "Loss"
-    )
+    chart_df["Status"] = chart_df["Profit"].apply(lambda x: "Profit" if x >= 0 else "Loss")
 
     fig = px.bar(
         chart_df,

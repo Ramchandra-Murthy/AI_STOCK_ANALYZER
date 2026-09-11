@@ -49,16 +49,12 @@ class RevenueForecastEngine:
 
         # 1. Check for Management Guidance Override
         if inp.management_guidance_revenue is not None:
-            logger.info(
-                f"[REVENUE FORECAST] Applying management guidance override for {symbol}"
-            )
+            logger.info(f"[REVENUE FORECAST] Applying management guidance override for {symbol}")
             projected = tuple(inp.management_guidance_revenue)
             hist_revenues = tuple(inp.historical_revenues)
             growth_rates = tuple(
                 round((curr - prev) / prev, 4) if prev != 0 else 0.0
-                for prev, curr in zip(
-                    hist_revenues[-1:] + projected[:-1], projected, strict=False
-                )
+                for prev, curr in zip(hist_revenues[-1:] + projected[:-1], projected, strict=False)
             )
             return RevenueForecast(
                 historical=hist_revenues,

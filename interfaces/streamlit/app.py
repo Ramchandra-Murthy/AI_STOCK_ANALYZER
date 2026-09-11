@@ -3,13 +3,10 @@
 AI Stock Analyzer V6 - Streamlit Interface
 ==========================================================
 """
+
 import streamlit as st
 
-st.set_page_config(
-    page_title="AI Stock Analyzer V6",
-    page_icon="📈",
-    layout="wide"
-)
+st.set_page_config(page_title="AI Stock Analyzer V6", page_icon="📈", layout="wide")
 
 st.title("📈 AI Stock Analyzer — Institutional Equity Research Platform")
 st.markdown("---")

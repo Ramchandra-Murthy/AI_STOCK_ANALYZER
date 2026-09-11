@@ -15,9 +15,7 @@ from services.sotp.sotp_engine import (
 @pytest.fixture
 def sample_sotp_input() -> SOTPInput:
     segments = [
-        SegmentValuation(
-            "Infrastructure", ValuationMethod.DCF, 120000.0, 1.00, "Core EPC"
-        ),
+        SegmentValuation("Infrastructure", ValuationMethod.DCF, 120000.0, 1.00, "Core EPC"),
         SegmentValuation(
             "Financial Services",
             ValuationMethod.COMPARABLE,
@@ -25,9 +23,7 @@ def sample_sotp_input() -> SOTPInput:
             0.66,
             "Financial subsidiary",
         ),
-        SegmentValuation(
-            "Real Estate", ValuationMethod.NAV, 15000.0, 1.00, "Land bank"
-        ),
+        SegmentValuation("Real Estate", ValuationMethod.NAV, 15000.0, 1.00, "Land bank"),
     ]
     return SOTPInput("Larsen & Toubro", "INR", segments, 0.10, 25000.0, 140.0)
 

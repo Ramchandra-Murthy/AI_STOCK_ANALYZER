@@ -64,14 +64,10 @@ def calculate_technical_score(df):
         ema50 = float(latest["EMA50"])
         if ema20 > ema50:
             score += 10
-            reasons.append(
-                "EMA20 is above EMA50, indicating short-term bullish momentum"
-            )
+            reasons.append("EMA20 is above EMA50, indicating short-term bullish momentum")
         elif ema20 < ema50:
             score -= 5
-            reasons.append(
-                "EMA20 is below EMA50, indicating short-term weakness"
-            )
+            reasons.append("EMA20 is below EMA50, indicating short-term weakness")
         else:
             reasons.append("EMA20 is equal to EMA50")
 
@@ -87,14 +83,10 @@ def calculate_technical_score(df):
         ema200 = float(latest["EMA200"])
         if ema50 > ema200:
             score += 10
-            reasons.append(
-                "EMA50 is above EMA200, indicating a bullish long-term trend"
-            )
+            reasons.append("EMA50 is above EMA200, indicating a bullish long-term trend")
         elif ema50 < ema200:
             score -= 10
-            reasons.append(
-                "EMA50 is below EMA200, indicating a bearish long-term trend"
-            )
+            reasons.append("EMA50 is below EMA200, indicating a bearish long-term trend")
         else:
             reasons.append("EMA50 is equal to EMA200")
 
@@ -110,14 +102,10 @@ def calculate_technical_score(df):
         macd_signal = float(latest["MACD_Signal"])
         if macd > macd_signal:
             score += 10
-            reasons.append(
-                "MACD is above its signal line, indicating bullish momentum"
-            )
+            reasons.append("MACD is above its signal line, indicating bullish momentum")
         elif macd < macd_signal:
             score -= 10
-            reasons.append(
-                "MACD is below its signal line, indicating bearish momentum"
-            )
+            reasons.append("MACD is below its signal line, indicating bearish momentum")
         else:
             reasons.append("MACD is equal to its signal line")
     else:

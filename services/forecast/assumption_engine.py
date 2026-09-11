@@ -33,16 +33,13 @@ class AssumptionEngine:
         rev_growth = (
             0.08
             if len(historical_revenue) < 2
-            else (historical_revenue[-1] - historical_revenue[0])
-            / historical_revenue[0]
+            else (historical_revenue[-1] - historical_revenue[0]) / historical_revenue[0]
         )
         ebitda_m = historical_margins[-1] if historical_margins else 0.15
         tax_r = 0.25
         capex_pct = (
             0.05
-            if not historical_capex
-            or not historical_revenue
-            or historical_revenue[-1] == 0
+            if not historical_capex or not historical_revenue or historical_revenue[-1] == 0
             else abs(historical_capex[-1] / historical_revenue[-1])
         )
         wc_pct = 0.10

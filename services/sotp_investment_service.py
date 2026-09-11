@@ -347,9 +347,7 @@ def analyze_sotp_investment_hierarchy(symbol):
         "financial_investments": {
             "value": _round_value(financial_investments),
             "classification": "REVIEW",
-            "possible_overlap_with": (
-                "short_term_investments" if possible_overlap else None
-            ),
+            "possible_overlap_with": ("short_term_investments" if possible_overlap else None),
         },
         "long_term_equity_investment": {
             "value": _round_value(long_term_equity),
