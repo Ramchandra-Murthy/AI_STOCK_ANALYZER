@@ -1,18 +1,21 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class ExecutionOrder:
+    """Executable portfolio order generated from validated sizing inputs."""
+
     symbol: str
-    action: str # "BUY", "SELL", "HOLD"
+    action: str
     quantity: float
-    limit_price: Optional[float]
-    execution_priority: str # "HIGH", "NORMAL", "LOW"
+    limit_price: float | None
+    execution_priority: str
     estimated_slippage: float
     estimated_transaction_cost: float
-    rationale: List[str]
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    rationale: list[str]
+    metadata: dict[str, Any] = field(default_factory=dict)
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
