@@ -22,7 +22,9 @@ class NAVValuationEngine(BaseValuationEngine):
             entity_name=result.company_name,
             valuation_method=ValuationMethod.NAV,
             valuation_status=(
-                ValuationStatus.COMPLETE if result.validation_passed else ValuationStatus.INCOMPLETE
+                ValuationStatus.COMPLETE
+                if result.validation_passed
+                else ValuationStatus.INCOMPLETE
             ),
             enterprise_value=result.gross_asset_value,
             equity_value=result.equity_value,
