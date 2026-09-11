@@ -5,8 +5,6 @@ not run the full technical analyzer for every holding, avoiding database
 writes and avoiding a misleading "live" label for daily market data.
 """
 
-import pandas as pd
-
 from portfolio.portfolio import load_portfolio
 from services.market_service import get_latest_available_price
 
