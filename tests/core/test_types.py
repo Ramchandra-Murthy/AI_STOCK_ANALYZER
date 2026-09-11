@@ -1,13 +1,17 @@
 from __future__ import annotations
+
 import pytest
-from core.types import Currency, FiscalPeriod, Money
+
 from core.exceptions import ValidationError
+from core.types import Currency, FiscalPeriod, Money
+
 
 def test_currency_validation() -> None:
     curr = Currency("inr")
     assert curr.code == "INR"
     with pytest.raises(ValidationError):
         Currency("invalid")
+
 
 def test_money_operations() -> None:
     m1 = Money(100.50, "INR")
@@ -18,6 +22,7 @@ def test_money_operations() -> None:
 
     with pytest.raises(ValidationError):
         _ = m1 + Money(10.0, "USD")
+
 
 def test_fiscal_period() -> None:
     fp_year = FiscalPeriod(2026)

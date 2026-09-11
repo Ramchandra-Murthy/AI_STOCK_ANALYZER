@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 
 # ==========================================================
 # COMPONENTS
@@ -7,18 +7,13 @@ from components.charts.candlestick_chart import plot_candlestick
 from components.technical_summary import show_technical_summary
 
 # ==========================================================
-# REPORTS
+# SERVICES
 # ==========================================================
-from reports.report_generator import ReportGenerator
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
 from services.investment_thesis_service import generate_investment_thesis
 from services.news_service import get_company_news
 from services.recommendation_service import generate_recommendation
-
-# ==========================================================
-# SERVICES
-# ==========================================================
 from services.research_service import get_stock_profile
 from services.scenario_service import generate_scenario_analysis
 from services.score_service import calculate_investment_score
@@ -38,26 +33,28 @@ from services.ui_formatters import (
 from services.valuation_service import generate_valuation_analysis
 from services.valuation_v43_service import generate_valuation_v43
 
-# ==========================================================
-# MAIN SCREEN
-# ==========================================================
+
+def _show_result_expander(title, result):
+    """Render an optional engine result without assuming its internal schema."""
+    with st.expander(title):
+        if isinstance(result, dict) and result:
+            st.json(result)
+        else:
+            st.info("No result is available for this section.")
 
 
 def show():
     st.title("Stock Research Terminal")
     st.caption("Professional Equity Research Platform")
-
     st.divider()
 
     search_col, button_col = st.columns([3, 1])
-
     with search_col:
         entered_symbol = st.text_input(
             "Enter NSE Symbol",
             value="RELIANCE",
             key="research_symbol_input",
-        )
-        entered_symbol = entered_symbol.strip().upper()
+        ).strip().upper()
 
     with button_col:
         st.write("")
@@ -70,7 +67,6 @@ def show():
 
     if "research_analyzed" not in st.session_state:
         st.session_state["research_analyzed"] = False
-
     if "research_active_symbol" not in st.session_state:
         st.session_state["research_active_symbol"] = None
 
@@ -80,9 +76,6 @@ def show():
             return
         st.session_state["research_analyzed"] = True
         st.session_state["research_active_symbol"] = entered_symbol
-        st.session_state.pop("research_pdf", None)
-        st.session_state.pop("research_pdf_symbol", None)
-        st.session_state.pop("research_pdf_name", None)
 
     if not st.session_state["research_analyzed"]:
         return
@@ -105,7 +98,7 @@ def show():
         st.error(f"Unable to fetch stock information: {error}")
         return
 
-    if not data:
+    if not isinstance(data, dict) or not data:
         st.error("Unable to fetch stock information.")
         return
 
@@ -118,9 +111,9 @@ def show():
         ai_result = {}
 
     try:
-        news = get_company_news(symbol)
-        if not news:
-            news = []
+        news = get_company_news(symbol) or []
+        if not isinstance(news, list):
+            news = list(news) if isinstance(news, tuple) else []
     except Exception as error:
         st.warning(f"Company news unavailable: {error}")
         news = []
@@ -170,18 +163,12 @@ def show():
             symbol=symbol,
         )
         if not isinstance(trade_plan, dict):
-            trade_plan = {
-                "status": "ERROR",
-                "message": "Invalid trade plan result.",
-            }
+            trade_plan = {"status": "ERROR", "message": "Invalid trade plan result."}
         elif trade_plan.get("status") == "INSUFFICIENT DATA":
             trade_plan.setdefault("signal", "INSUFFICIENT DATA")
     except Exception as error:
         st.warning(f"Trade planning engine unavailable: {error}")
-        trade_plan = {
-            "status": "ERROR",
-            "message": str(error),
-        }
+        trade_plan = {"status": "ERROR", "message": str(error)}
 
     try:
         investment_thesis = generate_investment_thesis(
@@ -230,16 +217,10 @@ def show():
             }
     except Exception as error:
         st.warning(f"Valuation analysis unavailable: {error}")
-        valuation_analysis = {
-            "status": "UNAVAILABLE",
-            "message": str(error),
-        }
+        valuation_analysis = {"status": "UNAVAILABLE", "message": str(error)}
 
     try:
-        valuation_v43 = generate_valuation_v43(
-            symbol=symbol,
-            company_data=data,
-        )
+        valuation_v43 = generate_valuation_v43(symbol=symbol, company_data=data)
         if not isinstance(valuation_v43, dict):
             valuation_v43 = {
                 "status": "UNAVAILABLE",
@@ -247,10 +228,7 @@ def show():
             }
     except Exception as error:
         st.warning(f"Valuation V4.3 unavailable: {error}")
-        valuation_v43 = {
-            "status": "UNAVAILABLE",
-            "message": str(error),
-        }
+        valuation_v43 = {"status": "UNAVAILABLE", "message": str(error)}
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
         ["Overview", "Financials", "Technical", "AI Analysis", "News"]
@@ -267,6 +245,7 @@ def show():
             st.metric("Current Price", format_price(data.get("price")))
             st.metric("Market Cap", format_market_cap(data.get("market_cap")))
             st.metric("Currency", data.get("currency", "N/A"))
+            st.metric("Dividend Yield", format_dividend_yield(data.get("dividend_yield")))
 
     with tab2:
         st.subheader("Financial Ratios")
@@ -306,7 +285,10 @@ def show():
         st.write("### Cash Flow")
         cf1, cf2 = st.columns(2)
         with cf1:
-            st.metric("Operating Cash Flow", format_large_rupees(data.get("operating_cash_flow")))
+            st.metric(
+                "Operating Cash Flow",
+                format_large_rupees(data.get("operating_cash_flow")),
+            )
         with cf2:
             st.metric("Free Cash Flow", format_large_rupees(data.get("free_cash_flow")))
 
@@ -327,7 +309,9 @@ def show():
 
     with tab4:
         st.subheader("AI Investment Analysis")
-        recommendation = recommendation_result.get("recommendation", "INSUFFICIENT DATA")
+        recommendation = recommendation_result.get(
+            "recommendation", "INSUFFICIENT DATA"
+        )
         st.metric(
             "Overall Investment Score",
             f"{investment_score}/100" if investment_score is not None else "N/A",
@@ -347,7 +331,10 @@ def show():
         overall_score = recommendation_result.get("overall_score")
         st.metric("Confidence", f"{confidence}%" if confidence is not None else "N/A")
         st.progress(safe_progress(confidence))
-        st.metric("Overall Score", f"{overall_score}/100" if overall_score is not None else "N/A")
+        st.metric(
+            "Overall Score",
+            f"{overall_score}/100" if overall_score is not None else "N/A",
+        )
 
         st.subheader("Target Price & Trade Plan")
         if trade_plan.get("status") == "OK":
@@ -378,6 +365,12 @@ def show():
         st.subheader("Final Recommendation")
         st.metric("Investment Verdict", recommendation)
 
+        st.subheader("Research Engines")
+        _show_result_expander("Investment Thesis", investment_thesis)
+        _show_result_expander("Scenario Analysis", scenario_analysis)
+        _show_result_expander("Fundamental Valuation", valuation_analysis)
+        _show_result_expander("Multi-Method Valuation V4.3", valuation_v43)
+
     with tab5:
         st.subheader("Company News")
         if news:
@@ -385,7 +378,9 @@ def show():
                 if isinstance(item, dict):
                     title = item.get("title", "Untitled")
                     link = item.get("link")
-                    st.markdown(f"- [{title}]({link})" if link else f"- {title}")
+                    st.markdown(
+                        f"- [{title}]({link})" if link else f"- {title}"
+                    )
                 else:
                     st.write(f"- {item}")
         else:
