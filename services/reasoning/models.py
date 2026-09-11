@@ -1,42 +1,45 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class EvidenceObject:
     metric_name: str
     value: float | str
-    direction: str # "IMPROVING", "STABLE", "DETERIORATING", "ACCELERATING"
-    importance: str # "HIGH", "MEDIUM", "LOW"
+    direction: str
+    importance: str
     confidence: float
     source: str
     period: str
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class Hypothesis:
     title: str
     statement: str
-    supporting_evidence: List[str]
+    supporting_evidence: list[str]
     confidence: float
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class Contradiction:
     title: str
     description: str
-    conflicting_signals: List[str]
-    severity: str # "HIGH", "MEDIUM", "LOW"
+    conflicting_signals: list[str]
+    severity: str
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class ReasoningResult:
     symbol: str
     department: str
     summary: str
-    evidence_list: List[EvidenceObject]
-    hypotheses: List[Hypothesis]
-    contradictions: List[Contradiction]
+    evidence_list: list[EvidenceObject]
+    hypotheses: list[Hypothesis]
+    contradictions: list[Contradiction]
     confidence: float
-    recommendation: str # "BUY", "HOLD", "SELL"
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    recommendation: str
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
