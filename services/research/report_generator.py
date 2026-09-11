@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 from core.enums import Status
 from core.logger import logger
@@ -40,9 +40,20 @@ class ResearchReportGenerator:
         surfaced as an error rather than producing a misleading report.
         """
 
-        valid_current = isinstance(current_price, (int, float)) and math.isfinite(float(current_price)) and float(current_price) > 0
-        valid_target = isinstance(target_price, (int, float)) and math.isfinite(float(target_price)) and float(target_price) > 0
-        usable_recommendation = bool(recommendation) and str(recommendation).strip().upper() not in {"N/A", "UNKNOWN"}
+        valid_current = (
+            isinstance(current_price, (int, float))
+            and math.isfinite(float(current_price))
+            and float(current_price) > 0
+        )
+        valid_target = (
+            isinstance(target_price, (int, float))
+            and math.isfinite(float(target_price))
+            and float(target_price) > 0
+        )
+        usable_recommendation = bool(recommendation) and str(recommendation).strip().upper() not in {
+            "N/A",
+            "UNKNOWN",
+        }
 
         if not valid_current or not valid_target:
             rec = str(recommendation).strip() if usable_recommendation else "INSUFFICIENT DATA"
@@ -68,9 +79,7 @@ class ResearchReportGenerator:
             rec = "INSUFFICIENT DATA"
             status = Status.ERROR
 
-        logger.info(
-            f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})"
-        )
+        logger.info(f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})")
 
         return EquityResearchReport(
             ticker=ticker,
