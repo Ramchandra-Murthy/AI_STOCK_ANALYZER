@@ -1,7 +1,6 @@
 import pandas as pd
 
-from services import research_service
-from services import technical_service
+from services import research_service, technical_service
 
 
 class FakeTicker:
