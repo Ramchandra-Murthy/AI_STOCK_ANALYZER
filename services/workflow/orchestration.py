@@ -4,13 +4,14 @@ import logging
 import time
 import uuid
 
+from services.market_data.pipeline_integration import FullyIntegratedMarketPipeline
 from services.workflow.models import WorkflowResult
 
 logger = logging.getLogger(__name__)
 
 
 class InstitutionalResearchPipeline:
-    """Institutional workflow orchestrator executing the end-to-end research lifecycle."""
+    """Compatibility workflow facade backed by the real integrity-gated pipeline."""
 
     STEPS = [
         "Download Data",
@@ -29,40 +30,54 @@ class InstitutionalResearchPipeline:
 
     @classmethod
     def execute_full_research_lifecycle(cls, symbol: str) -> WorkflowResult:
-        """Execute the pipeline with deterministic failure propagation.
-
-        This compatibility orchestrator currently records lifecycle stages while the
-        concrete subsystem integrations are wired in. It does not fabricate financial
-        values or mark a failed subsystem as successful.
-        """
-        logger.info("Initiating full institutional research pipeline for %s", symbol)
         start_time = time.time()
         run_id = f"RUN-{uuid.uuid4().hex[:8].upper()}"
-
+        normalized_symbol = symbol.strip().upper() if isinstance(symbol, str) else ""
         completed_steps: list[str] = []
         failed_steps: list[str] = []
         warnings: list[str] = []
         reports_generated: list[str] = []
 
-        if not isinstance(symbol, str) or not symbol.strip():
+        if not normalized_symbol:
             failed_steps.append("Download Data")
-            warnings.append("Execution halted at Download Data due to missing symbol.")
-        else:
-            for step in cls.STEPS:
-                logger.info("Executing workflow step: %s", step)
-                completed_steps.append(step)
-                if step == "Generate Report":
-                    reports_generated.append(f"Institutional_Report_{symbol.strip()}_{run_id}.md")
+            warnings.append("Execution halted at Download Data because symbol is required.")
+            return WorkflowResult(
+                run_id=run_id,
+                completed_steps=completed_steps,
+                failed_steps=failed_steps,
+                execution_time=round(time.time() - start_time, 4),
+                reports_generated=reports_generated,
+                warnings=warnings,
+                metadata={"symbol": normalized_symbol, "pipeline_version": "EROS-3.0"},
+            )
 
-        execution_time = round(time.time() - start_time, 4)
-        logger.info("Research pipeline %s completed in %.4f seconds", run_id, execution_time)
+        pipeline = FullyIntegratedMarketPipeline()
+        packet, decision, result, trace = pipeline.evaluate_stock_securely(normalized_symbol)
+
+        completed_steps.extend(["Download Data", "Validate Financials"])
+        metadata = {
+            "symbol": normalized_symbol,
+            "pipeline_version": "EROS-3.0",
+            "market_data_source": packet.details.get("source"),
+            "data_state": decision.directive,
+            "trace_timestamp": trace.timestamp,
+        }
+
+        if not decision.allowed_in_scoring or result is None:
+            failed_steps.extend(cls.STEPS[2:])
+            warnings.append(decision.warning_message)
+        else:
+            completed_steps.extend(cls.STEPS[2:])
+            reports_generated.append(
+                f"Institutional_Report_{normalized_symbol}_{run_id}.md"
+            )
 
         return WorkflowResult(
             run_id=run_id,
             completed_steps=completed_steps,
             failed_steps=failed_steps,
-            execution_time=execution_time,
+            execution_time=round(time.time() - start_time, 4),
             reports_generated=reports_generated,
             warnings=warnings,
-            metadata={"symbol": symbol, "pipeline_version": "1.0.0"},
+            metadata=metadata,
         )
