@@ -25,7 +25,11 @@ class YahooFinanceDataProvider:
                 ohlcv_history=[],
                 freshness_timestamp=now,
                 is_stale=True,
-                details={"source": "provider-error", "error": "symbol is required", "currency": "INR"},
+                details={
+                    "source": "provider-error",
+                    "error": "symbol is required",
+                    "currency": "INR",
+                },
             )
         try:
             import yfinance as yf
@@ -52,7 +56,11 @@ class YahooFinanceDataProvider:
                 if not isfinite(close) or close <= 0:
                     continue
                 raw_volume = row["Volume"] if "Volume" in hist.columns else 0
-                row_volume = int(raw_volume) if isfinite(float(raw_volume)) and float(raw_volume) >= 0 else 0
+                row_volume = (
+                    int(raw_volume)
+                    if isfinite(float(raw_volume)) and float(raw_volume) >= 0
+                    else 0
+                )
                 ohlcv_history.append(
                     {"date": str(date_idx.date()), "close": close, "volume": row_volume}
                 )
@@ -79,5 +87,9 @@ class YahooFinanceDataProvider:
                 ohlcv_history=[],
                 freshness_timestamp=now,
                 is_stale=True,
-                details={"source": "provider-error", "error": str(exc), "currency": "INR"},
+                details={
+                    "source": "provider-error",
+                    "error": str(exc),
+                    "currency": "INR",
+                },
             )
