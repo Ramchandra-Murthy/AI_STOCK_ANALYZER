@@ -2,51 +2,44 @@ from __future__ import annotations
 
 from typing import Any
 
-from domain.valuation.result import ValuationMethod, ValuationResult, ValuationStatus
-
-
-class BaseValuationEngine:
-    """Abstract base class for valuation engines."""
-
-    def __init__(self) -> None:
-        pass
-
-    @property
-    def valuation_method(self) -> str:
-        raise NotImplementedError
-
-    def evaluate(self, data: Any) -> Any:
-        raise NotImplementedError
-
-    def value(self, data: Any) -> Any:
-        return self.evaluate(data)
+from services.valuation.base_engine import BaseValuationEngine
+from services.valuation.models import ValuationMethod, ValuationResult, ValuationStatus
+from services.valuation.nav import NAVInput, NAVModel
 
 
 class NAVValuationEngine(BaseValuationEngine):
-    """Adapter for NAV Valuation Engine conforming to BaseValuationEngine."""
-
-    def __init__(self) -> None:
-        super().__init__()
+    """Adapter exposing the institutional NAV model through the common engine contract."""
 
     @property
     def valuation_method(self) -> str:
-        return "NAV"
+        return ValuationMethod.NAV.value
 
-    def evaluate(self, data: Any) -> ValuationResult:
-        from services.valuation.nav.nav_input import NAVInput
-        from services.valuation.nav.nav_model import NAVModel
-
-        nav_input = NAVInput(**data) if isinstance(data, dict) else data
+    def value(self, entity: Any) -> ValuationResult:
+        nav_input = NAVInput(**entity) if isinstance(entity, dict) else entity
         model = NAVModel(nav_input)
-        res = model.evaluate()
+        result = model.run_model()
         return ValuationResult(
-            method=ValuationMethod.NAV,
-            enterprise_value=res.total_asset_value,
-            equity_value=res.net_asset_value,
-            implied_share_price=res.implied_share_price,
-            status=ValuationStatus.SUCCESS,
-            details={"notes": "Evaluated successfully via modular NAV engine"},
+            entity_name=result.company_name,
+            valuation_method=ValuationMethod.NAV,
+            valuation_status=(
+                ValuationStatus.COMPLETE
+                if result.validation_passed
+                else ValuationStatus.INCOMPLETE
+            ),
+            enterprise_value=result.gross_asset_value,
+            equity_value=result.equity_value,
+            diagnostics={
+                "share_price": result.implied_share_price,
+                "currency": result.currency,
+                "warnings": result.warnings,
+                "diagnostics": result.diagnostics,
+            },
+            raw_result=result,
         )
+
+    def evaluate(self, entity: Any) -> ValuationResult:
+        """Backward-compatible alias for :meth:`value`."""
+        return self.value(entity)
 
 
 # Backward compatibility alias
