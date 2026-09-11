@@ -1,55 +1,42 @@
-﻿from __future__ import annotations
-
-"""
-==========================================================
-VALUATION DATA MODELS & CONTRACTS
-Module  : models
-Version : V1.0
-==========================================================
-
-Defines core data structures, enums, and calculation contracts
-used across engines, dispatchers, and aggregators.
-"""
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class ValuationMethod(Enum):
+class ValuationMethod(StrEnum):
     DCF = "DCF"
     NAV = "NAV"
-    COMPARABLE = "COMPARABLE"
+    SOTP = "SOTP"
     MARKET = "MARKET"
-    BOOK = "BOOK"
+    BOOK_VALUE = "BOOK_VALUE"
 
 
-class ValuationStatus(Enum):
-    COMPLETE = "COMPLETE"
-    INCOMPLETE = "INCOMPLETE"
-    FAILED = "FAILED"
+class ValuationStatus(StrEnum):
+    SUCCESS = "SUCCESS"
+    FAILURE = "FAILURE"
+    PENDING = "PENDING"
 
 
 @dataclass(slots=True)
 class ValuationResult:
-    """
-    Standardized result contract returned by all valuation engines.
-    """
+    """Standardized valuation result shared by all service engines."""
 
-    entity_name: str
-    valuation_method: ValuationMethod
-    valuation_status: ValuationStatus
-    enterprise_value: float
-    equity_value: float
+    method: ValuationMethod
+    entity_name: str = ""
+    valuation_status: ValuationStatus = ValuationStatus.SUCCESS
+    enterprise_value: float = 0.0
+    equity_value: float = 0.0
+    implied_share_price: float = 0.0
     diagnostics: dict[str, Any] = field(default_factory=dict)
+    component_results: list[ValuationResult] = field(default_factory=list)
     raw_result: Any = None
 
 
 @dataclass(slots=True)
 class SOTPResult:
-    """
-    Aggregate valuation result output by SOTPEngine.
-    """
+    """Aggregate valuation result produced by the SOTP engine."""
 
     enterprise_value: float
     equity_value: float
