@@ -2,7 +2,8 @@
 Dependency Injection Container Implementation.
 """
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from core.container.exceptions import DuplicateServiceError, ServiceNotFoundError
 
