@@ -1,15 +1,16 @@
-﻿"""
-==========================================================
-Dependency Injection Container Implementation
-==========================================================
 """
-from typing import Any, Callable, Dict
-from core.container.exceptions import ServiceNotFoundError, DuplicateServiceError
+Dependency Injection Container Implementation.
+"""
+
+from typing import Any, Callable
+
+from core.container.exceptions import DuplicateServiceError, ServiceNotFoundError
+
 
 class ServiceContainer:
-    def __init__(self):
-        self._singletons: Dict[str, Any] = {}
-        self._factories: Dict[str, Callable[[], Any]] = {}
+    def __init__(self) -> None:
+        self._singletons: dict[str, Any] = {}
+        self._factories: dict[str, Callable[[], Any]] = {}
 
     def register(self, key: str, instance: Any) -> None:
         """Alias for register_singleton for compatibility."""
@@ -36,5 +37,5 @@ class ServiceContainer:
         self._singletons.clear()
         self._factories.clear()
 
-# Global container instance
+
 container = ServiceContainer()
