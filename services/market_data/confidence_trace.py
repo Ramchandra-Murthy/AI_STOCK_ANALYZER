@@ -1,7 +1,9 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any
+
 
 @dataclass(frozen=True, slots=True)
 class ConfidenceDecisionTraceRecord:
@@ -14,14 +16,15 @@ class ConfidenceDecisionTraceRecord:
     adjusted_confidence: float
     composite_ai_score: float
     final_investment_action: str
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    details: Dict[str, Any] = field(default_factory=dict)
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+    details: dict[str, Any] = field(default_factory=dict)
+
 
 class ConfidenceAuditLogger:
-    """
-    EROS 3.0 Block 23J Confidence Decision Trace Logger.
-    Generates immutable, machine-readable audit trails for market data confidence attenuation.
-    """
+    """Generate immutable audit records for confidence attenuation decisions."""
+
     @staticmethod
     def create_trace(
         symbol: str,
@@ -32,7 +35,7 @@ class ConfidenceAuditLogger:
         penalty: float,
         adj_conf: float,
         composite_score: float,
-        action: str
+        action: str,
     ) -> ConfidenceDecisionTraceRecord:
         return ConfidenceDecisionTraceRecord(
             symbol=symbol,
@@ -46,6 +49,6 @@ class ConfidenceAuditLogger:
             final_investment_action=action,
             details={
                 "engine_version": "EROS-3.0-BLOCK-23J",
-                "audit_level": "Institutional Strict"
-            }
+                "audit_level": "Institutional Strict",
+            },
         )
