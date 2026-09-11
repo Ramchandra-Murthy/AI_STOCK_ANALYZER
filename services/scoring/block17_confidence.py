@@ -1,6 +1,8 @@
-﻿from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
 
 @dataclass(frozen=True, slots=True)
 class ResearchConfidenceResult:
@@ -10,53 +12,61 @@ class ResearchConfidenceResult:
     reasoning_confidence: float
     moat_confidence: float
     confidence_rating: str
-    details: Dict[str, Any]
+    details: dict[str, Any]
+
 
 class Block17ConfidenceOrchestrator:
-    """
-    EROS 3.0 Block 17 Research Confidence Orchestrator.
-    Computes institutional confidence composites based on evidence quality, reasoning stability, and moat strength.
-    """
+    """Compute confidence from supplied evidence, reasoning, moat and contradictions."""
+
     def evaluate(
         self,
         symbol: str,
-        evidence_confidence: float = 0.90,
-        reasoning_confidence: float = 0.88,
-        moat_score: float = 80.0,
+        evidence_confidence: float,
+        reasoning_confidence: float,
+        moat_score: float,
         contradiction_count: int = 0,
     ) -> ResearchConfidenceResult:
-        moat_confidence = moat_score / 100.0
+        normalized_symbol = symbol.strip().upper() if isinstance(symbol, str) else ""
+        if not normalized_symbol:
+            raise ValueError("symbol must be non-empty")
+        for name, value in {
+            "evidence_confidence": evidence_confidence,
+            "reasoning_confidence": reasoning_confidence,
+        }.items():
+            if not isinstance(value, (int, float)) or not 0.0 <= float(value) <= 1.0:
+                raise ValueError(f"{name} must be between 0 and 1")
+        if not isinstance(moat_score, (int, float)) or not 0.0 <= float(moat_score) <= 100.0:
+            raise ValueError("moat_score must be between 0 and 100")
+        if not isinstance(contradiction_count, int) or contradiction_count < 0:
+            raise ValueError("contradiction_count must be a non-negative integer")
 
-        # Penalize confidence if contradictions exist
+        moat_confidence = float(moat_score) / 100.0
         contradiction_penalty = min(contradiction_count * 0.10, 0.30)
-
         overall = round(
-            (evidence_confidence * 0.35)
-            + (reasoning_confidence * 0.40)
+            (float(evidence_confidence) * 0.35)
+            + (float(reasoning_confidence) * 0.40)
             + (moat_confidence * 0.25)
             - contradiction_penalty,
-            4
+            4,
         )
         overall = min(max(overall, 0.0), 1.0)
 
-        if overall >= 0.85:
-            rating = "HIGH CONFIDENCE"
-        elif overall >= 0.70:
-            rating = "MODERATE CONFIDENCE"
-        else:
-            rating = "LOW CONFIDENCE - REVIEW REQUIRED"
-
-        details = {
-            "engine_version": "EROS-3.0-BLOCK-17D",
-            "contradiction_penalty": contradiction_penalty,
-        }
-
+        rating = (
+            "HIGH CONFIDENCE"
+            if overall >= 0.85
+            else "MODERATE CONFIDENCE"
+            if overall >= 0.70
+            else "LOW CONFIDENCE - REVIEW REQUIRED"
+        )
         return ResearchConfidenceResult(
-            symbol=symbol,
+            symbol=normalized_symbol,
             overall_confidence=overall,
-            evidence_confidence=evidence_confidence,
-            reasoning_confidence=reasoning_confidence,
+            evidence_confidence=float(evidence_confidence),
+            reasoning_confidence=float(reasoning_confidence),
             moat_confidence=moat_confidence,
             confidence_rating=rating,
-            details=details,
+            details={
+                "engine_version": "EROS-3.0-BLOCK-17D",
+                "contradiction_penalty": contradiction_penalty,
+            },
         )
