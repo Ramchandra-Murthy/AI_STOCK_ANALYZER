@@ -1,111 +1,121 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, List
-from services.ratios.models import FinancialRatios
+from math import isfinite
+
 from services.financials.financial_statement import FinancialStatements
+from services.ratios.models import FinancialRatios
 
 logger = logging.getLogger(__name__)
 
+
 class FinancialRatioEngine:
-    """Institutional-grade financial ratio calculation engine deriving over 50 deep financial metrics from normalized financial statements."""
+    """Derive financial ratios from supplied normalized financial statements only."""
 
     @staticmethod
     def _calculate_cagr(start_value: float, end_value: float, periods: int) -> float:
-        if start_value <= 0 or end_value <= 0 or periods <= 0:
+        start = float(start_value)
+        end = float(end_value)
+        if periods <= 0 or start <= 0 or end <= 0:
             return 0.0
-        try:
-            return round(((end_value / start_value) ** (1.0 / periods) - 1.0) * 100, 2)
-        except Exception:
+        if not isfinite(start) or not isfinite(end):
             return 0.0
+        return round(((end / start) ** (1.0 / periods) - 1.0) * 100.0, 2)
 
     def compute_ratios(self, financials: FinancialStatements) -> FinancialRatios:
-        logger.info("Computing extended institutional financial ratios and CAGRs for %s", financials.symbol)
-        
-        incomes = financials.income_statements or []
-        balances = financials.balance_sheets or []
-        cashflows = financials.cash_flows or []
+        if not isinstance(financials, FinancialStatements):
+            raise TypeError("financials must be a FinancialStatements instance")
+        if not isinstance(financials.symbol, str) or not financials.symbol.strip():
+            raise ValueError("financials.symbol must be non-empty")
 
-        inc = incomes[-1] if incomes else None
-        bs = balances[-1] if balances else None
-        cf = cashflows[-1] if cashflows else None
+        incomes = financials.income_statements
+        balances = financials.balance_sheets
+        cashflows = financials.cash_flows
+        if not incomes or not balances or not cashflows:
+            raise ValueError("financial statements must contain income, balance-sheet and cash-flow data")
 
-        period = inc.period if inc else "2025"
+        inc = incomes[-1]
+        bs = balances[-1]
+        cf = cashflows[-1]
+        period = inc.period
 
-        revenue = inc.revenue if inc else 1.0
-        net_income = inc.net_income if inc else 0.0
-        ebit = inc.ebit if inc else 0.0
-        operating_income = inc.operating_income if inc else 0.0
+        revenue = float(inc.revenue)
+        net_income = float(inc.net_income)
+        ebit = float(inc.ebit)
+        operating_income = float(inc.operating_income)
+        total_assets = float(bs.total_assets)
+        total_liab = float(bs.total_liabilities)
+        equity = float(bs.shareholders_equity or bs.total_equity)
+        cash = float(bs.total_cash)
+        debt = float(bs.total_debt)
+        op_cf = float(cf.operating_cash_flow)
+        fcf = float(cf.free_cash_flow)
+        capex = float(cf.capex or cf.capital_expenditure)
 
-        total_assets = bs.total_assets if bs else 1.0
-        total_liab = bs.total_liabilities if bs else 0.0
-        equity = (bs.shareholders_equity if bs and bs.shareholders_equity != 0 else (bs.total_equity if bs else 1.0))
-        cash = bs.cash if bs else 0.0
-        debt = (bs.debt if bs and bs.debt != 0 else ((bs.short_term_debt + bs.long_term_debt) if bs else 0.0))
+        if revenue <= 0 or total_assets <= 0 or equity <= 0:
+            raise ValueError("revenue, total_assets and equity must be positive for ratio analysis")
 
-        op_cf = cf.operating_cash_flow if cf else 0.0
-        fcf = cf.free_cash_flow if cf else 0.0
-        capex = (cf.capex if cf and cf.capex != 0 else (cf.capital_expenditure if cf else 0.0))
-
-        rev_3y_cagr = 15.0
-        net_inc_3y_cagr = 18.2
-        eps_3y_cagr = 17.5
-
-        if len(incomes) >= 3:
-            rev_3y_cagr = self._calculate_cagr(incomes[0].revenue, incomes[-1].revenue, len(incomes) - 1)
-            net_inc_3y_cagr = self._calculate_cagr(incomes[0].net_income, incomes[-1].net_income, len(incomes) - 1)
-            eps_3y_cagr = self._calculate_cagr(incomes[0].eps, incomes[-1].eps, len(incomes) - 1)
-
+        invested_capital = equity + debt - cash
         profitability = {
-            "net_margin": round((net_income / revenue) * 100, 2),
-            "operating_margin": round((operating_income / revenue) * 100, 2),
-            "ebit_margin": round((ebit / revenue) * 100, 2),
-            "roe": round((net_income / max(equity, 1.0)) * 100, 2),
-            "roce": round((ebit / total_assets) * 100, 2),
-            "roic": round((ebit / (equity + debt - cash)) * 100, 2) if (equity + debt - cash) > 0 else 0.0,
-            "croic": round((op_cf / (equity + debt - cash)) * 100, 2) if (equity + debt - cash) > 0 else 0.0
+            "net_margin": round((net_income / revenue) * 100.0, 2),
+            "operating_margin": round((operating_income / revenue) * 100.0, 2),
+            "ebit_margin": round((ebit / revenue) * 100.0, 2),
+            "roe": round((net_income / equity) * 100.0, 2),
+            "roce": round((ebit / total_assets) * 100.0, 2),
+            "roic": round((ebit / invested_capital) * 100.0, 2) if invested_capital > 0 else 0.0,
+            "croic": round((op_cf / invested_capital) * 100.0, 2) if invested_capital > 0 else 0.0,
         }
 
+        current_assets = float(bs.current_assets)
+        current_liabilities = float(bs.current_liabilities)
         liquidity = {
-            "current_ratio": round(total_assets / max(total_liab, 1.0), 2),
-            "cash_ratio": round(cash / max(total_liab, 1.0), 2),
-            "quick_ratio": round((total_assets - 0.2 * total_assets) / max(total_liab, 1.0), 2)
+            "current_ratio": round(current_assets / current_liabilities, 2) if current_liabilities > 0 else 0.0,
+            "cash_ratio": round(cash / current_liabilities, 2) if current_liabilities > 0 else 0.0,
+            "quick_ratio": round((current_assets - float(bs.inventory)) / current_liabilities, 2)
+            if current_liabilities > 0
+            else 0.0,
         }
 
+        interest_expense = abs(float(inc.finance_cost))
         solvency = {
-            "debt_to_equity": round(debt / max(equity, 1.0), 2),
-            "net_debt_to_equity": round((debt - cash) / max(equity, 1.0), 2),
-            "interest_coverage": round(ebit / max(debt * 0.08, 1.0), 2),
-            "debt_to_capital": round(debt / max(equity + debt, 1.0), 2)
+            "debt_to_equity": round(debt / equity, 2),
+            "net_debt_to_equity": round((debt - cash) / equity, 2),
+            "interest_coverage": round(ebit / interest_expense, 2) if interest_expense > 0 else 0.0,
+            "debt_to_capital": round(debt / (equity + debt), 2) if equity + debt > 0 else 0.0,
         }
 
         efficiency = {
-            "asset_turnover": round(revenue / max(total_assets, 1.0), 2),
-            "capital_turnover": round(revenue / max(equity + debt - cash, 1.0), 2)
+            "asset_turnover": round(revenue / total_assets, 2),
+            "capital_turnover": round(revenue / invested_capital, 2) if invested_capital > 0 else 0.0,
         }
 
-        growth = {
-            "revenue_cagr_3y": rev_3y_cagr,
-            "net_income_cagr_3y": net_inc_3y_cagr,
-            "eps_cagr_3y": eps_3y_cagr
-        }
+        growth = {"revenue_cagr_3y": 0.0, "net_income_cagr_3y": 0.0, "eps_cagr_3y": 0.0}
+        if len(incomes) >= 3:
+            periods = len(incomes) - 1
+            growth = {
+                "revenue_cagr_3y": self._calculate_cagr(incomes[0].revenue, inc.revenue, periods),
+                "net_income_cagr_3y": self._calculate_cagr(incomes[0].net_income, inc.net_income, periods),
+                "eps_cagr_3y": self._calculate_cagr(incomes[0].eps, inc.eps, periods),
+            }
 
         cash_flow = {
-            "fcf_margin": round((fcf / revenue) * 100, 2),
-            "fcf_conversion": round((fcf / max(net_income, 1.0)) * 100, 2),
-            "capex_to_revenue": round((capex / revenue) * 100, 2),
-            "owner_earnings": round(net_income + (cf.operating_cash_flow - fcf) - capex, 2)
+            "fcf_margin": round((fcf / revenue) * 100.0, 2),
+            "fcf_conversion": round((fcf / net_income) * 100.0, 2) if net_income != 0 else 0.0,
+            "capex_to_revenue": round((abs(capex) / revenue) * 100.0, 2),
+            "owner_earnings": round(op_cf - abs(capex), 2),
         }
 
+        # Scores that require additional forensic datasets are explicitly marked
+        # unavailable instead of being fabricated.
         quality_scores = {
-            "piotroski_f_score": 8.0,
-            "altman_z_score": 3.4,
-            "beneish_m_score": -2.25,
-            "accrual_ratio": round((net_income - op_cf) / max(total_assets, 1.0), 4)
+            "piotroski_f_score": 0.0,
+            "altman_z_score": 0.0,
+            "beneish_m_score": 0.0,
+            "accrual_ratio": round((net_income - op_cf) / total_assets, 4),
         }
 
         return FinancialRatios(
-            symbol=financials.symbol,
+            symbol=financials.symbol.strip().upper(),
             period=period,
             profitability=profitability,
             liquidity=liquidity,
@@ -114,5 +124,5 @@ class FinancialRatioEngine:
             growth=growth,
             cash_flow=cash_flow,
             quality_scores=quality_scores,
-            metadata={"version": "6.3", "metrics_computed": 55}
+            metadata={"version": "6.4", "quality_score_status": "FORENSIC_INPUTS_REQUIRED"},
         )
