@@ -17,17 +17,12 @@ class MarketDataDecisionResult:
 
 
 class MarketDataDecisionGate:
-    """Govern whether validated market data may enter the scoring pipeline."""
+    """Govern whether validated market data may enter analysis."""
 
     @staticmethod
-    def evaluate_decision(
-        report: MarketDataValidationReport,
-    ) -> MarketDataDecisionResult:
+    def evaluate_decision(report: MarketDataValidationReport) -> MarketDataDecisionResult:
         state = report.data_state
-        base_details = {
-            "engine_version": "EROS-3.0-BLOCK-23F",
-            "state": state,
-        }
+        details = {"engine_version": "EROS-3.0-BLOCK-23F", "state": state}
 
         if state == "LIVE":
             return MarketDataDecisionResult(
@@ -36,34 +31,30 @@ class MarketDataDecisionGate:
                 confidence_penalty=0.0,
                 allowed_in_scoring=True,
                 warning_message=None,
-                details=base_details,
+                details=details,
             )
 
+        # Fallback/stale data is not trustworthy enough for an institutional
+        # investment decision. It may be visible for diagnostics but is blocked
+        # from scoring so a degraded provider cannot masquerade as live evidence.
         if state == "FALLBACK":
             return MarketDataDecisionResult(
                 symbol=report.symbol,
-                directive="USE_FALLBACK_WITH_WARNING",
-                confidence_penalty=0.15,
-                allowed_in_scoring=True,
-                warning_message=(
-                    f"Data retrieved via fallback parity adapter for {report.symbol}. "
-                    "Confidence penalized by 15%."
-                ),
-                details=base_details,
+                directive="REJECT_FALLBACK",
+                confidence_penalty=1.0,
+                allowed_in_scoring=False,
+                warning_message=f"Fallback market data for {report.symbol} is blocked from investment scoring.",
+                details=details,
             )
 
         if state == "STALE":
             return MarketDataDecisionResult(
                 symbol=report.symbol,
-                directive="USE_STALE_WITH_WARNING",
-                confidence_penalty=0.30,
-                allowed_in_scoring=True,
-                warning_message=(
-                    f"Market data for {report.symbol} is stale "
-                    f"(age: {report.freshness_age_seconds}s). "
-                    "Confidence penalized by 30%."
-                ),
-                details=base_details,
+                directive="REJECT_STALE",
+                confidence_penalty=1.0,
+                allowed_in_scoring=False,
+                warning_message=f"Stale market data for {report.symbol} is blocked from investment scoring.",
+                details=details,
             )
 
         return MarketDataDecisionResult(
@@ -75,5 +66,5 @@ class MarketDataDecisionGate:
                 f"Market data for {report.symbol} is INVALID. "
                 f"Errors: {report.errors}. Rejected from scoring pipeline."
             ),
-            details=base_details,
+            details=details,
         )
