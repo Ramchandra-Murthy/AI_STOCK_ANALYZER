@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 from services.market_data.integrity import MarketDataValidationReport
 
@@ -13,7 +12,7 @@ class MarketDataDecisionResult:
     confidence_penalty: float
     allowed_in_scoring: bool
     warning_message: str | None
-    details: dict[str, Any] = field(default_factory=dict)
+    details: dict[str, object] = field(default_factory=dict)
 
 
 class MarketDataDecisionGate:
@@ -34,16 +33,16 @@ class MarketDataDecisionGate:
                 details=details,
             )
 
-        # Fallback/stale data is not trustworthy enough for an institutional
-        # investment decision. It may be visible for diagnostics but is blocked
-        # from scoring so a degraded provider cannot masquerade as live evidence.
         if state == "FALLBACK":
             return MarketDataDecisionResult(
                 symbol=report.symbol,
                 directive="REJECT_FALLBACK",
                 confidence_penalty=1.0,
                 allowed_in_scoring=False,
-                warning_message=f"Fallback market data for {report.symbol} is blocked from investment scoring.",
+                warning_message=(
+                    f"Fallback market data for {report.symbol} is blocked from "
+                    "investment scoring."
+                ),
                 details=details,
             )
 
@@ -53,7 +52,10 @@ class MarketDataDecisionGate:
                 directive="REJECT_STALE",
                 confidence_penalty=1.0,
                 allowed_in_scoring=False,
-                warning_message=f"Stale market data for {report.symbol} is blocked from investment scoring.",
+                warning_message=(
+                    f"Stale market data for {report.symbol} is blocked from "
+                    "investment scoring."
+                ),
                 details=details,
             )
 
