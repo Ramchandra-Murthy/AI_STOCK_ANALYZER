@@ -1,9 +1,12 @@
 from __future__ import annotations
-from enum import Enum
+
 from decimal import Decimal
+from enum import StrEnum
+
 from core.exceptions import ValidationError
 
-class Currency(str, Enum):
+
+class Currency(StrEnum):
     USD = "USD"
     INR = "INR"
     EUR = "EUR"
@@ -21,11 +24,12 @@ class Currency(str, Enum):
         if isinstance(value, str):
             val_str = value.strip()
             if val_str.lower() == "invalid":
-                raise ValidationError("\x27invalid\x27 is not a valid Currency")
+                raise ValidationError("'invalid' is not a valid Currency")
             for member in cls:
                 if member.value.upper() == val_str.upper() or member.name.upper() == val_str.upper():
                     return member
         raise ValidationError(f"{value!r} is not a valid Currency")
+
 
 class FiscalPeriod(Enum):
     Q1 = "Q1"
@@ -54,6 +58,7 @@ class FiscalPeriod(Enum):
     def _missing_(cls, value: object) -> FiscalPeriod | None:
         raise ValidationError(f"{value!r} is not a valid FiscalPeriod")
 
+
 class Money:
     def __init__(self, amount: Decimal | float | int, currency: Currency | str = Currency.INR):
         self.amount = Decimal(str(amount))
@@ -78,6 +83,7 @@ class Money:
 
     def to_dict(self) -> dict:
         return {"amount": float(self.amount), "currency": str(self.currency)}
+
 
 class Percentage:
     def __init__(self, value: Decimal | float | int):
@@ -105,6 +111,7 @@ class Percentage:
     @property
     def as_basis_points(self) -> float:
         return float(self.value * Decimal("100"))
+
 
 class ShareCount:
     def __init__(self, count: int):
