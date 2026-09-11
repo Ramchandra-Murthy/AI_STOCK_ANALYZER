@@ -1,12 +1,13 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)
 class AIScoreResult:
-    """Multi-pillar institutional AI Scoring Result."""
+    """Multi-pillar institutional AI scoring result."""
+
     symbol: str
     growth_score: float
     quality_score: float
@@ -16,4 +17,4 @@ class AIScoreResult:
     momentum_score: float
     risk_score: float
     composite_score: float
-    breakdown_details: Dict[str, Any] = field(default_factory=dict)
+    breakdown_details: dict[str, Any] = field(default_factory=dict)
