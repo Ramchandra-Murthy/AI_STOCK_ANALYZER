@@ -11,7 +11,7 @@ class FinancialMetricForecast:
     metric_name: str
     historical_values: list[float] = field(default_factory=list)
     projected_values: list[float] = field(default_factory=list)
-    growth_rate: float = 0.10
+    growth_rate: float | None = None
     model_used: str = "CAGR"
 
 
