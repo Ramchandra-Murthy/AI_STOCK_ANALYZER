@@ -2,10 +2,10 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Copy project metadata first for better layer caching.
-COPY pyproject.toml requirements.txt ./
+# Copy project metadata and the resolved dependency set first for layer caching.
+COPY pyproject.toml requirements.lock ./
 RUN python -m pip install --no-cache-dir --upgrade pip \
-    && python -m pip install --no-cache-dir --root-user-action=ignore -r requirements.txt \
+    && python -m pip install --no-cache-dir --root-user-action=ignore --only-binary=:all: -r requirements.lock \
     && python -m pip install --no-cache-dir --root-user-action=ignore --no-deps -e .
 
 # The current Streamlit entry point is the only runtime source needed by this image.
