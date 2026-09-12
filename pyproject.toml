@@ -36,4 +36,13 @@ testpaths = ["tests"]
 line-length = 100
 target-version = ["py313"]
 exclude = '''
-/(\n    \.eggs\n  | \.git\n  | \.venv\n  | build\n  | dist\n  | archive\n  | backup_before_v2\n)/\n'''
+/(\
+    \.eggs
+  | \.git
+  | \.venv
+  | build
+  | dist
+  | archive
+  | backup_before_v2
+)/
+'''
