@@ -5,10 +5,10 @@ WORKDIR /app
 # Copy project metadata first for better layer caching.
 COPY pyproject.toml requirements.txt ./
 RUN python -m pip install --no-cache-dir --upgrade pip \
-    && python -m pip install --no-cache-dir -r requirements.txt \
-    && python -m pip install --no-cache-dir -e .
+    && python -m pip install --no-cache-dir --root-user-action=ignore -r requirements.txt \
+    && python -m pip install --no-cache-dir --root-user-action=ignore --no-deps -e .
 
-# Copy application source code.
+# Copy only the production source context; .dockerignore removes archives, backups and local artifacts.
 COPY . .
 
 EXPOSE 8501
