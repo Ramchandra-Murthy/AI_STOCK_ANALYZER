@@ -8,8 +8,9 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
     && python -m pip install --no-cache-dir --root-user-action=ignore -r requirements.txt \
     && python -m pip install --no-cache-dir --root-user-action=ignore --no-deps -e .
 
-# Copy only the production source context; .dockerignore removes archives, backups and local artifacts.
-COPY . .
+# The current Streamlit entry point is the only runtime source needed by this image.
+# Keep legacy snapshots, tests and unrelated repository content out of the image.
+COPY interfaces/streamlit ./interfaces/streamlit
 
 # Run the application as an unprivileged user.
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
