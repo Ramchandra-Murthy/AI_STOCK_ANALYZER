@@ -28,7 +28,7 @@ jobs:
     - name: Install locked dependencies
       run: uv sync --locked --no-build
     - name: Lint with Ruff
-      run: uv run --locked ruff check .
+      run: uv run --locked --no-build ruff check .
     - name: Check formatting with Black
       run: uv run --locked black --check .
     - name: Type check supported runtime surface
