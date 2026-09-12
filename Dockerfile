@@ -11,6 +11,11 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
 # Copy only the production source context; .dockerignore removes archives, backups and local artifacts.
 COPY . .
 
+# Run the application as an unprivileged user.
+RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app /home/appuser
+USER appuser
+
 EXPOSE 8501
 
 # Container-level liveness check for the Streamlit HTTP endpoint.
