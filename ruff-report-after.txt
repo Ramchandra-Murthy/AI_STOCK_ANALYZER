@@ -1,0 +1,1 @@
+/home/runner/work/_temp/545bc30d-c9c0-498b-a228-99f044ac8e08.sh: line 1: ruff: command not found
