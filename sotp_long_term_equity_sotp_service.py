@@ -132,7 +132,8 @@ def _generate_breakdown(eligible_records: list[dict[str, Any]]) -> list[dict[str
         eq = float(record.get("equity_value") or 0.0)
         nd = float(record.get("net_debt") or 0.0)
         mi = float(record.get("minority_interest") or 0.0)
-        contrib = ev if ev != 0.0 else eq
+        # Use truthiness to preserve every nonzero float, including very small values.
+        contrib = ev if ev else eq
 
         breakdown.append(
             {
