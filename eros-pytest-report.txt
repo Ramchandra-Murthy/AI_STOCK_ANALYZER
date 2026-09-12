@@ -1,0 +1,508 @@
+
+==================================== ERRORS ====================================
+_____ ERROR collecting tests/application/forecast/test_forecast_service.py _____
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/application/forecast/test_forecast_service.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/application/forecast/test_forecast_service.py:5: in <module>
+    from application.forecast.forecast_service import ForecastApplicationService
+E   ModuleNotFoundError: No module named 'application.forecast.forecast_service'
+______________ ERROR collecting tests/container/test_container.py ______________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/container/test_container.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/container/test_container.py:5: in <module>
+    from core.container.container import ServiceContainer
+E   ModuleNotFoundError: No module named 'core.container.container'
+___________ ERROR collecting tests/core/container/test_container.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/container/test_container.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/container/test_container.py:3: in <module>
+    from core.container.container import ServiceContainer
+E   ModuleNotFoundError: No module named 'core.container.container'
+__________ ERROR collecting tests/core/exceptions/test_exceptions.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/exceptions/test_exceptions.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/exceptions/test_exceptions.py:5: in <module>
+    from core.exceptions import (
+E   ImportError: cannot import name 'AIERPError' from 'core.exceptions' (unknown location)
+_________ ERROR collecting tests/core/identifiers/test_identifiers.py __________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/identifiers/test_identifiers.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/identifiers/test_identifiers.py:5: in <module>
+    from core.identifiers import ISIN, CompanySymbol
+E   ImportError: cannot import name 'ISIN' from 'core.identifiers' (unknown location)
+____________ ERROR collecting tests/core/identifiers/test_ticker.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/identifiers/test_ticker.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/identifiers/test_ticker.py:5: in <module>
+    from core.identifiers.ticker import Ticker
+E   ModuleNotFoundError: No module named 'core.identifiers.ticker'
+___________ ERROR collecting tests/core/primitives/test_currency.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/primitives/test_currency.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/primitives/test_currency.py:3: in <module>
+    from core.primitives.currency import Currency
+E   ModuleNotFoundError: No module named 'core.primitives.currency'
+____________ ERROR collecting tests/core/primitives/test_fiscal.py _____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/primitives/test_fiscal.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/primitives/test_fiscal.py:5: in <module>
+    from core.primitives.fiscal import FiscalPeriod, Frequency
+E   ModuleNotFoundError: No module named 'core.primitives.fiscal'
+____________ ERROR collecting tests/core/primitives/test_mixins.py _____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/primitives/test_mixins.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/primitives/test_mixins.py:5: in <module>
+    from core.primitives.mixins import ComparableMixin, SerializableMixin
+E   ModuleNotFoundError: No module named 'core.primitives.mixins'
+_____________ ERROR collecting tests/core/primitives/test_money.py _____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/primitives/test_money.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/primitives/test_money.py:7: in <module>
+    from core.primitives.currency import Currency
+E   ModuleNotFoundError: No module named 'core.primitives.currency'
+__________ ERROR collecting tests/core/primitives/test_percentage.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/primitives/test_percentage.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/primitives/test_percentage.py:5: in <module>
+    from core.primitives.percentage import Percentage
+E   ModuleNotFoundError: No module named 'core.primitives.percentage'
+___________ ERROR collecting tests/core/primitives/test_quantity.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/primitives/test_quantity.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/primitives/test_quantity.py:5: in <module>
+    from core.primitives.quantity import Quantity
+E   ModuleNotFoundError: No module named 'core.primitives.quantity'
+_________ ERROR collecting tests/core/primitives/test_value_object.py __________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/primitives/test_value_object.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/primitives/test_value_object.py:8: in <module>
+    from core.primitives import ValueObject
+E   ImportError: cannot import name 'ValueObject' from 'core.primitives' (unknown location)
+___________ ERROR collecting tests/core/protocols/test_protocols.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/protocols/test_protocols.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/protocols/test_protocols.py:5: in <module>
+    from core.protocols import DomainServiceProtocol, RepositoryProtocol
+E   ImportError: cannot import name 'DomainServiceProtocol' from 'core.protocols' (unknown location)
+_______ ERROR collecting tests/core/serialization/test_serialization.py ________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/serialization/test_serialization.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/serialization/test_serialization.py:5: in <module>
+    from core.primitives import Currency, Money
+E   ImportError: cannot import name 'Currency' from 'core.primitives' (unknown location)
+________________ ERROR collecting tests/core/test_container.py _________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/test_container.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/test_container.py:5: in <module>
+    from core.container import bootstrap_container, container
+E   ImportError: cannot import name 'bootstrap_container' from 'core.container' (unknown location)
+________________ ERROR collecting tests/core/test_core_types.py ________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/test_core_types.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/test_core_types.py:7: in <module>
+    from core.exceptions import ValidationError
+E   ImportError: cannot import name 'ValidationError' from 'core.exceptions' (unknown location)
+______________ ERROR collecting tests/core/test_infrastructure.py ______________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/test_infrastructure.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/test_infrastructure.py:13: in <module>
+    from core.exceptions import SerializationError, ValidationError
+E   ImportError: cannot import name 'SerializationError' from 'core.exceptions' (unknown location)
+__________________ ERROR collecting tests/core/test_types.py ___________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/test_types.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/test_types.py:5: in <module>
+    from core.exceptions import ValidationError
+E   ImportError: cannot import name 'ValidationError' from 'core.exceptions' (unknown location)
+________________ ERROR collecting tests/core/test_validation.py ________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/test_validation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/test_validation.py:5: in <module>
+    from core.exceptions import ValidationError
+E   ImportError: cannot import name 'ValidationError' from 'core.exceptions' (unknown location)
+_______________ ERROR collecting tests/core/utils/test_utils.py ________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/utils/test_utils.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/utils/test_utils.py:5: in <module>
+    from core.utils import NumberFormatter, get_logger
+E   ImportError: cannot import name 'NumberFormatter' from 'core.utils' (unknown location)
+________ ERROR collecting tests/core/value_objects/test_fiscal_types.py ________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/core/value_objects/test_fiscal_types.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/core/value_objects/test_fiscal_types.py:7: in <module>
+    from core.value_objects import (
+E   ImportError: cannot import name 'DateRange' from 'core.value_objects' (unknown location)
+________ ERROR collecting tests/domain/forecast/test_cagr_algorithm.py _________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/domain/forecast/test_cagr_algorithm.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/domain/forecast/test_cagr_algorithm.py:7: in <module>
+    from domain.forecast.algorithms.cagr import CAGRCalculator
+E   ModuleNotFoundError: No module named 'domain.forecast.algorithms'
+________ ERROR collecting tests/domain/forecast/test_domain_forecast.py ________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/domain/forecast/test_domain_forecast.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/domain/forecast/test_domain_forecast.py:7: in <module>
+    from domain.forecast import ForecastAssumption, ForecastMethod, ForecastResult
+E   ImportError: cannot import name 'ForecastAssumption' from 'domain.forecast' (unknown location)
+___________ ERROR collecting tests/forecast/algorithms/test_cagr.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/algorithms/test_cagr.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/algorithms/test_cagr.py:10: in <module>
+    from services.forecast.algorithms.cagr import CAGRForecastEngine
+E   ImportError: cannot import name 'CAGRForecastEngine' from 'services.forecast.algorithms.cagr' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/algorithms/cagr.py)
+_____ ERROR collecting tests/forecast/algorithms/test_linear_regression.py _____
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/algorithms/test_linear_regression.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/algorithms/test_linear_regression.py:10: in <module>
+    from services.forecast.algorithms.linear_regression import (
+E   ImportError: cannot import name 'LinearRegressionForecastEngine' from 'services.forecast.algorithms.linear_regression' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/algorithms/linear_regression.py)
+______ ERROR collecting tests/forecast/algorithms/test_mean_reversion.py _______
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/algorithms/test_mean_reversion.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/algorithms/test_mean_reversion.py:13: in <module>
+    from services.forecast.algorithms.mean_reversion import MeanReversionCalculator
+services/forecast/algorithms/mean_reversion.py:16: in <module>
+    from services.forecast.exceptions import ValuationError
+E   ImportError: cannot import name 'ValuationError' from 'services.forecast.exceptions' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/exceptions.py)
+____________ ERROR collecting tests/forecast/contracts/test_dto.py _____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/contracts/test_dto.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/contracts/test_dto.py:5: in <module>
+    from core.primitives import Currency
+E   ImportError: cannot import name 'Currency' from 'core.primitives' (unknown location)
+__________ ERROR collecting tests/forecast/domain/test_projection.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/domain/test_projection.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/domain/test_projection.py:7: in <module>
+    from core.exceptions import ValidationError
+E   ImportError: cannot import name 'ValidationError' from 'core.exceptions' (unknown location)
+______________ ERROR collecting tests/forecast/test_algorithms.py ______________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/test_algorithms.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/test_algorithms.py:12: in <module>
+    from services.forecast.algorithms.cagr import CAGRForecastEngine
+E   ImportError: cannot import name 'CAGRForecastEngine' from 'services.forecast.algorithms.cagr' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/algorithms/cagr.py)
+__________ ERROR collecting tests/forecast/test_assumption_engine.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/test_assumption_engine.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/test_assumption_engine.py:10: in <module>
+    from services.forecast.assumption_engine import AssumptionEngine
+services/forecast/assumption_engine.py:14: in <module>
+    from services.forecast.models import ForecastAssumption, ForecastMethod
+E   ImportError: cannot import name 'ForecastAssumption' from 'services.forecast.models' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/models.py)
+___________ ERROR collecting tests/forecast/test_forecast_models.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/test_forecast_models.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/test_forecast_models.py:13: in <module>
+    from services.forecast.models import (
+E   ImportError: cannot import name 'CapexForecast' from 'services.forecast.models' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/models.py)
+________________ ERROR collecting tests/forecast/test_result.py ________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/test_result.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/test_result.py:11: in <module>
+    from services.forecast.models import (
+E   ImportError: cannot import name 'ConfidenceLevel' from 'services.forecast.models' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/models.py)
+_______________ ERROR collecting tests/forecast/test_service.py ________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/test_service.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/test_service.py:10: in <module>
+    from services.forecast.models import ConfidenceLevel, ForecastMethod
+E   ImportError: cannot import name 'ConfidenceLevel' from 'services.forecast.models' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/models.py)
+_____________ ERROR collecting tests/forecast/test_subservices.py ______________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/forecast/test_subservices.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/forecast/test_subservices.py:9: in <module>
+    from services.forecast.forecast_models import ForecastMethod
+E   ModuleNotFoundError: No module named 'services.forecast.forecast_models'
+__________ ERROR collecting tests/portfolio/domain/test_portfolio.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/portfolio/domain/test_portfolio.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/portfolio/domain/test_portfolio.py:5: in <module>
+    from core.identifiers import ISIN, CompanySymbol
+E   ImportError: cannot import name 'ISIN' from 'core.identifiers' (unknown location)
+___________ ERROR collecting tests/portfolio/domain/test_position.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/portfolio/domain/test_position.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/portfolio/domain/test_position.py:5: in <module>
+    from core.identifiers import ISIN, CompanySymbol
+E   ImportError: cannot import name 'ISIN' from 'core.identifiers' (unknown location)
+___________________ ERROR collecting tests/unit/test_core.py ___________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/unit/test_core.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_core.py:6: in <module>
+    from core.exceptions import PlatformError, ValidationError, ValuationError
+E   ImportError: cannot import name 'PlatformError' from 'core.exceptions' (unknown location)
+__________ ERROR collecting tests/unit/test_epic1_forecast_engine.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/unit/test_epic1_forecast_engine.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_epic1_forecast_engine.py:2: in <module>
+    from services.forecast.forecast_models import ScenarioType
+E   ModuleNotFoundError: No module named 'services.forecast.forecast_models'
+___________ ERROR collecting tests/unit/test_epic2_capital_engine.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/unit/test_epic2_capital_engine.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_epic2_capital_engine.py:3: in <module>
+    from core.exceptions import ValuationError
+E   ImportError: cannot import name 'ValuationError' from 'core.exceptions' (unknown location)
+________________ ERROR collecting tests/unit/test_financials.py ________________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/unit/test_financials.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_financials.py:5: in <module>
+    from core.exceptions import RepositoryError, ValidationError
+E   ImportError: cannot import name 'RepositoryError' from 'core.exceptions' (unknown location)
+___________ ERROR collecting tests/unit/test_forecast_and_capital.py ___________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/unit/test_forecast_and_capital.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_forecast_and_capital.py:5: in <module>
+    from capital.wacc_engine import CapitalCostEngine
+E   ModuleNotFoundError: No module named 'capital.wacc_engine'
+___________ ERROR collecting tests/unit/test_integrated_forecast.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/unit/test_integrated_forecast.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_integrated_forecast.py:2: in <module>
+    from services.forecast.forecast_service import ForecastService
+E   ModuleNotFoundError: No module named 'services.forecast.forecast_service'
+____________ ERROR collecting tests/unit/test_research_and_sotp.py _____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/unit/test_research_and_sotp.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_research_and_sotp.py:6: in <module>
+    from services.research.target_price import TargetPriceCalculator, TargetPriceOutput
+services/research/target_price.py:6: in <module>
+    from core.exceptions import ValuationError
+E   ImportError: cannot import name 'ValuationError' from 'core.exceptions' (unknown location)
+___________ ERROR collecting tests/unit/test_v51_forecast_engine.py ____________
+ImportError while importing test module '/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/tests/unit/test_v51_forecast_engine.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/unit/test_v51_forecast_engine.py:3: in <module>
+    from services.forecast.assumption_engine import AssumptionEngine, ManagementGuidance
+services/forecast/assumption_engine.py:14: in <module>
+    from services.forecast.models import ForecastAssumption, ForecastMethod
+E   ImportError: cannot import name 'ForecastAssumption' from 'services.forecast.models' (/home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/services/forecast/models.py)
+=========================== short test summary info ============================
+ERROR tests/application/forecast/test_forecast_service.py
+ERROR tests/container/test_container.py
+ERROR tests/core/container/test_container.py
+ERROR tests/core/exceptions/test_exceptions.py
+ERROR tests/core/identifiers/test_identifiers.py
+ERROR tests/core/identifiers/test_ticker.py
+ERROR tests/core/primitives/test_currency.py
+ERROR tests/core/primitives/test_fiscal.py
+ERROR tests/core/primitives/test_mixins.py
+ERROR tests/core/primitives/test_money.py
+ERROR tests/core/primitives/test_percentage.py
+ERROR tests/core/primitives/test_quantity.py
+ERROR tests/core/primitives/test_value_object.py
+ERROR tests/core/protocols/test_protocols.py
+ERROR tests/core/serialization/test_serialization.py
+ERROR tests/core/test_container.py
+ERROR tests/core/test_core_types.py
+ERROR tests/core/test_infrastructure.py
+ERROR tests/core/test_types.py
+ERROR tests/core/test_validation.py
+ERROR tests/core/utils/test_utils.py
+ERROR tests/core/value_objects/test_fiscal_types.py
+ERROR tests/domain/forecast/test_cagr_algorithm.py
+ERROR tests/domain/forecast/test_domain_forecast.py
+ERROR tests/forecast/algorithms/test_cagr.py
+ERROR tests/forecast/algorithms/test_linear_regression.py
+ERROR tests/forecast/algorithms/test_mean_reversion.py
+ERROR tests/forecast/contracts/test_dto.py
+ERROR tests/forecast/domain/test_projection.py
+ERROR tests/forecast/test_algorithms.py
+ERROR tests/forecast/test_assumption_engine.py
+ERROR tests/forecast/test_forecast_models.py
+ERROR tests/forecast/test_result.py
+ERROR tests/forecast/test_service.py
+ERROR tests/forecast/test_subservices.py
+ERROR tests/portfolio/domain/test_portfolio.py
+ERROR tests/portfolio/domain/test_position.py
+ERROR tests/unit/test_core.py
+ERROR tests/unit/test_epic1_forecast_engine.py
+ERROR tests/unit/test_epic2_capital_engine.py
+ERROR tests/unit/test_financials.py
+ERROR tests/unit/test_forecast_and_capital.py
+ERROR tests/unit/test_integrated_forecast.py
+ERROR tests/unit/test_research_and_sotp.py
+ERROR tests/unit/test_v51_forecast_engine.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 45 errors during collection !!!!!!!!!!!!!!!!!!!
+45 errors in 2.02s
