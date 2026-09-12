@@ -2,11 +2,13 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Copy project metadata and the resolved dependency set first for layer caching.
-COPY pyproject.toml requirements.lock ./
-RUN python -m pip install --no-cache-dir --upgrade pip \
-    && python -m pip install --no-cache-dir --root-user-action=ignore --only-binary=:all: -r requirements.lock \
-    && python -m pip install --no-cache-dir --root-user-action=ignore --no-deps -e .
+# Install a pinned uv binary, then install only the locked runtime dependencies.
+COPY pyproject.toml uv.lock ./
+RUN python -m pip install --no-cache-dir --only-binary=:all: "uv==0.12.1" \
+    && uv sync --locked --no-dev --no-install-project --no-build \
+    && rm -rf /root/.cache/uv
+
+ENV PATH="/app/.venv/bin:${PATH}"
 
 # The current Streamlit entry point is the only runtime source needed by this image.
 # Keep legacy snapshots, tests and unrelated repository content out of the image.
