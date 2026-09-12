@@ -82,9 +82,9 @@ def test_target_price_requires_valid_technical_evidence():
 
 def test_trade_plan_rejects_invalid_ohlc_rows():
     history = _valid_history()
-    history.loc[0, "High"] = -1
-    history.loc[1, "High"] = 1
-    history.loc[1, "Low"] = 2
+    # Six invalid candles leave only 19 valid observations, below the
+    # minimum required for a safe trade plan.
+    history.loc[0:5, "High"] = -1
     result = generate_trade_plan(history, technical_score=60)
     assert result["status"] in {"ERROR", "INSUFFICIENT DATA"}
 
