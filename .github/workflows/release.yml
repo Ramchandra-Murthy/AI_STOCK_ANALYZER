@@ -14,6 +14,6 @@ jobs:
       with:
         version: "0.12.1"
     - name: Install locked build tooling
-      run: uv sync --locked --only-dev
+      run: uv sync --locked --only-dev --no-build
     - name: Build distribution
-      run: uv run --locked python -m build
+      run: uv run --locked --no-build python -m build
