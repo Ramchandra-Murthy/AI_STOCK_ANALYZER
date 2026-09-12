@@ -38,7 +38,8 @@ for block_id, module_name in modules.items():
         continue
 
     classes = [
-        cls for name, cls in vars(module).items()
+        cls
+        for name, cls in vars(module).items()
         if isinstance(cls, type)
         and getattr(cls, "__module__", None) == module_name
         and name.startswith("EROSBlock")

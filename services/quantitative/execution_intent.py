@@ -1,8 +1,7 @@
 ﻿from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from typing import Any, Dict, List
-
+from dataclasses import asdict, dataclass
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-68"
 
@@ -18,11 +17,11 @@ class ExecutionIntent:
     confidence: float
     status: str
     execution_allowed: bool
-    reasons: List[str]
-    warnings: List[str]
+    reasons: list[str]
+    warnings: list[str]
     engine_version: str = ENGINE_VERSION
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -64,9 +63,9 @@ class EROSExecutionIntentEngine:
         reference_price: float,
         allocation_pct: float,
         confidence: float,
-        reasons: List[str],
-        warnings: List[str] | None = None,
-    ) -> Dict[str, Any]:
+        reasons: list[str],
+        warnings: list[str] | None = None,
+    ) -> dict[str, Any]:
 
         return ExecutionIntent(
             symbol=symbol,
@@ -84,40 +83,33 @@ class EROSExecutionIntentEngine:
 
     def evaluate(
         self,
-        decision: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        decision: dict[str, Any],
+    ) -> dict[str, Any]:
 
-        reasons: List[str] = []
-        warnings: List[str] = []
+        reasons: list[str] = []
+        warnings: list[str] = []
 
         symbol = str(decision.get("symbol", "")).strip()
         action = str(decision.get("final_action", "")).upper().strip()
 
         quantity = float(decision.get("quantity", 0.0) or 0.0)
-        reference_price = float(
-            decision.get("price", decision.get("reference_price", 0.0)) or 0.0
-        )
+        reference_price = float(decision.get("price", decision.get("reference_price", 0.0)) or 0.0)
 
         allocation = float(
             decision.get(
                 "optimized_weight",
                 decision.get("allocation_weight", 0.0),
-            ) or 0.0
+            )
+            or 0.0
         )
 
         confidence = float(decision.get("confidence", 0.0) or 0.0)
 
-        governance = str(
-            decision.get("governance", "")
-        ).upper().strip()
+        governance = str(decision.get("governance", "")).upper().strip()
 
-        execution_approved = bool(
-            decision.get("execution_approved", False)
-        )
+        execution_approved = bool(decision.get("execution_approved", False))
 
-        status = str(
-            decision.get("status", "")
-        ).upper().strip()
+        status = str(decision.get("status", "")).upper().strip()
 
         is_stale = bool(decision.get("is_stale", False))
 
@@ -238,10 +230,10 @@ class EROSExecutionIntentEngine:
 
     def build_order_plan(
         self,
-        portfolio: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        portfolio: list[dict[str, Any]],
+    ) -> dict[str, Any]:
 
-        intents: List[Dict[str, Any]] = []
+        intents: list[dict[str, Any]] = []
 
         for decision in portfolio:
 
@@ -249,23 +241,11 @@ class EROSExecutionIntentEngine:
 
             intents.append(intent)
 
-        approved = [
-            item
-            for item in intents
-            if item["execution_allowed"] is True
-        ]
+        approved = [item for item in intents if item["execution_allowed"] is True]
 
-        blocked = [
-            item
-            for item in intents
-            if item["status"] == "BLOCKED"
-        ]
+        blocked = [item for item in intents if item["status"] == "BLOCKED"]
 
-        hold = [
-            item
-            for item in intents
-            if item["status"] == "HOLD"
-        ]
+        hold = [item for item in intents if item["status"] == "HOLD"]
 
         return {
             "engine_version": ENGINE_VERSION,
@@ -281,8 +261,8 @@ class EROSExecutionIntentEngine:
 
     def certify(
         self,
-        portfolio: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        portfolio: list[dict[str, Any]],
+    ) -> dict[str, Any]:
 
         result = self.build_order_plan(portfolio)
 
@@ -298,10 +278,6 @@ class EROSExecutionIntentEngine:
             and approved > 0
         )
 
-        result["certification_status"] = (
-            "CERTIFIED"
-            if result["certified"]
-            else "REVIEW_REQUIRED"
-        )
+        result["certification_status"] = "CERTIFIED" if result["certified"] else "REVIEW_REQUIRED"
 
         return result

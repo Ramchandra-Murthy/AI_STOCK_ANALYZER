@@ -1,6 +1,4 @@
 import importlib
-import io
-from contextlib import redirect_stdout
 from pprint import pprint
 
 modules = [
@@ -113,35 +111,23 @@ for module_name in modules:
                         locations = []
 
                         if field in snapshot:
-                            locations.append(
-                                "TOP_LEVEL=" + repr(snapshot[field])
-                            )
+                            locations.append("TOP_LEVEL=" + repr(snapshot[field]))
 
                         for parent_key, parent_value in snapshot.items():
                             if isinstance(parent_value, dict):
                                 if field in parent_value:
                                     locations.append(
-                                        f"NESTED[{parent_key}]="
-                                        + repr(parent_value[field])
+                                        f"NESTED[{parent_key}]=" + repr(parent_value[field])
                                     )
 
                         if locations:
-                            print(
-                                f"{field:28} : "
-                                + " | ".join(locations)
-                            )
+                            print(f"{field:28} : " + " | ".join(locations))
                         else:
-                            print(
-                                f"{field:28} : ABSENT"
-                            )
+                            print(f"{field:28} : ABSENT")
 
                     print()
                     print("FULL SNAPSHOT:")
-                    pprint(
-                        snapshot,
-                        width=160,
-                        sort_dicts=False
-                    )
+                    pprint(snapshot, width=160, sort_dicts=False)
 
             except Exception as exc:
                 print("SNAPSHOT ERROR")
@@ -165,11 +151,7 @@ for module_name in modules:
                 history = getattr(instance, history_method)()
 
                 print("TYPE :", type(history))
-                pprint(
-                    history,
-                    width=160,
-                    sort_dicts=False
-                )
+                pprint(history, width=160, sort_dicts=False)
 
             except Exception as exc:
                 print("HISTORY ERROR")
@@ -199,15 +181,12 @@ for module_name in modules:
         source = inspect_source = None
 
         import inspect
+
         source = inspect.getsource(module)
 
         for field in SAFETY_FIELDS:
 
-            occurrences = [
-                line.strip()
-                for line in source.splitlines()
-                if field in line
-            ]
+            occurrences = [line.strip() for line in source.splitlines() if field in line]
 
             if occurrences:
                 print()
@@ -242,10 +221,7 @@ for class_name, result in all_results.items():
     for field in SAFETY_FIELDS:
 
         if field in snapshot:
-            print(
-                f"  {field:28} TOP_LEVEL = "
-                f"{snapshot[field]!r}"
-            )
+            print(f"  {field:28} TOP_LEVEL = " f"{snapshot[field]!r}")
             continue
 
         nested = []
@@ -253,19 +229,12 @@ for class_name, result in all_results.items():
         for parent_key, parent_value in snapshot.items():
             if isinstance(parent_value, dict):
                 if field in parent_value:
-                    nested.append(
-                        f"{parent_key}={parent_value[field]!r}"
-                    )
+                    nested.append(f"{parent_key}={parent_value[field]!r}")
 
         if nested:
-            print(
-                f"  {field:28} NESTED = "
-                + " | ".join(nested)
-            )
+            print(f"  {field:28} NESTED = " + " | ".join(nested))
         else:
-            print(
-                f"  {field:28} ABSENT"
-            )
+            print(f"  {field:28} ABSENT")
 
 print()
 print("=" * 90)

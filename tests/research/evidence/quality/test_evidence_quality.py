@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import pytest
-from backend.research.evidence.models.research_evidence import ResearchEvidence
-from backend.research.evidence.services.evidence_service import EvidenceService
-from backend.research.services.research_case_service import ResearchCaseService
+
 from backend.research.evidence.quality.evidence_quality import (
     EvidenceQualityAssessment,
     EvidenceQualityService,
 )
+from backend.research.evidence.services.evidence_service import EvidenceService
+from backend.research.services.research_case_service import ResearchCaseService
+
 
 def test_evidence_quality_assessment_primary_source() -> None:
     case = ResearchCaseService.create_case(
@@ -29,6 +30,7 @@ def test_evidence_quality_assessment_primary_source() -> None:
     assert assessment.quality_score >= 0.90
     assert assessment.quality_grade == "A+"
 
+
 def test_evidence_quality_assessment_anonymous_source() -> None:
     case = ResearchCaseService.create_case(
         symbol="INFY.NS",
@@ -46,6 +48,7 @@ def test_evidence_quality_assessment_anonymous_source() -> None:
     assessment = EvidenceQualityService.assess_evidence(evidence)
     assert assessment.quality_score < 0.70
     assert assessment.quality_grade in {"B", "C"}
+
 
 def test_evidence_quality_invalid_weights_rejected() -> None:
     with pytest.raises(ValueError):

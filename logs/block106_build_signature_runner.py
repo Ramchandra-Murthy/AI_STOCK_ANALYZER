@@ -10,7 +10,7 @@ print("1. IMPORT BLOCK 103")
 print("-" * 70)
 
 from services.quantitative.block103_institutional_frontend_read_model import (
-    EROSBlock103InstitutionalFrontendReadModel
+    EROSBlock103InstitutionalFrontendReadModel,
 )
 
 print("BLOCK 103 IMPORT : PASS")
@@ -97,7 +97,7 @@ print("9. IMPORT BLOCK 106")
 print("-" * 70)
 
 from services.quantitative.block106_institutional_integration_boundary import (
-    EROSBlock106InstitutionalIntegrationBoundary
+    EROSBlock106InstitutionalIntegrationBoundary,
 )
 
 print("BLOCK 106 IMPORT : PASS")

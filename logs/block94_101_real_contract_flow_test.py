@@ -1,5 +1,3 @@
-import importlib
-import json
 import traceback
 
 print("=" * 70)
@@ -128,9 +126,7 @@ print("=" * 70)
 b95 = EROSBlock95StressEvidenceGate()
 
 try:
-    out95 = b95.certify(
-        stress_certificate=out94
-    )
+    out95 = b95.certify(stress_certificate=out94)
 
     print("CERTIFY : PASS")
     print("TYPE    :", type(out95))
@@ -155,9 +151,7 @@ print("=" * 70)
 b96 = EROSBlock96StressDecisionGate()
 
 try:
-    out96 = b96.certify(
-        stress_gate=out95
-    )
+    out96 = b96.certify(stress_gate=out95)
 
     print("CERTIFY : PASS")
     print("TYPE    :", type(out96))
@@ -182,9 +176,7 @@ print("=" * 70)
 b97 = EROSBlock97StressReadinessGate()
 
 try:
-    out97 = b97.certify(
-        decision=out96
-    )
+    out97 = b97.certify(decision=out96)
 
     print("CERTIFY : PASS")
     print("TYPE    :", type(out97))
@@ -209,9 +201,7 @@ print("=" * 70)
 b98 = EROSBlock98ExecutionGovernanceBridge()
 
 try:
-    out98 = b98.certify(
-        decision=out97
-    )
+    out98 = b98.certify(decision=out97)
 
     print("CERTIFY : PASS")
     print("TYPE    :", type(out98))
@@ -236,9 +226,7 @@ print("=" * 70)
 b99 = EROSBlock99ExecutionIntentAuthorizationGate()
 
 try:
-    out99 = b99.certify(
-        governance=out98
-    )
+    out99 = b99.certify(governance=out98)
 
     print("CERTIFY : PASS")
     print("TYPE    :", type(out99))
@@ -291,9 +279,7 @@ print("=" * 70)
 b101 = EROSBlock101ExecutionEvidenceReconciliationGate()
 
 try:
-    out101 = b101.certify(
-        execution=out100
-    )
+    out101 = b101.certify(execution=out100)
 
     print("CERTIFY : PASS")
     print("TYPE    :", type(out101))
@@ -342,19 +328,13 @@ for block_id, payload in objects.items():
         "allow_optimization",
     ]:
         if safety.get(field) is True:
-            safety_failures.append(
-                f"Block {block_id}: {field}=True"
-            )
+            safety_failures.append(f"Block {block_id}: {field}=True")
 
     if safety.get("execution_blocked") is not True:
-        safety_failures.append(
-            f"Block {block_id}: execution_blocked != True"
-        )
+        safety_failures.append(f"Block {block_id}: execution_blocked != True")
 
     if safety.get("non_mutation_invariant") is not True:
-        safety_failures.append(
-            f"Block {block_id}: non_mutation_invariant != True"
-        )
+        safety_failures.append(f"Block {block_id}: non_mutation_invariant != True")
 
 if safety_failures:
     print("SAFETY : FAIL")

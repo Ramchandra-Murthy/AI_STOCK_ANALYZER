@@ -6,7 +6,8 @@ It accepts raw financial data supplied by the caller/application and
 normalizes the boundary into a predictable mapping.
 """
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 
 def require_symbol(symbol: str) -> str:

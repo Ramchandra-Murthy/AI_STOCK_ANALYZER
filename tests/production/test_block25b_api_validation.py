@@ -1,7 +1,9 @@
 ﻿from fastapi.testclient import TestClient
+
 from backend.main import app
 
 client = TestClient(app)
+
 
 def test_block25b_valid_eros_request():
     response = client.post(
@@ -22,6 +24,7 @@ def test_block25b_valid_eros_request():
         "REJECTED_BY_INTEGRITY_GATE",
     ]
 
+
 def test_block25b_missing_symbol_rejected():
     response = client.post(
         "/api/v1/eros/evaluate",
@@ -30,6 +33,7 @@ def test_block25b_missing_symbol_rejected():
         },
     )
     assert response.status_code == 422
+
 
 def test_block25b_malformed_request_rejected():
     response = client.post(

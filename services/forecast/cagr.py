@@ -26,7 +26,4 @@ class CAGRCalculator:
             raise ValueError("last_value and cagr must be finite")
         if current <= 0:
             raise ValueError("last_value must be positive")
-        return [
-            (current := current * (1.0 + rate))
-            for _ in range(periods)
-        ]
+        return [(current := current * (1.0 + rate)) for _ in range(periods)]

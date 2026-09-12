@@ -1,8 +1,7 @@
+import inspect
 import json
 import sys
 import traceback
-import inspect
-
 
 print("=" * 60)
 print("EROS 3.0 - V3.8.1 DECISION AUDIT - FAILURE ISOLATION")
@@ -58,10 +57,7 @@ required = [
 for name in required:
     exists = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if exists else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if exists else 'FAIL'}")
 
     if not exists:
         raise RuntimeError(f"MISSING_API:{name}")
@@ -116,15 +112,9 @@ try:
         for key in trace_result.keys():
             print("  -", key)
 
-        print(
-            "TRACEABILITY STATUS :",
-            trace_result.get("traceability_status")
-        )
+        print("TRACEABILITY STATUS :", trace_result.get("traceability_status"))
 
-        print(
-            "TRACEABILITY OBJECT :",
-            type(trace_result.get("traceability")).__name__
-        )
+        print("TRACEABILITY OBJECT :", type(trace_result.get("traceability")).__name__)
 
 except Exception as exc:
     print("TRACEABILITY CALL : FAIL")
@@ -153,10 +143,7 @@ try:
             print("  -", key)
 
         print(
-            "PRIMARY SCENARIO :",
-            convergence_result.get("convergence", {}).get(
-                "primary_scenario"
-            )
+            "PRIMARY SCENARIO :", convergence_result.get("convergence", {}).get("primary_scenario")
         )
 
 except Exception as exc:
@@ -185,40 +172,25 @@ try:
     print("DECISION AUDIT CALL : PASS")
     print("RESULT TYPE         :", type(audit_result).__name__)
 
-
     print("\n8. AUDIT RESULT TYPE")
     print("-" * 60)
 
     if not isinstance(audit_result, dict):
-        raise RuntimeError(
-            "AUDIT_RESULT_NOT_DICT"
-        )
+        raise RuntimeError("AUDIT_RESULT_NOT_DICT")
 
     print("RESULT DICT : PASS")
-
 
     print("\n9. AUDIT TOP LEVEL KEYS")
     print("-" * 60)
 
     for key, value in audit_result.items():
 
-        print(
-            f"{str(key):35} : "
-            f"{type(value).__name__}"
-        )
-
+        print(f"{str(key):35} : " f"{type(value).__name__}")
 
     print("\n10. AUDIT RESULT")
     print("-" * 60)
 
-    print(
-        json.dumps(
-            audit_result,
-            indent=2,
-            default=str
-        )
-    )
-
+    print(json.dumps(audit_result, indent=2, default=str))
 
     print("\n11. CORE AUDIT FIELDS")
     print("-" * 60)
@@ -242,11 +214,7 @@ try:
 
         present = field in audit_result
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if present else 'FAIL'}"
-        )
-
+        print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     print("\n12. AUDIT OBJECT")
     print("-" * 60)
@@ -261,20 +229,10 @@ try:
 
         for key, value in audit.items():
 
-            print(
-                f"  {str(key):30} : "
-                f"{type(value).__name__}"
-            )
+            print(f"  {str(key):30} : " f"{type(value).__name__}")
 
         print("\nAUDIT OBJECT:")
-        print(
-            json.dumps(
-                audit,
-                indent=2,
-                default=str
-            )
-        )
-
+        print(json.dumps(audit, indent=2, default=str))
 
     print("\n13. LEGACY TRACE")
     print("-" * 60)
@@ -283,7 +241,6 @@ try:
 
     print("PRESENT :", legacy_trace is not None)
     print("TYPE    :", type(legacy_trace).__name__)
-
 
     print("\n14. NEW TRACEABILITY")
     print("-" * 60)
@@ -295,14 +252,7 @@ try:
 
     if isinstance(traceability, dict):
 
-        print(
-            json.dumps(
-                traceability,
-                indent=2,
-                default=str
-            )
-        )
-
+        print(json.dumps(traceability, indent=2, default=str))
 
     print("\n15. CONCLUSION")
     print("-" * 60)
@@ -312,37 +262,23 @@ try:
     print("TYPE :", type(conclusion).__name__)
     print("VALUE:", conclusion)
 
-
     print("\n16. TRACEABILITY STATUS")
     print("-" * 60)
 
-    print(
-        "VALUE :",
-        audit_result.get("traceability_status")
-    )
-
+    print("VALUE :", audit_result.get("traceability_status"))
 
     print("\n17. GOVERNANCE")
     print("-" * 60)
 
     governance = audit_result.get("governance")
 
-    print(
-        json.dumps(
-            governance,
-            indent=2,
-            default=str
-        )
-    )
-
+    print(json.dumps(governance, indent=2, default=str))
 
     print("\n18. SAFETY ASSERTIONS")
     print("-" * 60)
 
     if not isinstance(governance, dict):
-        raise RuntimeError(
-            "GOVERNANCE_NOT_DICT"
-        )
+        raise RuntimeError("GOVERNANCE_NOT_DICT")
 
     expected_true = [
         "read_only",
@@ -365,23 +301,13 @@ try:
 
         actual = governance.get(field)
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if actual is True else 'FAIL'} "
-            f"(actual={actual})"
-        )
-
+        print(f"{field:35} : " f"{'PASS' if actual is True else 'FAIL'} " f"(actual={actual})")
 
     for field in expected_false:
 
         actual = governance.get(field)
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if actual is False else 'FAIL'} "
-            f"(actual={actual})"
-        )
-
+        print(f"{field:35} : " f"{'PASS' if actual is False else 'FAIL'} " f"(actual={actual})")
 
     print("\n19. FINAL RESULT")
     print("-" * 60)

@@ -1,12 +1,13 @@
 ﻿from __future__ import annotations
 
 import pytest
+
 from core.events.event import BaseDomainEvent
-from services.market_data.events import MarketDataDownloaded
 from services.forecast.events import ForecastCompleted
-from services.valuation.events import ValuationCompleted
-from services.research.events import ResearchCompleted
+from services.market_data.events import MarketDataDownloaded
 from services.report.events import ReportCompleted
+from services.research.events import ResearchCompleted
+from services.valuation.events import ValuationCompleted
 
 
 @pytest.mark.parametrize(
@@ -21,10 +22,7 @@ from services.report.events import ReportCompleted
 )
 def test_domain_event_contract(event_class: type[BaseDomainEvent], event_name: str) -> None:
     """Verify that every domain event adheres strictly to the BaseDomainEvent contract."""
-    event = event_class(
-        symbol="RELIANCE.NS",
-        payload={"test_key": "test_value"}
-    )
+    event = event_class(symbol="RELIANCE.NS", payload={"test_key": "test_value"})
 
     assert isinstance(event.event_id, str)
     assert event.event_id != ""

@@ -1,8 +1,14 @@
 from __future__ import annotations
 
 import pytest
-from backend.market_data.providers.base import ProviderRegistry, YahooMarketDataProvider, AlphaVantageMarketDataProvider
+
 from backend.events.normalizer import CanonicalEventNormalizer
+from backend.market_data.providers.base import (
+    AlphaVantageMarketDataProvider,
+    ProviderRegistry,
+    YahooMarketDataProvider,
+)
+
 
 def test_provider_registry_and_yahoo() -> None:
     provider = ProviderRegistry.get("yahoo")
@@ -15,6 +21,7 @@ def test_provider_registry_and_yahoo() -> None:
     assert normalized["symbol"] == "TCS.NS"
     assert normalized["price"] == 3525.40
     assert normalized["normalized"] is True
+
 
 def test_provider_registry_and_alphavantage() -> None:
     provider = ProviderRegistry.get("alphavantage")
@@ -30,6 +37,7 @@ def test_provider_registry_and_alphavantage() -> None:
     assert normalized["symbol"] == "INFY.NS"
     assert normalized["price"] == 3526.10
     assert normalized["provider"] == "alphavantage"
+
 
 def test_registry_missing_provider_raises_error() -> None:
     with pytest.raises(KeyError):

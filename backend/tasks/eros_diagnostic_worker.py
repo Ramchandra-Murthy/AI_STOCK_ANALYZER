@@ -17,6 +17,7 @@ celery_app.conf.update(
     enable_utc=True,
 )
 
+
 @celery_app.task(name="eros.diagnostic.worker_echo")
 def worker_echo(token):
     return {

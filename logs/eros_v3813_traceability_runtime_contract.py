@@ -1,6 +1,4 @@
-﻿import json
-
-from services.eros_frontend_adapter import EROSFrontendAdapter
+﻿from services.eros_frontend_adapter import EROSFrontendAdapter
 
 print("=" * 70)
 print("EROS 3.0 - V3.8.13 TRACEABILITY RUNTIME CONTRACT")

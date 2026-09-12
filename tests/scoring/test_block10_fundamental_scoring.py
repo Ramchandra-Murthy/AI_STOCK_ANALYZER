@@ -4,6 +4,7 @@ from services.financials.parser import (
 )
 from services.scoring.engine import AIScoringEngine
 
+
 def test_block10_fundamental_scoring() -> None:
     income = {
         "revenue": 100000.0,

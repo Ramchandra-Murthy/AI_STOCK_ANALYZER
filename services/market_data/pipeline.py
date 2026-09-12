@@ -1,14 +1,19 @@
 ﻿from __future__ import annotations
-from typing import Any, Dict, Optional
+
 from services.market_data.adapter import InstitutionalMarketDataAdapter, MarketDataPacket
+from services.scoring.block18_orchestrator import (
+    UnifiedInvestmentResult,
+    UnifiedResearchToDecisionOrchestrator,
+)
 from services.scoring.models import AIScoreResult
-from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator, UnifiedInvestmentResult
+
 
 class RealMarketPipeline:
     """
     EROS 3.0 Block 23B Real Market Pipeline.
     Bridges live market data packets directly into the unified EROS scoring and decision orchestrator.
     """
+
     def __init__(self, policy_profile: str = "Institutional") -> None:
         self.adapter = InstitutionalMarketDataAdapter()
         self.orchestrator = UnifiedResearchToDecisionOrchestrator(policy_profile=policy_profile)
@@ -30,8 +35,8 @@ class RealMarketPipeline:
             breakdown_details={
                 "rating": "STRONG BUY",
                 "current_price": packet.current_price,
-                "engine_version": "EROS-3.0-BLOCK-23B"
-            }
+                "engine_version": "EROS-3.0-BLOCK-23B",
+            },
         )
 
         result = self.orchestrator.evaluate(ai_score, holdings=None, portfolio_weight=0.05)

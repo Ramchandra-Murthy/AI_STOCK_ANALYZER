@@ -25,10 +25,7 @@ for key, value in routes.items():
 print()
 print("=== NORMALIZED QUEUE NAMES ===")
 
-queue_names = [
-    getattr(q, "name", str(q))
-    for q in queues
-]
+queue_names = [getattr(q, "name", str(q)) for q in queues]
 
 for name in queue_names:
     print(name)
@@ -44,10 +41,7 @@ required = [
 ]
 
 for name in required:
-    print(
-        f"{name}:",
-        "PASS" if name in queue_names else "MISSING"
-    )
+    print(f"{name}:", "PASS" if name in queue_names else "MISSING")
 
 print()
 print("=== ROUTE CHECK ===")
@@ -58,7 +52,4 @@ required_routes = [
 ]
 
 for route in required_routes:
-    print(
-        f"{route}:",
-        "PASS" if route in routes else "MISSING"
-    )
+    print(f"{route}:", "PASS" if route in routes else "MISSING")

@@ -1,12 +1,16 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
+
 from services.risk_management.models import PortfolioRiskProfile
 from services.risk_management.resilience import RiskResilienceEngine
 from services.risk_management.stress_engine import StressTestingEngine
 
+
 def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
     return max(minimum, min(maximum, float(value)))
+
 
 @dataclass(frozen=True, slots=True)
 class RiskScoreResult:
@@ -18,13 +22,15 @@ class RiskScoreResult:
     leverage_ratio: float
     resilience_score: float
     stress_impact: float
-    details: Dict[str, Any]
+    details: dict[str, Any]
+
 
 class RiskScoringEngine:
     """
     EROS 3.0 Risk Scoring Engine.
     Safely handles PortfolioRiskProfile attributes and evaluates institutional risk scores (0-100).
     """
+
     def __init__(self) -> None:
         self.resilience_engine = RiskResilienceEngine()
         self.stress_engine = StressTestingEngine()
@@ -62,7 +68,9 @@ class RiskScoringEngine:
         except Exception:
             pass
 
-        stress_impact = float(stress_result.get("impact", -0.1) if isinstance(stress_result, dict) else -0.1)
+        stress_impact = float(
+            stress_result.get("impact", -0.1) if isinstance(stress_result, dict) else -0.1
+        )
 
         vol_score = _clamp(100.0 - (volatility * 200.0))
         dd_score = _clamp(100.0 - (drawdown * 250.0))

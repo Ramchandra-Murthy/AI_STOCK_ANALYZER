@@ -75,5 +75,3 @@ print(
 print("==========================================================")
 print("ALL SYSTEMS OPERATIONAL: Financial Statement Layer V1.0 Ready!")
 print("==========================================================")
-
-

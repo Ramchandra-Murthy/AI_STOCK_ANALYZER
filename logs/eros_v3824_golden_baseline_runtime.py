@@ -1,5 +1,4 @@
 ﻿import sys
-import os
 
 ROOT = r"D:\Users\User\Desktop\AI_STOCK_ANALYZER"
 

@@ -1,6 +1,6 @@
-from pathlib import Path
 import shutil
 from datetime import datetime
+from pathlib import Path
 
 path = Path(r"services\quantitative\block96_stress_decision_gate.py")
 
@@ -13,17 +13,17 @@ if not path.exists():
 
 source = path.read_text(encoding="utf-8-sig")
 
-old = '''            "downstream_risk_gate": STATUS_BLOCKED,
+old = """            "downstream_risk_gate": STATUS_BLOCKED,
             "broker_submission": False,
             "live_order_submission": False,
-'''
+"""
 
-new = '''            "downstream_risk_gate": STATUS_BLOCKED,
+new = """            "downstream_risk_gate": STATUS_BLOCKED,
             "non_mutation_invariant": True,
             "execution_blocked": True,
             "broker_submission": False,
             "live_order_submission": False,
-'''
+"""
 
 count = source.count(old)
 
@@ -31,14 +31,10 @@ print()
 print("EXACT TARGET MATCH COUNT:", count)
 
 if count != 1:
-    raise SystemExit(
-        "ABORTED: Expected exactly one Block 96 safety dictionary target."
-    )
+    raise SystemExit("ABORTED: Expected exactly one Block 96 safety dictionary target.")
 
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-backup = path.with_name(
-    f"{path.name}.backup_block96_safety_{timestamp}"
-)
+backup = path.with_name(f"{path.name}.backup_block96_safety_{timestamp}")
 
 shutil.copy2(path, backup)
 

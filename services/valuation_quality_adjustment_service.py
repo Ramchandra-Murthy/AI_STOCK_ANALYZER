@@ -705,9 +705,7 @@ def apply_quality_adjustment_to_benchmarks(
             adjusted_multiple = peer_multiple * (1.0 + adjustment)
 
         adjusted[method] = {
-            "multiple": (
-                round(adjusted_multiple, 2) if adjusted_multiple is not None else None
-            ),
+            "multiple": (round(adjusted_multiple, 2) if adjusted_multiple is not None else None),
             "raw_peer_multiple": peer_multiple,
             "quality_adjustment": adjustment,
             "quality_adjustment_percent": round(
@@ -715,9 +713,7 @@ def apply_quality_adjustment_to_benchmarks(
                 2,
             ),
             "source": (
-                "Quality-adjusted peer median"
-                if adjusted_multiple is not None
-                else "Unavailable"
+                "Quality-adjusted peer median" if adjusted_multiple is not None else "Unavailable"
             ),
             "reliability": reliability,
             "observations": observations,

@@ -1,6 +1,5 @@
 import importlib
 import pprint
-import traceback
 from datetime import datetime
 
 MODULES = [
@@ -20,15 +19,18 @@ MODULES = [
 
 output = []
 
+
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 def section(title):
     p()
     p("=" * 90)
     p(title)
     p("=" * 90)
+
 
 def inspect_module(block_id, module_name):
     section(f"BLOCK {block_id} - {module_name}")
@@ -271,11 +273,7 @@ p("=" * 90)
 # Save complete report
 report = "\n".join(output)
 
-with open(
-    r".\logs\eros_94_106_comprehensive_audit_output.txt",
-    "w",
-    encoding="utf-8"
-) as f:
+with open(r".\logs\eros_94_106_comprehensive_audit_output.txt", "w", encoding="utf-8") as f:
     f.write(report)
 
 print()
@@ -284,4 +282,3 @@ print("REPORT SAVED:")
 print(r".\logs\eros_94_106_comprehensive_audit_output.txt")
 print("=" * 90)
 print()
-

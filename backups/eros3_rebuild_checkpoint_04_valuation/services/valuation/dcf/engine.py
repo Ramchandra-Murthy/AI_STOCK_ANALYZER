@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
-from services.valuation.dcf.models import DCFResult
+
 from services.forecast.models import ForecastResult
+from services.valuation.dcf.models import DCFResult
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +19,15 @@ class ProductionDCFEngine:
         net_debt: float = 200000.0,
         shares_outstanding: float = 6760.0,
     ) -> DCFResult:
-        logger.info("Running Production DCF valuation for symbol: %s with WACC: %.2f%%", forecast.symbol, wacc * 100)
+        logger.info(
+            "Running Production DCF valuation for symbol: %s with WACC: %.2f%%",
+            forecast.symbol,
+            wacc * 100,
+        )
 
         fcff_list = forecast.free_cash_flow_forecast
         if not fcff_list:
-            fcff_list = [100000.0 * (1.1 ** i) for i in range(5)]
+            fcff_list = [100000.0 * (1.1**i) for i in range(5)]
 
         pv_cash_flows = []
         for i, fcff in enumerate(fcff_list, start=1):
@@ -39,7 +43,9 @@ class ProductionDCFEngine:
 
         enterprise_value = sum_pv_fcff + pv_terminal_value
         equity_value = enterprise_value - net_debt
-        fair_value_per_share = max(0.0, equity_value / shares_outstanding) if shares_outstanding > 0 else 0.0
+        fair_value_per_share = (
+            max(0.0, equity_value / shares_outstanding) if shares_outstanding > 0 else 0.0
+        )
 
         return DCFResult(
             symbol=forecast.symbol,

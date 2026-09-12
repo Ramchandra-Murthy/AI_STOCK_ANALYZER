@@ -184,9 +184,7 @@ def build_sotp_adjustments(symbol):
 
     short_term_investments = _safe_float(cash.get("short_term_investments"))
 
-    cash_and_short_term_investments = _safe_float(
-        cash.get("cash_and_short_term_investments")
-    )
+    cash_and_short_term_investments = _safe_float(cash.get("cash_and_short_term_investments"))
 
     # ======================================================
     # INVESTMENTS
@@ -194,13 +192,9 @@ def build_sotp_adjustments(symbol):
 
     financial_investments = _safe_float(investments.get("financial_investments"))
 
-    long_term_equity_investment = _safe_float(
-        investments.get("long_term_equity_investment")
-    )
+    long_term_equity_investment = _safe_float(investments.get("long_term_equity_investment"))
 
-    joint_venture_investments = _safe_float(
-        investments.get("joint_venture_investments")
-    )
+    joint_venture_investments = _safe_float(investments.get("joint_venture_investments"))
 
     associate_investments = _safe_float(investments.get("associate_investments"))
 
@@ -275,16 +269,12 @@ def build_sotp_adjustments(symbol):
     if not isinstance(financial_adjustment_block, dict):
         financial_adjustment_block = {}
 
-    financial_asset_adjustment = _safe_float(
-        financial_adjustment_block.get("included_value")
-    )
+    financial_asset_adjustment = _safe_float(financial_adjustment_block.get("included_value"))
 
     if financial_asset_adjustment is None:
         financial_asset_adjustment = 0.0
 
-    financial_asset_pending = _safe_float(
-        financial_adjustment_block.get("pending_value")
-    )
+    financial_asset_pending = _safe_float(financial_adjustment_block.get("pending_value"))
 
     if financial_asset_pending is None:
         financial_asset_pending = 0.0
@@ -344,9 +334,7 @@ def build_sotp_adjustments(symbol):
     #
 
     minority_interest_adjustment = 0.0
-    minority_interest_pending = (
-        minority_interest if minority_interest is not None else 0.0
-    )
+    minority_interest_pending = minority_interest if minority_interest is not None else 0.0
 
     minority_interest_authorized = False
 
@@ -515,9 +503,7 @@ def build_sotp_adjustments(symbol):
         "new_energy": {
             "scenario_range_authorized": (new_energy_scenario_authorized),
             "scenario_values": (new_energy_scenarios),
-            "equity_bridge_treatment": (
-                "EXCLUDED_FROM_BRIDGE_" "INCLUDE_IN_GROSS_SOTP_EV"
-            ),
+            "equity_bridge_treatment": ("EXCLUDED_FROM_BRIDGE_" "INCLUDE_IN_GROSS_SOTP_EV"),
         },
         "equity_bridge": {
             "conservative_net_debt": _round(conservative_net_debt),
@@ -538,9 +524,7 @@ def build_sotp_adjustments(symbol):
             "implied_provider_net_debt": _round(implied_provider_net_debt),
             "provider_net_debt_gap": _round(provider_net_debt_gap),
             "detail_service_diagnostics": diagnostics,
-            "summary_reported_enterprise_value": (
-                summary.get("reported_enterprise_value")
-            ),
+            "summary_reported_enterprise_value": (summary.get("reported_enterprise_value")),
             "summary_ev_reconciliation_gap": (summary.get("ev_reconciliation_gap")),
         },
         "treatment": {

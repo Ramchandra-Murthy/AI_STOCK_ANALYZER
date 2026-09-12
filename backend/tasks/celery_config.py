@@ -2,10 +2,12 @@
 
 import logging
 import os
-from typing import Dict, Any
-from kombu import Queue, Exchange
+from typing import Any
+
+from kombu import Exchange, Queue
 
 logger = logging.getLogger(__name__)
+
 
 class CeleryConfig:
     BROKER_URL: str = os.getenv(
@@ -24,29 +26,31 @@ class CeleryConfig:
         Queue("report_queue", Exchange("report_exchange"), routing_key="report.#"),
         Queue("maintenance_queue", Exchange("maintenance_exchange"), routing_key="maintenance.#"),
     ]
-    TASK_ROUTES: Dict[str, str] = {
+    TASK_ROUTES: dict[str, str] = {
         "valuation.*": "valuation_queue",
         "forecast.*": "forecast_queue",
         "research.*": "research_queue",
         "portfolio.*": "portfolio_queue",
         "report.*": "report_queue",
-        "maintenance.*": "maintenance_queue"
+        "maintenance.*": "maintenance_queue",
     }
+
 
 class ProductionCeleryBroker:
     def __init__(self) -> None:
         self.config = CeleryConfig()
-        self.active_tasks: dict[str, Dict[str, Any]] = {}
+        self.active_tasks: dict[str, dict[str, Any]] = {}
 
-    def dispatch(self, task_name: str, queue: str, payload: Dict[str, Any]) -> str:
+    def dispatch(self, task_name: str, queue: str, payload: dict[str, Any]) -> str:
         task_id = f"CELERY-{hash(task_name + queue) % 1000000:06X}"
         self.active_tasks[task_id] = {
             "task_name": task_name,
             "queue": queue,
             "status": "QUEUED",
-            "payload": payload
+            "payload": payload,
         }
         logger.info("Dispatched task %s to queue %s with ID %s", task_name, queue, task_id)
         return task_id
+
 
 celery_broker = ProductionCeleryBroker()

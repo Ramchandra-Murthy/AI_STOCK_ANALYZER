@@ -36,11 +36,7 @@ def run_block88_self_test():
         confidence=0.95,
     )
 
-    decision_payload = (
-        decision.to_dict()
-        if hasattr(decision, "to_dict")
-        else dict(decision)
-    )
+    decision_payload = decision.to_dict() if hasattr(decision, "to_dict") else dict(decision)
 
     assert decision_payload["decision_id"]
     assert decision_payload["execution_allowed"] is True
@@ -64,11 +60,7 @@ def run_block88_self_test():
         ],
     )
 
-    execution_payload = (
-        execution.to_dict()
-        if hasattr(execution, "to_dict")
-        else dict(execution)
-    )
+    execution_payload = execution.to_dict() if hasattr(execution, "to_dict") else dict(execution)
 
     assert execution_payload["status"] == "EXECUTION_READY"
     assert execution_payload["execution_allowed"] is True
@@ -253,22 +245,17 @@ def run_block88_self_test():
     # ==========================================================
 
     assert not (
-        blocked_certificate["execution_allowed"]
-        and blocked_certificate["status"] == "CERTIFIED"
+        blocked_certificate["execution_allowed"] and blocked_certificate["status"] == "CERTIFIED"
     )
 
     return {
         "status": "PASS",
         "approved_status": result["status"],
         "approved_certificate": certificate["status"],
-        "approved_reconciliation": certificate[
-            "reconciliation_status"
-        ],
+        "approved_reconciliation": certificate["reconciliation_status"],
         "approved_order_count": len(orders),
         "approved_fill_count": len(fills),
-        "approved_transaction_cost": paper_execution[
-            "total_transaction_cost"
-        ],
+        "approved_transaction_cost": paper_execution["total_transaction_cost"],
         "blocked_status": blocked_result["status"],
         "blocked_certificate": blocked_certificate["status"],
         "non_bypass_invariant": True,
@@ -279,5 +266,3 @@ def run_block88_self_test():
 
 if __name__ == "__main__":
     print(run_block88_self_test())
-
-

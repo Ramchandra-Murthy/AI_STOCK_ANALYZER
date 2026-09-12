@@ -101,11 +101,7 @@ def get_ai_recommendation(stock_data, history=None):
     # -----------------------------
     if history is not None:
 
-        if (
-            not history.empty
-            and "EMA200" in history.columns
-            and "Close" in history.columns
-        ):
+        if not history.empty and "EMA200" in history.columns and "Close" in history.columns:
 
             close = history["Close"].iloc[-1]
             ema200 = history["EMA200"].iloc[-1]

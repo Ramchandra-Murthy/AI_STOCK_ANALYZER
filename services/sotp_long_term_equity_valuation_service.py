@@ -79,10 +79,7 @@ class SOTPLongTermValuationService:
         # -------------------------------------------------------------
         # DEBT / CASH BRIDGE
         # -------------------------------------------------------------
-        if (
-            "total_debt" in segment_params
-            or "cash_and_equivalents" in segment_params
-        ):
+        if "total_debt" in segment_params or "cash_and_equivalents" in segment_params:
             total_debt = segment_params.get("total_debt", 0.0)
             cash_and_equivalents = segment_params.get(
                 "cash_and_equivalents",
@@ -221,9 +218,7 @@ class SOTPLongTermValuationService:
             sum_equity_value *= 1.0 - holdco_discount
 
         implied_price = (
-            sum_equity_value / self.shares_outstanding
-            if self.shares_outstanding > 0
-            else 0.0
+            sum_equity_value / self.shares_outstanding if self.shares_outstanding > 0 else 0.0
         )
 
         return SOTPValuationOutput(
@@ -239,10 +234,12 @@ class SOTPLongTermValuationService:
             },
         )
 
+
 # ==========================================================
 # COMPATIBILITY ADAPTER
 # Stage 14 -> Long-Term Equity Valuation Service
 # ==========================================================
+
 
 def get_sotp_long_term_equity_valuation(
     symbol: str,
@@ -262,24 +259,21 @@ def get_sotp_long_term_equity_valuation(
     - placeholder zeroes from being interpreted as completed models
     """
 
-    from services.sotp_long_term_equity_entity_data_service import (
-        get_sotp_long_term_equity_entity_data,
-    )
     from services.sotp_long_term_equity_domain_constants import (
+        EXPECTED_ENTITY_COUNT,
         STATUS_OK,
         STATUS_UNAVAILABLE,
         STATUS_UNRESOLVED,
-        EXPECTED_ENTITY_COUNT,
         VALUATION_METHOD_NONE,
         VALUATION_STATUS_UNAUTHORIZED,
+    )
+    from services.sotp_long_term_equity_entity_data_service import (
+        get_sotp_long_term_equity_entity_data,
     )
 
     evidence = get_sotp_long_term_equity_entity_data(symbol)
 
-    if (
-        not isinstance(evidence, dict)
-        or evidence.get("status") != STATUS_OK
-    ):
+    if not isinstance(evidence, dict) or evidence.get("status") != STATUS_OK:
         return {
             "status": STATUS_UNAVAILABLE,
             "symbol": symbol,
@@ -313,9 +307,7 @@ def get_sotp_long_term_equity_valuation(
 
     for entity in population:
         record = dict(entity)
-        evidence_entity = annexure_by_name.get(
-            str(entity.get("name", "")).strip().casefold()
-        )
+        evidence_entity = annexure_by_name.get(str(entity.get("name", "")).strip().casefold())
 
         if evidence_entity:
             for key in (
@@ -377,4 +369,3 @@ def get_sotp_long_term_equity_valuation(
             "classification and valuation authorization."
         ),
     }
-

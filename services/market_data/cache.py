@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Optional
+
 from services.market_data.models import MarketDataResponse
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ class MarketDataCache:
     def __init__(self) -> None:
         self._store: dict[str, MarketDataResponse] = {}
 
-    def get(self, symbol: str) -> Optional[MarketDataResponse]:
+    def get(self, symbol: str) -> MarketDataResponse | None:
         """Retrieve cached market data for a symbol if available."""
         data = self._store.get(symbol.upper())
         if data:

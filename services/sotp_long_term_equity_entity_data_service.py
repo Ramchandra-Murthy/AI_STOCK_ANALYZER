@@ -572,9 +572,7 @@ def _validate_note_39_population(
 
     unexpected_serials = sorted(serial_set - expected_serials)
 
-    duplicate_serials = sorted(
-        {serial for serial in serials if serials.count(serial) > 1}
-    )
+    duplicate_serials = sorted({serial for serial in serials if serials.count(serial) > 1})
 
     normalized_names = [name.casefold() for name in names]
 
@@ -654,8 +652,7 @@ RELIANCE_ANNEXURE_NOTE_39_EXCEPTIONS: dict[str, dict[str, Any]] = {
             "authoritative Note 39 population."
         ),
         "source_basis": (
-            "RIL Integrated Annual Report FY2025-26 - "
-            "Annexure A and Standalone Investment Note"
+            "RIL Integrated Annual Report FY2025-26 - " "Annexure A and Standalone Investment Note"
         ),
     },
     "bvm overseas limited": {
@@ -756,20 +753,14 @@ def _reconcile_annexure_to_note_39(
         )
 
     explained_exceptions = [
-        entity
-        for entity in unmatched_entities
-        if entity.get("resolution_status") == "EXPLAINED"
+        entity for entity in unmatched_entities if entity.get("resolution_status") == "EXPLAINED"
     ]
 
     unresolved_exceptions = [
-        entity
-        for entity in unmatched_entities
-        if entity.get("resolution_status") != "EXPLAINED"
+        entity for entity in unmatched_entities if entity.get("resolution_status") != "EXPLAINED"
     ]
 
-    ownership_mismatches = [
-        entity for entity in matched_entities if not entity["ownership_match"]
-    ]
+    ownership_mismatches = [entity for entity in matched_entities if not entity["ownership_match"]]
 
     return {
         "annexure_count": len(annexure_entities),
@@ -801,8 +792,7 @@ def get_sotp_long_term_equity_entity_data(
             "version": "V5.0",
             "symbol": symbol,
             "message": (
-                "Entity-level long-term equity evidence "
-                "is not configured for this symbol."
+                "Entity-level long-term equity evidence " "is not configured for this symbol."
             ),
         }
 
@@ -817,9 +807,7 @@ def get_sotp_long_term_equity_entity_data(
     population_validation = _validate_note_39_population(population)
 
     population_with_ownership = sum(
-        1
-        for entity in population
-        if _safe_float(entity.get("ownership_percent")) is not None
+        1 for entity in population if _safe_float(entity.get("ownership_percent")) is not None
     )
 
     # ======================================================
@@ -848,8 +836,7 @@ def get_sotp_long_term_equity_entity_data(
     )
 
     captured_investment_value = sum(
-        _safe_float(entity.get("reported_investment_value")) or 0.0
-        for entity in annexure_entities
+        _safe_float(entity.get("reported_investment_value")) or 0.0 for entity in annexure_entities
     )
 
     # ======================================================
@@ -859,9 +846,7 @@ def get_sotp_long_term_equity_entity_data(
     reported_aggregate = 16226.0
 
     coverage_ratio = (
-        captured_investment_value / reported_aggregate
-        if reported_aggregate > 0
-        else 0.0
+        captured_investment_value / reported_aggregate if reported_aggregate > 0 else 0.0
     )
 
     # ======================================================
@@ -893,8 +878,7 @@ def get_sotp_long_term_equity_entity_data(
         # Authoritative Note 39 population
         # --------------------------------------------------
         "population_source": (
-            "Note 39 - Enterprises Consolidated as "
-            "Associates and Joint Ventures under Ind AS 28"
+            "Note 39 - Enterprises Consolidated as " "Associates and Joint Ventures under Ind AS 28"
         ),
         "population_count": population_count,
         "population_expected_count": (RELIANCE_NOTE_39_EXPECTED_POPULATION_COUNT),
@@ -908,9 +892,7 @@ def get_sotp_long_term_equity_entity_data(
         "annexure_evidence_count": annexure_entity_count,
         "annexure_note_39_reconciliation": annexure_reconciliation,
         "annexure_entities_with_ownership": annexure_entities_with_ownership,
-        "annexure_entities_with_investment_value": (
-            annexure_entities_with_investment_value
-        ),
+        "annexure_entities_with_investment_value": (annexure_entities_with_investment_value),
         "captured_investment_value": round(
             captured_investment_value,
             2,

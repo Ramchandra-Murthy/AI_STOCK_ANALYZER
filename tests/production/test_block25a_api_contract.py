@@ -1,5 +1,6 @@
-﻿from backend.main import app
-from backend.api.routers.eros_production_router import router as eros_router
+﻿from backend.api.routers.eros_production_router import router as eros_router
+from backend.main import app
+
 
 def test_block25a_eros_production_route_registered():
     matching = []
@@ -21,17 +22,15 @@ def test_block25a_eros_production_route_registered():
     assert path == "/api/v1/eros/evaluate"
     assert "POST" in methods
 
+
 def test_block25a_eros_production_openapi_contract():
     schema = app.openapi()
     assert "/api/v1/eros/evaluate" in schema["paths"]
-    operation = schema["paths"][
-        "/api/v1/eros/evaluate"
-    ]["post"]
+    operation = schema["paths"]["/api/v1/eros/evaluate"]["post"]
     assert operation["responses"]
     assert "requestBody" in operation
 
+
 def test_block25a_eros_production_router_contract():
     assert eros_router.prefix == "/api/v1/eros"
-    assert "EROS 3.0 Production Workflow" in (
-        eros_router.tags or []
-    )
+    assert "EROS 3.0 Production Workflow" in (eros_router.tags or [])

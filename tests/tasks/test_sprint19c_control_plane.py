@@ -1,5 +1,7 @@
 import time
+
 from fastapi.testclient import TestClient
+
 from backend.main import app
 from backend.tasks.task_control import TaskControlService
 
@@ -148,4 +150,3 @@ def test_task_router_queue_status(auth_headers):
     assert body["status"] == "HEALTHY"
     assert "forecast_queue" in body["queues"]
     assert "report_queue" in body["queues"]
-

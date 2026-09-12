@@ -4,8 +4,6 @@ EROS quality boundary.
 Delegates quality calculations to the existing quality engines.
 """
 
-from typing import Any
-
 from services.data_platform.quality import DataQualityEngine
 from services.ratios.quality_engine import AdvancedQualityEngine
 

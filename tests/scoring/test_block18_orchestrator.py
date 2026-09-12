@@ -1,5 +1,6 @@
-﻿from services.scoring.models import AIScoreResult
-from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
+﻿from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
+from services.scoring.models import AIScoreResult
+
 
 def test_block18_unified_orchestrator():
     ai_score = AIScoreResult(
@@ -15,10 +16,12 @@ def test_block18_unified_orchestrator():
         breakdown_details={
             "rating": "STRONG BUY",
             "engine_version": "EROS-3.0-BLOCK-15",
-        }
+        },
     )
 
-    orchestrator = UnifiedResearchToDecisionOrchestrator(policy_profile="Institutional", max_position_limit=0.10)
+    orchestrator = UnifiedResearchToDecisionOrchestrator(
+        policy_profile="Institutional", max_position_limit=0.10
+    )
     result = orchestrator.evaluate(ai_score, holdings=None, portfolio_weight=0.03)
 
     assert result.symbol == "TCS.NS"

@@ -8,7 +8,6 @@ Execution Bridge self-test harness.
 from services.quantitative.block86_control_plane import (
     EROSBlock86ControlPlane,
 )
-
 from services.quantitative.block87_execution_bridge import (
     EROSBlock87ExecutionBridge,
 )
@@ -77,18 +76,9 @@ def run_block87_self_test() -> dict:
     assert result.order_count == 1
     assert result.decision_id == approved.decision_id
     assert result.orders[0]["symbol"] == "RELIANCE.NS"
-    assert (
-        result.orders[0]["metadata"]["block86_decision_id"]
-        == approved.decision_id
-    )
-    assert (
-        result.audit_evidence["broker_submission"]
-        is False
-    )
-    assert (
-        result.audit_evidence["live_order_submission"]
-        is False
-    )
+    assert result.orders[0]["metadata"]["block86_decision_id"] == approved.decision_id
+    assert result.audit_evidence["broker_submission"] is False
+    assert result.audit_evidence["live_order_submission"] is False
 
     duplicate = bridge.execute(
         approved,
@@ -134,8 +124,7 @@ def run_block87_self_test() -> dict:
         "blocked_status": blocked_result.status,
         "malformed_status": malformed.status,
         "non_bypass_invariant": (
-            blocked_result.execution_allowed is False
-            and blocked_result.order_count == 0
+            blocked_result.execution_allowed is False and blocked_result.order_count == 0
         ),
         "broker_submission": False,
         "live_order_submission": False,

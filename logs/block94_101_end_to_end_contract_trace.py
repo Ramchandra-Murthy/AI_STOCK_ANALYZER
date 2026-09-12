@@ -1,5 +1,4 @@
 import importlib
-import json
 from pprint import pprint
 
 MODULES = {
@@ -26,15 +25,18 @@ CLASS_NAMES = {
 
 lines = []
 
+
 def out(text=""):
     print(text)
     lines.append(str(text))
+
 
 def section(title):
     out()
     out("=" * 76)
     out(title)
     out("=" * 76)
+
 
 def inspect_result(label, result):
     out()
@@ -219,9 +221,7 @@ b95 = None
 if isinstance(b94, dict):
 
     try:
-        b95 = instances[95].certify(
-            stress_certificate=b94
-        )
+        b95 = instances[95].certify(stress_certificate=b94)
 
         inspect_result("BLOCK 95 CERTIFY OUTPUT", b95)
 
@@ -244,9 +244,7 @@ b96 = None
 if isinstance(b95, dict):
 
     try:
-        b96 = instances[96].certify(
-            stress_gate=b95
-        )
+        b96 = instances[96].certify(stress_gate=b95)
 
         inspect_result("BLOCK 96 CERTIFY OUTPUT", b96)
 
@@ -269,9 +267,7 @@ b97 = None
 if isinstance(b96, dict):
 
     try:
-        b97 = instances[97].certify(
-            decision=b96
-        )
+        b97 = instances[97].certify(decision=b96)
 
         inspect_result("BLOCK 97 CERTIFY OUTPUT", b97)
 
@@ -294,9 +290,7 @@ b98 = None
 if isinstance(b97, dict):
 
     try:
-        b98 = instances[98].certify(
-            decision=b97
-        )
+        b98 = instances[98].certify(decision=b97)
 
         inspect_result("BLOCK 98 CERTIFY OUTPUT", b98)
 
@@ -319,9 +313,7 @@ b99 = None
 if isinstance(b98, dict):
 
     try:
-        b99 = instances[99].certify(
-            governance=b98
-        )
+        b99 = instances[99].certify(governance=b98)
 
         inspect_result("BLOCK 99 CERTIFY OUTPUT", b99)
 
@@ -370,9 +362,7 @@ b101 = None
 if isinstance(b100, dict):
 
     try:
-        b101 = instances[101].certify(
-            execution=b100
-        )
+        b101 = instances[101].certify(execution=b100)
 
         inspect_result("BLOCK 101 CERTIFY OUTPUT", b101)
 
@@ -470,10 +460,7 @@ for block_id, result in results.items():
             and result.get("live_order_submission") is False
         )
 
-        out(
-            "  CONTRACT STATUS : "
-            + ("SAFE" if safe else "UNSAFE")
-        )
+        out("  CONTRACT STATUS : " + ("SAFE" if safe else "UNSAFE"))
 
 
 # ============================================================
@@ -513,8 +500,12 @@ try:
     final_text = "\n".join(lines)
 
     subprocess.run(
-        ["powershell", "-NoProfile", "-Command",
-         "Set-Clipboard -Value ([Console]::In.ReadToEnd())"],
+        [
+            "powershell",
+            "-NoProfile",
+            "-Command",
+            "Set-Clipboard -Value ([Console]::In.ReadToEnd())",
+        ],
         input=final_text,
         text=True,
         check=True,

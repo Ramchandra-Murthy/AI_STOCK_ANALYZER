@@ -191,18 +191,13 @@ def get_sotp_long_term_equity_classification(
 
     economic_evidence = get_sotp_long_term_equity_economic_evidence(symbol)
 
-    if (
-        not isinstance(economic_evidence, dict)
-        or economic_evidence.get("status") != "OK"
-    ):
+    if not isinstance(economic_evidence, dict) or economic_evidence.get("status") != "OK":
         return {
             "status": "UNAVAILABLE",
             "version": CLASSIFICATION_VERSION,
             "bridge_stage": BRIDGE_STAGE,
             "symbol": entity_data.get("symbol"),
-            "message": (
-                "Economic evidence is unavailable; " "classification cannot proceed."
-            ),
+            "message": ("Economic evidence is unavailable; " "classification cannot proceed."),
         }
 
     population = entity_data.get("population") or []
@@ -258,9 +253,7 @@ def get_sotp_long_term_equity_classification(
 
     classification_count = len(classifications)
     resolved_count = sum(
-        1
-        for record in classifications
-        if record.get("classification_status") == STATUS_RESOLVED
+        1 for record in classifications if record.get("classification_status") == STATUS_RESOLVED
     )
     unresolved_count = classification_count - resolved_count
 
@@ -284,22 +277,12 @@ def get_sotp_long_term_equity_classification(
         "population_count": entity_data.get("population_count"),
         "population_integrity_valid": entity_data.get("population_integrity_valid"),
         "population_complete": entity_data.get("entity_population_complete"),
-        "entity_level_evidence_complete": entity_data.get(
-            "entity_level_evidence_complete"
-        ),
+        "entity_level_evidence_complete": entity_data.get("entity_level_evidence_complete"),
         # Economic evidence state
-        "economic_evidence_registered_count": economic_evidence.get(
-            "evidence_registered_count", 0
-        ),
-        "economic_evidence_complete_count": economic_evidence.get(
-            "evidence_complete_count", 0
-        ),
-        "economic_evidence_all_registered": economic_evidence.get(
-            "all_entities_registered", False
-        ),
-        "economic_evidence_all_complete": economic_evidence.get(
-            "all_evidence_complete", False
-        ),
+        "economic_evidence_registered_count": economic_evidence.get("evidence_registered_count", 0),
+        "economic_evidence_complete_count": economic_evidence.get("evidence_complete_count", 0),
+        "economic_evidence_all_registered": economic_evidence.get("all_entities_registered", False),
+        "economic_evidence_all_complete": economic_evidence.get("all_evidence_complete", False),
         # Classification state
         "classification_count": classification_count,
         "resolved_count": resolved_count,

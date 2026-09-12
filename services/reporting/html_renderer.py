@@ -2,6 +2,7 @@
 
 from services.reporting.report_models import InstitutionalResearchReport
 
+
 class ReportRenderer:
     """Multi-format renderer for institutional research reports (Markdown and HTML)."""
 

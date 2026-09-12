@@ -1,5 +1,6 @@
-﻿from services.market_data.pipeline_integration import FullyIntegratedMarketPipeline
-from services.market_data.confidence_trace import ConfidenceDecisionTraceRecord
+﻿from services.market_data.confidence_trace import ConfidenceDecisionTraceRecord
+from services.market_data.pipeline_integration import FullyIntegratedMarketPipeline
+
 
 def test_block23k_fully_integrated_pipeline_execution():
     pipeline = FullyIntegratedMarketPipeline(policy_profile="Institutional")
@@ -13,6 +14,10 @@ def test_block23k_fully_integrated_pipeline_execution():
     assert trace.confidence_penalty == decision.confidence_penalty
     if decision.allowed_in_scoring and result is not None:
         assert trace.final_investment_action == result.final_action
-        assert trace.composite_ai_score == result.ai_score.composite_score if hasattr(result, "ai_score") else True
+        assert (
+            trace.composite_ai_score == result.ai_score.composite_score
+            if hasattr(result, "ai_score")
+            else True
+        )
     else:
         assert trace.final_investment_action == "REJECT_DATA"

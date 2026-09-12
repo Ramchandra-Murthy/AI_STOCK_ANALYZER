@@ -1,20 +1,22 @@
 ﻿import os
+import subprocess
 import sys
 import time
 import uuid
-import subprocess
+from queue import Empty, Queue
+from threading import Thread
+
 import pytest
 import redis
-from threading import Thread
-from queue import Queue, Empty
 
-import os
 BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 
+
 def enqueue_output(out, queue):
-    for line in iter(out.readline, ''):
+    for line in iter(out.readline, ""):
         queue.put(line)
     out.close()
+
 
 def test_block30r_nonblocking_worker_diagnostic():
     redis_client = redis.Redis.from_url(
@@ -64,6 +66,7 @@ def test_block30r_nonblocking_worker_diagnostic():
 
     try:
         from backend.tasks.eros_diagnostic_worker import worker_echo
+
         result = worker_echo.apply_async(args=[token])
         assert result.id is not None
 
@@ -83,7 +86,7 @@ def test_block30r_nonblocking_worker_diagnostic():
 
         if not result.ready():
             pytest.fail(
-                f"Task timed out as PENDING.\nCaptured Worker Logs:\n" + "\n".join(worker_logs[-30:])
+                "Task timed out as PENDING.\nCaptured Worker Logs:\n" + "\n".join(worker_logs[-30:])
             )
 
         assert result.state == "SUCCESS"
@@ -99,5 +102,3 @@ def test_block30r_nonblocking_worker_diagnostic():
         except subprocess.TimeoutExpired:
             worker.kill()
             worker.wait(timeout=3)
-
-

@@ -2,6 +2,7 @@
 import subprocess
 import sys
 
+
 def run_command(command, description):
     print(f"\n[RUNNING] {description}...")
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -14,6 +15,7 @@ def run_command(command, description):
     print(f"[PASSED] {description}")
     return result.stdout
 
+
 def main():
     os.chdir(r"D:\Users\User\Desktop\AI_STOCK_ANALYZER")
 
@@ -22,8 +24,10 @@ def main():
     print("==================================================")
 
     container_cmd = "docker compose -f docker-compose.production.yml ps -q api"
-    api_container = subprocess.run(container_cmd, shell=True, capture_output=True, text=True).stdout.strip()
-    
+    api_container = subprocess.run(
+        container_cmd, shell=True, capture_output=True, text=True
+    ).stdout.strip()
+
     if not api_container:
         print("[ERROR] Could not determine active API container")
         sys.exit(1)
@@ -34,7 +38,7 @@ def main():
     print("--------------------------------------------------")
     run_command(
         "docker compose -f docker-compose.production.yml exec -T -e PYTHONPATH=/app api python services/quantitative/block87_test_harness.py",
-        "Gate 87 Test Harness"
+        "Gate 87 Test Harness",
     )
 
     print("\n--------------------------------------------------")
@@ -42,7 +46,7 @@ def main():
     print("--------------------------------------------------")
     run_command(
         "docker compose -f docker-compose.production.yml exec -T -e PYTHONPATH=/app api python services/quantitative/block88_test_harness.py",
-        "Gate 88 Test Harness"
+        "Gate 88 Test Harness",
     )
 
     print("\n--------------------------------------------------")
@@ -50,12 +54,13 @@ def main():
     print("--------------------------------------------------")
     run_command(
         "docker compose -f docker-compose.production.yml exec -T -e PYTHONPATH=/app api python services/quantitative/block89_test_harness.py",
-        "Gate 89 Test Harness"
+        "Gate 89 Test Harness",
     )
 
     print("\n==================================================")
     print(" GATES 87, 88, AND 89 VERIFIED SUCCESSFUL")
     print("==================================================")
+
 
 if __name__ == "__main__":
     main()

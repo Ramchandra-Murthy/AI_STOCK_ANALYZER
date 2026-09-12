@@ -15,9 +15,7 @@ def get_market_overview():
     for name, ticker in symbols.items():
 
         try:
-            data = yf.download(
-                ticker, period="2d", interval="1d", progress=False, auto_adjust=True
-            )
+            data = yf.download(ticker, period="2d", interval="1d", progress=False, auto_adjust=True)
 
             if len(data) >= 2:
 

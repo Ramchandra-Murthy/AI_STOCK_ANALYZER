@@ -1,20 +1,23 @@
 from __future__ import annotations
+
 import logging
-from typing import Dict
+
 from services.financials.financial_statement import FinancialStatements
-from services.scoring.models import AIScoreResult
-from services.scoring.growth import GrowthScoringEngine
-from services.scoring.fundamental import FundamentalScoringEngine
-from services.valuation.dispatcher import ValuationDispatcher
-from services.scoring.technical import MomentumScoringEngine
-from services.scoring.risk_scoring import RiskScoringEngine
 from services.market_data.models import PriceRecord
 from services.risk_management.models import PortfolioRiskProfile
+from services.scoring.fundamental import FundamentalScoringEngine
+from services.scoring.growth import GrowthScoringEngine
+from services.scoring.models import AIScoreResult
+from services.scoring.risk_scoring import RiskScoringEngine
+from services.scoring.technical import MomentumScoringEngine
+from services.valuation.dispatcher import ValuationDispatcher
 
 logger = logging.getLogger(__name__)
 
+
 def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
     return max(minimum, min(maximum, float(value)))
+
 
 def _score_valuation(implied_share_price: float) -> float:
     """
@@ -27,11 +30,13 @@ def _score_valuation(implied_share_price: float) -> float:
     """
     return 60.0 if float(implied_share_price) > 0.0 else 0.0
 
+
 class AIScoringEngine:
     """
     Institutional Fundamental, Growth, Valuation, Momentum, & Risk AI Scoring Engine.
     Block 15H integrates RiskScoringEngine for dynamic institutional risk scoring.
     """
+
     def __init__(self) -> None:
         self.fundamental_engine = FundamentalScoringEngine()
         self.growth_engine = GrowthScoringEngine()
@@ -63,7 +68,9 @@ class AIScoringEngine:
         growth_score = growth_res.growth_score
 
         # 3. Dynamic Valuation Engine Integration (Block 13)
-        val_res = self.valuation_dispatcher.value("DCF", {"symbol": ticker, "revenue": financials.income_statement.revenue})
+        val_res = self.valuation_dispatcher.value(
+            "DCF", {"symbol": ticker, "revenue": financials.income_statement.revenue}
+        )
         valuation_score = _score_valuation(val_res.implied_share_price)
 
         # 4. Dynamic Momentum Scoring Integration (Block 14H)
@@ -89,7 +96,7 @@ class AIScoringEngine:
         risk_score = risk_res.risk_score
 
         # 6. Weighted Composite
-        weights: Dict[str, float] = {
+        weights: dict[str, float] = {
             "growth": 0.15,
             "quality": 0.20,
             "profitability": 0.20,
@@ -125,7 +132,6 @@ class AIScoringEngine:
             "engine_version": "EROS-3.0-BLOCK-15",
             "weights_used": weights,
             "growth_engine": growth_res.growth_details,
-
             # Block 10 audit contract while preserving the
             # existing FundamentalScoringEngine payload.
             "fundamental_engine": {
@@ -134,10 +140,8 @@ class AIScoringEngine:
                 "quality_components": fund_res.pillar_details["quality"],
                 "capital_allocation_components": fund_res.pillar_details["capital_efficiency"],
             },
-
             # Block 10 audit contract.
             "raw_ratios": fund_res.pillar_details["ratios"],
-
             "valuation_engine": {
                 "method": val_res.method.value,
                 "enterprise_value": val_res.enterprise_value,
@@ -163,13 +167,3 @@ class AIScoringEngine:
             composite_score=composite,
             breakdown_details=details,
         )
-
-
-
-
-
-
-
-
-
-

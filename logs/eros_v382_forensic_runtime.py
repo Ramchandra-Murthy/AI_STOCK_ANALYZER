@@ -1,10 +1,9 @@
 import json
+import platform
 import sys
 import traceback
-import platform
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
-
 
 print("=" * 72)
 print("EROS 3.0 - V3.8.2 FORENSIC RUNTIME DIAGNOSTIC")
@@ -66,24 +65,16 @@ for name in required:
         exists = hasattr(adapter, name)
     except Exception as exc:
         exists = False
-        print(
-            f"{name:35} : ERROR "
-            f"{type(exc).__name__}: {exc}"
-        )
+        print(f"{name:35} : ERROR " f"{type(exc).__name__}: {exc}")
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if exists else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if exists else 'FAIL'}")
 
     if not exists:
         api_failures.append(name)
 
 
 if api_failures:
-    raise RuntimeError(
-        "MISSING_API:" + ",".join(api_failures)
-    )
+    raise RuntimeError("MISSING_API:" + ",".join(api_failures))
 
 
 print("\nFOUNDATION API : PASS")
@@ -106,12 +97,7 @@ for name in [
         print("TYPE   :", type(method).__name__)
 
     except Exception as exc:
-        print(
-            "METHOD INSPECTION FAILURE :",
-            name,
-            type(exc).__name__,
-            str(exc)
-        )
+        print("METHOD INSPECTION FAILURE :", name, type(exc).__name__, str(exc))
         traceback.print_exc()
 
 
@@ -130,25 +116,17 @@ try:
     traceability_result = adapter.decision_traceability(symbol)
 
     print("\nTRACEABILITY CALL : PASS")
-    print(
-        "RESULT TYPE       :",
-        type(traceability_result).__name__
-    )
+    print("RESULT TYPE       :", type(traceability_result).__name__)
 
     if not isinstance(traceability_result, dict):
-        raise RuntimeError(
-            "TRACEABILITY_RESULT_NOT_DICT"
-        )
+        raise RuntimeError("TRACEABILITY_RESULT_NOT_DICT")
 
     print("\nTRACEABILITY TOP LEVEL KEYS")
     print("-" * 72)
 
     for key, value in traceability_result.items():
 
-        print(
-            f"{key:35} : "
-            f"{type(value).__name__}"
-        )
+        print(f"{key:35} : " f"{type(value).__name__}")
 
 except Exception as exc:
 
@@ -166,13 +144,7 @@ except Exception as exc:
 print("\n5. TRACEABILITY RAW OUTPUT")
 print("-" * 72)
 
-print(
-    json.dumps(
-        traceability_result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(traceability_result, indent=2, default=str))
 
 
 print("\n6. TRACEABILITY STRUCTURE")
@@ -194,10 +166,7 @@ for field in [
 
     exists = field in traceability_result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if exists else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if exists else 'FAIL'}")
 
 
 print("\n7. TRACEABILITY DATA TYPES")
@@ -215,10 +184,7 @@ for field in [
 
     value = traceability_result.get(field)
 
-    print(
-        f"{field:35} : "
-        f"{type(value).__name__}"
-    )
+    print(f"{field:35} : " f"{type(value).__name__}")
 
 
 print("\n8. CONVERGENCE EXECUTION")
@@ -231,10 +197,7 @@ try:
     convergence_result = adapter.decision_convergence(symbol)
 
     print("\nCONVERGENCE CALL : PASS")
-    print(
-        "RESULT TYPE     :",
-        type(convergence_result).__name__
-    )
+    print("RESULT TYPE     :", type(convergence_result).__name__)
 
     if isinstance(convergence_result, dict):
 
@@ -243,10 +206,7 @@ try:
 
         for key, value in convergence_result.items():
 
-            print(
-                f"{key:35} : "
-                f"{type(value).__name__}"
-            )
+            print(f"{key:35} : " f"{type(value).__name__}")
 
 except Exception as exc:
 
@@ -271,10 +231,7 @@ try:
     audit_result = adapter.decision_audit(symbol)
 
     print("\nAUDIT CALL : PASS")
-    print(
-        "RESULT TYPE :",
-        type(audit_result).__name__
-    )
+    print("RESULT TYPE :", type(audit_result).__name__)
 
 except Exception as exc:
 
@@ -292,13 +249,7 @@ except Exception as exc:
 print("\n10. AUDIT RAW OUTPUT")
 print("-" * 72)
 
-print(
-    json.dumps(
-        audit_result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(audit_result, indent=2, default=str))
 
 
 print("\n11. AUDIT TOP LEVEL SCHEMA")
@@ -326,10 +277,7 @@ for field in audit_fields:
 
     present = field in audit_result
 
-    print(
-        f"{field:35} : "
-        f"{'PRESENT' if present else 'ABSENT'}"
-    )
+    print(f"{field:35} : " f"{'PRESENT' if present else 'ABSENT'}")
 
 
 print("\n12. AUDIT VALUE TYPES")
@@ -341,10 +289,7 @@ for field in audit_fields:
 
         value = audit_result[field]
 
-        print(
-            f"{field:35} : "
-            f"{type(value).__name__}"
-        )
+        print(f"{field:35} : " f"{type(value).__name__}")
 
 
 print("\n13. AUDIT OBJECT")
@@ -352,13 +297,7 @@ print("-" * 72)
 
 audit_object = audit_result.get("audit")
 
-print(
-    json.dumps(
-        audit_object,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(audit_object, indent=2, default=str))
 
 
 print("\n14. DECISION OBJECT")
@@ -366,13 +305,7 @@ print("-" * 72)
 
 decision_object = audit_result.get("decision")
 
-print(
-    json.dumps(
-        decision_object,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(decision_object, indent=2, default=str))
 
 
 print("\n15. EVIDENCE CHAIN")
@@ -380,13 +313,7 @@ print("-" * 72)
 
 evidence_chain = audit_result.get("evidence_chain")
 
-print(
-    json.dumps(
-        evidence_chain,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(evidence_chain, indent=2, default=str))
 
 
 print("\n16. SCENARIO TRACE")
@@ -394,13 +321,7 @@ print("-" * 72)
 
 scenario_trace = audit_result.get("scenario_trace")
 
-print(
-    json.dumps(
-        scenario_trace,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(scenario_trace, indent=2, default=str))
 
 
 print("\n17. TRACEABILITY CONTRACT")
@@ -408,13 +329,7 @@ print("-" * 72)
 
 traceability = audit_result.get("traceability")
 
-print(
-    json.dumps(
-        traceability,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(traceability, indent=2, default=str))
 
 
 print("\n18. INTERPRETATION")
@@ -422,13 +337,7 @@ print("-" * 72)
 
 interpretation = audit_result.get("interpretation")
 
-print(
-    json.dumps(
-        interpretation,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(interpretation, indent=2, default=str))
 
 
 print("\n19. GOVERNANCE")
@@ -436,13 +345,7 @@ print("-" * 72)
 
 governance = audit_result.get("governance")
 
-print(
-    json.dumps(
-        governance,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(governance, indent=2, default=str))
 
 
 print("\n20. SAFETY CONTRACT")
@@ -471,9 +374,7 @@ if not isinstance(governance, dict):
 
     print("GOVERNANCE : INVALID")
 
-    safety_failures.append(
-        "GOVERNANCE_NOT_DICT"
-    )
+    safety_failures.append("GOVERNANCE_NOT_DICT")
 
 else:
 
@@ -483,15 +384,10 @@ else:
 
         ok = actual is True
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'} "
-            f"(actual={actual}, expected=True)"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
         if not ok:
             safety_failures.append(field)
-
 
     for field in expected_false:
 
@@ -499,11 +395,7 @@ else:
 
         ok = actual is False
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'} "
-            f"(actual={actual}, expected=False)"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
         if not ok:
             safety_failures.append(field)
@@ -526,18 +418,11 @@ for field in hydration_fields:
 
     if isinstance(value, dict):
 
-        print(
-            f"{field:35} : "
-            f"DICT "
-            f"(keys={len(value)})"
-        )
+        print(f"{field:35} : " f"DICT " f"(keys={len(value)})")
 
     else:
 
-        print(
-            f"{field:35} : "
-            f"{type(value).__name__}"
-        )
+        print(f"{field:35} : " f"{type(value).__name__}")
 
 
 print("\n22. V3.8.2 TRACEABILITY STAGES")
@@ -549,23 +434,15 @@ if isinstance(traceability, dict):
 
     stages = traceability.get("stages")
 
-    print(
-        "STAGES TYPE :",
-        type(stages).__name__
-    )
+    print("STAGES TYPE :", type(stages).__name__)
 
     if isinstance(stages, dict):
 
-        print(
-            "STAGE COUNT :",
-            len(stages)
-        )
+        print("STAGE COUNT :", len(stages))
 
         for key, value in stages.items():
 
-            print(
-                f"{key:35} : {value}"
-            )
+            print(f"{key:35} : {value}")
 
 else:
 
@@ -577,9 +454,7 @@ print("-" * 72)
 
 print(
     "PRIMARY SCENARIO :",
-    traceability.get("primary_scenario")
-    if isinstance(traceability, dict)
-    else None
+    traceability.get("primary_scenario") if isinstance(traceability, dict) else None,
 )
 
 
@@ -588,37 +463,26 @@ print("-" * 72)
 
 print(
     "DECISION QUALITY :",
-    traceability.get("decision_quality")
-    if isinstance(traceability, dict)
-    else None
+    traceability.get("decision_quality") if isinstance(traceability, dict) else None,
 )
 
 
 print("\n25. AUDIT STATUS")
 print("-" * 72)
 
-print(
-    "AUDIT STATUS :",
-    audit_result.get("audit_status")
-)
+print("AUDIT STATUS :", audit_result.get("audit_status"))
 
 
 print("\n26. AUDIT SUMMARY")
 print("-" * 72)
 
-print(
-    "AUDIT SUMMARY :",
-    audit_result.get("audit_summary")
-)
+print("AUDIT SUMMARY :", audit_result.get("audit_summary"))
 
 
 print("\n27. TRACEABILITY STATUS")
 print("-" * 72)
 
-print(
-    "TRACEABILITY STATUS :",
-    audit_result.get("traceability_status")
-)
+print("TRACEABILITY STATUS :", audit_result.get("traceability_status"))
 
 
 print("\n28. LEGACY COMPATIBILITY")
@@ -626,99 +490,53 @@ print("-" * 72)
 
 legacy_trace = audit_result.get("trace")
 
-print(
-    "LEGACY TRACE PRESENT :",
-    isinstance(legacy_trace, dict)
-)
+print("LEGACY TRACE PRESENT :", isinstance(legacy_trace, dict))
 
 if isinstance(traceability, dict):
 
-    print(
-        "LEGACY TRACE PRESERVED :",
-        traceability.get(
-            "legacy_trace_preserved"
-        )
-    )
+    print("LEGACY TRACE PRESERVED :", traceability.get("legacy_trace_preserved"))
 
 
 print("\n29. DATABASE / EXECUTION SAFETY")
 print("-" * 72)
 
-print(
-    "DATABASE WRITE PATH : NONE"
-)
+print("DATABASE WRITE PATH : NONE")
 
-print(
-    "ORDER CREATION      : BLOCKED"
-)
+print("ORDER CREATION      : BLOCKED")
 
-print(
-    "BROKER SUBMISSION   : BLOCKED"
-)
+print("BROKER SUBMISSION   : BLOCKED")
 
-print(
-    "LIVE EXECUTION      : BLOCKED"
-)
+print("LIVE EXECUTION      : BLOCKED")
 
-print(
-    "PORTFOLIO MUTATION  : BLOCKED"
-)
+print("PORTFOLIO MUTATION  : BLOCKED")
 
-print(
-    "VALUATION MUTATION  : BLOCKED"
-)
+print("VALUATION MUTATION  : BLOCKED")
 
-print(
-    "PERFORMANCE MUTATION: BLOCKED"
-)
+print("PERFORMANCE MUTATION: BLOCKED")
 
-print(
-    "RISK MUTATION       : BLOCKED"
-)
+print("RISK MUTATION       : BLOCKED")
 
-print(
-    "OPTIMIZATION        : BLOCKED"
-)
+print("OPTIMIZATION        : BLOCKED")
 
 
 print("\n30. FINAL DIAGNOSTIC SUMMARY")
 print("-" * 72)
 
-print(
-    "ADAPTER IMPORT       : PASS"
-)
+print("ADAPTER IMPORT       : PASS")
 
-print(
-    "FOUNDATION API       : PASS"
-)
+print("FOUNDATION API       : PASS")
 
-print(
-    "TRACEABILITY EXECUTE : PASS"
-)
+print("TRACEABILITY EXECUTE : PASS")
 
-print(
-    "CONVERGENCE EXECUTE  :",
-    "PASS" if convergence_result is not None else "FAIL"
-)
+print("CONVERGENCE EXECUTE  :", "PASS" if convergence_result is not None else "FAIL")
 
-print(
-    "AUDIT EXECUTE        : PASS"
-)
+print("AUDIT EXECUTE        : PASS")
 
-print(
-    "AUDIT RESULT DICT    :",
-    "PASS" if isinstance(audit_result, dict) else "FAIL"
-)
+print("AUDIT RESULT DICT    :", "PASS" if isinstance(audit_result, dict) else "FAIL")
 
-print(
-    "GOVERNANCE           :",
-    "PASS" if not safety_failures else "FAIL"
-)
+print("GOVERNANCE           :", "PASS" if not safety_failures else "FAIL")
 
-print(
-    "SAFETY FAILURES      :",
-    safety_failures
-)
+print("SAFETY FAILURES      :", safety_failures)
 
 print("\n" + "=" * 72)
 print("V3.8.2 FORENSIC RUNTIME DIAGNOSTIC COMPLETE")

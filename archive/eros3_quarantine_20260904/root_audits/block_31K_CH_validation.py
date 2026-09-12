@@ -70,9 +70,7 @@ print("-" * 50)
 
 from pathlib import Path
 
-main_text = Path("backend/main.py").read_text(
-    encoding="utf-8"
-)
+main_text = Path("backend/main.py").read_text(encoding="utf-8")
 
 for route in [
     '@app.post("/api/v1/valuation"',
@@ -93,10 +91,7 @@ print("-" * 50)
 
 mock_found = "mock-jwt-token-xyz" in main_text
 
-print(
-    "MOCK JWT TOKEN:",
-    "FOUND" if mock_found else "NOT FOUND"
-)
+print("MOCK JWT TOKEN:", "FOUND" if mock_found else "NOT FOUND")
 
 # --------------------------------------------------
 # 5. OPENAPI
@@ -121,12 +116,7 @@ if app:
 
         spec = openapi.json()
 
-        print(
-            "SECURITY SCHEMES:",
-            spec.get("components", {}).get(
-                "securitySchemes", {}
-            )
-        )
+        print("SECURITY SCHEMES:", spec.get("components", {}).get("securitySchemes", {}))
 
         secured = []
 
@@ -134,18 +124,10 @@ if app:
 
             for method, operation in item.items():
 
-                if (
-                    isinstance(operation, dict)
-                    and operation.get("security")
-                ):
-                    secured.append(
-                        (path, method.upper())
-                    )
+                if isinstance(operation, dict) and operation.get("security"):
+                    secured.append((path, method.upper()))
 
-        print(
-            "SECURED OPERATIONS:",
-            len(secured)
-        )
+        print("SECURED OPERATIONS:", len(secured))
 
         for path, method in secured:
             print(" ", path, "|", method)
@@ -162,20 +144,11 @@ from backend.config.settings import settings
 print("ENVIRONMENT:", settings.ENVIRONMENT)
 print("AUTH_ENABLED:", settings.AUTH_ENABLED)
 print("JWT_ALGORITHM:", settings.JWT_ALGORITHM)
-print(
-    "ACCESS_TOKEN_EXPIRE_MINUTES:",
-    settings.ACCESS_TOKEN_EXPIRE_MINUTES
-)
+print("ACCESS_TOKEN_EXPIRE_MINUTES:", settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-secret = (
-    getattr(settings, "JWT_SECRET", None)
-    or getattr(settings, "SECRET_KEY", None)
-)
+secret = getattr(settings, "JWT_SECRET", None) or getattr(settings, "SECRET_KEY", None)
 
-print(
-    "JWT_SECRET CONFIGURED:",
-    bool(secret)
-)
+print("JWT_SECRET CONFIGURED:", bool(secret))
 
 # --------------------------------------------------
 # 7. JWT FUNCTIONAL
@@ -196,16 +169,11 @@ try:
         "role": "ANALYST",
     }
 
-    token = JWTSecurity.create_access_token(
-        payload,
-        expires_delta=timedelta(minutes=5)
-    )
+    token = JWTSecurity.create_access_token(payload, expires_delta=timedelta(minutes=5))
 
     decoded = JWTSecurity.decode_access_token(token)
 
-    invalid = JWTSecurity.decode_access_token(
-        "invalid.jwt.token"
-    )
+    invalid = JWTSecurity.decode_access_token("invalid.jwt.token")
 
     print("TOKEN CREATED:", bool(token))
     print("DECODE SUCCESS:", decoded is not None)
@@ -215,16 +183,9 @@ try:
         print("ROLE:", decoded.get("role"))
         print("ISSUER:", decoded.get("iss"))
 
-    print(
-        "INVALID TOKEN RETURNS NONE:",
-        invalid is None
-    )
+    print("INVALID TOKEN RETURNS NONE:", invalid is None)
 
-    jwt_ok = (
-        bool(token)
-        and decoded is not None
-        and invalid is None
-    )
+    jwt_ok = bool(token) and decoded is not None and invalid is None
 
 except Exception as exc:
     print("JWT FAIL:", type(exc).__name__, str(exc))
@@ -241,31 +202,11 @@ auth_tests = [
         "TASK_SUBMIT",
         "POST",
         "/api/v1/tasks/submit",
-        {
-            "task_name": "forecast.execute",
-            "symbol": "TCS.NS"
-        }
+        {"task_name": "forecast.execute", "symbol": "TCS.NS"},
     ),
-    (
-        "VALUATION",
-        "POST",
-        "/api/v1/valuation",
-        {
-            "symbol": "TCS.NS"
-        }
-    ),
-    (
-        "ADMIN_QUEUES",
-        "GET",
-        "/api/v1/admin/queues",
-        None
-    ),
-    (
-        "ADMIN_TASKS",
-        "GET",
-        "/api/v1/admin/tasks",
-        None
-    ),
+    ("VALUATION", "POST", "/api/v1/valuation", {"symbol": "TCS.NS"}),
+    ("ADMIN_QUEUES", "GET", "/api/v1/admin/queues", None),
+    ("ADMIN_TASKS", "GET", "/api/v1/admin/tasks", None),
 ]
 
 protected = 0
@@ -284,31 +225,13 @@ if app:
         if secure:
             protected += 1
 
-        print(
-            name,
-            "->",
-            r.status_code,
-            "|",
-            (
-                "SECURITY_ENFORCED"
-                if secure
-                else "OPEN"
-            )
-        )
+        print(name, "->", r.status_code, "|", ("SECURITY_ENFORCED" if secure else "OPEN"))
 
 auth_ok = protected == len(auth_tests)
 
-print(
-    "PROTECTED:",
-    protected,
-    "/",
-    len(auth_tests)
-)
+print("PROTECTED:", protected, "/", len(auth_tests))
 
-print(
-    "AUTH GATE:",
-    "PASS" if auth_ok else "FAIL"
-)
+print("AUTH GATE:", "PASS" if auth_ok else "FAIL")
 
 # --------------------------------------------------
 # 9. HEALTH / READY
@@ -324,22 +247,11 @@ if app:
     health = client.get("/health")
     ready = client.get("/ready")
 
-    print(
-        "HEALTH:",
-        health.status_code,
-        health.json()
-    )
+    print("HEALTH:", health.status_code, health.json())
 
-    print(
-        "READY:",
-        ready.status_code,
-        ready.json()
-    )
+    print("READY:", ready.status_code, ready.json())
 
-    infra_ok = (
-        health.status_code == 200
-        and ready.status_code == 200
-    )
+    infra_ok = health.status_code == 200 and ready.status_code == 200
 
 # --------------------------------------------------
 # 10. FINAL GATE
@@ -348,48 +260,21 @@ if app:
 print("\n10. FINAL SECURITY GATE")
 print("-" * 50)
 
-print(
-    "APPLICATION IMPORT:",
-    "PASS" if import_ok else "FAIL"
-)
+print("APPLICATION IMPORT:", "PASS" if import_ok else "FAIL")
 
-print(
-    "JWT:",
-    "PASS" if jwt_ok else "FAIL"
-)
+print("JWT:", "PASS" if jwt_ok else "FAIL")
 
-print(
-    "UNAUTHENTICATED SECURITY:",
-    "PASS" if auth_ok else "FAIL"
-)
+print("UNAUTHENTICATED SECURITY:", "PASS" if auth_ok else "FAIL")
 
-print(
-    "INFRASTRUCTURE:",
-    "PASS" if infra_ok else "FAIL"
-)
+print("INFRASTRUCTURE:", "PASS" if infra_ok else "FAIL")
 
-print(
-    "MOCK JWT:",
-    "FAIL" if mock_found else "PASS"
-)
+print("MOCK JWT:", "FAIL" if mock_found else "PASS")
 
-overall = (
-    import_ok
-    and jwt_ok
-    and auth_ok
-    and infra_ok
-    and not mock_found
-)
+overall = import_ok and jwt_ok and auth_ok and infra_ok and not mock_found
 
-print(
-    "OVERALL SECURITY GATE:",
-    "PASS" if overall else "FAIL"
-)
+print("OVERALL SECURITY GATE:", "PASS" if overall else "FAIL")
 
-print(
-    "PRODUCTION STATUS:",
-    "READY" if overall else "BLOCKED"
-)
+print("PRODUCTION STATUS:", "READY" if overall else "BLOCKED")
 
 print("=" * 50)
 print("BLOCK 31K-CH COMPLETE")

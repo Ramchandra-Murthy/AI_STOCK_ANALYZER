@@ -6,14 +6,12 @@ The bridge combines already-computed valuations.
 It does not recalculate SOTP or DCF.
 """
 
-from typing import Optional
-
 from eros.contracts import ValuationResult
 
 
 def build_bridge(
-    sotp: Optional[ValuationResult],
-    dcf: Optional[ValuationResult],
+    sotp: ValuationResult | None,
+    dcf: ValuationResult | None,
 ) -> ValuationResult:
 
     warnings = []
@@ -40,17 +38,9 @@ def build_bridge(
 
     bridge_value = sum(values) / len(values)
 
-    low_values = [
-        float(x.low)
-        for x in (sotp, dcf)
-        if x is not None and x.low is not None
-    ]
+    low_values = [float(x.low) for x in (sotp, dcf) if x is not None and x.low is not None]
 
-    high_values = [
-        float(x.high)
-        for x in (sotp, dcf)
-        if x is not None and x.high is not None
-    ]
+    high_values = [float(x.high) for x in (sotp, dcf) if x is not None and x.high is not None]
 
     return ValuationResult(
         value=bridge_value,
@@ -58,11 +48,7 @@ def build_bridge(
         high=max(high_values) if high_values else None,
         method="SOTP_DCF_BRIDGE",
         assumptions={
-            "components": [
-                x.method
-                for x in (sotp, dcf)
-                if x is not None
-            ],
+            "components": [x.method for x in (sotp, dcf) if x is not None],
             "combination": "simple_mean",
         },
         warnings=warnings,

@@ -1,10 +1,13 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
 from datetime import datetime
-from services.monitoring.change_detector import ChangeDetectionReport
-from services.compliance.policy_engine import InstitutionalCompliancePlatform
+from typing import Any
+
 from services.compliance.models import ComplianceReport
+from services.compliance.policy_engine import InstitutionalCompliancePlatform
+from services.monitoring.change_detector import ChangeDetectionReport
+
 
 @dataclass(frozen=True, slots=True)
 class GovernanceEvent:
@@ -12,18 +15,24 @@ class GovernanceEvent:
     symbol: str
     severity: str  # "LOW", "MEDIUM", "HIGH", "CRITICAL"
     requires_manual_review: bool
-    triggers: List[str]
+    triggers: list[str]
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
+
 
 class GovernanceEngine:
     """
     EROS 3.0 Block 20C Governance Engine.
     Evaluates change detection reports and portfolio holdings against compliance mandates and governance rules.
     """
+
     @staticmethod
-    def evaluate_governance(report: ChangeDetectionReport, holdings: List[Dict[str, Any]], portfolio_id: str = "PORTFOLIO-INSTITUTIONAL-01") -> tuple[GovernanceEvent, ComplianceReport]:
-        triggers: List[str] = []
+    def evaluate_governance(
+        report: ChangeDetectionReport,
+        holdings: list[dict[str, Any]],
+        portfolio_id: str = "PORTFOLIO-INSTITUTIONAL-01",
+    ) -> tuple[GovernanceEvent, ComplianceReport]:
+        triggers: list[str] = []
         max_severity = "LOW"
 
         # 1. Analyze Change Report triggers
@@ -55,14 +64,14 @@ class GovernanceEngine:
             details={
                 "engine_version": "EROS-3.0-BLOCK-20C",
                 "changes_analyzed": report.changes_detected,
-            }
+            },
         )
 
         # 2. Integrate with existing Institutional Compliance Platform
         compliance_rep = InstitutionalCompliancePlatform.evaluate_compliance(
             portfolio_id=portfolio_id,
             holdings=holdings,
-            mandate="Strict Institutional Governance Mandate"
+            mandate="Strict Institutional Governance Mandate",
         )
 
         return event, compliance_rep

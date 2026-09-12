@@ -1,13 +1,13 @@
 ﻿import os
+import subprocess
 import sys
 import time
 import uuid
-import subprocess
-import pytest
+
 import redis
 
-import os
 BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+
 
 def test_block30p_dedicated_worker_execution():
     redis_client = redis.Redis.from_url(
@@ -42,11 +42,12 @@ def test_block30p_dedicated_worker_execution():
     try:
         # Verify that the worker process actually stays alive.
         time.sleep(3)
-        assert worker.poll() is None, (
-            f"Celery worker exited prematurely with code {worker.returncode}"
-        )
+        assert (
+            worker.poll() is None
+        ), f"Celery worker exited prematurely with code {worker.returncode}"
 
         from backend.tasks.eros_diagnostic_worker import worker_echo
+
         result = worker_echo.apply_async(args=[token])
         assert result.id is not None
 
@@ -56,9 +57,7 @@ def test_block30p_dedicated_worker_execution():
                 break
             time.sleep(0.5)
 
-        assert result.ready(), (
-            f"Worker did not complete task. State={result.state}"
-        )
+        assert result.ready(), f"Worker did not complete task. State={result.state}"
         assert result.state == "SUCCESS"
 
         payload = result.result
@@ -74,5 +73,3 @@ def test_block30p_dedicated_worker_execution():
         except subprocess.TimeoutExpired:
             worker.kill()
             worker.wait(timeout=5)
-
-

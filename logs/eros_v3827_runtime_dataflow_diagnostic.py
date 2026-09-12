@@ -25,6 +25,7 @@ print("-" * 70)
 
 try:
     from services.eros_frontend_adapter import EROSFrontendAdapter
+
     print("IMPORT : PASS")
 except Exception:
     print("IMPORT : FAIL")
@@ -53,6 +54,7 @@ apis = [
 ]
 
 results = {}
+
 
 def describe(name, result):
 
@@ -109,23 +111,13 @@ def describe(name, result):
         value = result[key]
 
         if isinstance(value, dict):
-            print(
-                f"{key:24} : DICT "
-                f"keys={len(value)} "
-                f"{list(value.keys())[:15]}"
-            )
+            print(f"{key:24} : DICT " f"keys={len(value)} " f"{list(value.keys())[:15]}")
 
         elif isinstance(value, list):
-            print(
-                f"{key:24} : LIST "
-                f"items={len(value)}"
-            )
+            print(f"{key:24} : LIST " f"items={len(value)}")
 
         else:
-            print(
-                f"{key:24} : "
-                f"{type(value).__name__} = {value!r}"
-            )
+            print(f"{key:24} : " f"{type(value).__name__} = {value!r}")
 
 
 for api in apis:
@@ -219,10 +211,7 @@ if isinstance(evidence, dict):
         "breakout_reason",
     ]:
 
-        print(
-            f"{key:25} : "
-            f"{evidence.get(key)!r}"
-        )
+        print(f"{key:25} : " f"{evidence.get(key)!r}")
 
 else:
     print("decision_evidence RESULT UNAVAILABLE")
@@ -281,14 +270,10 @@ for api in [
             value = result[key]
 
             if isinstance(value, dict):
-                states.append(
-                    f"{key}={'EMPTY' if not value else 'DATA'}"
-                )
+                states.append(f"{key}={'EMPTY' if not value else 'DATA'}")
 
             elif isinstance(value, list):
-                states.append(
-                    f"{key}={'EMPTY' if not value else 'DATA'}"
-                )
+                states.append(f"{key}={'EMPTY' if not value else 'DATA'}")
 
             elif value is None:
                 states.append(f"{key}=NONE")
@@ -324,10 +309,7 @@ if isinstance(audit, dict):
         "allow_optimization",
     ]:
 
-        print(
-            f"{key:35} : "
-            f"{governance.get(key)!r}"
-        )
+        print(f"{key:35} : " f"{governance.get(key)!r}")
 
 else:
     print("AUDIT RESULT UNAVAILABLE")

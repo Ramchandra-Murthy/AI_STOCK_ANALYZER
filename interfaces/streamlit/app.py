@@ -4,7 +4,6 @@ import streamlit as st
 
 from core.container import ServiceKey, bootstrap_container, container
 
-
 st.set_page_config(
     page_title="AI Stock Analyzer V6",
     page_icon="📈",
@@ -27,9 +26,7 @@ if st.sidebar.button("Run Research Pipeline"):
         if result.get("status") == "OK":
             st.success(f"EROS analysis complete for {result.get('symbol', ticker)}")
         else:
-            st.warning(
-                f"EROS completed with status: {result.get('status', 'UNKNOWN')}"
-            )
+            st.warning(f"EROS completed with status: {result.get('status', 'UNKNOWN')}")
 
         st.subheader("Research Summary")
         col1, col2, col3 = st.columns(3)
@@ -56,11 +53,9 @@ if st.sidebar.button("Run Research Pipeline"):
     except Exception as exc:
         st.error(f"EROS pipeline failed: {exc}")
 
-st.markdown(
-    """
+st.markdown("""
     ### EROS V6
     The Streamlit interface now calls the same application service as the CLI,
     so the UI no longer reports a successful analysis without executing the
     research pipeline.
-    """
-)
+    """)

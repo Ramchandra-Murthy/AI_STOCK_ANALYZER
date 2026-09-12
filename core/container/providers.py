@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, TypeVar, Generic
+from collections.abc import Callable
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 

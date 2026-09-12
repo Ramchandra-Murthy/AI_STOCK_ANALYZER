@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.forecasting.models import ForecastScenario
 from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
+
 
 def test_forecasting_and_scenario_engine() -> None:
     scenarios = [
@@ -18,7 +18,7 @@ def test_forecasting_and_scenario_engine() -> None:
             interest_rate=0.065,
             intrinsic_value=3450.0,
             expected_return=0.22,
-            risk_score=0.30
+            risk_score=0.30,
         ),
         ForecastScenario(
             scenario_id="SCEN-002",
@@ -32,7 +32,7 @@ def test_forecasting_and_scenario_engine() -> None:
             interest_rate=0.07,
             intrinsic_value=2900.0,
             expected_return=0.15,
-            risk_score=0.45
+            risk_score=0.45,
         ),
         ForecastScenario(
             scenario_id="SCEN-003",
@@ -46,12 +46,12 @@ def test_forecasting_and_scenario_engine() -> None:
             interest_rate=0.085,
             intrinsic_value=2100.0,
             expected_return=0.02,
-            risk_score=0.70
-        )
+            risk_score=0.70,
+        ),
     ]
 
     result = ScenarioIntelligenceEngine.evaluate_scenarios("RELIANCE.NS", scenarios)
-    
+
     assert result.symbol == "RELIANCE.NS"
     assert result.expected_value > 0.0
     assert result.bull_value == 3450.0

@@ -10,7 +10,6 @@ No valuation mathematics is performed here.
 from __future__ import annotations
 
 from eros.decision.pipeline import (
-    PipelineContext,
     create_context,
     finalize,
     run_foundation,
@@ -75,4 +74,3 @@ def evaluate(
 __all__ = [
     "evaluate",
 ]
-

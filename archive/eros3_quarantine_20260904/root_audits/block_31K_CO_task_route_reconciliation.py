@@ -14,6 +14,7 @@ print("-" * 50)
 
 try:
     import backend.main as m
+
     app = m.app
 
     print("APPLICATION IMPORT: PASS")
@@ -47,14 +48,7 @@ try:
         if isinstance(r, APIRoute):
             methods = sorted(r.methods or [])
             task_router_routes.append((r.path, methods, r.name))
-            print(
-                "ROUTER |",
-                r.path,
-                "|",
-                methods,
-                "| NAME=",
-                r.name
-            )
+            print("ROUTER |", r.path, "|", methods, "| NAME=", r.name)
 
     print("TASK ROUTES:", len(task_router_routes))
 
@@ -96,7 +90,7 @@ for r in app.routes:
             "| SECURITY=",
             secured,
             "| NAME=",
-            r.name
+            r.name,
         )
 
 print()
@@ -169,28 +163,13 @@ for path, item in openapi.get("paths", {}).items():
 
     for method, operation in item.items():
 
-        if method.lower() not in {
-            "get",
-            "post",
-            "put",
-            "patch",
-            "delete",
-            "options",
-            "head"
-        }:
+        if method.lower() not in {"get", "post", "put", "patch", "delete", "options", "head"}:
             continue
 
         method_upper = method.upper()
         openapi_routes.add((path, method_upper))
 
-        print(
-            "OPENAPI |",
-            path,
-            "|",
-            method_upper,
-            "| SECURITY=",
-            bool(operation.get("security"))
-        )
+        print("OPENAPI |", path, "|", method_upper, "| SECURITY=", bool(operation.get("security")))
 
 print()
 print("OPENAPI TASK ROUTES:", len(openapi_routes))
@@ -218,24 +197,13 @@ for path, method in sorted(expected_routes):
     operation = openapi.get("paths", {}).get(path, {}).get(method.lower())
 
     if operation is None:
-        print(
-            path,
-            "|",
-            method,
-            "| NOT FOUND"
-        )
+        print(path, "|", method, "| NOT FOUND")
         security_failures.append((path, method, "MISSING"))
         continue
 
     secured = bool(operation.get("security"))
 
-    print(
-        path,
-        "|",
-        method,
-        "| SECURITY=",
-        secured
-    )
+    print(path, "|", method, "| SECURITY=", secured)
 
     if not secured:
         security_failures.append((path, method, "OPEN"))
@@ -270,19 +238,10 @@ for method, path in live_tests:
     else:
         response = client.get(path)
 
-    print(
-        method,
-        path,
-        "->",
-        response.status_code,
-        "|",
-        response.text[:200]
-    )
+    print(method, path, "->", response.status_code, "|", response.text[:200])
 
     if response.status_code != 401:
-        live_failures.append(
-            (method, path, response.status_code)
-        )
+        live_failures.append((method, path, response.status_code))
 
 if live_failures:
     print("AUTH GATE: FAIL")
@@ -301,24 +260,13 @@ from pathlib import Path
 main_path = Path("backend/main.py")
 main_text = main_path.read_text(encoding="utf-8")
 
-registration_found = (
-    "app.include_router(task_router)" in main_text
-)
+registration_found = "app.include_router(task_router)" in main_text
 
-import_found = (
-    "from backend.api.routers.task_router import router as task_router"
-    in main_text
-)
+import_found = "from backend.api.routers.task_router import router as task_router" in main_text
 
-print(
-    "TASK ROUTER IMPORT:",
-    "FOUND" if import_found else "MISSING"
-)
+print("TASK ROUTER IMPORT:", "FOUND" if import_found else "MISSING")
 
-print(
-    "TASK ROUTER REGISTRATION:",
-    "FOUND" if registration_found else "MISSING"
-)
+print("TASK ROUTER REGISTRATION:", "FOUND" if registration_found else "MISSING")
 
 # --------------------------------------------------
 # 9. DUPLICATE INLINE TASK ROUTES
@@ -340,11 +288,7 @@ inline_count = 0
 for pattern in inline_task_patterns:
     count = main_text.count(pattern)
     if count:
-        print(
-            pattern,
-            "| COUNT=",
-            count
-        )
+        print(pattern, "| COUNT=", count)
         inline_count += count
 
 if inline_count == 0:
@@ -360,73 +304,42 @@ print("=" * 50)
 print("FINAL TASK ROUTE SECURITY GATE")
 print("=" * 50)
 
-print(
-    "APPLICATION IMPORT:",
-    "PASS" if import_ok else "FAIL"
-)
+print("APPLICATION IMPORT:", "PASS" if import_ok else "FAIL")
 
-print(
-    "TASK ROUTER:",
-    "PASS" if task_router_routes else "FAIL"
-)
+print("TASK ROUTER:", "PASS" if task_router_routes else "FAIL")
 
-print(
-    "ROUTE RECONCILIATION:",
-    "PASS" if route_reconciliation else "FAIL"
-)
+print("ROUTE RECONCILIATION:", "PASS" if route_reconciliation else "FAIL")
 
-print(
-    "OPENAPI ROUTES:",
-    "PASS" if not openapi_missing else "FAIL"
-)
+print("OPENAPI ROUTES:", "PASS" if not openapi_missing else "FAIL")
 
-print(
-    "OPENAPI SECURITY:",
-    "PASS" if not security_failures else "FAIL"
-)
+print("OPENAPI SECURITY:", "PASS" if not security_failures else "FAIL")
 
-print(
-    "UNAUTHENTICATED GATE:",
-    "PASS" if not live_failures else "FAIL"
-)
+print("UNAUTHENTICATED GATE:", "PASS" if not live_failures else "FAIL")
 
-print(
-    "MAIN ROUTER IMPORT:",
-    "PASS" if import_found else "FAIL"
-)
+print("MAIN ROUTER IMPORT:", "PASS" if import_found else "FAIL")
 
-print(
-    "MAIN ROUTER REGISTRATION:",
-    "PASS" if registration_found else "FAIL"
-)
+print("MAIN ROUTER REGISTRATION:", "PASS" if registration_found else "FAIL")
 
-print(
-    "INLINE TASK ROUTES:",
-    "PASS" if inline_count == 0 else "FAIL"
-)
+print("INLINE TASK ROUTES:", "PASS" if inline_count == 0 else "FAIL")
 
-overall = all([
-    import_ok,
-    bool(task_router_routes),
-    route_reconciliation,
-    not openapi_missing,
-    not security_failures,
-    not live_failures,
-    import_found,
-    registration_found,
-    inline_count == 0,
-])
+overall = all(
+    [
+        import_ok,
+        bool(task_router_routes),
+        route_reconciliation,
+        not openapi_missing,
+        not security_failures,
+        not live_failures,
+        import_found,
+        registration_found,
+        inline_count == 0,
+    ]
+)
 
 print()
-print(
-    "OVERALL TASK ROUTE GATE:",
-    "PASS" if overall else "FAIL"
-)
+print("OVERALL TASK ROUTE GATE:", "PASS" if overall else "FAIL")
 
-print(
-    "PRODUCTION STATUS:",
-    "READY" if overall else "BLOCKED"
-)
+print("PRODUCTION STATUS:", "READY" if overall else "BLOCKED")
 
 print("=" * 50)
 print("BLOCK 31K-CO COMPLETE")

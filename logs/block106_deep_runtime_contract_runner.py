@@ -6,7 +6,6 @@ import json
 import sys
 import traceback
 
-
 FAILURES = []
 
 
@@ -38,9 +37,7 @@ def stable_json(value):
 
 
 def digest(value):
-    return hashlib.sha256(
-        stable_json(value).encode("utf-8")
-    ).hexdigest()
+    return hashlib.sha256(stable_json(value).encode("utf-8")).hexdigest()
 
 
 print("=" * 70)
@@ -55,26 +52,10 @@ print()
 section(1, "IMPORT ALL CONTRACT LAYERS")
 
 try:
-    from services.quantitative.block100_paper_execution_fill_gate import (
-        EROSBlock100PaperExecutionFillGate,
-    )
-
-    from services.quantitative.block101_execution_evidence_reconciliation import (
-        EROSBlock101ExecutionEvidenceReconciliationGate,
-    )
-
-    from services.quantitative.block102_frontend_contract import (
-        EROSBlock102FrontendContract,
-    )
-
-    from services.quantitative.block103_institutional_frontend_read_model import (
-        EROSBlock103InstitutionalFrontendReadModel,
-    )
 
     from services.quantitative.block104_eros_command_center import (
         EROSBlock104CommandCenter,
     )
-
     from services.quantitative.block106_institutional_integration_boundary import (
         EROSBlock106InstitutionalIntegrationBoundary,
     )
@@ -131,9 +112,7 @@ try:
     command_center = block104.snapshot()
 
     if not isinstance(command_center, dict):
-        raise TypeError(
-            f"Block 104 snapshot must be dict, got {type(command_center).__name__}"
-        )
+        raise TypeError(f"Block 104 snapshot must be dict, got {type(command_center).__name__}")
 
     print()
     print("BLOCK 104 SNAPSHOT TYPE :", type(command_center).__name__)
@@ -171,12 +150,8 @@ try:
     if any(str(value).upper() == "CERTIFIED" for value in status_candidates):
         pass_test("Block 104 certification")
     else:
-        print(
-            "Block 104 did not expose CERTIFIED at the tested top-level locations."
-        )
-        print(
-            "Continuing because Block 104 snapshot construction itself succeeded."
-        )
+        print("Block 104 did not expose CERTIFIED at the tested top-level locations.")
+        print("Continuing because Block 104 snapshot construction itself succeeded.")
         pass_test("Block 104 snapshot construction")
 
 except Exception as exc:
@@ -194,9 +169,7 @@ try:
     payload = block106.build_integration_payload(command_center)
 
     if not isinstance(payload, dict):
-        raise TypeError(
-            f"Integration payload must be dict, got {type(payload).__name__}"
-        )
+        raise TypeError(f"Integration payload must be dict, got {type(payload).__name__}")
 
     print("PAYLOAD TYPE :", type(payload).__name__)
     print("PAYLOAD KEYS :", len(payload))
@@ -241,27 +214,18 @@ if payload is not None:
         else:
             print(f"{field:<30}: NOT PRESENT")
 
-    present_count = sum(
-        1 for field in required_fields
-        if field in payload
-    )
+    present_count = sum(1 for field in required_fields if field in payload)
 
     print()
-    print(
-        f"REQUIRED FIELDS PRESENT : {present_count}/{len(required_fields)}"
-    )
+    print(f"REQUIRED FIELDS PRESENT : {present_count}/{len(required_fields)}")
 
     if present_count == len(required_fields):
         pass_test("Required integration fields")
     else:
         # Do not immediately call this a source failure.
         # Record the schema difference for inspection.
-        print(
-            "Schema differs from the expected discovery vocabulary."
-        )
-        print(
-            "The actual payload structure will be preserved for review."
-        )
+        print("Schema differs from the expected discovery vocabulary.")
+        print("The actual payload structure will be preserved for review.")
         pass_test("Integration payload schema discovery")
 
 else:
@@ -311,9 +275,7 @@ try:
     snapshot = block106.build_read_only_snapshot(command_center)
 
     if not isinstance(snapshot, dict):
-        raise TypeError(
-            f"Read-only snapshot must be dict, got {type(snapshot).__name__}"
-        )
+        raise TypeError(f"Read-only snapshot must be dict, got {type(snapshot).__name__}")
 
     print("SNAPSHOT TYPE :", type(snapshot).__name__)
     print("SNAPSHOT KEYS :", len(snapshot))
@@ -426,9 +388,7 @@ try:
 
         print()
         for key in sorted(safety_policy.keys()):
-            print(
-                f"{key:<35}: {safety_policy[key]}"
-            )
+            print(f"{key:<35}: {safety_policy[key]}")
 
         forbidden_true = []
 
@@ -457,16 +417,13 @@ try:
         if forbidden_true:
             fail_test(
                 "Safety policy",
-                "Forbidden capability enabled: "
-                + ", ".join(forbidden_true),
+                "Forbidden capability enabled: " + ", ".join(forbidden_true),
             )
         else:
             pass_test("Safety policy")
 
     else:
-        print(
-            "SAFETY_POLICY is not a dictionary."
-        )
+        print("SAFETY_POLICY is not a dictionary.")
         print(
             "Actual value:",
             safety_policy,
@@ -495,9 +452,7 @@ if payload is not None:
         if isinstance(safety, dict):
 
             for key in sorted(safety.keys()):
-                print(
-                    f"{key:<35}: {safety[key]}"
-                )
+                print(f"{key:<35}: {safety[key]}")
 
             dangerous_true = []
 
@@ -518,8 +473,7 @@ if payload is not None:
             if dangerous_true:
                 fail_test(
                     "Payload safety flags",
-                    "Dangerous flag TRUE: "
-                    + ", ".join(dangerous_true),
+                    "Dangerous flag TRUE: " + ", ".join(dangerous_true),
                 )
             else:
                 pass_test("Payload safety flags")
@@ -551,9 +505,7 @@ if payload is not None:
 
         if lineage is None:
             print("No top-level lineage field exposed.")
-            print(
-                "Checking payload recursively for lineage references..."
-            )
+            print("Checking payload recursively for lineage references...")
 
             payload_text = stable_json(payload).lower()
 
@@ -601,8 +553,7 @@ if payload is not None:
             token_b = f"BLOCK {block_id}"
 
             found = (
-                token_a.lower() in payload_text.lower()
-                or token_b.lower() in payload_text.lower()
+                token_a.lower() in payload_text.lower() or token_b.lower() in payload_text.lower()
             )
 
             print(
@@ -703,9 +654,7 @@ section(17, "BROKER / LIVE EXECUTION API CHECK")
 try:
     import inspect
 
-    module_source = inspect.getsource(
-        EROSBlock106InstitutionalIntegrationBoundary
-    ).lower()
+    module_source = inspect.getsource(EROSBlock106InstitutionalIntegrationBoundary).lower()
 
     prohibited_calls = [
         "place_order(",
@@ -728,8 +677,7 @@ try:
     if found_calls:
         fail_test(
             "Broker/live execution API check",
-            "Prohibited implementation token(s): "
-            + ", ".join(found_calls),
+            "Prohibited implementation token(s): " + ", ".join(found_calls),
         )
     else:
         pass_test("Broker/live execution API check")

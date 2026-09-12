@@ -1,7 +1,9 @@
 ﻿from fastapi.testclient import TestClient
+
 from backend.main import app
 
 client = TestClient(app)
+
 
 def test_block26d_audit_trace_observability():
     """
@@ -43,11 +45,10 @@ def test_block26d_audit_trace_observability():
             0.0,
             float(conf["base_confidence"]) - float(conf["confidence_penalty"]),
         )
-        assert abs(
-            float(conf["adjusted_confidence"]) - expected_market_confidence
-        ) < 1e-9
+        assert abs(float(conf["adjusted_confidence"]) - expected_market_confidence) < 1e-9
         assert float(conf["adjusted_confidence"]) <= float(conf["base_confidence"])
         assert 0.0 <= float(conf["decision_confidence"]) <= 1.0
+
 
 def test_block26e_state_determinism_and_health():
     """

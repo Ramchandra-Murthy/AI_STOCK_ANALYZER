@@ -109,9 +109,7 @@ def run_foundation(
         return context
 
     try:
-        context.score = fundamental_score(
-            context.financials
-        )
+        context.score = fundamental_score(context.financials)
 
     except Exception as exc:
         add_warning(
@@ -120,9 +118,7 @@ def run_foundation(
         )
 
     try:
-        context.risk = risk_score(
-            context.financials
-        )
+        context.risk = risk_score(context.financials)
 
     except Exception as exc:
         add_warning(
@@ -154,26 +150,20 @@ def finalize(context: PipelineContext):
     return {
         "symbol": context.symbol,
         "status": context.status,
-
         "raw_data": context.raw_data,
         "financials": context.financials,
         "normalized": context.normalized,
-
         "quality": context.quality,
         "score": context.score,
         "risk": context.risk,
         "classification": context.classification,
-
         "sotp": context.sotp,
         "dcf": context.dcf,
         "valuation_bridge": context.valuation_bridge,
-
         "stage13c": context.stage13c,
         "stage14": context.stage14,
-
         "evidence": context.evidence,
         "warnings": context.warnings,
-
         "provenance": {
             "orchestrator": "EROS_3.0",
             "pipeline_status": context.status,

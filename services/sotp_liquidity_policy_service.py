@@ -60,12 +60,9 @@ def evaluate_short_term_investment_policy(symbol: str) -> dict:
     reconciliation_gap = None
 
     if all(
-        isinstance(value, (int, float))
-        for value in [cash, short_term_investments, cash_and_sti]
+        isinstance(value, (int, float)) for value in [cash, short_term_investments, cash_and_sti]
     ):
-        reconciliation_gap = (
-            float(cash) + float(short_term_investments) - float(cash_and_sti)
-        )
+        reconciliation_gap = float(cash) + float(short_term_investments) - float(cash_and_sti)
 
         reconciles = abs(reconciliation_gap) < 1.0
 

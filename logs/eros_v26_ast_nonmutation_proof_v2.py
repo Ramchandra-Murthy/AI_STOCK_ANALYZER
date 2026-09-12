@@ -45,16 +45,14 @@ SQL_WRITE_PREFIXES = (
     "drop ",
 )
 
+
 def sha256_file(path):
 
     h = hashlib.sha256()
 
     with open(path, "rb") as f:
 
-        for chunk in iter(
-            lambda: f.read(1024 * 1024),
-            b""
-        ):
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
 
     return h.hexdigest().upper()
@@ -65,13 +63,9 @@ def is_sql_write(value):
     if not isinstance(value, str):
         return False
 
-    text = " ".join(
-        value.strip().lower().split()
-    )
+    text = " ".join(value.strip().lower().split())
 
-    return text.startswith(
-        SQL_WRITE_PREFIXES
-    )
+    return text.startswith(SQL_WRITE_PREFIXES)
 
 
 def active_write_calls(path):
@@ -82,23 +76,15 @@ def active_write_calls(path):
     # utf-8-sig removes an optional UTF-8 BOM (U+FEFF)
     # without changing executable source code.
 
-    source = path.read_text(
-        encoding="utf-8-sig"
-    )
+    source = path.read_text(encoding="utf-8-sig")
 
     try:
 
-        tree = ast.parse(
-            source,
-            filename=str(path)
-        )
+        tree = ast.parse(source, filename=str(path))
 
     except Exception as exc:
 
-        results.append(
-            f"AST PARSE ERROR: "
-            f"{type(exc).__name__}: {exc}"
-        )
+        results.append(f"AST PARSE ERROR: " f"{type(exc).__name__}: {exc}")
 
         return results
 
@@ -116,10 +102,7 @@ def active_write_calls(path):
 
                 func_name = node.func.attr
 
-            if (
-                func_name in WRITE_METHODS
-                or func_name in WRITE_NAMES
-            ):
+            if func_name in WRITE_METHODS or func_name in WRITE_NAMES:
 
                 results.append(
                     f"ACTIVE CALL "
@@ -161,15 +144,9 @@ missing = False
 
 for path in CRITICAL_FILES:
 
-    status = (
-        "PRESENT"
-        if path.exists()
-        else "MISSING"
-    )
+    status = "PRESENT" if path.exists() else "MISSING"
 
-    print(
-        f"{path.relative_to(ROOT)} : {status}"
-    )
+    print(f"{path.relative_to(ROOT)} : {status}")
 
     if not path.exists():
         missing = True
@@ -202,10 +179,7 @@ for path in CRITICAL_FILES:
 
     else:
 
-        print(
-            f"{path.relative_to(ROOT)} : "
-            "NO ACTIVE DATABASE WRITE CALLS"
-        )
+        print(f"{path.relative_to(ROOT)} : " "NO ACTIVE DATABASE WRITE CALLS")
 
 print()
 
@@ -227,33 +201,19 @@ print("-" * 60)
 
 for path in CRITICAL_FILES:
 
-    source = path.read_text(
-        encoding="utf-8-sig"
-    )
+    source = path.read_text(encoding="utf-8-sig")
 
     try:
 
-        compile(
-            source,
-            str(path),
-            "exec"
-        )
+        compile(source, str(path), "exec")
 
-        print(
-            f"COMPILE PASS : "
-            f"{path.relative_to(ROOT)}"
-        )
+        print(f"COMPILE PASS : " f"{path.relative_to(ROOT)}")
 
     except Exception as exc:
 
-        print(
-            f"COMPILE FAIL : "
-            f"{path.relative_to(ROOT)}"
-        )
+        print(f"COMPILE FAIL : " f"{path.relative_to(ROOT)}")
 
-        print(
-            f"{type(exc).__name__}: {exc}"
-        )
+        print(f"{type(exc).__name__}: {exc}")
 
         sys.exit(4)
 
@@ -291,9 +251,7 @@ print("-" * 60)
 
 before_hash = sha256_file(db_path)
 
-print(
-    f"SHA256 BEFORE : {before_hash}"
-)
+print(f"SHA256 BEFORE : {before_hash}")
 print()
 
 print("7. READ-ONLY RUNTIME TEST")
@@ -303,30 +261,21 @@ runtime_ok = True
 
 try:
 
-    sys.path.insert(
-        0,
-        str(ROOT)
-    )
+    sys.path.insert(0, str(ROOT))
 
     from services.analyzer import analyze_stock
 
-    result = analyze_stock(
-        "RELIANCE.NS"
-    )
+    result = analyze_stock("RELIANCE.NS")
 
     if result is None:
 
-        print(
-            "ANALYZER RUNTIME : FAIL"
-        )
+        print("ANALYZER RUNTIME : FAIL")
 
         runtime_ok = False
 
     else:
 
-        print(
-            "ANALYZER RUNTIME : PASS"
-        )
+        print("ANALYZER RUNTIME : PASS")
 
     from scanner.market_scanner import market_scan
 
@@ -334,27 +283,19 @@ try:
 
     if scan is None:
 
-        print(
-            "MARKET SCAN : FAIL"
-        )
+        print("MARKET SCAN : FAIL")
 
         runtime_ok = False
 
     else:
 
-        print(
-            "MARKET SCAN : PASS"
-        )
+        print("MARKET SCAN : PASS")
 
-        print(
-            f"TYPE : {type(scan).__name__}"
-        )
+        print(f"TYPE : {type(scan).__name__}")
 
         try:
 
-            print(
-                f"ROWS : {len(scan)}"
-            )
+            print(f"ROWS : {len(scan)}")
 
         except Exception:
             pass
@@ -365,9 +306,7 @@ try:
 
             for column in scan.columns:
 
-                print(
-                    f" - {column}"
-                )
+                print(f" - {column}")
 
         except Exception:
             pass
@@ -376,18 +315,11 @@ except Exception as exc:
 
     runtime_ok = False
 
-    print(
-        "RUNTIME TEST : FAIL"
-    )
+    print("RUNTIME TEST : FAIL")
 
-    print(
-        f"EXCEPTION TYPE : "
-        f"{type(exc).__name__}"
-    )
+    print(f"EXCEPTION TYPE : " f"{type(exc).__name__}")
 
-    print(
-        f"EXCEPTION      : {exc}"
-    )
+    print(f"EXCEPTION      : {exc}")
 
     traceback.print_exc()
 
@@ -395,9 +327,7 @@ print()
 
 if not runtime_ok:
 
-    print(
-        "RUNTIME SAFETY TEST : FAIL"
-    )
+    print("RUNTIME SAFETY TEST : FAIL")
 
     sys.exit(6)
 
@@ -406,9 +336,7 @@ print("-" * 60)
 
 after_hash = sha256_file(db_path)
 
-print(
-    f"SHA256 AFTER : {after_hash}"
-)
+print(f"SHA256 AFTER : {after_hash}")
 
 print()
 
@@ -417,31 +345,19 @@ print("-" * 60)
 
 if before_hash == after_hash:
 
-    print(
-        "DATABASE HASH : IDENTICAL"
-    )
+    print("DATABASE HASH : IDENTICAL")
 
-    print(
-        "DATABASE MUTATION : NONE"
-    )
+    print("DATABASE MUTATION : NONE")
 
-    print(
-        "NON-MUTATION INVARIANT : PASS"
-    )
+    print("NON-MUTATION INVARIANT : PASS")
 
 else:
 
-    print(
-        "DATABASE HASH : CHANGED"
-    )
+    print("DATABASE HASH : CHANGED")
 
-    print(
-        "DATABASE MUTATION : DETECTED"
-    )
+    print("DATABASE MUTATION : DETECTED")
 
-    print(
-        "NON-MUTATION INVARIANT : FAIL"
-    )
+    print("NON-MUTATION INVARIANT : FAIL")
 
     sys.exit(7)
 

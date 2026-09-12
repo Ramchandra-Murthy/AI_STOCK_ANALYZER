@@ -35,9 +35,7 @@ class NAVEngine(BaseValuationEngine):
         elif isinstance(entity, dict):
             nav_input = self._parse_dict_payload(entity)
         else:
-            raise TypeError(
-                f"NAVEngine received unsupported payload type: {type(entity)}"
-            )
+            raise TypeError(f"NAVEngine received unsupported payload type: {type(entity)}")
 
         model = NAVModel(nav_input)
         nav_res = model.run_model()
@@ -87,17 +85,13 @@ class NAVEngine(BaseValuationEngine):
         ]
 
         return NAVInput(
-            company_name=data.get(
-                "segment_name", data.get("company_name", "NAV Entity")
-            ),
+            company_name=data.get("segment_name", data.get("company_name", "NAV Entity")),
             currency=data.get("currency", "INR"),
             assets=assets,
             liabilities=liabilities,
             minority_interest=float(data.get("minority_interest", 0.0)),
             holding_company_discount_pct=float(
-                data.get(
-                    "holding_company_discount_pct", data.get("holdco_discount_pct", 0.0)
-                )
+                data.get("holding_company_discount_pct", data.get("holdco_discount_pct", 0.0))
             ),
             shares_outstanding=float(data.get("shares_outstanding", 1.0)),
         )

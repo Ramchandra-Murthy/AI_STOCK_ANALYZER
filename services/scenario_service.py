@@ -88,11 +88,7 @@ def generate_scenario_analysis(
             0,
         )
 
-    if (
-        upside_amount is not None
-        and downside_amount is not None
-        and downside_amount > 0
-    ):
+    if upside_amount is not None and downside_amount is not None and downside_amount > 0:
         reward_risk = upside_amount / downside_amount
 
     # ======================================================
@@ -183,9 +179,7 @@ def generate_scenario_analysis(
         "current_price": current_price,
         "bull": {
             "price": target_price,
-            "return_percent": (
-                round(bull_return, 2) if bull_return is not None else None
-            ),
+            "return_percent": (round(bull_return, 2) if bull_return is not None else None),
             "assumptions": bull_assumptions,
         },
         "base": {
@@ -195,9 +189,7 @@ def generate_scenario_analysis(
         },
         "bear": {
             "price": stop_loss,
-            "return_percent": (
-                round(bear_return, 2) if bear_return is not None else None
-            ),
+            "return_percent": (round(bear_return, 2) if bear_return is not None else None),
             "assumptions": bear_assumptions,
         },
         "reward_risk": (round(reward_risk, 2) if reward_risk is not None else None),

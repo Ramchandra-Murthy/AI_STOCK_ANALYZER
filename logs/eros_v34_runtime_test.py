@@ -50,7 +50,7 @@ try:
         "scenarios",
         "decision_quality",
         "scenario_summary",
-        "governance"
+        "governance",
     ]
 
     for field in required:
@@ -88,7 +88,7 @@ try:
         "allow_valuation_mutation": False,
         "allow_performance_mutation": False,
         "allow_risk_mutation": False,
-        "allow_optimization": False
+        "allow_optimization": False,
     }
 
     for key, expected_value in expected.items():
@@ -97,8 +97,7 @@ try:
 
         if actual != expected_value:
             raise RuntimeError(
-                f"Safety failure: {key}: "
-                f"actual={actual}, expected={expected_value}"
+                f"Safety failure: {key}: " f"actual={actual}, expected={expected_value}"
             )
 
         print(f"{key:32} : PASS")

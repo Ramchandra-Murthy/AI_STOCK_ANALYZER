@@ -1,11 +1,13 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Dict, Any, List
-from services.company.models import CompanyIdentity, PeriodSnapshot, CompanyRecord
+from typing import Any
+
+from services.company.models import CompanyIdentity, CompanyRecord, PeriodSnapshot
 from services.company.repository import InMemoryCompanyRepository
 
 logger = logging.getLogger(__name__)
+
 
 class CompanyKnowledgeService:
     """Orchestrates company registry operations, historical tracking, and automated delta analysis."""
@@ -17,7 +19,7 @@ class CompanyKnowledgeService:
         existing = self.repo.get_company(identity.symbol)
         history = existing.history if existing else []
         metadata = existing.metadata if existing else {"status": "active"}
-        
+
         record = CompanyRecord(identity=identity, history=history, metadata=metadata)
         self.repo.save_company(record)
         return record
@@ -26,21 +28,23 @@ class CompanyKnowledgeService:
         record = self.repo.get_company(symbol)
         if not record:
             raise ValueError(f"Company {symbol} not found in registry. Register first.")
-        
+
         updated_history = list(record.history) + [snapshot]
-        updated_record = CompanyRecord(identity=record.identity, history=updated_history, metadata=record.metadata)
+        updated_record = CompanyRecord(
+            identity=record.identity, history=updated_history, metadata=record.metadata
+        )
         self.repo.save_company(updated_record)
         logger.info("Appended period snapshot %s for %s", snapshot.period, symbol)
         return updated_record
 
     @staticmethod
-    def compute_delta(snapshot_a: PeriodSnapshot, snapshot_b: PeriodSnapshot) -> Dict[str, Any]:
+    def compute_delta(snapshot_a: PeriodSnapshot, snapshot_b: PeriodSnapshot) -> dict[str, Any]:
         """Compares two historical periods (A -> B) and computes metric percentage deltas and AI reasoning."""
         metrics_a = snapshot_a.metrics
         metrics_b = snapshot_b.metrics
-        
-        deltas: Dict[str, float] = {}
-        reasoning_bullets: List[str] = []
+
+        deltas: dict[str, float] = {}
+        reasoning_bullets: list[str] = []
 
         all_keys = set(metrics_a.keys()).union(set(metrics_b.keys()))
         for key in all_keys:
@@ -60,7 +64,9 @@ class CompanyKnowledgeService:
         if rev_growth > 0:
             reasoning_bullets.append(f"Revenue expanded by {rev_growth}% period-over-period.")
         else:
-            reasoning_bullets.append(f"Revenue contracted by {abs(rev_growth)}% period-over-period.")
+            reasoning_bullets.append(
+                f"Revenue contracted by {abs(rev_growth)}% period-over-period."
+            )
 
         if margin_growth > 0:
             reasoning_bullets.append(f"Operating margins strengthened by {margin_growth}%.")
@@ -68,11 +74,13 @@ class CompanyKnowledgeService:
             reasoning_bullets.append(f"Operating margins compressed by {abs(margin_growth)}%.")
 
         if debt_change < 0:
-            reasoning_bullets.append(f"Capital discipline improved with total debt reduced by {abs(debt_change)}%.")
+            reasoning_bullets.append(
+                f"Capital discipline improved with total debt reduced by {abs(debt_change)}%."
+            )
 
         return {
             "from_period": snapshot_a.period,
             "to_period": snapshot_b.period,
             "deltas": deltas,
-            "narrative": reasoning_bullets
+            "narrative": reasoning_bullets,
         }

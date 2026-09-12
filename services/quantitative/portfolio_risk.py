@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -34,7 +34,7 @@ class EROSPortfolioRiskEngine:
     def __init__(
         self,
         policy_profile: str = "Institutional",
-        limits: Optional[PortfolioRiskLimits] = None,
+        limits: PortfolioRiskLimits | None = None,
     ) -> None:
 
         self.policy_profile = policy_profile
@@ -56,7 +56,7 @@ class EROSPortfolioRiskEngine:
             raise ValueError("max_error_positions must be >= 0")
 
     @staticmethod
-    def _weight(item: Dict[str, Any]) -> float:
+    def _weight(item: dict[str, Any]) -> float:
         value = item.get("optimized_weight", item.get("target_weight", 0.0))
 
         try:
@@ -66,8 +66,8 @@ class EROSPortfolioRiskEngine:
 
     def calculate_metrics(
         self,
-        portfolio: Optional[List[Dict[str, Any]]],
-    ) -> Dict[str, Any]:
+        portfolio: list[dict[str, Any]] | None,
+    ) -> dict[str, Any]:
 
         if not portfolio:
             return {
@@ -98,29 +98,15 @@ class EROSPortfolioRiskEngine:
 
         hhi = sum(w * w for w in positive_weights)
 
-        stale_positions = sum(
-            1
-            for item in portfolio
-            if bool(item.get("is_stale", False))
-        )
+        stale_positions = sum(1 for item in portfolio if bool(item.get("is_stale", False)))
 
         error_positions = sum(
-            1
-            for item in portfolio
-            if str(item.get("status", "")).upper() == "ERROR"
+            1 for item in portfolio if str(item.get("status", "")).upper() == "ERROR"
         )
 
-        negative_positions = sum(
-            1
-            for w in weights
-            if w < 0
-        )
+        negative_positions = sum(1 for w in weights if w < 0)
 
-        overweight_positions = sum(
-            1
-            for w in weights
-            if w > self.limits.max_position_weight
-        )
+        overweight_positions = sum(1 for w in weights if w > self.limits.max_position_weight)
 
         cash_weight = max(0.0, 1.0 - total_weight)
 
@@ -139,13 +125,13 @@ class EROSPortfolioRiskEngine:
 
     def evaluate(
         self,
-        portfolio: Optional[List[Dict[str, Any]]],
-    ) -> Dict[str, Any]:
+        portfolio: list[dict[str, Any]] | None,
+    ) -> dict[str, Any]:
 
         metrics = self.calculate_metrics(portfolio)
 
-        blocking_reasons: List[str] = []
-        review_reasons: List[str] = []
+        blocking_reasons: list[str] = []
+        review_reasons: list[str] = []
 
         total_weight = metrics["total_weight"]
 
@@ -206,8 +192,8 @@ class EROSPortfolioRiskEngine:
 
     def certify(
         self,
-        portfolio: Optional[List[Dict[str, Any]]],
-    ) -> Dict[str, Any]:
+        portfolio: list[dict[str, Any]] | None,
+    ) -> dict[str, Any]:
 
         result = self.evaluate(portfolio)
 

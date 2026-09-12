@@ -1,17 +1,18 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Dict, Any, List, Optional
-from services.knowledge_graph.models import GraphNode, GraphEdge
+
+from services.knowledge_graph.models import GraphEdge, GraphNode
 
 logger = logging.getLogger(__name__)
+
 
 class InstitutionalKnowledgeGraph:
     """In-memory institutional knowledge graph managing entities, relationships, and traversal."""
 
     def __init__(self) -> None:
-        self.nodes: Dict[str, GraphNode] = {}
-        self.edges: List[GraphEdge] = []
+        self.nodes: dict[str, GraphNode] = {}
+        self.edges: list[GraphEdge] = []
 
     def add_node(self, node: GraphNode) -> None:
         logger.info("Adding node %s (%s) to IKG", node.node_id, node.node_type)
@@ -21,8 +22,10 @@ class InstitutionalKnowledgeGraph:
         logger.info("Adding edge %s -> %s [%s] to IKG", edge.source, edge.target, edge.relationship)
         self.edges.append(edge)
 
-    def get_neighbors(self, node_id: str, relationship: Optional[str] = None) -> List[GraphNode]:
-        logger.info("Traversing neighbors for node %s with relationship filter: %s", node_id, relationship)
+    def get_neighbors(self, node_id: str, relationship: str | None = None) -> list[GraphNode]:
+        logger.info(
+            "Traversing neighbors for node %s with relationship filter: %s", node_id, relationship
+        )
         neighbor_ids = set()
         for edge in self.edges:
             if edge.source == node_id:
@@ -33,11 +36,11 @@ class InstitutionalKnowledgeGraph:
                     neighbor_ids.add(edge.source)
         return [self.nodes[nid] for nid in neighbor_ids if nid in self.nodes]
 
-    def find_path(self, start_id: str, target_id: str) -> List[str]:
+    def find_path(self, start_id: str, target_id: str) -> list[str]:
         """Simple breadth-first search traversal to find relationship paths between institutional entities."""
         if start_id not in self.nodes or target_id not in self.nodes:
             return []
-        
+
         queue = [[start_id]]
         visited = {start_id}
 

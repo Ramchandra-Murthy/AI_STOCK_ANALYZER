@@ -1,8 +1,8 @@
 ﻿from services.financials.financial_statement import (
-    FinancialStatements,
-    IncomeStatement,
     BalanceSheet,
     CashFlowStatement,
+    FinancialStatements,
+    IncomeStatement,
 )
 from services.scoring.engine import AIScoringEngine
 
@@ -69,8 +69,7 @@ def test_block13_valuation_scoring_integration() -> None:
     # SCORING ENGINE CONTRACT
     # --------------------------------------------------------
 
-    assert result.breakdown_details["engine_version"] == \
-        "EROS-3.0-BLOCK-15"
+    assert result.breakdown_details["engine_version"] == "EROS-3.0-BLOCK-15"
 
     assert "valuation_engine" in result.breakdown_details
 

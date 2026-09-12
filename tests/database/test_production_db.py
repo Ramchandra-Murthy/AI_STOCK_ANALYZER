@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
-import pytest
 from backend.database.manager import ProductionDatabaseManager
+
 
 def test_production_database_persistence() -> None:
     table = "valuations"

@@ -32,10 +32,7 @@ print()
 print("AVAILABLE PUBLIC API")
 print("-" * 60)
 
-methods = [
-    name for name in dir(adapter)
-    if not name.startswith("_")
-]
+methods = [name for name in dir(adapter) if not name.startswith("_")]
 
 for name in methods:
     print(name)

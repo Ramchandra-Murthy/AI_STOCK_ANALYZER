@@ -3,18 +3,18 @@
 import hashlib
 import json
 import math
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from collections.abc import Mapping
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from statistics import mean, stdev
-from typing import Any, Dict, List, Mapping, Optional
-
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-92"
 PERFORMANCE_SCHEMA_VERSION = "1.0"
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _text(value: Any, default: str = "") -> str:
@@ -24,7 +24,7 @@ def _text(value: Any, default: str = "") -> str:
     return text if text else default
 
 
-def _number(value: Any, default: Optional[float] = None) -> Optional[float]:
+def _number(value: Any, default: float | None = None) -> float | None:
     try:
         result = float(value)
     except (TypeError, ValueError):
@@ -36,11 +36,11 @@ def _number(value: Any, default: Optional[float] = None) -> Optional[float]:
     return result
 
 
-def _dict(value: Any) -> Dict[str, Any]:
+def _dict(value: Any) -> dict[str, Any]:
     return dict(value) if isinstance(value, Mapping) else {}
 
 
-def _list(value: Any) -> List[Any]:
+def _list(value: Any) -> list[Any]:
     return list(value) if isinstance(value, (list, tuple)) else []
 
 
@@ -89,13 +89,13 @@ class PortfolioPerformanceRecord:
     absolute_pnl: float
     return_pct: float
 
-    benchmark_return_pct: Optional[float]
-    active_return_pct: Optional[float]
+    benchmark_return_pct: float | None
+    active_return_pct: float | None
 
-    alpha: Optional[float]
-    beta: Optional[float]
-    tracking_error_pct: Optional[float]
-    information_ratio: Optional[float]
+    alpha: float | None
+    beta: float | None
+    tracking_error_pct: float | None
+    information_ratio: float | None
 
     performance_status: str
     calculation_status: str
@@ -106,7 +106,7 @@ class PortfolioPerformanceRecord:
 
     performance_hash: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "performance_id": self.performance_id,
             "performance_schema_version": self.performance_schema_version,
@@ -124,34 +124,18 @@ class PortfolioPerformanceRecord:
             "absolute_pnl": round(self.absolute_pnl, 6),
             "return_pct": round(self.return_pct, 6),
             "benchmark_return_pct": (
-                None
-                if self.benchmark_return_pct is None
-                else round(self.benchmark_return_pct, 6)
+                None if self.benchmark_return_pct is None else round(self.benchmark_return_pct, 6)
             ),
             "active_return_pct": (
-                None
-                if self.active_return_pct is None
-                else round(self.active_return_pct, 6)
+                None if self.active_return_pct is None else round(self.active_return_pct, 6)
             ),
-            "alpha": (
-                None
-                if self.alpha is None
-                else round(self.alpha, 6)
-            ),
-            "beta": (
-                None
-                if self.beta is None
-                else round(self.beta, 6)
-            ),
+            "alpha": (None if self.alpha is None else round(self.alpha, 6)),
+            "beta": (None if self.beta is None else round(self.beta, 6)),
             "tracking_error_pct": (
-                None
-                if self.tracking_error_pct is None
-                else round(self.tracking_error_pct, 6)
+                None if self.tracking_error_pct is None else round(self.tracking_error_pct, 6)
             ),
             "information_ratio": (
-                None
-                if self.information_ratio is None
-                else round(self.information_ratio, 6)
+                None if self.information_ratio is None else round(self.information_ratio, 6)
             ),
             "performance_status": self.performance_status,
             "calculation_status": self.calculation_status,
@@ -178,7 +162,7 @@ class Block92PerformanceCertificate:
     broker_submission: bool
     live_order_submission: bool
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "status": self.status,
             "performance_id": self.performance_id,
@@ -217,15 +201,15 @@ class EROSBlock92PortfolioPerformanceEngine:
     """
 
     def __init__(self) -> None:
-        self._processed_performance: Dict[str, PortfolioPerformanceRecord] = {}
-        self._history: List[Dict[str, Any]] = []
+        self._processed_performance: dict[str, PortfolioPerformanceRecord] = {}
+        self._history: list[dict[str, Any]] = []
 
     # ----------------------------------------------------------
     # INPUT EXTRACTION
     # ----------------------------------------------------------
 
     @staticmethod
-    def _valuation(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _valuation(payload: Mapping[str, Any]) -> dict[str, Any]:
         value = _first(
             payload,
             "valuation",
@@ -236,7 +220,7 @@ class EROSBlock92PortfolioPerformanceEngine:
         return _dict(value)
 
     @staticmethod
-    def _certificate(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _certificate(payload: Mapping[str, Any]) -> dict[str, Any]:
         value = _first(
             payload,
             "certificate",
@@ -327,15 +311,13 @@ class EROSBlock92PortfolioPerformanceEngine:
         self,
         valuation: Mapping[str, Any],
         certificate: Mapping[str, Any],
-    ) -> List[str]:
-        errors: List[str] = []
+    ) -> list[str]:
+        errors: list[str] = []
 
         status = self._status(valuation, certificate)
 
         if status not in {"PASS", "CERTIFIED", "VALUED"}:
-            errors.append(
-                f"INVALID_VALUATION_STATUS:{status or 'MISSING'}"
-            )
+            errors.append(f"INVALID_VALUATION_STATUS:{status or 'MISSING'}")
 
         valuation_id = self._valuation_id(valuation, certificate)
         settlement_id = self._settlement_id(valuation, certificate)
@@ -373,8 +355,8 @@ class EROSBlock92PortfolioPerformanceEngine:
 
     @staticmethod
     def _benchmark_return(
-        benchmark: Optional[Mapping[str, Any]],
-    ) -> Optional[float]:
+        benchmark: Mapping[str, Any] | None,
+    ) -> float | None:
         if not benchmark:
             return None
 
@@ -394,8 +376,8 @@ class EROSBlock92PortfolioPerformanceEngine:
 
     @staticmethod
     def _beta(
-        benchmark: Optional[Mapping[str, Any]],
-    ) -> Optional[float]:
+        benchmark: Mapping[str, Any] | None,
+    ) -> float | None:
         if not benchmark:
             return None
 
@@ -411,15 +393,15 @@ class EROSBlock92PortfolioPerformanceEngine:
 
     @staticmethod
     def _series(
-        payload: Optional[Mapping[str, Any]],
+        payload: Mapping[str, Any] | None,
         *keys: str,
-    ) -> List[float]:
+    ) -> list[float]:
         if not payload:
             return []
 
         value = _first(payload, *keys, default=[])
 
-        result: List[float] = []
+        result: list[float] = []
 
         for item in _list(value):
             number = _number(item)
@@ -431,9 +413,9 @@ class EROSBlock92PortfolioPerformanceEngine:
 
     @staticmethod
     def _tracking_error(
-        portfolio_returns: List[float],
-        benchmark_returns: List[float],
-    ) -> Optional[float]:
+        portfolio_returns: list[float],
+        benchmark_returns: list[float],
+    ) -> float | None:
         if len(portfolio_returns) != len(benchmark_returns):
             return None
 
@@ -449,9 +431,9 @@ class EROSBlock92PortfolioPerformanceEngine:
 
     @staticmethod
     def _information_ratio(
-        portfolio_returns: List[float],
-        benchmark_returns: List[float],
-    ) -> Optional[float]:
+        portfolio_returns: list[float],
+        benchmark_returns: list[float],
+    ) -> float | None:
         if len(portfolio_returns) != len(benchmark_returns):
             return None
 
@@ -478,8 +460,8 @@ class EROSBlock92PortfolioPerformanceEngine:
         self,
         valuation: Mapping[str, Any],
         certificate: Mapping[str, Any],
-        prior_valuation: Optional[Mapping[str, Any]],
-        benchmark: Optional[Mapping[str, Any]],
+        prior_valuation: Mapping[str, Any] | None,
+        benchmark: Mapping[str, Any] | None,
     ) -> PortfolioPerformanceRecord:
         valuation_id = self._valuation_id(valuation, certificate)
         settlement_id = self._settlement_id(valuation, certificate)
@@ -487,30 +469,36 @@ class EROSBlock92PortfolioPerformanceEngine:
         decision_id = self._decision_id(valuation, certificate)
         portfolio_id = self._portfolio_id(valuation)
 
-        current_equity = _number(
-            _first(
-                valuation,
-                "portfolio_equity",
-                "equity",
-                "total_equity",
-                default=0.0,
-            ),
-            0.0,
-        ) or 0.0
-
-        prior_equity = 0.0
-
-        if prior_valuation:
-            prior_equity = _number(
+        current_equity = (
+            _number(
                 _first(
-                    prior_valuation,
+                    valuation,
                     "portfolio_equity",
                     "equity",
                     "total_equity",
                     default=0.0,
                 ),
                 0.0,
-            ) or 0.0
+            )
+            or 0.0
+        )
+
+        prior_equity = 0.0
+
+        if prior_valuation:
+            prior_equity = (
+                _number(
+                    _first(
+                        prior_valuation,
+                        "portfolio_equity",
+                        "equity",
+                        "total_equity",
+                        default=0.0,
+                    ),
+                    0.0,
+                )
+                or 0.0
+            )
 
         absolute_pnl = current_equity - prior_equity
 
@@ -519,17 +507,11 @@ class EROSBlock92PortfolioPerformanceEngine:
         elif prior_equity == 0:
             return_pct = 0.0
         else:
-            return_pct = (
-                absolute_pnl / prior_equity
-            ) * 100.0
+            return_pct = (absolute_pnl / prior_equity) * 100.0
 
         benchmark_return = self._benchmark_return(benchmark)
 
-        active_return = (
-            None
-            if benchmark_return is None
-            else return_pct - benchmark_return
-        )
+        active_return = None if benchmark_return is None else return_pct - benchmark_return
 
         portfolio_returns = self._series(
             benchmark,
@@ -596,9 +578,7 @@ class EROSBlock92PortfolioPerformanceEngine:
 
         performance_hash = _hash_payload(performance_payload)
 
-        performance_id = (
-            f"EROS92-{performance_hash[:16].upper()}"
-        )
+        performance_id = f"EROS92-{performance_hash[:16].upper()}"
 
         return PortfolioPerformanceRecord(
             performance_id=performance_id,
@@ -606,16 +586,12 @@ class EROSBlock92PortfolioPerformanceEngine:
             engine_version=ENGINE_VERSION,
             timestamp_utc=_utc_now(),
             valuation_id=valuation_id,
-            prior_valuation_id=performance_payload[
-                "prior_valuation_id"
-            ],
+            prior_valuation_id=performance_payload["prior_valuation_id"],
             settlement_id=settlement_id,
             audit_id=audit_id,
             decision_id=decision_id,
             portfolio_id=portfolio_id,
-            benchmark_name=performance_payload[
-                "benchmark_name"
-            ],
+            benchmark_name=performance_payload["benchmark_name"],
             current_equity=current_equity,
             prior_equity=prior_equity,
             absolute_pnl=absolute_pnl,
@@ -679,9 +655,9 @@ class EROSBlock92PortfolioPerformanceEngine:
     def calculate_performance(
         self,
         valuation_payload: Mapping[str, Any],
-        prior_valuation: Optional[Mapping[str, Any]] = None,
-        benchmark: Optional[Mapping[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        prior_valuation: Mapping[str, Any] | None = None,
+        benchmark: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
         valuation = self._valuation(valuation_payload)
         certificate = self._certificate(valuation_payload)
 
@@ -710,9 +686,7 @@ class EROSBlock92PortfolioPerformanceEngine:
         )
 
         if performance.performance_id in self._processed_performance:
-            existing = self._processed_performance[
-                performance.performance_id
-            ]
+            existing = self._processed_performance[performance.performance_id]
 
             return {
                 "status": "DUPLICATE",
@@ -727,9 +701,7 @@ class EROSBlock92PortfolioPerformanceEngine:
                 "live_order_submission": False,
             }
 
-        self._processed_performance[
-            performance.performance_id
-        ] = performance
+        self._processed_performance[performance.performance_id] = performance
 
         record = performance.to_dict()
 
@@ -753,31 +725,26 @@ class EROSBlock92PortfolioPerformanceEngine:
     def benchmark_performance(
         self,
         valuation_payload: Mapping[str, Any],
-        prior_valuation: Optional[Mapping[str, Any]] = None,
-        benchmark: Optional[Mapping[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        prior_valuation: Mapping[str, Any] | None = None,
+        benchmark: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
         return self.calculate_performance(
             valuation_payload,
             prior_valuation=prior_valuation,
             benchmark=benchmark,
         )
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return {
             "engine_version": ENGINE_VERSION,
             "performance_schema_version": PERFORMANCE_SCHEMA_VERSION,
-            "performance_count": len(
-                self._processed_performance
-            ),
+            "performance_count": len(self._processed_performance),
             "history_count": len(self._history),
             "mutation_allowed": False,
             "broker_submission": False,
             "live_order_submission": False,
-            "performance_ids": sorted(
-                self._processed_performance.keys()
-            ),
+            "performance_ids": sorted(self._processed_performance.keys()),
         }
 
-    def performance_history(self) -> List[Dict[str, Any]]:
+    def performance_history(self) -> list[dict[str, Any]]:
         return [dict(item) for item in self._history]
-

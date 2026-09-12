@@ -1,5 +1,3 @@
-import importlib
-import json
 import traceback
 from pprint import pprint
 
@@ -113,6 +111,7 @@ print("Mutation        : DISABLED")
 # HELPER
 # ----------------------------------------------------------------------
 
+
 def inspect_result(label, result):
 
     print()
@@ -203,6 +202,7 @@ def inspect_result(label, result):
     print()
     print("FULL RESULT:")
     pprint(result, width=150, sort_dicts=False)
+
 
 # ----------------------------------------------------------------------
 # BLOCK 94
@@ -435,10 +435,7 @@ safety_fields = [
 ]
 
 print()
-print(
-    f"{'BLOCK':8}"
-    + "".join(f"{field[:16]:>18}" for field in safety_fields)
-)
+print(f"{'BLOCK':8}" + "".join(f"{field[:16]:>18}" for field in safety_fields))
 
 for block_id, result in results.items():
 
@@ -474,9 +471,7 @@ for block_id, result in results.items():
 
     if not isinstance(result, dict):
 
-        issues.append(
-            f"Block {block_id}: result is not a dictionary"
-        )
+        issues.append(f"Block {block_id}: result is not a dictionary")
 
         continue
 
@@ -484,9 +479,7 @@ for block_id, result in results.items():
 
         if field not in result:
 
-            issues.append(
-                f"Block {block_id}: {field} is ABSENT at top level"
-            )
+            issues.append(f"Block {block_id}: {field} is ABSENT at top level")
 
         else:
 
@@ -499,9 +492,7 @@ for block_id, result in results.items():
 
                 if value is not True:
 
-                    issues.append(
-                        f"Block {block_id}: {field} = {value!r}"
-                    )
+                    issues.append(f"Block {block_id}: {field} = {value!r}")
 
             else:
 
@@ -518,9 +509,7 @@ for block_id, result in results.items():
 
                     if value not in [False, "BLOCKED", "DISABLED", None]:
 
-                        issues.append(
-                            f"Block {block_id}: {field} = {value!r}"
-                        )
+                        issues.append(f"Block {block_id}: {field} = {value!r}")
 
 if not issues:
 

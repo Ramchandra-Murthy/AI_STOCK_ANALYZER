@@ -1,7 +1,6 @@
 ﻿from __future__ import annotations
 
 import inspect
-import json
 import os
 import sys
 from pprint import pprint
@@ -28,15 +27,12 @@ print("=" * 70)
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
-
 from services.quantitative.block104_eros_command_center import (
     EROSBlock104CommandCenter,
 )
-
 from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
@@ -281,11 +277,7 @@ if isinstance(frontend_contract, dict):
     print()
     print("TOP LEVEL:")
     for key, value in frontend_contract.items():
-        print(
-            f"{key!r} -> "
-            f"type={type(value).__name__}, "
-            f"value={repr(value)[:500]}"
-        )
+        print(f"{key!r} -> " f"type={type(value).__name__}, " f"value={repr(value)[:500]}")
 
     for key in (
         "status",
@@ -370,18 +362,9 @@ b106 = EROSBlock106InstitutionalIntegrationBoundary()
 
 print("BLOCK 106 CLASS:", type(b106))
 print("BLOCK 106 BLOCK_ID:", getattr(b106, "BLOCK_ID", None))
-print(
-    "BLOCK 106 BUILD:",
-    inspect.signature(b106.build_integration_payload)
-)
-print(
-    "BLOCK 106 SNAPSHOT:",
-    inspect.signature(b106.build_read_only_snapshot)
-)
-print(
-    "BLOCK 106 VALIDATE:",
-    inspect.signature(b106.validate_payload)
-)
+print("BLOCK 106 BUILD:", inspect.signature(b106.build_integration_payload))
+print("BLOCK 106 SNAPSHOT:", inspect.signature(b106.build_read_only_snapshot))
+print("BLOCK 106 VALIDATE:", inspect.signature(b106.validate_payload))
 
 print()
 print("=" * 70)

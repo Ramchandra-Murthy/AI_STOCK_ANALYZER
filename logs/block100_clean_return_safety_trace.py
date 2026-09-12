@@ -1,12 +1,11 @@
-from pathlib import Path
 import ast
 import subprocess
+from pathlib import Path
 
-SOURCE = Path(
-    r"services\quantitative\block100_paper_execution_fill_gate.py"
-)
+SOURCE = Path(r"services\quantitative\block100_paper_execution_fill_gate.py")
 
 OUTPUT = []
+
 
 def p(text=""):
     text = str(text)
@@ -44,9 +43,7 @@ else:
     # BOM-SAFE READ
     # ------------------------------------------------------------
     try:
-        source = SOURCE.read_text(
-            encoding="utf-8-sig"
-        )
+        source = SOURCE.read_text(encoding="utf-8-sig")
         lines = source.splitlines()
 
         p("BOM-SAFE READ : PASS")
@@ -67,10 +64,7 @@ else:
         p("-" * 100)
 
         try:
-            tree = ast.parse(
-                source,
-                filename=str(SOURCE)
-            )
+            tree = ast.parse(source, filename=str(SOURCE))
             p("AST PARSE : PASS")
         except Exception as exc:
             p("AST PARSE : FAIL")
@@ -139,9 +133,7 @@ else:
         for i, line in enumerate(lines, start=1):
             for keyword in keywords:
                 if keyword in line:
-                    matches.append(
-                        (i, keyword, line)
-                    )
+                    matches.append((i, keyword, line))
 
         if not matches:
             p("NO SAFETY KEYWORD MATCHES FOUND")
@@ -162,18 +154,11 @@ else:
                 seen.add(window)
 
                 p()
-                p(
-                    f"--- SAFETY WINDOW "
-                    f"L{start}-L{end} "
-                    f"(MATCH: {keyword}) ---"
-                )
+                p(f"--- SAFETY WINDOW " f"L{start}-L{end} " f"(MATCH: {keyword}) ---")
 
                 for n in range(start, end + 1):
                     marker = ">>" if n == line_no else "  "
-                    p(
-                        f"{marker} "
-                        f"L{n}: {lines[n - 1]}"
-                    )
+                    p(f"{marker} " f"L{n}: {lines[n - 1]}")
 
     # ------------------------------------------------------------
     # IMPORT / CLASS RUNTIME CHECK
@@ -186,17 +171,12 @@ else:
     try:
         import importlib.util
 
-        spec = importlib.util.spec_from_file_location(
-            "block100_runtime_audit",
-            SOURCE
-        )
+        spec = importlib.util.spec_from_file_location("block100_runtime_audit", SOURCE)
 
         module = importlib.util.module_from_spec(spec)
 
         if spec.loader is None:
-            raise RuntimeError(
-                "Unable to obtain module loader"
-            )
+            raise RuntimeError("Unable to obtain module loader")
 
         spec.loader.exec_module(module)
 
@@ -205,8 +185,7 @@ else:
         classes = [
             name
             for name, value in vars(module).items()
-            if isinstance(value, type)
-            and name.startswith("EROSBlock100")
+            if isinstance(value, type) and name.startswith("EROSBlock100")
         ]
 
         if classes:
@@ -276,4 +255,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

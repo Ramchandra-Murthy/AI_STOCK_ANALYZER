@@ -1,5 +1,6 @@
-﻿from services.scoring.models import AIScoreResult
-from services.scoring.investment_decision import InvestmentDecisionOrchestrator
+﻿from services.scoring.investment_decision import InvestmentDecisionOrchestrator
+from services.scoring.models import AIScoreResult
+
 
 def test_block16_investment_decision_orchestrator():
     ai_score = AIScoreResult(
@@ -15,7 +16,7 @@ def test_block16_investment_decision_orchestrator():
         breakdown_details={
             "rating": "STRONG BUY",
             "engine_version": "EROS-3.0-BLOCK-15",
-        }
+        },
     )
 
     orchestrator = InvestmentDecisionOrchestrator(policy_profile="Institutional")
@@ -29,4 +30,3 @@ def test_block16_investment_decision_orchestrator():
     assert result.details["engine_version"] == "EROS-3.0-BLOCK-16D"
     assert len(result.rationale) > 0
     assert len(result.evidence) > 0
-

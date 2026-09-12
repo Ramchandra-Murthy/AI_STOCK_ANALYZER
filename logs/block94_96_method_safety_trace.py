@@ -1,5 +1,5 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -9,9 +9,11 @@ targets = {
 
 output = []
 
+
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 94-96 CERTIFY/GATE METHOD SAFETY RETURN TRACE")
@@ -29,9 +31,7 @@ for block_id, path in targets.items():
         p("ERROR: FILE NOT FOUND")
         continue
 
-    lines = path.read_text(
-        encoding="utf-8-sig"
-    ).splitlines()
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
 
     # ------------------------------------------------------------
     # Locate the actual public execution method
@@ -193,4 +193,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

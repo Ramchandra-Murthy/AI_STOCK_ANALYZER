@@ -1,9 +1,9 @@
 ﻿from __future__ import annotations
 
 import asyncio
-import pytest
 from typing import Any
-from core.events import InMemoryEventBus, EventDispatcher
+
+from core.events import EventDispatcher, InMemoryEventBus
 from services.fundamentals.normalizer import FinancialNormalizer
 from services.fundamentals.provider import YahooFinanceProvider
 from services.fundamentals.service import FundamentalsService
@@ -18,6 +18,7 @@ def test_fundamentals_service_get_or_download_and_cache() -> None:
         service = FundamentalsService(provider, normalizer, dispatcher)
 
         events_received = []
+
         async def listener(event: Any) -> None:
             events_received.append(event)
 

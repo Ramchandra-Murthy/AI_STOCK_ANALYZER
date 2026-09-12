@@ -1,5 +1,5 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -10,9 +10,11 @@ targets = {
 
 out = []
 
+
 def p(x=""):
     print(x)
     out.append(str(x))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 94-97 EXACT BLOCKED RETURN DICTIONARY AUDIT")

@@ -12,13 +12,15 @@ def run_block86_self_test() -> dict:
     block85 = EROSBlock85ExecutionCertificationEngine()
 
     certification = block85.certify(
-        orders=[{
-            "symbol": "RELIANCE.NS",
-            "action": "BUY",
-            "quantity": 100,
-            "limit_price": 2500,
-            "allocation_pct": 0.10,
-        }],
+        orders=[
+            {
+                "symbol": "RELIANCE.NS",
+                "action": "BUY",
+                "quantity": 100,
+                "limit_price": 2500,
+                "allocation_pct": 0.10,
+            }
+        ],
         risk={"status": "PASS"},
         governance={"status": "APPROVED"},
         validation={"status": "PASS"},
@@ -41,13 +43,15 @@ def run_block86_self_test() -> dict:
     assert approved.decision_id.startswith("EROS86-")
 
     blocked_certification = block85.certify(
-        orders=[{
-            "symbol": "RELIANCE.NS",
-            "action": "BUY",
-            "quantity": 100,
-            "limit_price": 2500,
-            "allocation_pct": 0.10,
-        }],
+        orders=[
+            {
+                "symbol": "RELIANCE.NS",
+                "action": "BUY",
+                "quantity": 100,
+                "limit_price": 2500,
+                "allocation_pct": 0.10,
+            }
+        ],
         risk={"status": "BLOCK"},
         governance={"status": "APPROVED"},
     )

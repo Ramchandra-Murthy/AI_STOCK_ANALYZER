@@ -34,10 +34,7 @@ def show_top_holdings(df, top_n=5):
         st.info("No holdings available.")
         return
 
-    table = df.sort_values(
-        by="Current Value",
-        ascending=False
-    ).head(top_n).copy()
+    table = df.sort_values(by="Current Value", ascending=False).head(top_n).copy()
 
     # ----------------------------
     # Format numbers
@@ -90,10 +87,7 @@ def show_top_holdings(df, top_n=5):
         selected = st.selectbox(
             "Delete Holding",
             table["id"],
-            format_func=lambda x: table.loc[
-                table["id"] == x,
-                "symbol"
-            ].iloc[0],
+            format_func=lambda x: table.loc[table["id"] == x, "symbol"].iloc[0],
         )
 
     with col2:

@@ -2,21 +2,16 @@
 
 import inspect
 import json
-import sys
-from pprint import pprint
 
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
-
 from services.quantitative.block104_eros_command_center import (
     EROSBlock104CommandCenter,
 )
-
 from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
@@ -70,21 +65,26 @@ print("BLOCK 102 BUILD    :", inspect.signature(EROSBlock102FrontendContract.bui
 print("BLOCK 102 SNAPSHOT :", inspect.signature(EROSBlock102FrontendContract.snapshot))
 
 print("BLOCK 103 BUILD    :", inspect.signature(EROSBlock103InstitutionalFrontendReadModel.build))
-print("BLOCK 103 SNAPSHOT :", inspect.signature(EROSBlock103InstitutionalFrontendReadModel.snapshot))
+print(
+    "BLOCK 103 SNAPSHOT :", inspect.signature(EROSBlock103InstitutionalFrontendReadModel.snapshot)
+)
 
 print("BLOCK 104 SNAPSHOT :", inspect.signature(EROSBlock104CommandCenter.snapshot))
 
-print("BLOCK 106 BUILD    :", inspect.signature(
-    EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload
-))
+print(
+    "BLOCK 106 BUILD    :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
+)
 
-print("BLOCK 106 SNAPSHOT :", inspect.signature(
-    EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot
-))
+print(
+    "BLOCK 106 SNAPSHOT :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot),
+)
 
-print("BLOCK 106 VALIDATE :", inspect.signature(
-    EROSBlock106InstitutionalIntegrationBoundary.validate_payload
-))
+print(
+    "BLOCK 106 VALIDATE :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
+)
 
 print("SIGNATURE VERIFICATION : PASS")
 
@@ -268,9 +268,7 @@ print("BLOCK 103 INSTANCE : PASS")
 print("INPUT TYPE        :", type(frontend_contract).__name__)
 print("INPUT BLOCK ID    :", frontend_contract.get("block_id"))
 
-read_model = block103.build(
-    contract=frontend_contract
-)
+read_model = block103.build(contract=frontend_contract)
 
 require(isinstance(read_model, dict), "BLOCK103_OUTPUT_NOT_DICT")
 require(read_model.get("status") == "CERTIFIED", "BLOCK103_NOT_CERTIFIED")
@@ -292,9 +290,7 @@ block104 = EROSBlock104CommandCenter()
 
 print("BLOCK 104 INSTANCE : PASS")
 
-command_center = block104.snapshot(
-    read_model=read_model
-)
+command_center = block104.snapshot(read_model=read_model)
 
 require(isinstance(command_center, dict), "BLOCK104_OUTPUT_NOT_DICT")
 
@@ -313,14 +309,9 @@ block106 = EROSBlock106InstitutionalIntegrationBoundary()
 
 print("BLOCK 106 INSTANCE : PASS")
 
-integration_payload = block106.build_integration_payload(
-    command_center
-)
+integration_payload = block106.build_integration_payload(command_center)
 
-require(
-    isinstance(integration_payload, dict),
-    "BLOCK106_OUTPUT_NOT_DICT"
-)
+require(isinstance(integration_payload, dict), "BLOCK106_OUTPUT_NOT_DICT")
 
 print("BLOCK 106 BUILD : PASS")
 print("STATUS          :", integration_payload.get("status"))
@@ -333,9 +324,7 @@ print("VERSION         :", integration_payload.get("version"))
 
 banner("8. BLOCK 106 FINAL VALIDATION")
 
-validation = block106.validate_payload(
-    integration_payload
-)
+validation = block106.validate_payload(integration_payload)
 
 print("VALIDATION RESULT :", validation)
 
@@ -363,7 +352,9 @@ require(safety106.get("allow_broker_submission") is False, "BLOCK106_BROKER_ENAB
 require(safety106.get("allow_live_execution") is False, "BLOCK106_LIVE_EXECUTION_ENABLED")
 require(safety106.get("allow_portfolio_mutation") is False, "BLOCK106_PORTFOLIO_MUTATION_ENABLED")
 require(safety106.get("allow_valuation_mutation") is False, "BLOCK106_VALUATION_MUTATION_ENABLED")
-require(safety106.get("allow_performance_mutation") is False, "BLOCK106_PERFORMANCE_MUTATION_ENABLED")
+require(
+    safety106.get("allow_performance_mutation") is False, "BLOCK106_PERFORMANCE_MUTATION_ENABLED"
+)
 require(safety106.get("allow_risk_mutation") is False, "BLOCK106_RISK_MUTATION_ENABLED")
 require(safety106.get("allow_optimization") is False, "BLOCK106_OPTIMIZATION_ENABLED")
 require(safety106.get("execution_blocked") is True, "BLOCK106_EXECUTION_NOT_BLOCKED")

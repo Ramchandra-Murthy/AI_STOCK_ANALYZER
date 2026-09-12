@@ -1,11 +1,11 @@
 import importlib
 import pprint
-import json
 from datetime import datetime
 
 print("=" * 90)
 print("EROS 3.0 - FULL BLOCK 94 -> 106 END-TO-END CONTRACT TRACE")
 print("=" * 90)
+
 
 def dump_result(label, result):
     print()
@@ -157,7 +157,7 @@ print("Scenarios       :", len(scenarios))
 
 b94 = import_class(
     "services.quantitative.block94_portfolio_stress_scenario_engine",
-    "EROSBlock94PortfolioStressScenarioEngine"
+    "EROSBlock94PortfolioStressScenarioEngine",
 )
 
 r94 = None
@@ -180,17 +180,14 @@ if b94:
 # ------------------------------------------------------------------
 
 b95 = import_class(
-    "services.quantitative.block95_stress_evidence_gate",
-    "EROSBlock95StressEvidenceGate"
+    "services.quantitative.block95_stress_evidence_gate", "EROSBlock95StressEvidenceGate"
 )
 
 r95 = None
 
 if b95 and r94 is not None:
     try:
-        r95 = b95.certify(
-            stress_certificate=r94
-        )
+        r95 = b95.certify(stress_certificate=r94)
         dump_result("BLOCK 95 - CERTIFY", r95)
     except Exception as exc:
         print("BLOCK 95 ERROR:", type(exc).__name__, str(exc))
@@ -200,17 +197,14 @@ if b95 and r94 is not None:
 # ------------------------------------------------------------------
 
 b96 = import_class(
-    "services.quantitative.block96_stress_decision_gate",
-    "EROSBlock96StressDecisionGate"
+    "services.quantitative.block96_stress_decision_gate", "EROSBlock96StressDecisionGate"
 )
 
 r96 = None
 
 if b96 and r95 is not None:
     try:
-        r96 = b96.certify(
-            stress_gate=r95
-        )
+        r96 = b96.certify(stress_gate=r95)
         dump_result("BLOCK 96 - CERTIFY", r96)
     except Exception as exc:
         print("BLOCK 96 ERROR:", type(exc).__name__, str(exc))
@@ -220,17 +214,14 @@ if b96 and r95 is not None:
 # ------------------------------------------------------------------
 
 b97 = import_class(
-    "services.quantitative.block97_stress_readiness_gate",
-    "EROSBlock97StressReadinessGate"
+    "services.quantitative.block97_stress_readiness_gate", "EROSBlock97StressReadinessGate"
 )
 
 r97 = None
 
 if b97 and r96 is not None:
     try:
-        r97 = b97.certify(
-            decision=r96
-        )
+        r97 = b97.certify(decision=r96)
         dump_result("BLOCK 97 - CERTIFY", r97)
     except Exception as exc:
         print("BLOCK 97 ERROR:", type(exc).__name__, str(exc))
@@ -241,16 +232,14 @@ if b97 and r96 is not None:
 
 b98 = import_class(
     "services.quantitative.block98_execution_governance_bridge",
-    "EROSBlock98ExecutionGovernanceBridge"
+    "EROSBlock98ExecutionGovernanceBridge",
 )
 
 r98 = None
 
 if b98 and r97 is not None:
     try:
-        r98 = b98.certify(
-            decision=r97
-        )
+        r98 = b98.certify(decision=r97)
         dump_result("BLOCK 98 - CERTIFY", r98)
     except Exception as exc:
         print("BLOCK 98 ERROR:", type(exc).__name__, str(exc))
@@ -261,16 +250,14 @@ if b98 and r97 is not None:
 
 b99 = import_class(
     "services.quantitative.block99_execution_intent_authorization_gate",
-    "EROSBlock99ExecutionIntentAuthorizationGate"
+    "EROSBlock99ExecutionIntentAuthorizationGate",
 )
 
 r99 = None
 
 if b99 and r98 is not None:
     try:
-        r99 = b99.certify(
-            governance=r98
-        )
+        r99 = b99.certify(governance=r98)
         dump_result("BLOCK 99 - CERTIFY", r99)
     except Exception as exc:
         print("BLOCK 99 ERROR:", type(exc).__name__, str(exc))
@@ -280,8 +267,7 @@ if b99 and r98 is not None:
 # ------------------------------------------------------------------
 
 b100 = import_class(
-    "services.quantitative.block100_paper_execution_fill_gate",
-    "EROSBlock100PaperExecutionFillGate"
+    "services.quantitative.block100_paper_execution_fill_gate", "EROSBlock100PaperExecutionFillGate"
 )
 
 r100 = None
@@ -302,16 +288,14 @@ if b100 and r99 is not None:
 
 b101 = import_class(
     "services.quantitative.block101_execution_evidence_reconciliation",
-    "EROSBlock101ExecutionEvidenceReconciliationGate"
+    "EROSBlock101ExecutionEvidenceReconciliationGate",
 )
 
 r101 = None
 
 if b101 and r100 is not None:
     try:
-        r101 = b101.certify(
-            execution=r100
-        )
+        r101 = b101.certify(execution=r100)
         dump_result("BLOCK 101 - CERTIFY", r101)
     except Exception as exc:
         print("BLOCK 101 ERROR:", type(exc).__name__, str(exc))
@@ -321,8 +305,7 @@ if b101 and r100 is not None:
 # ------------------------------------------------------------------
 
 b102 = import_class(
-    "services.quantitative.block102_frontend_contract",
-    "EROSBlock102FrontendContract"
+    "services.quantitative.block102_frontend_contract", "EROSBlock102FrontendContract"
 )
 
 r102 = None
@@ -349,16 +332,14 @@ if b102:
 
 b103 = import_class(
     "services.quantitative.block103_institutional_frontend_read_model",
-    "EROSBlock103InstitutionalFrontendReadModel"
+    "EROSBlock103InstitutionalFrontendReadModel",
 )
 
 r103 = None
 
 if b103 and r102 is not None:
     try:
-        r103 = b103.build(
-            contract=r102
-        )
+        r103 = b103.build(contract=r102)
         dump_result("BLOCK 103 - BUILD", r103)
     except Exception as exc:
         print("BLOCK 103 ERROR:", type(exc).__name__, str(exc))
@@ -368,17 +349,14 @@ if b103 and r102 is not None:
 # ------------------------------------------------------------------
 
 b104 = import_class(
-    "services.quantitative.block104_eros_command_center",
-    "EROSBlock104CommandCenter"
+    "services.quantitative.block104_eros_command_center", "EROSBlock104CommandCenter"
 )
 
 r104 = None
 
 if b104 and r103 is not None:
     try:
-        r104 = b104.render_model(
-            read_model=r103
-        )
+        r104 = b104.render_model(read_model=r103)
         dump_result("BLOCK 104 - RENDER MODEL", r104)
     except Exception as exc:
         print("BLOCK 104 ERROR:", type(exc).__name__, str(exc))
@@ -389,16 +367,14 @@ if b104 and r103 is not None:
 
 b106 = import_class(
     "services.quantitative.block106_institutional_integration_boundary",
-    "EROSBlock106InstitutionalIntegrationBoundary"
+    "EROSBlock106InstitutionalIntegrationBoundary",
 )
 
 r106 = None
 
 if b106 and r104 is not None:
     try:
-        r106 = b106.build_integration_payload(
-            command_center=r104
-        )
+        r106 = b106.build_integration_payload(command_center=r104)
         dump_result("BLOCK 106 - BUILD INTEGRATION", r106)
 
         print()
@@ -495,8 +471,7 @@ chain = [
 
 for name, upstream, downstream in chain:
     print(
-        f"{name:12} : "
-        f"{'PASS' if upstream is not None and downstream is not None else 'FAIL'}"
+        f"{name:12} : " f"{'PASS' if upstream is not None and downstream is not None else 'FAIL'}"
     )
 
 print()

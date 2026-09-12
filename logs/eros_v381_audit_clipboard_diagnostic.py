@@ -1,8 +1,8 @@
+import inspect
+import json
+import os
 import sys
 import traceback
-import json
-import inspect
-import os
 
 print("=" * 68)
 print("EROS 3.0 - V3.8.1 DECISION AUDIT")
@@ -62,10 +62,7 @@ foundation_ok = True
 for name in required:
     exists = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if exists else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if exists else 'FAIL'}")
 
     if not exists:
         foundation_ok = False
@@ -81,7 +78,7 @@ print("\n4. METHOD INSPECTION")
 print("-" * 68)
 
 try:
-    method = getattr(adapter, "decision_audit")
+    method = adapter.decision_audit
 
     print("METHOD OBJECT :", method)
     print("METHOD TYPE   :", type(method).__name__)
@@ -114,17 +111,10 @@ try:
         for key in trace_result.keys():
             print(" -", key)
 
-        print("\nTRACEABILITY STATUS :",
-              trace_result.get("traceability_status"))
+        print("\nTRACEABILITY STATUS :", trace_result.get("traceability_status"))
 
         print("TRACEABILITY OBJECT :")
-        print(
-            json.dumps(
-                trace_result.get("traceability"),
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(trace_result.get("traceability"), indent=2, default=str))
 
     else:
         print("TRACEABILITY RESULT IS NOT DICT")
@@ -203,13 +193,7 @@ print("\n9. RAW AUDIT RESULT")
 print("-" * 68)
 
 try:
-    print(
-        json.dumps(
-            audit_result,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(audit_result, indent=2, default=str))
 except Exception as exc:
     print("JSON SERIALIZATION ERROR :", repr(exc))
     print(repr(audit_result))
@@ -242,10 +226,7 @@ for field in required_fields:
 
     present = field in audit_result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
         schema_ok = False
@@ -260,13 +241,7 @@ print("TYPE :", type(audit_object).__name__)
 
 if isinstance(audit_object, dict):
 
-    print(
-        json.dumps(
-            audit_object,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(audit_object, indent=2, default=str))
 
 else:
     print("AUDIT OBJECT IS NOT A DICT")
@@ -280,13 +255,7 @@ findings = audit_result.get("audit_findings")
 print("TYPE :", type(findings).__name__)
 
 try:
-    print(
-        json.dumps(
-            findings,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(findings, indent=2, default=str))
 except Exception:
     print(repr(findings))
 
@@ -300,13 +269,7 @@ print("TYPE :", type(traceability).__name__)
 
 if isinstance(traceability, dict):
 
-    print(
-        json.dumps(
-            traceability,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(traceability, indent=2, default=str))
 
 else:
     print("TRACEABILITY IS NOT A DICT")
@@ -321,13 +284,7 @@ print("TYPE :", type(legacy_trace).__name__)
 
 if isinstance(legacy_trace, dict):
 
-    print(
-        json.dumps(
-            legacy_trace,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(legacy_trace, indent=2, default=str))
 
 else:
     print("LEGACY TRACE IS NOT A DICT")
@@ -352,20 +309,11 @@ else:
 print("\n16. AUDIT STATUS")
 print("-" * 68)
 
-print(
-    "audit_status          :",
-    audit_result.get("audit_status")
-)
+print("audit_status          :", audit_result.get("audit_status"))
 
-print(
-    "audit_summary         :",
-    audit_result.get("audit_summary")
-)
+print("audit_summary         :", audit_result.get("audit_summary"))
 
-print(
-    "traceability_status   :",
-    audit_result.get("traceability_status")
-)
+print("traceability_status   :", audit_result.get("traceability_status"))
 
 
 print("\n17. GOVERNANCE")
@@ -377,13 +325,7 @@ print("TYPE :", type(governance).__name__)
 
 if isinstance(governance, dict):
 
-    print(
-        json.dumps(
-            governance,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(governance, indent=2, default=str))
 
 else:
     print("GOVERNANCE IS NOT A DICT")
@@ -423,11 +365,7 @@ else:
         actual = governance.get(field)
         ok = actual is True
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'} "
-            f"(actual={actual}, expected=True)"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
         if not ok:
             safety_ok = False
@@ -437,11 +375,7 @@ else:
         actual = governance.get(field)
         ok = actual is False
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'} "
-            f"(actual={actual}, expected=False)"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
         if not ok:
             safety_ok = False
@@ -457,31 +391,17 @@ print("EXECUTION PATH      : BLOCKED")
 print("\n20. FINAL DIAGNOSTIC STATUS")
 print("-" * 68)
 
-print(
-    "FOUNDATION API       : PASS"
-)
+print("FOUNDATION API       : PASS")
 
-print(
-    "TRACEABILITY API     : PASS"
-)
+print("TRACEABILITY API     : PASS")
 
-print(
-    "DECISION AUDIT API   : PASS"
-)
+print("DECISION AUDIT API   : PASS")
 
-print(
-    "AUDIT RESULT DICT    : PASS"
-)
+print("AUDIT RESULT DICT    : PASS")
 
-print(
-    "TOP-LEVEL SCHEMA     : "
-    + ("PASS" if schema_ok else "FAIL")
-)
+print("TOP-LEVEL SCHEMA     : " + ("PASS" if schema_ok else "FAIL"))
 
-print(
-    "SAFETY CONTRACT      : "
-    + ("PASS" if safety_ok else "FAIL")
-)
+print("SAFETY CONTRACT      : " + ("PASS" if safety_ok else "FAIL"))
 
 print("DATABASE WRITE-PATH  : NONE")
 print("EXECUTION PATH       : BLOCKED")

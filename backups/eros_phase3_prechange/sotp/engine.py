@@ -8,10 +8,6 @@ EROS calls that engine through this boundary and normalizes the
 result.
 """
 
-from typing import Any
-
-from eros.valuation.adapter import normalize_valuation
-
 
 def evaluate_sotp(*args, **kwargs):
     """
@@ -22,8 +18,7 @@ def evaluate_sotp(*args, **kwargs):
     """
 
     raise NotImplementedError(
-        "Canonical SOTP engine has not yet been wired. "
-        "Do not duplicate SOTP mathematics here."
+        "Canonical SOTP engine has not yet been wired. " "Do not duplicate SOTP mathematics here."
     )
 
 

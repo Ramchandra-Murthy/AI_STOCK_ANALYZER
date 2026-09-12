@@ -100,9 +100,7 @@ def generate_sotp_equity_bridge(
     investment_adjustment = 0.0
 
     if investment.get("status") == "OK" and investment.get("bridge_ready") is True:
-        investment_adjustment = (
-            _num(investment.get("included_investment_adjustment")) or 0.0
-        )
+        investment_adjustment = _num(investment.get("included_investment_adjustment")) or 0.0
 
     # ---------------------------------------------
     # 5. AUTHORIZED EQUITY VALUE
@@ -130,11 +128,7 @@ def generate_sotp_equity_bridge(
     if shares is not None and shares > 0:
         fair_value_per_share = _crore_to_rupees(authorized_equity_value) / shares
 
-    if (
-        fair_value_per_share is not None
-        and current_price is not None
-        and current_price > 0
-    ):
+    if fair_value_per_share is not None and current_price is not None and current_price > 0:
         upside_percent = (fair_value_per_share / current_price - 1) * 100
 
     # ---------------------------------------------
@@ -258,15 +252,9 @@ def generate_sotp_equity_bridge(
             "and liabilities are disclosed but excluded."
         ),
         "warnings": [
-            (
-                "A PROVISIONAL valuation must not be "
-                "presented as completed SOTP fair value."
-            ),
+            ("A PROVISIONAL valuation must not be " "presented as completed SOTP fair value."),
             ("Pending positive assets may increase " "equity value when resolved."),
-            (
-                "Pending debt-like or ownership claims "
-                "may reduce equity value when resolved."
-            ),
+            ("Pending debt-like or ownership claims " "may reduce equity value when resolved."),
             (
                 "No unresolved item is automatically "
                 "included merely because a reported "

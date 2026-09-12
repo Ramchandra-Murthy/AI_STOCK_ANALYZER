@@ -12,10 +12,10 @@ from __future__ import annotations
 from copy import deepcopy
 
 from .block95_stress_evidence_gate import (
-    EROSBlock95StressEvidenceGate,
     STATUS_BLOCKED,
     STATUS_CERTIFIED,
     STATUS_DUPLICATE,
+    EROSBlock95StressEvidenceGate,
 )
 
 
@@ -117,9 +117,7 @@ def run_block95_self_test() -> dict:
     checks += 1
 
     _check(
-        certificate["gate_id"].startswith(
-            "EROS95-STRESS-GATE-"
-        ),
+        certificate["gate_id"].startswith("EROS95-STRESS-GATE-"),
         "Block 95 gate ID prefix incorrect",
     )
     checks += 1
@@ -321,16 +319,13 @@ def run_block95_self_test() -> dict:
 
     snapshot = engine.snapshot()
 
-    snapshot["certificates"][certificate["gate_id"]][
-        "source_certificate_id"
-    ] = "MUTATED"
+    snapshot["certificates"][certificate["gate_id"]]["source_certificate_id"] = "MUTATED"
 
     fresh_snapshot = engine.snapshot()
 
     _check(
-        fresh_snapshot["certificates"][
-            certificate["gate_id"]
-        ]["source_certificate_id"] == "EROS94-STRESS-001",
+        fresh_snapshot["certificates"][certificate["gate_id"]]["source_certificate_id"]
+        == "EROS94-STRESS-001",
         "certificate snapshot is not isolated",
     )
     checks += 1
@@ -356,5 +351,3 @@ if __name__ == "__main__":
     print(f"GATE ID: {result['gate_id']}")
     print(result["message"])
     print("==================================================")
-
-

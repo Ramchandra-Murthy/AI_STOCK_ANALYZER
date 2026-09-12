@@ -26,9 +26,7 @@ def test_settings_immutability():
 
 
 def test_audit_trail_success_flow():
-    with AuditTrail(
-        ticker="LT.NS", method=ValuationMethod.DCF, execution_id="EXEC-101"
-    ) as audit:
+    with AuditTrail(ticker="LT.NS", method=ValuationMethod.DCF, execution_id="EXEC-101") as audit:
         audit.add_step("CALCULATE_WACC", Status.OK, {"wacc": 0.1082})
     assert audit.status == Status.OK
 

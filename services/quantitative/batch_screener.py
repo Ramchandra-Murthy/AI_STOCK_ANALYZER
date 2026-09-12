@@ -2,7 +2,7 @@
 
 import concurrent.futures
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger("eros.quantitative.batch_screener")
 
@@ -35,13 +35,12 @@ class EROSMultiAssetBatchScreener:
         self.max_workers = max_workers
 
         logger.info(
-            "Initializing EROSMultiAssetBatchScreener "
-            "[policy=%s, max_workers=%d]",
+            "Initializing EROSMultiAssetBatchScreener " "[policy=%s, max_workers=%d]",
             policy_profile,
             max_workers,
         )
 
-    def evaluate_symbol(self, symbol: str) -> Dict[str, Any]:
+    def evaluate_symbol(self, symbol: str) -> dict[str, Any]:
         """
         Evaluate one security through the existing integrated pipeline.
 
@@ -62,23 +61,15 @@ class EROSMultiAssetBatchScreener:
                 FullyIntegratedMarketPipeline,
             )
 
-            pipeline = FullyIntegratedMarketPipeline(
-                policy_profile=self.policy_profile
-            )
+            pipeline = FullyIntegratedMarketPipeline(policy_profile=self.policy_profile)
 
-            pipeline_result = pipeline.evaluate_stock_securely(
-                normalized_symbol
-            )
+            pipeline_result = pipeline.evaluate_stock_securely(normalized_symbol)
 
             if not hasattr(pipeline_result, "__getitem__"):
-                raise TypeError(
-                    "evaluate_stock_securely returned a non-indexable result"
-                )
+                raise TypeError("evaluate_stock_securely returned a non-indexable result")
 
             if len(pipeline_result) < 3:
-                raise ValueError(
-                    "evaluate_stock_securely returned fewer than 3 elements"
-                )
+                raise ValueError("evaluate_stock_securely returned fewer than 3 elements")
 
             # Certified existing pipeline contract.
             market_packet = pipeline_result[0]
@@ -115,8 +106,8 @@ class EROSMultiAssetBatchScreener:
 
     def run_universe_screen(
         self,
-        symbols: List[str],
-    ) -> List[Dict[str, Any]]:
+        symbols: list[str],
+    ) -> list[dict[str, Any]]:
         """
         Run parallel screening across the supplied universe.
 
@@ -127,7 +118,7 @@ class EROSMultiAssetBatchScreener:
         if not symbols:
             return []
 
-        normalized_symbols: List[str] = []
+        normalized_symbols: list[str] = []
         seen = set()
 
         for symbol in symbols:
@@ -143,16 +134,14 @@ class EROSMultiAssetBatchScreener:
             normalized_symbols,
         )
 
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
 
         worker_count = min(
             self.max_workers,
             max(1, len(normalized_symbols)),
         )
 
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=worker_count
-        ) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
 
             future_to_symbol = {
                 executor.submit(
@@ -162,9 +151,7 @@ class EROSMultiAssetBatchScreener:
                 for symbol in normalized_symbols
             }
 
-            for future in concurrent.futures.as_completed(
-                future_to_symbol
-            ):
+            for future in concurrent.futures.as_completed(future_to_symbol):
                 symbol = future_to_symbol[future]
 
                 try:
@@ -184,15 +171,9 @@ class EROSMultiAssetBatchScreener:
 
                 results.append(result)
 
-        results.sort(
-            key=lambda item: item.get("symbol", "")
-        )
+        results.sort(key=lambda item: item.get("symbol", ""))
 
-        success_count = sum(
-            1
-            for item in results
-            if item.get("status") == "SUCCESS"
-        )
+        success_count = sum(1 for item in results if item.get("status") == "SUCCESS")
 
         error_count = len(results) - success_count
 

@@ -27,13 +27,13 @@ BLOCKED
 
 from __future__ import annotations
 
-from copy import deepcopy
-from datetime import datetime, timezone
 import hashlib
 import json
 import math
-from typing import Any, Dict, List, Mapping, Optional
-
+from collections.abc import Mapping
+from copy import deepcopy
+from datetime import UTC, datetime
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-96"
 BLOCK_ID = "96"
@@ -50,7 +50,7 @@ DECISION_PREFIX = "EROS96-STRESS-DECISION-"
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _text(value: Any, default: str = "") -> str:
@@ -63,8 +63,8 @@ def _text(value: Any, default: str = "") -> str:
 
 def _number(
     value: Any,
-    default: Optional[float] = None,
-) -> Optional[float]:
+    default: float | None = None,
+) -> float | None:
     try:
         result = float(value)
     except (TypeError, ValueError):
@@ -89,16 +89,14 @@ def _hash_payload(payload: Mapping[str, Any]) -> str:
         default=str,
     )
 
-    return hashlib.sha256(
-        canonical.encode("utf-8")
-    ).hexdigest()
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 class EROSBlock96StressDecisionGate:
 
     def __init__(self) -> None:
         self.engine_version = ENGINE_VERSION
-        self._decisions: Dict[str, Dict[str, Any]] = {}
+        self._decisions: dict[str, dict[str, Any]] = {}
 
     # ---------------------------------------------------------
     # Public API
@@ -108,8 +106,8 @@ class EROSBlock96StressDecisionGate:
         self,
         *,
         stress_gate: Mapping[str, Any],
-        policy: Optional[Mapping[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        policy: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Consume a Block 95 CERTIFIED gate and produce a deterministic
         Block 96 stress decision.
@@ -135,13 +133,9 @@ class EROSBlock96StressDecisionGate:
             policy=normalized_policy,
         )
 
-        source_gate_id = _text(
-            stress_gate.get("gate_id")
-        )
+        source_gate_id = _text(stress_gate.get("gate_id"))
 
-        source_certificate_id = _text(
-            stress_gate.get("source_certificate_id")
-        )
+        source_certificate_id = _text(stress_gate.get("source_certificate_id"))
 
         decision_payload = {
             "block_id": BLOCK_ID,
@@ -151,21 +145,13 @@ class EROSBlock96StressDecisionGate:
             "source_certificate_id": source_certificate_id,
             "scenario_count": len(scenario_results),
             "scenario_ids": [
-                _text(
-                    item.get("scenario", {}).get(
-                        "scenario_id"
-                    )
-                )
-                for item in scenario_results
+                _text(item.get("scenario", {}).get("scenario_id")) for item in scenario_results
             ],
             "decision": decision,
             "policy": normalized_policy,
         }
 
-        decision_id = (
-            f"{DECISION_PREFIX}"
-            f"{_hash_payload(decision_payload)[:20]}"
-        )
+        decision_id = f"{DECISION_PREFIX}" f"{_hash_payload(decision_payload)[:20]}"
 
         if decision_id in self._decisions:
             return {
@@ -183,19 +169,12 @@ class EROSBlock96StressDecisionGate:
             "engine_version": self.engine_version,
             "created_at": _now_iso(),
             "source_block": "95",
-            "source_engine_version": _text(
-                stress_gate.get("engine_version")
-            ),
+            "source_engine_version": _text(stress_gate.get("engine_version")),
             "source_gate_id": source_gate_id,
             "source_certificate_id": source_certificate_id,
             "scenario_count": len(scenario_results),
             "scenario_ids": [
-                _text(
-                    item.get("scenario", {}).get(
-                        "scenario_id"
-                    )
-                )
-                for item in scenario_results
+                _text(item.get("scenario", {}).get("scenario_id")) for item in scenario_results
             ],
             "decision_reason": (
                 "STRESS_EVIDENCE_ADMITTED"
@@ -221,8 +200,8 @@ class EROSBlock96StressDecisionGate:
         self,
         *,
         stress_gate: Mapping[str, Any],
-        policy: Optional[Mapping[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        policy: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
 
         return self.decide(
             stress_gate=stress_gate,
@@ -233,13 +212,11 @@ class EROSBlock96StressDecisionGate:
     # Snapshot
     # ---------------------------------------------------------
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return {
             "engine_version": self.engine_version,
             "block_id": BLOCK_ID,
-            "decisions": _deepcopy(
-                self._decisions
-            ),
+            "decisions": _deepcopy(self._decisions),
         }
 
     # ---------------------------------------------------------
@@ -248,28 +225,20 @@ class EROSBlock96StressDecisionGate:
 
     def _normalize_policy(
         self,
-        policy: Optional[Mapping[str, Any]],
-    ) -> Dict[str, Any]:
+        policy: Mapping[str, Any] | None,
+    ) -> dict[str, Any]:
 
-        source = (
-            dict(policy)
-            if isinstance(policy, Mapping)
-            else {}
-        )
+        source = dict(policy) if isinstance(policy, Mapping) else {}
 
         min_scenarios = source.get(
             "min_scenarios",
             1,
         )
 
-        max_drawdown = source.get(
-            "max_stressed_drawdown_pct"
-        )
+        max_drawdown = source.get("max_stressed_drawdown_pct")
 
         try:
-            min_scenarios = int(
-                min_scenarios
-            )
+            min_scenarios = int(min_scenarios)
         except (TypeError, ValueError):
             min_scenarios = 1
 
@@ -281,17 +250,10 @@ class EROSBlock96StressDecisionGate:
         }
 
         if max_drawdown is not None:
-            converted = _number(
-                max_drawdown
-            )
+            converted = _number(max_drawdown)
 
-            if (
-                converted is not None
-                and converted >= 0
-            ):
-                normalized[
-                    "max_stressed_drawdown_pct"
-                ] = converted
+            if converted is not None and converted >= 0:
+                normalized["max_stressed_drawdown_pct"] = converted
 
         return normalized
 
@@ -304,110 +266,54 @@ class EROSBlock96StressDecisionGate:
         *,
         stress_gate: Mapping[str, Any],
         policy: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         if not isinstance(
             stress_gate,
             Mapping,
         ):
-            return self._blocked(
-                "MALFORMED_STRESS_GATE"
-            )
+            return self._blocked("MALFORMED_STRESS_GATE")
 
-        if _text(
-            stress_gate.get("status")
-        ) != STATUS_CERTIFIED:
-            return self._blocked(
-                "SOURCE_GATE_NOT_CERTIFIED"
-            )
+        if _text(stress_gate.get("status")) != STATUS_CERTIFIED:
+            return self._blocked("SOURCE_GATE_NOT_CERTIFIED")
 
-        if _text(
-            stress_gate.get("gate_status")
-        ) != STATUS_CERTIFIED:
-            return self._blocked(
-                "SOURCE_GATE_STATUS_INVALID"
-            )
+        if _text(stress_gate.get("gate_status")) != STATUS_CERTIFIED:
+            return self._blocked("SOURCE_GATE_STATUS_INVALID")
 
-        if _text(
-            stress_gate.get("block_id")
-        ) != "95":
-            return self._blocked(
-                "INVALID_SOURCE_BLOCK"
-            )
+        if _text(stress_gate.get("block_id")) != "95":
+            return self._blocked("INVALID_SOURCE_BLOCK")
 
-        if _text(
-            stress_gate.get("source_block")
-        ) != "94":
-            return self._blocked(
-                "INVALID_BLOCK_94_LINEAGE"
-            )
+        if _text(stress_gate.get("source_block")) != "94":
+            return self._blocked("INVALID_BLOCK_94_LINEAGE")
 
-        if not _text(
-            stress_gate.get("gate_id")
-        ):
-            return self._blocked(
-                "MISSING_SOURCE_GATE_ID"
-            )
+        if not _text(stress_gate.get("gate_id")):
+            return self._blocked("MISSING_SOURCE_GATE_ID")
 
-        if not _text(
-            stress_gate.get(
-                "source_certificate_id"
-            )
-        ):
-            return self._blocked(
-                "MISSING_SOURCE_CERTIFICATE_ID"
-            )
+        if not _text(stress_gate.get("source_certificate_id")):
+            return self._blocked("MISSING_SOURCE_CERTIFICATE_ID")
 
-        if _text(
-            stress_gate.get(
-                "evidence_status"
-            )
-        ) != STATUS_CERTIFIED:
-            return self._blocked(
-                "SOURCE_EVIDENCE_NOT_CERTIFIED"
-            )
+        if _text(stress_gate.get("evidence_status")) != STATUS_CERTIFIED:
+            return self._blocked("SOURCE_EVIDENCE_NOT_CERTIFIED")
 
-        if _text(
-            stress_gate.get(
-                "downstream_risk_gate"
-            )
-        ) != STATUS_PASS:
-            return self._blocked(
-                "DOWNSTREAM_RISK_GATE_NOT_PASS"
-            )
+        if _text(stress_gate.get("downstream_risk_gate")) != STATUS_PASS:
+            return self._blocked("DOWNSTREAM_RISK_GATE_NOT_PASS")
 
-        if stress_gate.get(
-            "non_mutation_invariant"
-        ) is not True:
-            return self._blocked(
-                "NON_MUTATION_INVARIANT_FAILED"
-            )
+        if stress_gate.get("non_mutation_invariant") is not True:
+            return self._blocked("NON_MUTATION_INVARIANT_FAILED")
 
-        if stress_gate.get(
-            "broker_submission"
-        ) is not False:
-            return self._blocked(
-                "BROKER_SUBMISSION_INVARIANT_FAILED"
-            )
+        if stress_gate.get("broker_submission") is not False:
+            return self._blocked("BROKER_SUBMISSION_INVARIANT_FAILED")
 
-        if stress_gate.get(
-            "live_order_submission"
-        ) is not False:
-            return self._blocked(
-                "LIVE_EXECUTION_INVARIANT_FAILED"
-            )
+        if stress_gate.get("live_order_submission") is not False:
+            return self._blocked("LIVE_EXECUTION_INVARIANT_FAILED")
 
-        scenario_results = stress_gate.get(
-            "scenario_results"
-        )
+        scenario_results = stress_gate.get("scenario_results")
 
         if not isinstance(
             scenario_results,
             list,
         ):
-            return self._blocked(
-                "MISSING_SCENARIO_RESULTS"
-            )
+            return self._blocked("MISSING_SCENARIO_RESULTS")
 
         if len(scenario_results) < int(
             policy.get(
@@ -415,11 +321,9 @@ class EROSBlock96StressDecisionGate:
                 1,
             )
         ):
-            return self._blocked(
-                "INSUFFICIENT_SCENARIOS"
-            )
+            return self._blocked("INSUFFICIENT_SCENARIOS")
 
-        scenario_ids: List[str] = []
+        scenario_ids: list[str] = []
 
         for item in scenario_results:
 
@@ -427,72 +331,40 @@ class EROSBlock96StressDecisionGate:
                 item,
                 Mapping,
             ):
-                return self._blocked(
-                    "MALFORMED_SCENARIO_RESULT"
-                )
+                return self._blocked("MALFORMED_SCENARIO_RESULT")
 
-            if _text(
-                item.get("status")
-            ) != STATUS_PASS:
-                return self._blocked(
-                    "NON_PASS_SCENARIO_RESULT"
-                )
+            if _text(item.get("status")) != STATUS_PASS:
+                return self._blocked("NON_PASS_SCENARIO_RESULT")
 
-            scenario = item.get(
-                "scenario"
-            )
+            scenario = item.get("scenario")
 
             if not isinstance(
                 scenario,
                 Mapping,
             ):
-                return self._blocked(
-                    "MISSING_SCENARIO"
-                )
+                return self._blocked("MISSING_SCENARIO")
 
-            scenario_id = _text(
-                scenario.get(
-                    "scenario_id"
-                )
-            )
+            scenario_id = _text(scenario.get("scenario_id"))
 
             if not scenario_id:
-                return self._blocked(
-                    "MISSING_SCENARIO_ID"
-                )
+                return self._blocked("MISSING_SCENARIO_ID")
 
             if scenario_id in scenario_ids:
-                return self._blocked(
-                    "DUPLICATE_SCENARIO_ID"
-                )
+                return self._blocked("DUPLICATE_SCENARIO_ID")
 
-            scenario_ids.append(
-                scenario_id
-            )
+            scenario_ids.append(scenario_id)
 
-            contribution = item.get(
-                "scenario_contribution"
-            )
+            contribution = item.get("scenario_contribution")
 
             if not contribution:
-                return self._blocked(
-                    "MISSING_SCENARIO_CONTRIBUTION"
-                )
+                return self._blocked("MISSING_SCENARIO_CONTRIBUTION")
 
-            drawdown = _number(
-                item.get(
-                    "stressed_drawdown_pct"
-                )
-            )
+            drawdown = _number(item.get("stressed_drawdown_pct"))
 
             if drawdown is None:
-                return self._blocked(
-                    "INVALID_STRESSED_DRAWDOWN"
-                )
+                return self._blocked("INVALID_STRESSED_DRAWDOWN")
 
-        return {
-            "status": STATUS_PASS
-        }
+        return {"status": STATUS_PASS}
 
     # ---------------------------------------------------------
     # Decision evaluation
@@ -501,29 +373,19 @@ class EROSBlock96StressDecisionGate:
     def _evaluate_decision(
         self,
         *,
-        scenario_results: List[Any],
+        scenario_results: list[Any],
         policy: Mapping[str, Any],
     ) -> str:
 
-        max_drawdown = policy.get(
-            "max_stressed_drawdown_pct"
-        )
+        max_drawdown = policy.get("max_stressed_drawdown_pct")
 
         if max_drawdown is not None:
 
             for item in scenario_results:
 
-                drawdown = _number(
-                    item.get(
-                        "stressed_drawdown_pct"
-                    )
-                )
+                drawdown = _number(item.get("stressed_drawdown_pct"))
 
-                if (
-                    drawdown is not None
-                    and drawdown
-                    > float(max_drawdown)
-                ):
+                if drawdown is not None and drawdown > float(max_drawdown):
                     return DECISION_REJECTED
 
         return DECISION_ADMITTED
@@ -535,7 +397,7 @@ class EROSBlock96StressDecisionGate:
     def _blocked(
         self,
         reason: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         return {
             "status": STATUS_BLOCKED,

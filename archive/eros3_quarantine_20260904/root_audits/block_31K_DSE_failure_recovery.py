@@ -35,11 +35,7 @@ print("\n2. UNKNOWN TASK REJECTION")
 bad_task = "task.does.not.exist." + uuid.uuid4().hex
 
 try:
-    result = task_control.submit_task(
-        task_name=bad_task,
-        user="system",
-        payload={}
-    )
+    result = task_control.submit_task(task_name=bad_task, user="system", payload={})
 
     print("UNEXPECTED RESULT:", result)
     raise AssertionError("Unknown task was accepted")
@@ -75,9 +71,7 @@ print("INVALID TASK HANDLING: PASS")
 print("\n4. REAL TASK SUBMISSION")
 
 submission = task_control.submit_task(
-    task_name="valuation.execute",
-    user="system",
-    payload={"symbol": "TCS.NS"}
+    task_name="valuation.execute", user="system", payload={"symbol": "TCS.NS"}
 )
 
 print("SUBMISSION:", submission)
@@ -97,12 +91,7 @@ final = None
 for i in range(30):
     status = task_control.get_task_status(task_id)
 
-    print(
-        "CHECK",
-        i + 1,
-        "STATE:",
-        status.get("status")
-    )
+    print("CHECK", i + 1, "STATE:", status.get("status"))
 
     if status.get("status") in (
         "SUCCESS",
@@ -145,9 +134,7 @@ elif final.get("status") in ("FAILURE", "FAILED"):
     print("FAILURE STATE PERSISTED: PASS")
 
 else:
-    raise AssertionError(
-        f"Unexpected terminal state: {final}"
-    )
+    raise AssertionError(f"Unexpected terminal state: {final}")
 
 # ----------------------------------------------------------
 # 7. REDIS HEALTH
@@ -157,12 +144,7 @@ print("\n7. REDIS HEALTH")
 try:
     import redis
 
-    r = redis.Redis(
-        host="localhost",
-        port=6379,
-        db=0,
-        decode_responses=True
-    )
+    r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
 
     print("PING:", r.ping())
     print("KEY COUNT:", len(r.keys("*")))

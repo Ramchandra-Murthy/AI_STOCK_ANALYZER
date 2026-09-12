@@ -1,5 +1,6 @@
-﻿from services.market_data.provider import YahooFinanceDataProvider
-from services.market_data.adapter import MarketDataPacket
+﻿from services.market_data.adapter import MarketDataPacket
+from services.market_data.provider import YahooFinanceDataProvider
+
 
 def test_block23c_yahoo_provider_execution():
     symbols = ["RELIANCE.NS", "INFY.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS"]
@@ -10,6 +11,7 @@ def test_block23c_yahoo_provider_execution():
         assert packet.current_price > 0.0
         assert len(packet.ohlcv_history) > 0
         assert "source" in packet.details
+
 
 def test_block23c_provider_fallback_handling():
     # Test invalid ticker triggers fallback safely without raising exception

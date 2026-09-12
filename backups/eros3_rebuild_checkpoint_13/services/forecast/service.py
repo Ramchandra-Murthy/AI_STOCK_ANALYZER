@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
+
 from core.events.dispatcher import EventDispatcher
+from services.financials.financial_statement import FinancialStatements
 from services.forecast.engine import ForecastEngine
 from services.forecast.events import ForecastCompleted
 from services.forecast.models import ForecastResult
-from services.financials.financial_statement import FinancialStatements
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,9 @@ class ForecastService:
 
         await self.compute_and_publish(financials)
 
-    async def compute_and_publish(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+    async def compute_and_publish(
+        self, financials: FinancialStatements, model_type: str = "CAGR"
+    ) -> ForecastResult:
         """Run forecast calculations using actual FinancialStatements and publish ForecastCompleted event."""
         symbol = financials.symbol
         result = self._engine.generate_forecast(financials, model_type=model_type)
@@ -53,5 +56,7 @@ class ForecastService:
         )
 
         await self._dispatcher.dispatch(event)
-        logger.info("ForecastCompleted event published for symbol: %s using model: %s", symbol, model_type)
+        logger.info(
+            "ForecastCompleted event published for symbol: %s using model: %s", symbol, model_type
+        )
         return result

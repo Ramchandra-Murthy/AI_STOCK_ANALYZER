@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -10,7 +10,7 @@ bearer_scheme = HTTPBearer(auto_error=True)
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     token = credentials.credentials
 
     try:
@@ -34,14 +34,12 @@ def get_current_user(
 
 def require_role(*allowed_roles: str):
     def role_dependency(
-        current_user: Dict[str, Any] = Depends(get_current_user),
-    ) -> Dict[str, Any]:
+        current_user: dict[str, Any] = Depends(get_current_user),
+    ) -> dict[str, Any]:
 
         role = str(current_user.get("role", "")).upper()
 
-        if allowed_roles and role not in {
-            str(x).upper() for x in allowed_roles
-        }:
+        if allowed_roles and role not in {str(x).upper() for x in allowed_roles}:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions.",

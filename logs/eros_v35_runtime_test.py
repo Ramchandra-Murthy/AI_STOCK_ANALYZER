@@ -18,18 +18,12 @@ print("CLASS  :", adapter.__class__.__name__)
 print("")
 print("2. V3.4 API")
 print("------------------------------------------------------------")
-print("decision_scenario_engine :", hasattr(
-    adapter,
-    "decision_scenario_engine"
-))
+print("decision_scenario_engine :", hasattr(adapter, "decision_scenario_engine"))
 
 print("")
 print("3. V3.5 API")
 print("------------------------------------------------------------")
-print("decision_scenario_explanation :", hasattr(
-    adapter,
-    "decision_scenario_explanation"
-))
+print("decision_scenario_explanation :", hasattr(adapter, "decision_scenario_explanation"))
 
 result = adapter.decision_scenario_explanation("RELIANCE.NS")
 
@@ -73,18 +67,12 @@ print("6. SCENARIO STRUCTURE")
 print("------------------------------------------------------------")
 
 for scenario in ["base", "bull", "bear"]:
-    status = (
-        "PASS"
-        if scenario in result["scenario_explanation"]
-        else "FAIL"
-    )
+    status = "PASS" if scenario in result["scenario_explanation"] else "FAIL"
 
     print(f"{scenario.upper():30} : {status}")
 
     if status == "FAIL":
-        raise RuntimeError(
-            "MISSING_SCENARIO_" + scenario
-        )
+        raise RuntimeError("MISSING_SCENARIO_" + scenario)
 
 print("")
 print("7. SAFETY CONTRACT")
@@ -128,9 +116,7 @@ for field in expected_false:
         print(f"{field:32} : PASS")
     else:
         print(f"{field:32} : FAIL")
-        raise RuntimeError(
-            "SAFETY_FIELD_FAILURE_" + field
-        )
+        raise RuntimeError("SAFETY_FIELD_FAILURE_" + field)
 
 print("")
 print("============================================================")

@@ -48,6 +48,7 @@ print("Fetching final task result from SQLite backend...")
 task_res = control.get_task_result(task_id)
 print("Result Envelope  :")
 import pprint
+
 pprint.pprint(task_res)
 
 inner_result = task_res.get("result", {})

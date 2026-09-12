@@ -1,9 +1,9 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.decision.models import DecisionOption
 from services.decision.decision_engine import InstitutionalDecisionEngine
+from services.decision.models import DecisionOption
 from services.decision.policy_engine import DecisionPolicyEngine
+
 
 def test_decision_option_immutability() -> None:
     option = DecisionOption(
@@ -13,7 +13,7 @@ def test_decision_option_immutability() -> None:
         expected_return=0.15,
         downside_risk=0.05,
         rationale=["Strong fundamentals"],
-        evidence=["DCF positive"]
+        evidence=["DCF positive"],
     )
     assert option.option_id == "TEST-BUY"
     assert option.action == "BUY"
@@ -21,12 +21,14 @@ def test_decision_option_immutability() -> None:
     assert option.timestamp is not None
     assert isinstance(option.metadata, dict)
 
+
 def test_decision_engine_ranking() -> None:
     options = InstitutionalDecisionEngine.evaluate_options("RELIANCE.NS", "Institutional")
     assert len(options) == 3
     # Top ranked option should be BUY based on risk-adjusted score
     assert options[0].action == "BUY"
     assert options[0].expected_return > options[1].expected_return
+
 
 def test_decision_policy_engine() -> None:
     weights = DecisionPolicyEngine.get_profile_weights("Conservative")

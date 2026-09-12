@@ -44,9 +44,7 @@ class ResearchReportGenerator:
         else:
             rec = "SELL"
 
-        logger.info(
-            f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})"
-        )
+        logger.info(f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})")
 
         return EquityResearchReport(
             ticker=ticker,

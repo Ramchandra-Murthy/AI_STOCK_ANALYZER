@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class IntentClassifier:
     """Classifies analyst natural language prompts into structured EROS institutional intents."""
 
@@ -18,7 +19,12 @@ class IntentClassifier:
             return "REPORTING"
         elif "forecast" in prompt_lower or "scenario" in prompt_lower:
             return "FORECASTING"
-        elif "committee" in prompt_lower or "buy" in prompt_lower or "sell" in prompt_lower or "why" in prompt_lower:
+        elif (
+            "committee" in prompt_lower
+            or "buy" in prompt_lower
+            or "sell" in prompt_lower
+            or "why" in prompt_lower
+        ):
             return "COMMITTEE_REASONING"
         elif "portfolio" in prompt_lower or "holdings" in prompt_lower or "risk" in prompt_lower:
             return "PORTFOLIO_INTELLIGENCE"

@@ -27,10 +27,7 @@ def valuation_available(data: Any) -> bool:
         "free_cash_flow",
     }
 
-    return any(
-        key in data and data.get(key) is not None
-        for key in valuation_keys
-    )
+    return any(key in data and data.get(key) is not None for key in valuation_keys)
 
 
 def evaluate_valuation(

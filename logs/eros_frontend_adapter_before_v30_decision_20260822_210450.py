@@ -1,10 +1,10 @@
 ﻿from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any
 
-from services.analyzer import analyze_stock
 from scanner.market_scanner import market_scan
+from services.analyzer import analyze_stock
 from services.quantitative.block109_institutional_application_query_gateway import (
     EROSBlock109InstitutionalApplicationQueryGateway,
 )
@@ -48,15 +48,13 @@ class EROSFrontendAdapter:
 
     def __init__(self) -> None:
 
-        self._query_gateway = (
-            EROSBlock109InstitutionalApplicationQueryGateway()
-        )
+        self._query_gateway = EROSBlock109InstitutionalApplicationQueryGateway()
 
     # ==========================================================
     # GOVERNANCE
     # ==========================================================
 
-    def governance(self) -> Dict[str, Any]:
+    def governance(self) -> dict[str, Any]:
         """
         Return the frontend-visible EROS governance state.
         """
@@ -66,14 +64,10 @@ class EROSFrontendAdapter:
             "status": "CERTIFIED",
             "query_gateway": {
                 "block_id": "109",
-                "name": (
-                    "Institutional Application Query Gateway"
-                ),
+                "name": ("Institutional Application Query Gateway"),
                 "status": "CERTIFIED",
             },
-            "safety": deepcopy(
-                self.SAFETY_POLICY
-            ),
+            "safety": deepcopy(self.SAFETY_POLICY),
         }
 
     # ==========================================================
@@ -83,23 +77,19 @@ class EROSFrontendAdapter:
     def stock_analysis(
         self,
         symbol: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Read-only stock analysis using the existing
         AI Stock Analyzer service.
         """
 
         if not isinstance(symbol, str):
-            raise TypeError(
-                "symbol must be a string"
-            )
+            raise TypeError("symbol must be a string")
 
         symbol = symbol.strip().upper()
 
         if not symbol:
-            raise ValueError(
-                "symbol cannot be empty"
-            )
+            raise ValueError("symbol cannot be empty")
 
         result = analyze_stock(symbol)
 
@@ -124,7 +114,7 @@ class EROSFrontendAdapter:
 
     def dashboard_snapshot(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Return a frontend-safe dashboard snapshot.
         """
@@ -134,10 +124,7 @@ class EROSFrontendAdapter:
         return {
             "system": {
                 "name": "EROS 3.0",
-                "description": (
-                    "Institutional Intelligence "
-                    "Command Center"
-                ),
+                "description": ("Institutional Intelligence " "Command Center"),
                 "status": "CERTIFIED",
             },
             "gateway": governance["query_gateway"],
@@ -147,7 +134,6 @@ class EROSFrontendAdapter:
     # ==========================================================
     # SNAPSHOT
     # ==========================================================
-
 
     def decision_evidence(self, symbol: str) -> dict:
         """
@@ -164,9 +150,7 @@ class EROSFrontendAdapter:
         result = self.stock_analysis(symbol)
 
         if not isinstance(result, dict):
-            raise TypeError(
-                "STOCK_ANALYSIS_RESULT_MUST_BE_DICT"
-            )
+            raise TypeError("STOCK_ANALYSIS_RESULT_MUST_BE_DICT")
 
         trend = result.get("trend") or {}
         signal = result.get("signal") or {}
@@ -200,31 +184,16 @@ class EROSFrontendAdapter:
 
         evidence = {
             "symbol": symbol,
-
             "price": value_from_last("Close"),
-
             "trend": trend.get("Trend"),
             "momentum": trend.get("Momentum"),
-
             "score": signal.get("Score"),
             "confidence": signal.get("Confidence"),
-            "recommendation": signal.get(
-                "Recommendation"
-            ),
+            "recommendation": signal.get("Recommendation"),
             "risk": signal.get("Risk"),
-
-            "reasons": list(
-                signal.get("Reasons") or []
-            ),
-
-            "breakout_signal": breakout.get(
-                "Signal"
-            ),
-
-            "breakout_reason": breakout.get(
-                "Reason"
-            ),
-
+            "reasons": list(signal.get("Reasons") or []),
+            "breakout_signal": breakout.get("Signal"),
+            "breakout_reason": breakout.get("Reason"),
             "technical_indicators": {
                 "sma_20": value_from_last("SMA_20"),
                 "sma_50": value_from_last("SMA_50"),
@@ -240,7 +209,6 @@ class EROSFrontendAdapter:
                 "support": value_from_last("Support"),
                 "resistance": value_from_last("Resistance"),
             },
-
             "governance": {
                 "read_only": True,
                 "execution_blocked": True,
@@ -250,7 +218,7 @@ class EROSFrontendAdapter:
 
         return evidence
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """
         Return immutable frontend adapter metadata.
         """
@@ -260,7 +228,5 @@ class EROSFrontendAdapter:
             "version": self.VERSION,
             "source": "Block 109",
             "mode": "READ_ONLY",
-            "safety": deepcopy(
-                self.SAFETY_POLICY
-            ),
+            "safety": deepcopy(self.SAFETY_POLICY),
         }

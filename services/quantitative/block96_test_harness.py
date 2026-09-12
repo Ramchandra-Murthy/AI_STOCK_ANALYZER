@@ -3,12 +3,12 @@
 from copy import deepcopy
 
 from .block96_stress_decision_gate import (
-    EROSBlock96StressDecisionGate,
+    DECISION_ADMITTED,
+    DECISION_REJECTED,
     STATUS_BLOCKED,
     STATUS_CERTIFIED,
     STATUS_DUPLICATE,
-    DECISION_ADMITTED,
-    DECISION_REJECTED,
+    EROSBlock96StressDecisionGate,
 )
 
 
@@ -81,9 +81,7 @@ def run_block96_self_test():
     original = deepcopy(evidence)
 
     # 1. Valid certification
-    result = engine.certify(
-        stress_gate=evidence
-    )
+    result = engine.certify(stress_gate=evidence)
 
     _check(
         result["status"] == STATUS_CERTIFIED,
@@ -177,9 +175,7 @@ def run_block96_self_test():
     checks += 1
 
     # 9. Duplicate protection
-    duplicate = engine.certify(
-        stress_gate=evidence
-    )
+    duplicate = engine.certify(stress_gate=evidence)
 
     _check(
         duplicate["status"] == STATUS_DUPLICATE,
@@ -191,9 +187,7 @@ def run_block96_self_test():
     invalid = deepcopy(evidence)
     invalid["block_id"] = "94"
 
-    blocked = engine.certify(
-        stress_gate=invalid
-    )
+    blocked = engine.certify(stress_gate=invalid)
 
     _check(
         blocked["status"] == STATUS_BLOCKED,
@@ -205,9 +199,7 @@ def run_block96_self_test():
     invalid = deepcopy(evidence)
     invalid["status"] = "BLOCKED"
 
-    blocked = engine.certify(
-        stress_gate=invalid
-    )
+    blocked = engine.certify(stress_gate=invalid)
 
     _check(
         blocked["status"] == STATUS_BLOCKED,
@@ -219,9 +211,7 @@ def run_block96_self_test():
     invalid = deepcopy(evidence)
     invalid["scenario_results"] = []
 
-    blocked = engine.certify(
-        stress_gate=invalid
-    )
+    blocked = engine.certify(stress_gate=invalid)
 
     _check(
         blocked["status"] == STATUS_BLOCKED,
@@ -231,13 +221,9 @@ def run_block96_self_test():
 
     # 13. Duplicate scenario IDs
     invalid = deepcopy(evidence)
-    invalid["scenario_results"][1]["scenario"]["scenario_id"] = (
-        "EROS94-DOWN-001"
-    )
+    invalid["scenario_results"][1]["scenario"]["scenario_id"] = "EROS94-DOWN-001"
 
-    blocked = engine.certify(
-        stress_gate=invalid
-    )
+    blocked = engine.certify(stress_gate=invalid)
 
     _check(
         blocked["status"] == STATUS_BLOCKED,
@@ -249,9 +235,7 @@ def run_block96_self_test():
     invalid = deepcopy(evidence)
     invalid["scenario_results"][0]["scenario_contribution"] = []
 
-    blocked = engine.certify(
-        stress_gate=invalid
-    )
+    blocked = engine.certify(stress_gate=invalid)
 
     _check(
         blocked["status"] == STATUS_BLOCKED,
@@ -263,9 +247,7 @@ def run_block96_self_test():
     invalid = deepcopy(evidence)
     invalid["scenario_results"][0]["stressed_drawdown_pct"] = "INVALID"
 
-    blocked = engine.certify(
-        stress_gate=invalid
-    )
+    blocked = engine.certify(stress_gate=invalid)
 
     _check(
         blocked["status"] == STATUS_BLOCKED,
@@ -277,9 +259,7 @@ def run_block96_self_test():
     invalid = deepcopy(evidence)
     invalid["downstream_risk_gate"] = "BLOCKED"
 
-    blocked = engine.certify(
-        stress_gate=invalid
-    )
+    blocked = engine.certify(stress_gate=invalid)
 
     _check(
         blocked["status"] == STATUS_BLOCKED,
@@ -290,9 +270,7 @@ def run_block96_self_test():
     # 17. Policy rejection
     rejected = engine.certify(
         stress_gate=evidence,
-        policy={
-            "max_stressed_drawdown_pct": 10.0
-        },
+        policy={"max_stressed_drawdown_pct": 10.0},
     )
 
     _check(
@@ -328,8 +306,7 @@ def run_block96_self_test():
     print("NON-MUTATION :", result["non_mutation_invariant"])
     print(
         "EXECUTION BLOCKED :",
-        result["broker_submission"] is False
-        and result["live_order_submission"] is False,
+        result["broker_submission"] is False and result["live_order_submission"] is False,
     )
     print("EROS 3.0 Block 96 self-test passed")
     print("=" * 50)
@@ -337,4 +314,3 @@ def run_block96_self_test():
 
 if __name__ == "__main__":
     run_block96_self_test()
-

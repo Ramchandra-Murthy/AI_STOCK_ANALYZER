@@ -1,4 +1,8 @@
-﻿from services.market_data.confidence_trace import ConfidenceAuditLogger, ConfidenceDecisionTraceRecord
+﻿from services.market_data.confidence_trace import (
+    ConfidenceAuditLogger,
+    ConfidenceDecisionTraceRecord,
+)
+
 
 def test_block23j_confidence_decision_trace_generation():
     record = ConfidenceAuditLogger.create_trace(
@@ -10,7 +14,7 @@ def test_block23j_confidence_decision_trace_generation():
         penalty=0.15,
         adj_conf=0.70,
         composite_score=82.4,
-        action="BUY"
+        action="BUY",
     )
 
     assert isinstance(record, ConfidenceDecisionTraceRecord)

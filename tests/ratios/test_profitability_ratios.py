@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
+from services.fundamentals.canonical_models import CanonicalBalanceSheet, CanonicalIncomeStatement
 from services.ratios.profitability import ProfitabilityRatioEngine
+
 
 def test_profitability_ratio_engine() -> None:
     inc = CanonicalIncomeStatement(
@@ -13,13 +13,13 @@ def test_profitability_ratio_engine() -> None:
         operating_income=25000.0,
         ebit=25000.0,
         ebitda=30000.0,
-        net_income=18000.0
+        net_income=18000.0,
     )
     bs = CanonicalBalanceSheet(
         period="2025",
         total_assets=120000.0,
         total_current_liabilities=20000.0,
-        shareholders_equity=75000.0
+        shareholders_equity=75000.0,
     )
 
     result = ProfitabilityRatioEngine.compute(inc, bs, symbol="TEST.NS")

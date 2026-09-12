@@ -21,9 +21,11 @@ safety_terms = [
 
 output = []
 
+
 def emit(text=""):
     print(text)
     output.append(str(text))
+
 
 emit("=" * 80)
 emit("EROS 3.0 - BLOCK 94-101 SAFETY CONTRACT REPAIR AUDIT")
@@ -31,14 +33,9 @@ emit("=" * 80)
 
 for block in blocks:
 
-    matches = list(
-        QUANT.glob(f"block{block}_*.py")
-    )
+    matches = list(QUANT.glob(f"block{block}_*.py"))
 
-    source_files = [
-        p for p in matches
-        if "test_harness" not in p.name
-    ]
+    source_files = [p for p in matches if "test_harness" not in p.name]
 
     if not source_files:
         emit()
@@ -57,10 +54,7 @@ for block in blocks:
     emit(f"SIZE   : {path.stat().st_size} bytes")
 
     try:
-        text = path.read_text(
-            encoding="utf-8",
-            errors="replace"
-        )
+        text = path.read_text(encoding="utf-8", errors="replace")
     except Exception as exc:
         emit(f"READ ERROR : {type(exc).__name__}: {exc}")
         continue
@@ -76,19 +70,11 @@ for block in blocks:
     for index, line in enumerate(lines, start=1):
         lower = line.lower()
 
-        found = [
-            term
-            for term in safety_terms
-            if term.lower() in lower
-        ]
+        found = [term for term in safety_terms if term.lower() in lower]
 
         if found:
             found_any = True
-            emit(
-                f"L{index:04d} "
-                f"[{', '.join(found)}] "
-                f"{line.strip()}"
-            )
+            emit(f"L{index:04d} " f"[{', '.join(found)}] " f"{line.strip()}")
 
     if not found_any:
         emit("NO SAFETY TERMS FOUND")
@@ -100,25 +86,16 @@ for block in blocks:
     try:
         tree = ast.parse(text)
 
-        return_nodes = list(
-            ast.walk(tree)
-        )
+        return_nodes = list(ast.walk(tree))
 
-        returns = [
-            node
-            for node in return_nodes
-            if isinstance(node, ast.Return)
-        ]
+        returns = [node for node in return_nodes if isinstance(node, ast.Return)]
 
         emit(f"RETURN STATEMENTS : {len(returns)}")
 
         for idx, node in enumerate(returns, start=1):
 
             if node.value is None:
-                emit(
-                    f"RETURN {idx}: "
-                    f"L{node.lineno} -> None"
-                )
+                emit(f"RETURN {idx}: " f"L{node.lineno} -> None")
                 continue
 
             if isinstance(node.value, ast.Dict):
@@ -130,28 +107,15 @@ for block in blocks:
                     if isinstance(key, ast.Constant):
                         keys.append(repr(key.value))
                     else:
-                        keys.append(
-                            ast.dump(key)
-                        )
+                        keys.append(ast.dump(key))
 
-                emit(
-                    f"RETURN {idx}: "
-                    f"L{node.lineno} -> "
-                    f"DICT KEYS = {keys}"
-                )
+                emit(f"RETURN {idx}: " f"L{node.lineno} -> " f"DICT KEYS = {keys}")
 
             else:
-                emit(
-                    f"RETURN {idx}: "
-                    f"L{node.lineno} -> "
-                    f"{type(node.value).__name__}"
-                )
+                emit(f"RETURN {idx}: " f"L{node.lineno} -> " f"{type(node.value).__name__}")
 
     except Exception as exc:
-        emit(
-            f"AST ERROR : "
-            f"{type(exc).__name__}: {exc}"
-        )
+        emit(f"AST ERROR : " f"{type(exc).__name__}: {exc}")
 
 emit()
 emit("=" * 80)
@@ -178,31 +142,17 @@ emit()
 emit("=" * 80)
 emit("AUDIT INTERPRETATION")
 emit("=" * 80)
-emit(
-    "This audit does NOT modify source code."
-)
+emit("This audit does NOT modify source code.")
 emit(
     "It identifies the exact implementation locations "
     "that must be repaired before certification."
 )
-emit(
-    "No broker."
-)
-emit(
-    "No live execution."
-)
-emit(
-    "No order creation."
-)
-emit(
-    "No portfolio mutation."
-)
-emit(
-    "No valuation mutation."
-)
-emit(
-    "No risk mutation."
-)
+emit("No broker.")
+emit("No live execution.")
+emit("No order creation.")
+emit("No portfolio mutation.")
+emit("No valuation mutation.")
+emit("No risk mutation.")
 
 emit()
 emit("=" * 80)
@@ -215,12 +165,7 @@ try:
 
     clipboard_text = "\r\n".join(output)
 
-    subprocess.run(
-        ["clip.exe"],
-        input=clipboard_text,
-        text=True,
-        check=True
-    )
+    subprocess.run(["clip.exe"], input=clipboard_text, text=True, check=True)
 
     print()
     print("=" * 80)
@@ -232,4 +177,3 @@ except Exception as exc:
     print()
     print("CLIPBOARD COPY FAILED")
     print(type(exc).__name__, str(exc))
-

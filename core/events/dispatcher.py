@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import logging
+
 from core.events.event import DomainEvent
 from core.events.interfaces import EventBus
 

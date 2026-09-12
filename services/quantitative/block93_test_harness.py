@@ -12,17 +12,17 @@ from __future__ import annotations
 
 from copy import deepcopy
 from math import isfinite
-from typing import Any, Dict, List
+from typing import Any
 
 from .block93_performance_risk_attribution_engine import (
-    EROSBlock93PerformanceRiskAttributionEngine,
     STATUS_BLOCKED,
     STATUS_CERTIFIED,
     STATUS_DUPLICATE,
+    EROSBlock93PerformanceRiskAttributionEngine,
 )
 
 
-def _base_performance() -> Dict[str, Any]:
+def _base_performance() -> dict[str, Any]:
     return {
         "performance_id": "EROS92-PERF-001",
         "performance_status": "CERTIFIED",
@@ -90,7 +90,7 @@ def _assert(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
-def _run_test(name: str, fn) -> Dict[str, Any]:
+def _run_test(name: str, fn) -> dict[str, Any]:
     fn()
     return {"name": name, "status": "PASS"}
 
@@ -396,7 +396,7 @@ def test_two_independent_engines() -> None:
     _assert(a["certificate_id"] == b["certificate_id"], "determinism failed")
 
 
-def run_block93_self_test() -> Dict[str, Any]:
+def run_block93_self_test() -> dict[str, Any]:
     tests = [
         ("certified_performance", test_certified_performance),
         ("metrics_exist", test_metrics_exist),
@@ -440,7 +440,7 @@ def run_block93_self_test() -> Dict[str, Any]:
         ("two_independent_engines", test_two_independent_engines),
     ]
 
-    passed: List[str] = []
+    passed: list[str] = []
     for name, fn in tests:
         _run_test(name, fn)
         passed.append(name)

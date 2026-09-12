@@ -19,8 +19,7 @@ try:
     r = task_control._get_redis_client()
     print("PING:", r.ping())
     print("VERSION:", r.info().get("redis_version"))
-    print("IDEMPOTENCY KEYS BEFORE:",
-          len(r.keys("eros:idempotency:*")))
+    print("IDEMPOTENCY KEYS BEFORE:", len(r.keys("eros:idempotency:*")))
 except Exception as e:
     print("REDIS ERROR:", repr(e))
     raise
@@ -72,10 +71,11 @@ print("7. IDEMPOTENCY ANALYSIS")
 print("FIRST ID :", first_id)
 print("SECOND ID:", second_id)
 print("SAME TASK ID:", first_id == second_id)
-print("IDEMPOTENT REPLAY FLAG:",
-      second.get("idempotent_replay"))
-print("DUPLICATE EXECUTION PREVENTED:",
-      first_id == second_id and second.get("idempotent_replay") is True)
+print("IDEMPOTENT REPLAY FLAG:", second.get("idempotent_replay"))
+print(
+    "DUPLICATE EXECUTION PREVENTED:",
+    first_id == second_id and second.get("idempotent_replay") is True,
+)
 
 print()
 print("8. TASK STATUS")
@@ -100,8 +100,7 @@ if isinstance(stored_final, bytes):
     stored_final = stored_final.decode("utf-8")
 print("FINAL STORED TASK ID:", stored_final)
 print("KEY EXISTS:", bool(stored_final))
-print("TOTAL IDEMPOTENCY KEYS:",
-      len(r.keys("eros:idempotency:*")))
+print("TOTAL IDEMPOTENCY KEYS:", len(r.keys("eros:idempotency:*")))
 
 print()
 print("=" * 58)

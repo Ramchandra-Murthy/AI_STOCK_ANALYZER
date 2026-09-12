@@ -245,10 +245,7 @@ def show():
     # SYMBOL CHANGE MESSAGE
     # ======================================================
     if entered_symbol and entered_symbol != symbol:
-        st.info(
-            f"Showing analysis for {symbol}. "
-            f"Click Analyze to load {entered_symbol}."
-        )
+        st.info(f"Showing analysis for {symbol}. " f"Click Analyze to load {entered_symbol}.")
 
     # ======================================================
     # FETCH STOCK DATA
@@ -344,9 +341,7 @@ def show():
     # TRADE PLANNING ENGINE
     # ======================================================
     try:
-        trade_plan = generate_trade_plan(
-            history=history, technical_score=technical_score
-        )
+        trade_plan = generate_trade_plan(history=history, technical_score=technical_score)
         if not isinstance(trade_plan, dict):
             trade_plan = {
                 "status": "ERROR",
@@ -767,15 +762,11 @@ def show():
         recommendation = recommendation_result.get("recommendation", "HOLD")
 
         try:
-            default_overall_score = round(
-                (float(technical_score) + float(fundamental_score)) / 2
-            )
+            default_overall_score = round((float(technical_score) + float(fundamental_score)) / 2)
         except (TypeError, ValueError):
             default_overall_score = 0
 
-        overall_score = recommendation_result.get(
-            "overall_score", default_overall_score
-        )
+        overall_score = recommendation_result.get("overall_score", default_overall_score)
 
         c1, c2, c3, c4 = st.columns(4)
         with c1:
@@ -1158,11 +1149,7 @@ def show():
                 if bull_return is not None:
                     st.metric(
                         "Potential Return",
-                        (
-                            f"+{bull_return:.2f}%"
-                            if bull_return >= 0
-                            else f"{bull_return:.2f}%"
-                        ),
+                        (f"+{bull_return:.2f}%" if bull_return >= 0 else f"{bull_return:.2f}%"),
                     )
                 else:
                     st.metric(
@@ -1574,9 +1561,7 @@ def show():
 
                 if bull_return is not None:
                     bull_return_text = (
-                        f"+{bull_return:.2f}%"
-                        if bull_return >= 0
-                        else f"{bull_return:.2f}%"
+                        f"+{bull_return:.2f}%" if bull_return >= 0 else f"{bull_return:.2f}%"
                     )
                 else:
                     bull_return_text = "N/A"

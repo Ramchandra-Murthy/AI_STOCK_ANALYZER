@@ -3,6 +3,7 @@
 import logging
 import os
 from typing import Any
+
 from services.report.models import ReportResult
 
 logger = logging.getLogger(__name__)
@@ -11,8 +12,17 @@ logger = logging.getLogger(__name__)
 class ProductionReportEngine:
     """Institutional Report Generator supporting HTML, Markdown, JSON, and professional formatting."""
 
-    def generate(self, symbol: str, format_type: str = "MULTI-FORMAT", analysis_data: dict[str, Any] | None = None) -> ReportResult:
-        logger.info("Generating professional institutional report for symbol: %s in format: %s", symbol, format_type)
+    def generate(
+        self,
+        symbol: str,
+        format_type: str = "MULTI-FORMAT",
+        analysis_data: dict[str, Any] | None = None,
+    ) -> ReportResult:
+        logger.info(
+            "Generating professional institutional report for symbol: %s in format: %s",
+            symbol,
+            format_type,
+        )
         analysis_data = analysis_data or {}
 
         markdown_content = f"""# Institutional Equity Research Report: {symbol}
@@ -65,4 +75,5 @@ Comprehensive AI-driven valuation, fundamental analysis, and portfolio positioni
 # Backward compatibility alias for pipeline tests
 class ReportEngine(ProductionReportEngine):
     """Alias wrapper for ProductionReportEngine to maintain pipeline integration compatibility."""
+
     pass

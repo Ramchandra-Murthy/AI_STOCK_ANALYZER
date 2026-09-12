@@ -45,9 +45,9 @@ try:
     print("-" * 60)
 
     candidates = [
-        name for name in dir(adapter)
-        if "explanation" in name.lower()
-        or "action_explanation" in name.lower()
+        name
+        for name in dir(adapter)
+        if "explanation" in name.lower() or "action_explanation" in name.lower()
     ]
 
     if not candidates:
@@ -129,10 +129,7 @@ try:
         if actual == expected:
             print(f"{key:32} : PASS")
         else:
-            print(
-                f"{key:32} : FAIL "
-                f"(actual={actual!r}, expected={expected!r})"
-            )
+            print(f"{key:32} : FAIL " f"(actual={actual!r}, expected={expected!r})")
             raise RuntimeError(f"Safety failure: {key}")
 
     print("")

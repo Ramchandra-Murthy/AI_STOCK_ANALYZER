@@ -20,13 +20,11 @@ def base_governance():
         "block_id": "98",
         "engine_version": "EROS-3.0-BLOCK-98",
         "created_at": "2026-08-19T00:00:00+00:00",
-
         "source_block": "97",
         "source_readiness_id": "EROS97-STRESS-READINESS-TEST",
         "source_decision_id": "EROS96-STRESS-DECISION-TEST",
         "source_gate_id": "EROS95-STRESS-GATE-TEST",
         "source_certificate_id": "EROS94-STRESS-CERTIFICATE-TEST",
-
         "readiness_status": "READY",
         "decision": "ADMITTED",
         "scenario_count": 2,
@@ -34,18 +32,15 @@ def base_governance():
             "SCENARIO-A",
             "SCENARIO-B",
         ],
-
         "governance": "APPROVED",
         "execution_action": "EXECUTE",
         "governance_reason": "Approved",
-
         "portfolio_mutation": False,
         "valuation_mutation": False,
         "performance_mutation": False,
         "risk_mutation": False,
         "optimization": False,
         "order_creation": False,
-
         "non_mutation_invariant": True,
         "broker_submission": False,
         "live_order_submission": False,
@@ -97,40 +92,35 @@ def main():
     # 5 lineage
     tests += 1
     check(
-        result["source_governance_id"]
-        == governance["governance_id"],
+        result["source_governance_id"] == governance["governance_id"],
         "governance lineage must be preserved",
     )
 
     # 6 readiness lineage
     tests += 1
     check(
-        result["source_readiness_id"]
-        == governance["source_readiness_id"],
+        result["source_readiness_id"] == governance["source_readiness_id"],
         "readiness lineage must be preserved",
     )
 
     # 7 decision lineage
     tests += 1
     check(
-        result["source_decision_id"]
-        == governance["source_decision_id"],
+        result["source_decision_id"] == governance["source_decision_id"],
         "decision lineage must be preserved",
     )
 
     # 8 gate lineage
     tests += 1
     check(
-        result["source_gate_id"]
-        == governance["source_gate_id"],
+        result["source_gate_id"] == governance["source_gate_id"],
         "gate lineage must be preserved",
     )
 
     # 9 certificate lineage
     tests += 1
     check(
-        result["source_certificate_id"]
-        == governance["source_certificate_id"],
+        result["source_certificate_id"] == governance["source_certificate_id"],
         "certificate lineage must be preserved",
     )
 
@@ -144,8 +134,7 @@ def main():
     # 11 scenario IDs
     tests += 1
     check(
-        result["scenario_ids"]
-        == governance["scenario_ids"],
+        result["scenario_ids"] == governance["scenario_ids"],
         "scenario IDs must be preserved",
     )
 
@@ -155,9 +144,7 @@ def main():
     review["governance"] = "REVIEW"
     review["execution_action"] = "HOLD"
 
-    review_result = engine.certify(
-        governance=review
-    )
+    review_result = engine.certify(governance=review)
 
     tests += 1
     check(
@@ -179,9 +166,7 @@ def main():
     blocked["execution_action"] = "BLOCK"
     blocked["readiness_status"] = "BLOCKED"
 
-    blocked_result = engine.certify(
-        governance=blocked
-    )
+    blocked_result = engine.certify(governance=blocked)
 
     tests += 1
     check(
@@ -197,9 +182,7 @@ def main():
     )
 
     # 16 malformed input
-    malformed = engine.certify(
-        governance=None
-    )
+    malformed = engine.certify(governance=None)
 
     tests += 1
     check(
@@ -211,9 +194,7 @@ def main():
     wrong_block = base_governance()
     wrong_block["block_id"] = "97"
 
-    wrong_result = engine.certify(
-        governance=wrong_block
-    )
+    wrong_result = engine.certify(governance=wrong_block)
 
     tests += 1
     check(
@@ -225,9 +206,7 @@ def main():
     missing = base_governance()
     del missing["governance_id"]
 
-    missing_result = engine.certify(
-        governance=missing
-    )
+    missing_result = engine.certify(governance=missing)
 
     tests += 1
     check(
@@ -239,9 +218,7 @@ def main():
     mismatch = base_governance()
     mismatch["scenario_count"] = 3
 
-    mismatch_result = engine.certify(
-        governance=mismatch
-    )
+    mismatch_result = engine.certify(governance=mismatch)
 
     tests += 1
     check(
@@ -253,9 +230,7 @@ def main():
     unsafe = base_governance()
     unsafe["non_mutation_invariant"] = False
 
-    unsafe_result = engine.certify(
-        governance=unsafe
-    )
+    unsafe_result = engine.certify(governance=unsafe)
 
     tests += 1
     check(
@@ -269,8 +244,7 @@ def main():
 
     tests += 1
     check(
-        engine.certify(governance=unsafe)["status"]
-        == "BLOCKED",
+        engine.certify(governance=unsafe)["status"] == "BLOCKED",
         "portfolio mutation must block",
     )
 
@@ -280,8 +254,7 @@ def main():
 
     tests += 1
     check(
-        engine.certify(governance=unsafe)["status"]
-        == "BLOCKED",
+        engine.certify(governance=unsafe)["status"] == "BLOCKED",
         "optimization must block",
     )
 
@@ -291,8 +264,7 @@ def main():
 
     tests += 1
     check(
-        engine.certify(governance=unsafe)["status"]
-        == "BLOCKED",
+        engine.certify(governance=unsafe)["status"] == "BLOCKED",
         "order creation must block",
     )
 
@@ -302,8 +274,7 @@ def main():
 
     tests += 1
     check(
-        engine.certify(governance=unsafe)["status"]
-        == "BLOCKED",
+        engine.certify(governance=unsafe)["status"] == "BLOCKED",
         "broker submission must block",
     )
 
@@ -313,8 +284,7 @@ def main():
 
     tests += 1
     check(
-        engine.certify(governance=unsafe)["status"]
-        == "BLOCKED",
+        engine.certify(governance=unsafe)["status"] == "BLOCKED",
         "live submission must block",
     )
 
@@ -324,15 +294,12 @@ def main():
 
     tests += 1
     check(
-        engine.certify(governance=unsafe)["status"]
-        == "BLOCKED",
+        engine.certify(governance=unsafe)["status"] == "BLOCKED",
         "execution blocking invariant must hold",
     )
 
     # 27 duplicate detection
-    duplicate = engine.certify(
-        governance=base_governance()
-    )
+    duplicate = engine.certify(governance=base_governance())
 
     tests += 1
     check(
@@ -353,13 +320,9 @@ def main():
     original = base_governance()
     original_copy = deepcopy(original)
 
-    fresh_engine = (
-        EROSBlock99ExecutionIntentAuthorizationGate()
-    )
+    fresh_engine = EROSBlock99ExecutionIntentAuthorizationGate()
 
-    fresh_engine.certify(
-        governance=original
-    )
+    fresh_engine.certify(governance=original)
 
     tests += 1
     check(

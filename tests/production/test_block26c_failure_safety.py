@@ -1,7 +1,9 @@
 ﻿from fastapi.testclient import TestClient
+
 from backend.main import app
 
 client = TestClient(app)
+
 
 def test_block26c_invalid_symbol_graceful_handling():
     """
@@ -28,6 +30,7 @@ def test_block26c_invalid_symbol_graceful_handling():
             # Invalid tickers should not result in unvetted BUY recommendations
             assert action not in ["STRONG BUY"]
 
+
 def test_block26c_missing_payload_rejection():
     """
     Verifies that an empty or missing JSON payload returns a 422 validation error.
@@ -37,6 +40,7 @@ def test_block26c_missing_payload_rejection():
         json={},
     )
     assert response.status_code == 422
+
 
 def test_block26c_malformed_symbol_type_rejection():
     """
@@ -50,6 +54,7 @@ def test_block26c_malformed_symbol_type_rejection():
         },
     )
     assert response.status_code in [200, 422]
+
 
 def test_block26c_safety_invariant_no_unvetted_buys():
     """

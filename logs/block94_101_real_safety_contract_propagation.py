@@ -92,6 +92,7 @@ scenarios = [
 
 policy = {}
 
+
 def show_result(label, result):
 
     print()
@@ -138,9 +139,7 @@ def show_result(label, result):
     for field in safety_fields:
 
         if field in result:
-            print(
-                f"  {field:28} = {result[field]!r}"
-            )
+            print(f"  {field:28} = {result[field]!r}")
 
     print()
     print("NESTED SAFETY FIELDS:")
@@ -157,33 +156,23 @@ def show_result(label, result):
         for field in safety_fields:
 
             if field in parent_value:
-                nested_hits.append(
-                    f"{field}={parent_value[field]!r}"
-                )
+                nested_hits.append(f"{field}={parent_value[field]!r}")
 
         if nested_hits:
 
             found_nested = True
 
-            print(
-                f"  [{parent_key}]"
-            )
+            print(f"  [{parent_key}]")
 
             for hit in nested_hits:
-                print(
-                    "      " + hit
-                )
+                print("      " + hit)
 
     if not found_nested:
         print("  NONE")
 
     print()
     print("FULL RETURN DICTIONARY:")
-    pprint(
-        result,
-        width=160,
-        sort_dicts=False
-    )
+    pprint(result, width=160, sort_dicts=False)
 
 
 # ------------------------------------------------------------
@@ -359,10 +348,7 @@ try:
         execution=r100 if isinstance(r100, dict) else {},
     )
 
-    show_result(
-        "BLOCK 101 - CERTIFY RETURN",
-        r101
-    )
+    show_result("BLOCK 101 - CERTIFY RETURN", r101)
 
 except Exception as exc:
 
@@ -407,11 +393,7 @@ fields = [
 
 print()
 
-header = (
-    "BLOCK".ljust(8)
-    + " | "
-    + " | ".join(f.ljust(22) for f in fields)
-)
+header = "BLOCK".ljust(8) + " | " + " | ".join(f.ljust(22) for f in fields)
 
 print(header)
 print("-" * len(header))
@@ -425,26 +407,15 @@ for block_id, result in results:
         for field in fields:
 
             if field in result:
-                values.append(
-                    repr(result[field]).ljust(22)
-                )
+                values.append(repr(result[field]).ljust(22))
             else:
-                values.append(
-                    "ABSENT".ljust(22)
-                )
+                values.append("ABSENT".ljust(22))
 
     else:
 
-        values = [
-            "NO RESULT".ljust(22)
-            for _ in fields
-        ]
+        values = ["NO RESULT".ljust(22) for _ in fields]
 
-    print(
-        block_id.ljust(8)
-        + " | "
-        + " | ".join(values)
-    )
+    print(block_id.ljust(8) + " | " + " | ".join(values))
 
 print()
 print("=" * 90)

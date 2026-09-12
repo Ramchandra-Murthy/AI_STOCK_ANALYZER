@@ -1,12 +1,12 @@
-﻿# -*- coding: utf-8 -*-
-import streamlit as st
+﻿import streamlit as st
+
+import modules.backtesting as backtesting
 import modules.dashboard as dashboard
+import modules.fundamentals as fundamentals
 import modules.market as market
 import modules.portfolio as portfolio
-import modules.scanner as scanner
 import modules.research as research
-import modules.fundamentals as fundamentals
-import modules.backtesting as backtesting
+import modules.scanner as scanner
 
 # Optional imports (graceful fallback if they don't exist)
 try:
@@ -24,7 +24,7 @@ st.set_page_config(
     page_title="AI Stock Analyzer Pro",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # --- Sidebar Navigation ---

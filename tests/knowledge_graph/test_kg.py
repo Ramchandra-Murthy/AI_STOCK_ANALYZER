@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.knowledge_graph.models import GraphNode, GraphEdge
 from services.knowledge_graph.graph import InstitutionalKnowledgeGraph
+from services.knowledge_graph.models import GraphEdge, GraphNode
+
 
 def test_knowledge_graph_nodes_and_edges() -> None:
     kg = InstitutionalKnowledgeGraph()
@@ -15,8 +15,16 @@ def test_knowledge_graph_nodes_and_edges() -> None:
     kg.add_node(energy)
     kg.add_node(crude)
 
-    kg.add_edge(GraphEdge(source="RELIANCE.NS", target="SECTOR-ENERGY", relationship="belongs_to", weight=1.0))
-    kg.add_edge(GraphEdge(source="RELIANCE.NS", target="COMM-CRUDE", relationship="affected_by", weight=0.85))
+    kg.add_edge(
+        GraphEdge(
+            source="RELIANCE.NS", target="SECTOR-ENERGY", relationship="belongs_to", weight=1.0
+        )
+    )
+    kg.add_edge(
+        GraphEdge(
+            source="RELIANCE.NS", target="COMM-CRUDE", relationship="affected_by", weight=0.85
+        )
+    )
 
     neighbors = kg.get_neighbors("RELIANCE.NS", relationship="belongs_to")
     assert len(neighbors) == 1

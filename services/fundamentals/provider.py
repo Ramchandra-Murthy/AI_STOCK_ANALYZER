@@ -13,8 +13,7 @@ logger = logging.getLogger(__name__)
 class IFundamentalProvider(Protocol):
     """Protocol defining interface for fundamental data providers."""
 
-    def download(self, symbol: str) -> dict[str, Any]:
-        ...
+    def download(self, symbol: str) -> dict[str, Any]: ...
 
 
 class YahooFinanceProvider:
@@ -172,11 +171,7 @@ class YahooFinanceProvider:
                 column,
             )
 
-            if (
-                operating_cash_flow == 0.0
-                and capex == 0.0
-                and free_cash_flow == 0.0
-            ):
+            if operating_cash_flow == 0.0 and capex == 0.0 and free_cash_flow == 0.0:
                 continue
 
             cashflow_records.append(

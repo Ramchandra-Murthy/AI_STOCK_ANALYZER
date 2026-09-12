@@ -85,12 +85,7 @@ try:
         print("KEY TYPES :")
 
         for key, value in result.items():
-            print(
-                " - {0} : {1}".format(
-                    key,
-                    type(value).__name__
-                )
-            )
+            print(f" - {key} : {type(value).__name__}")
 
     else:
 
@@ -213,12 +208,7 @@ try:
 
                 if any(term in key_lower for term in evidence_terms):
 
-                    print(
-                        "MATCH:",
-                        path + "." + key_text,
-                        "=",
-                        repr(value)
-                    )
+                    print("MATCH:", path + "." + key_text, "=", repr(value))
 
                 walk(value, path + "." + key_text)
 
@@ -226,10 +216,7 @@ try:
 
             for index, item in enumerate(obj):
 
-                walk(
-                    item,
-                    path + "[" + str(index) + "]"
-                )
+                walk(item, path + "[" + str(index) + "]")
 
     walk(result)
 
@@ -262,13 +249,7 @@ try:
         actual = safety.get(key)
 
         if actual != expected:
-            failures.append(
-                "{0}: expected={1}, actual={2}".format(
-                    key,
-                    expected,
-                    actual
-                )
-            )
+            failures.append(f"{key}: expected={expected}, actual={actual}")
 
     if failures:
 

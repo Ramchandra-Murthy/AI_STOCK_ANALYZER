@@ -21,15 +21,9 @@ class SOTPSegmentInput:
     ebit_margin_forecast: list[float] = field(
         default_factory=lambda: [0.18, 0.18, 0.19, 0.19, 0.20]
     )
-    dna_pct_rev: list[float] = field(
-        default_factory=lambda: [0.03, 0.03, 0.03, 0.03, 0.03]
-    )
-    capex_pct_rev: list[float] = field(
-        default_factory=lambda: [0.04, 0.04, 0.04, 0.04, 0.04]
-    )
-    nwc_pct_rev: list[float] = field(
-        default_factory=lambda: [0.02, 0.02, 0.02, 0.02, 0.02]
-    )
+    dna_pct_rev: list[float] = field(default_factory=lambda: [0.03, 0.03, 0.03, 0.03, 0.03])
+    capex_pct_rev: list[float] = field(default_factory=lambda: [0.04, 0.04, 0.04, 0.04, 0.04])
+    nwc_pct_rev: list[float] = field(default_factory=lambda: [0.02, 0.02, 0.02, 0.02, 0.02])
 
     # Capital Structure & Discount Parameters
     tax_rate: float = 0.25
@@ -50,13 +44,9 @@ class SOTPSegmentInput:
         if not self.segment_name or not self.segment_name.strip():
             raise ValueError("Segment name cannot be empty.")
         if self.last_historical_revenue <= 0:
-            raise ValueError(
-                f"[{self.segment_name}] last_historical_revenue must be > 0."
-            )
+            raise ValueError(f"[{self.segment_name}] last_historical_revenue must be > 0.")
         if not self.revenue_growth_rates:
-            raise ValueError(
-                f"[{self.segment_name}] revenue_growth_rates array cannot be empty."
-            )
+            raise ValueError(f"[{self.segment_name}] revenue_growth_rates array cannot be empty.")
 
 
 @dataclass(slots=True)

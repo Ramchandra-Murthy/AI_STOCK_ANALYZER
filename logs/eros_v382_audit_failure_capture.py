@@ -1,9 +1,7 @@
+import inspect
+import json
 import sys
 import traceback
-import json
-import inspect
-import types
-
 
 print("=" * 60)
 print("EROS 3.0 - V3.8.2 DECISION AUDIT FAILURE CAPTURE")
@@ -91,10 +89,7 @@ for name in foundation:
 
     exists = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if exists else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if exists else 'FAIL'}")
 
     if not exists:
         foundation_failures.append(name)
@@ -107,10 +102,7 @@ if foundation_failures:
     for item in foundation_failures:
         print(" -", item)
 
-    raise RuntimeError(
-        "FOUNDATION_API_FAILURE:" +
-        ",".join(foundation_failures)
-    )
+    raise RuntimeError("FOUNDATION_API_FAILURE:" + ",".join(foundation_failures))
 
 
 print("\nFOUNDATION API : VERIFIED")
@@ -119,7 +111,7 @@ print("\nFOUNDATION API : VERIFIED")
 print("\n5. DECISION AUDIT METHOD INSPECTION")
 print("-" * 60)
 
-method = getattr(adapter, "decision_audit")
+method = adapter.decision_audit
 
 print("METHOD OBJECT :", method)
 print("METHOD TYPE   :", type(method).__name__)
@@ -135,7 +127,7 @@ except Exception as exc:
 print("\n6. DECISION TRACEABILITY METHOD INSPECTION")
 print("-" * 60)
 
-trace_method = getattr(adapter, "decision_traceability")
+trace_method = adapter.decision_traceability
 
 print("METHOD OBJECT :", trace_method)
 print("METHOD TYPE   :", type(trace_method).__name__)
@@ -163,7 +155,7 @@ traceability_result = None
 
 try:
 
-    print('CALL:')
+    print("CALL:")
     print('adapter.decision_traceability("RELIANCE.NS")')
 
     traceability_result = adapter.decision_traceability(symbol)
@@ -205,31 +197,19 @@ if isinstance(traceability_result, dict):
     print("TOP LEVEL KEYS:")
 
     for key in traceability_result.keys():
-        print(
-            f"  {str(key):35} "
-            f"{type(traceability_result[key]).__name__}"
-        )
+        print(f"  {str(key):35} " f"{type(traceability_result[key]).__name__}")
 
     print("")
     print("TRACEABILITY JSON:")
 
     try:
-        print(
-            json.dumps(
-                traceability_result,
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(traceability_result, indent=2, default=str))
     except Exception as exc:
         print("JSON SERIALIZATION ERROR :", repr(exc))
 
 else:
 
-    print(
-        "TRACEABILITY RESULT :",
-        type(traceability_result).__name__
-    )
+    print("TRACEABILITY RESULT :", type(traceability_result).__name__)
 
 
 print("\n10. DECISION AUDIT EXECUTION")
@@ -241,7 +221,7 @@ audit_exception = None
 try:
 
     print("")
-    print('CALL:')
+    print("CALL:")
     print('adapter.decision_audit("RELIANCE.NS")')
     print("")
 
@@ -284,10 +264,7 @@ if audit_result is None:
 
 else:
 
-    print(
-        "AUDIT RESULT TYPE :",
-        type(audit_result).__name__
-    )
+    print("AUDIT RESULT TYPE :", type(audit_result).__name__)
 
 
 print("\n12. AUDIT TOP LEVEL SCHEMA")
@@ -297,10 +274,7 @@ if isinstance(audit_result, dict):
 
     for key, value in audit_result.items():
 
-        print(
-            f"{str(key):35} : "
-            f"{type(value).__name__}"
-        )
+        print(f"{str(key):35} : " f"{type(value).__name__}")
 
 else:
 
@@ -314,20 +288,11 @@ if isinstance(audit_result, dict):
 
     try:
 
-        print(
-            json.dumps(
-                audit_result,
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(audit_result, indent=2, default=str))
 
     except Exception as exc:
 
-        print(
-            "AUDIT JSON SERIALIZATION FAILURE :",
-            repr(exc)
-        )
+        print("AUDIT JSON SERIALIZATION FAILURE :", repr(exc))
 
 else:
 
@@ -359,17 +324,11 @@ if isinstance(audit_result, dict):
 
     for key in expected:
 
-        print(
-            f"{key:35} : "
-            f"{'PRESENT' if key in audit_result else 'ABSENT'}"
-        )
+        print(f"{key:35} : " f"{'PRESENT' if key in audit_result else 'ABSENT'}")
 
 else:
 
-    print(
-        "CONTRACT CHECK SKIPPED "
-        "(AUDIT RESULT NOT DICT)"
-    )
+    print("CONTRACT CHECK SKIPPED " "(AUDIT RESULT NOT DICT)")
 
 
 print("\n15. AUDIT OBJECT CHECK")
@@ -379,15 +338,9 @@ if isinstance(audit_result, dict):
 
     audit = audit_result.get("audit")
 
-    print(
-        "audit present :",
-        audit is not None
-    )
+    print("audit present :", audit is not None)
 
-    print(
-        "audit type    :",
-        type(audit).__name__
-    )
+    print("audit type    :", type(audit).__name__)
 
     if isinstance(audit, dict):
 
@@ -396,10 +349,7 @@ if isinstance(audit_result, dict):
 
         for key, value in audit.items():
 
-            print(
-                f"  {str(key):35} "
-                f"{type(value).__name__}"
-            )
+            print(f"  {str(key):35} " f"{type(value).__name__}")
 
 else:
 
@@ -413,15 +363,9 @@ if isinstance(audit_result, dict):
 
     trace = audit_result.get("trace")
 
-    print(
-        "trace present :",
-        "trace" in audit_result
-    )
+    print("trace present :", "trace" in audit_result)
 
-    print(
-        "trace type    :",
-        type(trace).__name__
-    )
+    print("trace type    :", type(trace).__name__)
 
 else:
 
@@ -435,28 +379,16 @@ if isinstance(audit_result, dict):
 
     traceability = audit_result.get("traceability")
 
-    print(
-        "traceability present :",
-        "traceability" in audit_result
-    )
+    print("traceability present :", "traceability" in audit_result)
 
-    print(
-        "traceability type    :",
-        type(traceability).__name__
-    )
+    print("traceability type    :", type(traceability).__name__)
 
     if isinstance(traceability, dict):
 
         print("")
         print("TRACEABILITY OBJECT:")
 
-        print(
-            json.dumps(
-                traceability,
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(traceability, indent=2, default=str))
 
 else:
 
@@ -470,25 +402,13 @@ if isinstance(audit_result, dict):
 
     governance = audit_result.get("governance")
 
-    print(
-        "governance present :",
-        "governance" in audit_result
-    )
+    print("governance present :", "governance" in audit_result)
 
-    print(
-        "governance type    :",
-        type(governance).__name__
-    )
+    print("governance type    :", type(governance).__name__)
 
     if isinstance(governance, dict):
 
-        print(
-            json.dumps(
-                governance,
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(governance, indent=2, default=str))
 
 else:
 
@@ -523,21 +443,13 @@ if isinstance(audit_result, dict):
 
         value = governance.get(key)
 
-        print(
-            f"{key:35} : "
-            f"{'PASS' if value is True else 'FAIL'} "
-            f"(actual={value})"
-        )
+        print(f"{key:35} : " f"{'PASS' if value is True else 'FAIL'} " f"(actual={value})")
 
     for key in expected_false:
 
         value = governance.get(key)
 
-        print(
-            f"{key:35} : "
-            f"{'PASS' if value is False else 'FAIL'} "
-            f"(actual={value})"
-        )
+        print(f"{key:35} : " f"{'PASS' if value is False else 'FAIL'} " f"(actual={value})")
 
 else:
 
@@ -549,26 +461,13 @@ print("-" * 60)
 
 try:
 
-    print(
-        "decision_audit source file :",
-        inspect.getsourcefile(
-            adapter.decision_audit
-        )
-    )
+    print("decision_audit source file :", inspect.getsourcefile(adapter.decision_audit))
 
-    print(
-        "decision_audit source lines :",
-        inspect.getsourcelines(
-            adapter.decision_audit
-        )[1]
-    )
+    print("decision_audit source lines :", inspect.getsourcelines(adapter.decision_audit)[1])
 
 except Exception as exc:
 
-    print(
-        "SOURCE LOCATION ERROR :",
-        repr(exc)
-    )
+    print("SOURCE LOCATION ERROR :", repr(exc))
 
 
 print("\n21. TRACEBACK SUMMARY")
@@ -576,26 +475,15 @@ print("-" * 60)
 
 if audit_exception is not None:
 
-    print(
-        "AUDIT EXECUTION FAILED"
-    )
+    print("AUDIT EXECUTION FAILED")
 
-    print(
-        "TYPE    :",
-        type(audit_exception).__name__
-    )
+    print("TYPE    :", type(audit_exception).__name__)
 
-    print(
-        "MESSAGE :",
-        str(audit_exception)
-    )
+    print("MESSAGE :", str(audit_exception))
 
 else:
 
-    print(
-        "AUDIT EXECUTION COMPLETED "
-        "WITHOUT PYTHON EXCEPTION"
-    )
+    print("AUDIT EXECUTION COMPLETED " "WITHOUT PYTHON EXCEPTION")
 
 
 print("\n22. FINAL DIAGNOSTIC STATUS")
@@ -609,10 +497,7 @@ if audit_exception is not None:
     print("AUDIT RUNTIME : FAILED")
     print("")
     print("NEXT ACTION : USE TRACEBACK ABOVE")
-    print(
-        "NO SOURCE PATCH WAS PERFORMED "
-        "BY THIS DIAGNOSTIC"
-    )
+    print("NO SOURCE PATCH WAS PERFORMED " "BY THIS DIAGNOSTIC")
 
 elif not isinstance(audit_result, dict):
 

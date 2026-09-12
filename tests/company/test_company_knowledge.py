@@ -1,9 +1,9 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.company.models import CompanyIdentity, PeriodSnapshot
 from services.company.repository import InMemoryCompanyRepository
 from services.company.service import CompanyKnowledgeService
+
 
 def test_company_registry_and_delta_engine() -> None:
     repo = InMemoryCompanyRepository()
@@ -13,7 +13,7 @@ def test_company_registry_and_delta_engine() -> None:
         symbol="RELIANCE.NS",
         name="Reliance Industries Limited",
         sector="Energy & Retail",
-        industry="Conglomerate"
+        industry="Conglomerate",
     )
 
     service.register_company(identity)
@@ -21,12 +21,12 @@ def test_company_registry_and_delta_engine() -> None:
     q1 = PeriodSnapshot(
         period="Q1-2025",
         statement_type="income",
-        metrics={"revenue": 100000.0, "operating_margin": 15.0, "total_debt": 50000.0}
+        metrics={"revenue": 100000.0, "operating_margin": 15.0, "total_debt": 50000.0},
     )
     q2 = PeriodSnapshot(
         period="Q2-2025",
         statement_type="income",
-        metrics={"revenue": 115000.0, "operating_margin": 17.5, "total_debt": 45000.0}
+        metrics={"revenue": 115000.0, "operating_margin": 17.5, "total_debt": 45000.0},
     )
 
     service.append_snapshot("RELIANCE.NS", q1)

@@ -8,26 +8,26 @@ Block 86 consumes Block 85 certification and creates a non-bypassable
 control/audit decision. It does not submit orders.
 """
 
-from dataclasses import asdict, dataclass, field, is_dataclass
-from datetime import datetime, timezone
 import hashlib
 import json
 import math
-from typing import Any, Dict, List, Mapping, Optional
+from collections.abc import Mapping
+from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import UTC, datetime
+from typing import Any
 
 from services.quantitative.block85_execution_certification import (
     Block85Certification,
 )
 
-
 ENGINE_VERSION = "EROS-3.0-BLOCK-86"
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _dict(value: Any) -> Dict[str, Any]:
+def _dict(value: Any) -> dict[str, Any]:
     if value is None:
         return {}
     if isinstance(value, Mapping):
@@ -77,15 +77,15 @@ class Block86ControlDecision:
     governance_status: str
     validation_status: str
     simulation_status: str
-    rationale: List[str] = field(default_factory=list)
-    blocking_reasons: List[str] = field(default_factory=list)
-    audit_evidence: Dict[str, Any] = field(default_factory=dict)
-    report_payload: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    rationale: list[str] = field(default_factory=list)
+    blocking_reasons: list[str] = field(default_factory=list)
+    audit_evidence: dict[str, Any] = field(default_factory=dict)
+    report_payload: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     engine_version: str = ENGINE_VERSION
     timestamp: str = field(default_factory=_utc_now)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -128,7 +128,7 @@ class EROSBlock86ControlPlane:
         symbol: str = "",
         requested_action: str = "HOLD",
         confidence: float = 0.0,
-        additional_evidence: Optional[Dict[str, Any]] = None,
+        additional_evidence: dict[str, Any] | None = None,
     ) -> Block86ControlDecision:
         cert = _dict(certification)
         symbol = symbol.strip().upper() or self._symbol(cert)
@@ -142,8 +142,8 @@ class EROSBlock86ControlPlane:
         score = float(cert.get("certification_score", 0.0) or 0.0)
         confidence_value = _confidence(confidence)
 
-        rationale: List[str] = []
-        blocking: List[str] = []
+        rationale: list[str] = []
+        blocking: list[str] = []
 
         requested_action = str(requested_action or "HOLD").upper()
         if requested_action not in self.ALLOWED_ACTIONS:
@@ -151,9 +151,7 @@ class EROSBlock86ControlPlane:
             requested_action = "HOLD"
 
         if block85_status != "CERTIFIED":
-            blocking.append(
-                f"Block 85 is not CERTIFIED: {block85_status}"
-            )
+            blocking.append(f"Block 85 is not CERTIFIED: {block85_status}")
 
         if not bool(cert.get("execution_allowed", False)):
             blocking.append("Block 85 execution_allowed is false")
@@ -191,9 +189,7 @@ class EROSBlock86ControlPlane:
             control_state = "APPROVED"
             final_action = requested_action
             execution_allowed = requested_action in {"BUY", "SELL", "REDUCE"}
-            rationale.append(
-                "Block 85 certification satisfied the Block 86 control policy."
-            )
+            rationale.append("Block 85 certification satisfied the Block 86 control policy.")
 
         if cert.get("assumptions_detected"):
             rationale.append(
@@ -221,10 +217,7 @@ class EROSBlock86ControlPlane:
             "simulation_status": simulation_status,
         }
 
-        decision_id = (
-            "EROS86-"
-            + _hash_payload(decision_payload)[:16].upper()
-        )
+        decision_id = "EROS86-" + _hash_payload(decision_payload)[:16].upper()
 
         audit_evidence = {
             "decision_hash": _hash_payload(decision_payload),

@@ -68,6 +68,8 @@ class Block17ResearchOrchestrator:
                 "engine_version": "EROS-3.0-BLOCK-17B",
                 "moat_factors": moat_res.factors,
                 "moat_metadata": moat_res.metadata,
-                "research_source_status": "INSUFFICIENT_EXTERNAL_RESEARCH" if raw_confidence <= 0 else "AVAILABLE",
+                "research_source_status": (
+                    "INSUFFICIENT_EXTERNAL_RESEARCH" if raw_confidence <= 0 else "AVAILABLE"
+                ),
             },
         )

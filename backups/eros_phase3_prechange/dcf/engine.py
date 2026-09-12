@@ -4,10 +4,6 @@ EROS 3.0 - Modern DCF Facade
 Existing DCF mathematics remains the calculation authority.
 """
 
-from typing import Any
-
-from eros.valuation.adapter import normalize_valuation
-
 
 def evaluate_dcf(*args, **kwargs):
     """
@@ -18,8 +14,7 @@ def evaluate_dcf(*args, **kwargs):
     """
 
     raise NotImplementedError(
-        "Canonical DCF engine has not yet been wired. "
-        "Do not duplicate DCF mathematics here."
+        "Canonical DCF engine has not yet been wired. " "Do not duplicate DCF mathematics here."
     )
 
 

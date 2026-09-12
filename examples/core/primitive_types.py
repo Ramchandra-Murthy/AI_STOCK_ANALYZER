@@ -16,9 +16,7 @@ def run_demo() -> None:
     print(f"Cash Balance: {cash.amount} {cash.currency}")
     print(f"Growth Percentage: {growth.value}% (Fraction: {growth.to_fraction()})")
     print(f"Share Quantity: {shares.value:,}")
-    print(
-        f"Implied Enterprise Value: {enterprise_value.amount} {enterprise_value.currency}"
-    )
+    print(f"Implied Enterprise Value: {enterprise_value.amount} {enterprise_value.currency}")
     print(f"Serialized Money: {cash.to_dict()}")
 
 

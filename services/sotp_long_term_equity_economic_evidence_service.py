@@ -75,25 +75,20 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "and is assessed against the Retail operating segment."
         ),
         "operating_overlap_evidence": (
-            "Manufacturing activities overlap vertically with "
-            "Retail apparel sourcing."
+            "Manufacturing activities overlap vertically with " "Retail apparel sourcing."
         ),
         "economic_independence_evidence": (
-            "Entity operates independently while supplying "
-            "products into Retail value chains."
+            "Entity operates independently while supplying " "products into Retail value chains."
         ),
         "valuation_evidence": None,
         "classification_evidence": (
-            "Economic characteristics indicate overlap with "
-            "Retail operating segment."
+            "Economic characteristics indicate overlap with " "Retail operating segment."
         ),
         "source": "RIL Integrated Annual Report FY2025-26",
     },
     # Entity #2
     "BAM DLR Data Center Services Private Limited": {
-        "business_activity": (
-            "Data-center infrastructure and related " "data-center services."
-        ),
+        "business_activity": ("Data-center infrastructure and related " "data-center services."),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
             "Reliance FY2025-26 related-party reporting "
@@ -101,8 +96,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Private Limited as a Joint Venture."
         ),
         "business_activity_evidence": (
-            "Entity participates in Reliance's "
-            "Digital Realty data-center partnership."
+            "Entity participates in Reliance's " "Digital Realty data-center partnership."
         ),
         "transaction_evidence": (
             "FY2025-26 related-party disclosures report " "service transactions."
@@ -128,8 +122,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "BAM DLR Mumbai Private Limited as a Joint Venture."
         ),
         "business_activity_evidence": (
-            "Digital Realty partnership disclosures identify "
-            "Mumbai data-center operations."
+            "Digital Realty partnership disclosures identify " "Mumbai data-center operations."
         ),
         "transaction_evidence": (
             "FY2025-26 related-party disclosures report " "service transactions."
@@ -138,9 +131,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         "segment_evidence": (
             "Entity supports Digital Services through " "data-center infrastructure."
         ),
-        "operating_overlap_evidence": (
-            "Infrastructure overlaps with Digital Services."
-        ),
+        "operating_overlap_evidence": ("Infrastructure overlaps with Digital Services."),
         "economic_independence_evidence": (
             "Operates independently while supporting " "Digital Services."
         ),
@@ -150,9 +141,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     },
     # Entity #4
     "BAM DLR Network Services Private Limited": {
-        "business_activity": (
-            "Network and data-center related infrastructure services."
-        ),
+        "business_activity": ("Network and data-center related infrastructure services."),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
             "Reliance related-party reporting classifies BAM DLR "
@@ -167,15 +156,10 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         ),
         "candidate_operating_segment": "DIGITAL_SERVICES",
         "segment_evidence": (
-            "Network infrastructure directly connects with "
-            "Digital Services telecom backbone."
+            "Network infrastructure directly connects with " "Digital Services telecom backbone."
         ),
-        "operating_overlap_evidence": (
-            "Network assets overlap with digital infrastructure."
-        ),
-        "economic_independence_evidence": (
-            "Operates independently under joint venture terms."
-        ),
+        "operating_overlap_evidence": ("Network assets overlap with digital infrastructure."),
+        "economic_independence_evidence": ("Operates independently under joint venture terms."),
         "valuation_evidence": None,
         "classification_evidence": ("Economically aligned with Digital Services."),
         "source": "RIL Integrated Annual Report FY2025-26",
@@ -196,8 +180,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "event management, and digital content distribution."
         ),
         "transaction_evidence": (
-            "FY2025-26 consolidated related-party disclosures "
-            "report platform service revenue."
+            "FY2025-26 consolidated related-party disclosures " "report platform service revenue."
         ),
         "candidate_operating_segment": "DIGITAL_SERVICES",
         "segment_evidence": (
@@ -205,12 +188,9 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "aligns with Digital Services and Jio ecosystem."
         ),
         "operating_overlap_evidence": (
-            "Digital ticketing platform overlaps with consumer "
-            "digital media services."
+            "Digital ticketing platform overlaps with consumer " "digital media services."
         ),
-        "economic_independence_evidence": (
-            "Operates as an independent platform business."
-        ),
+        "economic_independence_evidence": ("Operates as an independent platform business."),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
         "source": "RIL Integrated Annual Report FY2025-26",
@@ -231,20 +211,15 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "operations and distribution of premium apparel."
         ),
         "transaction_evidence": (
-            "FY2025-26 consolidated related-party disclosures "
-            "report retail supply transactions."
+            "FY2025-26 consolidated related-party disclosures " "report retail supply transactions."
         ),
         "candidate_operating_segment": "RETAIL",
         "segment_evidence": (
             "Fashion retail operations directly integrate into "
             "Reliance Retail's consumer brand strategy."
         ),
-        "operating_overlap_evidence": (
-            "Store operations overlap with Retail operating segment."
-        ),
-        "economic_independence_evidence": (
-            "Managed as joint venture brand partner within Retail."
-        ),
+        "operating_overlap_evidence": ("Store operations overlap with Retail operating segment."),
+        "economic_independence_evidence": ("Managed as joint venture brand partner within Retail."),
         "valuation_evidence": None,
         "classification_evidence": ("Assessed under Retail operating segment."),
         "source": "RIL Integrated Annual Report FY2025-26",
@@ -265,17 +240,14 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "operations across major metropolitan centers in India."
         ),
         "transaction_evidence": (
-            "FY2025-26 consolidated related-party disclosures "
-            "report operating transactions."
+            "FY2025-26 consolidated related-party disclosures " "report operating transactions."
         ),
         "candidate_operating_segment": "RETAIL",
         "segment_evidence": (
             "Luxury retail distribution forms an integral part "
             "of Reliance Retail's luxury division."
         ),
-        "operating_overlap_evidence": (
-            "Boutique retail footprint overlaps with Retail segment."
-        ),
+        "operating_overlap_evidence": ("Boutique retail footprint overlaps with Retail segment."),
         "economic_independence_evidence": (
             "Joint venture operates under luxury brand licensing rules."
         ),
@@ -291,16 +263,14 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         ),
         "ril_relationship": "ASSOCIATE",
         "relationship_evidence": (
-            "Consolidated related-party disclosures classify "
-            "Caelux Corporation as an Associate."
+            "Consolidated related-party disclosures classify " "Caelux Corporation as an Associate."
         ),
         "business_activity_evidence": (
             "Reliance New Energy official announcements identify "
             "perovskite research and development technology partnership."
         ),
         "transaction_evidence": (
-            "FY2025-26 related-party disclosures report "
-            "technology advancement funding."
+            "FY2025-26 related-party disclosures report " "technology advancement funding."
         ),
         "candidate_operating_segment": "NEW_ENERGY",
         "segment_evidence": (
@@ -310,9 +280,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         "operating_overlap_evidence": (
             "Perovskite tech overlaps with New Energy manufacturing strategy."
         ),
-        "economic_independence_evidence": (
-            "Independent technology developer strategic associate."
-        ),
+        "economic_independence_evidence": ("Independent technology developer strategic associate."),
         "valuation_evidence": None,
         "classification_evidence": ("New Energy candidate segment."),
         "source": "RIL Integrated Annual Report FY2025-26",
@@ -320,8 +288,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     # Entity #9
     "Canali India Private Limited": {
         "business_activity": (
-            "Retail and distribution of Canali luxury menswear "
-            "and accessories in India."
+            "Retail and distribution of Canali luxury menswear " "and accessories in India."
         ),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
@@ -338,22 +305,17 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         ),
         "candidate_operating_segment": "RETAIL",
         "segment_evidence": (
-            "Luxury menswear distribution integrates into "
-            "Reliance Retail's luxury division."
+            "Luxury menswear distribution integrates into " "Reliance Retail's luxury division."
         ),
         "operating_overlap_evidence": ("Store operations overlap with Retail segment."),
-        "economic_independence_evidence": (
-            "Joint venture operates under luxury brand agreements."
-        ),
+        "economic_independence_evidence": ("Joint venture operates under luxury brand agreements."),
         "valuation_evidence": None,
         "classification_evidence": ("Retail candidate segment mapping."),
         "source": "RIL Integrated Annual Report FY2025-26",
     },
     # Entity #10
     "Circle E Retail Private Limited": {
-        "business_activity": (
-            "Manufacturing of toys and specialized consumer " "retail products."
-        ),
+        "business_activity": ("Manufacturing of toys and specialized consumer " "retail products."),
         "ril_relationship": "ASSOCIATE",
         "relationship_evidence": (
             "Consolidated related-party purchase disclosures "
@@ -364,20 +326,15 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "and retail distribution capabilities."
         ),
         "transaction_evidence": (
-            "FY2025-26 related-party reporting discloses purchase "
-            "of goods and services."
+            "FY2025-26 related-party reporting discloses purchase " "of goods and services."
         ),
         "candidate_operating_segment": "RETAIL",
         "segment_evidence": (
             "Toy manufacturing and distribution economically supports "
             "Reliance Retail's Hamleys and toy retail business."
         ),
-        "operating_overlap_evidence": (
-            "Toy supply chain overlaps vertically with Retail."
-        ),
-        "economic_independence_evidence": (
-            "Independent manufacturing associate supplying Retail."
-        ),
+        "operating_overlap_evidence": ("Toy supply chain overlaps vertically with Retail."),
+        "economic_independence_evidence": ("Independent manufacturing associate supplying Retail."),
         "valuation_evidence": None,
         "classification_evidence": ("Assessed against Retail operating segment."),
         "source": "RIL Integrated Annual Report FY2025-26",
@@ -415,9 +372,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     },
     # Entity #12
     "DEN ADN Network Private Limited": {
-        "business_activity": (
-            "Cable television distribution and local cable network services."
-        ),
+        "business_activity": ("Cable television distribution and local cable network services."),
         "ril_relationship": "ASSOCIATE",
         "relationship_evidence": (
             "DEN Networks financial disclosures and Reliance FY2025-26 related-party "
@@ -440,16 +395,12 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Operates under DEN regional network associate structure."
         ),
         "valuation_evidence": None,
-        "classification_evidence": (
-            "Assessed against Digital Services operating segment."
-        ),
+        "classification_evidence": ("Assessed against Digital Services operating segment."),
         "source": "RIL Integrated Annual Report FY2025-26",
     },
     # Entity #13
     "Den Satellite Network Private Limited": {
-        "business_activity": (
-            "Cable television distribution and satellite network services."
-        ),
+        "business_activity": ("Cable television distribution and satellite network services."),
         "ril_relationship": "ASSOCIATE",
         "relationship_evidence": (
             "Reliance FY2025-26 related-party reporting classifies Den Satellite "
@@ -462,8 +413,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         "transaction_evidence": None,
         "candidate_operating_segment": "DIGITAL_SERVICES",
         "segment_evidence": (
-            "Satellite cable distribution aligns with Digital Services media "
-            "infrastructure."
+            "Satellite cable distribution aligns with Digital Services media " "infrastructure."
         ),
         "operating_overlap_evidence": (
             "Distribution footprint overlaps with Digital Services cable network."
@@ -496,9 +446,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Premium denim and fashion retail store operations directly integrate "
             "into Reliance Retail's brand portfolio."
         ),
-        "operating_overlap_evidence": (
-            "Retail boutique operations overlap with Retail segment."
-        ),
+        "operating_overlap_evidence": ("Retail boutique operations overlap with Retail segment."),
         "economic_independence_evidence": (
             "Joint venture operates under international brand partner agreements."
         ),
@@ -587,21 +535,15 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         "operating_overlap_evidence": (
             "Real-estate assets managed as non-operating corporate holdings."
         ),
-        "economic_independence_evidence": (
-            "Operates as an independent associate holding entity."
-        ),
+        "economic_independence_evidence": ("Operates as an independent associate holding entity."),
         "valuation_evidence": None,
         "classification_evidence": ("Categorized under Others operating segment."),
-        "source": (
-            "Ministry of Corporate Affairs registration-derived "
-            "corporate information"
-        ),
+        "source": ("Ministry of Corporate Affairs registration-derived " "corporate information"),
     },
     # Entity #18
     "GTPL Hathway Limited": {
         "business_activity": (
-            "Digital cable television distribution and wireline broadband "
-            "internet services."
+            "Digital cable television distribution and wireline broadband " "internet services."
         ),
         "ril_relationship": "ASSOCIATE",
         "relationship_evidence": (
@@ -621,9 +563,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         "operating_overlap_evidence": (
             "Broadband and cable subscriber base overlaps with Digital Services."
         ),
-        "economic_independence_evidence": (
-            "Publicly listed associate operating independently."
-        ),
+        "economic_independence_evidence": ("Publicly listed associate operating independently."),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
         "source": "GTPL Hathway Limited official corporate disclosure",
@@ -661,17 +601,14 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     },
     # Entity #20
     "Hathway Channel 5 Cable and Datacom Private Limited": {
-        "business_activity": (
-            "Telecommunications and cable-network distribution services."
-        ),
+        "business_activity": ("Telecommunications and cable-network distribution services."),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
             "Hathway Cable and Datacom Limited financial disclosures classify "
             "Hathway Channel 5 Cable and Datacom Private Limited as a Joint Venture."
         ),
         "business_activity_evidence": (
-            "Corporate filings confirm telecom and local cable TV network "
-            "distribution services."
+            "Corporate filings confirm telecom and local cable TV network " "distribution services."
         ),
         "transaction_evidence": None,
         "candidate_operating_segment": "DIGITAL_SERVICES",
@@ -682,18 +619,14 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         "operating_overlap_evidence": (
             "Cable TV connectivity overlaps with Digital Services media division."
         ),
-        "economic_independence_evidence": (
-            "Joint venture operates local network infrastructure."
-        ),
+        "economic_independence_evidence": ("Joint venture operates local network infrastructure."),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
         "source": "Hathway Cable and Datacom Limited official disclosure",
     },
     # Entity #21
     "Hathway Latur MCN Cable & Datacom Private Limited": {
-        "business_activity": (
-            "Cable television distribution and regional cable network business."
-        ),
+        "business_activity": ("Cable television distribution and regional cable network business."),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
             "Hathway group related-party disclosures classify Hathway Latur MCN "
@@ -709,17 +642,12 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Business activities are economically aligned with Reliance's "
             "Digital Services operating segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations directly support Digital Services activities."
-        ),
+        "operating_overlap_evidence": ("Operations directly support Digital Services activities."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing to the "
-            "Digital Services ecosystem."
+            "Entity operates independently while contributing to the " "Digital Services ecosystem."
         ),
         "valuation_evidence": None,
-        "classification_evidence": (
-            "Assessed under Digital Services candidate segment."
-        ),
+        "classification_evidence": ("Assessed under Digital Services candidate segment."),
         "source": (
             "Hathway Latur MCN Cable & Datacom Private Limited "
             "financial statements published by Hathway"
@@ -727,9 +655,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     },
     # Entity #22
     "Hathway MCN Private Limited": {
-        "business_activity": (
-            "Television broadcasting and cable-network distribution activities."
-        ),
+        "business_activity": ("Television broadcasting and cable-network distribution activities."),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
             "Hathway Cable and Datacom Limited related-party disclosures classify "
@@ -745,12 +671,9 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Business activities are economically aligned with Reliance's "
             "Digital Services operating segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations directly support Digital Services activities."
-        ),
+        "operating_overlap_evidence": ("Operations directly support Digital Services activities."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing to the "
-            "Digital Services ecosystem."
+            "Entity operates independently while contributing to the " "Digital Services ecosystem."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
@@ -759,8 +682,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     # Entity #23
     "Hathway Sonali OM Crystal Cable Private Limited": {
         "business_activity": (
-            "Computer-related and network-associated services within "
-            "the cable group."
+            "Computer-related and network-associated services within " "the cable group."
         ),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
@@ -777,12 +699,9 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Business activities are economically aligned with Reliance's "
             "Digital Services operating segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations directly support Digital Services activities."
-        ),
+        "operating_overlap_evidence": ("Operations directly support Digital Services activities."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing to the "
-            "Digital Services ecosystem."
+            "Entity operates independently while contributing to the " "Digital Services ecosystem."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
@@ -791,8 +710,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     # Entity #24
     "Hathway SS Cable & Datacom LLP": {
         "business_activity": (
-            "Real estate, renting, and support activities tied to cable network "
-            "operations."
+            "Real estate, renting, and support activities tied to cable network " "operations."
         ),
         "ril_relationship": "ASSOCIATE",
         "relationship_evidence": (
@@ -842,12 +760,9 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Business activities are economically aligned with Reliance's "
             "Digital Services operating segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations directly support Digital Services activities."
-        ),
+        "operating_overlap_evidence": ("Operations directly support Digital Services activities."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing to the "
-            "Digital Services ecosystem."
+            "Entity operates independently while contributing to the " "Digital Services ecosystem."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
@@ -885,9 +800,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     },
     # Entity #27
     "India Gas Solutions Private Limited": {
-        "business_activity": (
-            "Sourcing, marketing, and distribution of natural gas in India."
-        ),
+        "business_activity": ("Sourcing, marketing, and distribution of natural gas in India."),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
             "India Gas Solutions identifies itself as a 50:50 joint venture "
@@ -900,15 +813,11 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         "transaction_evidence": None,
         "candidate_operating_segment": "OIL_AND_GAS",
         "segment_evidence": (
-            "Business activities are economically aligned with "
-            "Reliance's Oil and Gas segment."
+            "Business activities are economically aligned with " "Reliance's Oil and Gas segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations support natural gas sourcing and marketing."
-        ),
+        "operating_overlap_evidence": ("Operations support natural gas sourcing and marketing."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing "
-            "to upstream and gas operations."
+            "Entity operates independently while contributing " "to upstream and gas operations."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Oil and Gas candidate segment."),
@@ -1001,12 +910,9 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Business activities are economically aligned with Reliance's "
             "Digital Services operating segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations directly support Digital Services activities."
-        ),
+        "operating_overlap_evidence": ("Operations directly support Digital Services activities."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing to the "
-            "Digital Services ecosystem."
+            "Entity operates independently while contributing to the " "Digital Services ecosystem."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
@@ -1032,12 +938,9 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Business activities are economically aligned with "
             "Reliance's Digital Services operating segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations directly support Digital Services activities."
-        ),
+        "operating_overlap_evidence": ("Operations directly support Digital Services activities."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing to the "
-            "Digital Services ecosystem."
+            "Entity operates independently while contributing to the " "Digital Services ecosystem."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
@@ -1093,12 +996,9 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Business activities are economically aligned with "
             "Reliance's Digital Services operating segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations directly support Digital Services activities."
-        ),
+        "operating_overlap_evidence": ("Operations directly support Digital Services activities."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing to the "
-            "Digital Services ecosystem."
+            "Entity operates independently while contributing to the " "Digital Services ecosystem."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
@@ -1106,13 +1006,10 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     },
     # Entity #34
     "MIL Limited": {
-        "business_activity": (
-            "Professional sports and cricket-team related activities."
-        ),
+        "business_activity": ("Professional sports and cricket-team related activities."),
         "ril_relationship": "ASSOCIATE",
         "relationship_evidence": (
-            "Reliance FY2025-26 related-party reporting classifies "
-            "MIL Limited as an Associate."
+            "Reliance FY2025-26 related-party reporting classifies " "MIL Limited as an Associate."
         ),
         "business_activity_evidence": (
             "UK corporate registry filings identify sports team management and "
@@ -1184,12 +1081,9 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
             "Business activities are economically aligned with "
             "Reliance's Digital Services operating segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations directly support Digital Services activities."
-        ),
+        "operating_overlap_evidence": ("Operations directly support Digital Services activities."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing to the "
-            "Digital Services ecosystem."
+            "Entity operates independently while contributing to the " "Digital Services ecosystem."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Digital Services candidate segment."),
@@ -1203,8 +1097,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         ),
         "ril_relationship": "ASSOCIATE",
         "relationship_evidence": (
-            "Reliance FY2025-26 related-party reporting classifies "
-            "Nexwafe GmbH as an Associate."
+            "Reliance FY2025-26 related-party reporting classifies " "Nexwafe GmbH as an Associate."
         ),
         "business_activity_evidence": (
             "Official corporate disclosures confirm epitaxy wafer technology "
@@ -1522,9 +1415,7 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
     },
     # Entity #48
     "Ryohin-Keikaku Reliance India Private Limited": {
-        "business_activity": (
-            "Retail sale of MUJI branded consumer products in India."
-        ),
+        "business_activity": ("Retail sale of MUJI branded consumer products in India."),
         "ril_relationship": "JOINT_VENTURE",
         "relationship_evidence": (
             "Reliance FY2025-26 related-party reporting classifies "
@@ -1814,15 +1705,11 @@ ECONOMIC_EVIDENCE: dict[str, dict[str, Any]] = {
         ),
         "candidate_operating_segment": "OIL_AND_GAS",
         "segment_evidence": (
-            "Business activities are economically aligned with "
-            "Reliance's Oil and Gas segment."
+            "Business activities are economically aligned with " "Reliance's Oil and Gas segment."
         ),
-        "operating_overlap_evidence": (
-            "Operations support natural gas sourcing and marketing."
-        ),
+        "operating_overlap_evidence": ("Operations support natural gas sourcing and marketing."),
         "economic_independence_evidence": (
-            "Entity operates independently while contributing "
-            "to upstream and gas operations."
+            "Entity operates independently while contributing " "to upstream and gas operations."
         ),
         "valuation_evidence": None,
         "classification_evidence": ("Oil and Gas candidate segment."),
@@ -1904,10 +1791,7 @@ def _validate_economic_evidence(
         missing_requirements.append("SOURCE")
 
     evidence_complete = bool(
-        relationship_known
-        and economic_activity_known
-        and overlap_assessable
-        and source_present
+        relationship_known and economic_activity_known and overlap_assessable and source_present
     )
 
     return {
@@ -2009,9 +1893,7 @@ def get_sotp_long_term_equity_economic_evidence(
 
     entity_count = len(population)
 
-    annexure_evidence_count = sum(
-        1 for entity in population if entity.get("investment_evidence")
-    )
+    annexure_evidence_count = sum(1 for entity in population if entity.get("investment_evidence"))
 
     annexure_evidence_complete = annexure_evidence_count == entity_count
 
@@ -2042,9 +1924,7 @@ def get_sotp_long_term_equity_economic_evidence(
         "classification_ready": all_evidence_complete,
         "entities": results,
         "status_view": (
-            "EVIDENCE_COMPLETE"
-            if all_evidence_complete
-            else "PENDING_ECONOMIC_EVIDENCE"
+            "EVIDENCE_COMPLETE" if all_evidence_complete else "PENDING_ECONOMIC_EVIDENCE"
         ),
         "interpretation": (
             "Economic evidence supports entity-level "
@@ -2055,10 +1935,7 @@ def get_sotp_long_term_equity_economic_evidence(
         "warnings": [
             ("Legal ownership does not determine " "operating-segment overlap."),
             ("Related-party disclosures are not " "automatic valuation evidence."),
-            (
-                "Economic evidence and valuation evidence "
-                "are independent control layers."
-            ),
+            ("Economic evidence and valuation evidence " "are independent control layers."),
             ("Entity classification should only proceed " "when evidence is complete."),
         ],
         "source_data": data,
@@ -2076,11 +1953,8 @@ if __name__ == "__main__":
         f"{test_result['economic_activity_known_count']}"
     )
     assert test_result["overlap_assessable_count"] == 58, (
-        "Expected overlap_assessable_count == 58, got "
-        f"{test_result['overlap_assessable_count']}"
+        "Expected overlap_assessable_count == 58, got " f"{test_result['overlap_assessable_count']}"
     )
-    assert (
-        test_result["all_evidence_complete"] is True
-    ), "Expected all_evidence_complete == True"
+    assert test_result["all_evidence_complete"] is True, "Expected all_evidence_complete == True"
 
     print("V6.0 Self-Test Passed Successfully: All 58 entities verified.")

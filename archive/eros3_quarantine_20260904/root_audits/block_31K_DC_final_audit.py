@@ -35,11 +35,13 @@ PASS = 0
 FAIL = 0
 RESULTS = []
 
+
 def section(n, title):
     print()
     print("=" * 70)
     print(f"{n}. {title}")
     print("-" * 70)
+
 
 def result(name, ok):
     global PASS, FAIL
@@ -51,6 +53,7 @@ def result(name, ok):
         FAIL += 1
     print(f"{name}: {status}")
     return ok
+
 
 print("=" * 70)
 print("EROS 3.0 - BLOCK 31K-DC")
@@ -75,6 +78,7 @@ for f in FILES:
         compile_ok = False
         continue
     import py_compile
+
     try:
         py_compile.compile(str(p), doraise=True)
         print(f"PASS: {f}")
@@ -97,10 +101,7 @@ for f in FILES:
     backtick_n = b"`n" in data
     null_byte = b"\x00" in data
 
-    print(
-        f"{f} | BOM={bom} | "
-        f"BACKTICK_N={backtick_n} | NULL_BYTE={null_byte}"
-    )
+    print(f"{f} | BOM={bom} | " f"BACKTICK_N={backtick_n} | NULL_BYTE={null_byte}")
 
     if bom or backtick_n or null_byte:
         artifact_ok = False
@@ -114,6 +115,7 @@ app_import_ok = False
 
 try:
     from backend.main import app
+
     print("APP:", type(app).__name__)
     print("TITLE:", app.title)
     print("VERSION:", app.version)
@@ -161,15 +163,13 @@ try:
     main_text = (ROOT / "backend/main.py").read_text(encoding="utf-8")
 
     has_task_import = (
-        "from backend.api.routers.task_router import router as task_router"
-        in main_text
+        "from backend.api.routers.task_router import router as task_router" in main_text
     )
 
     has_task_include = "app.include_router(task_router)" in main_text
 
     has_auth_import = (
-        "from backend.api.routers.auth_router import router as auth_router"
-        in main_text
+        "from backend.api.routers.auth_router import router as auth_router" in main_text
     )
 
     has_auth_include = "app.include_router(auth_router)" in main_text
@@ -179,12 +179,7 @@ try:
     print("AUTH ROUTER IMPORT:", has_auth_import)
     print("AUTH ROUTER INCLUDE:", has_auth_include)
 
-    registration_ok = (
-        has_task_import
-        and has_task_include
-        and has_auth_import
-        and has_auth_include
-    )
+    registration_ok = has_task_import and has_task_include and has_auth_import and has_auth_include
 
 except Exception as exc:
     print("REGISTRATION ERROR:", repr(exc))
@@ -254,8 +249,7 @@ try:
     print("SECURITY SCHEMES:", schemas)
 
     openapi_security_ok = any(
-        v.get("type") == "http" and v.get("scheme") == "bearer"
-        for v in schemas.values()
+        v.get("type") == "http" and v.get("scheme") == "bearer" for v in schemas.values()
     )
 
 except Exception as exc:
@@ -344,11 +338,13 @@ try:
         decode_token,
     )
 
-    token = create_access_token({
-        "sub": "eros_dc_user",
-        "username": "eros_dc_user",
-        "role": "ANALYST",
-    })
+    token = create_access_token(
+        {
+            "sub": "eros_dc_user",
+            "username": "eros_dc_user",
+            "role": "ANALYST",
+        }
+    )
 
     print("TOKEN CREATED:", bool(token))
     print("TOKEN LENGTH:", len(token))
@@ -419,13 +415,16 @@ try:
 
     checks = [
         ("/api/v1/tasks/submit", {"symbol": "RELIANCE.NS"}),
-        ("/api/v1/valuation", {
-            "symbol": "RELIANCE.NS",
-            "eps": 100,
-            "growth_rate": 0.10,
-            "discount_rate": 0.12,
-            "current_price": 2500
-        }),
+        (
+            "/api/v1/valuation",
+            {
+                "symbol": "RELIANCE.NS",
+                "eps": 100,
+                "growth_rate": 0.10,
+                "discount_rate": 0.12,
+                "current_price": 2500,
+            },
+        ),
     ]
 
     statuses = []
@@ -463,9 +462,7 @@ try:
     from backend.api.routers.auth_router import router as auth_router
 
     auth_paths = {
-        (r.path, next(iter(r.methods)))
-        for r in auth_router.routes
-        if getattr(r, "path", None)
+        (r.path, next(iter(r.methods))) for r in auth_router.routes if getattr(r, "path", None)
     }
 
     print("AUTH ROUTER PATHS:", sorted(auth_paths))
@@ -504,7 +501,9 @@ try:
         body = {}
 
     print("LOGIN JSON KEYS:", sorted(body.keys()) if isinstance(body, dict) else [])
-    print("ACCESS TOKEN PRESENT:", bool(body.get("access_token")) if isinstance(body, dict) else False)
+    print(
+        "ACCESS TOKEN PRESENT:", bool(body.get("access_token")) if isinstance(body, dict) else False
+    )
     print("TOKEN TYPE:", body.get("token_type") if isinstance(body, dict) else None)
     print("EXPIRES IN:", body.get("expires_in") if isinstance(body, dict) else None)
     print("USER PRESENT:", bool(body.get("user")) if isinstance(body, dict) else False)
@@ -555,9 +554,7 @@ for f in FILES:
     text = p.read_text(encoding="utf-8", errors="ignore")
 
     suspicious = (
-        "mock.jwt" in text.lower()
-        or "fake.jwt" in text.lower()
-        or "eyJhbGciOiJub25l" in text
+        "mock.jwt" in text.lower() or "fake.jwt" in text.lower() or "eyJhbGciOiJub25l" in text
     )
 
     if suspicious:
@@ -573,19 +570,13 @@ section(18, "INLINE TASK ROUTES")
 inline_task_ok = False
 
 try:
-    main_text = (ROOT / "backend/main.py").read_text(
-        encoding="utf-8",
-        errors="ignore"
-    )
+    main_text = (ROOT / "backend/main.py").read_text(encoding="utf-8", errors="ignore")
 
     patterns = [
         r'@app\.(get|post|put|delete|patch)\("/api/v1/tasks',
     ]
 
-    count = sum(
-        len(re.findall(pattern, main_text, flags=re.I))
-        for pattern in patterns
-    )
+    count = sum(len(re.findall(pattern, main_text, flags=re.I)) for pattern in patterns)
 
     print("INLINE TASK ROUTES:", count)
     inline_task_ok = count == 0
@@ -600,10 +591,7 @@ section(19, "BUSINESS ROUTE DUPLICATES")
 duplicate_ok = False
 
 try:
-    main_text = (ROOT / "backend/main.py").read_text(
-        encoding="utf-8",
-        errors="ignore"
-    )
+    main_text = (ROOT / "backend/main.py").read_text(encoding="utf-8", errors="ignore")
 
     targets = [
         '@app.post("/api/v1/valuation"',

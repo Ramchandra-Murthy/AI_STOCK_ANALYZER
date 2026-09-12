@@ -1,7 +1,6 @@
 ﻿from __future__ import annotations
 
 import ast
-import inspect
 import os
 import sys
 import traceback
@@ -32,7 +31,7 @@ print("\n2. SOURCE READ")
 print("-" * 78)
 
 try:
-    with open(ADAPTER_PATH, "r", encoding="utf-8-sig") as f:
+    with open(ADAPTER_PATH, encoding="utf-8-sig") as f:
         source = f.read()
 
     print("SOURCE READ :", "PASS")
@@ -147,35 +146,20 @@ try:
 
             if isinstance(value, dict):
 
-                print(
-                    f"{key:20} : DICT "
-                    f"keys={len(value)}"
-                )
+                print(f"{key:20} : DICT " f"keys={len(value)}")
 
                 if value:
-                    print(
-                        f"{'':20}   "
-                        f"{list(value.keys())[:20]}"
-                    )
+                    print(f"{'':20}   " f"{list(value.keys())[:20]}")
 
             elif isinstance(value, list):
 
-                print(
-                    f"{key:20} : LIST "
-                    f"items={len(value)}"
-                )
+                print(f"{key:20} : LIST " f"items={len(value)}")
 
             else:
 
-                print(
-                    f"{key:20} : "
-                    f"{type(value).__name__} "
-                    f"{value!r}"
-                )
+                print(f"{key:20} : " f"{type(value).__name__} " f"{value!r}")
 
-        traceability = trace_result.get(
-            "traceability"
-        )
+        traceability = trace_result.get("traceability")
 
         if isinstance(traceability, dict):
 
@@ -184,23 +168,13 @@ try:
 
             if isinstance(stages, dict):
                 for key, value in stages.items():
-                    print(
-                        f"  {key:35} : {value}"
-                    )
+                    print(f"  {key:35} : {value}")
 
         print("\nTRACEABILITY PRIMARY SCENARIO:")
-        print(
-            traceability.get("primary_scenario")
-            if isinstance(traceability, dict)
-            else None
-        )
+        print(traceability.get("primary_scenario") if isinstance(traceability, dict) else None)
 
         print("\nTRACEABILITY DECISION QUALITY:")
-        print(
-            traceability.get("decision_quality")
-            if isinstance(traceability, dict)
-            else None
-        )
+        print(traceability.get("decision_quality") if isinstance(traceability, dict) else None)
 
 except Exception:
     print("TRACEABILITY CALL : FAIL")
@@ -241,31 +215,18 @@ try:
 
             if isinstance(value, dict):
 
-                print(
-                    f"{key:20} : DICT "
-                    f"keys={len(value)}"
-                )
+                print(f"{key:20} : DICT " f"keys={len(value)}")
 
                 if value:
-                    print(
-                        f"{'':20}   "
-                        f"{list(value.keys())[:20]}"
-                    )
+                    print(f"{'':20}   " f"{list(value.keys())[:20]}")
 
             elif isinstance(value, list):
 
-                print(
-                    f"{key:20} : LIST "
-                    f"items={len(value)}"
-                )
+                print(f"{key:20} : LIST " f"items={len(value)}")
 
             else:
 
-                print(
-                    f"{key:20} : "
-                    f"{type(value).__name__} "
-                    f"{value!r}"
-                )
+                print(f"{key:20} : " f"{type(value).__name__} " f"{value!r}")
 
 except Exception:
     print("AUDIT CALL : FAIL")
@@ -311,12 +272,7 @@ if audit_node:
 
                     if name in tracked:
 
-                        assignments.setdefault(
-                            name,
-                            []
-                        ).append(
-                            node.lineno
-                        )
+                        assignments.setdefault(name, []).append(node.lineno)
 
         elif isinstance(node, ast.AnnAssign):
 
@@ -328,26 +284,16 @@ if audit_node:
 
                 if name in tracked:
 
-                    assignments.setdefault(
-                        name,
-                        []
-                    ).append(
-                        node.lineno
-                    )
+                    assignments.setdefault(name, []).append(node.lineno)
 
     for name in tracked:
 
         lines = assignments.get(name, [])
 
-        print(
-            f"{name:30} : "
-            f"{len(lines)} assignment(s)"
-        )
+        print(f"{name:30} : " f"{len(lines)} assignment(s)")
 
         if lines:
-            print(
-                f"{'':30}   lines={lines}"
-            )
+            print(f"{'':30}   lines={lines}")
 
 
 print("\n9. AUDIT METHOD SOURCE — TARGETED")
@@ -371,17 +317,12 @@ if audit_node:
         len(lines),
     )
 
-    print(
-        "AUDIT METHOD SOURCE LINES "
-        f"{start + 1}-{end}"
-    )
+    print("AUDIT METHOD SOURCE LINES " f"{start + 1}-{end}")
     print("-" * 78)
 
     for number in range(start, end):
 
-        print(
-            f"{number + 1:5} | {lines[number]}"
-        )
+        print(f"{number + 1:5} | {lines[number]}")
 
 
 print("\n10. TRACEABILITY METHOD SOURCE — TARGETED")
@@ -405,26 +346,18 @@ if trace_node:
         len(lines),
     )
 
-    print(
-        "TRACEABILITY METHOD SOURCE LINES "
-        f"{start + 1}-{end}"
-    )
+    print("TRACEABILITY METHOD SOURCE LINES " f"{start + 1}-{end}")
     print("-" * 78)
 
     for number in range(start, end):
 
-        print(
-            f"{number + 1:5} | {lines[number]}"
-        )
+        print(f"{number + 1:5} | {lines[number]}")
 
 
 print("\n11. DIRECT COMPARISON")
 print("-" * 78)
 
-if (
-    isinstance(trace_result, dict)
-    and isinstance(audit_result, dict)
-):
+if isinstance(trace_result, dict) and isinstance(audit_result, dict):
 
     fields = [
         "decision",
@@ -436,11 +369,7 @@ if (
         "conclusion",
     ]
 
-    print(
-        f"{'FIELD':25} "
-        f"{'TRACEABILITY':20} "
-        f"{'AUDIT':20}"
-    )
+    print(f"{'FIELD':25} " f"{'TRACEABILITY':20} " f"{'AUDIT':20}")
 
     print("-" * 68)
 
@@ -465,20 +394,13 @@ if (
 
             return type(value).__name__
 
-        print(
-            f"{field:25} "
-            f"{describe(upstream):20} "
-            f"{describe(downstream):20}"
-        )
+        print(f"{field:25} " f"{describe(upstream):20} " f"{describe(downstream):20}")
 
 
 print("\n12. FIRST DATA LOSS INDICATOR")
 print("-" * 78)
 
-if (
-    isinstance(trace_result, dict)
-    and isinstance(audit_result, dict)
-):
+if isinstance(trace_result, dict) and isinstance(audit_result, dict):
 
     fields = [
         "decision",
@@ -498,28 +420,18 @@ if (
         downstream = audit_result.get(field)
 
         upstream_populated = (
-            isinstance(upstream, dict)
-            and len(upstream) > 0
-        ) or (
-            isinstance(upstream, list)
-            and len(upstream) > 0
-        ) or (
-            isinstance(upstream, str)
-            and len(upstream) > 0
+            (isinstance(upstream, dict) and len(upstream) > 0)
+            or (isinstance(upstream, list) and len(upstream) > 0)
+            or (isinstance(upstream, str) and len(upstream) > 0)
         )
 
         downstream_empty = (
-            downstream == {}
-            or downstream == []
-            or downstream is None
-            or downstream == ""
+            downstream == {} or downstream == [] or downstream is None or downstream == ""
         )
 
         if upstream_populated and downstream_empty:
 
-            print(
-                "FIRST OBSERVED DATA LOSS:"
-            )
+            print("FIRST OBSERVED DATA LOSS:")
 
             print(
                 "FIELD      :",
@@ -536,28 +448,21 @@ if (
                 type(downstream).__name__,
             )
 
-            print(
-                "CONCLUSION : decision_audit "
-                "is not preserving the upstream value."
-            )
+            print("CONCLUSION : decision_audit " "is not preserving the upstream value.")
 
             found = True
             break
 
     if not found:
 
-        print(
-            "No direct upstream/downstream "
-            "loss detected by this comparison."
-        )
+        print("No direct upstream/downstream " "loss detected by this comparison.")
 
 
 print("\n" + "=" * 78)
 print("V3.8.2.4 DIAGNOSTIC COMPLETE")
 print("=" * 78)
 
-print(
-    """
+print("""
 NO SOURCE PATCH PERFORMED.
 
 This diagnostic only inspects the existing source and runtime.
@@ -567,8 +472,6 @@ decision_audit() fail to receive the already-populated
 V3.7.2 decision_traceability() data.
 
 DO NOT PATCH UNTIL THIS OUTPUT IS REVIEWED.
-"""
-)
+""")
 
 print("=" * 78)
-

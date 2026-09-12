@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.valuation.dcf.professional_engine import ProfessionalDCFEngine
+
 
 def test_professional_dcf_calculation() -> None:
     engine = ProfessionalDCFEngine()
@@ -12,7 +12,7 @@ def test_professional_dcf_calculation() -> None:
         wacc=0.10,
         terminal_growth_rate=0.04,
         net_debt=50000.0,
-        shares_outstanding=1000.0
+        shares_outstanding=1000.0,
     )
     assert result.symbol == "RELIANCE.NS"
     assert result.fair_value_per_share > 0

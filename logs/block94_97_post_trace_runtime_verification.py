@@ -1,5 +1,4 @@
 import importlib
-import pprint
 import subprocess
 
 modules = {
@@ -52,9 +51,11 @@ policy = {}
 results = {}
 output = []
 
+
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 94-97 POST-RETURN-PATH RUNTIME SAFETY VERIFICATION")
@@ -170,24 +171,16 @@ for block_id in [94, 95, 96, 97]:
         p(f"{field:28} : {value!r}")
 
     if result.get("execution_blocked") is not True:
-        failures.append(
-            f"Block {block_id}: execution_blocked != True"
-        )
+        failures.append(f"Block {block_id}: execution_blocked != True")
 
     if result.get("non_mutation_invariant") is not True:
-        failures.append(
-            f"Block {block_id}: non_mutation_invariant != True"
-        )
+        failures.append(f"Block {block_id}: non_mutation_invariant != True")
 
     if result.get("broker_submission") is not False:
-        failures.append(
-            f"Block {block_id}: broker_submission != False"
-        )
+        failures.append(f"Block {block_id}: broker_submission != False")
 
     if result.get("live_order_submission") is not False:
-        failures.append(
-            f"Block {block_id}: live_order_submission != False"
-        )
+        failures.append(f"Block {block_id}: live_order_submission != False")
 
 p()
 p("=" * 100)
@@ -234,4 +227,3 @@ try:
 except Exception as exc:
     print("CLIPBOARD : FAIL")
     print(type(exc).__name__, str(exc))
-

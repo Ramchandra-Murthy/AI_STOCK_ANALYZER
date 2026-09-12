@@ -29,11 +29,17 @@ class EconomicMoatEngine:
 
         # Scores are intentionally based only on supplied, validated ratio evidence.
         roic_score = 40.0 if roic > 20.0 else 25.0 if roic > 12.0 else 10.0 if roic >= 0.0 else 0.0
-        margin_score = 35.0 if net_margin > 15.0 else 20.0 if net_margin > 8.0 else 5.0 if net_margin >= 0.0 else 0.0
+        margin_score = (
+            35.0
+            if net_margin > 15.0
+            else 20.0 if net_margin > 8.0 else 5.0 if net_margin >= 0.0 else 0.0
+        )
         roe_score = 25.0 if roe > 15.0 else 10.0 if roe >= 0.0 else 0.0
         score = min(max(roic_score + margin_score + roe_score, 0.0), 100.0)
 
-        classification = "Wide Moat" if score >= 80.0 else "Narrow Moat" if score >= 50.0 else "No Moat"
+        classification = (
+            "Wide Moat" if score >= 80.0 else "Narrow Moat" if score >= 50.0 else "No Moat"
+        )
         return EconomicMoatResult(
             symbol=symbol,
             moat_score=score,

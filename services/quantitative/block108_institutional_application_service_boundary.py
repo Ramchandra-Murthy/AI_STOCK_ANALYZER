@@ -28,10 +28,11 @@ The block accepts only a certified Block 107 source and returns a
 detached application-service model.
 """
 
+import json
+from collections.abc import Mapping
 from copy import deepcopy
 from hashlib import sha256
-import json
-from typing import Any, Dict, Mapping
+from typing import Any
 
 
 class EROSBlock108InstitutionalApplicationServiceBoundary:
@@ -73,7 +74,7 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
     def build_application_service_model(
         self,
         application_snapshot: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Convert a certified Block 107 application snapshot into
         a detached institutional application-service model.
@@ -84,7 +85,7 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
 
         self._build_count += 1
 
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "schema": {
                 "name": "EROSInstitutionalApplicationServiceModel",
                 "version": self.VERSION,
@@ -107,12 +108,8 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
                     )
                 ),
             },
-            "dashboard": deepcopy(
-                source.get("application", {})
-            ),
-            "source_payload": deepcopy(
-                source.get("source_payload", {})
-            ),
+            "dashboard": deepcopy(source.get("application", {})),
+            "source_payload": deepcopy(source.get("source_payload", {})),
             "lineage": {
                 "source_block": self.SOURCE_BLOCK,
                 "application_block": self.BLOCK_ID,
@@ -125,15 +122,7 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
                         "",
                     )
                 ),
-                "source_lineage": deepcopy(
-                    source.get(
-                        "source_payload",
-                        {}
-                    ).get(
-                        "lineage",
-                        {}
-                    )
-                ),
+                "source_lineage": deepcopy(source.get("source_payload", {}).get("lineage", {})),
             },
             "safety": self._build_safety_contract(),
         }
@@ -148,13 +137,11 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
     def build_read_only_application_model(
         self,
         application_snapshot: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Explicit read-only alias for the application-service model.
         """
-        return self.build_application_service_model(
-            application_snapshot
-        )
+        return self.build_application_service_model(application_snapshot)
 
     def validate_application_service_model(
         self,
@@ -173,9 +160,7 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
         safety = model.get("safety", {})
         integrity = model.get("integrity")
 
-        if schema.get("name") != (
-            "EROSInstitutionalApplicationServiceModel"
-        ):
+        if schema.get("name") != ("EROSInstitutionalApplicationServiceModel"):
             return False
 
         if schema.get("version") != self.VERSION:
@@ -204,15 +189,9 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
         if not isinstance(supplied_hash, str):
             return False
 
-        unsigned_payload = {
-            key: value
-            for key, value in model.items()
-            if key != "integrity"
-        }
+        unsigned_payload = {key: value for key, value in model.items() if key != "integrity"}
 
-        expected_hash = self._payload_hash(
-            unsigned_payload
-        )
+        expected_hash = self._payload_hash(unsigned_payload)
 
         if supplied_hash != expected_hash:
             return False
@@ -231,78 +210,50 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
         """Validate the certified Block 107 source contract."""
 
         if not isinstance(source, Mapping):
-            raise TypeError(
-                "Block 107 application snapshot must be a mapping"
-            )
+            raise TypeError("Block 107 application snapshot must be a mapping")
 
         for field in cls.REQUIRED_SOURCE_FIELDS:
             if field not in source:
-                raise ValueError(
-                    f"BLOCK108_MISSING_{field.upper()}"
-                )
+                raise ValueError(f"BLOCK108_MISSING_{field.upper()}")
 
         schema = source.get("schema")
 
         if not isinstance(schema, Mapping):
-            raise ValueError(
-                "BLOCK108_SCHEMA_MISSING"
-            )
+            raise ValueError("BLOCK108_SCHEMA_MISSING")
 
-        if schema.get("name") != (
-            "EROSInstitutionalApplicationReadModel"
-        ):
-            raise ValueError(
-                "BLOCK108_INVALID_SOURCE_SCHEMA"
-            )
+        if schema.get("name") != ("EROSInstitutionalApplicationReadModel"):
+            raise ValueError("BLOCK108_INVALID_SOURCE_SCHEMA")
 
         if schema.get("version") != "1.0":
-            raise ValueError(
-                "BLOCK108_INVALID_SOURCE_VERSION"
-            )
+            raise ValueError("BLOCK108_INVALID_SOURCE_VERSION")
 
         application = source.get("application")
 
         if not isinstance(application, Mapping):
-            raise ValueError(
-                "BLOCK108_APPLICATION_MISSING"
-            )
+            raise ValueError("BLOCK108_APPLICATION_MISSING")
 
-        if str(application.get("block_id")) != (
-            cls.SOURCE_BLOCK
-        ):
-            raise ValueError(
-                "BLOCK108_INVALID_SOURCE_BLOCK"
-            )
+        if str(application.get("block_id")) != (cls.SOURCE_BLOCK):
+            raise ValueError("BLOCK108_INVALID_SOURCE_BLOCK")
 
         if application.get("status") != "CERTIFIED":
-            raise ValueError(
-                "BLOCK108_SOURCE_NOT_CERTIFIED"
-            )
+            raise ValueError("BLOCK108_SOURCE_NOT_CERTIFIED")
 
         if str(application.get("source_block_id")) != "106":
-            raise ValueError(
-                "BLOCK108_INVALID_SOURCE_LINEAGE"
-            )
+            raise ValueError("BLOCK108_INVALID_SOURCE_LINEAGE")
 
         if not isinstance(
             source.get("source_payload"),
             Mapping,
         ):
-            raise ValueError(
-                "BLOCK108_SOURCE_PAYLOAD_MISSING"
-            )
+            raise ValueError("BLOCK108_SOURCE_PAYLOAD_MISSING")
 
         safety = source.get("safety")
 
         if not isinstance(safety, Mapping):
-            raise ValueError(
-                "BLOCK108_SAFETY_MISSING"
-            )
+            raise ValueError("BLOCK108_SAFETY_MISSING")
 
         if not cls._safety_is_valid(safety):
-            raise ValueError(
-                "BLOCK108_UNSAFE_SOURCE"
-            )
+            raise ValueError("BLOCK108_UNSAFE_SOURCE")
 
     @classmethod
     def _safety_is_valid(
@@ -327,7 +278,7 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
     @classmethod
     def _build_safety_contract(
         cls,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Return a defensive copy of the immutable safety policy."""
         return deepcopy(cls.SAFETY_POLICY)
 
@@ -352,15 +303,13 @@ class EROSBlock108InstitutionalApplicationServiceBoundary:
         """Produce deterministic SHA-256 payload fingerprint."""
         canonical = cls._canonical_json(payload)
 
-        return sha256(
-            canonical.encode("utf-8")
-        ).hexdigest()
+        return sha256(canonical.encode("utf-8")).hexdigest()
 
     # ==========================================================
     # DIAGNOSTIC SNAPSHOT
     # ==========================================================
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """Return a detached diagnostic snapshot."""
         return {
             "block_id": self.BLOCK_ID,

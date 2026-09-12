@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.backtesting.models import BacktestResult
 from services.backtesting.strategy_engine import BacktestingEngine
+
 
 def test_backtest_result_immutability() -> None:
     res = BacktestResult(
@@ -13,12 +13,13 @@ def test_backtest_result_immutability() -> None:
         alpha=0.05,
         beta=0.95,
         information_ratio=1.20,
-        win_rate=0.70
+        win_rate=0.70,
     )
     assert res.strategy_name == "Core Growth"
     assert res.cagr == 0.18
     assert res.timestamp is not None
     assert isinstance(res.metrics, dict)
+
 
 def test_backtesting_engine() -> None:
     result = BacktestingEngine.run_backtest("Institutional Multi-Factor")

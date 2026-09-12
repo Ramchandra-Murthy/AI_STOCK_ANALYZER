@@ -54,9 +54,7 @@ class Block17ConfidenceOrchestrator:
         rating = (
             "HIGH CONFIDENCE"
             if overall >= 0.85
-            else "MODERATE CONFIDENCE"
-            if overall >= 0.70
-            else "LOW CONFIDENCE - REVIEW REQUIRED"
+            else "MODERATE CONFIDENCE" if overall >= 0.70 else "LOW CONFIDENCE - REVIEW REQUIRED"
         )
         return ResearchConfidenceResult(
             symbol=normalized_symbol,

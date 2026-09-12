@@ -1,11 +1,12 @@
-﻿from services.financials.parser import repository
-from services.financials.financial_statement import (
-    FinancialStatements,
-    IncomeStatement,
+﻿from services.financials.financial_statement import (
     BalanceSheet,
     CashFlowStatement,
+    FinancialStatements,
+    IncomeStatement,
 )
+from services.financials.parser import repository
 from services.scoring.engine import AIScoringEngine
+
 
 def test_block12_unified_scoring_engine() -> None:
     income = IncomeStatement(
@@ -57,4 +58,3 @@ def test_block12_unified_scoring_engine() -> None:
     assert "growth_engine" in result.breakdown_details
 
     repository().clear()
-

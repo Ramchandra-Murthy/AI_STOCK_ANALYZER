@@ -347,9 +347,7 @@ def generate_peer_benchmarks(symbol):
             "reliability": reliability(counts["pe"]),
         },
         "forward_pe": {
-            "multiple": (
-                round(forward_pe_median, 2) if forward_pe_median is not None else None
-            ),
+            "multiple": (round(forward_pe_median, 2) if forward_pe_median is not None else None),
             "source": "Peer-group median",
             "observations": counts["forward_pe"],
             "reliability": reliability(counts["forward_pe"]),
@@ -361,9 +359,7 @@ def generate_peer_benchmarks(symbol):
             "reliability": reliability(counts["pb"]),
         },
         "ev_ebitda": {
-            "multiple": (
-                round(ev_ebitda_median, 2) if ev_ebitda_median is not None else None
-            ),
+            "multiple": (round(ev_ebitda_median, 2) if ev_ebitda_median is not None else None),
             "source": "Peer-group median",
             "observations": counts["ev_ebitda"],
             "reliability": reliability(counts["ev_ebitda"]),
@@ -378,9 +374,7 @@ def generate_peer_benchmarks(symbol):
             },
             "revenue_growth": {
                 "median": (
-                    round(revenue_growth_median, 4)
-                    if revenue_growth_median is not None
-                    else None
+                    round(revenue_growth_median, 4) if revenue_growth_median is not None else None
                 ),
                 "observations": sum(
                     _safe_float(value) is not None for value in revenue_growth_values
@@ -388,9 +382,7 @@ def generate_peer_benchmarks(symbol):
             },
             "earnings_growth": {
                 "median": (
-                    round(earnings_growth_median, 4)
-                    if earnings_growth_median is not None
-                    else None
+                    round(earnings_growth_median, 4) if earnings_growth_median is not None else None
                 ),
                 "observations": sum(
                     _safe_float(value) is not None for value in earnings_growth_values
@@ -398,9 +390,7 @@ def generate_peer_benchmarks(symbol):
             },
             "debt_to_equity": {
                 "median": (
-                    round(debt_to_equity_median, 3)
-                    if debt_to_equity_median is not None
-                    else None
+                    round(debt_to_equity_median, 3) if debt_to_equity_median is not None else None
                 ),
                 "observations": count_valid(debt_to_equity_values),
             },

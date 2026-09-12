@@ -15,7 +15,6 @@ from typing import Any
 
 from eros.decision.stage13c.classification import classify_record
 
-
 STAGE_ID = "13C"
 
 

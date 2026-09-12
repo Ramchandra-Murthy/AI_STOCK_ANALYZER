@@ -1,14 +1,16 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 path = Path(r"services\quantitative\block100_paper_execution_fill_gate.py")
 
 output = []
 
+
 def p(text=""):
     text = str(text)
     print(text)
     output.append(text)
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 100 COMPLETE READ-ONLY RETURN / SAFETY INSPECTION")
@@ -145,4 +147,3 @@ except Exception as exc:
     print()
     print("CLIPBOARD : FAIL")
     print(type(exc).__name__, str(exc))
-

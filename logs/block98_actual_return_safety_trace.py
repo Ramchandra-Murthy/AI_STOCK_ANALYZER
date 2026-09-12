@@ -1,14 +1,16 @@
-﻿from pathlib import Path
-import subprocess
+﻿import subprocess
+from pathlib import Path
 
 PATH = Path(r"services\quantitative\block98_execution_governance_bridge.py")
 
 output = []
 
+
 def p(text=""):
     text = str(text)
     print(text)
     output.append(text)
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 98 ACTUAL RETURN / BLOCKED PATH SAFETY TRACE")
@@ -22,9 +24,7 @@ if not PATH.exists():
     p()
     p("ERROR: SOURCE FILE NOT FOUND")
 else:
-    source = PATH.read_text(
-        encoding="utf-8-sig"
-    )
+    source = PATH.read_text(encoding="utf-8-sig")
 
     lines = source.splitlines()
 
@@ -89,13 +89,7 @@ else:
                 else:
                     prefix = "  "
 
-                p(
-                    prefix
-                    + " L"
-                    + str(n)
-                    + ": "
-                    + lines[n - 1]
-                )
+                p(prefix + " L" + str(n) + ": " + lines[n - 1])
 
     p()
     p("=" * 100)

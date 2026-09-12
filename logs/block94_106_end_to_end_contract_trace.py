@@ -1,10 +1,10 @@
 import importlib
-import json
 from pprint import pprint
 
 print("=" * 90)
 print("EROS 3.0 - BLOCK 94 -> 106 END-TO-END CONTRACT TRACE")
 print("=" * 90)
+
 
 def show(title, obj):
     print()
@@ -169,9 +169,7 @@ print("=" * 90)
 print("BLOCK 95 - STRESS EVIDENCE GATE")
 print("=" * 90)
 
-b95 = modules[
-    "services.quantitative.block95_stress_evidence_gate"
-].EROSBlock95StressEvidenceGate()
+b95 = modules["services.quantitative.block95_stress_evidence_gate"].EROSBlock95StressEvidenceGate()
 
 try:
     r95 = b95.certify(
@@ -195,9 +193,7 @@ print("=" * 90)
 print("BLOCK 96 - STRESS DECISION")
 print("=" * 90)
 
-b96 = modules[
-    "services.quantitative.block96_stress_decision_gate"
-].EROSBlock96StressDecisionGate()
+b96 = modules["services.quantitative.block96_stress_decision_gate"].EROSBlock96StressDecisionGate()
 
 try:
     r96 = b96.certify(
@@ -347,9 +343,7 @@ print("=" * 90)
 print("BLOCK 102 - FRONTEND CONTRACT")
 print("=" * 90)
 
-b102 = modules[
-    "services.quantitative.block102_frontend_contract"
-].EROSBlock102FrontendContract()
+b102 = modules["services.quantitative.block102_frontend_contract"].EROSBlock102FrontendContract()
 
 try:
     r102 = b102.build(
@@ -402,9 +396,7 @@ print("=" * 90)
 print("BLOCK 104 - EROS COMMAND CENTER")
 print("=" * 90)
 
-b104 = modules[
-    "services.quantitative.block104_eros_command_center"
-].EROSBlock104CommandCenter()
+b104 = modules["services.quantitative.block104_eros_command_center"].EROSBlock104CommandCenter()
 
 try:
     r104 = b104.render_model(read_model=r103)
@@ -552,4 +544,3 @@ print("NO LIVE EXECUTION")
 print("NO ORDER CREATION")
 print("NO PORTFOLIO MUTATION")
 print("=" * 90)
-

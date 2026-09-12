@@ -5,7 +5,6 @@ from scanner.market_scanner import market_scan
 from services.analyzer import analyze_stock
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 # ============================================================
 # EROS 3.0 — FRONTEND V2
 # INSTITUTIONAL INTELLIGENCE COMMAND CENTER
@@ -59,11 +58,10 @@ st.markdown(
 )
 
 
-
-
 # ============================================================
 # V2.2 — MARKET INTELLIGENCE HELPERS
 # ============================================================
+
 
 def _market_pulse_summary(scan):
     """
@@ -100,29 +98,13 @@ def _market_pulse_summary(scan):
             "sell": 0,
         }
 
-    values = (
-        scan[signal_column]
-        .astype(str)
-        .str.upper()
-    )
+    values = scan[signal_column].astype(str).str.upper()
 
     return {
         "total": len(scan),
-        "buy": int(
-            values.isin(
-                ["BUY", "STRONG BUY"]
-            ).sum()
-        ),
-        "hold": int(
-            values.isin(
-                ["HOLD", "NEUTRAL"]
-            ).sum()
-        ),
-        "sell": int(
-            values.isin(
-                ["SELL", "STRONG SELL"]
-            ).sum()
-        ),
+        "buy": int(values.isin(["BUY", "STRONG BUY"]).sum()),
+        "hold": int(values.isin(["HOLD", "NEUTRAL"]).sum()),
+        "sell": int(values.isin(["SELL", "STRONG SELL"]).sum()),
     }
 
 
@@ -141,14 +123,7 @@ def _market_pulse_table(scan, buy_only=False):
 
     if buy_only and "Signal" in result.columns:
 
-        result = result[
-            result["Signal"]
-            .astype(str)
-            .str.upper()
-            .isin(
-                ["BUY", "STRONG BUY"]
-            )
-        ]
+        result = result[result["Signal"].astype(str).str.upper().isin(["BUY", "STRONG BUY"])]
 
     return result
 
@@ -156,6 +131,7 @@ def _market_pulse_table(scan, buy_only=False):
 # ============================================================
 # V2.1 — AI DECISION INTELLIGENCE HELPERS
 # ============================================================
+
 
 def _decision_bar(value):
     try:
@@ -167,18 +143,18 @@ def _decision_bar(value):
 
     return (
         '<div style="'
-        'background:rgba(128,128,128,0.18);'
-        'border-radius:8px;'
-        'height:9px;'
-        'width:100%;'
+        "background:rgba(128,128,128,0.18);"
+        "border-radius:8px;"
+        "height:9px;"
+        "width:100%;"
         '">'
         '<div style="'
-        'background:currentColor;'
-        'border-radius:8px;'
-        'height:9px;'
-        f'width:{numeric:.0f}%;'
+        "background:currentColor;"
+        "border-radius:8px;"
+        "height:9px;"
+        f"width:{numeric:.0f}%;"
         '"></div>'
-        '</div>'
+        "</div>"
     )
 
 
@@ -277,9 +253,7 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="subtitle">'
-    'Institutional Intelligence Command Center'
-    '</div>',
+    '<div class="subtitle">' "Institutional Intelligence Command Center" "</div>",
     unsafe_allow_html=True,
 )
 
@@ -344,11 +318,15 @@ input_col, button_col = st.columns([5, 1])
 
 with input_col:
 
-    symbol = st.text_input(
-        "Stock Symbol",
-        value="RELIANCE.NS",
-        key="stock_symbol",
-    ).strip().upper()
+    symbol = (
+        st.text_input(
+            "Stock Symbol",
+            value="RELIANCE.NS",
+            key="stock_symbol",
+        )
+        .strip()
+        .upper()
+    )
 
 with button_col:
 
@@ -373,9 +351,7 @@ if analyze_clicked:
 
     else:
 
-        with st.spinner(
-            f"Analyzing {symbol}..."
-        ):
+        with st.spinner(f"Analyzing {symbol}..."):
 
             try:
 
@@ -387,9 +363,7 @@ if analyze_clicked:
 
                 st.session_state.analysis_result = None
 
-                st.error(
-                    f"Analysis failed: {exc}"
-                )
+                st.error(f"Analysis failed: {exc}")
 
 
 result = st.session_state.analysis_result
@@ -407,7 +381,6 @@ if result is not None:
     breakout = result["breakout"]
     df = result["df"]
 
-
     # ========================================================
     # DECISION SNAPSHOT
     # ========================================================
@@ -415,9 +388,7 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        f'<div class="section-title">'
-        f'📌 {symbol} Decision Snapshot'
-        f'</div>',
+        f'<div class="section-title">' f"📌 {symbol} Decision Snapshot" f"</div>",
         unsafe_allow_html=True,
     )
 
@@ -443,7 +414,6 @@ if result is not None:
         str(signal["Recommendation"]),
     )
 
-
     # ========================================================
     # TECHNICAL INTELLIGENCE
     # ========================================================
@@ -451,9 +421,7 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '📈 Technical Intelligence'
-        '</div>',
+        '<div class="section-title">' "📈 Technical Intelligence" "</div>",
         unsafe_allow_html=True,
     )
 
@@ -489,7 +457,6 @@ if result is not None:
         f'₹{last["Resistance"]:.2f}',
     )
 
-
     # ========================================================
     # PRICE ACTION
     # ========================================================
@@ -497,9 +464,7 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '📊 Price Action'
-        '</div>',
+        '<div class="section-title">' "📊 Price Action" "</div>",
         unsafe_allow_html=True,
     )
 
@@ -517,10 +482,7 @@ if result is not None:
 
     except Exception as exc:
 
-        st.warning(
-            f"Chart unavailable: {exc}"
-        )
-
+        st.warning(f"Chart unavailable: {exc}")
 
     # ========================================================
     # V2.1 AI DECISION INTELLIGENCE
@@ -529,18 +491,14 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '🧠 EROS AI Decision Intelligence'
-        '</div>',
+        '<div class="section-title">' "🧠 EROS AI Decision Intelligence" "</div>",
         unsafe_allow_html=True,
     )
 
     context = _technical_context(last, trend)
     score = _decision_score(signal)
 
-    recommendation = str(
-        signal.get("Recommendation", "UNKNOWN")
-    )
+    recommendation = str(signal.get("Recommendation", "UNKNOWN"))
 
     decision_left, decision_right = st.columns([1, 2])
 
@@ -587,8 +545,7 @@ if result is not None:
             c1.write(f"**{label}**")
 
             c2.markdown(
-                _decision_bar(strength)
-                + f"<small>{state}</small>",
+                _decision_bar(strength) + f"<small>{state}</small>",
                 unsafe_allow_html=True,
             )
 
@@ -603,22 +560,16 @@ if result is not None:
 
         for index, reason in enumerate(reasons):
 
-            reason_columns[index % 2].write(
-                f"✓ {reason}"
-            )
+            reason_columns[index % 2].write(f"✓ {reason}")
 
     else:
 
-        st.info(
-            "No signal drivers returned by the analyzer."
-        )
+        st.info("No signal drivers returned by the analyzer.")
 
     st.write("")
     st.write("**Market Structure**")
 
-    structure_left, structure_mid, structure_right = (
-        st.columns(3)
-    )
+    structure_left, structure_mid, structure_right = st.columns(3)
 
     structure_left.metric(
         "SUPPORT",
@@ -639,17 +590,11 @@ if result is not None:
 
     if abs(context["resistance_distance"]) < 2:
 
-        st.warning(
-            "Market context: price is close to "
-            "the identified resistance level."
-        )
+        st.warning("Market context: price is close to " "the identified resistance level.")
 
     elif abs(context["support_distance"]) < 2:
 
-        st.info(
-            "Market context: price is close to "
-            "the identified support level."
-        )
+        st.info("Market context: price is close to " "the identified support level.")
 
     else:
 
@@ -666,43 +611,26 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '⚠️ Risk & Decision Context'
-        '</div>',
+        '<div class="section-title">' "⚠️ Risk & Decision Context" "</div>",
         unsafe_allow_html=True,
     )
 
-    current_price = float(
-        last["Close"]
-    )
+    current_price = float(last["Close"])
 
-    support = float(
-        last["Support"]
-    )
+    support = float(last["Support"])
 
-    resistance = float(
-        last["Resistance"]
-    )
+    resistance = float(last["Resistance"])
 
     if current_price != 0:
 
-        support_distance = (
-            (support - current_price)
-            / current_price
-            * 100
-        )
+        support_distance = (support - current_price) / current_price * 100
 
-        resistance_distance = (
-            (resistance - current_price)
-            / current_price
-            * 100
-        )
+        resistance_distance = (resistance - current_price) / current_price * 100
 
     else:
 
         support_distance = 0.0
         resistance_distance = 0.0
-
 
     r1, r2, r3, r4 = st.columns(4)
 
@@ -728,11 +656,7 @@ if result is not None:
         f'{last["ATR"]:.2f}',
     )
 
-    st.caption(
-        "Distance values are contextual market indicators, "
-        "not guaranteed price targets."
-    )
-
+    st.caption("Distance values are contextual market indicators, " "not guaranteed price targets.")
 
     # ========================================================
     # BREAKOUT ENGINE
@@ -741,9 +665,7 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '🚀 Breakout Engine'
-        '</div>',
+        '<div class="section-title">' "🚀 Breakout Engine" "</div>",
         unsafe_allow_html=True,
     )
 
@@ -759,34 +681,23 @@ if result is not None:
 
     if breakout_signal == "BUY":
 
-        st.success(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.success(f"BREAKOUT SIGNAL: {breakout_signal}")
 
     elif breakout_signal == "SELL":
 
-        st.error(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.error(f"BREAKOUT SIGNAL: {breakout_signal}")
 
     else:
 
-        st.info(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.info(f"BREAKOUT SIGNAL: {breakout_signal}")
 
-    st.write(
-        breakout_reason
-    )
-
+    st.write(breakout_reason)
 
     # ========================================================
     # RAW MARKET DATA
     # ========================================================
 
-    with st.expander(
-        "📄 Latest Market Data"
-    ):
+    with st.expander("📄 Latest Market Data"):
 
         st.dataframe(
             df.tail(20),
@@ -803,15 +714,11 @@ if result is not None:
 st.divider()
 
 st.markdown(
-    '<div class="section-title">'
-    '🔎 NIFTY Market Intelligence'
-    '</div>',
+    '<div class="section-title">' "🔎 NIFTY Market Intelligence" "</div>",
     unsafe_allow_html=True,
 )
 
-st.caption(
-    "Read-only market intelligence generated from the existing NIFTY scanner."
-)
+st.caption("Read-only market intelligence generated from the existing NIFTY scanner.")
 
 scan_col, filter_col = st.columns([3, 1])
 
@@ -841,10 +748,7 @@ if scan_clicked:
 
             scan_result = market_scan()
 
-            if (
-                scan_result is not None
-                and not scan_result.empty
-            ):
+            if scan_result is not None and not scan_result.empty:
 
                 scan_result = scan_result.copy()
 
@@ -861,22 +765,16 @@ if scan_clicked:
 
                 st.session_state.scan_result = None
 
-                st.warning(
-                    "No stocks found."
-                )
+                st.warning("No stocks found.")
 
         except Exception as exc:
 
             st.session_state.scan_result = None
 
-            st.error(
-                f"Market scan failed: {exc}"
-            )
+            st.error(f"Market scan failed: {exc}")
 
 
-scan = st.session_state.get(
-    "scan_result"
-)
+scan = st.session_state.get("scan_result")
 
 
 if scan is not None and not scan.empty:
@@ -898,7 +796,6 @@ if scan is not None and not scan.empty:
             signal_column = candidate
             break
 
-
     # ========================================================
     # MARKET BREADTH
     # ========================================================
@@ -911,34 +808,15 @@ if scan is not None and not scan.empty:
 
     if signal_column is not None:
 
-        signal_values = (
-            scan[signal_column]
-            .astype(str)
-            .str.upper()
-        )
+        signal_values = scan[signal_column].astype(str).str.upper()
 
-        buy_count = int(
-            signal_values.isin(
-                ["BUY", "STRONG BUY"]
-            ).sum()
-        )
+        buy_count = int(signal_values.isin(["BUY", "STRONG BUY"]).sum())
 
-        hold_count = int(
-            signal_values.isin(
-                ["HOLD", "NEUTRAL"]
-            ).sum()
-        )
+        hold_count = int(signal_values.isin(["HOLD", "NEUTRAL"]).sum())
 
-        sell_count = int(
-            signal_values.isin(
-                ["SELL", "STRONG SELL"]
-            ).sum()
-        )
+        sell_count = int(signal_values.isin(["SELL", "STRONG SELL"]).sum())
 
-
-    st.subheader(
-        "📊 Market Breadth"
-    )
+    st.subheader("📊 Market Breadth")
 
     b1, b2, b3, b4 = st.columns(4)
 
@@ -946,7 +824,6 @@ if scan is not None and not scan.empty:
     b2.metric("BUY", buy_count)
     b3.metric("HOLD", hold_count)
     b4.metric("SELL", sell_count)
-
 
     # ========================================================
     # FILTER
@@ -957,14 +834,8 @@ if scan is not None and not scan.empty:
     if buy_only and signal_column is not None:
 
         display_scan = display_scan[
-            display_scan[signal_column]
-            .astype(str)
-            .str.upper()
-            .isin(
-                ["BUY", "STRONG BUY"]
-            )
+            display_scan[signal_column].astype(str).str.upper().isin(["BUY", "STRONG BUY"])
         ]
-
 
     # ========================================================
     # TOP AI SIGNALS
@@ -972,13 +843,9 @@ if scan is not None and not scan.empty:
 
     st.divider()
 
-    st.subheader(
-        "🏆 Top AI Signals"
-    )
+    st.subheader("🏆 Top AI Signals")
 
-    st.caption(
-        "Highest-ranked signals from the existing NIFTY scanner."
-    )
+    st.caption("Highest-ranked signals from the existing NIFTY scanner.")
 
     top_signals = display_scan.copy()
 
@@ -991,12 +858,9 @@ if scan is not None and not scan.empty:
 
     top_signals = top_signals.head(5)
 
-
     if top_signals.empty:
 
-        st.info(
-            "No signals match the current filter."
-        )
+        st.info("No signals match the current filter.")
 
     else:
 
@@ -1016,7 +880,6 @@ if scan is not None and not scan.empty:
                 symbol_column = candidate
                 break
 
-
         score_column = None
 
         for candidate in (
@@ -1031,7 +894,6 @@ if scan is not None and not scan.empty:
                 score_column = candidate
                 break
 
-
         trend_column = None
 
         for candidate in (
@@ -1044,25 +906,18 @@ if scan is not None and not scan.empty:
                 trend_column = candidate
                 break
 
-
         for rank, (_, row) in enumerate(
             top_signals.iterrows(),
             start=1,
         ):
 
-            stock_name = (
-                str(row[symbol_column])
-                if symbol_column is not None
-                else "UNKNOWN"
-            )
+            stock_name = str(row[symbol_column]) if symbol_column is not None else "UNKNOWN"
 
             if score_column is not None:
 
                 try:
 
-                    ai_score = float(
-                        row[score_column]
-                    )
+                    ai_score = float(row[score_column])
 
                 except (
                     TypeError,
@@ -1075,20 +930,11 @@ if scan is not None and not scan.empty:
 
                 ai_score = 0.0
 
-
             stock_signal = (
-                str(row[signal_column]).upper()
-                if signal_column is not None
-                else "UNKNOWN"
+                str(row[signal_column]).upper() if signal_column is not None else "UNKNOWN"
             )
 
-
-            stock_trend = (
-                str(row[trend_column])
-                if trend_column is not None
-                else "N/A"
-            )
-
+            stock_trend = str(row[trend_column]) if trend_column is not None else "N/A"
 
             if stock_signal in (
                 "BUY",
@@ -1108,16 +954,11 @@ if scan is not None and not scan.empty:
 
                 icon = "🟡"
 
-
-            c1, c2, c3, c4 = st.columns(
-                [3, 2, 2, 2]
-            )
+            c1, c2, c3, c4 = st.columns([3, 2, 2, 2])
 
             with c1:
 
-                st.markdown(
-                    f"### #{rank} {stock_name}"
-                )
+                st.markdown(f"### #{rank} {stock_name}")
 
             with c2:
 
@@ -1142,14 +983,11 @@ if scan is not None and not scan.empty:
 
             st.divider()
 
-
         # ====================================================
         # RANKING TABLE
         # ====================================================
 
-        st.write(
-            "**Signal Ranking**"
-        )
+        st.write("**Signal Ranking**")
 
         ranking_rows = []
 
@@ -1158,19 +996,13 @@ if scan is not None and not scan.empty:
             start=1,
         ):
 
-            stock_name = (
-                str(row[symbol_column])
-                if symbol_column is not None
-                else "UNKNOWN"
-            )
+            stock_name = str(row[symbol_column]) if symbol_column is not None else "UNKNOWN"
 
             if score_column is not None:
 
                 try:
 
-                    score_value = float(
-                        row[score_column]
-                    )
+                    score_value = float(row[score_column])
 
                 except (
                     TypeError,
@@ -1183,13 +1015,7 @@ if scan is not None and not scan.empty:
 
                 score_value = 0.0
 
-
-            signal_value = (
-                str(row[signal_column])
-                if signal_column is not None
-                else "UNKNOWN"
-            )
-
+            signal_value = str(row[signal_column]) if signal_column is not None else "UNKNOWN"
 
             ranking_rows.append(
                 {
@@ -1203,7 +1029,6 @@ if scan is not None and not scan.empty:
                 }
             )
 
-
         if ranking_rows:
 
             st.dataframe(
@@ -1212,14 +1037,11 @@ if scan is not None and not scan.empty:
                 hide_index=True,
             )
 
-
     # ========================================================
     # FULL SCANNER DATA
     # ========================================================
 
-    with st.expander(
-        "📄 View Full Scanner Data"
-    ):
+    with st.expander("📄 View Full Scanner Data"):
 
         st.dataframe(
             display_scan,
@@ -1230,9 +1052,7 @@ if scan is not None and not scan.empty:
 
 else:
 
-    st.info(
-        "Run the NIFTY market scanner to populate Market Intelligence."
-    )
+    st.info("Run the NIFTY market scanner to populate Market Intelligence.")
 
 
 # ============================================================
@@ -1242,15 +1062,11 @@ else:
 st.divider()
 
 st.markdown(
-    '<div class="section-title">'
-    '🧠 EROS Decision Intelligence'
-    '</div>',
+    '<div class="section-title">' "🧠 EROS Decision Intelligence" "</div>",
     unsafe_allow_html=True,
 )
 
-st.caption(
-    "Detailed read-only analysis using the existing EROS stock analysis engine."
-)
+st.caption("Detailed read-only analysis using the existing EROS stock analysis engine.")
 
 selected_symbol = None
 
@@ -1269,11 +1085,7 @@ if scan is not None and not scan.empty:
 
         if candidate in scan.columns:
 
-            selector_symbols = (
-                scan[candidate]
-                .astype(str)
-                .tolist()
-            )
+            selector_symbols = scan[candidate].astype(str).tolist()
 
             break
 
@@ -1295,72 +1107,46 @@ if selected_symbol:
         key="v24_analyze_selected",
     ):
 
-        with st.spinner(
-            f"Analyzing {selected_symbol}..."
-        ):
+        with st.spinner(f"Analyzing {selected_symbol}..."):
 
             try:
 
-                selected_result = analyze_stock(
-                    selected_symbol
-                )
+                selected_result = analyze_stock(selected_symbol)
 
-                st.session_state[
-                    "v24_selected_result"
-                ] = selected_result
+                st.session_state["v24_selected_result"] = selected_result
 
-                st.session_state[
-                    "v24_selected_symbol"
-                ] = selected_symbol
+                st.session_state["v24_selected_symbol"] = selected_symbol
 
             except Exception as exc:
 
-                st.session_state[
-                    "v24_selected_result"
-                ] = None
+                st.session_state["v24_selected_result"] = None
 
-                st.error(
-                    f"Stock analysis failed: {exc}"
-                )
+                st.error(f"Stock analysis failed: {exc}")
 
 
-selected_result = st.session_state.get(
-    "v24_selected_result"
-)
+selected_result = st.session_state.get("v24_selected_result")
 
 
 if selected_result is not None:
 
-    selected_symbol_display = (
-        st.session_state.get(
-            "v24_selected_symbol",
-            selected_symbol,
-        )
+    selected_symbol_display = st.session_state.get(
+        "v24_selected_symbol",
+        selected_symbol,
     )
 
-    selected_last = selected_result[
-        "df"
-    ].iloc[-1]
+    selected_last = selected_result["df"].iloc[-1]
 
-    selected_signal = selected_result[
-        "signal"
-    ]
+    selected_signal = selected_result["signal"]
 
-    selected_trend = selected_result[
-        "trend"
-    ]
+    selected_trend = selected_result["trend"]
 
-    selected_breakout = selected_result[
-        "breakout"
-    ]
+    selected_breakout = selected_result["breakout"]
 
     # ========================================================
     # DECISION SNAPSHOT
     # ========================================================
 
-    st.subheader(
-        f"📌 {selected_symbol_display} — Decision Snapshot"
-    )
+    st.subheader(f"📌 {selected_symbol_display} — Decision Snapshot")
 
     d1, d2, d3, d4 = st.columns(4)
 
@@ -1384,41 +1170,31 @@ if selected_result is not None:
         selected_signal["Risk"],
     )
 
-    recommendation = selected_signal[
-        "Recommendation"
-    ]
+    recommendation = selected_signal["Recommendation"]
 
     if recommendation in (
         "STRONG BUY",
         "BUY",
     ):
 
-        st.success(
-            f"RECOMMENDATION: {recommendation}"
-        )
+        st.success(f"RECOMMENDATION: {recommendation}")
 
     elif recommendation in (
         "STRONG SELL",
         "SELL",
     ):
 
-        st.error(
-            f"RECOMMENDATION: {recommendation}"
-        )
+        st.error(f"RECOMMENDATION: {recommendation}")
 
     else:
 
-        st.warning(
-            f"RECOMMENDATION: {recommendation}"
-        )
+        st.warning(f"RECOMMENDATION: {recommendation}")
 
     # ========================================================
     # TREND / MOMENTUM
     # ========================================================
 
-    st.subheader(
-        "📈 Signal Decomposition"
-    )
+    st.subheader("📈 Signal Decomposition")
 
     s1, s2 = st.columns(2)
 
@@ -1450,14 +1226,9 @@ if selected_result is not None:
         "SELL",
     )
 
-    trend_value = str(
-        selected_trend["Trend"]
-    ).upper()
+    trend_value = str(selected_trend["Trend"]).upper()
 
-    if (
-        strong_positive
-        and trend_value == "BEARISH"
-    ):
+    if strong_positive and trend_value == "BEARISH":
 
         st.warning(
             "⚠️ SIGNAL / TREND DIVERGENCE — "
@@ -1465,10 +1236,7 @@ if selected_result is not None:
             "current trend classification is bearish."
         )
 
-    elif (
-        strong_negative
-        and trend_value == "BULLISH"
-    ):
+    elif strong_negative and trend_value == "BULLISH":
 
         st.warning(
             "⚠️ SIGNAL / TREND DIVERGENCE — "
@@ -1478,18 +1246,13 @@ if selected_result is not None:
 
     else:
 
-        st.info(
-            "Signal and trend classification are "
-            "not currently showing a major divergence."
-        )
+        st.info("Signal and trend classification are " "not currently showing a major divergence.")
 
     # ========================================================
     # SIGNAL DRIVERS
     # ========================================================
 
-    st.subheader(
-        "🧠 Signal Drivers"
-    )
+    st.subheader("🧠 Signal Drivers")
 
     reasons = selected_signal.get(
         "Reasons",
@@ -1500,31 +1263,21 @@ if selected_result is not None:
 
         reason_columns = st.columns(2)
 
-        for index, reason in enumerate(
-            reasons
-        ):
+        for index, reason in enumerate(reasons):
 
-            with reason_columns[
-                index % 2
-            ]:
+            with reason_columns[index % 2]:
 
-                st.write(
-                    f"✓ {reason}"
-                )
+                st.write(f"✓ {reason}")
 
     else:
 
-        st.info(
-            "No signal drivers returned."
-        )
+        st.info("No signal drivers returned.")
 
     # ========================================================
     # TECHNICAL INTELLIGENCE
     # ========================================================
 
-    st.subheader(
-        "📊 Technical Intelligence"
-    )
+    st.subheader("📊 Technical Intelligence")
 
     t1, t2, t3, t4 = st.columns(4)
 
@@ -1552,37 +1305,17 @@ if selected_result is not None:
     # MARKET STRUCTURE
     # ========================================================
 
-    st.subheader(
-        "📐 Market Structure"
-    )
+    st.subheader("📐 Market Structure")
 
-    support_value = float(
-        selected_last["Support"]
-    )
+    support_value = float(selected_last["Support"])
 
-    current_value = float(
-        selected_last["Close"]
-    )
+    current_value = float(selected_last["Close"])
 
-    resistance_value = float(
-        selected_last["Resistance"]
-    )
+    resistance_value = float(selected_last["Resistance"])
 
-    support_distance = (
-        (
-            current_value
-            - support_value
-        )
-        / current_value
-    ) * 100
+    support_distance = ((current_value - support_value) / current_value) * 100
 
-    resistance_distance = (
-        (
-            resistance_value
-            - current_value
-        )
-        / current_value
-    ) * 100
+    resistance_distance = ((resistance_value - current_value) / current_value) * 100
 
     m1, m2, m3 = st.columns(3)
 
@@ -1613,18 +1346,13 @@ if selected_result is not None:
         f"{resistance_distance:.2f}%",
     )
 
-    st.caption(
-        "Distance values are contextual market indicators, "
-        "not guaranteed price targets."
-    )
+    st.caption("Distance values are contextual market indicators, " "not guaranteed price targets.")
 
     # ========================================================
     # BREAKOUT
     # ========================================================
 
-    st.subheader(
-        "🚀 Breakout Engine"
-    )
+    st.subheader("🚀 Breakout Engine")
 
     breakout_signal = selected_breakout.get(
         "Signal",
@@ -1638,33 +1366,23 @@ if selected_result is not None:
 
     if breakout_signal == "BUY":
 
-        st.success(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.success(f"BREAKOUT SIGNAL: {breakout_signal}")
 
     elif breakout_signal == "SELL":
 
-        st.error(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.error(f"BREAKOUT SIGNAL: {breakout_signal}")
 
     else:
 
-        st.info(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.info(f"BREAKOUT SIGNAL: {breakout_signal}")
 
-    st.write(
-        breakout_reason
-    )
+    st.write(breakout_reason)
 
     # ========================================================
     # PRICE ACTION
     # ========================================================
 
-    st.subheader(
-        "📈 Price Action"
-    )
+    st.subheader("📈 Price Action")
 
     selected_fig = create_candlestick(
         selected_result["df"],
@@ -1679,19 +1397,14 @@ if selected_result is not None:
 
 else:
 
-    st.info(
-        "Select a stock from Market Intelligence "
-        "and click ANALYZE SELECTED STOCK."
-    )
+    st.info("Select a stock from Market Intelligence " "and click ANALYZE SELECTED STOCK.")
 # GOVERNANCE
 # ============================================================
 
 st.divider()
 
 st.markdown(
-    '<div class="section-title">'
-    '🔐 EROS Governance'
-    '</div>',
+    '<div class="section-title">' "🔐 EROS Governance" "</div>",
     unsafe_allow_html=True,
 )
 
@@ -1701,37 +1414,21 @@ g1, g2 = st.columns(2)
 
 with g1:
 
-    st.write(
-        "**Operating Mode**"
-    )
+    st.write("**Operating Mode**")
 
-    st.success(
-        "READ ONLY"
-    )
+    st.success("READ ONLY")
 
-    st.write(
-        "**Execution**"
-    )
+    st.write("**Execution**")
 
-    st.error(
-        "BLOCKED"
-    )
+    st.error("BLOCKED")
 
-    st.write(
-        "**Broker**"
-    )
+    st.write("**Broker**")
 
-    st.error(
-        "BLOCKED"
-    )
+    st.error("BLOCKED")
 
-    st.write(
-        "**Orders**"
-    )
+    st.write("**Orders**")
 
-    st.error(
-        "BLOCKED"
-    )
+    st.error("BLOCKED")
 
 with g2:
 
@@ -1739,51 +1436,27 @@ with g2:
 
     safety_rows = {
         "Read Only": safety["read_only"],
-        "Order Creation": safety[
-            "allow_order_creation"
-        ],
-        "Broker Submission": safety[
-            "allow_broker_submission"
-        ],
-        "Live Execution": safety[
-            "allow_live_execution"
-        ],
-        "Portfolio Mutation": safety[
-            "allow_portfolio_mutation"
-        ],
-        "Valuation Mutation": safety[
-            "allow_valuation_mutation"
-        ],
-        "Performance Mutation": safety[
-            "allow_performance_mutation"
-        ],
-        "Risk Mutation": safety[
-            "allow_risk_mutation"
-        ],
-        "Optimization": safety[
-            "allow_optimization"
-        ],
-        "Execution Blocked": safety[
-            "execution_blocked"
-        ],
-        "Non-Mutation Invariant": safety[
-            "non_mutation_invariant"
-        ],
+        "Order Creation": safety["allow_order_creation"],
+        "Broker Submission": safety["allow_broker_submission"],
+        "Live Execution": safety["allow_live_execution"],
+        "Portfolio Mutation": safety["allow_portfolio_mutation"],
+        "Valuation Mutation": safety["allow_valuation_mutation"],
+        "Performance Mutation": safety["allow_performance_mutation"],
+        "Risk Mutation": safety["allow_risk_mutation"],
+        "Optimization": safety["allow_optimization"],
+        "Execution Blocked": safety["execution_blocked"],
+        "Non-Mutation Invariant": safety["non_mutation_invariant"],
     }
 
     for label, value in safety_rows.items():
 
         if value is True:
 
-            st.write(
-                f"**{label}** : `TRUE`"
-            )
+            st.write(f"**{label}** : `TRUE`")
 
         else:
 
-            st.write(
-                f"**{label}** : `FALSE`"
-            )
+            st.write(f"**{label}** : `FALSE`")
 
 
 # ============================================================

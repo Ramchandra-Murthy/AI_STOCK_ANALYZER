@@ -44,10 +44,7 @@ for name in modules:
         print()
         print("CLASS :", class_name)
 
-        for method_name, method in inspect.getmembers(
-            cls,
-            predicate=inspect.isfunction
-        ):
+        for method_name, method in inspect.getmembers(cls, predicate=inspect.isfunction):
             if method_name.startswith("_"):
                 continue
 

@@ -1,18 +1,24 @@
 ﻿from __future__ import annotations
 
-from fastapi import APIRouter
-from fastapi import Depends
-from backend.api.dependencies.auth import get_current_user
-from sqlalchemy.orm import Session
 from datetime import datetime
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from backend.api.dependencies.auth import get_current_user
 from backend.api.dependencies.database import get_session
 from backend.api.schemas.valuation import ValuationRequest, ValuationResponse
 from backend.services.valuation_service import ValuationService
 
 router = APIRouter(prefix="/api/v1", tags=["Valuation"])
 
-@router.post("/valuation", response_model=ValuationResponse, dependencies=[Depends(get_current_user)])
-def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_session)) -> ValuationResponse:
+
+@router.post(
+    "/valuation", response_model=ValuationResponse, dependencies=[Depends(get_current_user)]
+)
+def execute_valuation(
+    payload: ValuationRequest, session: Session = Depends(get_session)
+) -> ValuationResponse:
     metrics = {
         "eps": payload.eps,
         "growth_rate": payload.growth_rate,
@@ -22,12 +28,10 @@ def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_
         "net_debt": payload.net_debt,
         "non_operating_assets": payload.non_operating_assets,
         "shares_outstanding": payload.shares_outstanding,
-        "user": payload.user
+        "user": payload.user,
     }
     result = ValuationService.execute_and_persist_valuation(
-        session=session,
-        symbol=payload.symbol,
-        financial_metrics=metrics
+        session=session, symbol=payload.symbol, financial_metrics=metrics
     )
 
     iv = result["intrinsic_value"]
@@ -43,5 +47,5 @@ def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_
         margin_of_safety=mos,
         recommendation=rec,
         valuation_model=result["model_type"],
-        created_at=datetime.utcnow()
+        created_at=datetime.utcnow(),
     )

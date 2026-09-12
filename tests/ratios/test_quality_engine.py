@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from services.ratios.quality_engine import AdvancedQualityEngine
-from services.financials.income_statement import IncomeStatement
 from services.financials.balance_sheet import BalanceSheet
+from services.financials.income_statement import IncomeStatement
+from services.ratios.quality_engine import AdvancedQualityEngine
 
 
 def test_advanced_quality_engine() -> None:

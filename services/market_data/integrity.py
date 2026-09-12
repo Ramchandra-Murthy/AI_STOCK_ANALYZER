@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from services.market_data.adapter import MarketDataPacket
@@ -42,10 +42,8 @@ class MarketDataIntegrityGate:
                 normalized = freshness.replace("Z", "+00:00")
                 dt = datetime.fromisoformat(normalized)
                 if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
-                age_seconds = max(
-                    0.0, (datetime.now(timezone.utc) - dt).total_seconds()
-                )
+                    dt = dt.replace(tzinfo=UTC)
+                age_seconds = max(0.0, (datetime.now(UTC) - dt).total_seconds())
             except (TypeError, ValueError):
                 errors.append("Invalid freshness timestamp.")
 

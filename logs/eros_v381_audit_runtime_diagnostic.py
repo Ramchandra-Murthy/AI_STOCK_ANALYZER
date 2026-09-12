@@ -4,7 +4,6 @@ import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 60)
 print("EROS 3.0 - V3.8.1 DECISION AUDIT - LONG-FORM RUNTIME")
 print("=" * 60)
@@ -55,15 +54,10 @@ foundation = [
 for name in foundation:
     exists = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if exists else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if exists else 'FAIL'}")
 
     if not exists:
-        raise RuntimeError(
-            f"MISSING_FOUNDATION_API:{name}"
-        )
+        raise RuntimeError(f"MISSING_FOUNDATION_API:{name}")
 
 print("\nV3.8.1 FOUNDATION : VERIFIED")
 
@@ -137,9 +131,7 @@ print("\n6. RESULT TYPE VALIDATION")
 print("-" * 60)
 
 if not isinstance(result, dict):
-    raise RuntimeError(
-        f"DECISION_AUDIT_RESULT_NOT_DICT:{type(result).__name__}"
-    )
+    raise RuntimeError(f"DECISION_AUDIT_RESULT_NOT_DICT:{type(result).__name__}")
 
 print("RESULT DICT : PASS")
 
@@ -151,13 +143,7 @@ print("RESULT DICT : PASS")
 print("\n7. COMPLETE RAW AUDIT OUTPUT")
 print("-" * 60)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 # ==========================================================
@@ -189,15 +175,10 @@ for field in required_top_level:
 
     present = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_TOP_LEVEL_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_TOP_LEVEL_FIELD:{field}")
 
 print("TOP LEVEL SCHEMA : PASS")
 
@@ -213,14 +194,9 @@ if not isinstance(result["symbol"], str):
     raise RuntimeError("SYMBOL_NOT_STRING")
 
 if result["symbol"] != symbol:
-    raise RuntimeError(
-        f"SYMBOL_MISMATCH:{result['symbol']}"
-    )
+    raise RuntimeError(f"SYMBOL_MISMATCH:{result['symbol']}")
 
-if not isinstance(
-    result["price"],
-    (int, float)
-):
+if not isinstance(result["price"], (int, float)):
     raise RuntimeError("PRICE_NOT_NUMERIC")
 
 print("symbol : PASS")
@@ -252,15 +228,10 @@ for field in decision_fields:
 
     present = field in decision
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_DECISION_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_DECISION_FIELD:{field}")
 
 print("DECISION STRUCTURE : PASS")
 
@@ -279,13 +250,7 @@ if not isinstance(audit, dict):
 
 print("AUDIT TYPE : dict")
 
-print(
-    json.dumps(
-        audit,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(audit, indent=2, default=str))
 
 print("AUDIT OBJECT : PASS")
 
@@ -299,18 +264,10 @@ print("-" * 60)
 
 audit_findings = result["audit_findings"]
 
-if not isinstance(
-    audit_findings,
-    (dict, list)
-):
-    raise RuntimeError(
-        "AUDIT_FINDINGS_INVALID_TYPE"
-    )
+if not isinstance(audit_findings, (dict, list)):
+    raise RuntimeError("AUDIT_FINDINGS_INVALID_TYPE")
 
-print(
-    "AUDIT_FINDINGS TYPE :",
-    type(audit_findings).__name__
-)
+print("AUDIT_FINDINGS TYPE :", type(audit_findings).__name__)
 
 print("AUDIT FINDINGS : PASS")
 
@@ -345,15 +302,10 @@ for stage in legacy_trace_stages:
 
     present = stage in trace
 
-    print(
-        f"{stage:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{stage:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_LEGACY_TRACE_STAGE:{stage}"
-        )
+        raise RuntimeError(f"MISSING_LEGACY_TRACE_STAGE:{stage}")
 
 print("LEGACY TRACE : PASS")
 
@@ -367,13 +319,8 @@ print("-" * 60)
 
 traceability = result["traceability"]
 
-if not isinstance(
-    traceability,
-    dict
-):
-    raise RuntimeError(
-        "TRACEABILITY_NOT_DICT"
-    )
+if not isinstance(traceability, dict):
+    raise RuntimeError("TRACEABILITY_NOT_DICT")
 
 traceability_fields = [
     "status",
@@ -392,15 +339,10 @@ for field in traceability_fields:
 
     present = field in traceability
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_TRACEABILITY_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_TRACEABILITY_FIELD:{field}")
 
 print("TRACEABILITY : PASS")
 
@@ -415,16 +357,12 @@ print("-" * 60)
 status = result["traceability_status"]
 
 if not isinstance(status, str):
-    raise RuntimeError(
-        "TRACEABILITY_STATUS_NOT_STRING"
-    )
+    raise RuntimeError("TRACEABILITY_STATUS_NOT_STRING")
 
 print("TRACEABILITY STATUS :", status)
 
 if not status.strip():
-    raise RuntimeError(
-        "TRACEABILITY_STATUS_EMPTY"
-    )
+    raise RuntimeError("TRACEABILITY_STATUS_EMPTY")
 
 print("TRACEABILITY STATUS : PASS")
 
@@ -438,13 +376,8 @@ print("-" * 60)
 
 evidence_chain = result["evidence_chain"]
 
-if not isinstance(
-    evidence_chain,
-    dict
-):
-    raise RuntimeError(
-        "EVIDENCE_CHAIN_NOT_DICT"
-    )
+if not isinstance(evidence_chain, dict):
+    raise RuntimeError("EVIDENCE_CHAIN_NOT_DICT")
 
 evidence_fields = [
     "primary_drivers",
@@ -458,15 +391,10 @@ for field in evidence_fields:
 
     present = field in evidence_chain
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_EVIDENCE_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_EVIDENCE_FIELD:{field}")
 
 print("EVIDENCE CHAIN : PASS")
 
@@ -480,13 +408,8 @@ print("-" * 60)
 
 scenario_trace = result["scenario_trace"]
 
-if not isinstance(
-    scenario_trace,
-    dict
-):
-    raise RuntimeError(
-        "SCENARIO_TRACE_NOT_DICT"
-    )
+if not isinstance(scenario_trace, dict):
+    raise RuntimeError("SCENARIO_TRACE_NOT_DICT")
 
 scenario_fields = [
     "primary_scenario",
@@ -499,15 +422,10 @@ for field in scenario_fields:
 
     present = field in scenario_trace
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_SCENARIO_TRACE_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_SCENARIO_TRACE_FIELD:{field}")
 
 print("SCENARIO TRACE : PASS")
 
@@ -521,13 +439,8 @@ print("-" * 60)
 
 interpretation = result["interpretation"]
 
-if not isinstance(
-    interpretation,
-    dict
-):
-    raise RuntimeError(
-        "INTERPRETATION_NOT_DICT"
-    )
+if not isinstance(interpretation, dict):
+    raise RuntimeError("INTERPRETATION_NOT_DICT")
 
 interpretation_fields = [
     "market_condition",
@@ -540,15 +453,10 @@ for field in interpretation_fields:
 
     present = field in interpretation
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_INTERPRETATION_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_INTERPRETATION_FIELD:{field}")
 
 print("INTERPRETATION : PASS")
 
@@ -562,18 +470,11 @@ print("-" * 60)
 
 conclusion = result["conclusion"]
 
-if not isinstance(
-    conclusion,
-    str
-):
-    raise RuntimeError(
-        "CONCLUSION_NOT_STRING"
-    )
+if not isinstance(conclusion, str):
+    raise RuntimeError("CONCLUSION_NOT_STRING")
 
 if not conclusion.strip():
-    raise RuntimeError(
-        "CONCLUSION_EMPTY"
-    )
+    raise RuntimeError("CONCLUSION_EMPTY")
 
 print("CONCLUSION :", conclusion)
 print("")
@@ -589,18 +490,11 @@ print("-" * 60)
 
 audit_summary = result["audit_summary"]
 
-if not isinstance(
-    audit_summary,
-    str
-):
-    raise RuntimeError(
-        "AUDIT_SUMMARY_NOT_STRING"
-    )
+if not isinstance(audit_summary, str):
+    raise RuntimeError("AUDIT_SUMMARY_NOT_STRING")
 
 if not audit_summary.strip():
-    raise RuntimeError(
-        "AUDIT_SUMMARY_EMPTY"
-    )
+    raise RuntimeError("AUDIT_SUMMARY_EMPTY")
 
 print("AUDIT SUMMARY :")
 print(audit_summary)
@@ -618,18 +512,11 @@ print("-" * 60)
 
 audit_status = result["audit_status"]
 
-if not isinstance(
-    audit_status,
-    str
-):
-    raise RuntimeError(
-        "AUDIT_STATUS_NOT_STRING"
-    )
+if not isinstance(audit_status, str):
+    raise RuntimeError("AUDIT_STATUS_NOT_STRING")
 
 if not audit_status.strip():
-    raise RuntimeError(
-        "AUDIT_STATUS_EMPTY"
-    )
+    raise RuntimeError("AUDIT_STATUS_EMPTY")
 
 print("AUDIT STATUS :", audit_status)
 print("AUDIT STATUS : PASS")
@@ -644,13 +531,8 @@ print("-" * 60)
 
 governance = result["governance"]
 
-if not isinstance(
-    governance,
-    dict
-):
-    raise RuntimeError(
-        "GOVERNANCE_NOT_DICT"
-    )
+if not isinstance(governance, dict):
+    raise RuntimeError("GOVERNANCE_NOT_DICT")
 
 expected_true = [
     "read_only",
@@ -675,16 +557,10 @@ for field in expected_true:
 
     ok = actual is True
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=True)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 for field in expected_false:
@@ -693,16 +569,10 @@ for field in expected_false:
 
     ok = actual is False
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=False)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 print("GOVERNANCE : PASS")
 
@@ -715,26 +585,16 @@ print("\n23. TRACEABILITY / GOVERNANCE CONSISTENCY")
 print("-" * 60)
 
 if traceability["read_only"] is not True:
-    raise RuntimeError(
-        "TRACEABILITY_READ_ONLY_MISMATCH"
-    )
+    raise RuntimeError("TRACEABILITY_READ_ONLY_MISMATCH")
 
 if traceability["execution_blocked"] is not True:
-    raise RuntimeError(
-        "TRACEABILITY_EXECUTION_BLOCKED_MISMATCH"
-    )
+    raise RuntimeError("TRACEABILITY_EXECUTION_BLOCKED_MISMATCH")
 
 if traceability["non_mutation_invariant"] is not True:
-    raise RuntimeError(
-        "TRACEABILITY_NON_MUTATION_MISMATCH"
-    )
+    raise RuntimeError("TRACEABILITY_NON_MUTATION_MISMATCH")
 
-if traceability.get(
-    "legacy_trace_preserved"
-) is not True:
-    raise RuntimeError(
-        "LEGACY_TRACE_NOT_PRESERVED"
-    )
+if traceability.get("legacy_trace_preserved") is not True:
+    raise RuntimeError("LEGACY_TRACE_NOT_PRESERVED")
 
 print("READ_ONLY CONSISTENCY       : PASS")
 print("EXECUTION BLOCK CONSISTENCY : PASS")

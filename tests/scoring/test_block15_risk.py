@@ -1,6 +1,7 @@
 ﻿from services.risk_management.models import PortfolioRiskProfile
 from services.scoring.risk_scoring import RiskScoringEngine
 
+
 def test_block15_risk_scoring_engine():
     profile = PortfolioRiskProfile(
         portfolio_id="PORT-001",

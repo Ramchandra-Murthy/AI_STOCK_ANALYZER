@@ -1,7 +1,7 @@
 ﻿from data.database import create_table
 from data.downloader import download_stock
+
 # EROS V2.6 READ_ONLY: database persistence disabled for analyzer
-from data.reader import load_stock
 from engine.breakout_engine import detect_breakout
 from engine.signal_engine import generate_signal
 from indicators.atr import calculate_atr
@@ -57,4 +57,3 @@ def analyze_stock(symbol):
         "signal": signal,
         "breakout": breakout,
     }
-

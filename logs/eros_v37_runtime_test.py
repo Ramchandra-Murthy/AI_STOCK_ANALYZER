@@ -1,8 +1,6 @@
 import json
-import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
-
 
 print("=" * 60)
 print("EROS 3.0 - V3.7 DECISION TRACEABILITY ENGINE - RUNTIME")
@@ -50,15 +48,10 @@ for name in foundation_apis:
 
     present = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_FOUNDATION_API:{name}"
-        )
+        raise RuntimeError(f"MISSING_FOUNDATION_API:{name}")
 
 
 print("\nV3.6 FOUNDATION : VERIFIED")
@@ -72,13 +65,9 @@ print("\n3. V3.7 TRACEABILITY API")
 print("-" * 60)
 
 if not hasattr(adapter, "decision_traceability"):
-    raise RuntimeError(
-        "MISSING_API:decision_traceability"
-    )
+    raise RuntimeError("MISSING_API:decision_traceability")
 
-print(
-    "decision_traceability             : PASS"
-)
+print("decision_traceability             : PASS")
 
 print("V3.7 API : PRESENT")
 
@@ -95,9 +84,7 @@ symbol = "RELIANCE.NS"
 result = adapter.decision_traceability(symbol)
 
 if not isinstance(result, dict):
-    raise RuntimeError(
-        "TRACEABILITY_RESULT_NOT_DICT"
-    )
+    raise RuntimeError("TRACEABILITY_RESULT_NOT_DICT")
 
 print("DECISION TRACEABILITY : PASS")
 print("SYMBOL :", result.get("symbol"))
@@ -111,13 +98,7 @@ print("PRICE  :", result.get("price"))
 print("\n5. RAW TRACEABILITY OUTPUT")
 print("-" * 60)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 # ============================================================
@@ -140,15 +121,10 @@ for field in required_top_level:
 
     present = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_TOP_LEVEL_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_TOP_LEVEL_FIELD:{field}")
 
 
 # ============================================================
@@ -159,14 +135,10 @@ print("\n7. BASIC IDENTITY")
 print("-" * 60)
 
 if result["symbol"] != symbol:
-    raise RuntimeError(
-        "SYMBOL_MISMATCH"
-    )
+    raise RuntimeError("SYMBOL_MISMATCH")
 
 if result["price"] is None:
-    raise RuntimeError(
-        "PRICE_MISSING"
-    )
+    raise RuntimeError("PRICE_MISSING")
 
 print("SYMBOL : PASS")
 print("PRICE  : PASS")
@@ -194,15 +166,10 @@ for field in decision_fields:
 
     present = field in decision
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_DECISION_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_DECISION_FIELD:{field}")
 
 
 # ============================================================
@@ -230,15 +197,10 @@ for field in traceability_fields:
 
     present = field in traceability
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_TRACEABILITY_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_TRACEABILITY_FIELD:{field}")
 
 
 # ============================================================
@@ -260,15 +222,10 @@ for field in [
 
     present = field in decision_trace
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_DECISION_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_DECISION_TRACE:{field}")
 
 
 # ============================================================
@@ -295,15 +252,10 @@ for field in [
 
     present = field in evidence
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_EVIDENCE_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_EVIDENCE_TRACE:{field}")
 
 
 # ============================================================
@@ -335,15 +287,10 @@ for field in technical_fields:
 
     present = field in technical
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_TECHNICAL_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_TECHNICAL_TRACE:{field}")
 
 
 # ============================================================
@@ -364,15 +311,10 @@ for field in [
 
     present = field in intelligence
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_INTELLIGENCE_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_INTELLIGENCE_TRACE:{field}")
 
 
 # ============================================================
@@ -397,15 +339,10 @@ for field in [
 
     present = field in interpretation
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_INTERPRETATION_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_INTERPRETATION_TRACE:{field}")
 
 
 # ============================================================
@@ -429,15 +366,10 @@ for field in [
 
     present = field in action
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_ACTION_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_ACTION_TRACE:{field}")
 
 
 # ============================================================
@@ -447,9 +379,7 @@ for field in [
 print("\n16. ACTION EXPLANATION LINEAGE")
 print("-" * 60)
 
-action_explanation = traceability[
-    "action_explanation"
-]
+action_explanation = traceability["action_explanation"]
 
 for field in [
     "primary_reason",
@@ -466,15 +396,10 @@ for field in [
 
     present = field in action_explanation
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_ACTION_EXPLANATION_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_ACTION_EXPLANATION_TRACE:{field}")
 
 
 # ============================================================
@@ -495,15 +420,10 @@ for field in [
 
     present = field in scenario
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_SCENARIO_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_SCENARIO_TRACE:{field}")
 
 
 # ============================================================
@@ -513,9 +433,7 @@ for field in [
 print("\n18. SCENARIO EXPLANATION LINEAGE")
 print("-" * 60)
 
-scenario_explanation = traceability[
-    "scenario_explanation"
-]
+scenario_explanation = traceability["scenario_explanation"]
 
 for field in [
     "base",
@@ -529,15 +447,10 @@ for field in [
 
     present = field in scenario_explanation
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_SCENARIO_EXPLANATION_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_SCENARIO_EXPLANATION_TRACE:{field}")
 
 
 # ============================================================
@@ -563,15 +476,10 @@ for field in [
 
     present = field in convergence
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_CONVERGENCE_TRACE:{field}"
-        )
+        raise RuntimeError(f"MISSING_CONVERGENCE_TRACE:{field}")
 
 
 # ============================================================
@@ -597,15 +505,10 @@ for index, layer in enumerate(lineage_sequence, start=1):
 
     present = layer in traceability
 
-    print(
-        f"{index:02d}. {layer:30} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{index:02d}. {layer:30} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"TRACEABILITY_INCOMPLETE:{layer}"
-        )
+        raise RuntimeError(f"TRACEABILITY_INCOMPLETE:{layer}")
 
 print("TRACEABILITY COMPLETENESS : PASS")
 
@@ -620,14 +523,10 @@ print("-" * 60)
 conclusion = result["conclusion"]
 
 if not isinstance(conclusion, str):
-    raise RuntimeError(
-        "CONCLUSION_NOT_STRING"
-    )
+    raise RuntimeError("CONCLUSION_NOT_STRING")
 
 if not conclusion.strip():
-    raise RuntimeError(
-        "CONCLUSION_EMPTY"
-    )
+    raise RuntimeError("CONCLUSION_EMPTY")
 
 print("CONCLUSION : PASS")
 print("")
@@ -665,16 +564,10 @@ for field in expected_true:
     actual = governance.get(field)
     ok = actual is True
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=True)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
     if not ok:
-        raise RuntimeError(
-            f"GOVERNANCE_FAILURE:{field}"
-        )
+        raise RuntimeError(f"GOVERNANCE_FAILURE:{field}")
 
 
 for field in expected_false:
@@ -682,16 +575,10 @@ for field in expected_false:
     actual = governance.get(field)
     ok = actual is False
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=False)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
     if not ok:
-        raise RuntimeError(
-            f"GOVERNANCE_FAILURE:{field}"
-        )
+        raise RuntimeError(f"GOVERNANCE_FAILURE:{field}")
 
 
 # ============================================================

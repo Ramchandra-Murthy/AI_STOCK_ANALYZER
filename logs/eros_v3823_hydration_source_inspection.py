@@ -1,6 +1,6 @@
-﻿from pathlib import Path
-import ast
+﻿import ast
 import re
+from pathlib import Path
 
 adapter_path = Path(r".\services\eros_frontend_adapter.py")
 source = adapter_path.read_text(encoding="utf-8-sig")
@@ -116,9 +116,7 @@ target_names = [
     "_v382_result",
 ]
 
-audit_source = "\n".join(
-    lines[audit_method.lineno-1:audit_method.end_lineno]
-)
+audit_source = "\n".join(lines[audit_method.lineno - 1 : audit_method.end_lineno])
 
 for name in target_names:
     print()
@@ -127,8 +125,7 @@ for name in target_names:
     matches = []
 
     for index, line in enumerate(
-        lines[audit_method.lineno-1:audit_method.end_lineno],
-        start=audit_method.lineno
+        lines[audit_method.lineno - 1 : audit_method.end_lineno], start=audit_method.lineno
     ):
         if re.search(r"\b" + re.escape(name) + r"\b", line):
             matches.append((index, line))
@@ -162,8 +159,7 @@ for pattern in call_patterns:
     found = False
 
     for index, line in enumerate(
-        lines[audit_method.lineno-1:audit_method.end_lineno],
-        start=audit_method.lineno
+        lines[audit_method.lineno - 1 : audit_method.end_lineno], start=audit_method.lineno
     ):
         if pattern in line:
             print(f"{index:5} | {line}")
@@ -196,8 +192,7 @@ for marker in markers:
     found = False
 
     for index, line in enumerate(
-        lines[audit_method.lineno-1:audit_method.end_lineno],
-        start=audit_method.lineno
+        lines[audit_method.lineno - 1 : audit_method.end_lineno], start=audit_method.lineno
     ):
         if marker in line:
             print(f"{index:5} | {line}")
@@ -211,8 +206,7 @@ print("9. RETURN STATEMENT")
 print("-" * 70)
 
 for index, line in enumerate(
-    lines[audit_method.lineno-1:audit_method.end_lineno],
-    start=audit_method.lineno
+    lines[audit_method.lineno - 1 : audit_method.end_lineno], start=audit_method.lineno
 ):
     if re.search(r"\breturn\b", line):
         print(f"{index:5} | {line}")

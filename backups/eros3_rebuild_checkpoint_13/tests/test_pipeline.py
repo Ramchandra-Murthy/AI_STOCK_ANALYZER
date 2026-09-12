@@ -2,24 +2,24 @@
 
 import asyncio
 from typing import Any
-import pytest
 
-from core.events import InMemoryEventBus, EventDispatcher
-from services.fundamentals.provider import YahooFinanceProvider
-from services.fundamentals.normalizer import FinancialNormalizer
-from services.fundamentals.service import FundamentalsService
+from core.events import EventDispatcher, InMemoryEventBus
 from services.forecast.engine import ForecastEngine
 from services.forecast.service import ForecastService
-from services.valuation.engine import ValuationEngine
-from services.valuation.service import ValuationService
-from services.research.engine import ResearchEngine
-from services.research.service import ResearchService
+from services.fundamentals.normalizer import FinancialNormalizer
+from services.fundamentals.provider import YahooFinanceProvider
+from services.fundamentals.service import FundamentalsService
 from services.report.engine import ReportEngine
 from services.report.service import ReportService
+from services.research.engine import ResearchEngine
+from services.research.service import ResearchService
+from services.valuation.engine import ValuationEngine
+from services.valuation.service import ValuationService
 
 
 def test_end_to_end_pipeline() -> None:
     """Synchronous wrapper running async end-to-end integration test with foundational Fundamentals pipeline trigger."""
+
     async def run_pipeline() -> None:
         bus = InMemoryEventBus()
         dispatcher = EventDispatcher(bus)
@@ -71,7 +71,7 @@ def test_end_to_end_pipeline() -> None:
 
         try:
             await asyncio.wait_for(pipeline_completed.wait(), timeout=2.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise AssertionError("Pipeline execution timed out waiting for ReportCompleted event.")
 
         event_names = [e.name for e in events_received]

@@ -3,7 +3,6 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(r"D:\Users\User\Desktop\AI_STOCK_ANALYZER")
 ADAPTER = PROJECT_ROOT / "services" / "eros_frontend_adapter.py"
 
@@ -52,10 +51,7 @@ audit_method = None
 
 for node in adapter_class.body:
 
-    if (
-        isinstance(node, ast.FunctionDef)
-        and node.name == "decision_audit"
-    ):
+    if isinstance(node, ast.FunctionDef) and node.name == "decision_audit":
         audit_method = node
         break
 
@@ -69,18 +65,12 @@ print("LINE   :", audit_method.lineno)
 print("\n5. LOCATING RETURN STATEMENTS")
 print("-" * 70)
 
-returns = [
-    node
-    for node in ast.walk(audit_method)
-    if isinstance(node, ast.Return)
-]
+returns = [node for node in ast.walk(audit_method) if isinstance(node, ast.Return)]
 
 print("RETURN COUNT :", len(returns))
 
 if len(returns) != 1:
-    raise RuntimeError(
-        f"EXPECTED_ONE_RETURN_BUT_FOUND:{len(returns)}"
-    )
+    raise RuntimeError(f"EXPECTED_ONE_RETURN_BUT_FOUND:{len(returns)}")
 
 return_node = returns[0]
 
@@ -106,7 +96,7 @@ indent = " " * (
     - len(source.splitlines()[return_node.lineno - 1].lstrip())
 )
 
-block = f'''
+block = f"""
 {indent}# V3.8.2 AUDIT SCHEMA HYDRATION
 {indent}#
 {indent}# Preserve the existing V3.8 audit calculation.
@@ -289,7 +279,7 @@ block = f'''
 {indent}        "allow_optimization": False,
 {indent}    }},
 {indent}}}
-'''
+"""
 
 print("HYDRATION BLOCK LENGTH :", len(block))
 
@@ -306,9 +296,7 @@ for forbidden in [
     "place_order(",
 ]:
     if forbidden in block:
-        raise RuntimeError(
-            f"FORBIDDEN_OPERATION_IN_PATCH:{forbidden}"
-        )
+        raise RuntimeError(f"FORBIDDEN_OPERATION_IN_PATCH:{forbidden}")
 
 print("DATABASE WRITE OPERATIONS : NONE")
 print("BROKER OPERATIONS          : NONE")
@@ -326,11 +314,7 @@ lines.insert(return_index, block + "\n")
 
 patched = "".join(lines)
 
-ADAPTER.write_text(
-    patched,
-    encoding="utf-8",
-    newline=""
-)
+ADAPTER.write_text(patched, encoding="utf-8", newline="")
 
 print("SOURCE PATCH : WRITE PASS")
 
@@ -362,15 +346,10 @@ for label, token in checks:
 
     ok = token in patched
 
-    print(
-        f"{label:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{label:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"POST_PATCH_TOKEN_MISSING:{label}"
-        )
+        raise RuntimeError(f"POST_PATCH_TOKEN_MISSING:{label}")
 
 
 print("\n12. PATCH COMPLETE")

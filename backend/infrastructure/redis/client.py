@@ -3,12 +3,14 @@
 import logging
 import threading
 import time
-from typing import Optional, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class RedisClientStub:
     """Production-grade Redis connection and caching abstraction."""
+
     def __init__(self, host: str = "localhost", port: int = 6379, db: int = 0) -> None:
         self.host = host
         self.port = port
@@ -18,7 +20,7 @@ class RedisClientStub:
         self._lock = threading.RLock()
         logger.info("Initialized Redis client stub connected to %s:%s/db%s", host, port, db)
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         with self._lock:
             self._store[key] = value
             if ttl is not None:
@@ -27,7 +29,7 @@ class RedisClientStub:
                 self._expiry.pop(key, None)
             return True
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         with self._lock:
             expiry = self._expiry.get(key)
             if expiry is not None and time.monotonic() >= expiry:
@@ -49,7 +51,5 @@ class RedisClientStub:
             self._store.pop(f"lock:{lock_key}", None)
             return True
 
+
 redis_client = RedisClientStub()
-
-
-

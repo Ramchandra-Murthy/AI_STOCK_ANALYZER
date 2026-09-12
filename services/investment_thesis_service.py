@@ -13,11 +13,7 @@ def _clean_reasons(reasons):
     if not isinstance(reasons, (list, tuple)):
         return []
 
-    return [
-        str(reason).strip()
-        for reason in reasons
-        if reason is not None and str(reason).strip()
-    ]
+    return [str(reason).strip() for reason in reasons if reason is not None and str(reason).strip()]
 
 
 def generate_investment_thesis(
@@ -113,9 +109,7 @@ def generate_investment_thesis(
     strengths = []
 
     if fundamental_score >= 70:
-        strengths.append(
-            f"Fundamental score is strong at " f"{fundamental_score:.0f}/100."
-        )
+        strengths.append(f"Fundamental score is strong at " f"{fundamental_score:.0f}/100.")
 
     if technical_score >= 70:
         strengths.append(f"Technical score is strong at " f"{technical_score:.0f}/100.")
@@ -129,9 +123,7 @@ def generate_investment_thesis(
     revenue_growth = _safe_float(data.get("revenue_growth"))
 
     if revenue_growth is not None and revenue_growth > 0.10:
-        strengths.append(
-            f"Revenue growth is positive at " f"{revenue_growth * 100:.2f}%."
-        )
+        strengths.append(f"Revenue growth is positive at " f"{revenue_growth * 100:.2f}%.")
 
     operating_cash_flow = _safe_float(data.get("operating_cash_flow"))
 
@@ -170,9 +162,7 @@ def generate_investment_thesis(
         concerns.append(f"Technical score is weak at " f"{technical_score:.0f}/100.")
 
     if fundamental_score < 50:
-        concerns.append(
-            f"Fundamental score is weak at " f"{fundamental_score:.0f}/100."
-        )
+        concerns.append(f"Fundamental score is weak at " f"{fundamental_score:.0f}/100.")
 
     if ai_score < 50:
         concerns.append(f"AI model score is weak at " f"{ai_score:.0f}/100.")
@@ -180,9 +170,7 @@ def generate_investment_thesis(
     earnings_growth = _safe_float(data.get("earnings_growth"))
 
     if earnings_growth is not None and earnings_growth < 0:
-        concerns.append(
-            f"Earnings growth is negative at " f"{earnings_growth * 100:.2f}%."
-        )
+        concerns.append(f"Earnings growth is negative at " f"{earnings_growth * 100:.2f}%.")
 
     for reason in technical_reasons:
         lower_reason = reason.lower()
@@ -207,14 +195,12 @@ def generate_investment_thesis(
 
     if revenue_growth is not None and revenue_growth > 0.15:
         catalysts.append(
-            "Continued strong revenue growth could improve "
-            "future earnings performance."
+            "Continued strong revenue growth could improve " "future earnings performance."
         )
 
     if earnings_growth is not None and earnings_growth < 0:
         catalysts.append(
-            "A recovery in earnings growth could materially improve "
-            "the investment outlook."
+            "A recovery in earnings growth could materially improve " "the investment outlook."
         )
 
     if technical_score < 50:

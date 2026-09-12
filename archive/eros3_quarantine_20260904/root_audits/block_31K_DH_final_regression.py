@@ -38,12 +38,7 @@ print("PREFIX:", auth_router.prefix)
 print("ROUTE COUNT:", len(auth_router.routes))
 
 for r in auth_router.routes:
-    print(
-        r.path,
-        sorted(r.methods),
-        r.endpoint.__module__,
-        r.endpoint.__name__
-    )
+    print(r.path, sorted(r.methods), r.endpoint.__module__, r.endpoint.__name__)
 
 print()
 print("4. ROUTER IDENTITY")
@@ -61,29 +56,17 @@ from pathlib import Path
 
 main_text = Path("backend/main.py").read_text(encoding="utf-8")
 
-print(
-    "INLINE REGISTER:",
-    main_text.count('@app.post("/api/v1/auth/register"')
-)
+print("INLINE REGISTER:", main_text.count('@app.post("/api/v1/auth/register"'))
 
-print(
-    "INLINE LOGIN:",
-    main_text.count('@app.post("/api/v1/auth/login"')
-)
+print("INLINE LOGIN:", main_text.count('@app.post("/api/v1/auth/login"'))
 
-print(
-    "AUTH INCLUDE:",
-    main_text.count("app.include_router(auth_router)")
-)
+print("AUTH INCLUDE:", main_text.count("app.include_router(auth_router)"))
 
 print()
 print("6. JWT CONTRACT")
 print("-" * 70)
 
-token = create_access_token({
-    "sub": "dh_contract_user",
-    "role": "ANALYST"
-})
+token = create_access_token({"sub": "dh_contract_user", "role": "ANALYST"})
 
 decoded = decode_token(token)
 
@@ -106,24 +89,13 @@ email = username + "@example.com"
 
 register = client.post(
     "/api/v1/auth/register",
-    json={
-        "username": username,
-        "email": email,
-        "password": password,
-        "role": "VIEWER"
-    }
+    json={"username": username, "email": email, "password": password, "role": "VIEWER"},
 )
 
 print("REGISTER STATUS:", register.status_code)
 print("REGISTER BODY:", register.text)
 
-login = client.post(
-    "/api/v1/auth/login",
-    json={
-        "username": username,
-        "password": password
-    }
-)
+login = client.post("/api/v1/auth/login", json={"username": username, "password": password})
 
 print("LOGIN STATUS:", login.status_code)
 print("LOGIN BODY:", login.text)
@@ -151,37 +123,16 @@ unauth_tests = [
             "eps": 100,
             "growth_rate": 0.10,
             "discount_rate": 0.12,
-            "current_price": 2500
-        }
+            "current_price": 2500,
+        },
     ),
-    (
-        "ADMIN_QUEUES",
-        "GET",
-        "/api/v1/admin/queues",
-        None
-    ),
-    (
-        "ADMIN_TASKS",
-        "GET",
-        "/api/v1/admin/tasks",
-        None
-    ),
-    (
-        "TASK_SUBMIT",
-        "POST",
-        "/api/v1/tasks/submit",
-        {
-            "symbol": "RELIANCE.NS"
-        }
-    )
+    ("ADMIN_QUEUES", "GET", "/api/v1/admin/queues", None),
+    ("ADMIN_TASKS", "GET", "/api/v1/admin/tasks", None),
+    ("TASK_SUBMIT", "POST", "/api/v1/tasks/submit", {"symbol": "RELIANCE.NS"}),
 ]
 
 for name, method, path, body in unauth_tests:
-    response = client.request(
-        method,
-        path,
-        json=body
-    )
+    response = client.request(method, path, json=body)
 
     print(name, "->", response.status_code)
 
@@ -191,16 +142,14 @@ print("-" * 70)
 
 response = client.post(
     "/api/v1/valuation",
-    headers={
-        "Authorization": "Bearer " + token
-    },
+    headers={"Authorization": "Bearer " + token},
     json={
         "symbol": "RELIANCE.NS",
         "eps": 100,
         "growth_rate": 0.10,
         "discount_rate": 0.12,
-        "current_price": 2500
-    }
+        "current_price": 2500,
+    },
 )
 
 print("STATUS:", response.status_code)
@@ -219,10 +168,7 @@ business = [
 ]
 
 for path in business:
-    matches = [
-        r for r in app.routes
-        if getattr(r, "path", None) == path
-    ]
+    matches = [r for r in app.routes if getattr(r, "path", None) == path]
     print(path, "TOP LEVEL MATCHES:", len(matches))
 
 print()

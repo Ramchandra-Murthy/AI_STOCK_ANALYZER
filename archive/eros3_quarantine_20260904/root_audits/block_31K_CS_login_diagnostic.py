@@ -27,11 +27,7 @@ try:
     try:
         r = client.post(
             "/api/v1/auth/register",
-            json={
-                "username": username,
-                "email": email,
-                "password": password
-            }
+            json={"username": username, "email": email, "password": password},
         )
 
         print("STATUS:", r.status_code)
@@ -45,13 +41,7 @@ try:
     print("-" * 70)
 
     try:
-        r = client.post(
-            "/api/v1/auth/login",
-            json={
-                "username": username,
-                "password": password
-            }
-        )
+        r = client.post("/api/v1/auth/login", json={"username": username, "password": password})
 
         print("STATUS:", r.status_code)
         print("CONTENT-TYPE:", r.headers.get("content-type"))
@@ -70,7 +60,7 @@ try:
                         "token",
                         "jwt",
                         "refresh_token",
-                        "token_type"
+                        "token_type",
                     }:
                         if key.lower() in {"access_token", "token", "jwt", "refresh_token"}:
                             print(
@@ -99,12 +89,7 @@ try:
 
         for i, line in enumerate(source.splitlines(), 1):
             low = line.lower()
-            if (
-                "access_token" in low
-                or "token_type" in low
-                or "login" in low
-                or "return" in low
-            ):
+            if "access_token" in low or "token_type" in low or "login" in low or "return" in low:
                 print(f"{i}: {line}")
 
     except Exception as exc:

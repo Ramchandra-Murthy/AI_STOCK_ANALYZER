@@ -29,13 +29,13 @@ All certificate IDs are deterministic for identical evidence/policy.
 
 from __future__ import annotations
 
-from copy import deepcopy
-from datetime import datetime, timezone
 import hashlib
 import json
 import math
-from typing import Any, Dict, List, Mapping, Optional
-
+from collections.abc import Mapping
+from copy import deepcopy
+from datetime import UTC, datetime
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-95"
 BLOCK_ID = "95"
@@ -49,7 +49,7 @@ GATE_PREFIX = "EROS95-STRESS-GATE-"
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _text(value: Any, default: str = "") -> str:
@@ -59,7 +59,7 @@ def _text(value: Any, default: str = "") -> str:
     return text if text else default
 
 
-def _number(value: Any, default: Optional[float] = None) -> Optional[float]:
+def _number(value: Any, default: float | None = None) -> float | None:
     try:
         result = float(value)
     except (TypeError, ValueError):
@@ -124,10 +124,7 @@ def _contains_forbidden_content(value: Any) -> bool:
                     return True
 
             # Reject explicit execution-oriented keys.
-            if any(
-                token in key_text
-                for token in forbidden_tokens
-            ):
+            if any(token in key_text for token in forbidden_tokens):
                 return True
 
             # Recursively inspect nested content.
@@ -137,20 +134,15 @@ def _contains_forbidden_content(value: Any) -> bool:
         return False
 
     if isinstance(value, (list, tuple, set)):
-        return any(
-            _contains_forbidden_content(item)
-            for item in value
-        )
+        return any(_contains_forbidden_content(item) for item in value)
 
     if isinstance(value, str):
         lowered = value.lower()
 
-        return any(
-            token in lowered
-            for token in forbidden_tokens
-        )
+        return any(token in lowered for token in forbidden_tokens)
 
     return False
+
 
 class EROSBlock95StressEvidenceGate:
     """
@@ -171,7 +163,7 @@ class EROSBlock95StressEvidenceGate:
 
     def __init__(self) -> None:
         self.engine_version = ENGINE_VERSION
-        self._certificates: Dict[str, Dict[str, Any]] = {}
+        self._certificates: dict[str, dict[str, Any]] = {}
 
     # --------------------------------------------------------
     # Public API: gate
@@ -181,8 +173,8 @@ class EROSBlock95StressEvidenceGate:
         self,
         *,
         stress_certificate: Mapping[str, Any],
-        policy: Optional[Mapping[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        policy: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Validate Block 94 stress evidence and return a downstream gate result.
         """
@@ -196,13 +188,9 @@ class EROSBlock95StressEvidenceGate:
         if validation["status"] != STATUS_PASS:
             return validation
 
-        evidence_id = _text(
-            stress_certificate.get("certificate_id")
-        )
+        evidence_id = _text(stress_certificate.get("certificate_id"))
 
-        scenario_results = _deepcopy(
-            stress_certificate.get("scenario_results", [])
-        )
+        scenario_results = _deepcopy(stress_certificate.get("scenario_results", []))
 
         gate_payload = {
             "block_id": BLOCK_ID,
@@ -213,10 +201,7 @@ class EROSBlock95StressEvidenceGate:
             "scenario_results": scenario_results,
         }
 
-        gate_id = (
-            f"{GATE_PREFIX}"
-            f"{_hash_payload(gate_payload)[:20]}"
-        )
+        gate_id = f"{GATE_PREFIX}" f"{_hash_payload(gate_payload)[:20]}"
 
         if gate_id in self._certificates:
             return {
@@ -233,18 +218,13 @@ class EROSBlock95StressEvidenceGate:
             "block_id": BLOCK_ID,
             "engine_version": self.engine_version,
             "source_block": "94",
-            "source_engine_version": _text(
-                stress_certificate.get("engine_version")
-            ),
+            "source_engine_version": _text(stress_certificate.get("engine_version")),
             "source_certificate_id": evidence_id,
             "created_at": _now_iso(),
             "scenario_count": len(scenario_results),
             "scenario_results": _deepcopy(scenario_results),
             "scenario_ids": [
-                _text(
-                    item.get("scenario", {}).get("scenario_id")
-                )
-                for item in scenario_results
+                _text(item.get("scenario", {}).get("scenario_id")) for item in scenario_results
             ],
             "policy": _deepcopy(normalized_policy),
             "evidence_status": STATUS_CERTIFIED,
@@ -267,8 +247,8 @@ class EROSBlock95StressEvidenceGate:
         self,
         *,
         stress_certificate: Mapping[str, Any],
-        policy: Optional[Mapping[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        policy: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Compatibility-oriented public certification API.
 
@@ -284,7 +264,7 @@ class EROSBlock95StressEvidenceGate:
     # Public API: snapshot
     # --------------------------------------------------------
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """
         Return an isolated snapshot of the Block 95 certificate store.
         """
@@ -300,8 +280,8 @@ class EROSBlock95StressEvidenceGate:
 
     def _normalize_policy(
         self,
-        policy: Optional[Mapping[str, Any]],
-    ) -> Dict[str, Any]:
+        policy: Mapping[str, Any] | None,
+    ) -> dict[str, Any]:
         source = dict(policy) if isinstance(policy, Mapping) else {}
 
         min_scenarios = source.get("min_scenarios", 1)
@@ -315,7 +295,7 @@ class EROSBlock95StressEvidenceGate:
         if min_scenarios < 1:
             min_scenarios = 1
 
-        normalized: Dict[str, Any] = {
+        normalized: dict[str, Any] = {
             "min_scenarios": min_scenarios,
         }
 
@@ -337,7 +317,7 @@ class EROSBlock95StressEvidenceGate:
         *,
         stress_certificate: Mapping[str, Any],
         policy: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if not isinstance(stress_certificate, Mapping):
             return self._blocked("MALFORMED_STRESS_EVIDENCE")
 
@@ -353,9 +333,7 @@ class EROSBlock95StressEvidenceGate:
         if _text(stress_certificate.get("block_id")) != "EROS-BLOCK-94":
             return self._blocked("INVALID_SOURCE_BLOCK")
 
-        certificate_id = _text(
-            stress_certificate.get("certificate_id")
-        )
+        certificate_id = _text(stress_certificate.get("certificate_id"))
 
         if not certificate_id:
             return self._blocked("MISSING_STRESS_CERTIFICATE_ID")
@@ -363,9 +341,7 @@ class EROSBlock95StressEvidenceGate:
         if not certificate_id.startswith("EROS94-STRESS-"):
             return self._blocked("INVALID_STRESS_CERTIFICATE_ID")
 
-        engine_version = _text(
-            stress_certificate.get("engine_version")
-        )
+        engine_version = _text(stress_certificate.get("engine_version"))
 
         if engine_version != "94.1.0":
             return self._blocked("INVALID_STRESS_ENGINE_VERSION")
@@ -380,7 +356,7 @@ class EROSBlock95StressEvidenceGate:
         if len(scenario_results) < min_scenarios:
             return self._blocked("INSUFFICIENT_SCENARIO_EVIDENCE")
 
-        scenario_ids: List[str] = []
+        scenario_ids: list[str] = []
 
         for item in scenario_results:
             if not isinstance(item, Mapping):
@@ -404,50 +380,34 @@ class EROSBlock95StressEvidenceGate:
 
             scenario_ids.append(scenario_id)
 
-            scenario_contribution = item.get(
-                "scenario_contribution"
-            )
+            scenario_contribution = item.get("scenario_contribution")
 
             # Block 94 emits scenario contribution as a list of
             # position-level contribution records. Mapping is also
             # accepted for compatible upstream evidence contracts.
             if isinstance(scenario_contribution, Mapping):
                 if not scenario_contribution:
-                    return self._blocked(
-                        "MISSING_SCENARIO_CONTRIBUTION"
-                    )
+                    return self._blocked("MISSING_SCENARIO_CONTRIBUTION")
             elif isinstance(
                 scenario_contribution,
                 (list, tuple),
             ):
                 if not scenario_contribution:
-                    return self._blocked(
-                        "MISSING_SCENARIO_CONTRIBUTION"
-                    )
+                    return self._blocked("MISSING_SCENARIO_CONTRIBUTION")
             else:
-                return self._blocked(
-                    "MISSING_SCENARIO_CONTRIBUTION"
-                )
+                return self._blocked("MISSING_SCENARIO_CONTRIBUTION")
 
-        max_drawdown = policy.get(
-            "max_stressed_drawdown_pct"
-        )
+        max_drawdown = policy.get("max_stressed_drawdown_pct")
 
         if max_drawdown is not None:
             for item in scenario_results:
-                drawdown = _number(
-                    item.get("stressed_drawdown_pct")
-                )
+                drawdown = _number(item.get("stressed_drawdown_pct"))
 
                 if drawdown is None:
-                    return self._blocked(
-                        "INVALID_STRESSED_DRAWDOWN"
-                    )
+                    return self._blocked("INVALID_STRESSED_DRAWDOWN")
 
                 if drawdown > float(max_drawdown):
-                    return self._blocked(
-                        "STRESS_DRAWDOWN_POLICY_BREACH"
-                    )
+                    return self._blocked("STRESS_DRAWDOWN_POLICY_BREACH")
 
         return {"status": STATUS_PASS}
 
@@ -455,7 +415,7 @@ class EROSBlock95StressEvidenceGate:
     # Helpers
     # --------------------------------------------------------
 
-    def _blocked(self, reason: str) -> Dict[str, Any]:
+    def _blocked(self, reason: str) -> dict[str, Any]:
         return {
             "status": STATUS_BLOCKED,
             "gate_status": STATUS_BLOCKED,
@@ -468,12 +428,3 @@ class EROSBlock95StressEvidenceGate:
             "broker_submission": False,
             "live_order_submission": False,
         }
-
-
-
-
-
-
-
-
-

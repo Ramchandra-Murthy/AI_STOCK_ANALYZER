@@ -124,7 +124,10 @@ class InvestmentDecisionOrchestrator:
         conviction_factor = max(0.0, min(1.0, ai_score.composite_score / 100.0))
         if action in {"BUY", "STRONG BUY"} and ai_score.composite_score >= 60:
             target_weight = round(
-                min(self.max_position_limit, self.max_position_limit * conviction_factor * risk_factor),
+                min(
+                    self.max_position_limit,
+                    self.max_position_limit * conviction_factor * risk_factor,
+                ),
                 4,
             )
         elif action in {"SELL", "STRONG SELL"}:
@@ -147,12 +150,14 @@ class InvestmentDecisionOrchestrator:
         if incremental_weight != 0 and notional_trade_value > 0:
             order_action = "BUY" if incremental_weight > 0 else "SELL"
             execution_orders = InstitutionalExecutionEngine.generate_orders(
-                [{
-                    "symbol": symbol,
-                    "action": order_action,
-                    "trade_weight": abs(incremental_weight),
-                    "current_price": assumed_price,
-                }],
+                [
+                    {
+                        "symbol": symbol,
+                        "action": order_action,
+                        "trade_weight": abs(incremental_weight),
+                        "current_price": assumed_price,
+                    }
+                ],
                 execution_policy="VWAP-oriented",
                 aum_baseline=self.aum_baseline,
             )

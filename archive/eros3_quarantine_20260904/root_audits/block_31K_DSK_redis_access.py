@@ -47,12 +47,7 @@ print()
 print("3. TASK_CONTROL REDIS / IDEMPOTENCY CODE")
 
 for n, line in enumerate(lines, 1):
-    if any(x in line.lower() for x in [
-        "redis",
-        "idempotency",
-        "request_id",
-        "_get_redis"
-    ]):
+    if any(x in line.lower() for x in ["redis", "idempotency", "request_id", "_get_redis"]):
         start = max(1, n - 5)
         end = min(len(lines), n + 8)
 

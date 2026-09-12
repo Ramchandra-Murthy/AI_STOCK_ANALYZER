@@ -1,17 +1,17 @@
-from pathlib import Path
-import subprocess
 import importlib.util
+import subprocess
+from pathlib import Path
 
-SOURCE = Path(
-    r"services\quantitative\block100_paper_execution_fill_gate.py"
-)
+SOURCE = Path(r"services\quantitative\block100_paper_execution_fill_gate.py")
 
 output = []
+
 
 def p(text=""):
     text = str(text)
     print(text)
     output.append(text)
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 100 READ-ONLY RUNTIME SAFETY VERIFICATION")
@@ -176,9 +176,7 @@ if blocked is not None:
         p(f"{key:<28}: {actual!r}")
 
         if actual != expected:
-            failures.append(
-                f"{key}: expected {expected!r}, got {actual!r}"
-            )
+            failures.append(f"{key}: expected {expected!r}, got {actual!r}")
 
     p()
 
@@ -269,4 +267,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

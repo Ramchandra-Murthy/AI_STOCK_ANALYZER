@@ -1,5 +1,6 @@
 ﻿from services.market_data.pipeline_integration import FullyIntegratedMarketPipeline
 
+
 def test_block23h_confidence_propagation():
     pipeline = FullyIntegratedMarketPipeline(policy_profile="Institutional")
     packet, decision, result, trace = pipeline.evaluate_stock_securely("RELIANCE.NS")

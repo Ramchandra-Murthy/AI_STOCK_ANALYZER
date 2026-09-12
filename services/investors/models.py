@@ -1,7 +1,8 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Any
+
 
 @dataclass(frozen=True)
 class InvestorScoreResult:
@@ -9,5 +10,5 @@ class InvestorScoreResult:
     investor_name: str
     score: float
     recommendation: str
-    rationale: Dict[str, Any]
-    metadata: Dict[str, Any]
+    rationale: dict[str, Any]
+    metadata: dict[str, Any]

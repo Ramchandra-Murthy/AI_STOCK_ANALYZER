@@ -1,8 +1,7 @@
 ﻿from __future__ import annotations
 
-import pytest
 from api.app import EROSAPIApp
-from api.schemas import ApiResponse
+
 
 def test_enterprise_api_service_platform() -> None:
     # Test Health Endpoint

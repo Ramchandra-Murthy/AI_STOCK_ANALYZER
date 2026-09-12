@@ -1,19 +1,22 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Dict, Any
-from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
+
+from services.fundamentals.canonical_models import CanonicalBalanceSheet, CanonicalIncomeStatement
 from services.ratios.models import RatioCategoryResult
 
 logger = logging.getLogger(__name__)
+
 
 class EfficiencyRatioEngine:
     """Computes asset turnover, working capital efficiency, and cash conversion cycle metrics."""
 
     @staticmethod
-    def compute(inc: CanonicalIncomeStatement, bs: CanonicalBalanceSheet, symbol: str = "UNKNOWN") -> RatioCategoryResult:
+    def compute(
+        inc: CanonicalIncomeStatement, bs: CanonicalBalanceSheet, symbol: str = "UNKNOWN"
+    ) -> RatioCategoryResult:
         logger.info("Computing efficiency ratios for %s (%s)", symbol, inc.period)
-        
+
         rev = max(inc.revenue, 1.0)
         cogs = max(inc.cost_of_revenue, 1.0)
         assets = max(bs.total_assets, 1.0)
@@ -38,7 +41,7 @@ class EfficiencyRatioEngine:
             "receivable_days": receivable_days,
             "payable_turnover": payable_turnover,
             "payable_days": payable_days,
-            "cash_conversion_cycle": cash_conversion_cycle
+            "cash_conversion_cycle": cash_conversion_cycle,
         }
 
         return RatioCategoryResult(
@@ -46,5 +49,5 @@ class EfficiencyRatioEngine:
             symbol=symbol,
             period=inc.period,
             metrics=metrics,
-            metadata={"version": "7.0", "standard": "CFA/McKinsey"}
+            metadata={"version": "7.0", "standard": "CFA/McKinsey"},
         )

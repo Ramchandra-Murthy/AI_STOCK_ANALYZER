@@ -31,6 +31,7 @@ print("KEY:", key)
 
 barrier = threading.Barrier(10)
 
+
 def submit_one(index):
     barrier.wait()
 
@@ -47,14 +48,12 @@ def submit_one(index):
 
     return index, result
 
+
 print()
 print("4. STARTING 10 SIMULTANEOUS SUBMISSIONS")
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    futures = [
-        executor.submit(submit_one, i)
-        for i in range(10)
-    ]
+    futures = [executor.submit(submit_one, i) for i in range(10)]
 
     results = [future.result() for future in futures]
 

@@ -35,15 +35,7 @@ for r in task_router.routes:
     full_path = r.path
     task_routes.append((full_path, methods, r.name))
 
-    print(
-        "ROUTER |",
-        full_path,
-        "|",
-        methods,
-        "|",
-        "NAME=",
-        r.name
-    )
+    print("ROUTER |", full_path, "|", methods, "|", "NAME=", r.name)
 
 print("TASK ROUTES:", len(task_routes))
 
@@ -60,15 +52,7 @@ for r in m.app.routes:
         methods = sorted(r.methods or [])
         app_task_routes.append((r.path, methods, r.name))
 
-        print(
-            "APP |",
-            r.path,
-            "|",
-            methods,
-            "|",
-            "NAME=",
-            r.name
-        )
+        print("APP |", r.path, "|", methods, "|", "NAME=", r.name)
 
 print("APP TASK ROUTES:", len(app_task_routes))
 
@@ -105,10 +89,7 @@ for path, method in targets:
         print("MISSING |", method, path)
         target_pass = False
 
-print(
-    "TARGET ROUTES:",
-    "PASS" if target_pass else "FAIL"
-)
+print("TARGET ROUTES:", "PASS" if target_pass else "FAIL")
 
 # --------------------------------------------------
 # 5. OPENAPI RECONCILIATION
@@ -136,10 +117,7 @@ for path, method in targets:
         print("OPENAPI MISSING |", method, path)
         openapi_pass = False
 
-print(
-    "OPENAPI TARGETS:",
-    "PASS" if openapi_pass else "FAIL"
-)
+print("OPENAPI TARGETS:", "PASS" if openapi_pass else "FAIL")
 
 # --------------------------------------------------
 # 6. SECURITY SCHEMA
@@ -147,11 +125,7 @@ print(
 print("\n6. OPENAPI SECURITY SCHEMA")
 print("-" * 50)
 
-security_schemes = (
-    openapi
-    .get("components", {})
-    .get("securitySchemes", {})
-)
+security_schemes = openapi.get("components", {}).get("securitySchemes", {})
 
 print("SECURITY SCHEMES:", security_schemes)
 
@@ -191,22 +165,12 @@ for method, path, kwargs in security_tests:
     else:
         response = client.get(path, **kwargs)
 
-    print(
-        method,
-        path,
-        "->",
-        response.status_code,
-        "|",
-        response.text[:200]
-    )
+    print(method, path, "->", response.status_code, "|", response.text[:200])
 
     if response.status_code != 401:
         security_pass = False
 
-print(
-    "TASK AUTH GATE:",
-    "PASS" if security_pass else "FAIL"
-)
+print("TASK AUTH GATE:", "PASS" if security_pass else "FAIL")
 
 # --------------------------------------------------
 # 8. BUSINESS SECURITY
@@ -229,20 +193,12 @@ for method, path in business_tests:
     else:
         response = client.get(path)
 
-    print(
-        method,
-        path,
-        "->",
-        response.status_code
-    )
+    print(method, path, "->", response.status_code)
 
     if response.status_code != 401:
         business_security_pass = False
 
-print(
-    "BUSINESS AUTH GATE:",
-    "PASS" if business_security_pass else "FAIL"
-)
+print("BUSINESS AUTH GATE:", "PASS" if business_security_pass else "FAIL")
 
 # --------------------------------------------------
 # 9. SETTINGS
@@ -253,26 +209,19 @@ print("-" * 50)
 print("ENVIRONMENT:", settings.ENVIRONMENT)
 print("AUTH_ENABLED:", settings.AUTH_ENABLED)
 print("JWT_ALGORITHM:", settings.JWT_ALGORITHM)
-print(
-    "ACCESS_TOKEN_EXPIRE_MINUTES:",
-    settings.ACCESS_TOKEN_EXPIRE_MINUTES
-)
-print(
-    "JWT_SECRET CONFIGURED:",
-    bool(settings.JWT_SECRET or settings.SECRET_KEY)
+print("ACCESS_TOKEN_EXPIRE_MINUTES:", settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+print("JWT_SECRET CONFIGURED:", bool(settings.JWT_SECRET or settings.SECRET_KEY))
+
+settings_pass = all(
+    [
+        settings.AUTH_ENABLED,
+        bool(settings.JWT_SECRET or settings.SECRET_KEY),
+        bool(settings.JWT_ALGORITHM),
+        settings.ACCESS_TOKEN_EXPIRE_MINUTES > 0,
+    ]
 )
 
-settings_pass = all([
-    settings.AUTH_ENABLED,
-    bool(settings.JWT_SECRET or settings.SECRET_KEY),
-    bool(settings.JWT_ALGORITHM),
-    settings.ACCESS_TOKEN_EXPIRE_MINUTES > 0,
-])
-
-print(
-    "SETTINGS:",
-    "PASS" if settings_pass else "FAIL"
-)
+print("SETTINGS:", "PASS" if settings_pass else "FAIL")
 
 # --------------------------------------------------
 # 10. FINAL RECONCILIATION
@@ -282,46 +231,32 @@ print("-" * 50)
 
 print("TASK ROUTER ROUTES:", len(task_routes))
 print("APP TASK ROUTES:", len(app_task_routes))
-print("OPENAPI TASK ROUTES:",
-      sum(
-          1
-          for p in paths
-          if p.startswith("/api/v1/tasks")
-      ))
+print("OPENAPI TASK ROUTES:", sum(1 for p in paths if p.startswith("/api/v1/tasks")))
 
-final_pass = all([
-    target_pass,
-    openapi_pass,
-    security_pass,
-    business_security_pass,
-    settings_pass,
-])
+final_pass = all(
+    [
+        target_pass,
+        openapi_pass,
+        security_pass,
+        business_security_pass,
+        settings_pass,
+    ]
+)
 
 print("\n" + "=" * 50)
 print("FINAL SECURITY GATE")
 print("=" * 50)
 
 print("APPLICATION IMPORT: PASS")
-print("TASK ROUTE REGISTRATION:",
-      "PASS" if target_pass else "FAIL")
-print("OPENAPI ROUTES:",
-      "PASS" if openapi_pass else "FAIL")
-print("TASK AUTH:",
-      "PASS" if security_pass else "FAIL")
-print("BUSINESS AUTH:",
-      "PASS" if business_security_pass else "FAIL")
-print("SETTINGS:",
-      "PASS" if settings_pass else "FAIL")
+print("TASK ROUTE REGISTRATION:", "PASS" if target_pass else "FAIL")
+print("OPENAPI ROUTES:", "PASS" if openapi_pass else "FAIL")
+print("TASK AUTH:", "PASS" if security_pass else "FAIL")
+print("BUSINESS AUTH:", "PASS" if business_security_pass else "FAIL")
+print("SETTINGS:", "PASS" if settings_pass else "FAIL")
 
-print(
-    "OVERALL ROUTE/SECURITY GATE:",
-    "PASS" if final_pass else "FAIL"
-)
+print("OVERALL ROUTE/SECURITY GATE:", "PASS" if final_pass else "FAIL")
 
-print(
-    "PRODUCTION STATUS:",
-    "READY" if final_pass else "BLOCKED"
-)
+print("PRODUCTION STATUS:", "READY" if final_pass else "BLOCKED")
 
 print("=" * 50)
 print("BLOCK 31K-CN COMPLETE")

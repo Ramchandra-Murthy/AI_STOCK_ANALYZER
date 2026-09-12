@@ -1,21 +1,22 @@
 from __future__ import annotations
-from backend.exceptions import ValidationError
+
 import logging
 import os
 import time
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict
-from backend.tasks.celery_app import celery_app, celery_instance
+from datetime import UTC, datetime
+from typing import Any
+
 from backend.infrastructure.redis.client import redis_client as shared_redis_client
+from backend.tasks.celery_app import celery_app, celery_instance
 from backend.tasks.task_executor import (
     celery_forecast_wrapper,
-    celery_valuation_wrapper,
     celery_report_wrapper,
+    celery_valuation_wrapper,
 )
-from backend.tasks.task_context import TaskContext
 
 logger = logging.getLogger(__name__)
+
 
 class TaskControlService:
     """
@@ -25,11 +26,10 @@ class TaskControlService:
     def __init__(self) -> None:
         self._app = celery_app
         self._real_celery = (
-            os.getenv("USE_REAL_CELERY", "false").lower() == "true"
-            and celery_instance is not None
+            os.getenv("USE_REAL_CELERY", "false").lower() == "true" and celery_instance is not None
         )
-        self._mock_tasks: Dict[str, Dict[str, Any]] = {}
-        self._task_observability: Dict[str, Dict[str, Any]] = {}
+        self._mock_tasks: dict[str, dict[str, Any]] = {}
+        self._task_observability: dict[str, dict[str, Any]] = {}
         self._synchronize_task_registry()
 
     @property
@@ -38,11 +38,7 @@ class TaskControlService:
 
     def _synchronize_task_registry(self) -> None:
         try:
-            target_app = (
-                self._app.app
-                if hasattr(self._app, "app")
-                else self._app
-            )
+            target_app = self._app.app if hasattr(self._app, "app") else self._app
 
             if "forecast.execute" not in target_app.tasks:
                 target_app.task(
@@ -79,8 +75,8 @@ class TaskControlService:
         self,
         task_name: str,
         user: str = "system",
-        payload: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+        payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
 
         started_at = time.perf_counter()
         payload = dict(payload or {})
@@ -121,9 +117,7 @@ class TaskControlService:
         if request_id:
             redis_conn = shared_redis_client
             idempotency_key = f"eros:idempotency:{request_id}"
-            idempotency_lock_key = (
-                f"eros:idempotency-lock:{request_id}"
-            )
+            idempotency_lock_key = f"eros:idempotency-lock:{request_id}"
 
             # --------------------------------------------------------
             # WAIT FOR LOCK
@@ -151,10 +145,7 @@ class TaskControlService:
                     break
 
                 if time.monotonic() >= lock_deadline:
-                    raise TimeoutError(
-                        f"Timed out waiting for idempotency lock: "
-                        f"{request_id}"
-                    )
+                    raise TimeoutError(f"Timed out waiting for idempotency lock: " f"{request_id}")
 
                 time.sleep(0.01)
 
@@ -166,20 +157,14 @@ class TaskControlService:
                     existing_task_id = redis_conn.get(idempotency_key)
 
                     if isinstance(existing_task_id, bytes):
-                        existing_task_id = existing_task_id.decode(
-                            "utf-8"
-                        )
+                        existing_task_id = existing_task_id.decode("utf-8")
 
                     # Another caller already created the task.
                     # Return the existing task instead of dispatching
                     # another one.
                     if existing_task_id:
-                        existing_status = self.get_task_status(
-                            existing_task_id
-                        )
-                        existing_result = self.get_task_result(
-                            existing_task_id
-                        )
+                        existing_status = self.get_task_status(existing_task_id)
+                        existing_result = self.get_task_result(existing_task_id)
 
                         replay_response = {
                             "task_id": existing_task_id,
@@ -200,9 +185,7 @@ class TaskControlService:
                             "request_id": request_id,
                         }
 
-                        redis_conn.release_lock(
-                            idempotency_lock_key
-                        )
+                        redis_conn.release_lock(idempotency_lock_key)
                         idempotency_lock_acquired = False
 
                         return replay_response
@@ -215,9 +198,7 @@ class TaskControlService:
                     # the lock.
                     if idempotency_lock_acquired:
                         try:
-                            redis_conn.release_lock(
-                                idempotency_lock_key
-                            )
+                            redis_conn.release_lock(idempotency_lock_key)
                         except Exception:
                             pass
 
@@ -231,7 +212,7 @@ class TaskControlService:
         if request_id:
             payload["request_id"] = request_id
 
-        submitted_at_dt = datetime.now(timezone.utc).isoformat()
+        submitted_at_dt = datetime.now(UTC).isoformat()
         submitted_at_ts = time.time()
 
         telemetry = {
@@ -284,15 +265,13 @@ class TaskControlService:
         if request_id and redis_conn is not None:
             if idempotency_lock_acquired:
                 try:
-                    redis_conn.release_lock(
-                        idempotency_lock_key
-                    )
+                    redis_conn.release_lock(idempotency_lock_key)
                 finally:
                     idempotency_lock_acquired = False
         # The task is asynchronous in production. Do not fabricate a
         # completed business result at submission time: the authoritative
         # result comes from Celery via get_task_result().
-        execution_result: Dict[str, Any] = {
+        execution_result: dict[str, Any] = {
             "status": "QUEUED",
             "task_id": task_id,
             "task_name": task_name,
@@ -304,32 +283,18 @@ class TaskControlService:
             "task_id": task_id,
             "task_name": task_name,
             "user": user,
-            "status": (
-                "QUEUED"
-                if self._real_celery
-                else "SUCCESS"
-            ),
+            "status": ("QUEUED" if self._real_celery else "SUCCESS"),
             "result": execution_result,
             "submitted_at": submitted_at_ts,
-            "completed_at": (
-                time.time()
-                if not self._real_celery
-                else None
-            ),
-            "execution_time_ms": (
-                dispatch_time_ms
-                if not self._real_celery
-                else 0.0
-            ),
+            "completed_at": (time.time() if not self._real_celery else None),
+            "execution_time_ms": (dispatch_time_ms if not self._real_celery else 0.0),
         }
 
         if not self._real_celery:
             telemetry["execution_time_ms"] = dispatch_time_ms
             telemetry["ready"] = True
             telemetry["status"] = "SUCCESS"
-            telemetry["completed_at"] = (
-                datetime.now(timezone.utc).isoformat()
-            )
+            telemetry["completed_at"] = datetime.now(UTC).isoformat()
 
         return {
             "task_id": task_id,
@@ -342,7 +307,7 @@ class TaskControlService:
     def get_task_status(
         self,
         task_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         if not task_id:
             raise ValueError("task_id is required")
@@ -360,9 +325,7 @@ class TaskControlService:
                 "task_id": task_id,
                 "status": telemetry.get("status", "SUCCESS"),
                 "ready": True,
-                "execution_time_ms": telemetry.get(
-                    "execution_time_ms"
-                ),
+                "execution_time_ms": telemetry.get("execution_time_ms"),
             }
 
         from celery.result import AsyncResult
@@ -379,11 +342,7 @@ class TaskControlService:
 
         # Harden unknown Celery task IDs.
         # Celery reports unknown IDs as PENDING when no result exists.
-        if (
-            status_value == "PENDING"
-            and meta is None
-            and telemetry is None
-        ):
+        if status_value == "PENDING" and meta is None and telemetry is None:
             return {
                 "task_id": task_id,
                 "status": "NOT_FOUND",
@@ -421,10 +380,7 @@ class TaskControlService:
                 if submitted_at:
                     try:
                         submitted = datetime.fromisoformat(submitted_at)
-                        elapsed = (
-                            datetime.now(timezone.utc)
-                            - submitted
-                        ).total_seconds() * 1000
+                        elapsed = (datetime.now(UTC) - submitted).total_seconds() * 1000
                         telemetry["execution_time_ms"] = round(elapsed, 3)
                     except Exception:
                         pass
@@ -433,15 +389,13 @@ class TaskControlService:
             "task_id": task_id,
             "status": status_value,
             "ready": ready,
-            "execution_time_ms": telemetry.get(
-                "execution_time_ms"
-            ),
+            "execution_time_ms": telemetry.get("execution_time_ms"),
         }
 
     def get_task_result(
         self,
         task_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         if not task_id:
             raise ValueError("task_id is required")
@@ -516,15 +470,9 @@ class TaskControlService:
     def get_registered_tasks(self) -> list[str]:
         if not self._app.tasks:
             self._synchronize_task_registry()
-        return sorted(
-            [
-                key
-                for key in self._app.tasks.keys()
-                if not key.startswith("celery.")
-            ]
-        )
+        return sorted([key for key in self._app.tasks.keys() if not key.startswith("celery.")])
 
-    def get_queue_status(self) -> Dict[str, Any]:
+    def get_queue_status(self) -> dict[str, Any]:
         queues = [
             "default",
             "forecast_queue",
@@ -537,7 +485,7 @@ class TaskControlService:
             "real_celery": self._real_celery,
         }
 
-    def get_task_metrics(self) -> Dict[str, Any]:
+    def get_task_metrics(self) -> dict[str, Any]:
         total_submitted = len(self._mock_tasks)
         success_count = 0
         failure_count = 0
@@ -550,6 +498,7 @@ class TaskControlService:
             if self._real_celery and celery_instance is not None:
                 try:
                     from celery.result import AsyncResult
+
                     result = AsyncResult(task_id, app=celery_instance)
                     status = result.status
                     meta["status"] = status
@@ -578,9 +527,7 @@ class TaskControlService:
                     pass
 
         average_execution_time_ms = (
-            round(sum(execution_times) / len(execution_times), 3)
-            if execution_times
-            else 0.0
+            round(sum(execution_times) / len(execution_times), 3) if execution_times else 0.0
         )
 
         return {
@@ -594,7 +541,7 @@ class TaskControlService:
 
     def get_task_observability_details(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         tasks = []
 
         for task_id, meta in self._mock_tasks.items():
@@ -607,17 +554,19 @@ class TaskControlService:
                     "ready": False,
                 }
 
-            tasks.append({
-                "task_id": task_id,
-                "task_name": meta.get("task_name"),
-                "user": meta.get("user"),
-                "status": status_info.get("status"),
-                "ready": status_info.get("ready", False),
-                "execution_time_ms": meta.get(
-                    "execution_time_ms",
-                    0.0,
-                ),
-            })
+            tasks.append(
+                {
+                    "task_id": task_id,
+                    "task_name": meta.get("task_name"),
+                    "user": meta.get("user"),
+                    "status": status_info.get("status"),
+                    "ready": status_info.get("ready", False),
+                    "execution_time_ms": meta.get(
+                        "execution_time_ms",
+                        0.0,
+                    ),
+                }
+            )
 
         return {
             "tasks": tasks,
@@ -627,7 +576,7 @@ class TaskControlService:
 
     def get_observability_summary(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         metrics = self.get_task_metrics()
         details = self.get_task_observability_details()
         queues = self.get_queue_status()
@@ -641,6 +590,5 @@ class TaskControlService:
             "registered_tasks": registered_tasks,
         }
 
+
 task_control = TaskControlService()
-
-

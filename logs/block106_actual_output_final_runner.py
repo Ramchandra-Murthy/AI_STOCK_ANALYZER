@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
-import json
 import inspect
+import json
 
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, runtime_checkable
+from typing import Any, runtime_checkable
 
 
 @runtime_checkable
@@ -10,7 +10,7 @@ class IResearchSynthesizer(ABC):
 
     @abstractmethod
     async def generate_thesis(
-        self, valuation_results: Dict[str, Any], risk_metrics: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, valuation_results: dict[str, Any], risk_metrics: dict[str, Any]
+    ) -> dict[str, Any]:
         """Synthesize quantitative outputs and risk assessments asynchronously into an investment thesis."""
         pass

@@ -1,9 +1,8 @@
 import json
-import traceback
 import sys
+import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
-
 
 print("=" * 60)
 print("EROS 3.0 - V3.7 TRACEABILITY RUNTIME DIAGNOSTIC")
@@ -62,34 +61,23 @@ for name in required:
 
     present = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
-        raise RuntimeError(
-            f"MISSING_API:{name}"
-        )
+        raise RuntimeError(f"MISSING_API:{name}")
 
 
 print("")
 print("3. TRACEABILITY METHOD")
 print("-" * 60)
 
-method = getattr(
-    adapter,
-    "decision_traceability",
-    None
-)
+method = getattr(adapter, "decision_traceability", None)
 
 print("METHOD OBJECT :", method)
 print("METHOD TYPE   :", type(method).__name__)
 
 if method is None:
-    raise RuntimeError(
-        "TRACEABILITY_METHOD_NOT_FOUND"
-    )
+    raise RuntimeError("TRACEABILITY_METHOD_NOT_FOUND")
 
 
 print("")
@@ -156,9 +144,7 @@ if not isinstance(result, dict):
 
     print("RESULT DICT : FAIL")
 
-    raise RuntimeError(
-        "TRACEABILITY_RESULT_NOT_DICT"
-    )
+    raise RuntimeError("TRACEABILITY_RESULT_NOT_DICT")
 
 print("RESULT DICT : PASS")
 
@@ -167,13 +153,7 @@ print("")
 print("6. RESULT TOP LEVEL")
 print("-" * 60)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 print("")
@@ -191,10 +171,7 @@ for field in [
 
     present = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
 
 print("")
@@ -203,13 +180,7 @@ print("-" * 60)
 
 traceability = result.get("traceability")
 
-print(
-    json.dumps(
-        traceability,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(traceability, indent=2, default=str))
 
 
 print("")
@@ -234,10 +205,7 @@ if isinstance(traceability, dict):
 
         present = layer in traceability
 
-        print(
-            f"{layer:35} : "
-            f"{'PRESENT' if present else 'ABSENT'}"
-        )
+        print(f"{layer:35} : " f"{'PRESENT' if present else 'ABSENT'}")
 
 else:
 
@@ -248,18 +216,9 @@ print("")
 print("10. GOVERNANCE")
 print("-" * 60)
 
-governance = result.get(
-    "governance",
-    {}
-)
+governance = result.get("governance", {})
 
-print(
-    json.dumps(
-        governance,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(governance, indent=2, default=str))
 
 
 print("")
@@ -287,20 +246,14 @@ for field in expected_true:
 
     value = governance.get(field)
 
-    print(
-        f"{field:35} : "
-        f"{value}"
-    )
+    print(f"{field:35} : " f"{value}")
 
 
 for field in expected_false:
 
     value = governance.get(field)
 
-    print(
-        f"{field:35} : "
-        f"{value}"
-    )
+    print(f"{field:35} : " f"{value}")
 
 
 print("")

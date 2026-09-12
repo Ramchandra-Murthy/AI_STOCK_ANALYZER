@@ -3,7 +3,7 @@ from pathlib import Path
 p = Path("/app/services/scoring/fundamental.py")
 text = p.read_text(encoding="utf-8-sig")
 
-old = '''        details = {
+old = """        details = {
             "ratios": {
                 "gross_margin": ratios.gross_margin,
                 "ebitda_margin": ratios.ebitda_margin,
@@ -29,9 +29,9 @@ old = '''        details = {
             "cash_flow_quality": cash_flow_components,
             "weights": pillar_weights,
         }
-'''
+"""
 
-new = '''        raw_ratios = {
+new = """        raw_ratios = {
             "gross_margin": ratios.gross_margin,
             "ebitda_margin": ratios.ebitda_margin,
             "ebit_margin": ratios.ebit_margin,
@@ -69,7 +69,7 @@ new = '''        raw_ratios = {
             "cash_flow_quality": cash_flow_components,
             "weights": pillar_weights,
         }
-'''
+"""
 
 if old not in text:
     raise SystemExit("PATCH ABORTED: expected details block not found")

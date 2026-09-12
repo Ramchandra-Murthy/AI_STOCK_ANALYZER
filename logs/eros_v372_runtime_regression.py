@@ -4,7 +4,6 @@ import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 PROJECT_ROOT = r"D:\Users\User\Desktop\AI_STOCK_ANALYZER"
 SYMBOL = "RELIANCE.NS"
 
@@ -61,39 +60,27 @@ required_apis = [
     "dashboard_snapshot",
     "market_scan",
     "stock_analysis",
-
     # V3.0
     "decision_evidence",
     "decision_intelligence",
-
     # V3.1
     "decision_interpretation",
-
     # V3.2
     "decision_action_framework",
-
     # V3.3
     "decision_action_explanation",
-
     # V3.4
     "decision_scenario_engine",
-
     # V3.5
     "decision_scenario_explanation",
-
     # V3.6
     "decision_convergence",
-
     # V3.7
     "decision_traceability",
 ]
 
 for api_name in required_apis:
-    check(
-        api_name,
-        hasattr(adapter, api_name),
-        f"MISSING_API:{api_name}"
-    )
+    check(api_name, hasattr(adapter, api_name), f"MISSING_API:{api_name}")
 
 
 # ============================================================
@@ -106,7 +93,7 @@ print("SYMBOL :", SYMBOL)
 
 try:
     result = adapter.decision_traceability(SYMBOL)
-except Exception as exc:
+except Exception:
     print("")
     print("TRACEABILITY EXECUTION : FAIL")
     print("")
@@ -116,11 +103,7 @@ except Exception as exc:
 print("TRACEABILITY EXECUTION : PASS")
 print("RESULT TYPE            :", type(result).__name__)
 
-check(
-    "RESULT DICT",
-    isinstance(result, dict),
-    "TRACEABILITY_RESULT_NOT_DICT"
-)
+check("RESULT DICT", isinstance(result, dict), "TRACEABILITY_RESULT_NOT_DICT")
 
 
 # ============================================================
@@ -129,13 +112,7 @@ check(
 
 section(5, "RAW TRACEABILITY RESULT")
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 # ============================================================
@@ -159,11 +136,7 @@ top_level = [
 ]
 
 for field in top_level:
-    check(
-        field,
-        field in result,
-        f"MISSING_TOP_LEVEL_FIELD:{field}"
-    )
+    check(field, field in result, f"MISSING_TOP_LEVEL_FIELD:{field}")
 
 
 # ============================================================
@@ -174,17 +147,9 @@ section(7, "LEGACY TRACE COMPATIBILITY")
 
 legacy_trace = result.get("trace")
 
-check(
-    "LEGACY trace PRESENT",
-    "trace" in result,
-    "LEGACY_TRACE_MISSING"
-)
+check("LEGACY trace PRESENT", "trace" in result, "LEGACY_TRACE_MISSING")
 
-check(
-    "LEGACY trace DICT",
-    isinstance(legacy_trace, dict),
-    "LEGACY_TRACE_NOT_DICT"
-)
+check("LEGACY trace DICT", isinstance(legacy_trace, dict), "LEGACY_TRACE_NOT_DICT")
 
 print("")
 print("LEGACY SCHEMA : PRESERVED")
@@ -198,17 +163,9 @@ section(8, "NEW TRACEABILITY SCHEMA")
 
 traceability = result.get("traceability")
 
-check(
-    "traceability PRESENT",
-    "traceability" in result,
-    "TRACEABILITY_SCHEMA_MISSING"
-)
+check("traceability PRESENT", "traceability" in result, "TRACEABILITY_SCHEMA_MISSING")
 
-check(
-    "traceability DICT",
-    isinstance(traceability, dict),
-    "TRACEABILITY_NOT_DICT"
-)
+check("traceability DICT", isinstance(traceability, dict), "TRACEABILITY_NOT_DICT")
 
 print("")
 print("NEW SCHEMA : PRESENT")
@@ -224,11 +181,7 @@ status = result.get("traceability_status")
 
 print("TRACEABILITY STATUS :", status)
 
-check(
-    "STATUS COMPLETE",
-    status == "COMPLETE",
-    "TRACEABILITY_STATUS_NOT_COMPLETE"
-)
+check("STATUS COMPLETE", status == "COMPLETE", "TRACEABILITY_STATUS_NOT_COMPLETE")
 
 
 # ============================================================
@@ -239,11 +192,7 @@ section(10, "DECISION STRUCTURE")
 
 decision = result.get("decision")
 
-check(
-    "decision DICT",
-    isinstance(decision, dict),
-    "DECISION_NOT_DICT"
-)
+check("decision DICT", isinstance(decision, dict), "DECISION_NOT_DICT")
 
 decision_fields = [
     "stance",
@@ -255,11 +204,7 @@ decision_fields = [
 ]
 
 for field in decision_fields:
-    check(
-        field,
-        field in decision,
-        f"MISSING_DECISION_FIELD:{field}"
-    )
+    check(field, field in decision, f"MISSING_DECISION_FIELD:{field}")
 
 print("")
 print("STANCE           :", decision.get("stance"))
@@ -288,11 +233,7 @@ legacy_stages = [
 ]
 
 for stage in legacy_stages:
-    check(
-        stage,
-        stage in legacy_trace,
-        f"MISSING_LEGACY_STAGE:{stage}"
-    )
+    check(stage, stage in legacy_trace, f"MISSING_LEGACY_STAGE:{stage}")
 
 
 # ============================================================
@@ -315,13 +256,9 @@ new_stage_candidates = [
 for stage in new_stage_candidates:
 
     if stage in traceability:
-        print(
-            f"{stage:38} : PRESENT"
-        )
+        print(f"{stage:38} : PRESENT")
     else:
-        print(
-            f"{stage:38} : NOT EXPOSED"
-        )
+        print(f"{stage:38} : NOT EXPOSED")
 
 print("")
 print("TRACEABILITY OBJECT TYPE :", type(traceability).__name__)
@@ -335,11 +272,7 @@ section(13, "EVIDENCE CHAIN")
 
 evidence_chain = result.get("evidence_chain")
 
-check(
-    "evidence_chain DICT",
-    isinstance(evidence_chain, dict),
-    "EVIDENCE_CHAIN_NOT_DICT"
-)
+check("evidence_chain DICT", isinstance(evidence_chain, dict), "EVIDENCE_CHAIN_NOT_DICT")
 
 evidence_fields = [
     "primary_drivers",
@@ -350,11 +283,7 @@ evidence_fields = [
 ]
 
 for field in evidence_fields:
-    check(
-        field,
-        field in evidence_chain,
-        f"MISSING_EVIDENCE_FIELD:{field}"
-    )
+    check(field, field in evidence_chain, f"MISSING_EVIDENCE_FIELD:{field}")
 
 
 # ============================================================
@@ -365,11 +294,7 @@ section(14, "SCENARIO TRACE")
 
 scenario_trace = result.get("scenario_trace")
 
-check(
-    "scenario_trace DICT",
-    isinstance(scenario_trace, dict),
-    "SCENARIO_TRACE_NOT_DICT"
-)
+check("scenario_trace DICT", isinstance(scenario_trace, dict), "SCENARIO_TRACE_NOT_DICT")
 
 scenario_fields = [
     "primary_scenario",
@@ -379,17 +304,10 @@ scenario_fields = [
 ]
 
 for field in scenario_fields:
-    check(
-        field,
-        field in scenario_trace,
-        f"MISSING_SCENARIO_TRACE:{field}"
-    )
+    check(field, field in scenario_trace, f"MISSING_SCENARIO_TRACE:{field}")
 
 print("")
-print(
-    "PRIMARY SCENARIO :",
-    scenario_trace.get("primary_scenario")
-)
+print("PRIMARY SCENARIO :", scenario_trace.get("primary_scenario"))
 
 
 # ============================================================
@@ -400,11 +318,7 @@ section(15, "INTERPRETATION")
 
 interpretation = result.get("interpretation")
 
-check(
-    "interpretation DICT",
-    isinstance(interpretation, dict),
-    "INTERPRETATION_NOT_DICT"
-)
+check("interpretation DICT", isinstance(interpretation, dict), "INTERPRETATION_NOT_DICT")
 
 interpretation_fields = [
     "market_condition",
@@ -414,11 +328,7 @@ interpretation_fields = [
 ]
 
 for field in interpretation_fields:
-    check(
-        field,
-        field in interpretation,
-        f"MISSING_INTERPRETATION_FIELD:{field}"
-    )
+    check(field, field in interpretation, f"MISSING_INTERPRETATION_FIELD:{field}")
 
 print("")
 print("MARKET CONDITION :", interpretation.get("market_condition"))
@@ -435,17 +345,9 @@ section(16, "CONCLUSION")
 
 conclusion = result.get("conclusion")
 
-check(
-    "CONCLUSION STRING",
-    isinstance(conclusion, str),
-    "CONCLUSION_NOT_STRING"
-)
+check("CONCLUSION STRING", isinstance(conclusion, str), "CONCLUSION_NOT_STRING")
 
-check(
-    "CONCLUSION NON-EMPTY",
-    bool(conclusion.strip()),
-    "CONCLUSION_EMPTY"
-)
+check("CONCLUSION NON-EMPTY", bool(conclusion.strip()), "CONCLUSION_EMPTY")
 
 print("")
 print(conclusion)
@@ -460,13 +362,13 @@ section(17, "SCHEMA COMPATIBILITY")
 check(
     "legacy trace preserved",
     isinstance(result.get("trace"), dict),
-    "LEGACY_TRACE_COMPATIBILITY_FAILURE"
+    "LEGACY_TRACE_COMPATIBILITY_FAILURE",
 )
 
 check(
     "new traceability present",
     isinstance(result.get("traceability"), dict),
-    "NEW_TRACEABILITY_COMPATIBILITY_FAILURE"
+    "NEW_TRACEABILITY_COMPATIBILITY_FAILURE",
 )
 
 print("")
@@ -483,11 +385,7 @@ section(18, "GOVERNANCE SAFETY CONTRACT")
 
 governance = result.get("governance")
 
-check(
-    "governance DICT",
-    isinstance(governance, dict),
-    "GOVERNANCE_NOT_DICT"
-)
+check("governance DICT", isinstance(governance, dict), "GOVERNANCE_NOT_DICT")
 
 expected_true = [
     "read_only",
@@ -510,32 +408,18 @@ for field in expected_true:
 
     actual = governance.get(field)
 
-    check(
-        field,
-        actual is True,
-        f"SAFETY_FAILURE_TRUE:{field}"
-    )
+    check(field, actual is True, f"SAFETY_FAILURE_TRUE:{field}")
 
-    print(
-        f"{field:38} : PASS "
-        f"(actual={actual}, expected=True)"
-    )
+    print(f"{field:38} : PASS " f"(actual={actual}, expected=True)")
 
 
 for field in expected_false:
 
     actual = governance.get(field)
 
-    check(
-        field,
-        actual is False,
-        f"SAFETY_FAILURE_FALSE:{field}"
-    )
+    check(field, actual is False, f"SAFETY_FAILURE_FALSE:{field}")
 
-    print(
-        f"{field:38} : PASS "
-        f"(actual={actual}, expected=False)"
-    )
+    print(f"{field:38} : PASS " f"(actual={actual}, expected=False)")
 
 
 # ============================================================
@@ -558,46 +442,26 @@ print("OPTIMIZATION        : BLOCKED")
 
 section(20, "DATA INTEGRITY")
 
-check(
-    "SYMBOL",
-    result.get("symbol") == SYMBOL,
-    "SYMBOL_MISMATCH"
-)
+check("SYMBOL", result.get("symbol") == SYMBOL, "SYMBOL_MISMATCH")
 
-check(
-    "PRICE PRESENT",
-    result.get("price") is not None,
-    "PRICE_MISSING"
-)
+check("PRICE PRESENT", result.get("price") is not None, "PRICE_MISSING")
 
-check(
-    "DECISION PRESENT",
-    isinstance(result.get("decision"), dict),
-    "DECISION_MISSING"
-)
+check("DECISION PRESENT", isinstance(result.get("decision"), dict), "DECISION_MISSING")
 
-check(
-    "TRACE PRESENT",
-    isinstance(result.get("trace"), dict),
-    "TRACE_MISSING"
-)
+check("TRACE PRESENT", isinstance(result.get("trace"), dict), "TRACE_MISSING")
 
-check(
-    "TRACEABILITY PRESENT",
-    isinstance(result.get("traceability"), dict),
-    "TRACEABILITY_MISSING"
-)
+check("TRACEABILITY PRESENT", isinstance(result.get("traceability"), dict), "TRACEABILITY_MISSING")
 
 check(
     "EVIDENCE CHAIN PRESENT",
     isinstance(result.get("evidence_chain"), dict),
-    "EVIDENCE_CHAIN_MISSING"
+    "EVIDENCE_CHAIN_MISSING",
 )
 
 check(
     "SCENARIO TRACE PRESENT",
     isinstance(result.get("scenario_trace"), dict),
-    "SCENARIO_TRACE_MISSING"
+    "SCENARIO_TRACE_MISSING",
 )
 
 

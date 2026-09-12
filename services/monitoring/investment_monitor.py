@@ -1,8 +1,11 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
 from datetime import datetime
+from typing import Any
+
 from services.scoring.block18_orchestrator import UnifiedInvestmentResult
+
 
 @dataclass(frozen=True, slots=True)
 class InvestmentMonitoringSnapshot:
@@ -18,13 +21,15 @@ class InvestmentMonitoringSnapshot:
     portfolio_weight: float
     action: str
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
+
 
 class InvestmentMonitor:
     """
     EROS 3.0 Block 20A Investment Monitor.
     Captures standardized monitoring snapshots from UnifiedInvestmentResult.
     """
+
     @staticmethod
     def capture_snapshot(result: UnifiedInvestmentResult) -> InvestmentMonitoringSnapshot:
         dec = result.decision
@@ -46,5 +51,5 @@ class InvestmentMonitor:
             details={
                 "engine_version": "EROS-3.0-BLOCK-20A",
                 "policy_profile": dec.details.get("policy_profile", "Institutional"),
-            }
+            },
         )

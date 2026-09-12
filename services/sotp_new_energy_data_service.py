@@ -222,9 +222,7 @@ def get_sotp_new_energy_data(
 
     total_fact_count = len(factual_values)
 
-    fact_coverage = (
-        available_fact_count / total_fact_count if total_fact_count > 0 else 0.0
-    )
+    fact_coverage = available_fact_count / total_fact_count if total_fact_count > 0 else 0.0
 
     # --------------------------------------------------------
     # NET-ASSET DIAGNOSTIC

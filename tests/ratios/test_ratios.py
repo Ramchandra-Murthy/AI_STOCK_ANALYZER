@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from services.ratios.engine import FinancialRatioEngine
-from services.financials.financial_statement import FinancialStatements, PeriodFinancials
-from services.financials.income_statement import IncomeStatement
 from services.financials.balance_sheet import BalanceSheet
 from services.financials.cash_flow import CashFlowStatement
+from services.financials.financial_statement import FinancialStatements, PeriodFinancials
+from services.financials.income_statement import IncomeStatement
+from services.ratios.engine import FinancialRatioEngine
 
 
 def test_financial_ratio_engine() -> None:

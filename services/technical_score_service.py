@@ -65,9 +65,7 @@ def calculate_technical_score(df):
 
         if ema20 > ema50:
             score += 10
-            reasons.append(
-                "EMA20 is above EMA50, indicating short-term bullish momentum"
-            )
+            reasons.append("EMA20 is above EMA50, indicating short-term bullish momentum")
 
         else:
             score -= 5
@@ -89,15 +87,11 @@ def calculate_technical_score(df):
 
         if ema50 > ema200:
             score += 10
-            reasons.append(
-                "EMA50 is above EMA200, indicating a bullish long-term trend"
-            )
+            reasons.append("EMA50 is above EMA200, indicating a bullish long-term trend")
 
         else:
             score -= 10
-            reasons.append(
-                "EMA50 is below EMA200, indicating a bearish long-term trend"
-            )
+            reasons.append("EMA50 is below EMA200, indicating a bearish long-term trend")
 
     # ======================================================
     # MACD
@@ -252,9 +246,7 @@ def calculate_technical_score(df):
 
         if ema20 > ema50:
             score += 10
-            reasons.append(
-                "EMA20 is above EMA50, indicating short-term bullish momentum"
-            )
+            reasons.append("EMA20 is above EMA50, indicating short-term bullish momentum")
 
         else:
             score -= 5
@@ -276,15 +268,11 @@ def calculate_technical_score(df):
 
         if ema50 > ema200:
             score += 10
-            reasons.append(
-                "EMA50 is above EMA200, indicating a bullish long-term trend"
-            )
+            reasons.append("EMA50 is above EMA200, indicating a bullish long-term trend")
 
         else:
             score -= 10
-            reasons.append(
-                "EMA50 is below EMA200, indicating a bearish long-term trend"
-            )
+            reasons.append("EMA50 is below EMA200, indicating a bearish long-term trend")
 
     # ======================================================
     # MACD

@@ -33,6 +33,7 @@ settings = Settings()
 if settings.JWT_SECRET:
     settings.SECRET_KEY = settings.JWT_SECRET
 
+
 # Compatibility accessor used by application security dependencies.
 def get_settings() -> Settings:
     return settings

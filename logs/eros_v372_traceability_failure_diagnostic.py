@@ -4,7 +4,6 @@ import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 60)
 print("EROS 3.0 - V3.7.2 TRACEABILITY FAILURE DIAGNOSTIC")
 print("=" * 60)
@@ -53,24 +52,16 @@ for name in required:
 
     exists = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if exists else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if exists else 'FAIL'}")
 
     if not exists:
-        raise RuntimeError(
-            f"MISSING_API:{name}"
-        )
+        raise RuntimeError(f"MISSING_API:{name}")
 
 
 print("\n4. TRACEABILITY METHOD OBJECT")
 print("-" * 60)
 
-method = getattr(
-    adapter,
-    "decision_traceability"
-)
+method = adapter.decision_traceability
 
 print("METHOD :", method)
 print("TYPE   :", type(method).__name__)
@@ -91,9 +82,7 @@ result = None
 
 try:
 
-    result = adapter.decision_traceability(
-        symbol
-    )
+    result = adapter.decision_traceability(symbol)
 
     print("TRACEABILITY CALL : PASS")
     print("RESULT TYPE       :", type(result).__name__)
@@ -145,9 +134,7 @@ except Exception as exc:
             or "Exception" in line
         ):
 
-            print(
-                f"{index + 1:04d}: {line}"
-            )
+            print(f"{index + 1:04d}: {line}")
 
     print("")
     print("TRACEABILITY EXECUTION FAILED")
@@ -161,9 +148,7 @@ print("-" * 60)
 
 if not isinstance(result, dict):
 
-    raise RuntimeError(
-        "TRACEABILITY_RESULT_NOT_DICT"
-    )
+    raise RuntimeError("TRACEABILITY_RESULT_NOT_DICT")
 
 print("RESULT DICT : PASS")
 
@@ -173,10 +158,7 @@ print("-" * 60)
 
 for key in result.keys():
 
-    print(
-        f"{key:35} : "
-        f"{type(result[key]).__name__}"
-    )
+    print(f"{key:35} : " f"{type(result[key]).__name__}")
 
 
 print("\n9. CRITICAL SCHEMA CHECK")
@@ -198,10 +180,7 @@ for key in [
 
     exists = key in result
 
-    print(
-        f"{key:35} : "
-        f"{'PRESENT' if exists else 'ABSENT'}"
-    )
+    print(f"{key:35} : " f"{'PRESENT' if exists else 'ABSENT'}")
 
 
 print("\n10. LEGACY TRACE")
@@ -209,63 +188,35 @@ print("-" * 60)
 
 legacy = result.get("trace")
 
-print(
-    "PRESENT :",
-    "YES" if legacy is not None else "NO"
-)
+print("PRESENT :", "YES" if legacy is not None else "NO")
 
-print(
-    "TYPE    :",
-    type(legacy).__name__
-)
+print("TYPE    :", type(legacy).__name__)
 
 
 print("\n11. NEW TRACEABILITY")
 print("-" * 60)
 
-new_trace = result.get(
-    "traceability"
-)
+new_trace = result.get("traceability")
 
-print(
-    "PRESENT :",
-    "YES" if "traceability" in result else "NO"
-)
+print("PRESENT :", "YES" if "traceability" in result else "NO")
 
-print(
-    "VALUE   :",
-    repr(new_trace)
-)
+print("VALUE   :", repr(new_trace))
 
-print(
-    "TYPE    :",
-    type(new_trace).__name__
-)
+print("TYPE    :", type(new_trace).__name__)
 
 
 print("\n12. GOVERNANCE")
 print("-" * 60)
 
-governance = result.get(
-    "governance"
-)
+governance = result.get("governance")
 
 if isinstance(governance, dict):
 
-    print(
-        json.dumps(
-            governance,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(governance, indent=2, default=str))
 
 else:
 
-    print(
-        "GOVERNANCE TYPE :",
-        type(governance).__name__
-    )
+    print("GOVERNANCE TYPE :", type(governance).__name__)
 
 
 print("\n13. FINAL DIAGNOSTIC")

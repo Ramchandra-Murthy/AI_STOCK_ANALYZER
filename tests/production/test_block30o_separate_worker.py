@@ -1,19 +1,21 @@
 ﻿import os
+import subprocess
 import sys
 import time
 import uuid
-import subprocess
-import redis
+from queue import Empty, Queue
 from threading import Thread
-from queue import Queue, Empty
 
-import os
+import redis
+
 BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 
+
 def _enqueue_output(out, queue):
-    for line in iter(out.readline, ''):
+    for line in iter(out.readline, ""):
         queue.put(line)
     out.close()
+
 
 def test_block30o_separate_process_worker_execution():
     redis_client = redis.Redis.from_url(
@@ -54,13 +56,14 @@ def test_block30o_separate_process_worker_execution():
     try:
         # Give the worker time to initialize.
         time.sleep(3.0)
-        assert worker_proc.poll() is None, (
-            f"Dedicated worker exited prematurely: {worker_proc.returncode}"
-        )
+        assert (
+            worker_proc.poll() is None
+        ), f"Dedicated worker exited prematurely: {worker_proc.returncode}"
 
         from backend.tasks.eros_separate_process_worker import (
             separate_process_echo,
         )
+
         result = separate_process_echo.apply_async(args=[token])
         assert result is not None
         assert result.id is not None
@@ -79,9 +82,9 @@ def test_block30o_separate_process_worker_execution():
                 break
             time.sleep(0.3)
 
-        assert result.ready(), (
-            f"Separate-process worker task remained PENDING. Worker logs: {worker_logs[-20:]}"
-        )
+        assert (
+            result.ready()
+        ), f"Separate-process worker task remained PENDING. Worker logs: {worker_logs[-20:]}"
         assert result.state == "SUCCESS"
 
         payload = result.result
@@ -97,5 +100,3 @@ def test_block30o_separate_process_worker_execution():
         except subprocess.TimeoutExpired:
             worker_proc.kill()
             worker_proc.wait(timeout=5.0)
-
-

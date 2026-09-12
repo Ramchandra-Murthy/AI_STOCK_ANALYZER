@@ -9,6 +9,7 @@ from typing import Any
 @dataclass(frozen=True)
 class BaseDomainEvent:
     """Standard concrete implementation of a domain event."""
+
     name: str
     payload: dict[str, Any] = field(default_factory=dict)
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))

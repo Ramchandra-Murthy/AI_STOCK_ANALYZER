@@ -1,5 +1,5 @@
-﻿import os
-import io
+﻿import io
+import os
 import tokenize
 
 ROOT = os.getcwd()
@@ -26,7 +26,7 @@ found = []
 
 for path in critical:
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         source = f.read()
 
     try:
@@ -59,9 +59,7 @@ for path in critical:
 
         if pattern in active_text:
 
-            found.append(
-                f"{path} : ACTIVE MATCH : {pattern}"
-            )
+            found.append(f"{path} : ACTIVE MATCH : {pattern}")
 
 if found:
 

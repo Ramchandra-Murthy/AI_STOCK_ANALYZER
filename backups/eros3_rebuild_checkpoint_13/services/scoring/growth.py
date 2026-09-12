@@ -1,7 +1,10 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
+
 from services.financials.financial_statement import FinancialStatements
+
 
 def _clamp(
     value: float,
@@ -9,6 +12,7 @@ def _clamp(
     maximum: float = 100.0,
 ) -> float:
     return max(minimum, min(maximum, float(value)))
+
 
 def _calculate_cagr(
     begin_value: float,
@@ -24,6 +28,7 @@ def _calculate_cagr(
     except Exception:
         return 0.0
 
+
 @dataclass(frozen=True, slots=True)
 class GrowthScoreResult:
     revenue_cagr: float
@@ -32,7 +37,8 @@ class GrowthScoreResult:
     eps_cagr: float
     fcf_cagr: float
     growth_score: float
-    growth_details: Dict[str, Any]
+    growth_details: dict[str, Any]
+
 
 class GrowthScoringEngine:
     """
@@ -46,6 +52,7 @@ class GrowthScoringEngine:
     Historical periods are read from the canonical
     PeriodFinancials.period field.
     """
+
     def evaluate(
         self,
         financials: FinancialStatements,
@@ -73,12 +80,12 @@ class GrowthScoringEngine:
         count = len(sorted_periods)
         oldest = sorted_periods[0]
         newest = sorted_periods[-1]
-        
+
         old_income = oldest.income_statement
         new_income = newest.income_statement
         old_cashflow = oldest.cash_flow_statement
         new_cashflow = newest.cash_flow_statement
-        
+
         years = count - 1
         revenue_cagr = _calculate_cagr(
             old_income.revenue,
@@ -100,15 +107,9 @@ class GrowthScoringEngine:
             new_income.eps,
             years,
         )
-        
-        old_fcf = (
-            old_cashflow.operating_cash_flow
-            - old_cashflow.capital_expenditure
-        )
-        new_fcf = (
-            new_cashflow.operating_cash_flow
-            - new_cashflow.capital_expenditure
-        )
+
+        old_fcf = old_cashflow.operating_cash_flow - old_cashflow.capital_expenditure
+        new_fcf = new_cashflow.operating_cash_flow - new_cashflow.capital_expenditure
         fcf_cagr = _calculate_cagr(
             old_fcf,
             new_fcf,

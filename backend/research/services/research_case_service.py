@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import List
+
 from backend.research.models.research_case import ResearchCase
 
 logger = logging.getLogger(__name__)
+
 
 class ResearchCaseService:
     """
@@ -46,9 +47,7 @@ class ResearchCaseService:
             raise ValueError("evidence is required")
         if evidence not in case.evidence:
             case.evidence.append(evidence)
-        case.updated_at = __import__(
-            "datetime"
-        ).datetime.utcnow().isoformat()
+        case.updated_at = __import__("datetime").datetime.utcnow().isoformat()
         return case
 
     @staticmethod
@@ -57,9 +56,7 @@ class ResearchCaseService:
         thesis: str,
     ) -> ResearchCase:
         case.investment_thesis = thesis
-        case.updated_at = __import__(
-            "datetime"
-        ).datetime.utcnow().isoformat()
+        case.updated_at = __import__("datetime").datetime.utcnow().isoformat()
         return case
 
     @staticmethod
@@ -69,9 +66,7 @@ class ResearchCaseService:
     ) -> ResearchCase:
         case.conclusion = conclusion
         case.status = "CLOSED"
-        case.updated_at = __import__(
-            "datetime"
-        ).datetime.utcnow().isoformat()
+        case.updated_at = __import__("datetime").datetime.utcnow().isoformat()
         logger.info(
             "Closed research case %s",
             case.case_id,

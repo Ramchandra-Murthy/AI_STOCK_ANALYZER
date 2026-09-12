@@ -1,5 +1,6 @@
 ﻿from typing import Dict, List, Any
 
+
 class SOTPValuationEngine:
     """Computes Sum-of-the-Parts valuation for multi-segment enterprises."""
 
@@ -9,7 +10,7 @@ class SOTPValuationEngine:
         segments: List[Dict[str, Any]],
         net_debt: float,
         non_operating_assets: float,
-        shares_outstanding: float
+        shares_outstanding: float,
     ):
         self.symbol = symbol
         self.segments = segments
@@ -27,25 +28,16 @@ class SOTPValuationEngine:
             segment_valuations[name] = value
             total_ev += value
 
-        return {
-            "segment_breakdown": segment_valuations,
-            "total_enterprise_value": total_ev
-        }
+        return {"segment_breakdown": segment_valuations, "total_enterprise_value": total_ev}
 
     def compute_intrinsic_value(self) -> Dict[str, Any]:
         ev_data = self.calculate_enterprise_value()
         total_ev = ev_data["total_enterprise_value"]
 
-        equity_value = (
-            total_ev
-            - self.net_debt
-            + self.non_operating_assets
-        )
+        equity_value = total_ev - self.net_debt + self.non_operating_assets
 
         intrinsic_value_per_share = (
-            equity_value / self.shares_outstanding
-            if self.shares_outstanding > 0
-            else 0.0
+            equity_value / self.shares_outstanding if self.shares_outstanding > 0 else 0.0
         )
 
         return {
@@ -56,7 +48,7 @@ class SOTPValuationEngine:
             "non_operating_assets": self.non_operating_assets,
             "equity_value": equity_value,
             "shares_outstanding": self.shares_outstanding,
-            "intrinsic_value": round(intrinsic_value_per_share, 2)
+            "intrinsic_value": round(intrinsic_value_per_share, 2),
         }
 
 

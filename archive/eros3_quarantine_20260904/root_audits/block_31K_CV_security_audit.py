@@ -57,9 +57,7 @@ for f in FILES:
     bom = b.startswith(b"\xef\xbb\xbf")
     backtick_n = b"`n" in b
     null_byte = b"\x00" in b
-    print(
-        f"{f} | BOM={bom} | BACKTICK_N={backtick_n} | NULL_BYTE={null_byte}"
-    )
+    print(f"{f} | BOM={bom} | BACKTICK_N={backtick_n} | NULL_BYTE={null_byte}")
     if bom or backtick_n or null_byte:
         artifact_ok = False
 
@@ -70,6 +68,7 @@ app = None
 import_ok = True
 try:
     from backend.main import app
+
     print("APPLICATION IMPORT: PASS")
     print("APP:", type(app).__name__)
     print("TITLE:", app.title)
@@ -85,6 +84,7 @@ print("-" * 70)
 task_ok = True
 try:
     from backend.api.routers.task_router import router as task_router
+
     expected_task = {
         ("/api/v1/tasks/submit", "POST"),
         ("/api/v1/tasks/registered", "GET"),
@@ -119,7 +119,9 @@ registration_ok = (
     and "app.include_router(task_router)" in main_text
 )
 print("TASK ROUTER IMPORT:", "FOUND" if "task_router" in main_text else "MISSING")
-print("TASK ROUTER INCLUDE:", "FOUND" if "app.include_router(task_router)" in main_text else "MISSING")
+print(
+    "TASK ROUTER INCLUDE:", "FOUND" if "app.include_router(task_router)" in main_text else "MISSING"
+)
 print("REGISTRATION:", "PASS" if registration_ok else "FAIL")
 
 # 7
@@ -172,9 +174,7 @@ print("-" * 70)
 schemes = openapi.get("components", {}).get("securitySchemes", {})
 print("SECURITY SCHEMES:", schemes)
 bearer_ok = any(
-    isinstance(v, dict)
-    and v.get("type") == "http"
-    and v.get("scheme") == "bearer"
+    isinstance(v, dict) and v.get("type") == "http" and v.get("scheme") == "bearer"
     for v in schemes.values()
 )
 print("HTTP BEARER:", "PASS" if bearer_ok else "FAIL")
@@ -213,6 +213,7 @@ print("-" * 70)
 settings_ok = False
 try:
     from backend.config.settings import settings, get_settings
+
     s = get_settings()
     print("PROJECT_NAME:", s.PROJECT_NAME)
     print("ENVIRONMENT:", s.ENVIRONMENT)
@@ -231,11 +232,14 @@ print("-" * 70)
 jwt_ok = False
 try:
     from backend.security.jwt import create_access_token, decode_token
-    token = create_access_token({
-        "sub": "eros_cv_user",
-        "username": "eros_cv_user",
-        "role": "ANALYST",
-    })
+
+    token = create_access_token(
+        {
+            "sub": "eros_cv_user",
+            "username": "eros_cv_user",
+            "role": "ANALYST",
+        }
+    )
     decoded = decode_token(token)
     invalid = decode_token("invalid-token")
     print("TOKEN CREATED:", bool(token))
@@ -259,6 +263,7 @@ try:
         get_current_user as security_get_current_user,
         require_role,
     )
+
     print("API get_current_user:", api_get_current_user)
     print("SECURITY get_current_user:", security_get_current_user)
     print("require_role:", require_role)
@@ -273,6 +278,7 @@ live_auth_ok = False
 if app:
     try:
         from fastapi.testclient import TestClient
+
         client = TestClient(app)
         tests = [
             ("/api/v1/tasks/submit", "post", {}),
@@ -296,38 +302,38 @@ auth_router_ok = False
 login_contract_ok = False
 try:
     from backend.api.routers.auth_router import router as auth_router
+
     print("AUTH ROUTER IMPORT: PASS")
     for r in auth_router.routes:
-        print(
-            getattr(r, "path", None),
-            getattr(r, "methods", None),
-            getattr(r, "name", None)
-        )
+        print(getattr(r, "path", None), getattr(r, "methods", None), getattr(r, "name", None))
     auth_router_ok = True
 
     if app:
         from fastapi.testclient import TestClient
+
         client = TestClient(app)
         payload = {
             "email": "eros_cv_user@example.com",
             "password": "ErosCVPassword123!",
-            "role": "VIEWER"
+            "role": "VIEWER",
         }
         register = client.post("/api/v1/auth/register", json=payload)
         print("REGISTER STATUS:", register.status_code)
         login = client.post(
-            "/api/v1/auth/login",
-            json={
-                "email": payload["email"],
-                "password": payload["password"]
-            }
+            "/api/v1/auth/login", json={"email": payload["email"], "password": payload["password"]}
         )
         print("LOGIN STATUS:", login.status_code)
         print("LOGIN CONTENT-TYPE:", login.headers.get("content-type"))
         try:
             body = login.json()
-            print("LOGIN JSON KEYS:", sorted(body.keys()) if isinstance(body, dict) else type(body).__name__)
-            print("ACCESS TOKEN PRESENT:", bool(body.get("access_token")) if isinstance(body, dict) else False)
+            print(
+                "LOGIN JSON KEYS:",
+                sorted(body.keys()) if isinstance(body, dict) else type(body).__name__,
+            )
+            print(
+                "ACCESS TOKEN PRESENT:",
+                bool(body.get("access_token")) if isinstance(body, dict) else False,
+            )
             login_contract_ok = (
                 login.status_code == 200
                 and isinstance(body, dict)
@@ -344,6 +350,7 @@ print("-" * 70)
 role_ok = False
 try:
     from backend.security.dependencies import require_role
+
     analyst_dep = require_role("ANALYST")
     admin_dep = require_role("ADMIN")
     print("ANALYST DEPENDENCY CREATED:", callable(analyst_dep))
@@ -398,6 +405,7 @@ infra_ok = False
 if app:
     try:
         from fastapi.testclient import TestClient
+
         client = TestClient(app)
         health = client.get("/health")
         ready = client.get("/ready")

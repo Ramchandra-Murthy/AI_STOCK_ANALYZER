@@ -2,9 +2,7 @@
 
 import inspect
 import json
-import sys
-from typing import Any, Dict
-
+from typing import Any
 
 print("")
 print("=" * 70)
@@ -23,11 +21,9 @@ print("-" * 70)
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
-
 from services.quantitative.block104_eros_command_center import (
     EROSBlock104CommandCenter,
 )
-
 from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
@@ -62,23 +58,17 @@ print(
 
 print(
     "BLOCK 106 BUILD     :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
 )
 
 print(
     "BLOCK 106 SNAPSHOT  :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot),
 )
 
 print(
     "BLOCK 106 VALIDATE  :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.validate_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
 )
 
 print("SIGNATURE VERIFICATION : PASS")
@@ -101,13 +91,10 @@ print("-" * 70)
 # already established by Blocks 94 -> 101.
 #
 
-contract: Dict[str, Any] = {
+contract: dict[str, Any] = {
     "status": "CERTIFIED",
-
     "block_id": 101,
-
     "source_block": 100,
-
     "pipeline": [
         "94",
         "95",
@@ -118,17 +105,14 @@ contract: Dict[str, Any] = {
         "100",
         "101",
     ],
-
     "risk": {
         "status": "CERTIFIED",
         "risk_gate": "PASS",
     },
-
     "governance": {
         "status": "APPROVED",
         "decision": "APPROVED",
     },
-
     "intent": {
         "status": "AUTHORIZED",
         "authorization": "AUTHORIZED",
@@ -137,7 +121,6 @@ contract: Dict[str, Any] = {
         "quantity": 100.0,
         "reference_price": 2500.0,
     },
-
     "execution": {
         "status": "SIMULATED",
         "execution_status": "SIMULATED",
@@ -151,7 +134,6 @@ contract: Dict[str, Any] = {
         "fill_price": 2501.25,
         "fill_status": "FILLED",
     },
-
     "reconciliation": {
         "status": "RECONCILED",
         "reconciliation": "RECONCILED",
@@ -161,13 +143,11 @@ contract: Dict[str, Any] = {
         "cost_reconciled": True,
         "lineage_reconciled": True,
     },
-
     "lineage": {
         "status": "PRESERVED",
         "source_block": 100,
         "destination_block": 101,
     },
-
     "safety": {
         "read_only": True,
         "allow_order_creation": False,
@@ -206,9 +186,7 @@ block103 = EROSBlock103InstitutionalFrontendReadModel()
 
 print("INSTANCE TYPE     :", type(block103).__name__)
 
-read_model = block103.build(
-    contract=contract
-)
+read_model = block103.build(contract=contract)
 
 print("BLOCK 103 BUILD    : PASS")
 print("STATUS            :", read_model.get("status"))
@@ -222,9 +200,7 @@ print(
 
 print(
     "PIPELINE COUNT    :",
-    len(read_model.get("pipeline", {}))
-    if isinstance(read_model.get("pipeline"), dict)
-    else "N/A",
+    len(read_model.get("pipeline", {})) if isinstance(read_model.get("pipeline"), dict) else "N/A",
 )
 
 print("")
@@ -237,9 +213,7 @@ print("")
 print("5. BLOCK 103 SNAPSHOT")
 print("-" * 70)
 
-snapshot103 = block103.snapshot(
-    contract=contract
-)
+snapshot103 = block103.snapshot(contract=contract)
 
 print("BLOCK 103 SNAPSHOT : PASS")
 print("SNAPSHOT STATUS    :", snapshot103.get("status"))
@@ -258,9 +232,7 @@ block104 = EROSBlock104CommandCenter()
 
 print("INSTANCE TYPE      :", type(block104).__name__)
 
-command_center = block104.snapshot(
-    read_model=read_model
-)
+command_center = block104.snapshot(read_model=read_model)
 
 print("BLOCK 104 SNAPSHOT : PASS")
 print("STATUS             :", command_center.get("status"))
@@ -281,9 +253,7 @@ block106 = EROSBlock106InstitutionalIntegrationBoundary()
 
 print("INSTANCE TYPE      :", type(block106).__name__)
 
-payload = block106.build_integration_payload(
-    command_center
-)
+payload = block106.build_integration_payload(command_center)
 
 print("BLOCK 106 BUILD    : PASS")
 print("")
@@ -302,16 +272,12 @@ print("")
 print("8. BLOCK 106 PAYLOAD VALIDATION")
 print("-" * 70)
 
-validation = block106.validate_payload(
-    payload
-)
+validation = block106.validate_payload(payload)
 
 print("VALIDATION RESULT  :", validation)
 
 if validation is not True:
-    raise RuntimeError(
-        "BLOCK106_PAYLOAD_VALIDATION_FAILED"
-    )
+    raise RuntimeError("BLOCK106_PAYLOAD_VALIDATION_FAILED")
 
 print("BLOCK 106 VALIDATE : PASS")
 print("")
@@ -324,15 +290,11 @@ print("")
 print("9. BLOCK 106 READ-ONLY SNAPSHOT")
 print("-" * 70)
 
-read_only_snapshot = block106.build_read_only_snapshot(
-    command_center
-)
+read_only_snapshot = block106.build_read_only_snapshot(command_center)
 
 print("SNAPSHOT BUILD     : PASS")
 
-snapshot_validation = block106.validate_payload(
-    read_only_snapshot
-)
+snapshot_validation = block106.validate_payload(read_only_snapshot)
 
 print(
     "SNAPSHOT VALIDATE  :",
@@ -340,9 +302,7 @@ print(
 )
 
 if snapshot_validation is not True:
-    raise RuntimeError(
-        "BLOCK106_SNAPSHOT_VALIDATION_FAILED"
-    )
+    raise RuntimeError("BLOCK106_SNAPSHOT_VALIDATION_FAILED")
 
 print("BLOCK 106 SNAPSHOT  : PASS")
 print("")
@@ -355,10 +315,7 @@ print("")
 print("10. BLOCK 106 SAFETY CONTRACT")
 print("-" * 70)
 
-safety = payload.get(
-    "safety",
-    {}
-)
+safety = payload.get("safety", {})
 
 if not isinstance(safety, dict):
     safety = {}
@@ -427,9 +384,7 @@ print("BLOCK 103 STATUS :", read_model.get("status"))
 print("BLOCK 104 STATUS :", command_center.get("status"))
 print("BLOCK 106 STATUS :", payload.get("status"))
 
-print(
-    "BLOCK 103 -> 104 -> 106 : PASS"
-)
+print("BLOCK 103 -> 104 -> 106 : PASS")
 
 print("")
 
@@ -448,13 +403,9 @@ serialized = json.dumps(
 )
 
 if not serialized:
-    raise RuntimeError(
-        "BLOCK106_SERIALIZATION_FAILED"
-    )
+    raise RuntimeError("BLOCK106_SERIALIZATION_FAILED")
 
-print(
-    "SERIALIZATION       : PASS"
-)
+print("SERIALIZATION       : PASS")
 
 print(
     "PAYLOAD SIZE        :",
@@ -497,4 +448,3 @@ print("NO BROKER")
 print("NO LIVE EXECUTION")
 print("=" * 70)
 print("")
-

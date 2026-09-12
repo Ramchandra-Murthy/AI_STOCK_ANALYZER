@@ -4,14 +4,11 @@ import streamlit as st
 
 from charts.candlestick import create_candlestick
 from portfolio.portfolio import (
-    create_portfolio_table,
     load_portfolio,
 )
-from services.analyzer import analyze_stock
 from services.eros_frontend_adapter import (
     EROSFrontendAdapter,
 )
-
 
 # ============================================================
 # EROS 3.0 - FRONTEND V1
@@ -115,6 +112,7 @@ st.markdown(
 # ============================================================
 # HELPERS
 # ============================================================
+
 
 def status_card(
     title: str,
@@ -398,19 +396,13 @@ def render_ai_section(result):
         recommendation = signal["Recommendation"]
 
         if recommendation == "BUY":
-            st.success(
-                f"AI Recommendation: {recommendation}"
-            )
+            st.success(f"AI Recommendation: {recommendation}")
 
         elif recommendation == "SELL":
-            st.error(
-                f"AI Recommendation: {recommendation}"
-            )
+            st.error(f"AI Recommendation: {recommendation}")
 
         else:
-            st.warning(
-                f"AI Recommendation: {recommendation}"
-            )
+            st.warning(f"AI Recommendation: {recommendation}")
 
     st.markdown("#### AI Reasons")
 
@@ -423,15 +415,11 @@ def render_ai_section(result):
 
         for reason in reasons:
 
-            st.write(
-                f"✓ {reason}"
-            )
+            st.write(f"✓ {reason}")
 
     else:
 
-        st.info(
-            "No AI reasoning returned."
-        )
+        st.info("No AI reasoning returned.")
 
 
 def render_breakout(result):
@@ -455,21 +443,15 @@ def render_breakout(result):
 
     if signal == "BUY":
 
-        st.success(
-            f"Breakout Signal: {signal}"
-        )
+        st.success(f"Breakout Signal: {signal}")
 
     elif signal == "SELL":
 
-        st.error(
-            f"Breakout Signal: {signal}"
-        )
+        st.error(f"Breakout Signal: {signal}")
 
     else:
 
-        st.info(
-            f"Breakout Signal: {signal}"
-        )
+        st.info(f"Breakout Signal: {signal}")
 
     if reason:
         st.write(reason)
@@ -511,13 +493,9 @@ def render_market_data(result):
 # SIDEBAR
 # ============================================================
 
-st.sidebar.markdown(
-    "# 🧠 EROS 3.0"
-)
+st.sidebar.markdown("# 🧠 EROS 3.0")
 
-st.sidebar.caption(
-    "Institutional Intelligence"
-)
+st.sidebar.caption("Institutional Intelligence")
 
 st.sidebar.divider()
 
@@ -537,21 +515,13 @@ page = st.sidebar.radio(
 
 st.sidebar.divider()
 
-st.sidebar.caption(
-    "EROS Safety"
-)
+st.sidebar.caption("EROS Safety")
 
-st.sidebar.success(
-    "READ ONLY"
-)
+st.sidebar.success("READ ONLY")
 
-st.sidebar.warning(
-    "EXECUTION BLOCKED"
-)
+st.sidebar.warning("EXECUTION BLOCKED")
 
-st.sidebar.caption(
-    "Block 109 Query Gateway"
-)
+st.sidebar.caption("Block 109 Query Gateway")
 
 
 # ============================================================
@@ -567,16 +537,14 @@ if page == "🏠 Command Center":
         unsafe_allow_html=True,
     )
 
-    st.write(
-        """
+    st.write("""
         Welcome to the EROS 3.0 Institutional Intelligence
         Command Center.
 
         This frontend is connected to the certified EROS
         application query boundary and operates in read-only
         mode.
-        """
-    )
+        """)
 
     st.divider()
 
@@ -599,23 +567,17 @@ if page == "🏠 Command Center":
 
         st.session_state.eros_symbol = symbol.upper()
 
-        with st.spinner(
-            "Running EROS stock intelligence..."
-        ):
+        with st.spinner("Running EROS stock intelligence..."):
 
             try:
 
-                st.session_state.eros_analysis = (
-                    adapter.stock_analysis(
-                        st.session_state.eros_symbol
-                    )
+                st.session_state.eros_analysis = adapter.stock_analysis(
+                    st.session_state.eros_symbol
                 )
 
             except Exception as exc:
 
-                st.error(
-                    f"Analysis failed: {exc}"
-                )
+                st.error(f"Analysis failed: {exc}")
 
     if st.session_state.eros_analysis:
 
@@ -645,21 +607,17 @@ elif page == "📊 Market Intelligence":
         unsafe_allow_html=True,
     )
 
-    st.write(
-        """
+    st.write("""
         EROS market intelligence provides read-only access to
         the existing quantitative scanner and analytical engine.
-        """
-    )
+        """)
 
     if st.button(
         "🔍 Scan Market",
         type="primary",
     ):
 
-        with st.spinner(
-            "Scanning market..."
-        ):
+        with st.spinner("Scanning market..."):
 
             try:
 
@@ -667,9 +625,7 @@ elif page == "📊 Market Intelligence":
 
                 if scan is None or scan.empty:
 
-                    st.warning(
-                        "No market data returned."
-                    )
+                    st.warning("No market data returned.")
 
                 else:
 
@@ -682,9 +638,7 @@ elif page == "📊 Market Intelligence":
 
             except Exception as exc:
 
-                st.error(
-                    f"Market scan failed: {exc}"
-                )
+                st.error(f"Market scan failed: {exc}")
 
     if st.session_state.eros_scan is not None:
 
@@ -719,9 +673,7 @@ elif page == "🔎 Stock Scanner":
         type="primary",
     ):
 
-        with st.spinner(
-            "Scanning NIFTY stocks..."
-        ):
+        with st.spinner("Scanning NIFTY stocks..."):
 
             try:
 
@@ -729,9 +681,7 @@ elif page == "🔎 Stock Scanner":
 
                 if scan is None or scan.empty:
 
-                    st.warning(
-                        "No stocks found."
-                    )
+                    st.warning("No stocks found.")
 
                     st.session_state.eros_scan = None
 
@@ -744,17 +694,13 @@ elif page == "🔎 Stock Scanner":
 
                     if buy_only:
 
-                        scan = scan[
-                            scan["Signal"] == "BUY"
-                        ]
+                        scan = scan[scan["Signal"] == "BUY"]
 
                     st.session_state.eros_scan = scan
 
             except Exception as exc:
 
-                st.error(
-                    f"Scanner failed: {exc}"
-                )
+                st.error(f"Scanner failed: {exc}")
 
     if st.session_state.eros_scan is not None:
 
@@ -792,27 +738,19 @@ elif page == "📈 Stock Intelligence":
         key="stock_intelligence_analyze",
     ):
 
-        st.session_state.eros_symbol = (
-            symbol.upper()
-        )
+        st.session_state.eros_symbol = symbol.upper()
 
-        with st.spinner(
-            "Analyzing stock..."
-        ):
+        with st.spinner("Analyzing stock..."):
 
             try:
 
-                st.session_state.eros_analysis = (
-                    adapter.stock_analysis(
-                        st.session_state.eros_symbol
-                    )
+                st.session_state.eros_analysis = adapter.stock_analysis(
+                    st.session_state.eros_symbol
                 )
 
             except Exception as exc:
 
-                st.error(
-                    f"Stock analysis failed: {exc}"
-                )
+                st.error(f"Stock analysis failed: {exc}")
 
     result = st.session_state.eros_analysis
 
@@ -841,9 +779,7 @@ elif page == "📈 Stock Intelligence":
 
     else:
 
-        st.info(
-            "Enter a stock symbol and click Analyze."
-        )
+        st.info("Enter a stock symbol and click Analyze.")
 
 
 # ============================================================
@@ -870,27 +806,19 @@ elif page == "🧠 AI Signal Engine":
         type="primary",
     ):
 
-        st.session_state.eros_symbol = (
-            symbol.upper()
-        )
+        st.session_state.eros_symbol = symbol.upper()
 
-        with st.spinner(
-            "Running AI signal engine..."
-        ):
+        with st.spinner("Running AI signal engine..."):
 
             try:
 
-                st.session_state.eros_analysis = (
-                    adapter.stock_analysis(
-                        st.session_state.eros_symbol
-                    )
+                st.session_state.eros_analysis = adapter.stock_analysis(
+                    st.session_state.eros_symbol
                 )
 
             except Exception as exc:
 
-                st.error(
-                    f"AI analysis failed: {exc}"
-                )
+                st.error(f"AI analysis failed: {exc}")
 
     result = st.session_state.eros_analysis
 
@@ -904,9 +832,7 @@ elif page == "🧠 AI Signal Engine":
 
     else:
 
-        st.info(
-            "Run an analysis to view the AI signal."
-        )
+        st.info("Run an analysis to view the AI signal.")
 
 
 # ============================================================
@@ -922,15 +848,13 @@ elif page == "⚠️ Risk Intelligence":
         unsafe_allow_html=True,
     )
 
-    st.warning(
-        """
+    st.warning("""
         EROS Risk Intelligence is currently operating as a
         read-only presentation layer.
 
         No risk mutation, optimization, order generation,
         broker submission, or live execution is permitted.
-        """
-    )
+        """)
 
     result = st.session_state.eros_analysis
 
@@ -938,9 +862,7 @@ elif page == "⚠️ Risk Intelligence":
 
         last = result["last"]
 
-        st.markdown(
-            "### Current Risk Inputs"
-        )
+        st.markdown("### Current Risk Inputs")
 
         c1, c2, c3 = st.columns(3)
 
@@ -959,15 +881,11 @@ elif page == "⚠️ Risk Intelligence":
             f"{last['Resistance']:.2f}",
         )
 
-        st.info(
-            "Risk analytics are observational only."
-        )
+        st.info("Risk analytics are observational only.")
 
     else:
 
-        st.info(
-            "Analyze a stock first to display risk inputs."
-        )
+        st.info("Analyze a stock first to display risk inputs.")
 
     st.divider()
 
@@ -989,9 +907,7 @@ elif page == "📚 Evidence & Lineage":
 
     governance = adapter.governance()
 
-    st.markdown(
-        "### EROS Application Lineage"
-    )
+    st.markdown("### EROS Application Lineage")
 
     lineage = [
         {
@@ -1044,21 +960,13 @@ elif page == "📚 Evidence & Lineage":
 
     st.divider()
 
-    st.markdown(
-        "### Query Gateway"
-    )
+    st.markdown("### Query Gateway")
 
-    st.json(
-        governance["query_gateway"]
-    )
+    st.json(governance["query_gateway"])
 
-    st.markdown(
-        "### Frontend Adapter Snapshot"
-    )
+    st.markdown("### Frontend Adapter Snapshot")
 
-    st.json(
-        adapter.snapshot()
-    )
+    st.json(adapter.snapshot())
 
 
 # ============================================================
@@ -1078,14 +986,11 @@ elif page == "🔐 Governance":
         unsafe_allow_html=True,
     )
 
-    st.json(
-        adapter.governance()["safety"]
-    )
+    st.json(adapter.governance()["safety"])
 
     st.divider()
 
-    st.info(
-        """
+    st.info("""
         EROS 3.0 is currently configured as a read-only
         institutional intelligence system.
 
@@ -1093,8 +998,7 @@ elif page == "🔐 Governance":
         requests, execute trades, mutate portfolios, mutate
         valuation, mutate performance, mutate risk, or perform
         optimization.
-        """
-    )
+        """)
 
 
 # ============================================================
@@ -1108,20 +1012,15 @@ if st.sidebar.checkbox(
     value=False,
 ):
 
-    st.sidebar.caption(
-        "Portfolio display only — mutation disabled."
-    )
+    st.sidebar.caption("Portfolio display only — mutation disabled.")
 
     try:
-
 
         portfolio = load_portfolio()
 
         if portfolio.empty:
 
-            st.sidebar.info(
-                "Portfolio is empty."
-            )
+            st.sidebar.info("Portfolio is empty.")
 
         else:
 
@@ -1132,9 +1031,7 @@ if st.sidebar.checkbox(
 
     except Exception as exc:
 
-        st.sidebar.warning(
-            f"Portfolio unavailable: {exc}"
-        )
+        st.sidebar.warning(f"Portfolio unavailable: {exc}")
 
 
 # ============================================================

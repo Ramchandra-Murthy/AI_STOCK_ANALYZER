@@ -83,10 +83,7 @@ for module_name in modules:
                         "optimization",
                         "order_creation",
                     ]:
-                        print(
-                            f"{key:28} : "
-                            f"{result.get(key, '<ABSENT>')!r}"
-                        )
+                        print(f"{key:28} : " f"{result.get(key, '<ABSENT>')!r}")
 
                     if isinstance(result.get("safety"), dict):
                         print()

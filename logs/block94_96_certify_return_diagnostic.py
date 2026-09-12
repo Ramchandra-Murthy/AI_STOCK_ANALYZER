@@ -1,6 +1,5 @@
-from pathlib import Path
-import re
 import subprocess
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -10,9 +9,11 @@ targets = {
 
 output = []
 
+
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 94-96 CERTIFY/DECISION RETURN PATH DIAGNOSTIC")
@@ -30,9 +31,7 @@ for block_id, path in targets.items():
         p("ERROR: SOURCE FILE NOT FOUND")
         continue
 
-    lines = path.read_text(
-        encoding="utf-8-sig"
-    ).splitlines()
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
 
     # Locate class methods and especially certify/decide.
     method_starts = []
@@ -57,9 +56,7 @@ for block_id, path in targets.items():
     for start_line in method_starts:
 
         # Find next method at same indentation.
-        method_indent = len(lines[start_line - 1]) - len(
-            lines[start_line - 1].lstrip()
-        )
+        method_indent = len(lines[start_line - 1]) - len(lines[start_line - 1].lstrip())
 
         end_line = len(lines)
 
@@ -80,10 +77,7 @@ for block_id, path in targets.items():
                 break
 
         p()
-        p(
-            f"--- METHOD SOURCE WINDOW "
-            f"L{start_line}-L{end_line} ---"
-        )
+        p(f"--- METHOD SOURCE WINDOW " f"L{start_line}-L{end_line} ---")
 
         for n in range(start_line, end_line + 1):
             marker = ""
@@ -160,4 +154,3 @@ except Exception as exc:
     print()
     print("CLIPBOARD : FAIL")
     print(type(exc).__name__, str(exc))
-

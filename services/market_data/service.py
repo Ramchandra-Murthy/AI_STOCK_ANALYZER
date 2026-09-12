@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Any
+
 from core.events.dispatcher import EventDispatcher
 from services.market_data.cache import MarketDataCache
 from services.market_data.downloader import MarketDataDownloader
@@ -15,10 +15,7 @@ class MarketDataService:
     """Service managing market data acquisition, caching, and download events."""
 
     def __init__(
-        self,
-        downloader: MarketDataDownloader,
-        cache: MarketDataCache,
-        dispatcher: EventDispatcher
+        self, downloader: MarketDataDownloader, cache: MarketDataCache, dispatcher: EventDispatcher
     ) -> None:
         self._downloader = downloader
         self._cache = cache

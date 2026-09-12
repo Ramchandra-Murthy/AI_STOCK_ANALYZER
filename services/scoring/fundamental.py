@@ -1,14 +1,18 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
+
 from services.financials.financial_ratios import (
     FinancialRatios,
     calculate_financial_ratios,
 )
 from services.financials.financial_statement import FinancialStatements
 
+
 def _clamp(value: float, minimum: float = 0.0, maximum: float = 100.0) -> float:
     return max(minimum, min(maximum, float(value)))
+
 
 def _score_positive(
     value: float,
@@ -25,6 +29,7 @@ def _score_positive(
     score = ((value - weak) / (strong - weak)) * 100.0
     return round(_clamp(score), 2)
 
+
 def _score_negative(
     value: float,
     good: float,
@@ -40,10 +45,12 @@ def _score_negative(
     score = ((bad - value) / (bad - good)) * 100.0
     return round(_clamp(score), 2)
 
+
 def _average(values: list[float]) -> float:
     if not values:
         return 0.0
     return round(sum(values) / len(values), 2)
+
 
 @dataclass(frozen=True, slots=True)
 class FundamentalScoreResult:
@@ -51,6 +58,7 @@ class FundamentalScoreResult:
     Data-driven fundamental scoring result.
     All pillar scores are normalized to 0-100.
     """
+
     symbol: str
     profitability_score: float
     quality_score: float
@@ -58,7 +66,8 @@ class FundamentalScoreResult:
     capital_efficiency_score: float
     cash_flow_quality_score: float
     fundamental_score: float
-    pillar_details: Dict[str, Any]
+    pillar_details: dict[str, Any]
+
 
 class FundamentalScoringEngine:
     """
@@ -67,6 +76,7 @@ class FundamentalScoringEngine:
     statements and calculated financial ratios.
     Growth, momentum and valuation are deliberately excluded here.
     """
+
     def evaluate(
         self,
         financials: FinancialStatements,
@@ -122,9 +132,7 @@ class FundamentalScoringEngine:
                 strong=0.20,
             ),
         }
-        profitability_score = _average(
-            list(profitability_components.values())
-        )
+        profitability_score = _average(list(profitability_components.values()))
 
         # ======================================================
         # QUALITY
@@ -151,9 +159,7 @@ class FundamentalScoringEngine:
                 strong=0.25,
             ),
         }
-        quality_score = _average(
-            list(quality_components.values())
-        )
+        quality_score = _average(list(quality_components.values()))
 
         # ======================================================
         # FINANCIAL STRENGTH
@@ -180,9 +186,7 @@ class FundamentalScoringEngine:
                 bad=4.00,
             ),
         }
-        financial_strength_score = _average(
-            list(financial_strength_components.values())
-        )
+        financial_strength_score = _average(list(financial_strength_components.values()))
 
         # ======================================================
         # CAPITAL EFFICIENCY
@@ -214,9 +218,7 @@ class FundamentalScoringEngine:
                 strong=12.00,
             ),
         }
-        capital_efficiency_score = _average(
-            list(capital_efficiency_components.values())
-        )
+        capital_efficiency_score = _average(list(capital_efficiency_components.values()))
 
         # ======================================================
         # CASH FLOW QUALITY
@@ -233,9 +235,7 @@ class FundamentalScoringEngine:
                 strong=1.20,
             ),
         }
-        cash_flow_quality_score = _average(
-            list(cash_flow_components.values())
-        )
+        cash_flow_quality_score = _average(list(cash_flow_components.values()))
 
         # ======================================================
         # FUNDAMENTAL COMPOSITE
@@ -278,13 +278,11 @@ class FundamentalScoringEngine:
         details = {
             # Block 10 audit identity
             "engine_version": "EROS-3.0-BLOCK-10",
-
             # Canonical Block 10 audit contract
             "raw_ratios": raw_ratios,
             "profitability_components": profitability_components,
             "quality_components": quality_components,
             "capital_allocation_components": capital_efficiency_components,
-
             # Existing detailed contract retained for compatibility
             "ratios": raw_ratios,
             "profitability": profitability_components,

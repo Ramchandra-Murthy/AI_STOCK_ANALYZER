@@ -1,12 +1,22 @@
 from copy import deepcopy
 
 from services.quantitative.block102_frontend_contract import EROSBlock102FrontendContract
-from services.quantitative.block103_institutional_frontend_read_model import EROSBlock103InstitutionalFrontendReadModel
+from services.quantitative.block103_institutional_frontend_read_model import (
+    EROSBlock103InstitutionalFrontendReadModel,
+)
 from services.quantitative.block104_eros_command_center import EROSBlock104CommandCenter
-from services.quantitative.block106_institutional_integration_boundary import EROSBlock106InstitutionalIntegrationBoundary
-from services.quantitative.block107_application_read_boundary import EROSBlock107ApplicationReadBoundary
-from services.quantitative.block108_institutional_application_service_boundary import EROSBlock108InstitutionalApplicationServiceBoundary
-from services.quantitative.block109_institutional_application_query_gateway import EROSBlock109InstitutionalApplicationQueryGateway
+from services.quantitative.block106_institutional_integration_boundary import (
+    EROSBlock106InstitutionalIntegrationBoundary,
+)
+from services.quantitative.block107_application_read_boundary import (
+    EROSBlock107ApplicationReadBoundary,
+)
+from services.quantitative.block108_institutional_application_service_boundary import (
+    EROSBlock108InstitutionalApplicationServiceBoundary,
+)
+from services.quantitative.block109_institutional_application_query_gateway import (
+    EROSBlock109InstitutionalApplicationQueryGateway,
+)
 
 
 def build_chain():
@@ -200,13 +210,7 @@ def test_safety_invariants():
 def test_upstream_immutability():
     c = build_chain()
 
-    before = {
-        k: deepcopy(c[k])
-        for k in (
-            "b94", "b95", "b96", "b97",
-            "b98", "b99", "b100", "b101"
-        )
-    }
+    before = {k: deepcopy(c[k]) for k in ("b94", "b95", "b96", "b97", "b98", "b99", "b100", "b101")}
 
     build_chain()
 
@@ -256,8 +260,7 @@ def test_109_gateway_is_read_only():
     public_methods = {
         name
         for name in dir(c["e109"])
-        if not name.startswith("_")
-        and callable(getattr(c["e109"], name, None))
+        if not name.startswith("_") and callable(getattr(c["e109"], name, None))
     }
 
     forbidden = {

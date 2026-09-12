@@ -1,13 +1,13 @@
-﻿from services.financials.parser import repository
-from services.financials.financial_statement import (
-    FinancialStatements,
-    IncomeStatement,
+﻿from services.financials.financial_statement import (
     BalanceSheet,
     CashFlowStatement,
+    FinancialStatements,
+    IncomeStatement,
 )
-from services.market_data.models import PriceRecord
+from services.financials.parser import repository
 from services.risk_management.models import PortfolioRiskProfile
 from services.scoring.engine import AIScoringEngine
+
 
 def test_block15_ai_scoring_integration() -> None:
     income = IncomeStatement(

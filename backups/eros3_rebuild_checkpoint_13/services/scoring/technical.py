@@ -1,7 +1,10 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
+
 from services.market_data.models import PriceRecord
+
 
 def _clamp(
     value: float,
@@ -10,15 +13,17 @@ def _clamp(
 ) -> float:
     return max(minimum, min(maximum, float(value)))
 
-def _sma(values: List[float], period: int) -> float:
+
+def _sma(values: list[float], period: int) -> float:
     if not values:
         return 0.0
     if len(values) < period:
         return sum(values) / len(values)
     return sum(values[-period:]) / period
 
+
 def _ema(
-    values: List[float],
+    values: list[float],
     period: int,
 ) -> float:
     if not values:
@@ -28,20 +33,18 @@ def _ema(
     multiplier = 2.0 / (period + 1.0)
     ema_value = sum(values[:period]) / period
     for value in values[period:]:
-        ema_value = (
-            (value - ema_value) * multiplier
-            + ema_value
-        )
+        ema_value = (value - ema_value) * multiplier + ema_value
     return ema_value
 
+
 def _calculate_rsi(
-    closes: List[float],
+    closes: list[float],
     period: int = 14,
 ) -> float:
     if len(closes) <= period:
         return 50.0
-    gains: List[float] = []
-    losses: List[float] = []
+    gains: list[float] = []
+    losses: list[float] = []
     for i in range(1, len(closes)):
         change = closes[i] - closes[i - 1]
         if change > 0:
@@ -57,27 +60,20 @@ def _calculate_rsi(
     if avg_loss == 0:
         return 100.0
     rs = avg_gain / avg_loss
-    return 100.0 - (
-        100.0 / (1.0 + rs)
-    )
+    return 100.0 - (100.0 / (1.0 + rs))
+
 
 def _calculate_macd(
-    closes: List[float],
+    closes: list[float],
 ) -> tuple[float, float, float]:
     if not closes:
         return 0.0, 0.0, 0.0
-    macd = (
-        _ema(closes, 12)
-        - _ema(closes, 26)
-    )
+    macd = _ema(closes, 12) - _ema(closes, 26)
     signal_window = min(9, max(1, len(closes)))
-    macd_series: List[float] = []
+    macd_series: list[float] = []
     for i in range(1, len(closes) + 1):
         subset = closes[:i]
-        value = (
-            _ema(subset, 12)
-            - _ema(subset, 26)
-        )
+        value = _ema(subset, 12) - _ema(subset, 26)
         macd_series.append(value)
     signal = _ema(
         macd_series,
@@ -85,6 +81,7 @@ def _calculate_macd(
     )
     histogram = macd - signal
     return macd, signal, histogram
+
 
 @dataclass(frozen=True, slots=True)
 class TechnicalIndicatorResult:
@@ -100,6 +97,7 @@ class TechnicalIndicatorResult:
     breakout_score: float
     momentum_score: float
 
+
 @dataclass(frozen=True, slots=True)
 class MomentumScoreResult:
     symbol: str
@@ -110,21 +108,20 @@ class MomentumScoreResult:
     moving_average_score: float
     relative_strength_score: float
     breakout_score: float
-    details: Dict[str, Any]
+    details: dict[str, Any]
+
 
 class TechnicalIndicatorEngine:
     """
     EROS 3.0 technical indicator engine.
     Calculates deterministic indicators from OHLCV PriceRecord data.
     """
+
     def calculate(
         self,
-        records: List[PriceRecord],
+        records: list[PriceRecord],
     ) -> TechnicalIndicatorResult:
-        closes = [
-            float(record.close)
-            for record in records
-        ]
+        closes = [float(record.close) for record in records]
         if not closes:
             return TechnicalIndicatorResult(
                 sma_20=0.0,
@@ -146,9 +143,7 @@ class TechnicalIndicatorEngine:
             closes,
             14,
         )
-        macd, macd_signal, macd_histogram = (
-            _calculate_macd(closes)
-        )
+        macd, macd_signal, macd_histogram = _calculate_macd(closes)
         current_price = closes[-1]
 
         # Trend
@@ -167,14 +162,10 @@ class TechnicalIndicatorEngine:
         else:
             old_price = closes[0]
         if old_price > 0:
-            return_20 = (
-                current_price / old_price
-            ) - 1.0
+            return_20 = (current_price / old_price) - 1.0
         else:
             return_20 = 0.0
-        relative_strength_score = _clamp(
-            50.0 + return_20 * 200.0
-        )
+        relative_strength_score = _clamp(50.0 + return_20 * 200.0)
 
         # Breakout
         if len(closes) >= 20:
@@ -186,22 +177,15 @@ class TechnicalIndicatorEngine:
             if current_price > previous_high:
                 breakout_score = 100.0
             elif previous_high > 0:
-                distance = (
-                    current_price / previous_high
-                )
-                breakout_score = _clamp(
-                    50.0
-                    + (distance - 0.95) * 1000.0
-                )
+                distance = current_price / previous_high
+                breakout_score = _clamp(50.0 + (distance - 0.95) * 1000.0)
             else:
                 breakout_score = 50.0
         else:
             breakout_score = 50.0
 
         # Momentum
-        rsi_score = _clamp(
-            50.0 + (rsi_14 - 50.0) * 1.2
-        )
+        rsi_score = _clamp(50.0 + (rsi_14 - 50.0) * 1.2)
         if macd_histogram > 0:
             macd_score = 75.0
         elif macd_histogram < 0:
@@ -209,15 +193,7 @@ class TechnicalIndicatorEngine:
         else:
             macd_score = 50.0
         moving_average_score = _clamp(
-            (
-                trend_score
-                + (
-                    50.0
-                    if current_price >= sma_20
-                    else 25.0
-                )
-            )
-            / 2.0
+            (trend_score + (50.0 if current_price >= sma_20 else 25.0)) / 2.0
         )
         momentum_score = round(
             trend_score * 0.25
@@ -254,35 +230,27 @@ class TechnicalIndicatorEngine:
             momentum_score=momentum_score,
         )
 
+
 class MomentumScoringEngine:
     """
     Converts technical indicators into the EROS
     institutional momentum scoring contract.
     """
+
     def evaluate(
         self,
         symbol: str,
-        records: List[PriceRecord],
+        records: list[PriceRecord],
     ) -> MomentumScoreResult:
-        technical = TechnicalIndicatorEngine().calculate(
-            records
-        )
-        rsi_score = _clamp(
-            50.0
-            + (
-                technical.rsi_14
-                - 50.0
-            ) * 1.2
-        )
+        technical = TechnicalIndicatorEngine().calculate(records)
+        rsi_score = _clamp(50.0 + (technical.rsi_14 - 50.0) * 1.2)
         if technical.macd_histogram > 0:
             macd_score = 75.0
         elif technical.macd_histogram < 0:
             macd_score = 25.0
         else:
             macd_score = 50.0
-        moving_average_score = (
-            technical.trend_score
-        )
+        moving_average_score = technical.trend_score
         momentum_score = round(
             technical.trend_score * 0.25
             + rsi_score * 0.20
@@ -315,9 +283,7 @@ class MomentumScoringEngine:
                 moving_average_score,
                 2,
             ),
-            relative_strength_score=(
-                technical.relative_strength_score
-            ),
+            relative_strength_score=(technical.relative_strength_score),
             breakout_score=technical.breakout_score,
             details=details,
         )

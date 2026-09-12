@@ -1,10 +1,10 @@
 ﻿from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from hashlib import sha256
-from typing import Any, Dict, List, Mapping, Optional
-
+from typing import Any
 
 BLOCK_ID = "97"
 ENGINE_VERSION = "97.1.0"
@@ -21,7 +21,7 @@ READINESS_REVIEW = "REVIEW"
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _text(value: Any) -> str:
@@ -78,7 +78,7 @@ class EROSBlock97StressReadinessGate:
 
     def __init__(self) -> None:
         self.engine_version = ENGINE_VERSION
-        self._readiness: Dict[str, Dict[str, Any]] = {}
+        self._readiness: dict[str, dict[str, Any]] = {}
 
     # ---------------------------------------------------------
     # Public API
@@ -88,23 +88,21 @@ class EROSBlock97StressReadinessGate:
         self,
         *,
         decision: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return self.evaluate(decision=decision)
 
     def evaluate(
         self,
         *,
         decision: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         validation = self._validate_decision(decision)
 
         if validation["status"] != STATUS_CERTIFIED:
             return validation
 
-        source_decision = _text(
-            decision.get("decision")
-        )
+        source_decision = _text(decision.get("decision"))
 
         if source_decision == DECISION_ADMITTED:
             readiness_status = READINESS_READY
@@ -113,21 +111,13 @@ class EROSBlock97StressReadinessGate:
             readiness_status = READINESS_REVIEW
             readiness_reason = "STRESS_POLICY_REJECTED"
         else:
-            return self._blocked(
-                "INVALID_DECISION"
-            )
+            return self._blocked("INVALID_DECISION")
 
-        source_decision_id = _text(
-            decision.get("decision_id")
-        )
+        source_decision_id = _text(decision.get("decision_id"))
 
-        source_gate_id = _text(
-            decision.get("source_gate_id")
-        )
+        source_gate_id = _text(decision.get("source_gate_id"))
 
-        source_certificate_id = _text(
-            decision.get("source_certificate_id")
-        )
+        source_certificate_id = _text(decision.get("source_certificate_id"))
 
         scenario_ids = [
             _text(item)
@@ -145,17 +135,12 @@ class EROSBlock97StressReadinessGate:
             "source_gate_id": source_gate_id,
             "source_certificate_id": source_certificate_id,
             "decision": source_decision,
-            "scenario_count": int(
-                decision.get("scenario_count", 0)
-            ),
+            "scenario_count": int(decision.get("scenario_count", 0)),
             "scenario_ids": scenario_ids,
             "readiness_status": readiness_status,
         }
 
-        readiness_id = (
-            "EROS97-STRESS-READINESS-"
-            + _hash_payload(payload)[:20]
-        )
+        readiness_id = "EROS97-STRESS-READINESS-" + _hash_payload(payload)[:20]
 
         if readiness_id in self._readiness:
             return {
@@ -171,20 +156,14 @@ class EROSBlock97StressReadinessGate:
             "block_id": BLOCK_ID,
             "engine_version": self.engine_version,
             "created_at": _now_iso(),
-
             "source_block": "96",
             "source_decision_id": source_decision_id,
             "source_gate_id": source_gate_id,
             "source_certificate_id": source_certificate_id,
-
             "decision": source_decision,
-            "scenario_count": int(
-                decision.get("scenario_count", 0)
-            ),
+            "scenario_count": int(decision.get("scenario_count", 0)),
             "scenario_ids": scenario_ids,
-
             "readiness_reason": readiness_reason,
-
             "non_mutation_invariant": True,
             "execution_blocked": True,
             "portfolio_mutation": False,
@@ -193,14 +172,11 @@ class EROSBlock97StressReadinessGate:
             "risk_mutation": False,
             "optimization": False,
             "order_creation": False,
-
             "broker_submission": False,
             "live_order_submission": False,
         }
 
-        self._readiness[readiness_id] = _deepcopy(
-            result
-        )
+        self._readiness[readiness_id] = _deepcopy(result)
 
         return _deepcopy(result)
 
@@ -211,85 +187,47 @@ class EROSBlock97StressReadinessGate:
     def _validate_decision(
         self,
         decision: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         if not isinstance(
             decision,
             Mapping,
         ):
-            return self._blocked(
-                "MALFORMED_BLOCK_96_DECISION"
-            )
+            return self._blocked("MALFORMED_BLOCK_96_DECISION")
 
-        if _text(
-            decision.get("status")
-        ) != STATUS_CERTIFIED:
-            return self._blocked(
-                "SOURCE_DECISION_NOT_CERTIFIED"
-            )
+        if _text(decision.get("status")) != STATUS_CERTIFIED:
+            return self._blocked("SOURCE_DECISION_NOT_CERTIFIED")
 
-        if _text(
-            decision.get("decision_status")
-        ) != STATUS_CERTIFIED:
-            return self._blocked(
-                "SOURCE_DECISION_STATUS_INVALID"
-            )
+        if _text(decision.get("decision_status")) != STATUS_CERTIFIED:
+            return self._blocked("SOURCE_DECISION_STATUS_INVALID")
 
-        if _text(
-            decision.get("block_id")
-        ) != "96":
-            return self._blocked(
-                "INVALID_SOURCE_BLOCK"
-            )
+        if _text(decision.get("block_id")) != "96":
+            return self._blocked("INVALID_SOURCE_BLOCK")
 
-        if not _text(
-            decision.get("decision_id")
-        ):
-            return self._blocked(
-                "MISSING_SOURCE_DECISION_ID"
-            )
+        if not _text(decision.get("decision_id")):
+            return self._blocked("MISSING_SOURCE_DECISION_ID")
 
-        source_block = _text(
-            decision.get("source_block")
-        )
+        source_block = _text(decision.get("source_block"))
 
         if source_block != "95":
-            return self._blocked(
-                "INVALID_BLOCK_95_LINEAGE"
-            )
+            return self._blocked("INVALID_BLOCK_95_LINEAGE")
 
-        if not _text(
-            decision.get("source_gate_id")
-        ):
-            return self._blocked(
-                "MISSING_SOURCE_GATE_ID"
-            )
+        if not _text(decision.get("source_gate_id")):
+            return self._blocked("MISSING_SOURCE_GATE_ID")
 
-        if not _text(
-            decision.get("source_certificate_id")
-        ):
-            return self._blocked(
-                "MISSING_SOURCE_CERTIFICATE_ID"
-            )
+        if not _text(decision.get("source_certificate_id")):
+            return self._blocked("MISSING_SOURCE_CERTIFICATE_ID")
 
-        source_decision = _text(
-            decision.get("decision")
-        )
+        source_decision = _text(decision.get("decision"))
 
         if source_decision not in {
             DECISION_ADMITTED,
             DECISION_REJECTED,
         }:
-            return self._blocked(
-                "INVALID_DECISION"
-            )
+            return self._blocked("INVALID_DECISION")
 
-        if not _text(
-            decision.get("decision_reason")
-        ):
-            return self._blocked(
-                "MISSING_DECISION_REASON"
-            )
+        if not _text(decision.get("decision_reason")):
+            return self._blocked("MISSING_DECISION_REASON")
 
         try:
             scenario_count = int(
@@ -299,72 +237,38 @@ class EROSBlock97StressReadinessGate:
                 )
             )
         except (TypeError, ValueError):
-            return self._blocked(
-                "INVALID_SCENARIO_COUNT"
-            )
+            return self._blocked("INVALID_SCENARIO_COUNT")
 
         if scenario_count < 1:
-            return self._blocked(
-                "INVALID_SCENARIO_COUNT"
-            )
+            return self._blocked("INVALID_SCENARIO_COUNT")
 
-        scenario_ids = decision.get(
-            "scenario_ids"
-        )
+        scenario_ids = decision.get("scenario_ids")
 
         if not isinstance(
             scenario_ids,
             list,
         ):
-            return self._blocked(
-                "MISSING_SCENARIO_IDS"
-            )
+            return self._blocked("MISSING_SCENARIO_IDS")
 
         if len(scenario_ids) != scenario_count:
-            return self._blocked(
-                "SCENARIO_COUNT_MISMATCH"
-            )
+            return self._blocked("SCENARIO_COUNT_MISMATCH")
 
-        if any(
-            not _text(item)
-            for item in scenario_ids
-        ):
-            return self._blocked(
-                "INVALID_SCENARIO_ID"
-            )
+        if any(not _text(item) for item in scenario_ids):
+            return self._blocked("INVALID_SCENARIO_ID")
 
-        if len(set(
-            _text(item)
-            for item in scenario_ids
-        )) != len(scenario_ids):
-            return self._blocked(
-                "DUPLICATE_SCENARIO_ID"
-            )
+        if len(set(_text(item) for item in scenario_ids)) != len(scenario_ids):
+            return self._blocked("DUPLICATE_SCENARIO_ID")
 
-        if decision.get(
-            "non_mutation_invariant"
-        ) is not True:
-            return self._blocked(
-                "NON_MUTATION_INVARIANT_FAILED"
-            )
+        if decision.get("non_mutation_invariant") is not True:
+            return self._blocked("NON_MUTATION_INVARIANT_FAILED")
 
-        if decision.get(
-            "broker_submission"
-        ) is not False:
-            return self._blocked(
-                "BROKER_SUBMISSION_INVARIANT_FAILED"
-            )
+        if decision.get("broker_submission") is not False:
+            return self._blocked("BROKER_SUBMISSION_INVARIANT_FAILED")
 
-        if decision.get(
-            "live_order_submission"
-        ) is not False:
-            return self._blocked(
-                "LIVE_EXECUTION_INVARIANT_FAILED"
-            )
+        if decision.get("live_order_submission") is not False:
+            return self._blocked("LIVE_EXECUTION_INVARIANT_FAILED")
 
-        return {
-            "status": STATUS_CERTIFIED
-        }
+        return {"status": STATUS_CERTIFIED}
 
     # ---------------------------------------------------------
     # Blocked result
@@ -373,7 +277,7 @@ class EROSBlock97StressReadinessGate:
     def _blocked(
         self,
         reason: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         return {
             "status": STATUS_BLOCKED,
@@ -381,9 +285,7 @@ class EROSBlock97StressReadinessGate:
             "block_id": BLOCK_ID,
             "engine_version": self.engine_version,
             "reason_code": reason,
-
             "downstream_execution_gate": STATUS_BLOCKED,
-
             "non_mutation_invariant": True,
             "execution_blocked": True,
             "broker_submission": False,
@@ -394,13 +296,11 @@ class EROSBlock97StressReadinessGate:
     # Snapshot
     # ---------------------------------------------------------
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return {
             "engine_version": self.engine_version,
             "block_id": BLOCK_ID,
-            "readiness": _deepcopy(
-                self._readiness
-            ),
+            "readiness": _deepcopy(self._readiness),
         }
 
 

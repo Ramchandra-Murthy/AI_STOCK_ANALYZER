@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional, List
+
 from sqlalchemy.orm import Session
+
 from backend.database.models.user import UserModel, UserRole
 
 logger = logging.getLogger(__name__)
+
 
 class UserRepository:
     @staticmethod
@@ -15,7 +17,7 @@ class UserRepository:
         username: str,
         email: str,
         hashed_password: str,
-        role: UserRole = UserRole.VIEWER
+        role: UserRole = UserRole.VIEWER,
     ) -> UserModel:
         logger.info("Persisting new user entity for username: %s", username)
         user = UserModel(
@@ -24,7 +26,7 @@ class UserRepository:
             email=email,
             hashed_password=hashed_password,
             role=role,
-            is_active=True
+            is_active=True,
         )
         session.add(user)
         session.commit()
@@ -32,17 +34,17 @@ class UserRepository:
         return user
 
     @staticmethod
-    def get_user_by_id(session: Session, user_id: str) -> Optional[UserModel]:
+    def get_user_by_id(session: Session, user_id: str) -> UserModel | None:
         return session.query(UserModel).filter(UserModel.id == user_id).first()
 
     @staticmethod
-    def get_user_by_username(session: Session, username: str) -> Optional[UserModel]:
+    def get_user_by_username(session: Session, username: str) -> UserModel | None:
         return session.query(UserModel).filter(UserModel.username == username).first()
 
     @staticmethod
-    def get_user_by_email(session: Session, email: str) -> Optional[UserModel]:
+    def get_user_by_email(session: Session, email: str) -> UserModel | None:
         return session.query(UserModel).filter(UserModel.email == email).first()
 
     @staticmethod
-    def list_users(session: Session) -> List[UserModel]:
+    def list_users(session: Session) -> list[UserModel]:
         return session.query(UserModel).all()

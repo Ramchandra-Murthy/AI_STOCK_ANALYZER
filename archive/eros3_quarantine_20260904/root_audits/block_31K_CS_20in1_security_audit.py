@@ -63,10 +63,7 @@ for f in files:
     backtick_n = b"`n" in raw
     null_byte = b"\x00" in raw
 
-    print(
-        f"{f} | BOM={bom} | "
-        f"BACKTICK_N={backtick_n} | NULL_BYTE={null_byte}"
-    )
+    print(f"{f} | BOM={bom} | " f"BACKTICK_N={backtick_n} | NULL_BYTE={null_byte}")
 
     if bom or backtick_n or null_byte:
         artifact_pass = False
@@ -79,6 +76,7 @@ import_pass = False
 
 try:
     from backend.main import app
+
     import_pass = True
     print("APPLICATION IMPORT: PASS")
     print("APP:", type(app).__name__)
@@ -129,24 +127,14 @@ print("-" * 70)
 
 main_source = (root / "backend/main.py").read_text(encoding="utf-8")
 
-registration_pass = (
-    "task_router" in main_source and
-    "include_router(task_router)" in main_source
+registration_pass = "task_router" in main_source and "include_router(task_router)" in main_source
+
+print("TASK ROUTER IMPORT:", "FOUND" if "task_router" in main_source else "MISSING")
+print(
+    "TASK ROUTER INCLUDE:", "FOUND" if "include_router(task_router)" in main_source else "MISSING"
 )
 
-print(
-    "TASK ROUTER IMPORT:",
-    "FOUND" if "task_router" in main_source else "MISSING"
-)
-print(
-    "TASK ROUTER INCLUDE:",
-    "FOUND" if "include_router(task_router)" in main_source else "MISSING"
-)
-
-print(
-    "REGISTRATION:",
-    "PASS" if registration_pass else "FAIL"
-)
+print("REGISTRATION:", "PASS" if registration_pass else "FAIL")
 
 print("\n7. APPLICATION ROUTE INVENTORY")
 print("-" * 70)
@@ -197,19 +185,13 @@ if import_pass:
             "/api/v1/tasks/observability",
         }
 
-        actual_task = {
-            p for p in schemas
-            if p.startswith("/api/v1/tasks/")
-        }
+        actual_task = {p for p in schemas if p.startswith("/api/v1/tasks/")}
 
         print("EXPECTED:", len(expected_task))
         print("OPENAPI:", len(actual_task))
 
         task_recon_pass = expected_task == actual_task
-        print(
-            "TASK RECONCILIATION:",
-            "PASS" if task_recon_pass else "FAIL"
-        )
+        print("TASK RECONCILIATION:", "PASS" if task_recon_pass else "FAIL")
     except Exception as exc:
         task_recon_pass = False
         print("OPENAPI ERROR:", type(exc).__name__, str(exc))
@@ -219,15 +201,12 @@ else:
 print("\n9. OPENAPI SECURITY SCHEMA")
 print("-" * 70)
 
-security_schemes = openapi.get("components", {}).get(
-    "securitySchemes", {}
-) if openapi else {}
+security_schemes = openapi.get("components", {}).get("securitySchemes", {}) if openapi else {}
 
 print("SECURITY SCHEMES:", security_schemes)
 
 bearer_pass = (
-    "HTTPBearer" in security_schemes
-    and security_schemes["HTTPBearer"].get("scheme") == "bearer"
+    "HTTPBearer" in security_schemes and security_schemes["HTTPBearer"].get("scheme") == "bearer"
 )
 
 print("HTTP BEARER:", "PASS" if bearer_pass else "FAIL")
@@ -261,17 +240,9 @@ for path, method in protected_expected:
 
 openapi_security_pass = protected_actual == protected_expected
 
-print(
-    "PROTECTED:",
-    len(protected_actual),
-    "/",
-    len(protected_expected)
-)
+print("PROTECTED:", len(protected_actual), "/", len(protected_expected))
 
-print(
-    "OPENAPI SECURITY:",
-    "PASS" if openapi_security_pass else "FAIL"
-)
+print("OPENAPI SECURITY:", "PASS" if openapi_security_pass else "FAIL")
 
 print("\n11. SETTINGS + JWT")
 print("-" * 70)
@@ -383,13 +354,7 @@ if import_pass:
         for name, method, path in tests:
             response = getattr(client, method)(path)
             ok = response.status_code == 401
-            print(
-                name,
-                "->",
-                response.status_code,
-                "|",
-                "SECURITY_ENFORCED" if ok else "OPEN"
-            )
+            print(name, "->", response.status_code, "|", "SECURITY_ENFORCED" if ok else "OPEN")
             passed += int(ok)
 
         print("PROTECTED:", passed, "/", len(tests))
@@ -454,10 +419,7 @@ inline_count = sum(main_source.count(x) for x in inline_patterns)
 print("INLINE TASK ROUTES:", inline_count)
 inline_pass = inline_count == 0
 
-print(
-    "INLINE TASK AUDIT:",
-    "PASS" if inline_pass else "FAIL"
-)
+print("INLINE TASK AUDIT:", "PASS" if inline_pass else "FAIL")
 
 print("\n19. BUSINESS ROUTE DUPLICATES")
 print("-" * 70)
@@ -475,10 +437,7 @@ for route in [
     if count != 1:
         duplicate_pass = False
 
-print(
-    "BUSINESS ROUTES:",
-    "PASS" if duplicate_pass else "FAIL"
-)
+print("BUSINESS ROUTES:", "PASS" if duplicate_pass else "FAIL")
 
 print("\n20. INFRASTRUCTURE")
 print("-" * 70)
@@ -497,10 +456,7 @@ if import_pass:
         print("HEALTH:", health.status_code, health.json())
         print("READY:", ready.status_code, ready.json())
 
-        infra_pass = (
-            health.status_code == 200
-            and ready.status_code == 200
-        )
+        infra_pass = health.status_code == 200 and ready.status_code == 200
 
     except Exception as exc:
         print("INFRA ERROR:", type(exc).__name__, str(exc))
@@ -536,10 +492,7 @@ checks = [
 passed = 0
 
 for i, (name, result) in enumerate(checks, 1):
-    print(
-        f"{i:2d} {name:<28} | "
-        f"{'PASS' if result else 'FAIL'}"
-    )
+    print(f"{i:2d} {name:<28} | " f"{'PASS' if result else 'FAIL'}")
     passed += int(result)
 
 print()
@@ -570,8 +523,5 @@ overall = (
 print()
 print("=" * 70)
 print("OVERALL SECURITY GATE:", "PASS" if overall else "FAIL")
-print(
-    "PRODUCTION STATUS:",
-    "READY" if overall else "BLOCKED"
-)
+print("PRODUCTION STATUS:", "READY" if overall else "BLOCKED")
 print("=" * 70)

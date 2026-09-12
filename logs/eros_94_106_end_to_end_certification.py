@@ -1,5 +1,5 @@
-import sys
 import inspect
+import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -43,9 +43,11 @@ from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
 
+
 def require(condition, message):
     if not condition:
         raise AssertionError(message)
+
 
 def show(label, payload):
     print()
@@ -57,6 +59,7 @@ def show(label, payload):
         print("KEYS :", list(payload.keys()))
         print("STATUS :", repr(payload.get("status")))
         print("BLOCK ID :", repr(payload.get("block_id")))
+
 
 print("=" * 70)
 print("EROS 3.0 - 94 -> 106 END-TO-END RUNTIME CERTIFICATION")
@@ -84,12 +87,7 @@ interfaces = [
 ]
 
 for cls, method_name in interfaces:
-    print(
-        cls.__name__,
-        method_name,
-        ":",
-        inspect.signature(getattr(cls, method_name))
-    )
+    print(cls.__name__, method_name, ":", inspect.signature(getattr(cls, method_name)))
 
 # ------------------------------------------------------------
 # 2. UPSTREAM READ-ONLY INPUTS
@@ -161,9 +159,7 @@ print("-" * 70)
 
 b95 = EROSBlock95StressEvidenceGate()
 
-gate95 = b95.gate(
-    stress_certificate=stress
-)
+gate95 = b95.gate(stress_certificate=stress)
 
 show("BLOCK 95 OUTPUT", gate95)
 
@@ -178,9 +174,7 @@ print("-" * 70)
 
 b96 = EROSBlock96StressDecisionGate()
 
-decision96 = b96.decide(
-    stress_gate=gate95
-)
+decision96 = b96.decide(stress_gate=gate95)
 
 show("BLOCK 96 OUTPUT", decision96)
 
@@ -195,9 +189,7 @@ print("-" * 70)
 
 b97 = EROSBlock97StressReadinessGate()
 
-readiness97 = b97.evaluate(
-    decision=decision96
-)
+readiness97 = b97.evaluate(decision=decision96)
 
 show("BLOCK 97 OUTPUT", readiness97)
 
@@ -212,9 +204,7 @@ print("-" * 70)
 
 b98 = EROSBlock98ExecutionGovernanceBridge()
 
-governance98 = b98.govern(
-    decision=readiness97
-)
+governance98 = b98.govern(decision=readiness97)
 
 show("BLOCK 98 OUTPUT", governance98)
 
@@ -229,9 +219,7 @@ print("-" * 70)
 
 b99 = EROSBlock99ExecutionIntentAuthorizationGate()
 
-intent99 = b99.authorize(
-    governance=governance98
-)
+intent99 = b99.authorize(governance=governance98)
 
 show("BLOCK 99 OUTPUT", intent99)
 
@@ -246,9 +234,7 @@ print("-" * 70)
 
 b100 = EROSBlock100PaperExecutionFillGate()
 
-execution100 = b100.certify(
-    intent=intent99
-)
+execution100 = b100.certify(intent=intent99)
 
 show("BLOCK 100 OUTPUT", execution100)
 
@@ -263,9 +249,7 @@ print("-" * 70)
 
 b101 = EROSBlock101ExecutionEvidenceReconciliationGate()
 
-reconciliation101 = b101.evaluate(
-    execution=execution100
-)
+reconciliation101 = b101.evaluate(execution=execution100)
 
 show("BLOCK 101 OUTPUT", reconciliation101)
 
@@ -305,9 +289,7 @@ print("-" * 70)
 
 b103 = EROSBlock103InstitutionalFrontendReadModel()
 
-read_model103 = b103.build(
-    contract=contract102
-)
+read_model103 = b103.build(contract=contract102)
 
 show("BLOCK 103 OUTPUT", read_model103)
 
@@ -323,9 +305,7 @@ print("-" * 70)
 
 b104 = EROSBlock104CommandCenter()
 
-command_center104 = b104.render_model(
-    read_model=read_model103
-)
+command_center104 = b104.render_model(read_model=read_model103)
 
 show("BLOCK 104 OUTPUT", command_center104)
 
@@ -341,25 +321,19 @@ print("-" * 70)
 
 b106 = EROSBlock106InstitutionalIntegrationBoundary()
 
-integration106 = b106.build_integration_payload(
-    command_center=command_center104
-)
+integration106 = b106.build_integration_payload(command_center=command_center104)
 
 show("BLOCK 106 INTEGRATION OUTPUT", integration106)
 
 require(isinstance(integration106, dict), "BLOCK106_NOT_DICT")
 
-snapshot106 = b106.build_read_only_snapshot(
-    command_center=command_center104
-)
+snapshot106 = b106.build_read_only_snapshot(command_center=command_center104)
 
 show("BLOCK 106 READ-ONLY SNAPSHOT", snapshot106)
 
 require(isinstance(snapshot106, dict), "BLOCK106_SNAPSHOT_NOT_DICT")
 
-valid106 = b106.validate_payload(
-    integration106
-)
+valid106 = b106.validate_payload(integration106)
 
 print()
 print("BLOCK 106 VALIDATION :", valid106)

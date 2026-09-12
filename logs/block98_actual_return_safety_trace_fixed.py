@@ -1,11 +1,10 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
-path = Path(
-    r"services\quantitative\block98_execution_governance_bridge.py"
-)
+path = Path(r"services\quantitative\block98_execution_governance_bridge.py")
 
 output = []
+
 
 def p(text=""):
     print(text)
@@ -26,9 +25,7 @@ if not path.exists():
 else:
 
     # BOM-safe source reading
-    lines = path.read_text(
-        encoding="utf-8-sig"
-    ).splitlines()
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
 
     p()
     p(f"SOURCE LINES: {len(lines)}")
@@ -85,9 +82,7 @@ else:
 
             marker = ">>" if n == i else "  "
 
-            p(
-                f"{marker} L{n}: {lines[n - 1]}"
-            )
+            p(f"{marker} L{n}: {lines[n - 1]}")
 
     if not found:
 
@@ -111,17 +106,13 @@ else:
                 end = min(len(lines), i + 25)
 
                 p()
-                p(
-                    f"--- RETURN WINDOW L{start}-L{end} ---"
-                )
+                p(f"--- RETURN WINDOW L{start}-L{end} ---")
 
                 for n in range(start, end + 1):
 
                     marker = ">>" if n == i else "  "
 
-                    p(
-                        f"{marker} L{n}: {lines[n - 1]}"
-                    )
+                    p(f"{marker} L{n}: {lines[n - 1]}")
 
         if not return_found:
             p("NO RETURN STATEMENTS FOUND.")
@@ -181,9 +172,5 @@ except Exception as exc:
     print("=" * 100)
     print("CLIPBOARD : FAIL")
     print("=" * 100)
-    print(
-        type(exc).__name__,
-        str(exc)
-    )
+    print(type(exc).__name__, str(exc))
     print("=" * 100)
-

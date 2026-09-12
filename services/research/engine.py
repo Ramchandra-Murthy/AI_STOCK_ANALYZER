@@ -27,7 +27,9 @@ class ResearchEngine:
                 self.symbol = resolved_symbol
                 self.ai_recommendation = "UNAVAILABLE"
                 self.confidence_score = 0.0
-                self.thesis = "Research evidence is unavailable; no investment conclusion is issued."
+                self.thesis = (
+                    "Research evidence is unavailable; no investment conclusion is issued."
+                )
                 self.risks = "Insufficient validated research evidence."
 
         return ResearchResult(symbol)

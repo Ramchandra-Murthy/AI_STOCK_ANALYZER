@@ -1,11 +1,8 @@
-﻿import os
+﻿import json
+import os
 import sys
-import json
-import traceback
 
-PROJECT_ROOT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")
-)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
@@ -45,22 +42,16 @@ def build_decision_evidence(symbol, result):
 
     evidence = {
         "symbol": symbol,
-
         "price": value_from_last("Close"),
-
         "trend": trend.get("Trend"),
         "momentum": trend.get("Momentum"),
-
         "score": signal.get("Score"),
         "confidence": signal.get("Confidence"),
         "recommendation": signal.get("Recommendation"),
         "risk": signal.get("Risk"),
-
         "reasons": list(signal.get("Reasons") or []),
-
         "breakout_signal": breakout.get("Signal"),
         "breakout_reason": breakout.get("Reason"),
-
         "technical_indicators": {
             "sma_20": value_from_last("SMA_20"),
             "sma_50": value_from_last("SMA_50"),
@@ -76,12 +67,11 @@ def build_decision_evidence(symbol, result):
             "support": value_from_last("Support"),
             "resistance": value_from_last("Resistance"),
         },
-
         "governance": {
             "read_only": True,
             "execution_blocked": True,
             "non_mutation_invariant": True,
-        }
+        },
     }
 
     return evidence
@@ -119,9 +109,7 @@ print("SYMBOL :", symbol)
 result = adapter.stock_analysis(symbol)
 
 if not isinstance(result, dict):
-    raise RuntimeError(
-        "STOCK_ANALYSIS_RESULT_IS_NOT_DICT"
-    )
+    raise RuntimeError("STOCK_ANALYSIS_RESULT_IS_NOT_DICT")
 
 print("STOCK ANALYSIS : PASS")
 print("RESULT TYPE    :", type(result).__name__)
@@ -130,19 +118,12 @@ print("")
 print("4. BUILD DECISION EVIDENCE")
 print("-" * 60)
 
-evidence = build_decision_evidence(
-    symbol,
-    result
-)
+evidence = build_decision_evidence(symbol, result)
 
 print("DECISION EVIDENCE : PASS")
 
 print("")
-print(json.dumps(
-    evidence,
-    indent=2,
-    default=str
-))
+print(json.dumps(evidence, indent=2, default=str))
 
 print("")
 print("5. REQUIRED FIELD VALIDATION")
@@ -170,21 +151,13 @@ for field in required_fields:
 
     present = field in evidence
 
-    print(
-        "{0:<25} : {1}".format(
-            field,
-            "PASS" if present else "FAIL"
-        )
-    )
+    print("{0:<25} : {1}".format(field, "PASS" if present else "FAIL"))
 
     if not present:
         failed.append(field)
 
 if failed:
-    raise RuntimeError(
-        "MISSING_REQUIRED_FIELDS: " +
-        ", ".join(failed)
-    )
+    raise RuntimeError("MISSING_REQUIRED_FIELDS: " + ", ".join(failed))
 
 print("")
 print("6. TECHNICAL FIELD VALIDATION")
@@ -212,21 +185,13 @@ for field in required_indicators:
 
     present = field in evidence["technical_indicators"]
 
-    print(
-        "{0:<25} : {1}".format(
-            field,
-            "PASS" if present else "FAIL"
-        )
-    )
+    print("{0:<25} : {1}".format(field, "PASS" if present else "FAIL"))
 
     if not present:
         indicator_failed.append(field)
 
 if indicator_failed:
-    raise RuntimeError(
-        "MISSING_INDICATORS: " +
-        ", ".join(indicator_failed)
-    )
+    raise RuntimeError("MISSING_INDICATORS: " + ", ".join(indicator_failed))
 
 print("")
 print("7. SAFETY VERIFICATION")
@@ -237,30 +202,20 @@ safety = evidence["governance"]
 checks = {
     "read_only": safety.get("read_only") is True,
     "execution_blocked": safety.get("execution_blocked") is True,
-    "non_mutation_invariant": safety.get(
-        "non_mutation_invariant"
-    ) is True,
+    "non_mutation_invariant": safety.get("non_mutation_invariant") is True,
 }
 
 safety_failed = []
 
 for name, passed in checks.items():
 
-    print(
-        "{0:<30} : {1}".format(
-            name,
-            "PASS" if passed else "FAIL"
-        )
-    )
+    print("{0:<30} : {1}".format(name, "PASS" if passed else "FAIL"))
 
     if not passed:
         safety_failed.append(name)
 
 if safety_failed:
-    raise RuntimeError(
-        "SAFETY_FAILURE: " +
-        ", ".join(safety_failed)
-    )
+    raise RuntimeError("SAFETY_FAILURE: " + ", ".join(safety_failed))
 
 print("")
 print("8. EVIDENCE CONTRACT")

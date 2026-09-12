@@ -62,9 +62,11 @@ CLASS_NAMES = {
 
 report = []
 
+
 def out(text=""):
     print(text)
     report.append(str(text))
+
 
 def section(title):
     out()
@@ -72,13 +74,15 @@ def section(title):
     out(title)
     out("=" * 70)
 
+
 def compact(value):
     if isinstance(value, dict):
         return {
             k: value[k]
             for k in value
             if k in EXPECTED_SAFETY
-            or k in [
+            or k
+            in [
                 "status",
                 "block_id",
                 "engine_version",
@@ -96,6 +100,7 @@ def compact(value):
             ]
         }
     return value
+
 
 def inspect_safety(block_id, result):
     out()
@@ -150,6 +155,7 @@ def inspect_safety(block_id, result):
         "wrong": wrong,
         "passed": passed,
     }
+
 
 # ================================================================
 # IMPORTS
@@ -279,9 +285,7 @@ try:
 
     b95 = instances[95]
 
-    result95 = b95.certify(
-        stress_certificate=result94
-    )
+    result95 = b95.certify(stress_certificate=result94)
 
     chain[95] = result95
 
@@ -308,9 +312,7 @@ try:
 
     b96 = instances[96]
 
-    result96 = b96.certify(
-        stress_gate=result95
-    )
+    result96 = b96.certify(stress_gate=result95)
 
     chain[96] = result96
 
@@ -337,9 +339,7 @@ try:
 
     b97 = instances[97]
 
-    result97 = b97.certify(
-        decision=result96
-    )
+    result97 = b97.certify(decision=result96)
 
     chain[97] = result97
 
@@ -366,9 +366,7 @@ try:
 
     b98 = instances[98]
 
-    result98 = b98.certify(
-        decision=result97
-    )
+    result98 = b98.certify(decision=result97)
 
     chain[98] = result98
 
@@ -395,9 +393,7 @@ try:
 
     b99 = instances[99]
 
-    result99 = b99.certify(
-        governance=result98
-    )
+    result99 = b99.certify(governance=result98)
 
     chain[99] = result99
 
@@ -455,9 +451,7 @@ try:
 
     b101 = instances[101]
 
-    result101 = b101.certify(
-        execution=result100
-    )
+    result101 = b101.certify(execution=result100)
 
     chain[101] = result101
 
@@ -562,10 +556,7 @@ else:
 uniform_pass = not all_missing and not all_wrong
 
 out()
-out(
-    "UNIFORM SAFETY CONTRACT    : "
-    + ("PASS" if uniform_pass else "FAIL")
-)
+out("UNIFORM SAFETY CONTRACT    : " + ("PASS" if uniform_pass else "FAIL"))
 
 # ================================================================
 # NON-MUTATION CHECK
@@ -606,19 +597,13 @@ for block_id in range(94, 102):
         if actual != expected:
             block_pass = False
             global_safety_pass = False
-            out(
-                f"BLOCK {block_id}: "
-                f"{key} expected {expected!r}, got {actual!r}"
-            )
+            out(f"BLOCK {block_id}: " f"{key} expected {expected!r}, got {actual!r}")
 
     if block_pass:
         out(f"BLOCK {block_id}: SAFETY PASS")
 
 out()
-out(
-    "GLOBAL NON-MUTATION SAFETY : "
-    + ("PASS" if global_safety_pass else "FAIL")
-)
+out("GLOBAL NON-MUTATION SAFETY : " + ("PASS" if global_safety_pass else "FAIL"))
 
 # ================================================================
 # FINAL CLASSIFICATION
@@ -630,10 +615,7 @@ if uniform_pass and global_safety_pass:
 
     final_status = "PASS - UNIFORM SAFE CONTRACT VERIFIED"
 
-elif all(
-    isinstance(chain.get(i), dict)
-    for i in range(94, 102)
-):
+elif all(isinstance(chain.get(i), dict) for i in range(94, 102)):
     final_status = "PARTIAL - CHAIN EXECUTES BUT SAFETY CONTRACT IS NOT UNIFORM"
 
 else:
@@ -685,11 +667,7 @@ section("17. MACHINE SUMMARY")
 summary = {
     "timestamp": datetime.now().isoformat(),
     "blocks_tested": list(range(94, 102)),
-    "imports_passed": [
-        block_id
-        for block_id, passed in import_results.items()
-        if passed
-    ],
+    "imports_passed": [block_id for block_id, passed in import_results.items() if passed],
     "chain_blocks_returned": list(chain.keys()),
     "uniform_safety_contract": uniform_pass,
     "global_non_mutation_safety": global_safety_pass,
@@ -718,4 +696,3 @@ try:
 
 except Exception:
     pass
-

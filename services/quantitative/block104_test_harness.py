@@ -21,12 +21,7 @@ def main():
         "status": "CERTIFIED",
         "block_id": "103",
         "engine_version": "EROS-3.0-BLOCK-103",
-
-        "pipeline": [
-            {"block_id": str(i), "status": "CERTIFIED"}
-            for i in range(94, 102)
-        ],
-
+        "pipeline": [{"block_id": str(i), "status": "CERTIFIED"} for i in range(94, 102)],
         "risk": {
             "stress_status": "CERTIFIED",
             "evidence_status": "CERTIFIED",
@@ -36,13 +31,11 @@ def main():
             "downside_pnl": -1500000.0,
             "upside_pnl": 1000000.0,
         },
-
         "governance": {
             "status": "APPROVED",
             "governance_id": "EROS98-B104-TEST",
             "execution_action": "EXECUTE",
         },
-
         "intent": {
             "status": "AUTHORIZED",
             "intent_id": "EROS99-B104-TEST",
@@ -53,7 +46,6 @@ def main():
             "quantity": 100.0,
             "reference_price": 2500.0,
         },
-
         "execution": {
             "status": "SIMULATED",
             "execution_id": "EROS100-B104-TEST",
@@ -68,7 +60,6 @@ def main():
             "transaction_cost": 250.0,
             "net_value": 250125.0,
         },
-
         "reconciliation": {
             "status": "RECONCILED",
             "reconciliation_id": "EROS101-B104-TEST",
@@ -79,7 +70,6 @@ def main():
             "cost_reconciled": True,
             "lineage_reconciled": True,
         },
-
         "lineage": {
             "block94": "EROS94-B104-TEST",
             "block95": "EROS95-B104-TEST",
@@ -90,7 +80,6 @@ def main():
             "block100": "EROS100-B104-TEST",
             "block101": "EROS101-B104-TEST",
         },
-
         "safety": {
             "portfolio_mutation": False,
             "valuation_mutation": False,
@@ -105,9 +94,7 @@ def main():
         },
     }
 
-    model = b104.render_model(
-        read_model=read_model
-    )
+    model = b104.render_model(read_model=read_model)
 
     check(
         model["status"] == "CERTIFIED",
@@ -145,8 +132,7 @@ def main():
     )
 
     check(
-        model["status_cards"]["reconciliation"]
-        == "RECONCILED",
+        model["status_cards"]["reconciliation"] == "RECONCILED",
         "Reconciliation card must be RECONCILED",
     )
 
@@ -171,92 +157,77 @@ def main():
     )
 
     check(
-        model["reconciliation"]["quantity_reconciled"]
-        is True,
+        model["reconciliation"]["quantity_reconciled"] is True,
         "Quantity reconciliation must survive",
     )
 
     check(
-        model["reconciliation"]["price_reconciled"]
-        is True,
+        model["reconciliation"]["price_reconciled"] is True,
         "Price reconciliation must survive",
     )
 
     check(
-        model["reconciliation"]["value_reconciled"]
-        is True,
+        model["reconciliation"]["value_reconciled"] is True,
         "Value reconciliation must survive",
     )
 
     check(
-        model["reconciliation"]["cost_reconciled"]
-        is True,
+        model["reconciliation"]["cost_reconciled"] is True,
         "Cost reconciliation must survive",
     )
 
     check(
-        model["reconciliation"]["lineage_reconciled"]
-        is True,
+        model["reconciliation"]["lineage_reconciled"] is True,
         "Lineage reconciliation must survive",
     )
 
     check(
-        model["safety"]["portfolio_mutation"]
-        is False,
+        model["safety"]["portfolio_mutation"] is False,
         "Portfolio mutation must remain false",
     )
 
     check(
-        model["safety"]["valuation_mutation"]
-        is False,
+        model["safety"]["valuation_mutation"] is False,
         "Valuation mutation must remain false",
     )
 
     check(
-        model["safety"]["performance_mutation"]
-        is False,
+        model["safety"]["performance_mutation"] is False,
         "Performance mutation must remain false",
     )
 
     check(
-        model["safety"]["risk_mutation"]
-        is False,
+        model["safety"]["risk_mutation"] is False,
         "Risk mutation must remain false",
     )
 
     check(
-        model["safety"]["optimization"]
-        is False,
+        model["safety"]["optimization"] is False,
         "Optimization must remain false",
     )
 
     check(
-        model["safety"]["order_creation"]
-        is False,
+        model["safety"]["order_creation"] is False,
         "Order creation must remain false",
     )
 
     check(
-        model["safety"]["broker_submission"]
-        is False,
+        model["safety"]["broker_submission"] is False,
         "Broker submission must remain false",
     )
 
     check(
-        model["safety"]["live_order_submission"]
-        is False,
+        model["safety"]["live_order_submission"] is False,
         "Live execution must remain false",
     )
 
     check(
-        model["safety"]["execution_blocked"]
-        is True,
+        model["safety"]["execution_blocked"] is True,
         "Execution blocked must remain true",
     )
 
     check(
-        model["safety"]["non_mutation_invariant"]
-        is True,
+        model["safety"]["non_mutation_invariant"] is True,
         "Non-mutation invariant must remain true",
     )
 

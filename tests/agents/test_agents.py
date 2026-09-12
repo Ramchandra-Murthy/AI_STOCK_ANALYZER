@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.agents.base_agent import AgentOpinion, ValuationAgent, QualityAgent, RiskAgent
+from services.agents.base_agent import AgentOpinion, QualityAgent, RiskAgent, ValuationAgent
 from services.agents.coordinator import MultiAgentCoordinator
+
 
 def test_agent_opinion_immutability_and_defaults() -> None:
     opinion = AgentOpinion(
@@ -10,13 +10,14 @@ def test_agent_opinion_immutability_and_defaults() -> None:
         recommendation="BUY",
         confidence=0.85,
         evidence=["Strong growth"],
-        risks=["High debt"]
+        risks=["High debt"],
     )
     assert opinion.agent_name == "TestAgent"
     assert opinion.recommendation == "BUY"
     assert opinion.confidence == 0.85
     assert opinion.timestamp is not None
     assert isinstance(opinion.metadata, dict)
+
 
 def test_specialist_agents_execution() -> None:
     val_agent = ValuationAgent()
@@ -30,10 +31,11 @@ def test_specialist_agents_execution() -> None:
     assert op_q.agent_name == "QualityAgent"
     assert op_q.confidence > 0.90
 
+
 def test_multi_agent_coordinator_default_registry() -> None:
     coordinator = MultiAgentCoordinator()
     result = coordinator.evaluate_symbol("RELIANCE.NS")
-    
+
     assert result["symbol"] == "RELIANCE.NS"
     assert result["consensus_recommendation"] == "BUY"
     assert 0.0 <= result["overall_confidence"] <= 1.0
@@ -42,12 +44,14 @@ def test_multi_agent_coordinator_default_registry() -> None:
     assert len(result["synthesized_evidence"]) > 0
     assert len(result["synthesized_risks"]) > 0
 
+
 def test_multi_agent_coordinator_empty_registry() -> None:
     coordinator = MultiAgentCoordinator(agents=[])
     result = coordinator.evaluate_symbol("EMPTY.NS")
     assert result["participating_agents"] == 0
     assert result["consensus_recommendation"] == "HOLD"
     assert result["overall_confidence"] == 0.0
+
 
 def test_multi_agent_coordinator_conflicting_recommendations() -> None:
     class BearAgent(RiskAgent):
@@ -57,7 +61,7 @@ def test_multi_agent_coordinator_conflicting_recommendations() -> None:
                 recommendation="SELL",
                 confidence=0.95,
                 evidence=["Severe downturn"],
-                risks=["Insolvency risk"]
+                risks=["Insolvency risk"],
             )
 
     coordinator = MultiAgentCoordinator(agents=[BearAgent()])

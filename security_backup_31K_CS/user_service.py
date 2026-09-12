@@ -3,24 +3,23 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Any
+
 from sqlalchemy.orm import Session
+
 from backend.database.models.user import UserModel, UserRole
 from backend.database.repositories.user_repository import UserRepository
-from backend.security.passwords import PasswordSecurity
+from backend.exceptions import ValidationError
 from backend.security.jwt import JWTSecurity
-from backend.exceptions import ValidationError, ServiceError
+from backend.security.passwords import PasswordSecurity
 
 logger = logging.getLogger(__name__)
+
 
 class UserService:
     @staticmethod
     def register_user(
-        session: Session,
-        username: str,
-        email: str,
-        password: str,
-        role: UserRole = UserRole.VIEWER
+        session: Session, username: str, email: str, password: str, role: UserRole = UserRole.VIEWER
     ) -> UserModel:
         if UserRepository.get_user_by_username(session, username):
             raise ValidationError(f"Username '{username}' is already registered.")
@@ -32,7 +31,7 @@ class UserService:
         return UserRepository.create_user(session, user_id, username, email, hashed_pw, role)
 
     @staticmethod
-    def authenticate_user(session: Session, username: str, password: str) -> Dict[str, Any]:
+    def authenticate_user(session: Session, username: str, password: str) -> dict[str, Any]:
         user = UserRepository.get_user_by_username(session, username)
         if not user or not PasswordSecurity.verify_password(password, user.hashed_password):
             raise ValidationError("Invalid username or password.")
@@ -45,7 +44,7 @@ class UserService:
         token_data = {
             "sub": user.username,
             "user_id": user.id,
-            "role": user.role.value if hasattr(user.role, "value") else str(user.role)
+            "role": user.role.value if hasattr(user.role, "value") else str(user.role),
         }
         access_token = JWTSecurity.create_access_token(token_data)
 
@@ -57,6 +56,6 @@ class UserService:
                 "id": user.id,
                 "username": user.username,
                 "email": user.email,
-                "role": user.role
-            }
+                "role": user.role,
+            },
         }

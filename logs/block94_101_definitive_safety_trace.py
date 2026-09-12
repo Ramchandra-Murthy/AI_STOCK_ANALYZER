@@ -1,6 +1,6 @@
 import json
 import traceback
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from services.quantitative.block94_portfolio_stress_scenario_engine import (
     EROSBlock94PortfolioStressScenarioEngine,
@@ -27,7 +27,6 @@ from services.quantitative.block101_execution_evidence_reconciliation import (
     EROSBlock101ExecutionEvidenceReconciliationGate,
 )
 
-
 # ============================================================
 # CONFIGURATION
 # ============================================================
@@ -48,15 +47,13 @@ OPTIONAL_MUTATION_FIELDS = [
     "order_creation",
 ]
 
-ALL_SAFETY_FIELDS = (
-    REQUIRED_SAFETY_FIELDS +
-    OPTIONAL_MUTATION_FIELDS
-)
+ALL_SAFETY_FIELDS = REQUIRED_SAFETY_FIELDS + OPTIONAL_MUTATION_FIELDS
 
 
 # ============================================================
 # HELPERS
 # ============================================================
+
 
 def recursive_find(obj, target, path="root"):
     """
@@ -71,16 +68,12 @@ def recursive_find(obj, target, path="root"):
             if key == target:
                 found.append((current, value))
 
-            found.extend(
-                recursive_find(value, target, current)
-            )
+            found.extend(recursive_find(value, target, current))
 
     elif isinstance(obj, list):
         for index, value in enumerate(obj):
             current = f"{path}[{index}]"
-            found.extend(
-                recursive_find(value, target, current)
-            )
+            found.extend(recursive_find(value, target, current))
 
     return found
 
@@ -115,9 +108,7 @@ def safety_analysis(block_id, result):
     }
 
     if not isinstance(result, dict):
-        analysis["problems"].append(
-            f"Returned object is {type(result).__name__}, not dict"
-        )
+        analysis["problems"].append(f"Returned object is {type(result).__name__}, not dict")
         return analysis
 
     analysis["top_level_keys"] = list(result.keys())
@@ -133,18 +124,13 @@ def safety_analysis(block_id, result):
                 "values": [],
             }
 
-            analysis["problems"].append(
-                f"{field}: MISSING"
-            )
+            analysis["problems"].append(f"{field}: MISSING")
 
         else:
             values = [value for _, value in occurrences]
             locations = [path for path, _ in occurrences]
 
-            correct = all(
-                value is True
-                for value in values
-            )
+            correct = all(value is True for value in values)
 
             analysis["required"][field] = {
                 "status": "PASS" if correct else "WRONG_VALUE",
@@ -153,9 +139,7 @@ def safety_analysis(block_id, result):
             }
 
             if not correct:
-                analysis["problems"].append(
-                    f"{field}: expected True, actual {values}"
-                )
+                analysis["problems"].append(f"{field}: expected True, actual {values}")
 
     for field in OPTIONAL_MUTATION_FIELDS:
 
@@ -176,10 +160,12 @@ def safety_analysis(block_id, result):
     nested = recursive_find(result, "safety")
 
     for path, value in nested:
-        analysis["nested_safety"].append({
-            "path": path,
-            "value": value,
-        })
+        analysis["nested_safety"].append(
+            {
+                "path": path,
+                "value": value,
+            }
+        )
 
     return analysis
 
@@ -193,7 +179,7 @@ print("EROS 3.0 - DEFINITIVE BLOCK 94-101 SAFETY CONTRACT TRACE")
 print("=" * 80)
 
 print()
-print("TIMESTAMP :", datetime.now(timezone.utc).isoformat())
+print("TIMESTAMP :", datetime.now(UTC).isoformat())
 print("MODE      : READ ONLY")
 print("BROKER    : DISABLED")
 print("LIVE      : DISABLED")
@@ -643,17 +629,11 @@ for block_id in [
         info = analysis.get("required", {}).get(field)
 
         if info is None:
-            print(
-                f"  {field:28} : <NOT ANALYZED>"
-            )
+            print(f"  {field:28} : <NOT ANALYZED>")
             overall_pass = False
             continue
 
-        print(
-            f"  {field:28} : "
-            f"{info.get('status')} "
-            f"values={info.get('values')}"
-        )
+        print(f"  {field:28} : " f"{info.get('status')} " f"values={info.get('values')}")
 
         if info.get("status") != "PASS":
             overall_pass = False
@@ -668,11 +648,7 @@ for block_id in [
         if info is None:
             continue
 
-        print(
-            f"  {field:28} : "
-            f"{info.get('status')} "
-            f"values={info.get('values', '')}"
-        )
+        print(f"  {field:28} : " f"{info.get('status')} " f"values={info.get('values', '')}")
 
 
 # ============================================================
@@ -701,17 +677,11 @@ for block_id, result in results.items():
 
         for field in ALL_SAFETY_FIELDS:
 
-            print(
-                f"  {field:28} : "
-                f"{result.get(field, '<ABSENT>')!r}"
-            )
+            print(f"  {field:28} : " f"{result.get(field, '<ABSENT>')!r}")
 
     else:
 
-        print(
-            "RESULT TYPE:",
-            type(result).__name__
-        )
+        print("RESULT TYPE:", type(result).__name__)
 
 
 # ============================================================
@@ -728,10 +698,7 @@ for block_id, analysis in analyses.items():
     print()
     print(f"BLOCK {block_id}")
 
-    nested = analysis.get(
-        "nested_safety",
-        []
-    )
+    nested = analysis.get("nested_safety", [])
 
     if not nested:
 
@@ -741,15 +708,9 @@ for block_id, analysis in analyses.items():
 
         for item in nested:
 
-            print(
-                "  PATH :",
-                item["path"]
-            )
+            print("  PATH :", item["path"])
 
-            print(
-                "  VALUE:",
-                compact(item["value"], 1000)
-            )
+            print("  VALUE:", compact(item["value"], 1000))
 
 
 # ============================================================
@@ -776,44 +737,24 @@ for source, target, argument in handoffs:
     source_result = results.get(source)
 
     print()
-    print(
-        f"BLOCK {source} -> BLOCK {target}"
-    )
+    print(f"BLOCK {source} -> BLOCK {target}")
 
-    print(
-        "HANDOFF ARGUMENT :",
-        argument
-    )
+    print("HANDOFF ARGUMENT :", argument)
 
     if isinstance(source_result, dict):
 
-        print(
-            "SOURCE STATUS    :",
-            source_result.get("status")
-        )
+        print("SOURCE STATUS    :", source_result.get("status"))
 
-        print(
-            "SOURCE KEYS      :",
-            list(source_result.keys())
-        )
+        print("SOURCE KEYS      :", list(source_result.keys()))
 
         print(
             "SAFETY           :",
-            {
-                field: source_result.get(
-                    field,
-                    "<ABSENT>"
-                )
-                for field in REQUIRED_SAFETY_FIELDS
-            }
+            {field: source_result.get(field, "<ABSENT>") for field in REQUIRED_SAFETY_FIELDS},
         )
 
     else:
 
-        print(
-            "SOURCE RESULT    :",
-            type(source_result).__name__
-        )
+        print("SOURCE RESULT    :", type(source_result).__name__)
 
 
 # ============================================================
@@ -828,9 +769,7 @@ print("=" * 80)
 for block_id, result in results.items():
 
     print()
-    print(
-        f"----- BLOCK {block_id} RETURN OBJECT -----"
-    )
+    print(f"----- BLOCK {block_id} RETURN OBJECT -----")
 
     try:
 
@@ -845,15 +784,9 @@ for block_id, result in results.items():
 
     except Exception as exc:
 
-        print(
-            "JSON SERIALIZATION ERROR:",
-            type(exc).__name__,
-            str(exc)
-        )
+        print("JSON SERIALIZATION ERROR:", type(exc).__name__, str(exc))
 
-        print(
-            repr(result)
-        )
+        print(repr(result))
 
 
 # ============================================================
@@ -870,37 +803,21 @@ if overall_pass:
     print()
     print("SAFETY CONTRACT : PASS")
     print()
-    print(
-        "All required safety fields were found"
-    )
-    print(
-        "and evaluated to True."
-    )
+    print("All required safety fields were found")
+    print("and evaluated to True.")
 
 else:
 
     print()
     print("SAFETY CONTRACT : FAIL")
     print()
-    print(
-        "The architecture currently has a"
-    )
-    print(
-        "safety-schema contract mismatch."
-    )
+    print("The architecture currently has a")
+    print("safety-schema contract mismatch.")
     print()
-    print(
-        "This diagnostic does NOT modify source."
-    )
-    print(
-        "Do NOT patch Blocks 94-101 yet."
-    )
-    print(
-        "Use the exact field locations and values"
-    )
-    print(
-        "above to determine the correct contract."
-    )
+    print("This diagnostic does NOT modify source.")
+    print("Do NOT patch Blocks 94-101 yet.")
+    print("Use the exact field locations and values")
+    print("above to determine the correct contract.")
 
 
 # ============================================================
@@ -926,4 +843,3 @@ print()
 print("=" * 80)
 print("DEFINITIVE TRACE COMPLETE")
 print("=" * 80)
-

@@ -4,7 +4,7 @@ import sys
 path = sys.argv[1]
 
 try:
-    source = open(path, "r", encoding="utf-8").read()
+    source = open(path, encoding="utf-8").read()
     tree = ast.parse(source, filename=path)
 
     print("AST_PARSE : PASS")

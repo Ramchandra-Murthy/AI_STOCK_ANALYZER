@@ -1,6 +1,5 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.fundamentals.events import FundamentalsDownloaded
 
 

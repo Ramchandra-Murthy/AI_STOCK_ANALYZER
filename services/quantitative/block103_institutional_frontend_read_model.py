@@ -1,7 +1,8 @@
 ﻿from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any, Dict, Mapping
+from typing import Any
 
 
 class EROSBlock103InstitutionalFrontendReadModel:
@@ -35,7 +36,7 @@ class EROSBlock103InstitutionalFrontendReadModel:
         self,
         *,
         contract: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         source = deepcopy(dict(contract))
 
@@ -54,12 +55,10 @@ class EROSBlock103InstitutionalFrontendReadModel:
             "status": "CERTIFIED",
             "block_id": self.BLOCK_ID,
             "engine_version": self.engine_version,
-
             "dashboard": {
                 "title": "EROS 3.0 Institutional Command Center",
                 "subtitle": "Read-only governance, execution and reconciliation view",
             },
-
             "pipeline": pipeline,
             "risk": risk,
             "governance": governance,
@@ -74,7 +73,7 @@ class EROSBlock103InstitutionalFrontendReadModel:
         self,
         *,
         contract: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return self.build(contract=contract)
 
     @staticmethod
@@ -91,11 +90,7 @@ class EROSBlock103InstitutionalFrontendReadModel:
         if not isinstance(pipeline, list):
             raise ValueError("BLOCK103_PIPELINE_MISSING")
 
-        block_ids = {
-            str(item.get("block_id"))
-            for item in pipeline
-            if isinstance(item, Mapping)
-        }
+        block_ids = {str(item.get("block_id")) for item in pipeline if isinstance(item, Mapping)}
 
         if block_ids != set(EROSBlock103InstitutionalFrontendReadModel.REQUIRED_BLOCKS):
             raise ValueError("BLOCK103_INVALID_PIPELINE")
@@ -138,7 +133,7 @@ class EROSBlock103InstitutionalFrontendReadModel:
     @staticmethod
     def _build_pipeline(
         source: Mapping[str, Any],
-    ) -> list[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
 
         pipeline = []
 
@@ -162,7 +157,7 @@ class EROSBlock103InstitutionalFrontendReadModel:
     @staticmethod
     def _build_risk(
         source: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         risk = source.get("risk", {})
 
@@ -179,7 +174,7 @@ class EROSBlock103InstitutionalFrontendReadModel:
     @staticmethod
     def _build_governance(
         source: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         governance = source.get("governance", {})
 
@@ -187,24 +182,16 @@ class EROSBlock103InstitutionalFrontendReadModel:
             "status": governance.get("status"),
             "governance_id": governance.get("governance_id"),
             "execution_action": governance.get("execution_action"),
-            "source_readiness_id": governance.get(
-                "source_readiness_id"
-            ),
-            "source_decision_id": governance.get(
-                "source_decision_id"
-            ),
-            "source_gate_id": governance.get(
-                "source_gate_id"
-            ),
-            "source_certificate_id": governance.get(
-                "source_certificate_id"
-            ),
+            "source_readiness_id": governance.get("source_readiness_id"),
+            "source_decision_id": governance.get("source_decision_id"),
+            "source_gate_id": governance.get("source_gate_id"),
+            "source_certificate_id": governance.get("source_certificate_id"),
         }
 
     @staticmethod
     def _build_intent(
         source: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         intent = source.get("intent", {})
 
@@ -212,21 +199,17 @@ class EROSBlock103InstitutionalFrontendReadModel:
             "status": intent.get("status"),
             "intent_id": intent.get("intent_id"),
             "intent_action": intent.get("intent_action"),
-            "authorization_status": intent.get(
-                "authorization_status"
-            ),
+            "authorization_status": intent.get("authorization_status"),
             "symbol": intent.get("symbol"),
             "action": intent.get("action"),
             "quantity": intent.get("quantity"),
-            "reference_price": intent.get(
-                "reference_price"
-            ),
+            "reference_price": intent.get("reference_price"),
         }
 
     @staticmethod
     def _build_execution(
         source: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         execution = source.get("execution", {})
 
@@ -235,60 +218,38 @@ class EROSBlock103InstitutionalFrontendReadModel:
             "execution_id": execution.get("execution_id"),
             "symbol": execution.get("symbol"),
             "action": execution.get("action"),
-            "requested_quantity": execution.get(
-                "requested_quantity"
-            ),
-            "filled_quantity": execution.get(
-                "filled_quantity"
-            ),
-            "reference_price": execution.get(
-                "reference_price"
-            ),
+            "requested_quantity": execution.get("requested_quantity"),
+            "filled_quantity": execution.get("filled_quantity"),
+            "reference_price": execution.get("reference_price"),
             "fill_price": execution.get("fill_price"),
             "fill_status": execution.get("fill_status"),
             "slippage_bps": execution.get("slippage_bps"),
-            "transaction_cost": execution.get(
-                "transaction_cost"
-            ),
+            "transaction_cost": execution.get("transaction_cost"),
             "net_value": execution.get("net_value"),
         }
 
     @staticmethod
     def _build_reconciliation(
         source: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         reconciliation = source.get("reconciliation", {})
 
         return {
             "status": reconciliation.get("status"),
-            "reconciliation_id": reconciliation.get(
-                "reconciliation_id"
-            ),
-            "source_execution_id": reconciliation.get(
-                "source_execution_id"
-            ),
-            "quantity_reconciled": reconciliation.get(
-                "quantity_reconciled"
-            ),
-            "price_reconciled": reconciliation.get(
-                "price_reconciled"
-            ),
-            "value_reconciled": reconciliation.get(
-                "value_reconciled"
-            ),
-            "cost_reconciled": reconciliation.get(
-                "cost_reconciled"
-            ),
-            "lineage_reconciled": reconciliation.get(
-                "lineage_reconciled"
-            ),
+            "reconciliation_id": reconciliation.get("reconciliation_id"),
+            "source_execution_id": reconciliation.get("source_execution_id"),
+            "quantity_reconciled": reconciliation.get("quantity_reconciled"),
+            "price_reconciled": reconciliation.get("price_reconciled"),
+            "value_reconciled": reconciliation.get("value_reconciled"),
+            "cost_reconciled": reconciliation.get("cost_reconciled"),
+            "lineage_reconciled": reconciliation.get("lineage_reconciled"),
         }
 
     @staticmethod
     def _build_lineage(
         source: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         lineage = source.get("lineage", {})
 
@@ -306,33 +267,19 @@ class EROSBlock103InstitutionalFrontendReadModel:
     @staticmethod
     def _build_safety(
         source: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         safety = source.get("safety", {})
 
         return {
-            "portfolio_mutation": safety.get(
-                "portfolio_mutation"
-            ),
-            "valuation_mutation": safety.get(
-                "valuation_mutation"
-            ),
-            "performance_mutation": safety.get(
-                "performance_mutation"
-            ),
+            "portfolio_mutation": safety.get("portfolio_mutation"),
+            "valuation_mutation": safety.get("valuation_mutation"),
+            "performance_mutation": safety.get("performance_mutation"),
             "risk_mutation": safety.get("risk_mutation"),
             "optimization": safety.get("optimization"),
             "order_creation": safety.get("order_creation"),
-            "broker_submission": safety.get(
-                "broker_submission"
-            ),
-            "live_order_submission": safety.get(
-                "live_order_submission"
-            ),
-            "execution_blocked": safety.get(
-                "execution_blocked"
-            ),
-            "non_mutation_invariant": safety.get(
-                "non_mutation_invariant"
-            ),
+            "broker_submission": safety.get("broker_submission"),
+            "live_order_submission": safety.get("live_order_submission"),
+            "execution_blocked": safety.get("execution_blocked"),
+            "non_mutation_invariant": safety.get("non_mutation_invariant"),
         }

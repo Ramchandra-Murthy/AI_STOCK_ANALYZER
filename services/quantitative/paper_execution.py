@@ -1,8 +1,7 @@
 ﻿from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from typing import Any, Dict, List
-
+from dataclasses import asdict, dataclass
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-69"
 
@@ -24,7 +23,7 @@ class PaperFill:
     broker_submission: bool
     engine_version: str = ENGINE_VERSION
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -55,30 +54,20 @@ class EROSPaperExecutionEngine:
     ) -> None:
 
         if buy_slippage_bps < 0:
-            raise ValueError(
-                "buy_slippage_bps must be >= 0"
-            )
+            raise ValueError("buy_slippage_bps must be >= 0")
 
         if sell_slippage_bps < 0:
-            raise ValueError(
-                "sell_slippage_bps must be >= 0"
-            )
+            raise ValueError("sell_slippage_bps must be >= 0")
 
         if transaction_cost_bps < 0:
-            raise ValueError(
-                "transaction_cost_bps must be >= 0"
-            )
+            raise ValueError("transaction_cost_bps must be >= 0")
 
         if not 0 < max_fill_ratio <= 1:
-            raise ValueError(
-                "max_fill_ratio must be > 0 and <= 1"
-            )
+            raise ValueError("max_fill_ratio must be > 0 and <= 1")
 
         self.buy_slippage_bps = float(buy_slippage_bps)
         self.sell_slippage_bps = float(sell_slippage_bps)
-        self.transaction_cost_bps = float(
-            transaction_cost_bps
-        )
+        self.transaction_cost_bps = float(transaction_cost_bps)
         self.max_fill_ratio = float(max_fill_ratio)
 
     def _blocked(
@@ -88,7 +77,7 @@ class EROSPaperExecutionEngine:
         quantity: float,
         reference_price: float,
         status: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         return {
             "symbol": symbol,
@@ -109,17 +98,13 @@ class EROSPaperExecutionEngine:
 
     def simulate_fill(
         self,
-        intent: Dict[str, Any],
+        intent: dict[str, Any],
         fill_ratio: float = 1.0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
-        symbol = str(
-            intent.get("symbol", "")
-        ).strip().upper()
+        symbol = str(intent.get("symbol", "")).strip().upper()
 
-        action = str(
-            intent.get("action", "")
-        ).upper().strip()
+        action = str(intent.get("action", "")).upper().strip()
 
         requested_quantity = float(
             intent.get(
@@ -234,16 +219,10 @@ class EROSPaperExecutionEngine:
 
         if action == "BUY":
             slippage_bps = self.buy_slippage_bps
-            fill_price = (
-                reference_price
-                * (1.0 + slippage_bps / 10000.0)
-            )
+            fill_price = reference_price * (1.0 + slippage_bps / 10000.0)
         else:
             slippage_bps = self.sell_slippage_bps
-            fill_price = (
-                reference_price
-                * (1.0 - slippage_bps / 10000.0)
-            )
+            fill_price = reference_price * (1.0 - slippage_bps / 10000.0)
 
         fill_price = round(
             fill_price,
@@ -255,10 +234,7 @@ class EROSPaperExecutionEngine:
             6,
         )
 
-        benchmark_value = (
-            filled_quantity
-            * reference_price
-        )
+        benchmark_value = filled_quantity * reference_price
 
         if action == "BUY":
             slippage_value = round(
@@ -272,9 +248,7 @@ class EROSPaperExecutionEngine:
             )
 
         transaction_cost = round(
-            gross_value
-            * self.transaction_cost_bps
-            / 10000.0,
+            gross_value * self.transaction_cost_bps / 10000.0,
             6,
         )
 
@@ -315,10 +289,10 @@ class EROSPaperExecutionEngine:
 
     def execute_intents(
         self,
-        intents: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        intents: list[dict[str, Any]],
+    ) -> dict[str, Any]:
 
-        fills: List[Dict[str, Any]] = []
+        fills: list[dict[str, Any]] = []
 
         for intent in intents:
 
@@ -336,76 +310,42 @@ class EROSPaperExecutionEngine:
 
             fills.append(fill)
 
-        filled = [
-            item
-            for item in fills
-            if item["fill_status"] == "FILLED"
-        ]
+        filled = [item for item in fills if item["fill_status"] == "FILLED"]
 
-        partial = [
-            item
-            for item in fills
-            if item["fill_status"] == "PARTIAL"
-        ]
+        partial = [item for item in fills if item["fill_status"] == "PARTIAL"]
 
-        blocked = [
-            item
-            for item in fills
-            if item["fill_status"].startswith(
-                "BLOCKED"
-            )
-        ]
+        blocked = [item for item in fills if item["fill_status"].startswith("BLOCKED")]
 
-        hold = [
-            item
-            for item in fills
-            if item["fill_status"] == "HOLD_NO_FILL"
-        ]
+        hold = [item for item in fills if item["fill_status"] == "HOLD_NO_FILL"]
 
         total_gross = round(
-            sum(
-                item["gross_value"]
-                for item in fills
-            ),
+            sum(item["gross_value"] for item in fills),
             6,
         )
 
         total_slippage = round(
-            sum(
-                item["slippage_value"]
-                for item in fills
-            ),
+            sum(item["slippage_value"] for item in fills),
             6,
         )
 
         total_cost = round(
-            sum(
-                item["transaction_cost"]
-                for item in fills
-            ),
+            sum(item["transaction_cost"] for item in fills),
             6,
         )
 
         total_net = round(
-            sum(
-                item["net_value"]
-                for item in fills
-            ),
+            sum(item["net_value"] for item in fills),
             6,
         )
 
-        execution_count = (
-            len(filled)
-            + len(partial)
-        )
+        execution_count = len(filled) + len(partial)
 
         if execution_count > 0:
             average_slippage_bps = round(
                 sum(
                     item["slippage_bps"]
                     for item in fills
-                    if item["fill_status"]
-                    in {"FILLED", "PARTIAL"}
+                    if item["fill_status"] in {"FILLED", "PARTIAL"}
                 )
                 / execution_count,
                 6,
@@ -433,65 +373,40 @@ class EROSPaperExecutionEngine:
 
     def generate_tca(
         self,
-        execution_result: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        execution_result: dict[str, Any],
+    ) -> dict[str, Any]:
 
         fills = execution_result.get(
             "fills",
             [],
         )
 
-        executed = [
-            item
-            for item in fills
-            if item["fill_status"]
-            in {"FILLED", "PARTIAL"}
-        ]
+        executed = [item for item in fills if item["fill_status"] in {"FILLED", "PARTIAL"}]
 
         requested_quantity = round(
-            sum(
-                item["requested_quantity"]
-                for item in fills
-            ),
+            sum(item["requested_quantity"] for item in fills),
             6,
         )
 
         filled_quantity = round(
-            sum(
-                item["filled_quantity"]
-                for item in fills
-            ),
+            sum(item["filled_quantity"] for item in fills),
             6,
         )
 
-        fill_rate = (
-            filled_quantity
-            / requested_quantity
-            if requested_quantity > 0
-            else 0.0
-        )
+        fill_rate = filled_quantity / requested_quantity if requested_quantity > 0 else 0.0
 
         total_cost = round(
-            sum(
-                item["transaction_cost"]
-                for item in executed
-            ),
+            sum(item["transaction_cost"] for item in executed),
             6,
         )
 
         total_slippage = round(
-            sum(
-                item["slippage_value"]
-                for item in executed
-            ),
+            sum(item["slippage_value"] for item in executed),
             6,
         )
 
         total_value = round(
-            sum(
-                item["gross_value"]
-                for item in executed
-            ),
+            sum(item["gross_value"] for item in executed),
             6,
         )
 

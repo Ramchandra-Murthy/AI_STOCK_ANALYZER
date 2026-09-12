@@ -1,6 +1,6 @@
 ﻿"""EROS DCF valuation boundary."""
 
-from .engine import evaluate_dcf, DCFValuationEngine
+from .engine import DCFValuationEngine, evaluate_dcf
 
 __all__ = [
     "evaluate_dcf",

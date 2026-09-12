@@ -1,7 +1,6 @@
-﻿import os
-from backend.tasks.celery_app import celery_app, MockCeleryApp, CeleryFacade
+﻿from backend.tasks.celery_app import celery_app
 from backend.tasks.task_control import task_control
-from backend.tasks.task_registry import register_all_tasks
+
 
 def test_block28_worker_facade_and_registry():
     """Validates that the task control facade and task registry are operational."""
@@ -12,12 +11,11 @@ def test_block28_worker_facade_and_registry():
     assert "valuation.execute" in tasks
     assert "forecast.execute" in tasks
 
+
 def test_block28_task_submission_and_status():
     """Validates asynchronous task submission and status retrieval."""
     submission = task_control.submit_task(
-        task_name="valuation.execute",
-        user="institutional_tester",
-        payload={"symbol": "INFY.NS"}
+        task_name="valuation.execute", user="institutional_tester", payload={"symbol": "INFY.NS"}
     )
     assert "task_id" in submission
     task_id = submission["task_id"]
@@ -29,6 +27,7 @@ def test_block28_task_submission_and_status():
     result_info = task_control.get_task_result(task_id)
     assert result_info["task_id"] == task_id
     assert "result" in result_info
+
 
 def test_block28_queue_and_metrics_observability():
     """Validates queue telemetry and execution metrics."""

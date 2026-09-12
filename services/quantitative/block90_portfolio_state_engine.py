@@ -2,17 +2,17 @@
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Mapping
-
+from datetime import UTC, datetime
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-90"
 STATE_SCHEMA_VERSION = "1.0"
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _text(value: Any, default: str = "") -> str:
@@ -29,7 +29,7 @@ def _number(value: Any, default: float = 0.0) -> float:
         return default
 
 
-def _dict(value: Any) -> Dict[str, Any]:
+def _dict(value: Any) -> dict[str, Any]:
     return dict(value) if isinstance(value, Mapping) else {}
 
 
@@ -51,7 +51,7 @@ class PortfolioPositionState:
     current_price: float
     realized_pnl: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "symbol": self.symbol,
             "quantity": round(self.quantity, 6),
@@ -86,9 +86,9 @@ class PortfolioStateRecord:
     execution_price: float
     transaction_cost: float
     realized_pnl: float
-    positions: List[Dict[str, Any]] = field(default_factory=list)
+    positions: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "state_id": self.state_id,
             "portfolio_id": self.portfolio_id,
@@ -130,7 +130,7 @@ class Block90PortfolioCertificate:
     certificate_hash: str
     created_at_utc: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "status": self.status,
             "state_status": self.state_status,
@@ -174,21 +174,21 @@ class EROSBlock90PortfolioStateEngine:
             "EROS-PORTFOLIO-DEFAULT",
         )
         self.cash_balance = round(float(initial_cash), 6)
-        self.positions: Dict[str, PortfolioPositionState] = {}
-        self._processed_settlements: Dict[str, str] = {}
-        self._state_history: List[PortfolioStateRecord] = []
+        self.positions: dict[str, PortfolioPositionState] = {}
+        self._processed_settlements: dict[str, str] = {}
+        self._state_history: list[PortfolioStateRecord] = []
 
     @staticmethod
     def _settlement(
         payload: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         value = payload.get("settlement", payload)
         return _dict(value)
 
     @staticmethod
     def _certificate(
         payload: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return _dict(payload.get("certificate", {}))
 
     @staticmethod
@@ -231,17 +231,13 @@ class EROSBlock90PortfolioStateEngine:
     def _symbol(
         settlement: Mapping[str, Any],
     ) -> str:
-        return _text(
-            settlement.get("symbol", "")
-        ).upper()
+        return _text(settlement.get("symbol", "")).upper()
 
     @staticmethod
     def _action(
         settlement: Mapping[str, Any],
     ) -> str:
-        return _text(
-            settlement.get("action", "")
-        ).upper()
+        return _text(settlement.get("action", "")).upper()
 
     @staticmethod
     def _allowed(
@@ -298,33 +294,15 @@ class EROSBlock90PortfolioStateEngine:
         symbol = self._symbol(settlement)
         action = self._action(settlement)
 
-        position_delta = _number(
-            settlement.get("position_delta")
-        )
-        cash_delta = _number(
-            settlement.get("cash_delta")
-        )
-        execution_price = _number(
-            settlement.get("average_fill_price")
-        )
-        transaction_cost = _number(
-            settlement.get("transaction_cost")
-        )
-        realized_pnl = _number(
-            settlement.get("realized_pnl")
-        )
+        position_delta = _number(settlement.get("position_delta"))
+        cash_delta = _number(settlement.get("cash_delta"))
+        execution_price = _number(settlement.get("average_fill_price"))
+        transaction_cost = _number(settlement.get("transaction_cost"))
+        realized_pnl = _number(settlement.get("realized_pnl"))
 
-        before_quantity = (
-            before_position.quantity
-            if before_position is not None
-            else 0.0
-        )
+        before_quantity = before_position.quantity if before_position is not None else 0.0
 
-        before_average_cost = (
-            before_position.average_cost
-            if before_position is not None
-            else 0.0
-        )
+        before_average_cost = before_position.average_cost if before_position is not None else 0.0
 
         after_quantity = round(
             before_quantity + position_delta,
@@ -332,31 +310,16 @@ class EROSBlock90PortfolioStateEngine:
         )
 
         if after_quantity < -0.000001:
-            raise ValueError(
-                "SETTLEMENT_POSITION_UNDERFLOW"
-            )
+            raise ValueError("SETTLEMENT_POSITION_UNDERFLOW")
 
         if action == "BUY":
-            old_cost = (
-                before_quantity * before_average_cost
-            )
-            new_cost = (
-                old_cost
-                + abs(position_delta) * execution_price
-            )
+            old_cost = before_quantity * before_average_cost
+            new_cost = old_cost + abs(position_delta) * execution_price
 
-            average_cost_after = (
-                new_cost / after_quantity
-                if after_quantity > 0
-                else 0.0
-            )
+            average_cost_after = new_cost / after_quantity if after_quantity > 0 else 0.0
 
         elif action in {"SELL", "REDUCE"}:
-            average_cost_after = (
-                before_average_cost
-                if after_quantity > 0
-                else 0.0
-            )
+            average_cost_after = before_average_cost if after_quantity > 0 else 0.0
 
         else:
             average_cost_after = before_average_cost
@@ -383,22 +346,12 @@ class EROSBlock90PortfolioStateEngine:
                     6,
                 ),
                 realized_pnl=round(
-                    (
-                        (
-                            before_position.realized_pnl
-                            if before_position
-                            else 0.0
-                        )
-                        + realized_pnl
-                    ),
+                    ((before_position.realized_pnl if before_position else 0.0) + realized_pnl),
                     6,
                 ),
             )
 
-        position_dicts = [
-            positions[key].to_dict()
-            for key in sorted(positions)
-        ]
+        position_dicts = [positions[key].to_dict() for key in sorted(positions)]
 
         seed = {
             "schema": STATE_SCHEMA_VERSION,
@@ -513,7 +466,7 @@ class EROSBlock90PortfolioStateEngine:
     def apply_settlement(
         self,
         payload: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         settlement = self._settlement(payload)
         certificate = self._certificate(payload)
@@ -541,9 +494,7 @@ class EROSBlock90PortfolioStateEngine:
         )
 
         if settlement_id in self._processed_settlements:
-            existing_state_id = self._processed_settlements[
-                settlement_id
-            ]
+            existing_state_id = self._processed_settlements[settlement_id]
 
             cert = self._certificate_for(
                 status="DUPLICATE",
@@ -598,10 +549,7 @@ class EROSBlock90PortfolioStateEngine:
                 "portfolio": self.snapshot(),
             }
 
-        if (
-            _text(certificate.get("status")).upper()
-            != "CERTIFIED"
-        ):
+        if _text(certificate.get("status")).upper() != "CERTIFIED":
             cert = self._certificate_for(
                 status="BLOCKED",
                 state_status="BLOCKED",
@@ -635,9 +583,7 @@ class EROSBlock90PortfolioStateEngine:
             raise ValueError("MISSING_SYMBOL")
 
         if action not in self.VALID_ACTIONS:
-            raise ValueError(
-                f"INVALID_SETTLEMENT_ACTION:{action}"
-            )
+            raise ValueError(f"INVALID_SETTLEMENT_ACTION:{action}")
 
         before_position = self.positions.get(symbol)
         before_cash = self.cash_balance
@@ -654,25 +600,17 @@ class EROSBlock90PortfolioStateEngine:
         if state.position_quantity_after <= 0.000001:
             self.positions.pop(symbol, None)
         else:
-            position_data = next(
-                item
-                for item in state.positions
-                if item["symbol"] == symbol
+            position_data = next(item for item in state.positions if item["symbol"] == symbol)
+
+            self.positions[symbol] = PortfolioPositionState(
+                symbol=position_data["symbol"],
+                quantity=position_data["quantity"],
+                average_cost=position_data["average_cost"],
+                current_price=position_data["current_price"],
+                realized_pnl=position_data["realized_pnl"],
             )
 
-            self.positions[symbol] = (
-                PortfolioPositionState(
-                    symbol=position_data["symbol"],
-                    quantity=position_data["quantity"],
-                    average_cost=position_data["average_cost"],
-                    current_price=position_data["current_price"],
-                    realized_pnl=position_data["realized_pnl"],
-                )
-            )
-
-        self._processed_settlements[
-            settlement_id
-        ] = state.state_id
+        self._processed_settlements[settlement_id] = state.state_id
 
         self._state_history.append(state)
 
@@ -693,7 +631,7 @@ class EROSBlock90PortfolioStateEngine:
             "portfolio": self.snapshot(),
         }
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return {
             "portfolio_id": self.portfolio_id,
             "cash_balance": round(
@@ -701,20 +639,10 @@ class EROSBlock90PortfolioStateEngine:
                 6,
             ),
             "position_count": len(self.positions),
-            "positions": [
-                self.positions[key].to_dict()
-                for key in sorted(self.positions)
-            ],
-            "processed_settlement_count": len(
-                self._processed_settlements
-            ),
-            "state_history_count": len(
-                self._state_history
-            ),
+            "positions": [self.positions[key].to_dict() for key in sorted(self.positions)],
+            "processed_settlement_count": len(self._processed_settlements),
+            "state_history_count": len(self._state_history),
         }
 
-    def state_history(self) -> List[Dict[str, Any]]:
-        return [
-            state.to_dict()
-            for state in self._state_history
-        ]
+    def state_history(self) -> list[dict[str, Any]]:
+        return [state.to_dict() for state in self._state_history]

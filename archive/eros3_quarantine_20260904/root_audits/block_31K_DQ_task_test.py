@@ -4,7 +4,6 @@ import uuid
 from fastapi.testclient import TestClient
 from backend.main import app
 
-
 client = TestClient(app)
 
 suffix = uuid.uuid4().hex[:12]
@@ -62,9 +61,7 @@ if not token:
     raise RuntimeError("ACCESS TOKEN MISSING")
 
 
-headers = {
-    "Authorization": "Bearer " + token
-}
+headers = {"Authorization": "Bearer " + token}
 
 
 print("")
@@ -89,11 +86,7 @@ if submit.status_code not in (200, 202):
 
 submission = submit.json()
 
-task_id = (
-    submission.get("task_id")
-    or submission.get("id")
-    or submission.get("taskId")
-)
+task_id = submission.get("task_id") or submission.get("id") or submission.get("taskId")
 
 print("TASK ID:", task_id)
 
@@ -130,11 +123,7 @@ for attempt in range(30):
         except Exception:
             status_data = {}
 
-        state = str(
-            status_data.get("state")
-            or status_data.get("status")
-            or ""
-        ).upper()
+        state = str(status_data.get("state") or status_data.get("status") or "").upper()
 
         final_status = state
 

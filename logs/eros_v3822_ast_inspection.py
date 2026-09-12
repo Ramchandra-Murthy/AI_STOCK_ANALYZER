@@ -4,7 +4,7 @@ import sys
 path = r"D:\Users\User\Desktop\AI_STOCK_ANALYZER\services\eros_frontend_adapter.py"
 
 try:
-    source = open(path, "r", encoding="utf-8").read()
+    source = open(path, encoding="utf-8").read()
     ast.parse(source, filename=path)
     print("AST PARSE : PASS")
     sys.exit(0)

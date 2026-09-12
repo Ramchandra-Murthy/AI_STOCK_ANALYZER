@@ -2,8 +2,6 @@
 
 import inspect
 import json
-import sys
-from typing import Any
 
 
 def banner(title: str) -> None:
@@ -37,15 +35,12 @@ banner("1. IMPORT CONTRACT LAYERS")
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
-
 from services.quantitative.block104_eros_command_center import (
     EROSBlock104CommandCenter,
 )
-
 from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
@@ -78,26 +73,17 @@ print(
 
 print(
     "BLOCK 106 BUILD    :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary
-        .build_integration_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
 )
 
 print(
     "BLOCK 106 SNAPSHOT :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary
-        .build_read_only_snapshot
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot),
 )
 
 print(
     "BLOCK 106 VALIDATE :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary
-        .validate_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
 )
 
 print("SIGNATURE VERIFICATION : PASS")
@@ -118,9 +104,7 @@ for block_number in range(94, 102):
         "block_id": block_number,
         "source_block": block_number - 1 if block_number > 94 else None,
         "pipeline": (
-            "94"
-            if block_number == 94
-            else " -> ".join(str(x) for x in range(94, block_number + 1))
+            "94" if block_number == 94 else " -> ".join(str(x) for x in range(94, block_number + 1))
         ),
     }
 
@@ -222,9 +206,7 @@ print("BLOCK 103 INSTANCE : PASS")
 print("INPUT TYPE        :", type(block102_contract).__name__)
 print("INPUT BLOCK ID    :", block102_contract.get("block_id"))
 
-read_model = block103.build(
-    contract=block102_contract
-)
+read_model = block103.build(contract=block102_contract)
 
 print("BLOCK 103 BUILD    : PASS")
 print("STATUS             :", read_model.get("status"))
@@ -263,9 +245,7 @@ block104 = EROSBlock104CommandCenter()
 
 print("BLOCK 104 INSTANCE : PASS")
 
-command_center = block104.snapshot(
-    read_model=read_model
-)
+command_center = block104.snapshot(read_model=read_model)
 
 print("BLOCK 104 SNAPSHOT : PASS")
 print("STATUS            :", command_center.get("status"))
@@ -345,9 +325,7 @@ block106 = EROSBlock106InstitutionalIntegrationBoundary()
 
 print("BLOCK 106 INSTANCE : PASS")
 
-payload = block106.build_integration_payload(
-    command_center
-)
+payload = block106.build_integration_payload(command_center)
 
 print("BLOCK 106 BUILD    : PASS")
 print("PAYLOAD TYPE      :", type(payload).__name__)
@@ -383,9 +361,7 @@ print("BLOCK 106 VALIDATION : PASS")
 
 banner("10. BLOCK 106 READ-ONLY SNAPSHOT")
 
-snapshot = block106.build_read_only_snapshot(
-    command_center
-)
+snapshot = block106.build_read_only_snapshot(command_center)
 
 print("SNAPSHOT TYPE     :", type(snapshot).__name__)
 print("SNAPSHOT STATUS   :", snapshot.get("status"))

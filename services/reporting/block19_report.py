@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
-from typing import Any, Dict, List
+
 from services.scoring.block18_orchestrator import UnifiedInvestmentResult
+
 
 class Block19ReportGenerator:
     """
@@ -8,6 +9,7 @@ class Block19ReportGenerator:
     Transforms a UnifiedInvestmentResult object into a comprehensive, professional Markdown report
     for portfolio managers, investment committees, and automated distribution.
     """
+
     @staticmethod
     def generate_markdown(result: UnifiedInvestmentResult) -> str:
         dec = result.decision
@@ -15,22 +17,34 @@ class Block19ReportGenerator:
         reas = result.reasoning
         conf = result.confidence
 
-        lines: List[str] = []
-        lines.append(f"# EROS 3.0 — INSTITUTIONAL INVESTMENT REPORT")
+        lines: list[str] = []
+        lines.append("# EROS 3.0 — INSTITUTIONAL INVESTMENT REPORT")
         lines.append(f"**Symbol**: {result.symbol}  ")
-        lines.append(f"**Final Verdict**: **{result.final_action}** (Adjusted Confidence: {result.adjusted_confidence*100:.1f}%)  ")
+        lines.append(
+            f"**Final Verdict**: **{result.final_action}** (Adjusted Confidence: {result.adjusted_confidence*100:.1f}%)  "
+        )
         lines.append(f"**Engine Version**: {result.details['engine_version']}  ")
         lines.append("")
         lines.append("---")
         lines.append("")
-        
+
         # 1. Executive Summary
         lines.append("## 1. Executive Summary")
-        lines.append(f"- **Composite AI Score**: `{dec.composite_score:.2f}/100` (Rating: `{dec.rating}`)")
-        lines.append(f"- **Economic Moat**: `{res.moat_classification}` (Score: `{res.moat_score:.1f}/100`")
-        lines.append(f"- **Research Confidence**: `{conf.confidence_rating}` (`{conf.overall_confidence*100:.1f}%`)")
-        lines.append(f"- **Portfolio Target Weight**: `{dec.target_weight*100:.2f}%` (Incremental: `{dec.incremental_weight*100:.2f}%`)")
-        lines.append(f"- **Net Expected Return**: `{dec.net_expected_return*100:.2f}%` (After TCA Execution Cost: ₹`{dec.execution_cost:,.2f}`)`")
+        lines.append(
+            f"- **Composite AI Score**: `{dec.composite_score:.2f}/100` (Rating: `{dec.rating}`)"
+        )
+        lines.append(
+            f"- **Economic Moat**: `{res.moat_classification}` (Score: `{res.moat_score:.1f}/100`"
+        )
+        lines.append(
+            f"- **Research Confidence**: `{conf.confidence_rating}` (`{conf.overall_confidence*100:.1f}%`)"
+        )
+        lines.append(
+            f"- **Portfolio Target Weight**: `{dec.target_weight*100:.2f}%` (Incremental: `{dec.incremental_weight*100:.2f}%`)"
+        )
+        lines.append(
+            f"- **Net Expected Return**: `{dec.net_expected_return*100:.2f}%` (After TCA Execution Cost: ₹`{dec.execution_cost:,.2f}`)`"
+        )
         lines.append("")
 
         # 2. Pillar Breakdown
@@ -61,7 +75,9 @@ class Block19ReportGenerator:
         lines.append("## 4. Evidence & Business Reasoning")
         lines.append(f"- **Synthesized Recommendation**: `{reas.recommendation}`")
         lines.append(f"- **Hypotheses Generated**: `{reas.hypothesis_count}`")
-        lines.append(f"- **Contradictions Flagged**: `{reas.contradiction_count}` (High Severity: `{reas.high_severity_contradictions}`)")
+        lines.append(
+            f"- **Contradictions Flagged**: `{reas.contradiction_count}` (High Severity: `{reas.high_severity_contradictions}`)"
+        )
         lines.append("")
         if reas.hypotheses_summaries:
             lines.append("**Verified Hypotheses**:")
@@ -84,7 +100,9 @@ class Block19ReportGenerator:
         if dec.details.get("execution_details", {}).get("generated_orders"):
             lines.append("**Generated Orders**:")
             for order in dec.details["execution_details"]["generated_orders"]:
-                lines.append(f"- `{order['action']} {order['quantity']:,} shares of {order['symbol']} at limit price ₹{order['limit_price']:,.2f}` (Slippage: `{order['estimated_slippage']*100:.2f}%`)")
+                lines.append(
+                    f"- `{order['action']} {order['quantity']:,} shares of {order['symbol']} at limit price ₹{order['limit_price']:,.2f}` (Slippage: `{order['estimated_slippage']*100:.2f}%`)"
+                )
             lines.append("")
 
         # 6. Summary Rationale

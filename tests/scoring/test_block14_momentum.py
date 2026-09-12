@@ -1,8 +1,9 @@
 ﻿from services.market_data.models import PriceRecord
 from services.scoring.technical import (
-    TechnicalIndicatorEngine,
     MomentumScoringEngine,
+    TechnicalIndicatorEngine,
 )
+
 
 def _records(count: int = 60):
     records = []
@@ -20,6 +21,7 @@ def _records(count: int = 60):
         )
     return records
 
+
 def test_block14_technical_indicator_engine():
     records = _records()
     engine = TechnicalIndicatorEngine()
@@ -36,6 +38,7 @@ def test_block14_technical_indicator_engine():
     assert 0.0 <= result.breakout_score <= 100.0
     assert 0.0 <= result.momentum_score <= 100.0
 
+
 def test_block14_momentum_scoring_engine():
     records = _records()
     engine = MomentumScoringEngine()
@@ -51,11 +54,5 @@ def test_block14_momentum_scoring_engine():
     assert 0.0 <= result.moving_average_score <= 100.0
     assert 0.0 <= result.relative_strength_score <= 100.0
     assert 0.0 <= result.breakout_score <= 100.0
-    assert (
-        result.details["engine_version"]
-        == "EROS-3.0-BLOCK-14"
-    )
-    assert (
-        result.details["records_analyzed"]
-        == len(records)
-    )
+    assert result.details["engine_version"] == "EROS-3.0-BLOCK-14"
+    assert result.details["records_analyzed"] == len(records)

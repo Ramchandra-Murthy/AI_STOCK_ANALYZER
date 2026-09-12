@@ -1,38 +1,40 @@
 from __future__ import annotations
 
-import math
-
 import logging
-from typing import Dict, Any
+import math
+from typing import Any
+
 from sqlalchemy.orm import Session
+
 from backend.database.repositories.valuation_repository import ValuationRepository
-from backend.valuation.sotp import SOTPValuationEngine
+from backend.exceptions import ValidationError
 from backend.valuation.adapter import adapt_sotp_to_valuation_payload
-from backend.exceptions import ValidationError, ValuationError
+from backend.valuation.sotp import SOTPValuationEngine
 
 logger = logging.getLogger(__name__)
+
 
 class ValuationService:
     """Orchestrates financial valuation workflows and coordinates persistence via ValuationRepository."""
 
     @staticmethod
     def execute_and_persist_valuation(
-        session: Session,
-        symbol: str,
-        financial_metrics: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        session: Session, symbol: str, financial_metrics: dict[str, Any]
+    ) -> dict[str, Any]:
         logger.info("Executing institutional valuation pipeline for %s", symbol)
 
         segments = financial_metrics.get("segments")
-        
+
         # Check if SOTP payload parameters are provided
         if segments is not None:
             if not isinstance(segments, list) or len(segments) == 0:
                 raise ValidationError("SOTP valuation requires a non-empty list of segments.")
-            
+
             for idx, seg in enumerate(segments):
                 if not isinstance(seg, dict) or "name" not in seg or "valuation" not in seg:
-                    raise ValidationError(f"Segment at index {idx} must be a dictionary containing 'name' and 'valuation'.")
+                    raise ValidationError(
+                        f"Segment at index {idx} must be a dictionary containing 'name' and 'valuation'."
+                    )
                 val = seg.get("valuation")
                 if (
                     isinstance(val, bool)
@@ -80,7 +82,7 @@ class ValuationService:
                 segments=segments,
                 net_debt=net_debt,
                 non_operating_assets=non_op,
-                shares_outstanding=shares
+                shares_outstanding=shares,
             )
 
             user = financial_metrics.get("user", "institutional_research_user")
@@ -94,7 +96,11 @@ class ValuationService:
                     f"SOTP valuation produced non-positive equity value: {intrinsic_value}."
                 )
             current_price = float(financial_metrics.get("current_price", intrinsic_value * 0.85))
-            margin_of_safety = round((intrinsic_value - current_price) / intrinsic_value, 4) if intrinsic_value > 0 else 0.0
+            margin_of_safety = (
+                round((intrinsic_value - current_price) / intrinsic_value, 4)
+                if intrinsic_value > 0
+                else 0.0
+            )
 
             record_id = sotp_payload["record_id"]
             model_type = "Sum-of-the-Parts (SOTP) Valuation"
@@ -105,10 +111,14 @@ class ValuationService:
                 symbol=symbol,
                 intrinsic_value=intrinsic_value,
                 model_type=model_type,
-                margin_of_safety=margin_of_safety
+                margin_of_safety=margin_of_safety,
             )
 
-            logger.info("SOTP Valuation successfully calculated and persisted for %s: IV = %s", symbol, intrinsic_value)
+            logger.info(
+                "SOTP Valuation successfully calculated and persisted for %s: IV = %s",
+                symbol,
+                intrinsic_value,
+            )
             return {
                 "record_id": record_id,
                 "symbol": symbol,
@@ -116,7 +126,7 @@ class ValuationService:
                 "current_price": current_price,
                 "margin_of_safety": margin_of_safety,
                 "model_type": model_type,
-                "status": "SUCCESS"
+                "status": "SUCCESS",
             }
 
         # Fallback to standard DCF valuation flow only when segments is None
@@ -144,10 +154,14 @@ class ValuationService:
             symbol=symbol,
             intrinsic_value=intrinsic_value,
             model_type=model_type,
-            margin_of_safety=margin_of_safety
+            margin_of_safety=margin_of_safety,
         )
 
-        logger.info("Valuation successfully calculated and persisted for %s: IV = %s", symbol, intrinsic_value)
+        logger.info(
+            "Valuation successfully calculated and persisted for %s: IV = %s",
+            symbol,
+            intrinsic_value,
+        )
         return {
             "record_id": record_id,
             "symbol": symbol,
@@ -155,5 +169,5 @@ class ValuationService:
             "current_price": current_price,
             "margin_of_safety": margin_of_safety,
             "model_type": model_type,
-            "status": "SUCCESS"
+            "status": "SUCCESS",
         }

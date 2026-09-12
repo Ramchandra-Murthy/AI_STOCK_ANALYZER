@@ -141,9 +141,7 @@ def _paper_execution_payload(execution_result):
     return {
         **execution_payload,
         "decision": decision_envelope,
-        "execution_status": decision_envelope[
-            "execution_status"
-        ],
+        "execution_status": decision_envelope["execution_status"],
         "fills": fills,
         "broker_submission": False,
         "live_order_submission": False,
@@ -173,9 +171,7 @@ def run_block89_self_test():
         ],
     )
 
-    execution_payload = _paper_execution_payload(
-        execution
-    )
+    execution_payload = _paper_execution_payload(execution)
 
     orders = execution_payload["orders"]
     fills = execution_payload["fills"]
@@ -186,21 +182,11 @@ def run_block89_self_test():
         expected_fills=fills,
     )
 
-    assert audit_result["status"] == "PASS", (
-        audit_result
-    )
+    assert audit_result["status"] == "PASS", audit_result
 
-    assert (
-        audit_result["certificate"]["status"]
-        == "CERTIFIED"
-    )
+    assert audit_result["certificate"]["status"] == "CERTIFIED"
 
-    assert (
-        audit_result["certificate"][
-            "reconciliation_status"
-        ]
-        == "RECONCILED"
-    )
+    assert audit_result["certificate"]["reconciliation_status"] == "RECONCILED"
 
     # ------------------------------------------------------
     # TEST 2 - CERTIFIED -> SETTLED
@@ -220,36 +206,15 @@ def run_block89_self_test():
 
     assert settlement["status"] == "PASS", settlement
 
-    assert (
-        settlement["settlement"]["settlement_status"]
-        == "SETTLED"
-    )
+    assert settlement["settlement"]["settlement_status"] == "SETTLED"
 
-    assert (
-        settlement["certificate"]["status"]
-        == "CERTIFIED"
-    )
+    assert settlement["certificate"]["status"] == "CERTIFIED"
 
-    assert (
-        settlement["settlement"][
-            "paper_settlement"
-        ]
-        is True
-    )
+    assert settlement["settlement"]["paper_settlement"] is True
 
-    assert (
-        settlement["settlement"][
-            "broker_submission"
-        ]
-        is False
-    )
+    assert settlement["settlement"]["broker_submission"] is False
 
-    assert (
-        settlement["settlement"][
-            "live_order_submission"
-        ]
-        is False
-    )
+    assert settlement["settlement"]["live_order_submission"] is False
 
     # ------------------------------------------------------
     # TEST 3 - DUPLICATE SETTLEMENT
@@ -261,14 +226,9 @@ def run_block89_self_test():
         fills=fills,
     )
 
-    assert duplicate["status"] == "DUPLICATE", (
-        duplicate
-    )
+    assert duplicate["status"] == "DUPLICATE", duplicate
 
-    assert (
-        duplicate["certificate"]["status"]
-        == "DUPLICATE"
-    )
+    assert duplicate["certificate"]["status"] == "DUPLICATE"
 
     # ------------------------------------------------------
     # TEST 4 - BLOCKED EXECUTION CANNOT SETTLE
@@ -286,9 +246,7 @@ def run_block89_self_test():
         ],
     )
 
-    blocked_payload = _paper_execution_payload(
-        blocked_execution
-    )
+    blocked_payload = _paper_execution_payload(blocked_execution)
 
     blocked_audit = audit_engine.audit_and_certify(
         blocked_payload,
@@ -302,9 +260,7 @@ def run_block89_self_test():
         ),
     )
 
-    assert blocked_audit["status"] == "BLOCKED", (
-        blocked_audit
-    )
+    assert blocked_audit["status"] == "BLOCKED", blocked_audit
 
     blocked_settlement = settlement_engine.settle(
         {
@@ -328,54 +284,27 @@ def run_block89_self_test():
         ),
     )
 
-    assert (
-        blocked_settlement["status"]
-        == "BLOCKED"
-    ), blocked_settlement
+    assert blocked_settlement["status"] == "BLOCKED", blocked_settlement
 
-    assert (
-        blocked_settlement["settlement"]["settlement_status"]
-        == "BLOCKED"
-    )
+    assert blocked_settlement["settlement"]["settlement_status"] == "BLOCKED"
 
     # ------------------------------------------------------
     # TEST 5 - NON-BYPASS INVARIANT
     # ------------------------------------------------------
 
-    assert (
-        blocked_settlement["settlement"][
-            "settlement_allowed"
-        ]
-        is False
-    )
+    assert blocked_settlement["settlement"]["settlement_allowed"] is False
 
-    assert (
-        blocked_settlement["settlement"][
-            "broker_submission"
-        ]
-        is False
-    )
+    assert blocked_settlement["settlement"]["broker_submission"] is False
 
-    assert (
-        blocked_settlement["settlement"][
-            "live_order_submission"
-        ]
-        is False
-    )
+    assert blocked_settlement["settlement"]["live_order_submission"] is False
 
     return {
         "status": "PASS",
         "settled_status": settlement["status"],
-        "settlement_certificate": (
-            settlement["certificate"]["status"]
-        ),
+        "settlement_certificate": (settlement["certificate"]["status"]),
         "duplicate_status": duplicate["status"],
         "blocked_status": blocked_settlement["status"],
-        "blocked_settlement": (
-            blocked_settlement["settlement"][
-                "settlement_status"
-            ]
-        ),
+        "blocked_settlement": (blocked_settlement["settlement"]["settlement_status"]),
         "non_bypass_invariant": True,
         "broker_submission": False,
         "live_order_submission": False,
@@ -384,5 +313,3 @@ def run_block89_self_test():
 
 if __name__ == "__main__":
     print(run_block89_self_test())
-
-

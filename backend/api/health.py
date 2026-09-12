@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from backend.api.dependencies.database import get_session
 import time
+
+from fastapi import APIRouter, Depends
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from backend.api.dependencies.database import get_session
 
 router = APIRouter(tags=["System Health"])
 
 START_TIME = time.time()
+
 
 @router.get("/health")
 def health_check() -> dict:
@@ -17,8 +20,9 @@ def health_check() -> dict:
         "status": "healthy",
         "database": "connected",
         "version": "3.0",
-        "uptime_seconds": uptime_seconds
+        "uptime_seconds": uptime_seconds,
     }
+
 
 @router.get("/ready")
 def readiness_check(session: Session = Depends(get_session)) -> dict:
@@ -32,5 +36,5 @@ def readiness_check(session: Session = Depends(get_session)) -> dict:
         "status": "ready" if db_ready else "degraded",
         "database": "connected" if db_ready else "disconnected",
         "feature_store": "active",
-        "workflow_engine": "active"
+        "workflow_engine": "active",
     }

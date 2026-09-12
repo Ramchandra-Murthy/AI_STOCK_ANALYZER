@@ -66,9 +66,7 @@ def generate_sotp_new_energy_scenarios(
     announced_investment = _num(investment.get("announced_investment"))
 
     reference_capital = (
-        committed_investment
-        if committed_investment is not None
-        else announced_investment
+        committed_investment if committed_investment is not None else announced_investment
     )
 
     # --------------------------------------------------------
@@ -112,9 +110,7 @@ def generate_sotp_new_energy_scenarios(
     # SUMMARY
     # --------------------------------------------------------
 
-    scenario_values = {
-        name: scenario.get("scenario_value") for name, scenario in scenarios.items()
-    }
+    scenario_values = {name: scenario.get("scenario_value") for name, scenario in scenarios.items()}
 
     return {
         "status": "OK",
@@ -125,9 +121,7 @@ def generate_sotp_new_energy_scenarios(
         "unit": data.get("unit"),
         "reference_capital": reference_capital,
         "reference_capital_source": (
-            "committed_investment"
-            if committed_investment is not None
-            else "announced_investment"
+            "committed_investment" if committed_investment is not None else "announced_investment"
         ),
         "scenario_method": ("CAPITAL_REALIZATION_X_STRATEGIC_MULTIPLE"),
         "scenarios": scenarios,
@@ -148,18 +142,12 @@ def generate_sotp_new_energy_scenarios(
             "authorized for the SOTP bridge."
         ),
         "warnings": [
-            (
-                "The investment commitment is used only "
-                "as a scenario reference capital base."
-            ),
+            ("The investment commitment is used only " "as a scenario reference capital base."),
             (
                 "Scenario realization factors and "
                 "strategic multiples are analyst "
                 "assumptions, not company disclosures."
             ),
-            (
-                "Scenario values must remain separate "
-                "from authorized enterprise value."
-            ),
+            ("Scenario values must remain separate " "from authorized enterprise value."),
         ],
     }

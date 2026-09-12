@@ -69,9 +69,7 @@ def generate_sotp_debt_like_liabilities(
                 "segment": "CONSOLIDATED",
                 "treatment": "DEDUCT",
                 "bridge_ready": True,
-                "reason": (
-                    "RIL-reported gross debt less cash and " "marketable securities."
-                ),
+                "reason": ("RIL-reported gross debt less cash and " "marketable securities."),
             },
             "lease_liabilities": {
                 "value": lease_obligations,
@@ -196,7 +194,5 @@ def generate_sotp_debt_like_liabilities(
         },
         "authorized_bridge_adjustment": None,
         "bridge_status": "REVIEW_REQUIRED",
-        "warnings": [
-            "Audited SOTP liability policy is not configured for this symbol."
-        ],
+        "warnings": ["Audited SOTP liability policy is not configured for this symbol."],
     }

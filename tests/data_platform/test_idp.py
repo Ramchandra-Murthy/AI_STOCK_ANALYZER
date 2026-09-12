@@ -1,12 +1,14 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.data_platform.quality import DataQualityEngine
 from services.data_platform.providers.yahoo import YahooFinanceProvider
+from services.data_platform.quality import DataQualityEngine
+
 
 def test_institutional_data_platform() -> None:
     # Test Data Quality Engine
-    check = DataQualityEngine.inspect_metric("operating_margin", 18.5, min_val=-100.0, max_val=100.0)
+    check = DataQualityEngine.inspect_metric(
+        "operating_margin", 18.5, min_val=-100.0, max_val=100.0
+    )
     assert check.passed is True
     assert check.confidence > 0.90
 

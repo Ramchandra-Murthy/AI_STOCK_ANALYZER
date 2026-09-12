@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import pytest
 
-from services.financials.financial_statement import FinancialStatements, PeriodFinancials
-from services.financials.income_statement import IncomeStatement
 from services.financials.balance_sheet import BalanceSheet
 from services.financials.cash_flow import CashFlowStatement
+from services.financials.financial_statement import FinancialStatements, PeriodFinancials
+from services.financials.income_statement import IncomeStatement
 
 
 def test_financial_statements_immutability_and_structure() -> None:

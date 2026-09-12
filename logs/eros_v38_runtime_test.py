@@ -4,7 +4,6 @@ import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 60)
 print("EROS 3.0 - V3.8 DECISION AUDIT ENGINE - RUNTIME")
 print("=" * 60)
@@ -48,10 +47,7 @@ foundation = [
 for name in foundation:
     ok = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
         raise RuntimeError(f"MISSING_API:{name}")
@@ -88,13 +84,7 @@ if not isinstance(result, dict):
 print("\n5. RAW AUDIT OUTPUT")
 print("-" * 60)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 print("\n6. TOP LEVEL SCHEMA")
@@ -114,15 +104,10 @@ for field in required_top_level:
 
     ok = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_TOP_LEVEL_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_TOP_LEVEL_FIELD:{field}")
 
 
 print("\n7. DECISION STRUCTURE")
@@ -144,15 +129,10 @@ for field in [
 
     ok = field in decision
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_DECISION_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_DECISION_FIELD:{field}")
 
 
 print("\n8. TRACEABILITY STRUCTURE")
@@ -178,15 +158,10 @@ for field in [
 
     ok = field in traceability
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_TRACEABILITY_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_TRACEABILITY_FIELD:{field}")
 
 
 print("\n9. TRACEABILITY STAGE VALIDATION")
@@ -214,16 +189,10 @@ for stage in required_stages:
 
     ok = actual == "AVAILABLE"
 
-    print(
-        f"{stage:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual})"
-    )
+    print(f"{stage:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual})")
 
     if not ok:
-        raise RuntimeError(
-            f"TRACEABILITY_STAGE_FAILURE:{stage}"
-        )
+        raise RuntimeError(f"TRACEABILITY_STAGE_FAILURE:{stage}")
 
 
 print("\n10. V3.7.2 COMPATIBILITY")
@@ -239,19 +208,11 @@ if "trace" in result:
 else:
     print("legacy trace                     : ABSENT")
 
-print(
-    "traceability schema              : PRESENT"
-)
+print("traceability schema              : PRESENT")
 
-print(
-    "traceability schema version      :",
-    traceability.get("schema_version")
-)
+print("traceability schema version      :", traceability.get("schema_version"))
 
-print(
-    "legacy_trace_preserved           :",
-    traceability.get("legacy_trace_preserved")
-)
+print("legacy_trace_preserved           :", traceability.get("legacy_trace_preserved"))
 
 
 print("\n11. AUDIT STRUCTURE")
@@ -262,10 +223,7 @@ audit = result["audit"]
 if not isinstance(audit, dict):
     raise RuntimeError("AUDIT_NOT_DICT")
 
-print(
-    "AUDIT OBJECT TYPE                :",
-    type(audit).__name__
-)
+print("AUDIT OBJECT TYPE                :", type(audit).__name__)
 
 audit_fields = [
     "status",
@@ -283,15 +241,10 @@ for field in audit_fields:
 
     ok = field in audit
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_AUDIT_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_AUDIT_FIELD:{field}")
 
 
 print("\n12. EVIDENCE VALIDATION")
@@ -300,14 +253,10 @@ print("-" * 60)
 evidence_validation = audit["evidence_validation"]
 
 if not isinstance(evidence_validation, dict):
-    raise RuntimeError(
-        "EVIDENCE_VALIDATION_NOT_DICT"
-    )
+    raise RuntimeError("EVIDENCE_VALIDATION_NOT_DICT")
 
 for key, value in evidence_validation.items():
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
 
 print("\n13. DECISION VALIDATION")
@@ -316,14 +265,10 @@ print("-" * 60)
 decision_validation = audit["decision_validation"]
 
 if not isinstance(decision_validation, dict):
-    raise RuntimeError(
-        "DECISION_VALIDATION_NOT_DICT"
-    )
+    raise RuntimeError("DECISION_VALIDATION_NOT_DICT")
 
 for key, value in decision_validation.items():
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
 
 print("\n14. SCENARIO VALIDATION")
@@ -332,14 +277,10 @@ print("-" * 60)
 scenario_validation = audit["scenario_validation"]
 
 if not isinstance(scenario_validation, dict):
-    raise RuntimeError(
-        "SCENARIO_VALIDATION_NOT_DICT"
-    )
+    raise RuntimeError("SCENARIO_VALIDATION_NOT_DICT")
 
 for key, value in scenario_validation.items():
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
 
 print("\n15. TRACE VALIDATION")
@@ -348,14 +289,10 @@ print("-" * 60)
 trace_validation = audit["trace_validation"]
 
 if not isinstance(trace_validation, dict):
-    raise RuntimeError(
-        "TRACE_VALIDATION_NOT_DICT"
-    )
+    raise RuntimeError("TRACE_VALIDATION_NOT_DICT")
 
 for key, value in trace_validation.items():
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
 
 print("\n16. GOVERNANCE VALIDATION")
@@ -364,14 +301,10 @@ print("-" * 60)
 governance_validation = audit["governance_validation"]
 
 if not isinstance(governance_validation, dict):
-    raise RuntimeError(
-        "GOVERNANCE_VALIDATION_NOT_DICT"
-    )
+    raise RuntimeError("GOVERNANCE_VALIDATION_NOT_DICT")
 
 for key, value in governance_validation.items():
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
 
 print("\n17. SAFETY VALIDATION")
@@ -380,14 +313,10 @@ print("-" * 60)
 safety_validation = audit["safety_validation"]
 
 if not isinstance(safety_validation, dict):
-    raise RuntimeError(
-        "SAFETY_VALIDATION_NOT_DICT"
-    )
+    raise RuntimeError("SAFETY_VALIDATION_NOT_DICT")
 
 for key, value in safety_validation.items():
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
 
 print("\n18. CONFLICT DETECTION")
@@ -396,14 +325,10 @@ print("-" * 60)
 conflict_detection = audit["conflict_detection"]
 
 if not isinstance(conflict_detection, dict):
-    raise RuntimeError(
-        "CONFLICT_DETECTION_NOT_DICT"
-    )
+    raise RuntimeError("CONFLICT_DETECTION_NOT_DICT")
 
 for key, value in conflict_detection.items():
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
 
 print("\n19. AUDIT CONCLUSION")
@@ -412,14 +337,10 @@ print("-" * 60)
 audit_conclusion = audit["audit_conclusion"]
 
 if not isinstance(audit_conclusion, str):
-    raise RuntimeError(
-        "AUDIT_CONCLUSION_NOT_STRING"
-    )
+    raise RuntimeError("AUDIT_CONCLUSION_NOT_STRING")
 
 if not audit_conclusion.strip():
-    raise RuntimeError(
-        "AUDIT_CONCLUSION_EMPTY"
-    )
+    raise RuntimeError("AUDIT_CONCLUSION_EMPTY")
 
 print("AUDIT CONCLUSION : PASS")
 print(audit_conclusion)
@@ -431,14 +352,10 @@ print("-" * 60)
 conclusion = result["conclusion"]
 
 if not isinstance(conclusion, str):
-    raise RuntimeError(
-        "CONCLUSION_NOT_STRING"
-    )
+    raise RuntimeError("CONCLUSION_NOT_STRING")
 
 if not conclusion.strip():
-    raise RuntimeError(
-        "CONCLUSION_EMPTY"
-    )
+    raise RuntimeError("CONCLUSION_EMPTY")
 
 print("CONCLUSION : PASS")
 print(conclusion)
@@ -450,9 +367,7 @@ print("-" * 60)
 governance = result["governance"]
 
 if not isinstance(governance, dict):
-    raise RuntimeError(
-        "GOVERNANCE_NOT_DICT"
-    )
+    raise RuntimeError("GOVERNANCE_NOT_DICT")
 
 expected_true = [
     "read_only",
@@ -477,16 +392,10 @@ for field in expected_true:
 
     ok = actual is True
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=True)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 for field in expected_false:
@@ -495,52 +404,30 @@ for field in expected_false:
 
     ok = actual is False
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=False)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 print("\n22. TRACEABILITY / GOVERNANCE CROSS-CHECK")
 print("-" * 60)
 
 cross_checks = {
-    "traceability_read_only":
-        traceability.get("read_only") is True,
-
-    "traceability_execution_blocked":
-        traceability.get("execution_blocked") is True,
-
-    "traceability_non_mutation":
-        traceability.get("non_mutation_invariant") is True,
-
-    "governance_read_only":
-        governance.get("read_only") is True,
-
-    "governance_execution_blocked":
-        governance.get("execution_blocked") is True,
-
-    "governance_non_mutation":
-        governance.get("non_mutation_invariant") is True,
+    "traceability_read_only": traceability.get("read_only") is True,
+    "traceability_execution_blocked": traceability.get("execution_blocked") is True,
+    "traceability_non_mutation": traceability.get("non_mutation_invariant") is True,
+    "governance_read_only": governance.get("read_only") is True,
+    "governance_execution_blocked": governance.get("execution_blocked") is True,
+    "governance_non_mutation": governance.get("non_mutation_invariant") is True,
 }
 
 for name, ok in cross_checks.items():
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"CROSS_CHECK_FAILURE:{name}"
-        )
+        raise RuntimeError(f"CROSS_CHECK_FAILURE:{name}")
 
 
 print("\n23. DATABASE / EXECUTION SAFETY")

@@ -2,6 +2,7 @@
 import subprocess
 import sys
 
+
 def run_command(command, description):
     print(f"\n[RUNNING] {description}...")
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -14,6 +15,7 @@ def run_command(command, description):
     print(f"[PASSED] {description}")
     return result.stdout
 
+
 def main():
     os.chdir(r"D:\Users\User\Desktop\AI_STOCK_ANALYZER")
 
@@ -22,8 +24,10 @@ def main():
     print("==================================================")
 
     container_cmd = "docker compose -f docker-compose.production.yml ps -q api"
-    api_container = subprocess.run(container_cmd, shell=True, capture_output=True, text=True).stdout.strip()
-    
+    api_container = subprocess.run(
+        container_cmd, shell=True, capture_output=True, text=True
+    ).stdout.strip()
+
     if not api_container:
         print("[ERROR] Could not determine active API container")
         sys.exit(1)
@@ -34,7 +38,7 @@ def main():
     print("--------------------------------------------------")
     run_command(
         "docker compose -f docker-compose.production.yml exec -T -e PYTHONPATH=/app api python -m services.quantitative.block100_test_harness",
-        "Block 100 Test Harness"
+        "Block 100 Test Harness",
     )
 
     print("\n--------------------------------------------------")
@@ -42,7 +46,7 @@ def main():
     print("--------------------------------------------------")
     run_command(
         "docker compose -f docker-compose.production.yml exec -T -e PYTHONPATH=/app api python -m services.quantitative.block101_test_harness",
-        "Block 101 Test Harness"
+        "Block 101 Test Harness",
     )
 
     print("\n--------------------------------------------------")
@@ -50,7 +54,7 @@ def main():
     print("--------------------------------------------------")
     run_command(
         "docker compose -f docker-compose.production.yml exec -T -e PYTHONPATH=/app api python -m services.quantitative.block102_test_harness",
-        "Block 102 Test Harness"
+        "Block 102 Test Harness",
     )
 
     print("\n--------------------------------------------------")
@@ -58,12 +62,13 @@ def main():
     print("--------------------------------------------------")
     run_command(
         "docker compose -f docker-compose.production.yml exec -T -e PYTHONPATH=/app api python -m services.quantitative.block103_test_harness",
-        "Block 103 Test Harness"
+        "Block 103 Test Harness",
     )
 
     print("\n==================================================")
     print(" BLOCKS 100, 101, 102, AND 103 VERIFIED SUCCESSFUL")
     print("==================================================")
+
 
 if __name__ == "__main__":
     main()

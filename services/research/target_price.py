@@ -41,9 +41,7 @@ class TargetPriceCalculator:
             val * method_weights[method] for method, val in method_values.items()
         )
         target_price = weighted_fair_value * (1.0 - margin_of_safety_pct)
-        implied_upside = (target_price - current_market_price) / max(
-            current_market_price, 1e-4
-        )
+        implied_upside = (target_price - current_market_price) / max(current_market_price, 1e-4)
 
         logger.info(
             f"[{ticker}] Fair Value: {weighted_fair_value:.2f} | Target: {target_price:.2f} | Upside: {implied_upside:.2%}"

@@ -1,5 +1,5 @@
-﻿import sys
-import os
+﻿import os
+import sys
 
 print("PYTHON EXECUTABLE :", sys.executable)
 print("CURRENT DIRECTORY :", os.getcwd())

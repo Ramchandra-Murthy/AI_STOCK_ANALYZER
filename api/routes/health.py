@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from api.schemas import ApiResponse
 
@@ -10,7 +10,7 @@ def get_health() -> ApiResponse:
     return ApiResponse(
         success=True,
         version="1.0.0",
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         data={
             "database": "OK",
             "workflow": "OK",

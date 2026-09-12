@@ -63,16 +63,15 @@ redis_client.release_lock(lock_key)
 
 results = []
 
+
 def acquire(index):
     result = redis_client.acquire_lock(lock_key, timeout=10)
     results.append((index, result))
     return index, result
 
+
 with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    futures = [
-        executor.submit(acquire, i)
-        for i in range(10)
-    ]
+    futures = [executor.submit(acquire, i) for i in range(10)]
 
     lock_results = [future.result() for future in futures]
 

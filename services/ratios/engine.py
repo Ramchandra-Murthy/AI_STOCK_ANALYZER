@@ -32,7 +32,9 @@ class FinancialRatioEngine:
         balances = financials.balance_sheets
         cashflows = financials.cash_flows
         if not incomes or not balances or not cashflows:
-            raise ValueError("financial statements must contain income, balance-sheet and cash-flow data")
+            raise ValueError(
+                "financial statements must contain income, balance-sheet and cash-flow data"
+            )
 
         inc = incomes[-1]
         bs = balances[-1]
@@ -69,11 +71,15 @@ class FinancialRatioEngine:
         current_assets = float(bs.current_assets)
         current_liabilities = float(bs.current_liabilities)
         liquidity = {
-            "current_ratio": round(current_assets / current_liabilities, 2) if current_liabilities > 0 else 0.0,
+            "current_ratio": (
+                round(current_assets / current_liabilities, 2) if current_liabilities > 0 else 0.0
+            ),
             "cash_ratio": round(cash / current_liabilities, 2) if current_liabilities > 0 else 0.0,
-            "quick_ratio": round((current_assets - float(bs.inventory)) / current_liabilities, 2)
-            if current_liabilities > 0
-            else 0.0,
+            "quick_ratio": (
+                round((current_assets - float(bs.inventory)) / current_liabilities, 2)
+                if current_liabilities > 0
+                else 0.0
+            ),
         }
 
         interest_expense = abs(float(inc.finance_cost))
@@ -86,7 +92,9 @@ class FinancialRatioEngine:
 
         efficiency = {
             "asset_turnover": round(revenue / total_assets, 2),
-            "capital_turnover": round(revenue / invested_capital, 2) if invested_capital > 0 else 0.0,
+            "capital_turnover": (
+                round(revenue / invested_capital, 2) if invested_capital > 0 else 0.0
+            ),
         }
 
         growth = {"revenue_cagr_3y": 0.0, "net_income_cagr_3y": 0.0, "eps_cagr_3y": 0.0}
@@ -94,7 +102,9 @@ class FinancialRatioEngine:
             periods = len(incomes) - 1
             growth = {
                 "revenue_cagr_3y": self._calculate_cagr(incomes[0].revenue, inc.revenue, periods),
-                "net_income_cagr_3y": self._calculate_cagr(incomes[0].net_income, inc.net_income, periods),
+                "net_income_cagr_3y": self._calculate_cagr(
+                    incomes[0].net_income, inc.net_income, periods
+                ),
                 "eps_cagr_3y": self._calculate_cagr(incomes[0].eps, inc.eps, periods),
             }
 

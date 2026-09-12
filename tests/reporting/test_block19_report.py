@@ -1,6 +1,7 @@
-﻿from services.scoring.models import AIScoreResult
+﻿from services.reporting.block19_report import Block19ReportGenerator
 from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
-from services.reporting.block19_report import Block19ReportGenerator
+from services.scoring.models import AIScoreResult
+
 
 def test_block19_report_generation():
     ai_score = AIScoreResult(
@@ -16,10 +17,12 @@ def test_block19_report_generation():
         breakdown_details={
             "rating": "STRONG BUY",
             "engine_version": "EROS-3.0-BLOCK-15",
-        }
+        },
     )
 
-    orchestrator = UnifiedResearchToDecisionOrchestrator(policy_profile="Institutional", max_position_limit=0.10)
+    orchestrator = UnifiedResearchToDecisionOrchestrator(
+        policy_profile="Institutional", max_position_limit=0.10
+    )
     unified_result = orchestrator.evaluate(ai_score, holdings=None, portfolio_weight=0.02)
 
     markdown_report = Block19ReportGenerator.generate_markdown(unified_result)

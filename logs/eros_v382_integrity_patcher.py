@@ -1,8 +1,5 @@
-from pathlib import Path
 import ast
-import shutil
-import sys
-
+from pathlib import Path
 
 PROJECT_ROOT = Path(r"D:\Users\User\Desktop\AI_STOCK_ANALYZER")
 ADAPTER = PROJECT_ROOT / "services" / "eros_frontend_adapter.py"
@@ -77,9 +74,7 @@ method_lines = source.splitlines()
 method_start = audit_method.lineno - 1
 method_end = audit_method.end_lineno
 
-method_text = "\n".join(
-    method_lines[method_start:method_end]
-)
+method_text = "\n".join(method_lines[method_start:method_end])
 
 print("METHOD LENGTH :", len(method_text))
 
@@ -96,10 +91,7 @@ checks = [
 ]
 
 for token in checks:
-    print(
-        f"{token:35} : "
-        f"{'PRESENT' if token in method_text else 'ABSENT'}"
-    )
+    print(f"{token:35} : " f"{'PRESENT' if token in method_text else 'ABSENT'}")
 
 
 print("\n7. INTEGRITY ANALYSIS")
@@ -114,10 +106,7 @@ required_sources = [
 ]
 
 for token in required_sources:
-    print(
-        f"{token:35} : "
-        f"{'PRESENT' if token in method_text else 'NOT_DIRECTLY_REFERENCED'}"
-    )
+    print(f"{token:35} : " f"{'PRESENT' if token in method_text else 'NOT_DIRECTLY_REFERENCED'}")
 
 
 print("\n8. PATCH SAFETY")

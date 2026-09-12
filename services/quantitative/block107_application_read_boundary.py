@@ -33,8 +33,9 @@ NO MUTATION
 NO OPTIMIZATION
 """
 
+from collections.abc import Mapping
 from copy import deepcopy
-from typing import Any, Dict, Mapping
+from typing import Any
 
 
 class EROSBlock107ApplicationReadBoundary:
@@ -72,7 +73,7 @@ class EROSBlock107ApplicationReadBoundary:
     )
 
     @classmethod
-    def _build_safety_contract(cls) -> Dict[str, Any]:
+    def _build_safety_contract(cls) -> dict[str, Any]:
         """
         Return a defensive copy of the immutable Block 107 safety policy.
         """
@@ -87,9 +88,7 @@ class EROSBlock107ApplicationReadBoundary:
         Validate the upstream Block 106 safety contract.
         """
         if not isinstance(source_safety, Mapping):
-            raise TypeError(
-                "Block 106 safety contract must be a mapping"
-            )
+            raise TypeError("Block 106 safety contract must be a mapping")
 
         prohibited = (
             "allow_order_creation",
@@ -102,27 +101,18 @@ class EROSBlock107ApplicationReadBoundary:
             "allow_optimization",
         )
 
-        violations = [
-            key
-            for key in prohibited
-            if bool(source_safety.get(key, False))
-        ]
+        violations = [key for key in prohibited if bool(source_safety.get(key, False))]
 
         if violations:
             raise ValueError(
-                "Block 107 safety boundary violated by Block 106: "
-                + ", ".join(violations)
+                "Block 107 safety boundary violated by Block 106: " + ", ".join(violations)
             )
 
         if not bool(source_safety.get("execution_blocked", False)):
-            raise ValueError(
-                "Block 107 requires execution_blocked=True"
-            )
+            raise ValueError("Block 107 requires execution_blocked=True")
 
         if not bool(source_safety.get("non_mutation_invariant", False)):
-            raise ValueError(
-                "Block 107 requires non_mutation_invariant=True"
-            )
+            raise ValueError("Block 107 requires non_mutation_invariant=True")
 
     @classmethod
     def _validate_payload_structure(
@@ -133,75 +123,50 @@ class EROSBlock107ApplicationReadBoundary:
         Validate the minimum structural contract of Block 106.
         """
         if not isinstance(payload, Mapping):
-            raise TypeError(
-                "Block 106 payload must be a mapping"
-            )
+            raise TypeError("Block 106 payload must be a mapping")
 
-        missing = [
-            key
-            for key in cls.REQUIRED_PAYLOAD_KEYS
-            if key not in payload
-        ]
+        missing = [key for key in cls.REQUIRED_PAYLOAD_KEYS if key not in payload]
 
         if missing:
-            raise ValueError(
-                "Block 107 missing required Block 106 fields: "
-                + ", ".join(missing)
-            )
+            raise ValueError("Block 107 missing required Block 106 fields: " + ", ".join(missing))
 
         schema = payload.get("schema")
 
         if not isinstance(schema, Mapping):
-            raise TypeError(
-                "Block 106 schema must be a mapping"
-            )
+            raise TypeError("Block 106 schema must be a mapping")
 
         if schema.get("name") != "EROSInstitutionalIntegrationPayload":
-            raise ValueError(
-                "Invalid Block 106 schema name"
-            )
+            raise ValueError("Invalid Block 106 schema name")
 
         integration = payload.get("integration")
 
         if not isinstance(integration, Mapping):
-            raise TypeError(
-                "Block 106 integration must be a mapping"
-            )
+            raise TypeError("Block 106 integration must be a mapping")
 
         if integration.get("block_id") != "106":
-            raise ValueError(
-                "Block 107 requires source block_id=106"
-            )
+            raise ValueError("Block 107 requires source block_id=106")
 
         if integration.get("source_block_id") != "104":
-            raise ValueError(
-                "Block 107 requires Block 106 source_block_id=104"
-            )
+            raise ValueError("Block 107 requires Block 106 source_block_id=104")
 
         command_center = payload.get("command_center")
 
         if not isinstance(command_center, Mapping):
-            raise TypeError(
-                "Block 106 command_center must be a mapping"
-            )
+            raise TypeError("Block 106 command_center must be a mapping")
 
         integrity = payload.get("integrity")
 
         if not isinstance(integrity, Mapping):
-            raise TypeError(
-                "Block 106 integrity must be a mapping"
-            )
+            raise TypeError("Block 106 integrity must be a mapping")
 
         if integrity.get("algorithm") != "SHA-256":
-            raise ValueError(
-                "Block 107 requires SHA-256 Block 106 integrity"
-            )
+            raise ValueError("Block 107 requires SHA-256 Block 106 integrity")
 
     @classmethod
     def build_application_snapshot(
         cls,
         block106_payload: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Build a defensive, read-only application snapshot.
 
@@ -209,9 +174,7 @@ class EROSBlock107ApplicationReadBoundary:
         """
         cls._validate_payload_structure(block106_payload)
 
-        cls._validate_safety(
-            block106_payload["safety"]
-        )
+        cls._validate_safety(block106_payload["safety"])
 
         snapshot = {
             "schema": {
@@ -223,9 +186,7 @@ class EROSBlock107ApplicationReadBoundary:
                 "block_name": cls.BLOCK_NAME,
                 "status": "CERTIFIED",
                 "source_block_id": cls.SOURCE_BLOCK_ID,
-                "source_block_name": (
-                    "Institutional Integration Boundary"
-                ),
+                "source_block_name": ("Institutional Integration Boundary"),
             },
             "source_payload": deepcopy(block106_payload),
             "safety": cls._build_safety_contract(),
@@ -252,9 +213,7 @@ class EROSBlock107ApplicationReadBoundary:
         if not isinstance(schema, Mapping):
             return False
 
-        if schema.get("name") != (
-            "EROSInstitutionalApplicationReadModel"
-        ):
+        if schema.get("name") != ("EROSInstitutionalApplicationReadModel"):
             return False
 
         if schema.get("version") != cls.VERSION:
@@ -293,10 +252,8 @@ class EROSBlock107ApplicationReadBoundary:
     def build_read_only_snapshot(
         cls,
         block106_payload: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Explicit read-only alias for application snapshot generation.
         """
-        return cls.build_application_snapshot(
-            block106_payload
-        )
+        return cls.build_application_snapshot(block106_payload)

@@ -47,11 +47,7 @@ for route in main.app.routes:
 
     methods = ",".join(sorted(route.methods or []))
 
-    print(
-        route.path,
-        "|",
-        methods
-    )
+    print(route.path, "|", methods)
 
 # --------------------------------------------------
 # 3. OPENAPI SECURITY
@@ -74,11 +70,7 @@ openapi = openapi_response.json()
 print("TITLE:", openapi.get("info", {}).get("title"))
 print("VERSION:", openapi.get("info", {}).get("version"))
 
-security_schemes = (
-    openapi
-    .get("components", {})
-    .get("securitySchemes", {})
-)
+security_schemes = openapi.get("components", {}).get("securitySchemes", {})
 
 print("SECURITY SCHEMES:", security_schemes)
 
@@ -92,9 +84,7 @@ for path, item in openapi.get("paths", {}).items():
             continue
 
         if operation.get("security"):
-            secured.append(
-                (path, method.upper())
-            )
+            secured.append((path, method.upper()))
 
 print("SECURED OPERATIONS:", len(secured))
 
@@ -116,19 +106,10 @@ print("ENVIRONMENT:", settings.ENVIRONMENT)
 print("DATABASE_URL CONFIGURED:", bool(settings.DATABASE_URL))
 print("REDIS_URL:", settings.REDIS_URL)
 print("JWT_ALGORITHM:", settings.JWT_ALGORITHM)
-print(
-    "ACCESS_TOKEN_EXPIRE_MINUTES:",
-    settings.ACCESS_TOKEN_EXPIRE_MINUTES
-)
+print("ACCESS_TOKEN_EXPIRE_MINUTES:", settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 print("AUTH_ENABLED:", settings.AUTH_ENABLED)
-print(
-    "JWT_SECRET CONFIGURED:",
-    bool(settings.JWT_SECRET)
-)
-print(
-    "SECRET_KEY CONFIGURED:",
-    bool(settings.SECRET_KEY)
-)
+print("JWT_SECRET CONFIGURED:", bool(settings.JWT_SECRET))
+print("SECRET_KEY CONFIGURED:", bool(settings.SECRET_KEY))
 
 # --------------------------------------------------
 # 5. JWT FUNCTIONAL TEST
@@ -166,14 +147,9 @@ if decoded:
     print("ISSUER:", decoded.get("iss"))
     print("EXP:", decoded.get("exp"))
 
-invalid = JWTSecurity.decode_access_token(
-    "invalid.jwt.token"
-)
+invalid = JWTSecurity.decode_access_token("invalid.jwt.token")
 
-print(
-    "INVALID TOKEN RETURNS NONE:",
-    invalid is None
-)
+print("INVALID TOKEN RETURNS NONE:", invalid is None)
 
 # --------------------------------------------------
 # 6. AUTH REGISTER / LOGIN
@@ -201,15 +177,9 @@ register_response = client.post(
     json=register_payload,
 )
 
-print(
-    "REGISTER STATUS:",
-    register_response.status_code
-)
+print("REGISTER STATUS:", register_response.status_code)
 
-print(
-    "REGISTER BODY:",
-    register_response.json()
-)
+print("REGISTER BODY:", register_response.json())
 
 login_response = client.post(
     "/api/v1/auth/login",
@@ -219,15 +189,9 @@ login_response = client.post(
     },
 )
 
-print(
-    "LOGIN STATUS:",
-    login_response.status_code
-)
+print("LOGIN STATUS:", login_response.status_code)
 
-print(
-    "LOGIN BODY:",
-    login_response.json()
-)
+print("LOGIN BODY:", login_response.json())
 
 login_body = login_response.json()
 
@@ -288,19 +252,9 @@ for name, path, method, body in tests:
 
         response = client.get(path)
 
-    classification = (
-        "SECURITY_ENFORCED"
-        if response.status_code in (401, 403)
-        else "OPEN"
-    )
+    classification = "SECURITY_ENFORCED" if response.status_code in (401, 403) else "OPEN"
 
-    print(
-        name,
-        "->",
-        response.status_code,
-        "|",
-        classification
-    )
+    print(name, "->", response.status_code, "|", classification)
 
 # --------------------------------------------------
 # 8. AUTHENTICATED ACCESS
@@ -312,9 +266,7 @@ print("-" * 50)
 
 if token:
 
-    headers = {
-        "Authorization": "Bearer " + token
-    }
+    headers = {"Authorization": "Bearer " + token}
 
     for name, path, method, body in tests:
 
@@ -333,11 +285,7 @@ if token:
                 headers=headers,
             )
 
-        print(
-            name,
-            "->",
-            response.status_code
-        )
+        print(name, "->", response.status_code)
 
 else:
 
@@ -354,17 +302,9 @@ print("-" * 50)
 health = client.get("/health")
 ready = client.get("/ready")
 
-print(
-    "HEALTH:",
-    health.status_code,
-    health.json()
-)
+print("HEALTH:", health.status_code, health.json())
 
-print(
-    "READY:",
-    ready.status_code,
-    ready.json()
-)
+print("READY:", ready.status_code, ready.json())
 
 # --------------------------------------------------
 # 10. FINAL REGRESSION
@@ -374,35 +314,17 @@ print()
 print("10. FINAL REGRESSION")
 print("-" * 50)
 
-print(
-    "OPENAPI:",
-    openapi_response.status_code
-)
+print("OPENAPI:", openapi_response.status_code)
 
-print(
-    "HEALTH:",
-    health.status_code
-)
+print("HEALTH:", health.status_code)
 
-print(
-    "READY:",
-    ready.status_code
-)
+print("READY:", ready.status_code)
 
-print(
-    "AUTH_ENABLED:",
-    settings.AUTH_ENABLED
-)
+print("AUTH_ENABLED:", settings.AUTH_ENABLED)
 
-print(
-    "JWT_ALGORITHM:",
-    settings.JWT_ALGORITHM
-)
+print("JWT_ALGORITHM:", settings.JWT_ALGORITHM)
 
-print(
-    "JWT_SECRET CONFIGURED:",
-    bool(settings.JWT_SECRET)
-)
+print("JWT_SECRET CONFIGURED:", bool(settings.JWT_SECRET))
 
 print()
 print("==================================================")

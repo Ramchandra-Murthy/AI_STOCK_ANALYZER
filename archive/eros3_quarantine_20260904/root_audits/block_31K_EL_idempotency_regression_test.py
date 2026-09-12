@@ -58,6 +58,7 @@ print("2. CONCURRENT DUPLICATE TEST")
 request_id_2 = "EL-RACE-" + uuid.uuid4().hex
 key_2 = f"eros:idempotency:{request_id_2}"
 
+
 def submit_concurrent(_):
     return service.submit_task(
         "valuation.execute",
@@ -68,22 +69,15 @@ def submit_concurrent(_):
         },
     )
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    concurrent_results = list(
-        executor.map(submit_concurrent, range(10))
-    )
 
-concurrent_ids = [
-    r["task_id"]
-    for r in concurrent_results
-]
+with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    concurrent_results = list(executor.map(submit_concurrent, range(10)))
+
+concurrent_ids = [r["task_id"] for r in concurrent_results]
 
 unique_concurrent_ids = set(concurrent_ids)
 
-concurrent_replays = [
-    r for r in concurrent_results
-    if r.get("idempotent_replay") is True
-]
+concurrent_replays = [r for r in concurrent_results if r.get("idempotent_replay") is True]
 
 print("TOTAL:", len(concurrent_results))
 print("UNIQUE TASK IDS:", len(unique_concurrent_ids))
@@ -173,8 +167,7 @@ lock_3a = f"lock:eros:idempotency-lock:{request_id_3a}"
 lock_3b = f"lock:eros:idempotency-lock:{request_id_3b}"
 
 locks_remaining = [
-    key for key in [lock_1, lock_2, lock_3a, lock_3b]
-    if redis_client.get(key) is not None
+    key for key in [lock_1, lock_2, lock_3a, lock_3b] if redis_client.get(key) is not None
 ]
 
 print("LOCKS REMAINING:", locks_remaining)
@@ -192,15 +185,9 @@ print("6. FINAL REDIS STORE")
 for key, value in redis_client._store.items():
     print(key, "=>", value)
 
-lock_entries = [
-    key for key in redis_client._store
-    if key.startswith("lock:")
-]
+lock_entries = [key for key in redis_client._store if key.startswith("lock:")]
 
-idempotency_entries = [
-    key for key in redis_client._store
-    if key.startswith("eros:idempotency:")
-]
+idempotency_entries = [key for key in redis_client._store if key.startswith("eros:idempotency:")]
 
 print()
 print("LOCK ENTRIES:", len(lock_entries))

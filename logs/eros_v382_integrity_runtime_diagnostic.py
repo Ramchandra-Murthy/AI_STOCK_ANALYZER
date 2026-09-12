@@ -4,7 +4,6 @@ from pprint import pprint
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 70)
 print("EROS 3.0 - V3.8.2 DECISION AUDIT INTEGRITY RUNTIME")
 print("=" * 70)
@@ -47,10 +46,7 @@ required = [
 
 for name in required:
     ok = hasattr(adapter, name)
-    print(
-        f"{name:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
         raise RuntimeError(f"MISSING_API:{name}")
@@ -115,10 +111,7 @@ print("\n5. AUDIT RESULT TOP LEVEL")
 print("-" * 70)
 
 for key, value in audit_result.items():
-    print(
-        f"{key:35} : "
-        f"{type(value).__name__}"
-    )
+    print(f"{key:35} : " f"{type(value).__name__}")
 
 
 print("\n6. AUDIT STATUS")
@@ -153,10 +146,7 @@ decision_fields = [
 for field in decision_fields:
     value = audit_decision.get(field)
 
-    print(
-        f"{field:35} : "
-        f"{value!r}"
-    )
+    print(f"{field:35} : " f"{value!r}")
 
 
 print("\n8. DECISION INTEGRITY CHECK")
@@ -181,9 +171,7 @@ for field in decision_fields:
     )
 
     if not ok:
-        raise RuntimeError(
-            f"DECISION_FIELD_LOST:{field}"
-        )
+        raise RuntimeError(f"DECISION_FIELD_LOST:{field}")
 
 
 print("\nDECISION INTEGRITY : PASS")
@@ -291,15 +279,10 @@ for field in critical_trace_fields:
 
     ok = source_value == audit_value
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"TRACEABILITY_FIELD_LOST:{field}"
-        )
+        raise RuntimeError(f"TRACEABILITY_FIELD_LOST:{field}")
 
 
 print("\nTRACEABILITY INTEGRITY : PASS")
@@ -371,13 +354,7 @@ governance = audit_result.get("governance")
 if not isinstance(governance, dict):
     raise RuntimeError("GOVERNANCE_NOT_DICT")
 
-print(
-    json.dumps(
-        governance,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(governance, indent=2, default=str))
 
 
 print("\n18. SAFETY CONTRACT")
@@ -406,16 +383,10 @@ for field in expected_true:
 
     ok = actual is True
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual!r})"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual!r})")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 for field in expected_false:
@@ -424,16 +395,10 @@ for field in expected_false:
 
     ok = actual is False
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual!r})"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual!r})")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 print("\nSAFETY CONTRACT : PASS")

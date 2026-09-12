@@ -3,11 +3,10 @@
 from typing import Any
 
 from domain.valuation.result import (
-    ValuationResult,
     ValuationMethod,
+    ValuationResult,
     ValuationStatus,
 )
-
 from services.valuation.base_engine import BaseValuationEngine
 
 
@@ -46,9 +45,7 @@ class SOTPValuationEngine(BaseValuationEngine):
             equity_value=res.total_equity_value,
             implied_share_price=res.implied_share_price,
             status=ValuationStatus.SUCCESS,
-            details={
-                "notes": "Evaluated successfully via modular SOTP engine"
-            },
+            details={"notes": "Evaluated successfully via modular SOTP engine"},
         )
 
     def evaluate(self, data: Any) -> ValuationResult:

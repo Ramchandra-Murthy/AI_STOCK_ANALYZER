@@ -1,8 +1,9 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List
 from datetime import datetime
+from typing import Any
+
 
 @dataclass(frozen=True)
 class InvestmentOpportunity:
@@ -16,5 +17,5 @@ class InvestmentOpportunity:
     catalyst_score: float
     risk_score: float
     priority: int
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())

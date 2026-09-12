@@ -69,11 +69,7 @@ for number in range(start, end + 1):
 print("\n6. RETURN STATEMENTS")
 print("-" * 60)
 
-returns = [
-    node
-    for node in ast.walk(method)
-    if isinstance(node, ast.Return)
-]
+returns = [node for node in ast.walk(method) if isinstance(node, ast.Return)]
 
 print("RETURN COUNT :", len(returns))
 
@@ -95,14 +91,7 @@ for index, ret in enumerate(returns, 1):
 
     print("AST TYPE :", type(ret.value).__name__)
 
-    print(
-        "AST DUMP :",
-        ast.dump(
-            ret.value,
-            indent=2,
-            include_attributes=False
-        )
-    )
+    print("AST DUMP :", ast.dump(ret.value, indent=2, include_attributes=False))
 
     try:
         segment = ast.get_source_segment(source, ret.value)
@@ -131,18 +120,9 @@ for index, ret in enumerate(returns, 1):
         for key, val in zip(value.keys, value.values):
 
             if isinstance(key, ast.Constant):
-                print(
-                    "KEY:",
-                    repr(key.value),
-                    "VALUE_TYPE:",
-                    type(val).__name__
-                )
+                print("KEY:", repr(key.value), "VALUE_TYPE:", type(val).__name__)
             else:
-                print(
-                    "KEY: <NON-CONSTANT>",
-                    "VALUE_TYPE:",
-                    type(val).__name__
-                )
+                print("KEY: <NON-CONSTANT>", "VALUE_TYPE:", type(val).__name__)
 
     elif isinstance(value, ast.Name):
 
@@ -152,10 +132,7 @@ for index, ret in enumerate(returns, 1):
     elif isinstance(value, ast.Call):
 
         print("RETURN VALUE : FUNCTION CALL")
-        print("CALL         :", ast.dump(
-            value,
-            include_attributes=False
-        ))
+        print("CALL         :", ast.dump(value, include_attributes=False))
 
     else:
 
@@ -174,18 +151,8 @@ for index, ret in enumerate(returns, 1):
 
         if isinstance(node, ast.Constant):
 
-            if node.value in (
-                "trace",
-                "traceability",
-                "evidence_chain",
-                "scenario_trace"
-            ):
-                print(
-                    "FOUND KEY:",
-                    repr(node.value),
-                    "AT LINE:",
-                    node.lineno
-                )
+            if node.value in ("trace", "traceability", "evidence_chain", "scenario_trace"):
+                print("FOUND KEY:", repr(node.value), "AT LINE:", node.lineno)
 
 print("\n============================================================")
 print("V3.7.2 RETURN STRUCTURE DIAGNOSTIC")

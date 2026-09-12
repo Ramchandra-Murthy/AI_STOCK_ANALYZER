@@ -1,6 +1,6 @@
 ﻿"""EROS SOTP valuation boundary."""
 
-from .engine import evaluate_sotp, SOTPValuationEngine
+from .engine import SOTPValuationEngine, evaluate_sotp
 
 __all__ = [
     "evaluate_sotp",

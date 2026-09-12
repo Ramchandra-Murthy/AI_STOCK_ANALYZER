@@ -43,9 +43,7 @@ class RevenueForecastEngine:
             current_rev *= 1.0 + current_growth
             projected_revenues.append(round(current_rev, 2))
 
-        logger.info(
-            f"[FORECAST] Historical CAGR: {cagr:.2%} | Growth: {projected_growth_rates}"
-        )
+        logger.info(f"[FORECAST] Historical CAGR: {cagr:.2%} | Growth: {projected_growth_rates}")
 
         return RevenueForecastOutput(
             historical_cagr=round(cagr, 4),
@@ -53,4 +51,3 @@ class RevenueForecastEngine:
             base_revenue=base_revenue,
             projected_revenues=projected_revenues,
         )
-

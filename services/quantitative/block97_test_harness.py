@@ -46,9 +46,7 @@ def main():
     tests = 0
 
     # 1
-    result = engine.certify(
-        decision=base_decision()
-    )
+    result = engine.certify(decision=base_decision())
 
     first = result
     tests += 1
@@ -81,24 +79,21 @@ def main():
     # 5
     tests += 1
     check(
-        result["source_decision_id"]
-        == "EROS96-STRESS-DECISION-001",
+        result["source_decision_id"] == "EROS96-STRESS-DECISION-001",
         "decision lineage lost",
     )
 
     # 6
     tests += 1
     check(
-        result["source_gate_id"]
-        == "EROS95-STRESS-GATE-001",
+        result["source_gate_id"] == "EROS95-STRESS-GATE-001",
         "gate lineage lost",
     )
 
     # 7
     tests += 1
     check(
-        result["source_certificate_id"]
-        == "EROS94-STRESS-001",
+        result["source_certificate_id"] == "EROS94-STRESS-001",
         "certificate lineage lost",
     )
 
@@ -126,8 +121,7 @@ def main():
     # 11
     tests += 1
     check(
-        result["readiness_reason"]
-        == "STRESS_DECISION_ADMITTED",
+        result["readiness_reason"] == "STRESS_DECISION_ADMITTED",
         "readiness reason invalid",
     )
 
@@ -157,9 +151,7 @@ def main():
     rejected["decision"] = "REJECTED"
     rejected["decision_reason"] = "STRESS_POLICY_REJECTED"
 
-    review = engine.certify(
-        decision=rejected
-    )
+    review = engine.certify(decision=rejected)
 
     tests += 1
     check(
@@ -178,9 +170,7 @@ def main():
     invalid = base_decision()
     invalid["block_id"] = "95"
 
-    blocked = engine.certify(
-        decision=invalid
-    )
+    blocked = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -192,9 +182,7 @@ def main():
     invalid = base_decision()
     invalid["decision_id"] = ""
 
-    blocked = engine.certify(
-        decision=invalid
-    )
+    blocked = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -206,9 +194,7 @@ def main():
     invalid = base_decision()
     invalid["scenario_count"] = 3
 
-    blocked = engine.certify(
-        decision=invalid
-    )
+    blocked = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -220,9 +206,7 @@ def main():
     invalid = base_decision()
     invalid["non_mutation_invariant"] = False
 
-    blocked = engine.certify(
-        decision=invalid
-    )
+    blocked = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -234,9 +218,7 @@ def main():
     invalid = base_decision()
     invalid["broker_submission"] = True
 
-    blocked = engine.certify(
-        decision=invalid
-    )
+    blocked = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -248,9 +230,7 @@ def main():
     invalid = base_decision()
     invalid["live_order_submission"] = True
 
-    blocked = engine.certify(
-        decision=invalid
-    )
+    blocked = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -262,9 +242,7 @@ def main():
     original = base_decision()
     before = deepcopy(original)
 
-    engine.certify(
-        decision=original
-    )
+    engine.certify(decision=original)
 
     tests += 1
     check(
@@ -275,13 +253,9 @@ def main():
     # 24
     duplicate_source = base_decision()
 
-    duplicate_first = engine.certify(
-        decision=duplicate_source
-    )
+    duplicate_first = engine.certify(decision=duplicate_source)
 
-    duplicate_second = engine.certify(
-        decision=duplicate_source
-    )
+    duplicate_second = engine.certify(decision=duplicate_source)
 
     tests += 1
     check(
@@ -320,14 +294,9 @@ def main():
     )
     print(
         "EXECUTION BLOCKED:",
-        (
-            first["broker_submission"] is False
-            and first["live_order_submission"] is False
-        ),
+        (first["broker_submission"] is False and first["live_order_submission"] is False),
     )
-    print(
-        "EROS 3.0 Block 97 self-test passed"
-    )
+    print("EROS 3.0 Block 97 self-test passed")
     print("=" * 58)
 
     return 0
@@ -335,7 +304,3 @@ def main():
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-
-

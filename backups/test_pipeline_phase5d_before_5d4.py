@@ -1,5 +1,5 @@
 ﻿from eros import evaluate
-from eros.decision import create_context, finalize
+from eros.decision import create_context
 
 
 def test_context():

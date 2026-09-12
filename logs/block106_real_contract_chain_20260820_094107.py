@@ -2,7 +2,6 @@
 
 import inspect
 import json
-import sys
 from pprint import pprint
 
 
@@ -37,15 +36,12 @@ print("=" * 74)
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
-
 from services.quantitative.block104_eros_command_center import (
     EROSBlock104CommandCenter,
 )
-
 from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
@@ -82,26 +78,17 @@ print(
 
 print(
     "BLOCK 106 BUILD    :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary
-        .build_integration_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
 )
 
 print(
     "BLOCK 106 SNAPSHOT :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary
-        .build_read_only_snapshot
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot),
 )
 
 print(
     "BLOCK 106 VALIDATE :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary
-        .validate_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
 )
 
 print("SIGNATURE VERIFICATION : PASS")
@@ -219,10 +206,7 @@ print("ENGINE VERSION :", block102_contract.get("engine_version"))
 
 pipeline_status = block102_contract.get("pipeline_status")
 
-print(
-    "PIPELINE FIELD :",
-    "pipeline_status"
-)
+print("PIPELINE FIELD :", "pipeline_status")
 
 print(
     "PIPELINE COUNT :",
@@ -260,10 +244,7 @@ expected_pipeline = [
     "101",
 ]
 
-actual_pipeline = [
-    str(item.get("block_id"))
-    for item in pipeline_status
-]
+actual_pipeline = [str(item.get("block_id")) for item in pipeline_status]
 
 print("EXPECTED PIPELINE :", expected_pipeline)
 print("ACTUAL PIPELINE   :", actual_pipeline)
@@ -349,9 +330,7 @@ print("INPUT TYPE        :", type(block102_contract).__name__)
 print("INPUT BLOCK ID    :", repr(block102_contract.get("block_id")))
 print()
 
-read_model = block103.build(
-    contract=block102_contract
-)
+read_model = block103.build(contract=block102_contract)
 
 print("BLOCK 103 BUILD : PASS")
 print()
@@ -438,9 +417,7 @@ block104 = EROSBlock104CommandCenter()
 print("BLOCK 104 INSTANCE : PASS")
 print()
 
-command_center = block104.snapshot(
-    read_model=read_model
-)
+command_center = block104.snapshot(read_model=read_model)
 
 print("BLOCK 104 SNAPSHOT : PASS")
 print()
@@ -529,9 +506,7 @@ print("BLOCK 106 BLOCK_NAME :", block106.BLOCK_NAME)
 print("BLOCK 106 VERSION    :", block106.VERSION)
 print()
 
-payload = block106.build_integration_payload(
-    command_center
-)
+payload = block106.build_integration_payload(command_center)
 
 print("BLOCK 106 BUILD : PASS")
 print()
@@ -554,9 +529,7 @@ print("=" * 74)
 print("11. BLOCK 106 PAYLOAD VALIDATION")
 print("=" * 74)
 
-validation_result = block106.validate_payload(
-    payload
-)
+validation_result = block106.validate_payload(payload)
 
 print("VALIDATE RESULT :", validation_result)
 

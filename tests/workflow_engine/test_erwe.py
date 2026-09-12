@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.workflow_engine.models import WorkflowExecution
 from services.workflow_engine.workflow_engine import EnterpriseWorkflowEngine
+
 
 def test_workflow_execution_immutability() -> None:
     ex = WorkflowExecution(
@@ -12,12 +12,13 @@ def test_workflow_execution_immutability() -> None:
         completed_steps=["Valuation", "Risk"],
         failed_steps=[],
         total_runtime=1.25,
-        success=True
+        success=True,
     )
     assert ex.workflow_id == "WF-001"
     assert ex.success is True
     assert len(ex.completed_steps) == 2
     assert isinstance(ex.metadata, dict)
+
 
 def test_enterprise_workflow_engine() -> None:
     steps = ["DataPlatform", "KnowledgeGraph", "Valuation", "Risk", "Committee"]

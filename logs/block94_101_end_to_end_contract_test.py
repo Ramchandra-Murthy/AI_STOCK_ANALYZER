@@ -1,4 +1,3 @@
-import json
 import traceback
 from pprint import pprint
 
@@ -134,9 +133,7 @@ print("=" * 80)
 try:
     block95 = EROSBlock95StressEvidenceGate()
 
-    result95 = block95.certify(
-        stress_certificate=result94
-    )
+    result95 = block95.certify(stress_certificate=result94)
 
     results["block95"] = result95
 
@@ -163,9 +160,7 @@ print("=" * 80)
 try:
     block96 = EROSBlock96StressDecisionGate()
 
-    result96 = block96.certify(
-        stress_gate=result95
-    )
+    result96 = block96.certify(stress_gate=result95)
 
     results["block96"] = result96
 
@@ -192,9 +187,7 @@ print("=" * 80)
 try:
     block97 = EROSBlock97StressReadinessGate()
 
-    result97 = block97.certify(
-        decision=result96
-    )
+    result97 = block97.certify(decision=result96)
 
     results["block97"] = result97
 
@@ -221,9 +214,7 @@ print("=" * 80)
 try:
     block98 = EROSBlock98ExecutionGovernanceBridge()
 
-    result98 = block98.certify(
-        decision=result97
-    )
+    result98 = block98.certify(decision=result97)
 
     results["block98"] = result98
 
@@ -250,9 +241,7 @@ print("=" * 80)
 try:
     block99 = EROSBlock99ExecutionIntentAuthorizationGate()
 
-    result99 = block99.certify(
-        governance=result98
-    )
+    result99 = block99.certify(governance=result98)
 
     results["block99"] = result99
 
@@ -309,9 +298,7 @@ print("=" * 80)
 try:
     block101 = EROSBlock101ExecutionEvidenceReconciliationGate()
 
-    result101 = block101.certify(
-        execution=result100
-    )
+    result101 = block101.certify(execution=result100)
 
     results["block101"] = result101
 
@@ -372,9 +359,7 @@ for block_id in range(94, 102):
     result = results.get(f"block{block_id}", {})
 
     if not isinstance(result, dict):
-        safety_failures.append(
-            f"Block {block_id}: result is not dict"
-        )
+        safety_failures.append(f"Block {block_id}: result is not dict")
         continue
 
     # Only report fields that actually exist.
@@ -382,33 +367,23 @@ for block_id in range(94, 102):
 
     if "broker_submission" in result:
         if result["broker_submission"] is not False:
-            safety_failures.append(
-                f"Block {block_id}: broker_submission is not False"
-            )
+            safety_failures.append(f"Block {block_id}: broker_submission is not False")
 
     if "live_order_submission" in result:
         if result["live_order_submission"] is not False:
-            safety_failures.append(
-                f"Block {block_id}: live_order_submission is not False"
-            )
+            safety_failures.append(f"Block {block_id}: live_order_submission is not False")
 
     if "order_creation" in result:
         if result["order_creation"] is not False:
-            safety_failures.append(
-                f"Block {block_id}: order_creation is not False"
-            )
+            safety_failures.append(f"Block {block_id}: order_creation is not False")
 
     if "execution_blocked" in result:
         if result["execution_blocked"] is not True:
-            safety_failures.append(
-                f"Block {block_id}: execution_blocked is not True"
-            )
+            safety_failures.append(f"Block {block_id}: execution_blocked is not True")
 
     if "non_mutation_invariant" in result:
         if result["non_mutation_invariant"] is not True:
-            safety_failures.append(
-                f"Block {block_id}: non_mutation_invariant is not True"
-            )
+            safety_failures.append(f"Block {block_id}: non_mutation_invariant is not True")
 
 if safety_failures:
     print("SAFETY : FAIL")

@@ -18,8 +18,7 @@ The orchestrator preserves Block 85 -> Block 94 lineage.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, Optional, Sequence
-
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-GOLDEN-PATH-ORCHESTRATOR-5C-V1"
 
@@ -34,19 +33,19 @@ class GoldenPathContext:
     than independently recreating their business logic.
     """
 
-    block85_certification: Optional[Any] = None
-    block86_decision: Optional[Any] = None
-    block87_execution: Optional[Any] = None
-    block88_audit: Optional[Any] = None
-    block89_settlement: Optional[Any] = None
-    block90_state: Optional[Any] = None
-    block91_valuation: Optional[Any] = None
-    block92_performance: Optional[Any] = None
-    block93_risk: Optional[Any] = None
-    block93_attribution: Optional[Any] = None
-    block94_stress: Optional[Any] = None
+    block85_certification: Any | None = None
+    block86_decision: Any | None = None
+    block87_execution: Any | None = None
+    block88_audit: Any | None = None
+    block89_settlement: Any | None = None
+    block90_state: Any | None = None
+    block91_valuation: Any | None = None
+    block92_performance: Any | None = None
+    block93_risk: Any | None = None
+    block93_attribution: Any | None = None
+    block94_stress: Any | None = None
 
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class EROSGoldenPath85To94Orchestrator:
@@ -87,7 +86,7 @@ class EROSGoldenPath85To94Orchestrator:
         self.context = GoldenPathContext()
 
     @staticmethod
-    def safety_invariants() -> Dict[str, bool]:
+    def safety_invariants() -> dict[str, bool]:
         return {
             "broker_submission": False,
             "live_order_submission": False,
@@ -96,7 +95,7 @@ class EROSGoldenPath85To94Orchestrator:
             "paper_execution_only": True,
         }
 
-    def verify_safety(self) -> Dict[str, bool]:
+    def verify_safety(self) -> dict[str, bool]:
         return dict(self.safety_invariants())
 
     def set_stage(self, stage: str, value: Any) -> None:
@@ -129,9 +128,7 @@ class EROSGoldenPath85To94Orchestrator:
         }
 
         if stage not in prerequisites:
-            raise ValueError(
-                f"Unsupported Golden Path stage: {stage}"
-            )
+            raise ValueError(f"Unsupported Golden Path stage: {stage}")
 
         prerequisite = prerequisites[stage]
 
@@ -154,7 +151,7 @@ class EROSGoldenPath85To94Orchestrator:
     def get_context(self) -> GoldenPathContext:
         return self.context
 
-    def lineage_status(self) -> Dict[str, bool]:
+    def lineage_status(self) -> dict[str, bool]:
         """
         Report which sequential stages currently contain outputs.
         """
@@ -173,7 +170,7 @@ class EROSGoldenPath85To94Orchestrator:
             "block94": self.context.block94_stress is not None,
         }
 
-    def architecture_certificate(self) -> Dict[str, Any]:
+    def architecture_certificate(self) -> dict[str, Any]:
         """
         Produce an orchestration-level diagnostic certificate.
 

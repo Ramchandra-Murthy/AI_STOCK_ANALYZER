@@ -1,11 +1,10 @@
 import importlib
-import io
-from contextlib import redirect_stdout
 from pprint import pprint
 
 print("=" * 80)
 print("EROS 3.0 - BLOCK 94 -> 101 REAL SAFETY DATA-FLOW TRACE")
 print("=" * 80)
+
 
 def show_result(label, result):
     print()
@@ -168,9 +167,7 @@ try:
 
     b95 = B95()
 
-    result95 = b95.certify(
-        stress_certificate=result94
-    )
+    result95 = b95.certify(stress_certificate=result94)
 
     show_result("BLOCK 95 RESULT", result95)
 
@@ -180,9 +177,7 @@ try:
 
     b96 = B96()
 
-    result96 = b96.certify(
-        stress_gate=result95
-    )
+    result96 = b96.certify(stress_gate=result95)
 
     show_result("BLOCK 96 RESULT", result96)
 
@@ -192,9 +187,7 @@ try:
 
     b97 = B97()
 
-    result97 = b97.certify(
-        decision=result96
-    )
+    result97 = b97.certify(decision=result96)
 
     show_result("BLOCK 97 RESULT", result97)
 
@@ -204,9 +197,7 @@ try:
 
     b98 = B98()
 
-    result98 = b98.certify(
-        decision=result97
-    )
+    result98 = b98.certify(decision=result97)
 
     show_result("BLOCK 98 RESULT", result98)
 
@@ -216,9 +207,7 @@ try:
 
     b99 = B99()
 
-    result99 = b99.certify(
-        governance=result98
-    )
+    result99 = b99.certify(governance=result98)
 
     show_result("BLOCK 99 RESULT", result99)
 
@@ -241,9 +230,7 @@ try:
 
     b101 = B101()
 
-    result101 = b101.certify(
-        execution=result100
-    )
+    result101 = b101.certify(execution=result100)
 
     show_result("BLOCK 101 RESULT", result101)
 
@@ -281,18 +268,12 @@ try:
     ]
 
     print()
-    print(
-        f"{'BLOCK':8}"
-        + "".join(f"{key:26}" for key in safety_keys)
-    )
+    print(f"{'BLOCK':8}" + "".join(f"{key:26}" for key in safety_keys))
 
     for block_id, result in chain:
         print(
             f"{block_id:8}"
-            + "".join(
-                f"{repr(result.get(key, '<ABSENT>')):26}"
-                for key in safety_keys
-            )
+            + "".join(f"{repr(result.get(key, '<ABSENT>')):26}" for key in safety_keys)
         )
 
     print()
@@ -314,5 +295,5 @@ except Exception as exc:
     print("=" * 80)
     print(type(exc).__name__, str(exc))
     import traceback
-    traceback.print_exc()
 
+    traceback.print_exc()

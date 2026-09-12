@@ -3,7 +3,6 @@
 import sys
 import traceback
 
-
 print("=" * 70)
 print("EROS 3.0 - BLOCK 106 PYTHON INTERFACE + RUNTIME RUNNER")
 print("=" * 70)
@@ -50,11 +49,7 @@ if not failures:
     try:
         cls = EROSBlock106InstitutionalIntegrationBoundary
 
-        public_names = [
-            name
-            for name in dir(cls)
-            if not name.startswith("_")
-        ]
+        public_names = [name for name in dir(cls) if not name.startswith("_")]
 
         for name in public_names:
             print("PUBLIC :", name)
@@ -223,11 +218,7 @@ if not failures:
         print()
         print("BLOCK 104 TYPE      :", type(block104).__name__)
 
-        block104_public = [
-            name
-            for name in dir(block104)
-            if not name.startswith("_")
-        ]
+        block104_public = [name for name in dir(block104) if not name.startswith("_")]
 
         for name in block104_public:
             print("BLOCK 104 PUBLIC    :", name)
@@ -275,12 +266,8 @@ if not failures:
             print("RUNTIME CONTRACT METHOD DISCOVERY : PASS")
         else:
             print()
-            print(
-                "NO STANDARD RUNTIME METHOD NAME FOUND."
-            )
-            print(
-                "This is an interface discovery result, not a source failure."
-            )
+            print("NO STANDARD RUNTIME METHOD NAME FOUND.")
+            print("This is an interface discovery result, not a source failure.")
 
     except Exception as exc:
         print("RUNTIME CONTRACT DISCOVERY : FAILED")

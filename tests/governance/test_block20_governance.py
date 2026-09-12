@@ -1,9 +1,10 @@
-﻿from services.scoring.models import AIScoreResult
-from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
-from services.monitoring.investment_monitor import InvestmentMonitor
-from services.monitoring.change_detector import InvestmentChangeDetector
+﻿from services.governance.audit_trail import AuditTrailGenerator
 from services.governance.governance_engine import GovernanceEngine
-from services.governance.audit_trail import AuditTrailGenerator
+from services.monitoring.change_detector import InvestmentChangeDetector
+from services.monitoring.investment_monitor import InvestmentMonitor
+from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
+from services.scoring.models import AIScoreResult
+
 
 def test_block20_governance_and_audit():
     ai_score_prev = AIScoreResult(
@@ -16,7 +17,7 @@ def test_block20_governance_and_audit():
         momentum_score=75.0,
         risk_score=90.0,
         composite_score=83.5,
-        breakdown_details={"rating": "BUY"}
+        breakdown_details={"rating": "BUY"},
     )
 
     orchestrator = UnifiedResearchToDecisionOrchestrator(policy_profile="Institutional")
@@ -33,7 +34,7 @@ def test_block20_governance_and_audit():
         momentum_score=40.0,
         risk_score=50.0,
         composite_score=71.2,
-        breakdown_details={"rating": "HOLD"}
+        breakdown_details={"rating": "HOLD"},
     )
 
     res_curr = orchestrator.evaluate(ai_score_curr, holdings=None, portfolio_weight=0.04)
@@ -42,7 +43,9 @@ def test_block20_governance_and_audit():
     report = InvestmentChangeDetector.detect_changes(snap_prev, snap_curr)
 
     holdings = [{"symbol": "ITC.NS", "weight": 0.08}]
-    gov_event, compliance_rep = GovernanceEngine.evaluate_governance(report, holdings, portfolio_id="PORT-INST-01")
+    gov_event, compliance_rep = GovernanceEngine.evaluate_governance(
+        report, holdings, portfolio_id="PORT-INST-01"
+    )
 
     assert gov_event.symbol == "ITC.NS"
     assert gov_event.requires_manual_review is True

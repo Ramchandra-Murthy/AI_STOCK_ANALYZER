@@ -100,9 +100,7 @@ def evaluate_financial_asset_overlap(symbol: str) -> dict:
         "bridge_ready": bridge_ready,
         "sotp_adjustment": {
             "included_value": 0.0,
-            "pending_value": (
-                float(aggregate) if isinstance(aggregate, (int, float)) else 0.0
-            ),
+            "pending_value": (float(aggregate) if isinstance(aggregate, (int, float)) else 0.0),
             "treatment": "PENDING_FINAL_CLASSIFICATION",
         },
         "interpretation": (

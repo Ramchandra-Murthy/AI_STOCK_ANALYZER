@@ -1,4 +1,5 @@
 ﻿from pprint import pprint
+
 from services.quantitative.block102_frontend_contract import EROSBlock102FrontendContract
 
 print("=" * 70)

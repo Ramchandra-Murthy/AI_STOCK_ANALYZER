@@ -35,9 +35,7 @@ class ValuationBoundary:
             self.sotp = evaluate_sotp(data)
         except Exception as exc:
             self.sotp = None
-            self.provenance["sotp_error"] = (
-                f"{type(exc).__name__}: {exc}"
-            )
+            self.provenance["sotp_error"] = f"{type(exc).__name__}: {exc}"
 
         return self.sotp
 
@@ -56,9 +54,7 @@ class ValuationBoundary:
             self.dcf = evaluate_dcf(data)
         except Exception as exc:
             self.dcf = None
-            self.provenance["dcf_error"] = (
-                f"{type(exc).__name__}: {exc}"
-            )
+            self.provenance["dcf_error"] = f"{type(exc).__name__}: {exc}"
 
         return self.dcf
 
@@ -101,18 +97,14 @@ class ValuationBoundary:
                 "sotp": None,
                 "dcf": None,
                 "provenance": self.provenance,
-                "warnings": [
-                    "Valuation input is required."
-                ],
+                "warnings": ["Valuation input is required."],
             }
 
         # --------------------------------------------------------
         # EXPLICIT BOUNDARY PAYLOAD
         # --------------------------------------------------------
 
-        if set(data.keys()).issubset(
-            {"sotp", "dcf", "provenance"}
-        ):
+        if set(data.keys()).issubset({"sotp", "dcf", "provenance"}):
             self.sotp = data.get("sotp")
             self.dcf = data.get("dcf")
 
@@ -128,18 +120,14 @@ class ValuationBoundary:
                     **base_provenance,
                 }
 
-            self.provenance["valuation_status"] = (
-                "INPUT_REQUIRED"
-            )
+            self.provenance["valuation_status"] = "INPUT_REQUIRED"
 
             return {
                 "status": "INPUT_REQUIRED",
                 "sotp": self.sotp,
                 "dcf": self.dcf,
                 "provenance": self.provenance,
-                "warnings": [
-                    "Valuation input is required."
-                ],
+                "warnings": ["Valuation input is required."],
             }
 
         # --------------------------------------------------------
@@ -156,23 +144,15 @@ class ValuationBoundary:
         try:
             self.evaluate_sotp(data)
         except Exception as exc:
-            warnings.append(
-                f"SOTP valuation failed: {type(exc).__name__}: {exc}"
-            )
+            warnings.append(f"SOTP valuation failed: {type(exc).__name__}: {exc}")
 
         try:
             self.evaluate_dcf(data)
         except Exception as exc:
-            warnings.append(
-                f"DCF valuation failed: {type(exc).__name__}: {exc}"
-            )
+            warnings.append(f"DCF valuation failed: {type(exc).__name__}: {exc}")
 
-        self.provenance["sotp_executed"] = (
-            self.sotp is not None
-        )
-        self.provenance["dcf_executed"] = (
-            self.dcf is not None
-        )
+        self.provenance["sotp_executed"] = self.sotp is not None
+        self.provenance["dcf_executed"] = self.dcf is not None
         self.provenance["warnings"] = warnings
 
         return {

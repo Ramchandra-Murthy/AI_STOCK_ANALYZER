@@ -1,17 +1,17 @@
-﻿from pathlib import Path
+﻿import importlib
 import subprocess
-import importlib
+from pathlib import Path
 
-SOURCE = Path(
-    r"services\quantitative\block98_execution_governance_bridge.py"
-)
+SOURCE = Path(r"services\quantitative\block98_execution_governance_bridge.py")
 
 output = []
+
 
 def p(text=""):
     text = str(text)
     print(text)
     output.append(text)
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 98 READ-ONLY RUNTIME SAFETY VERIFICATION")
@@ -33,9 +33,7 @@ else:
     # BOM-SAFE SOURCE INSPECTION
     # ------------------------------------------------------------
 
-    source_text = SOURCE.read_text(
-        encoding="utf-8-sig"
-    )
+    source_text = SOURCE.read_text(encoding="utf-8-sig")
 
     p()
     p("BOM-SAFE READ : PASS")
@@ -51,11 +49,7 @@ else:
 
         p("IMPORT : PASS")
 
-        cls = getattr(
-            module,
-            "EROSBlock98ExecutionGovernanceBridge",
-            None
-        )
+        cls = getattr(module, "EROSBlock98ExecutionGovernanceBridge", None)
 
         if cls is None:
             p("CLASS : FAIL - CLASS NOT FOUND")
@@ -82,9 +76,7 @@ else:
                 p("-" * 100)
 
                 try:
-                    blocked = engine._blocked(
-                        "BLOCK_98_SAFETY_TEST"
-                    )
+                    blocked = engine._blocked("BLOCK_98_SAFETY_TEST")
 
                     p("CALL : PASS")
                     p()
@@ -115,15 +107,9 @@ else:
 
                     for key, expected_value in expected.items():
 
-                        actual_value = blocked.get(
-                            key,
-                            "<ABSENT>"
-                        )
+                        actual_value = blocked.get(key, "<ABSENT>")
 
-                        p(
-                            f"{key:<28}: "
-                            f"{actual_value!r}"
-                        )
+                        p(f"{key:<28}: " f"{actual_value!r}")
 
                         if actual_value != expected_value:
                             safety_pass = False
@@ -139,9 +125,7 @@ else:
                 except Exception as exc:
 
                     p("CALL : FAIL")
-                    p(
-                        f"{type(exc).__name__}: {exc}"
-                    )
+                    p(f"{type(exc).__name__}: {exc}")
 
             else:
                 p()
@@ -162,28 +146,18 @@ else:
                 "govern",
             ):
 
-                method = getattr(
-                    engine,
-                    method_name,
-                    None
-                )
+                method = getattr(engine, method_name, None)
 
                 if callable(method):
-                    p(
-                        f"{method_name:<12}: FOUND"
-                    )
+                    p(f"{method_name:<12}: FOUND")
                 else:
-                    p(
-                        f"{method_name:<12}: ABSENT"
-                    )
+                    p(f"{method_name:<12}: ABSENT")
 
     except Exception as exc:
 
         p()
         p("IMPORT : FAIL")
-        p(
-            f"{type(exc).__name__}: {exc}"
-        )
+        p(f"{type(exc).__name__}: {exc}")
 
 p()
 p("=" * 100)
@@ -239,4 +213,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

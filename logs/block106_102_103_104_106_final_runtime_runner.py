@@ -2,7 +2,6 @@
 
 import inspect
 import json
-import sys
 from typing import Any
 
 
@@ -42,15 +41,12 @@ banner("1. IMPORT CONTRACT LAYERS")
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
-
 from services.quantitative.block104_eros_command_center import (
     EROSBlock104CommandCenter,
 )
-
 from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
@@ -89,23 +85,17 @@ print(
 
 print(
     "BLOCK 106 BUILD    :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
 )
 
 print(
     "BLOCK 106 SNAPSHOT :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot),
 )
 
 print(
     "BLOCK 106 VALIDATE :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.validate_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
 )
 
 print("SIGNATURE VERIFICATION : PASS")
@@ -252,9 +242,7 @@ print("BLOCK 103 INSTANCE : PASS")
 print("INPUT TYPE        :", type(block102_output).__name__)
 print("INPUT BLOCK ID    :", block102_output.get("block_id"))
 
-read_model = block103.build(
-    contract=block102_output
-)
+read_model = block103.build(contract=block102_output)
 
 print("BLOCK 103 BUILD : PASS")
 
@@ -348,9 +336,7 @@ print(
     inspect.signature(block104.snapshot),
 )
 
-command_center = block104.snapshot(
-    read_model=read_model
-)
+command_center = block104.snapshot(read_model=read_model)
 
 require(
     isinstance(command_center, dict),
@@ -456,9 +442,7 @@ block106 = EROSBlock106InstitutionalIntegrationBoundary()
 
 print("BLOCK 106 INSTANCE : PASS")
 
-payload = block106.build_integration_payload(
-    command_center
-)
+payload = block106.build_integration_payload(command_center)
 
 require(
     isinstance(payload, dict),
@@ -492,9 +476,7 @@ print("BLOCK 106 VALIDATION : PASS")
 
 banner("9. BLOCK 106 READ-ONLY SNAPSHOT")
 
-snapshot = block106.build_read_only_snapshot(
-    command_center
-)
+snapshot = block106.build_read_only_snapshot(command_center)
 
 require(
     isinstance(snapshot, dict),

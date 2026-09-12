@@ -68,10 +68,7 @@ for stage in stages:
         status = block.get("status", "UNKNOWN")
         source = block.get("source", "UNKNOWN")
 
-        print(
-            f"{stage} : AVAILABLE | "
-            f"SOURCE={source} | STATUS={status}"
-        )
+        print(f"{stage} : AVAILABLE | " f"SOURCE={source} | STATUS={status}")
 
         available += 1
 
@@ -84,9 +81,7 @@ print("TRACE STAGES AVAILABLE :", available)
 print("TRACE STAGES EXPECTED   :", len(stages))
 
 if available != len(stages):
-    raise RuntimeError(
-        "EROS_TRACEABILITY_STAGE_COUNT_FAILURE"
-    )
+    raise RuntimeError("EROS_TRACEABILITY_STAGE_COUNT_FAILURE")
 
 print("")
 print("GOVERNANCE:")

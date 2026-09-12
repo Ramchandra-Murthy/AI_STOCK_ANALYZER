@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import pytest
 from backend.events.bus.event_bus import EnterpriseEventBus
-from backend.market_data.failover.failover_manager import ProviderFailoverManager
 from backend.market_data.analytics.streaming_analytics import StreamingAnalyticsEngine
+from backend.market_data.failover.failover_manager import ProviderFailoverManager
+
 
 def test_enterprise_event_bus_pub_sub() -> None:
     EnterpriseEventBus.clear()
@@ -20,11 +20,13 @@ def test_enterprise_event_bus_pub_sub() -> None:
     assert received_messages[0]["symbol"] == "TCS.NS"
     EnterpriseEventBus.clear()
 
+
 def test_provider_failover_success_on_primary() -> None:
     manager = ProviderFailoverManager(["yahoo", "alphavantage"])
     quote = manager.get_quote_with_failover("RELIANCE.NS")
     assert quote["symbol"] == "RELIANCE.NS"
     assert quote["provider"] == "yahoo"
+
 
 def test_provider_failover_triggers_secondary_on_failure() -> None:
     # 'nonexistent' fails, should fall back to 'alphavantage'
@@ -32,6 +34,7 @@ def test_provider_failover_triggers_secondary_on_failure() -> None:
     quote = manager.get_quote_with_failover("INFY.NS")
     assert quote["ticker"] == "INFY.NS"
     assert quote["provider"] == "alphavantage"
+
 
 def test_streaming_analytics_engine() -> None:
     history = [3500.0, 3510.0, 3520.0]

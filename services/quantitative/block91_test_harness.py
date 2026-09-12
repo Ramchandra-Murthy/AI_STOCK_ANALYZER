@@ -73,35 +73,17 @@ def run_block91_self_test():
     )
 
     assert result["status"] == "PASS", result
-    assert (
-        result["certificate"]["status"]
-        == "CERTIFIED"
-    )
+    assert result["certificate"]["status"] == "CERTIFIED"
 
-    assert (
-        result["valuation"]["portfolio_equity"]
-        == 20_390_000.0
-    )
+    assert result["valuation"]["portfolio_equity"] == 20_390_000.0
 
-    assert (
-        result["valuation"]["market_value"]
-        == 10_400_000.0
-    )
+    assert result["valuation"]["market_value"] == 10_400_000.0
 
-    assert (
-        result["valuation"]["unrealized_pnl"]
-        == 400_000.0
-    )
+    assert result["valuation"]["unrealized_pnl"] == 400_000.0
 
-    assert (
-        result["valuation"]["total_pnl"]
-        == 400_000.0
-    )
+    assert result["valuation"]["total_pnl"] == 400_000.0
 
-    assert (
-        result["valuation"]["position_count"]
-        == 1
-    )
+    assert result["valuation"]["position_count"] == 1
 
     # ------------------------------------------------------
     # TEST 2 - SOURCE STATE MUST NOT MUTATE
@@ -132,10 +114,7 @@ def run_block91_self_test():
     )
 
     assert duplicate["status"] == "DUPLICATE", duplicate
-    assert (
-        duplicate["certificate"]["status"]
-        == "DUPLICATE"
-    )
+    assert duplicate["certificate"]["status"] == "DUPLICATE"
 
     # ------------------------------------------------------
     # TEST 4 - BLOCKED STATE
@@ -149,10 +128,7 @@ def run_block91_self_test():
     )
 
     assert blocked["status"] == "BLOCKED", blocked
-    assert (
-        blocked["certificate"]["status"]
-        == "BLOCKED"
-    )
+    assert blocked["certificate"]["status"] == "BLOCKED"
 
     # ------------------------------------------------------
     # TEST 5 - MISSING LINEAGE
@@ -172,10 +148,7 @@ def run_block91_self_test():
         },
     )
 
-    assert (
-        malformed_result["status"]
-        == "BLOCKED"
-    )
+    assert malformed_result["status"] == "BLOCKED"
 
     # ------------------------------------------------------
     # TEST 6 - INVALID MARKET PRICE
@@ -186,8 +159,7 @@ def run_block91_self_test():
             **_portfolio_state(),
             "state": {
                 **_portfolio_state()["state"],
-                "settlement_id":
-                    "EROS89-BLOCK91-INVALID-PRICE",
+                "settlement_id": "EROS89-BLOCK91-INVALID-PRICE",
             },
         },
         {
@@ -195,10 +167,7 @@ def run_block91_self_test():
         },
     )
 
-    assert (
-        invalid_price["status"]
-        == "BLOCKED"
-    )
+    assert invalid_price["status"] == "BLOCKED"
 
     # ------------------------------------------------------
     # TEST 7 - NON-BYPASS INVARIANTS
@@ -206,61 +175,30 @@ def run_block91_self_test():
 
     snapshot = engine.snapshot()
 
-    assert (
-        snapshot["valuation_count"]
-        == 1
-    )
+    assert snapshot["valuation_count"] == 1
 
-    assert (
-        snapshot["valuation_history_count"]
-        == 1
-    )
+    assert snapshot["valuation_history_count"] == 1
 
-    assert (
-        result["broker_submission"]
-        is False
-    )
+    assert result["broker_submission"] is False
 
-    assert (
-        result["live_order_submission"]
-        is False
-    )
+    assert result["live_order_submission"] is False
 
-    assert (
-        result["mutation_allowed"]
-        is False
-    )
+    assert result["mutation_allowed"] is False
 
     print(
         {
             "status": "PASS",
-            "valuation_status":
-                result["status"],
-            "portfolio_equity":
-                result["valuation"][
-                    "portfolio_equity"
-                ],
-            "market_value":
-                result["valuation"][
-                    "market_value"
-                ],
-            "unrealized_pnl":
-                result["valuation"][
-                    "unrealized_pnl"
-                ],
-            "duplicate_status":
-                duplicate["status"],
-            "blocked_status":
-                blocked["status"],
-            "malformed_status":
-                malformed_result["status"],
-            "invalid_price_status":
-                invalid_price["status"],
+            "valuation_status": result["status"],
+            "portfolio_equity": result["valuation"]["portfolio_equity"],
+            "market_value": result["valuation"]["market_value"],
+            "unrealized_pnl": result["valuation"]["unrealized_pnl"],
+            "duplicate_status": duplicate["status"],
+            "blocked_status": blocked["status"],
+            "malformed_status": malformed_result["status"],
+            "invalid_price_status": invalid_price["status"],
             "non_bypass_invariant": True,
-            "broker_submission":
-                result["broker_submission"],
-            "live_order_submission":
-                result["live_order_submission"],
+            "broker_submission": result["broker_submission"],
+            "live_order_submission": result["live_order_submission"],
         }
     )
 

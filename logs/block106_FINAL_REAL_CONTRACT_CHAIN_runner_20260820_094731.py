@@ -1,6 +1,5 @@
 ﻿import inspect
 import json
-import sys
 
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
@@ -27,18 +26,13 @@ print("BLOCK 104 IMPORT : PASS")
 print("BLOCK 106 IMPORT : PASS")
 
 print("\n2. SIGNATURES")
-print("BLOCK 102 BUILD :", inspect.signature(
-    EROSBlock102FrontendContract.build
-))
-print("BLOCK 103 BUILD :", inspect.signature(
-    EROSBlock103InstitutionalFrontendReadModel.build
-))
-print("BLOCK 104 SNAPSHOT :", inspect.signature(
-    EROSBlock104CommandCenter.snapshot
-))
-print("BLOCK 106 BUILD :", inspect.signature(
-    EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload
-))
+print("BLOCK 102 BUILD :", inspect.signature(EROSBlock102FrontendContract.build))
+print("BLOCK 103 BUILD :", inspect.signature(EROSBlock103InstitutionalFrontendReadModel.build))
+print("BLOCK 104 SNAPSHOT :", inspect.signature(EROSBlock104CommandCenter.snapshot))
+print(
+    "BLOCK 106 BUILD :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
+)
 
 print("\n3. BLOCK 102")
 b102 = EROSBlock102FrontendContract()

@@ -1,10 +1,10 @@
 ﻿from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any
 
-from services.analyzer import analyze_stock
 from scanner.market_scanner import market_scan
+from services.analyzer import analyze_stock
 from services.quantitative.block109_institutional_application_query_gateway import (
     EROSBlock109InstitutionalApplicationQueryGateway,
 )
@@ -48,15 +48,13 @@ class EROSFrontendAdapter:
 
     def __init__(self) -> None:
 
-        self._query_gateway = (
-            EROSBlock109InstitutionalApplicationQueryGateway()
-        )
+        self._query_gateway = EROSBlock109InstitutionalApplicationQueryGateway()
 
     # ==========================================================
     # GOVERNANCE
     # ==========================================================
 
-    def governance(self) -> Dict[str, Any]:
+    def governance(self) -> dict[str, Any]:
         """
         Return the frontend-visible EROS governance state.
         """
@@ -66,14 +64,10 @@ class EROSFrontendAdapter:
             "status": "CERTIFIED",
             "query_gateway": {
                 "block_id": "109",
-                "name": (
-                    "Institutional Application Query Gateway"
-                ),
+                "name": ("Institutional Application Query Gateway"),
                 "status": "CERTIFIED",
             },
-            "safety": deepcopy(
-                self.SAFETY_POLICY
-            ),
+            "safety": deepcopy(self.SAFETY_POLICY),
         }
 
     # ==========================================================
@@ -83,23 +77,19 @@ class EROSFrontendAdapter:
     def stock_analysis(
         self,
         symbol: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Read-only stock analysis using the existing
         AI Stock Analyzer service.
         """
 
         if not isinstance(symbol, str):
-            raise TypeError(
-                "symbol must be a string"
-            )
+            raise TypeError("symbol must be a string")
 
         symbol = symbol.strip().upper()
 
         if not symbol:
-            raise ValueError(
-                "symbol cannot be empty"
-            )
+            raise ValueError("symbol cannot be empty")
 
         result = analyze_stock(symbol)
 
@@ -124,7 +114,7 @@ class EROSFrontendAdapter:
 
     def dashboard_snapshot(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Return a frontend-safe dashboard snapshot.
         """
@@ -134,10 +124,7 @@ class EROSFrontendAdapter:
         return {
             "system": {
                 "name": "EROS 3.0",
-                "description": (
-                    "Institutional Intelligence "
-                    "Command Center"
-                ),
+                "description": ("Institutional Intelligence " "Command Center"),
                 "status": "CERTIFIED",
             },
             "gateway": governance["query_gateway"],
@@ -148,7 +135,7 @@ class EROSFrontendAdapter:
     # SNAPSHOT
     # ==========================================================
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """
         Return immutable frontend adapter metadata.
         """
@@ -158,7 +145,5 @@ class EROSFrontendAdapter:
             "version": self.VERSION,
             "source": "Block 109",
             "mode": "READ_ONLY",
-            "safety": deepcopy(
-                self.SAFETY_POLICY
-            ),
+            "safety": deepcopy(self.SAFETY_POLICY),
         }

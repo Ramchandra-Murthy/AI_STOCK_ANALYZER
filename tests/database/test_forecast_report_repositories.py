@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-import pytest
-from backend.database.engine import init_db, SessionLocal
-from backend.database.repositories.forecast_report_repository import ForecastRepository, ReportRepository
+from backend.database.engine import SessionLocal, init_db
+from backend.database.repositories.forecast_report_repository import (
+    ForecastRepository,
+    ReportRepository,
+)
+
 
 def test_forecast_and_report_repositories() -> None:
     init_db()
@@ -15,7 +18,7 @@ def test_forecast_and_report_repositories() -> None:
             symbol="RELIANCE.NS",
             revenue_cagr=0.145,
             eps_forecast=125.50,
-            confidence=0.88
+            confidence=0.88,
         )
         assert forecast.id == "FCST-RELIANCE-2026"
         fetched_fcst = ForecastRepository.get_forecast(session, "FCST-RELIANCE-2026")
@@ -28,7 +31,7 @@ def test_forecast_and_report_repositories() -> None:
             report_id="REP-RELIANCE-Q4",
             symbol="RELIANCE.NS",
             report_type="Institutional Valuation Summary",
-            content_summary="Strong operating margins across retail and O2C segments with robust DCF valuation support."
+            content_summary="Strong operating margins across retail and O2C segments with robust DCF valuation support.",
         )
         assert report.id == "REP-RELIANCE-Q4"
         fetched_rep = ReportRepository.get_report(session, "REP-RELIANCE-Q4")

@@ -1,50 +1,39 @@
-import importlib
 import json
 import traceback
-from pprint import pprint
 from typing import Any
-
 
 # ==============================================================
 # IMPORTS
 # ==============================================================
-
 from services.quantitative.block94_portfolio_stress_scenario_engine import (
     EROSBlock94PortfolioStressScenarioEngine,
 )
-
 from services.quantitative.block95_stress_evidence_gate import (
     EROSBlock95StressEvidenceGate,
 )
-
 from services.quantitative.block96_stress_decision_gate import (
     EROSBlock96StressDecisionGate,
 )
-
 from services.quantitative.block97_stress_readiness_gate import (
     EROSBlock97StressReadinessGate,
 )
-
 from services.quantitative.block98_execution_governance_bridge import (
     EROSBlock98ExecutionGovernanceBridge,
 )
-
 from services.quantitative.block99_execution_intent_authorization_gate import (
     EROSBlock99ExecutionIntentAuthorizationGate,
 )
-
 from services.quantitative.block100_paper_execution_fill_gate import (
     EROSBlock100PaperExecutionFillGate,
 )
-
 from services.quantitative.block101_execution_evidence_reconciliation import (
     EROSBlock101ExecutionEvidenceReconciliationGate,
 )
 
-
 # ==============================================================
 # HELPERS
 # ==============================================================
+
 
 def separator(title: str) -> None:
     print()
@@ -92,7 +81,6 @@ def find_keys(
             "gate_status",
             "decision_status",
             "execution_action",
-            "execution_blocked",
         }
 
     findings = []
@@ -162,18 +150,14 @@ def print_result(name: str, result: Any) -> None:
 
     else:
         for path, value in findings:
-            print(
-                f"  {path:70} = {value!r}"
-            )
+            print(f"  {path:70} = {value!r}")
 
 
 # ==============================================================
 # START
 # ==============================================================
 
-separator(
-    "EROS 3.0 - BLOCK 94 -> 101 COMPLETE SAFETY DATA-FLOW TRACE"
-)
+separator("EROS 3.0 - BLOCK 94 -> 101 COMPLETE SAFETY DATA-FLOW TRACE")
 
 print("IMPORTS : PASS")
 print()
@@ -600,25 +584,17 @@ for name, result in results:
 
         if value == required:
 
-            print(
-                f"  PASS  {path} = {value!r}"
-            )
+            print(f"  PASS  {path} = {value!r}")
 
         else:
 
-            print(
-                f"  CHECK {path} = {value!r} "
-                f"(expected {required!r})"
-            )
+            print(f"  CHECK {path} = {value!r} " f"(expected {required!r})")
 
             overall_pass = False
 
     if not local_found:
 
-        print(
-            "  NOTE: No expected top-level/nested safety "
-            "invariant was found."
-        )
+        print("  NOTE: No expected top-level/nested safety " "invariant was found.")
 
 
 # ==============================================================
@@ -647,4 +623,3 @@ print("No risk data was mutated.")
 print("This is an architecture / contract trace only.")
 
 separator("TRACE COMPLETE")
-

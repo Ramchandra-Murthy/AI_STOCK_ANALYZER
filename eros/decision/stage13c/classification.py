@@ -27,7 +27,6 @@ from typing import Any
 from services.sotp_long_term_equity_classification_service import (
     ClassificationRuleEvaluator,
 )
-
 from services.sotp_long_term_equity_domain_constants import (
     CLASSIFICATION_STATUS_COMPLETE,
     CLASSIFICATION_STATUS_CONFLICTING,
@@ -43,7 +42,6 @@ from services.sotp_long_term_equity_domain_constants import (
     INTERPRETATION_STRATEGIC_INVESTMENT,
     INTERPRETATION_UNRESOLVED,
 )
-
 
 STAGE_13C_2_ID = "STAGE_13C_2"
 CLASSIFICATION_STAGE = "13C.2"
@@ -142,10 +140,7 @@ def classify_record(
         return result
 
     highest_priority = matches[0].priority
-    highest_priority_matches = [
-        rule for rule in matches
-        if rule.priority == highest_priority
-    ]
+    highest_priority_matches = [rule for rule in matches if rule.priority == highest_priority]
 
     # Multiple equally authoritative rules are a conflict.
     if len(highest_priority_matches) > 1:
@@ -203,10 +198,7 @@ def classify_records(
 
     evaluator = ClassificationRuleEvaluator()
 
-    return [
-        classify_record(record, evaluator=evaluator)
-        for record in records
-    ]
+    return [classify_record(record, evaluator=evaluator) for record in records]
 
 
 def audit_classification_records(
@@ -221,29 +213,25 @@ def audit_classification_records(
     complete_count = sum(
         1
         for record in classified
-        if record.get("classification_status")
-        == CLASSIFICATION_STATUS_COMPLETE
+        if record.get("classification_status") == CLASSIFICATION_STATUS_COMPLETE
     )
 
     partial_count = sum(
         1
         for record in classified
-        if record.get("classification_status")
-        == CLASSIFICATION_STATUS_PARTIAL
+        if record.get("classification_status") == CLASSIFICATION_STATUS_PARTIAL
     )
 
     conflicting_count = sum(
         1
         for record in classified
-        if record.get("classification_status")
-        == CLASSIFICATION_STATUS_CONFLICTING
+        if record.get("classification_status") == CLASSIFICATION_STATUS_CONFLICTING
     )
 
     unresolved_count = sum(
         1
         for record in classified
-        if record.get("classification_status")
-        == CLASSIFICATION_STATUS_UNRESOLVED
+        if record.get("classification_status") == CLASSIFICATION_STATUS_UNRESOLVED
     )
 
     return {

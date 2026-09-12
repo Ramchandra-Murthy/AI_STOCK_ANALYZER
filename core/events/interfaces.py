@@ -1,7 +1,8 @@
 ﻿from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Awaitable, Callable, Protocol, TypeVar, runtime_checkable
+from collections.abc import Awaitable, Callable
+from typing import Any, TypeVar
 
 from core.events.event import DomainEvent
 

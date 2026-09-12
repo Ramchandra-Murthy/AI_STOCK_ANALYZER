@@ -6,7 +6,6 @@ import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 70)
 print("EROS 3.0 - V3.8.2.2 RUNTIME HYDRATION VALIDATION")
 print("=" * 70)
@@ -217,11 +216,7 @@ for key in audit_required:
 
     status = "PASS" if present and populated else "FAIL"
 
-    print(
-        f"{key:<36}: {status}"
-        f" | present={present}"
-        f" | populated={populated}"
-    )
+    print(f"{key:<36}: {status}" f" | present={present}" f" | populated={populated}")
 
     if not (present and populated):
         audit_schema_failed = True
@@ -238,31 +233,18 @@ audit_scenarios = audit_result.get("scenario_trace", {})
 audit_interpretation = audit_result.get("interpretation", {})
 
 hydration_checks = {
-    "audit decision hydrated":
-        isinstance(audit_decision, dict) and bool(audit_decision),
-
-    "audit legacy trace hydrated":
-        isinstance(audit_trace, dict) and bool(audit_trace),
-
-    "audit traceability hydrated":
-        isinstance(audit_traceability, dict) and bool(audit_traceability),
-
-    "audit evidence chain hydrated":
-        isinstance(audit_evidence, dict) and bool(audit_evidence),
-
-    "audit scenario trace hydrated":
-        isinstance(audit_scenarios, dict) and bool(audit_scenarios),
-
-    "audit interpretation hydrated":
-        isinstance(audit_interpretation, dict) and bool(audit_interpretation),
-
-    "audit conclusion populated":
-        isinstance(audit_result.get("conclusion"), str)
-        and bool(audit_result.get("conclusion")),
-
-    "audit status populated":
-        isinstance(audit_result.get("audit_status"), str)
-        and bool(audit_result.get("audit_status")),
+    "audit decision hydrated": isinstance(audit_decision, dict) and bool(audit_decision),
+    "audit legacy trace hydrated": isinstance(audit_trace, dict) and bool(audit_trace),
+    "audit traceability hydrated": isinstance(audit_traceability, dict)
+    and bool(audit_traceability),
+    "audit evidence chain hydrated": isinstance(audit_evidence, dict) and bool(audit_evidence),
+    "audit scenario trace hydrated": isinstance(audit_scenarios, dict) and bool(audit_scenarios),
+    "audit interpretation hydrated": isinstance(audit_interpretation, dict)
+    and bool(audit_interpretation),
+    "audit conclusion populated": isinstance(audit_result.get("conclusion"), str)
+    and bool(audit_result.get("conclusion")),
+    "audit status populated": isinstance(audit_result.get("audit_status"), str)
+    and bool(audit_result.get("audit_status")),
 }
 
 hydration_failed = False
@@ -331,12 +313,7 @@ print("=" * 70)
 print("V3.8.2.2 RUNTIME VALIDATION SUMMARY")
 print("=" * 70)
 
-overall_failed = (
-    traceability_failed
-    or audit_schema_failed
-    or hydration_failed
-    or safety_failed
-)
+overall_failed = traceability_failed or audit_schema_failed or hydration_failed or safety_failed
 
 print("TRACEABILITY DATA      :", "FAIL" if traceability_failed else "PASS")
 print("AUDIT SCHEMA           :", "FAIL" if audit_schema_failed else "PASS")

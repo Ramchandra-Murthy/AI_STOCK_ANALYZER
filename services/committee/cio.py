@@ -1,27 +1,30 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import List, Dict, Any
+
 from services.committee.models import AnalystOpinion, CommitteeDecision
 
 logger = logging.getLogger(__name__)
 
+
 class ArtificialCIO:
     """Artificial Chief Investment Officer (CIO) responsible for weighting specialist opinions, resolving conflicts, and synthesizing consensus."""
 
-    DEPARTMENT_WEIGHTS: Dict[str, float] = {
+    DEPARTMENT_WEIGHTS: dict[str, float] = {
         "Valuation Analyst": 0.25,
         "Quality Analyst": 0.20,
         "Risk Analyst": 0.20,
         "Management Analyst": 0.15,
         "Economic Moat Analyst": 0.10,
         "Market Analyst": 0.05,
-        "Macro Analyst": 0.05
+        "Macro Analyst": 0.05,
     }
 
     @classmethod
-    def synthesize(cls, symbol: str, opinions: List[AnalystOpinion]) -> CommitteeDecision:
-        logger.info("Artificial CIO synthesizing %d department opinions for %s", len(opinions), symbol)
+    def synthesize(cls, symbol: str, opinions: list[AnalystOpinion]) -> CommitteeDecision:
+        logger.info(
+            "Artificial CIO synthesizing %d department opinions for %s", len(opinions), symbol
+        )
 
         if not opinions:
             raise ValueError(f"Cannot synthesize committee decision without opinions for {symbol}.")
@@ -30,9 +33,9 @@ class ArtificialCIO:
         weighted_score_sum = 0.0
         weighted_conf_sum = 0.0
 
-        all_strengths: List[str] = []
-        all_concerns: List[str] = []
-        all_evidence: List[str] = []
+        all_strengths: list[str] = []
+        all_concerns: list[str] = []
+        all_evidence: list[str] = []
 
         buy_weight = 0.0
         hold_weight = 0.0
@@ -67,7 +70,11 @@ class ArtificialCIO:
         else:
             consensus = "HOLD"
 
-        risk_summary = "; ".join(set(all_concerns[:3])) if all_concerns else "No material risk factors identified."
+        risk_summary = (
+            "; ".join(set(all_concerns[:3]))
+            if all_concerns
+            else "No material risk factors identified."
+        )
         narrative = (
             f"Artificial Investment Committee consensus for {symbol}: "
             f"Recommended action is {consensus} with an aggregate confidence of {int(final_confidence * 100)}% "
@@ -84,5 +91,5 @@ class ArtificialCIO:
             analyst_opinions=opinions,
             supporting_evidence=list(set(all_evidence)),
             major_risks=list(set(all_concerns)),
-            cio_narrative=narrative
+            cio_narrative=narrative,
         )

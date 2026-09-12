@@ -1,7 +1,7 @@
-﻿import sys
-import traceback
-import inspect
+﻿import inspect
 import json
+import sys
+import traceback
 
 sys.path.insert(0, r"D:\Users\User\Desktop\AI_STOCK_ANALYZER")
 
@@ -19,17 +19,13 @@ print("NO MUTATION")
 print()
 
 try:
-    from services.quantitative.block102_frontend_contract import (
-        EROSBlock102FrontendContract
-    )
+    from services.quantitative.block102_frontend_contract import EROSBlock102FrontendContract
     from services.quantitative.block103_institutional_frontend_read_model import (
-        EROSBlock103InstitutionalFrontendReadModel
+        EROSBlock103InstitutionalFrontendReadModel,
     )
-    from services.quantitative.block104_eros_command_center import (
-        EROSBlock104CommandCenter
-    )
+    from services.quantitative.block104_eros_command_center import EROSBlock104CommandCenter
     from services.quantitative.block106_institutional_integration_boundary import (
-        EROSBlock106InstitutionalIntegrationBoundary
+        EROSBlock106InstitutionalIntegrationBoundary,
     )
 
     print("1. IMPORTS")
@@ -69,10 +65,7 @@ try:
 
     # IMPORTANT: Block 102 uses string IDs.
     if c102.get("block_id") != "102":
-        raise AssertionError(
-            "BLOCK102_BAD_ID: expected '102', got "
-            + repr(c102.get("block_id"))
-        )
+        raise AssertionError("BLOCK102_BAD_ID: expected '102', got " + repr(c102.get("block_id")))
 
     print("BLOCK 102 : PASS")
     print()
@@ -92,10 +85,7 @@ try:
     print("KEYS :", list(c103.keys()))
 
     if c103.get("block_id") != "103":
-        raise AssertionError(
-            "BLOCK103_BAD_ID: expected '103', got "
-            + repr(c103.get("block_id"))
-        )
+        raise AssertionError("BLOCK103_BAD_ID: expected '103', got " + repr(c103.get("block_id")))
 
     print("BLOCK 103 : PASS")
     print()
@@ -116,15 +106,11 @@ try:
     print("KEYS :", list(c104.keys()))
 
     if c104.get("block_id") != "104":
-        raise AssertionError(
-            "BLOCK104_BAD_ID: expected '104', got "
-            + repr(c104.get("block_id"))
-        )
+        raise AssertionError("BLOCK104_BAD_ID: expected '104', got " + repr(c104.get("block_id")))
 
     if c104.get("source_block") != "103":
         raise AssertionError(
-            "BLOCK104_BAD_SOURCE: expected '103', got "
-            + repr(c104.get("source_block"))
+            "BLOCK104_BAD_SOURCE: expected '103', got " + repr(c104.get("source_block"))
         )
 
     print()
@@ -152,12 +138,7 @@ try:
     print("-" * 70)
 
     for field in b106.REQUIRED_SOURCE_FIELDS:
-        print(
-            "{:<20} : {}".format(
-                field,
-                "PRESENT" if field in c104 else "MISSING"
-            )
-        )
+        print("{:<20} : {}".format(field, "PRESENT" if field in c104 else "MISSING"))
 
     print()
     print("7. BLOCK 106 BUILD")

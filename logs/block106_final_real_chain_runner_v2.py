@@ -37,32 +37,26 @@ print("BLOCK 106 IMPORT : PASS")
 print("\n2. ACTUAL INTERFACES")
 print("-" * 70)
 
-print("BLOCK 102 BUILD :",
-      inspect.signature(EROSBlock102FrontendContract.build))
+print("BLOCK 102 BUILD :", inspect.signature(EROSBlock102FrontendContract.build))
 
-print("BLOCK 103 BUILD :",
-      inspect.signature(EROSBlock103InstitutionalFrontendReadModel.build))
+print("BLOCK 103 BUILD :", inspect.signature(EROSBlock103InstitutionalFrontendReadModel.build))
 
-print("BLOCK 104 SNAPSHOT :",
-      inspect.signature(EROSBlock104CommandCenter.snapshot))
+print("BLOCK 104 SNAPSHOT :", inspect.signature(EROSBlock104CommandCenter.snapshot))
 
-print("BLOCK 106 BUILD_INTEGRATION :",
-      inspect.signature(
-          EROSBlock106InstitutionalIntegrationBoundary
-          .build_integration_payload
-      ))
+print(
+    "BLOCK 106 BUILD_INTEGRATION :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
+)
 
-print("BLOCK 106 READ_ONLY_SNAPSHOT :",
-      inspect.signature(
-          EROSBlock106InstitutionalIntegrationBoundary
-          .build_read_only_snapshot
-      ))
+print(
+    "BLOCK 106 READ_ONLY_SNAPSHOT :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot),
+)
 
-print("BLOCK 106 VALIDATE :",
-      inspect.signature(
-          EROSBlock106InstitutionalIntegrationBoundary
-          .validate_payload
-      ))
+print(
+    "BLOCK 106 VALIDATE :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
+)
 
 print("INTERFACE CHECK : PASS")
 
@@ -161,10 +155,7 @@ for key in (
     "lineage",
     "integrity",
 ):
-    print(
-        f"{key:20}:",
-        "PRESENT" if key in c106 else "MISSING"
-    )
+    print(f"{key:20}:", "PRESENT" if key in c106 else "MISSING")
 
 require("schema" in c106, "BLOCK106_SCHEMA_MISSING")
 require("integration" in c106, "BLOCK106_INTEGRATION_MISSING")

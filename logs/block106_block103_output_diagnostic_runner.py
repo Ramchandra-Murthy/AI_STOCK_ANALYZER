@@ -1,13 +1,11 @@
 ﻿from __future__ import annotations
 
-import json
 import inspect
-from pprint import pprint
+import json
 
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
@@ -164,9 +162,7 @@ print("BLOCK 103 INSTANCE : PASS")
 print()
 
 try:
-    read_model = block103.build(
-        contract=contract
-    )
+    read_model = block103.build(contract=contract)
 
     print("BLOCK 103 BUILD : PASS")
     print()
@@ -232,11 +228,7 @@ print()
 
 print("TOP LEVEL VALUES / TYPES:")
 for key, value in read_model.items():
-    print(
-        f"  {key!r}: "
-        f"type={type(value).__name__}, "
-        f"value={value!r}"
-    )
+    print(f"  {key!r}: " f"type={type(value).__name__}, " f"value={value!r}")
 
 print()
 
@@ -246,8 +238,7 @@ print("=" * 70)
 
 print("read_model.get('status')    :", repr(read_model.get("status")))
 print("read_model.get('block_id')  :", repr(read_model.get("block_id")))
-print("read_model.get('block_id') type:",
-      type(read_model.get("block_id")).__name__)
+print("read_model.get('block_id') type:", type(read_model.get("block_id")).__name__)
 
 print()
 

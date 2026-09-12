@@ -1,9 +1,12 @@
 ﻿from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
 from datetime import datetime
-from services.governance.governance_engine import GovernanceEvent
+from typing import Any
+
 from services.compliance.models import ComplianceReport
+from services.governance.governance_engine import GovernanceEvent
+
 
 @dataclass(frozen=True, slots=True)
 class AuditRecord:
@@ -13,16 +16,18 @@ class AuditRecord:
     compliant: bool
     governance_severity: str
     requires_manual_review: bool
-    triggers: List[str]
-    violations: List[str]
+    triggers: list[str]
+    violations: list[str]
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
+
 
 class AuditTrailGenerator:
     """
     EROS 3.0 Block 20E Audit Trail Generator.
     Bundles governance events and compliance reports into tamper-evident audit records.
     """
+
     @staticmethod
     def generate_audit_record(event: GovernanceEvent, compliance: ComplianceReport) -> AuditRecord:
         audit_id = f"AUDIT-REC-{event.symbol}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
@@ -42,5 +47,5 @@ class AuditTrailGenerator:
                 "compliance_audit_id": compliance.audit_id,
                 "mandate": compliance.mandate,
                 "exposure_summary": compliance.exposure_summary,
-            }
+            },
         )

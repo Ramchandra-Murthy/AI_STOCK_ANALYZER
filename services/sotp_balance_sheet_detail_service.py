@@ -61,9 +61,7 @@ def get_sotp_balance_sheet_details(symbol):
 
     clean_symbol = str(symbol).upper().strip()
 
-    ticker_symbol = (
-        clean_symbol if clean_symbol.endswith(".NS") else f"{clean_symbol}.NS"
-    )
+    ticker_symbol = clean_symbol if clean_symbol.endswith(".NS") else f"{clean_symbol}.NS"
 
     try:
         ticker = yf.Ticker(ticker_symbol)
@@ -171,10 +169,7 @@ def get_sotp_balance_sheet_details(symbol):
 
     cash_investment_gap = None
 
-    if (
-        cash_and_short_term_investments is not None
-        and calculated_cash_plus_investments is not None
-    ):
+    if cash_and_short_term_investments is not None and calculated_cash_plus_investments is not None:
         cash_investment_gap = round(
             cash_and_short_term_investments - calculated_cash_plus_investments,
             2,
@@ -239,10 +234,7 @@ def get_sotp_balance_sheet_details(symbol):
             "provider_net_debt_gap": (provider_net_debt_gap),
         },
         "warnings": [
-            (
-                "Balance-sheet classifications follow the "
-                "upstream data provider taxonomy."
-            ),
+            ("Balance-sheet classifications follow the " "upstream data provider taxonomy."),
             (
                 "Short-term investments must not automatically "
                 "be treated as excess cash in SOTP valuation."

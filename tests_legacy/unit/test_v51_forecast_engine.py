@@ -26,9 +26,7 @@ def test_terminal_growth_caps():
     engine = TerminalGrowthEngine()
 
     # G-Sec GDP cap at 5%, inflation at 3%
-    growth = engine.estimate_terminal_growth(
-        country_gdp_growth=0.05, long_term_inflation=0.03
-    )
+    growth = engine.estimate_terminal_growth(country_gdp_growth=0.05, long_term_inflation=0.03)
     assert growth == pytest.approx(0.04)
 
     # Manual override
@@ -41,9 +39,7 @@ def test_assumption_engine_overrides():
     base_revs = [100.0, 110.0, 120.0]
     base_margins = [0.15, 0.15, 0.15]
 
-    guidance = ManagementGuidance(
-        revenue_cagr_override=0.20, target_ebit_margin_override=0.18
-    )
+    guidance = ManagementGuidance(revenue_cagr_override=0.20, target_ebit_margin_override=0.18)
     adj_revs, adj_margins = engine.apply_overrides(base_revs, base_margins, guidance)
 
     assert adj_margins[0] == 0.18

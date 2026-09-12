@@ -31,7 +31,11 @@ class BusinessReasoningEngine:
         rev_evidence = [e for e in evidence_list if "revenue" in e.metric_name.lower()]
         margin_evidence = [e for e in evidence_list if "margin" in e.metric_name.lower()]
         debt_evidence = [e for e in evidence_list if "debt" in e.metric_name.lower()]
-        fcf_evidence = [e for e in evidence_list if "fcf" in e.metric_name.lower() or "cash" in e.metric_name.lower()]
+        fcf_evidence = [
+            e
+            for e in evidence_list
+            if "fcf" in e.metric_name.lower() or "cash" in e.metric_name.lower()
+        ]
 
         if any(e.direction in {"IMPROVING", "ACCELERATING"} for e in rev_evidence):
             evidence = [e.metric_name for e in rev_evidence]
@@ -40,7 +44,9 @@ class BusinessReasoningEngine:
                     title="Sustained Topline Expansion",
                     statement="Revenue evidence indicates improving or accelerating topline performance.",
                     supporting_evidence=evidence,
-                    confidence=round(sum(e.confidence for e in rev_evidence) / len(rev_evidence), 2),
+                    confidence=round(
+                        sum(e.confidence for e in rev_evidence) / len(rev_evidence), 2
+                    ),
                 )
             )
 
@@ -50,7 +56,9 @@ class BusinessReasoningEngine:
                     title="Pricing Power & Margin Expansion",
                     statement="Margin evidence indicates improving profitability dynamics.",
                     supporting_evidence=[e.metric_name for e in margin_evidence],
-                    confidence=round(sum(e.confidence for e in margin_evidence) / len(margin_evidence), 2),
+                    confidence=round(
+                        sum(e.confidence for e in margin_evidence) / len(margin_evidence), 2
+                    ),
                 )
             )
 
@@ -60,7 +68,9 @@ class BusinessReasoningEngine:
                     title="Prudent Capital Discipline",
                     statement="Debt evidence indicates improving balance-sheet resilience.",
                     supporting_evidence=[e.metric_name for e in debt_evidence],
-                    confidence=round(sum(e.confidence for e in debt_evidence) / len(debt_evidence), 2),
+                    confidence=round(
+                        sum(e.confidence for e in debt_evidence) / len(debt_evidence), 2
+                    ),
                 )
             )
 

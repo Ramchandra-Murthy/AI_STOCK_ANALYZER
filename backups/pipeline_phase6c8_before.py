@@ -11,8 +11,8 @@ from typing import Any
 from eros.data import prepare_raw_data
 from eros.normalization import normalize
 from eros.scoring import fundamental_score, risk_score
-from eros.valuation.adapter import evaluate_valuation
-from eros.valuation.bridge import build_bridge
+
+
 @dataclass
 class PipelineContext:
     symbol: str
@@ -144,9 +144,7 @@ def run_valuation(context):
         )
 
         if hasattr(context, "warnings"):
-            context.warnings.append(
-                "Valuation requires foundation data."
-            )
+            context.warnings.append("Valuation requires foundation data.")
 
         return context
 
@@ -187,19 +185,14 @@ def run_valuation(context):
             context.status = "VALUATION_COMPLETE"
         elif result.get("status") == "INPUT_REQUIRED":
             if hasattr(context, "warnings"):
-                context.warnings.append(
-                    "Valuation input is incomplete."
-                )
+                context.warnings.append("Valuation input is incomplete.")
 
         return context
 
     except Exception as exc:
 
         if hasattr(context, "warnings"):
-            context.warnings.append(
-                f"Valuation execution failed: "
-                f"{type(exc).__name__}: {exc}"
-            )
+            context.warnings.append(f"Valuation execution failed: " f"{type(exc).__name__}: {exc}")
 
         context.valuation_bridge = build_bridge(
             sotp=None,
@@ -214,6 +207,7 @@ def run_valuation(context):
 
         return context
 
+
 def finalize(context: PipelineContext):
     if context.status == "INITIALIZED":
         context.status = "INPUT_REQUIRED"
@@ -225,26 +219,20 @@ def finalize(context: PipelineContext):
     return {
         "symbol": context.symbol,
         "status": context.status,
-
         "raw_data": context.raw_data,
         "financials": context.financials,
         "normalized": context.normalized,
-
         "quality": context.quality,
         "score": context.score,
         "risk": context.risk,
         "classification": context.classification,
-
         "sotp": context.sotp,
         "dcf": context.dcf,
         "valuation_bridge": context.valuation_bridge,
-
         "stage13c": context.stage13c,
         "stage14": context.stage14,
-
         "evidence": context.evidence,
         "warnings": context.warnings,
-
         "provenance": {
             "orchestrator": "EROS_3.0",
             "pipeline_status": context.status,
@@ -263,4 +251,3 @@ __all__ = [
     "run_valuation",
     "finalize",
 ]
-

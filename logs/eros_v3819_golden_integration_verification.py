@@ -45,9 +45,7 @@ required_decision = [
 for key in required_decision:
 
     if key not in decision:
-        raise RuntimeError(
-            f"DECISION_FIELD_MISSING: {key}"
-        )
+        raise RuntimeError(f"DECISION_FIELD_MISSING: {key}")
 
 print("DECISION CONTRACT : PASS")
 
@@ -57,10 +55,7 @@ print("DECISION :", decision)
 # 3. INTERPRETATION
 # ==============================================================
 
-interpretation = traceability.get(
-    "interpretation",
-    {}
-)
+interpretation = traceability.get("interpretation", {})
 
 required_interpretation = [
     "market_condition",
@@ -72,9 +67,7 @@ required_interpretation = [
 for key in required_interpretation:
 
     if key not in interpretation:
-        raise RuntimeError(
-            f"INTERPRETATION_FIELD_MISSING: {key}"
-        )
+        raise RuntimeError(f"INTERPRETATION_FIELD_MISSING: {key}")
 
 print("INTERPRETATION CONTRACT : PASS")
 
@@ -82,10 +75,7 @@ print("INTERPRETATION CONTRACT : PASS")
 # 4. TRACEABILITY STAGES
 # ==============================================================
 
-trace = traceability.get(
-    "trace",
-    {}
-)
+trace = traceability.get("trace", {})
 
 stages = [
     "stage_1_evidence",
@@ -105,27 +95,17 @@ for stage in stages:
     block = trace.get(stage)
 
     if not isinstance(block, dict):
-        raise RuntimeError(
-            f"TRACE_STAGE_INVALID: {stage}"
-        )
+        raise RuntimeError(f"TRACE_STAGE_INVALID: {stage}")
 
     if block.get("status") != "AVAILABLE":
-        raise RuntimeError(
-            f"TRACE_STAGE_UNAVAILABLE: {stage}"
-        )
+        raise RuntimeError(f"TRACE_STAGE_UNAVAILABLE: {stage}")
 
-    print(
-        f"{stage} : "
-        f"{block.get('source')} : "
-        f"{block.get('status')}"
-    )
+    print(f"{stage} : " f"{block.get('source')} : " f"{block.get('status')}")
 
     available += 1
 
 if available != 8:
-    raise RuntimeError(
-        "TRACEABILITY_STAGE_COUNT_FAILURE"
-    )
+    raise RuntimeError("TRACEABILITY_STAGE_COUNT_FAILURE")
 
 print("")
 print("TRACEABILITY : 8 / 8 PASS")
@@ -134,14 +114,10 @@ print("TRACEABILITY : 8 / 8 PASS")
 # 5. CONCLUSION
 # ==============================================================
 
-conclusion = traceability.get(
-    "conclusion"
-)
+conclusion = traceability.get("conclusion")
 
 if not conclusion:
-    raise RuntimeError(
-        "CONCLUSION_NOT_AVAILABLE"
-    )
+    raise RuntimeError("CONCLUSION_NOT_AVAILABLE")
 
 print("")
 print("CONCLUSION : PASS")
@@ -151,10 +127,7 @@ print(conclusion)
 # 6. GOVERNANCE
 # ==============================================================
 
-governance = traceability.get(
-    "governance",
-    {}
-)
+governance = traceability.get("governance", {})
 
 required_governance = {
     "read_only": True,
@@ -176,10 +149,7 @@ for key, expected in required_governance.items():
 
     if actual != expected:
 
-        raise RuntimeError(
-            f"GOVERNANCE_FAILURE: "
-            f"{key}={actual}, expected={expected}"
-        )
+        raise RuntimeError(f"GOVERNANCE_FAILURE: " f"{key}={actual}, expected={expected}")
 
 print("")
 print("GOVERNANCE CONTRACT : PASS")

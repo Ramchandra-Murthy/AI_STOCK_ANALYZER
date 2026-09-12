@@ -12,8 +12,8 @@ Central registry routing valuation tasks to engine strategies.
 
 from typing import Any
 
-from services.valuation.base_engine import BaseValuationEngine
 from domain.valuation.result import ValuationResult
+from services.valuation.base_engine import BaseValuationEngine
 from services.valuation.engines.dcf_engine import DCFValuationEngine
 from services.valuation.engines.nav_engine import NAVValuationEngine
 from services.valuation.engines.sotp_engine import SOTPValuationEngine
@@ -23,7 +23,7 @@ class ValuationDispatcher:
     def __init__(self):
         self._engines: dict[str, BaseValuationEngine] = {}
         self.engines = self._engines  # Backwards compatibility alias
-        
+
         # Register default engines
         try:
             self.register(DCFValuationEngine())
@@ -48,7 +48,9 @@ class ValuationDispatcher:
 
     def register(self, engine: BaseValuationEngine) -> None:
         """Registers a valuation engine adapter."""
-        method_key = getattr(engine, "valuation_method", engine.__class__.__name__.replace("ValuationEngine", "")).upper()
+        method_key = getattr(
+            engine, "valuation_method", engine.__class__.__name__.replace("ValuationEngine", "")
+        ).upper()
         self._engines[method_key] = engine
 
     def get_engine(self, method: str) -> BaseValuationEngine:

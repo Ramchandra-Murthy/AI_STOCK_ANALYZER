@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Optional
+
 from core.events.dispatcher import EventDispatcher
-from services.fundamentals.events import FundamentalsDownloaded
 from services.financials.financial_statement import FinancialStatements
+from services.fundamentals.events import FundamentalsDownloaded
 from services.fundamentals.normalizer import FinancialNormalizer
 from services.fundamentals.provider import IFundamentalProvider
 
@@ -20,7 +20,7 @@ class FundamentalsService:
         provider: IFundamentalProvider,
         normalizer: FinancialNormalizer,
         dispatcher: EventDispatcher,
-        cache: Optional[dict[str, FinancialStatements]] = None,
+        cache: dict[str, FinancialStatements] | None = None,
     ) -> None:
         self._provider = provider
         self._normalizer = normalizer

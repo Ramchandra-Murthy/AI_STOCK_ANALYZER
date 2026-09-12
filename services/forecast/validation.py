@@ -70,6 +70,4 @@ class ForecastValidator:
             if math.isnan(forecast_input.custom_growth_rate) or math.isinf(
                 forecast_input.custom_growth_rate
             ):
-                raise ForecastValidationError(
-                    "Custom growth rate must be a finite number."
-                )
+                raise ForecastValidationError("Custom growth rate must be a finite number.")

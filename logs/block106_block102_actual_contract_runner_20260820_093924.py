@@ -1,8 +1,7 @@
 ﻿from __future__ import annotations
 
-import json
 import inspect
-import sys
+import json
 from pprint import pprint
 
 print("=" * 70)
@@ -198,11 +197,7 @@ print("11. BLOCK 102 OBJECT STATE")
 print("-" * 70)
 
 try:
-    public_members = [
-        name
-        for name in dir(block102)
-        if not name.startswith("_")
-    ]
+    public_members = [name for name in dir(block102) if not name.startswith("_")]
 
     for name in public_members:
         try:

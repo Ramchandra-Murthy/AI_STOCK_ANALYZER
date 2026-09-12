@@ -35,7 +35,6 @@ import inspect
 import json
 import traceback
 
-
 PASS = 0
 FAIL = 0
 WARN = 0
@@ -93,9 +92,7 @@ def public_api(obj) -> None:
 
         if callable(value):
             try:
-                print(
-                    f"  {name}{inspect.signature(value)}"
-                )
+                print(f"  {name}{inspect.signature(value)}")
             except Exception:
                 print(f"  {name}")
 
@@ -108,6 +105,7 @@ section("IMPORT 106-109")
 
 try:
     import services.quantitative.block106_institutional_integration_boundary as b106
+
     print("[PASS] BLOCK 106 IMPORT")
 except Exception:
     print("[FAIL] BLOCK 106 IMPORT")
@@ -116,6 +114,7 @@ except Exception:
 
 try:
     import services.quantitative.block107_application_read_boundary as b107
+
     print("[PASS] BLOCK 107 IMPORT")
 except Exception:
     print("[FAIL] BLOCK 107 IMPORT")
@@ -124,6 +123,7 @@ except Exception:
 
 try:
     import services.quantitative.block108_institutional_application_service_boundary as b108
+
     print("[PASS] BLOCK 108 IMPORT")
 except Exception:
     print("[FAIL] BLOCK 108 IMPORT")
@@ -132,6 +132,7 @@ except Exception:
 
 try:
     import services.quantitative.block109_institutional_application_query_gateway as b109
+
     print("[PASS] BLOCK 109 IMPORT")
 except Exception:
     print("[FAIL] BLOCK 109 IMPORT")
@@ -174,21 +175,13 @@ for number, module in [
 
                 if callable(method):
                     try:
-                        print(
-                            f"  METHOD : {method_name}"
-                            f"{inspect.signature(method)}"
-                        )
+                        print(f"  METHOD : {method_name}" f"{inspect.signature(method)}")
                     except Exception:
-                        print(
-                            f"  METHOD : {method_name}"
-                        )
+                        print(f"  METHOD : {method_name}")
 
         elif inspect.isfunction(obj):
             try:
-                print(
-                    f"FUNCTION : {name}"
-                    f"{inspect.signature(obj)}"
-                )
+                print(f"FUNCTION : {name}" f"{inspect.signature(obj)}")
             except Exception:
                 print(f"FUNCTION : {name}")
 
@@ -225,19 +218,16 @@ for number, module in [
 
     if len(candidates) == 1:
         classes[number] = candidates[0][1]
-        print(
-            f"[PASS] BLOCK {number} IMPLEMENTATION CLASS "
-            f"IDENTIFIED: {candidates[0][0]}"
-        )
+        print(f"[PASS] BLOCK {number} IMPLEMENTATION CLASS " f"IDENTIFIED: {candidates[0][0]}")
     elif len(candidates) > 1:
         warn(
             f"BLOCK {number} HAS MULTIPLE LOCAL CLASSES",
-            "Runtime method selection will be discovered below."
+            "Runtime method selection will be discovered below.",
         )
     else:
         warn(
             f"BLOCK {number} HAS NO LOCAL IMPLEMENTATION CLASS",
-            "Module-level functions may be the contract."
+            "Module-level functions may be the contract.",
         )
 
 
@@ -255,8 +245,7 @@ for number in ["106", "107", "108", "109"]:
 
     if cls is None:
         warn(
-            f"BLOCK {number} INSTANCE NOT CREATED",
-            "No unique implementation class was identified."
+            f"BLOCK {number} INSTANCE NOT CREATED", "No unique implementation class was identified."
         )
         continue
 
@@ -310,24 +299,15 @@ for number, obj in objects.items():
                 else:
                     safety = candidate
 
-                print(
-                    f"SAFETY_SOURCE : {method_name}"
-                )
-                print(
-                    f"SAFETY_VALUE  : {safe_repr(safety)}"
-                )
+                print(f"SAFETY_SOURCE : {method_name}")
+                print(f"SAFETY_VALUE  : {safe_repr(safety)}")
                 break
 
             except Exception as exc:
-                print(
-                    f"SAFETY_ERROR : {method_name} "
-                    f"{repr(exc)}"
-                )
+                print(f"SAFETY_ERROR : {method_name} " f"{repr(exc)}")
 
     if safety is None:
-        warn(
-            f"BLOCK {number} SAFETY CONTRACT NOT DIRECTLY EXPOSED"
-        )
+        warn(f"BLOCK {number} SAFETY CONTRACT NOT DIRECTLY EXPOSED")
         continue
 
     if isinstance(safety, dict):
@@ -408,29 +388,18 @@ for number, obj in objects.items():
 
             snapshots[number] = copy.deepcopy(value)
 
-            print(
-                f"[PASS] SNAPSHOT SOURCE : {method_name}"
-            )
-            print(
-                f"TYPE : {type(value).__name__}"
-            )
-            print(
-                f"VALUE : {safe_repr(value)}"
-            )
+            print(f"[PASS] SNAPSHOT SOURCE : {method_name}")
+            print(f"TYPE : {type(value).__name__}")
+            print(f"VALUE : {safe_repr(value)}")
 
             found = True
             break
 
         except Exception as exc:
-            print(
-                f"[WARN] SNAPSHOT {method_name} FAILED : "
-                f"{repr(exc)}"
-            )
+            print(f"[WARN] SNAPSHOT {method_name} FAILED : " f"{repr(exc)}")
 
     if not found:
-        warn(
-            f"BLOCK {number} SNAPSHOT NOT DIRECTLY AVAILABLE"
-        )
+        warn(f"BLOCK {number} SNAPSHOT NOT DIRECTLY AVAILABLE")
 
 
 # ======================================================================
@@ -529,11 +498,7 @@ try:
                 "name": f"EROS Block {block_id}",
                 "status": "BLOCKED",
                 "identifier": f"EROS-BLOCK-{block_id}",
-                "source_block": (
-                    str(block_id - 1)
-                    if block_id > 94
-                    else None
-                ),
+                "source_block": (str(block_id - 1) if block_id > 94 else None),
                 "execution_blocked": True,
             }
         )
@@ -556,16 +521,9 @@ try:
         },
     }
 
-    read_model_103 = (
-        b103.EROSBlock103InstitutionalFrontendReadModel()
-        .build(
-            contract=source_102
-        )
-    )
+    read_model_103 = b103.EROSBlock103InstitutionalFrontendReadModel().build(contract=source_102)
 
-    command_center_104 = b104.build_command_center(
-        read_model=read_model_103
-    )
+    command_center_104 = b104.build_command_center(read_model=read_model_103)
 
     check(
         "BLOCK104 RUNTIME CERTIFIED",
@@ -583,23 +541,16 @@ try:
 
     block106 = objects.get("106")
 
-    integration_payload = (
-        block106.build_integration_payload(
-            command_center_104
-        )
-    )
+    integration_payload = block106.build_integration_payload(command_center_104)
 
     check(
         "104 -> 106 RUNTIME LINEAGE",
-        str(integration_payload.get("integration", {}).get("source_block_id"))
-        == "104",
+        str(integration_payload.get("integration", {}).get("source_block_id")) == "104",
     )
 
     check(
         "BLOCK106 RUNTIME VALIDATION",
-        block106.validate_payload(
-            integration_payload
-        ),
+        block106.validate_payload(integration_payload),
     )
 
     # --------------------------------------------------------------
@@ -608,23 +559,16 @@ try:
 
     block107 = objects.get("107")
 
-    application_snapshot = (
-        block107.build_application_snapshot(
-            integration_payload
-        )
-    )
+    application_snapshot = block107.build_application_snapshot(integration_payload)
 
     check(
         "106 -> 107 RUNTIME LINEAGE",
-        str(application_snapshot.get("application", {}).get("source_block_id"))
-        == "106",
+        str(application_snapshot.get("application", {}).get("source_block_id")) == "106",
     )
 
     check(
         "BLOCK107 RUNTIME VALIDATION",
-        block107.validate_application_snapshot(
-            application_snapshot
-        ),
+        block107.validate_application_snapshot(application_snapshot),
     )
 
     # --------------------------------------------------------------
@@ -633,23 +577,16 @@ try:
 
     block108 = objects.get("108")
 
-    application_service_model = (
-        block108.build_application_service_model(
-            application_snapshot
-        )
-    )
+    application_service_model = block108.build_application_service_model(application_snapshot)
 
     check(
         "107 -> 108 RUNTIME LINEAGE",
-        str(application_service_model.get("lineage", {}).get("source_block"))
-        == "107",
+        str(application_service_model.get("lineage", {}).get("source_block")) == "107",
     )
 
     check(
         "BLOCK108 RUNTIME VALIDATION",
-        block108.validate_application_service_model(
-            application_service_model
-        ),
+        block108.validate_application_service_model(application_service_model),
     )
 
     # --------------------------------------------------------------
@@ -658,21 +595,16 @@ try:
 
     block109 = objects.get("109")
 
-    query_model = block109.build_query_model(
-        application_service_model=application_service_model
-    )
+    query_model = block109.build_query_model(application_service_model=application_service_model)
 
     check(
         "108 -> 109 RUNTIME LINEAGE",
-        str(query_model.get("query", {}).get("source_block_id"))
-        == "108",
+        str(query_model.get("query", {}).get("source_block_id")) == "108",
     )
 
     check(
         "BLOCK109 RUNTIME VALIDATION",
-        block109.validate_query_model(
-            query_model
-        ),
+        block109.validate_query_model(query_model),
     )
 
     # --------------------------------------------------------------
@@ -703,12 +635,9 @@ section("BLOCK 109 INTEGRITY CONTRACT")
 
 try:
 
-    source_file = (
-        "services/quantitative/"
-        "block109_institutional_application_query_gateway.py"
-    )
+    source_file = "services/quantitative/" "block109_institutional_application_query_gateway.py"
 
-    with open(source_file, "r", encoding="utf-8") as fh:
+    with open(source_file, encoding="utf-8") as fh:
         source = fh.read()
 
     check(
@@ -781,7 +710,6 @@ for number, module in [
 
             with open(
                 filename,
-                "r",
                 encoding="utf-8",
             ) as fh:
                 text = fh.read().lower()
@@ -794,11 +722,7 @@ for number, module in [
                 "create_order(",
             ]
 
-            hits = [
-                term
-                for term in forbidden_terms
-                if term in text
-            ]
+            hits = [term for term in forbidden_terms if term in text]
 
             check(
                 f"BLOCK {number} FORBIDDEN EXECUTION API ABSENCE",
@@ -852,10 +776,7 @@ for number, obj in objects.items():
 
             same_identity = first is second
 
-            print(
-                f"BLOCK {number} {method_name}: "
-                f"same_identity={same_identity}"
-            )
+            print(f"BLOCK {number} {method_name}: " f"same_identity={same_identity}")
 
             if isinstance(first, dict) and isinstance(second, dict):
 
@@ -863,8 +784,7 @@ for number, obj in objects.items():
 
                 check(
                     f"BLOCK {number} SNAPSHOT DETACHED",
-                    "__EROS_GATE_PROBE__"
-                    not in first,
+                    "__EROS_GATE_PROBE__" not in first,
                 )
 
             elif isinstance(first, list) and isinstance(second, list):
@@ -873,8 +793,7 @@ for number, obj in objects.items():
 
                 check(
                     f"BLOCK {number} SNAPSHOT DETACHED",
-                    "__EROS_GATE_PROBE__"
-                    not in first,
+                    "__EROS_GATE_PROBE__" not in first,
                 )
 
             else:
@@ -888,10 +807,7 @@ for number, obj in objects.items():
             break
 
         except Exception as exc:
-            print(
-                f"[WARN] BLOCK {number} DETACHMENT "
-                f"{method_name}: {repr(exc)}"
-            )
+            print(f"[WARN] BLOCK {number} DETACHMENT " f"{method_name}: {repr(exc)}")
 
 
 # ======================================================================
@@ -899,6 +815,7 @@ for number, obj in objects.items():
 # ======================================================================
 
 section("DETERMINISTIC HASH PROBE")
+
 
 def canonical_hash(value):
 
@@ -947,10 +864,7 @@ for number, module in [
 
     filename = inspect.getsourcefile(module)
 
-    print(
-        f"BLOCK {number} : "
-        f"{filename}"
-    )
+    print(f"BLOCK {number} : " f"{filename}")
 
 
 # ======================================================================
@@ -967,14 +881,10 @@ print()
 
 if FAIL == 0:
     print("RESULT : PASS")
-    print(
-        "106-109 runtime structural/safety gate passed."
-    )
+    print("106-109 runtime structural/safety gate passed.")
 else:
     print("RESULT : FAIL")
-    print(
-        "One or more runtime contracts require investigation."
-    )
+    print("One or more runtime contracts require investigation.")
 
 print()
 print("BLOCK 110 : HOLD")
@@ -987,10 +897,3 @@ print("MUTATION : NONE")
 print("LIVE EXECUTION : NONE")
 print("BROKER SUBMISSION : NONE")
 print("ORDER CREATION : NONE")
-
-
-
-
-
-
-

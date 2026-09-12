@@ -2,10 +2,7 @@
 
 import inspect
 import json
-import os
-import sys
-from typing import Any, Dict
-
+from typing import Any
 
 print("")
 print("=" * 70)
@@ -86,15 +83,9 @@ print("")
 print("4. BLOCK 103 PUBLIC METHOD SIGNATURES")
 print("-" * 70)
 
-print(
-    "BUILD:",
-    inspect.signature(cls.build)
-)
+print("BUILD:", inspect.signature(cls.build))
 
-print(
-    "SNAPSHOT:",
-    inspect.signature(cls.snapshot)
-)
+print("SNAPSHOT:", inspect.signature(cls.snapshot))
 
 print("")
 
@@ -167,12 +158,9 @@ print("-" * 70)
 # The contract we previously attempted.
 #
 
-candidate_a: Dict[str, Any] = {
-
+candidate_a: dict[str, Any] = {
     "status": "CERTIFIED",
-
     "block_id": 102,
-
     "pipeline": {
         "blocks": [
             "94",
@@ -186,17 +174,14 @@ candidate_a: Dict[str, Any] = {
         ],
         "status": "CERTIFIED",
     },
-
     "risk": {
         "status": "CERTIFIED",
         "risk_state": "CONTROLLED",
     },
-
     "governance": {
         "status": "APPROVED",
         "authorization": "AUTHORIZED",
     },
-
     "intent": {
         "status": "CERTIFIED",
         "authorization": "AUTHORIZED",
@@ -205,7 +190,6 @@ candidate_a: Dict[str, Any] = {
         "quantity": 100.0,
         "reference_price": 2500.0,
     },
-
     "execution": {
         "status": "SIMULATED",
         "execution_status": "SIMULATED",
@@ -213,7 +197,6 @@ candidate_a: Dict[str, Any] = {
         "broker_submission": False,
         "live_execution": False,
     },
-
     "reconciliation": {
         "status": "RECONCILED",
         "quantity_reconciled": True,
@@ -222,12 +205,10 @@ candidate_a: Dict[str, Any] = {
         "cost_reconciled": True,
         "lineage_reconciled": True,
     },
-
     "lineage": {
         "status": "PRESERVED",
         "source_block": "102",
     },
-
     "safety": {
         "read_only": True,
         "allow_order_creation": False,
@@ -262,7 +243,7 @@ print("")
 
 try:
 
-    validator = getattr(block103, "_validate_source")
+    validator = block103._validate_source
 
     validator(candidate_a)
 
@@ -290,17 +271,11 @@ for key in sorted(candidate_a.keys()):
 
     value = candidate_a[key]
 
-    print(
-        f"FIELD {key:<20} TYPE={type(value).__name__}"
-    )
+    print(f"FIELD {key:<20} TYPE={type(value).__name__}")
 
     if isinstance(value, dict):
 
-        print(
-            " " * 4,
-            "SUBFIELDS:",
-            ", ".join(sorted(value.keys()))
-        )
+        print(" " * 4, "SUBFIELDS:", ", ".join(sorted(value.keys())))
 
 print("")
 
@@ -338,16 +313,11 @@ for source_value in source_block_values:
 
         validator(test_contract)
 
-        print(
-            f"source_block={source_value!r:<8} -> VALID"
-        )
+        print(f"source_block={source_value!r:<8} -> VALID")
 
     except Exception as exc:
 
-        print(
-            f"source_block={source_value!r:<8} -> "
-            f"{type(exc).__name__}: {exc}"
-        )
+        print(f"source_block={source_value!r:<8} -> " f"{type(exc).__name__}: {exc}")
 
 print("")
 
@@ -378,16 +348,11 @@ for block_value in [
 
         validator(test_contract)
 
-        print(
-            f"block_id={block_value!r:<8} -> VALID"
-        )
+        print(f"block_id={block_value!r:<8} -> VALID")
 
     except Exception as exc:
 
-        print(
-            f"block_id={block_value!r:<8} -> "
-            f"{type(exc).__name__}: {exc}"
-        )
+        print(f"block_id={block_value!r:<8} -> " f"{type(exc).__name__}: {exc}")
 
 print("")
 
@@ -401,11 +366,7 @@ print("-" * 70)
 
 try:
 
-    print(
-        inspect.getsource(
-            getattr(cls, "_validate_source")
-        )
-    )
+    print(inspect.getsource(cls._validate_source))
 
 except Exception as exc:
 
@@ -423,9 +384,7 @@ print("-" * 70)
 
 try:
 
-    result = block103.build(
-        contract=candidate_a
-    )
+    result = block103.build(contract=candidate_a)
 
     print("BLOCK 103 BUILD : PASS")
 
@@ -464,4 +423,3 @@ print("No push was performed.")
 print("")
 print("RESULT : DIAGNOSTIC COMPLETE")
 print("")
-

@@ -11,9 +11,7 @@ class CAGRCalculator:
         historical_values: tuple[Decimal, ...], periods_to_forecast: int
     ) -> tuple[Decimal, ...]:
         if not historical_values or len(historical_values) < 2:
-            raise ValueError(
-                "At least two historical data points are required for CAGR."
-            )
+            raise ValueError("At least two historical data points are required for CAGR.")
 
         start_val = historical_values[0]
         end_val = historical_values[-1]

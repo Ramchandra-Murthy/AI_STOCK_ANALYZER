@@ -1,9 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.reporting.report_models import InstitutionalResearchReport
-from services.reporting.report_builder import ResearchReportBuilder
 from services.reporting.html_renderer import ReportRenderer
+from services.reporting.report_builder import ResearchReportBuilder
+
 
 def test_institutional_reporting_platform() -> None:
     class MockCommittee:

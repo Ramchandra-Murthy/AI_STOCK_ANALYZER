@@ -68,9 +68,7 @@ class InstitutionalResearchPipeline:
             warnings.append(decision.warning_message)
         else:
             completed_steps.extend(cls.STEPS[2:])
-            reports_generated.append(
-                f"Institutional_Report_{normalized_symbol}_{run_id}.md"
-            )
+            reports_generated.append(f"Institutional_Report_{normalized_symbol}_{run_id}.md")
 
         return WorkflowResult(
             run_id=run_id,

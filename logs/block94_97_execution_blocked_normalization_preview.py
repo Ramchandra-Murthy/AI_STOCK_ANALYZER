@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 ROOT = Path("services/quantitative")
 
@@ -9,10 +8,7 @@ print("=" * 90)
 
 for block in range(94, 98):
 
-    files = [
-        p for p in ROOT.glob(f"block{block}_*.py")
-        if "test_harness" not in p.name
-    ]
+    files = [p for p in ROOT.glob(f"block{block}_*.py") if "test_harness" not in p.name]
 
     print()
     print("=" * 90)

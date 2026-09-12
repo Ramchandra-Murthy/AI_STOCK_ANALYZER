@@ -59,9 +59,7 @@ print("REDIS VALUE:", redis_value_1)
 print("MATCHES FIRST TASK:", redis_value_1 == first_task_id)
 
 if redis_value_1 != first_task_id:
-    raise AssertionError(
-        "Redis idempotency mapping does not match first task ID"
-    )
+    raise AssertionError("Redis idempotency mapping does not match first task ID")
 
 print()
 print("6. SECOND IDENTICAL SUBMISSION")
@@ -93,14 +91,10 @@ print("SAME TASK ID:", same_task)
 print("IDEMPOTENT REPLAY:", replay_flag)
 
 if not same_task:
-    raise AssertionError(
-        "IDEMPOTENCY FAILURE: second submission created a different task ID"
-    )
+    raise AssertionError("IDEMPOTENCY FAILURE: second submission created a different task ID")
 
 if not replay_flag:
-    raise AssertionError(
-        "IDEMPOTENCY FAILURE: second submission did not report idempotent_replay"
-    )
+    raise AssertionError("IDEMPOTENCY FAILURE: second submission did not report idempotent_replay")
 
 print()
 print("8. REDIS AFTER SECOND SUBMISSION")
@@ -111,9 +105,7 @@ print("REDIS VALUE:", redis_value_2)
 print("MATCHES TASK ID:", redis_value_2 == first_task_id)
 
 if redis_value_2 != first_task_id:
-    raise AssertionError(
-        "Redis mapping changed after duplicate submission"
-    )
+    raise AssertionError("Redis mapping changed after duplicate submission")
 
 print()
 print("9. WAITING FOR ORIGINAL CELERY TASK")
@@ -123,12 +115,7 @@ final_status = None
 for check in range(1, 16):
     final_status = task_control.get_task_status(first_task_id)
 
-    print(
-        "CHECK",
-        check,
-        "STATUS:",
-        final_status
-    )
+    print("CHECK", check, "STATUS:", final_status)
 
     if final_status.get("ready"):
         break
@@ -139,9 +126,7 @@ print()
 print("FINAL STATUS:", final_status)
 
 if final_status.get("status") != "SUCCESS":
-    raise AssertionError(
-        f"Original task did not complete successfully: {final_status}"
-    )
+    raise AssertionError(f"Original task did not complete successfully: {final_status}")
 
 print()
 print("10. RESULT RECOVERY")
@@ -151,9 +136,7 @@ result = task_control.get_task_result(first_task_id)
 print("RESULT:", result)
 
 if result.get("status") != "SUCCESS":
-    raise AssertionError(
-        f"Result recovery failed: {result}"
-    )
+    raise AssertionError(f"Result recovery failed: {result}")
 
 print()
 print("11. DUPLICATE RESULT CHECK")
@@ -163,18 +146,13 @@ duplicate_result = task_control.get_task_result(second_task_id)
 print("DUPLICATE RESULT:", duplicate_result)
 
 if duplicate_result.get("status") != "SUCCESS":
-    raise AssertionError(
-        "Idempotent replay did not recover the original result"
-    )
+    raise AssertionError("Idempotent replay did not recover the original result")
 
 print()
 print("12. FINAL REDIS STATE")
 
 print("KEY COUNT:", len(redis_client._store))
-print(
-    "IDEMPOTENCY KEY PRESENT:",
-    idempotency_key in redis_client._store
-)
+print("IDEMPOTENCY KEY PRESENT:", idempotency_key in redis_client._store)
 
 print()
 print("=" * 58)

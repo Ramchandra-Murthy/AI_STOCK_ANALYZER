@@ -81,9 +81,7 @@ def create_candlestick(df, symbol):
 
     if "BB_Middle" in df.columns:
         fig.add_trace(
-            go.Scatter(
-                x=df["Date"], y=df["BB_Middle"], name="BB Middle", line=dict(width=1)
-            ),
+            go.Scatter(x=df["Date"], y=df["BB_Middle"], name="BB Middle", line=dict(width=1)),
             row=1,
             col=1,
         )
@@ -147,9 +145,7 @@ def create_candlestick(df, symbol):
     # ==========================
 
     if "RSI_14" in df.columns:
-        fig.add_trace(
-            go.Scatter(x=df["Date"], y=df["RSI_14"], name="RSI"), row=3, col=1
-        )
+        fig.add_trace(go.Scatter(x=df["Date"], y=df["RSI_14"], name="RSI"), row=3, col=1)
 
     fig.add_hline(y=70, row=3, col=1, line_dash="dash", annotation_text="70")
 
@@ -160,9 +156,7 @@ def create_candlestick(df, symbol):
     # ==========================
 
     if "Histogram" in df.columns:
-        fig.add_trace(
-            go.Bar(x=df["Date"], y=df["Histogram"], name="Histogram"), row=4, col=1
-        )
+        fig.add_trace(go.Bar(x=df["Date"], y=df["Histogram"], name="Histogram"), row=4, col=1)
 
     # ==========================
     # MACD
@@ -172,9 +166,7 @@ def create_candlestick(df, symbol):
         fig.add_trace(go.Scatter(x=df["Date"], y=df["MACD"], name="MACD"), row=4, col=1)
 
     if "Signal" in df.columns:
-        fig.add_trace(
-            go.Scatter(x=df["Date"], y=df["Signal"], name="Signal"), row=4, col=1
-        )
+        fig.add_trace(go.Scatter(x=df["Date"], y=df["Signal"], name="Signal"), row=4, col=1)
 
     # ==========================
     # Layout

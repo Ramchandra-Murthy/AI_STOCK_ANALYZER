@@ -1,17 +1,25 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import List, Dict, Any
+
 from services.simulation.models import SimulationResult
 
 logger = logging.getLogger(__name__)
+
 
 class InstitutionalMarketSimulator:
     """Executes stochastic market simulations and scenario projections for institutional portfolios."""
 
     @staticmethod
-    def simulate_scenario(scenario_id: str, base_return: float = 0.12, shock: float = 0.0) -> SimulationResult:
-        logger.info("Running market simulation for scenario '%s' with base return %.2f and shock %.2f", scenario_id, base_return, shock)
+    def simulate_scenario(
+        scenario_id: str, base_return: float = 0.12, shock: float = 0.0
+    ) -> SimulationResult:
+        logger.info(
+            "Running market simulation for scenario '%s' with base return %.2f and shock %.2f",
+            scenario_id,
+            base_return,
+            shock,
+        )
 
         projected_return = base_return + shock
         volatility = 0.145
@@ -34,5 +42,5 @@ class InstitutionalMarketSimulator:
             sharpe_ratio=sharpe,
             value_at_risk=var_95,
             execution_cost=exec_cost,
-            recommendation=recommendation
+            recommendation=recommendation,
         )

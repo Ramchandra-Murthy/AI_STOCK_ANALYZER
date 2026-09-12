@@ -2,7 +2,6 @@ import json
 import sys
 import traceback
 
-
 print("=" * 70)
 print("EROS 3.0 - V3.8.1 DECISION AUDIT")
 print("DEEP RUNTIME SCHEMA DIAGNOSTIC")
@@ -70,10 +69,7 @@ for name in required_api:
 
     present = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
         api_failed = True
@@ -135,9 +131,7 @@ print("-" * 70)
 if not isinstance(result, dict):
 
     print("RESULT DICT : FAIL")
-    raise RuntimeError(
-        f"DECISION_AUDIT_RESULT_NOT_DICT:{type(result).__name__}"
-    )
+    raise RuntimeError(f"DECISION_AUDIT_RESULT_NOT_DICT:{type(result).__name__}")
 
 print("RESULT DICT : PASS")
 
@@ -149,13 +143,7 @@ print("RESULT DICT : PASS")
 print("\n6. COMPLETE RAW AUDIT RESULT")
 print("-" * 70)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 # ============================================================
@@ -189,10 +177,7 @@ for field in required_top_level:
 
     present = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if present else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if present else 'FAIL'}")
 
     if not present:
         top_level_failed = True
@@ -228,9 +213,7 @@ type_failed = False
 for field, expected_type in type_expectations.items():
 
     if field not in result:
-        print(
-            f"{field:35} : MISSING"
-        )
+        print(f"{field:35} : MISSING")
         type_failed = True
         continue
 
@@ -238,11 +221,7 @@ for field, expected_type in type_expectations.items():
 
     ok = isinstance(result[field], expected_type)
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(type={actual})"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(type={actual})")
 
     if not ok:
         type_failed = True
@@ -272,10 +251,7 @@ if isinstance(decision, dict):
 
         ok = field in decision
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'}"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
 else:
 
@@ -293,23 +269,13 @@ audit = result.get("audit")
 
 if isinstance(audit, dict):
 
-    print(
-        "AUDIT TYPE : PASS"
-    )
+    print("AUDIT TYPE : PASS")
 
-    print(
-        json.dumps(
-            audit,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(audit, indent=2, default=str))
 
 else:
 
-    print(
-        "AUDIT TYPE : FAIL"
-    )
+    print("AUDIT TYPE : FAIL")
 
 
 # ============================================================
@@ -321,10 +287,7 @@ print("-" * 70)
 
 findings = result.get("audit_findings")
 
-print(
-    "TYPE :",
-    type(findings).__name__
-)
+print("TYPE :", type(findings).__name__)
 
 if isinstance(findings, dict):
 
@@ -332,17 +295,9 @@ if isinstance(findings, dict):
 
     for key, value in findings.items():
 
-        print(
-            f"\n[{key}]"
-        )
+        print(f"\n[{key}]")
 
-        print(
-            json.dumps(
-                value,
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(value, indent=2, default=str))
 
 elif isinstance(findings, list):
 
@@ -350,17 +305,9 @@ elif isinstance(findings, list):
 
     for index, value in enumerate(findings):
 
-        print(
-            f"\n[FINDING {index}]"
-        )
+        print(f"\n[FINDING {index}]")
 
-        print(
-            json.dumps(
-                value,
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(value, indent=2, default=str))
 
 else:
 
@@ -401,13 +348,7 @@ if isinstance(traceability, dict):
     print("TRACEABILITY : PRESENT")
     print("TYPE         : dict")
 
-    print(
-        json.dumps(
-            traceability,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(traceability, indent=2, default=str))
 
 else:
 
@@ -437,10 +378,7 @@ if isinstance(evidence_chain, dict):
 
         value = evidence_chain.get(field)
 
-        print(
-            f"{field:30} : "
-            f"{'PASS' if value is not None else 'MISSING'}"
-        )
+        print(f"{field:30} : " f"{'PASS' if value is not None else 'MISSING'}")
 
 else:
 
@@ -469,10 +407,7 @@ if isinstance(scenario_trace, dict):
 
         value = scenario_trace.get(field)
 
-        print(
-            f"{field:30} : "
-            f"{'PASS' if value is not None else 'MISSING'}"
-        )
+        print(f"{field:30} : " f"{'PASS' if value is not None else 'MISSING'}")
 
 else:
 
@@ -499,10 +434,7 @@ if isinstance(interpretation, dict):
 
         value = interpretation.get(field)
 
-        print(
-            f"{field:30} : "
-            f"{value}"
-        )
+        print(f"{field:30} : " f"{value}")
 
 else:
 
@@ -518,14 +450,9 @@ print("-" * 70)
 
 conclusion = result.get("conclusion")
 
-print(
-    "TYPE :",
-    type(conclusion).__name__
-)
+print("TYPE :", type(conclusion).__name__)
 
-print(
-    "VALUE:"
-)
+print("VALUE:")
 
 print(conclusion)
 
@@ -537,10 +464,7 @@ print(conclusion)
 print("\n18. TRACEABILITY STATUS")
 print("-" * 70)
 
-print(
-    "traceability_status :",
-    result.get("traceability_status")
-)
+print("traceability_status :", result.get("traceability_status"))
 
 
 # ============================================================
@@ -552,18 +476,9 @@ print("-" * 70)
 
 audit_summary = result.get("audit_summary")
 
-print(
-    "TYPE :",
-    type(audit_summary).__name__
-)
+print("TYPE :", type(audit_summary).__name__)
 
-print(
-    json.dumps(
-        audit_summary,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(audit_summary, indent=2, default=str))
 
 
 # ============================================================
@@ -573,10 +488,7 @@ print(
 print("\n20. AUDIT STATUS")
 print("-" * 70)
 
-print(
-    "audit_status :",
-    result.get("audit_status")
-)
+print("audit_status :", result.get("audit_status"))
 
 
 # ============================================================
@@ -588,13 +500,7 @@ print("-" * 70)
 
 governance = result.get("governance")
 
-print(
-    json.dumps(
-        governance,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(governance, indent=2, default=str))
 
 
 # ============================================================
@@ -636,11 +542,7 @@ else:
 
         ok = actual is True
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'} "
-            f"(actual={actual}, expected=True)"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
         if not ok:
             governance_failed = True
@@ -651,11 +553,7 @@ else:
 
         ok = actual is False
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'} "
-            f"(actual={actual}, expected=False)"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
         if not ok:
             governance_failed = True
@@ -675,76 +573,43 @@ if isinstance(traceability, dict):
     trace_status = traceability.get("status")
 
     if trace_status is not None:
-        print(
-            "TRACEABILITY STATUS :",
-            trace_status
-        )
+        print("TRACEABILITY STATUS :", trace_status)
 
 if isinstance(scenario_trace, dict):
 
-    primary_scenario = scenario_trace.get(
-        "primary_scenario"
-    )
+    primary_scenario = scenario_trace.get("primary_scenario")
 
-    print(
-        "PRIMARY SCENARIO     :",
-        primary_scenario
-    )
+    print("PRIMARY SCENARIO     :", primary_scenario)
 
 if isinstance(decision, dict):
 
-    decision_quality = decision.get(
-        "decision_quality"
-    )
+    decision_quality = decision.get("decision_quality")
 
-    print(
-        "DECISION QUALITY     :",
-        decision_quality
-    )
+    print("DECISION QUALITY     :", decision_quality)
 
 if isinstance(interpretation, dict):
 
-    interpretation_quality = interpretation.get(
-        "decision_quality"
-    )
+    interpretation_quality = interpretation.get("decision_quality")
 
-    print(
-        "INTERPRETATION QUALITY:",
-        interpretation_quality
-    )
+    print("INTERPRETATION QUALITY:", interpretation_quality)
 
-if (
-    isinstance(decision, dict)
-    and isinstance(interpretation, dict)
-):
+if isinstance(decision, dict) and isinstance(interpretation, dict):
 
-    if (
-        decision.get("decision_quality")
-        != interpretation.get("decision_quality")
-    ):
+    if decision.get("decision_quality") != interpretation.get("decision_quality"):
 
-        consistency_failures.append(
-            "DECISION_QUALITY_MISMATCH"
-        )
+        consistency_failures.append("DECISION_QUALITY_MISMATCH")
 
 
 if consistency_failures:
 
-    print(
-        "CONSISTENCY : FAIL"
-    )
+    print("CONSISTENCY : FAIL")
 
     for failure in consistency_failures:
-        print(
-            "  -",
-            failure
-        )
+        print("  -", failure)
 
 else:
 
-    print(
-        "CONSISTENCY : PASS"
-    )
+    print("CONSISTENCY : PASS")
 
 
 # ============================================================

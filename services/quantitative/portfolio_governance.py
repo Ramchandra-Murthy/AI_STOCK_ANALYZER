@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class EROSExecutionGovernanceEngine:
@@ -40,9 +40,7 @@ class EROSExecutionGovernanceEngine:
     ) -> None:
 
         if not 0 <= max_risk_score <= 100:
-            raise ValueError(
-                "max_risk_score must be between 0 and 100"
-            )
+            raise ValueError("max_risk_score must be between 0 and 100")
 
         self.policy_profile = policy_profile
         self.max_risk_score = float(max_risk_score)
@@ -50,36 +48,25 @@ class EROSExecutionGovernanceEngine:
         self.require_live_data = require_live_data
 
     @staticmethod
-    def _status(portfolio: Optional[List[Dict[str, Any]]]) -> str:
+    def _status(portfolio: list[dict[str, Any]] | None) -> str:
         if not portfolio:
             return "EMPTY"
 
-        if any(
-            str(item.get("status", "")).upper() == "ERROR"
-            for item in portfolio
-        ):
+        if any(str(item.get("status", "")).upper() == "ERROR" for item in portfolio):
             return "ERROR"
 
         return "SUCCESS"
 
     @staticmethod
-    def _stale_count(
-        portfolio: Optional[List[Dict[str, Any]]]
-    ) -> int:
+    def _stale_count(portfolio: list[dict[str, Any]] | None) -> int:
 
         if not portfolio:
             return 0
 
-        return sum(
-            1
-            for item in portfolio
-            if bool(item.get("is_stale", False))
-        )
+        return sum(1 for item in portfolio if bool(item.get("is_stale", False)))
 
     @staticmethod
-    def _total_weight(
-        portfolio: Optional[List[Dict[str, Any]]]
-    ) -> float:
+    def _total_weight(portfolio: list[dict[str, Any]] | None) -> float:
 
         if not portfolio:
             return 0.0
@@ -101,12 +88,12 @@ class EROSExecutionGovernanceEngine:
 
     def evaluate(
         self,
-        portfolio: Optional[List[Dict[str, Any]]],
-        risk_result: Optional[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        portfolio: list[dict[str, Any]] | None,
+        risk_result: dict[str, Any] | None,
+    ) -> dict[str, Any]:
 
-        blocking_reasons: List[str] = []
-        review_reasons: List[str] = []
+        blocking_reasons: list[str] = []
+        review_reasons: list[str] = []
 
         portfolio_status = self._status(portfolio)
         stale_count = self._stale_count(portfolio)
@@ -122,14 +109,10 @@ class EROSExecutionGovernanceEngine:
             blocking_reasons.append("STALE_MARKET_DATA")
 
         if total_weight > 1.0 + 1e-9:
-            blocking_reasons.append(
-                "PORTFOLIO_WEIGHT_OVER_100_PERCENT"
-            )
+            blocking_reasons.append("PORTFOLIO_WEIGHT_OVER_100_PERCENT")
 
         if risk_result is None:
-            blocking_reasons.append(
-                "MISSING_RISK_CERTIFICATION"
-            )
+            blocking_reasons.append("MISSING_RISK_CERTIFICATION")
 
             risk_governance = "UNKNOWN"
             risk_score = 100.0
@@ -155,19 +138,13 @@ class EROSExecutionGovernanceEngine:
 
             if self.require_risk_pass:
                 if risk_governance != "PASS":
-                    blocking_reasons.append(
-                        "RISK_GOVERNANCE_NOT_PASS"
-                    )
+                    blocking_reasons.append("RISK_GOVERNANCE_NOT_PASS")
 
             if risk_score > self.max_risk_score:
-                blocking_reasons.append(
-                    "RISK_SCORE_LIMIT_BREACH"
-                )
+                blocking_reasons.append("RISK_SCORE_LIMIT_BREACH")
 
         if total_weight < 1.0 - 1e-9:
-            review_reasons.append(
-                "UNALLOCATED_PORTFOLIO_WEIGHT"
-            )
+            review_reasons.append("UNALLOCATED_PORTFOLIO_WEIGHT")
 
         if not blocking_reasons and review_reasons:
             governance = "REVIEW"
@@ -199,9 +176,9 @@ class EROSExecutionGovernanceEngine:
 
     def certify(
         self,
-        portfolio: Optional[List[Dict[str, Any]]],
-        risk_result: Optional[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        portfolio: list[dict[str, Any]] | None,
+        risk_result: dict[str, Any] | None,
+    ) -> dict[str, Any]:
 
         result = self.evaluate(
             portfolio,

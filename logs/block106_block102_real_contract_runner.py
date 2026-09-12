@@ -65,15 +65,9 @@ for name in [
 ]:
     if hasattr(cls, name):
         try:
-            print(
-                f"{name.upper():20s}: "
-                f"{inspect.signature(getattr(cls, name))}"
-            )
+            print(f"{name.upper():20s}: " f"{inspect.signature(getattr(cls, name))}")
         except Exception as exc:
-            print(
-                f"{name.upper():20s}: "
-                f"SIGNATURE ERROR {exc}"
-            )
+            print(f"{name.upper():20s}: " f"SIGNATURE ERROR {exc}")
 
 print("")
 print("5. CLASS SOURCE")
@@ -116,10 +110,7 @@ found = []
 for name in candidate_methods:
     if hasattr(block102, name):
         found.append(name)
-        print(
-            f"FOUND : {name} "
-            f"{inspect.signature(getattr(block102, name))}"
-        )
+        print(f"FOUND : {name} " f"{inspect.signature(getattr(block102, name))}")
 
 if not found:
     print("NO STANDARD CONTRACT METHOD FOUND")
@@ -145,10 +136,7 @@ try:
     ]
 
     for term in terms:
-        print(
-            f"{term:28s}: "
-            f"{'FOUND' if term in source else 'NOT FOUND'}"
-        )
+        print(f"{term:28s}: " f"{'FOUND' if term in source else 'NOT FOUND'}")
 
 except Exception as exc:
     print("SOURCE SEARCH ERROR:", repr(exc))
@@ -158,6 +146,7 @@ print("9. SAFE BLOCK 102 RUNTIME ATTEMPTS")
 print("-" * 70)
 
 results = {}
+
 
 def record_result(label, value):
     print("")
@@ -189,21 +178,13 @@ def record_result(label, value):
                 if key == "safety":
                     print(
                         "SAFETY KEYS:",
-                        sorted(str(k) for k in val.keys())
-                        if isinstance(val, dict)
-                        else type(val)
+                        sorted(str(k) for k in val.keys()) if isinstance(val, dict) else type(val),
                     )
                 elif key == "pipeline_status":
-                    print(
-                        "PIPELINE_STATUS TYPE:",
-                        type(val)
-                    )
+                    print("PIPELINE_STATUS TYPE:", type(val))
 
                     if isinstance(val, list):
-                        print(
-                            "PIPELINE_STATUS LENGTH:",
-                            len(val)
-                        )
+                        print("PIPELINE_STATUS LENGTH:", len(val))
 
                         for item in val:
                             if isinstance(item, dict):
@@ -216,17 +197,11 @@ def record_result(label, value):
                                     item.get("name"),
                                 )
                             else:
-                                print(
-                                    "  ITEM TYPE:",
-                                    type(item)
-                                )
+                                print("  ITEM TYPE:", type(item))
                     else:
                         print("PIPELINE_STATUS VALUE:", repr(val))
                 else:
-                    print(
-                        f"{key.upper()}:",
-                        repr(val)
-                    )
+                    print(f"{key.upper()}:", repr(val))
 
         print("")
         print("FULL DICTIONARY JSON:")
@@ -240,10 +215,7 @@ def record_result(label, value):
                 )
             )
         except Exception as exc:
-            print(
-                "JSON SERIALIZATION ERROR:",
-                repr(exc)
-            )
+            print("JSON SERIALIZATION ERROR:", repr(exc))
 
     else:
         pprint(value)
@@ -273,10 +245,7 @@ if hasattr(block102, "build"):
             record_result("BLOCK 102 BUILD() RESULT", value)
 
         else:
-            print(
-                "BUILD REQUIRES ARGUMENTS - "
-                "NOT INVOKED WITHOUT KNOWING CONTRACT"
-            )
+            print("BUILD REQUIRES ARGUMENTS - " "NOT INVOKED WITHOUT KNOWING CONTRACT")
 
     except Exception as exc:
         print("BUILD ATTEMPT ERROR:", repr(exc))
@@ -307,10 +276,7 @@ if hasattr(block102, "snapshot"):
             record_result("BLOCK 102 SNAPSHOT() RESULT", value)
 
         else:
-            print(
-                "SNAPSHOT REQUIRES ARGUMENTS - "
-                "NOT INVOKED WITHOUT KNOWING CONTRACT"
-            )
+            print("SNAPSHOT REQUIRES ARGUMENTS - " "NOT INVOKED WITHOUT KNOWING CONTRACT")
 
     except Exception as exc:
         print("SNAPSHOT ATTEMPT ERROR:", repr(exc))
@@ -354,4 +320,3 @@ print("NO BROKER")
 print("NO LIVE EXECUTION")
 print("NO ORDER CREATION")
 print("")
-

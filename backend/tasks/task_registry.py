@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import logging
+
 from backend.tasks.celery_app import celery_instance
 from backend.tasks.task_executor import (
     celery_forecast_wrapper,
-    celery_valuation_wrapper,
     celery_report_wrapper,
+    celery_valuation_wrapper,
 )
 
 logger = logging.getLogger(__name__)
+
 
 def register_all_tasks() -> None:
     if celery_instance is None:

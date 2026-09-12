@@ -1,11 +1,8 @@
 from pathlib import Path
-import re
 
 ROOT = Path("services/quantitative")
 
-blocks = [
-    94, 95, 96, 97, 98, 99, 100, 101
-]
+blocks = [94, 95, 96, 97, 98, 99, 100, 101]
 
 safety_keys = [
     "execution_blocked",
@@ -28,10 +25,7 @@ for block in blocks:
 
     matches = list(ROOT.glob(f"block{block}_*.py"))
 
-    source_files = [
-        p for p in matches
-        if "test_harness" not in p.name
-    ]
+    source_files = [p for p in matches if "test_harness" not in p.name]
 
     print()
     print("=" * 80)

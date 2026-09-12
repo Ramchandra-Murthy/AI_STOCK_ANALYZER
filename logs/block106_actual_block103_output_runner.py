@@ -7,7 +7,6 @@ from pprint import pprint
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
@@ -66,30 +65,22 @@ heading("3. ACTUAL METHOD SIGNATURES")
 
 print(
     "BLOCK 102 BUILD    :",
-    inspect.signature(
-        EROSBlock102FrontendContract.build
-    ),
+    inspect.signature(EROSBlock102FrontendContract.build),
 )
 
 print(
     "BLOCK 102 SNAPSHOT :",
-    inspect.signature(
-        EROSBlock102FrontendContract.snapshot
-    ),
+    inspect.signature(EROSBlock102FrontendContract.snapshot),
 )
 
 print(
     "BLOCK 103 BUILD    :",
-    inspect.signature(
-        EROSBlock103InstitutionalFrontendReadModel.build
-    ),
+    inspect.signature(EROSBlock103InstitutionalFrontendReadModel.build),
 )
 
 print(
     "BLOCK 103 SNAPSHOT :",
-    inspect.signature(
-        EROSBlock103InstitutionalFrontendReadModel.snapshot
-    ),
+    inspect.signature(EROSBlock103InstitutionalFrontendReadModel.snapshot),
 )
 
 heading("4. BLOCK 102 PUBLIC MEMBERS")
@@ -282,16 +273,12 @@ for name in dir(block103):
 
 heading("8. BLOCK 103 INTERNAL VALIDATION SOURCE")
 
-source_path = (
-    "services/quantitative/"
-    "block103_institutional_frontend_read_model.py"
-)
+source_path = "services/quantitative/" "block103_institutional_frontend_read_model.py"
 
 print("SOURCE:", source_path)
 
 with open(
     source_path,
-    "r",
     encoding="utf-8",
 ) as handle:
     source_text = handle.read()
@@ -310,9 +297,7 @@ for index, line in enumerate(lines, start=1):
         end = min(len(lines), index + 8)
 
         print("")
-        print(
-            f"--- SOURCE LINES {start}-{end} ---"
-        )
+        print(f"--- SOURCE LINES {start}-{end} ---")
 
         for number in range(start, end + 1):
             print(
@@ -324,9 +309,7 @@ heading("9. ATTEMPT ACTUAL BLOCK 103 BUILD")
 
 try:
 
-    read_model = block103.build(
-        contract=block102_output
-    )
+    read_model = block103.build(contract=block102_output)
 
     print("BLOCK 103 BUILD : PASS")
 
@@ -365,29 +348,17 @@ try:
 
             print(
                 "read_model block_id:",
-                repr(
-                    read_model.get(
-                        "block_id"
-                    )
-                ),
+                repr(read_model.get("block_id")),
             )
 
             print(
                 "read_model source_block:",
-                repr(
-                    read_model.get(
-                        "source_block"
-                    )
-                ),
+                repr(read_model.get("source_block")),
             )
 
             print(
                 "read_model status:",
-                repr(
-                    read_model.get(
-                        "status"
-                    )
-                ),
+                repr(read_model.get("status")),
             )
 
             print("")
@@ -410,31 +381,19 @@ heading("11. DIAGNOSTIC CONCLUSION")
 
 if "read_model" in locals():
 
-    print(
-        "BLOCK 103 RUNTIME : PASS"
-    )
+    print("BLOCK 103 RUNTIME : PASS")
 
-    print(
-        "ACTUAL BLOCK 103 OUTPUT CAPTURED : YES"
-    )
+    print("ACTUAL BLOCK 103 OUTPUT CAPTURED : YES")
 
-    print(
-        "NEXT STEP : USE ACTUAL BLOCK 103 OUTPUT CONTRACT"
-    )
+    print("NEXT STEP : USE ACTUAL BLOCK 103 OUTPUT CONTRACT")
 
 else:
 
-    print(
-        "BLOCK 103 RUNTIME : FAILED"
-    )
+    print("BLOCK 103 RUNTIME : FAILED")
 
-    print(
-        "NEXT STEP : FIX TEST FIXTURE / UPSTREAM CONTRACT"
-    )
+    print("NEXT STEP : FIX TEST FIXTURE / UPSTREAM CONTRACT")
 
 print("")
 print("=" * 70)
-print(
-    "BLOCK 106 DIAGNOSTIC COMPLETE"
-)
+print("BLOCK 106 DIAGNOSTIC COMPLETE")
 print("=" * 70)

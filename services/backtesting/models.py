@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List
 from datetime import datetime
+
 
 @dataclass(frozen=True)
 class BacktestResult:
@@ -14,5 +14,5 @@ class BacktestResult:
     beta: float
     information_ratio: float
     win_rate: float
-    metrics: Dict[str, float] = field(default_factory=dict)
+    metrics: dict[str, float] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())

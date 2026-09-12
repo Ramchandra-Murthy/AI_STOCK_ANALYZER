@@ -3,8 +3,8 @@
 import logging
 import time
 from typing import Any
+
 from core.events.dispatcher import EventDispatcher
-from services.report.engine import ProductionReportEngine
 from services.report.events import ReportCompleted
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,9 @@ class ReportService:
 
     async def generate_and_publish(self, symbol: str, analysis_data: dict[str, Any]) -> Any:
         """Generate professional report and publish ReportCompleted event."""
-        result = self._engine.generate(symbol, format_type="MULTI-FORMAT", analysis_data=analysis_data)
+        result = self._engine.generate(
+            symbol, format_type="MULTI-FORMAT", analysis_data=analysis_data
+        )
 
         event = ReportCompleted(
             symbol=symbol,
@@ -46,5 +48,7 @@ class ReportService:
         )
 
         await self._dispatcher.dispatch(event)
-        logger.info("ReportCompleted event published for symbol: %s at %s", symbol, result.file_path)
+        logger.info(
+            "ReportCompleted event published for symbol: %s at %s", symbol, result.file_path
+        )
         return result

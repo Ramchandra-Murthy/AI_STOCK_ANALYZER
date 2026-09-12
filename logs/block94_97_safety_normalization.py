@@ -1,5 +1,5 @@
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -27,9 +27,7 @@ for block_id, path in targets.items():
 
     source = path.read_text(encoding="utf-8")
 
-    backup = path.with_suffix(
-        path.suffix + f".backup_{timestamp}"
-    )
+    backup = path.with_suffix(path.suffix + f".backup_{timestamp}")
 
     backup.write_text(source, encoding="utf-8")
 
@@ -38,10 +36,7 @@ for block_id, path in targets.items():
     original_count = source.count('"execution_blocked": True')
 
     if original_count:
-        print(
-            f"EXISTING execution_blocked=True COUNT : "
-            f"{original_count}"
-        )
+        print(f"EXISTING execution_blocked=True COUNT : " f"{original_count}")
 
     lines = source.splitlines()
 
@@ -63,17 +58,13 @@ for block_id, path in targets.items():
                 next_line = lines[len(output)]
 
             if next_line is None or next_line.strip() != '"execution_blocked": True,':
-                indent = line[:len(line) - len(line.lstrip())]
+                indent = line[: len(line) - len(line.lstrip())]
 
-                output.append(
-                    f'{indent}"execution_blocked": True,'
-                )
+                output.append(f'{indent}"execution_blocked": True,')
 
                 inserted += 1
 
-    new_source = "\n".join(output) + (
-        "\n" if source.endswith("\n") else ""
-    )
+    new_source = "\n".join(output) + ("\n" if source.endswith("\n") else "")
 
     new_count = new_source.count('"execution_blocked": True')
 
@@ -83,16 +74,12 @@ for block_id, path in targets.items():
     if block_id in (94, 95, 96):
         if inserted != 1:
             raise RuntimeError(
-                f"BLOCK {block_id}: expected exactly 1 insertion, "
-                f"got {inserted}"
+                f"BLOCK {block_id}: expected exactly 1 insertion, " f"got {inserted}"
             )
 
     if block_id == 97:
         if inserted != 2:
-            raise RuntimeError(
-                f"BLOCK 97: expected exactly 2 insertions, "
-                f"got {inserted}"
-            )
+            raise RuntimeError(f"BLOCK 97: expected exactly 2 insertions, " f"got {inserted}")
 
     path.write_text(new_source, encoding="utf-8")
 

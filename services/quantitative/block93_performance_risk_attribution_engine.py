@@ -26,13 +26,13 @@ The implementation is intentionally defensive:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from hashlib import sha256
 from math import isfinite, sqrt
 from statistics import mean, pstdev, stdev
 from types import MappingProxyType
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
-
+from typing import Any
 
 BLOCK93_VERSION = "EROS-3.0-BLOCK-93.1"
 STATUS_CERTIFIED = "CERTIFIED"
@@ -65,7 +65,7 @@ def _text(value: Any) -> str:
     return str(value).strip()
 
 
-def _number(value: Any, default: Optional[float] = None) -> float:
+def _number(value: Any, default: float | None = None) -> float:
     if value is None or value == "":
         if default is not None:
             return float(default)
@@ -143,7 +143,7 @@ class PerformanceObservation:
     portfolio_return: float
     benchmark_return: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "period": self.period,
             "portfolio_return": _round(self.portfolio_return),
@@ -168,7 +168,7 @@ class RiskMetrics:
     benchmark_cumulative_return: float
     active_return: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "observation_count": self.observation_count,
             "volatility": _round(self.volatility),
@@ -197,7 +197,7 @@ class AttributionRecord:
     benchmark_contribution: float
     active_contribution: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "symbol": self.symbol,
             "portfolio_weight": _round(self.portfolio_weight),
@@ -222,11 +222,11 @@ class Block93Certificate:
     decision_id: str
     observation_count: int
     metrics: Mapping[str, Any]
-    attribution: Tuple[Mapping[str, Any], ...]
+    attribution: tuple[Mapping[str, Any], ...]
     certificate_hash: str
     version: str = BLOCK93_VERSION
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "certificate_id": self.certificate_id,
             "status": self.status,
@@ -265,9 +265,9 @@ class EROSBlock93PerformanceRiskAttributionEngine:
         if minimum_history < 1:
             raise ValueError("minimum_history must be >= 1")
         self.minimum_history = int(minimum_history)
-        self._certificates: Dict[str, Block93Certificate] = {}
+        self._certificates: dict[str, Block93Certificate] = {}
         self._performance_ids: set[str] = set()
-        self._history: List[Dict[str, Any]] = []
+        self._history: list[dict[str, Any]] = []
 
     # ------------------------------------------------------
     # Lineage extraction
@@ -275,10 +275,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
 
     @staticmethod
     def _performance_id(performance: Mapping[str, Any]) -> str:
-        return _text(
-            performance.get("performance_id")
-            or performance.get("performance_record_id")
-        )
+        return _text(performance.get("performance_id") or performance.get("performance_record_id"))
 
     @staticmethod
     def _valuation_id(performance: Mapping[str, Any]) -> str:
@@ -298,12 +295,9 @@ class EROSBlock93PerformanceRiskAttributionEngine:
 
     @staticmethod
     def _status(performance: Mapping[str, Any]) -> str:
-        return _text(
-            performance.get("performance_status")
-            or performance.get("status")
-        ).upper()
+        return _text(performance.get("performance_status") or performance.get("status")).upper()
 
-    def _lineage_error(self, performance: Mapping[str, Any]) -> Optional[str]:
+    def _lineage_error(self, performance: Mapping[str, Any]) -> str | None:
         if not self._performance_id(performance):
             return REASON_MISSING_PERFORMANCE_ID
         if not self._valuation_id(performance):
@@ -323,7 +317,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
     @staticmethod
     def _observations(
         performance: Mapping[str, Any],
-    ) -> Tuple[PerformanceObservation, ...]:
+    ) -> tuple[PerformanceObservation, ...]:
         raw = performance.get("performance_history")
         if raw is None:
             raw = performance.get("history")
@@ -335,7 +329,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
         if not isinstance(raw, Sequence) or isinstance(raw, (str, bytes)):
             raise ValueError(REASON_MALFORMED_OBSERVATION)
 
-        result: List[PerformanceObservation] = []
+        result: list[PerformanceObservation] = []
         previous_period = ""
         for item in raw:
             if not isinstance(item, Mapping):
@@ -379,7 +373,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
         return tuple(result)
 
     @staticmethod
-    def _equity_history(performance: Mapping[str, Any]) -> Tuple[float, ...]:
+    def _equity_history(performance: Mapping[str, Any]) -> tuple[float, ...]:
         raw = performance.get("equity_history")
         if raw is None:
             return tuple()
@@ -400,10 +394,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
         return _sample_volatility(returns)
 
     def _calculate_downside_volatility(self, returns: Sequence[float]) -> float:
-        downside = [
-            min(0.0, value - self.target_return)
-            for value in returns
-        ]
+        downside = [min(0.0, value - self.target_return) for value in returns]
         return sqrt(_mean([x * x for x in downside]))
 
     def _calculate_max_drawdown(
@@ -455,8 +446,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
     ) -> float:
         beta = self._calculate_beta(portfolio_returns, benchmark_returns)
         return _mean(portfolio_returns) - (
-            self.risk_free_rate
-            + beta * (_mean(benchmark_returns) - self.risk_free_rate)
+            self.risk_free_rate + beta * (_mean(benchmark_returns) - self.risk_free_rate)
         )
 
     def _calculate_tracking_error(
@@ -464,10 +454,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
         portfolio_returns: Sequence[float],
         benchmark_returns: Sequence[float],
     ) -> float:
-        active = [
-            p - b
-            for p, b in zip(portfolio_returns, benchmark_returns)
-        ]
+        active = [p - b for p, b in zip(portfolio_returns, benchmark_returns)]
         return _sample_volatility(active)
 
     def _calculate_information_ratio(
@@ -475,10 +462,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
         portfolio_returns: Sequence[float],
         benchmark_returns: Sequence[float],
     ) -> float:
-        active = [
-            p - b
-            for p, b in zip(portfolio_returns, benchmark_returns)
-        ]
+        active = [p - b for p, b in zip(portfolio_returns, benchmark_returns)]
         return _safe_div(_mean(active), _sample_volatility(active))
 
     @staticmethod
@@ -491,7 +475,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
     def calculate_risk_metrics(
         self,
         performance: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         observations = self._observations(performance)
         if len(observations) < self.minimum_history:
             raise ValueError(REASON_INSUFFICIENT_HISTORY)
@@ -528,10 +512,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
             ),
             cumulative_return=self._compound(portfolio_returns),
             benchmark_cumulative_return=self._compound(benchmark_returns),
-            active_return=(
-                self._compound(portfolio_returns)
-                - self._compound(benchmark_returns)
-            ),
+            active_return=(self._compound(portfolio_returns) - self._compound(benchmark_returns)),
         )
         return metrics.to_dict()
 
@@ -553,12 +534,12 @@ class EROSBlock93PerformanceRiskAttributionEngine:
     def calculate_attribution(
         self,
         performance: Mapping[str, Any],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         raw = self._attribution_source(performance)
         if not raw:
             return []
 
-        records: List[AttributionRecord] = []
+        records: list[AttributionRecord] = []
         for item in raw:
             if not isinstance(item, Mapping):
                 raise ValueError(REASON_INVALID_SECURITY_DATA)
@@ -567,18 +548,10 @@ class EROSBlock93PerformanceRiskAttributionEngine:
             if not symbol:
                 raise ValueError(REASON_INVALID_SECURITY_DATA)
 
-            portfolio_weight = _number(
-                item.get("portfolio_weight", item.get("weight", 0.0))
-            )
-            benchmark_weight = _number(
-                item.get("benchmark_weight", 0.0)
-            )
-            portfolio_return = _number(
-                item.get("portfolio_return", item.get("return", 0.0))
-            )
-            benchmark_return = _number(
-                item.get("benchmark_return", 0.0)
-            )
+            portfolio_weight = _number(item.get("portfolio_weight", item.get("weight", 0.0)))
+            benchmark_weight = _number(item.get("benchmark_weight", 0.0))
+            portfolio_return = _number(item.get("portfolio_return", item.get("return", 0.0)))
+            benchmark_return = _number(item.get("benchmark_return", 0.0))
 
             records.append(
                 AttributionRecord(
@@ -590,8 +563,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
                     portfolio_contribution=portfolio_weight * portfolio_return,
                     benchmark_contribution=benchmark_weight * benchmark_return,
                     active_contribution=(
-                        portfolio_weight * portfolio_return
-                        - benchmark_weight * benchmark_return
+                        portfolio_weight * portfolio_return - benchmark_weight * benchmark_return
                     ),
                 )
             )
@@ -602,7 +574,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
     def benchmark_risk(
         self,
         performance: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         observations = self._observations(performance)
         if len(observations) < self.minimum_history:
             raise ValueError(REASON_INSUFFICIENT_HISTORY)
@@ -614,14 +586,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
             "benchmark_cumulative_return": _round(self._compound(benchmark)),
             "benchmark_mean_return": _round(_mean(benchmark)),
             "benchmark_downside_volatility": _round(
-                sqrt(
-                    _mean(
-                        [
-                            min(0.0, x - self.target_return) ** 2
-                            for x in benchmark
-                        ]
-                    )
-                )
+                sqrt(_mean([min(0.0, x - self.target_return) ** 2 for x in benchmark]))
             ),
         }
 
@@ -637,7 +602,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
         attribution: Sequence[Mapping[str, Any]],
         status: str,
         reason_code: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return {
             "version": BLOCK93_VERSION,
             "status": status,
@@ -681,10 +646,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
             decision_id=payload["decision_id"],
             observation_count=int(metrics.get("observation_count", 0)),
             metrics=_immutable_copy(dict(metrics)),
-            attribution=tuple(
-                _immutable_copy(dict(x))
-                for x in attribution
-            ),
+            attribution=tuple(_immutable_copy(dict(x)) for x in attribution),
             certificate_hash=digest,
         )
 
@@ -695,7 +657,7 @@ class EROSBlock93PerformanceRiskAttributionEngine:
     def certify(
         self,
         performance: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if not isinstance(performance, Mapping):
             return {
                 "status": STATUS_BLOCKED,
@@ -777,32 +739,28 @@ class EROSBlock93PerformanceRiskAttributionEngine:
     def value_performance(
         self,
         performance: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Alias-style analytical entry point for downstream consumers."""
         return self.certify(performance)
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return {
             "version": BLOCK93_VERSION,
             "certificate_count": len(self._certificates),
             "performance_count": len(self._performance_ids),
             "history_count": len(self._history),
             "certificates": [
-                self._certificates[key].to_dict()
-                for key in sorted(self._certificates)
+                self._certificates[key].to_dict() for key in sorted(self._certificates)
             ],
         }
 
-    def certificate_history(self) -> List[Dict[str, Any]]:
-        return [
-            dict(item)
-            for item in self._history
-        ]
+    def certificate_history(self) -> list[dict[str, Any]]:
+        return [dict(item) for item in self._history]
 
     def get_certificate(
         self,
         certificate_id: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         certificate = self._certificates.get(_text(certificate_id))
         return certificate.to_dict() if certificate else None
 
@@ -810,37 +768,37 @@ class EROSBlock93PerformanceRiskAttributionEngine:
     # Explicit forbidden-operation API
     # ------------------------------------------------------
 
-    def create_order(self, *_: Any, **__: Any) -> Dict[str, Any]:
+    def create_order(self, *_: Any, **__: Any) -> dict[str, Any]:
         return {
             "status": STATUS_BLOCKED,
             "reason_code": "ORDER_CREATION_FORBIDDEN",
         }
 
-    def submit_broker_order(self, *_: Any, **__: Any) -> Dict[str, Any]:
+    def submit_broker_order(self, *_: Any, **__: Any) -> dict[str, Any]:
         return {
             "status": STATUS_BLOCKED,
             "reason_code": "BROKER_SUBMISSION_FORBIDDEN",
         }
 
-    def execute_live_order(self, *_: Any, **__: Any) -> Dict[str, Any]:
+    def execute_live_order(self, *_: Any, **__: Any) -> dict[str, Any]:
         return {
             "status": STATUS_BLOCKED,
             "reason_code": "LIVE_EXECUTION_FORBIDDEN",
         }
 
-    def mutate_portfolio(self, *_: Any, **__: Any) -> Dict[str, Any]:
+    def mutate_portfolio(self, *_: Any, **__: Any) -> dict[str, Any]:
         return {
             "status": STATUS_BLOCKED,
             "reason_code": "PORTFOLIO_MUTATION_FORBIDDEN",
         }
 
-    def mutate_valuation(self, *_: Any, **__: Any) -> Dict[str, Any]:
+    def mutate_valuation(self, *_: Any, **__: Any) -> dict[str, Any]:
         return {
             "status": STATUS_BLOCKED,
             "reason_code": "VALUATION_MUTATION_FORBIDDEN",
         }
 
-    def optimize_portfolio(self, *_: Any, **__: Any) -> Dict[str, Any]:
+    def optimize_portfolio(self, *_: Any, **__: Any) -> dict[str, Any]:
         return {
             "status": STATUS_BLOCKED,
             "reason_code": "PORTFOLIO_OPTIMIZATION_FORBIDDEN",

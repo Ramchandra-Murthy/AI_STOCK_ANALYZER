@@ -1,1 +1,15 @@
-/home/runner/work/_temp/708d064a-00fd-41da-a15d-079eb26f5a97.sh: line 3: black: command not found
+error: cannot format /home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/archive/legacy/modules/researchold.py: Cannot parse for target version Python 3.13: 131:4
+        st.subheader("🤖 AI Recommendation")
+       ^
+ParseError: bad input
+error: cannot format /home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/logs/block100_actual_blocked_return_safety_trace.py: Cannot parse for target version Python 3.13: 86:8
+            '"performance_mutation'",
+           ^
+TokenError: Failed to parse: UnterminatedString
+error: cannot format /home/runner/work/AI_STOCK_ANALYZER/AI_STOCK_ANALYZER/logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py: Cannot parse for target version Python 3.13: 3197:20
+            _v382_trace = _v381_trace if isinstance(_v381_trace, dict) else {}
+                       ^
+ParseError: bad input
+
+Oh no! 💥 💔 💥
+1487 files would be left unchanged, 3 files would fail to reformat.

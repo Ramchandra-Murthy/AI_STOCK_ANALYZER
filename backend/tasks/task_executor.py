@@ -1,28 +1,39 @@
 ﻿from __future__ import annotations
-from backend.exceptions import ValidationError
+
 import logging
-import os
-from typing import Dict, Any
-from backend.tasks.task_context import TaskContext
-from backend.services.valuation_service import ValuationService
+from typing import Any
+
 from backend.database.engine import SessionLocal
-from backend.database.repositories.forecast_report_repository import ForecastRepository, ReportRepository
+from backend.database.repositories.forecast_report_repository import (
+    ForecastRepository,
+    ReportRepository,
+)
+from backend.services.valuation_service import ValuationService
+from backend.tasks.task_context import TaskContext
 from services.forecasting.models import ForecastScenario
 from services.forecasting.scenario_engine import ScenarioIntelligenceEngine
 from services.report.engine import ReportEngine
 
 logger = logging.getLogger(__name__)
 
+
 class BackgroundWorkers:
     @staticmethod
-    def execute_report_task(context: TaskContext) -> Dict[str, Any]:
-        logger.info("Worker processing report task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+    def execute_report_task(context: TaskContext) -> dict[str, Any]:
+        logger.info(
+            "Worker processing report task %s for user %s with payload: %s",
+            context.task_id,
+            context.user,
+            context.payload,
+        )
         symbol = context.payload.get("symbol", "TCS.NS")
         format_type = context.payload.get("format_type", "MULTI-FORMAT")
         analysis_data = context.payload.get("analysis_data", {})
 
         engine = ReportEngine()
-        report = engine.generate(symbol=symbol, format_type=format_type, analysis_data=analysis_data)
+        report = engine.generate(
+            symbol=symbol, format_type=format_type, analysis_data=analysis_data
+        )
         report_id = f"{symbol}-REPORT-2026-Q2"
 
         session = SessionLocal()
@@ -51,8 +62,13 @@ class BackgroundWorkers:
         }
 
     @staticmethod
-    def execute_forecast_task(context: TaskContext) -> Dict[str, Any]:
-        logger.info("Worker processing forecast task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+    def execute_forecast_task(context: TaskContext) -> dict[str, Any]:
+        logger.info(
+            "Worker processing forecast task %s for user %s with payload: %s",
+            context.task_id,
+            context.user,
+            context.payload,
+        )
         symbol = context.payload.get("symbol", "TCS.NS")
 
         scenarios = [
@@ -138,21 +154,29 @@ class BackgroundWorkers:
         }
 
     @staticmethod
-    def execute_valuation_task(context: TaskContext) -> Dict[str, Any]:
-        logger.info("Worker processing valuation task %s for user %s with payload: %s", context.task_id, context.user, context.payload)
+    def execute_valuation_task(context: TaskContext) -> dict[str, Any]:
+        logger.info(
+            "Worker processing valuation task %s for user %s with payload: %s",
+            context.task_id,
+            context.user,
+            context.payload,
+        )
         session = SessionLocal()
         try:
             symbol = context.payload.get("symbol", "TCS.NS")
-            result = ValuationService.execute_and_persist_valuation(session, symbol, context.payload)
+            result = ValuationService.execute_and_persist_valuation(
+                session, symbol, context.payload
+            )
             return {
                 "status": "SUCCESS",
                 "task_id": str(context.task_id),
                 "user": str(context.user),
                 "symbol": symbol,
-                "result": result
+                "result": result,
             }
         finally:
             session.close()
+
 
 def _extract_context(*args, **kwargs):
     """
@@ -232,7 +256,9 @@ def _extract_context(*args, **kwargs):
         payload,
         workflow_id,
     )
-def celery_valuation_wrapper(*args, **kwargs) -> Dict[str, Any]:
+
+
+def celery_valuation_wrapper(*args, **kwargs) -> dict[str, Any]:
     task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
     context = TaskContext(
         task_id=task_id,
@@ -246,7 +272,8 @@ def celery_valuation_wrapper(*args, **kwargs) -> Dict[str, Any]:
         res["workflow_id"] = workflow_id
     return res
 
-def celery_forecast_wrapper(*args, **kwargs) -> Dict[str, Any]:
+
+def celery_forecast_wrapper(*args, **kwargs) -> dict[str, Any]:
     task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
     context = TaskContext(
         task_id=task_id,
@@ -265,7 +292,8 @@ def celery_forecast_wrapper(*args, **kwargs) -> Dict[str, Any]:
             res["workflow_id"] = workflow_id
     return res
 
-def celery_report_wrapper(*args, **kwargs) -> Dict[str, Any]:
+
+def celery_report_wrapper(*args, **kwargs) -> dict[str, Any]:
     task_id, task_name, user, payload, workflow_id = _extract_context(*args, **kwargs)
     context = TaskContext(
         task_id=task_id,
@@ -281,5 +309,3 @@ def celery_report_wrapper(*args, **kwargs) -> Dict[str, Any]:
         if isinstance(res, dict):
             res["workflow_id"] = workflow_id
     return res
-
-

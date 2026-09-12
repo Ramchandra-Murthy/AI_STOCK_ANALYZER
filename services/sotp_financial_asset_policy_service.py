@@ -121,9 +121,7 @@ def evaluate_financial_asset_policy(symbol: str) -> dict:
     equity_gap = None
     equity_reconciles = False
 
-    if isinstance(joint_ventures, (int, float)) and isinstance(
-        associates, (int, float)
-    ):
+    if isinstance(joint_ventures, (int, float)) and isinstance(associates, (int, float)):
         equity_component_total = round(
             joint_ventures + associates,
             2,

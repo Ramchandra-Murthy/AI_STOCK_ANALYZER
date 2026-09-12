@@ -173,10 +173,7 @@ if app is not None:
 
             spec = response.json()
 
-            schemes = (
-                spec.get("components", {})
-                    .get("securitySchemes", {})
-            )
+            schemes = spec.get("components", {}).get("securitySchemes", {})
 
             print("SECURITY SCHEMES:", schemes)
             print("GLOBAL SECURITY:", spec.get("security", []))
@@ -191,9 +188,7 @@ if app is not None:
                         continue
 
                     if operation.get("security"):
-                        secured.append(
-                            (path, method.upper())
-                        )
+                        secured.append((path, method.upper()))
 
             print("SECURED OPERATIONS:", len(secured))
 
@@ -224,16 +219,10 @@ try:
     print("DATABASE_URL CONFIGURED:", bool(settings.DATABASE_URL))
     print("REDIS_URL CONFIGURED:", bool(settings.REDIS_URL))
     print("JWT_ALGORITHM:", settings.JWT_ALGORITHM)
-    print(
-        "ACCESS_TOKEN_EXPIRE_MINUTES:",
-        settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    print("ACCESS_TOKEN_EXPIRE_MINUTES:", settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     print("AUTH_ENABLED:", settings.AUTH_ENABLED)
 
-    jwt_secret = (
-        getattr(settings, "JWT_SECRET", None)
-        or getattr(settings, "SECRET_KEY", None)
-    )
+    jwt_secret = getattr(settings, "JWT_SECRET", None) or getattr(settings, "SECRET_KEY", None)
 
     print("JWT_SECRET CONFIGURED:", bool(jwt_secret))
 
@@ -264,14 +253,9 @@ try:
         print("ISSUER:", decoded.get("iss"))
         print("EXP:", decoded.get("exp"))
 
-    invalid = JWTSecurity.decode_access_token(
-        "invalid.jwt.token"
-    )
+    invalid = JWTSecurity.decode_access_token("invalid.jwt.token")
 
-    print(
-        "INVALID TOKEN RETURNS NONE:",
-        invalid is None
-    )
+    print("INVALID TOKEN RETURNS NONE:", invalid is None)
 
     jwt_ok = bool(token and decoded and invalid is None)
 
@@ -352,11 +336,7 @@ if app is not None:
                 "->",
                 status_code,
                 "|",
-                (
-                    "SECURITY_ENFORCED"
-                    if protected
-                    else "OPEN_OR_UNAVAILABLE"
-                ),
+                ("SECURITY_ENFORCED" if protected else "OPEN_OR_UNAVAILABLE"),
             )
 
         print(
@@ -369,11 +349,7 @@ if app is not None:
         auth_ok = protected_count == len(tests)
 
     except Exception as exc:
-        print(
-            "AUTH GATE FAIL:",
-            type(exc).__name__,
-            str(exc)
-        )
+        print("AUTH GATE FAIL:", type(exc).__name__, str(exc))
 
 else:
     print("SKIPPED - APPLICATION IMPORT FAILED")
@@ -414,17 +390,11 @@ if app is not None:
         )
 
         regression_ok = (
-            openapi.status_code == 200
-            and health.status_code == 200
-            and ready.status_code == 200
+            openapi.status_code == 200 and health.status_code == 200 and ready.status_code == 200
         )
 
     except Exception as exc:
-        print(
-            "REGRESSION FAIL:",
-            type(exc).__name__,
-            str(exc)
-        )
+        print("REGRESSION FAIL:", type(exc).__name__, str(exc))
 
 else:
     print("SKIPPED - APPLICATION IMPORT FAILED")
@@ -440,31 +410,14 @@ print("=" * 50)
 print("ROUTER COMPILE:", "PASS" if compile_ok else "FAIL")
 print("APPLICATION IMPORT:", "PASS" if import_ok else "FAIL")
 print("JWT FUNCTIONAL:", "PASS" if jwt_ok else "FAIL")
-print(
-    "UNAUTHENTICATED SECURITY:",
-    "PASS" if auth_ok else "FAIL"
-)
-print(
-    "INFRASTRUCTURE:",
-    "PASS" if regression_ok else "FAIL"
-)
+print("UNAUTHENTICATED SECURITY:", "PASS" if auth_ok else "FAIL")
+print("INFRASTRUCTURE:", "PASS" if regression_ok else "FAIL")
 
-overall = (
-    compile_ok
-    and import_ok
-    and jwt_ok
-    and regression_ok
-)
+overall = compile_ok and import_ok and jwt_ok and regression_ok
 
-print(
-    "OVERALL SECURITY GATE:",
-    "PASS" if overall else "FAIL"
-)
+print("OVERALL SECURITY GATE:", "PASS" if overall else "FAIL")
 
-print(
-    "PRODUCTION STATUS:",
-    "READY" if overall else "BLOCKED"
-)
+print("PRODUCTION STATUS:", "READY" if overall else "BLOCKED")
 
 print("=" * 50)
 print("BLOCK 31K-CG COMPLETE")

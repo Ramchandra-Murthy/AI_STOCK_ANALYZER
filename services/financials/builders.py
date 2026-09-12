@@ -42,11 +42,7 @@ def build_dcf_input(
     income = fs.income_statement
     balance = fs.balance_sheet
 
-    dna_ratio = (
-        income.depreciation_and_amortization / income.revenue
-        if income.revenue > 0
-        else 0.0
-    )
+    dna_ratio = income.depreciation_and_amortization / income.revenue if income.revenue > 0 else 0.0
 
     preferred_stock_val = getattr(balance, "preferred_stock", 0.0)
 

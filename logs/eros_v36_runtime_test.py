@@ -2,7 +2,6 @@ import json
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 60)
 print("EROS 3.0 - V3.6 DECISION CONVERGENCE ENGINE - RUNTIME")
 print("=" * 60)
@@ -60,13 +59,7 @@ print("PRICE  :", result.get("price"))
 print("\n4. RAW CONVERGENCE OUTPUT")
 print("-" * 60)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 print("\n5. REQUIRED TOP-LEVEL STRUCTURE")
@@ -107,9 +100,7 @@ for field in [
     print(f"{field:35} : {'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_DECISION_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_DECISION_FIELD:{field}")
 
 
 print("\n7. CONVERGENCE STRUCTURE")
@@ -132,9 +123,7 @@ for field in [
     print(f"{field:35} : {'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_CONVERGENCE_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_CONVERGENCE_FIELD:{field}")
 
 
 print("\n8. SCENARIO STRUCTURE")
@@ -146,15 +135,10 @@ for scenario_name in [
     "bear_invalidation",
 ]:
     ok = scenario_name in convergence
-    print(
-        f"{scenario_name.upper():35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{scenario_name.upper():35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_SCENARIO:{scenario_name}"
-        )
+        raise RuntimeError(f"MISSING_SCENARIO:{scenario_name}")
 
 
 print("\n9. INTERPRETATION STRUCTURE")
@@ -172,9 +156,7 @@ for field in [
     print(f"{field:35} : {'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_INTERPRETATION_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_INTERPRETATION_FIELD:{field}")
 
 
 print("\n10. CONCLUSION")
@@ -215,32 +197,20 @@ for field in expected_true:
     actual = safety.get(field)
     ok = actual is True
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=True)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 for field in expected_false:
     actual = safety.get(field)
     ok = actual is False
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=False)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 print("\n12. DATABASE WRITE-PATH")

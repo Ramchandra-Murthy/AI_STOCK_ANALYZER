@@ -1,7 +1,8 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
+from typing import Any
+
 
 @dataclass(frozen=True)
 class CanonicalIncomeStatement:
@@ -27,7 +28,8 @@ class CanonicalIncomeStatement:
     diluted_eps: float = 0.0
     shares_outstanding: float = 0.0
     diluted_shares: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass(frozen=True)
 class CanonicalBalanceSheet:
@@ -60,7 +62,8 @@ class CanonicalBalanceSheet:
     treasury_stock: float = 0.0
     minority_interest: float = 0.0
     shareholders_equity: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass(frozen=True)
 class CanonicalCashFlowStatement:
@@ -85,4 +88,4 @@ class CanonicalCashFlowStatement:
     equity_issued: float = 0.0
     free_cash_flow: float = 0.0
     owner_earnings: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)

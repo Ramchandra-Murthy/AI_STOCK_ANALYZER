@@ -1,5 +1,5 @@
-from pathlib import Path
 import re
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -75,9 +75,7 @@ for block_id, path in targets.items():
 
             marker = ">>" if n == line_no else "  "
 
-            print(
-                f"{marker} L{n}: {lines[n-1]}"
-            )
+            print(f"{marker} L{n}: {lines[n-1]}")
 
 print()
 print("=" * 100)

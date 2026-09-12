@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-
 from typing import Any
 
 from services.sotp_valuation_service import generate_sotp_valuation
@@ -150,9 +149,7 @@ def validate_sotp_valuation(
             "reported_gross_enterprise_value": gross_ev,
             "gross_ev_reconciles": gross_reconciles,
             "expected_equity_value": (
-                round(expected_equity_value, 2)
-                if expected_equity_value is not None
-                else None
+                round(expected_equity_value, 2) if expected_equity_value is not None else None
             ),
             "reported_equity_value": equity_value,
             "equity_value_reconciles": equity_reconciles,
@@ -300,10 +297,10 @@ def validate_sotp_valuation(
     if not retail_cap_respected:
         failures.append("RETAIL_MULTIPLE_CAP_FAILED")
 
-    if retail_multiple is not None and math.isclose(retail_multiple, 30.0, rel_tol=0.0, abs_tol=1e-9):
-        warnings.append(
-            "Retail valuation is operating at the 30x " "EV/EBITDA policy cap."
-        )
+    if retail_multiple is not None and math.isclose(
+        retail_multiple, 30.0, rel_tol=0.0, abs_tol=1e-9
+    ):
+        warnings.append("Retail valuation is operating at the 30x " "EV/EBITDA policy cap.")
 
     # --------------------------------------------------
     # 9. STATUS INTEGRITY
@@ -352,14 +349,10 @@ def validate_sotp_valuation(
             "status_consistent": (status_consistent),
         },
         "reconciliation": {
-            "calculated_operating_enterprise_value": (
-                round(calculated_operating_ev, 2)
-            ),
+            "calculated_operating_enterprise_value": (round(calculated_operating_ev, 2)),
             "reported_operating_enterprise_value": (reported_operating_ev),
             "calculated_fair_value_per_share": (
-                round(calculated_fair_value, 2)
-                if calculated_fair_value is not None
-                else None
+                round(calculated_fair_value, 2) if calculated_fair_value is not None else None
             ),
             "reported_fair_value_per_share": (headline_fair_value),
         },

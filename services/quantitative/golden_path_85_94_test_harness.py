@@ -73,15 +73,14 @@ not exist.
 ===============================================================
 """
 
-import inspect
 import importlib
+import inspect
 import json
 import math
-import sys
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, is_dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Mapping, Optional
-
+from datetime import UTC, datetime
+from typing import Any
 
 # ===============================================================
 # CONSTANTS
@@ -120,16 +119,17 @@ MODULES = {
 # RESULT TYPES
 # ===============================================================
 
+
 @dataclass(frozen=True)
 class DiscoveryRecord:
     block: int
     module: str
-    engine_class: Optional[str]
-    constructor: Optional[str]
-    methods: Dict[str, str]
-    module_functions: Dict[str, str]
+    engine_class: str | None
+    constructor: str | None
+    methods: dict[str, str]
+    module_functions: dict[str, str]
     status: str
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass(frozen=True)
@@ -138,8 +138,8 @@ class GoldenPathResult:
     engine_version: str
     blocks_checked: int
     blocks_passed: int
-    discovery_records: List[Dict[str, Any]]
-    architectural_invariants: Dict[str, bool]
+    discovery_records: list[dict[str, Any]]
+    architectural_invariants: dict[str, bool]
     broker_submission: bool
     live_order_submission: bool
     portfolio_mutation: bool
@@ -151,6 +151,7 @@ class GoldenPathResult:
 # ===============================================================
 # UTILITY FUNCTIONS
 # ===============================================================
+
 
 def _safe_signature(obj: Any) -> str:
     """
@@ -185,21 +186,15 @@ def _safe_json(value: Any) -> Any:
         return _safe_json(asdict(value))
 
     if isinstance(value, Mapping):
-        return {
-            str(key): _safe_json(item)
-            for key, item in value.items()
-        }
+        return {str(key): _safe_json(item) for key, item in value.items()}
 
     if isinstance(value, (list, tuple, set)):
-        return [
-            _safe_json(item)
-            for item in value
-        ]
+        return [_safe_json(item) for item in value]
 
     return repr(value)
 
 
-def _find_engine_class(module: Any) -> Optional[type]:
+def _find_engine_class(module: Any) -> type | None:
     """
     Locate the EROSBlockXX engine class belonging to the module.
     """
@@ -222,19 +217,17 @@ def _find_engine_class(module: Any) -> Optional[type]:
     if not candidates:
         return None
 
-    candidates.sort(
-        key=lambda cls: cls.__name__
-    )
+    candidates.sort(key=lambda cls: cls.__name__)
 
     return candidates[0]
 
 
-def _discover_methods(engine_class: type) -> Dict[str, str]:
+def _discover_methods(engine_class: type) -> dict[str, str]:
     """
     Discover public methods defined by the engine.
     """
 
-    result: Dict[str, str] = {}
+    result: dict[str, str] = {}
 
     for name, method in inspect.getmembers(
         engine_class,
@@ -246,17 +239,15 @@ def _discover_methods(engine_class: type) -> Dict[str, str]:
 
         result[name] = _safe_signature(method)
 
-    return dict(
-        sorted(result.items())
-    )
+    return dict(sorted(result.items()))
 
 
-def _discover_module_functions(module: Any) -> Dict[str, str]:
+def _discover_module_functions(module: Any) -> dict[str, str]:
     """
     Discover public module-level functions.
     """
 
-    result: Dict[str, str] = {}
+    result: dict[str, str] = {}
 
     for name, obj in vars(module).items():
 
@@ -268,14 +259,13 @@ def _discover_module_functions(module: Any) -> Dict[str, str]:
 
         result[name] = _safe_signature(obj)
 
-    return dict(
-        sorted(result.items())
-    )
+    return dict(sorted(result.items()))
 
 
 # ===============================================================
 # BLOCK DISCOVERY
 # ===============================================================
+
 
 def discover_block(block_number: int) -> DiscoveryRecord:
     """
@@ -292,9 +282,7 @@ def discover_block(block_number: int) -> DiscoveryRecord:
 
     try:
 
-        module = importlib.import_module(
-            module_name
-        )
+        module = importlib.import_module(module_name)
 
     except Exception as exc:
 
@@ -306,16 +294,10 @@ def discover_block(block_number: int) -> DiscoveryRecord:
             methods={},
             module_functions={},
             status="FAIL",
-            error=(
-                f"IMPORT_ERROR:"
-                f"{type(exc).__name__}:"
-                f"{exc}"
-            ),
+            error=(f"IMPORT_ERROR:" f"{type(exc).__name__}:" f"{exc}"),
         )
 
-    engine_class = _find_engine_class(
-        module
-    )
+    engine_class = _find_engine_class(module)
 
     if engine_class is None:
 
@@ -330,17 +312,11 @@ def discover_block(block_number: int) -> DiscoveryRecord:
             error="NO_EROS_ENGINE_CLASS_FOUND",
         )
 
-    constructor = _safe_signature(
-        engine_class
-    )
+    constructor = _safe_signature(engine_class)
 
-    methods = _discover_methods(
-        engine_class
-    )
+    methods = _discover_methods(engine_class)
 
-    module_functions = _discover_module_functions(
-        module
-    )
+    module_functions = _discover_module_functions(module)
 
     return DiscoveryRecord(
         block=block_number,
@@ -354,7 +330,7 @@ def discover_block(block_number: int) -> DiscoveryRecord:
     )
 
 
-def discover_all_blocks() -> List[DiscoveryRecord]:
+def discover_all_blocks() -> list[DiscoveryRecord]:
     """
     Discover Blocks 85 through 94.
     """
@@ -363,9 +339,7 @@ def discover_all_blocks() -> List[DiscoveryRecord]:
 
     for block_number in EXPECTED_BLOCKS:
 
-        record = discover_block(
-            block_number
-        )
+        record = discover_block(block_number)
 
         records.append(record)
 
@@ -376,101 +350,60 @@ def discover_all_blocks() -> List[DiscoveryRecord]:
 # ARCHITECTURAL INVARIANTS
 # ===============================================================
 
+
 def verify_architectural_invariants(
-    records: List[DiscoveryRecord],
-) -> Dict[str, bool]:
+    records: list[DiscoveryRecord],
+) -> dict[str, bool]:
     """
     Verify structural requirements for the Golden Path.
 
     This function does not execute business operations.
     """
 
-    result: Dict[str, bool] = {}
+    result: dict[str, bool] = {}
 
-    result[
-        "all_blocks_present"
-    ] = (
-        len(records) == len(EXPECTED_BLOCKS)
+    result["all_blocks_present"] = len(records) == len(EXPECTED_BLOCKS)
+
+    result["all_imports_pass"] = all(record.status == "PASS" for record in records)
+
+    result["all_engine_classes_present"] = all(
+        record.engine_class is not None for record in records
     )
 
-    result[
-        "all_imports_pass"
-    ] = all(
-        record.status == "PASS"
+    result["block_90_state_exists"] = any(
+        record.block == 90 and record.engine_class == "EROSBlock90PortfolioStateEngine"
         for record in records
     )
 
-    result[
-        "all_engine_classes_present"
-    ] = all(
-        record.engine_class is not None
+    result["block_91_valuation_exists"] = any(
+        record.block == 91 and record.engine_class == "EROSBlock91PortfolioValuationEngine"
         for record in records
     )
 
-    result[
-        "block_90_state_exists"
-    ] = any(
-        record.block == 90
-        and record.engine_class
-        == "EROSBlock90PortfolioStateEngine"
+    result["block_92_performance_exists"] = any(
+        record.block == 92 and record.engine_class == "EROSBlock92PortfolioPerformanceEngine"
         for record in records
     )
 
-    result[
-        "block_91_valuation_exists"
-    ] = any(
-        record.block == 91
-        and record.engine_class
-        == "EROSBlock91PortfolioValuationEngine"
+    result["block_93_risk_exists"] = any(
+        record.block == 93 and record.engine_class == "EROSBlock93PerformanceRiskAttributionEngine"
         for record in records
     )
 
-    result[
-        "block_92_performance_exists"
-    ] = any(
-        record.block == 92
-        and record.engine_class
-        == "EROSBlock92PortfolioPerformanceEngine"
+    result["block_94_stress_exists"] = any(
+        record.block == 94 and record.engine_class == "EROSBlock94PortfolioStressScenarioEngine"
         for record in records
     )
 
-    result[
-        "block_93_risk_exists"
-    ] = any(
-        record.block == 93
-        and record.engine_class
-        == "EROSBlock93PerformanceRiskAttributionEngine"
-        for record in records
-    )
+    result["no_live_execution_claim"] = True
 
-    result[
-        "block_94_stress_exists"
-    ] = any(
-        record.block == 94
-        and record.engine_class
-        == "EROSBlock94PortfolioStressScenarioEngine"
-        for record in records
-    )
+    result["no_broker_submission"] = True
 
-    result[
-        "no_live_execution_claim"
-    ] = True
+    result["no_portfolio_mutation"] = True
 
-    result[
-        "no_broker_submission"
-    ] = True
+    result["no_valuation_mutation"] = True
 
-    result[
-        "no_portfolio_mutation"
-    ] = True
-
-    result[
-        "no_valuation_mutation"
-    ] = True
-
-    result[
-        "lineage_integration_not_bypassed"
-    ] = True
+    result["lineage_integration_not_bypassed"] = True
 
     return result
 
@@ -478,6 +411,7 @@ def verify_architectural_invariants(
 # ===============================================================
 # GOLDEN PATH ENGINE
 # ===============================================================
+
 
 class EROSGoldenPath85To94Engine:
     """
@@ -501,44 +435,36 @@ class EROSGoldenPath85To94Engine:
 
         self.strict = bool(strict)
 
-        self._records: List[
-            DiscoveryRecord
-        ] = []
+        self._records: list[DiscoveryRecord] = []
 
-        self._created_at = datetime.now(
-            timezone.utc
-        )
+        self._created_at = datetime.now(UTC)
 
     # -----------------------------------------------------------
     # DISCOVERY
     # -----------------------------------------------------------
 
-    def discover(self) -> List[DiscoveryRecord]:
+    def discover(self) -> list[DiscoveryRecord]:
 
         self._records = discover_all_blocks()
 
-        return list(
-            self._records
-        )
+        return list(self._records)
 
     # -----------------------------------------------------------
     # INVARIANTS
     # -----------------------------------------------------------
 
-    def invariants(self) -> Dict[str, bool]:
+    def invariants(self) -> dict[str, bool]:
 
         if not self._records:
             self.discover()
 
-        return verify_architectural_invariants(
-            self._records
-        )
+        return verify_architectural_invariants(self._records)
 
     # -----------------------------------------------------------
     # READ-ONLY SNAPSHOT
     # -----------------------------------------------------------
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
 
         if not self._records:
             self.discover()
@@ -574,33 +500,16 @@ class EROSGoldenPath85To94Engine:
 
         invariants = self.invariants()
 
-        passed = sum(
-            1
-            for record in self._records
-            if record.status == "PASS"
-        )
+        passed = sum(1 for record in self._records if record.status == "PASS")
 
-        all_pass = all(
-            invariants.values()
-        )
+        all_pass = all(invariants.values())
 
         return GoldenPathResult(
-            status=(
-                "CERTIFIED"
-                if all_pass
-                else "BLOCKED"
-            ),
+            status=("CERTIFIED" if all_pass else "BLOCKED"),
             engine_version=ENGINE_VERSION,
-            blocks_checked=len(
-                self._records
-            ),
+            blocks_checked=len(self._records),
             blocks_passed=passed,
-            discovery_records=[
-                _safe_json(
-                    asdict(record)
-                )
-                for record in self._records
-            ],
+            discovery_records=[_safe_json(asdict(record)) for record in self._records],
             architectural_invariants=invariants,
             broker_submission=False,
             live_order_submission=False,
@@ -614,8 +523,7 @@ class EROSGoldenPath85To94Engine:
                 "intentionally not performed "
                 "until fixture wiring is locked."
                 if all_pass
-                else
-                "Golden Path discovery failed."
+                else "Golden Path discovery failed."
             ),
         )
 
@@ -624,24 +532,19 @@ class EROSGoldenPath85To94Engine:
 # TEST FUNCTIONS
 # ===============================================================
 
+
 def test_all_modules_import() -> bool:
 
     records = discover_all_blocks()
 
-    return all(
-        record.status == "PASS"
-        for record in records
-    )
+    return all(record.status == "PASS" for record in records)
 
 
 def test_all_engine_classes_exist() -> bool:
 
     records = discover_all_blocks()
 
-    return all(
-        record.engine_class
-        for record in records
-    )
+    return all(record.engine_class for record in records)
 
 
 def test_block_90_exists() -> bool:
@@ -649,9 +552,7 @@ def test_block_90_exists() -> bool:
     records = discover_all_blocks()
 
     return any(
-        record.block == 90
-        and record.engine_class
-        == "EROSBlock90PortfolioStateEngine"
+        record.block == 90 and record.engine_class == "EROSBlock90PortfolioStateEngine"
         for record in records
     )
 
@@ -661,9 +562,7 @@ def test_block_91_exists() -> bool:
     records = discover_all_blocks()
 
     return any(
-        record.block == 91
-        and record.engine_class
-        == "EROSBlock91PortfolioValuationEngine"
+        record.block == 91 and record.engine_class == "EROSBlock91PortfolioValuationEngine"
         for record in records
     )
 
@@ -673,9 +572,7 @@ def test_block_92_exists() -> bool:
     records = discover_all_blocks()
 
     return any(
-        record.block == 92
-        and record.engine_class
-        == "EROSBlock92PortfolioPerformanceEngine"
+        record.block == 92 and record.engine_class == "EROSBlock92PortfolioPerformanceEngine"
         for record in records
     )
 
@@ -685,9 +582,7 @@ def test_block_93_exists() -> bool:
     records = discover_all_blocks()
 
     return any(
-        record.block == 93
-        and record.engine_class
-        == "EROSBlock93PerformanceRiskAttributionEngine"
+        record.block == 93 and record.engine_class == "EROSBlock93PerformanceRiskAttributionEngine"
         for record in records
     )
 
@@ -697,9 +592,7 @@ def test_block_94_exists() -> bool:
     records = discover_all_blocks()
 
     return any(
-        record.block == 94
-        and record.engine_class
-        == "EROSBlock94PortfolioStressScenarioEngine"
+        record.block == 94 and record.engine_class == "EROSBlock94PortfolioStressScenarioEngine"
         for record in records
     )
 
@@ -780,19 +673,18 @@ TESTS = [
 # MAIN TEST RUNNER
 # ===============================================================
 
-def run_self_test() -> Dict[str, Any]:
+
+def run_self_test() -> dict[str, Any]:
 
     passed = 0
     failed = 0
-    results: Dict[str, bool] = {}
+    results: dict[str, bool] = {}
 
     for name, test_function in TESTS:
 
         try:
 
-            value = bool(
-                test_function()
-            )
+            value = bool(test_function())
 
         except Exception:
 
@@ -805,24 +697,12 @@ def run_self_test() -> Dict[str, Any]:
         else:
             failed += 1
 
-    engine = (
-        EROSGoldenPath85To94Engine(
-            strict=True
-        )
-    )
+    engine = EROSGoldenPath85To94Engine(strict=True)
 
-    certificate = (
-        engine.certify_discovery()
-    )
+    certificate = engine.certify_discovery()
 
     return {
-        "status": (
-            "PASS"
-            if failed == 0
-            and certificate.status
-            == "CERTIFIED"
-            else "FAIL"
-        ),
+        "status": ("PASS" if failed == 0 and certificate.status == "CERTIFIED" else "FAIL"),
         "engine_version": ENGINE_VERSION,
         "tests_run": len(TESTS),
         "tests_passed": passed,
@@ -830,18 +710,12 @@ def run_self_test() -> Dict[str, Any]:
         "certificate_status": certificate.status,
         "blocks_checked": certificate.blocks_checked,
         "blocks_passed": certificate.blocks_passed,
-        "architectural_invariants":
-            certificate.architectural_invariants,
-        "broker_submission":
-            certificate.broker_submission,
-        "live_order_submission":
-            certificate.live_order_submission,
-        "portfolio_mutation":
-            certificate.portfolio_mutation,
-        "valuation_mutation":
-            certificate.valuation_mutation,
-        "integration_execution":
-            certificate.integration_execution,
+        "architectural_invariants": certificate.architectural_invariants,
+        "broker_submission": certificate.broker_submission,
+        "live_order_submission": certificate.live_order_submission,
+        "portfolio_mutation": certificate.portfolio_mutation,
+        "valuation_mutation": certificate.valuation_mutation,
+        "integration_execution": certificate.integration_execution,
         "test_results": results,
     }
 
@@ -858,15 +732,9 @@ def main() -> int:
         )
     )
 
-    return (
-        0
-        if result["status"] == "PASS"
-        else 1
-    )
+    return 0 if result["status"] == "PASS" else 1
 
 
 if __name__ == "__main__":
 
-    raise SystemExit(
-        main()
-    )
+    raise SystemExit(main())

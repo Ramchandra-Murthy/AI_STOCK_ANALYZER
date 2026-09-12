@@ -13,23 +13,23 @@ Safety:
     This module never submits broker orders. It produces certification only.
 """
 
-from dataclasses import asdict, dataclass, field, is_dataclass
-from datetime import datetime, timezone
 import inspect
 import math
-from typing import Any, Dict, Iterable, List, Mapping, Optional
+from collections.abc import Iterable, Mapping
+from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import UTC, datetime
+from typing import Any
 
 from services.execution.transaction_cost import TransactionCostAnalyzer
-
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-85"
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _to_dict(value: Any) -> Dict[str, Any]:
+def _to_dict(value: Any) -> dict[str, Any]:
     if value is None:
         return {}
     if isinstance(value, Mapping):
@@ -52,7 +52,7 @@ def _number(value: Any, default: float = 0.0) -> float:
         return default
 
 
-def _call_compatible(method: Any, candidates: Iterable[Dict[str, Any]]) -> Any:
+def _call_compatible(method: Any, candidates: Iterable[dict[str, Any]]) -> Any:
     """
     Call an existing service without hard-coding a second contract.
 
@@ -65,10 +65,7 @@ def _call_compatible(method: Any, candidates: Iterable[Dict[str, Any]]) -> Any:
         return None
 
     params = signature.parameters
-    accepts_kwargs = any(
-        p.kind == inspect.Parameter.VAR_KEYWORD
-        for p in params.values()
-    )
+    accepts_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
 
     for candidate in candidates:
         if accepts_kwargs:
@@ -93,20 +90,20 @@ class Block85Certification:
     governance_status: str
     validation_status: str
     simulation_status: str
-    warnings: List[str] = field(default_factory=list)
-    blocking_reasons: List[str] = field(default_factory=list)
-    assumptions_detected: List[str] = field(default_factory=list)
-    execution_orders: List[Dict[str, Any]] = field(default_factory=list)
-    tca: Dict[str, Any] = field(default_factory=dict)
-    validation: Dict[str, Any] = field(default_factory=dict)
-    simulation: Dict[str, Any] = field(default_factory=dict)
-    risk: Dict[str, Any] = field(default_factory=dict)
-    governance: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)
+    blocking_reasons: list[str] = field(default_factory=list)
+    assumptions_detected: list[str] = field(default_factory=list)
+    execution_orders: list[dict[str, Any]] = field(default_factory=list)
+    tca: dict[str, Any] = field(default_factory=dict)
+    validation: dict[str, Any] = field(default_factory=dict)
+    simulation: dict[str, Any] = field(default_factory=dict)
+    risk: dict[str, Any] = field(default_factory=dict)
+    governance: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     engine_version: str = ENGINE_VERSION
     timestamp: str = field(default_factory=_utc_now)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -152,8 +149,12 @@ class EROSBlock85ExecutionCertificationEngine:
     def _state(value: Any, default: str = "UNKNOWN") -> str:
         if isinstance(value, Mapping):
             for key in (
-                "status", "state", "governance_status",
-                "risk_status", "validation_status", "simulation_status"
+                "status",
+                "state",
+                "governance_status",
+                "risk_status",
+                "validation_status",
+                "simulation_status",
             ):
                 if key in value:
                     return str(value[key]).upper()
@@ -164,11 +165,11 @@ class EROSBlock85ExecutionCertificationEngine:
 
     def _validate_orders(
         self,
-        orders: List[Mapping[str, Any]],
-    ) -> tuple[List[Dict[str, Any]], List[str], List[str], float]:
-        valid: List[Dict[str, Any]] = []
-        warnings: List[str] = []
-        blocking: List[str] = []
+        orders: list[Mapping[str, Any]],
+    ) -> tuple[list[dict[str, Any]], list[str], list[str], float]:
+        valid: list[dict[str, Any]] = []
+        warnings: list[str] = []
+        blocking: list[str] = []
         total_notional = 0.0
 
         for index, raw in enumerate(orders):
@@ -205,8 +206,7 @@ class EROSBlock85ExecutionCertificationEngine:
             total_notional += notional
 
             weight = _number(
-                order.get("allocation_pct",
-                         order.get("trade_weight", 0.0)),
+                order.get("allocation_pct", order.get("trade_weight", 0.0)),
                 0.0,
             )
             if weight > self.max_order_weight:
@@ -221,10 +221,10 @@ class EROSBlock85ExecutionCertificationEngine:
 
     def _calculate_tca(
         self,
-        orders: List[Mapping[str, Any]],
+        orders: list[Mapping[str, Any]],
         adv_participation: float = 0.0,
-    ) -> Dict[str, Any]:
-        per_order: List[Dict[str, Any]] = []
+    ) -> dict[str, Any]:
+        per_order: list[dict[str, Any]] = []
         total_cost = 0.0
         total_notional = 0.0
 
@@ -263,11 +263,7 @@ class EROSBlock85ExecutionCertificationEngine:
             total_cost += _number(tca.get("total_transaction_cost"))
             total_notional += notional
 
-        cost_bps = (
-            total_cost / total_notional * 10000.0
-            if total_notional > 0
-            else 0.0
-        )
+        cost_bps = total_cost / total_notional * 10000.0 if total_notional > 0 else 0.0
 
         return {
             "orders": per_order,
@@ -279,13 +275,13 @@ class EROSBlock85ExecutionCertificationEngine:
 
     def certify(
         self,
-        orders: Optional[List[Mapping[str, Any]]] = None,
-        risk: Optional[Any] = None,
-        governance: Optional[Any] = None,
-        validation: Optional[Any] = None,
-        simulation: Optional[Any] = None,
-        assumptions: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        orders: list[Mapping[str, Any]] | None = None,
+        risk: Any | None = None,
+        governance: Any | None = None,
+        validation: Any | None = None,
+        simulation: Any | None = None,
+        assumptions: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
         adv_participation: float = 0.0,
     ) -> Block85Certification:
         orders = list(orders or [])
@@ -305,11 +301,12 @@ class EROSBlock85ExecutionCertificationEngine:
             blocking.append(f"Risk certification is not PASS: {risk_status}")
 
         if self.require_governance_approval and governance_status not in {
-            "APPROVED", "PASS", "PASSED", "CERTIFIED"
+            "APPROVED",
+            "PASS",
+            "PASSED",
+            "CERTIFIED",
         }:
-            blocking.append(
-                f"Governance certification is not APPROVED: {governance_status}"
-            )
+            blocking.append(f"Governance certification is not APPROVED: {governance_status}")
 
         if validation is not None and validation_status in self.BLOCK_STATES:
             blocking.append(f"Validation failed: {validation_status}")
@@ -326,8 +323,7 @@ class EROSBlock85ExecutionCertificationEngine:
                 _number(order.get("limit_price"), 0.0) > 0
             ):
                 detected.append(
-                    f"{str(order.get('symbol', '')).upper()}: "
-                    "current market price not supplied"
+                    f"{str(order.get('symbol', '')).upper()}: " "current market price not supplied"
                 )
             if "2500.0" == str(order.get("limit_price", "")):
                 detected.append(
@@ -376,12 +372,8 @@ class EROSBlock85ExecutionCertificationEngine:
             order_count=len(orders),
             approved_order_count=approved_count,
             blocked_order_count=max(0, len(orders) - approved_count),
-            total_notional=round(
-                max(total_notional, _number(tca.get("total_notional"))), 2
-            ),
-            total_transaction_cost=_number(
-                tca.get("total_transaction_cost")
-            ),
+            total_notional=round(max(total_notional, _number(tca.get("total_notional"))), 2),
+            total_transaction_cost=_number(tca.get("total_transaction_cost")),
             risk_status=risk_status,
             governance_status=governance_status,
             validation_status=validation_status,
@@ -406,29 +398,31 @@ class EROSBlock85ExecutionCertificationEngine:
     def certify_block84_outputs(
         self,
         *,
-        portfolio: Optional[List[Mapping[str, Any]]] = None,
-        execution_intents: Optional[List[Mapping[str, Any]]] = None,
-        order_plan: Optional[List[Mapping[str, Any]]] = None,
-        risk_result: Optional[Any] = None,
-        governance_result: Optional[Any] = None,
-        validation_result: Optional[Any] = None,
-        simulation_result: Optional[Any] = None,
-        assumptions: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        portfolio: list[Mapping[str, Any]] | None = None,
+        execution_intents: list[Mapping[str, Any]] | None = None,
+        order_plan: list[Mapping[str, Any]] | None = None,
+        risk_result: Any | None = None,
+        governance_result: Any | None = None,
+        validation_result: Any | None = None,
+        simulation_result: Any | None = None,
+        assumptions: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> Block85Certification:
         orders = list(order_plan or execution_intents or portfolio or [])
 
         # If the caller supplies execution intents, normalize their explicit
         # execution permission into the certification layer.
-        normalized: List[Dict[str, Any]] = []
+        normalized: list[dict[str, Any]] = []
         for item in orders:
             row = _to_dict(item)
             if "execution_allowed" in row and not bool(row["execution_allowed"]):
-                normalized.append({
-                    **row,
-                    "action": row.get("action", "HOLD"),
-                    "quantity": row.get("quantity", 0.0),
-                })
+                normalized.append(
+                    {
+                        **row,
+                        "action": row.get("action", "HOLD"),
+                        "quantity": row.get("quantity", 0.0),
+                    }
+                )
             else:
                 normalized.append(row)
 
@@ -448,4 +442,3 @@ __all__ = [
     "Block85Certification",
     "EROSBlock85ExecutionCertificationEngine",
 ]
-

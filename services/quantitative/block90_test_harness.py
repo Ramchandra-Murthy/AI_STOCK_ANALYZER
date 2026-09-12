@@ -80,60 +80,31 @@ def run_block90_self_test():
 
     assert result["status"] == "PASS", result
 
-    assert (
-        result["certificate"]["status"]
-        == "CERTIFIED"
-    )
+    assert result["certificate"]["status"] == "CERTIFIED"
 
-    assert (
-        result["state"]["state_status"]
-        == "APPLIED"
-    )
+    assert result["state"]["state_status"] == "APPLIED"
 
-    assert (
-        result["state"]["position_quantity_after"]
-        == 4000.0
-    )
+    assert result["state"]["position_quantity_after"] == 4000.0
 
-    assert (
-        result["state"]["average_cost_after"]
-        == 2500.0
-    )
+    assert result["state"]["average_cost_after"] == 2500.0
 
-    assert (
-        result["portfolio"]["position_count"]
-        == 1
-    )
+    assert result["portfolio"]["position_count"] == 1
 
-    assert (
-        result["portfolio"]["cash_balance"]
-        == 9990000.0
-    )
+    assert result["portfolio"]["cash_balance"] == 9990000.0
 
     # ------------------------------------------------------
     # TEST 2 - DUPLICATE SETTLEMENT
     # ------------------------------------------------------
 
-    duplicate = engine.apply_settlement(
-        settled
-    )
+    duplicate = engine.apply_settlement(settled)
 
     assert duplicate["status"] == "DUPLICATE", duplicate
 
-    assert (
-        duplicate["certificate"]["status"]
-        == "DUPLICATE"
-    )
+    assert duplicate["certificate"]["status"] == "DUPLICATE"
 
-    assert (
-        duplicate["portfolio"]["cash_balance"]
-        == 9990000.0
-    )
+    assert duplicate["portfolio"]["cash_balance"] == 9990000.0
 
-    assert (
-        duplicate["portfolio"]["position_count"]
-        == 1
-    )
+    assert duplicate["portfolio"]["position_count"] == 1
 
     # ------------------------------------------------------
     # TEST 3 - BLOCKED SETTLEMENT CANNOT MUTATE STATE
@@ -141,18 +112,13 @@ def run_block90_self_test():
 
     before = engine.snapshot()
 
-    blocked = engine.apply_settlement(
-        _blocked_settlement()
-    )
+    blocked = engine.apply_settlement(_blocked_settlement())
 
     after = engine.snapshot()
 
     assert blocked["status"] == "BLOCKED", blocked
 
-    assert (
-        blocked["certificate"]["status"]
-        == "BLOCKED"
-    )
+    assert blocked["certificate"]["status"] == "BLOCKED"
 
     assert before == after
 
@@ -160,15 +126,9 @@ def run_block90_self_test():
     # TEST 4 - NON-BYPASS INVARIANT
     # ------------------------------------------------------
 
-    assert (
-        engine.snapshot()["processed_settlement_count"]
-        == 1
-    )
+    assert engine.snapshot()["processed_settlement_count"] == 1
 
-    assert (
-        engine.snapshot()["state_history_count"]
-        == 1
-    )
+    assert engine.snapshot()["state_history_count"] == 1
 
     print(
         {
@@ -176,12 +136,8 @@ def run_block90_self_test():
             "applied_status": result["status"],
             "portfolio_state": result["state"]["state_status"],
             "cash_after": result["portfolio"]["cash_balance"],
-            "position_quantity": result["state"][
-                "position_quantity_after"
-            ],
-            "average_cost": result["state"][
-                "average_cost_after"
-            ],
+            "position_quantity": result["state"]["position_quantity_after"],
+            "average_cost": result["state"]["average_cost_after"],
             "duplicate_status": duplicate["status"],
             "blocked_status": blocked["status"],
             "non_bypass_invariant": True,

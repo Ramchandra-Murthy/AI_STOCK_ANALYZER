@@ -4,8 +4,8 @@ import uuid
 
 from fastapi.testclient import TestClient
 
-from backend.main import app
 from backend.database.engine import init_db
+from backend.main import app
 
 client = TestClient(app)
 

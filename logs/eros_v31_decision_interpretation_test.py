@@ -10,14 +10,7 @@ result = adapter.decision_interpretation(symbol)
 
 assert isinstance(result, dict)
 
-required = [
-    "symbol",
-    "price",
-    "decision",
-    "interpretation",
-    "technical_indicators",
-    "governance"
-]
+required = ["symbol", "price", "decision", "interpretation", "technical_indicators", "governance"]
 
 for field in required:
     assert field in result, f"MISSING_FIELD:{field}"
@@ -33,13 +26,11 @@ required_interpretation = [
     "supporting_drivers",
     "conflicting_signals",
     "interpretation",
-    "invalidation_context"
+    "invalidation_context",
 ]
 
 for field in required_interpretation:
-    assert field in interpretation, (
-        f"MISSING_INTERPRETATION_FIELD:{field}"
-    )
+    assert field in interpretation, f"MISSING_INTERPRETATION_FIELD:{field}"
 
 governance = result["governance"]
 

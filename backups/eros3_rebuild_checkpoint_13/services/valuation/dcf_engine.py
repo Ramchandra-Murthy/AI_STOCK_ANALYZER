@@ -3,11 +3,10 @@
 from typing import Any
 
 from domain.valuation.result import (
-    ValuationResult,
     ValuationMethod,
+    ValuationResult,
     ValuationStatus,
 )
-
 from services.valuation.base_engine import BaseValuationEngine
 
 
@@ -75,13 +74,8 @@ class DCFValuationEngine(BaseValuationEngine):
             if "ebit_margins" in payload and "ebit_margin_forecast" not in payload:
                 payload["ebit_margin_forecast"] = payload.pop("ebit_margins")
 
-            if (
-                "working_capital_ratios" in payload
-                and "nwc_pct_rev" not in payload
-            ):
-                payload["nwc_pct_rev"] = payload.pop(
-                    "working_capital_ratios"
-                )
+            if "working_capital_ratios" in payload and "nwc_pct_rev" not in payload:
+                payload["nwc_pct_rev"] = payload.pop("working_capital_ratios")
 
             payload.setdefault(
                 "company_name",
@@ -135,11 +129,7 @@ class DCFValuationEngine(BaseValuationEngine):
                 "preferred_stock",
             }
 
-            dcf_payload = {
-                key: value
-                for key, value in payload.items()
-                if key in dcf_fields
-            }
+            dcf_payload = {key: value for key, value in payload.items() if key in dcf_fields}
 
             dcf_input = DCFInput(**dcf_payload)
 

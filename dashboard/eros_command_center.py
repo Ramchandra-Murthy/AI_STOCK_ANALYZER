@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import streamlit as st
 
@@ -29,15 +30,11 @@ def render_eros_command_center(
 
     engine = EROSBlock104CommandCenter()
 
-    model = engine.render_model(
-        read_model=read_model
-    )
+    model = engine.render_model(read_model=read_model)
 
     st.header("🏛️ EROS 3.0 Institutional Command Center")
 
-    st.caption(
-        "Read-only governance, execution and reconciliation control view"
-    )
+    st.caption("Read-only governance, execution and reconciliation control view")
 
     # ==========================================================
     # TOP STATUS CARDS
@@ -86,23 +83,17 @@ def render_eros_command_center(
 
     s2.metric(
         "Live Execution",
-        "FALSE"
-        if safety["live_order_submission"] is False
-        else "TRUE",
+        "FALSE" if safety["live_order_submission"] is False else "TRUE",
     )
 
     s3.metric(
         "Execution Blocked",
-        "TRUE"
-        if safety["execution_blocked"] is True
-        else "FALSE",
+        "TRUE" if safety["execution_blocked"] is True else "FALSE",
     )
 
     s4.metric(
         "Non-Mutation",
-        "TRUE"
-        if safety["non_mutation_invariant"] is True
-        else "FALSE",
+        "TRUE" if safety["non_mutation_invariant"] is True else "FALSE",
     )
 
     if (
@@ -111,14 +102,9 @@ def render_eros_command_center(
         and safety["execution_blocked"] is True
         and safety["non_mutation_invariant"] is True
     ):
-        st.success(
-            "Execution safety boundary is intact. "
-            "This interface is read-only."
-        )
+        st.success("Execution safety boundary is intact. " "This interface is read-only.")
     else:
-        st.error(
-            "Execution safety invariant failure."
-        )
+        st.error("Execution safety invariant failure.")
 
     # ==========================================================
     # PIPELINE
@@ -165,16 +151,12 @@ def render_eros_command_center(
 
     g2.metric(
         "Governance ID",
-        _status_label(
-            governance.get("governance_id")
-        ),
+        _status_label(governance.get("governance_id")),
     )
 
     g3.metric(
         "Action",
-        _status_label(
-            governance.get("execution_action")
-        ),
+        _status_label(governance.get("execution_action")),
     )
 
     # ==========================================================
@@ -219,30 +201,22 @@ def render_eros_command_center(
 
     e1.metric(
         "Execution Status",
-        _status_label(
-            execution.get("status")
-        ),
+        _status_label(execution.get("status")),
     )
 
     e2.metric(
         "Fill Status",
-        _status_label(
-            execution.get("fill_status")
-        ),
+        _status_label(execution.get("fill_status")),
     )
 
     e3.metric(
         "Requested Qty",
-        _status_label(
-            execution.get("requested_quantity")
-        ),
+        _status_label(execution.get("requested_quantity")),
     )
 
     e4.metric(
         "Filled Qty",
-        _status_label(
-            execution.get("filled_quantity")
-        ),
+        _status_label(execution.get("filled_quantity")),
     )
 
     e5, e6, e7, e8 = st.columns(4)
@@ -259,9 +233,7 @@ def render_eros_command_center(
 
     e7.metric(
         "Slippage (bps)",
-        _status_label(
-            execution.get("slippage_bps")
-        ),
+        _status_label(execution.get("slippage_bps")),
     )
 
     e8.metric(
@@ -281,37 +253,27 @@ def render_eros_command_center(
 
     r1.metric(
         "Quantity",
-        "PASS"
-        if reconciliation.get("quantity_reconciled")
-        else "FAIL",
+        "PASS" if reconciliation.get("quantity_reconciled") else "FAIL",
     )
 
     r2.metric(
         "Price",
-        "PASS"
-        if reconciliation.get("price_reconciled")
-        else "FAIL",
+        "PASS" if reconciliation.get("price_reconciled") else "FAIL",
     )
 
     r3.metric(
         "Value",
-        "PASS"
-        if reconciliation.get("value_reconciled")
-        else "FAIL",
+        "PASS" if reconciliation.get("value_reconciled") else "FAIL",
     )
 
     r4.metric(
         "Cost",
-        "PASS"
-        if reconciliation.get("cost_reconciled")
-        else "FAIL",
+        "PASS" if reconciliation.get("cost_reconciled") else "FAIL",
     )
 
     r5.metric(
         "Lineage",
-        "PASS"
-        if reconciliation.get("lineage_reconciled")
-        else "FAIL",
+        "PASS" if reconciliation.get("lineage_reconciled") else "FAIL",
     )
 
     # ==========================================================
@@ -355,8 +317,4 @@ def render_eros_command_center(
     )
 
     if policy["read_only"]:
-        st.caption(
-            "READ ONLY • BLOCK 104 • EROS-3.0"
-        )
-
-
+        st.caption("READ ONLY • BLOCK 104 • EROS-3.0")

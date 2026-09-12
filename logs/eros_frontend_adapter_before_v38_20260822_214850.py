@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any
 
-from services.analyzer import analyze_stock
 from scanner.market_scanner import market_scan
+from services.analyzer import analyze_stock
 from services.quantitative.block109_institutional_application_query_gateway import (
     EROSBlock109InstitutionalApplicationQueryGateway,
 )
@@ -74,65 +74,33 @@ class EROSFrontendAdapter:
         action_data = action.get("action", {})
         interpretation_data = interpretation.get("interpretation", {})
 
-        primary_scenario = scenario.get(
-            "primary_scenario",
-            "BASE"
-        )
+        primary_scenario = scenario.get("primary_scenario", "BASE")
 
-        confirmation_logic = action.get(
-            "confirmation_conditions",
-            []
-        )
+        confirmation_logic = action.get("confirmation_conditions", [])
 
-        invalidation_logic = action.get(
-            "invalidation_conditions",
-            []
-        )
+        invalidation_logic = action.get("invalidation_conditions", [])
 
-        primary_drivers = interpretation_data.get(
-            "primary_drivers",
-            []
-        )
+        primary_drivers = interpretation_data.get("primary_drivers", [])
 
-        supporting_drivers = interpretation_data.get(
-            "supporting_drivers",
-            []
-        )
+        supporting_drivers = interpretation_data.get("supporting_drivers", [])
 
-        conflicting_signals = interpretation_data.get(
-            "conflicting_signals",
-            []
-        )
+        conflicting_signals = interpretation_data.get("conflicting_signals", [])
 
         decision_quality = interpretation_data.get(
-            "decision_quality",
-            scenario.get("decision_quality", "UNKNOWN")
+            "decision_quality", scenario.get("decision_quality", "UNKNOWN")
         )
 
-        stance = decision.get(
-            "stance",
-            action_data.get("stance", "UNKNOWN")
-        )
+        stance = decision.get("stance", action_data.get("stance", "UNKNOWN"))
 
         recommendation = decision.get(
-            "recommendation",
-            action_data.get("recommendation", "UNKNOWN")
+            "recommendation", action_data.get("recommendation", "UNKNOWN")
         )
 
-        confidence = decision.get(
-            "confidence",
-            action_data.get("confidence", 0.0)
-        )
+        confidence = decision.get("confidence", action_data.get("confidence", 0.0))
 
-        risk = decision.get(
-            "risk",
-            action_data.get("risk_context", "UNKNOWN")
-        )
+        risk = decision.get("risk", action_data.get("risk_context", "UNKNOWN"))
 
-        classification = action_data.get(
-            "classification",
-            "UNKNOWN"
-        )
+        classification = action_data.get("classification", "UNKNOWN")
 
         bull = scenario_data.get("bull", {})
         bear = scenario_data.get("bear", {})
@@ -140,92 +108,46 @@ class EROSFrontendAdapter:
 
         convergence = {
             "symbol": symbol,
-            "price": scenario.get(
-                "price",
-                evidence.get("price")
-            ),
-
+            "price": scenario.get("price", evidence.get("price")),
             "decision": {
                 "stance": stance,
                 "recommendation": recommendation,
                 "classification": classification,
                 "confidence": confidence,
                 "risk": risk,
-                "decision_quality": decision_quality
+                "decision_quality": decision_quality,
             },
-
             "convergence": {
                 "primary_scenario": primary_scenario,
-
                 "base": {
-                    "classification": base.get(
-                        "classification"
-                    ),
-                    "stance": base.get(
-                        "stance"
-                    ),
-                    "conditions": base.get(
-                        "conditions",
-                        []
-                    )
+                    "classification": base.get("classification"),
+                    "stance": base.get("stance"),
+                    "conditions": base.get("conditions", []),
                 },
-
                 "bull_confirmation": {
-                    "classification": bull.get(
-                        "classification"
-                    ),
-                    "stance": bull.get(
-                        "stance"
-                    ),
-                    "conditions": bull.get(
-                        "conditions",
-                        []
-                    ),
-                    "decision_effect": bull.get(
-                        "decision_effect"
-                    )
+                    "classification": bull.get("classification"),
+                    "stance": bull.get("stance"),
+                    "conditions": bull.get("conditions", []),
+                    "decision_effect": bull.get("decision_effect"),
                 },
-
                 "bear_invalidation": {
-                    "classification": bear.get(
-                        "classification"
-                    ),
-                    "stance": bear.get(
-                        "stance"
-                    ),
-                    "conditions": bear.get(
-                        "conditions",
-                        []
-                    ),
-                    "decision_effect": bear.get(
-                        "decision_effect"
-                    )
+                    "classification": bear.get("classification"),
+                    "stance": bear.get("stance"),
+                    "conditions": bear.get("conditions", []),
+                    "decision_effect": bear.get("decision_effect"),
                 },
-
                 "confirmation_logic": confirmation_logic,
-
                 "invalidation_logic": invalidation_logic,
-
                 "primary_drivers": primary_drivers,
-
                 "supporting_drivers": supporting_drivers,
-
-                "conflicting_signals": conflicting_signals
+                "conflicting_signals": conflicting_signals,
             },
-
             "interpretation": {
-                "market_condition": interpretation_data.get(
-                    "market_condition"
-                ),
-                "price_context": interpretation_data.get(
-                    "price_context"
-                ),
-                "breakout_context": interpretation_data.get(
-                    "breakout_context"
-                ),
-                "decision_quality": decision_quality
+                "market_condition": interpretation_data.get("market_condition"),
+                "price_context": interpretation_data.get("price_context"),
+                "breakout_context": interpretation_data.get("breakout_context"),
+                "decision_quality": decision_quality,
             },
-
             "conclusion": (
                 f"{symbol} currently has a "
                 f"{stance} stance with "
@@ -239,7 +161,6 @@ class EROSFrontendAdapter:
                 f"invalidation depends on the defined "
                 f"invalidation conditions."
             ),
-
             "governance": {
                 "read_only": True,
                 "execution_blocked": True,
@@ -251,23 +172,21 @@ class EROSFrontendAdapter:
                 "allow_valuation_mutation": False,
                 "allow_performance_mutation": False,
                 "allow_risk_mutation": False,
-                "allow_optimization": False
-            }
+                "allow_optimization": False,
+            },
         }
 
         return convergence
 
     def __init__(self) -> None:
 
-        self._query_gateway = (
-            EROSBlock109InstitutionalApplicationQueryGateway()
-        )
+        self._query_gateway = EROSBlock109InstitutionalApplicationQueryGateway()
 
     # ==========================================================
     # GOVERNANCE
     # ==========================================================
 
-    def governance(self) -> Dict[str, Any]:
+    def governance(self) -> dict[str, Any]:
         """
         Return the frontend-visible EROS governance state.
         """
@@ -277,14 +196,10 @@ class EROSFrontendAdapter:
             "status": "CERTIFIED",
             "query_gateway": {
                 "block_id": "109",
-                "name": (
-                    "Institutional Application Query Gateway"
-                ),
+                "name": ("Institutional Application Query Gateway"),
                 "status": "CERTIFIED",
             },
-            "safety": deepcopy(
-                self.SAFETY_POLICY
-            ),
+            "safety": deepcopy(self.SAFETY_POLICY),
         }
 
     # ==========================================================
@@ -294,23 +209,19 @@ class EROSFrontendAdapter:
     def stock_analysis(
         self,
         symbol: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Read-only stock analysis using the existing
         AI Stock Analyzer service.
         """
 
         if not isinstance(symbol, str):
-            raise TypeError(
-                "symbol must be a string"
-            )
+            raise TypeError("symbol must be a string")
 
         symbol = symbol.strip().upper()
 
         if not symbol:
-            raise ValueError(
-                "symbol cannot be empty"
-            )
+            raise ValueError("symbol cannot be empty")
 
         result = analyze_stock(symbol)
 
@@ -335,7 +246,7 @@ class EROSFrontendAdapter:
 
     def dashboard_snapshot(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Return a frontend-safe dashboard snapshot.
         """
@@ -345,10 +256,7 @@ class EROSFrontendAdapter:
         return {
             "system": {
                 "name": "EROS 3.0",
-                "description": (
-                    "Institutional Intelligence "
-                    "Command Center"
-                ),
+                "description": ("Institutional Intelligence " "Command Center"),
                 "status": "CERTIFIED",
             },
             "gateway": governance["query_gateway"],
@@ -358,7 +266,6 @@ class EROSFrontendAdapter:
     # ==========================================================
     # SNAPSHOT
     # ==========================================================
-
 
     def decision_evidence(self, symbol: str) -> dict:
         """
@@ -375,9 +282,7 @@ class EROSFrontendAdapter:
         result = self.stock_analysis(symbol)
 
         if not isinstance(result, dict):
-            raise TypeError(
-                "STOCK_ANALYSIS_RESULT_MUST_BE_DICT"
-            )
+            raise TypeError("STOCK_ANALYSIS_RESULT_MUST_BE_DICT")
 
         trend = result.get("trend") or {}
         signal = result.get("signal") or {}
@@ -411,31 +316,16 @@ class EROSFrontendAdapter:
 
         evidence = {
             "symbol": symbol,
-
             "price": value_from_last("Close"),
-
             "trend": trend.get("Trend"),
             "momentum": trend.get("Momentum"),
-
             "score": signal.get("Score"),
             "confidence": signal.get("Confidence"),
-            "recommendation": signal.get(
-                "Recommendation"
-            ),
+            "recommendation": signal.get("Recommendation"),
             "risk": signal.get("Risk"),
-
-            "reasons": list(
-                signal.get("Reasons") or []
-            ),
-
-            "breakout_signal": breakout.get(
-                "Signal"
-            ),
-
-            "breakout_reason": breakout.get(
-                "Reason"
-            ),
-
+            "reasons": list(signal.get("Reasons") or []),
+            "breakout_signal": breakout.get("Signal"),
+            "breakout_reason": breakout.get("Reason"),
             "technical_indicators": {
                 "sma_20": value_from_last("SMA_20"),
                 "sma_50": value_from_last("SMA_50"),
@@ -451,7 +341,6 @@ class EROSFrontendAdapter:
                 "support": value_from_last("Support"),
                 "resistance": value_from_last("Resistance"),
             },
-
             "governance": {
                 "read_only": True,
                 "execution_blocked": True,
@@ -461,7 +350,7 @@ class EROSFrontendAdapter:
 
         return evidence
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """
         Return immutable frontend adapter metadata.
         """
@@ -471,12 +360,10 @@ class EROSFrontendAdapter:
             "version": self.VERSION,
             "source": "Block 109",
             "mode": "READ_ONLY",
-            "safety": deepcopy(
-                self.SAFETY_POLICY
-            ),
+            "safety": deepcopy(self.SAFETY_POLICY),
         }
 
-    def decision_intelligence(self, symbol: str) -> Dict[str, Any]:
+    def decision_intelligence(self, symbol: str) -> dict[str, Any]:
         """
         EROS 3.0 V3.0 Decision Intelligence Foundation.
 
@@ -512,35 +399,17 @@ class EROSFrontendAdapter:
         except (TypeError, ValueError):
             confidence_value = 0.0
 
-        recommendation = evidence.get(
-            "recommendation",
-            "UNKNOWN"
-        )
+        recommendation = evidence.get("recommendation", "UNKNOWN")
 
-        risk = evidence.get(
-            "risk",
-            "UNKNOWN"
-        )
+        risk = evidence.get("risk", "UNKNOWN")
 
-        trend = evidence.get(
-            "trend",
-            "UNKNOWN"
-        )
+        trend = evidence.get("trend", "UNKNOWN")
 
-        momentum = evidence.get(
-            "momentum",
-            "UNKNOWN"
-        )
+        momentum = evidence.get("momentum", "UNKNOWN")
 
-        breakout_signal = evidence.get(
-            "breakout_signal",
-            "NONE"
-        )
+        breakout_signal = evidence.get("breakout_signal", "NONE")
 
-        reasons = evidence.get(
-            "reasons",
-            []
-        )
+        reasons = evidence.get("reasons", [])
 
         if not isinstance(reasons, list):
             reasons = [str(reasons)]
@@ -640,7 +509,6 @@ class EROSFrontendAdapter:
         return {
             "symbol": evidence.get("symbol", symbol),
             "price": evidence.get("price"),
-
             "decision": {
                 "stance": stance,
                 "recommendation": recommendation,
@@ -648,44 +516,26 @@ class EROSFrontendAdapter:
                 "score_band": score_band,
                 "confidence": confidence_value,
                 "confidence_band": confidence_band,
-                "risk": risk
+                "risk": risk,
             },
-
             "market_context": {
                 "trend": trend,
                 "momentum": momentum,
                 "breakout_signal": breakout_signal,
-                "breakout_reason": evidence.get(
-                    "breakout_reason",
-                    ""
-                )
+                "breakout_reason": evidence.get("breakout_reason", ""),
             },
-
             "technical_drivers": technical_drivers,
-
             "technical_indicators": technical,
-
             "risk_flags": risk_flags,
-
             "summary": summary,
-
             "governance": {
-                "read_only": bool(
-                    governance.get("read_only", True)
-                ),
-                "execution_blocked": bool(
-                    governance.get("execution_blocked", True)
-                ),
-                "non_mutation_invariant": bool(
-                    governance.get(
-                        "non_mutation_invariant",
-                        True
-                    )
-                )
-            }
+                "read_only": bool(governance.get("read_only", True)),
+                "execution_blocked": bool(governance.get("execution_blocked", True)),
+                "non_mutation_invariant": bool(governance.get("non_mutation_invariant", True)),
+            },
         }
 
-    def decision_interpretation(self, symbol: str) -> Dict[str, Any]:
+    def decision_interpretation(self, symbol: str) -> dict[str, Any]:
         """
         EROS 3.0 V3.1 Decision Interpretation Engine.
 
@@ -699,35 +549,17 @@ class EROSFrontendAdapter:
 
         intelligence = self.decision_intelligence(symbol)
 
-        decision = intelligence.get(
-            "decision",
-            {}
-        )
+        decision = intelligence.get("decision", {})
 
-        context = intelligence.get(
-            "market_context",
-            {}
-        )
+        context = intelligence.get("market_context", {})
 
-        technical = intelligence.get(
-            "technical_indicators",
-            {}
-        )
+        technical = intelligence.get("technical_indicators", {})
 
-        drivers = intelligence.get(
-            "technical_drivers",
-            []
-        )
+        drivers = intelligence.get("technical_drivers", [])
 
-        risk_flags = intelligence.get(
-            "risk_flags",
-            []
-        )
+        risk_flags = intelligence.get("risk_flags", [])
 
-        governance = intelligence.get(
-            "governance",
-            {}
-        )
+        governance = intelligence.get("governance", {})
 
         price = intelligence.get("price")
 
@@ -737,38 +569,22 @@ class EROSFrontendAdapter:
             price_value = None
 
         try:
-            score = float(
-                decision.get("score", 0)
-            )
+            score = float(decision.get("score", 0))
         except (TypeError, ValueError):
             score = 0.0
 
         try:
-            confidence = float(
-                decision.get("confidence", 0)
-            )
+            confidence = float(decision.get("confidence", 0))
         except (TypeError, ValueError):
             confidence = 0.0
 
-        recommendation = decision.get(
-            "recommendation",
-            "UNKNOWN"
-        )
+        recommendation = decision.get("recommendation", "UNKNOWN")
 
-        trend = context.get(
-            "trend",
-            "UNKNOWN"
-        )
+        trend = context.get("trend", "UNKNOWN")
 
-        momentum = context.get(
-            "momentum",
-            "UNKNOWN"
-        )
+        momentum = context.get("momentum", "UNKNOWN")
 
-        breakout = context.get(
-            "breakout_signal",
-            "NONE"
-        )
+        breakout = context.get("breakout_signal", "NONE")
 
         # ----------------------------------------------------
         # PRIMARY DRIVERS
@@ -783,11 +599,7 @@ class EROSFrontendAdapter:
 
             driver_lower = driver.lower()
 
-            if (
-                "sma" in driver_lower
-                or "ema" in driver_lower
-                or "macd" in driver_lower
-            ):
+            if "sma" in driver_lower or "ema" in driver_lower or "macd" in driver_lower:
                 primary_drivers.append(driver)
 
         # ----------------------------------------------------
@@ -826,54 +638,36 @@ class EROSFrontendAdapter:
                 rsi_value = float(rsi)
 
                 if score >= 60 and rsi_value < 30:
-                    conflicting_signals.append(
-                        "Oversold momentum condition"
-                    )
+                    conflicting_signals.append("Oversold momentum condition")
 
                 if score >= 60 and rsi_value > 70:
-                    conflicting_signals.append(
-                        "Overbought momentum condition"
-                    )
+                    conflicting_signals.append("Overbought momentum condition")
 
         except (TypeError, ValueError):
             pass
 
         try:
 
-            if (
-                macd is not None
-                and signal is not None
-            ):
+            if macd is not None and signal is not None:
 
                 if score >= 60 and float(macd) < float(signal):
-                    conflicting_signals.append(
-                        "MACD below signal line"
-                    )
+                    conflicting_signals.append("MACD below signal line")
 
                 if score < 40 and float(macd) > float(signal):
-                    conflicting_signals.append(
-                        "MACD above signal line"
-                    )
+                    conflicting_signals.append("MACD above signal line")
 
         except (TypeError, ValueError):
             pass
 
         try:
 
-            if (
-                sma20 is not None
-                and sma50 is not None
-            ):
+            if sma20 is not None and sma50 is not None:
 
                 if score >= 60 and float(sma20) < float(sma50):
-                    conflicting_signals.append(
-                        "Short-term moving average below long-term average"
-                    )
+                    conflicting_signals.append("Short-term moving average below long-term average")
 
                 if score < 40 and float(sma20) > float(sma50):
-                    conflicting_signals.append(
-                        "Short-term moving average above long-term average"
-                    )
+                    conflicting_signals.append("Short-term moving average above long-term average")
 
         except (TypeError, ValueError):
             pass
@@ -882,19 +676,13 @@ class EROSFrontendAdapter:
         # MARKET CONDITION
         # ----------------------------------------------------
 
-        if (
-            trend == "Bullish"
-            and momentum == "Strong"
-        ):
+        if trend == "Bullish" and momentum == "Strong":
             market_condition = "BULLISH_MOMENTUM"
 
         elif trend == "Bullish":
             market_condition = "BULLISH"
 
-        elif (
-            trend == "Bearish"
-            and momentum == "Strong"
-        ):
+        elif trend == "Bearish" and momentum == "Strong":
             market_condition = "BEARISH_MOMENTUM"
 
         elif trend == "Bearish":
@@ -909,11 +697,7 @@ class EROSFrontendAdapter:
 
         price_context = "UNKNOWN"
 
-        if (
-            price_value is not None
-            and support is not None
-            and resistance is not None
-        ):
+        if price_value is not None and support is not None and resistance is not None:
 
             try:
 
@@ -940,9 +724,7 @@ class EROSFrontendAdapter:
             breakout_context = "NO_ACTIVE_BREAKOUT"
 
         elif breakout:
-            breakout_context = str(
-                breakout
-            )
+            breakout_context = str(breakout)
 
         else:
             breakout_context = "UNKNOWN"
@@ -951,17 +733,10 @@ class EROSFrontendAdapter:
         # DECISION QUALITY
         # ----------------------------------------------------
 
-        if (
-            score >= 80
-            and confidence >= 80
-            and len(conflicting_signals) == 0
-        ):
+        if score >= 80 and confidence >= 80 and len(conflicting_signals) == 0:
             decision_quality = "HIGH"
 
-        elif (
-            score >= 60
-            and confidence >= 60
-        ):
+        elif score >= 60 and confidence >= 60:
             decision_quality = "MEDIUM"
 
         else:
@@ -975,38 +750,27 @@ class EROSFrontendAdapter:
 
         if support is not None:
 
-            invalidation.append(
-                f"Monitor price behavior around support "
-                f"{float(support):.2f}"
-            )
+            invalidation.append(f"Monitor price behavior around support " f"{float(support):.2f}")
 
         if resistance is not None:
 
             invalidation.append(
-                f"Monitor price behavior around resistance "
-                f"{float(resistance):.2f}"
+                f"Monitor price behavior around resistance " f"{float(resistance):.2f}"
             )
 
         if conflicting_signals:
 
-            invalidation.extend(
-                conflicting_signals
-            )
+            invalidation.extend(conflicting_signals)
 
         if not invalidation:
 
-            invalidation.append(
-                "No explicit technical invalidation detected."
-            )
+            invalidation.append("No explicit technical invalidation detected.")
 
         # ----------------------------------------------------
         # INTERPRETATION
         # ----------------------------------------------------
 
-        if recommendation in (
-            "STRONG BUY",
-            "BUY"
-        ):
+        if recommendation in ("STRONG BUY", "BUY"):
 
             interpretation = (
                 f"The technical evidence currently supports "
@@ -1015,10 +779,7 @@ class EROSFrontendAdapter:
                 f"Decision quality is {decision_quality}."
             )
 
-        elif recommendation in (
-            "STRONG SELL",
-            "SELL"
-        ):
+        elif recommendation in ("STRONG SELL", "SELL"):
 
             interpretation = (
                 f"The technical evidence currently supports "
@@ -1041,65 +802,27 @@ class EROSFrontendAdapter:
         # ----------------------------------------------------
 
         return {
-
-            "symbol": intelligence.get(
-                "symbol",
-                symbol
-            ),
-
+            "symbol": intelligence.get("symbol", symbol),
             "price": price_value,
-
             "decision": decision,
-
             "interpretation": {
-
                 "market_condition": market_condition,
-
                 "price_context": price_context,
-
                 "breakout_context": breakout_context,
-
                 "decision_quality": decision_quality,
-
                 "primary_drivers": primary_drivers,
-
                 "supporting_drivers": supporting_drivers,
-
                 "conflicting_signals": conflicting_signals,
-
                 "interpretation": interpretation,
-
-                "invalidation_context": invalidation
+                "invalidation_context": invalidation,
             },
-
             "technical_indicators": technical,
-
             "governance": {
-
-                "read_only": bool(
-                    governance.get(
-                        "read_only",
-                        True
-                    )
-                ),
-
-                "execution_blocked": bool(
-                    governance.get(
-                        "execution_blocked",
-                        True
-                    )
-                ),
-
-                "non_mutation_invariant": bool(
-                    governance.get(
-                        "non_mutation_invariant",
-                        True
-                    )
-                )
-            }
+                "read_only": bool(governance.get("read_only", True)),
+                "execution_blocked": bool(governance.get("execution_blocked", True)),
+                "non_mutation_invariant": bool(governance.get("non_mutation_invariant", True)),
+            },
         }
-
-
 
     def decision_action_explanation(self, symbol: str) -> dict:
         """
@@ -1126,95 +849,45 @@ class EROSFrontendAdapter:
         action_block = action.get("action", {})
         market_context = action.get("market_context", {})
 
-        classification = action_block.get(
-            "classification",
-            "UNKNOWN"
-        )
+        classification = action_block.get("classification", "UNKNOWN")
 
-        stance = action_block.get(
-            "stance",
-            decision.get("stance", "UNKNOWN")
-        )
+        stance = action_block.get("stance", decision.get("stance", "UNKNOWN"))
 
         recommendation = action_block.get(
-            "recommendation",
-            decision.get("recommendation", "UNKNOWN")
+            "recommendation", decision.get("recommendation", "UNKNOWN")
         )
 
-        confidence = action_block.get(
-            "confidence",
-            decision.get("confidence", 0.0)
-        )
+        confidence = action_block.get("confidence", decision.get("confidence", 0.0))
 
         confidence_band = action_block.get(
-            "confidence_band",
-            decision.get("confidence_band", "UNKNOWN")
+            "confidence_band", decision.get("confidence_band", "UNKNOWN")
         )
 
-        risk_context = action_block.get(
-            "risk_context",
-            decision.get("risk", "UNKNOWN")
-        )
+        risk_context = action_block.get("risk_context", decision.get("risk", "UNKNOWN"))
 
-        price = interpretation.get(
-            "price",
-            action.get("price")
-        )
+        price = interpretation.get("price", action.get("price"))
 
-        support = market_context.get(
-            "support",
-            technical.get("support")
-        )
+        support = market_context.get("support", technical.get("support"))
 
-        resistance = market_context.get(
-            "resistance",
-            technical.get("resistance")
-        )
+        resistance = market_context.get("resistance", technical.get("resistance"))
 
-        price_context = market_context.get(
-            "price_context",
-            "UNKNOWN"
-        )
+        price_context = market_context.get("price_context", "UNKNOWN")
 
-        breakout_context = market_context.get(
-            "breakout_context",
-            "UNKNOWN"
-        )
+        breakout_context = market_context.get("breakout_context", "UNKNOWN")
 
-        confirmation_conditions = action.get(
-            "confirmation_conditions",
-            []
-        )
+        confirmation_conditions = action.get("confirmation_conditions", [])
 
-        invalidation_conditions = action.get(
-            "invalidation_conditions",
-            []
-        )
+        invalidation_conditions = action.get("invalidation_conditions", [])
 
-        interpretation_block = interpretation.get(
-            "interpretation",
-            {}
-        )
+        interpretation_block = interpretation.get("interpretation", {})
 
-        primary_drivers = interpretation_block.get(
-            "primary_drivers",
-            []
-        )
+        primary_drivers = interpretation_block.get("primary_drivers", [])
 
-        supporting_drivers = interpretation_block.get(
-            "supporting_drivers",
-            []
-        )
+        supporting_drivers = interpretation_block.get("supporting_drivers", [])
 
-        conflicting_signals = interpretation_block.get(
-            "conflicting_signals",
-            []
-        )
+        conflicting_signals = interpretation_block.get("conflicting_signals", [])
 
-        decision_quality = interpretation_block.get(
-            "decision_quality",
-            "UNKNOWN"
-        )
+        decision_quality = interpretation_block.get("decision_quality", "UNKNOWN")
 
         if classification == "WAIT_FOR_CONFIRMATION":
             primary_reason = (
@@ -1244,44 +917,29 @@ class EROSFrontendAdapter:
         supporting_reasons = []
 
         if stance != "UNKNOWN":
-            supporting_reasons.append(
-                f"Overall stance is {stance}."
-            )
+            supporting_reasons.append(f"Overall stance is {stance}.")
 
         if recommendation != "UNKNOWN":
-            supporting_reasons.append(
-                f"Recommendation is {recommendation}."
-            )
+            supporting_reasons.append(f"Recommendation is {recommendation}.")
 
         if confidence_band != "UNKNOWN":
-            supporting_reasons.append(
-                f"Confidence is {confidence_band} "
-                f"({confidence:.1f}%)."
-            )
+            supporting_reasons.append(f"Confidence is {confidence_band} " f"({confidence:.1f}%).")
 
         if price_context != "UNKNOWN":
-            supporting_reasons.append(
-                f"Price context is {price_context}."
-            )
+            supporting_reasons.append(f"Price context is {price_context}.")
 
         if breakout_context != "UNKNOWN":
-            supporting_reasons.append(
-                f"Breakout context is {breakout_context}."
-            )
+            supporting_reasons.append(f"Breakout context is {breakout_context}.")
 
         confirmation_logic = list(confirmation_conditions)
 
         invalidation_logic = list(invalidation_conditions)
 
         if not confirmation_logic:
-            confirmation_logic.append(
-                "No additional confirmation condition was generated."
-            )
+            confirmation_logic.append("No additional confirmation condition was generated.")
 
         if not invalidation_logic:
-            invalidation_logic.append(
-                "No explicit invalidation condition was generated."
-            )
+            invalidation_logic.append("No explicit invalidation condition was generated.")
 
         risk_explanation = (
             f"Risk context is {risk_context}. "
@@ -1305,7 +963,7 @@ class EROSFrontendAdapter:
                 "recommendation": recommendation,
                 "confidence": confidence,
                 "confidence_band": confidence_band,
-                "risk_context": risk_context
+                "risk_context": risk_context,
             },
             "explanation": {
                 "primary_reason": primary_reason,
@@ -1322,7 +980,7 @@ class EROSFrontendAdapter:
                 "resistance": resistance,
                 "breakout_context": breakout_context,
                 "summary": explanation_summary,
-                "execution_status": "BLOCKED"
+                "execution_status": "BLOCKED",
             },
             "governance": {
                 "read_only": True,
@@ -1335,8 +993,8 @@ class EROSFrontendAdapter:
                 "allow_valuation_mutation": False,
                 "allow_performance_mutation": False,
                 "allow_risk_mutation": False,
-                "allow_optimization": False
-            }
+                "allow_optimization": False,
+            },
         }
 
     def decision_action_framework(self, symbol: str) -> dict:
@@ -1359,68 +1017,32 @@ class EROSFrontendAdapter:
 
         decision = interpretation.get("decision", {})
         market_context = interpretation.get("market_context", {})
-        technical_indicators = interpretation.get(
-            "technical_indicators",
-            {}
-        )
-        interpretation_block = interpretation.get(
-            "interpretation",
-            {}
-        )
+        technical_indicators = interpretation.get("technical_indicators", {})
+        interpretation_block = interpretation.get("interpretation", {})
 
-        recommendation = decision.get(
-            "recommendation",
-            "NO ACTION"
-        )
+        recommendation = decision.get("recommendation", "NO ACTION")
 
-        stance = decision.get(
-            "stance",
-            "NEUTRAL"
-        )
+        stance = decision.get("stance", "NEUTRAL")
 
-        risk = decision.get(
-            "risk",
-            "UNKNOWN"
-        )
+        risk = decision.get("risk", "UNKNOWN")
 
-        score = float(
-            decision.get("score", 0.0)
-        )
+        score = float(decision.get("score", 0.0))
 
-        confidence = float(
-            decision.get("confidence", 0.0)
-        )
+        confidence = float(decision.get("confidence", 0.0))
 
-        price_context = interpretation_block.get(
-            "price_context",
-            "UNKNOWN"
-        )
+        price_context = interpretation_block.get("price_context", "UNKNOWN")
 
-        breakout_context = interpretation_block.get(
-            "breakout_context",
-            "UNKNOWN"
-        )
+        breakout_context = interpretation_block.get("breakout_context", "UNKNOWN")
 
-        support = technical_indicators.get(
-            "support"
-        )
+        support = technical_indicators.get("support")
 
-        resistance = technical_indicators.get(
-            "resistance"
-        )
+        resistance = technical_indicators.get("resistance")
 
         # ----------------------------------------------------
         # ACTION CLASSIFICATION
         # ----------------------------------------------------
 
-        if (
-            stance == "BULLISH"
-            and recommendation in (
-                "BUY",
-                "STRONG BUY"
-            )
-            and confidence >= 70
-        ):
+        if stance == "BULLISH" and recommendation in ("BUY", "STRONG BUY") and confidence >= 70:
             if price_context == "NEAR_SUPPORT":
                 action = "WAIT_FOR_CONFIRMATION"
             elif breakout_context == "ACTIVE_BREAKOUT":
@@ -1428,14 +1050,7 @@ class EROSFrontendAdapter:
             else:
                 action = "BULLISH_SETUP"
 
-        elif (
-            stance == "BEARISH"
-            and recommendation in (
-                "SELL",
-                "STRONG SELL"
-            )
-            and confidence >= 70
-        ):
+        elif stance == "BEARISH" and recommendation in ("SELL", "STRONG SELL") and confidence >= 70:
             action = "BEARISH_SETUP"
 
         else:
@@ -1448,24 +1063,16 @@ class EROSFrontendAdapter:
         confirmation = []
 
         if support is not None:
-            confirmation.append(
-                f"Hold above support {float(support):.2f}"
-            )
+            confirmation.append(f"Hold above support {float(support):.2f}")
 
         if resistance is not None:
-            confirmation.append(
-                f"Monitor resistance {float(resistance):.2f}"
-            )
+            confirmation.append(f"Monitor resistance {float(resistance):.2f}")
 
         if breakout_context == "ACTIVE_BREAKOUT":
-            confirmation.append(
-                "Confirm breakout persistence"
-            )
+            confirmation.append("Confirm breakout persistence")
 
         if not confirmation:
-            confirmation.append(
-                "Await additional technical confirmation"
-            )
+            confirmation.append("Await additional technical confirmation")
 
         # ----------------------------------------------------
         # INVALIDATION CONDITIONS
@@ -1474,21 +1081,13 @@ class EROSFrontendAdapter:
         invalidation = []
 
         if support is not None:
-            invalidation.append(
-                f"Sustained breakdown below support "
-                f"{float(support):.2f}"
-            )
+            invalidation.append(f"Sustained breakdown below support " f"{float(support):.2f}")
 
         if resistance is not None and stance == "BULLISH":
-            invalidation.append(
-                f"Failure near resistance "
-                f"{float(resistance):.2f}"
-            )
+            invalidation.append(f"Failure near resistance " f"{float(resistance):.2f}")
 
         if not invalidation:
-            invalidation.append(
-                "Material deterioration in decision evidence"
-            )
+            invalidation.append("Material deterioration in decision evidence")
 
         # ----------------------------------------------------
         # RISK CONTEXT
@@ -1526,13 +1125,12 @@ class EROSFrontendAdapter:
             "allow_broker_submission": False,
             "allow_live_execution": False,
             "allow_portfolio_mutation": False,
-            "allow_optimization": False
+            "allow_optimization": False,
         }
 
         return {
             "symbol": symbol,
             "price": interpretation.get("price"),
-
             "action": {
                 "classification": action,
                 "stance": stance,
@@ -1540,28 +1138,18 @@ class EROSFrontendAdapter:
                 "score": score,
                 "confidence": confidence,
                 "confidence_band": action_confidence,
-                "risk_context": risk_context
+                "risk_context": risk_context,
             },
-
             "market_context": {
                 "price_context": price_context,
                 "breakout_context": breakout_context,
                 "support": support,
-                "resistance": resistance
+                "resistance": resistance,
             },
-
             "confirmation_conditions": confirmation,
-
             "invalidation_conditions": invalidation,
-
-            "interpretation_summary": (
-                interpretation_block.get(
-                    "interpretation",
-                    ""
-                )
-            ),
-
-            "governance": governance
+            "interpretation_summary": (interpretation_block.get("interpretation", "")),
+            "governance": governance,
         }
 
     def decision_scenario_engine(self, symbol: str = "RELIANCE.NS") -> dict:
@@ -1585,28 +1173,16 @@ class EROSFrontendAdapter:
 
         price = float(interpretation.get("price", 0.0))
 
-        support = technical.get(
-            "support",
-            interp.get("support")
-        )
+        support = technical.get("support", interp.get("support"))
 
-        resistance = technical.get(
-            "resistance",
-            interp.get("resistance")
-        )
+        resistance = technical.get("resistance", interp.get("resistance"))
 
         stance = str(decision.get("stance", "NEUTRAL"))
-        recommendation = str(
-            decision.get("recommendation", "HOLD")
-        )
+        recommendation = str(decision.get("recommendation", "HOLD"))
 
-        confidence = float(
-            decision.get("confidence", 0.0)
-        )
+        confidence = float(decision.get("confidence", 0.0))
 
-        risk = str(
-            decision.get("risk", "UNKNOWN")
-        )
+        risk = str(decision.get("risk", "UNKNOWN"))
 
         # ----------------------------------------------------
         # BASE SCENARIO
@@ -1615,14 +1191,10 @@ class EROSFrontendAdapter:
         base_conditions = []
 
         if support is not None:
-            base_conditions.append(
-                f"Price remains above support {float(support):.2f}"
-            )
+            base_conditions.append(f"Price remains above support {float(support):.2f}")
 
         if resistance is not None:
-            base_conditions.append(
-                f"Price continues to monitor resistance {float(resistance):.2f}"
-            )
+            base_conditions.append(f"Price continues to monitor resistance {float(resistance):.2f}")
 
         base = {
             "scenario": "BASE",
@@ -1632,7 +1204,7 @@ class EROSFrontendAdapter:
             "decision_effect": (
                 "Maintain the current analytical stance while "
                 "confirmation conditions remain unresolved."
-            )
+            ),
         }
 
         # ----------------------------------------------------
@@ -1642,13 +1214,9 @@ class EROSFrontendAdapter:
         bull_conditions = []
 
         if resistance is not None:
-            bull_conditions.append(
-                f"Confirmed move above resistance {float(resistance):.2f}"
-            )
+            bull_conditions.append(f"Confirmed move above resistance {float(resistance):.2f}")
 
-        bull_conditions.append(
-            "Bullish trend and momentum remain intact"
-        )
+        bull_conditions.append("Bullish trend and momentum remain intact")
 
         bull = {
             "scenario": "BULL",
@@ -1656,9 +1224,8 @@ class EROSFrontendAdapter:
             "classification": "CONFIRMATION",
             "conditions": bull_conditions,
             "decision_effect": (
-                "A confirmed upside move would strengthen the "
-                "existing bullish decision context."
-            )
+                "A confirmed upside move would strengthen the " "existing bullish decision context."
+            ),
         }
 
         # ----------------------------------------------------
@@ -1668,13 +1235,9 @@ class EROSFrontendAdapter:
         bear_conditions = []
 
         if support is not None:
-            bear_conditions.append(
-                f"Sustained breakdown below support {float(support):.2f}"
-            )
+            bear_conditions.append(f"Sustained breakdown below support {float(support):.2f}")
 
-        bear_conditions.append(
-            "Bullish technical structure deteriorates"
-        )
+        bear_conditions.append("Bullish technical structure deteriorates")
 
         bear = {
             "scenario": "BEAR",
@@ -1684,7 +1247,7 @@ class EROSFrontendAdapter:
             "decision_effect": (
                 "A sustained breakdown would invalidate the "
                 "current bullish confirmation structure."
-            )
+            ),
         }
 
         # ----------------------------------------------------
@@ -1713,44 +1276,30 @@ class EROSFrontendAdapter:
             "allow_valuation_mutation": False,
             "allow_performance_mutation": False,
             "allow_risk_mutation": False,
-            "allow_optimization": False
+            "allow_optimization": False,
         }
 
         return {
             "symbol": symbol,
             "price": price,
-
             "current_decision": {
                 "stance": stance,
                 "recommendation": recommendation,
                 "confidence": confidence,
-                "risk": risk
+                "risk": risk,
             },
-
             "primary_scenario": primary,
-
-            "scenarios": {
-                "base": base,
-                "bull": bull,
-                "bear": bear
-            },
-
-            "decision_quality": interp.get(
-                "decision_quality",
-                "UNKNOWN"
-            ),
-
+            "scenarios": {"base": base, "bull": bull, "bear": bear},
+            "decision_quality": interp.get("decision_quality", "UNKNOWN"),
             "scenario_summary": (
                 f"{symbol} currently has a {stance} stance with "
                 f"{recommendation} recommendation. The primary "
                 f"scenario is {primary}."
             ),
-
-            "governance": safe_governance
+            "governance": safe_governance,
         }
 
-
-    def decision_scenario_explanation(self, symbol: str) -> Dict[str, Any]:
+    def decision_scenario_explanation(self, symbol: str) -> dict[str, Any]:
         """
         EROS V3.5
         Scenario Explanation Engine.
@@ -1777,13 +1326,8 @@ class EROSFrontendAdapter:
         explanation = {
             "symbol": scenario_data.get("symbol"),
             "price": scenario_data.get("price"),
-
             "current_decision": current,
-
-            "primary_scenario": scenario_data.get(
-                "primary_scenario"
-            ),
-
+            "primary_scenario": scenario_data.get("primary_scenario"),
             "scenario_explanation": {
                 "base": {
                     "meaning": (
@@ -1796,7 +1340,6 @@ class EROSFrontendAdapter:
                     "conditions": base_conditions,
                     "decision_effect": base.get("decision_effect"),
                 },
-
                 "bull": {
                     "meaning": (
                         "The BULL scenario represents confirmation "
@@ -1807,7 +1350,6 @@ class EROSFrontendAdapter:
                     "conditions": bull_conditions,
                     "decision_effect": bull.get("decision_effect"),
                 },
-
                 "bear": {
                     "meaning": (
                         "The BEAR scenario represents invalidation "
@@ -1819,19 +1361,10 @@ class EROSFrontendAdapter:
                     "decision_effect": bear.get("decision_effect"),
                 },
             },
-
-            "decision_quality": scenario_data.get(
-                "decision_quality"
-            ),
-
-            "interpretation": (
-                scenario_data.get("scenario_summary")
-            ),
-
+            "decision_quality": scenario_data.get("decision_quality"),
+            "interpretation": (scenario_data.get("scenario_summary")),
             "confirmation_logic": bull_conditions,
-
             "invalidation_logic": bear_conditions,
-
             "summary": (
                 f"{scenario_data.get('symbol')} currently has a "
                 f"{current.get('stance')} stance with "
@@ -1841,7 +1374,6 @@ class EROSFrontendAdapter:
                 f"The BULL scenario represents confirmation, while "
                 f"the BEAR scenario represents invalidation."
             ),
-
             "governance": {
                 "read_only": True,
                 "execution_blocked": True,
@@ -1859,8 +1391,7 @@ class EROSFrontendAdapter:
 
         return explanation
 
-
-    def decision_traceability(self, symbol: str = "RELIANCE.NS") -> Dict[str, Any]:
+    def decision_traceability(self, symbol: str = "RELIANCE.NS") -> dict[str, Any]:
         """
         EROS 3.0 - V3.7 Decision Traceability Engine.
 
@@ -1908,9 +1439,7 @@ class EROSFrontendAdapter:
         convergence = self.decision_convergence(symbol)
 
         if not isinstance(convergence, dict):
-            raise RuntimeError(
-                "TRACEABILITY_CONVERGENCE_NOT_DICT"
-            )
+            raise RuntimeError("TRACEABILITY_CONVERGENCE_NOT_DICT")
 
         decision = convergence.get("decision", {})
         convergence_data = convergence.get("convergence", {})
@@ -1920,136 +1449,73 @@ class EROSFrontendAdapter:
         traceability = {
             "symbol": convergence.get("symbol"),
             "price": convergence.get("price"),
-
             "decision": {
                 "stance": decision.get("stance"),
                 "recommendation": decision.get("recommendation"),
                 "classification": decision.get("classification"),
                 "confidence": decision.get("confidence"),
                 "risk": decision.get("risk"),
-                "decision_quality": decision.get(
-                    "decision_quality"
-                ),
+                "decision_quality": decision.get("decision_quality"),
             },
-
             "trace": {
                 "stage_1_evidence": {
                     "source": "decision_evidence",
                     "status": "AVAILABLE",
                 },
-
                 "stage_2_intelligence": {
                     "source": "decision_intelligence",
                     "status": "AVAILABLE",
                 },
-
                 "stage_3_interpretation": {
                     "source": "decision_interpretation",
                     "status": "AVAILABLE",
-                    "market_condition": interpretation.get(
-                        "market_condition"
-                    ),
-                    "price_context": interpretation.get(
-                        "price_context"
-                    ),
-                    "breakout_context": interpretation.get(
-                        "breakout_context"
-                    ),
+                    "market_condition": interpretation.get("market_condition"),
+                    "price_context": interpretation.get("price_context"),
+                    "breakout_context": interpretation.get("breakout_context"),
                 },
-
                 "stage_4_action_framework": {
                     "source": "decision_action_framework",
                     "status": "AVAILABLE",
                 },
-
                 "stage_5_action_explanation": {
                     "source": "decision_action_explanation",
                     "status": "AVAILABLE",
                 },
-
                 "stage_6_scenario_engine": {
                     "source": "decision_scenario_engine",
                     "status": "AVAILABLE",
                 },
-
                 "stage_7_scenario_explanation": {
                     "source": "decision_scenario_explanation",
                     "status": "AVAILABLE",
                 },
-
                 "stage_8_convergence": {
                     "source": "decision_convergence",
                     "status": "AVAILABLE",
-                    "primary_scenario": convergence_data.get(
-                        "primary_scenario"
-                    ),
+                    "primary_scenario": convergence_data.get("primary_scenario"),
                 },
             },
-
             "evidence_chain": {
-                "primary_drivers": convergence_data.get(
-                    "primary_drivers",
-                    []
-                ),
-                "supporting_drivers": convergence_data.get(
-                    "supporting_drivers",
-                    []
-                ),
-                "conflicting_signals": convergence_data.get(
-                    "conflicting_signals",
-                    []
-                ),
-                "confirmation_logic": convergence_data.get(
-                    "confirmation_logic",
-                    []
-                ),
-                "invalidation_logic": convergence_data.get(
-                    "invalidation_logic",
-                    []
-                ),
+                "primary_drivers": convergence_data.get("primary_drivers", []),
+                "supporting_drivers": convergence_data.get("supporting_drivers", []),
+                "conflicting_signals": convergence_data.get("conflicting_signals", []),
+                "confirmation_logic": convergence_data.get("confirmation_logic", []),
+                "invalidation_logic": convergence_data.get("invalidation_logic", []),
             },
-
             "scenario_trace": {
-                "primary_scenario": convergence_data.get(
-                    "primary_scenario"
-                ),
-                "base": convergence_data.get(
-                    "base",
-                    {}
-                ),
-                "bull_confirmation": convergence_data.get(
-                    "bull_confirmation",
-                    {}
-                ),
-                "bear_invalidation": convergence_data.get(
-                    "bear_invalidation",
-                    {}
-                ),
+                "primary_scenario": convergence_data.get("primary_scenario"),
+                "base": convergence_data.get("base", {}),
+                "bull_confirmation": convergence_data.get("bull_confirmation", {}),
+                "bear_invalidation": convergence_data.get("bear_invalidation", {}),
             },
-
             "interpretation": {
-                "market_condition": interpretation.get(
-                    "market_condition"
-                ),
-                "price_context": interpretation.get(
-                    "price_context"
-                ),
-                "breakout_context": interpretation.get(
-                    "breakout_context"
-                ),
-                "decision_quality": interpretation.get(
-                    "decision_quality"
-                ),
+                "market_condition": interpretation.get("market_condition"),
+                "price_context": interpretation.get("price_context"),
+                "breakout_context": interpretation.get("breakout_context"),
+                "decision_quality": interpretation.get("decision_quality"),
             },
-
-            "conclusion": convergence.get(
-                "conclusion",
-                ""
-            ),
-
+            "conclusion": convergence.get("conclusion", ""),
             "traceability_status": "COMPLETE",
-
-
             "traceability": {
                 "status": "COMPLETE",
                 "source": "decision_traceability",
@@ -2065,12 +1531,8 @@ class EROSFrontendAdapter:
                     "stage_7_scenario_explanation": "AVAILABLE",
                     "stage_8_convergence": "AVAILABLE",
                 },
-                "primary_scenario": convergence_data.get(
-                    "primary_scenario"
-                ),
-                "decision_quality": decision.get(
-                    "decision_quality"
-                ),
+                "primary_scenario": convergence_data.get("primary_scenario"),
+                "decision_quality": decision.get("decision_quality"),
                 "read_only": True,
                 "execution_blocked": True,
                 "non_mutation_invariant": True,

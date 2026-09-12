@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+
+from services.financials.financial_statement import FinancialStatements
 from services.forecast.cagr import CAGRCalculator
 from services.forecast.growth import ExponentialForecaster
 from services.forecast.models import ForecastResult
 from services.forecast.regression import RegressionForecaster
-from services.financials.financial_statement import FinancialStatements
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +19,13 @@ class ForecastEngine:
         self.regression_calc = RegressionForecaster()
         self.exponential_calc = ExponentialForecaster()
 
-    def generate_forecast(self, financials: FinancialStatements, model_type: str = "CAGR") -> ForecastResult:
+    def generate_forecast(
+        self, financials: FinancialStatements, model_type: str = "CAGR"
+    ) -> ForecastResult:
         symbol = financials.symbol
-        logger.info("Generating %s forecast for symbol: %s based on actual fundamentals", model_type, symbol)
+        logger.info(
+            "Generating %s forecast for symbol: %s based on actual fundamentals", model_type, symbol
+        )
 
         # Extract historical series or fall back to defaults
         # Normalize historical ordering before forecasting.
@@ -36,10 +40,22 @@ class ForecastEngine:
             key=lambda item: item.period,
         )
 
-        revenues = [inc.revenue for inc in income_history] if income_history else [1000000.0, 1100000.0, 1250000.0]
-        ebits = [inc.ebit for inc in income_history] if income_history else [200000.0, 220000.0, 250000.0]
+        revenues = (
+            [inc.revenue for inc in income_history]
+            if income_history
+            else [1000000.0, 1100000.0, 1250000.0]
+        )
+        ebits = (
+            [inc.ebit for inc in income_history]
+            if income_history
+            else [200000.0, 220000.0, 250000.0]
+        )
         eps_list = [inc.eps for inc in income_history] if income_history else [40.0, 45.0, 50.0]
-        fcf_list = [cf.free_cash_flow for cf in cashflow_history] if cashflow_history else [150000.0, 170000.0, 190000.0]
+        fcf_list = (
+            [cf.free_cash_flow for cf in cashflow_history]
+            if cashflow_history
+            else [150000.0, 170000.0, 190000.0]
+        )
 
         last_rev = revenues[-1]
         last_ebit = ebits[-1]
@@ -57,7 +73,9 @@ class ForecastEngine:
             eps_proj = self.exponential_calc.project(eps_list, growth_rate=0.10, periods=5)
             fcf_proj = self.exponential_calc.project(fcf_list, growth_rate=0.12, periods=5)
         else:  # Default CAGR
-            cagr = self.cagr_calc.calculate_cagr(revenues[0], revenues[-1], max(1, len(revenues) - 1))
+            cagr = self.cagr_calc.calculate_cagr(
+                revenues[0], revenues[-1], max(1, len(revenues) - 1)
+            )
             rev_proj = self.cagr_calc.project(last_rev, cagr, periods=5)
             ebit_proj = self.cagr_calc.project(last_ebit, cagr * 0.9, periods=5)
             eps_proj = self.cagr_calc.project(last_eps, cagr * 0.95, periods=5)

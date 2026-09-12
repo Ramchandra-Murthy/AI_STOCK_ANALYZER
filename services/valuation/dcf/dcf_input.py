@@ -88,15 +88,11 @@ class DCFInput:
             raise ValueError("cash_and_equivalents cannot be negative.")
 
         if not (0.0 <= self.tax_rate <= 1.0):
-            raise ValueError(
-                f"tax_rate must be between 0.0 and 1.0 (got {self.tax_rate})."
-            )
+            raise ValueError(f"tax_rate must be between 0.0 and 1.0 (got {self.tax_rate}).")
 
         weight_sum = self.equity_weight + self.debt_weight
         if abs(weight_sum - 1.0) > 1e-4:
-            raise ValueError(
-                f"Equity and Debt weights must sum to 1.0 (got {weight_sum:.4f})."
-            )
+            raise ValueError(f"Equity and Debt weights must sum to 1.0 (got {weight_sum:.4f}).")
 
         wacc = self.calculate_wacc()
         if self.terminal_growth_rate >= wacc:

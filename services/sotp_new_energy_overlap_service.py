@@ -157,9 +157,7 @@ def analyze_sotp_new_energy_overlap(
         # REPORTED NET ASSETS
         # ------------------------------------------------
         "reported_net_assets": values,
-        "arithmetic_total": (
-            round(arithmetic_total, 2) if arithmetic_total is not None else None
-        ),
+        "arithmetic_total": (round(arithmetic_total, 2) if arithmetic_total is not None else None),
         "arithmetic_total_is_additive": (additive_net_assets_confirmed),
         # ------------------------------------------------
         # OWNERSHIP EVIDENCE
@@ -168,9 +166,7 @@ def analyze_sotp_new_energy_overlap(
             "reliance_new_energy": 1.0,
             "reliance_new_solar_energy": 1.0,
             "reliance_new_energy_battery_storage": 1.0,
-            "ownership_basis": (
-                "FY2025-26 annual report subsidiary " "ownership disclosure"
-            ),
+            "ownership_basis": ("FY2025-26 annual report subsidiary " "ownership disclosure"),
             "ownership_confirmed": (ownership_structure_confirmed),
         },
         # ------------------------------------------------
@@ -211,9 +207,7 @@ def analyze_sotp_new_energy_overlap(
             "intercompany_eliminations_quantified": False,
             "economic_additivity_established": (intercompany_overlap_resolved),
             "evidence_status": (
-                "RESOLVED"
-                if intercompany_overlap_resolved
-                else "INTERCOMPANY_DATA_REQUIRED"
+                "RESOLVED" if intercompany_overlap_resolved else "INTERCOMPANY_DATA_REQUIRED"
             ),
             "basis": (
                 "Entity-level New Energy net asset "

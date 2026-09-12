@@ -1,1 +1,254 @@
-/home/runner/work/_temp/545bc30d-c9c0-498b-a228-99f044ac8e08.sh: line 1: ruff: command not found
+backend/api/dependencies/auth.py:13:56: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+backend/api/health.py:28:40: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+backend/api/routers/auth_router.py:14:63: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+backend/api/routers/auth_router.py:30:57: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+backend/api/routers/eros_production_router.py:23:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+backend/api/routers/task_router.py:32:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+backend/api/routers/valuation_router.py:20:51: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+backend/database/models/user.py:12:7: UP042 Class UserRole inherits from both `str` and `enum.Enum`
+backend/infrastructure/runtime_probe.py:27:16: F401 `celery` imported but unused; consider using `importlib.util.find_spec` to test for availability
+backend/infrastructure/runtime_probe.py:28:16: F401 `fastapi` imported but unused; consider using `importlib.util.find_spec` to test for availability
+backend/infrastructure/runtime_probe.py:29:16: F401 `redis` imported but unused; consider using `importlib.util.find_spec` to test for availability
+backend/infrastructure/runtime_probe.py:30:16: F401 `sqlalchemy` imported but unused; consider using `importlib.util.find_spec` to test for availability
+backend/providers/normalizer/event_normalizer.py:35:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+backend/security/dependencies.py:12:49: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+backend/security/dependencies.py:19:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+backend/security/dependencies.py:37:40: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+backend/workflow/workflow_state.py:6:7: UP042 Class WorkflowState inherits from both `str` and `enum.Enum`
+backups/eros3_rebuild_checkpoint_08/domain/valuation/result.py:8:7: UP042 Class ValuationMethod inherits from both `str` and `enum.Enum`
+backups/eros3_rebuild_checkpoint_08/domain/valuation/result.py:14:7: UP042 Class ValuationStatus inherits from both `str` and `enum.Enum`
+backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:32:9: F841 Local variable `forecast_service` is assigned to but never used
+backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:35:9: F841 Local variable `valuation_service` is assigned to but never used
+backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:38:9: F841 Local variable `research_service` is assigned to but never used
+backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:41:9: F841 Local variable `report_service` is assigned to but never used
+backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:75:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:32:9: F841 Local variable `forecast_service` is assigned to but never used
+backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:35:9: F841 Local variable `valuation_service` is assigned to but never used
+backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:38:9: F841 Local variable `research_service` is assigned to but never used
+backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:41:9: F841 Local variable `report_service` is assigned to but never used
+backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:75:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+core/container/providers.py:10:25: UP046 Generic class `BaseProvider` uses `Generic` subclass instead of type parameters
+core/interfaces/valuation.py:33:29: UP046 Generic class `IValuationEngine` uses `Generic` subclass instead of type parameters
+core/serialization/__init__.py:32:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+core/serialization/__init__.py:41:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+core/types/__init__.py:9:7: UP042 Class Currency inherits from both `str` and `enum.Enum`
+domain/valuation/result.py:8:7: UP042 Class ValuationMethod inherits from both `str` and `enum.Enum`
+domain/valuation/result.py:14:7: UP042 Class ValuationStatus inherits from both `str` and `enum.Enum`
+eros/config/__init__.py:1:1: F403 `from .domain_constants import *` used; unable to detect undefined names
+logs/block100_actual_blocked_return_safety_trace.py:86:32: invalid-syntax: missing closing quote in string literal
+logs/block100_clean_return_safety_trace.py:145:35: B007 Loop control variable `line` not used within loop body
+logs/block100_readonly_runtime_safety_verification.py:74:11: B007 Loop control variable `cls` not used within loop body
+logs/block100_readonly_runtime_safety_verification.py:183:14: B007 Loop control variable `expected` not used within loop body
+logs/block100_safe_trace.py:70:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block100_safe_trace.py:91:11: B007 Loop control variable `obj` not used within loop body
+logs/block100_safe_trace.py:113:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block106_block102_real_contract_runner.py:93:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block106_block103_actual_output_diagnostic_runner.py:278:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_real_contract_flow_test.py:115:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_real_contract_flow_test.py:140:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_real_contract_flow_test.py:165:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_real_contract_flow_test.py:190:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_real_contract_flow_test.py:215:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_real_contract_flow_test.py:240:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_real_contract_flow_test.py:268:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_real_contract_flow_test.py:293:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/block94_101_safety_contract_construction_audit.py:150:41: B905 `zip()` without an explicit `strict=` parameter
+logs/block94_96_blocked_return_safety_audit.py:55:37: B905 `zip()` without an explicit `strict=` parameter
+logs/block94_96_bom_safe_blocked_return_audit.py:56:37: B905 `zip()` without an explicit `strict=` parameter
+logs/block99_readonly_runtime_safety_verification.py:85:11: B007 Loop control variable `cls` not used within loop body
+logs/block99_readonly_runtime_safety_verification.py:213:14: B007 Loop control variable `expected` not used within loop body
+logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v32_20260822_210838.py:428:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v32_20260822_210838.py:498:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v33_20260822_211141.py:428:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v33_20260822_211141.py:498:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v33_20260822_211141.py:714:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v34_20260822_211420.py:428:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v34_20260822_211420.py:498:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v34_20260822_211420.py:715:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v34_20260822_211420.py:887:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_211800.py:428:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_211800.py:498:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_211800.py:715:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_211800.py:887:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_211800.py:1040:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_212229.py:428:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_212229.py:498:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_212229.py:715:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_212229.py:887:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v35_20260822_212229.py:1040:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v36_20260822_212325.py:428:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v36_20260822_212325.py:498:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v36_20260822_212325.py:715:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v36_20260822_212325.py:887:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v36_20260822_212325.py:1040:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v371_20260822_213654.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v371_20260822_213654.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v371_20260822_213654.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v371_20260822_213654.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v371_20260822_213654.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v371_20260822_213654.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v371_20260822_213654.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_20260822_213827.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_20260822_213827.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_20260822_213827.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_20260822_213827.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_20260822_213827.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_20260822_213827.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_20260822_213827.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213105.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213105.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213105.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213105.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213105.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213105.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213210.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213210.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213210.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213210.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213210.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v37_20260822_213210.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v381_20260822_215432.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v381_20260822_215432.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v381_20260822_215432.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v381_20260822_215432.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v381_20260822_215432.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v381_20260822_215432.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v381_20260822_215432.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py:3197:21: invalid-syntax: Expected `)`, found `=`
+logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py:3201:1: invalid-syntax: Expected `:`, found name
+logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py:3204:17: invalid-syntax: Expected `,`, found `)`
+logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py:3204:18: invalid-syntax: Expected an expression or a '}'
+logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:1605:9: F841 Local variable `interpretation` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:1903:13: F841 Local variable `audit_summary` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220104.py:1914:9: F841 Local variable `audit_governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:1605:9: F841 Local variable `interpretation` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:1903:13: F841 Local variable `audit_summary` is assigned to but never used
+logs/eros_frontend_adapter_before_v382_20260822_220437.py:1914:9: F841 Local variable `audit_governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v38_20260822_214850.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+logs/eros_frontend_adapter_before_v38_20260822_214850.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+logs/eros_frontend_adapter_before_v38_20260822_214850.py:630:9: F841 Local variable `ema20` is assigned to but never used
+logs/eros_frontend_adapter_before_v38_20260822_214850.py:847:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v38_20260822_214850.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+logs/eros_frontend_adapter_before_v38_20260822_214850.py:1172:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_frontend_adapter_before_v38_20260822_214850.py:1447:9: F841 Local variable `governance` is assigned to but never used
+logs/eros_v28_decision_evidence_test.py:154:11: UP030 Use implicit references for positional format fields
+logs/eros_v28_decision_evidence_test.py:188:11: UP030 Use implicit references for positional format fields
+logs/eros_v28_decision_evidence_test.py:212:11: UP030 Use implicit references for positional format fields
+logs/eros_v29_decision_evidence_test.py:78:11: UP030 Use implicit references for positional format fields
+logs/eros_v29_decision_evidence_test.py:114:11: UP030 Use implicit references for positional format fields
+logs/eros_v29_decision_evidence_test.py:138:11: UP030 Use implicit references for positional format fields
+logs/eros_v29_decision_evidence_test.py:160:11: UP030 Use implicit references for positional format fields
+logs/eros_v372_return_structure_diagnostic.py:120:25: B905 `zip()` without an explicit `strict=` parameter
+logs/eros_v3822_clean_runtime_diagnostic.py:29:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3822_clean_runtime_diagnostic.py:93:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3822_clean_runtime_diagnostic.py:115:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3823_hydration_dataflow_diagnostic.py:35:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3823_hydration_source_inspection.py:26:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3824_audit_dataflow_inspector.py:58:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3824_audit_dataflow_inspector.py:70:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3824_audit_dataflow_source_diagnostic.py:44:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3824_audit_dataflow_source_diagnostic.py:56:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3824_audit_dataflow_source_diagnostic.py:114:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3825_upstream_dataflow_diagnostic.py:36:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3827_runtime_dataflow_diagnostic.py:33:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v3829_upstream_runtime_hydration_diagnostic.py:34:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+logs/eros_v382_integrity_patcher.py:29:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+security_backup_31K_BG/eros_production_router.py:23:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+security_backup_31K_BG/task_router.py:29:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+security_backup_31K_BG/valuation_router.py:17:51: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CG/backend/api/dependencies/auth.py:13:56: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CG/backend/api/routers/auth_router.py:14:63: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CG/backend/api/routers/auth_router.py:30:57: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CG/backend/api/routers/eros_production_router.py:23:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+security_backup_31K_CG/backend/api/routers/task_router.py:32:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+security_backup_31K_CG/backend/api/routers/valuation_router.py:20:51: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CG/backend/security/dependencies.py:12:49: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CG/backend/security/dependencies.py:19:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+security_backup_31K_CG/backend/security/dependencies.py:37:40: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CG/task_router.py:32:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+security_backup_31K_CG/valuation_router.py:20:51: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CR/auth.py:13:56: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CR/auth_router.py:14:63: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CR/auth_router.py:30:57: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CS/auth.py:13:56: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CS/auth_router.py:14:63: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CS/auth_router.py:30:57: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CU/auth_router.py:14:63: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+security_backup_31K_CU/auth_router.py:30:57: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+services/eros_frontend_adapter.py:73:9: F841 Local variable `explanation_data` is assigned to but never used
+services/eros_frontend_adapter.py:560:9: F841 Local variable `risk_flags` is assigned to but never used
+services/eros_frontend_adapter.py:630:9: F841 Local variable `ema20` is assigned to but never used
+services/eros_frontend_adapter.py:847:9: F841 Local variable `governance` is assigned to but never used
+services/eros_frontend_adapter.py:1019:9: F841 Local variable `market_context` is assigned to but never used
+services/eros_frontend_adapter.py:1172:9: F841 Local variable `governance` is assigned to but never used
+services/eros_frontend_adapter.py:1447:9: F841 Local variable `governance` is assigned to but never used
+services/forecasting/scenario_engine.py:31:74: B905 `zip()` without an explicit `strict=` parameter
+services/investors/buffett.py:22:9: F841 Local variable `fcf_conversion` is assigned to but never used
+services/quantitative/block86_control_plane.py:199:9: F841 Local variable `evidence` is assigned to but never used
+services/quantitative/block87_execution_bridge.py:184:9: F841 Local variable `action` is assigned to but never used
+services/quantitative/block93_performance_risk_attribution_engine.py:109:51: B905 `zip()` without an explicit `strict=` parameter
+services/quantitative/block93_performance_risk_attribution_engine.py:457:37: B905 `zip()` without an explicit `strict=` parameter
+services/quantitative/block93_performance_risk_attribution_engine.py:465:37: B905 `zip()` without an explicit `strict=` parameter
+services/quantitative/block97_test_harness.py:258:5: F841 Local variable `duplicate_second` is assigned to but never used
+services/quantitative/eros_106_109_golden_chain_gate.py:113:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+services/quantitative/eros_106_109_golden_chain_gate.py:122:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+services/quantitative/eros_106_109_golden_chain_gate.py:131:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+services/quantitative/eros_106_109_golden_chain_gate.py:140:5: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+services/quantitative/eros_106_109_golden_chain_gate.py:216:15: B007 Loop control variable `obj` not used within loop body
+services/ratios/engine.py:49:9: F841 Local variable `total_liab` is assigned to but never used
+services/ratios/quality_engine.py:42:13: F841 Local variable `total_assets` is assigned to but never used
+services/valuation/engine.py:46:9: F841 Local variable `current_eps` is assigned to but never used
+services/valuation/engine.py:47:9: F841 Local variable `current_ebitda` is assigned to but never used
+services/valuation/engine.py:69:59: B905 `zip()` without an explicit `strict=` parameter
+tests/production/test_block30l_live_worker.py:36:17: F841 Local variable `res_data` is assigned to but never used
+tests/production/test_block30m_definitive_worker.py:37:17: F841 Local variable `final_status` is assigned to but never used
+tests/tasks/test_sprint19c_control_plane.py:69:16: B011 Do not `assert False` (`python -O` removes these calls), raise `AssertionError()`
+tests/test_pipeline.py:32:9: F841 Local variable `forecast_service` is assigned to but never used
+tests/test_pipeline.py:35:9: F841 Local variable `valuation_service` is assigned to but never used
+tests/test_pipeline.py:38:9: F841 Local variable `research_service` is assigned to but never used
+tests/test_pipeline.py:41:9: F841 Local variable `report_service` is assigned to but never used
+tests/test_pipeline.py:75:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+Found 252 errors.
+No fixes available (167 hidden fixes can be enabled with the `--unsafe-fixes` option).

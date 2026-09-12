@@ -1,9 +1,7 @@
 ﻿import time
-import os
-import pytest
-from backend.tasks.celery_app import celery_app, celery_instance
+
 from backend.tasks.task_control import task_control
-from backend.tasks.celery_config import celery_broker
+
 
 def test_block30c_real_worker_task_lifecycle():
     """
@@ -22,8 +20,8 @@ def test_block30c_real_worker_task_lifecycle():
         payload={
             "symbol": "TCS.NS",
             "policy_profile": "Institutional",
-            "workflow_id": "WF-BLOCK-30C-001"
-        }
+            "workflow_id": "WF-BLOCK-30C-001",
+        },
     )
     assert submission is not None
     assert "task_id" in submission
@@ -40,21 +38,18 @@ def test_block30c_real_worker_task_lifecycle():
     result_info = {}
     for _ in range(10):
         result_info = task_control.get_task_result(task_id)
-        if result_info.get('result') is not None:
+        if result_info.get("result") is not None:
             break
         time.sleep(0.5)
 
     assert result_info["task_id"] == task_id
     assert "result" in result_info
 
-    res_payload = result_info.get('result')
+    res_payload = result_info.get("result")
     assert result_info["task_id"] == task_id
     assert "result" in result_info
-    
-    res_payload = result_info.get('result')
+
+    res_payload = result_info.get("result")
     assert res_payload is not None
     if isinstance(res_payload, dict):
         assert res_payload.get("symbol") in ["TCS.NS", "RELIANCE.NS"] or "result" in res_payload
-
-
-

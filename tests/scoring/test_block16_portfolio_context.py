@@ -1,5 +1,6 @@
-﻿from services.scoring.models import AIScoreResult
-from services.scoring.investment_decision import InvestmentDecisionOrchestrator
+﻿from services.scoring.investment_decision import InvestmentDecisionOrchestrator
+from services.scoring.models import AIScoreResult
+
 
 def test_block16b_portfolio_context_integration():
     ai_score = AIScoreResult(
@@ -15,7 +16,7 @@ def test_block16b_portfolio_context_integration():
         breakdown_details={
             "rating": "STRONG BUY",
             "engine_version": "EROS-3.0-BLOCK-15",
-        }
+        },
     )
 
     # Simulate existing portfolio holdings where INFY.NS is oversized (e.g., 20% of portfolio)
@@ -29,8 +30,7 @@ def test_block16b_portfolio_context_integration():
 
     assert result.symbol == "INFY.NS"
     assert result.portfolio_weight > 0.15
-    assert result.action == "HOLD" # Downgraded due to concentration limit check
+    assert result.action == "HOLD"  # Downgraded due to concentration limit check
     assert result.details["engine_version"] == "EROS-3.0-BLOCK-16D"
     assert "portfolio_context" in result.details
     assert len(result.rationale) > 1
-

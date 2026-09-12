@@ -1,9 +1,8 @@
 ﻿from __future__ import annotations
 
 import ast
-import inspect
-import sys
 import os
+import sys
 import traceback
 
 PROJECT_ROOT = r"D:\Users\User\Desktop\AI_STOCK_ANALYZER"
@@ -44,7 +43,7 @@ print("ROOT IN PATH:", PROJECT_ROOT in sys.path)
 # ------------------------------------------------------------
 
 try:
-    with open(ADAPTER_PATH, "r", encoding="utf-8-sig") as f:
+    with open(ADAPTER_PATH, encoding="utf-8-sig") as f:
         source = f.read()
 
     print()
@@ -108,9 +107,7 @@ for name, node in [
     if node is None:
         print(f"{name:35} : NOT FOUND")
     else:
-        print(
-            f"{name:35} : line {node.lineno} -> {getattr(node, 'end_lineno', '?')}"
-        )
+        print(f"{name:35} : line {node.lineno} -> {getattr(node, 'end_lineno', '?')}")
 
 if audit_method is None:
     raise SystemExit(1)
@@ -120,6 +117,7 @@ if audit_method is None:
 # ------------------------------------------------------------
 
 lines = source.splitlines()
+
 
 def print_source_range(start, end, title):
     print()
@@ -131,6 +129,7 @@ def print_source_range(start, end, title):
 
     for n in range(start, end + 1):
         print(f"{n:5d} | {lines[n-1]}")
+
 
 # ------------------------------------------------------------
 # DECISION AUDIT SOURCE
@@ -175,7 +174,7 @@ print()
 print("6. DATAFLOW SYMBOL OCCURRENCES")
 print("-" * 78)
 
-audit_text = "\n".join(lines[audit_start - 1:audit_end])
+audit_text = "\n".join(lines[audit_start - 1 : audit_end])
 
 for symbol in symbols:
     occurrences = []
@@ -196,6 +195,7 @@ print("7. AST ASSIGNMENTS / DATA SOURCES")
 print("-" * 78)
 
 interesting = set(symbols)
+
 
 class AssignmentVisitor(ast.NodeVisitor):
     def __init__(self):
@@ -245,6 +245,7 @@ class AssignmentVisitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
+
 visitor = AssignmentVisitor()
 visitor.visit(audit_method)
 
@@ -261,6 +262,7 @@ for lineno, target, value in visitor.items:
 print()
 print("8. INTERNAL METHOD CALLS")
 print("-" * 78)
+
 
 class CallVisitor(ast.NodeVisitor):
     def __init__(self):
@@ -282,6 +284,7 @@ class CallVisitor(ast.NodeVisitor):
 
         self.generic_visit(node)
 
+
 call_visitor = CallVisitor()
 call_visitor.visit(audit_method)
 
@@ -297,6 +300,7 @@ for lineno, call in call_visitor.calls:
 print()
 print("9. RETURN ANALYSIS")
 print("-" * 78)
+
 
 class ReturnVisitor(ast.NodeVisitor):
     def __init__(self):
@@ -314,6 +318,7 @@ class ReturnVisitor(ast.NodeVisitor):
                 value,
             )
         )
+
 
 return_visitor = ReturnVisitor()
 return_visitor.visit(audit_method)

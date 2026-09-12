@@ -1,16 +1,16 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
-path = Path(
-    r"services\quantitative\block100_paper_execution_fill_gate.py"
-)
+path = Path(r"services\quantitative\block100_paper_execution_fill_gate.py")
 
 out = []
+
 
 def p(text=""):
     text = str(text)
     print(text)
     out.append(text)
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 100 ACTUAL RETURN / BLOCKED PATH TRACE")
@@ -23,9 +23,7 @@ if not path.exists():
     p("SOURCE ERROR: FILE NOT FOUND")
 else:
 
-    lines = path.read_text(
-        encoding="utf-8-sig"
-    ).splitlines()
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
 
     p("SOURCE : FOUND")
     p("SOURCE LINES : " + str(len(lines)))
@@ -77,25 +75,13 @@ else:
         shown.add(key)
 
         p()
-        p(
-            "--- SOURCE WINDOW L"
-            + str(start)
-            + "-L"
-            + str(end)
-            + " ---"
-        )
+        p("--- SOURCE WINDOW L" + str(start) + "-L" + str(end) + " ---")
 
         for n in range(start, end + 1):
 
             marker = ">>" if n == line_no else "  "
 
-            p(
-                marker
-                + " L"
-                + str(n)
-                + ": "
-                + lines[n - 1]
-            )
+            p(marker + " L" + str(n) + ": " + lines[n - 1])
 
     p()
     p("=" * 100)
@@ -116,27 +102,13 @@ else:
         end = min(len(lines), line_no + 25)
 
         p()
-        p(
-            "--- RETURN #"
-            + str(index)
-            + " WINDOW L"
-            + str(start)
-            + "-L"
-            + str(end)
-            + " ---"
-        )
+        p("--- RETURN #" + str(index) + " WINDOW L" + str(start) + "-L" + str(end) + " ---")
 
         for n in range(start, end + 1):
 
             marker = ">>" if n == line_no else "  "
 
-            p(
-                marker
-                + " L"
-                + str(n)
-                + ": "
-                + lines[n - 1]
-            )
+            p(marker + " L" + str(n) + ": " + lines[n - 1])
 
     p()
     p("=" * 100)
@@ -162,27 +134,14 @@ else:
 
             line = lines[i - 1]
 
-            if (
-                line.startswith("    def ")
-                and i > certify_start
-            ):
+            if line.startswith("    def ") and i > certify_start:
                 certify_end = i - 1
                 break
 
-        p(
-            "CERTIFY RANGE : L"
-            + str(certify_start)
-            + "-L"
-            + str(certify_end)
-        )
+        p("CERTIFY RANGE : L" + str(certify_start) + "-L" + str(certify_end))
 
         for n in range(certify_start, certify_end + 1):
-            p(
-                "L"
-                + str(n)
-                + ": "
-                + lines[n - 1]
-            )
+            p("L" + str(n) + ": " + lines[n - 1])
 
     p()
     p("=" * 100)
@@ -239,4 +198,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

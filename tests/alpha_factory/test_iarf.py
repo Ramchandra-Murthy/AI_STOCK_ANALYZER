@@ -1,9 +1,9 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.alpha_factory.models import InvestmentOpportunity
-from services.alpha_factory.screening_engine import AlphaScreeningEngine
 from services.alpha_factory.ranking_engine import OpportunityRankingEngine
+from services.alpha_factory.screening_engine import AlphaScreeningEngine
+
 
 def test_investment_opportunity_immutability() -> None:
     opp = InvestmentOpportunity(
@@ -16,12 +16,13 @@ def test_investment_opportunity_immutability() -> None:
         momentum_score=0.75,
         catalyst_score=0.89,
         risk_score=0.25,
-        priority=1
+        priority=1,
     )
     assert opp.symbol == "RELIANCE.NS"
     assert opp.priority == 1
     assert opp.timestamp is not None
     assert isinstance(opp.metadata, dict)
+
 
 def test_alpha_screening_engine() -> None:
     watchlist = ["RELIANCE.NS", "SPECULATIVE.NS", "TCS.NS"]
@@ -29,6 +30,7 @@ def test_alpha_screening_engine() -> None:
     assert "RELIANCE.NS" in screened
     assert "TCS.NS" in screened
     assert "SPECULATIVE.NS" not in screened
+
 
 def test_opportunity_ranking_engine() -> None:
     qualified = ["RELIANCE.NS", "HDFC_BANK.NS"]

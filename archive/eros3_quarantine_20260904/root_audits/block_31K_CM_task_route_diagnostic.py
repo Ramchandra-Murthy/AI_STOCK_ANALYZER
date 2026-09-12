@@ -70,12 +70,7 @@ for target_path, target_method in targets:
         if path == target_path and target_method in methods:
             matches.append(route)
 
-    print(
-        target_method,
-        target_path,
-        "->",
-        "FOUND" if matches else "NOT FOUND"
-    )
+    print(target_method, target_path, "->", "FOUND" if matches else "NOT FOUND")
 
 print("\n4. TASK ROUTER OBJECT")
 print("-" * 50)
@@ -128,9 +123,7 @@ if main_path.exists():
     for number, line in enumerate(lines, start=1):
 
         if "task_router" in line.lower():
-            print(
-                f"LINE {number}: {line}"
-            )
+            print(f"LINE {number}: {line}")
 
 else:
     print("backend/main.py NOT FOUND")
@@ -154,10 +147,7 @@ if response.status_code == 200:
 
         if "/task" in path.lower():
 
-            methods = [
-                method.upper()
-                for method in item.keys()
-            ]
+            methods = [method.upper() for method in item.keys()]
 
             print(
                 "OPENAPI:",
@@ -205,14 +195,9 @@ for path, method in tests:
 print("\n8. DIAGNOSTIC CONCLUSION")
 print("-" * 50)
 
-print(
-    "The task endpoint is present in OpenAPI and responds to "
-    "unauthenticated requests."
-)
+print("The task endpoint is present in OpenAPI and responds to " "unauthenticated requests.")
 
-print(
-    "No source modification was performed by this diagnostic."
-)
+print("No source modification was performed by this diagnostic.")
 
 print("\n" + "=" * 50)
 print("BLOCK 31K-CM COMPLETE")

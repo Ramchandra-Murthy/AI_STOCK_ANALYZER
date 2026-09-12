@@ -1,6 +1,6 @@
-﻿import os
+﻿import io
+import os
 import tokenize
-import io
 
 root = os.getcwd()
 
@@ -21,12 +21,10 @@ found = []
 
 for path in files:
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         source = f.read()
 
-    tokens = tokenize.generate_tokens(
-        io.StringIO(source).readline
-    )
+    tokens = tokenize.generate_tokens(io.StringIO(source).readline)
 
     for tok in tokens:
 

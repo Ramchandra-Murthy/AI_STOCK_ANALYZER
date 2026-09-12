@@ -1,7 +1,9 @@
 import os
+
 import pytest
+
 from backend.tasks.task_control import task_control
-from backend.tasks.celery_app import celery_instance
+
 
 def test_block30d_live_redis_broker_roundtrip():
     """
@@ -11,6 +13,7 @@ def test_block30d_live_redis_broker_roundtrip():
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     try:
         import redis
+
         client = redis.Redis.from_url(redis_url, socket_timeout=1.5)
         client.ping()
     except Exception as exc:
@@ -21,6 +24,7 @@ def test_block30d_live_redis_broker_roundtrip():
     client.set(test_key, "OK", ex=10)
     assert client.get(test_key).decode("utf-8") == "OK"
 
+
 def test_block30d_live_celery_task_dispatch():
     """
     Validates live task dispatch when Redis broker is online and reachable.
@@ -28,6 +32,7 @@ def test_block30d_live_celery_task_dispatch():
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     try:
         import redis
+
         client = redis.Redis.from_url(redis_url, socket_timeout=1.5)
         client.ping()
     except Exception as exc:
@@ -40,7 +45,7 @@ def test_block30d_live_celery_task_dispatch():
         submission = task_control.submit_task(
             task_name="valuation.execute",
             user="live_production_auditor",
-            payload={"symbol": "INFY.NS", "live_broker_test": True}
+            payload={"symbol": "INFY.NS", "live_broker_test": True},
         )
         assert submission is not None
         assert "task_id" in submission
@@ -49,5 +54,3 @@ def test_block30d_live_celery_task_dispatch():
             os.environ.pop("USE_REAL_CELERY", None)
         else:
             os.environ["USE_REAL_CELERY"] = old_use_real_celery
-
-

@@ -4,7 +4,6 @@ import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 60)
 print("EROS 3.0 - V3.7.2 TRACEABILITY COMPATIBILITY RUNTIME")
 print("=" * 60)
@@ -47,15 +46,10 @@ foundation = [
 for name in foundation:
     ok = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_API:{name}"
-        )
+        raise RuntimeError(f"MISSING_API:{name}")
 
 
 print("\nV3.6 / V3.7 FOUNDATION : VERIFIED")
@@ -84,21 +78,13 @@ print("RESULT TYPE       :", type(result).__name__)
 
 
 if not isinstance(result, dict):
-    raise RuntimeError(
-        "TRACEABILITY_RESULT_NOT_DICT"
-    )
+    raise RuntimeError("TRACEABILITY_RESULT_NOT_DICT")
 
 
 print("\n4. RAW TRACEABILITY RESULT")
 print("-" * 60)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 print("\n5. TOP LEVEL SCHEMA")
@@ -122,15 +108,10 @@ for field in required_top:
 
     ok = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_TOP_LEVEL_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_TOP_LEVEL_FIELD:{field}")
 
 
 print("\nTOP LEVEL SCHEMA : PASS")
@@ -141,25 +122,15 @@ print("-" * 60)
 
 legacy_trace = result.get("trace")
 
-print(
-    "legacy 'trace' present :",
-    "PASS" if "trace" in result else "FAIL"
-)
+print("legacy 'trace' present :", "PASS" if "trace" in result else "FAIL")
 
 if "trace" not in result:
-    raise RuntimeError(
-        "LEGACY_TRACE_REMOVED"
-    )
+    raise RuntimeError("LEGACY_TRACE_REMOVED")
 
-print(
-    "legacy 'trace' type    :",
-    type(legacy_trace).__name__
-)
+print("legacy 'trace' type    :", type(legacy_trace).__name__)
 
 if not isinstance(legacy_trace, dict):
-    raise RuntimeError(
-        "LEGACY_TRACE_NOT_DICT"
-    )
+    raise RuntimeError("LEGACY_TRACE_NOT_DICT")
 
 print("LEGACY TRACE : PRESERVED")
 
@@ -169,20 +140,12 @@ print("-" * 60)
 
 traceability = result.get("traceability")
 
-print(
-    "traceability present :",
-    "PASS" if "traceability" in result else "FAIL"
-)
+print("traceability present :", "PASS" if "traceability" in result else "FAIL")
 
-print(
-    "traceability type    :",
-    type(traceability).__name__
-)
+print("traceability type    :", type(traceability).__name__)
 
 if not isinstance(traceability, dict):
-    raise RuntimeError(
-        "TRACEABILITY_NOT_DICT"
-    )
+    raise RuntimeError("TRACEABILITY_NOT_DICT")
 
 print("TRACEABILITY : DICT PASS")
 
@@ -205,15 +168,10 @@ for layer in required_layers:
 
     ok = layer in traceability
 
-    print(
-        f"{layer:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{layer:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_TRACEABILITY_LAYER:{layer}"
-        )
+        raise RuntimeError(f"MISSING_TRACEABILITY_LAYER:{layer}")
 
 
 print("\nTRACEABILITY LAYERS : PASS")
@@ -227,9 +185,7 @@ status = result.get("traceability_status")
 print("STATUS :", status)
 
 if status != "COMPLETE":
-    raise RuntimeError(
-        f"INVALID_TRACEABILITY_STATUS:{status}"
-    )
+    raise RuntimeError(f"INVALID_TRACEABILITY_STATUS:{status}")
 
 print("TRACEABILITY STATUS : COMPLETE")
 
@@ -252,15 +208,10 @@ for field in decision_fields:
 
     ok = field in decision
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_DECISION_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_DECISION_FIELD:{field}")
 
 print("DECISION STRUCTURE : PASS")
 
@@ -268,14 +219,10 @@ print("DECISION STRUCTURE : PASS")
 print("\n11. V3.6 CONVERGENCE VALIDATION")
 print("-" * 60)
 
-convergence = result.get("traceability", {}).get(
-    "stage_8_convergence"
-)
+convergence = result.get("traceability", {}).get("stage_8_convergence")
 
 if not isinstance(convergence, dict):
-    raise RuntimeError(
-        "CONVERGENCE_TRACE_NOT_DICT"
-    )
+    raise RuntimeError("CONVERGENCE_TRACE_NOT_DICT")
 
 for field in [
     "source",
@@ -285,20 +232,12 @@ for field in [
 
     ok = field in convergence
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_CONVERGENCE_TRACE_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_CONVERGENCE_TRACE_FIELD:{field}")
 
-print(
-    "PRIMARY SCENARIO :",
-    convergence.get("primary_scenario")
-)
+print("PRIMARY SCENARIO :", convergence.get("primary_scenario"))
 
 print("V3.6 CONVERGENCE : PASS")
 
@@ -306,14 +245,10 @@ print("V3.6 CONVERGENCE : PASS")
 print("\n12. EVIDENCE CHAIN")
 print("-" * 60)
 
-evidence_chain = result.get(
-    "evidence_chain"
-)
+evidence_chain = result.get("evidence_chain")
 
 if not isinstance(evidence_chain, dict):
-    raise RuntimeError(
-        "EVIDENCE_CHAIN_NOT_DICT"
-    )
+    raise RuntimeError("EVIDENCE_CHAIN_NOT_DICT")
 
 for field in [
     "primary_drivers",
@@ -325,15 +260,10 @@ for field in [
 
     ok = field in evidence_chain
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_EVIDENCE_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_EVIDENCE_FIELD:{field}")
 
 print("EVIDENCE CHAIN : PASS")
 
@@ -341,14 +271,10 @@ print("EVIDENCE CHAIN : PASS")
 print("\n13. SCENARIO TRACE")
 print("-" * 60)
 
-scenario_trace = result.get(
-    "scenario_trace"
-)
+scenario_trace = result.get("scenario_trace")
 
 if not isinstance(scenario_trace, dict):
-    raise RuntimeError(
-        "SCENARIO_TRACE_NOT_DICT"
-    )
+    raise RuntimeError("SCENARIO_TRACE_NOT_DICT")
 
 for field in [
     "primary_scenario",
@@ -359,15 +285,10 @@ for field in [
 
     ok = field in scenario_trace
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_SCENARIO_TRACE_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_SCENARIO_TRACE_FIELD:{field}")
 
 print("SCENARIO TRACE : PASS")
 
@@ -375,14 +296,10 @@ print("SCENARIO TRACE : PASS")
 print("\n14. INTERPRETATION")
 print("-" * 60)
 
-interpretation = result.get(
-    "interpretation"
-)
+interpretation = result.get("interpretation")
 
 if not isinstance(interpretation, dict):
-    raise RuntimeError(
-        "INTERPRETATION_NOT_DICT"
-    )
+    raise RuntimeError("INTERPRETATION_NOT_DICT")
 
 for field in [
     "market_condition",
@@ -393,15 +310,10 @@ for field in [
 
     ok = field in interpretation
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_INTERPRETATION_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_INTERPRETATION_FIELD:{field}")
 
 print("INTERPRETATION : PASS")
 
@@ -412,14 +324,10 @@ print("-" * 60)
 conclusion = result.get("conclusion")
 
 if not isinstance(conclusion, str):
-    raise RuntimeError(
-        "CONCLUSION_NOT_STRING"
-    )
+    raise RuntimeError("CONCLUSION_NOT_STRING")
 
 if not conclusion.strip():
-    raise RuntimeError(
-        "CONCLUSION_EMPTY"
-    )
+    raise RuntimeError("CONCLUSION_EMPTY")
 
 print("CONCLUSION : PASS")
 print("SUMMARY :")
@@ -429,14 +337,10 @@ print(conclusion)
 print("\n16. GOVERNANCE")
 print("-" * 60)
 
-governance = result.get(
-    "governance"
-)
+governance = result.get("governance")
 
 if not isinstance(governance, dict):
-    raise RuntimeError(
-        "GOVERNANCE_NOT_DICT"
-    )
+    raise RuntimeError("GOVERNANCE_NOT_DICT")
 
 
 expected_true = [
@@ -462,16 +366,10 @@ for field in expected_true:
     actual = governance.get(field)
     ok = actual is True
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=True)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 for field in expected_false:
@@ -479,16 +377,10 @@ for field in expected_false:
     actual = governance.get(field)
     ok = actual is False
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual}, expected=False)"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
     if not ok:
-        raise RuntimeError(
-            f"SAFETY_FAILURE:{field}"
-        )
+        raise RuntimeError(f"SAFETY_FAILURE:{field}")
 
 
 print("GOVERNANCE : PASS")

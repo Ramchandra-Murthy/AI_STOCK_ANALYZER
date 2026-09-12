@@ -1,16 +1,20 @@
 ﻿from __future__ import annotations
 
-from fastapi import APIRouter, status, HTTPException
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-from typing import Dict, Any
+
 from backend.tasks.task_control import task_control
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["Distributed Tasks"])
 
+
 class TaskSubmitRequest(BaseModel):
     task_name: str
     user: str = "analyst1"
-    payload: Dict[str, Any] = {}
+    payload: dict[str, Any] = {}
+
 
 @router.post("/submit", status_code=status.HTTP_202_ACCEPTED)
 def submit_task(request: TaskSubmitRequest) -> dict:
@@ -19,9 +23,7 @@ def submit_task(request: TaskSubmitRequest) -> dict:
     """
     try:
         submission = task_control.submit_task(
-            task_name=request.task_name,
-            user=request.user,
-            payload=request.payload
+            task_name=request.task_name, user=request.user, payload=request.payload
         )
     except ValueError as exc:
         raise HTTPException(
@@ -33,8 +35,9 @@ def submit_task(request: TaskSubmitRequest) -> dict:
         "task_id": submission["task_id"],
         "status": submission["status"],
         "message": f"Task '{request.task_name}' accepted for asynchronous execution.",
-        "execution_result": submission.get("execution_result", {})
+        "execution_result": submission.get("execution_result", {}),
     }
+
 
 @router.get("/registered", status_code=status.HTTP_200_OK)
 def get_registered_tasks() -> dict:
@@ -43,12 +46,14 @@ def get_registered_tasks() -> dict:
     """
     return {"registered_tasks": task_control.get_registered_tasks()}
 
+
 @router.get("/queues/status", status_code=status.HTTP_200_OK)
 def get_queue_status() -> dict:
     """
     Retrieve active queues and worker status from the control plane.
     """
     return task_control.get_queue_status()
+
 
 @router.get("/{task_id}/status", status_code=status.HTTP_200_OK)
 def get_task_status(task_id: str) -> dict:
@@ -60,6 +65,7 @@ def get_task_status(task_id: str) -> dict:
         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
     return status_info
 
+
 @router.get("/{task_id}/result", status_code=status.HTTP_200_OK)
 def get_task_result(task_id: str) -> dict:
     """
@@ -70,16 +76,15 @@ def get_task_result(task_id: str) -> dict:
         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
     return result_info
 
+
 @router.get("/observability/metrics", status_code=status.HTTP_200_OK)
 def get_task_observability_metrics() -> dict:
     """
     Retrieve enterprise task execution and lifecycle observability metrics.
     """
     metrics = task_control.get_task_metrics()
-    return {
-        "status": "SUCCESS",
-        "metrics": metrics
-    }
+    return {"status": "SUCCESS", "metrics": metrics}
+
 
 @router.get("/observability/details", status_code=status.HTTP_200_OK)
 def get_task_observability_details() -> dict:
@@ -93,13 +98,11 @@ def get_task_observability_details() -> dict:
         "total_tasks": details["total_tasks"],
     }
 
+
 @router.get("/observability", status_code=status.HTTP_200_OK)
 def get_task_observability_summary() -> dict:
     """
     Retrieve comprehensive unified task control-plane observability summary.
     """
     summary = task_control.get_observability_summary()
-    return {
-        "status": "SUCCESS",
-        "summary": summary
-    }
+    return {"status": "SUCCESS", "summary": summary}

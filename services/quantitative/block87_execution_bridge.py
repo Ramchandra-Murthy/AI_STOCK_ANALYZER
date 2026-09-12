@@ -16,25 +16,25 @@ Safety:
     - Preserves Block 86 decision provenance.
 """
 
-from dataclasses import asdict, dataclass, field, is_dataclass
-from datetime import datetime, timezone
 import hashlib
 import json
 import math
-from typing import Any, Dict, List, Mapping, Optional
+from collections.abc import Mapping
+from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import UTC, datetime
+from typing import Any
 
 from services.execution.execution_engine import InstitutionalExecutionEngine
 from services.execution.transaction_cost import TransactionCostAnalyzer
-
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-87"
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _to_dict(value: Any) -> Dict[str, Any]:
+def _to_dict(value: Any) -> dict[str, Any]:
     if value is None:
         return {}
 
@@ -83,18 +83,18 @@ class Block87ExecutionResult:
     symbol: str
     action: str
     order_count: int
-    orders: List[Dict[str, Any]] = field(default_factory=list)
+    orders: list[dict[str, Any]] = field(default_factory=list)
     total_notional: float = 0.0
     total_transaction_cost: float = 0.0
     transaction_cost_bps: float = 0.0
-    rationale: List[str] = field(default_factory=list)
-    blocking_reasons: List[str] = field(default_factory=list)
-    audit_evidence: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    rationale: list[str] = field(default_factory=list)
+    blocking_reasons: list[str] = field(default_factory=list)
+    audit_evidence: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     engine_version: str = ENGINE_VERSION
     timestamp: str = field(default_factory=_utc_now)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -133,9 +133,7 @@ class EROSBlock87ExecutionBridge:
             raise ValueError("execution_policy must not be empty")
 
         if not 0.0 < max_allocation_weight <= 1.0:
-            raise ValueError(
-                "max_allocation_weight must be > 0 and <= 1"
-            )
+            raise ValueError("max_allocation_weight must be > 0 and <= 1")
 
         self.execution_policy = execution_policy
         self.max_allocation_weight = float(max_allocation_weight)
@@ -143,7 +141,7 @@ class EROSBlock87ExecutionBridge:
         # In-memory deterministic idempotency registry.
         # A future persistent execution store can replace this without
         # changing the Block 87 public contract.
-        self._completed_requests: Dict[str, Block87ExecutionResult] = {}
+        self._completed_requests: dict[str, Block87ExecutionResult] = {}
 
     @staticmethod
     def _decision_symbol(decision: Mapping[str, Any]) -> str:
@@ -160,7 +158,7 @@ class EROSBlock87ExecutionBridge:
     def _build_idempotency_key(
         self,
         decision: Mapping[str, Any],
-        allocations: List[Mapping[str, Any]],
+        allocations: list[Mapping[str, Any]],
     ) -> str:
 
         payload = {
@@ -190,8 +188,10 @@ class EROSBlock87ExecutionBridge:
             status="BLOCKED",
             execution_allowed=False,
             decision_id=decision_id,
-            request_id=request_id or (
-                "EROS87-" + _hash_payload(
+            request_id=request_id
+            or (
+                "EROS87-"
+                + _hash_payload(
                     {
                         "decision_id": decision_id,
                         "reason": reason,
@@ -203,9 +203,7 @@ class EROSBlock87ExecutionBridge:
             action="BLOCK",
             order_count=0,
             orders=[],
-            rationale=[
-                "Block 87 did not receive an executable authorization."
-            ],
+            rationale=["Block 87 did not receive an executable authorization."],
             blocking_reasons=[reason],
             audit_evidence={
                 "block86_decision_id": decision_id,
@@ -221,8 +219,8 @@ class EROSBlock87ExecutionBridge:
     def _validate_allocations(
         self,
         decision: Mapping[str, Any],
-        allocations: List[Mapping[str, Any]],
-    ) -> List[Dict[str, Any]]:
+        allocations: list[Mapping[str, Any]],
+    ) -> list[dict[str, Any]]:
 
         decision_symbol = self._decision_symbol(decision)
         decision_action = self._action(decision)
@@ -230,20 +228,16 @@ class EROSBlock87ExecutionBridge:
         if not allocations:
             raise ValueError("No execution allocations supplied")
 
-        normalized: List[Dict[str, Any]] = []
+        normalized: list[dict[str, Any]] = []
 
         for index, raw in enumerate(allocations):
 
             row = _to_dict(raw)
 
-            symbol = str(
-                row.get("symbol", decision_symbol)
-            ).strip().upper()
+            symbol = str(row.get("symbol", decision_symbol)).strip().upper()
 
             if not symbol:
-                raise ValueError(
-                    f"Allocation {index}: missing symbol"
-                )
+                raise ValueError(f"Allocation {index}: missing symbol")
 
             if decision_symbol and symbol != decision_symbol:
                 raise ValueError(
@@ -251,9 +245,7 @@ class EROSBlock87ExecutionBridge:
                     f"match Block 86 symbol {decision_symbol}"
                 )
 
-            action = str(
-                row.get("action", decision_action)
-            ).strip().upper()
+            action = str(row.get("action", decision_action)).strip().upper()
 
             if action != decision_action:
                 raise ValueError(
@@ -270,9 +262,7 @@ class EROSBlock87ExecutionBridge:
             )
 
             if weight < 0:
-                raise ValueError(
-                    f"{symbol}: negative allocation weight"
-                )
+                raise ValueError(f"{symbol}: negative allocation weight")
 
             if weight > self.max_allocation_weight:
                 raise ValueError(
@@ -287,9 +277,7 @@ class EROSBlock87ExecutionBridge:
                     "symbol": symbol,
                     "action": action,
                     "trade_weight": weight,
-                    "block86_decision_id": self._decision_id(
-                        decision
-                    ),
+                    "block86_decision_id": self._decision_id(decision),
                 }
             )
 
@@ -297,18 +285,16 @@ class EROSBlock87ExecutionBridge:
 
     @staticmethod
     def _calculate_tca(
-        orders: List[Mapping[str, Any]],
-    ) -> Dict[str, Any]:
+        orders: list[Mapping[str, Any]],
+    ) -> dict[str, Any]:
 
-        rows: List[Dict[str, Any]] = []
+        rows: list[dict[str, Any]] = []
         total_notional = 0.0
         total_cost = 0.0
 
         for order in orders:
 
-            action = str(
-                order.get("action", "")
-            ).upper()
+            action = str(order.get("action", "")).upper()
 
             if action == "HOLD":
                 continue
@@ -357,20 +343,14 @@ class EROSBlock87ExecutionBridge:
 
             rows.append(
                 {
-                    "symbol": str(
-                        order.get("symbol", "")
-                    ).upper(),
+                    "symbol": str(order.get("symbol", "")).upper(),
                     "action": action,
                     "notional": round(notional, 2),
                     **tca,
                 }
             )
 
-        cost_bps = (
-            total_cost / total_notional * 10000.0
-            if total_notional > 0
-            else 0.0
-        )
+        cost_bps = total_cost / total_notional * 10000.0 if total_notional > 0 else 0.0
 
         return {
             "orders": rows,
@@ -383,7 +363,7 @@ class EROSBlock87ExecutionBridge:
     def execute(
         self,
         decision: Any,
-        allocations: List[Mapping[str, Any]],
+        allocations: list[Mapping[str, Any]],
     ) -> Block87ExecutionResult:
 
         decision_dict = _to_dict(decision)
@@ -411,9 +391,7 @@ class EROSBlock87ExecutionBridge:
         )
 
         if idempotency_key in self._completed_requests:
-            previous = self._completed_requests[
-                idempotency_key
-            ]
+            previous = self._completed_requests[idempotency_key]
 
             return Block87ExecutionResult(
                 **{
@@ -484,7 +462,7 @@ class EROSBlock87ExecutionBridge:
             execution_policy=self.execution_policy,
         )
 
-        order_dicts: List[Dict[str, Any]] = []
+        order_dicts: list[dict[str, Any]] = []
 
         for order in orders:
 
@@ -524,34 +502,25 @@ class EROSBlock87ExecutionBridge:
             order_count=len(order_dicts),
             orders=order_dicts,
             total_notional=tca["total_notional"],
-            total_transaction_cost=tca[
-                "total_transaction_cost"
-            ],
-            transaction_cost_bps=tca[
-                "transaction_cost_bps"
-            ],
+            total_transaction_cost=tca["total_transaction_cost"],
+            transaction_cost_bps=tca["transaction_cost_bps"],
             rationale=[
                 "Block 86 authorization was APPROVED.",
                 "Execution permission was explicitly enabled.",
-                "Orders generated through the existing "
-                "InstitutionalExecutionEngine.",
+                "Orders generated through the existing " "InstitutionalExecutionEngine.",
                 "No broker or live-order submission performed.",
             ],
             blocking_reasons=[],
             audit_evidence={
                 "block86_decision_id": decision_id,
-                "block86_decision_hash": _to_dict(
-                    decision_dict.get(
-                        "audit_evidence"
-                    )
-                ).get("decision_hash"),
+                "block86_decision_hash": _to_dict(decision_dict.get("audit_evidence")).get(
+                    "decision_hash"
+                ),
                 "block87_request_id": request_id,
                 "block87_idempotency_key": idempotency_key,
                 "broker_submission": False,
                 "live_order_submission": False,
-                "execution_engine": (
-                    "InstitutionalExecutionEngine"
-                ),
+                "execution_engine": ("InstitutionalExecutionEngine"),
             },
             metadata={
                 "source": "EROS-3.0-BLOCK-86",
@@ -567,7 +536,7 @@ class EROSBlock87ExecutionBridge:
     def certify(
         self,
         decision: Any,
-        allocations: List[Mapping[str, Any]],
+        allocations: list[Mapping[str, Any]],
     ) -> Block87ExecutionResult:
 
         return self.execute(

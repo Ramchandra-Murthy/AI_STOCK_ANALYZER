@@ -1,7 +1,6 @@
 ﻿from __future__ import annotations
 
 import inspect
-import json
 import py_compile
 
 from services.quantitative.block102_frontend_contract import (
@@ -38,20 +37,18 @@ print("BLOCK 106 IMPORT : PASS")
 print("\n2. ACTUAL INTERFACES")
 print("-" * 70)
 
-print("BLOCK 102 BUILD :",
-      inspect.signature(EROSBlock102FrontendContract.build))
+print("BLOCK 102 BUILD :", inspect.signature(EROSBlock102FrontendContract.build))
 
-print("BLOCK 103 BUILD :",
-      inspect.signature(EROSBlock103InstitutionalFrontendReadModel.build))
+print("BLOCK 103 BUILD :", inspect.signature(EROSBlock103InstitutionalFrontendReadModel.build))
 
-print("BLOCK 104 SNAPSHOT :",
-      inspect.signature(EROSBlock104CommandCenter.snapshot))
+print("BLOCK 104 SNAPSHOT :", inspect.signature(EROSBlock104CommandCenter.snapshot))
 
-print("BLOCK 106 BUILD :",
-      inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build))
+print("BLOCK 106 BUILD :", inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build))
 
-print("BLOCK 106 VALIDATE :",
-      inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload))
+print(
+    "BLOCK 106 VALIDATE :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
+)
 
 print("INTERFACE CHECK : PASS")
 
@@ -72,8 +69,7 @@ print("KEYS       :", list(c102.keys()))
 require(isinstance(c102, dict), "BLOCK102_NOT_DICT")
 require(c102.get("block_id") == "102", "BLOCK102_BAD_ID")
 require(c102.get("status") == "CERTIFIED", "BLOCK102_BAD_STATUS")
-require(c102.get("engine_version") == "EROS-3.0-BLOCK-102",
-        "BLOCK102_BAD_ENGINE")
+require(c102.get("engine_version") == "EROS-3.0-BLOCK-102", "BLOCK102_BAD_ENGINE")
 
 print("BLOCK 102 CONTRACT : PASS")
 
@@ -94,8 +90,7 @@ print("KEYS       :", list(c103.keys()))
 require(isinstance(c103, dict), "BLOCK103_NOT_DICT")
 require(c103.get("block_id") == "103", "BLOCK103_BAD_ID")
 require(c103.get("status") == "CERTIFIED", "BLOCK103_BAD_STATUS")
-require(c103.get("engine_version") == "EROS-3.0-BLOCK-103",
-        "BLOCK103_BAD_ENGINE")
+require(c103.get("engine_version") == "EROS-3.0-BLOCK-103", "BLOCK103_BAD_ENGINE")
 
 print("BLOCK 103 CONTRACT : PASS")
 
@@ -117,8 +112,7 @@ print("KEYS        :", list(c104.keys()))
 require(isinstance(c104, dict), "BLOCK104_NOT_DICT")
 require(c104.get("block_id") == "104", "BLOCK104_BAD_ID")
 require(c104.get("status") == "CERTIFIED", "BLOCK104_BAD_STATUS")
-require(c104.get("engine_version") == "EROS-3.0-BLOCK-104",
-        "BLOCK104_BAD_ENGINE")
+require(c104.get("engine_version") == "EROS-3.0-BLOCK-104", "BLOCK104_BAD_ENGINE")
 require(c104.get("source_block") == "103", "BLOCK104_BAD_SOURCE")
 
 print("BLOCK 104 CONTRACT : PASS")
@@ -188,20 +182,15 @@ for key in (
 ):
     print(f"{key:30}:", safety.get(key))
 
-require(safety.get("allow_order_creation") is False,
-        "ORDER_CREATION_NOT_BLOCKED")
+require(safety.get("allow_order_creation") is False, "ORDER_CREATION_NOT_BLOCKED")
 
-require(safety.get("allow_broker_submission") is False,
-        "BROKER_SUBMISSION_NOT_BLOCKED")
+require(safety.get("allow_broker_submission") is False, "BROKER_SUBMISSION_NOT_BLOCKED")
 
-require(safety.get("allow_live_execution") is False,
-        "LIVE_EXECUTION_NOT_BLOCKED")
+require(safety.get("allow_live_execution") is False, "LIVE_EXECUTION_NOT_BLOCKED")
 
-require(safety.get("execution_blocked") is True,
-        "EXECUTION_NOT_BLOCKED")
+require(safety.get("execution_blocked") is True, "EXECUTION_NOT_BLOCKED")
 
-require(safety.get("non_mutation_invariant") is True,
-        "NON_MUTATION_INVARIANT_FAILED")
+require(safety.get("non_mutation_invariant") is True, "NON_MUTATION_INVARIANT_FAILED")
 
 print("SAFETY BOUNDARY : PASS")
 

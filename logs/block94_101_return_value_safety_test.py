@@ -1,42 +1,38 @@
-from services.quantitative.block94_portfolio_stress_scenario_engine import EROSBlock94PortfolioStressScenarioEngine
+from services.quantitative.block94_portfolio_stress_scenario_engine import (
+    EROSBlock94PortfolioStressScenarioEngine,
+)
 from services.quantitative.block95_stress_evidence_gate import EROSBlock95StressEvidenceGate
 from services.quantitative.block96_stress_decision_gate import EROSBlock96StressDecisionGate
 from services.quantitative.block97_stress_readiness_gate import EROSBlock97StressReadinessGate
-from services.quantitative.block98_execution_governance_bridge import EROSBlock98ExecutionGovernanceBridge
-from services.quantitative.block99_execution_intent_authorization_gate import EROSBlock99ExecutionIntentAuthorizationGate
-from services.quantitative.block100_paper_execution_fill_gate import EROSBlock100PaperExecutionFillGate
-from services.quantitative.block101_execution_evidence_reconciliation import EROSBlock101ExecutionEvidenceReconciliationGate
+from services.quantitative.block98_execution_governance_bridge import (
+    EROSBlock98ExecutionGovernanceBridge,
+)
+from services.quantitative.block99_execution_intent_authorization_gate import (
+    EROSBlock99ExecutionIntentAuthorizationGate,
+)
+from services.quantitative.block100_paper_execution_fill_gate import (
+    EROSBlock100PaperExecutionFillGate,
+)
+from services.quantitative.block101_execution_evidence_reconciliation import (
+    EROSBlock101ExecutionEvidenceReconciliationGate,
+)
 
 print("=" * 80)
 print("EROS 3.0 - BLOCK 94-101 RETURN VALUE SAFETY TEST")
 print("=" * 80)
 
-valuation = {
-    "status": "CERTIFIED",
-    "portfolio_value": 1_000_000.0
-}
+valuation = {"status": "CERTIFIED", "portfolio_value": 1_000_000.0}
 
-performance = {
-    "status": "CERTIFIED",
-    "return_pct": 8.5
-}
+performance = {"status": "CERTIFIED", "return_pct": 8.5}
 
-risk = {
-    "status": "CERTIFIED",
-    "risk_score": 20
-}
+risk = {"status": "CERTIFIED", "risk_score": 20}
 
 positions = [
     {"symbol": "RELIANCE", "quantity": 100, "price": 2800},
     {"symbol": "TCS", "quantity": 50, "price": 3500},
 ]
 
-scenarios = [
-    {
-        "name": "market_shock",
-        "price_shock_pct": -10
-    }
-]
+scenarios = [{"name": "market_shock", "price_shock_pct": -10}]
 
 print()
 print("SYNTHETIC INPUT CREATED")

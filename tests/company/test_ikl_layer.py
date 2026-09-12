@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.company.timeline import CorporateEvent, CompanyTimelineEngine
-from services.company.predictions import PredictionRecord, PredictionLedger
+from services.company.predictions import PredictionLedger, PredictionRecord
+from services.company.timeline import CompanyTimelineEngine, CorporateEvent
+
 
 def test_company_timeline_and_predictions() -> None:
     # Test Timeline Engine
@@ -14,7 +14,7 @@ def test_company_timeline_and_predictions() -> None:
         title="Retail Expansion",
         description="Acquired strategic retail assets nationwide.",
         date="2018-05-15",
-        impact_score=0.85
+        impact_score=0.85,
     )
     timeline_engine.add_event(event)
     events = timeline_engine.get_timeline("RELIANCE.NS")
@@ -30,10 +30,10 @@ def test_company_timeline_and_predictions() -> None:
         signal="BUY",
         confidence=0.89,
         target_price=3200.0,
-        horizon_months=12
+        horizon_months=12,
     )
     ledger.record_prediction(pred)
-    
+
     preds = ledger.get_predictions("RELIANCE.NS")
     assert len(preds) == 1
     assert preds[0].outcome_status == "PENDING"

@@ -75,9 +75,7 @@ class NAVModel:
         # ------------------------------------------
 
         total_liabilities = sum(
-            liability.amount
-            for liability in self.data.liabilities
-            if liability.include_in_nav
+            liability.amount for liability in self.data.liabilities if liability.include_in_nav
         )
 
         # ------------------------------------------
@@ -130,9 +128,7 @@ class NAVModel:
             implied_share_price=share_price,
             asset_count=len(self.data.assets),
             liability_count=len(self.data.liabilities),
-            included_asset_count=sum(
-                1 for asset in self.data.assets if asset.include_in_nav
-            ),
+            included_asset_count=sum(1 for asset in self.data.assets if asset.include_in_nav),
             included_liability_count=sum(
                 1 for liability in self.data.liabilities if liability.include_in_nav
             ),

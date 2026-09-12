@@ -75,9 +75,7 @@ def calculate_stability_score(data):
         elif beta <= 0.75:
             beta_points = 40
 
-            reasons.append(
-                f"Beta of {beta:.2f} indicates relatively low market volatility."
-            )
+            reasons.append(f"Beta of {beta:.2f} indicates relatively low market volatility.")
 
         elif beta <= 1.00:
             beta_points = 35
@@ -122,9 +120,7 @@ def calculate_stability_score(data):
         if debt_to_equity <= 0.30:
             debt_points = 30
 
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage."
-            )
+            reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x indicates low leverage.")
 
         elif debt_to_equity <= 0.75:
             debt_points = 26
@@ -136,23 +132,17 @@ def calculate_stability_score(data):
         elif debt_to_equity <= 1.50:
             debt_points = 18
 
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates moderate leverage."
-            )
+            reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x indicates moderate leverage.")
 
         elif debt_to_equity <= 2.00:
             debt_points = 10
 
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates elevated leverage."
-            )
+            reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x indicates elevated leverage.")
 
         else:
             debt_points = 0
 
-            reasons.append(
-                f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage."
-            )
+            reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x indicates high leverage.")
 
         components.append((debt_points, 30))
 
@@ -167,37 +157,27 @@ def calculate_stability_score(data):
         if 1.50 <= current_ratio <= 3.00:
             liquidity_points = 30
 
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates healthy liquidity.")
 
         elif 1.00 <= current_ratio < 1.50:
             liquidity_points = 24
 
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates adequate liquidity.")
 
         elif current_ratio > 3.00:
             liquidity_points = 24
 
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates strong liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates strong liquidity.")
 
         elif current_ratio >= 0.75:
             liquidity_points = 12
 
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates tight liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates tight liquidity.")
 
         else:
             liquidity_points = 0
 
-            reasons.append(
-                f"Current ratio of {current_ratio:.2f}x indicates weak liquidity."
-            )
+            reasons.append(f"Current ratio of {current_ratio:.2f}x indicates weak liquidity.")
 
         components.append((liquidity_points, 30))
 
@@ -314,10 +294,7 @@ def calculate_investment_score(
     stability_contribution = stability_score * 0.10
 
     overall = (
-        technical_contribution
-        + fundamental_contribution
-        + ai_contribution
-        + stability_contribution
+        technical_contribution + fundamental_contribution + ai_contribution + stability_contribution
     )
 
     overall = round(_clamp(overall))

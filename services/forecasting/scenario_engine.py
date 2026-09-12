@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import List
 
-from services.forecasting.models import ForecastScenario, ForecastResult
+from services.forecasting.models import ForecastResult, ForecastScenario
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +11,7 @@ class ScenarioIntelligenceEngine:
     """Institutional forecasting engine for probability-weighted scenarios."""
 
     @classmethod
-    def evaluate_scenarios(cls, symbol: str, scenarios: List[ForecastScenario]) -> ForecastResult:
+    def evaluate_scenarios(cls, symbol: str, scenarios: list[ForecastScenario]) -> ForecastResult:
         logger.info("Evaluating %d forecast scenarios for %s", len(scenarios), symbol)
         if not symbol or not str(symbol).strip():
             raise ValueError("symbol is required")

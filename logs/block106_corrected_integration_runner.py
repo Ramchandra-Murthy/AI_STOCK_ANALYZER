@@ -1,17 +1,15 @@
 ﻿from __future__ import annotations
 
-import json
 import hashlib
+import json
 from copy import deepcopy
 
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
-
 from services.quantitative.block104_eros_command_center import (
     EROSBlock104CommandCenter,
 )
-
 from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
@@ -93,7 +91,6 @@ print("-" * 70)
 upstream = {
     "status": "CERTIFIED",
     "block_id": "102",
-
     "pipeline": [
         {"block_id": "94", "status": "CERTIFIED"},
         {"block_id": "95", "status": "CERTIFIED"},
@@ -104,11 +101,9 @@ upstream = {
         {"block_id": "100", "status": "SIMULATED"},
         {"block_id": "101", "status": "RECONCILED"},
     ],
-
     "governance": {
         "status": "APPROVED",
     },
-
     "intent": {
         "status": "AUTHORIZED",
         "symbol": "RELIANCE.NS",
@@ -116,24 +111,19 @@ upstream = {
         "quantity": 100.0,
         "reference_price": 2500.0,
     },
-
     "execution": {
         "status": "SIMULATED",
         "execution_status": "SIMULATED",
     },
-
     "reconciliation": {
         "status": "RECONCILED",
     },
-
     "lineage": {
         "source_block": "102",
     },
-
     "risk": {
         "status": "CERTIFIED",
     },
-
     "safety": {
         "portfolio_mutation": False,
         "valuation_mutation": False,
@@ -159,9 +149,7 @@ print()
 print("5. BLOCK 103 BUILD")
 print("-" * 70)
 
-read_model = block103.build(
-    source=upstream
-)
+read_model = block103.build(source=upstream)
 
 print("BLOCK 103 BUILD : PASS")
 print("STATUS          :", read_model.get("status"))
@@ -187,9 +175,7 @@ print("Block 104 snapshot MUST receive:")
 print("    read_model=<Block 103 read model>")
 print()
 
-command_center = block104.snapshot(
-    read_model=read_model
-)
+command_center = block104.snapshot(read_model=read_model)
 
 print("BLOCK 104 SNAPSHOT : PASS")
 print("STATUS            :", command_center.get("status"))
@@ -258,9 +244,7 @@ print()
 print("10. BLOCK 106 INTEGRATION PAYLOAD")
 print("-" * 70)
 
-payload = block106.build_integration_payload(
-    command_center
-)
+payload = block106.build_integration_payload(command_center)
 
 print("PAYLOAD BUILD : PASS")
 
@@ -296,9 +280,7 @@ print()
 print("12. BLOCK 106 READ-ONLY SNAPSHOT")
 print("-" * 70)
 
-snapshot = block106.build_read_only_snapshot(
-    command_center
-)
+snapshot = block106.build_read_only_snapshot(command_center)
 
 print("SNAPSHOT BUILD : PASS")
 print("SNAPSHOT STATUS :", snapshot.get("status"))
@@ -312,9 +294,7 @@ print()
 print("13. DETERMINISM TEST")
 print("-" * 70)
 
-payload_again = block106.build_integration_payload(
-    command_center
-)
+payload_again = block106.build_integration_payload(command_center)
 
 hash_one = stable_hash(payload)
 hash_two = stable_hash(payload_again)
@@ -338,14 +318,10 @@ print("-" * 70)
 
 before = deepcopy(command_center)
 
-block106.build_integration_payload(
-    command_center
-)
+block106.build_integration_payload(command_center)
 
 if command_center != before:
-    raise RuntimeError(
-        "BLOCK106_INPUT_MUTATION_DETECTED"
-    )
+    raise RuntimeError("BLOCK106_INPUT_MUTATION_DETECTED")
 
 print("INPUT MUTATION : NOT DETECTED")
 print("NON-MUTATING    : PASS")
@@ -374,14 +350,10 @@ for key in required_false:
 
     value = ui_policy.get(key)
 
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
     if value is not False:
-        raise RuntimeError(
-            f"BLOCK106_SAFETY_FAILURE:{key}"
-        )
+        raise RuntimeError(f"BLOCK106_SAFETY_FAILURE:{key}")
 
 print()
 print("ALL UI MUTATION CONTROLS : FALSE")
@@ -411,24 +383,16 @@ for key in safety_required:
 
     value = safety.get(key)
 
-    print(
-        f"{key:35} : {value}"
-    )
+    print(f"{key:35} : {value}")
 
     if value is not False:
-        raise RuntimeError(
-            f"BLOCK104_SAFETY_FAILURE:{key}"
-        )
+        raise RuntimeError(f"BLOCK104_SAFETY_FAILURE:{key}")
 
 if safety.get("execution_blocked") is not True:
-    raise RuntimeError(
-        "BLOCK104_EXECUTION_NOT_BLOCKED"
-    )
+    raise RuntimeError("BLOCK104_EXECUTION_NOT_BLOCKED")
 
 if safety.get("non_mutation_invariant") is not True:
-    raise RuntimeError(
-        "BLOCK104_NON_MUTATION_INVARIANT_FAILED"
-    )
+    raise RuntimeError("BLOCK104_NON_MUTATION_INVARIANT_FAILED")
 
 print()
 print("COMMAND CENTER SAFETY : PASS")
@@ -447,8 +411,7 @@ print("PAYLOAD SOURCE BLOCK       :", payload.get("source_block"))
 
 if payload.get("source_block") != "104":
     print(
-        "NOTE: BLOCK 106 SOURCE BLOCK FIELD MAY USE "
-        "IMPLEMENTATION-SPECIFIC LINEAGE SEMANTICS."
+        "NOTE: BLOCK 106 SOURCE BLOCK FIELD MAY USE " "IMPLEMENTATION-SPECIFIC LINEAGE SEMANTICS."
     )
 
 print("LINEAGE INSPECTION : PASS")

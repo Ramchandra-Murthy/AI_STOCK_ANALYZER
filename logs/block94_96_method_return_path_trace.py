@@ -1,6 +1,6 @@
-from pathlib import Path
 import ast
 import subprocess
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -10,9 +10,11 @@ targets = {
 
 output = []
 
+
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 94-96 CERTIFY/DECIDE RETURN PATH TRACE")
@@ -69,10 +71,7 @@ for block_id, path in targets.items():
         p()
         p("-" * 100)
         p(f"METHOD: {method.name}")
-        p(
-            f"LOCATION: L{method.lineno}-L"
-            f"{getattr(method, 'end_lineno', method.lineno)}"
-        )
+        p(f"LOCATION: L{method.lineno}-L" f"{getattr(method, 'end_lineno', method.lineno)}")
         p("-" * 100)
 
         # --------------------------------------------------------
@@ -95,11 +94,7 @@ for block_id, path in targets.items():
         p()
         p("RETURN STATEMENTS INSIDE TARGET METHOD:")
 
-        returns = [
-            node
-            for node in ast.walk(method)
-            if isinstance(node, ast.Return)
-        ]
+        returns = [node for node in ast.walk(method) if isinstance(node, ast.Return)]
 
         if not returns:
             p("NO RETURN STATEMENTS FOUND")
@@ -114,11 +109,7 @@ for block_id, path in targets.items():
             rend = min(end, getattr(ret, "end_lineno", ret.lineno) + 12)
 
             p()
-            p(
-                f"--- RETURN #{index} "
-                f"AT L{ret.lineno} "
-                f"WINDOW L{rstart}-L{rend} ---"
-            )
+            p(f"--- RETURN #{index} " f"AT L{ret.lineno} " f"WINDOW L{rstart}-L{rend} ---")
 
             for n in range(rstart, rend + 1):
                 marker = ">>" if n == ret.lineno else "  "
@@ -137,11 +128,7 @@ for block_id, path in targets.items():
                     if isinstance(key, ast.Constant):
                         keys.append(repr(key.value))
                     else:
-                        keys.append(
-                            ast.unparse(key)
-                            if key is not None
-                            else "<**>"
-                        )
+                        keys.append(ast.unparse(key) if key is not None else "<**>")
 
                 p()
                 p("RETURN DICTIONARY KEYS:")
@@ -155,10 +142,7 @@ for block_id, path in targets.items():
                     "live_order_submission",
                 }
 
-                missing = required - set(
-                    k.strip("'\"")
-                    for k in keys
-                )
+                missing = required - set(k.strip("'\"") for k in keys)
 
                 p()
                 if missing:
@@ -232,4 +216,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

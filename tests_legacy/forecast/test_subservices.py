@@ -46,9 +46,7 @@ def test_working_capital_delta_calculation(base_input: ForecastInput):
     nwc_engine = WorkingCapitalForecastEngine()
     projected_revs = (130.0, 140.0)
 
-    res = nwc_engine.forecast_working_capital(
-        base_input, projected_revenues=projected_revs
-    )
+    res = nwc_engine.forecast_working_capital(base_input, projected_revenues=projected_revs)
     assert len(res.projected_nwc) == 2
 
 

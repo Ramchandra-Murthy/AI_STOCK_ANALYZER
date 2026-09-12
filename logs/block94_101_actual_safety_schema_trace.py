@@ -1,5 +1,4 @@
 import importlib
-import inspect
 from pprint import pprint
 
 modules = [

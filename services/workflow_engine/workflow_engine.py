@@ -2,19 +2,25 @@
 
 import logging
 import time
-from typing import Dict, Any, List
 from datetime import datetime
+
 from services.workflow_engine.models import WorkflowExecution
 
 logger = logging.getLogger(__name__)
+
 
 class EnterpriseWorkflowEngine:
     """Orchestrates multi-step institutional research pipelines as Directed Acyclic Graphs (DAGs)."""
 
     @staticmethod
-    def execute_workflow(workflow_id: str, symbol: str, steps: List[str]) -> WorkflowExecution:
-        logger.info("Executing enterprise research workflow %s for symbol %s across %d steps", workflow_id, symbol, len(steps))
-        
+    def execute_workflow(workflow_id: str, symbol: str, steps: list[str]) -> WorkflowExecution:
+        logger.info(
+            "Executing enterprise research workflow %s for symbol %s across %d steps",
+            workflow_id,
+            symbol,
+            len(steps),
+        )
+
         start_time = time.time()
         completed = []
         failed = []
@@ -37,5 +43,5 @@ class EnterpriseWorkflowEngine:
             completed_steps=completed,
             failed_steps=failed,
             total_runtime=runtime,
-            success=success
+            success=success,
         )

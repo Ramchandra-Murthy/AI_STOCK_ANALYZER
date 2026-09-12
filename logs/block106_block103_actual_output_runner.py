@@ -1,8 +1,7 @@
 ﻿from __future__ import annotations
 
-import json
 import inspect
-import sys
+import json
 from pprint import pprint
 
 print("=" * 70)
@@ -16,7 +15,6 @@ print("-" * 70)
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
@@ -63,16 +61,8 @@ for block_id in range(94, 102):
         "action": "BUY",
         "quantity": 100.0,
         "reference_price": 2500.0,
-        "execution_status": (
-            "SIMULATED"
-            if block_id >= 100
-            else "CERTIFIED"
-        ),
-        "reconciliation": (
-            "RECONCILED"
-            if block_id >= 101
-            else "PENDING"
-        ),
+        "execution_status": ("SIMULATED" if block_id >= 100 else "CERTIFIED"),
+        "reconciliation": ("RECONCILED" if block_id >= 101 else "PENDING"),
         "safety": {
             "read_only": True,
             "allow_order_creation": False,
@@ -118,9 +108,7 @@ print("BLOCK 103 INSTANCE : PASS")
 print("INPUT TYPE        :", type(block102_result).__name__)
 
 try:
-    read_model = block103.build(
-        contract=block102_result
-    )
+    read_model = block103.build(contract=block102_result)
 except Exception as exc:
     print()
     print("BLOCK 103 BUILD : FAILED")
@@ -224,10 +212,7 @@ required_keys = [
 ]
 
 for key in required_keys:
-    print(
-        f"{key:<20} : "
-        f"{'PRESENT' if key in read_model else 'MISSING'}"
-    )
+    print(f"{key:<20} : " f"{'PRESENT' if key in read_model else 'MISSING'}")
 
 print()
 print("10. SAFETY DIAGNOSTIC")

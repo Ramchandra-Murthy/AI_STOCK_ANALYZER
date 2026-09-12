@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("eros.quantitative.portfolio_optimizer")
 
@@ -32,14 +32,10 @@ class EROSPortfolioOptimizer:
             raise ValueError("max_position_weight must be between 0 and 1")
 
         if min_position_weight > max_position_weight:
-            raise ValueError(
-                "min_position_weight cannot exceed max_position_weight"
-            )
+            raise ValueError("min_position_weight cannot exceed max_position_weight")
 
         if not 0.0 <= target_total_weight <= 1.0:
-            raise ValueError(
-                "target_total_weight must be between 0 and 1"
-            )
+            raise ValueError("target_total_weight must be between 0 and 1")
 
         self.policy_profile = policy_profile
         self.max_position_weight = max_position_weight
@@ -60,10 +56,10 @@ class EROSPortfolioOptimizer:
 
     def _extract_candidates(
         self,
-        screening_results: List[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
+        screening_results: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
 
-        candidates: List[Dict[str, Any]] = []
+        candidates: list[dict[str, Any]] = []
         seen = set()
 
         for item in screening_results:
@@ -95,18 +91,14 @@ class EROSPortfolioOptimizer:
                 {
                     "symbol": symbol,
                     "raw_weight": raw_weight,
-                    "confidence": float(
-                        item.get("confidence", 0.0) or 0.0
-                    ),
+                    "confidence": float(item.get("confidence", 0.0) or 0.0),
                     "final_action": item.get(
                         "final_action",
                         "HOLD",
                     ),
                     "price": item.get("price"),
                     "source": item.get("source"),
-                    "is_stale": bool(
-                        item.get("is_stale", False)
-                    ),
+                    "is_stale": bool(item.get("is_stale", False)),
                 }
             )
 
@@ -114,28 +106,21 @@ class EROSPortfolioOptimizer:
 
     def optimize(
         self,
-        screening_results: List[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
+        screening_results: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
 
         if screening_results is None:
             return []
 
         if not isinstance(screening_results, list):
-            raise TypeError(
-                "screening_results must be a list"
-            )
+            raise TypeError("screening_results must be a list")
 
-        candidates = self._extract_candidates(
-            screening_results
-        )
+        candidates = self._extract_candidates(screening_results)
 
         if not candidates:
             return []
 
-        raw_total = sum(
-            item["raw_weight"]
-            for item in candidates
-        )
+        raw_total = sum(item["raw_weight"] for item in candidates)
 
         if raw_total <= 0.0:
             return []
@@ -143,10 +128,7 @@ class EROSPortfolioOptimizer:
         target_total = self.target_total_weight
 
         weights = {
-            item["symbol"]: (
-                item["raw_weight"] / raw_total
-            ) * target_total
-            for item in candidates
+            item["symbol"]: (item["raw_weight"] / raw_total) * target_total for item in candidates
         }
 
         for _ in range(len(weights) + 2):
@@ -160,36 +142,25 @@ class EROSPortfolioOptimizer:
             if not capped:
                 break
 
-            excess = sum(
-                weight - self.max_position_weight
-                for weight in capped.values()
-            )
+            excess = sum(weight - self.max_position_weight for weight in capped.values())
 
             for symbol in capped:
                 weights[symbol] = self.max_position_weight
 
             eligible = [
-                symbol
-                for symbol, weight in weights.items()
-                if weight < self.max_position_weight
+                symbol for symbol, weight in weights.items() if weight < self.max_position_weight
             ]
 
             if not eligible or excess <= 0:
                 break
 
-            eligible_total = sum(
-                weights[symbol]
-                for symbol in eligible
-            )
+            eligible_total = sum(weights[symbol] for symbol in eligible)
 
             if eligible_total <= 0:
                 break
 
             for symbol in eligible:
-                share = (
-                    weights[symbol]
-                    / eligible_total
-                )
+                share = weights[symbol] / eligible_total
 
                 weights[symbol] += excess * share
 
@@ -197,40 +168,26 @@ class EROSPortfolioOptimizer:
 
             eligible_symbols = list(weights.keys())
 
-            if (
-                len(eligible_symbols)
-                * self.min_position_weight
-                <= target_total
-            ):
+            if len(eligible_symbols) * self.min_position_weight <= target_total:
 
                 for symbol in eligible_symbols:
-                    if (
-                        0.0 < weights[symbol]
-                        < self.min_position_weight
-                    ):
-                        weights[symbol] = (
-                            self.min_position_weight
-                        )
+                    if 0.0 < weights[symbol] < self.min_position_weight:
+                        weights[symbol] = self.min_position_weight
 
                 current_total = sum(weights.values())
 
                 if current_total > target_total:
-                    scale = (
-                        target_total
-                        / current_total
-                    )
+                    scale = target_total / current_total
 
                     for symbol in weights:
                         weights[symbol] *= scale
 
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
 
         for item in candidates:
 
             symbol = item["symbol"]
-            optimized_weight = float(
-                weights.get(symbol, 0.0)
-            )
+            optimized_weight = float(weights.get(symbol, 0.0))
 
             results.append(
                 {
@@ -238,9 +195,7 @@ class EROSPortfolioOptimizer:
                     "status": "SUCCESS",
                     "raw_weight": item["raw_weight"],
                     "optimized_weight": optimized_weight,
-                    "allocation_pct": (
-                        optimized_weight * 100.0
-                    ),
+                    "allocation_pct": (optimized_weight * 100.0),
                     "confidence": item["confidence"],
                     "final_action": item["final_action"],
                     "price": item["price"],
@@ -249,21 +204,16 @@ class EROSPortfolioOptimizer:
                 }
             )
 
-        results.sort(
-            key=lambda item: item["symbol"]
-        )
+        results.sort(key=lambda item: item["symbol"])
 
         return results
 
     def summarize(
         self,
-        optimized_results: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        optimized_results: list[dict[str, Any]],
+    ) -> dict[str, Any]:
 
-        total_weight = sum(
-            float(item.get("optimized_weight", 0.0))
-            for item in optimized_results
-        )
+        total_weight = sum(float(item.get("optimized_weight", 0.0)) for item in optimized_results)
 
         return {
             "policy_profile": self.policy_profile,

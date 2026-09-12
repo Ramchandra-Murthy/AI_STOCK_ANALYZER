@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
 from services.forecast.models import (
-    ForecastResult,
     FinancialMetricForecast,
+    ForecastResult,
 )
 
 __all__ = [

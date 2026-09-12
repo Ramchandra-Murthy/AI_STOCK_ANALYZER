@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -12,9 +12,7 @@ class MarketDataPacket:
     previous_close: float | None
     volume: int | None
     ohlcv_history: list[dict[str, Any]]
-    freshness_timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    freshness_timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     is_stale: bool = False
     details: dict[str, Any] = field(default_factory=dict)
 

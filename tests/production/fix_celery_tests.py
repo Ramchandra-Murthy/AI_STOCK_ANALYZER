@@ -7,8 +7,8 @@ files = [
 ]
 
 old = 'BROKER_URL = "redis://127.0.0.1:6379/0"'
-new = '''import os
-BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")'''
+new = """import os
+BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")"""
 
 for p in files:
     s = p.read_text()

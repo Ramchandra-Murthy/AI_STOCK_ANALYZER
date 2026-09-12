@@ -1,17 +1,20 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import List, Dict, Any
+
 from services.alpha_factory.models import InvestmentOpportunity
 
 logger = logging.getLogger(__name__)
+
 
 class OpportunityRankingEngine:
     """Ranks screened investment opportunities into a prioritized institutional research queue."""
 
     @staticmethod
-    def rank_opportunities(symbols: List[str]) -> List[InvestmentOpportunity]:
-        logger.info("Ranking %d qualified opportunities into prioritized research queue", len(symbols))
+    def rank_opportunities(symbols: list[str]) -> list[InvestmentOpportunity]:
+        logger.info(
+            "Ranking %d qualified opportunities into prioritized research queue", len(symbols)
+        )
 
         opportunities = [
             InvestmentOpportunity(
@@ -25,7 +28,7 @@ class OpportunityRankingEngine:
                 catalyst_score=0.89,
                 risk_score=0.25,
                 priority=1,
-                metadata={"sector": "Conglomerate / Energy"}
+                metadata={"sector": "Conglomerate / Energy"},
             ),
             InvestmentOpportunity(
                 symbol="HDFC_BANK.NS",
@@ -38,8 +41,8 @@ class OpportunityRankingEngine:
                 catalyst_score=0.82,
                 risk_score=0.20,
                 priority=2,
-                metadata={"sector": "Banking & Financials"}
-            )
+                metadata={"sector": "Banking & Financials"},
+            ),
         ]
 
         # Sort by conviction * expected return descending

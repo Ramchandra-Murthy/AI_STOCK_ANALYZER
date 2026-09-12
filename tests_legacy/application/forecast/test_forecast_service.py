@@ -3,6 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from application.forecast.forecast_service import ForecastApplicationService
+
 from domain.forecast.models import ForecastAssumption, ForecastMethod
 
 

@@ -1,6 +1,5 @@
 ﻿from __future__ import annotations
 
-from pprint import pprint
 from typing import Any
 
 from services.quantitative.block102_frontend_contract import (
@@ -77,11 +76,7 @@ print()
 for key in sorted(block102_output.keys()):
     value = block102_output.get(key)
 
-    print(
-        f"{key:<25} "
-        f"type={type(value).__name__:<15} "
-        f"value={value!r}"
-    )
+    print(f"{key:<25} " f"type={type(value).__name__:<15} " f"value={value!r}")
 
 print()
 
@@ -92,9 +87,7 @@ print()
 
 block103 = EROSBlock103InstitutionalFrontendReadModel()
 
-read_model = block103.build(
-    contract=block102_output
-)
+read_model = block103.build(contract=block102_output)
 
 print("BLOCK 103 BUILD : PASS")
 print()
@@ -147,10 +140,7 @@ tests = {
     "actual == '103'": actual == "103",
     "actual == class_id": actual == class_id,
     "str(actual) == '103'": str(actual) == "103",
-    "int(actual) == 103": (
-        isinstance(actual, (int, float, str))
-        and int(actual) == 103
-    ),
+    "int(actual) == 103": (isinstance(actual, (int, float, str)) and int(actual) == 103),
 }
 
 for name, result in tests.items():
@@ -166,11 +156,7 @@ print()
 for key in read_model:
     value = read_model[key]
 
-    print(
-        f"{key:<20} "
-        f"type={type(value).__name__:<15} "
-        f"value={value!r}"
-    )
+    print(f"{key:<20} " f"type={type(value).__name__:<15} " f"value={value!r}")
 
 print()
 

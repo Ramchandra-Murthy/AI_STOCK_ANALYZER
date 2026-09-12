@@ -1,15 +1,15 @@
-﻿from pathlib import Path
-import subprocess
+﻿import subprocess
+from pathlib import Path
 
-path = Path(
-    r"services\quantitative\block98_execution_governance_bridge.py"
-)
+path = Path(r"services\quantitative\block98_execution_governance_bridge.py")
 
 output = []
+
 
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 98 READ-ONLY RETURN PATH SAFETY AUDIT")
@@ -22,9 +22,7 @@ p(str(path))
 if not path.exists():
     p("SOURCE ERROR: FILE NOT FOUND")
 else:
-    source = path.read_text(
-        encoding="utf-8-sig"
-    )
+    source = path.read_text(encoding="utf-8-sig")
     lines = source.splitlines()
 
     p()
@@ -90,11 +88,7 @@ else:
 
     for term in safety_terms:
 
-        matches = [
-            i
-            for i, line in enumerate(lines, start=1)
-            if term in line
-        ]
+        matches = [i for i, line in enumerate(lines, start=1) if term in line]
 
         p()
         p(f"{term}")
@@ -105,11 +99,7 @@ else:
     p("BLOCKED HELPER DETECTION")
     p("=" * 100)
 
-    blocked_lines = [
-        i
-        for i, line in enumerate(lines, start=1)
-        if "def _blocked" in line
-    ]
+    blocked_lines = [i for i, line in enumerate(lines, start=1) if "def _blocked" in line]
 
     if not blocked_lines:
         p("NO _blocked HELPER FOUND")
@@ -168,4 +158,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

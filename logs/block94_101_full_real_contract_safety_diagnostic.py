@@ -160,13 +160,7 @@ def print_payload(payload, label):
     print(f"----- {label} FULL RETURNED CONTRACT -----")
 
     try:
-        print(
-            pformat(
-                payload,
-                width=140,
-                sort_dicts=False
-            )
-        )
+        print(pformat(payload, width=140, sort_dicts=False))
     except Exception as exc:
         print("Unable to pretty-print payload:")
         print(type(exc).__name__, str(exc))
@@ -198,41 +192,27 @@ def evaluate_safety(block_number, payload):
             failures.append(f"{field} != False")
 
     # Search nested safety if top-level fields are absent.
-    if (
-        "execution_blocked" not in payload
-        or "non_mutation_invariant" not in payload
-    ):
+    if "execution_blocked" not in payload or "non_mutation_invariant" not in payload:
         nested = payload.get("safety")
 
         if isinstance(nested, dict):
             nested_failures = []
 
             if nested.get("execution_blocked") is not True:
-                nested_failures.append(
-                    "nested safety.execution_blocked != True"
-                )
+                nested_failures.append("nested safety.execution_blocked != True")
 
             if nested.get("non_mutation_invariant") is not True:
-                nested_failures.append(
-                    "nested safety.non_mutation_invariant != True"
-                )
+                nested_failures.append("nested safety.non_mutation_invariant != True")
 
             if nested.get("broker_submission") is not False:
-                nested_failures.append(
-                    "nested safety.broker_submission != False"
-                )
+                nested_failures.append("nested safety.broker_submission != False")
 
             if nested.get("live_order_submission") is not False:
-                nested_failures.append(
-                    "nested safety.live_order_submission != False"
-                )
+                nested_failures.append("nested safety.live_order_submission != False")
 
             # If nested safety exists and is valid, remove the
             # corresponding top-level absence failures.
-            if (
-                nested.get("execution_blocked") is True
-                and "execution_blocked != True" in failures
-            ):
+            if nested.get("execution_blocked") is True and "execution_blocked != True" in failures:
                 failures.remove("execution_blocked != True")
 
             if (
@@ -272,9 +252,7 @@ def import_class(block_number):
     ]
 
     if not classes:
-        raise RuntimeError(
-            f"No EROSBlock class found in {module_name}"
-        )
+        raise RuntimeError(f"No EROSBlock class found in {module_name}")
 
     return classes[0]
 
@@ -302,10 +280,7 @@ for block_number, module_name in MODULES.items():
     except Exception as exc:
         print("IMPORT : FAIL")
         print(type(exc).__name__, str(exc))
-        errors.append(
-            f"Block {block_number} import failed: "
-            f"{type(exc).__name__}: {exc}"
-        )
+        errors.append(f"Block {block_number} import failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -321,21 +296,12 @@ for block_number, cls in classes.items():
         instance = cls()
         instances[block_number] = instance
 
-        print(
-            f"BLOCK {block_number:3} : INSTANCE PASS : "
-            f"{cls.__name__}"
-        )
+        print(f"BLOCK {block_number:3} : INSTANCE PASS : " f"{cls.__name__}")
 
     except Exception as exc:
-        print(
-            f"BLOCK {block_number:3} : INSTANCE FAIL : "
-            f"{type(exc).__name__}: {exc}"
-        )
+        print(f"BLOCK {block_number:3} : INSTANCE FAIL : " f"{type(exc).__name__}: {exc}")
 
-        errors.append(
-            f"Block {block_number} instance failed: "
-            f"{type(exc).__name__}: {exc}"
-        )
+        errors.append(f"Block {block_number} instance failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -423,10 +389,7 @@ except Exception as exc:
     print(type(exc).__name__, str(exc))
     traceback.print_exc()
 
-    errors.append(
-        f"Block 94 execution failed: "
-        f"{type(exc).__name__}: {exc}"
-    )
+    errors.append(f"Block 94 execution failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -460,10 +423,7 @@ except Exception as exc:
     print(type(exc).__name__, str(exc))
     traceback.print_exc()
 
-    errors.append(
-        f"Block 95 execution failed: "
-        f"{type(exc).__name__}: {exc}"
-    )
+    errors.append(f"Block 95 execution failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -497,10 +457,7 @@ except Exception as exc:
     print(type(exc).__name__, str(exc))
     traceback.print_exc()
 
-    errors.append(
-        f"Block 96 execution failed: "
-        f"{type(exc).__name__}: {exc}"
-    )
+    errors.append(f"Block 96 execution failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -534,10 +491,7 @@ except Exception as exc:
     print(type(exc).__name__, str(exc))
     traceback.print_exc()
 
-    errors.append(
-        f"Block 97 execution failed: "
-        f"{type(exc).__name__}: {exc}"
-    )
+    errors.append(f"Block 97 execution failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -571,10 +525,7 @@ except Exception as exc:
     print(type(exc).__name__, str(exc))
     traceback.print_exc()
 
-    errors.append(
-        f"Block 98 execution failed: "
-        f"{type(exc).__name__}: {exc}"
-    )
+    errors.append(f"Block 98 execution failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -608,10 +559,7 @@ except Exception as exc:
     print(type(exc).__name__, str(exc))
     traceback.print_exc()
 
-    errors.append(
-        f"Block 99 execution failed: "
-        f"{type(exc).__name__}: {exc}"
-    )
+    errors.append(f"Block 99 execution failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -646,10 +594,7 @@ except Exception as exc:
     print(type(exc).__name__, str(exc))
     traceback.print_exc()
 
-    errors.append(
-        f"Block 100 execution failed: "
-        f"{type(exc).__name__}: {exc}"
-    )
+    errors.append(f"Block 100 execution failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -683,10 +628,7 @@ except Exception as exc:
     print(type(exc).__name__, str(exc))
     traceback.print_exc()
 
-    errors.append(
-        f"Block 101 execution failed: "
-        f"{type(exc).__name__}: {exc}"
-    )
+    errors.append(f"Block 101 execution failed: " f"{type(exc).__name__}: {exc}")
 
 
 # ============================================================================
@@ -701,27 +643,18 @@ for block_number in range(94, 102):
 
     payload = results.get(block_number)
 
-    failures = evaluate_safety(
-        block_number,
-        payload
-    )
+    failures = evaluate_safety(block_number, payload)
 
     safety_failures[block_number] = failures
 
     if failures:
-        print(
-            f"BLOCK {block_number:3} : SAFETY FAIL"
-        )
+        print(f"BLOCK {block_number:3} : SAFETY FAIL")
 
         for failure in failures:
-            print(
-                f"   - {failure}"
-            )
+            print(f"   - {failure}")
 
     else:
-        print(
-            f"BLOCK {block_number:3} : SAFETY PASS"
-        )
+        print(f"BLOCK {block_number:3} : SAFETY PASS")
 
 
 # ============================================================================
@@ -746,52 +679,20 @@ for block_number in range(94, 102):
         continue
 
     checks = {
-        "execution_blocked": payload.get(
-            "execution_blocked",
-            "<ABSENT>"
-        ),
-        "non_mutation_invariant": payload.get(
-            "non_mutation_invariant",
-            "<ABSENT>"
-        ),
-        "broker_submission": payload.get(
-            "broker_submission",
-            "<ABSENT>"
-        ),
-        "live_order_submission": payload.get(
-            "live_order_submission",
-            "<ABSENT>"
-        ),
-        "portfolio_mutation": payload.get(
-            "portfolio_mutation",
-            "<ABSENT>"
-        ),
-        "valuation_mutation": payload.get(
-            "valuation_mutation",
-            "<ABSENT>"
-        ),
-        "performance_mutation": payload.get(
-            "performance_mutation",
-            "<ABSENT>"
-        ),
-        "risk_mutation": payload.get(
-            "risk_mutation",
-            "<ABSENT>"
-        ),
-        "optimization": payload.get(
-            "optimization",
-            "<ABSENT>"
-        ),
-        "order_creation": payload.get(
-            "order_creation",
-            "<ABSENT>"
-        ),
+        "execution_blocked": payload.get("execution_blocked", "<ABSENT>"),
+        "non_mutation_invariant": payload.get("non_mutation_invariant", "<ABSENT>"),
+        "broker_submission": payload.get("broker_submission", "<ABSENT>"),
+        "live_order_submission": payload.get("live_order_submission", "<ABSENT>"),
+        "portfolio_mutation": payload.get("portfolio_mutation", "<ABSENT>"),
+        "valuation_mutation": payload.get("valuation_mutation", "<ABSENT>"),
+        "performance_mutation": payload.get("performance_mutation", "<ABSENT>"),
+        "risk_mutation": payload.get("risk_mutation", "<ABSENT>"),
+        "optimization": payload.get("optimization", "<ABSENT>"),
+        "order_creation": payload.get("order_creation", "<ABSENT>"),
     }
 
     for key, value in checks.items():
-        print(
-            f"{key:30} : {value!r}"
-        )
+        print(f"{key:30} : {value!r}")
 
     # Explicit required safety contract.
     if checks["execution_blocked"] is not True:
@@ -827,10 +728,7 @@ for block_number in range(94, 102):
 
     else:
 
-        print(
-            f"BLOCK {block_number:3} | "
-            f"NO RESULT"
-        )
+        print(f"BLOCK {block_number:3} | " f"NO RESULT")
 
 
 # ============================================================================
@@ -839,65 +737,33 @@ for block_number in range(94, 102):
 
 divider("FINAL DIAGNOSTIC VERDICT")
 
-print(
-    "IMPORTS              :",
-    "PASS" if len(classes) == 8 else "FAIL"
-)
+print("IMPORTS              :", "PASS" if len(classes) == 8 else "FAIL")
 
-print(
-    "INSTANCES             :",
-    "PASS" if len(instances) == 8 else "FAIL"
-)
+print("INSTANCES             :", "PASS" if len(instances) == 8 else "FAIL")
 
-print(
-    "BLOCK RESULTS         :",
-    "PASS" if len(results) == 8 else "FAIL"
-)
+print("BLOCK RESULTS         :", "PASS" if len(results) == 8 else "FAIL")
 
-print(
-    "HARD SAFETY CONTRACT  :",
-    "PASS" if hard_safety_pass else "FAIL"
-)
+print("HARD SAFETY CONTRACT  :", "PASS" if hard_safety_pass else "FAIL")
 
-print(
-    "EXECUTION             : BLOCKED"
-)
+print("EXECUTION             : BLOCKED")
 
-print(
-    "BROKER SUBMISSION     : FALSE"
-)
+print("BROKER SUBMISSION     : FALSE")
 
-print(
-    "LIVE EXECUTION        : FALSE"
-)
+print("LIVE EXECUTION        : FALSE")
 
-print(
-    "ORDER CREATION        : FALSE"
-)
+print("ORDER CREATION        : FALSE")
 
-print(
-    "PORTFOLIO MUTATION    : FALSE"
-)
+print("PORTFOLIO MUTATION    : FALSE")
 
-print(
-    "VALUATION MUTATION    : FALSE"
-)
+print("VALUATION MUTATION    : FALSE")
 
-print(
-    "PERFORMANCE MUTATION  : FALSE"
-)
+print("PERFORMANCE MUTATION  : FALSE")
 
-print(
-    "RISK MUTATION         : FALSE"
-)
+print("RISK MUTATION         : FALSE")
 
-print(
-    "OPTIMIZATION          : FALSE"
-)
+print("OPTIMIZATION          : FALSE")
 
-print(
-    "SOURCE CHANGES        : NONE"
-)
+print("SOURCE CHANGES        : NONE")
 
 print()
 
@@ -915,14 +781,8 @@ if hard_safety_pass and not errors:
 else:
     print("FINAL VERDICT : DIAGNOSTIC FAIL")
     print()
-    print(
-        "IMPORTANT: A DIAGNOSTIC FAIL DOES NOT MEAN "
-        "LIVE EXECUTION OCCURRED."
-    )
-    print(
-        "It means the returned contract does not yet "
-        "satisfy the expected safety schema."
-    )
+    print("IMPORTANT: A DIAGNOSTIC FAIL DOES NOT MEAN " "LIVE EXECUTION OCCURRED.")
+    print("It means the returned contract does not yet " "satisfy the expected safety schema.")
 
 divider("END OF EROS 3.0 BLOCK 94 -> 101 DIAGNOSTIC")
 
@@ -955,15 +815,8 @@ print("=" * 80)
 print("MACHINE READABLE SUMMARY")
 print("=" * 80)
 
-print(
-    json.dumps(
-        machine_summary,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(machine_summary, indent=2, default=str))
 
 print("=" * 80)
 print("END")
 print("=" * 80)
-

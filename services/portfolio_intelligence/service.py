@@ -1,21 +1,23 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Dict, Any, List
-from services.portfolio_intelligence.models import Portfolio, Position, PortfolioDecision
+from typing import Any
+
+from services.portfolio_intelligence.models import Portfolio, PortfolioDecision
 
 logger = logging.getLogger(__name__)
+
 
 class PortfolioIntelligenceService:
     """Institutional Portfolio Intelligence engine managing diversification, risk budgeting, and optimization."""
 
     @staticmethod
-    def compute_sector_allocation(portfolio: Portfolio) -> Dict[str, float]:
+    def compute_sector_allocation(portfolio: Portfolio) -> dict[str, float]:
         total_val = portfolio.total_portfolio_value
         if total_val <= 0:
             return {}
-        
-        sector_vals: Dict[str, float] = {}
+
+        sector_vals: dict[str, float] = {}
         sector_vals["CASH"] = portfolio.cash
 
         for p in portfolio.positions:
@@ -28,20 +30,22 @@ class PortfolioIntelligenceService:
         logger.info("Evaluating portfolio %s for %s", portfolio.portfolio_id, portfolio.owner)
         total_val = portfolio.total_portfolio_value
         if total_val <= 0:
-            raise ValueError(f"Portfolio {portfolio.portfolio_id} has zero or negative total value.")
+            raise ValueError(
+                f"Portfolio {portfolio.portfolio_id} has zero or negative total value."
+            )
 
         sector_alloc = cls.compute_sector_allocation(portfolio)
-        
+
         # Calculate weighted portfolio return and risk
         weighted_return_sum = sum(p.expected_return * p.market_value for p in portfolio.positions)
         weighted_risk_sum = sum(p.expected_risk * p.market_value for p in portfolio.positions)
-        
+
         pos_val = portfolio.total_positions_value
         portfolio_return = round(weighted_return_sum / pos_val, 4) if pos_val > 0 else 0.0
         portfolio_risk = round(weighted_risk_sum / pos_val, 4) if pos_val > 0 else 0.0
 
-        target_weights: Dict[str, float] = {}
-        recommended_actions: List[Dict[str, Any]] = []
+        target_weights: dict[str, float] = {}
+        recommended_actions: list[dict[str, Any]] = []
 
         for p in portfolio.positions:
             current_weight = round((p.market_value / total_val) * 100.0, 2)
@@ -57,20 +61,28 @@ class PortfolioIntelligenceService:
                 action = "HOLD"
 
             target_weights[p.symbol] = target_weight
-            recommended_actions.append({
-                "symbol": p.symbol,
-                "current_weight_pct": current_weight,
-                "target_weight_pct": target_weight,
-                "action": action,
-                "rationale": f"Committee signal: {p.committee_signal}. Intrinsic value: ₹{p.intrinsic_value} vs Price: ₹{p.current_price}."
-            })
+            recommended_actions.append(
+                {
+                    "symbol": p.symbol,
+                    "current_weight_pct": current_weight,
+                    "target_weight_pct": target_weight,
+                    "action": action,
+                    "rationale": f"Committee signal: {p.committee_signal}. Intrinsic value: ₹{p.intrinsic_value} vs Price: ₹{p.current_price}.",
+                }
+            )
 
         # Identify major concentration risks
-        major_risks = [f"Sector concentration in {sec}: {wt}%" for sec, wt in sector_alloc.items() if wt > 30.0 and sec != "CASH"]
+        major_risks = [
+            f"Sector concentration in {sec}: {wt}%"
+            for sec, wt in sector_alloc.items()
+            if wt > 30.0 and sec != "CASH"
+        ]
         if not major_risks:
             major_risks.append("Portfolio is reasonably diversified across sectors.")
 
-        portfolio_score = round(min(100.0, max(0.0, (portfolio_return / max(portfolio_risk, 0.01)) * 50.0 + 50.0)), 2)
+        portfolio_score = round(
+            min(100.0, max(0.0, (portfolio_return / max(portfolio_risk, 0.01)) * 50.0 + 50.0)), 2
+        )
         confidence = 0.88
 
         rebalance_summary = (
@@ -88,5 +100,5 @@ class PortfolioIntelligenceService:
             portfolio_score=portfolio_score,
             confidence=confidence,
             major_risks=major_risks,
-            rebalance_summary=rebalance_summary
+            rebalance_summary=rebalance_summary,
         )

@@ -1,14 +1,13 @@
 ﻿from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import time
 import uuid
-import subprocess
 
 import pytest
 import redis
-
 
 BROKER_URL = os.getenv(
     "CELERY_BROKER_URL",
@@ -32,9 +31,7 @@ def test_block30q_worker_stream_diagnostic() -> None:
     try:
         assert redis_client.ping() is True
     except Exception as exc:
-        pytest.fail(
-            f"Redis broker is unavailable at {BROKER_URL}: {exc}"
-        )
+        pytest.fail(f"Redis broker is unavailable at {BROKER_URL}: {exc}")
 
     token = f"BLOCK30Q-{uuid.uuid4()}"
 
@@ -115,4 +112,3 @@ def test_block30q_worker_stream_diagnostic() -> None:
 
         if worker.stdout:
             worker.stdout.close()
-

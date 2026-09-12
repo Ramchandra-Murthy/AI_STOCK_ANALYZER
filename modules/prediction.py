@@ -122,18 +122,12 @@ def show():
 
         fig = go.Figure()
 
-        fig.add_trace(
-            go.Scatter(x=df.index, y=df["Close"], mode="lines", name="Historical Price")
-        )
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], mode="lines", name="Historical Price"))
 
-        future_dates = pd.date_range(
-            start=df.index[-1], periods=forecast_days + 1, freq="B"
-        )[1:]
+        future_dates = pd.date_range(start=df.index[-1], periods=forecast_days + 1, freq="B")[1:]
 
         fig.add_trace(
-            go.Scatter(
-                x=future_dates, y=prediction, mode="lines+markers", name="AI Prediction"
-            )
+            go.Scatter(x=future_dates, y=prediction, mode="lines+markers", name="AI Prediction")
         )
 
         fig.update_layout(

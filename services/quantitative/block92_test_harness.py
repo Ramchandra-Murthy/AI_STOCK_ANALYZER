@@ -191,9 +191,7 @@ def run_block92_self_test():
     history = engine.performance_history()
 
     assert len(history) == 1
-    assert history[0]["performance_id"] == (
-        performance["performance_id"]
-    )
+    assert history[0]["performance_id"] == (performance["performance_id"])
 
     return {
         "status": "PASS",
@@ -203,12 +201,8 @@ def run_block92_self_test():
         "prior_equity": performance["prior_equity"],
         "absolute_pnl": performance["absolute_pnl"],
         "return_pct": performance["return_pct"],
-        "benchmark_return_pct": performance[
-            "benchmark_return_pct"
-        ],
-        "active_return_pct": performance[
-            "active_return_pct"
-        ],
+        "benchmark_return_pct": performance["benchmark_return_pct"],
+        "active_return_pct": performance["active_return_pct"],
         "duplicate_status": duplicate["status"],
         "blocked_status": blocked_result["status"],
         "malformed_status": malformed_result["status"],
@@ -220,9 +214,7 @@ def run_block92_self_test():
             and result["live_order_submission"] is False
         ),
         "broker_submission": result["broker_submission"],
-        "live_order_submission": result[
-            "live_order_submission"
-        ],
+        "live_order_submission": result["live_order_submission"],
     }
 
 

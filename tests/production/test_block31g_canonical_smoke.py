@@ -1,14 +1,13 @@
 ﻿import os
+import subprocess
 import sys
 import time
 import uuid
-import subprocess
+from queue import Empty, Queue
+from threading import Thread
+
 import pytest
 import redis
-
-from threading import Thread
-from queue import Queue, Empty
-
 
 BROKER_URL = "redis://127.0.0.1:6379/0"
 
@@ -60,9 +59,7 @@ def test_block31g_canonical_worker_smoke_execution():
         assert redis_client.ping() is True
 
     except Exception as exc:
-        pytest.skip(
-            f"WSL Redis broker at {BROKER_URL} is offline: {exc}"
-        )
+        pytest.skip(f"WSL Redis broker at {BROKER_URL} is offline: {exc}")
 
     # ========================================================
     # STEP 2 - Generate unique task token
@@ -184,8 +181,7 @@ def test_block31g_canonical_worker_smoke_execution():
         required_task = "valuation.execute"
 
         assert required_task in celery_instance.tasks, (
-            f"Required task {required_task!r} "
-            "is not registered in canonical Celery instance."
+            f"Required task {required_task!r} " "is not registered in canonical Celery instance."
         )
 
         print(
@@ -290,8 +286,7 @@ def test_block31g_canonical_worker_smoke_execution():
             payload,
             dict,
         ), (
-            "Expected task result to be a dict, "
-            f"got {type(payload).__name__}"
+            "Expected task result to be a dict, " f"got {type(payload).__name__}"
         )
 
         assert payload.get("status") == "SUCCESS", (
@@ -322,23 +317,12 @@ def test_block31g_canonical_worker_smoke_execution():
 
         try:
 
-            worker_proc.wait(
-                timeout=5.0
-            )
+            worker_proc.wait(timeout=5.0)
 
         except subprocess.TimeoutExpired:
 
-            print(
-                "Worker did not terminate normally; "
-                "forcing termination..."
-            )
+            print("Worker did not terminate normally; " "forcing termination...")
 
             worker_proc.kill()
 
-            worker_proc.wait(
-                timeout=5.0
-            )
-
-
-
-
+            worker_proc.wait(timeout=5.0)

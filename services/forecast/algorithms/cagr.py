@@ -9,14 +9,10 @@ class CAGRForecastAlgorithm(BaseForecastAlgorithm):
     def calculate_revenue(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         revenues = forecast_input.historical_revenue
         if len(revenues) < 2:
-            raise ForecastAlgorithmError(
-                "At least two historical revenue points are required."
-            )
+            raise ForecastAlgorithmError("At least two historical revenue points are required.")
         start_val, end_val, n_periods = revenues[0], revenues[-1], len(revenues) - 1
         if start_val <= 0:
-            raise ForecastAlgorithmError(
-                "Initial historical revenue must be strictly positive."
-            )
+            raise ForecastAlgorithmError("Initial historical revenue must be strictly positive.")
         cagr = (end_val / start_val) ** (1.0 / n_periods) - 1.0
         if forecast_input.custom_growth_rate is not None:
             cagr = forecast_input.custom_growth_rate
@@ -29,25 +25,19 @@ class CAGRForecastAlgorithm(BaseForecastAlgorithm):
     def calculate_margins(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         margins = forecast_input.historical_margins
         last_margin = margins[-1] if margins else 0.0
-        return tuple(
-            max(0.0, min(1.0, last_margin)) for _ in forecast_input.forecast_years
-        )
+        return tuple(max(0.0, min(1.0, last_margin)) for _ in forecast_input.forecast_years)
 
     def calculate_capex(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         capex = forecast_input.historical_capex
         last_capex = capex[-1] if capex else 0.0
         return tuple(max(0.0, last_capex) for _ in forecast_input.forecast_years)
 
-    def calculate_depreciation(
-        self, forecast_input: ForecastInput
-    ) -> tuple[float, ...]:
+    def calculate_depreciation(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         dep = forecast_input.historical_depreciation
         last_dep = dep[-1] if dep else 0.0
         return tuple(max(0.0, last_dep) for _ in forecast_input.forecast_years)
 
-    def calculate_working_capital(
-        self, forecast_input: ForecastInput
-    ) -> tuple[float, ...]:
+    def calculate_working_capital(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         wc = forecast_input.historical_working_capital
         last_wc = wc[-1] if wc else 0.0
         return tuple(last_wc for _ in forecast_input.forecast_years)
@@ -55,6 +45,4 @@ class CAGRForecastAlgorithm(BaseForecastAlgorithm):
     def calculate_taxes(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         taxes = forecast_input.historical_taxes
         last_tax = taxes[-1] if taxes else 0.25
-        return tuple(
-            max(0.0, min(1.0, last_tax)) for _ in forecast_input.forecast_years
-        )
+        return tuple(max(0.0, min(1.0, last_tax)) for _ in forecast_input.forecast_years)

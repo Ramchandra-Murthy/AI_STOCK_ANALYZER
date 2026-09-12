@@ -1,5 +1,3 @@
-import json
-import importlib
 from pprint import pprint
 
 print("=" * 90)
@@ -108,6 +106,7 @@ print("Scenarios       :", len(scenarios))
 
 results = {}
 
+
 def inspect_result(block_id, payload):
     print()
     print("=" * 90)
@@ -154,6 +153,7 @@ def inspect_result(block_id, payload):
     print("FULL RESULT")
     pprint(payload, width=160, sort_dicts=False)
 
+
 # ------------------------------------------------------------
 # BLOCK 94
 # ------------------------------------------------------------
@@ -183,9 +183,7 @@ except Exception as exc:
 b95_engine = EROSBlock95StressEvidenceGate()
 
 try:
-    b95 = b95_engine.certify(
-        stress_certificate=b94
-    )
+    b95 = b95_engine.certify(stress_certificate=b94)
 
     results["95"] = b95
     inspect_result("95", b95)
@@ -201,9 +199,7 @@ except Exception as exc:
 b96_engine = EROSBlock96StressDecisionGate()
 
 try:
-    b96 = b96_engine.certify(
-        stress_gate=b95
-    )
+    b96 = b96_engine.certify(stress_gate=b95)
 
     results["96"] = b96
     inspect_result("96", b96)
@@ -219,9 +215,7 @@ except Exception as exc:
 b97_engine = EROSBlock97StressReadinessGate()
 
 try:
-    b97 = b97_engine.certify(
-        decision=b96
-    )
+    b97 = b97_engine.certify(decision=b96)
 
     results["97"] = b97
     inspect_result("97", b97)
@@ -237,9 +231,7 @@ except Exception as exc:
 b98_engine = EROSBlock98ExecutionGovernanceBridge()
 
 try:
-    b98 = b98_engine.certify(
-        decision=b97
-    )
+    b98 = b98_engine.certify(decision=b97)
 
     results["98"] = b98
     inspect_result("98", b98)
@@ -255,9 +247,7 @@ except Exception as exc:
 b99_engine = EROSBlock99ExecutionIntentAuthorizationGate()
 
 try:
-    b99 = b99_engine.certify(
-        governance=b98
-    )
+    b99 = b99_engine.certify(governance=b98)
 
     results["99"] = b99
     inspect_result("99", b99)
@@ -292,9 +282,7 @@ except Exception as exc:
 b101_engine = EROSBlock101ExecutionEvidenceReconciliationGate()
 
 try:
-    b101 = b101_engine.certify(
-        execution=b100
-    )
+    b101 = b101_engine.certify(execution=b100)
 
     results["101"] = b101
     inspect_result("101", b101)
@@ -335,9 +323,7 @@ except Exception as exc:
 b103_engine = EROSBlock103InstitutionalFrontendReadModel()
 
 try:
-    b103 = b103_engine.build(
-        contract=b102
-    )
+    b103 = b103_engine.build(contract=b102)
 
     results["103"] = b103
     inspect_result("103", b103)
@@ -353,9 +339,7 @@ except Exception as exc:
 b104_engine = EROSBlock104CommandCenter()
 
 try:
-    b104 = b104_engine.render_model(
-        read_model=b103
-    )
+    b104 = b104_engine.render_model(read_model=b103)
 
     results["104"] = b104
     inspect_result("104", b104)
@@ -371,9 +355,7 @@ except Exception as exc:
 b106_engine = EROSBlock106InstitutionalIntegrationBoundary()
 
 try:
-    b106 = b106_engine.build_integration_payload(
-        command_center=b104
-    )
+    b106 = b106_engine.build_integration_payload(command_center=b104)
 
     results["106"] = b106
     inspect_result("106", b106)

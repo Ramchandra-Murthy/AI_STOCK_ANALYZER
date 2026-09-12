@@ -32,9 +32,7 @@ class CapitalCostEngine:
 
     def unlever_beta(self, inp: BetaAdjustmentInput) -> float:
         """Unlevers raw market beta using Hamada's equation."""
-        unlevered = inp.levered_beta / (
-            1.0 + (1.0 - inp.tax_rate) * inp.debt_to_equity_ratio
-        )
+        unlevered = inp.levered_beta / (1.0 + (1.0 - inp.tax_rate) * inp.debt_to_equity_ratio)
         logger.info(f"[BETA ADJUST] Unlevered Beta calculated: {unlevered:.4f}")
         return round(unlevered, 4)
 
@@ -60,9 +58,7 @@ class CapitalCostEngine:
 
         wacc = (w_e * inp.cost_of_equity) + (w_d * after_tax_cost_of_debt)
 
-        logger.info(
-            f"[WACC] {inp.symbol} WACC = {wacc:.4%} (E/V: {w_e:.2%}, D/V: {w_d:.2%})"
-        )
+        logger.info(f"[WACC] {inp.symbol} WACC = {wacc:.4%} (E/V: {w_e:.2%}, D/V: {w_d:.2%})")
 
         return WACCResult(
             symbol=inp.symbol,

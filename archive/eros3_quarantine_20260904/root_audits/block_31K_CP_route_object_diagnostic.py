@@ -46,7 +46,7 @@ for index, r in enumerate(app.routes):
         "| PATH=",
         getattr(r, "path", "<NO PATH>"),
         "| NAME=",
-        getattr(r, "name", "<NO NAME>")
+        getattr(r, "name", "<NO NAME>"),
     )
 
 # --------------------------------------------------
@@ -75,7 +75,7 @@ for index, r in enumerate(app.routes):
             "| METHODS=",
             getattr(r, "methods", "<NO METHODS>"),
             "| NAME=",
-            getattr(r, "name", "<NO NAME>")
+            getattr(r, "name", "<NO NAME>"),
         )
 
 print()
@@ -101,14 +101,7 @@ for r in api_routes:
 
     if getattr(r, "path", "").startswith("/api/v1/tasks"):
 
-        print(
-            "APIRoute TASK |",
-            r.path,
-            "|",
-            sorted(r.methods or []),
-            "|",
-            r.name
-        )
+        print("APIRoute TASK |", r.path, "|", sorted(r.methods or []), "|", r.name)
 
 # --------------------------------------------------
 # 5. TASK ROUTER DIRECT COMPARISON
@@ -138,7 +131,7 @@ for r in task_router.routes:
             "|",
             r.name,
             "| DEP_COUNT=",
-            len(r.dependencies)
+            len(r.dependencies),
         )
 
 print("ROUTER ROUTE COUNT:", len(router_routes))
@@ -180,18 +173,9 @@ for path, item in openapi.get("paths", {}).items():
 
         secured = bool(operation.get("security"))
 
-        openapi_task_routes.append(
-            (path, method.upper(), secured)
-        )
+        openapi_task_routes.append((path, method.upper(), secured))
 
-        print(
-            "OPENAPI |",
-            path,
-            "|",
-            method.upper(),
-            "| SECURITY=",
-            secured
-        )
+        print("OPENAPI |", path, "|", method.upper(), "| SECURITY=", secured)
 
 print()
 print("OPENAPI TASK ROUTE COUNT:", len(openapi_task_routes))
@@ -218,22 +202,12 @@ for method, path in tests:
     else:
         r = client.get(path)
 
-    print(
-        method,
-        path,
-        "->",
-        r.status_code,
-        "|",
-        r.text[:150]
-    )
+    print(method, path, "->", r.status_code, "|", r.text[:150])
 
     if r.status_code != 401:
         security_pass = False
 
-print(
-    "LIVE AUTH GATE:",
-    "PASS" if security_pass else "FAIL"
-)
+print("LIVE AUTH GATE:", "PASS" if security_pass else "FAIL")
 
 # --------------------------------------------------
 # 8. MAIN.PY REGISTRATION
@@ -244,23 +218,19 @@ print("-" * 50)
 
 from pathlib import Path
 
-main_text = Path("backend/main.py").read_text(
-    encoding="utf-8"
-)
+main_text = Path("backend/main.py").read_text(encoding="utf-8")
 
 print(
     "TASK ROUTER IMPORT:",
-    "FOUND"
-    if "from backend.api.routers.task_router import router as task_router"
-       in main_text
-    else "MISSING"
+    (
+        "FOUND"
+        if "from backend.api.routers.task_router import router as task_router" in main_text
+        else "MISSING"
+    ),
 )
 
 print(
-    "TASK ROUTER INCLUDE:",
-    "FOUND"
-    if "app.include_router(task_router)" in main_text
-    else "MISSING"
+    "TASK ROUTER INCLUDE:", "FOUND" if "app.include_router(task_router)" in main_text else "MISSING"
 )
 
 # --------------------------------------------------
@@ -274,16 +244,9 @@ print("=" * 50)
 print("TASK ROUTER DIRECT ROUTES:", len(router_routes))
 print("APP TASK OBJECTS:", len(task_objects))
 print("OPENAPI TASK ROUTES:", len(openapi_task_routes))
-print(
-    "LIVE SECURITY:",
-    "PASS" if security_pass else "FAIL"
-)
+print("LIVE SECURITY:", "PASS" if security_pass else "FAIL")
 
-if (
-    len(router_routes) == 8
-    and len(openapi_task_routes) == 8
-    and security_pass
-):
+if len(router_routes) == 8 and len(openapi_task_routes) == 8 and security_pass:
     print()
     print("APPLICATION TASK ROUTES: FUNCTIONALLY PRESENT")
     print("OPENAPI TASK ROUTES: PRESENT")

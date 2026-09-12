@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.forecast_system.models import ForecastResult
 from services.forecast_system.forecast_engine import InstitutionalForecastEngine
+from services.forecast_system.models import ForecastResult
+
 
 def test_forecast_result_immutability() -> None:
     fc = ForecastResult(
@@ -15,12 +15,13 @@ def test_forecast_result_immutability() -> None:
         bull_case_eps=150.0,
         base_case_eps=125.5,
         bear_case_eps=100.0,
-        key_assumptions=["Growth tailwinds"]
+        key_assumptions=["Growth tailwinds"],
     )
     assert fc.symbol == "RELIANCE.NS"
     assert fc.eps_forecast == 125.5
     assert fc.timestamp is not None
     assert isinstance(fc.metadata, dict)
+
 
 def test_institutional_forecast_engine() -> None:
     fc = InstitutionalForecastEngine.generate_forecast("RELIANCE.NS", 800000.0, 110.0)

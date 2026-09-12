@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
-from services.valuation.relative.models import RelativeValuationResult
+
 from services.financials.financial_statement import FinancialStatements
+from services.valuation.relative.models import RelativeValuationResult
 
 logger = logging.getLogger(__name__)
 
@@ -57,18 +57,26 @@ class RelativeValuationEngine:
                 f"Equity unavailable for {symbol}; "
                 "Relative Valuation requires valid shareholders equity."
             )
-        debt = ((getattr(bs, "short_term_debt", 0.0) or 0.0) + (getattr(bs, "long_term_debt", getattr(bs, "debt", 0.0)) or 0.0)) if bs else 500000.0
-        cash = ((getattr(bs, "cash", 0.0) or 0.0) + (getattr(bs, "cash_equivalents", 0.0) or 0.0)) if bs else 300000.0
+        debt = (
+            (
+                (getattr(bs, "short_term_debt", 0.0) or 0.0)
+                + (getattr(bs, "long_term_debt", getattr(bs, "debt", 0.0)) or 0.0)
+            )
+            if bs
+            else 500000.0
+        )
+        cash = (
+            ((getattr(bs, "cash", 0.0) or 0.0) + (getattr(bs, "cash_equivalents", 0.0) or 0.0))
+            if bs
+            else 300000.0
+        )
 
         # Live shares lineage:
         # 1. Prefer explicitly supplied live shares.
         # 2. Otherwise use normalized shares if available.
         # 3. Never fabricate a unit-incompatible fallback.
 
-        normalized_shares = (
-            getattr(inc, "shares_outstanding", 0.0)
-            if inc else 0.0
-        )
+        normalized_shares = getattr(inc, "shares_outstanding", 0.0) if inc else 0.0
 
         if shares_outstanding is not None and float(shares_outstanding) > 0:
             shares = float(shares_outstanding)

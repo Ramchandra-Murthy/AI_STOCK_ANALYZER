@@ -10,21 +10,14 @@ print("=" * 58)
 
 logical_request_id = "IDEMP-" + uuid.uuid4().hex
 
-payload = {
-    "symbol": "TCS.NS",
-    "request_id": logical_request_id
-}
+payload = {"symbol": "TCS.NS", "request_id": logical_request_id}
 
 print("\n1. LOGICAL REQUEST ID")
 print("REQUEST ID:", logical_request_id)
 
 print("\n2. FIRST SUBMISSION")
 
-first = task_control.submit_task(
-    task_name="valuation.execute",
-    user="system",
-    payload=payload
-)
+first = task_control.submit_task(task_name="valuation.execute", user="system", payload=payload)
 
 print("FIRST:", first)
 
@@ -34,11 +27,7 @@ print("FIRST TASK ID:", first_id)
 
 print("\n3. SECOND IDENTICAL SUBMISSION")
 
-second = task_control.submit_task(
-    task_name="valuation.execute",
-    user="system",
-    payload=payload
-)
+second = task_control.submit_task(task_name="valuation.execute", user="system", payload=payload)
 
 print("SECOND:", second)
 
@@ -65,19 +54,9 @@ for task_id in [first_id, second_id]:
 
         status = task_control.get_task_status(task_id)
 
-        print(
-            task_id,
-            "CHECK",
-            i + 1,
-            status.get("status")
-        )
+        print(task_id, "CHECK", i + 1, status.get("status"))
 
-        if status.get("status") in (
-            "SUCCESS",
-            "FAILURE",
-            "FAILED",
-            "NOT_FOUND"
-        ):
+        if status.get("status") in ("SUCCESS", "FAILURE", "FAILED", "NOT_FOUND"):
             break
 
         time.sleep(2)
@@ -104,10 +83,7 @@ else:
 
     print("TWO TASK EXECUTION IDS CREATED")
 
-    if (
-        first_result.get("status") == "SUCCESS"
-        and second_result.get("status") == "SUCCESS"
-    ):
+    if first_result.get("status") == "SUCCESS" and second_result.get("status") == "SUCCESS":
         print("BOTH TASKS EXECUTED SUCCESSFULLY")
         print("DUPLICATE EXECUTION: DETECTED")
 

@@ -1,5 +1,5 @@
-from pathlib import Path
 import ast
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -58,15 +58,9 @@ for block_id, path in targets.items():
             node.value.values,
         ):
 
-            if (
-                isinstance(key_node, ast.Constant)
-                and key_node.value == "status"
-            ):
+            if isinstance(key_node, ast.Constant) and key_node.value == "status":
 
-                if (
-                    isinstance(value_node, ast.Constant)
-                    and value_node.value == "BLOCKED"
-                ):
+                if isinstance(value_node, ast.Constant) and value_node.value == "BLOCKED":
                     blocked = True
 
         if not blocked:
@@ -83,10 +77,7 @@ for block_id, path in targets.items():
             if field in keys:
                 print(f"[PRESENT] {field}")
             else:
-                print(
-                    f"[MISSING ] {field}"
-                    f" -> expected {expected!r}"
-                )
+                print(f"[MISSING ] {field}" f" -> expected {expected!r}")
 
     if found == 0:
         print("NO LITERAL status='BLOCKED' RETURN DICTIONARY FOUND")

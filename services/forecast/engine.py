@@ -41,7 +41,9 @@ class ForecastEngine:
         revenues = self._positive_series("revenue", [item.revenue for item in income_history])
         ebits = self._finite_series("ebit", [item.ebit for item in income_history])
         eps_list = self._finite_series("eps", [item.eps for item in income_history])
-        fcf_list = self._finite_series("free_cash_flow", [item.free_cash_flow for item in cashflow_history])
+        fcf_list = self._finite_series(
+            "free_cash_flow", [item.free_cash_flow for item in cashflow_history]
+        )
         capex_history = self._finite_series(
             "capex", [abs(item.capex or item.capital_expenditure) for item in cashflow_history]
         )
@@ -118,7 +120,9 @@ class ForecastEngine:
         if all(value > 0 for value in values):
             return self.exponential_calc.project(values, periods=self.PERIODS)
         if all(value < 0 for value in values):
-            projected = self.exponential_calc.project([-value for value in values], periods=self.PERIODS)
+            projected = self.exponential_calc.project(
+                [-value for value in values], periods=self.PERIODS
+            )
             return [-value for value in projected]
         return self.regression_calc.project(values, periods=self.PERIODS)
 

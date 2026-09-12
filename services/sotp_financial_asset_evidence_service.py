@@ -42,9 +42,7 @@ def analyze_financial_asset_evidence(symbol: str) -> dict:
             "message": "Financial asset policy is unavailable.",
         }
 
-    ticker_symbol = (
-        symbol if str(symbol).upper().endswith(".NS") else f"{str(symbol).upper()}.NS"
-    )
+    ticker_symbol = symbol if str(symbol).upper().endswith(".NS") else f"{str(symbol).upper()}.NS"
 
     try:
         ticker = yf.Ticker(ticker_symbol)

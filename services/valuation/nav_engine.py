@@ -3,11 +3,10 @@
 from typing import Any
 
 from domain.valuation.result import (
-    ValuationResult,
     ValuationMethod,
+    ValuationResult,
     ValuationStatus,
 )
-
 from services.valuation.base_engine import BaseValuationEngine
 
 

@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.committee.models import AnalystOpinion
 from services.committee.cio import ArtificialCIO
+from services.committee.models import AnalystOpinion
+
 
 def test_artificial_investment_committee() -> None:
     opinions = [
@@ -14,7 +14,7 @@ def test_artificial_investment_committee() -> None:
             strengths=["Intrinsic value exceeds market price by 28%"],
             concerns=["Valuation multiple sensitivity"],
             evidence=["DCF Model", "SOTP Model"],
-            explanation="Valuation offers substantial margin of safety."
+            explanation="Valuation offers substantial margin of safety.",
         ),
         AnalystOpinion(
             department="Quality Analyst",
@@ -24,7 +24,7 @@ def test_artificial_investment_committee() -> None:
             strengths=["ROIC exceeds WACC consistently"],
             concerns=["Working capital variability"],
             evidence=["ROIC Analysis", "Accrual Ratio"],
-            explanation="Business converts earnings into cash efficiently."
+            explanation="Business converts earnings into cash efficiently.",
         ),
         AnalystOpinion(
             department="Risk Analyst",
@@ -34,8 +34,8 @@ def test_artificial_investment_committee() -> None:
             strengths=["Manageable debt profile"],
             concerns=["Commodity inflation risks"],
             evidence=["Altman Z-Score", "Debt/EBITDA"],
-            explanation="Macro headwinds warrant cautious posture."
-        )
+            explanation="Macro headwinds warrant cautious posture.",
+        ),
     ]
 
     decision = ArtificialCIO.synthesize("RELIANCE.NS", opinions)

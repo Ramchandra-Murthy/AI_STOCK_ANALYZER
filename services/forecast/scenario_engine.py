@@ -8,12 +8,8 @@ from services.forecast.forecast_result import ForecastResult, YearForecast
 class ScenarioEngine:
     """Generates Bull, Base, and Bear scenario variants from a Base Forecast Result."""
 
-    def build_scenarios(
-        self, base_result: ForecastResult
-    ) -> dict[ScenarioType, ForecastResult]:
-        logger.info(
-            f"[SCENARIO ENGINE] Building Bull/Base/Bear scenarios for {base_result.symbol}"
-        )
+    def build_scenarios(self, base_result: ForecastResult) -> dict[ScenarioType, ForecastResult]:
+        logger.info(f"[SCENARIO ENGINE] Building Bull/Base/Bear scenarios for {base_result.symbol}")
 
         bull = self._apply_multiplier(
             base_result, ScenarioType.BULL, rev_mult=1.05, margin_mult=1.10

@@ -6,6 +6,7 @@ from backend.infrastructure.redis.client import redis_client
 redis_client._store.clear()
 request_id = "EA-RACE-" + uuid.uuid4().hex
 
+
 def submit_one(_):
     try:
         return task_control.submit_task(
@@ -16,6 +17,7 @@ def submit_one(_):
     except Exception as exc:
         return {"ERROR": repr(exc)}
 
+
 with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
     results = list(executor.map(submit_one, range(10)))
 
@@ -25,22 +27,10 @@ print("RESULTS:")
 for i, result in enumerate(results):
     print(i, result)
 
-task_ids = [
-    r.get("task_id")
-    for r in results
-    if isinstance(r, dict) and r.get("task_id")
-]
+task_ids = [r.get("task_id") for r in results if isinstance(r, dict) and r.get("task_id")]
 
 print("UNIQUE_TASK_IDS:", len(set(task_ids)))
-print("REPLAYS:", sum(
-    1 for r in results
-    if isinstance(r, dict) and r.get("idempotent_replay")
-))
-print("ERRORS:", sum(
-    1 for r in results
-    if isinstance(r, dict) and r.get("ERROR")
-))
-print("REDIS_MAPPING:", redis_client.get(
-    "eros:idempotency:" + request_id
-))
+print("REPLAYS:", sum(1 for r in results if isinstance(r, dict) and r.get("idempotent_replay")))
+print("ERRORS:", sum(1 for r in results if isinstance(r, dict) and r.get("ERROR")))
+print("REDIS_MAPPING:", redis_client.get("eros:idempotency:" + request_id))
 print("FINAL_STORE:", redis_client._store)

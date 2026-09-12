@@ -1,6 +1,5 @@
 ﻿import ast
 import importlib
-import inspect
 from pathlib import Path
 
 ROOT = Path.cwd()
@@ -101,9 +100,7 @@ for block_id, module_name, source_path in MODULES:
     # SOURCE READ
     # ------------------------------------------------------------
     try:
-        raw_text = source_path.read_text(
-            encoding="utf-8-sig"
-        )
+        raw_text = source_path.read_text(encoding="utf-8-sig")
 
         print("SOURCE READ : PASS")
         print("SOURCE SIZE :", len(raw_text))
@@ -155,10 +152,7 @@ for block_id, module_name, source_path in MODULES:
 
         found = key in raw_text
 
-        print(
-            f"{key:28} : "
-            f"{'FOUND' if found else 'ABSENT'}"
-        )
+        print(f"{key:28} : " f"{'FOUND' if found else 'ABSENT'}")
 
         if not found:
             missing_keys.append(key)
@@ -222,14 +216,9 @@ for block_id, module_name, source_path in MODULES:
 
                     for key in EXPECTED_SAFETY_KEYS:
                         if key in snapshot:
-                            print(
-                                f"  {key:26} : "
-                                f"{snapshot[key]!r}"
-                            )
+                            print(f"  {key:26} : " f"{snapshot[key]!r}")
                         else:
-                            print(
-                                f"  {key:26} : <ABSENT>"
-                            )
+                            print(f"  {key:26} : <ABSENT>")
 
                     if isinstance(snapshot.get("safety"), dict):
 
@@ -237,9 +226,7 @@ for block_id, module_name, source_path in MODULES:
                         print("NESTED SAFETY OBJECT:")
 
                         for key, value in snapshot["safety"].items():
-                            print(
-                                f"  {key:26} : {value!r}"
-                            )
+                            print(f"  {key:26} : {value!r}")
 
             except Exception as exc:
 
@@ -266,10 +253,7 @@ for block_id, module_name, source_path in MODULES:
 
             if isinstance(value, str):
 
-                if any(
-                    key.lower() in value.lower()
-                    for key in EXPECTED_SAFETY_KEYS
-                ):
+                if any(key.lower() in value.lower() for key in EXPECTED_SAFETY_KEYS):
                     safety_literals.append(value)
 
     unique_literals = list(dict.fromkeys(safety_literals))
@@ -288,16 +272,9 @@ for block_id, module_name, source_path in MODULES:
     print()
     print("BLOCK SUMMARY")
     print("-" * 90)
-    print(
-        "IMPORT              : PASS"
-    )
-    print(
-        "AST                 : PASS"
-    )
-    print(
-        "SAFETY KEY MENTIONS : "
-        + ("PASS" if not missing_keys else "INCOMPLETE")
-    )
+    print("IMPORT              : PASS")
+    print("AST                 : PASS")
+    print("SAFETY KEY MENTIONS : " + ("PASS" if not missing_keys else "INCOMPLETE"))
 
     if missing_keys:
         print("MISSING SOURCE KEYS :", missing_keys)
@@ -314,20 +291,11 @@ print("=" * 90)
 print("FINAL EROS 3.0 SAFETY CONTRACT AUDIT")
 print("=" * 90)
 
-print(
-    "IMPORTS              : "
-    + ("PASS" if overall_imports else "FAIL")
-)
+print("IMPORTS              : " + ("PASS" if overall_imports else "FAIL"))
 
-print(
-    "AST PARSING          : "
-    + ("PASS" if overall_ast else "FAIL")
-)
+print("AST PARSING          : " + ("PASS" if overall_ast else "FAIL"))
 
-print(
-    "SAFETY KEY PRESENCE  : "
-    + ("PASS" if overall_safety_mentions else "INCOMPLETE")
-)
+print("SAFETY KEY PRESENCE  : " + ("PASS" if overall_safety_mentions else "INCOMPLETE"))
 
 print()
 print("EXPECTED HARD SAFETY SCHEMA")

@@ -34,16 +34,14 @@ All public calculations are deterministic for identical inputs.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from hashlib import sha256
-from math import isfinite
-from statistics import mean
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 import copy
 import json
-import math
-
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from hashlib import sha256
+from math import isfinite
+from typing import Any
 
 # ============================================================
 # CONSTANTS
@@ -89,13 +87,14 @@ _FORBIDDEN_KEYS = {
 # LOW-LEVEL HELPERS
 # ============================================================
 
+
 def _text(value: Any) -> str:
     if value is None:
         return ""
     return str(value).strip()
 
 
-def _float(value: Any, default: Optional[float] = None) -> Optional[float]:
+def _float(value: Any, default: float | None = None) -> float | None:
     try:
         number = float(value)
     except (TypeError, ValueError):
@@ -107,14 +106,14 @@ def _float(value: Any, default: Optional[float] = None) -> Optional[float]:
     return number
 
 
-def _positive_float(value: Any) -> Optional[float]:
+def _positive_float(value: Any) -> float | None:
     number = _float(value)
     if number is None or number <= 0:
         return None
     return number
 
 
-def _non_negative_float(value: Any) -> Optional[float]:
+def _non_negative_float(value: Any) -> float | None:
     number = _float(value)
     if number is None or number < 0:
         return None
@@ -165,7 +164,7 @@ def _hash_payload(payload: Mapping[str, Any]) -> str:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _deepcopy(value: Any) -> Any:
@@ -204,6 +203,7 @@ def _first(mapping: Mapping[str, Any], *keys: str, default: Any = None) -> Any:
 # DATA CLASSES
 # ============================================================
 
+
 @dataclass(frozen=True)
 class ScenarioDefinition:
     scenario_id: str
@@ -222,7 +222,7 @@ class ScenarioDefinition:
     benchmark: str = ""
     metadata: Mapping[str, Any] = field(default_factory=dict)
 
-    def normalized(self) -> "ScenarioDefinition":
+    def normalized(self) -> ScenarioDefinition:
         return ScenarioDefinition(
             scenario_id=_text(self.scenario_id),
             scenario_type=_text(self.scenario_type).upper(),
@@ -241,7 +241,7 @@ class ScenarioDefinition:
             metadata=_deepcopy(dict(self.metadata)),
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "scenario_id": self.scenario_id,
             "scenario_type": self.scenario_type,
@@ -273,7 +273,7 @@ class PositionExposure:
     liquidity_factor: float = 1.0
     benchmark: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "symbol": self.symbol,
             "quantity": self.quantity,
@@ -291,6 +291,7 @@ class PositionExposure:
 # ENGINE
 # ============================================================
 
+
 class EROSBlock94PortfolioStressScenarioEngine:
     """
     Deterministic, read-only portfolio stress/scenario authority.
@@ -302,8 +303,8 @@ class EROSBlock94PortfolioStressScenarioEngine:
 
     def __init__(self, *, engine_version: str = ENGINE_VERSION) -> None:
         self.engine_version = engine_version
-        self._certificates: Dict[str, Dict[str, Any]] = {}
-        self._scenario_index: Dict[str, str] = {}
+        self._certificates: dict[str, dict[str, Any]] = {}
+        self._scenario_index: dict[str, str] = {}
 
     # --------------------------------------------------------
     # Public API: run_scenario
@@ -317,7 +318,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         risk: Mapping[str, Any],
         positions: Sequence[Mapping[str, Any]],
         scenario: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run one scenario without certifying it.
 
@@ -366,19 +367,17 @@ class EROSBlock94PortfolioStressScenarioEngine:
         risk: Mapping[str, Any],
         positions: Sequence[Mapping[str, Any]],
         scenarios: Sequence[Mapping[str, Any]],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run a collection of scenarios.
 
         Duplicate scenario IDs are retained as DUPLICATE records rather than
         silently overwritten.
         """
-        if not isinstance(scenarios, Sequence) or isinstance(
-            scenarios, (str, bytes)
-        ):
+        if not isinstance(scenarios, Sequence) or isinstance(scenarios, (str, bytes)):
             return self._blocked("INVALID_SCENARIO_COLLECTION")
 
-        outputs: List[Dict[str, Any]] = []
+        outputs: list[dict[str, Any]] = []
         seen: set[str] = set()
 
         for scenario in scenarios:
@@ -429,7 +428,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         risk: Mapping[str, Any],
         positions: Sequence[Mapping[str, Any]],
         scenarios: Sequence[Mapping[str, Any]],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Calculate all supplied scenarios and return an analytical stress book.
 
@@ -446,11 +445,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         if batch["status"] != STATUS_PASS:
             return batch
 
-        valid_results = [
-            item
-            for item in batch["results"]
-            if item.get("status") == STATUS_PASS
-        ]
+        valid_results = [item for item in batch["results"] if item.get("status") == STATUS_PASS]
 
         return {
             "status": STATUS_PASS,
@@ -458,14 +453,10 @@ class EROSBlock94PortfolioStressScenarioEngine:
             "scenario_count": len(batch["results"]),
             "successful_scenarios": len(valid_results),
             "blocked_scenarios": sum(
-                1
-                for item in batch["results"]
-                if item.get("status") == STATUS_BLOCKED
+                1 for item in batch["results"] if item.get("status") == STATUS_BLOCKED
             ),
             "duplicate_scenarios": sum(
-                1
-                for item in batch["results"]
-                if item.get("status") == STATUS_DUPLICATE
+                1 for item in batch["results"] if item.get("status") == STATUS_DUPLICATE
             ),
             "results": _deepcopy(batch["results"]),
         }
@@ -482,7 +473,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         risk: Mapping[str, Any],
         positions: Sequence[Mapping[str, Any]],
         scenarios: Sequence[Mapping[str, Any]],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create and persist a deterministic stress/scenario certificate.
 
@@ -514,10 +505,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         if stress["status"] != STATUS_PASS:
             return stress
 
-        successful = [
-            item for item in stress["results"]
-            if item.get("status") == STATUS_PASS
-        ]
+        successful = [item for item in stress["results"] if item.get("status") == STATUS_PASS]
 
         if not successful:
             return self._blocked("NO_VALID_SCENARIO_RESULT")
@@ -540,9 +528,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
 
             if isinstance(result, Mapping):
                 adapted["stressed_pnl"] = result.get("stressed_pnl")
-                adapted["stressed_drawdown_pct"] = result.get(
-                    "stressed_drawdown_pct"
-                )
+                adapted["stressed_drawdown_pct"] = result.get("stressed_drawdown_pct")
                 adapted["scenario_contribution"] = _deepcopy(
                     result.get("scenario_contribution", {})
                 )
@@ -562,10 +548,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
             "scenario_results": certificate_scenarios,
         }
 
-        certificate_id = (
-            f"{CERTIFICATE_PREFIX}-"
-            f"{_hash_payload(certificate_payload)[:20]}"
-        )
+        certificate_id = f"{CERTIFICATE_PREFIX}-" f"{_hash_payload(certificate_payload)[:20]}"
 
         if certificate_id in self._certificates:
             return {
@@ -595,9 +578,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         self._certificates[certificate_id] = _deepcopy(certificate)
 
         for item in successful:
-            scenario_id = _text(
-                item.get("scenario", {}).get("scenario_id", "")
-            )
+            scenario_id = _text(item.get("scenario", {}).get("scenario_id", ""))
             if scenario_id:
                 self._scenario_index[scenario_id] = certificate_id
 
@@ -607,7 +588,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
     # Public API: snapshot
     # --------------------------------------------------------
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """
         Return an immutable-style snapshot of Block 94's certificate store.
 
@@ -619,23 +600,21 @@ class EROSBlock94PortfolioStressScenarioEngine:
             "engine_version": self.engine_version,
             "certificate_count": len(self._certificates),
             "scenario_count": len(self._scenario_index),
-            "certificates": _deepcopy(
-                list(self._certificates.values())
-            ),
+            "certificates": _deepcopy(list(self._certificates.values())),
         }
 
     # --------------------------------------------------------
     # Public API: certificate_history
     # --------------------------------------------------------
 
-    def certificate_history(self) -> List[Dict[str, Any]]:
+    def certificate_history(self) -> list[dict[str, Any]]:
         return _deepcopy(list(self._certificates.values()))
 
     # --------------------------------------------------------
     # Public API: scenario_history
     # --------------------------------------------------------
 
-    def scenario_history(self) -> Dict[str, str]:
+    def scenario_history(self) -> dict[str, str]:
         return _deepcopy(self._scenario_index)
 
     # --------------------------------------------------------
@@ -650,7 +629,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         risk: Mapping[str, Any],
         positions: Sequence[Mapping[str, Any]],
         scenarios: Sequence[Mapping[str, Any]],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         base = self._validate_inputs(
             valuation=valuation,
             performance=performance,
@@ -703,8 +682,8 @@ class EROSBlock94PortfolioStressScenarioEngine:
         performance: Mapping[str, Any],
         risk: Mapping[str, Any],
         positions: Sequence[Mapping[str, Any]],
-        scenario: Optional[Mapping[str, Any]],
-    ) -> Dict[str, Any]:
+        scenario: Mapping[str, Any] | None,
+    ) -> dict[str, Any]:
         for name, payload in (
             ("valuation", valuation),
             ("performance", performance),
@@ -713,9 +692,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
             if not isinstance(payload, Mapping):
                 return self._blocked(f"MALFORMED_{name.upper()}")
 
-        if not isinstance(positions, Sequence) or isinstance(
-            positions, (str, bytes)
-        ):
+        if not isinstance(positions, Sequence) or isinstance(positions, (str, bytes)):
             return self._blocked("MALFORMED_POSITIONS")
 
         if not positions:
@@ -750,7 +727,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
     def _normalize_scenario_safe(
         self,
         scenario: Mapping[str, Any],
-    ) -> Optional[ScenarioDefinition]:
+    ) -> ScenarioDefinition | None:
         try:
             normalized = self._normalize_scenario(scenario)
         except (TypeError, ValueError):
@@ -786,9 +763,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         scenario: Mapping[str, Any],
     ) -> ScenarioDefinition:
         return ScenarioDefinition(
-            scenario_id=_text(
-                _first(scenario, "scenario_id", "id", default="")
-            ),
+            scenario_id=_text(_first(scenario, "scenario_id", "id", default="")),
             scenario_type=_text(
                 _first(
                     scenario,
@@ -805,9 +780,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
                     default="",
                 )
             ),
-            description=_text(
-                _first(scenario, "description", default="")
-            ),
+            description=_text(_first(scenario, "description", default="")),
             price_shock_pct=_float(
                 _first(scenario, "price_shock_pct", default=0.0),
                 0.0,
@@ -840,36 +813,23 @@ class EROSBlock94PortfolioStressScenarioEngine:
                 _first(scenario, "default_shock_pct", default=0.0),
                 0.0,
             ),
-            sector=_text(
-                _first(scenario, "sector", default="")
-            ),
-            benchmark=_text(
-                _first(scenario, "benchmark", default="")
-            ),
-            metadata=_deepcopy(
-                dict(
-                    _first(scenario, "metadata", default={})
-                    or {}
-                )
-            ),
+            sector=_text(_first(scenario, "sector", default="")),
+            benchmark=_text(_first(scenario, "benchmark", default="")),
+            metadata=_deepcopy(dict(_first(scenario, "metadata", default={}) or {})),
         ).normalized()
 
     def _normalize_positions(
         self,
         positions: Sequence[Mapping[str, Any]],
-    ) -> List[PositionExposure]:
-        normalized: List[PositionExposure] = []
+    ) -> list[PositionExposure]:
+        normalized: list[PositionExposure] = []
 
         for position in positions:
             if not isinstance(position, Mapping):
                 raise ValueError("malformed position")
 
-            quantity = _number(
-                _first(position, "quantity", "qty", default=0)
-            )
-            price = _number(
-                _first(position, "price", "current_price", default=0)
-            )
+            quantity = _number(_first(position, "quantity", "qty", default=0))
+            price = _number(_first(position, "price", "current_price", default=0))
 
             market_value = _float(
                 _first(
@@ -896,17 +856,17 @@ class EROSBlock94PortfolioStressScenarioEngine:
                     quantity=quantity,
                     price=price,
                     market_value=market_value,
-                    sector=_text(
-                        _first(position, "sector", default="")
-                    ),
+                    sector=_text(_first(position, "sector", default="")),
                     beta=_float(
                         _first(position, "beta", default=1.0),
                         1.0,
-                    ) or 1.0,
+                    )
+                    or 1.0,
                     volatility=_float(
                         _first(position, "volatility", default=0.0),
                         0.0,
-                    ) or 0.0,
+                    )
+                    or 0.0,
                     liquidity_factor=_float(
                         _first(
                             position,
@@ -914,10 +874,9 @@ class EROSBlock94PortfolioStressScenarioEngine:
                             default=1.0,
                         ),
                         1.0,
-                    ) or 1.0,
-                    benchmark=_text(
-                        _first(position, "benchmark", default="")
-                    ),
+                    )
+                    or 1.0,
+                    benchmark=_text(_first(position, "benchmark", default="")),
                 )
             )
 
@@ -938,10 +897,10 @@ class EROSBlock94PortfolioStressScenarioEngine:
         risk: Mapping[str, Any],
         exposures: Sequence[PositionExposure],
         scenario: ScenarioDefinition,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         base_equity = self._base_equity(valuation, exposures)
 
-        position_results: List[Dict[str, Any]] = []
+        position_results: list[dict[str, Any]] = []
 
         for exposure in exposures:
             shock_pct = self._effective_shock(
@@ -953,9 +912,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
                 ),
             )
 
-            stressed_value = exposure.market_value * (
-                1.0 + shock_pct / 100.0
-            )
+            stressed_value = exposure.market_value * (1.0 + shock_pct / 100.0)
 
             pnl = stressed_value - exposure.market_value
 
@@ -970,44 +927,27 @@ class EROSBlock94PortfolioStressScenarioEngine:
                 }
             )
 
-        total_stressed_value = sum(
-            item["stressed_market_value"]
-            for item in position_results
-        )
+        total_stressed_value = sum(item["stressed_market_value"] for item in position_results)
 
         total_pnl = total_stressed_value - sum(
-            item["base_market_value"]
-            for item in position_results
+            item["base_market_value"] for item in position_results
         )
 
         if total_pnl != 0:
             for item in position_results:
-                item["contribution_pct"] = (
-                    item["stressed_pnl"] / total_pnl * 100.0
-                )
+                item["contribution_pct"] = item["stressed_pnl"] / total_pnl * 100.0
 
         stressed_equity = base_equity + total_pnl
 
-        drawdown_pct = (
-            abs(min(total_pnl, 0.0)) / base_equity * 100.0
-            if base_equity > 0
-            else 0.0
-        )
+        drawdown_pct = abs(min(total_pnl, 0.0)) / base_equity * 100.0 if base_equity > 0 else 0.0
 
         return {
             "base_equity": base_equity,
-            "base_market_value": sum(
-                item["base_market_value"]
-                for item in position_results
-            ),
+            "base_market_value": sum(item["base_market_value"] for item in position_results),
             "stressed_market_value": total_stressed_value,
             "stressed_equity": stressed_equity,
             "stressed_pnl": total_pnl,
-            "stressed_return_pct": (
-                total_pnl / base_equity * 100.0
-                if base_equity > 0
-                else 0.0
-            ),
+            "stressed_return_pct": (total_pnl / base_equity * 100.0 if base_equity > 0 else 0.0),
             "stressed_drawdown_pct": drawdown_pct,
             "scenario_contribution": _deepcopy(position_results),
             "risk_context": {
@@ -1065,10 +1005,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
             )
 
         if scenario.volatility_shock_pct:
-            shock += (
-                scenario.volatility_shock_pct
-                * max(exposure.volatility, 0.0)
-            )
+            shock += scenario.volatility_shock_pct * max(exposure.volatility, 0.0)
 
         if scenario.benchmark_shock_pct:
             if (
@@ -1079,11 +1016,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
                 shock += scenario.benchmark_shock_pct
 
         if scenario.sector_shock_pct:
-            if (
-                scenario.sector
-                and exposure.sector
-                and scenario.sector == exposure.sector
-            ):
+            if scenario.sector and exposure.sector and scenario.sector == exposure.sector:
                 shock += scenario.sector_shock_pct
 
         if scenario.liquidity_shock_pct:
@@ -1091,16 +1024,10 @@ class EROSBlock94PortfolioStressScenarioEngine:
                 min(exposure.liquidity_factor, 1.0),
                 0.0,
             )
-            shock += (
-                scenario.liquidity_shock_pct
-                * (1.0 - liquidity_multiplier)
-            )
+            shock += scenario.liquidity_shock_pct * (1.0 - liquidity_multiplier)
 
         if scenario.correlation_shock_pct:
-            shock += (
-                scenario.correlation_shock_pct
-                * max(abs(portfolio_beta) - 1.0, 0.0)
-            )
+            shock += scenario.correlation_shock_pct * max(abs(portfolio_beta) - 1.0, 0.0)
 
         return shock
 
@@ -1177,10 +1104,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
         if value is not None and value > 0:
             return value
 
-        return sum(
-            max(exposure.market_value, 0.0)
-            for exposure in exposures
-        )
+        return sum(max(exposure.market_value, 0.0) for exposure in exposures)
 
     @staticmethod
     def _portfolio_beta(
@@ -1200,25 +1124,21 @@ class EROSBlock94PortfolioStressScenarioEngine:
         if supplied is not None:
             return supplied
 
-        denominator = sum(
-            abs(exposure.market_value)
-            for exposure in exposures
-        )
+        denominator = sum(abs(exposure.market_value) for exposure in exposures)
 
         if denominator == 0:
             return 1.0
 
-        return sum(
-            abs(exposure.market_value) * exposure.beta
-            for exposure in exposures
-        ) / denominator
+        return (
+            sum(abs(exposure.market_value) * exposure.beta for exposure in exposures) / denominator
+        )
 
     # --------------------------------------------------------
     # Common response
     # --------------------------------------------------------
 
     @staticmethod
-    def _blocked(reason: str) -> Dict[str, Any]:
+    def _blocked(reason: str) -> dict[str, Any]:
         return {
             "status": STATUS_BLOCKED,
             "block_id": BLOCK_ID,
@@ -1236,6 +1156,7 @@ class EROSBlock94PortfolioStressScenarioEngine:
 # MODULE-LEVEL CONVENIENCE FUNCTIONS
 # ============================================================
 
+
 def run_scenario(
     *,
     valuation: Mapping[str, Any],
@@ -1243,7 +1164,7 @@ def run_scenario(
     risk: Mapping[str, Any],
     positions: Sequence[Mapping[str, Any]],
     scenario: Mapping[str, Any],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     engine = EROSBlock94PortfolioStressScenarioEngine()
     return engine.run_scenario(
         valuation=valuation,
@@ -1261,7 +1182,7 @@ def certify_stress(
     risk: Mapping[str, Any],
     positions: Sequence[Mapping[str, Any]],
     scenarios: Sequence[Mapping[str, Any]],
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     engine = EROSBlock94PortfolioStressScenarioEngine()
     return engine.certify(
         valuation=valuation,
@@ -1285,5 +1206,3 @@ __all__ = [
     "run_scenario",
     "certify_stress",
 ]
-
-

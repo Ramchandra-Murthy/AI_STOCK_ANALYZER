@@ -56,9 +56,7 @@ def generate_valuation_analysis(
     if current_price is None or current_price <= 0 or eps is None or eps <= 0:
         return {
             "status": "UNAVAILABLE",
-            "message": (
-                "Insufficient price or earnings data " "for earnings-based valuation."
-            ),
+            "message": ("Insufficient price or earnings data " "for earnings-based valuation."),
         }
 
     # ======================================================
@@ -210,9 +208,7 @@ def generate_valuation_analysis(
 
     reasons.append(f"Base P/E reference: " f"{base_pe:.2f}x.")
 
-    reasons.append(
-        f"Quality-adjusted and growth-adjusted " f"fair P/E: {fair_pe:.2f}x."
-    )
+    reasons.append(f"Quality-adjusted and growth-adjusted " f"fair P/E: {fair_pe:.2f}x.")
 
     if earnings_growth is not None:
         reasons.append(f"Earnings growth: " f"{earnings_growth * 100:.2f}%.")

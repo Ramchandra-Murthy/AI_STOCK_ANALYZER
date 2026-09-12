@@ -2,10 +2,8 @@
 
 import inspect
 import json
-import os
 import sys
 from pprint import pprint
-
 
 ROOT = r"D:\Users\User\Desktop\AI_STOCK_ANALYZER"
 
@@ -59,15 +57,12 @@ def require_imports():
     from services.quantitative.block102_frontend_contract import (
         EROSBlock102FrontendContract,
     )
-
     from services.quantitative.block103_institutional_frontend_read_model import (
         EROSBlock103InstitutionalFrontendReadModel,
     )
-
     from services.quantitative.block104_eros_command_center import (
         EROSBlock104CommandCenter,
     )
-
     from services.quantitative.block106_institutional_integration_boundary import (
         EROSBlock106InstitutionalIntegrationBoundary,
     )
@@ -262,9 +257,7 @@ def main():
     print("CALL:")
     print("block103.build(contract=frontend_contract)")
 
-    read_model = block103.build(
-        contract=frontend_contract
-    )
+    read_model = block103.build(contract=frontend_contract)
 
     print("")
     print("BLOCK 103 BUILD : PASS")
@@ -365,9 +358,7 @@ def main():
     print("CALL:")
     print("block104.snapshot(read_model=read_model)")
 
-    command_center = block104.snapshot(
-        read_model=read_model
-    )
+    command_center = block104.snapshot(read_model=read_model)
 
     print("")
     print("BLOCK 104 SNAPSHOT : PASS")
@@ -396,9 +387,7 @@ def main():
     print("CALL:")
     print("block106.build_integration_payload(command_center)")
 
-    integration_payload = block106.build_integration_payload(
-        command_center
-    )
+    integration_payload = block106.build_integration_payload(command_center)
 
     print("")
     print("BLOCK 106 BUILD : PASS")
@@ -411,9 +400,7 @@ def main():
     print("")
     print("BLOCK 106 VALIDATION:")
     try:
-        valid = block106.validate_payload(
-            integration_payload
-        )
+        valid = block106.validate_payload(integration_payload)
         print("VALIDATE RESULT:", repr(valid))
 
         if valid:
@@ -462,28 +449,18 @@ def main():
     else:
         print("BLOCK 103 ID : INCORRECT")
         print("")
-        print(
-            "IMPORTANT: The actual Block 103 output does not expose "
-            "block_id=103."
-        )
-        print(
-            "We must inspect the Block 103 contract before modifying "
-            "anything."
-        )
+        print("IMPORTANT: The actual Block 103 output does not expose " "block_id=103.")
+        print("We must inspect the Block 103 contract before modifying " "anything.")
 
     if command_center.get("block_id") == 104:
         print("BLOCK 104 ID : CORRECT")
     else:
-        print(
-            "BLOCK 104 ID : NOT 104 / REQUIRES CONTRACT INSPECTION"
-        )
+        print("BLOCK 104 ID : NOT 104 / REQUIRES CONTRACT INSPECTION")
 
     if integration_payload.get("block_id") == 106:
         print("BLOCK 106 ID : CORRECT")
     else:
-        print(
-            "BLOCK 106 ID : NOT 106 / REQUIRES CONTRACT INSPECTION"
-        )
+        print("BLOCK 106 ID : NOT 106 / REQUIRES CONTRACT INSPECTION")
 
     print("")
     print("NO SOURCE FILES WERE MODIFIED BY THIS RUNNER.")

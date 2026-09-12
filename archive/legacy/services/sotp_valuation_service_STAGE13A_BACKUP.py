@@ -247,7 +247,5 @@ def generate_sotp_valuation(symbol, company_data=None):
         "confidence": None,
         "confidence_score": None,
         "valuation_status": "PENDING",
-        "message": (
-            "SOTP V5 structure initialized. " "Segment financial valuation is pending."
-        ),
+        "message": ("SOTP V5 structure initialized. " "Segment financial valuation is pending."),
     }

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from math import isfinite
 
 from services.market_data.adapter import MarketDataPacket
@@ -15,7 +15,7 @@ class YahooFinanceDataProvider:
     @staticmethod
     def fetch_live_market_data(symbol: str) -> MarketDataPacket:
         normalized_symbol = symbol.strip().upper() if isinstance(symbol, str) else ""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         if not normalized_symbol:
             return MarketDataPacket(
                 symbol="",
@@ -57,9 +57,7 @@ class YahooFinanceDataProvider:
                     continue
                 raw_volume = row["Volume"] if "Volume" in hist.columns else 0
                 row_volume = (
-                    int(raw_volume)
-                    if isfinite(float(raw_volume)) and float(raw_volume) >= 0
-                    else 0
+                    int(raw_volume) if isfinite(float(raw_volume)) and float(raw_volume) >= 0 else 0
                 )
                 ohlcv_history.append(
                     {"date": str(date_idx.date()), "close": close, "volume": row_volume}

@@ -21,9 +21,7 @@ class NAVValuationEngine(BaseValuationEngine):
             valuation_status=ValuationStatus.PENDING,
             enterprise_value=0.0,
             equity_value=0.0,
-            diagnostics={
-                "error": "NAV Valuation Engine scheduled for Phase 3 implementation."
-            },
+            diagnostics={"error": "NAV Valuation Engine scheduled for Phase 3 implementation."},
         )
 
 
@@ -42,9 +40,7 @@ class MarketValuationEngine(BaseValuationEngine):
             valuation_status=ValuationStatus.PENDING,
             enterprise_value=0.0,
             equity_value=0.0,
-            diagnostics={
-                "error": "Market Valuation Engine scheduled for Phase 3 implementation."
-            },
+            diagnostics={"error": "Market Valuation Engine scheduled for Phase 3 implementation."},
         )
 
 
@@ -63,7 +59,5 @@ class BookValueEngine(BaseValuationEngine):
             valuation_status=ValuationStatus.PENDING,
             enterprise_value=0.0,
             equity_value=0.0,
-            diagnostics={
-                "error": "Book Value Engine scheduled for Phase 3 implementation."
-            },
+            diagnostics={"error": "Book Value Engine scheduled for Phase 3 implementation."},
         )

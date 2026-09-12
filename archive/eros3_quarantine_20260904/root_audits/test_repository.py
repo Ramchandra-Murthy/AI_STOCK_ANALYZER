@@ -26,9 +26,7 @@ print(f"✓ Saved: {fs.company_name} ({fs.fiscal_year})")
 # Exists & Load
 if repo.exists("State Bank of India", "FY2026"):
     loaded = repo.load("State Bank of India", "FY2026")
-    print(
-        f"✓ Loaded: {loaded.company_name} | Assets: ₹{loaded.balance_sheet.total_assets:,.2f} Cr"
-    )
+    print(f"✓ Loaded: {loaded.company_name} | Assets: ₹{loaded.balance_sheet.total_assets:,.2f} Cr")
 
 # List Companies
 keys = repo.list_companies()

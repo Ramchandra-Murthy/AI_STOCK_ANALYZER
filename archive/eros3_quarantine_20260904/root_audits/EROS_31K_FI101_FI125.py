@@ -9,10 +9,12 @@ from services.fundamentals.normalizer import FinancialNormalizer
 from services.fundamentals.service import FundamentalsService
 from core.events import InMemoryEventBus, EventDispatcher
 
+
 def section(title):
     print("\n" + "=" * 60)
     print(title)
     print("=" * 60)
+
 
 async def main():
     section("EROS 3.0 - 31K-FI101 TO FI125 FUNDAMENTALS CACHE/EVENT SEMANTICS")
@@ -63,7 +65,9 @@ async def main():
     print("CACHE TYPE =", type(cache))
     print("CACHE SIZE =", len(cache) if isinstance(cache, dict) else "N/A")
     print("CACHE KEYS =", list(cache.keys()) if isinstance(cache, dict) else "N/A")
-    print("CACHE CONTAINS RELIANCE.NS =", "RELIANCE.NS" in cache if isinstance(cache, dict) else "N/A")
+    print(
+        "CACHE CONTAINS RELIANCE.NS =", "RELIANCE.NS" in cache if isinstance(cache, dict) else "N/A"
+    )
     if isinstance(cache, dict):
         print("CACHE OBJECT IS FIRST =", cache.get("RELIANCE.NS") is first)
 
@@ -242,6 +246,7 @@ async def main():
     section("31K-FI101 TO FI125 COMPLETE")
     print("SOURCE MODIFICATION: NONE")
     print("STOP - COMPLETE OUTPUT COPIED TO CLIPBOARD")
+
 
 if __name__ == "__main__":
     try:

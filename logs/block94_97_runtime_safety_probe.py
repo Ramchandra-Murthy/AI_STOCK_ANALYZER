@@ -1,5 +1,4 @@
 import importlib
-import inspect
 import pprint
 
 modules = {
@@ -200,10 +199,7 @@ for block_id, result in results.items():
     print(f"BLOCK {block_id}")
 
     for field in fields:
-        print(
-            f"  {field:28} : "
-            f"{result.get(field, '<ABSENT>')!r}"
-        )
+        print(f"  {field:28} : " f"{result.get(field, '<ABSENT>')!r}")
 
 print()
 print("=" * 90)

@@ -1,15 +1,15 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
-path = Path(
-    r"services\quantitative\block98_execution_governance_bridge.py"
-)
+path = Path(r"services\quantitative\block98_execution_governance_bridge.py")
 
 output = []
+
 
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 98 EXECUTION GOVERNANCE BRIDGE")
@@ -23,9 +23,7 @@ if not path.exists():
     p("ERROR: SOURCE FILE NOT FOUND")
 else:
     # BOM-safe source reading
-    lines = path.read_text(
-        encoding="utf-8-sig"
-    ).splitlines()
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
 
     p()
     p(f"SOURCE LINES: {len(lines)}")
@@ -149,4 +147,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

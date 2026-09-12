@@ -1,12 +1,13 @@
-﻿from services.financials.parser import repository
-from services.financials.financial_statement import (
-    FinancialStatements,
-    IncomeStatement,
+﻿from services.financials.financial_statement import (
     BalanceSheet,
     CashFlowStatement,
+    FinancialStatements,
+    IncomeStatement,
 )
+from services.financials.parser import repository
 from services.market_data.models import PriceRecord
 from services.scoring.engine import AIScoringEngine
+
 
 def test_block14_ai_scoring_integration() -> None:
     income = IncomeStatement(
@@ -71,4 +72,3 @@ def test_block14_ai_scoring_integration() -> None:
     assert result.breakdown_details["momentum_engine"]["engine_version"] == "EROS-3.0-BLOCK-14"
 
     repository().clear()
-

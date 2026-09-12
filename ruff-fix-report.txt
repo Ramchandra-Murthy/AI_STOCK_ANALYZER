@@ -1,1 +1,2971 @@
-/home/runner/work/_temp/e0c0fbf1-d2b0-4862-9d86-f2cef403567a.sh: line 2: ruff: command not found
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> backend/api/dependencies/auth.py:13:56
+   |
+12 | def get_current_user(
+13 |     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+   |                                                        ^^^^^^^^^^^^^^^^^^^^^^
+14 | ):
+15 |     if not settings.AUTH_ENABLED:
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> backend/api/health.py:26:40
+   |
+25 | @router.get("/ready")
+26 | def readiness_check(session: Session = Depends(get_session)) -> dict:
+   |                                        ^^^^^^^^^^^^^^^^^^^^
+27 |     try:
+28 |         session.execute(text("SELECT 1"))
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> backend/api/routers/auth_router.py:13:63
+   |
+12 | @router.post("/register", status_code=status.HTTP_201_CREATED)
+13 | def register(payload: UserRegisterRequest, session: Session = Depends(get_session)) -> dict:
+   |                                                               ^^^^^^^^^^^^^^^^^^^^
+14 |     user = UserService.register_user(
+15 |         session=session,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> backend/api/routers/auth_router.py:28:57
+   |
+27 | @router.post("/login", response_model=TokenResponse)
+28 | def login(payload: UserLoginRequest, session: Session = Depends(get_session)) -> TokenResponse:
+   |                                                         ^^^^^^^^^^^^^^^^^^^^
+29 |     result = UserService.authenticate_user(
+30 |         session=session,
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> backend/api/routers/eros_production_router.py:21:9
+   |
+19 |         return {"success": True, "data": output}
+20 |     except Exception as exc:
+21 |         raise HTTPException(status_code=500, detail=str(exc))
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> backend/api/routers/task_router.py:30:9
+   |
+28 |           )
+29 |       except ValueError as exc:
+30 | /         raise HTTPException(
+31 | |             status_code=status.HTTP_400_BAD_REQUEST,
+32 | |             detail=str(exc),
+33 | |         )
+   | |_________^
+34 |
+35 |       return {
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> backend/api/routers/valuation_router.py:16:69
+   |
+15 | @router.post("/valuation", response_model=ValuationResponse, dependencies=[Depends(get_current_user)])
+16 | def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_session)) -> ValuationResponse:
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^
+17 |     metrics = {
+18 |         "eps": payload.eps,
+   |
+
+UP042 Class UserRole inherits from both `str` and `enum.Enum`
+  --> backend/database/models/user.py:12:7
+   |
+12 | class UserRole(str, enum.Enum):
+   |       ^^^^^^^^
+13 |     ADMIN = "ADMIN"
+14 |     ANALYST = "ANALYST"
+   |
+help: Inherit from `enum.StrEnum`
+
+F401 `celery` imported but unused; consider using `importlib.util.find_spec` to test for availability
+  --> backend/infrastructure/runtime_probe.py:26:16
+   |
+24 |     # Verify core imports
+25 |     try:
+26 |         import celery
+   |                ^^^^^^
+27 |         import fastapi
+28 |         import redis
+   |
+help: Remove unused import: `celery`
+
+F401 `fastapi` imported but unused; consider using `importlib.util.find_spec` to test for availability
+  --> backend/infrastructure/runtime_probe.py:27:16
+   |
+25 |     try:
+26 |         import celery
+27 |         import fastapi
+   |                ^^^^^^^
+28 |         import redis
+29 |         import sqlalchemy
+   |
+help: Remove unused import: `fastapi`
+
+F401 `redis` imported but unused; consider using `importlib.util.find_spec` to test for availability
+  --> backend/infrastructure/runtime_probe.py:28:16
+   |
+26 |         import celery
+27 |         import fastapi
+28 |         import redis
+   |                ^^^^^
+29 |         import sqlalchemy
+30 |         print("  [OK] Core dependencies (FastAPI, Celery, SQLAlchemy, Redis) imported successfully.")
+   |
+help: Remove unused import: `redis`
+
+F401 `sqlalchemy` imported but unused; consider using `importlib.util.find_spec` to test for availability
+  --> backend/infrastructure/runtime_probe.py:29:16
+   |
+27 |         import fastapi
+28 |         import redis
+29 |         import sqlalchemy
+   |                ^^^^^^^^^^
+30 |         print("  [OK] Core dependencies (FastAPI, Celery, SQLAlchemy, Redis) imported successfully.")
+31 |     except ImportError as e:
+   |
+help: Remove unused import: `sqlalchemy`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> backend/providers/normalizer/event_normalizer.py:32:13
+   |
+30 |         except Exception as e:
+31 |             logger.error("Failed to normalize payload from %s: %s", provider_name, e)
+32 |             raise ValueError(f"Event normalization error: {e}")
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> backend/security/dependencies.py:12:49
+   |
+11 | def get_current_user(
+12 |     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+   |                                                 ^^^^^^^^^^^^^^^^^^^^^^
+13 | ) -> dict[str, Any]:
+14 |     token = credentials.credentials
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> backend/security/dependencies.py:19:9
+   |
+17 |           payload = JWTSecurity.decode_access_token(token)
+18 |       except Exception:
+19 | /         raise HTTPException(
+20 | |             status_code=status.HTTP_401_UNAUTHORIZED,
+21 | |             detail="Invalid or expired access token.",
+22 | |             headers={"WWW-Authenticate": "Bearer"},
+23 | |         )
+   | |_________^
+24 |
+25 |       if not payload:
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> backend/security/dependencies.py:37:40
+   |
+35 | def require_role(*allowed_roles: str):
+36 |     def role_dependency(
+37 |         current_user: dict[str, Any] = Depends(get_current_user),
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+38 |     ) -> dict[str, Any]:
+   |
+
+UP042 Class WorkflowState inherits from both `str` and `enum.Enum`
+ --> backend/workflow/workflow_state.py:6:7
+  |
+6 | class WorkflowState(str, enum.Enum):
+  |       ^^^^^^^^^^^^^
+7 |     CREATED = "CREATED"
+8 |     QUEUED = "QUEUED"
+  |
+help: Inherit from `enum.StrEnum`
+
+UP042 Class ValuationMethod inherits from both `str` and `enum.Enum`
+  --> backups/eros3_rebuild_checkpoint_08/domain/valuation/result.py:8:7
+   |
+ 8 | class ValuationMethod(str, Enum):
+   |       ^^^^^^^^^^^^^^^
+ 9 |     DCF = "DCF"
+10 |     NAV = "NAV"
+   |
+help: Inherit from `enum.StrEnum`
+
+UP042 Class ValuationStatus inherits from both `str` and `enum.Enum`
+  --> backups/eros3_rebuild_checkpoint_08/domain/valuation/result.py:13:7
+   |
+11 |     SOTP = "SOTP"
+12 |
+13 | class ValuationStatus(str, Enum):
+   |       ^^^^^^^^^^^^^^^
+14 |     SUCCESS = "SUCCESS"
+15 |     FAILURE = "FAILURE"
+   |
+help: Inherit from `enum.StrEnum`
+
+F841 Local variable `forecast_service` is assigned to but never used
+  --> backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:31:9
+   |
+30 |         forecast_engine = ForecastEngine()
+31 |         forecast_service = ForecastService(forecast_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^
+32 |
+33 |         valuation_engine = ValuationEngine()
+   |
+help: Remove assignment to unused variable `forecast_service`
+
+F841 Local variable `valuation_service` is assigned to but never used
+  --> backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:34:9
+   |
+33 |         valuation_engine = ValuationEngine()
+34 |         valuation_service = ValuationService(valuation_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^^
+35 |
+36 |         research_engine = ResearchEngine()
+   |
+help: Remove assignment to unused variable `valuation_service`
+
+F841 Local variable `research_service` is assigned to but never used
+  --> backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:37:9
+   |
+36 |         research_engine = ResearchEngine()
+37 |         research_service = ResearchService(research_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^
+38 |
+39 |         report_engine = ReportEngine()
+   |
+help: Remove assignment to unused variable `research_service`
+
+F841 Local variable `report_service` is assigned to but never used
+  --> backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:40:9
+   |
+39 |         report_engine = ReportEngine()
+40 |         report_service = ReportService(report_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^
+41 |
+42 |         events_received: list[Any] = []
+   |
+help: Remove assignment to unused variable `report_service`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> backups/eros3_rebuild_checkpoint_12/tests/test_pipeline.py:74:13
+   |
+72 |             await asyncio.wait_for(pipeline_completed.wait(), timeout=2.0)
+73 |         except TimeoutError:
+74 |             raise AssertionError("Pipeline execution timed out waiting for ReportCompleted event.")
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+75 |
+76 |         event_names = [e.name for e in events_received]
+   |
+
+F841 Local variable `forecast_service` is assigned to but never used
+  --> backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:31:9
+   |
+30 |         forecast_engine = ForecastEngine()
+31 |         forecast_service = ForecastService(forecast_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^
+32 |
+33 |         valuation_engine = ValuationEngine()
+   |
+help: Remove assignment to unused variable `forecast_service`
+
+F841 Local variable `valuation_service` is assigned to but never used
+  --> backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:34:9
+   |
+33 |         valuation_engine = ValuationEngine()
+34 |         valuation_service = ValuationService(valuation_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^^
+35 |
+36 |         research_engine = ResearchEngine()
+   |
+help: Remove assignment to unused variable `valuation_service`
+
+F841 Local variable `research_service` is assigned to but never used
+  --> backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:37:9
+   |
+36 |         research_engine = ResearchEngine()
+37 |         research_service = ResearchService(research_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^
+38 |
+39 |         report_engine = ReportEngine()
+   |
+help: Remove assignment to unused variable `research_service`
+
+F841 Local variable `report_service` is assigned to but never used
+  --> backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:40:9
+   |
+39 |         report_engine = ReportEngine()
+40 |         report_service = ReportService(report_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^
+41 |
+42 |         events_received: list[Any] = []
+   |
+help: Remove assignment to unused variable `report_service`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> backups/eros3_rebuild_checkpoint_13/tests/test_pipeline.py:74:13
+   |
+72 |             await asyncio.wait_for(pipeline_completed.wait(), timeout=2.0)
+73 |         except TimeoutError:
+74 |             raise AssertionError("Pipeline execution timed out waiting for ReportCompleted event.")
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+75 |
+76 |         event_names = [e.name for e in events_received]
+   |
+
+UP046 Generic class `BaseProvider` uses `Generic` subclass instead of type parameters
+  --> core/container/providers.py:10:25
+   |
+10 | class BaseProvider(ABC, Generic[T]):
+   |                         ^^^^^^^^^^
+11 |     """Abstract base provider for container resolutions."""
+   |
+help: Use type parameters
+
+UP046 Generic class `IValuationEngine` uses `Generic` subclass instead of type parameters
+  --> core/interfaces/valuation.py:33:29
+   |
+32 | @runtime_checkable
+33 | class IValuationEngine(ABC, Generic[TContext, TResult]):
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+34 |     """Interface implemented by all valuation plugins (DCF, SOTP, Relative, NAV)."""
+   |
+help: Use type parameters
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> core/serialization/__init__.py:31:13
+   |
+29 |             if isinstance(e, SerializationError):
+30 |                 raise e
+31 |             raise SerializationError(str(e))
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+32 |     
+33 |     @staticmethod
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> core/serialization/__init__.py:40:13
+   |
+38 |             if isinstance(e, (JSONDecodeError, SerializationError)):
+39 |                 raise SerializationError(str(e)) from e
+40 |             raise SerializationError(str(e))
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+41 |
+42 | def serialize_to_json(obj: Any) -> str:
+   |
+
+UP042 Class Currency inherits from both `str` and `enum.Enum`
+  --> core/types/__init__.py:9:7
+   |
+ 9 | class Currency(str, Enum):
+   |       ^^^^^^^^
+10 |     USD = "USD"
+11 |     INR = "INR"
+   |
+help: Inherit from `enum.StrEnum`
+
+UP042 Class ValuationMethod inherits from both `str` and `enum.Enum`
+  --> domain/valuation/result.py:8:7
+   |
+ 8 | class ValuationMethod(str, Enum):
+   |       ^^^^^^^^^^^^^^^
+ 9 |     DCF = "DCF"
+10 |     NAV = "NAV"
+   |
+help: Inherit from `enum.StrEnum`
+
+UP042 Class ValuationStatus inherits from both `str` and `enum.Enum`
+  --> domain/valuation/result.py:13:7
+   |
+11 |     SOTP = "SOTP"
+12 |
+13 | class ValuationStatus(str, Enum):
+   |       ^^^^^^^^^^^^^^^
+14 |     SUCCESS = "SUCCESS"
+15 |     FAILURE = "FAILURE"
+   |
+help: Inherit from `enum.StrEnum`
+
+F403 `from .domain_constants import *` used; unable to detect undefined names
+ --> eros/config/__init__.py:1:1
+  |
+1 | from .domain_constants import *
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+invalid-syntax: missing closing quote in string literal
+  --> logs/block100_actual_blocked_return_safety_trace.py:86:32
+   |
+84 |         '"valuation_mutation"',
+85 |         "'valuation_mutation'",
+86 |         '"performance_mutation'",
+   |                                ^^
+87 |         "'performance_mutation'",
+88 |         '"risk_mutation"',
+   |
+
+B007 Loop control variable `line` not used within loop body
+   --> logs/block100_clean_return_safety_trace.py:153:35
+    |
+151 |             seen = set()
+152 |
+153 |             for line_no, keyword, line in matches:
+    |                                   ^^^^
+154 |                 start = max(1, line_no - 5)
+155 |                 end = min(len(lines), line_no + 8)
+    |
+help: Rename unused `line` to `_line`
+
+B007 Loop control variable `cls` not used within loop body
+  --> logs/block100_readonly_runtime_safety_verification.py:74:11
+   |
+72 |     raise SystemExit(1)
+73 |
+74 | for name, cls in classes:
+   |           ^^^
+75 |     p(f"CLASS : FOUND -> {name}")
+   |
+help: Rename unused `cls` to `_cls`
+
+B007 Loop control variable `expected` not used within loop body
+   --> logs/block100_readonly_runtime_safety_verification.py:185:14
+    |
+183 |     p()
+184 |
+185 |     for key, expected in optional.items():
+    |              ^^^^^^^^
+186 |         actual = result.get(key, "<ABSENT>")
+187 |         p(f"{key:<28}: {actual!r}")
+    |
+help: Rename unused `expected` to `_expected`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/block100_safe_trace.py:73:5
+   |
+71 |     p("IMPORT : FAIL")
+72 |     p(f"{type(exc).__name__}: {exc}")
+73 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+74 |
+75 | # ------------------------------------------------------------
+   |
+
+B007 Loop control variable `obj` not used within loop body
+  --> logs/block100_safe_trace.py:94:11
+   |
+92 |     raise SystemExit(1)
+93 |
+94 | for name, obj in classes:
+   |           ^^^
+95 |     p(f"CLASS : FOUND -> {name}")
+   |
+help: Rename unused `obj` to `_obj`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block100_safe_trace.py:116:5
+    |
+114 |     p("INSTANCE : FAIL")
+115 |     p(f"{type(exc).__name__}: {exc}")
+116 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+117 |
+118 | # ------------------------------------------------------------
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block106_block102_real_contract_runner.py:99:5
+    |
+ 97 |     print("ERROR:", repr(exc))
+ 98 |     traceback.print_exc()
+ 99 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+100 |
+101 | print("")
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block106_block103_actual_output_diagnostic_runner.py:284:5
+    |
+282 |     print("ROOT CAUSE MUST BE IDENTIFIED FROM THE ABOVE CONTRACT DATA")
+283 |
+284 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block94_101_real_contract_flow_test.py:115:5
+    |
+113 |     print(type(exc).__name__, str(exc))
+114 |     traceback.print_exc()
+115 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+116 |
+117 | # ------------------------------------------------------------
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block94_101_real_contract_flow_test.py:142:5
+    |
+140 |     print(type(exc).__name__, str(exc))
+141 |     traceback.print_exc()
+142 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+143 |
+144 | # ------------------------------------------------------------
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block94_101_real_contract_flow_test.py:169:5
+    |
+167 |     print(type(exc).__name__, str(exc))
+168 |     traceback.print_exc()
+169 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+170 |
+171 | # ------------------------------------------------------------
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block94_101_real_contract_flow_test.py:196:5
+    |
+194 |     print(type(exc).__name__, str(exc))
+195 |     traceback.print_exc()
+196 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+197 |
+198 | # ------------------------------------------------------------
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block94_101_real_contract_flow_test.py:223:5
+    |
+221 |     print(type(exc).__name__, str(exc))
+222 |     traceback.print_exc()
+223 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+224 |
+225 | # ------------------------------------------------------------
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block94_101_real_contract_flow_test.py:250:5
+    |
+248 |     print(type(exc).__name__, str(exc))
+249 |     traceback.print_exc()
+250 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+251 |
+252 | # ------------------------------------------------------------
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block94_101_real_contract_flow_test.py:278:5
+    |
+276 |     print(type(exc).__name__, str(exc))
+277 |     traceback.print_exc()
+278 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+279 |
+280 | # ------------------------------------------------------------
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/block94_101_real_contract_flow_test.py:305:5
+    |
+303 |     print(type(exc).__name__, str(exc))
+304 |     traceback.print_exc()
+305 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+306 |
+307 | # ------------------------------------------------------------
+    |
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> logs/block94_101_safety_contract_construction_audit.py:148:41
+    |
+146 |         if isinstance(node, ast.Dict):
+147 |
+148 |             for key_node, value_node in zip(node.keys, node.values):
+    |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+149 |
+150 |                 if isinstance(key_node, ast.Constant):
+    |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> logs/block94_96_blocked_return_safety_audit.py:55:37
+   |
+53 |         is_blocked = False
+54 |
+55 |         for key_node, value_node in zip(value.keys, value.values):
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+56 |
+57 |             if (
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> logs/block94_96_bom_safe_blocked_return_audit.py:56:37
+   |
+54 |           blocked = False
+55 |
+56 |           for key_node, value_node in zip(
+   |  _____________________________________^
+57 | |             node.value.keys,
+58 | |             node.value.values,
+59 | |         ):
+   | |_________^
+60 |
+61 |               if (
+   |
+help: Add explicit value for parameter `strict=`
+
+B007 Loop control variable `cls` not used within loop body
+  --> logs/block99_readonly_runtime_safety_verification.py:85:11
+   |
+83 |     raise SystemExit(1)
+84 |
+85 | for name, cls in classes:
+   |           ^^^
+86 |     p(f"CLASS : FOUND -> {name}")
+   |
+help: Rename unused `cls` to `_cls`
+
+B007 Loop control variable `expected` not used within loop body
+   --> logs/block99_readonly_runtime_safety_verification.py:215:14
+    |
+213 |     p()
+214 |
+215 |     for key, expected in optional_safety.items():
+    |              ^^^^^^^^
+216 |         actual = result.get(key, "<ABSENT>")
+217 |         p(f"{key:<28}: {actual!r}")
+    |
+help: Rename unused `expected` to `_expected`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_V3824_GOLDEN_20260822_224430.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v32_20260822_210838.py:511:9
+    |
+509 |         )
+510 |
+511 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+512 |             "risk_flags",
+513 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v32_20260822_210838.py:607:9
+    |
+605 |         sma20 = technical.get("sma_20")
+606 |         sma50 = technical.get("sma_50")
+607 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+608 |         support = technical.get("support")
+609 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v33_20260822_211141.py:511:9
+    |
+509 |         )
+510 |
+511 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+512 |             "risk_flags",
+513 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v33_20260822_211141.py:607:9
+    |
+605 |         sma20 = technical.get("sma_20")
+606 |         sma50 = technical.get("sma_50")
+607 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+608 |         support = technical.get("support")
+609 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `market_context` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v33_20260822_211141.py:911:9
+    |
+910 |         decision = interpretation.get("decision", {})
+911 |         market_context = interpretation.get("market_context", {})
+    |         ^^^^^^^^^^^^^^
+912 |         technical_indicators = interpretation.get(
+913 |             "technical_indicators",
+    |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v34_20260822_211420.py:511:9
+    |
+509 |         )
+510 |
+511 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+512 |             "risk_flags",
+513 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v34_20260822_211420.py:607:9
+    |
+605 |         sma20 = technical.get("sma_20")
+606 |         sma50 = technical.get("sma_50")
+607 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+608 |         support = technical.get("support")
+609 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v34_20260822_211420.py:913:9
+    |
+911 |         decision = interpretation.get("decision", {})
+912 |         technical = interpretation.get("technical_indicators", {})
+913 |         governance = interpretation.get("governance", {})
+    |         ^^^^^^^^^^
+914 |
+915 |         action_block = action.get("action", {})
+    |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v34_20260822_211420.py:1150:9
+     |
+1149 |         decision = interpretation.get("decision", {})
+1150 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1151 |         technical_indicators = interpretation.get(
+1152 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v35_20260822_211800.py:511:9
+    |
+509 |         )
+510 |
+511 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+512 |             "risk_flags",
+513 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v35_20260822_211800.py:607:9
+    |
+605 |         sma20 = technical.get("sma_20")
+606 |         sma50 = technical.get("sma_50")
+607 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+608 |         support = technical.get("support")
+609 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v35_20260822_211800.py:913:9
+    |
+911 |         decision = interpretation.get("decision", {})
+912 |         technical = interpretation.get("technical_indicators", {})
+913 |         governance = interpretation.get("governance", {})
+    |         ^^^^^^^^^^
+914 |
+915 |         action_block = action.get("action", {})
+    |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v35_20260822_211800.py:1150:9
+     |
+1149 |         decision = interpretation.get("decision", {})
+1150 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1151 |         technical_indicators = interpretation.get(
+1152 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v35_20260822_211800.py:1373:9
+     |
+1371 |         interp = interpretation.get("interpretation", {})
+1372 |         technical = interpretation.get("technical_indicators", {})
+1373 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1374 |
+1375 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v35_20260822_212229.py:511:9
+    |
+509 |         )
+510 |
+511 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+512 |             "risk_flags",
+513 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v35_20260822_212229.py:607:9
+    |
+605 |         sma20 = technical.get("sma_20")
+606 |         sma50 = technical.get("sma_50")
+607 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+608 |         support = technical.get("support")
+609 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v35_20260822_212229.py:913:9
+    |
+911 |         decision = interpretation.get("decision", {})
+912 |         technical = interpretation.get("technical_indicators", {})
+913 |         governance = interpretation.get("governance", {})
+    |         ^^^^^^^^^^
+914 |
+915 |         action_block = action.get("action", {})
+    |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v35_20260822_212229.py:1150:9
+     |
+1149 |         decision = interpretation.get("decision", {})
+1150 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1151 |         technical_indicators = interpretation.get(
+1152 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v35_20260822_212229.py:1373:9
+     |
+1371 |         interp = interpretation.get("interpretation", {})
+1372 |         technical = interpretation.get("technical_indicators", {})
+1373 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1374 |
+1375 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v36_20260822_212325.py:511:9
+    |
+509 |         )
+510 |
+511 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+512 |             "risk_flags",
+513 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v36_20260822_212325.py:607:9
+    |
+605 |         sma20 = technical.get("sma_20")
+606 |         sma50 = technical.get("sma_50")
+607 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+608 |         support = technical.get("support")
+609 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v36_20260822_212325.py:913:9
+    |
+911 |         decision = interpretation.get("decision", {})
+912 |         technical = interpretation.get("technical_indicators", {})
+913 |         governance = interpretation.get("governance", {})
+    |         ^^^^^^^^^^
+914 |
+915 |         action_block = action.get("action", {})
+    |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v36_20260822_212325.py:1150:9
+     |
+1149 |         decision = interpretation.get("decision", {})
+1150 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1151 |         technical_indicators = interpretation.get(
+1152 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v36_20260822_212325.py:1373:9
+     |
+1371 |         interp = interpretation.get("interpretation", {})
+1372 |         technical = interpretation.get("technical_indicators", {})
+1373 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1374 |
+1375 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v371_20260822_213654.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v371_20260822_213654.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v371_20260822_213654.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v371_20260822_213654.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v371_20260822_213654.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v371_20260822_213654.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v371_20260822_213654.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v372_20260822_213827.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v372_20260822_213827.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v372_20260822_213827.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v372_20260822_213827.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v372_20260822_213827.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v372_20260822_213827.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v372_20260822_213827.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v372_compat_20260822_214026.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v37_20260822_213105.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v37_20260822_213105.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v37_20260822_213105.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v37_20260822_213105.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v37_20260822_213105.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v37_20260822_213105.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v37_20260822_213210.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v37_20260822_213210.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v37_20260822_213210.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v37_20260822_213210.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v37_20260822_213210.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v37_20260822_213210.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v381_20260822_215432.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v381_20260822_215432.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v381_20260822_215432.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v381_20260822_215432.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v381_20260822_215432.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v381_20260822_215432.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v381_20260822_215432.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v3821_trace_fix_20260822_220723.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+invalid-syntax: Expected `)`, found `=`
+    --> logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py:3197:21
+     |
+3195 |         #   no portfolio mutation
+3196 |         # ==============================================================
+3197 |         _v382_trace = _v381_trace if isinstance(_v381_trace, dict) else {}
+     |                     ^
+3198 |         # ==============================================================
+3199 |         # END V3.8.2.1 TRACE COMPATIBILITY INITIALIZER
+     |
+
+invalid-syntax: Expected `:`, found name
+    --> logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py:3201:1
+     |
+3199 |         # END V3.8.2.1 TRACE COMPATIBILITY INITIALIZER
+3200 |         # ==============================================================
+3201 | _v382_trace.get("stages", {})
+     | ^^^^^^^^^^^
+3202 |                     if isinstance(_v382_trace, dict)
+3203 |                     else {}
+     |
+
+invalid-syntax: Expected `,`, found `)`
+    --> logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py:3204:17
+     |
+3202 |                     if isinstance(_v382_trace, dict)
+3203 |                     else {}
+3204 |                 ),
+     |                 ^
+3205 |                 "primary_scenario": _v382_primary_scenario,
+3206 |                 "decision_quality": _v382_decision_quality,
+     |
+
+invalid-syntax: Expected an expression or a '}'
+    --> logs/eros_frontend_adapter_before_v3822_clean_repair_20260822_221935.py:3204:18
+     |
+3202 |                     if isinstance(_v382_trace, dict)
+3203 |                     else {}
+3204 |                 ),
+     |                  ^
+3205 |                 "primary_scenario": _v382_primary_scenario,
+3206 |                 "decision_quality": _v382_decision_quality,
+     |
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v3824_return_repair_20260822_224001.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `interpretation` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:2148:9
+     |
+2146 |         )
+2147 |
+2148 |         interpretation = convergence.get(
+     |         ^^^^^^^^^^^^^^
+2149 |             "interpretation",
+2150 |             {}
+     |
+help: Remove assignment to unused variable `interpretation`
+
+F841 Local variable `audit_summary` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:2562:13
+     |
+2560 |         else:
+2561 |
+2562 |             audit_summary = (
+     |             ^^^^^^^^^^^^^
+2563 |                 f"{symbol} decision chain did not pass the "
+2564 |                 "V3.8 audit. One or more audit layers require "
+     |
+help: Remove assignment to unused variable `audit_summary`
+
+F841 Local variable `audit_governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220104.py:2573:9
+     |
+2571 |         # ------------------------------------------------------
+2572 |
+2573 |         audit_governance = {
+     |         ^^^^^^^^^^^^^^^^
+2574 |             "read_only": True,
+2575 |             "execution_blocked": True,
+     |
+help: Remove assignment to unused variable `audit_governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `interpretation` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:2148:9
+     |
+2146 |         )
+2147 |
+2148 |         interpretation = convergence.get(
+     |         ^^^^^^^^^^^^^^
+2149 |             "interpretation",
+2150 |             {}
+     |
+help: Remove assignment to unused variable `interpretation`
+
+F841 Local variable `audit_summary` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:2562:13
+     |
+2560 |         else:
+2561 |
+2562 |             audit_summary = (
+     |             ^^^^^^^^^^^^^
+2563 |                 f"{symbol} decision chain did not pass the "
+2564 |                 "V3.8 audit. One or more audit layers require "
+     |
+help: Remove assignment to unused variable `audit_summary`
+
+F841 Local variable `audit_governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v382_20260822_220437.py:2573:9
+     |
+2571 |         # ------------------------------------------------------
+2572 |
+2573 |         audit_governance = {
+     |         ^^^^^^^^^^^^^^^^
+2574 |             "read_only": True,
+2575 |             "execution_blocked": True,
+     |
+help: Remove assignment to unused variable `audit_governance`
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> logs/eros_frontend_adapter_before_v38_20260822_214850.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v38_20260822_214850.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> logs/eros_frontend_adapter_before_v38_20260822_214850.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v38_20260822_214850.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v38_20260822_214850.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v38_20260822_214850.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> logs/eros_frontend_adapter_before_v38_20260822_214850.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+UP030 Use implicit references for positional format fields
+   --> logs/eros_v28_decision_evidence_test.py:173:9
+    |
+172 |       print(
+173 | /         "{0:<25} : {1}".format(
+174 | |             field,
+175 | |             "PASS" if present else "FAIL"
+176 | |         )
+    | |_________^
+177 |       )
+    |
+help: Remove explicit positional indices
+
+UP030 Use implicit references for positional format fields
+   --> logs/eros_v28_decision_evidence_test.py:215:9
+    |
+214 |       print(
+215 | /         "{0:<25} : {1}".format(
+216 | |             field,
+217 | |             "PASS" if present else "FAIL"
+218 | |         )
+    | |_________^
+219 |       )
+    |
+help: Remove explicit positional indices
+
+UP030 Use implicit references for positional format fields
+   --> logs/eros_v28_decision_evidence_test.py:249:9
+    |
+248 |       print(
+249 | /         "{0:<30} : {1}".format(
+250 | |             name,
+251 | |             "PASS" if passed else "FAIL"
+252 | |         )
+    | |_________^
+253 |       )
+    |
+help: Remove explicit positional indices
+
+UP030 Use implicit references for positional format fields
+   --> logs/eros_v29_decision_evidence_test.py:96:9
+    |
+ 95 |       print(
+ 96 | /         "{0:<25} : {1}".format(
+ 97 | |             field,
+ 98 | |             "PASS" if passed else "FAIL"
+ 99 | |         )
+    | |_________^
+100 |       )
+    |
+help: Remove explicit positional indices
+
+UP030 Use implicit references for positional format fields
+   --> logs/eros_v29_decision_evidence_test.py:142:9
+    |
+141 |       print(
+142 | /         "{0:<20} : {1}".format(
+143 | |             field,
+144 | |             "PASS" if passed else "FAIL"
+145 | |         )
+    | |_________^
+146 |       )
+    |
+help: Remove explicit positional indices
+
+UP030 Use implicit references for positional format fields
+   --> logs/eros_v29_decision_evidence_test.py:179:9
+    |
+178 |       print(
+179 | /         "{0:<30} : {1}".format(
+180 | |             name,
+181 | |             "PASS" if passed else "FAIL"
+182 | |         )
+    | |_________^
+183 |       )
+    |
+help: Remove explicit positional indices
+
+UP030 Use implicit references for positional format fields
+   --> logs/eros_v29_decision_evidence_test.py:218:9
+    |
+217 |       print(
+218 | /         "{0:<25} : {1}".format(
+219 | |             name,
+220 | |             "PASS" if passed else "FAIL"
+221 | |         )
+    | |_________^
+222 |       )
+    |
+help: Remove explicit positional indices
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> logs/eros_v372_return_structure_diagnostic.py:131:25
+    |
+129 |         print("KEY COUNT    :", len(value.keys))
+130 |
+131 |         for key, val in zip(value.keys, value.values):
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+132 |
+133 |             if isinstance(key, ast.Constant):
+    |
+help: Add explicit value for parameter `strict=`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3822_clean_runtime_diagnostic.py:29:5
+   |
+27 |     print(type(exc).__name__, ":", exc)
+28 |     traceback.print_exc()
+29 |     raise SystemExit(10)
+   |     ^^^^^^^^^^^^^^^^^^^^
+30 |
+31 | adapter = EROSFrontendAdapter()
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3822_clean_runtime_diagnostic.py:93:5
+   |
+91 |     print(type(exc).__name__, ":", exc)
+92 |     traceback.print_exc()
+93 |     raise SystemExit(13)
+   |     ^^^^^^^^^^^^^^^^^^^^
+94 |
+95 | print()
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/eros_v3822_clean_runtime_diagnostic.py:115:5
+    |
+113 |     print(type(exc).__name__, ":", exc)
+114 |     traceback.print_exc()
+115 |     raise SystemExit(15)
+    |     ^^^^^^^^^^^^^^^^^^^^
+116 |
+117 | print()
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3823_hydration_dataflow_diagnostic.py:34:5
+   |
+32 |     print("IMPORT : FAIL")
+33 |     traceback.print_exc()
+34 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+35 |
+36 | adapter = EROSFrontendAdapter()
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3823_hydration_source_inspection.py:26:5
+   |
+24 |     print("OFFSET        :", exc.offset)
+25 |     print("MESSAGE       :", exc.msg)
+26 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+27 |
+28 | print()
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3824_audit_dataflow_inspector.py:58:5
+   |
+56 |     print("SOURCE READ FAILED")
+57 |     print(repr(exc))
+58 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+59 |
+60 | # ------------------------------------------------------------
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3824_audit_dataflow_inspector.py:70:5
+   |
+68 |     print("AST PARSE     : FAIL")
+69 |     print(type(exc).__name__, str(exc))
+70 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+71 |
+72 | # ------------------------------------------------------------
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3824_audit_dataflow_source_diagnostic.py:44:5
+   |
+42 |     print("SOURCE READ : FAIL")
+43 |     traceback.print_exc()
+44 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3824_audit_dataflow_source_diagnostic.py:56:5
+   |
+54 |     print("AST PARSE : FAIL")
+55 |     traceback.print_exc()
+56 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> logs/eros_v3824_audit_dataflow_source_diagnostic.py:114:5
+    |
+112 |     print("IMPORT : FAIL")
+113 |     traceback.print_exc()
+114 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3825_upstream_dataflow_diagnostic.py:35:5
+   |
+33 |     print("IMPORT : FAIL")
+34 |     traceback.print_exc()
+35 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+36 |
+37 | adapter = EROSFrontendAdapter()
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3827_runtime_dataflow_diagnostic.py:32:5
+   |
+30 |     print("IMPORT : FAIL")
+31 |     traceback.print_exc()
+32 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+33 |
+34 | adapter = EROSFrontendAdapter()
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v3829_upstream_runtime_hydration_diagnostic.py:33:5
+   |
+31 |     print("IMPORT : FAIL")
+32 |     traceback.print_exc()
+33 |     raise SystemExit(1)
+   |     ^^^^^^^^^^^^^^^^^^^
+34 |
+35 | adapter = EROSFrontendAdapter()
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> logs/eros_v382_integrity_patcher.py:29:5
+   |
+27 |     print("AST PARSE : FAIL")
+28 |     print(type(exc).__name__, str(exc))
+29 |     raise SystemExit(10)
+   |     ^^^^^^^^^^^^^^^^^^^^
+30 |
+31 | print("AST PARSE : PASS")
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> security_backup_31K_BG/eros_production_router.py:21:9
+   |
+19 |         return {"success": True, "data": output}
+20 |     except Exception as exc:
+21 |         raise HTTPException(status_code=500, detail=str(exc))
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> security_backup_31K_BG/task_router.py:29:9
+   |
+27 |           )
+28 |       except ValueError as exc:
+29 | /         raise HTTPException(
+30 | |             status_code=status.HTTP_400_BAD_REQUEST,
+31 | |             detail=str(exc),
+32 | |         )
+   | |_________^
+33 |
+34 |       return {
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_BG/valuation_router.py:15:69
+   |
+14 | @router.post("/valuation", response_model=ValuationResponse)
+15 | def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_session)) -> ValuationResponse:
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^
+16 |     metrics = {
+17 |         "eps": payload.eps,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CG/backend/api/dependencies/auth.py:13:56
+   |
+12 | def get_current_user(
+13 |     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+   |                                                        ^^^^^^^^^^^^^^^^^^^^^^
+14 | ):
+15 |     if not settings.AUTH_ENABLED:
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CG/backend/api/routers/auth_router.py:13:63
+   |
+12 | @router.post("/register", status_code=status.HTTP_201_CREATED)
+13 | def register(payload: UserRegisterRequest, session: Session = Depends(get_session)) -> dict:
+   |                                                               ^^^^^^^^^^^^^^^^^^^^
+14 |     user = UserService.register_user(
+15 |         session=session,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CG/backend/api/routers/auth_router.py:28:57
+   |
+27 | @router.post("/login", response_model=TokenResponse)
+28 | def login(payload: UserLoginRequest, session: Session = Depends(get_session)) -> TokenResponse:
+   |                                                         ^^^^^^^^^^^^^^^^^^^^
+29 |     result = UserService.authenticate_user(
+30 |         session=session,
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> security_backup_31K_CG/backend/api/routers/eros_production_router.py:21:9
+   |
+19 |         return {"success": True, "data": output}
+20 |     except Exception as exc:
+21 |         raise HTTPException(status_code=500, detail=str(exc))
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> security_backup_31K_CG/backend/api/routers/task_router.py:30:9
+   |
+28 |           )
+29 |       except ValueError as exc:
+30 | /         raise HTTPException(
+31 | |             status_code=status.HTTP_400_BAD_REQUEST,
+32 | |             detail=str(exc),
+33 | |         )
+   | |_________^
+34 |
+35 |       return {
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CG/backend/api/routers/valuation_router.py:16:69
+   |
+15 | @router.post("/valuation", response_model=ValuationResponse, dependencies=[Depends(get_current_user)])
+16 | def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_session)) -> ValuationResponse:
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^
+17 |     metrics = {
+18 |         "eps": payload.eps,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CG/backend/security/dependencies.py:12:49
+   |
+11 | def get_current_user(
+12 |     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+   |                                                 ^^^^^^^^^^^^^^^^^^^^^^
+13 | ) -> dict[str, Any]:
+14 |     token = credentials.credentials
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> security_backup_31K_CG/backend/security/dependencies.py:19:9
+   |
+17 |           payload = JWTSecurity.decode_access_token(token)
+18 |       except Exception:
+19 | /         raise HTTPException(
+20 | |             status_code=status.HTTP_401_UNAUTHORIZED,
+21 | |             detail="Invalid or expired access token.",
+22 | |             headers={"WWW-Authenticate": "Bearer"},
+23 | |         )
+   | |_________^
+24 |
+25 |       if not payload:
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CG/backend/security/dependencies.py:37:40
+   |
+35 | def require_role(*allowed_roles: str):
+36 |     def role_dependency(
+37 |         current_user: dict[str, Any] = Depends(get_current_user),
+   |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+38 |     ) -> dict[str, Any]:
+   |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> security_backup_31K_CG/task_router.py:30:9
+   |
+28 |           )
+29 |       except ValueError as exc:
+30 | /         raise HTTPException(
+31 | |             status_code=status.HTTP_400_BAD_REQUEST,
+32 | |             detail=str(exc),
+33 | |         )
+   | |_________^
+34 |
+35 |       return {
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CG/valuation_router.py:16:69
+   |
+15 | @router.post("/valuation", response_model=ValuationResponse, dependencies=[Depends(get_current_user)])
+16 | def execute_valuation(payload: ValuationRequest, session: Session = Depends(get_session)) -> ValuationResponse:
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^
+17 |     metrics = {
+18 |         "eps": payload.eps,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CR/auth.py:13:56
+   |
+12 | def get_current_user(
+13 |     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+   |                                                        ^^^^^^^^^^^^^^^^^^^^^^
+14 | ):
+15 |     if not settings.AUTH_ENABLED:
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CR/auth_router.py:13:63
+   |
+12 | @router.post("/register", status_code=status.HTTP_201_CREATED)
+13 | def register(payload: UserRegisterRequest, session: Session = Depends(get_session)) -> dict:
+   |                                                               ^^^^^^^^^^^^^^^^^^^^
+14 |     user = UserService.register_user(
+15 |         session=session,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CR/auth_router.py:28:57
+   |
+27 | @router.post("/login", response_model=TokenResponse)
+28 | def login(payload: UserLoginRequest, session: Session = Depends(get_session)) -> TokenResponse:
+   |                                                         ^^^^^^^^^^^^^^^^^^^^
+29 |     result = UserService.authenticate_user(
+30 |         session=session,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CS/auth.py:13:56
+   |
+12 | def get_current_user(
+13 |     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+   |                                                        ^^^^^^^^^^^^^^^^^^^^^^
+14 | ):
+15 |     if not settings.AUTH_ENABLED:
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CS/auth_router.py:13:63
+   |
+12 | @router.post("/register", status_code=status.HTTP_201_CREATED)
+13 | def register(payload: UserRegisterRequest, session: Session = Depends(get_session)) -> dict:
+   |                                                               ^^^^^^^^^^^^^^^^^^^^
+14 |     user = UserService.register_user(
+15 |         session=session,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CS/auth_router.py:28:57
+   |
+27 | @router.post("/login", response_model=TokenResponse)
+28 | def login(payload: UserLoginRequest, session: Session = Depends(get_session)) -> TokenResponse:
+   |                                                         ^^^^^^^^^^^^^^^^^^^^
+29 |     result = UserService.authenticate_user(
+30 |         session=session,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CU/auth_router.py:13:63
+   |
+12 | @router.post("/register", status_code=status.HTTP_201_CREATED)
+13 | def register(payload: UserRegisterRequest, session: Session = Depends(get_session)) -> dict:
+   |                                                               ^^^^^^^^^^^^^^^^^^^^
+14 |     user = UserService.register_user(
+15 |         session=session,
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+  --> security_backup_31K_CU/auth_router.py:28:57
+   |
+27 | @router.post("/login", response_model=TokenResponse)
+28 | def login(payload: UserLoginRequest, session: Session = Depends(get_session)) -> TokenResponse:
+   |                                                         ^^^^^^^^^^^^^^^^^^^^
+29 |     result = UserService.authenticate_user(
+30 |         session=session,
+   |
+
+F841 Local variable `explanation_data` is assigned to but never used
+  --> services/eros_frontend_adapter.py:73:9
+   |
+71 |         decision = intelligence.get("decision", {})
+72 |         scenario_data = scenario.get("scenarios", {})
+73 |         explanation_data = explanation.get("scenario_explanation", {})
+   |         ^^^^^^^^^^^^^^^^
+74 |         action_data = action.get("action", {})
+75 |         interpretation_data = interpretation.get("interpretation", {})
+   |
+help: Remove assignment to unused variable `explanation_data`
+
+F841 Local variable `risk_flags` is assigned to but never used
+   --> services/eros_frontend_adapter.py:722:9
+    |
+720 |         )
+721 |
+722 |         risk_flags = intelligence.get(
+    |         ^^^^^^^^^^
+723 |             "risk_flags",
+724 |             []
+    |
+help: Remove assignment to unused variable `risk_flags`
+
+F841 Local variable `ema20` is assigned to but never used
+   --> services/eros_frontend_adapter.py:818:9
+    |
+816 |         sma20 = technical.get("sma_20")
+817 |         sma50 = technical.get("sma_50")
+818 |         ema20 = technical.get("ema_20")
+    |         ^^^^^
+819 |         support = technical.get("support")
+820 |         resistance = technical.get("resistance")
+    |
+help: Remove assignment to unused variable `ema20`
+
+F841 Local variable `governance` is assigned to but never used
+    --> services/eros_frontend_adapter.py:1124:9
+     |
+1122 |         decision = interpretation.get("decision", {})
+1123 |         technical = interpretation.get("technical_indicators", {})
+1124 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1125 |
+1126 |         action_block = action.get("action", {})
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `market_context` is assigned to but never used
+    --> services/eros_frontend_adapter.py:1361:9
+     |
+1360 |         decision = interpretation.get("decision", {})
+1361 |         market_context = interpretation.get("market_context", {})
+     |         ^^^^^^^^^^^^^^
+1362 |         technical_indicators = interpretation.get(
+1363 |             "technical_indicators",
+     |
+help: Remove assignment to unused variable `market_context`
+
+F841 Local variable `governance` is assigned to but never used
+    --> services/eros_frontend_adapter.py:1584:9
+     |
+1582 |         interp = interpretation.get("interpretation", {})
+1583 |         technical = interpretation.get("technical_indicators", {})
+1584 |         governance = interpretation.get("governance", {})
+     |         ^^^^^^^^^^
+1585 |
+1586 |         price = float(interpretation.get("price", 0.0))
+     |
+help: Remove assignment to unused variable `governance`
+
+F841 Local variable `governance` is assigned to but never used
+    --> services/eros_frontend_adapter.py:1918:9
+     |
+1916 |         convergence_data = convergence.get("convergence", {})
+1917 |         interpretation = convergence.get("interpretation", {})
+1918 |         governance = convergence.get("governance", {})
+     |         ^^^^^^^^^^
+1919 |
+1920 |         traceability = {
+     |
+help: Remove assignment to unused variable `governance`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> services/forecasting/scenario_engine.py:31:74
+   |
+30 |         values = [float(s.intrinsic_value) for s in scenarios]
+31 |         expected_val = sum(value * probability for value, probability in zip(values, probabilities))
+   |                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+32 |         bull_candidates = [float(s.intrinsic_value) for s in scenarios if s.name.upper() == "BULL"]
+33 |         bear_candidates = [float(s.intrinsic_value) for s in scenarios if s.name.upper() == "BEAR"]
+   |
+help: Add explicit value for parameter `strict=`
+
+F841 Local variable `fcf_conversion` is assigned to but never used
+  --> services/investors/buffett.py:21:9
+   |
+19 |         debt_to_equity = ratios.solvency.get("debt_to_equity", 1.0)
+20 |         interest_coverage = ratios.solvency.get("interest_coverage", 0.0)
+21 |         fcf_conversion = ratios.cash_flow.get("fcf_conversion", 0.0)
+   |         ^^^^^^^^^^^^^^
+22 |
+23 |         score = 0.0
+   |
+help: Remove assignment to unused variable `fcf_conversion`
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:24:23
+   |
+23 |         score = 0.0
+24 |         if roe >= 15.0: score += 25.0
+   |                       ^
+25 |         elif roe >= 10.0: score += 15.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:25:25
+   |
+23 |         score = 0.0
+24 |         if roe >= 15.0: score += 25.0
+25 |         elif roe >= 10.0: score += 15.0
+   |                         ^
+26 |
+27 |         if roic >= 12.0: score += 25.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:27:24
+   |
+25 |         elif roe >= 10.0: score += 15.0
+26 |
+27 |         if roic >= 12.0: score += 25.0
+   |                        ^
+28 |         elif roic >= 8.0: score += 15.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:28:25
+   |
+27 |         if roic >= 12.0: score += 25.0
+28 |         elif roic >= 8.0: score += 15.0
+   |                         ^
+29 |
+30 |         if debt_to_equity <= 0.5: score += 20.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:30:33
+   |
+28 |         elif roic >= 8.0: score += 15.0
+29 |
+30 |         if debt_to_equity <= 0.5: score += 20.0
+   |                                 ^
+31 |         elif debt_to_equity <= 1.0: score += 10.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:31:35
+   |
+30 |         if debt_to_equity <= 0.5: score += 20.0
+31 |         elif debt_to_equity <= 1.0: score += 10.0
+   |                                   ^
+32 |
+33 |         if interest_coverage >= 5.0: score += 15.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:33:36
+   |
+31 |         elif debt_to_equity <= 1.0: score += 10.0
+32 |
+33 |         if interest_coverage >= 5.0: score += 15.0
+   |                                    ^
+34 |         elif interest_coverage >= 2.0: score += 8.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:34:38
+   |
+33 |         if interest_coverage >= 5.0: score += 15.0
+34 |         elif interest_coverage >= 2.0: score += 8.0
+   |                                      ^
+35 |
+36 |         if moat.moat_score >= 70.0: score += 15.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:36:35
+   |
+34 |         elif interest_coverage >= 2.0: score += 8.0
+35 |
+36 |         if moat.moat_score >= 70.0: score += 15.0
+   |                                   ^
+37 |         elif moat.moat_score >= 40.0: score += 8.0
+   |
+
+E701 Multiple statements on one line (colon)
+  --> services/investors/buffett.py:37:37
+   |
+36 |         if moat.moat_score >= 70.0: score += 15.0
+37 |         elif moat.moat_score >= 40.0: score += 8.0
+   |                                     ^
+38 |
+39 |         score = min(max(score, 0.0), 100.0)
+   |
+
+F841 Local variable `evidence` is assigned to but never used
+   --> services/quantitative/block86_control_plane.py:203:9
+    |
+201 |             )
+202 |
+203 |         evidence = {
+    |         ^^^^^^^^
+204 |             "block85": cert,
+205 |             "additional_evidence": additional_evidence or {},
+    |
+help: Remove assignment to unused variable `evidence`
+
+F841 Local variable `action` is assigned to but never used
+   --> services/quantitative/block87_execution_bridge.py:186:9
+    |
+185 |         symbol = self._decision_symbol(decision)
+186 |         action = self._action(decision)
+    |         ^^^^^^
+187 |         decision_id = self._decision_id(decision)
+    |
+help: Remove assignment to unused variable `action`
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> services/quantitative/block93_performance_risk_attribution_engine.py:109:51
+    |
+107 |     mx = _mean(x)
+108 |     my = _mean(y)
+109 |     return _mean([(a - mx) * (b - my) for a, b in zip(x, y)])
+    |                                                   ^^^^^^^^^
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> services/quantitative/block93_performance_risk_attribution_engine.py:469:25
+    |
+467 |         active = [
+468 |             p - b
+469 |             for p, b in zip(portfolio_returns, benchmark_returns)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+470 |         ]
+471 |         return _sample_volatility(active)
+    |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> services/quantitative/block93_performance_risk_attribution_engine.py:480:25
+    |
+478 |         active = [
+479 |             p - b
+480 |             for p, b in zip(portfolio_returns, benchmark_returns)
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+481 |         ]
+482 |         return _safe_div(_mean(active), _sample_volatility(active))
+    |
+help: Add explicit value for parameter `strict=`
+
+F841 Local variable `duplicate_second` is assigned to but never used
+   --> services/quantitative/block97_test_harness.py:282:5
+    |
+280 |     )
+281 |
+282 |     duplicate_second = engine.certify(
+    |     ^^^^^^^^^^^^^^^^
+283 |         decision=duplicate_source
+284 |     )
+    |
+help: Remove assignment to unused variable `duplicate_second`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> services/quantitative/eros_106_109_golden_chain_gate.py:114:5
+    |
+112 |     print("[FAIL] BLOCK 106 IMPORT")
+113 |     traceback.print_exc()
+114 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+115 |
+116 | try:
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> services/quantitative/eros_106_109_golden_chain_gate.py:122:5
+    |
+120 |     print("[FAIL] BLOCK 107 IMPORT")
+121 |     traceback.print_exc()
+122 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+123 |
+124 | try:
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> services/quantitative/eros_106_109_golden_chain_gate.py:130:5
+    |
+128 |     print("[FAIL] BLOCK 108 IMPORT")
+129 |     traceback.print_exc()
+130 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+131 |
+132 | try:
+    |
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> services/quantitative/eros_106_109_golden_chain_gate.py:138:5
+    |
+136 |     print("[FAIL] BLOCK 109 IMPORT")
+137 |     traceback.print_exc()
+138 |     raise SystemExit(1)
+    |     ^^^^^^^^^^^^^^^^^^^
+
+B007 Loop control variable `obj` not used within loop body
+   --> services/quantitative/eros_106_109_golden_chain_gate.py:222:15
+    |
+220 |     print(f"BLOCK {number} CANDIDATES")
+221 |
+222 |     for name, obj in candidates:
+    |               ^^^
+223 |         print(f"  {name}")
+    |
+help: Rename unused `obj` to `_obj`
+
+F841 Local variable `total_liab` is assigned to but never used
+  --> services/ratios/engine.py:47:9
+   |
+45 |         operating_income = float(inc.operating_income)
+46 |         total_assets = float(bs.total_assets)
+47 |         total_liab = float(bs.total_liabilities)
+   |         ^^^^^^^^^^
+48 |         equity = float(bs.shareholders_equity or bs.total_equity)
+49 |         cash = float(bs.total_cash)
+   |
+help: Remove assignment to unused variable `total_liab`
+
+F841 Local variable `total_assets` is assigned to but never used
+  --> services/ratios/quality_engine.py:39:13
+   |
+37 |             revenue = max(getattr(inc, "revenue", 0.0) if inc else 0.0, 1.0)
+38 |             cogs = max(getattr(inc, "cost_of_goods_sold", 0.0) if inc else 0.0, 1.0)
+39 |             total_assets = max(getattr(bs, "total_assets", 1000.0), 1.0)
+   |             ^^^^^^^^^^^^
+40 |             inventory = max(getattr(bs, "inventory", 0.0), 0.0)
+41 |             receivables = max(getattr(bs, "accounts_receivable", 0.0), 0.0)
+   |
+help: Remove assignment to unused variable `total_assets`
+
+F841 Local variable `current_eps` is assigned to but never used
+  --> services/valuation/engine.py:38:9
+   |
+36 |             raise ValueError("revenue and free-cash-flow projections must have equal length")
+37 |
+38 |         current_eps = self._extract_positive_number_optional(forecast_data, "current_eps", "eps")
+   |         ^^^^^^^^^^^
+39 |         current_ebitda = self._extract_positive_number_optional(forecast_data, "current_ebitda", "ebitda")
+40 |         shares = self._extract_positive_number_optional(forecast_data, "shares_outstanding", "shares")
+   |
+help: Remove assignment to unused variable `current_eps`
+
+F841 Local variable `current_ebitda` is assigned to but never used
+  --> services/valuation/engine.py:39:9
+   |
+38 |         current_eps = self._extract_positive_number_optional(forecast_data, "current_eps", "eps")
+39 |         current_ebitda = self._extract_positive_number_optional(forecast_data, "current_ebitda", "ebitda")
+   |         ^^^^^^^^^^^^^^
+40 |         shares = self._extract_positive_number_optional(forecast_data, "shares_outstanding", "shares")
+41 |         total_debt = self._extract_nonnegative_number_optional(forecast_data, "total_debt", "debt")
+   |
+help: Remove assignment to unused variable `current_ebitda`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> services/valuation/engine.py:51:59
+   |
+50 |         discount_factors = [1.0 / ((1.0 + wacc) ** (index + 1)) for index in range(len(fcf_projections))]
+51 |         pv_cash_flows = sum(cf * factor for cf, factor in zip(fcf_projections, discount_factors))
+   |                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+52 |         terminal_fcf = fcf_projections[-1] * (1.0 + terminal_growth)
+53 |         terminal_value = terminal_fcf / (wacc - terminal_growth)
+   |
+help: Add explicit value for parameter `strict=`
+
+F841 Local variable `res_data` is assigned to but never used
+  --> tests/production/test_block30l_live_worker.py:39:17
+   |
+37 |         while time.time() - start_time < 5.0:
+38 |             if async_result.ready():
+39 |                 res_data = async_result.result
+   |                 ^^^^^^^^
+40 |                 break
+41 |             time.sleep(0.2)
+   |
+help: Remove assignment to unused variable `res_data`
+
+F841 Local variable `final_status` is assigned to but never used
+  --> tests/production/test_block30m_definitive_worker.py:40:17
+   |
+38 |         while time.time() - start_time < 3.0:
+39 |             if result.ready():
+40 |                 final_status = result.status
+   |                 ^^^^^^^^^^^^
+41 |                 break
+42 |             time.sleep(0.2)
+   |
+help: Remove assignment to unused variable `final_status`
+
+B011 Do not `assert False` (`python -O` removes these calls), raise `AssertionError()`
+  --> tests/tasks/test_sprint19c_control_plane.py:69:16
+   |
+67 |             payload={},
+68 |         )
+69 |         assert False, "Expected ValueError"
+   |                ^^^^^
+70 |     except ValueError as exc:
+71 |         assert "Unknown task" in str(exc)
+   |
+help: Replace `assert False`
+
+F841 Local variable `forecast_service` is assigned to but never used
+  --> tests/test_pipeline.py:31:9
+   |
+30 |         forecast_engine = ForecastEngine()
+31 |         forecast_service = ForecastService(forecast_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^
+32 |
+33 |         valuation_engine = ValuationEngine()
+   |
+help: Remove assignment to unused variable `forecast_service`
+
+F841 Local variable `valuation_service` is assigned to but never used
+  --> tests/test_pipeline.py:34:9
+   |
+33 |         valuation_engine = ValuationEngine()
+34 |         valuation_service = ValuationService(valuation_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^^
+35 |
+36 |         research_engine = ResearchEngine()
+   |
+help: Remove assignment to unused variable `valuation_service`
+
+F841 Local variable `research_service` is assigned to but never used
+  --> tests/test_pipeline.py:37:9
+   |
+36 |         research_engine = ResearchEngine()
+37 |         research_service = ResearchService(research_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^^^
+38 |
+39 |         report_engine = ReportEngine()
+   |
+help: Remove assignment to unused variable `research_service`
+
+F841 Local variable `report_service` is assigned to but never used
+  --> tests/test_pipeline.py:40:9
+   |
+39 |         report_engine = ReportEngine()
+40 |         report_service = ReportService(report_engine, bus, dispatcher)
+   |         ^^^^^^^^^^^^^^
+41 |
+42 |         events_received: list[Any] = []
+   |
+help: Remove assignment to unused variable `report_service`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  --> tests/test_pipeline.py:74:13
+   |
+72 |             await asyncio.wait_for(pipeline_completed.wait(), timeout=2.0)
+73 |         except TimeoutError:
+74 |             raise AssertionError("Pipeline execution timed out waiting for ReportCompleted event.")
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+75 |
+76 |         event_names = [e.name for e in events_received]
+   |
+
+Found 3433 errors (3171 fixed, 262 remaining).
+No fixes available (167 hidden fixes can be enabled with the `--unsafe-fixes` option).

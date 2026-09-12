@@ -1,7 +1,6 @@
 ﻿from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
@@ -115,9 +114,7 @@ def main():
         block101=block101,
     )
 
-    model = read_model_engine.build(
-        contract=contract
-    )
+    model = read_model_engine.build(contract=contract)
 
     check(
         model["status"] == "CERTIFIED",

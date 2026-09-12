@@ -18,9 +18,7 @@ def run_example() -> None:
         current_price=Money(Decimal("1650.00"), Currency.INR),
     )
 
-    portfolio = Portfolio(
-        name="Flagship Tech Portfolio", currency=Currency.INR, positions=(pos,)
-    )
+    portfolio = Portfolio(name="Flagship Tech Portfolio", currency=Currency.INR, positions=(pos,))
 
     print(f"Portfolio: {portfolio.name}")
     print(f"Total Value: {portfolio.total_market_value().amount} {portfolio.currency}")

@@ -3,7 +3,6 @@
 import os
 import sys
 import traceback
-import json
 
 PROJECT_ROOT = r"D:\Users\User\Desktop\AI_STOCK_ANALYZER"
 SYMBOL = "RELIANCE.NS"
@@ -28,6 +27,7 @@ print("-" * 78)
 
 try:
     from services.eros_frontend_adapter import EROSFrontendAdapter
+
     print("IMPORT : PASS")
     print("CLASS  :", EROSFrontendAdapter.__name__)
 except Exception:
@@ -55,6 +55,7 @@ API_NAMES = [
 
 results = {}
 
+
 def describe_value(label, value, indent="  "):
     if value is None:
         print(f"{indent}{label:28} : NONE")
@@ -63,10 +64,7 @@ def describe_value(label, value, indent="  "):
     if isinstance(value, dict):
         print(f"{indent}{label:28} : DICT ({len(value)} keys)")
         if value:
-            print(
-                f"{indent}{'':28}   KEYS: "
-                f"{list(value.keys())[:30]}"
-            )
+            print(f"{indent}{'':28}   KEYS: " f"{list(value.keys())[:30]}")
         else:
             print(f"{indent}{'':28}   *** EMPTY DICT ***")
         return
@@ -81,16 +79,10 @@ def describe_value(label, value, indent="  "):
         if value == "":
             print(f"{indent}{label:28} : EMPTY STRING")
         else:
-            print(
-                f"{indent}{label:28} : STRING "
-                f"{value[:300]!r}"
-            )
+            print(f"{indent}{label:28} : STRING " f"{value[:300]!r}")
         return
 
-    print(
-        f"{indent}{label:28} : "
-        f"{type(value).__name__} = {repr(value)[:500]}"
-    )
+    print(f"{indent}{label:28} : " f"{type(value).__name__} = {repr(value)[:500]}")
 
 
 def run_api(name):
@@ -184,59 +176,30 @@ for api_name, key in tracked:
     result = results.get(api_name)
 
     if not isinstance(result, dict):
-        print(
-            f"{api_name:30} -> "
-            f"{key:22} : API RESULT NOT DICT"
-        )
+        print(f"{api_name:30} -> " f"{key:22} : API RESULT NOT DICT")
 
         if first_failure is None:
-            first_failure = (
-                api_name,
-                key,
-                "API RESULT NOT DICT"
-            )
+            first_failure = (api_name, key, "API RESULT NOT DICT")
         continue
 
     if key not in result:
-        print(
-            f"{api_name:30} -> "
-            f"{key:22} : ABSENT"
-        )
+        print(f"{api_name:30} -> " f"{key:22} : ABSENT")
 
         if first_failure is None:
-            first_failure = (
-                api_name,
-                key,
-                "KEY ABSENT"
-            )
+            first_failure = (api_name, key, "KEY ABSENT")
         continue
 
     value = result[key]
 
-    empty = (
-        value is None
-        or value == ""
-        or value == {}
-        or value == []
-    )
+    empty = value is None or value == "" or value == {} or value == []
 
     if empty:
-        print(
-            f"{api_name:30} -> "
-            f"{key:22} : *** EMPTY ***"
-        )
+        print(f"{api_name:30} -> " f"{key:22} : *** EMPTY ***")
 
         if first_failure is None:
-            first_failure = (
-                api_name,
-                key,
-                "EMPTY"
-            )
+            first_failure = (api_name, key, "EMPTY")
     else:
-        print(
-            f"{api_name:30} -> "
-            f"{key:22} : HYDRATED"
-        )
+        print(f"{api_name:30} -> " f"{key:22} : HYDRATED")
 
 
 print("\n")
@@ -272,18 +235,10 @@ for api_name in API_NAMES:
         value = result[key]
 
         if isinstance(value, dict):
-            status = (
-                "EMPTY"
-                if len(value) == 0
-                else f"HYDRATED ({len(value)} keys)"
-            )
+            status = "EMPTY" if len(value) == 0 else f"HYDRATED ({len(value)} keys)"
 
         elif isinstance(value, list):
-            status = (
-                "EMPTY"
-                if len(value) == 0
-                else f"HYDRATED ({len(value)} items)"
-            )
+            status = "EMPTY" if len(value) == 0 else f"HYDRATED ({len(value)} items)"
 
         elif value is None or value == "":
             status = "EMPTY"
@@ -355,11 +310,7 @@ print("=" * 78)
 try:
     audit = adapter.decision_audit(SYMBOL)
 
-    governance = (
-        audit.get("governance", {})
-        if isinstance(audit, dict)
-        else {}
-    )
+    governance = audit.get("governance", {}) if isinstance(audit, dict) else {}
 
     for key in [
         "read_only",
@@ -374,10 +325,7 @@ try:
         "allow_risk_mutation",
         "allow_optimization",
     ]:
-        print(
-            f"{key:35} : "
-            f"{governance.get(key, 'NOT PRESENT')}"
-        )
+        print(f"{key:35} : " f"{governance.get(key, 'NOT PRESENT')}")
 
 except Exception:
     print("SAFETY OBSERVATION FAILED")
@@ -389,8 +337,7 @@ print("=" * 78)
 print("10. V3.8.2.5 CONCLUSION")
 print("=" * 78)
 
-print(
-    """
+print("""
 READ-ONLY DIAGNOSTIC
 NO SOURCE PATCH
 NO DATABASE WRITE
@@ -403,8 +350,7 @@ The purpose of this diagnostic is to identify the FIRST upstream
 decision-data layer that returns empty or incomplete data.
 
 Do not patch until the first failure is identified.
-"""
-)
+""")
 
 print("=" * 78)
 print("V3.8.2.5 DIAGNOSTIC COMPLETE")

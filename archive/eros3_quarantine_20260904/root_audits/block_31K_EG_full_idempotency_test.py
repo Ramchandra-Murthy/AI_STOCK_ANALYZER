@@ -24,6 +24,7 @@ results = []
 errors = []
 barrier = threading.Barrier(10)
 
+
 def worker(index):
     try:
         barrier.wait()
@@ -38,10 +39,8 @@ def worker(index):
     except Exception as exc:
         errors.append((index, repr(exc)))
 
-threads = [
-    threading.Thread(target=worker, args=(i,))
-    for i in range(10)
-]
+
+threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
 
 print()
 print("STARTING 10 SIMULTANEOUS SUBMISSIONS")
@@ -57,27 +56,16 @@ results.sort(key=lambda x: x[0])
 print()
 print("RESULTS")
 for index, result in results:
-    print(
-        index,
-        result
-    )
+    print(index, result)
 
 print()
 print("ERRORS:", errors)
 
-task_ids = [
-    result["task_id"]
-    for _, result in results
-    if "task_id" in result
-]
+task_ids = [result["task_id"] for _, result in results if "task_id" in result]
 
 unique_task_ids = set(task_ids)
 
-replays = sum(
-    1
-    for _, result in results
-    if result.get("idempotent_replay") is True
-)
+replays = sum(1 for _, result in results if result.get("idempotent_replay") is True)
 
 redis_value = redis_client.get(key)
 
@@ -97,25 +85,18 @@ if errors:
     raise AssertionError(f"Unexpected errors: {errors}")
 
 if len(results) != 10:
-    raise AssertionError(
-        f"Expected 10 results, got {len(results)}"
-    )
+    raise AssertionError(f"Expected 10 results, got {len(results)}")
 
 if len(unique_task_ids) != 1:
     raise AssertionError(
-        f"IDEMPOTENCY FAILED: expected 1 unique task ID, "
-        f"got {len(unique_task_ids)}"
+        f"IDEMPOTENCY FAILED: expected 1 unique task ID, " f"got {len(unique_task_ids)}"
     )
 
 if replays != 9:
-    raise AssertionError(
-        f"Expected 9 idempotent replays, got {replays}"
-    )
+    raise AssertionError(f"Expected 9 idempotent replays, got {replays}")
 
 if redis_value not in unique_task_ids:
-    raise AssertionError(
-        "Redis mapping does not point to the unique task ID"
-    )
+    raise AssertionError("Redis mapping does not point to the unique task ID")
 
 print("UNIQUE TASK IDS: PASS")
 print("EXPECTED UNIQUE TASK IDS: 1")

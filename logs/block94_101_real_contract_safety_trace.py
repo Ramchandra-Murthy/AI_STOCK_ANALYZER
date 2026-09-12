@@ -1,4 +1,3 @@
-import importlib
 from pprint import pprint
 
 print("=" * 90)
@@ -102,6 +101,7 @@ SAFETY_FIELDS = [
     "order_creation",
 ]
 
+
 def inspect_result(label, result):
 
     print()
@@ -184,9 +184,7 @@ b95 = EROSBlock95StressEvidenceGate()
 
 try:
 
-    result95 = b95.certify(
-        stress_certificate=result94
-    )
+    result95 = b95.certify(stress_certificate=result94)
 
     print("CERTIFY : PASS")
 
@@ -211,9 +209,7 @@ b96 = EROSBlock96StressDecisionGate()
 
 try:
 
-    result96 = b96.certify(
-        stress_gate=result95
-    )
+    result96 = b96.certify(stress_gate=result95)
 
     print("CERTIFY : PASS")
 
@@ -238,9 +234,7 @@ b97 = EROSBlock97StressReadinessGate()
 
 try:
 
-    result97 = b97.certify(
-        decision=result96
-    )
+    result97 = b97.certify(decision=result96)
 
     print("CERTIFY : PASS")
 
@@ -265,9 +259,7 @@ b98 = EROSBlock98ExecutionGovernanceBridge()
 
 try:
 
-    result98 = b98.certify(
-        decision=result97
-    )
+    result98 = b98.certify(decision=result97)
 
     print("CERTIFY : PASS")
 
@@ -292,9 +284,7 @@ b99 = EROSBlock99ExecutionIntentAuthorizationGate()
 
 try:
 
-    result99 = b99.certify(
-        governance=result98
-    )
+    result99 = b99.certify(governance=result98)
 
     print("CERTIFY : PASS")
 
@@ -347,9 +337,7 @@ b101 = EROSBlock101ExecutionEvidenceReconciliationGate()
 
 try:
 
-    result101 = b101.certify(
-        execution=result100
-    )
+    result101 = b101.certify(execution=result100)
 
     print("CERTIFY : PASS")
 
@@ -391,10 +379,7 @@ for block_id, result in results.items():
         continue
 
     for field in SAFETY_FIELDS:
-        print(
-            f"{field:28} : "
-            f"{result.get(field, '<ABSENT>')!r}"
-        )
+        print(f"{field:28} : " f"{result.get(field, '<ABSENT>')!r}")
 
 # ------------------------------------------------------------
 # CHAIN SUMMARY
@@ -429,4 +414,3 @@ print()
 print("=" * 90)
 print("REAL CONTRACT + SAFETY TRACE COMPLETE")
 print("=" * 90)
-

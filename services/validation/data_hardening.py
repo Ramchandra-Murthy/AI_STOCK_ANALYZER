@@ -1,21 +1,25 @@
 ﻿from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+
+from dataclasses import dataclass
+from typing import Any
+
 
 @dataclass(frozen=True, slots=True)
 class DataSanitizationResult:
     is_valid: bool
-    sanitized_data: Dict[str, Any]
-    errors: List[str]
+    sanitized_data: dict[str, Any]
+    errors: list[str]
+
 
 class InstitutionalDataHardener:
     """
     EROS 3.0 Block 22A Data Hardener.
     Sanitizes market and financial data against missing values, NaNs, stale prices, and malformed structures.
     """
+
     @staticmethod
-    def sanitize_input(data: Dict[str, Any]) -> DataSanitizationResult:
-        errors: List[str] = []
+    def sanitize_input(data: dict[str, Any]) -> DataSanitizationResult:
+        errors: list[str] = []
         sanitized = dict(data)
 
         # 1. Check required symbol and price fields
@@ -41,7 +45,5 @@ class InstitutionalDataHardener:
                     sanitized[k] = 0.0
 
         return DataSanitizationResult(
-            is_valid=len(errors) == 0,
-            sanitized_data=sanitized,
-            errors=errors
+            is_valid=len(errors) == 0, sanitized_data=sanitized, errors=errors
         )

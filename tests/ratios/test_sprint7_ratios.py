@@ -1,10 +1,10 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
-from services.ratios.liquidity import LiquidityRatioEngine
-from services.ratios.leverage import LeverageRatioEngine
+from services.fundamentals.canonical_models import CanonicalBalanceSheet, CanonicalIncomeStatement
 from services.ratios.efficiency import EfficiencyRatioEngine
+from services.ratios.leverage import LeverageRatioEngine
+from services.ratios.liquidity import LiquidityRatioEngine
+
 
 def test_sprint7_ratio_sub_engines() -> None:
     inc = CanonicalIncomeStatement(
@@ -15,7 +15,7 @@ def test_sprint7_ratio_sub_engines() -> None:
         ebit=25000.0,
         ebitda=30000.0,
         interest_expense=2500.0,
-        net_income=18000.0
+        net_income=18000.0,
     )
     bs = CanonicalBalanceSheet(
         period="2025",
@@ -28,7 +28,7 @@ def test_sprint7_ratio_sub_engines() -> None:
         total_current_liabilities=25000.0,
         long_term_debt=30000.0,
         total_liabilities=55000.0,
-        shareholders_equity=95000.0
+        shareholders_equity=95000.0,
     )
 
     liq = LiquidityRatioEngine.compute(inc, bs, symbol="TEST.NS")

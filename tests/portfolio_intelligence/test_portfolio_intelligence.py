@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.portfolio_intelligence.models import Portfolio, Position
 from services.portfolio_intelligence.service import PortfolioIntelligenceService
+
 
 def test_portfolio_intelligence_layer() -> None:
     pos1 = Position(
@@ -15,7 +15,7 @@ def test_portfolio_intelligence_layer() -> None:
         expected_return=0.16,
         expected_risk=0.18,
         intrinsic_value=3200.0,
-        committee_signal="BUY"
+        committee_signal="BUY",
     )
     pos2 = Position(
         symbol="TCS.NS",
@@ -27,14 +27,11 @@ def test_portfolio_intelligence_layer() -> None:
         expected_return=0.12,
         expected_risk=0.15,
         intrinsic_value=4100.0,
-        committee_signal="HOLD"
+        committee_signal="HOLD",
     )
 
     portfolio = Portfolio(
-        portfolio_id="PORT-001",
-        owner="Ramchandra Murthy",
-        cash=50000.0,
-        positions=[pos1, pos2]
+        portfolio_id="PORT-001", owner="Ramchandra Murthy", cash=50000.0, positions=[pos1, pos2]
     )
 
     sector_alloc = PortfolioIntelligenceService.compute_sector_allocation(portfolio)

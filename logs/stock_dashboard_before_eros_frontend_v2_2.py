@@ -5,7 +5,6 @@ from scanner.market_scanner import market_scan
 from services.analyzer import analyze_stock
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 # ============================================================
 # EROS 3.0 — FRONTEND V2
 # INSTITUTIONAL INTELLIGENCE COMMAND CENTER
@@ -59,10 +58,10 @@ st.markdown(
 )
 
 
-
 # ============================================================
 # V2.1 — AI DECISION INTELLIGENCE HELPERS
 # ============================================================
+
 
 def _decision_bar(value):
     try:
@@ -74,18 +73,18 @@ def _decision_bar(value):
 
     return (
         '<div style="'
-        'background:rgba(128,128,128,0.18);'
-        'border-radius:8px;'
-        'height:9px;'
-        'width:100%;'
+        "background:rgba(128,128,128,0.18);"
+        "border-radius:8px;"
+        "height:9px;"
+        "width:100%;"
         '">'
         '<div style="'
-        'background:currentColor;'
-        'border-radius:8px;'
-        'height:9px;'
-        f'width:{numeric:.0f}%;'
+        "background:currentColor;"
+        "border-radius:8px;"
+        "height:9px;"
+        f"width:{numeric:.0f}%;"
         '"></div>'
-        '</div>'
+        "</div>"
     )
 
 
@@ -184,9 +183,7 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="subtitle">'
-    'Institutional Intelligence Command Center'
-    '</div>',
+    '<div class="subtitle">' "Institutional Intelligence Command Center" "</div>",
     unsafe_allow_html=True,
 )
 
@@ -251,11 +248,15 @@ input_col, button_col = st.columns([5, 1])
 
 with input_col:
 
-    symbol = st.text_input(
-        "Stock Symbol",
-        value="RELIANCE.NS",
-        key="stock_symbol",
-    ).strip().upper()
+    symbol = (
+        st.text_input(
+            "Stock Symbol",
+            value="RELIANCE.NS",
+            key="stock_symbol",
+        )
+        .strip()
+        .upper()
+    )
 
 with button_col:
 
@@ -280,9 +281,7 @@ if analyze_clicked:
 
     else:
 
-        with st.spinner(
-            f"Analyzing {symbol}..."
-        ):
+        with st.spinner(f"Analyzing {symbol}..."):
 
             try:
 
@@ -294,9 +293,7 @@ if analyze_clicked:
 
                 st.session_state.analysis_result = None
 
-                st.error(
-                    f"Analysis failed: {exc}"
-                )
+                st.error(f"Analysis failed: {exc}")
 
 
 result = st.session_state.analysis_result
@@ -314,7 +311,6 @@ if result is not None:
     breakout = result["breakout"]
     df = result["df"]
 
-
     # ========================================================
     # DECISION SNAPSHOT
     # ========================================================
@@ -322,9 +318,7 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        f'<div class="section-title">'
-        f'📌 {symbol} Decision Snapshot'
-        f'</div>',
+        f'<div class="section-title">' f"📌 {symbol} Decision Snapshot" f"</div>",
         unsafe_allow_html=True,
     )
 
@@ -350,7 +344,6 @@ if result is not None:
         str(signal["Recommendation"]),
     )
 
-
     # ========================================================
     # TECHNICAL INTELLIGENCE
     # ========================================================
@@ -358,9 +351,7 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '📈 Technical Intelligence'
-        '</div>',
+        '<div class="section-title">' "📈 Technical Intelligence" "</div>",
         unsafe_allow_html=True,
     )
 
@@ -396,7 +387,6 @@ if result is not None:
         f'₹{last["Resistance"]:.2f}',
     )
 
-
     # ========================================================
     # PRICE ACTION
     # ========================================================
@@ -404,9 +394,7 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '📊 Price Action'
-        '</div>',
+        '<div class="section-title">' "📊 Price Action" "</div>",
         unsafe_allow_html=True,
     )
 
@@ -424,10 +412,7 @@ if result is not None:
 
     except Exception as exc:
 
-        st.warning(
-            f"Chart unavailable: {exc}"
-        )
-
+        st.warning(f"Chart unavailable: {exc}")
 
     # ========================================================
     # V2.1 AI DECISION INTELLIGENCE
@@ -436,18 +421,14 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '🧠 EROS AI Decision Intelligence'
-        '</div>',
+        '<div class="section-title">' "🧠 EROS AI Decision Intelligence" "</div>",
         unsafe_allow_html=True,
     )
 
     context = _technical_context(last, trend)
     score = _decision_score(signal)
 
-    recommendation = str(
-        signal.get("Recommendation", "UNKNOWN")
-    )
+    recommendation = str(signal.get("Recommendation", "UNKNOWN"))
 
     decision_left, decision_right = st.columns([1, 2])
 
@@ -494,8 +475,7 @@ if result is not None:
             c1.write(f"**{label}**")
 
             c2.markdown(
-                _decision_bar(strength)
-                + f"<small>{state}</small>",
+                _decision_bar(strength) + f"<small>{state}</small>",
                 unsafe_allow_html=True,
             )
 
@@ -510,22 +490,16 @@ if result is not None:
 
         for index, reason in enumerate(reasons):
 
-            reason_columns[index % 2].write(
-                f"✓ {reason}"
-            )
+            reason_columns[index % 2].write(f"✓ {reason}")
 
     else:
 
-        st.info(
-            "No signal drivers returned by the analyzer."
-        )
+        st.info("No signal drivers returned by the analyzer.")
 
     st.write("")
     st.write("**Market Structure**")
 
-    structure_left, structure_mid, structure_right = (
-        st.columns(3)
-    )
+    structure_left, structure_mid, structure_right = st.columns(3)
 
     structure_left.metric(
         "SUPPORT",
@@ -546,17 +520,11 @@ if result is not None:
 
     if abs(context["resistance_distance"]) < 2:
 
-        st.warning(
-            "Market context: price is close to "
-            "the identified resistance level."
-        )
+        st.warning("Market context: price is close to " "the identified resistance level.")
 
     elif abs(context["support_distance"]) < 2:
 
-        st.info(
-            "Market context: price is close to "
-            "the identified support level."
-        )
+        st.info("Market context: price is close to " "the identified support level.")
 
     else:
 
@@ -573,43 +541,26 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '⚠️ Risk & Decision Context'
-        '</div>',
+        '<div class="section-title">' "⚠️ Risk & Decision Context" "</div>",
         unsafe_allow_html=True,
     )
 
-    current_price = float(
-        last["Close"]
-    )
+    current_price = float(last["Close"])
 
-    support = float(
-        last["Support"]
-    )
+    support = float(last["Support"])
 
-    resistance = float(
-        last["Resistance"]
-    )
+    resistance = float(last["Resistance"])
 
     if current_price != 0:
 
-        support_distance = (
-            (support - current_price)
-            / current_price
-            * 100
-        )
+        support_distance = (support - current_price) / current_price * 100
 
-        resistance_distance = (
-            (resistance - current_price)
-            / current_price
-            * 100
-        )
+        resistance_distance = (resistance - current_price) / current_price * 100
 
     else:
 
         support_distance = 0.0
         resistance_distance = 0.0
-
 
     r1, r2, r3, r4 = st.columns(4)
 
@@ -635,11 +586,7 @@ if result is not None:
         f'{last["ATR"]:.2f}',
     )
 
-    st.caption(
-        "Distance values are contextual market indicators, "
-        "not guaranteed price targets."
-    )
-
+    st.caption("Distance values are contextual market indicators, " "not guaranteed price targets.")
 
     # ========================================================
     # BREAKOUT ENGINE
@@ -648,9 +595,7 @@ if result is not None:
     st.divider()
 
     st.markdown(
-        '<div class="section-title">'
-        '🚀 Breakout Engine'
-        '</div>',
+        '<div class="section-title">' "🚀 Breakout Engine" "</div>",
         unsafe_allow_html=True,
     )
 
@@ -666,34 +611,23 @@ if result is not None:
 
     if breakout_signal == "BUY":
 
-        st.success(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.success(f"BREAKOUT SIGNAL: {breakout_signal}")
 
     elif breakout_signal == "SELL":
 
-        st.error(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.error(f"BREAKOUT SIGNAL: {breakout_signal}")
 
     else:
 
-        st.info(
-            f"BREAKOUT SIGNAL: {breakout_signal}"
-        )
+        st.info(f"BREAKOUT SIGNAL: {breakout_signal}")
 
-    st.write(
-        breakout_reason
-    )
-
+    st.write(breakout_reason)
 
     # ========================================================
     # RAW MARKET DATA
     # ========================================================
 
-    with st.expander(
-        "📄 Latest Market Data"
-    ):
+    with st.expander("📄 Latest Market Data"):
 
         st.dataframe(
             df.tail(20),
@@ -709,15 +643,11 @@ if result is not None:
 st.divider()
 
 st.markdown(
-    '<div class="section-title">'
-    '🔎 Market Pulse'
-    '</div>',
+    '<div class="section-title">' "🔎 Market Pulse" "</div>",
     unsafe_allow_html=True,
 )
 
-scan_col, filter_col = st.columns(
-    [3, 1]
-)
+scan_col, filter_col = st.columns([3, 1])
 
 with filter_col:
 
@@ -736,9 +666,7 @@ with scan_col:
 
 if scan_clicked:
 
-    with st.spinner(
-        "Scanning NIFTY stocks..."
-    ):
+    with st.spinner("Scanning NIFTY stocks..."):
 
         try:
 
@@ -753,9 +681,7 @@ if scan_clicked:
 
                 if buy_only:
 
-                    scan = scan[
-                        scan["Signal"] == "BUY"
-                    ]
+                    scan = scan[scan["Signal"] == "BUY"]
 
                 st.session_state.scan_result = scan
 
@@ -763,17 +689,13 @@ if scan_clicked:
 
                 st.session_state.scan_result = None
 
-                st.warning(
-                    "No stocks found."
-                )
+                st.warning("No stocks found.")
 
         except Exception as exc:
 
             st.session_state.scan_result = None
 
-            st.error(
-                f"Market scan failed: {exc}"
-            )
+            st.error(f"Market scan failed: {exc}")
 
 
 scan = st.session_state.scan_result
@@ -789,9 +711,7 @@ if scan is not None and not scan.empty:
 
 else:
 
-    st.info(
-        "Run the market scanner to populate the NIFTY market pulse."
-    )
+    st.info("Run the market scanner to populate the NIFTY market pulse.")
 
 
 # ============================================================
@@ -801,9 +721,7 @@ else:
 st.divider()
 
 st.markdown(
-    '<div class="section-title">'
-    '🔐 EROS Governance'
-    '</div>',
+    '<div class="section-title">' "🔐 EROS Governance" "</div>",
     unsafe_allow_html=True,
 )
 
@@ -813,37 +731,21 @@ g1, g2 = st.columns(2)
 
 with g1:
 
-    st.write(
-        "**Operating Mode**"
-    )
+    st.write("**Operating Mode**")
 
-    st.success(
-        "READ ONLY"
-    )
+    st.success("READ ONLY")
 
-    st.write(
-        "**Execution**"
-    )
+    st.write("**Execution**")
 
-    st.error(
-        "BLOCKED"
-    )
+    st.error("BLOCKED")
 
-    st.write(
-        "**Broker**"
-    )
+    st.write("**Broker**")
 
-    st.error(
-        "BLOCKED"
-    )
+    st.error("BLOCKED")
 
-    st.write(
-        "**Orders**"
-    )
+    st.write("**Orders**")
 
-    st.error(
-        "BLOCKED"
-    )
+    st.error("BLOCKED")
 
 with g2:
 
@@ -851,51 +753,27 @@ with g2:
 
     safety_rows = {
         "Read Only": safety["read_only"],
-        "Order Creation": safety[
-            "allow_order_creation"
-        ],
-        "Broker Submission": safety[
-            "allow_broker_submission"
-        ],
-        "Live Execution": safety[
-            "allow_live_execution"
-        ],
-        "Portfolio Mutation": safety[
-            "allow_portfolio_mutation"
-        ],
-        "Valuation Mutation": safety[
-            "allow_valuation_mutation"
-        ],
-        "Performance Mutation": safety[
-            "allow_performance_mutation"
-        ],
-        "Risk Mutation": safety[
-            "allow_risk_mutation"
-        ],
-        "Optimization": safety[
-            "allow_optimization"
-        ],
-        "Execution Blocked": safety[
-            "execution_blocked"
-        ],
-        "Non-Mutation Invariant": safety[
-            "non_mutation_invariant"
-        ],
+        "Order Creation": safety["allow_order_creation"],
+        "Broker Submission": safety["allow_broker_submission"],
+        "Live Execution": safety["allow_live_execution"],
+        "Portfolio Mutation": safety["allow_portfolio_mutation"],
+        "Valuation Mutation": safety["allow_valuation_mutation"],
+        "Performance Mutation": safety["allow_performance_mutation"],
+        "Risk Mutation": safety["allow_risk_mutation"],
+        "Optimization": safety["allow_optimization"],
+        "Execution Blocked": safety["execution_blocked"],
+        "Non-Mutation Invariant": safety["non_mutation_invariant"],
     }
 
     for label, value in safety_rows.items():
 
         if value is True:
 
-            st.write(
-                f"**{label}** : `TRUE`"
-            )
+            st.write(f"**{label}** : `TRUE`")
 
         else:
 
-            st.write(
-                f"**{label}** : `FALSE`"
-            )
+            st.write(f"**{label}** : `FALSE`")
 
 
 # ============================================================

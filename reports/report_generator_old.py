@@ -396,9 +396,7 @@ class ReportGenerator:
 
         if trade_plan and trade_plan.get("status") == "OK":
             risk_reward = self._safe_float(trade_plan.get("risk_reward"))
-            risk_reward_text = (
-                f"1 : {risk_reward:.2f}" if risk_reward is not None else "N/A"
-            )
+            risk_reward_text = f"1 : {risk_reward:.2f}" if risk_reward is not None else "N/A"
 
             upside = self._safe_float(trade_plan.get("upside_percent"))
             upside_text = f"{upside:.2f}%" if upside is not None else "N/A"

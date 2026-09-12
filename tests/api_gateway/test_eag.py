@@ -1,20 +1,21 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.api_gateway.schemas import APIEndpointResponse
 from services.api_gateway.rest_api import EnterpriseAPIGateway
+from services.api_gateway.schemas import APIEndpointResponse
+
 
 def test_api_response_immutability() -> None:
     resp = APIEndpointResponse(
         endpoint="/valuation/RELIANCE.NS",
         status_code=200,
         data={"value": 3500.0},
-        execution_time_ms=10.5
+        execution_time_ms=10.5,
     )
     assert resp.endpoint == "/valuation/RELIANCE.NS"
     assert resp.status_code == 200
     assert resp.timestamp is not None
     assert isinstance(resp.metadata, dict)
+
 
 def test_enterprise_api_gateway_routing() -> None:
     val_resp = EnterpriseAPIGateway.route_request("/valuation/RELIANCE.NS", "GET")

@@ -1,8 +1,12 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet, CanonicalCashFlowStatement
+from services.fundamentals.canonical_models import (
+    CanonicalBalanceSheet,
+    CanonicalCashFlowStatement,
+    CanonicalIncomeStatement,
+)
 from services.fundamentals.validator import CanonicalFinancialValidator
+
 
 def test_canonical_models_and_validation() -> None:
     bs = CanonicalBalanceSheet(
@@ -14,7 +18,7 @@ def test_canonical_models_and_validation() -> None:
         total_current_liabilities=20000.0,
         long_term_debt=20000.0,
         total_liabilities=40000.0,
-        shareholders_equity=60000.0
+        shareholders_equity=60000.0,
     )
     inc = CanonicalIncomeStatement(
         period="2025",
@@ -23,13 +27,13 @@ def test_canonical_models_and_validation() -> None:
         operating_income=25000.0,
         net_income=18000.0,
         shares_outstanding=1000.0,
-        eps=18.0
+        eps=18.0,
     )
     cf = CanonicalCashFlowStatement(
         period="2025",
         operating_cash_flow=30000.0,
         capital_expenditures=-10000.0,
-        free_cash_flow=20000.0
+        free_cash_flow=20000.0,
     )
 
     bs_errors = CanonicalFinancialValidator.validate_balance_sheet(bs)

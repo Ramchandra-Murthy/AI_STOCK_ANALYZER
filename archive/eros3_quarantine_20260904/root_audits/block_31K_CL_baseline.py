@@ -77,13 +77,7 @@ if import_ok:
 
     for path, method in protected.items():
         exists = (path, method) in routes
-        print(
-            path,
-            "|",
-            method,
-            "|",
-            "FOUND" if exists else "MISSING"
-        )
+        print(path, "|", method, "|", "FOUND" if exists else "MISSING")
         if not exists:
             route_ok = False
 
@@ -119,9 +113,7 @@ if import_ok:
             ("/api/v1/admin/tasks", "GET"),
         ]
 
-        security_ok = all(
-            item in secured for item in required_security
-        )
+        security_ok = all(item in secured for item in required_security)
     else:
         security_ok = False
 
@@ -132,23 +124,22 @@ if import_ok:
     print("ENVIRONMENT:", settings.ENVIRONMENT)
     print("AUTH_ENABLED:", settings.AUTH_ENABLED)
     print("JWT_ALGORITHM:", settings.JWT_ALGORITHM)
-    print(
-        "ACCESS_TOKEN_EXPIRE_MINUTES:",
-        settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    print("ACCESS_TOKEN_EXPIRE_MINUTES:", settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     print("JWT_SECRET CONFIGURED:", bool(settings.JWT_SECRET))
     print("DATABASE_URL CONFIGURED:", bool(settings.DATABASE_URL))
     print("REDIS_URL CONFIGURED:", bool(settings.REDIS_URL))
 
-    settings_ok = all([
-        bool(settings.PROJECT_NAME),
-        settings.AUTH_ENABLED is True,
-        bool(settings.JWT_ALGORITHM),
-        settings.ACCESS_TOKEN_EXPIRE_MINUTES > 0,
-        bool(settings.JWT_SECRET),
-        bool(settings.DATABASE_URL),
-        bool(settings.REDIS_URL),
-    ])
+    settings_ok = all(
+        [
+            bool(settings.PROJECT_NAME),
+            settings.AUTH_ENABLED is True,
+            bool(settings.JWT_ALGORITHM),
+            settings.ACCESS_TOKEN_EXPIRE_MINUTES > 0,
+            bool(settings.JWT_SECRET),
+            bool(settings.DATABASE_URL),
+            bool(settings.REDIS_URL),
+        ]
+    )
 
     print("\n6. JWT FUNCTIONAL BASELINE")
     print("-" * 50)
@@ -217,18 +208,13 @@ if import_ok:
             "->",
             result.status_code,
             "|",
-            "SECURITY_ENFORCED"
-            if protected_response
-            else "OPEN"
+            "SECURITY_ENFORCED" if protected_response else "OPEN",
         )
 
         if not protected_response:
             auth_ok = False
 
-    print(
-        "AUTH GATE:",
-        "PASS" if auth_ok else "FAIL"
-    )
+    print("AUTH GATE:", "PASS" if auth_ok else "FAIL")
 
     print("\n8. INFRASTRUCTURE BASELINE")
     print("-" * 50)
@@ -239,15 +225,9 @@ if import_ok:
     print("HEALTH:", health.status_code, health.json())
     print("READY:", ready.status_code, ready.json())
 
-    infrastructure_ok = (
-        health.status_code == 200
-        and ready.status_code == 200
-    )
+    infrastructure_ok = health.status_code == 200 and ready.status_code == 200
 
-    print(
-        "INFRASTRUCTURE:",
-        "PASS" if infrastructure_ok else "FAIL"
-    )
+    print("INFRASTRUCTURE:", "PASS" if infrastructure_ok else "FAIL")
 
     print("\n9. MOCK JWT SEARCH")
     print("-" * 50)
@@ -262,35 +242,31 @@ if import_ok:
 
     for path in search_files:
         if path.exists():
-            text = path.read_text(
-                encoding="utf-8",
-                errors="ignore"
-            )
+            text = path.read_text(encoding="utf-8", errors="ignore")
 
             if "mock-jwt-token-xyz" in text:
                 mock_found = True
                 print("MOCK JWT FOUND:", path)
 
-    print(
-        "MOCK JWT:",
-        "FAIL - FOUND" if mock_found else "PASS - NOT FOUND"
-    )
+    print("MOCK JWT:", "FAIL - FOUND" if mock_found else "PASS - NOT FOUND")
 
     print("\n10. FINAL BASELINE GATE")
     print("-" * 50)
 
-    final_pass = all([
-        compile_ok,
-        import_ok,
-        route_ok,
-        openapi_ok,
-        security_ok,
-        settings_ok,
-        jwt_ok,
-        auth_ok,
-        infrastructure_ok,
-        not mock_found,
-    ])
+    final_pass = all(
+        [
+            compile_ok,
+            import_ok,
+            route_ok,
+            openapi_ok,
+            security_ok,
+            settings_ok,
+            jwt_ok,
+            auth_ok,
+            infrastructure_ok,
+            not mock_found,
+        ]
+    )
 
     print("COMPILE:", "PASS" if compile_ok else "FAIL")
     print("APPLICATION IMPORT:", "PASS" if import_ok else "FAIL")
@@ -303,15 +279,9 @@ if import_ok:
     print("MOCK JWT:", "PASS" if not mock_found else "FAIL")
 
     print("")
-    print(
-        "OVERALL BASELINE:",
-        "PASS" if final_pass else "FAIL"
-    )
+    print("OVERALL BASELINE:", "PASS" if final_pass else "FAIL")
 
-    print(
-        "PRODUCTION STATUS:",
-        "READY" if final_pass else "BLOCKED"
-    )
+    print("PRODUCTION STATUS:", "READY" if final_pass else "BLOCKED")
 
 else:
     print("\nAPPLICATION BASELINE SKIPPED")

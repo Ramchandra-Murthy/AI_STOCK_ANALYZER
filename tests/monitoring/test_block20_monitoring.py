@@ -1,7 +1,8 @@
-﻿from services.scoring.models import AIScoreResult
-from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
+﻿from services.monitoring.change_detector import InvestmentChangeDetector
 from services.monitoring.investment_monitor import InvestmentMonitor
-from services.monitoring.change_detector import InvestmentChangeDetector
+from services.scoring.block18_orchestrator import UnifiedResearchToDecisionOrchestrator
+from services.scoring.models import AIScoreResult
+
 
 def test_block20_monitoring_and_change_detection():
     ai_score_prev = AIScoreResult(
@@ -14,7 +15,7 @@ def test_block20_monitoring_and_change_detection():
         momentum_score=70.0,
         risk_score=85.0,
         composite_score=79.4,
-        breakdown_details={"rating": "BUY"}
+        breakdown_details={"rating": "BUY"},
     )
 
     orchestrator = UnifiedResearchToDecisionOrchestrator(policy_profile="Institutional")
@@ -34,7 +35,7 @@ def test_block20_monitoring_and_change_detection():
         momentum_score=50.0,
         risk_score=60.0,
         composite_score=70.8,
-        breakdown_details={"rating": "HOLD"}
+        breakdown_details={"rating": "HOLD"},
     )
 
     res_curr = orchestrator.evaluate(ai_score_curr, holdings=None, portfolio_weight=0.02)

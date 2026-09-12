@@ -1,5 +1,4 @@
 import importlib
-import json
 import traceback
 from pprint import pprint
 
@@ -27,10 +26,12 @@ CLASS_NAMES = {
     101: "EROSBlock101ExecutionEvidenceReconciliationGate",
 }
 
+
 def load(block):
     module = importlib.import_module(MODULES[block])
     cls = getattr(module, CLASS_NAMES[block])
     return cls()
+
 
 def get_path(data, path):
     current = data
@@ -45,6 +46,7 @@ def get_path(data, path):
         current = current[key]
 
     return current
+
 
 def safety_report(label, data):
     print()
@@ -70,7 +72,6 @@ def safety_report(label, data):
         "decision_status",
         "gate_status",
         "reconciliation_status",
-
         "execution_blocked",
         "non_mutation_invariant",
         "broker_submission",
@@ -105,6 +106,7 @@ def safety_report(label, data):
             for key, value in nested.items():
                 print(f"  {key:28} : {value!r}")
 
+
 def show_output(label, data):
     print()
     print("=" * 70)
@@ -124,6 +126,7 @@ def show_output(label, data):
     print()
     print("FULL OUTPUT:")
     pprint(data, width=140, sort_dicts=False)
+
 
 print("=" * 70)
 print("EROS 3.0 - BLOCK 94-101 COMPLETE REAL DATA-FLOW TRACE")
@@ -462,10 +465,7 @@ for block, output in outputs.items():
         "optimization",
         "order_creation",
     ]:
-        print(
-            f"  {field:28} : "
-            f"{output.get(field, '<ABSENT>')!r}"
-        )
+        print(f"  {field:28} : " f"{output.get(field, '<ABSENT>')!r}")
 
 # ------------------------------------------------------------------
 # SAFETY VERDICT
@@ -497,23 +497,19 @@ failures = []
 for block, output in outputs.items():
 
     if not isinstance(output, dict):
-        failures.append(
-            f"Block {block}: output is not a dictionary"
-        )
+        failures.append(f"Block {block}: output is not a dictionary")
         continue
 
     for field in expected_true:
         if output.get(field) is not True:
             failures.append(
-                f"Block {block}: {field} != True "
-                f"(actual={output.get(field, '<ABSENT>')!r})"
+                f"Block {block}: {field} != True " f"(actual={output.get(field, '<ABSENT>')!r})"
             )
 
     for field in expected_false:
         if output.get(field) is not False:
             failures.append(
-                f"Block {block}: {field} != False "
-                f"(actual={output.get(field, '<ABSENT>')!r})"
+                f"Block {block}: {field} != False " f"(actual={output.get(field, '<ABSENT>')!r})"
             )
 
 if failures:
@@ -539,4 +535,3 @@ print("NO LIVE EXECUTION")
 print("NO ORDER CREATION")
 print("NO MUTATION")
 print("=" * 80)
-

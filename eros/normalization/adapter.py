@@ -5,7 +5,8 @@ Delegates normalization to the existing FinancialNormalizer.
 No normalization mathematics is duplicated here.
 """
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from services.fundamentals.normalizer import FinancialNormalizer
 

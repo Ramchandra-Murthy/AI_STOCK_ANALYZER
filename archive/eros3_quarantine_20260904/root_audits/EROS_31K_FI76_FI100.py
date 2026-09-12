@@ -9,10 +9,12 @@ from services.fundamentals.normalizer import FinancialNormalizer
 from services.fundamentals.service import FundamentalsService
 from core.events import InMemoryEventBus, EventDispatcher
 
+
 def section(title):
     print("\n" + "=" * 60)
     print(title)
     print("=" * 60)
+
 
 async def main():
     section("EROS 3.0 - 31K-FI76 TO FI100 CONSOLIDATED READ-ONLY TRACE")
@@ -61,21 +63,35 @@ async def main():
     inc = normalized.income_statement
     print("TYPE =", type(inc))
     print("OBJECT =", inc)
-    for name in ["period","revenue","operating_income","ebit","net_income","eps"]:
+    for name in ["period", "revenue", "operating_income", "ebit", "net_income", "eps"]:
         print(name.upper(), "=", getattr(inc, name, None))
 
     section("31K-FI82 - BALANCE SHEET")
     bs = normalized.balance_sheet
     print("TYPE =", type(bs))
     print("OBJECT =", bs)
-    for name in ["period","total_assets","total_liabilities","shareholders_equity","cash","debt"]:
+    for name in [
+        "period",
+        "total_assets",
+        "total_liabilities",
+        "shareholders_equity",
+        "cash",
+        "debt",
+    ]:
         print(name.upper(), "=", getattr(bs, name, None))
 
     section("31K-FI83 - CASH FLOW")
     cf = normalized.cash_flow_statement
     print("TYPE =", type(cf))
     print("OBJECT =", cf)
-    for name in ["period","operating_cash_flow","capex","free_cash_flow","investing_cash_flow","financing_cash_flow"]:
+    for name in [
+        "period",
+        "operating_cash_flow",
+        "capex",
+        "free_cash_flow",
+        "investing_cash_flow",
+        "financing_cash_flow",
+    ]:
         print(name.upper(), "=", getattr(cf, name, None))
 
     section("31K-FI84 - COLLECTIONS")
@@ -225,6 +241,7 @@ async def main():
     section("31K-FI76 TO FI100 COMPLETE")
     print("SOURCE MODIFICATION: NONE")
     print("STOP - COMPLETE OUTPUT COPIED TO CLIPBOARD")
+
 
 if __name__ == "__main__":
     try:

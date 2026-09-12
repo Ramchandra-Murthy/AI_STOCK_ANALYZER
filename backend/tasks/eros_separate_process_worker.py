@@ -17,6 +17,7 @@ celery_app.conf.update(
     enable_utc=True,
 )
 
+
 @celery_app.task(name="eros.diagnostic.separate_process_echo")
 def separate_process_echo(token: str):
     return {

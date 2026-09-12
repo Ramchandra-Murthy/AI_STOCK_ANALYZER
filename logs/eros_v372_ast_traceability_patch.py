@@ -2,16 +2,9 @@ import ast
 import pathlib
 import sys
 
+PROJECT_ROOT = pathlib.Path(r"D:\Users\User\Desktop\AI_STOCK_ANALYZER")
 
-PROJECT_ROOT = pathlib.Path(
-    r"D:\Users\User\Desktop\AI_STOCK_ANALYZER"
-)
-
-ADAPTER_PATH = (
-    PROJECT_ROOT
-    / "services"
-    / "eros_frontend_adapter.py"
-)
+ADAPTER_PATH = PROJECT_ROOT / "services" / "eros_frontend_adapter.py"
 
 
 def fail(message: str) -> None:
@@ -34,9 +27,7 @@ print("")
 print("1. READING SOURCE")
 print("-" * 60)
 
-source = ADAPTER_PATH.read_text(
-    encoding="utf-8"
-)
+source = ADAPTER_PATH.read_text(encoding="utf-8")
 
 print("SOURCE LENGTH :", len(source))
 
@@ -46,15 +37,9 @@ print("2. PARSING AST")
 print("-" * 60)
 
 try:
-    tree = ast.parse(
-        source,
-        filename=str(ADAPTER_PATH)
-    )
+    tree = ast.parse(source, filename=str(ADAPTER_PATH))
 except SyntaxError as exc:
-    fail(
-        f"AST_PARSE_FAILED:"
-        f"{exc}"
-    )
+    fail(f"AST_PARSE_FAILED:" f"{exc}")
 
 print("AST PARSE : PASS")
 
@@ -67,17 +52,12 @@ adapter_class = None
 
 for node in tree.body:
 
-    if (
-        isinstance(node, ast.ClassDef)
-        and node.name == "EROSFrontendAdapter"
-    ):
+    if isinstance(node, ast.ClassDef) and node.name == "EROSFrontendAdapter":
         adapter_class = node
         break
 
 if adapter_class is None:
-    fail(
-        "CLASS_NOT_FOUND:EROSFrontendAdapter"
-    )
+    fail("CLASS_NOT_FOUND:EROSFrontendAdapter")
 
 print("CLASS : FOUND")
 
@@ -98,10 +78,7 @@ for node in adapter_class.body:
         break
 
 if method is None:
-    fail(
-        "METHOD_NOT_FOUND:"
-        "EROSFrontendAdapter.decision_traceability"
-    )
+    fail("METHOD_NOT_FOUND:" "EROSFrontendAdapter.decision_traceability")
 
 print("METHOD : FOUND")
 print("LINE   :", method.lineno)
@@ -111,29 +88,18 @@ print("")
 print("5. LOCATING RETURN STATEMENT")
 print("-" * 60)
 
-returns = [
-    node
-    for node in ast.walk(method)
-    if isinstance(node, ast.Return)
-]
+returns = [node for node in ast.walk(method) if isinstance(node, ast.Return)]
 
 if not returns:
-    fail(
-        "RETURN_STATEMENT_NOT_FOUND"
-    )
+    fail("RETURN_STATEMENT_NOT_FOUND")
 
 if len(returns) != 1:
-    fail(
-        "EXPECTED_EXACTLY_ONE_RETURN:"
-        f"FOUND={len(returns)}"
-    )
+    fail("EXPECTED_EXACTLY_ONE_RETURN:" f"FOUND={len(returns)}")
 
 return_node = returns[0]
 
 if return_node.value is None:
-    fail(
-        "RETURN_VALUE_IS_NONE"
-    )
+    fail("RETURN_VALUE_IS_NONE")
 
 print("RETURN : FOUND")
 print("RETURN LINE :", return_node.lineno)
@@ -145,9 +111,7 @@ print("-" * 60)
 
 if not isinstance(return_node.value, ast.Dict):
 
-    fail(
-        "RETURN_VALUE_IS_NOT_DICT"
-    )
+    fail("RETURN_VALUE_IS_NOT_DICT")
 
 print("RETURN DICT : PASS")
 
@@ -170,17 +134,13 @@ for key in return_node.value.keys:
             traceability_key_found = True
 
 if not trace_key_found:
-    fail(
-        "EXISTING_TRACE_KEY_NOT_FOUND"
-    )
+    fail("EXISTING_TRACE_KEY_NOT_FOUND")
 
 print('EXISTING "trace" : FOUND')
 
 if traceability_key_found:
 
-    print(
-        'EXISTING "traceability" : FOUND'
-    )
+    print('EXISTING "traceability" : FOUND')
 
     print("")
     print("NO PATCH REQUIRED")
@@ -227,64 +187,41 @@ print("-" * 60)
 original_dict = return_node.value
 
 
-lambda_arg = ast.arg(
-    arg="__eros_result"
-)
+lambda_arg = ast.arg(arg="__eros_result")
 
 lambda_body = ast.BoolOp(
     op=ast.Or(),
     values=[
         ast.Call(
             func=ast.Attribute(
-                value=ast.Name(
-                    id="__eros_result",
-                    ctx=ast.Load()
-                ),
+                value=ast.Name(id="__eros_result", ctx=ast.Load()),
                 attr="__setitem__",
-                ctx=ast.Load()
+                ctx=ast.Load(),
             ),
             args=[
-                ast.Constant(
-                    value="traceability"
-                ),
+                ast.Constant(value="traceability"),
                 ast.Subscript(
-                    value=ast.Name(
-                        id="__eros_result",
-                        ctx=ast.Load()
-                    ),
-                    slice=ast.Constant(
-                        value="trace"
-                    ),
-                    ctx=ast.Load()
-                )
+                    value=ast.Name(id="__eros_result", ctx=ast.Load()),
+                    slice=ast.Constant(value="trace"),
+                    ctx=ast.Load(),
+                ),
             ],
-            keywords=[]
+            keywords=[],
         ),
-        ast.Name(
-            id="__eros_result",
-            ctx=ast.Load()
-        )
-    ]
+        ast.Name(id="__eros_result", ctx=ast.Load()),
+    ],
 )
 
 
 lambda_node = ast.Lambda(
     args=ast.arguments(
-        posonlyargs=[],
-        args=[lambda_arg],
-        kwonlyargs=[],
-        kw_defaults=[],
-        defaults=[]
+        posonlyargs=[], args=[lambda_arg], kwonlyargs=[], kw_defaults=[], defaults=[]
     ),
-    body=lambda_body
+    body=lambda_body,
 )
 
 
-new_call = ast.Call(
-    func=lambda_node,
-    args=[original_dict],
-    keywords=[]
-)
+new_call = ast.Call(func=lambda_node, args=[original_dict], keywords=[])
 
 
 return_node.value = new_call
@@ -304,15 +241,10 @@ try:
     new_source = ast.unparse(tree)
 except Exception as exc:
 
-    fail(
-        f"AST_UNPARSE_FAILED:{exc}"
-    )
+    fail(f"AST_UNPARSE_FAILED:{exc}")
 
 
-print(
-    "GENERATED SOURCE LENGTH :",
-    len(new_source)
-)
+print("GENERATED SOURCE LENGTH :", len(new_source))
 
 
 print("")
@@ -320,34 +252,24 @@ print("10. SOURCE SAFETY CHECK")
 print("-" * 60)
 
 if "decision_traceability" not in new_source:
-    fail(
-        "TRACEABILITY_METHOD_LOST"
-    )
+    fail("TRACEABILITY_METHOD_LOST")
 
 if '"traceability"' not in new_source:
-    fail(
-        "TRACEABILITY_KEY_NOT_GENERATED"
-    )
+    fail("TRACEABILITY_KEY_NOT_GENERATED")
 
 if '"trace"' not in new_source:
-    fail(
-        "LEGACY_TRACE_KEY_LOST"
-    )
+    fail("LEGACY_TRACE_KEY_LOST")
 
 print("TRACEABILITY METHOD : PRESENT")
-print('TRACEABILITY KEY    : PRESENT')
-print('LEGACY TRACE KEY    : PRESENT')
+print("TRACEABILITY KEY    : PRESENT")
+print("LEGACY TRACE KEY    : PRESENT")
 
 
 print("")
 print("11. WRITING PATCHED SOURCE")
 print("-" * 60)
 
-ADAPTER_PATH.write_text(
-    new_source + "\n",
-    encoding="utf-8",
-    newline="\n"
-)
+ADAPTER_PATH.write_text(new_source + "\n", encoding="utf-8", newline="\n")
 
 print("SOURCE WRITE : PASS")
 
@@ -358,20 +280,13 @@ print("-" * 60)
 
 try:
 
-    final_source = ADAPTER_PATH.read_text(
-        encoding="utf-8"
-    )
+    final_source = ADAPTER_PATH.read_text(encoding="utf-8")
 
-    ast.parse(
-        final_source,
-        filename=str(ADAPTER_PATH)
-    )
+    ast.parse(final_source, filename=str(ADAPTER_PATH))
 
 except SyntaxError as exc:
 
-    fail(
-        f"FINAL_AST_PARSE_FAILED:{exc}"
-    )
+    fail(f"FINAL_AST_PARSE_FAILED:{exc}")
 
 print("FINAL AST PARSE : PASS")
 

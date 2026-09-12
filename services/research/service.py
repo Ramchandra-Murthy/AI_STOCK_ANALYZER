@@ -2,6 +2,7 @@
 
 import logging
 from typing import Any
+
 from core.events.dispatcher import EventDispatcher
 from services.research.engine import ResearchEngine
 from services.research.events import ResearchCompleted
@@ -12,12 +13,7 @@ logger = logging.getLogger(__name__)
 class ResearchService:
     """Service managing investment research synthesis and event publishing."""
 
-    def __init__(
-        self,
-        engine: ResearchEngine,
-        bus: Any,
-        dispatcher: EventDispatcher
-    ) -> None:
+    def __init__(self, engine: ResearchEngine, bus: Any, dispatcher: EventDispatcher) -> None:
         self._engine = engine
         self._bus = bus
         self._dispatcher = dispatcher
@@ -42,7 +38,7 @@ class ResearchService:
                 result = self._engine.research(symbol)
         except AttributeError:
             # Fallback if engine expects just the symbol string
-            result = self._engine.synthesize(symbol) # type: ignore[attr-defined]
+            result = self._engine.synthesize(symbol)  # type: ignore[attr-defined]
 
         event_msg = ResearchCompleted(
             symbol=symbol,

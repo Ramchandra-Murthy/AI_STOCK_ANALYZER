@@ -43,10 +43,7 @@ try:
 
     for name in required_existing:
         present = hasattr(adapter, name)
-        print(
-            f"{name:<30}: "
-            f"{'PASS' if present else 'FAIL'}"
-        )
+        print(f"{name:<30}: " f"{'PASS' if present else 'FAIL'}")
 
     print()
 
@@ -57,17 +54,10 @@ try:
     print("3. V3.2 ACTION API DISCOVERY")
     print("------------------------------------------------------------")
 
-    public_names = [
-        name
-        for name in dir(adapter)
-        if not name.startswith("_")
-    ]
+    public_names = [name for name in dir(adapter) if not name.startswith("_")]
 
     action_candidates = [
-        name
-        for name in public_names
-        if "action" in name.lower()
-        or "framework" in name.lower()
+        name for name in public_names if "action" in name.lower() or "framework" in name.lower()
     ]
 
     if action_candidates:
@@ -94,11 +84,7 @@ try:
     print("DECISION INTERPRETATION : PASS")
     print()
 
-    print(json.dumps(
-        interpretation,
-        indent=2,
-        default=str
-    ))
+    print(json.dumps(interpretation, indent=2, default=str))
 
     print()
 
@@ -109,11 +95,7 @@ try:
     print("5. V3.2 ACTION FRAMEWORK")
     print("------------------------------------------------------------")
 
-    action_methods = [
-        name
-        for name in public_names
-        if "action" in name.lower()
-    ]
+    action_methods = [name for name in public_names if "action" in name.lower()]
 
     action_result = None
 
@@ -141,18 +123,11 @@ try:
                 # First attempt: symbol only.
                 action_result = method(symbol)
 
-                print(
-                    "ACTION METHOD EXECUTED :",
-                    method_name
-                )
+                print("ACTION METHOD EXECUTED :", method_name)
                 print("ACTION RESULT : PASS")
                 print()
 
-                print(json.dumps(
-                    action_result,
-                    indent=2,
-                    default=str
-                ))
+                print(json.dumps(action_result, indent=2, default=str))
 
                 break
 
@@ -161,48 +136,25 @@ try:
                 # Method may expect interpretation/evidence.
                 try:
 
-                    action_result = method(
-                        interpretation
-                    )
+                    action_result = method(interpretation)
 
-                    print(
-                        "ACTION METHOD EXECUTED :",
-                        method_name
-                    )
+                    print("ACTION METHOD EXECUTED :", method_name)
                     print("ACTION RESULT : PASS")
                     print()
 
-                    print(json.dumps(
-                        action_result,
-                        indent=2,
-                        default=str
-                    ))
+                    print(json.dumps(action_result, indent=2, default=str))
 
                     break
 
                 except Exception as inner_error:
 
-                    print(
-                        "ACTION METHOD SKIPPED :",
-                        method_name
-                    )
-                    print(
-                        "REASON :",
-                        type(inner_error).__name__,
-                        str(inner_error)
-                    )
+                    print("ACTION METHOD SKIPPED :", method_name)
+                    print("REASON :", type(inner_error).__name__, str(inner_error))
 
             except Exception as error:
 
-                print(
-                    "ACTION METHOD ERROR :",
-                    method_name
-                )
-                print(
-                    "REASON :",
-                    type(error).__name__,
-                    str(error)
-                )
+                print("ACTION METHOD ERROR :", method_name)
+                print("REASON :", type(error).__name__, str(error))
 
     print()
 

@@ -1,13 +1,12 @@
 ﻿from __future__ import annotations
 
-import json
 import inspect
+import json
 from pprint import pprint
 
 from services.quantitative.block102_frontend_contract import (
     EROSBlock102FrontendContract,
 )
-
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
@@ -220,9 +219,7 @@ print("contract = contract102")
 
 
 try:
-    read_model = block103.build(
-        contract=contract102
-    )
+    read_model = block103.build(contract=contract102)
 
     print()
     print("BLOCK 103 BUILD : PASS")
@@ -269,11 +266,7 @@ except Exception as exc:
     print()
     print("BLOCK 103 SOURCE VALIDATION CODE:")
     try:
-        print(
-            inspect.getsource(
-                EROSBlock103InstitutionalFrontendReadModel._validate_source
-            )
-        )
+        print(inspect.getsource(EROSBlock103InstitutionalFrontendReadModel._validate_source))
     except Exception as source_exc:
         print("SOURCE INSPECTION ERROR:", source_exc)
 

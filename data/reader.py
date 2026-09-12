@@ -1,5 +1,7 @@
 ﻿import pandas as pd
+
 from data.database import connect
+
 
 def load_stock(symbol):
     conn = connect()

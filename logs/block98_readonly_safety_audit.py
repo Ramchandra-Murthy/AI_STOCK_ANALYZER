@@ -1,15 +1,15 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
-path = Path(
-    r"services\quantitative\block98_execution_governance_bridge.py"
-)
+path = Path(r"services\quantitative\block98_execution_governance_bridge.py")
 
 output = []
+
 
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 98 READ-ONLY SAFETY / RETURN PATH AUDIT")
@@ -24,9 +24,7 @@ if not path.exists():
 else:
 
     # BOM-safe read
-    lines = path.read_text(
-        encoding="utf-8-sig"
-    ).splitlines()
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
 
     p()
     p("SOURCE LINE COUNT:")
@@ -61,10 +59,7 @@ else:
     for i, line in enumerate(lines, start=1):
         lower = line.lower()
 
-        if any(
-            keyword.lower() in lower
-            for keyword in keywords
-        ):
+        if any(keyword.lower() in lower for keyword in keywords):
             matches.append(i)
 
     if not matches:
@@ -89,22 +84,12 @@ else:
             reported.add(window)
 
             p()
-            p(
-                f"--- SOURCE WINDOW "
-                f"L{start}-L{end} ---"
-            )
+            p(f"--- SOURCE WINDOW " f"L{start}-L{end} ---")
 
             for n in range(start, end + 1):
-                marker = (
-                    ">>"
-                    if n == line_no
-                    else "  "
-                )
+                marker = ">>" if n == line_no else "  "
 
-                p(
-                    f"{marker} "
-                    f"L{n}: {lines[n-1]}"
-                )
+                p(f"{marker} " f"L{n}: {lines[n-1]}")
 
     p()
     p("=" * 100)
@@ -139,22 +124,12 @@ else:
             reported.add(window)
 
             p()
-            p(
-                f"--- RETURN WINDOW "
-                f"L{start}-L{end} ---"
-            )
+            p(f"--- RETURN WINDOW " f"L{start}-L{end} ---")
 
             for n in range(start, end + 1):
-                marker = (
-                    ">>"
-                    if n == line_no
-                    else "  "
-                )
+                marker = ">>" if n == line_no else "  "
 
-                p(
-                    f"{marker} "
-                    f"L{n}: {lines[n-1]}"
-                )
+                p(f"{marker} " f"L{n}: {lines[n-1]}")
 
     p()
     p("=" * 100)
@@ -175,10 +150,7 @@ else:
             blocked_matches.append(i)
 
     p()
-    p(
-        f"BLOCKED / SAFETY MATCH COUNT: "
-        f"{len(blocked_matches)}"
-    )
+    p(f"BLOCKED / SAFETY MATCH COUNT: " f"{len(blocked_matches)}")
 
     if blocked_matches:
 
@@ -188,29 +160,16 @@ else:
             end = min(len(lines), line_no + 25)
 
             p()
-            p(
-                f"--- BLOCKED / SAFETY WINDOW "
-                f"L{start}-L{end} ---"
-            )
+            p(f"--- BLOCKED / SAFETY WINDOW " f"L{start}-L{end} ---")
 
             for n in range(start, end + 1):
 
-                marker = (
-                    ">>"
-                    if n == line_no
-                    else "  "
-                )
+                marker = ">>" if n == line_no else "  "
 
-                p(
-                    f"{marker} "
-                    f"L{n}: {lines[n-1]}"
-                )
+                p(f"{marker} " f"L{n}: {lines[n-1]}")
 
     else:
-        p(
-            "NO DIRECT BLOCKED / STANDARDIZED "
-            "SAFETY CONTRACT FOUND."
-        )
+        p("NO DIRECT BLOCKED / STANDARDIZED " "SAFETY CONTRACT FOUND.")
 
     p()
     p("=" * 100)
@@ -273,4 +232,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

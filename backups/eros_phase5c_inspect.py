@@ -1,6 +1,5 @@
-﻿import inspect
-import importlib
-from typing import Any
+﻿import importlib
+import inspect
 
 TARGETS = [
     (
@@ -99,11 +98,13 @@ TARGETS = [
     ),
 ]
 
+
 def print_header(text):
     print("")
     print("=" * 72)
     print(text)
     print("=" * 72)
+
 
 for group, module_name, names in TARGETS:
 
@@ -145,14 +146,9 @@ for group, module_name, names in TARGETS:
             print("")
             print("CLASS METHODS:")
 
-            for method_name, method in inspect.getmembers(
-                obj,
-                predicate=inspect.isfunction
-            ):
+            for method_name, method in inspect.getmembers(obj, predicate=inspect.isfunction):
 
-                if method_name.startswith("_") and method_name not in (
-                    "__init__",
-                ):
+                if method_name.startswith("_") and method_name not in ("__init__",):
                     continue
 
                 try:

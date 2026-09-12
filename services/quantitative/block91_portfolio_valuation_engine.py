@@ -1,20 +1,20 @@
 ﻿from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
 import hashlib
 import json
-from typing import Any, Dict, List, Mapping
-
+from collections.abc import Mapping
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-91"
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _dict(value: Any) -> Dict[str, Any]:
+def _dict(value: Any) -> dict[str, Any]:
     return dict(value) if isinstance(value, Mapping) else {}
 
 
@@ -66,12 +66,12 @@ class PortfolioValuationRecord:
     invested_weight: float
     position_count: int
 
-    positions: List[Dict[str, Any]] = field(default_factory=list)
+    positions: list[dict[str, Any]] = field(default_factory=list)
 
     engine_version: str = ENGINE_VERSION
     timestamp_utc: str = field(default_factory=_utc_now)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -100,7 +100,7 @@ class Block91PortfolioValuationCertificate:
 
     created_at_utc: str = field(default_factory=_utc_now)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -122,19 +122,19 @@ class EROSBlock91PortfolioValuationEngine:
     """
 
     def __init__(self) -> None:
-        self._processed_valuations: Dict[str, Dict[str, Any]] = {}
-        self._valuation_history: List[Dict[str, Any]] = []
+        self._processed_valuations: dict[str, dict[str, Any]] = {}
+        self._valuation_history: list[dict[str, Any]] = []
 
     @staticmethod
-    def _state(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _state(payload: Mapping[str, Any]) -> dict[str, Any]:
         return _dict(payload.get("state"))
 
     @staticmethod
-    def _portfolio(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _portfolio(payload: Mapping[str, Any]) -> dict[str, Any]:
         return _dict(payload.get("portfolio"))
 
     @staticmethod
-    def _certificate(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _certificate(payload: Mapping[str, Any]) -> dict[str, Any]:
         return _dict(payload.get("certificate"))
 
     @staticmethod
@@ -233,12 +233,7 @@ class EROSBlock91PortfolioValuationEngine:
         settlement_id: str,
     ) -> str:
         raw = f"{portfolio_id}|{settlement_id}|{ENGINE_VERSION}"
-        return (
-            "EROS91-"
-            + hashlib.sha256(raw.encode("utf-8"))
-            .hexdigest()[:16]
-            .upper()
-        )
+        return "EROS91-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16].upper()
 
     def _blocked(
         self,
@@ -248,7 +243,7 @@ class EROSBlock91PortfolioValuationEngine:
         audit_id: str,
         decision_id: str,
         reason: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         valuation_id = self._valuation_id(
             portfolio_id or "UNKNOWN",
@@ -294,7 +289,7 @@ class EROSBlock91PortfolioValuationEngine:
         self,
         portfolio_state: Mapping[str, Any],
         market_prices: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         state = self._state(portfolio_state)
         portfolio = self._portfolio(portfolio_state)
@@ -405,7 +400,7 @@ class EROSBlock91PortfolioValuationEngine:
             )
         )
 
-        positions: List[Dict[str, Any]] = []
+        positions: list[dict[str, Any]] = []
         invested_cost = 0.0
         market_value = 0.0
         realized_pnl = 0.0
@@ -482,22 +477,12 @@ class EROSBlock91PortfolioValuationEngine:
         unrealized_pnl = market_value - invested_cost
         total_pnl = realized_pnl + unrealized_pnl
 
-        return_pct = (
-            (total_pnl / invested_cost) * 100.0
-            if invested_cost > 0.0
-            else 0.0
-        )
+        return_pct = (total_pnl / invested_cost) * 100.0 if invested_cost > 0.0 else 0.0
 
-        cash_weight = (
-            (cash_balance / portfolio_equity) * 100.0
-            if portfolio_equity > 0.0
-            else 0.0
-        )
+        cash_weight = (cash_balance / portfolio_equity) * 100.0 if portfolio_equity > 0.0 else 0.0
 
         invested_weight = (
-            (market_value / portfolio_equity) * 100.0
-            if portfolio_equity > 0.0
-            else 0.0
+            (market_value / portfolio_equity) * 100.0 if portfolio_equity > 0.0 else 0.0
         )
 
         valuation_payload = {
@@ -524,9 +509,7 @@ class EROSBlock91PortfolioValuationEngine:
             "mutation_allowed": False,
         }
 
-        valuation_hash = _hash_payload(
-            valuation_payload
-        )
+        valuation_hash = _hash_payload(valuation_payload)
 
         record = PortfolioValuationRecord(
             valuation_id=valuation_id,
@@ -585,28 +568,18 @@ class EROSBlock91PortfolioValuationEngine:
             "mutation_allowed": False,
         }
 
-        self._processed_valuations[
-            valuation_id
-        ] = result
+        self._processed_valuations[valuation_id] = result
 
-        self._valuation_history.append(
-            result
-        )
+        self._valuation_history.append(result)
 
         return result
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return {
-            "valuation_count": len(
-                self._processed_valuations
-            ),
-            "valuation_history_count": len(
-                self._valuation_history
-            ),
-            "valuation_ids": sorted(
-                self._processed_valuations
-            ),
+            "valuation_count": len(self._processed_valuations),
+            "valuation_history_count": len(self._valuation_history),
+            "valuation_ids": sorted(self._processed_valuations),
         }
 
-    def valuation_history(self) -> List[Dict[str, Any]]:
+    def valuation_history(self) -> list[dict[str, Any]]:
         return list(self._valuation_history)

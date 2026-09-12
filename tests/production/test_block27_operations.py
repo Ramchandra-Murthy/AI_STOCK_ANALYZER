@@ -4,13 +4,12 @@ import uuid
 
 from fastapi.testclient import TestClient
 
-from backend.main import app
 from backend.core.config.settings import settings
 from backend.database.engine import init_db
+from backend.main import app
 from backend.tasks.celery_app import celery_app
 from backend.tasks.task_control import task_control
 from services.production.readiness_report import ProductionReadinessEngine
-
 
 client = TestClient(app)
 

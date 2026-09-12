@@ -1,5 +1,4 @@
 ﻿import json
-import sys
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 

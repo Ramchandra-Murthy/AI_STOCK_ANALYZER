@@ -2,7 +2,6 @@
 
 import inspect
 import py_compile
-import sys
 from pathlib import Path
 
 ROOT = Path.cwd()
@@ -20,9 +19,11 @@ print("NO ORDER CREATION")
 print("NO MUTATION")
 print()
 
+
 def require(condition, message):
     if not condition:
         raise AssertionError(message)
+
 
 # ------------------------------------------------------------
 # 1. IMPORTS
@@ -55,24 +56,21 @@ print()
 print("2. ACTUAL INTERFACES")
 print("-" * 70)
 
-print("BLOCK 102 BUILD    :", inspect.signature(
-    EROSBlock102FrontendContract.build
-))
-print("BLOCK 103 BUILD    :", inspect.signature(
-    EROSBlock103InstitutionalFrontendReadModel.build
-))
-print("BLOCK 104 SNAPSHOT :", inspect.signature(
-    EROSBlock104CommandCenter.snapshot
-))
-print("BLOCK 106 BUILD    :", inspect.signature(
-    EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload
-))
-print("BLOCK 106 SNAPSHOT :", inspect.signature(
-    EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot
-))
-print("BLOCK 106 VALIDATE :", inspect.signature(
-    EROSBlock106InstitutionalIntegrationBoundary.validate_payload
-))
+print("BLOCK 102 BUILD    :", inspect.signature(EROSBlock102FrontendContract.build))
+print("BLOCK 103 BUILD    :", inspect.signature(EROSBlock103InstitutionalFrontendReadModel.build))
+print("BLOCK 104 SNAPSHOT :", inspect.signature(EROSBlock104CommandCenter.snapshot))
+print(
+    "BLOCK 106 BUILD    :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
+)
+print(
+    "BLOCK 106 SNAPSHOT :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot),
+)
+print(
+    "BLOCK 106 VALIDATE :",
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
+)
 print("INTERFACE CHECK : PASS")
 
 # ------------------------------------------------------------

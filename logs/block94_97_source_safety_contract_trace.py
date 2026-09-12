@@ -1,6 +1,5 @@
-import inspect
 import importlib
-import textwrap
+import inspect
 
 modules = [
     "services.quantitative.block94_portfolio_stress_scenario_engine",
@@ -11,9 +10,11 @@ modules = [
 
 output = []
 
+
 def emit(text=""):
     print(text)
     output.append(str(text))
+
 
 emit("=" * 90)
 emit("EROS 3.0 - BLOCK 94-97 SOURCE SAFETY CONTRACT TRACE")
@@ -151,8 +152,12 @@ try:
     complete_output = "\r\n".join(output)
 
     subprocess.run(
-        ["powershell", "-NoProfile", "-Command",
-         "Set-Clipboard -Value ([Console]::In.ReadToEnd())"],
+        [
+            "powershell",
+            "-NoProfile",
+            "-Command",
+            "Set-Clipboard -Value ([Console]::In.ReadToEnd())",
+        ],
         input=complete_output,
         text=True,
         check=True,

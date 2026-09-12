@@ -2,20 +2,20 @@
 
 import hashlib
 import json
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Mapping, Optional
-
+from datetime import UTC, datetime
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-89"
 SETTLEMENT_SCHEMA_VERSION = "1.0"
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _dict(value: Any) -> Dict[str, Any]:
+def _dict(value: Any) -> dict[str, Any]:
     if isinstance(value, Mapping):
         return dict(value)
 
@@ -30,7 +30,7 @@ def _dict(value: Any) -> Dict[str, Any]:
     return {}
 
 
-def _list(value: Any) -> List[Any]:
+def _list(value: Any) -> list[Any]:
     if value is None:
         return []
 
@@ -117,14 +117,14 @@ class SettlementRecord:
     live_order_submission: bool
     paper_settlement: bool
 
-    source_order_ids: List[str] = field(default_factory=list)
-    source_fill_ids: List[str] = field(default_factory=list)
+    source_order_ids: list[str] = field(default_factory=list)
+    source_fill_ids: list[str] = field(default_factory=list)
 
-    exceptions: List[str] = field(default_factory=list)
+    exceptions: list[str] = field(default_factory=list)
 
     settlement_hash: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -153,7 +153,7 @@ class Block89SettlementCertificate:
 
     created_at_utc: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -189,18 +189,18 @@ class EROSBlock89SettlementEngine:
     RECONCILED_STATUS = "RECONCILED"
 
     def __init__(self) -> None:
-        self._completed_settlements: Dict[str, SettlementRecord] = {}
+        self._completed_settlements: dict[str, SettlementRecord] = {}
 
     @staticmethod
-    def _audit(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _audit(payload: Mapping[str, Any]) -> dict[str, Any]:
         return _dict(payload.get("audit"))
 
     @staticmethod
-    def _certificate(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _certificate(payload: Mapping[str, Any]) -> dict[str, Any]:
         return _dict(payload.get("certificate"))
 
     @staticmethod
-    def _orders(payload: Mapping[str, Any]) -> List[Dict[str, Any]]:
+    def _orders(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
         return [
             _dict(item)
             for item in _list(payload.get("orders"))
@@ -208,7 +208,7 @@ class EROSBlock89SettlementEngine:
         ]
 
     @staticmethod
-    def _fills(payload: Mapping[str, Any]) -> List[Dict[str, Any]]:
+    def _fills(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
         return [
             _dict(item)
             for item in _list(payload.get("fills"))
@@ -390,7 +390,7 @@ class EROSBlock89SettlementEngine:
         self,
         audit: Mapping[str, Any],
         certificate: Mapping[str, Any],
-        exceptions: List[str],
+        exceptions: list[str],
     ) -> None:
         certificate_status = _text(
             certificate.get("status"),
@@ -407,9 +407,7 @@ class EROSBlock89SettlementEngine:
             audit,
         )
 
-        broker_submission = bool(
-            certificate.get("broker_submission", False)
-        )
+        broker_submission = bool(certificate.get("broker_submission", False))
 
         live_submission = bool(
             certificate.get(
@@ -419,14 +417,10 @@ class EROSBlock89SettlementEngine:
         )
 
         if certificate_status not in self.SETTLEMENT_READY_STATUSES:
-            exceptions.append(
-                f"INVALID_CERTIFICATE_STATUS:{certificate_status}"
-            )
+            exceptions.append(f"INVALID_CERTIFICATE_STATUS:{certificate_status}")
 
         if reconciliation_status != self.RECONCILED_STATUS:
-            exceptions.append(
-                f"INVALID_RECONCILIATION_STATUS:{reconciliation_status}"
-            )
+            exceptions.append(f"INVALID_RECONCILIATION_STATUS:{reconciliation_status}")
 
         if not execution_allowed:
             exceptions.append("EXECUTION_NOT_ALLOWED")
@@ -445,9 +439,9 @@ class EROSBlock89SettlementEngine:
         *,
         audit: Mapping[str, Any],
         certificate: Mapping[str, Any],
-        orders: List[Dict[str, Any]],
-        fills: List[Dict[str, Any]],
-        exceptions: List[str],
+        orders: list[dict[str, Any]],
+        fills: list[dict[str, Any]],
+        exceptions: list[str],
     ) -> SettlementRecord:
         audit_id = self._audit_id(audit, certificate)
         certificate_hash = self._certificate_hash(certificate)
@@ -467,18 +461,11 @@ class EROSBlock89SettlementEngine:
         )
 
         transaction_cost = round(
-            sum(
-                self._transaction_cost(fill)
-                for fill in fills
-            ),
+            sum(self._transaction_cost(fill) for fill in fills),
             6,
         )
 
-        average_fill_price = (
-            gross_value / settled_quantity
-            if settled_quantity > 0
-            else 0.0
-        )
+        average_fill_price = gross_value / settled_quantity if settled_quantity > 0 else 0.0
 
         if action in {"SELL", "REDUCE"}:
             cash_delta = round(
@@ -505,16 +492,9 @@ class EROSBlock89SettlementEngine:
             realized_pnl = 0.0
             net_cash_value = 0.0
 
-        allowed = (
-            not exceptions
-            and bool(certificate.get("execution_allowed", False))
-        )
+        allowed = not exceptions and bool(certificate.get("execution_allowed", False))
 
-        settlement_status = (
-            "SETTLED"
-            if allowed
-            else "BLOCKED"
-        )
+        settlement_status = "SETTLED" if allowed else "BLOCKED"
 
         seed = {
             "schema": SETTLEMENT_SCHEMA_VERSION,
@@ -536,9 +516,7 @@ class EROSBlock89SettlementEngine:
         }
 
         settlement_hash = _hash_payload(seed)
-        settlement_id = (
-            f"EROS89-{settlement_hash[:16]}"
-        )
+        settlement_id = f"EROS89-{settlement_hash[:16]}"
 
         return SettlementRecord(
             settlement_id=settlement_id,
@@ -569,18 +547,10 @@ class EROSBlock89SettlementEngine:
             live_order_submission=False,
             paper_settlement=True,
             source_order_ids=sorted(
-                set(
-                    self._order_id(order)
-                    for order in orders
-                    if self._order_id(order)
-                )
+                set(self._order_id(order) for order in orders if self._order_id(order))
             ),
             source_fill_ids=sorted(
-                set(
-                    self._fill_id(fill)
-                    for fill in fills
-                    if self._fill_id(fill)
-                )
+                set(self._fill_id(fill) for fill in fills if self._fill_id(fill))
             ),
             exceptions=sorted(set(exceptions)),
             settlement_hash=settlement_hash,
@@ -590,31 +560,21 @@ class EROSBlock89SettlementEngine:
         self,
         audit_certificate: Any,
         *,
-        orders: Optional[
-            Iterable[Mapping[str, Any]]
-        ] = None,
-        fills: Optional[
-            Iterable[Mapping[str, Any]]
-        ] = None,
-    ) -> Dict[str, Any]:
+        orders: Iterable[Mapping[str, Any]] | None = None,
+        fills: Iterable[Mapping[str, Any]] | None = None,
+    ) -> dict[str, Any]:
         payload = _dict(audit_certificate)
 
         audit = self._audit(payload)
         certificate = self._certificate(payload)
 
         order_list = (
-            [_dict(item) for item in orders]
-            if orders is not None
-            else self._orders(payload)
+            [_dict(item) for item in orders] if orders is not None else self._orders(payload)
         )
 
-        fill_list = (
-            [_dict(item) for item in fills]
-            if fills is not None
-            else self._fills(payload)
-        )
+        fill_list = [_dict(item) for item in fills] if fills is not None else self._fills(payload)
 
-        exceptions: List[str] = []
+        exceptions: list[str] = []
 
         self._validate_certificate(
             audit,
@@ -649,19 +609,12 @@ class EROSBlock89SettlementEngine:
             )
 
             actual_quantity = round(
-                sum(
-                    self._quantity(item)
-                    for item in fill_list
-                ),
+                sum(self._quantity(item) for item in fill_list),
                 6,
             )
 
-            if abs(
-                actual_quantity - expected_quantity
-            ) > 1e-6:
-                exceptions.append(
-                    "FILL_QUANTITY_INTERNAL_MISMATCH"
-                )
+            if abs(actual_quantity - expected_quantity) > 1e-6:
+                exceptions.append("FILL_QUANTITY_INTERNAL_MISMATCH")
 
         settlement = self._build_settlement(
             audit=audit,
@@ -671,15 +624,10 @@ class EROSBlock89SettlementEngine:
             exceptions=exceptions,
         )
 
-        settlement_key = (
-            settlement.certificate_hash
-            or settlement.audit_id
-        )
+        settlement_key = settlement.certificate_hash or settlement.audit_id
 
         if settlement_key in self._completed_settlements:
-            previous = self._completed_settlements[
-                settlement_key
-            ]
+            previous = self._completed_settlements[settlement_key]
 
             return {
                 "status": "DUPLICATE",
@@ -690,16 +638,10 @@ class EROSBlock89SettlementEngine:
                 ),
             }
 
-        self._completed_settlements[
-            settlement_key
-        ] = settlement
+        self._completed_settlements[settlement_key] = settlement
 
         return {
-            "status": (
-                "PASS"
-                if settlement.settlement_status == "SETTLED"
-                else "BLOCKED"
-            ),
+            "status": ("PASS" if settlement.settlement_status == "SETTLED" else "BLOCKED"),
             "settlement": settlement.to_dict(),
             "certificate": self._certificate_for(
                 settlement,
@@ -712,15 +654,11 @@ class EROSBlock89SettlementEngine:
         settlement: SettlementRecord,
         *,
         duplicate: bool,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         status = (
             "DUPLICATE"
             if duplicate
-            else (
-                "CERTIFIED"
-                if settlement.settlement_status == "SETTLED"
-                else "BLOCKED"
-            )
+            else ("CERTIFIED" if settlement.settlement_status == "SETTLED" else "BLOCKED")
         )
 
         seed = {

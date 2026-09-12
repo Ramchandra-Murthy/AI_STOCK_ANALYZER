@@ -13,6 +13,7 @@ print("1. IMPORTING TASK CONTROL")
 try:
     import backend.tasks.task_control as tc_module
     from backend.tasks.task_control import task_control
+
     print("TASK CONTROL IMPORT: PASS")
 except Exception as exc:
     print("TASK CONTROL IMPORT: FAIL")
@@ -26,6 +27,7 @@ print("2. IMPORTING REDIS CLIENT")
 try:
     import backend.infrastructure.redis.client as redis_module
     from backend.infrastructure.redis.client import redis_client
+
     print("REDIS MODULE IMPORT: PASS")
 except Exception as exc:
     print("REDIS IMPORT: FAIL")
@@ -59,10 +61,7 @@ print("TEST STORE ID:", id(redis_client._store))
 
 if task_module_redis is not None:
     print("TASK STORE ID:", id(task_module_redis._store))
-    print(
-        "SAME STORE:",
-        task_module_redis._store is redis_client._store
-    )
+    print("SAME STORE:", task_module_redis._store is redis_client._store)
 
 print("TEST STORE:", redis_client._store)
 
@@ -108,10 +107,7 @@ for number, line in enumerate(lines):
         break
 
 if start is not None:
-    for number, line in enumerate(
-        lines[start:start + 115],
-        start + 1
-    ):
+    for number, line in enumerate(lines[start : start + 115], start + 1):
         print(f"{number:04d}: {line}")
 else:
     print("IDEMPOTENCY BLOCK NOT FOUND")
@@ -152,14 +148,8 @@ if task_module_redis is not None:
         )
 
         print("TASK REDIS SET RESULT:", result2)
-        print(
-            "TASK REDIS GET RESULT:",
-            task_module_redis.get(test_key_2)
-        )
-        print(
-            "TASK REDIS STORE:",
-            task_module_redis._store
-        )
+        print("TASK REDIS GET RESULT:", task_module_redis.get(test_key_2))
+        print("TASK REDIS STORE:", task_module_redis._store)
 
     except Exception as exc:
         print("TASK REDIS SET FAILED")
@@ -176,27 +166,14 @@ with open(file_path, "r", encoding="utf-8-sig") as f:
 
 print(
     "REDIS IMPORT PRESENT:",
-    "from backend.infrastructure.redis.client import redis_client"
-    in file_content
+    "from backend.infrastructure.redis.client import redis_client" in file_content,
 )
 
-print(
-    "INVALID ACCESSOR PRESENT:",
-    "self._get_redis_client()"
-    in file_content
-)
+print("INVALID ACCESSOR PRESENT:", "self._get_redis_client()" in file_content)
 
-print(
-    "TTL=86400 PRESENT:",
-    "ttl=86400"
-    in file_content
-)
+print("TTL=86400 PRESENT:", "ttl=86400" in file_content)
 
-print(
-    "EX=86400 PRESENT:",
-    "ex=86400"
-    in file_content
-)
+print("EX=86400 PRESENT:", "ex=86400" in file_content)
 
 print()
 print("=" * 58)

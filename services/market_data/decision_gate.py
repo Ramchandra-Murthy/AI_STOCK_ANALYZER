@@ -53,8 +53,7 @@ class MarketDataDecisionGate:
                 confidence_penalty=1.0,
                 allowed_in_scoring=False,
                 warning_message=(
-                    f"Stale market data for {report.symbol} is blocked from "
-                    "investment scoring."
+                    f"Stale market data for {report.symbol} is blocked from " "investment scoring."
                 ),
                 details=details,
             )

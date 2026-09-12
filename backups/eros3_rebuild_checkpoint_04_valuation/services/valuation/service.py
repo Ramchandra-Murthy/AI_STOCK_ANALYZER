@@ -3,11 +3,11 @@
 import logging
 import time
 from typing import Any
+
 from core.events.dispatcher import EventDispatcher
-from services.valuation.engine import ValuationEngine  # Legacy wrapper compatibility
+from services.forecast.models import ForecastResult
 from services.valuation.dcf.engine import ProductionDCFEngine
 from services.valuation.events import ValuationCompleted
-from services.forecast.models import ForecastResult
 
 logger = logging.getLogger(__name__)
 
@@ -60,5 +60,9 @@ class ValuationService:
         )
 
         await self._dispatcher.dispatch(event)
-        logger.info("ValuationCompleted event published for symbol: %s with fair value: %.2f", symbol, fair_value)
+        logger.info(
+            "ValuationCompleted event published for symbol: %s with fair value: %.2f",
+            symbol,
+            fair_value,
+        )
         return dcf_result

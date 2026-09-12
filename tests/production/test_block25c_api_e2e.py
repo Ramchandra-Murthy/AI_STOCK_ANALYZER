@@ -1,7 +1,9 @@
 ﻿from fastapi.testclient import TestClient
+
 from backend.main import app
 
 client = TestClient(app)
+
 
 def test_block25c_real_production_api_e2e():
     response = client.post(
@@ -30,9 +32,7 @@ def test_block25c_real_production_api_e2e():
             "REDUCE",
             "SELL",
         ]
-        assert 0.0 <= float(
-            data["confidence_metrics"]["adjusted_confidence"]
-        ) <= 1.0
+        assert 0.0 <= float(data["confidence_metrics"]["adjusted_confidence"]) <= 1.0
     elif data["status"] == "REJECTED_BY_INTEGRITY_GATE":
         assert "directive" in data
         assert "warning_message" in data

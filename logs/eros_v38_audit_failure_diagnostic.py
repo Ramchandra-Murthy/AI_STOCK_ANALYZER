@@ -4,7 +4,6 @@ import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 60)
 print("EROS 3.0 - V3.8 DECISION AUDIT FAILURE DIAGNOSTIC")
 print("=" * 60)
@@ -66,7 +65,7 @@ for name in foundation:
 print("\n4. DECISION AUDIT METHOD")
 print("-" * 60)
 
-method = getattr(adapter, "decision_audit")
+method = adapter.decision_audit
 
 print("METHOD OBJECT :", method)
 print("METHOD TYPE   :", type(method).__name__)
@@ -112,23 +111,14 @@ print("RESULT DICT : PASS")
 print("\n8. RAW V3.8 AUDIT OUTPUT")
 print("-" * 60)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 print("\n9. TOP LEVEL KEYS")
 print("-" * 60)
 
 for key, value in result.items():
-    print(
-        f"{str(key):35} : "
-        f"{type(value).__name__}"
-    )
+    print(f"{str(key):35} : " f"{type(value).__name__}")
 
 
 print("\n10. EXPECTED TOP LEVEL SCHEMA")
@@ -146,10 +136,7 @@ expected_top = [
 for field in expected_top:
     present = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PRESENT' if present else 'ABSENT'}"
-    )
+    print(f"{field:35} : " f"{'PRESENT' if present else 'ABSENT'}")
 
 
 print("\n11. LEGACY / TRACEABILITY PRESERVATION")
@@ -165,10 +152,7 @@ for field in [
 ]:
     present = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PRESENT' if present else 'ABSENT'}"
-    )
+    print(f"{field:35} : " f"{'PRESENT' if present else 'ABSENT'}")
 
 
 print("\n12. AUDIT OBJECT")
@@ -180,13 +164,7 @@ print("AUDIT TYPE :", type(audit).__name__)
 
 if isinstance(audit, dict):
 
-    print(
-        json.dumps(
-            audit,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(audit, indent=2, default=str))
 
 else:
 
@@ -200,10 +178,7 @@ if isinstance(audit, dict):
 
     for key, value in audit.items():
 
-        print(
-            f"{str(key):35} : "
-            f"{type(value).__name__}"
-        )
+        print(f"{str(key):35} : " f"{type(value).__name__}")
 
 else:
 
@@ -231,10 +206,7 @@ if isinstance(audit, dict):
 
         present = field in audit
 
-        print(
-            f"{field:35} : "
-            f"{'PRESENT' if present else 'ABSENT'}"
-        )
+        print(f"{field:35} : " f"{'PRESENT' if present else 'ABSENT'}")
 
 else:
 
@@ -248,13 +220,7 @@ decision = result.get("decision")
 
 if isinstance(decision, dict):
 
-    print(
-        json.dumps(
-            decision,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(decision, indent=2, default=str))
 
 else:
 
@@ -268,20 +234,11 @@ traceability = result.get("traceability")
 
 if isinstance(traceability, dict):
 
-    print(
-        json.dumps(
-            traceability,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(traceability, indent=2, default=str))
 
 else:
 
-    print(
-        "TRACEABILITY TYPE :",
-        type(traceability).__name__
-    )
+    print("TRACEABILITY TYPE :", type(traceability).__name__)
 
 
 print("\n17. LEGACY TRACE OBJECT")
@@ -292,20 +249,11 @@ legacy_trace = result.get("trace")
 if isinstance(legacy_trace, dict):
 
     print("LEGACY TRACE : PRESENT")
-    print(
-        json.dumps(
-            legacy_trace,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(legacy_trace, indent=2, default=str))
 
 else:
 
-    print(
-        "LEGACY TRACE TYPE :",
-        type(legacy_trace).__name__
-    )
+    print("LEGACY TRACE TYPE :", type(legacy_trace).__name__)
 
 
 print("\n18. GOVERNANCE")
@@ -315,20 +263,11 @@ governance = result.get("governance")
 
 if isinstance(governance, dict):
 
-    print(
-        json.dumps(
-            governance,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(governance, indent=2, default=str))
 
 else:
 
-    print(
-        "GOVERNANCE TYPE :",
-        type(governance).__name__
-    )
+    print("GOVERNANCE TYPE :", type(governance).__name__)
 
 
 print("\n19. SAFETY CONTRACT")
@@ -357,21 +296,13 @@ if isinstance(governance, dict):
 
         actual = governance.get(field)
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if actual is True else 'FAIL'} "
-            f"(actual={actual})"
-        )
+        print(f"{field:35} : " f"{'PASS' if actual is True else 'FAIL'} " f"(actual={actual})")
 
     for field in expected_false:
 
         actual = governance.get(field)
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if actual is False else 'FAIL'} "
-            f"(actual={actual})"
-        )
+        print(f"{field:35} : " f"{'PASS' if actual is False else 'FAIL'} " f"(actual={actual})")
 
 
 print("\n20. CONSISTENCY CHECK")
@@ -380,42 +311,27 @@ print("-" * 60)
 checks = {}
 
 
-checks["symbol"] = (
-    result.get("symbol") == symbol
-)
+checks["symbol"] = result.get("symbol") == symbol
 
 
-checks["result_is_dict"] = (
-    isinstance(result, dict)
-)
+checks["result_is_dict"] = isinstance(result, dict)
 
 
-checks["audit_is_dict"] = (
-    isinstance(result.get("audit"), dict)
-)
+checks["audit_is_dict"] = isinstance(result.get("audit"), dict)
 
 
-checks["governance_is_dict"] = (
-    isinstance(result.get("governance"), dict)
-)
+checks["governance_is_dict"] = isinstance(result.get("governance"), dict)
 
 
-checks["traceability_preserved"] = (
-    isinstance(result.get("traceability"), dict)
-)
+checks["traceability_preserved"] = isinstance(result.get("traceability"), dict)
 
 
-checks["legacy_trace_preserved"] = (
-    isinstance(result.get("trace"), dict)
-)
+checks["legacy_trace_preserved"] = isinstance(result.get("trace"), dict)
 
 
 for name, value in checks.items():
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if value else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if value else 'FAIL'}")
 
 
 print("\n21. AUDIT STRUCTURE DIAGNOSIS")
@@ -423,32 +339,19 @@ print("-" * 60)
 
 if not isinstance(audit, dict):
 
-    print(
-        "DIAGNOSIS : "
-        "V3.8 decision_audit returned a non-dict audit object."
-    )
+    print("DIAGNOSIS : " "V3.8 decision_audit returned a non-dict audit object.")
 
 elif not audit:
 
-    print(
-        "DIAGNOSIS : "
-        "V3.8 audit object is empty."
-    )
+    print("DIAGNOSIS : " "V3.8 audit object is empty.")
 
 else:
 
-    missing = [
-        field
-        for field in expected_audit_fields
-        if field not in audit
-    ]
+    missing = [field for field in expected_audit_fields if field not in audit]
 
     if missing:
 
-        print(
-            "DIAGNOSIS : "
-            "AUDIT OBJECT EXISTS BUT SCHEMA IS INCOMPLETE."
-        )
+        print("DIAGNOSIS : " "AUDIT OBJECT EXISTS BUT SCHEMA IS INCOMPLETE.")
 
         print("MISSING FIELDS:")
 
@@ -457,10 +360,7 @@ else:
 
     else:
 
-        print(
-            "DIAGNOSIS : "
-            "EXPECTED AUDIT SCHEMA IS PRESENT."
-        )
+        print("DIAGNOSIS : " "EXPECTED AUDIT SCHEMA IS PRESENT.")
 
 
 print("\n22. TRACEABILITY COMPATIBILITY")
@@ -471,18 +371,12 @@ compatibility = {
     "traceability": isinstance(result.get("traceability"), dict),
     "evidence_chain": isinstance(result.get("evidence_chain"), dict),
     "scenario_trace": isinstance(result.get("scenario_trace"), dict),
-    "traceability_status": isinstance(
-        result.get("traceability_status"),
-        str
-    ),
+    "traceability_status": isinstance(result.get("traceability_status"), str),
 }
 
 for key, value in compatibility.items():
 
-    print(
-        f"{key:35} : "
-        f"{'PASS' if value else 'FAIL'}"
-    )
+    print(f"{key:35} : " f"{'PASS' if value else 'FAIL'}")
 
 
 print("\n23. FINAL DIAGNOSTIC SUMMARY")
@@ -498,26 +392,11 @@ if isinstance(audit, dict):
 else:
     print("AUDIT OBJECT         : FAIL")
 
-print(
-    "TRACEABILITY         :",
-    "PASS"
-    if isinstance(result.get("traceability"), dict)
-    else "FAIL"
-)
+print("TRACEABILITY         :", "PASS" if isinstance(result.get("traceability"), dict) else "FAIL")
 
-print(
-    "LEGACY TRACE         :",
-    "PASS"
-    if isinstance(result.get("trace"), dict)
-    else "FAIL"
-)
+print("LEGACY TRACE         :", "PASS" if isinstance(result.get("trace"), dict) else "FAIL")
 
-print(
-    "GOVERNANCE           :",
-    "PASS"
-    if isinstance(result.get("governance"), dict)
-    else "FAIL"
-)
+print("GOVERNANCE           :", "PASS" if isinstance(result.get("governance"), dict) else "FAIL")
 
 print("\n============================================================")
 print("V3.8 DECISION AUDIT FAILURE DIAGNOSTIC COMPLETE")

@@ -36,11 +36,7 @@ print("WAITING FOR WORKER...")
 for i in range(30):
     time.sleep(1)
     status = control.get_task_status(control_id)
-    print(
-        f"[{i+1:02d}s] "
-        f"status={status.get('status')} "
-        f"ready={status.get('ready')}"
-    )
+    print(f"[{i+1:02d}s] " f"status={status.get('status')} " f"ready={status.get('ready')}")
     if status.get("ready"):
         break
 
@@ -58,11 +54,7 @@ print("==================================================")
 
 conn = sqlite3.connect("celery_results.db")
 cur = conn.cursor()
-cur.execute(
-    "SELECT task_id, status, result "
-    "FROM celery_taskmeta "
-    "ORDER BY id DESC LIMIT 20"
-)
+cur.execute("SELECT task_id, status, result " "FROM celery_taskmeta " "ORDER BY id DESC LIMIT 20")
 rows = cur.fetchall()
 
 match = None
@@ -100,9 +92,7 @@ else:
     backend_id = match["backend_id"]
     worker_id = worker.get("task_id")
     expected_value = (
-        payload["bull_value"] * 0.25
-        + payload["base_value"] * 0.50
-        + payload["bear_value"] * 0.25
+        payload["bull_value"] * 0.25 + payload["base_value"] * 0.50 + payload["bear_value"] * 0.25
     )
 
     print("")
@@ -131,10 +121,7 @@ else:
     }
 
     for name, passed in checks.items():
-        print(
-            f"{name:<25}: "
-            f"{'PASS' if passed else 'FAIL'}"
-        )
+        print(f"{name:<25}: " f"{'PASS' if passed else 'FAIL'}")
 
     print("")
     print("==================================================")

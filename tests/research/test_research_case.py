@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import pytest
 from backend.research.models.research_case import ResearchCase
 from backend.research.services.research_case_service import (
     ResearchCaseService,
 )
+
 
 def test_research_case_creation() -> None:
     case = ResearchCaseService.create_case(
@@ -17,6 +17,7 @@ def test_research_case_creation() -> None:
     assert case.research_type == "Long-Term Equity"
     assert case.analyst == "EROS"
     assert case.case_id.startswith("RESEARCH-TCS.NS")
+
 
 def test_research_case_evidence_management() -> None:
     case = ResearchCaseService.create_case(
@@ -34,6 +35,7 @@ def test_research_case_evidence_management() -> None:
     assert len(case.evidence) == 1
     assert "Revenue growth remains strong" in case.evidence
 
+
 def test_research_case_thesis_update() -> None:
     case = ResearchCaseService.create_case(
         symbol="INFY.NS",
@@ -44,6 +46,7 @@ def test_research_case_thesis_update() -> None:
         "High-quality business with attractive long-term economics.",
     )
     assert "High-quality business" in case.investment_thesis
+
 
 def test_research_case_closure() -> None:
     case = ResearchCaseService.create_case(

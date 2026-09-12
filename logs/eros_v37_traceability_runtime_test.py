@@ -1,7 +1,6 @@
 import json
-import sys
-from services.eros_frontend_adapter import EROSFrontendAdapter
 
+from services.eros_frontend_adapter import EROSFrontendAdapter
 
 print("=" * 60)
 print("EROS 3.0 - V3.7 DECISION TRACEABILITY ENGINE - RUNTIME")
@@ -56,11 +55,7 @@ def check_safety(governance, prefix=""):
         actual = governance.get(field)
         ok = actual is True
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'} "
-            f"(actual={actual}, expected=True)"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=True)")
 
         if not ok:
             raise RuntimeError(f"SAFETY_FAILURE:{field}")
@@ -69,11 +64,7 @@ def check_safety(governance, prefix=""):
         actual = governance.get(field)
         ok = actual is False
 
-        print(
-            f"{field:35} : "
-            f"{'PASS' if ok else 'FAIL'} "
-            f"(actual={actual}, expected=False)"
-        )
+        print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual}, expected=False)")
 
         if not ok:
             raise RuntimeError(f"SAFETY_FAILURE:{field}")
@@ -111,30 +102,21 @@ foundation_apis = [
 ]
 
 for name in foundation_apis:
-    check(
-        hasattr(adapter, name),
-        f"{name:35}"
-    )
+    check(hasattr(adapter, name), f"{name:35}")
 
 
 print("")
 print("3. V3.7 TRACEABILITY API CHECK")
 print("-" * 60)
 
-check(
-    hasattr(adapter, "decision_traceability"),
-    "decision_traceability"
-)
+check(hasattr(adapter, "decision_traceability"), "decision_traceability")
 
 
 print("")
 print("4. BASELINE DECISION EVIDENCE")
 print("-" * 60)
 
-evidence = require_dict(
-    adapter.decision_evidence(SYMBOL),
-    "decision_evidence result"
-)
+evidence = require_dict(adapter.decision_evidence(SYMBOL), "decision_evidence result")
 
 print(json.dumps(evidence, indent=2, default=str))
 
@@ -153,21 +135,14 @@ for field in [
     "technical_indicators",
     "governance",
 ]:
-    require_field(
-        evidence,
-        field,
-        f"evidence.{field}"
-    )
+    require_field(evidence, field, f"evidence.{field}")
 
 
 print("")
 print("5. DECISION INTELLIGENCE")
 print("-" * 60)
 
-intelligence = require_dict(
-    adapter.decision_intelligence(SYMBOL),
-    "decision_intelligence result"
-)
+intelligence = require_dict(adapter.decision_intelligence(SYMBOL), "decision_intelligence result")
 
 for field in [
     "symbol",
@@ -180,11 +155,7 @@ for field in [
     "summary",
     "governance",
 ]:
-    require_field(
-        intelligence,
-        field,
-        f"intelligence.{field}"
-    )
+    require_field(intelligence, field, f"intelligence.{field}")
 
 print("DECISION INTELLIGENCE : PASS")
 
@@ -194,8 +165,7 @@ print("6. DECISION INTERPRETATION")
 print("-" * 60)
 
 interpretation_result = require_dict(
-    adapter.decision_interpretation(SYMBOL),
-    "decision_interpretation result"
+    adapter.decision_interpretation(SYMBOL), "decision_interpretation result"
 )
 
 for field in [
@@ -206,11 +176,7 @@ for field in [
     "technical_indicators",
     "governance",
 ]:
-    require_field(
-        interpretation_result,
-        field,
-        f"interpretation.{field}"
-    )
+    require_field(interpretation_result, field, f"interpretation.{field}")
 
 print("DECISION INTERPRETATION : PASS")
 
@@ -219,10 +185,7 @@ print("")
 print("7. ACTION FRAMEWORK")
 print("-" * 60)
 
-action = require_dict(
-    adapter.decision_action_framework(SYMBOL),
-    "decision_action_framework result"
-)
+action = require_dict(adapter.decision_action_framework(SYMBOL), "decision_action_framework result")
 
 for field in [
     "symbol",
@@ -234,11 +197,7 @@ for field in [
     "interpretation_summary",
     "governance",
 ]:
-    require_field(
-        action,
-        field,
-        f"action.{field}"
-    )
+    require_field(action, field, f"action.{field}")
 
 print("ACTION FRAMEWORK : PASS")
 
@@ -248,8 +207,7 @@ print("8. ACTION EXPLANATION")
 print("-" * 60)
 
 action_explanation = require_dict(
-    adapter.decision_action_explanation(SYMBOL),
-    "decision_action_explanation result"
+    adapter.decision_action_explanation(SYMBOL), "decision_action_explanation result"
 )
 
 for field in [
@@ -259,16 +217,9 @@ for field in [
     "explanation",
     "governance",
 ]:
-    require_field(
-        action_explanation,
-        field,
-        f"action_explanation.{field}"
-    )
+    require_field(action_explanation, field, f"action_explanation.{field}")
 
-explanation = require_dict(
-    action_explanation["explanation"],
-    "action_explanation.explanation"
-)
+explanation = require_dict(action_explanation["explanation"], "action_explanation.explanation")
 
 for field in [
     "primary_reason",
@@ -285,11 +236,7 @@ for field in [
     "summary",
     "execution_status",
 ]:
-    require_field(
-        explanation,
-        field,
-        f"action_explanation.explanation.{field}"
-    )
+    require_field(explanation, field, f"action_explanation.explanation.{field}")
 
 print("ACTION EXPLANATION : PASS")
 
@@ -298,10 +245,7 @@ print("")
 print("9. SCENARIO ENGINE")
 print("-" * 60)
 
-scenario = require_dict(
-    adapter.decision_scenario_engine(SYMBOL),
-    "decision_scenario_engine result"
-)
+scenario = require_dict(adapter.decision_scenario_engine(SYMBOL), "decision_scenario_engine result")
 
 for field in [
     "symbol",
@@ -313,27 +257,16 @@ for field in [
     "scenario_summary",
     "governance",
 ]:
-    require_field(
-        scenario,
-        field,
-        f"scenario.{field}"
-    )
+    require_field(scenario, field, f"scenario.{field}")
 
-scenarios = require_dict(
-    scenario["scenarios"],
-    "scenario.scenarios"
-)
+scenarios = require_dict(scenario["scenarios"], "scenario.scenarios")
 
 for name in [
     "base",
     "bull",
     "bear",
 ]:
-    require_field(
-        scenarios,
-        name,
-        f"scenario.{name}"
-    )
+    require_field(scenarios, name, f"scenario.{name}")
 
 print("SCENARIO ENGINE : PASS")
 
@@ -343,8 +276,7 @@ print("10. SCENARIO EXPLANATION")
 print("-" * 60)
 
 scenario_explanation = require_dict(
-    adapter.decision_scenario_explanation(SYMBOL),
-    "decision_scenario_explanation result"
+    adapter.decision_scenario_explanation(SYMBOL), "decision_scenario_explanation result"
 )
 
 for field in [
@@ -360,11 +292,7 @@ for field in [
     "summary",
     "governance",
 ]:
-    require_field(
-        scenario_explanation,
-        field,
-        f"scenario_explanation.{field}"
-    )
+    require_field(scenario_explanation, field, f"scenario_explanation.{field}")
 
 print("SCENARIO EXPLANATION : PASS")
 
@@ -373,10 +301,7 @@ print("")
 print("11. DECISION CONVERGENCE")
 print("-" * 60)
 
-convergence = require_dict(
-    adapter.decision_convergence(SYMBOL),
-    "decision_convergence result"
-)
+convergence = require_dict(adapter.decision_convergence(SYMBOL), "decision_convergence result")
 
 for field in [
     "symbol",
@@ -387,16 +312,9 @@ for field in [
     "conclusion",
     "governance",
 ]:
-    require_field(
-        convergence,
-        field,
-        f"convergence.{field}"
-    )
+    require_field(convergence, field, f"convergence.{field}")
 
-conv = require_dict(
-    convergence["convergence"],
-    "convergence.convergence"
-)
+conv = require_dict(convergence["convergence"], "convergence.convergence")
 
 for field in [
     "primary_scenario",
@@ -409,11 +327,7 @@ for field in [
     "supporting_drivers",
     "conflicting_signals",
 ]:
-    require_field(
-        conv,
-        field,
-        f"convergence.{field}"
-    )
+    require_field(conv, field, f"convergence.{field}")
 
 print("DECISION CONVERGENCE : PASS")
 
@@ -422,22 +336,13 @@ print("")
 print("12. V3.7 DECISION TRACEABILITY")
 print("-" * 60)
 
-trace = require_dict(
-    adapter.decision_traceability(SYMBOL),
-    "decision_traceability result"
-)
+trace = require_dict(adapter.decision_traceability(SYMBOL), "decision_traceability result")
 
 print("")
 print("TRACEABILITY RESULT")
 print("-" * 60)
 
-print(
-    json.dumps(
-        trace,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(trace, indent=2, default=str))
 
 
 print("")
@@ -452,21 +357,14 @@ trace_top_fields = [
 ]
 
 for field in trace_top_fields:
-    require_field(
-        trace,
-        field,
-        f"traceability.{field}"
-    )
+    require_field(trace, field, f"traceability.{field}")
 
 
 print("")
 print("14. TRACEABILITY CORE STRUCTURE")
 print("-" * 60)
 
-trace_body = require_dict(
-    trace["traceability"],
-    "traceability.traceability"
-)
+trace_body = require_dict(trace["traceability"], "traceability.traceability")
 
 trace_fields = [
     "evidence",
@@ -482,11 +380,7 @@ trace_fields = [
 ]
 
 for field in trace_fields:
-    require_field(
-        trace_body,
-        field,
-        f"traceability.core.{field}"
-    )
+    require_field(trace_body, field, f"traceability.core.{field}")
 
 
 print("")
@@ -495,23 +389,14 @@ print("-" * 60)
 
 chain = trace_body["decision_chain"]
 
-check(
-    isinstance(chain, list),
-    "decision_chain is list"
-)
+check(isinstance(chain, list), "decision_chain is list")
 
-check(
-    len(chain) >= 1,
-    "decision_chain is non-empty"
-)
+check(len(chain) >= 1, "decision_chain is non-empty")
 
 print("CHAIN LENGTH :", len(chain))
 
 for index, item in enumerate(chain, start=1):
-    print(
-        f"TRACE STEP {index:02d} : "
-        f"{json.dumps(item, default=str)}"
-    )
+    print(f"TRACE STEP {index:02d} : " f"{json.dumps(item, default=str)}")
 
 
 print("")
@@ -520,15 +405,9 @@ print("-" * 60)
 
 summary = trace_body["traceability_summary"]
 
-check(
-    isinstance(summary, str),
-    "traceability_summary is string"
-)
+check(isinstance(summary, str), "traceability_summary is string")
 
-check(
-    bool(summary.strip()),
-    "traceability_summary is non-empty"
-)
+check(bool(summary.strip()), "traceability_summary is non-empty")
 
 print("SUMMARY :")
 print(summary)
@@ -551,10 +430,7 @@ outputs = [
 ]
 
 for index, output in enumerate(outputs, start=1):
-    check(
-        output.get("symbol") == SYMBOL,
-        f"output_{index:02d}.symbol"
-    )
+    check(output.get("symbol") == SYMBOL, f"output_{index:02d}.symbol")
 
 
 print("")
@@ -564,10 +440,7 @@ print("-" * 60)
 reference_price = evidence.get("price")
 
 for index, output in enumerate(outputs, start=1):
-    check(
-        output.get("price") == reference_price,
-        f"output_{index:02d}.price"
-    )
+    check(output.get("price") == reference_price, f"output_{index:02d}.price")
 
 print("REFERENCE PRICE :", reference_price)
 
@@ -578,21 +451,13 @@ print("-" * 60)
 
 evidence_recommendation = evidence.get("recommendation")
 
-intelligence_recommendation = (
-    intelligence.get("decision", {}).get("recommendation")
-)
+intelligence_recommendation = intelligence.get("decision", {}).get("recommendation")
 
-interpretation_recommendation = (
-    interpretation_result.get("decision", {}).get("recommendation")
-)
+interpretation_recommendation = interpretation_result.get("decision", {}).get("recommendation")
 
-action_recommendation = (
-    action.get("action", {}).get("recommendation")
-)
+action_recommendation = action.get("action", {}).get("recommendation")
 
-convergence_recommendation = (
-    convergence.get("decision", {}).get("recommendation")
-)
+convergence_recommendation = convergence.get("decision", {}).get("recommendation")
 
 trace_decision = trace_body.get("evidence", {})
 
@@ -608,7 +473,7 @@ check(
     == interpretation_recommendation
     == action_recommendation
     == convergence_recommendation,
-    "recommendation consistency"
+    "recommendation consistency",
 )
 
 
@@ -629,15 +494,9 @@ governance_outputs = [
 ]
 
 for name, governance in governance_outputs:
-    check(
-        isinstance(governance, dict),
-        f"{name}.governance"
-    )
+    check(isinstance(governance, dict), f"{name}.governance")
 
-    check_safety(
-        governance,
-        prefix=f"{name.upper()} "
-    )
+    check_safety(governance, prefix=f"{name.upper()} ")
 
 
 print("")
@@ -662,45 +521,21 @@ print("")
 print("23. FINAL TRACEABILITY ASSERTIONS")
 print("-" * 60)
 
-check(
-    trace.get("symbol") == SYMBOL,
-    "trace symbol"
-)
+check(trace.get("symbol") == SYMBOL, "trace symbol")
 
-check(
-    trace.get("price") == reference_price,
-    "trace price"
-)
+check(trace.get("price") == reference_price, "trace price")
 
-check(
-    isinstance(trace_body, dict),
-    "traceability object"
-)
+check(isinstance(trace_body, dict), "traceability object")
 
-check(
-    isinstance(trace_body.get("decision_chain"), list),
-    "decision chain"
-)
+check(isinstance(trace_body.get("decision_chain"), list), "decision chain")
 
-check(
-    bool(trace_body.get("traceability_summary")),
-    "traceability summary"
-)
+check(bool(trace_body.get("traceability_summary")), "traceability summary")
 
-check(
-    trace_governance.get("read_only") is True,
-    "trace read_only"
-)
+check(trace_governance.get("read_only") is True, "trace read_only")
 
-check(
-    trace_governance.get("execution_blocked") is True,
-    "trace execution_blocked"
-)
+check(trace_governance.get("execution_blocked") is True, "trace execution_blocked")
 
-check(
-    trace_governance.get("non_mutation_invariant") is True,
-    "trace non_mutation_invariant"
-)
+check(trace_governance.get("non_mutation_invariant") is True, "trace non_mutation_invariant")
 
 
 print("")

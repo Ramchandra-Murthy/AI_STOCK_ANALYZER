@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.memory.models import ResearchMemory
 from services.memory.memory_engine import KnowledgeMemoryEngine
+from services.memory.models import ResearchMemory
+
 
 def test_research_memory_immutability() -> None:
     mem = ResearchMemory(
@@ -12,12 +12,13 @@ def test_research_memory_immutability() -> None:
         committee_decision="BUY",
         valuation_snapshot={"dcf_value": 3200.0},
         forecast_snapshot={"eps": 110.0},
-        thesis="Digital compounding"
+        thesis="Digital compounding",
     )
     assert mem.symbol == "RELIANCE.NS"
     assert mem.committee_decision == "BUY"
     assert mem.timestamp is not None
     assert isinstance(mem.metadata, dict)
+
 
 def test_knowledge_memory_engine() -> None:
     mem1 = ResearchMemory(
@@ -27,7 +28,7 @@ def test_knowledge_memory_engine() -> None:
         committee_decision="BUY",
         valuation_snapshot={"dcf_value": 3000.0},
         forecast_snapshot={"eps": 100.0},
-        thesis="Compounder"
+        thesis="Compounder",
     )
     mem2 = ResearchMemory(
         symbol="RELIANCE.NS",
@@ -36,7 +37,7 @@ def test_knowledge_memory_engine() -> None:
         committee_decision="BUY",
         valuation_snapshot={"dcf_value": 3500.0},
         forecast_snapshot={"eps": 125.0},
-        thesis="Compounder accelerated"
+        thesis="Compounder accelerated",
     )
 
     KnowledgeMemoryEngine.store_memory(mem1)

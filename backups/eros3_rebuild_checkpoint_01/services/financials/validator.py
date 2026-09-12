@@ -98,9 +98,7 @@ def validate_financial_statements(
     # Accounting Equation
     # ------------------------------------------------------
 
-    difference = abs(
-        balance.total_assets - (balance.total_liabilities + balance.total_equity)
-    )
+    difference = abs(balance.total_assets - (balance.total_liabilities + balance.total_equity))
 
     if difference > ACCOUNTING_TOLERANCE:
         raise ValueError(

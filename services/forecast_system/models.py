@@ -1,8 +1,9 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List
 from datetime import datetime
+from typing import Any
+
 
 @dataclass(frozen=True)
 class ForecastResult:
@@ -15,6 +16,6 @@ class ForecastResult:
     bull_case_eps: float
     base_case_eps: float
     bear_case_eps: float
-    key_assumptions: List[str]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    key_assumptions: list[str]
+    metadata: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())

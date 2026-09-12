@@ -23,10 +23,7 @@ print("=" * 80)
 
 for block in blocks:
 
-    files = [
-        p for p in ROOT.glob(f"block{block}_*.py")
-        if "test_harness" not in p.name
-    ]
+    files = [p for p in ROOT.glob(f"block{block}_*.py") if "test_harness" not in p.name]
 
     print()
     print("=" * 80)
@@ -45,11 +42,7 @@ for block in blocks:
 
     for key in keys:
 
-        hits = [
-            (i, line.strip())
-            for i, line in enumerate(lines, 1)
-            if key in line
-        ]
+        hits = [(i, line.strip()) for i, line in enumerate(lines, 1) if key in line]
 
         if hits:
             print()

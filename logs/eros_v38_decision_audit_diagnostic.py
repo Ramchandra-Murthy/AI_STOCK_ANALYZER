@@ -4,7 +4,6 @@ import traceback
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 60)
 print("EROS 3.0 - V3.8 DECISION AUDIT FAILURE DIAGNOSTIC")
 print("=" * 60)
@@ -56,33 +55,22 @@ required = [
 for name in required:
     ok = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_API:{name}"
-        )
+        raise RuntimeError(f"MISSING_API:{name}")
 
 
 print("\n4. DECISION AUDIT METHOD")
 print("-" * 60)
 
-method = getattr(
-    adapter,
-    "decision_audit",
-    None
-)
+method = getattr(adapter, "decision_audit", None)
 
 print("METHOD OBJECT :", method)
 print("METHOD TYPE   :", type(method).__name__)
 
 if method is None:
-    raise RuntimeError(
-        "DECISION_AUDIT_METHOD_MISSING"
-    )
+    raise RuntimeError("DECISION_AUDIT_METHOD_MISSING")
 
 
 print("\n5. EXECUTION TARGET")
@@ -124,9 +112,7 @@ if not isinstance(result, dict):
     print("RESULT DICT : FAIL")
     print("ACTUAL TYPE :", type(result).__name__)
 
-    raise RuntimeError(
-        "DECISION_AUDIT_RESULT_NOT_DICT"
-    )
+    raise RuntimeError("DECISION_AUDIT_RESULT_NOT_DICT")
 
 print("RESULT DICT : PASS")
 
@@ -136,13 +122,7 @@ print("-" * 60)
 
 try:
 
-    print(
-        json.dumps(
-            result,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(result, indent=2, default=str))
 
 except Exception as exc:
 
@@ -156,10 +136,7 @@ print("-" * 60)
 
 for key, value in result.items():
 
-    print(
-        f"{str(key):35} : "
-        f"{type(value).__name__}"
-    )
+    print(f"{str(key):35} : " f"{type(value).__name__}")
 
 
 print("\n10. TOP LEVEL SCHEMA DISCOVERY")
@@ -184,10 +161,7 @@ for field in [
 
     present = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PRESENT' if present else 'ABSENT'}"
-    )
+    print(f"{field:35} : " f"{'PRESENT' if present else 'ABSENT'}")
 
 
 print("\n11. DECISION OBJECT INSPECTION")
@@ -201,17 +175,11 @@ if isinstance(decision, dict):
 
     for key, value in decision.items():
 
-        print(
-            f"{str(key):35} : "
-            f"{type(value).__name__} = {value}"
-        )
+        print(f"{str(key):35} : " f"{type(value).__name__} = {value}")
 
 else:
 
-    print(
-        "DECISION :",
-        type(decision).__name__
-    )
+    print("DECISION :", type(decision).__name__)
 
 
 print("\n12. AUDIT OBJECT INSPECTION")
@@ -232,23 +200,11 @@ for audit_key in [
 
     if isinstance(value, dict):
 
-        print(
-            json.dumps(
-                value,
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(value, indent=2, default=str))
 
     elif isinstance(value, list):
 
-        print(
-            json.dumps(
-                value,
-                indent=2,
-                default=str
-            )
-        )
+        print(json.dumps(value, indent=2, default=str))
 
     else:
 
@@ -260,25 +216,13 @@ print("-" * 60)
 
 traceability = result.get("traceability")
 
-print(
-    "TRACEABILITY PRESENT :",
-    traceability is not None
-)
+print("TRACEABILITY PRESENT :", traceability is not None)
 
-print(
-    "TRACEABILITY TYPE    :",
-    type(traceability).__name__
-)
+print("TRACEABILITY TYPE    :", type(traceability).__name__)
 
 if isinstance(traceability, dict):
 
-    print(
-        json.dumps(
-            traceability,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(traceability, indent=2, default=str))
 
 
 print("\n14. LEGACY TRACE INSPECTION")
@@ -286,147 +230,83 @@ print("-" * 60)
 
 legacy_trace = result.get("trace")
 
-print(
-    "TRACE PRESENT :",
-    legacy_trace is not None
-)
+print("TRACE PRESENT :", legacy_trace is not None)
 
-print(
-    "TRACE TYPE    :",
-    type(legacy_trace).__name__
-)
+print("TRACE TYPE    :", type(legacy_trace).__name__)
 
 if isinstance(legacy_trace, dict):
 
-    print(
-        json.dumps(
-            legacy_trace,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(legacy_trace, indent=2, default=str))
 
 
 print("\n15. EVIDENCE CHAIN INSPECTION")
 print("-" * 60)
 
-evidence_chain = result.get(
-    "evidence_chain"
-)
+evidence_chain = result.get("evidence_chain")
 
-print(
-    "EVIDENCE CHAIN PRESENT :",
-    evidence_chain is not None
-)
+print("EVIDENCE CHAIN PRESENT :", evidence_chain is not None)
 
-print(
-    "EVIDENCE CHAIN TYPE    :",
-    type(evidence_chain).__name__
-)
+print("EVIDENCE CHAIN TYPE    :", type(evidence_chain).__name__)
 
 if isinstance(evidence_chain, dict):
 
     for key, value in evidence_chain.items():
 
-        print(
-            f"{str(key):35} : "
-            f"{type(value).__name__}"
-        )
+        print(f"{str(key):35} : " f"{type(value).__name__}")
 
 
 print("\n16. SCENARIO TRACE INSPECTION")
 print("-" * 60)
 
-scenario_trace = result.get(
-    "scenario_trace"
-)
+scenario_trace = result.get("scenario_trace")
 
-print(
-    "SCENARIO TRACE PRESENT :",
-    scenario_trace is not None
-)
+print("SCENARIO TRACE PRESENT :", scenario_trace is not None)
 
-print(
-    "SCENARIO TRACE TYPE    :",
-    type(scenario_trace).__name__
-)
+print("SCENARIO TRACE TYPE    :", type(scenario_trace).__name__)
 
 if isinstance(scenario_trace, dict):
 
     for key, value in scenario_trace.items():
 
-        print(
-            f"{str(key):35} : "
-            f"{type(value).__name__}"
-        )
+        print(f"{str(key):35} : " f"{type(value).__name__}")
 
 
 print("\n17. INTERPRETATION INSPECTION")
 print("-" * 60)
 
-interpretation = result.get(
-    "interpretation"
-)
+interpretation = result.get("interpretation")
 
-print(
-    "INTERPRETATION PRESENT :",
-    interpretation is not None
-)
+print("INTERPRETATION PRESENT :", interpretation is not None)
 
-print(
-    "INTERPRETATION TYPE    :",
-    type(interpretation).__name__
-)
+print("INTERPRETATION TYPE    :", type(interpretation).__name__)
 
 if isinstance(interpretation, dict):
 
     for key, value in interpretation.items():
 
-        print(
-            f"{str(key):35} : "
-            f"{type(value).__name__} = {value}"
-        )
+        print(f"{str(key):35} : " f"{type(value).__name__} = {value}")
 
 
 print("\n18. CONCLUSION")
 print("-" * 60)
 
-conclusion = result.get(
-    "conclusion"
-)
+conclusion = result.get("conclusion")
 
-print(
-    "CONCLUSION TYPE  :",
-    type(conclusion).__name__
-)
+print("CONCLUSION TYPE  :", type(conclusion).__name__)
 
-print(
-    "CONCLUSION VALUE :",
-    conclusion
-)
+print("CONCLUSION VALUE :", conclusion)
 
 
 print("\n19. GOVERNANCE")
 print("-" * 60)
 
-governance = result.get(
-    "governance"
-)
+governance = result.get("governance")
 
-print(
-    "GOVERNANCE TYPE :",
-    type(governance).__name__
-)
+print("GOVERNANCE TYPE :", type(governance).__name__)
 
 if isinstance(governance, dict):
 
-    print(
-        json.dumps(
-            governance,
-            indent=2,
-            default=str
-        )
-    )
+    print(json.dumps(governance, indent=2, default=str))
 
 
 print("\n20. SAFETY CONTRACT")
@@ -461,7 +341,6 @@ if isinstance(governance, dict):
             f"(actual={actual}, expected=True)"
         )
 
-
     for field in expected_false:
 
         actual = governance.get(field)
@@ -474,9 +353,7 @@ if isinstance(governance, dict):
 
 else:
 
-    print(
-        "GOVERNANCE : NOT A DICT"
-    )
+    print("GOVERNANCE : NOT A DICT")
 
 
 print("\n21. AUDIT SEMANTIC DISCOVERY")
@@ -511,69 +388,39 @@ for field in possible_audit_fields:
 
         value = result[field]
 
-        print(
-            f"{field:35} : "
-            f"PRESENT / {type(value).__name__}"
-        )
+        print(f"{field:35} : " f"PRESENT / {type(value).__name__}")
 
     else:
 
-        print(
-            f"{field:35} : ABSENT"
-        )
+        print(f"{field:35} : ABSENT")
 
 
 print("\n22. OBJECT CONSISTENCY CHECK")
 print("-" * 60)
 
-print(
-    "RESULT IS DICT       :",
-    isinstance(result, dict)
-)
+print("RESULT IS DICT       :", isinstance(result, dict))
 
-print(
-    "DECISION IS DICT     :",
-    isinstance(result.get("decision"), dict)
-)
+print("DECISION IS DICT     :", isinstance(result.get("decision"), dict))
 
-print(
-    "TRACE IS DICT        :",
-    isinstance(result.get("trace"), dict)
-)
+print("TRACE IS DICT        :", isinstance(result.get("trace"), dict))
 
-print(
-    "TRACEABILITY IS DICT :",
-    isinstance(result.get("traceability"), dict)
-)
+print("TRACEABILITY IS DICT :", isinstance(result.get("traceability"), dict))
 
-print(
-    "GOVERNANCE IS DICT   :",
-    isinstance(result.get("governance"), dict)
-)
+print("GOVERNANCE IS DICT   :", isinstance(result.get("governance"), dict))
 
 
 print("\n23. NO-MUTATION ASSERTION")
 print("-" * 60)
 
-print(
-    "READ-ONLY RESULT INSPECTION : PASS"
-)
+print("READ-ONLY RESULT INSPECTION : PASS")
 
-print(
-    "NO DATABASE WRITE            : EXPECTED"
-)
+print("NO DATABASE WRITE            : EXPECTED")
 
-print(
-    "NO ORDER CREATION            : EXPECTED"
-)
+print("NO ORDER CREATION            : EXPECTED")
 
-print(
-    "NO BROKER SUBMISSION         : EXPECTED"
-)
+print("NO BROKER SUBMISSION         : EXPECTED")
 
-print(
-    "NO LIVE EXECUTION            : EXPECTED"
-)
+print("NO LIVE EXECUTION            : EXPECTED")
 
 
 print("\n============================================================")

@@ -1,6 +1,7 @@
 ﻿from services.financials.parser import parse_financial_statements, repository
 from services.valuation.blended_engine import BlendedValuationEngine
 
+
 def test_blended_valuation_engine() -> None:
     engine = BlendedValuationEngine()
 

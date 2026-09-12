@@ -1,17 +1,22 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Dict, Any, List
+
 from services.backtesting.models import BacktestResult
 
 logger = logging.getLogger(__name__)
+
 
 class BacktestingEngine:
     """Executes rigorous historical backtests and institutional performance analytics (CAGR, Sharpe, Drawdown, Alpha, Beta)."""
 
     @staticmethod
     def run_backtest(strategy_name: str, initial_capital: float = 1000000.0) -> BacktestResult:
-        logger.info("Running institutional backtest for strategy '%s' with initial capital %.2f", strategy_name, initial_capital)
+        logger.info(
+            "Running institutional backtest for strategy '%s' with initial capital %.2f",
+            strategy_name,
+            initial_capital,
+        )
 
         cagr = 0.175
         sharpe = 1.35
@@ -30,7 +35,7 @@ class BacktestingEngine:
             "information_ratio": info_ratio,
             "win_rate": win_rate,
             "sortino_ratio": 1.55,
-            "treynor_ratio": 0.18
+            "treynor_ratio": 0.18,
         }
 
         return BacktestResult(
@@ -42,5 +47,5 @@ class BacktestingEngine:
             beta=beta,
             information_ratio=info_ratio,
             win_rate=win_rate,
-            metrics=metrics
+            metrics=metrics,
         )

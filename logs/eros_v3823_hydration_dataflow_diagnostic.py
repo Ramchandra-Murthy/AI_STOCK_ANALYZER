@@ -26,6 +26,7 @@ print("-" * 70)
 
 try:
     from services.eros_frontend_adapter import EROSFrontendAdapter
+
     print("IMPORT : PASS")
     print("CLASS  :", EROSFrontendAdapter.__name__)
 except Exception:
@@ -93,26 +94,14 @@ for name in api_names:
                 value = result[key]
 
                 if isinstance(value, dict):
-                    print(
-                        f"{key:25} : DICT "
-                        f"({len(value)} keys)"
-                    )
-                    print(
-                        f"{'':25}   "
-                        f"keys={list(value.keys())[:20]}"
-                    )
+                    print(f"{key:25} : DICT " f"({len(value)} keys)")
+                    print(f"{'':25}   " f"keys={list(value.keys())[:20]}")
 
                 elif isinstance(value, list):
-                    print(
-                        f"{key:25} : LIST "
-                        f"({len(value)} items)"
-                    )
+                    print(f"{key:25} : LIST " f"({len(value)} items)")
 
                 else:
-                    print(
-                        f"{key:25} : "
-                        f"{type(value).__name__} = {value!r}"
-                    )
+                    print(f"{key:25} : " f"{type(value).__name__} = {value!r}")
 
         else:
             print("VALUE     :", repr(result)[:2000])
@@ -158,16 +147,10 @@ for name, result in results.items():
         value = result[key]
 
         if isinstance(value, dict):
-            print(
-                f"  {key:22} : "
-                f"DICT keys={len(value)}"
-            )
+            print(f"  {key:22} : " f"DICT keys={len(value)}")
 
         elif isinstance(value, list):
-            print(
-                f"  {key:22} : "
-                f"LIST items={len(value)}"
-            )
+            print(f"  {key:22} : " f"LIST items={len(value)}")
 
         elif value is None:
             print(f"  {key:22} : NONE")
@@ -176,10 +159,7 @@ for name, result in results.items():
             print(f"  {key:22} : EMPTY STRING")
 
         else:
-            print(
-                f"  {key:22} : "
-                f"{type(value).__name__}"
-            )
+            print(f"  {key:22} : " f"{type(value).__name__}")
 
 
 print("\n" + "=" * 70)
@@ -276,68 +256,32 @@ print("=" * 70)
 
 if isinstance(trace_result, dict):
 
-    print(
-        "TRACEABILITY decision:",
-        bool(trace_result.get("decision"))
-    )
+    print("TRACEABILITY decision:", bool(trace_result.get("decision")))
 
-    print(
-        "TRACEABILITY evidence_chain:",
-        bool(trace_result.get("evidence_chain"))
-    )
+    print("TRACEABILITY evidence_chain:", bool(trace_result.get("evidence_chain")))
 
-    print(
-        "TRACEABILITY scenario_trace:",
-        bool(trace_result.get("scenario_trace"))
-    )
+    print("TRACEABILITY scenario_trace:", bool(trace_result.get("scenario_trace")))
 
-    print(
-        "TRACEABILITY interpretation:",
-        bool(trace_result.get("interpretation"))
-    )
+    print("TRACEABILITY interpretation:", bool(trace_result.get("interpretation")))
 
-    print(
-        "TRACEABILITY trace:",
-        bool(trace_result.get("trace"))
-    )
+    print("TRACEABILITY trace:", bool(trace_result.get("trace")))
 
 if isinstance(audit, dict):
 
-    print(
-        "AUDIT decision:",
-        bool(audit.get("decision"))
-    )
+    print("AUDIT decision:", bool(audit.get("decision")))
 
-    print(
-        "AUDIT evidence_chain:",
-        bool(audit.get("evidence_chain"))
-    )
+    print("AUDIT evidence_chain:", bool(audit.get("evidence_chain")))
 
-    print(
-        "AUDIT scenario_trace:",
-        bool(audit.get("scenario_trace"))
-    )
+    print("AUDIT scenario_trace:", bool(audit.get("scenario_trace")))
 
-    print(
-        "AUDIT interpretation:",
-        bool(audit.get("interpretation"))
-    )
+    print("AUDIT interpretation:", bool(audit.get("interpretation")))
 
-    print(
-        "AUDIT trace:",
-        bool(audit.get("trace"))
-    )
+    print("AUDIT trace:", bool(audit.get("trace")))
 
-    print(
-        "AUDIT status:",
-        audit.get("audit_status")
-    )
+    print("AUDIT status:", audit.get("audit_status"))
 
 print("\n" + "=" * 70)
 print("V3.8.2.3 DIAGNOSTIC COMPLETE")
 print("=" * 70)
 
-print(
-    "\nNO SOURCE PATCH PERFORMED."
-)
-
+print("\nNO SOURCE PATCH PERFORMED.")

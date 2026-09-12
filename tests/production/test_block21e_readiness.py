@@ -1,4 +1,8 @@
-﻿from services.production.readiness_report import ProductionReadinessEngine, ProductionReadinessReport
+﻿from services.production.readiness_report import (
+    ProductionReadinessEngine,
+    ProductionReadinessReport,
+)
+
 
 def test_block21e_production_readiness():
     report = ProductionReadinessEngine.evaluate_readiness()

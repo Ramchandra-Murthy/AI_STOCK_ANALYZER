@@ -1,16 +1,16 @@
-﻿from pathlib import Path
-import subprocess
+﻿import subprocess
+from pathlib import Path
 
-SOURCE = Path(
-    r"services\quantitative\block99_execution_intent_authorization_gate.py"
-)
+SOURCE = Path(r"services\quantitative\block99_execution_intent_authorization_gate.py")
 
 output = []
+
 
 def p(text=""):
     text = str(text)
     print(text)
     output.append(text)
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 99 READ-ONLY RETURN / SAFETY CONTRACT TRACE")
@@ -24,9 +24,7 @@ if not SOURCE.exists():
     p("SOURCE ERROR: FILE NOT FOUND")
 else:
 
-    source = SOURCE.read_text(
-        encoding="utf-8-sig"
-    )
+    source = SOURCE.read_text(encoding="utf-8-sig")
 
     lines = source.splitlines()
 
@@ -105,10 +103,7 @@ else:
     try:
         import ast
 
-        ast.parse(
-            source,
-            filename=str(SOURCE)
-        )
+        ast.parse(source, filename=str(SOURCE))
 
         p("AST PARSE : PASS")
 
@@ -173,4 +168,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

@@ -13,37 +13,23 @@ print("=" * 58)
 print()
 print("1. REDIS-RELATED REFERENCES")
 for i, line in enumerate(text.splitlines(), 1):
-    if any(x in line.lower() for x in [
-        "redis",
-        "get_redis",
-        "idempotency",
-        "request_id"
-    ]):
+    if any(x in line.lower() for x in ["redis", "get_redis", "idempotency", "request_id"]):
         print(f"{i}: {line}")
 
 print()
 print("2. CLASS METHODS")
-match = re.search(
-    r"class TaskControlService.*?(?=\nclass |\Z)",
-    text,
-    re.S
-)
+match = re.search(r"class TaskControlService.*?(?=\nclass |\Z)", text, re.S)
 
 if match:
     class_text = match.group(0)
 
-    methods = re.findall(
-        r"^\s+(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(",
-        class_text,
-        re.M
-    )
+    methods = re.findall(r"^\s+(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", class_text, re.M)
 
     for method in methods:
         print(method)
 
     print()
-    print("HAS _get_redis_client:",
-          "_get_redis_client" in methods)
+    print("HAS _get_redis_client:", "_get_redis_client" in methods)
 
 print()
 print("3. IMPORTS")

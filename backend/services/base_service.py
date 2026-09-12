@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
+
 from sqlalchemy.orm import Session
+
 from backend.exceptions import ServiceError, ValidationError
 
 logger = logging.getLogger(__name__)
+
 
 class BaseService:
     """Enterprise Base Service providing standardized logging, timing, validation hooks, and transaction boundaries."""
@@ -14,7 +18,9 @@ class BaseService:
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def execute_with_lifecycle(self, operation_name: str, action: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+    def execute_with_lifecycle(
+        self, operation_name: str, action: Callable[..., Any], *args: Any, **kwargs: Any
+    ) -> Any:
         start_time = time.perf_counter()
         self.logger.info("START: %s", operation_name)
         try:

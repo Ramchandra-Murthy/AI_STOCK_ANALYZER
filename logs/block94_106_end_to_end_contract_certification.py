@@ -1,6 +1,4 @@
-import json
 import traceback
-from datetime import datetime, timezone
 
 print("=" * 90)
 print("EROS 3.0 - BLOCK 94 -> 106 END-TO-END CONTRACT CERTIFICATION")
@@ -16,18 +14,17 @@ print("")
 results = []
 objects = {}
 
+
 def section(title):
     print()
     print("=" * 90)
     print(title)
     print("=" * 90)
 
+
 def record(block, status, details=""):
-    results.append({
-        "block": block,
-        "status": status,
-        "details": details
-    })
+    results.append({"block": block, "status": status, "details": details})
+
 
 def inspect_output(block, output):
     print()
@@ -57,6 +54,7 @@ def inspect_output(block, output):
 
     else:
         print("VALUE  :", repr(output)[:2000])
+
 
 def safety_check(block, output):
     failures = []
@@ -96,9 +94,7 @@ def safety_check(block, output):
     for key in required_true:
         value = get_field(key)
         if value is not True:
-            failures.append(
-                f"{key} expected True, got {value!r}"
-            )
+            failures.append(f"{key} expected True, got {value!r}")
 
     for key in required_false:
         value = get_field(key)
@@ -106,15 +102,12 @@ def safety_check(block, output):
         # Some legacy blocks may not expose every field.
         # Report absence separately rather than silently passing.
         if value is None:
-            failures.append(
-                f"{key} ABSENT"
-            )
+            failures.append(f"{key} ABSENT")
         elif value is not False:
-            failures.append(
-                f"{key} expected False, got {value!r}"
-            )
+            failures.append(f"{key} expected False, got {value!r}")
 
     return failures
+
 
 try:
 
@@ -125,51 +118,30 @@ try:
     section("1. IMPORT VERIFICATION")
 
     from services.quantitative.block94_portfolio_stress_scenario_engine import (
-        EROSBlock94PortfolioStressScenarioEngine
+        EROSBlock94PortfolioStressScenarioEngine,
     )
-
-    from services.quantitative.block95_stress_evidence_gate import (
-        EROSBlock95StressEvidenceGate
-    )
-
-    from services.quantitative.block96_stress_decision_gate import (
-        EROSBlock96StressDecisionGate
-    )
-
-    from services.quantitative.block97_stress_readiness_gate import (
-        EROSBlock97StressReadinessGate
-    )
-
+    from services.quantitative.block95_stress_evidence_gate import EROSBlock95StressEvidenceGate
+    from services.quantitative.block96_stress_decision_gate import EROSBlock96StressDecisionGate
+    from services.quantitative.block97_stress_readiness_gate import EROSBlock97StressReadinessGate
     from services.quantitative.block98_execution_governance_bridge import (
-        EROSBlock98ExecutionGovernanceBridge
+        EROSBlock98ExecutionGovernanceBridge,
     )
-
     from services.quantitative.block99_execution_intent_authorization_gate import (
-        EROSBlock99ExecutionIntentAuthorizationGate
+        EROSBlock99ExecutionIntentAuthorizationGate,
     )
-
     from services.quantitative.block100_paper_execution_fill_gate import (
-        EROSBlock100PaperExecutionFillGate
+        EROSBlock100PaperExecutionFillGate,
     )
-
     from services.quantitative.block101_execution_evidence_reconciliation import (
-        EROSBlock101ExecutionEvidenceReconciliationGate
+        EROSBlock101ExecutionEvidenceReconciliationGate,
     )
-
-    from services.quantitative.block102_frontend_contract import (
-        EROSBlock102FrontendContract
-    )
-
+    from services.quantitative.block102_frontend_contract import EROSBlock102FrontendContract
     from services.quantitative.block103_institutional_frontend_read_model import (
-        EROSBlock103InstitutionalFrontendReadModel
+        EROSBlock103InstitutionalFrontendReadModel,
     )
-
-    from services.quantitative.block104_eros_command_center import (
-        EROSBlock104CommandCenter
-    )
-
+    from services.quantitative.block104_eros_command_center import EROSBlock104CommandCenter
     from services.quantitative.block106_institutional_integration_boundary import (
-        EROSBlock106InstitutionalIntegrationBoundary
+        EROSBlock106InstitutionalIntegrationBoundary,
     )
 
     print("ALL IMPORTS : PASS")
@@ -261,9 +233,7 @@ try:
     b95 = EROSBlock95StressEvidenceGate()
     objects["95"] = b95
 
-    out95 = b95.certify(
-        stress_certificate=out94
-    )
+    out95 = b95.certify(stress_certificate=out94)
 
     inspect_output("BLOCK 95", out95)
 
@@ -283,9 +253,7 @@ try:
     b96 = EROSBlock96StressDecisionGate()
     objects["96"] = b96
 
-    out96 = b96.certify(
-        stress_gate=out95
-    )
+    out96 = b96.certify(stress_gate=out95)
 
     inspect_output("BLOCK 96", out96)
 
@@ -305,9 +273,7 @@ try:
     b97 = EROSBlock97StressReadinessGate()
     objects["97"] = b97
 
-    out97 = b97.certify(
-        decision=out96
-    )
+    out97 = b97.certify(decision=out96)
 
     inspect_output("BLOCK 97", out97)
 
@@ -327,9 +293,7 @@ try:
     b98 = EROSBlock98ExecutionGovernanceBridge()
     objects["98"] = b98
 
-    out98 = b98.certify(
-        decision=out97
-    )
+    out98 = b98.certify(decision=out97)
 
     inspect_output("BLOCK 98", out98)
 
@@ -349,9 +313,7 @@ try:
     b99 = EROSBlock99ExecutionIntentAuthorizationGate()
     objects["99"] = b99
 
-    out99 = b99.certify(
-        governance=out98
-    )
+    out99 = b99.certify(governance=out98)
 
     inspect_output("BLOCK 99", out99)
 
@@ -371,10 +333,7 @@ try:
     b100 = EROSBlock100PaperExecutionFillGate()
     objects["100"] = b100
 
-    out100 = b100.certify(
-        intent=out99,
-        fill_ratio=1.0
-    )
+    out100 = b100.certify(intent=out99, fill_ratio=1.0)
 
     inspect_output("BLOCK 100", out100)
 
@@ -394,9 +353,7 @@ try:
     b101 = EROSBlock101ExecutionEvidenceReconciliationGate()
     objects["101"] = b101
 
-    out101 = b101.certify(
-        execution=out100
-    )
+    out101 = b101.certify(execution=out100)
 
     inspect_output("BLOCK 101", out101)
 
@@ -440,9 +397,7 @@ try:
     b103 = EROSBlock103InstitutionalFrontendReadModel()
     objects["103"] = b103
 
-    out103 = b103.build(
-        contract=out102
-    )
+    out103 = b103.build(contract=out102)
 
     inspect_output("BLOCK 103", out103)
 
@@ -457,9 +412,7 @@ try:
     b104 = EROSBlock104CommandCenter()
     objects["104"] = b104
 
-    out104 = b104.render_model(
-        read_model=out103
-    )
+    out104 = b104.render_model(read_model=out103)
 
     inspect_output("BLOCK 104", out104)
 
@@ -474,9 +427,7 @@ try:
     b106 = EROSBlock106InstitutionalIntegrationBoundary()
     objects["106"] = b106
 
-    out106 = b106.build_integration_payload(
-        command_center=out104
-    )
+    out106 = b106.build_integration_payload(command_center=out104)
 
     inspect_output("BLOCK 106", out106)
 
@@ -534,10 +485,7 @@ try:
     section("16. END-TO-END CHAIN SUMMARY")
 
     for item in results:
-        print(
-            f"BLOCK {item['block']:>3} | "
-            f"{item['status']}"
-        )
+        print(f"BLOCK {item['block']:>3} | " f"{item['status']}")
 
         if item["details"]:
             print("        ", item["details"])
@@ -617,4 +565,3 @@ finally:
     print("=" * 90)
     print("EROS 3.0 - END-TO-END CONTRACT CERTIFICATION COMPLETE")
     print("=" * 90)
-

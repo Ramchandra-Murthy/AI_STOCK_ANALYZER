@@ -19,9 +19,7 @@ def show_edit_holding_form(df):
 
     row = df[df["id"] == selected_id].iloc[0]
 
-    quantity = st.number_input(
-        "Quantity", min_value=1, value=int(row["quantity"]), step=1
-    )
+    quantity = st.number_input("Quantity", min_value=1, value=int(row["quantity"]), step=1)
 
     buy_price = st.number_input(
         "Buy Price (₹)",

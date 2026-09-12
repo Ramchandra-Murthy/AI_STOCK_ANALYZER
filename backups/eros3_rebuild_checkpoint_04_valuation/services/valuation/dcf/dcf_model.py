@@ -114,9 +114,7 @@ class DCFModel:
         # Equity Bridge
         # ------------------------------------------
 
-        equity_value = (
-            enterprise_value - self.data.total_debt + self.data.cash_and_equivalents
-        )
+        equity_value = enterprise_value - self.data.total_debt + self.data.cash_and_equivalents
 
         implied_share_price = equity_value / self.data.shares_outstanding
 

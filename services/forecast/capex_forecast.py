@@ -35,9 +35,7 @@ class CapexForecastEngine:
         # Handle positional parameter flexibility where method or revenues may be passed
         if isinstance(projected_revenues, (ForecastMethod, str)):
             method = projected_revenues  # type: ignore[assignment]
-            projected_revenues = (
-                args[0] if args and isinstance(args[0], (tuple, list)) else None
-            )
+            projected_revenues = args[0] if args and isinstance(args[0], (tuple, list)) else None
 
         symbol = inp.symbol
         logger.info(f"[CAPEX FORECAST] Projecting CapEx for {symbol}")
@@ -63,9 +61,7 @@ class CapexForecastEngine:
         return CapexForecast(
             historical=hist_capex,
             projected=projected,
-            method=(
-                method if isinstance(method, ForecastMethod) else ForecastMethod.CAGR
-            ),
+            method=(method if isinstance(method, ForecastMethod) else ForecastMethod.CAGR),
             confidence=ConfidenceLevel.MEDIUM,
         )
 

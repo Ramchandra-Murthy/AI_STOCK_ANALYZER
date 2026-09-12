@@ -334,9 +334,7 @@ def generate_validated_sotp_benchmarks(symbol):
         0,
     )
 
-    coverage = (
-        usable_count / multiple_segment_count if multiple_segment_count > 0 else 0.0
-    )
+    coverage = usable_count / multiple_segment_count if multiple_segment_count > 0 else 0.0
 
     return {
         "status": "OK",
@@ -374,9 +372,7 @@ def get_sotp_benchmark_configuration(symbol):
         return {
             "status": "UNAVAILABLE",
             "symbol": base_symbol,
-            "message": (
-                "No SOTP benchmark configuration is " f"available for {base_symbol}."
-            ),
+            "message": ("No SOTP benchmark configuration is " f"available for {base_symbol}."),
         }
 
     segments = {}
@@ -435,9 +431,7 @@ def get_sotp_benchmark_configuration(symbol):
 
     total_segments = len(segments)
 
-    configuration_coverage = (
-        configured_count / total_segments if total_segments > 0 else 0.0
-    )
+    configuration_coverage = configured_count / total_segments if total_segments > 0 else 0.0
 
     return {
         "status": "OK",
@@ -631,9 +625,7 @@ def _generate_segment_peer_benchmark(
             "source": "Dynamic peer median",
             "reliability": 0.0,
             "peer_values": peer_values,
-            "message": (
-                "No valid positive peer EV/EBITDA " "observations are available."
-            ),
+            "message": ("No valid positive peer EV/EBITDA " "observations are available."),
         }
 
     # ------------------------------------------------------
@@ -718,9 +710,7 @@ def generate_sotp_peer_benchmarks(symbol):
             usable_benchmark_count += 1
 
     benchmark_coverage = (
-        usable_benchmark_count / multiple_segment_count
-        if multiple_segment_count > 0
-        else 0.0
+        usable_benchmark_count / multiple_segment_count if multiple_segment_count > 0 else 0.0
     )
 
     return {

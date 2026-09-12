@@ -1,5 +1,4 @@
 import importlib
-import pprint
 import sys
 import traceback
 
@@ -24,6 +23,7 @@ MODULES = [
 ]
 
 output = []
+
 
 def emit(text=""):
     print(text)
@@ -82,6 +82,7 @@ def inspect_safety(payload, label):
         emit("NESTED SAFETY KEYS:")
         for key in safety.keys():
             emit(f"  {key}")
+
 
 def main():
 
@@ -256,19 +257,11 @@ def main():
             actual = source.get(field, "<ABSENT>")
 
             if actual == expected_value:
-                emit(
-                    f"  {field:28} : PASS "
-                    f"(actual={actual!r})"
-                )
+                emit(f"  {field:28} : PASS " f"(actual={actual!r})")
             else:
-                emit(
-                    f"  {field:28} : FAIL "
-                    f"(actual={actual!r}, expected={expected_value!r})"
-                )
+                emit(f"  {field:28} : FAIL " f"(actual={actual!r}, expected={expected_value!r})")
 
-                safety_failures.append(
-                    (block_id, field, actual, expected_value)
-                )
+                safety_failures.append((block_id, field, actual, expected_value))
 
     # ========================================================
     # 6. FINAL RESULT
@@ -279,26 +272,13 @@ def main():
     emit("6. FINAL AUDIT RESULT")
     emit("=" * 80)
 
-    emit(
-        f"IMPORT FAILURES       : "
-        f"{len(import_failures)}"
-    )
+    emit(f"IMPORT FAILURES       : " f"{len(import_failures)}")
 
-    emit(
-        f"INSTANCE FAILURES     : "
-        f"{len(instance_failures)}"
-    )
+    emit(f"INSTANCE FAILURES     : " f"{len(instance_failures)}")
 
-    emit(
-        f"SAFETY FAILURES       : "
-        f"{len(safety_failures)}"
-    )
+    emit(f"SAFETY FAILURES       : " f"{len(safety_failures)}")
 
-    if (
-        len(import_failures) == 0
-        and len(instance_failures) == 0
-        and len(safety_failures) == 0
-    ):
+    if len(import_failures) == 0 and len(instance_failures) == 0 and len(safety_failures) == 0:
         emit()
         emit("============================================================")
         emit("EROS 3.0 BLOCK 94 -> 106 AUDIT : PASS")

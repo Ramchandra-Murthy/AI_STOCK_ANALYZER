@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from backend.research.evidence.models.research_evidence import (
     ResearchEvidence,
 )
@@ -10,6 +11,7 @@ from backend.research.evidence.services.evidence_service import (
 from backend.research.services.research_case_service import (
     ResearchCaseService,
 )
+
 
 def test_structured_evidence_creation() -> None:
     case = ResearchCaseService.create_case(
@@ -34,6 +36,7 @@ def test_structured_evidence_creation() -> None:
     assert evidence.polarity == "POSITIVE"
     assert evidence.confidence == 0.95
 
+
 def test_evidence_strength_calculation() -> None:
     case = ResearchCaseService.create_case(
         symbol="RELIANCE.NS",
@@ -47,10 +50,9 @@ def test_evidence_strength_calculation() -> None:
         materiality=0.80,
         recency=0.75,
     )
-    strength = EvidenceService.calculate_evidence_strength(
-        evidence
-    )
+    strength = EvidenceService.calculate_evidence_strength(evidence)
     assert strength == 0.54
+
 
 def test_evidence_attachment_to_case() -> None:
     case = ResearchCaseService.create_case(
@@ -71,10 +73,8 @@ def test_evidence_attachment_to_case() -> None:
         evidence,
     )
     assert len(case.evidence) == 1
-    assert (
-        "margin of safety"
-        in case.evidence[0]
-    )
+    assert "margin of safety" in case.evidence[0]
+
 
 def test_evidence_case_mismatch_rejected() -> None:
     case_a = ResearchCaseService.create_case(
@@ -99,6 +99,7 @@ def test_evidence_case_mismatch_rejected() -> None:
             case_b,
             evidence,
         )
+
 
 def test_evidence_summary() -> None:
     case = ResearchCaseService.create_case(
@@ -134,14 +135,13 @@ def test_evidence_summary() -> None:
             polarity="NEUTRAL",
         ),
     ]
-    summary = EvidenceService.summarize(
-        evidence_items
-    )
+    summary = EvidenceService.summarize(evidence_items)
     assert summary["count"] == 3
     assert summary["positive"] == 1
     assert summary["negative"] == 1
     assert summary["neutral"] == 1
     assert summary["average_strength"] > 0
+
 
 def test_invalid_confidence_rejected() -> None:
     case = ResearchCaseService.create_case(
@@ -155,6 +155,7 @@ def test_invalid_confidence_rejected() -> None:
             statement="Invalid confidence",
             confidence=1.5,
         )
+
 
 def test_invalid_polarity_rejected() -> None:
     case = ResearchCaseService.create_case(

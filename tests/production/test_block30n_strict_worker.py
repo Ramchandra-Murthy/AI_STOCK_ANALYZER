@@ -5,7 +5,6 @@ import uuid
 import pytest
 from celery import Celery
 
-
 BROKER_URL = "redis://127.0.0.1:6379/0"
 
 
@@ -37,9 +36,10 @@ def test_block30n_strict_worker_execution_proof() -> None:
 
     def run_worker() -> None:
         import io
-        if not hasattr(sys.stdout, 'write') or sys.stdout is None:
+
+        if not hasattr(sys.stdout, "write") or sys.stdout is None:
             sys.stdout = io.StringIO()
-        if not hasattr(sys.stderr, 'write') or sys.stderr is None:
+        if not hasattr(sys.stderr, "write") or sys.stderr is None:
             sys.stderr = io.StringIO()
         try:
             worker = app.Worker(
@@ -62,15 +62,13 @@ def test_block30n_strict_worker_execution_proof() -> None:
     worker_thread.start()
 
     if not worker_started.wait(timeout=5):
-            pytest.skip("Skipping threaded worker test in constrained Windows environment")
+        pytest.skip("Skipping threaded worker test in constrained Windows environment")
 
     time.sleep(1.0)
 
     try:
         # Dispatch task to the real Redis broker.
-        result = strict_echo_task.apply_async(
-            args=[test_token]
-        )
+        result = strict_echo_task.apply_async(args=[test_token])
 
         assert result is not None
         assert result.id is not None
@@ -87,13 +85,11 @@ def test_block30n_strict_worker_execution_proof() -> None:
 
         # Definitive execution proof.
         assert result.ready(), (
-            f"Task did not complete within 8 seconds. "
-            f"Current state: {result.state}"
+            f"Task did not complete within 8 seconds. " f"Current state: {result.state}"
         )
 
         assert result.state == "SUCCESS", (
-            f"Task did not reach SUCCESS state. "
-            f"Current state: {result.state}"
+            f"Task did not reach SUCCESS state. " f"Current state: {result.state}"
         )
 
         # IMPORTANT:
@@ -115,11 +111,4 @@ def test_block30n_strict_worker_execution_proof() -> None:
 
     except Exception as exc:
 
-        pytest.fail(
-            f"Strict worker execution proof failed: {exc}"
-        )
-
-
-
-
-
+        pytest.fail(f"Strict worker execution proof failed: {exc}")

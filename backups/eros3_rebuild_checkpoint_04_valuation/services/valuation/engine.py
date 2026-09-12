@@ -2,7 +2,8 @@
 
 import logging
 from typing import Any
-from services.valuation.models import ValuationResult, DCFValuation, RelativeValuation
+
+from services.valuation.models import DCFValuation, RelativeValuation, ValuationResult
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class ValuationEngine:
         relative = RelativeValuation(
             pe_implied_value=pe_implied,
             ev_ebitda_implied_value=ev_ebitda_implied,
-            sector_pe_benchmark=sector_pe
+            sector_pe_benchmark=sector_pe,
         )
 
         dcf = DCFValuation(
@@ -47,12 +48,14 @@ class ValuationEngine:
             wacc=wacc,
             terminal_growth_rate=g,
             pv_cash_flows=pv_cf,
-            pv_terminal_value=pv_tv
+            pv_terminal_value=pv_tv,
         )
 
         nav_value = current_price * 0.85
-        blended_fair_value = round((dcf_implied * 0.4) + (pe_implied * 0.3) + (ev_ebitda_implied * 0.3), 2)
-        
+        blended_fair_value = round(
+            (dcf_implied * 0.4) + (pe_implied * 0.3) + (ev_ebitda_implied * 0.3), 2
+        )
+
         mos_pct = round(((blended_fair_value - current_price) / current_price) * 100.0, 2)
         recommendation = "BUY" if mos_pct > 15 else ("HOLD" if mos_pct >= 0 else "SELL")
 
@@ -64,5 +67,5 @@ class ValuationEngine:
             blended_fair_value=blended_fair_value,
             current_market_price=current_price,
             margin_of_safety_pct=mos_pct,
-            recommendation=recommendation
+            recommendation=recommendation,
         )

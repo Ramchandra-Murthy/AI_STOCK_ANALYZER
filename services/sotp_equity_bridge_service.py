@@ -175,11 +175,7 @@ def generate_sotp_equity_bridge(
 
                 fair_value_per_share = _crore_to_rupees(equity_value) / shares
 
-            if (
-                fair_value_per_share is not None
-                and current_price is not None
-                and current_price > 0
-            ):
+            if fair_value_per_share is not None and current_price is not None and current_price > 0:
 
                 upside_percent = (fair_value_per_share / current_price - 1) * 100
 
@@ -277,9 +273,7 @@ def generate_sotp_equity_bridge(
         "operating_enterprise_value": (_round(operating_ev)),
         "new_energy": {
             "scenario_range_authorized": (scenario_range_authorized),
-            "scenario_values": {
-                key: _round(value) for key, value in scenario_values.items()
-            },
+            "scenario_values": {key: _round(value) for key, value in scenario_values.items()},
             "treatment": ("INCLUDE_IN_GROSS_SOTP_EV"),
         },
         "equity_bridge": {
@@ -311,11 +305,7 @@ def generate_sotp_equity_bridge(
                 "model-derived and are not reported "
                 "enterprise values."
             ),
-            (
-                "A PROVISIONAL valuation must not be "
-                "presented as a completed SOTP fair "
-                "value."
-            ),
+            ("A PROVISIONAL valuation must not be " "presented as a completed SOTP fair " "value."),
             ("Pending positive assets may increase " "equity value when authorized."),
             (
                 "Pending ownership or debt-like claims "

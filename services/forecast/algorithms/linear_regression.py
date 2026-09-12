@@ -32,16 +32,12 @@ class LinearRegressionForecastAlgorithm(BaseForecastAlgorithm):
         avg = (sum(capex) / len(capex)) if capex else 0.0
         return tuple(max(0.0, avg) for _ in forecast_input.forecast_years)
 
-    def calculate_depreciation(
-        self, forecast_input: ForecastInput
-    ) -> tuple[float, ...]:
+    def calculate_depreciation(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         dep = forecast_input.historical_depreciation
         avg = (sum(dep) / len(dep)) if dep else 0.0
         return tuple(max(0.0, avg) for _ in forecast_input.forecast_years)
 
-    def calculate_working_capital(
-        self, forecast_input: ForecastInput
-    ) -> tuple[float, ...]:
+    def calculate_working_capital(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         wc = forecast_input.historical_working_capital
         avg = (sum(wc) / len(wc)) if wc else 0.0
         return tuple(avg for _ in forecast_input.forecast_years)

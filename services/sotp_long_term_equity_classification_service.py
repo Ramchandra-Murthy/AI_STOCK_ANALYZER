@@ -68,7 +68,6 @@ class ClassificationRuleEvaluator:
             # ------------------------------------------------------
             # OPERATING ENTITIES
             # ------------------------------------------------------
-
             ClassificationRule(
                 interpretation=INTERPRETATION_OPERATING_ENTITY,
                 relationship=RELATIONSHIP_SUBSIDIARY,
@@ -93,21 +92,17 @@ class ClassificationRuleEvaluator:
                 classification=CLASSIFICATION_OPERATING_JOINT_VENTURE,
                 priority=100,
             ),
-
             # ------------------------------------------------------
             # OPERATING INFRASTRUCTURE
             # ------------------------------------------------------
-
             ClassificationRule(
                 interpretation=INTERPRETATION_OPERATING_INFRASTRUCTURE,
                 classification=CLASSIFICATION_OPERATING_INFRASTRUCTURE,
                 priority=95,
             ),
-
             # ------------------------------------------------------
             # INVESTMENTS
             # ------------------------------------------------------
-
             ClassificationRule(
                 interpretation=INTERPRETATION_STRATEGIC_INVESTMENT,
                 classification=CLASSIFICATION_STRATEGIC_INVESTMENT,
@@ -128,11 +123,9 @@ class ClassificationRuleEvaluator:
                 classification=CLASSIFICATION_PASSIVE_INVESTMENT,
                 priority=90,
             ),
-
             # ------------------------------------------------------
             # NON-OPERATING / ELIMINATION
             # ------------------------------------------------------
-
             ClassificationRule(
                 interpretation=INTERPRETATION_NON_OPERATING_ASSET,
                 classification=CLASSIFICATION_NON_OPERATING_ASSET,
@@ -143,11 +136,9 @@ class ClassificationRuleEvaluator:
                 classification=CLASSIFICATION_ELIMINATE,
                 priority=90,
             ),
-
             # ------------------------------------------------------
             # EXPLICIT UNRESOLVED FALLBACK
             # ------------------------------------------------------
-
             ClassificationRule(
                 interpretation=INTERPRETATION_UNRESOLVED,
                 classification=CLASSIFICATION_UNRESOLVED,
@@ -176,28 +167,16 @@ class ClassificationRuleEvaluator:
             if rule.interpretation != interpretation:
                 continue
 
-            if (
-                rule.relationship is not None
-                and rule.relationship != ril_relationship
-            ):
+            if rule.relationship is not None and rule.relationship != ril_relationship:
                 continue
 
-            if (
-                rule.business_model is not None
-                and rule.business_model != business_model
-            ):
+            if rule.business_model is not None and rule.business_model != business_model:
                 continue
 
-            if (
-                rule.asset_type is not None
-                and rule.asset_type != asset_type
-            ):
+            if rule.asset_type is not None and rule.asset_type != asset_type:
                 continue
 
-            if (
-                rule.integration_level is not None
-                and rule.integration_level != integration_level
-            ):
+            if rule.integration_level is not None and rule.integration_level != integration_level:
                 continue
 
             matched_rules.append(rule)

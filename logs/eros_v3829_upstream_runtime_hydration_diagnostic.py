@@ -26,6 +26,7 @@ print("-" * 70)
 
 try:
     from services.eros_frontend_adapter import EROSFrontendAdapter
+
     print("IMPORT : PASS")
 except Exception:
     print("IMPORT : FAIL")
@@ -36,6 +37,7 @@ adapter = EROSFrontendAdapter()
 symbol = "RELIANCE.NS"
 
 print("\nSYMBOL :", symbol)
+
 
 def inspect_result(name, result):
 
@@ -87,29 +89,17 @@ def inspect_result(name, result):
             print(f"{key:25} : NONE")
 
         elif isinstance(value, dict):
-            print(
-                f"{key:25} : DICT "
-                f"({len(value)} keys)"
-            )
-            print(
-                f"{'':25}   keys="
-                f"{list(value.keys())[:30]}"
-            )
+            print(f"{key:25} : DICT " f"({len(value)} keys)")
+            print(f"{'':25}   keys=" f"{list(value.keys())[:30]}")
 
         elif isinstance(value, list):
-            print(
-                f"{key:25} : LIST "
-                f"({len(value)} items)"
-            )
+            print(f"{key:25} : LIST " f"({len(value)} items)")
 
         elif isinstance(value, str) and not value.strip():
             print(f"{key:25} : EMPTY STRING")
 
         else:
-            print(
-                f"{key:25} : "
-                f"{type(value).__name__} = {value!r}"
-            )
+            print(f"{key:25} : " f"{type(value).__name__} = {value!r}")
 
     print("\nFULL RESULT")
     print("-" * 50)
@@ -241,10 +231,7 @@ for method in [
             "confidence",
             "risk",
         ]:
-            print(
-                f"  decision.{k:18} : "
-                f"{repr(decision.get(k))}"
-            )
+            print(f"  decision.{k:18} : " f"{repr(decision.get(k))}")
 
 
 print("\n" + "=" * 70)

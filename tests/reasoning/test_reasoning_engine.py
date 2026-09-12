@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.reasoning.models import EvidenceObject
 from services.reasoning.engine import BusinessReasoningEngine
+from services.reasoning.models import EvidenceObject
+
 
 def test_business_reasoning_engine() -> None:
     evidence_items = [
@@ -13,7 +13,7 @@ def test_business_reasoning_engine() -> None:
             importance="HIGH",
             confidence=0.95,
             source="Canonical Income Statement",
-            period="FY2025"
+            period="FY2025",
         ),
         EvidenceObject(
             metric_name="operating_margin",
@@ -22,7 +22,7 @@ def test_business_reasoning_engine() -> None:
             importance="HIGH",
             confidence=0.92,
             source="Canonical Income Statement",
-            period="FY2025"
+            period="FY2025",
         ),
         EvidenceObject(
             metric_name="total_debt",
@@ -31,12 +31,12 @@ def test_business_reasoning_engine() -> None:
             importance="HIGH",
             confidence=0.98,
             source="Canonical Balance Sheet",
-            period="FY2025"
-        )
+            period="FY2025",
+        ),
     ]
 
     result = BusinessReasoningEngine.synthesize("RELIANCE.NS", evidence_items)
-    
+
     assert result.symbol == "RELIANCE.NS"
     assert len(result.hypotheses) == 3
     assert len(result.contradictions) == 0

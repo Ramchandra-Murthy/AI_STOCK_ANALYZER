@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from pydantic import BaseModel, EmailStr, Field
+
 from backend.database.models.user import UserRole
+
 
 class UserRegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
@@ -9,9 +11,11 @@ class UserRegisterRequest(BaseModel):
     password: str = Field(..., min_length=6)
     role: UserRole = UserRole.VIEWER
 
+
 class UserLoginRequest(BaseModel):
     username: str
     password: str
+
 
 class TokenResponse(BaseModel):
     access_token: str

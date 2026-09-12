@@ -1,12 +1,12 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
 
 
 @dataclass(frozen=True, slots=True)
 class PriceRecord:
     """Represents a single daily price record."""
+
     date: str
     open: float
     high: float
@@ -18,6 +18,7 @@ class PriceRecord:
 @dataclass(frozen=True, slots=True)
 class MarketDataResponse:
     """Structured response for market data retrieval."""
+
     symbol: str
     source: str
-    records: List[PriceRecord] = field(default_factory=list)
+    records: list[PriceRecord] = field(default_factory=list)

@@ -1,18 +1,18 @@
-﻿from pathlib import Path
-import subprocess
-import importlib.util
+﻿import importlib.util
 import inspect
+import subprocess
+from pathlib import Path
 
-SOURCE = Path(
-    r"services\quantitative\block100_paper_execution_fill_gate.py"
-)
+SOURCE = Path(r"services\quantitative\block100_paper_execution_fill_gate.py")
 
 OUTPUT = []
+
 
 def p(text=""):
     text = str(text)
     print(text)
     OUTPUT.append(text)
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 100 READ-ONLY RETURN / SAFETY PATH INSPECTION")
@@ -53,10 +53,7 @@ p("IMPORT CHECK")
 p("-" * 60)
 
 try:
-    spec = importlib.util.spec_from_file_location(
-        "block100_module",
-        SOURCE
-    )
+    spec = importlib.util.spec_from_file_location("block100_module", SOURCE)
 
     module = importlib.util.module_from_spec(spec)
 
@@ -331,4 +328,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

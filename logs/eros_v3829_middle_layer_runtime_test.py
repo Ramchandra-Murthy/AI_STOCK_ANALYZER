@@ -52,27 +52,15 @@ for name in methods:
         for key, value in result.items():
 
             if isinstance(value, dict):
-                print(
-                    f"  {key}: DICT "
-                    f"({len(value)} keys)"
-                )
+                print(f"  {key}: DICT " f"({len(value)} keys)")
 
-                print(
-                    "    keys:",
-                    list(value.keys())[:25]
-                )
+                print("    keys:", list(value.keys())[:25])
 
             elif isinstance(value, list):
-                print(
-                    f"  {key}: LIST "
-                    f"({len(value)} items)"
-                )
+                print(f"  {key}: LIST " f"({len(value)} items)")
 
                 if value:
-                    print(
-                        "    first:",
-                        repr(value[0])[:1000]
-                    )
+                    print("    first:", repr(value[0])[:1000])
 
             elif value is None:
                 print(f"  {key}: NONE")
@@ -81,11 +69,7 @@ for name in methods:
                 print(f"  {key}: EMPTY STRING")
 
             else:
-                print(
-                    f"  {key}: "
-                    f"{type(value).__name__} = "
-                    f"{repr(value)[:1000]}"
-                )
+                print(f"  {key}: " f"{type(value).__name__} = " f"{repr(value)[:1000]}")
 
     except Exception:
         print("CALL : FAIL")

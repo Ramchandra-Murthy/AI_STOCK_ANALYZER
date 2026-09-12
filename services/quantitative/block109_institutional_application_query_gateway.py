@@ -1,9 +1,10 @@
 ﻿from __future__ import annotations
 
+import json
+from collections.abc import Mapping
 from copy import deepcopy
 from hashlib import sha256
-import json
-from typing import Any, Dict, Mapping
+from typing import Any
 
 
 class EROSBlock109InstitutionalApplicationQueryGateway:
@@ -75,7 +76,7 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         self,
         *,
         application_service_model: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Build a certified read-only Block 109 query model from
         the actual Block 108 application-service contract.
@@ -84,15 +85,11 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
 
         self._build_count += 1
 
-        source_copy = deepcopy(
-            dict(application_service_model)
-        )
+        source_copy = deepcopy(dict(application_service_model))
 
-        model: Dict[str, Any] = {
+        model: dict[str, Any] = {
             "schema": {
-                "name": (
-                    "EROSInstitutionalApplicationQueryModel"
-                ),
+                "name": ("EROSInstitutionalApplicationQueryModel"),
                 "version": self.VERSION,
             },
             "query": {
@@ -100,13 +97,8 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
                 "block_name": self.BLOCK_NAME,
                 "status": "CERTIFIED",
                 "source_block_id": self.SOURCE_BLOCK,
-                "source_block_name": (
-                    "Institutional Application "
-                    "Service Boundary"
-                ),
-                "capabilities": list(
-                    self.QUERY_CAPABILITIES
-                ),
+                "source_block_name": ("Institutional Application " "Service Boundary"),
+                "capabilities": list(self.QUERY_CAPABILITIES),
             },
             "source": source_copy,
             "safety": self._build_safety_contract(),
@@ -136,9 +128,7 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
 
         model["integrity"] = {
             "algorithm": "SHA-256",
-            "payload_hash": self._payload_hash(
-                model
-            ),
+            "payload_hash": self._payload_hash(model),
         }
 
         return model
@@ -147,15 +137,11 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         self,
         *,
         application_service_model: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Read-only alias for build_query_model().
         """
-        return self.build_query_model(
-            application_service_model=(
-                application_service_model
-            )
-        )
+        return self.build_query_model(application_service_model=(application_service_model))
 
     def validate_query_model(
         self,
@@ -177,9 +163,7 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         if not isinstance(schema, Mapping):
             return False
 
-        if schema.get("name") != (
-            "EROSInstitutionalApplicationQueryModel"
-        ):
+        if schema.get("name") != ("EROSInstitutionalApplicationQueryModel"):
             return False
 
         if schema.get("version") != self.VERSION:
@@ -194,9 +178,7 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         if query.get("status") != "CERTIFIED":
             return False
 
-        if str(query.get("source_block_id")) != (
-            self.SOURCE_BLOCK
-        ):
+        if str(query.get("source_block_id")) != (self.SOURCE_BLOCK):
             return False
 
         capabilities = query.get("capabilities")
@@ -204,9 +186,7 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         if not isinstance(capabilities, list):
             return False
 
-        if set(capabilities) != set(
-            self.QUERY_CAPABILITIES
-        ):
+        if set(capabilities) != set(self.QUERY_CAPABILITIES):
             return False
 
         if not isinstance(source, Mapping):
@@ -221,14 +201,10 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         if not isinstance(lineage, Mapping):
             return False
 
-        if str(lineage.get("source_block")) != (
-            self.SOURCE_BLOCK
-        ):
+        if str(lineage.get("source_block")) != (self.SOURCE_BLOCK):
             return False
 
-        if str(lineage.get("query_block")) != (
-            self.BLOCK_ID
-        ):
+        if str(lineage.get("query_block")) != (self.BLOCK_ID):
             return False
 
         if not isinstance(integrity, Mapping):
@@ -237,29 +213,21 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         if integrity.get("algorithm") != "SHA-256":
             return False
 
-        supplied_hash = integrity.get(
-            "payload_hash"
-        )
+        supplied_hash = integrity.get("payload_hash")
 
         if not isinstance(supplied_hash, str):
             return False
 
-        unsigned_model = {
-            key: value
-            for key, value in model.items()
-            if key != "integrity"
-        }
+        unsigned_model = {key: value for key, value in model.items() if key != "integrity"}
 
-        expected_hash = self._payload_hash(
-            unsigned_model
-        )
+        expected_hash = self._payload_hash(unsigned_model)
 
         if supplied_hash != expected_hash:
             return False
 
         return True
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """
         Return a detached read-only gateway snapshot.
         """
@@ -269,9 +237,7 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
             "source_block": self.SOURCE_BLOCK,
             "version": self.VERSION,
             "build_count": self._build_count,
-            "capabilities": list(
-                self.QUERY_CAPABILITIES
-            ),
+            "capabilities": list(self.QUERY_CAPABILITIES),
             "safety": self._build_safety_contract(),
         }
 
@@ -289,134 +255,83 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         output contract.
         """
         if not isinstance(source, Mapping):
-            raise TypeError(
-                "Block 108 application service model "
-                "must be a mapping"
-            )
+            raise TypeError("Block 108 application service model " "must be a mapping")
 
         for field in cls.REQUIRED_SOURCE_FIELDS:
             if field not in source:
-                raise ValueError(
-                    f"BLOCK109_MISSING_{field.upper()}"
-                )
+                raise ValueError(f"BLOCK109_MISSING_{field.upper()}")
 
         schema = source.get("schema")
 
         if not isinstance(schema, Mapping):
-            raise ValueError(
-                "BLOCK109_SCHEMA_MISSING"
-            )
+            raise ValueError("BLOCK109_SCHEMA_MISSING")
 
-        if schema.get("name") != (
-            "EROSInstitutionalApplicationServiceModel"
-        ):
-            raise ValueError(
-                "BLOCK109_INVALID_SOURCE_SCHEMA"
-            )
+        if schema.get("name") != ("EROSInstitutionalApplicationServiceModel"):
+            raise ValueError("BLOCK109_INVALID_SOURCE_SCHEMA")
 
         if schema.get("version") != "1.0":
-            raise ValueError(
-                "BLOCK109_INVALID_SOURCE_VERSION"
-            )
+            raise ValueError("BLOCK109_INVALID_SOURCE_VERSION")
 
         application = source.get("application")
 
         if not isinstance(application, Mapping):
-            raise ValueError(
-                "BLOCK109_APPLICATION_MISSING"
-            )
+            raise ValueError("BLOCK109_APPLICATION_MISSING")
 
-        if str(application.get("block_id")) != (
-            cls.SOURCE_BLOCK
-        ):
-            raise ValueError(
-                "BLOCK109_INVALID_SOURCE_BLOCK"
-            )
+        if str(application.get("block_id")) != (cls.SOURCE_BLOCK):
+            raise ValueError("BLOCK109_INVALID_SOURCE_BLOCK")
 
         if application.get("status") != "CERTIFIED":
-            raise ValueError(
-                "BLOCK109_SOURCE_NOT_CERTIFIED"
-            )
+            raise ValueError("BLOCK109_SOURCE_NOT_CERTIFIED")
 
         source_payload = source.get("source")
 
         if not isinstance(source_payload, Mapping):
-            raise ValueError(
-                "BLOCK109_SOURCE_PAYLOAD_MISSING"
-            )
+            raise ValueError("BLOCK109_SOURCE_PAYLOAD_MISSING")
 
         if str(source_payload.get("block_id")) != "107":
-            raise ValueError(
-                "BLOCK109_INVALID_SOURCE_LINEAGE"
-            )
+            raise ValueError("BLOCK109_INVALID_SOURCE_LINEAGE")
 
         if source_payload.get("status") != "CERTIFIED":
-            raise ValueError(
-                "BLOCK109_SOURCE_PAYLOAD_NOT_CERTIFIED"
-            )
+            raise ValueError("BLOCK109_SOURCE_PAYLOAD_NOT_CERTIFIED")
 
         lineage = source.get("lineage")
 
         if not isinstance(lineage, Mapping):
-            raise ValueError(
-                "BLOCK109_LINEAGE_MISSING"
-            )
+            raise ValueError("BLOCK109_LINEAGE_MISSING")
 
         if str(lineage.get("source_block")) != "107":
-            raise ValueError(
-                "BLOCK109_INVALID_SOURCE_LINEAGE"
-            )
+            raise ValueError("BLOCK109_INVALID_SOURCE_LINEAGE")
 
         if str(lineage.get("application_block")) != "108":
-            raise ValueError(
-                "BLOCK109_INVALID_APPLICATION_LINEAGE"
-            )
+            raise ValueError("BLOCK109_INVALID_APPLICATION_LINEAGE")
 
         if lineage.get("source_status") != "CERTIFIED":
-            raise ValueError(
-                "BLOCK109_INVALID_SOURCE_STATUS"
-            )
+            raise ValueError("BLOCK109_INVALID_SOURCE_STATUS")
 
         source_lineage = lineage.get("source_lineage")
 
         if not isinstance(source_lineage, Mapping):
-            raise ValueError(
-                "BLOCK109_SOURCE_LINEAGE_MISSING"
-            )
+            raise ValueError("BLOCK109_SOURCE_LINEAGE_MISSING")
 
         if str(source_lineage.get("integration_block")) != "106":
-            raise ValueError(
-                "BLOCK109_INVALID_INTEGRATION_LINEAGE"
-            )
+            raise ValueError("BLOCK109_INVALID_INTEGRATION_LINEAGE")
 
         if str(source_lineage.get("source_block")) != "104":
-            raise ValueError(
-                "BLOCK109_INVALID_UPSTREAM_LINEAGE"
-            )
+            raise ValueError("BLOCK109_INVALID_UPSTREAM_LINEAGE")
 
         if str(source_lineage.get("source_block_id")) != "104":
-            raise ValueError(
-                "BLOCK109_INVALID_UPSTREAM_SOURCE_ID"
-            )
+            raise ValueError("BLOCK109_INVALID_UPSTREAM_SOURCE_ID")
 
         if source_lineage.get("source_status") != "CERTIFIED":
-            raise ValueError(
-                "BLOCK109_INVALID_UPSTREAM_STATUS"
-            )
+            raise ValueError("BLOCK109_INVALID_UPSTREAM_STATUS")
 
         source_safety = source.get("safety")
 
         if not isinstance(source_safety, Mapping):
-            raise ValueError(
-                "BLOCK109_SAFETY_MISSING"
-            )
+            raise ValueError("BLOCK109_SAFETY_MISSING")
 
-        if not cls._safety_is_valid(
-            source_safety
-        ):
-            raise ValueError(
-                "BLOCK109_UNSAFE_SOURCE"
-            )
+        if not cls._safety_is_valid(source_safety):
+            raise ValueError("BLOCK109_UNSAFE_SOURCE")
 
     @classmethod
     def _safety_is_valid(
@@ -429,9 +344,7 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         if not isinstance(safety, Mapping):
             return False
 
-        for key, expected in (
-            cls.SAFETY_POLICY.items()
-        ):
+        for key, expected in cls.SAFETY_POLICY.items():
             if safety.get(key) is not expected:
                 return False
 
@@ -440,13 +353,11 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
     @classmethod
     def _build_safety_contract(
         cls,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Return a defensive copy of the immutable safety policy.
         """
-        return deepcopy(
-            cls.SAFETY_POLICY
-        )
+        return deepcopy(cls.SAFETY_POLICY)
 
     @staticmethod
     def _canonical_json(
@@ -470,10 +381,6 @@ class EROSBlock109InstitutionalApplicationQueryGateway:
         """
         Produce deterministic SHA-256 payload fingerprint.
         """
-        canonical = cls._canonical_json(
-            payload
-        )
+        canonical = cls._canonical_json(payload)
 
-        return sha256(
-            canonical.encode("utf-8")
-        ).hexdigest()
+        return sha256(canonical.encode("utf-8")).hexdigest()

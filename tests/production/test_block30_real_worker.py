@@ -1,6 +1,7 @@
 import os
+
 import pytest
-from backend.tasks.celery_app import celery_instance
+
 
 def test_block30a_redis_ping_connection():
     """
@@ -10,10 +11,12 @@ def test_block30a_redis_ping_connection():
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     try:
         import redis
+
         client = redis.Redis.from_url(redis_url, socket_timeout=1.0)
         client.ping()
     except Exception as exc:
         pytest.skip(f"Redis server not actively responding at {redis_url}: {exc}")
+
 
 def test_block30b_real_celery_instance_bootstrap():
     """
@@ -24,10 +27,11 @@ def test_block30b_real_celery_instance_bootstrap():
     os.environ["USE_REAL_CELERY"] = "true"
     try:
         from celery import Celery
+
         app = Celery(
             "eros_test_worker",
             broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"),
-            backend=os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+            backend=os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0"),
         )
         app.conf.update(
             task_serializer="json",
@@ -43,5 +47,3 @@ def test_block30b_real_celery_instance_bootstrap():
             os.environ.pop("USE_REAL_CELERY", None)
         else:
             os.environ["USE_REAL_CELERY"] = old_use_real_celery
-
-

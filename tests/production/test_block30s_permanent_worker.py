@@ -1,19 +1,22 @@
 ﻿import os
+import subprocess
 import sys
 import time
 import uuid
-import subprocess
+from queue import Empty, Queue
+from threading import Thread
+
 import pytest
 import redis
-from threading import Thread
-from queue import Queue, Empty
 
 BROKER_URL = "redis://127.0.0.1:6379/0"
 
+
 def _enqueue_output(out, queue):
-    for line in iter(out.readline, ''):
+    for line in iter(out.readline, ""):
         queue.put(line)
     out.close()
+
 
 def test_block30s_permanent_real_worker_regression():
     """
@@ -63,6 +66,7 @@ def test_block30s_permanent_real_worker_regression():
 
     try:
         from backend.tasks.eros_diagnostic_worker import worker_echo
+
         result = worker_echo.apply_async(args=[token])
         assert result is not None
         assert result.id is not None
@@ -98,5 +102,3 @@ def test_block30s_permanent_real_worker_regression():
         except subprocess.TimeoutExpired:
             worker.kill()
             worker.wait(timeout=3.0)
-
-

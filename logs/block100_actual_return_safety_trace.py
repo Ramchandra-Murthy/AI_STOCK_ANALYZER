@@ -1,16 +1,16 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
-path = Path(
-    r"services\quantitative\block100_paper_execution_fill_gate.py"
-)
+path = Path(r"services\quantitative\block100_paper_execution_fill_gate.py")
 
 output = []
+
 
 def p(text=""):
     text = str(text)
     print(text)
     output.append(text)
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 100 ACTUAL RETURN / SAFETY PATH TRACE")
@@ -23,9 +23,7 @@ p(str(path))
 if not path.exists():
     p("SOURCE ERROR: FILE NOT FOUND")
 else:
-    source = path.read_text(
-        encoding="utf-8-sig"
-    )
+    source = path.read_text(encoding="utf-8-sig")
 
     lines = source.splitlines()
 
@@ -105,10 +103,7 @@ else:
         for line in lines:
             stripped = line.strip()
 
-            if (
-                stripped.startswith(f"def {name}(")
-                or stripped.startswith(f"async def {name}(")
-            ):
+            if stripped.startswith(f"def {name}(") or stripped.startswith(f"async def {name}("):
                 found = True
                 break
 
@@ -133,11 +128,7 @@ else:
     )
 
     for field in safety_fields:
-        count = sum(
-            1
-            for line in lines
-            if field in line
-        )
+        count = sum(1 for line in lines if field in line)
 
         p(f"{field:30s}: {count}")
 
@@ -184,4 +175,3 @@ except Exception as exc:
     print("=" * 100)
     print(type(exc).__name__, str(exc))
     print("=" * 100)
-

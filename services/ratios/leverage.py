@@ -1,19 +1,22 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Dict, Any
-from services.fundamentals.canonical_models import CanonicalIncomeStatement, CanonicalBalanceSheet
+
+from services.fundamentals.canonical_models import CanonicalBalanceSheet, CanonicalIncomeStatement
 from services.ratios.models import RatioCategoryResult
 
 logger = logging.getLogger(__name__)
+
 
 class LeverageRatioEngine:
     """Computes long-term solvency, leverage, and debt coverage ratios from canonical statements."""
 
     @staticmethod
-    def compute(inc: CanonicalIncomeStatement, bs: CanonicalBalanceSheet, symbol: str = "UNKNOWN") -> RatioCategoryResult:
+    def compute(
+        inc: CanonicalIncomeStatement, bs: CanonicalBalanceSheet, symbol: str = "UNKNOWN"
+    ) -> RatioCategoryResult:
         logger.info("Computing leverage ratios for %s (%s)", symbol, inc.period)
-        
+
         total_debt = bs.short_term_debt + bs.current_portion_long_term_debt + bs.long_term_debt
         equity = max(bs.shareholders_equity, 1.0)
         assets = max(bs.total_assets, 1.0)
@@ -36,7 +39,7 @@ class LeverageRatioEngine:
             "debt_to_capital": debt_to_capital,
             "net_debt_to_ebitda": net_debt_to_ebitda,
             "interest_coverage": interest_coverage,
-            "equity_multiplier": equity_multiplier
+            "equity_multiplier": equity_multiplier,
         }
 
         return RatioCategoryResult(
@@ -44,5 +47,5 @@ class LeverageRatioEngine:
             symbol=symbol,
             period=inc.period,
             metrics=metrics,
-            metadata={"version": "7.0", "standard": "CFA/McKinsey"}
+            metadata={"version": "7.0", "standard": "CFA/McKinsey"},
         )

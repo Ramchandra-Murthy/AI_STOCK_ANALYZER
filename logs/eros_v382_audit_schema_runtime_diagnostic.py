@@ -5,7 +5,6 @@ import sys
 
 from services.eros_frontend_adapter import EROSFrontendAdapter
 
-
 print("=" * 78)
 print("EROS 3.0 - V3.8.2 DECISION AUDIT")
 print("SCHEMA HYDRATION RUNTIME DIAGNOSTIC")
@@ -44,15 +43,10 @@ required = [
 for name in required:
     ok = hasattr(adapter, name)
 
-    print(
-        f"{name:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{name:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_API:{name}"
-        )
+        raise RuntimeError(f"MISSING_API:{name}")
 
 
 print("\n3. EXECUTION TARGET")
@@ -69,56 +63,27 @@ print("-" * 78)
 convergence = adapter.decision_convergence(symbol)
 
 if not isinstance(convergence, dict):
-    raise RuntimeError(
-        "CONVERGENCE_NOT_DICT"
-    )
+    raise RuntimeError("CONVERGENCE_NOT_DICT")
 
 print("CONVERGENCE : PASS")
 
-baseline_decision = convergence.get(
-    "decision",
-    {}
-)
+baseline_decision = convergence.get("decision", {})
 
-baseline_convergence = convergence.get(
-    "convergence",
-    {}
-)
+baseline_convergence = convergence.get("convergence", {})
 
-baseline_interpretation = convergence.get(
-    "interpretation",
-    {}
-)
+baseline_interpretation = convergence.get("interpretation", {})
 
-print(
-    "BASELINE STANCE          :",
-    baseline_decision.get("stance")
-)
+print("BASELINE STANCE          :", baseline_decision.get("stance"))
 
-print(
-    "BASELINE RECOMMENDATION  :",
-    baseline_decision.get("recommendation")
-)
+print("BASELINE RECOMMENDATION  :", baseline_decision.get("recommendation"))
 
-print(
-    "BASELINE CLASSIFICATION  :",
-    baseline_decision.get("classification")
-)
+print("BASELINE CLASSIFICATION  :", baseline_decision.get("classification"))
 
-print(
-    "BASELINE CONFIDENCE      :",
-    baseline_decision.get("confidence")
-)
+print("BASELINE CONFIDENCE      :", baseline_decision.get("confidence"))
 
-print(
-    "BASELINE RISK            :",
-    baseline_decision.get("risk")
-)
+print("BASELINE RISK            :", baseline_decision.get("risk"))
 
-print(
-    "BASELINE DECISION QUALITY:",
-    baseline_decision.get("decision_quality")
-)
+print("BASELINE DECISION QUALITY:", baseline_decision.get("decision_quality"))
 
 
 print("\n5. TRACEABILITY BASELINE")
@@ -127,38 +92,15 @@ print("-" * 78)
 trace_result = adapter.decision_traceability(symbol)
 
 if not isinstance(trace_result, dict):
-    raise RuntimeError(
-        "TRACEABILITY_NOT_DICT"
-    )
+    raise RuntimeError("TRACEABILITY_NOT_DICT")
 
 print("TRACEABILITY : PASS")
 
-print(
-    "TRACEABILITY STATUS :",
-    trace_result.get(
-        "traceability_status"
-    )
-)
+print("TRACEABILITY STATUS :", trace_result.get("traceability_status"))
 
-print(
-    "TRACEABILITY SCHEMA :",
-    trace_result.get(
-        "traceability",
-        {}
-    ).get(
-        "schema_version"
-    )
-)
+print("TRACEABILITY SCHEMA :", trace_result.get("traceability", {}).get("schema_version"))
 
-print(
-    "PRIMARY SCENARIO :",
-    trace_result.get(
-        "scenario_trace",
-        {}
-    ).get(
-        "primary_scenario"
-    )
-)
+print("PRIMARY SCENARIO :", trace_result.get("scenario_trace", {}).get("primary_scenario"))
 
 
 print("\n6. EXECUTING V3.8.2 AUDIT")
@@ -167,9 +109,7 @@ print("-" * 78)
 result = adapter.decision_audit(symbol)
 
 if not isinstance(result, dict):
-    raise RuntimeError(
-        "AUDIT_RESULT_NOT_DICT"
-    )
+    raise RuntimeError("AUDIT_RESULT_NOT_DICT")
 
 print("AUDIT CALL : PASS")
 print("RESULT TYPE:", type(result).__name__)
@@ -200,15 +140,10 @@ for field in required_top:
 
     ok = field in result
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"MISSING_TOP_LEVEL_FIELD:{field}"
-        )
+        raise RuntimeError(f"MISSING_TOP_LEVEL_FIELD:{field}")
 
 
 print("\n8. DECISION CONTRACT")
@@ -231,16 +166,10 @@ for field in decision_fields:
 
     ok = value is not None and value != ""
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(value={value})"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(value={value})")
 
     if not ok:
-        raise RuntimeError(
-            f"DECISION_FIELD_NOT_HYDRATED:{field}"
-        )
+        raise RuntimeError(f"DECISION_FIELD_NOT_HYDRATED:{field}")
 
 
 print("\n9. EVIDENCE CHAIN")
@@ -269,9 +198,7 @@ for field in evidence_fields:
     )
 
     if not ok:
-        raise RuntimeError(
-            f"EVIDENCE_FIELD_INVALID:{field}"
-        )
+        raise RuntimeError(f"EVIDENCE_FIELD_INVALID:{field}")
 
 
 print("\n10. SCENARIO TRACE")
@@ -290,21 +217,12 @@ for field in scenario_fields:
 
     value = scenario.get(field)
 
-    ok = (
-        value is not None
-        and value != {}
-        and value != ""
-    )
+    ok = value is not None and value != {} and value != ""
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'}"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'}")
 
     if not ok:
-        raise RuntimeError(
-            f"SCENARIO_FIELD_NOT_HYDRATED:{field}"
-        )
+        raise RuntimeError(f"SCENARIO_FIELD_NOT_HYDRATED:{field}")
 
 
 print("\n11. INTERPRETATION")
@@ -325,16 +243,10 @@ for field in interpretation_fields:
 
     ok = value is not None and value != ""
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(value={value})"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(value={value})")
 
     if not ok:
-        raise RuntimeError(
-            f"INTERPRETATION_FIELD_NOT_HYDRATED:{field}"
-        )
+        raise RuntimeError(f"INTERPRETATION_FIELD_NOT_HYDRATED:{field}")
 
 
 print("\n12. TRACEABILITY")
@@ -342,46 +254,20 @@ print("-" * 78)
 
 traceability = result["traceability"]
 
-print(
-    "status                :",
-    traceability.get("status")
-)
+print("status                :", traceability.get("status"))
 
-print(
-    "source                :",
-    traceability.get("source")
-)
+print("source                :", traceability.get("source"))
 
-print(
-    "schema_version        :",
-    traceability.get("schema_version")
-)
+print("schema_version        :", traceability.get("schema_version"))
 
-print(
-    "legacy_trace_preserved:",
-    traceability.get(
-        "legacy_trace_preserved"
-    )
-)
+print("legacy_trace_preserved:", traceability.get("legacy_trace_preserved"))
 
-print(
-    "primary_scenario      :",
-    traceability.get(
-        "primary_scenario"
-    )
-)
+print("primary_scenario      :", traceability.get("primary_scenario"))
 
-print(
-    "decision_quality      :",
-    traceability.get(
-        "decision_quality"
-    )
-)
+print("decision_quality      :", traceability.get("decision_quality"))
 
 if not traceability.get("status"):
-    raise RuntimeError(
-        "TRACEABILITY_STATUS_MISSING"
-    )
+    raise RuntimeError("TRACEABILITY_STATUS_MISSING")
 
 
 print("\n13. AUDIT")
@@ -389,18 +275,10 @@ print("-" * 78)
 
 audit = result["audit"]
 
-print(
-    json.dumps(
-        audit,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(audit, indent=2, default=str))
 
 if audit.get("overall_status") != "PASS":
-    raise RuntimeError(
-        "AUDIT_STATUS_NOT_PASS"
-    )
+    raise RuntimeError("AUDIT_STATUS_NOT_PASS")
 
 
 print("\n14. CONCLUSION")
@@ -411,24 +289,16 @@ conclusion = result["conclusion"]
 print(conclusion)
 
 if not isinstance(conclusion, str):
-    raise RuntimeError(
-        "CONCLUSION_NOT_STRING"
-    )
+    raise RuntimeError("CONCLUSION_NOT_STRING")
 
 if not conclusion.strip():
-    raise RuntimeError(
-        "CONCLUSION_EMPTY"
-    )
+    raise RuntimeError("CONCLUSION_EMPTY")
 
 if "UNKNOWN stance" in conclusion:
-    raise RuntimeError(
-        "CONCLUSION_STILL_UNKNOWN"
-    )
+    raise RuntimeError("CONCLUSION_STILL_UNKNOWN")
 
 if "UNSPECIFIED recommendation" in conclusion:
-    raise RuntimeError(
-        "CONCLUSION_STILL_UNSPECIFIED"
-    )
+    raise RuntimeError("CONCLUSION_STILL_UNSPECIFIED")
 
 
 print("\n15. GOVERNANCE")
@@ -459,16 +329,10 @@ for field in expected_true:
 
     ok = actual is True
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual})"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual})")
 
     if not ok:
-        raise RuntimeError(
-            f"GOVERNANCE_FAILURE:{field}"
-        )
+        raise RuntimeError(f"GOVERNANCE_FAILURE:{field}")
 
 
 for field in expected_false:
@@ -477,16 +341,10 @@ for field in expected_false:
 
     ok = actual is False
 
-    print(
-        f"{field:35} : "
-        f"{'PASS' if ok else 'FAIL'} "
-        f"(actual={actual})"
-    )
+    print(f"{field:35} : " f"{'PASS' if ok else 'FAIL'} " f"(actual={actual})")
 
     if not ok:
-        raise RuntimeError(
-            f"GOVERNANCE_FAILURE:{field}"
-        )
+        raise RuntimeError(f"GOVERNANCE_FAILURE:{field}")
 
 
 print("\n16. DATABASE / EXECUTION SAFETY")
@@ -501,13 +359,7 @@ print("PORTFOLIO MUTATION  : BLOCKED")
 print("\n17. COMPLETE RESULT")
 print("-" * 78)
 
-print(
-    json.dumps(
-        result,
-        indent=2,
-        default=str
-    )
-)
+print(json.dumps(result, indent=2, default=str))
 
 
 print("\n======================================================================")

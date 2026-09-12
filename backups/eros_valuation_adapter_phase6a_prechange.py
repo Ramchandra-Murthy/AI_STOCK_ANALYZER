@@ -29,9 +29,7 @@ def normalize_valuation(
         return ValuationResult(
             method=method,
             currency=currency,
-            warnings=[
-                f"{method} engine returned no valuation result."
-            ],
+            warnings=[f"{method} engine returned no valuation result."],
         )
 
     value = _read(result, "value")

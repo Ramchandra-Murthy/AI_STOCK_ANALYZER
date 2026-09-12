@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, String, Float, DateTime
 from datetime import datetime
+
+from sqlalchemy import Column, DateTime, Float, String
+
 from backend.database.engine import Base
+
 
 class CompanyModel(Base):
     __tablename__ = "companies"
@@ -11,6 +14,7 @@ class CompanyModel(Base):
     name = Column(String, nullable=False)
     sector = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
 
 class ValuationRecordModel(Base):
     __tablename__ = "valuations"
@@ -22,6 +26,7 @@ class ValuationRecordModel(Base):
     margin_of_safety = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
 class ForecastRecordModel(Base):
     __tablename__ = "forecasts"
 
@@ -32,6 +37,7 @@ class ForecastRecordModel(Base):
     confidence = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
 class PortfolioRecordModel(Base):
     __tablename__ = "portfolios"
 
@@ -39,6 +45,7 @@ class PortfolioRecordModel(Base):
     strategy_name = Column(String, nullable=False)
     expected_return = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
 
 class ReportRecordModel(Base):
     __tablename__ = "reports"

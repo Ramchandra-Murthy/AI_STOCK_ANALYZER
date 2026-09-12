@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
+
 from backend.research.evidence.models.research_evidence import ResearchEvidence
 from backend.research.evidence.services.evidence_service import EvidenceService
 from backend.research.models.research_case import ResearchCase
 
 logger = logging.getLogger(__name__)
+
 
 class EvidenceAdapter:
     """
@@ -15,7 +17,7 @@ class EvidenceAdapter:
     """
 
     @staticmethod
-    def extract(case: ResearchCase, output: Dict[str, Any]) -> List[ResearchEvidence]:
+    def extract(case: ResearchCase, output: dict[str, Any]) -> list[ResearchEvidence]:
         raise NotImplementedError("Subclasses must implement extract()")
 
 
@@ -26,13 +28,17 @@ class FundamentalsEvidenceAdapter(EvidenceAdapter):
     """
 
     @staticmethod
-    def extract(case: ResearchCase, metrics: Dict[str, Any]) -> List[ResearchEvidence]:
+    def extract(case: ResearchCase, metrics: dict[str, Any]) -> list[ResearchEvidence]:
         evidence_items = []
-        
+
         # Revenue Growth Check
         rev_growth = metrics.get("revenue_growth") or metrics.get("cagr")
         if rev_growth is not None:
-            polarity = "POSITIVE" if rev_growth > 0.10 else ("NEUTRAL" if rev_growth >= 0.0 else "NEGATIVE")
+            polarity = (
+                "POSITIVE"
+                if rev_growth > 0.10
+                else ("NEUTRAL" if rev_growth >= 0.0 else "NEGATIVE")
+            )
             ev = EvidenceService.create_evidence(
                 case,
                 category="FUNDAMENTAL",
@@ -43,7 +49,7 @@ class FundamentalsEvidenceAdapter(EvidenceAdapter):
                 confidence=0.95,
                 materiality=0.85,
                 recency=0.95,
-                polarity=polarity
+                polarity=polarity,
             )
             evidence_items.append(ev)
 
@@ -61,7 +67,7 @@ class FundamentalsEvidenceAdapter(EvidenceAdapter):
                 confidence=0.95,
                 materiality=0.90,
                 recency=0.95,
-                polarity=polarity
+                polarity=polarity,
             )
             evidence_items.append(ev)
 
@@ -75,12 +81,14 @@ class ValuationEvidenceAdapter(EvidenceAdapter):
     """
 
     @staticmethod
-    def extract(case: ResearchCase, valuation_result: Dict[str, Any]) -> List[ResearchEvidence]:
+    def extract(case: ResearchCase, valuation_result: dict[str, Any]) -> list[ResearchEvidence]:
         evidence_items = []
-        
-        intrinsic_value = valuation_result.get("intrinsic_value") or valuation_result.get("blended_valuation")
+
+        intrinsic_value = valuation_result.get("intrinsic_value") or valuation_result.get(
+            "blended_valuation"
+        )
         margin_of_safety = valuation_result.get("margin_of_safety")
-        
+
         if intrinsic_value is not None:
             ev = EvidenceService.create_evidence(
                 case,
@@ -92,12 +100,16 @@ class ValuationEvidenceAdapter(EvidenceAdapter):
                 confidence=0.90,
                 materiality=0.95,
                 recency=1.0,
-                polarity="POSITIVE" if (margin_of_safety and margin_of_safety > 0) else "NEUTRAL"
+                polarity="POSITIVE" if (margin_of_safety and margin_of_safety > 0) else "NEUTRAL",
             )
             evidence_items.append(ev)
 
         if margin_of_safety is not None:
-            polarity = "POSITIVE" if margin_of_safety > 0.15 else ("NEUTRAL" if margin_of_safety >= 0.0 else "NEGATIVE")
+            polarity = (
+                "POSITIVE"
+                if margin_of_safety > 0.15
+                else ("NEUTRAL" if margin_of_safety >= 0.0 else "NEGATIVE")
+            )
             ev = EvidenceService.create_evidence(
                 case,
                 category="VALUATION",
@@ -108,7 +120,7 @@ class ValuationEvidenceAdapter(EvidenceAdapter):
                 confidence=0.90,
                 materiality=0.95,
                 recency=1.0,
-                polarity=polarity
+                polarity=polarity,
             )
             evidence_items.append(ev)
 
@@ -122,12 +134,16 @@ class RiskEvidenceAdapter(EvidenceAdapter):
     """
 
     @staticmethod
-    def extract(case: ResearchCase, risk_metrics: Dict[str, Any]) -> List[ResearchEvidence]:
+    def extract(case: ResearchCase, risk_metrics: dict[str, Any]) -> list[ResearchEvidence]:
         evidence_items = []
-        
+
         debt_to_equity = risk_metrics.get("debt_to_equity")
         if debt_to_equity is not None:
-            polarity = "POSITIVE" if debt_to_equity < 0.5 else ("NEUTRAL" if debt_to_equity <= 1.0 else "NEGATIVE")
+            polarity = (
+                "POSITIVE"
+                if debt_to_equity < 0.5
+                else ("NEUTRAL" if debt_to_equity <= 1.0 else "NEGATIVE")
+            )
             ev = EvidenceService.create_evidence(
                 case,
                 category="RISK",
@@ -138,7 +154,7 @@ class RiskEvidenceAdapter(EvidenceAdapter):
                 confidence=0.95,
                 materiality=0.85,
                 recency=0.95,
-                polarity=polarity
+                polarity=polarity,
             )
             evidence_items.append(ev)
 

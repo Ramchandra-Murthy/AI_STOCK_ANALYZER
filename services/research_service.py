@@ -58,9 +58,7 @@ def _calculate_roe(ticker):
         # Find latest common reporting period
         # --------------------------------------------------
         common_columns = [
-            column
-            for column in income_statement.columns
-            if column in balance_sheet.columns
+            column for column in income_statement.columns if column in balance_sheet.columns
         ]
 
         if not common_columns:
@@ -165,9 +163,7 @@ def _calculate_roa(ticker):
             return None
 
         common_columns = [
-            column
-            for column in income_statement.columns
-            if column in balance_sheet.columns
+            column for column in income_statement.columns if column in balance_sheet.columns
         ]
 
         if not common_columns:
@@ -269,11 +265,7 @@ def _calculate_current_ratio(ticker):
             latest_column,
         )
 
-        if (
-            current_assets is None
-            or current_liabilities is None
-            or current_liabilities <= 0
-        ):
+        if current_assets is None or current_liabilities is None or current_liabilities <= 0:
             return None
 
         ratio = current_assets / current_liabilities
@@ -579,9 +571,7 @@ def get_stock_profile(symbol):
             # GROWTH
             # ==============================================
             "revenue_growth": (revenue_growth if revenue_growth is not None else "N/A"),
-            "earnings_growth": (
-                earnings_growth if earnings_growth is not None else "N/A"
-            ),
+            "earnings_growth": (earnings_growth if earnings_growth is not None else "N/A"),
             # ==============================================
             # CASH FLOW
             # ==============================================
@@ -593,12 +583,8 @@ def get_stock_profile(symbol):
             # VALUATION V4 DATA
             # ==============================================
             "ebitda": (ebitda if ebitda is not None else "N/A"),
-            "enterprise_value": (
-                enterprise_value if enterprise_value is not None else "N/A"
-            ),
-            "shares_outstanding": (
-                shares_outstanding if shares_outstanding is not None else "N/A"
-            ),
+            "enterprise_value": (enterprise_value if enterprise_value is not None else "N/A"),
+            "shares_outstanding": (shares_outstanding if shares_outstanding is not None else "N/A"),
             "total_revenue": (total_revenue if total_revenue is not None else "N/A"),
             "net_income": (net_income if net_income is not None else "N/A"),
             "enterprise_to_ebitda": (

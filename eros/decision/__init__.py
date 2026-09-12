@@ -1,9 +1,9 @@
 ﻿from .pipeline import (
     PipelineContext,
-    create_context,
-    attach,
-    add_warning,
     add_evidence,
+    add_warning,
+    attach,
+    create_context,
     finalize,
 )
 

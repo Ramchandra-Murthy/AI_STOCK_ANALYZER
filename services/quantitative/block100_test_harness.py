@@ -9,19 +9,11 @@ from services.quantitative.block100_paper_execution_fill_gate import (
 
 def main() -> int:
 
-    print(
-        "=========================================================="
-    )
-    print(
-        "EROS 3.0 - BLOCK 100 SELF TEST"
-    )
-    print(
-        "=========================================================="
-    )
+    print("==========================================================")
+    print("EROS 3.0 - BLOCK 100 SELF TEST")
+    print("==========================================================")
 
-    engine = (
-        EROSBlock100PaperExecutionFillGate()
-    )
+    engine = EROSBlock100PaperExecutionFillGate()
 
     tests = 0
     passed = 0
@@ -40,14 +32,11 @@ def main() -> int:
             "status": "CERTIFIED",
             "intent_status": "AUTHORIZED",
             "authorization_status": "AUTHORIZED",
-            "intent_id":
-                "EROS99-TEST-INTENT-001",
+            "intent_id": "EROS99-TEST-INTENT-001",
             "block_id": "99",
             "source_block": "98",
-            "source_readiness_id":
-                "EROS97-TEST-READINESS-001",
-            "source_governance_id":
-                "EROS98-TEST-GOVERNANCE-001",
+            "source_readiness_id": "EROS97-TEST-READINESS-001",
+            "source_governance_id": "EROS98-TEST-GOVERNANCE-001",
             "symbol": "RELIANCE.NS",
             "action": "BUY",
             "quantity": 100.0,
@@ -60,9 +49,7 @@ def main() -> int:
         }
 
     # 1
-    result = engine.certify(
-        intent=base_intent()
-    )
+    result = engine.certify(intent=base_intent())
     check(
         result["status"] == "CERTIFIED",
         "valid intent must certify",
@@ -70,8 +57,7 @@ def main() -> int:
 
     # 2
     check(
-        result["execution_status"]
-        == "SIMULATED",
+        result["execution_status"] == "SIMULATED",
         "full fill must be simulated",
     )
 
@@ -89,8 +75,7 @@ def main() -> int:
 
     # 5
     check(
-        result["source_intent_id"]
-        == "EROS99-TEST-INTENT-001",
+        result["source_intent_id"] == "EROS99-TEST-INTENT-001",
         "intent lineage must survive",
     )
 
@@ -155,8 +140,7 @@ def main() -> int:
     )
 
     check(
-        partial["execution_status"]
-        == "PARTIAL",
+        partial["execution_status"] == "PARTIAL",
         "partial fill must be detected",
     )
 
@@ -177,9 +161,7 @@ def main() -> int:
     hold["action"] = "HOLD"
     hold["quantity"] = 0.0
 
-    hold_result = engine.certify(
-        intent=hold
-    )
+    hold_result = engine.certify(intent=hold)
 
     check(
         hold_result["status"] == "BLOCKED",
@@ -194,13 +176,9 @@ def main() -> int:
 
     # 20
     unauthorized = base_intent()
-    unauthorized[
-        "authorization_status"
-    ] = "REJECTED"
+    unauthorized["authorization_status"] = "REJECTED"
 
-    rejected = engine.certify(
-        intent=unauthorized
-    )
+    rejected = engine.certify(intent=unauthorized)
 
     check(
         rejected["status"] == "BLOCKED",
@@ -211,9 +189,7 @@ def main() -> int:
     invalid_symbol = base_intent()
     invalid_symbol["symbol"] = ""
 
-    blocked = engine.certify(
-        intent=invalid_symbol
-    )
+    blocked = engine.certify(intent=invalid_symbol)
 
     check(
         blocked["status"] == "BLOCKED",
@@ -224,9 +200,7 @@ def main() -> int:
     invalid_price = base_intent()
     invalid_price["reference_price"] = 0
 
-    blocked_price = engine.certify(
-        intent=invalid_price
-    )
+    blocked_price = engine.certify(intent=invalid_price)
 
     check(
         blocked_price["status"] == "BLOCKED",
@@ -237,9 +211,7 @@ def main() -> int:
     invalid_broker = base_intent()
     invalid_broker["broker_submission"] = True
 
-    blocked_broker = engine.certify(
-        intent=invalid_broker
-    )
+    blocked_broker = engine.certify(intent=invalid_broker)
 
     check(
         blocked_broker["status"] == "BLOCKED",
@@ -248,13 +220,9 @@ def main() -> int:
 
     # 24
     original = base_intent()
-    original_copy = deepcopy(
-        original
-    )
+    original_copy = deepcopy(original)
 
-    engine.certify(
-        intent=original
-    )
+    engine.certify(intent=original)
 
     check(
         original == original_copy,
@@ -265,20 +233,13 @@ def main() -> int:
     snapshot = engine.snapshot()
 
     check(
-        snapshot["execution_count"]
-        >= 1,
+        snapshot["execution_count"] >= 1,
         "snapshot must preserve executions",
     )
 
-    print(
-        "=========================================================="
-    )
-    print(
-        "STATUS : PASS"
-    )
-    print(
-        "BLOCK  : 100"
-    )
+    print("==========================================================")
+    print("STATUS : PASS")
+    print("BLOCK  : 100")
     print(
         "CHECKS :",
         passed,
@@ -311,12 +272,8 @@ def main() -> int:
         "EXECUTION BLOCKED:",
         result["execution_blocked"],
     )
-    print(
-        "EROS 3.0 Block 100 self-test passed"
-    )
-    print(
-        "=========================================================="
-    )
+    print("EROS 3.0 Block 100 self-test passed")
+    print("==========================================================")
 
     return 0
 

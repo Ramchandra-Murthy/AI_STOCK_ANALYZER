@@ -1,16 +1,20 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, Any, List
+from typing import Any
+
 from services.reporting.report_models import InstitutionalResearchReport
 
 logger = logging.getLogger(__name__)
+
 
 class ResearchReportBuilder:
     """Institutional report generation engine that aggregates multi-departmental intelligence into structured publications."""
 
     @staticmethod
-    def build_report(symbol: str, committee_decision: Any, forecast_result: Any, portfolio_decision: Any = None) -> InstitutionalResearchReport:
+    def build_report(
+        symbol: str, committee_decision: Any, forecast_result: Any, portfolio_decision: Any = None
+    ) -> InstitutionalResearchReport:
         logger.info("Building institutional research report for %s", symbol)
 
         decision = getattr(committee_decision, "decision", None)
@@ -22,16 +26,12 @@ class ResearchReportBuilder:
             or "HOLD"
         )
         confidence_value = (
-            getattr(committee_decision, "adjusted_confidence", None)
-            if committee_decision
-            else None
+            getattr(committee_decision, "adjusted_confidence", None) if committee_decision else None
         )
 
         if confidence_value is None and committee_decision:
             confidence_value = getattr(
-                getattr(committee_decision, "confidence", None),
-                "overall_confidence",
-                None
+                getattr(committee_decision, "confidence", None), "overall_confidence", None
             )
 
         if confidence_value is None and decision:
@@ -53,13 +53,17 @@ class ResearchReportBuilder:
             f"Forecast section incorporating probabilistic scenario expected value: "
             f"₹{forecast_result.expected_value if forecast_result else 2900.0:,.2f}."
         )
-        port_section = "Portfolio section reflecting target weight allocations and risk budget optimization."
-        appendix = "Appendix containing audit trail, raw evidence hashes, and model versioning signatures."
+        port_section = (
+            "Portfolio section reflecting target weight allocations and risk budget optimization."
+        )
+        appendix = (
+            "Appendix containing audit trail, raw evidence hashes, and model versioning signatures."
+        )
 
         metadata = {
             "author": "Artificial Investment Committee & CIO",
             "platform": "EROS V11 Institutional Research Operating System",
-            "version": "1.0.0"
+            "version": "1.0.0",
         }
 
         return InstitutionalResearchReport(
@@ -72,5 +76,5 @@ class ResearchReportBuilder:
             forecast_section=forecast_section,
             portfolio_section=port_section,
             appendix=appendix,
-            metadata=metadata
+            metadata=metadata,
         )

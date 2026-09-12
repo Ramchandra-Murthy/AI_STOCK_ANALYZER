@@ -4,7 +4,6 @@ import uuid
 from fastapi.testclient import TestClient
 from backend.main import app
 
-
 print("=" * 60)
 print("EROS 3.0 - BLOCK 31K-DR")
 print("PRODUCTION TASK RELIABILITY + OBSERVABILITY")
@@ -77,9 +76,7 @@ print("ROLE:", login_data.get("user", {}).get("role"))
 if not token:
     raise RuntimeError("TOKEN MISSING")
 
-headers = {
-    "Authorization": "Bearer " + token
-}
+headers = {"Authorization": "Bearer " + token}
 
 print("LOGIN: PASS")
 
@@ -163,22 +160,14 @@ for task_name in task_names:
     print("BODY:", response.text)
 
     if response.status_code not in (200, 202):
-        raise RuntimeError(
-            f"TASK SUBMISSION FAILED: {task_name}"
-        )
+        raise RuntimeError(f"TASK SUBMISSION FAILED: {task_name}")
 
     data = response.json()
 
-    task_id = (
-        data.get("task_id")
-        or data.get("id")
-        or data.get("taskId")
-    )
+    task_id = data.get("task_id") or data.get("id") or data.get("taskId")
 
     if not task_id:
-        raise RuntimeError(
-            f"TASK ID MISSING: {task_name}"
-        )
+        raise RuntimeError(f"TASK ID MISSING: {task_name}")
 
     print("TASK ID:", task_id)
 
@@ -245,11 +234,7 @@ for attempt in range(40):
 
         data = response.json()
 
-        state = str(
-            data.get("status")
-            or data.get("state")
-            or ""
-        ).upper()
+        state = str(data.get("status") or data.get("state") or "").upper()
 
         print(
             "CHECK",
@@ -292,27 +277,19 @@ for item in tasks:
     print("BODY:", response.text)
 
     if response.status_code != 200:
-        raise RuntimeError(
-            f"RESULT API FAILED: {task_name}"
-        )
+        raise RuntimeError(f"RESULT API FAILED: {task_name}")
 
     data = response.json()
 
     returned_id = data.get("task_id")
 
     if returned_id != task_id:
-        raise RuntimeError(
-            f"TASK ID MISMATCH: {task_name}"
-        )
+        raise RuntimeError(f"TASK ID MISMATCH: {task_name}")
 
-    status = str(
-        data.get("status", "")
-    ).upper()
+    status = str(data.get("status", "")).upper()
 
     if status != "SUCCESS":
-        raise RuntimeError(
-            f"TASK NOT SUCCESSFUL: {task_name}"
-        )
+        raise RuntimeError(f"TASK NOT SUCCESSFUL: {task_name}")
 
 print("")
 print("RESULT VALIDATION: PASS")
@@ -381,9 +358,7 @@ print("ADMIN QUEUES:", response.status_code)
 print("BODY:", response.text)
 
 if response.status_code not in (401, 403):
-    raise RuntimeError(
-        "ADMIN ROUTE NOT PROTECTED FROM ANALYST"
-    )
+    raise RuntimeError("ADMIN ROUTE NOT PROTECTED FROM ANALYST")
 
 print("ADMIN ROLE PROTECTION: PASS")
 
@@ -396,9 +371,7 @@ print("COMPLETED:", len(results))
 print("UNIQUE IDS:", len(set(ids)))
 
 if len(results) != len(tasks):
-    raise RuntimeError(
-        "NOT ALL TASKS COMPLETED"
-    )
+    raise RuntimeError("NOT ALL TASKS COMPLETED")
 
 print("")
 print("=" * 60)

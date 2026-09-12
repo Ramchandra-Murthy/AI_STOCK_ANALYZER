@@ -7,33 +7,33 @@ data -> normalization -> quality -> scoring
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
 class FinancialSnapshot:
     symbol: str
 
-    revenue: Optional[float] = None
-    ebitda: Optional[float] = None
-    ebit: Optional[float] = None
-    pat: Optional[float] = None
-    eps: Optional[float] = None
+    revenue: float | None = None
+    ebitda: float | None = None
+    ebit: float | None = None
+    pat: float | None = None
+    eps: float | None = None
 
-    total_assets: Optional[float] = None
-    total_debt: Optional[float] = None
-    cash: Optional[float] = None
-    equity: Optional[float] = None
+    total_assets: float | None = None
+    total_debt: float | None = None
+    cash: float | None = None
+    equity: float | None = None
 
-    operating_cash_flow: Optional[float] = None
-    free_cash_flow: Optional[float] = None
+    operating_cash_flow: float | None = None
+    free_cash_flow: float | None = None
 
-    shares_outstanding: Optional[float] = None
-    market_cap: Optional[float] = None
-    current_price: Optional[float] = None
+    shares_outstanding: float | None = None
+    market_cap: float | None = None
+    current_price: float | None = None
 
     currency: str = "INR"
-    period: Optional[str] = None
+    period: str | None = None
 
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -49,24 +49,24 @@ class QualityResult:
 
 @dataclass
 class ScoreResult:
-    score: Optional[float] = None
+    score: float | None = None
     components: dict[str, float] = field(default_factory=dict)
     rationale: list[str] = field(default_factory=list)
 
 
 @dataclass
 class ClassificationResult:
-    classification: Optional[str] = None
-    confidence: Optional[float] = None
+    classification: str | None = None
+    confidence: float | None = None
     rationale: list[str] = field(default_factory=list)
 
 
 @dataclass
 class ValuationResult:
-    value: Optional[float] = None
-    low: Optional[float] = None
-    high: Optional[float] = None
-    method: Optional[str] = None
+    value: float | None = None
+    low: float | None = None
+    high: float | None = None
+    method: str | None = None
     currency: str = "INR"
     assumptions: dict[str, Any] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
@@ -77,8 +77,8 @@ class Evidence:
     source: str
     field: str
     value: Any = None
-    period: Optional[str] = None
-    confidence: Optional[float] = None
+    period: str | None = None
+    confidence: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -86,17 +86,17 @@ class Evidence:
 class EROSResult:
     symbol: str
 
-    financials: Optional[FinancialSnapshot] = None
-    quality: Optional[QualityResult] = None
-    score: Optional[ScoreResult] = None
-    classification: Optional[ClassificationResult] = None
+    financials: FinancialSnapshot | None = None
+    quality: QualityResult | None = None
+    score: ScoreResult | None = None
+    classification: ClassificationResult | None = None
 
-    sotp: Optional[ValuationResult] = None
-    dcf: Optional[ValuationResult] = None
-    bridge: Optional[ValuationResult] = None
+    sotp: ValuationResult | None = None
+    dcf: ValuationResult | None = None
+    bridge: ValuationResult | None = None
 
-    stage13c: Optional[dict[str, Any]] = None
-    stage14: Optional[dict[str, Any]] = None
+    stage13c: dict[str, Any] | None = None
+    stage14: dict[str, Any] | None = None
 
     evidence: list[Evidence] = field(default_factory=list)
 

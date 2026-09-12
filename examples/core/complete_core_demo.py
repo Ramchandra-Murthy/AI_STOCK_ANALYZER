@@ -47,9 +47,7 @@ def run_demo() -> None:
     print(
         f"[Market Data] Price: {share_price.amount} {share_price.currency} | Shares: {shares_count.value:,.0f}"
     )
-    print(
-        f"[Valuation] Market Capitalization: {market_cap.amount:,.2f} {market_cap.currency}"
-    )
+    print(f"[Valuation] Market Capitalization: {market_cap.amount:,.2f} {market_cap.currency}")
     print(
         f"[Assumptions] Projected Growth: {float(expected_growth)}% ({expected_growth.to_basis_points()} bps)"
     )

@@ -32,6 +32,13 @@ Validate Report Completeness & Audit
 from typing import Any
 
 from services.sotp_clock import get_current_timestamp
+from services.sotp_long_term_equity_domain_constants import (
+    EXPECTED_ENTITY_COUNT,
+    PIPELINE_VERSION,
+    STAGE_16,
+    STATUS_OK,
+    STATUS_UNAVAILABLE,
+)
 from services.sotp_long_term_equity_report_templates import (
     get_default_risks,
     get_segment_risks,
@@ -41,14 +48,6 @@ from services.sotp_long_term_equity_sotp_service import (
 )
 from services.sotp_long_term_equity_target_price_service import (
     get_sotp_long_term_equity_target_price_service,
-)
-
-from services.sotp_long_term_equity_domain_constants import (
-    EXPECTED_ENTITY_COUNT,
-    PIPELINE_VERSION,
-    STAGE_16,
-    STATUS_OK,
-    STATUS_UNAVAILABLE,
 )
 
 # ==========================================================
@@ -116,13 +115,9 @@ def _build_rich_portfolio_appendix(
         appendix.append(
             {
                 "entity": item.get("entity"),
-                "interpretation": item.get(
-                    "economic_interpretation", "OPERATING_ENTITY"
-                ),
+                "interpretation": item.get("economic_interpretation", "OPERATING_ENTITY"),
                 "classification": item.get("classification"),
-                "classification_reason": item.get(
-                    "classification_reason", "Rule matched"
-                ),
+                "classification_reason": item.get("classification_reason", "Rule matched"),
                 "method": item.get("method"),
                 "valuation_status": item.get("status"),
                 "framework_complete": item.get("framework_complete", True),
@@ -226,9 +221,7 @@ def get_sotp_long_term_equity_report_service(
 
     # Resolve segment risks dynamically if segments exist; fallback to safe defensive default copy
     active_segments = sotp_payload.get("active_segments", [])
-    resolved_risks = (
-        get_segment_risks(active_segments) if active_segments else get_default_risks()
-    )
+    resolved_risks = get_segment_risks(active_segments) if active_segments else get_default_risks()
 
     report_payload = {
         "status": STATUS_OK,
@@ -261,9 +254,7 @@ def get_sotp_long_term_equity_report_service(
         symbol=symbol,
         rec=exec_summary["recommendation"],
         target_price=exec_summary["target_price"],
-        entities_count=sotp_payload.get(
-            "total_records_processed", EXPECTED_ENTITY_COUNT
-        ),
+        entities_count=sotp_payload.get("total_records_processed", EXPECTED_ENTITY_COUNT),
         error_count=validation_error_count,
     )
 
@@ -278,9 +269,7 @@ if __name__ == "__main__":
     result = get_sotp_long_term_equity_report_service("RELIANCE")
 
     # Pipeline Verification Assertions
-    assert (
-        result["status"] == STATUS_OK
-    ), f"Expected {STATUS_OK}, got {result['status']}"
+    assert result["status"] == STATUS_OK, f"Expected {STATUS_OK}, got {result['status']}"
     assert result["report_complete"] is True, "Report stage not marked complete"
     assert (
         result["validation_error_count"] == 0

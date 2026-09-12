@@ -247,10 +247,7 @@ def show():
     # SYMBOL CHANGE MESSAGE
     # ======================================================
     if entered_symbol and entered_symbol != symbol:
-        st.info(
-            f"Showing analysis for {symbol}. "
-            f"Click Analyze to load {entered_symbol}."
-        )
+        st.info(f"Showing analysis for {symbol}. " f"Click Analyze to load {entered_symbol}.")
 
     # ======================================================
     # FETCH STOCK DATA
@@ -346,9 +343,7 @@ def show():
     # TRADE PLANNING ENGINE
     # ======================================================
     try:
-        trade_plan = generate_trade_plan(
-            history=history, technical_score=technical_score
-        )
+        trade_plan = generate_trade_plan(history=history, technical_score=technical_score)
         if not isinstance(trade_plan, dict):
             trade_plan = {
                 "status": "ERROR",
@@ -818,15 +813,11 @@ def show():
         recommendation = recommendation_result.get("recommendation", "HOLD")
 
         try:
-            default_overall_score = round(
-                (float(technical_score) + float(fundamental_score)) / 2
-            )
+            default_overall_score = round((float(technical_score) + float(fundamental_score)) / 2)
         except (TypeError, ValueError):
             default_overall_score = 0
 
-        overall_score = recommendation_result.get(
-            "overall_score", default_overall_score
-        )
+        overall_score = recommendation_result.get("overall_score", default_overall_score)
 
         c1, c2, c3, c4 = st.columns(4)
         with c1:
@@ -1209,11 +1200,7 @@ def show():
                 if bull_return is not None:
                     st.metric(
                         "Potential Return",
-                        (
-                            f"+{bull_return:.2f}%"
-                            if bull_return >= 0
-                            else f"{bull_return:.2f}%"
-                        ),
+                        (f"+{bull_return:.2f}%" if bull_return >= 0 else f"{bull_return:.2f}%"),
                     )
                 else:
                     st.metric(
@@ -1642,11 +1629,7 @@ def show():
             with col3:
                 st.metric(
                     "Valuation Upside / Downside",
-                    (
-                        f"{v43_upside:+.2f}%"
-                        if isinstance(v43_upside, (int, float))
-                        else "N/A"
-                    ),
+                    (f"{v43_upside:+.2f}%" if isinstance(v43_upside, (int, float)) else "N/A"),
                 )
 
             # ==============================================
@@ -1683,11 +1666,7 @@ def show():
 
             st.metric(
                 "Method Agreement",
-                (
-                    f"{v43_agreement:.1f}%"
-                    if isinstance(v43_agreement, (int, float))
-                    else "N/A"
-                ),
+                (f"{v43_agreement:.1f}%" if isinstance(v43_agreement, (int, float)) else "N/A"),
             )
 
             # ==============================================
@@ -1776,14 +1755,10 @@ def show():
                     {
                         "Method": method_label,
                         "Fair Value": (
-                            f"₹{fair_value:,.2f}"
-                            if isinstance(fair_value, (int, float))
-                            else "N/A"
+                            f"₹{fair_value:,.2f}" if isinstance(fair_value, (int, float)) else "N/A"
                         ),
                         "Upside / Downside": (
-                            f"{upside:+.2f}%"
-                            if isinstance(upside, (int, float))
-                            else "N/A"
+                            f"{upside:+.2f}%" if isinstance(upside, (int, float)) else "N/A"
                         ),
                         "Benchmark": benchmark_label or "N/A",
                         "Reliability": (
@@ -1792,9 +1767,7 @@ def show():
                             else "N/A"
                         ),
                         "Weight": (
-                            f"{weight * 100:.1f}%"
-                            if isinstance(weight, (int, float))
-                            else "N/A"
+                            f"{weight * 100:.1f}%" if isinstance(weight, (int, float)) else "N/A"
                         ),
                         "Source": source or "N/A",
                     }
@@ -1883,11 +1856,7 @@ def show():
             with col1:
                 st.metric(
                     "Peer Relevance Score",
-                    (
-                        f"{peer_score:.1f}%"
-                        if isinstance(peer_score, (int, float))
-                        else "N/A"
-                    ),
+                    (f"{peer_score:.1f}%" if isinstance(peer_score, (int, float)) else "N/A"),
                 )
 
             with col2:
@@ -2043,18 +2012,14 @@ def show():
                             else "N/A"
                         ),
                         "Peer Median": (
-                            f"{peer_median:.4f}"
-                            if isinstance(peer_median, (int, float))
-                            else "N/A"
+                            f"{peer_median:.4f}" if isinstance(peer_median, (int, float)) else "N/A"
                         ),
                         "Adjustment": (
                             f"{adjustment * 100:+.2f}%"
                             if isinstance(adjustment, (int, float))
                             else "N/A"
                         ),
-                        "Observations": (
-                            observations if isinstance(observations, int) else "N/A"
-                        ),
+                        "Observations": (observations if isinstance(observations, int) else "N/A"),
                     }
                 )
 
@@ -2186,9 +2151,7 @@ def show():
                             )
                             else "N/A"
                         ),
-                        "Observations": (
-                            observations if isinstance(observations, int) else "N/A"
-                        ),
+                        "Observations": (observations if isinstance(observations, int) else "N/A"),
                     }
                 )
 
@@ -2370,9 +2333,7 @@ def show():
                 "UNKNOWN",
             )
 
-            diagnostic_quality_percent = diagnostic_quality.get(
-                "composite_adjustment_percent"
-            )
+            diagnostic_quality_percent = diagnostic_quality.get("composite_adjustment_percent")
 
             diagnostic_quality_view = diagnostic_quality.get(
                 "quality_view",
@@ -2390,9 +2351,7 @@ def show():
             ):
                 diagnostic_final_peer = {}
 
-            diagnostic_reliability_multiplier = diagnostic_final_peer.get(
-                "reliability_multiplier"
-            )
+            diagnostic_reliability_multiplier = diagnostic_final_peer.get("reliability_multiplier")
 
             col1, col2, col3 = st.columns(3)
 

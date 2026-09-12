@@ -1,7 +1,6 @@
+import ast
 import importlib
 import inspect
-import ast
-import textwrap
 from pathlib import Path
 
 BASE = Path.cwd()
@@ -74,6 +73,7 @@ METHOD_NAMES = [
     "run_scenarios",
 ]
 
+
 def print_source_context(path, method_name, cls_name):
     print()
     print("-" * 80)
@@ -123,6 +123,7 @@ def print_source_context(path, method_name, cls_name):
     for number in range(start, end):
         print(f"{number + 1:5} | {lines[number]}")
 
+
 def inspect_ast_safety(path):
     print()
     print("-" * 80)
@@ -169,6 +170,7 @@ def inspect_ast_safety(path):
         else:
             print(f"{field:28} : NOT FOUND")
 
+
 def inspect_method_returns(cls, instance):
     print()
     print("-" * 80)
@@ -214,15 +216,9 @@ def inspect_method_returns(cls, instance):
 
                 for field in SAFETY_FIELDS:
                     if field in result:
-                        print(
-                            f"  {field:28} : "
-                            f"{result[field]!r}"
-                        )
+                        print(f"  {field:28} : " f"{result[field]!r}")
                     else:
-                        print(
-                            f"  {field:28} : "
-                            "<ABSENT>"
-                        )
+                        print(f"  {field:28} : " "<ABSENT>")
 
                 if isinstance(result.get("safety"), dict):
 
@@ -235,6 +231,7 @@ def inspect_method_returns(cls, instance):
         except Exception as exc:
             print("INVOCATION : ERROR")
             print(type(exc).__name__, str(exc))
+
 
 def inspect_module(block_number, module_name, filename):
 
@@ -313,11 +310,9 @@ def inspect_module(block_number, module_name, filename):
 
             except Exception as exc:
                 print()
-                print(
-                    f"SOURCE CONTEXT ERROR : "
-                    f"{method_name}"
-                )
+                print(f"SOURCE CONTEXT ERROR : " f"{method_name}")
                 print(type(exc).__name__, str(exc))
+
 
 print("=" * 80)
 print("EROS 3.0 - BLOCK 94-101 SAFETY CONTRACT CONSTRUCTION AUDIT")

@@ -1,10 +1,11 @@
 ﻿from __future__ import annotations
 
 import logging
-from typing import Dict, Any, List
+
 from services.forecast_system.models import ForecastResult
 
 logger = logging.getLogger(__name__)
+
 
 class InstitutionalForecastEngine:
     """Generates probabilistic multi-scenario financial forecasts (Revenue, EBIT, EPS, FCF)."""
@@ -31,6 +32,6 @@ class InstitutionalForecastEngine:
             key_assumptions=[
                 "Stable margin expansion across core operating segments",
                 "Normalized capital expenditure cycle",
-                "GDP-aligned domestic demand growth"
-            ]
+                "GDP-aligned domestic demand growth",
+            ],
         )

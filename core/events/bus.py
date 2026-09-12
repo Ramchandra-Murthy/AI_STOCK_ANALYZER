@@ -3,7 +3,6 @@
 import asyncio
 import logging
 from collections import defaultdict
-from typing import List
 
 from core.events.interfaces import DomainEvent, EventHandler, IEventBus
 
@@ -14,7 +13,7 @@ class InMemoryEventBus(IEventBus):
     """Enterprise in-memory event bus supporting sync and async event handlers."""
 
     def __init__(self) -> None:
-        self._subscribers: dict[str, List[EventHandler]] = defaultdict(list)
+        self._subscribers: dict[str, list[EventHandler]] = defaultdict(list)
 
     def subscribe(self, event_name: str, handler: EventHandler) -> None:
         """Register a handler for a specific event name."""
@@ -35,7 +34,9 @@ class InMemoryEventBus(IEventBus):
             logger.debug("No subscribers found for event '%s'", event.name)
             return
 
-        logger.debug("Publishing event '%s' (%s) to %d handlers", event.name, event.event_id, len(handlers))
+        logger.debug(
+            "Publishing event '%s' (%s) to %d handlers", event.name, event.event_id, len(handlers)
+        )
 
         for handler in handlers:
             try:
@@ -43,4 +44,6 @@ class InMemoryEventBus(IEventBus):
                 if asyncio.iscoroutine(result):
                     await result
             except Exception as e:
-                logger.exception("Error handling event '%s' with handler %s: %s", event.name, handler, e)
+                logger.exception(
+                    "Error handling event '%s' with handler %s: %s", event.name, handler, e
+                )

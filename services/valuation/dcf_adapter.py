@@ -7,7 +7,6 @@ from domain.valuation.result import (
     ValuationResult,
     ValuationStatus,
 )
-
 from services.valuation.base_engine import BaseValuationEngine
 from services.valuation.contracts import SOTPSegmentInput
 from services.valuation.dcf import DCFInput, DCFModel, DCFResult

@@ -1,13 +1,15 @@
 ﻿from __future__ import annotations
 
-import pytest
 from services.copilot.intent_classifier import IntentClassifier
 from services.copilot.orchestrator import InstitutionalAICopilot
+
 
 def test_institutional_ai_copilot() -> None:
     # Test Intent Classification
     assert IntentClassifier.classify("Value Reliance using DCF") == "VALUATION"
-    assert IntentClassifier.classify("Why is the committee recommending BUY?") == "COMMITTEE_REASONING"
+    assert (
+        IntentClassifier.classify("Why is the committee recommending BUY?") == "COMMITTEE_REASONING"
+    )
     assert IntentClassifier.classify("Run full workflow for TCS") == "WORKFLOW"
 
     # Test Copilot Orchestrator Response

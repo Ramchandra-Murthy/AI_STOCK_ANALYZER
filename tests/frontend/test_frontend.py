@@ -1,11 +1,11 @@
 ﻿from __future__ import annotations
 
-import pytest
 from frontend.src.pages.dashboard import InstitutionalDashboardComponent
+
 
 def test_institutional_web_platform_dashboard() -> None:
     metrics = InstitutionalDashboardComponent.get_dashboard_metrics()
-    
+
     assert metrics["market_regime"] == "Expansion"
     assert metrics["institutional_breadth_score"] == 82.0
     assert metrics["workflow_queue_status"] == "Idle"

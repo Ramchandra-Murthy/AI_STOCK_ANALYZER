@@ -14,10 +14,10 @@ from eros.data import prepare_raw_data
 from eros.normalization import normalize
 from eros.scoring import fundamental_score, risk_score
 
-
 # =========================================================
 # PIPELINE CONTEXT
 # =========================================================
+
 
 @dataclass
 class PipelineContext:
@@ -51,6 +51,7 @@ class PipelineContext:
 # CONTEXT CREATION
 # =========================================================
 
+
 def create_context(symbol: str) -> PipelineContext:
     """Create a normalized EROS pipeline context."""
 
@@ -65,6 +66,7 @@ def create_context(symbol: str) -> PipelineContext:
 # =========================================================
 # GENERIC CONTEXT HELPERS
 # =========================================================
+
 
 def attach(
     context: PipelineContext,
@@ -101,6 +103,7 @@ def add_evidence(
 # =========================================================
 # FOUNDATION
 # =========================================================
+
 
 def run_foundation(
     context: PipelineContext,
@@ -159,8 +162,7 @@ def run_foundation(
     except Exception as exc:
         add_warning(
             context,
-            f"Normalization failed: "
-            f"{type(exc).__name__}: {exc}",
+            f"Normalization failed: " f"{type(exc).__name__}: {exc}",
         )
 
         context.status = "NORMALIZATION_FAILED"
@@ -172,15 +174,12 @@ def run_foundation(
     # -----------------------------------------------------
 
     try:
-        context.score = fundamental_score(
-            context.financials
-        )
+        context.score = fundamental_score(context.financials)
 
     except Exception as exc:
         add_warning(
             context,
-            f"Fundamental scoring failed: "
-            f"{type(exc).__name__}: {exc}",
+            f"Fundamental scoring failed: " f"{type(exc).__name__}: {exc}",
         )
 
     # -----------------------------------------------------
@@ -188,15 +187,12 @@ def run_foundation(
     # -----------------------------------------------------
 
     try:
-        context.risk = risk_score(
-            context.financials
-        )
+        context.risk = risk_score(context.financials)
 
     except Exception as exc:
         add_warning(
             context,
-            f"Risk scoring failed: "
-            f"{type(exc).__name__}: {exc}",
+            f"Risk scoring failed: " f"{type(exc).__name__}: {exc}",
         )
 
     # -----------------------------------------------------
@@ -211,6 +207,7 @@ def run_foundation(
 # =========================================================
 # VALUATION
 # =========================================================
+
 
 def run_valuation(
     context: PipelineContext,
@@ -254,141 +251,65 @@ def run_valuation(
     # -----------------------------------------------------
 
     try:
-        dcf_input = build_dcf_input(
-            context.financials
-        )
+        dcf_input = build_dcf_input(context.financials)
 
         valuation_data = {
             # -------------------------------------------------
             # COMPANY
             # -------------------------------------------------
-
             "company_name": dcf_input.company_name,
             "currency": dcf_input.currency,
-            "shares_outstanding": (
-                dcf_input.shares_outstanding
-            ),
-
+            "shares_outstanding": (dcf_input.shares_outstanding),
             # -------------------------------------------------
             # HISTORICAL / FORECAST OPERATING DRIVERS
             # -------------------------------------------------
-
-            "last_historical_revenue": (
-                dcf_input.last_historical_revenue
-            ),
-            "revenue_growth_rates": (
-                dcf_input.revenue_growth_rates
-            ),
-            "ebit_margin_forecast": (
-                dcf_input.ebit_margin_forecast
-            ),
-            "capex_pct_rev": (
-                dcf_input.capex_pct_rev
-            ),
-            "nwc_pct_rev": (
-                dcf_input.nwc_pct_rev
-            ),
-            "dna_pct_rev": (
-                dcf_input.dna_pct_rev
-            ),
-
+            "last_historical_revenue": (dcf_input.last_historical_revenue),
+            "revenue_growth_rates": (dcf_input.revenue_growth_rates),
+            "ebit_margin_forecast": (dcf_input.ebit_margin_forecast),
+            "capex_pct_rev": (dcf_input.capex_pct_rev),
+            "nwc_pct_rev": (dcf_input.nwc_pct_rev),
+            "dna_pct_rev": (dcf_input.dna_pct_rev),
             # -------------------------------------------------
             # DCF ASSUMPTIONS
             # -------------------------------------------------
-
             "tax_rate": dcf_input.tax_rate,
-            "cost_of_equity": (
-                dcf_input.cost_of_equity
-            ),
-            "cost_of_debt_post_tax": (
-                dcf_input.cost_of_debt_post_tax
-            ),
-            "equity_weight": (
-                dcf_input.equity_weight
-            ),
-            "debt_weight": (
-                dcf_input.debt_weight
-            ),
-            "terminal_growth_rate": (
-                dcf_input.terminal_growth_rate
-            ),
-
+            "cost_of_equity": (dcf_input.cost_of_equity),
+            "cost_of_debt_post_tax": (dcf_input.cost_of_debt_post_tax),
+            "equity_weight": (dcf_input.equity_weight),
+            "debt_weight": (dcf_input.debt_weight),
+            "terminal_growth_rate": (dcf_input.terminal_growth_rate),
             # -------------------------------------------------
             # EQUITY BRIDGE
             # -------------------------------------------------
-
             "total_debt": dcf_input.total_debt,
-            "cash_and_equivalents": (
-                dcf_input.cash_and_equivalents
-            ),
-            "minority_interest": (
-                dcf_input.minority_interest
-            ),
-            "preferred_stock": (
-                dcf_input.preferred_stock
-            ),
-
+            "cash_and_equivalents": (dcf_input.cash_and_equivalents),
+            "minority_interest": (dcf_input.minority_interest),
+            "preferred_stock": (dcf_input.preferred_stock),
             # -------------------------------------------------
             # SOTP
             # -------------------------------------------------
-
             "dcf_segments": [
                 {
-                    "segment_name": (
-                        dcf_input.company_name
-                    ),
-                    "currency": (
-                        dcf_input.currency
-                    ),
-                    "last_historical_revenue": (
-                        dcf_input.last_historical_revenue
-                    ),
-                    "revenue_growth_rates": (
-                        dcf_input.revenue_growth_rates
-                    ),
-                    "ebit_margin_forecast": (
-                        dcf_input.ebit_margin_forecast
-                    ),
-                    "capex_pct_rev": (
-                        dcf_input.capex_pct_rev
-                    ),
-                    "nwc_pct_rev": (
-                        dcf_input.nwc_pct_rev
-                    ),
-                    "dna_pct_rev": (
-                        dcf_input.dna_pct_rev
-                    ),
-                    "tax_rate": (
-                        dcf_input.tax_rate
-                    ),
-                    "cost_of_equity": (
-                        dcf_input.cost_of_equity
-                    ),
-                    "cost_of_debt_post_tax": (
-                        dcf_input.cost_of_debt_post_tax
-                    ),
-                    "equity_weight": (
-                        dcf_input.equity_weight
-                    ),
-                    "debt_weight": (
-                        dcf_input.debt_weight
-                    ),
-                    "terminal_growth_rate": (
-                        dcf_input.terminal_growth_rate
-                    ),
-                    "total_debt": (
-                        dcf_input.total_debt
-                    ),
-                    "cash_and_equivalents": (
-                        dcf_input.cash_and_equivalents
-                    ),
-                    "shares_outstanding": (
-                        dcf_input.shares_outstanding
-                    ),
+                    "segment_name": (dcf_input.company_name),
+                    "currency": (dcf_input.currency),
+                    "last_historical_revenue": (dcf_input.last_historical_revenue),
+                    "revenue_growth_rates": (dcf_input.revenue_growth_rates),
+                    "ebit_margin_forecast": (dcf_input.ebit_margin_forecast),
+                    "capex_pct_rev": (dcf_input.capex_pct_rev),
+                    "nwc_pct_rev": (dcf_input.nwc_pct_rev),
+                    "dna_pct_rev": (dcf_input.dna_pct_rev),
+                    "tax_rate": (dcf_input.tax_rate),
+                    "cost_of_equity": (dcf_input.cost_of_equity),
+                    "cost_of_debt_post_tax": (dcf_input.cost_of_debt_post_tax),
+                    "equity_weight": (dcf_input.equity_weight),
+                    "debt_weight": (dcf_input.debt_weight),
+                    "terminal_growth_rate": (dcf_input.terminal_growth_rate),
+                    "total_debt": (dcf_input.total_debt),
+                    "cash_and_equivalents": (dcf_input.cash_and_equivalents),
+                    "shares_outstanding": (dcf_input.shares_outstanding),
                     "weight": 1.0,
                 }
             ],
-
             "other_segments": [],
             "holdco_discount": 0.0,
         }
@@ -396,8 +317,7 @@ def run_valuation(
     except Exception as exc:
         add_warning(
             context,
-            "Valuation payload construction failed: "
-            f"{type(exc).__name__}: {exc}",
+            "Valuation payload construction failed: " f"{type(exc).__name__}: {exc}",
         )
         context.status = "VALUATION_FAILED"
         return context
@@ -439,9 +359,7 @@ def run_valuation(
         # -------------------------------------------------
 
         if not isinstance(result, dict):
-            raise TypeError(
-                "evaluate_valuation() must return a dict"
-            )
+            raise TypeError("evaluate_valuation() must return a dict")
 
         # -------------------------------------------------
         # EXTRACT COMPONENTS
@@ -482,9 +400,7 @@ def run_valuation(
         # -------------------------------------------------
 
         if warnings:
-            context.warnings.extend(
-                warnings
-            )
+            context.warnings.extend(warnings)
 
         # -------------------------------------------------
         # PIPELINE STATUS
@@ -496,14 +412,10 @@ def run_valuation(
             "COMPLETE",
             "EXECUTED",
         ):
-            context.status = (
-                "VALUATION_COMPLETE"
-            )
+            context.status = "VALUATION_COMPLETE"
 
         elif status == "INPUT_REQUIRED":
-            context.status = (
-                "FOUNDATION_COMPLETE"
-            )
+            context.status = "FOUNDATION_COMPLETE"
 
             add_warning(
                 context,
@@ -511,9 +423,7 @@ def run_valuation(
             )
 
         else:
-            context.status = (
-                "VALUATION_FAILED"
-            )
+            context.status = "VALUATION_FAILED"
 
         return context
 
@@ -524,8 +434,7 @@ def run_valuation(
     except Exception as exc:
         add_warning(
             context,
-            "Valuation execution failed: "
-            f"{type(exc).__name__}: {exc}",
+            "Valuation execution failed: " f"{type(exc).__name__}: {exc}",
         )
 
         context.sotp = None
@@ -542,9 +451,7 @@ def run_valuation(
             },
         )
 
-        context.status = (
-            "VALUATION_FAILED"
-        )
+        context.status = "VALUATION_FAILED"
 
         return context
 
@@ -552,6 +459,7 @@ def run_valuation(
 # =========================================================
 # STAGE 13C
 # =========================================================
+
 
 def run_stage13c(
     context: PipelineContext,
@@ -617,9 +525,7 @@ def run_stage13c(
             audit_classification_records,
         )
 
-        audit = audit_classification_records(
-            records
-        )
+        audit = audit_classification_records(records)
 
         context.stage13c = audit
 
@@ -628,20 +534,12 @@ def run_stage13c(
             [],
         )
 
-        context.classification = (
-            classified_records
-        )
+        context.classification = classified_records
 
-        if audit.get(
-            "classification_complete"
-        ):
-            context.status = (
-                "DECISION_COMPLETE"
-            )
+        if audit.get("classification_complete"):
+            context.status = "DECISION_COMPLETE"
         else:
-            context.status = (
-                "DECISION_INPUT_REQUIRED"
-            )
+            context.status = "DECISION_INPUT_REQUIRED"
 
         return context
 
@@ -649,8 +547,7 @@ def run_stage13c(
 
         add_warning(
             context,
-            "Stage 13C execution failed: "
-            f"{type(exc).__name__}: {exc}",
+            "Stage 13C execution failed: " f"{type(exc).__name__}: {exc}",
         )
 
         context.stage13c = {
@@ -671,6 +568,7 @@ def run_stage13c(
 # FINALIZE
 # =========================================================
 
+
 def finalize(
     context: PipelineContext,
 ):
@@ -680,9 +578,7 @@ def finalize(
 
     if context.status == "INITIALIZED":
 
-        context.status = (
-            "INPUT_REQUIRED"
-        )
+        context.status = "INPUT_REQUIRED"
 
         add_warning(
             context,
@@ -692,39 +588,20 @@ def finalize(
     return {
         "symbol": context.symbol,
         "status": context.status,
-
         "raw_data": context.raw_data,
-
         "financials": context.financials,
-
         "normalized": context.normalized,
-
         "quality": context.quality,
-
         "score": context.score,
-
         "risk": context.risk,
-
-        "classification": (
-            context.classification
-        ),
-
+        "classification": (context.classification),
         "sotp": context.sotp,
-
         "dcf": context.dcf,
-
-        "valuation_bridge": (
-            context.valuation_bridge
-        ),
-
+        "valuation_bridge": (context.valuation_bridge),
         "stage13c": context.stage13c,
-
         "stage14": context.stage14,
-
         "evidence": context.evidence,
-
         "warnings": context.warnings,
-
         "provenance": {
             "orchestrator": "EROS_3.0",
             "pipeline_status": context.status,

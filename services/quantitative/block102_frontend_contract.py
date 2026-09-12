@@ -1,8 +1,9 @@
 ﻿from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
-from datetime import datetime, timezone
-from typing import Any, Dict, Mapping
+from datetime import UTC, datetime
+from typing import Any
 
 
 class EROSBlock102FrontendContract:
@@ -63,7 +64,7 @@ class EROSBlock102FrontendContract:
         block99: Mapping[str, Any] | None = None,
         block100: Mapping[str, Any] | None = None,
         block101: Mapping[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         blocks = {
             "94": deepcopy(dict(block94 or {})),
@@ -102,10 +103,8 @@ class EROSBlock102FrontendContract:
             "status": "CERTIFIED",
             "block_id": self.BLOCK_ID,
             "engine_version": self.engine_version,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-
+            "created_at": datetime.now(UTC).isoformat(),
             "pipeline_status": pipeline,
-
             "risk": {
                 "stress_status": self._status(blocks["94"]),
                 "evidence_status": self._status(blocks["95"]),
@@ -118,7 +117,6 @@ class EROSBlock102FrontendContract:
                 "downside_pnl": blocks["94"].get("downside_pnl"),
                 "upside_pnl": blocks["94"].get("upside_pnl"),
             },
-
             "governance": {
                 "status": governance.get(
                     "governance_status",
@@ -129,20 +127,11 @@ class EROSBlock102FrontendContract:
                     "execution_action",
                     governance.get("action"),
                 ),
-                "source_readiness_id": governance.get(
-                    "source_readiness_id"
-                ),
-                "source_decision_id": governance.get(
-                    "source_decision_id"
-                ),
-                "source_gate_id": governance.get(
-                    "source_gate_id"
-                ),
-                "source_certificate_id": governance.get(
-                    "source_certificate_id"
-                ),
+                "source_readiness_id": governance.get("source_readiness_id"),
+                "source_decision_id": governance.get("source_decision_id"),
+                "source_gate_id": governance.get("source_gate_id"),
+                "source_certificate_id": governance.get("source_certificate_id"),
             },
-
             "intent": {
                 "status": intent.get(
                     "intent_status",
@@ -150,17 +139,12 @@ class EROSBlock102FrontendContract:
                 ),
                 "intent_id": intent.get("intent_id"),
                 "intent_action": intent.get("intent_action"),
-                "authorization_status": intent.get(
-                    "authorization_status"
-                ),
+                "authorization_status": intent.get("authorization_status"),
                 "symbol": intent.get("symbol"),
                 "action": intent.get("action"),
                 "quantity": intent.get("quantity"),
-                "reference_price": intent.get(
-                    "reference_price"
-                ),
+                "reference_price": intent.get("reference_price"),
             },
-
             "execution": {
                 "status": execution.get(
                     "execution_status",
@@ -169,52 +153,28 @@ class EROSBlock102FrontendContract:
                 "execution_id": execution.get("execution_id"),
                 "symbol": execution.get("symbol"),
                 "action": execution.get("action"),
-                "requested_quantity": execution.get(
-                    "requested_quantity"
-                ),
-                "filled_quantity": execution.get(
-                    "filled_quantity"
-                ),
-                "reference_price": execution.get(
-                    "reference_price"
-                ),
+                "requested_quantity": execution.get("requested_quantity"),
+                "filled_quantity": execution.get("filled_quantity"),
+                "reference_price": execution.get("reference_price"),
                 "fill_price": execution.get("fill_price"),
                 "fill_status": execution.get("fill_status"),
                 "slippage_bps": execution.get("slippage_bps"),
-                "transaction_cost": execution.get(
-                    "transaction_cost"
-                ),
+                "transaction_cost": execution.get("transaction_cost"),
                 "net_value": execution.get("net_value"),
             },
-
             "reconciliation": {
                 "status": reconciliation.get(
                     "reconciliation_status",
                     self._status(reconciliation),
                 ),
-                "reconciliation_id": reconciliation.get(
-                    "reconciliation_id"
-                ),
-                "source_execution_id": reconciliation.get(
-                    "source_execution_id"
-                ),
-                "quantity_reconciled": reconciliation.get(
-                    "quantity_reconciled"
-                ),
-                "price_reconciled": reconciliation.get(
-                    "price_reconciled"
-                ),
-                "value_reconciled": reconciliation.get(
-                    "value_reconciled"
-                ),
-                "cost_reconciled": reconciliation.get(
-                    "cost_reconciled"
-                ),
-                "lineage_reconciled": reconciliation.get(
-                    "lineage_reconciled"
-                ),
+                "reconciliation_id": reconciliation.get("reconciliation_id"),
+                "source_execution_id": reconciliation.get("source_execution_id"),
+                "quantity_reconciled": reconciliation.get("quantity_reconciled"),
+                "price_reconciled": reconciliation.get("price_reconciled"),
+                "value_reconciled": reconciliation.get("value_reconciled"),
+                "cost_reconciled": reconciliation.get("cost_reconciled"),
+                "lineage_reconciled": reconciliation.get("lineage_reconciled"),
             },
-
             "lineage": {
                 "block94": self._identifier(blocks["94"]),
                 "block95": self._identifier(blocks["95"]),
@@ -225,13 +185,12 @@ class EROSBlock102FrontendContract:
                 "block100": self._identifier(blocks["100"]),
                 "block101": self._identifier(blocks["101"]),
             },
-
             "safety": deepcopy(self.SAFETY_FIELDS),
         }
 
         return self._validate(result)
 
-    def snapshot(self, **kwargs: Any) -> Dict[str, Any]:
+    def snapshot(self, **kwargs: Any) -> dict[str, Any]:
         return self.build(**kwargs)
 
     @staticmethod
@@ -255,14 +214,12 @@ class EROSBlock102FrontendContract:
                 return value
         return None
 
-    def _validate(self, result: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate(self, result: dict[str, Any]) -> dict[str, Any]:
         safety = result["safety"]
 
         for field, expected in self.SAFETY_FIELDS.items():
             if safety.get(field) is not expected:
-                raise ValueError(
-                    f"BLOCK102_SAFETY_INVARIANT_FAILED:{field}"
-                )
+                raise ValueError(f"BLOCK102_SAFETY_INVARIANT_FAILED:{field}")
 
         if result["block_id"] != "102":
             raise ValueError("INVALID_BLOCK_ID")

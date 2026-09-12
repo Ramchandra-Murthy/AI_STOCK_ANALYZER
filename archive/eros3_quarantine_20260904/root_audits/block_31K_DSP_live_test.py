@@ -54,9 +54,7 @@ print("STORED VALUE:", stored)
 print("MATCH:", stored == first_id)
 
 if stored != first_id:
-    raise AssertionError(
-        f"Redis mapping mismatch: expected {first_id}, got {stored}"
-    )
+    raise AssertionError(f"Redis mapping mismatch: expected {first_id}, got {stored}")
 
 print()
 print("6. SECOND IDENTICAL SUBMISSION")
@@ -80,14 +78,10 @@ print("IDEMPOTENT REPLAY:", second.get("idempotent_replay"))
 print("REQUEST ID RETURNED:", second.get("request_id"))
 
 if second_id != first_id:
-    raise AssertionError(
-        f"Duplicate submission created a new task: {second_id}"
-    )
+    raise AssertionError(f"Duplicate submission created a new task: {second_id}")
 
 if second.get("idempotent_replay") is not True:
-    raise AssertionError(
-        "Second submission did not report idempotent_replay=True"
-    )
+    raise AssertionError("Second submission did not report idempotent_replay=True")
 
 print()
 print("8. REDIS FINAL STATE")

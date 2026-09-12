@@ -1,5 +1,6 @@
-﻿from services.scoring.models import AIScoreResult
-from services.scoring.investment_decision import InvestmentDecisionOrchestrator
+﻿from services.scoring.investment_decision import InvestmentDecisionOrchestrator
+from services.scoring.models import AIScoreResult
+
 
 def test_block16d_execution_tca_integration():
     ai_score = AIScoreResult(
@@ -15,10 +16,12 @@ def test_block16d_execution_tca_integration():
         breakdown_details={
             "rating": "STRONG BUY",
             "engine_version": "EROS-3.0-BLOCK-15",
-        }
+        },
     )
 
-    orchestrator = InvestmentDecisionOrchestrator(policy_profile="Institutional", max_position_limit=0.10)
+    orchestrator = InvestmentDecisionOrchestrator(
+        policy_profile="Institutional", max_position_limit=0.10
+    )
     result = orchestrator.evaluate(ai_score, holdings=None, current_weight=0.02)
 
     assert result.symbol == "INFY.NS"

@@ -45,9 +45,7 @@ def main() -> int:
     tests = 0
 
     # 1
-    result = engine.certify(
-        decision=base_ready()
-    )
+    result = engine.certify(decision=base_ready())
     tests += 1
     check(
         result["status"] == "CERTIFIED",
@@ -85,32 +83,28 @@ def main() -> int:
     # 6
     tests += 1
     check(
-        result["source_readiness_id"]
-        == base_ready()["readiness_id"],
+        result["source_readiness_id"] == base_ready()["readiness_id"],
         "readiness lineage must be preserved",
     )
 
     # 7
     tests += 1
     check(
-        result["source_decision_id"]
-        == base_ready()["source_decision_id"],
+        result["source_decision_id"] == base_ready()["source_decision_id"],
         "decision lineage must be preserved",
     )
 
     # 8
     tests += 1
     check(
-        result["source_gate_id"]
-        == base_ready()["source_gate_id"],
+        result["source_gate_id"] == base_ready()["source_gate_id"],
         "gate lineage must be preserved",
     )
 
     # 9
     tests += 1
     check(
-        result["source_certificate_id"]
-        == base_ready()["source_certificate_id"],
+        result["source_certificate_id"] == base_ready()["source_certificate_id"],
         "certificate lineage must be preserved",
     )
 
@@ -161,9 +155,7 @@ def main() -> int:
     review["readiness_id"] = "EROS97-TEST-READINESS-REVIEW"
     review["readiness_status"] = "REVIEW"
 
-    review_result = engine.certify(
-        decision=review
-    )
+    review_result = engine.certify(decision=review)
 
     tests += 1
     check(
@@ -183,9 +175,7 @@ def main() -> int:
     blocked["readiness_id"] = "EROS97-TEST-READINESS-BLOCKED"
     blocked["readiness_status"] = "BLOCKED"
 
-    blocked_result = engine.certify(
-        decision=blocked
-    )
+    blocked_result = engine.certify(decision=blocked)
 
     tests += 1
     check(
@@ -205,9 +195,7 @@ def main() -> int:
     invalid["readiness_id"] = "EROS97-TEST-INVALID-STATUS"
     invalid["status"] = "BLOCKED"
 
-    invalid_result = engine.certify(
-        decision=invalid
-    )
+    invalid_result = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -220,9 +208,7 @@ def main() -> int:
     invalid["readiness_id"] = "EROS97-TEST-INVALID-BLOCK"
     invalid["block_id"] = "96"
 
-    invalid_result = engine.certify(
-        decision=invalid
-    )
+    invalid_result = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -235,9 +221,7 @@ def main() -> int:
     invalid["readiness_id"] = "EROS97-TEST-SCENARIO-MISMATCH"
     invalid["scenario_count"] = 3
 
-    invalid_result = engine.certify(
-        decision=invalid
-    )
+    invalid_result = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -250,9 +234,7 @@ def main() -> int:
     invalid["readiness_id"] = "EROS97-TEST-MUTATION"
     invalid["non_mutation_invariant"] = False
 
-    invalid_result = engine.certify(
-        decision=invalid
-    )
+    invalid_result = engine.certify(decision=invalid)
 
     tests += 1
     check(
@@ -262,17 +244,11 @@ def main() -> int:
 
     # 24 duplicate
     duplicate_source = deepcopy(base_ready())
-    duplicate_source["readiness_id"] = (
-        "EROS97-TEST-DUPLICATE"
-    )
+    duplicate_source["readiness_id"] = "EROS97-TEST-DUPLICATE"
 
-    duplicate_first = engine.certify(
-        decision=duplicate_source
-    )
+    duplicate_first = engine.certify(decision=duplicate_source)
 
-    duplicate_second = engine.certify(
-        decision=duplicate_source
-    )
+    duplicate_second = engine.certify(decision=duplicate_source)
 
     tests += 1
     check(
@@ -300,9 +276,7 @@ def main() -> int:
     original = base_ready()
     original_copy = deepcopy(original)
 
-    engine.certify(
-        decision=original
-    )
+    engine.certify(decision=original)
 
     tests += 1
     check(
@@ -342,9 +316,7 @@ def main() -> int:
         "EXECUTION BLOCKED:",
         result["execution_blocked"],
     )
-    print(
-        "EROS 3.0 Block 98 self-test passed"
-    )
+    print("EROS 3.0 Block 98 self-test passed")
     print("=" * 58)
 
     return 0

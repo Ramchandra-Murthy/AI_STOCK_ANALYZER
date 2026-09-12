@@ -4,10 +4,9 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any
 
-from core.validation.rules import StringValidators
-
 from core.primitives import Currency, Money
 from core.primitives.base import ValueObject
+from core.validation.rules import StringValidators
 from portfolio.domain.position import Position
 
 
@@ -39,9 +38,7 @@ class Portfolio(ValueObject):
 
     def total_unrealized_pnl(self) -> Money:
         """Calculates total unrealized profit or loss across the portfolio."""
-        total = sum(
-            (pos.unrealized_pnl().amount for pos in self.positions), Decimal("0")
-        )
+        total = sum((pos.unrealized_pnl().amount for pos in self.positions), Decimal("0"))
         return Money(total, self.currency)
 
     def to_dict(self) -> dict[str, Any]:

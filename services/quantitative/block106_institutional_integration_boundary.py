@@ -31,10 +31,11 @@ Explicitly prohibited:
 - optimization
 """
 
+import json
+from collections.abc import Mapping
 from copy import deepcopy
 from hashlib import sha256
-import json
-from typing import Any, Dict, Mapping
+from typing import Any
 
 
 class EROSBlock106InstitutionalIntegrationBoundary:
@@ -114,17 +115,10 @@ class EROSBlock106InstitutionalIntegrationBoundary:
         if not isinstance(command_center, Mapping):
             raise TypeError("Block 104 command-center model must be a mapping")
 
-        missing = [
-            field
-            for field in cls.REQUIRED_SOURCE_FIELDS
-            if field not in command_center
-        ]
+        missing = [field for field in cls.REQUIRED_SOURCE_FIELDS if field not in command_center]
 
         if missing:
-            raise ValueError(
-                "Block 104 command-center model missing fields: "
-                + ", ".join(missing)
-            )
+            raise ValueError("Block 104 command-center model missing fields: " + ", ".join(missing))
 
         if str(command_center.get("block_id")) != "104":
             raise ValueError(
@@ -155,32 +149,23 @@ class EROSBlock106InstitutionalIntegrationBoundary:
             "live_order_submission",
         )
 
-        violations = [
-            key
-            for key in prohibited
-            if bool(source_safety.get(key, False))
-        ]
+        violations = [key for key in prohibited if bool(source_safety.get(key, False))]
 
         if violations:
             raise ValueError(
-                "Block 106 safety boundary violated by Block 104: "
-                + ", ".join(violations)
+                "Block 106 safety boundary violated by Block 104: " + ", ".join(violations)
             )
 
         if not bool(source_safety.get("execution_blocked", False)):
-            raise ValueError(
-                "Block 106 requires execution_blocked=True"
-            )
+            raise ValueError("Block 106 requires execution_blocked=True")
 
         if not bool(source_safety.get("non_mutation_invariant", False)):
-            raise ValueError(
-                "Block 106 requires non_mutation_invariant=True"
-            )
+            raise ValueError("Block 106 requires non_mutation_invariant=True")
 
     @classmethod
     def _build_safety_contract(
         cls,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Return a defensive copy of the immutable safety policy.
         """
@@ -189,7 +174,7 @@ class EROSBlock106InstitutionalIntegrationBoundary:
     def build_integration_payload(
         self,
         command_center: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Convert certified Block 104 command-center data into the
         Block 106 institutional integration payload.
@@ -205,7 +190,7 @@ class EROSBlock106InstitutionalIntegrationBoundary:
 
         source_copy = deepcopy(dict(command_center))
 
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "schema": {
                 "name": "EROSInstitutionalIntegrationPayload",
                 "version": self.VERSION,
@@ -222,12 +207,8 @@ class EROSBlock106InstitutionalIntegrationBoundary:
             "lineage": {
                 "source_block": "104",
                 "integration_block": "106",
-                "source_status": str(
-                    command_center.get("status", "")
-                ),
-                "source_block_id": str(
-                    command_center.get("block_id", "")
-                ),
+                "source_status": str(command_center.get("status", "")),
+                "source_block_id": str(command_center.get("block_id", "")),
             },
         }
 
@@ -243,7 +224,7 @@ class EROSBlock106InstitutionalIntegrationBoundary:
     def build_read_only_snapshot(
         self,
         command_center: Mapping[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Alias emphasizing that Block 106 provides a read-only snapshot.
         """
@@ -333,15 +314,9 @@ class EROSBlock106InstitutionalIntegrationBoundary:
         # Reconstruct the exact pre-integrity payload used during
         # payload generation. The integrity section itself is excluded
         # from the hash calculation to avoid recursive hashing.
-        unsigned_payload = {
-            key: value
-            for key, value in payload.items()
-            if key != "integrity"
-        }
+        unsigned_payload = {key: value for key, value in payload.items() if key != "integrity"}
 
-        expected_hash = self._payload_hash(
-            unsigned_payload
-        )
+        expected_hash = self._payload_hash(unsigned_payload)
 
         if supplied_hash != expected_hash:
             return False

@@ -42,9 +42,7 @@ class SOTPAggregator:
     @staticmethod
     def calculate(sotp_input: SOTPInput) -> SOTPResult:
         if not sotp_input.segments:
-            raise ValuationError(
-                "SOTP calculation requires at least one business segment."
-            )
+            raise ValuationError("SOTP calculation requires at least one business segment.")
 
         gross_ev = sum(s.value_amount * s.stake_percentage for s in sotp_input.segments)
         gross_equity = gross_ev - sotp_input.net_debt

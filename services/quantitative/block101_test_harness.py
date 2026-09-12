@@ -5,7 +5,6 @@ from copy import deepcopy
 from services.quantitative.block100_paper_execution_fill_gate import (
     EROSBlock100PaperExecutionFillGate,
 )
-
 from services.quantitative.block101_execution_evidence_reconciliation import (
     EROSBlock101ExecutionEvidenceReconciliationGate,
 )
@@ -58,9 +57,7 @@ def main() -> int:
     # 1. BLOCK 100 -> FILLED
     # ==========================================================
 
-    execution = b100.certify(
-        intent=base_intent()
-    )
+    execution = b100.certify(intent=base_intent())
 
     check(
         execution["status"] == "CERTIFIED",
@@ -81,9 +78,7 @@ def main() -> int:
     # 2. BLOCK 100 -> BLOCK 101
     # ==========================================================
 
-    reconciliation = b101.certify(
-        execution=execution
-    )
+    reconciliation = b101.certify(execution=execution)
 
     check(
         reconciliation["status"] == "CERTIFIED",
@@ -106,14 +101,12 @@ def main() -> int:
     )
 
     check(
-        reconciliation["source_execution_id"]
-        == execution["execution_id"],
+        reconciliation["source_execution_id"] == execution["execution_id"],
         "Execution lineage must survive",
     )
 
     check(
-        reconciliation["source_intent_id"]
-        == execution["source_intent_id"],
+        reconciliation["source_intent_id"] == execution["source_intent_id"],
         "Intent lineage must survive",
     )
 
@@ -122,14 +115,12 @@ def main() -> int:
     # ==========================================================
 
     check(
-        reconciliation["requested_quantity"]
-        == execution["requested_quantity"],
+        reconciliation["requested_quantity"] == execution["requested_quantity"],
         "Requested quantity must reconcile",
     )
 
     check(
-        reconciliation["filled_quantity"]
-        == execution["filled_quantity"],
+        reconciliation["filled_quantity"] == execution["filled_quantity"],
         "Filled quantity must reconcile",
     )
 
@@ -214,9 +205,7 @@ def main() -> int:
         "Fill status must be PARTIAL",
     )
 
-    partial_reconciliation = b101.certify(
-        execution=partial_execution
-    )
+    partial_reconciliation = b101.certify(execution=partial_execution)
 
     check(
         partial_reconciliation["status"] == "CERTIFIED",
@@ -224,8 +213,7 @@ def main() -> int:
     )
 
     check(
-        partial_reconciliation["reconciliation_status"]
-        == "RECONCILED",
+        partial_reconciliation["reconciliation_status"] == "RECONCILED",
         "Partial evidence must reconcile",
     )
 
@@ -242,18 +230,14 @@ def main() -> int:
     hold["action"] = "HOLD"
     hold["quantity"] = 0.0
 
-    blocked_execution = b100.certify(
-        intent=hold
-    )
+    blocked_execution = b100.certify(intent=hold)
 
     check(
         blocked_execution["status"] == "BLOCKED",
         "HOLD execution must be blocked",
     )
 
-    blocked_reconciliation = b101.certify(
-        execution=blocked_execution
-    )
+    blocked_reconciliation = b101.certify(execution=blocked_execution)
 
     check(
         blocked_reconciliation["status"] == "BLOCKED",
@@ -261,8 +245,7 @@ def main() -> int:
     )
 
     check(
-        blocked_reconciliation["reconciliation_status"]
-        == "BLOCKED",
+        blocked_reconciliation["reconciliation_status"] == "BLOCKED",
         "Blocked execution must reconcile as BLOCKED",
     )
 
@@ -288,9 +271,7 @@ def main() -> int:
     malformed = deepcopy(execution)
     malformed["execution_id"] = ""
 
-    malformed_result = b101.certify(
-        execution=malformed
-    )
+    malformed_result = b101.certify(execution=malformed)
 
     check(
         malformed_result["status"] == "BLOCKED",
@@ -304,9 +285,7 @@ def main() -> int:
     wrong_source = deepcopy(execution)
     wrong_source["block_id"] = "99"
 
-    wrong_source_result = b101.certify(
-        execution=wrong_source
-    )
+    wrong_source_result = b101.certify(execution=wrong_source)
 
     check(
         wrong_source_result["status"] == "BLOCKED",
@@ -318,13 +297,9 @@ def main() -> int:
     # ==========================================================
 
     bad_quantity = deepcopy(execution)
-    bad_quantity["filled_quantity"] = (
-        bad_quantity["requested_quantity"] + 1
-    )
+    bad_quantity["filled_quantity"] = bad_quantity["requested_quantity"] + 1
 
-    bad_quantity_result = b101.certify(
-        execution=bad_quantity
-    )
+    bad_quantity_result = b101.certify(execution=bad_quantity)
 
     check(
         bad_quantity_result["status"] == "BLOCKED",
@@ -338,9 +313,7 @@ def main() -> int:
     original = deepcopy(execution)
     original_copy = deepcopy(execution)
 
-    b101.certify(
-        execution=original
-    )
+    b101.certify(execution=original)
 
     check(
         original == original_copy,
@@ -405,5 +378,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-

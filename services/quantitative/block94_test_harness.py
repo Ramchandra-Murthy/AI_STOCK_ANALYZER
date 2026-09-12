@@ -22,14 +22,14 @@ arithmetic. It verifies:
 from __future__ import annotations
 
 import copy
-from typing import Any, Dict, List
+from typing import Any
 
 from .block94_portfolio_stress_scenario_engine import (
-    EROSBlock94PortfolioStressScenarioEngine,
     STATUS_BLOCKED,
     STATUS_CERTIFIED,
     STATUS_DUPLICATE,
     STATUS_PASS,
+    EROSBlock94PortfolioStressScenarioEngine,
 )
 
 
@@ -38,7 +38,7 @@ def _assert(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
-def _base_valuation() -> Dict[str, Any]:
+def _base_valuation() -> dict[str, Any]:
     return {
         "status": "CERTIFIED",
         "valuation_id": "EROS91-VAL-001",
@@ -47,7 +47,7 @@ def _base_valuation() -> Dict[str, Any]:
     }
 
 
-def _base_performance() -> Dict[str, Any]:
+def _base_performance() -> dict[str, Any]:
     return {
         "status": "CERTIFIED",
         "performance_id": "EROS92-PERF-001",
@@ -56,7 +56,7 @@ def _base_performance() -> Dict[str, Any]:
     }
 
 
-def _base_risk() -> Dict[str, Any]:
+def _base_risk() -> dict[str, Any]:
     return {
         "status": "CERTIFIED",
         "certificate_id": "EROS93-RISK-001",
@@ -68,7 +68,7 @@ def _base_risk() -> Dict[str, Any]:
     }
 
 
-def _base_positions() -> List[Dict[str, Any]]:
+def _base_positions() -> list[dict[str, Any]]:
     return [
         {
             "symbol": "ALPHA",
@@ -111,7 +111,7 @@ def _scenario(
     scenario_type: str,
     name: str,
     **kwargs: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     payload = {
         "scenario_id": scenario_id,
         "scenario_type": scenario_type,
@@ -121,7 +121,7 @@ def _scenario(
     return payload
 
 
-def run_block94_self_test() -> Dict[str, Any]:
+def run_block94_self_test() -> dict[str, Any]:
     valuation = _base_valuation()
     performance = _base_performance()
     risk = _base_risk()
@@ -392,15 +392,11 @@ def run_block94_self_test() -> Dict[str, Any]:
     check(result["status"] == STATUS_PASS, "sector shock failed")
 
     banking = [
-        item
-        for item in result["result"]["scenario_contribution"]
-        if item["symbol"] == "ALPHA"
+        item for item in result["result"]["scenario_contribution"] if item["symbol"] == "ALPHA"
     ][0]
 
     energy = [
-        item
-        for item in result["result"]["scenario_contribution"]
-        if item["symbol"] == "GAMMA"
+        item for item in result["result"]["scenario_contribution"] if item["symbol"] == "GAMMA"
     ][0]
 
     check(
@@ -788,8 +784,7 @@ def run_block94_self_test() -> Dict[str, Any]:
     fresh_snapshot = engine.snapshot()
 
     check(
-        fresh_snapshot["certificates"][0]["certificate_status"]
-        == STATUS_CERTIFIED,
+        fresh_snapshot["certificates"][0]["certificate_status"] == STATUS_CERTIFIED,
         "snapshot leaked internal state",
     )
 
@@ -857,8 +852,7 @@ def run_block94_self_test() -> Dict[str, Any]:
     )
 
     total_contribution = sum(
-        item["contribution_pct"]
-        for item in contribution["result"]["scenario_contribution"]
+        item["contribution_pct"] for item in contribution["result"]["scenario_contribution"]
     )
 
     check(

@@ -1,8 +1,8 @@
 ﻿from __future__ import annotations
 
-import pytest
-from services.learning.models import PredictionRecord, OutcomeRecord
 from services.learning.learning_service import SelfLearningAIService
+from services.learning.models import OutcomeRecord, PredictionRecord
+
 
 def test_self_learning_ai_service() -> None:
     service = SelfLearningAIService()
@@ -14,7 +14,7 @@ def test_self_learning_ai_service() -> None:
         expected_return=0.18,
         expected_value=3200.0,
         confidence=0.91,
-        model_version="v1.0"
+        model_version="v1.0",
     )
     service.record_prediction(pred)
 
@@ -23,7 +23,7 @@ def test_self_learning_ai_service() -> None:
         actual_return=0.16,
         actual_price=2950.0,
         benchmark_return=0.10,
-        accuracy_score=0.89
+        accuracy_score=0.89,
     )
     service.record_outcome(outcome)
 

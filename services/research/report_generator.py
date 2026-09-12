@@ -1,10 +1,10 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from core.enums import Status
 from core.logger import logger
-from typing import Any
 
 
 @dataclass(slots=True, frozen=True)
@@ -44,9 +44,7 @@ class ResearchReportGenerator:
         else:
             rec = "SELL"
 
-        logger.info(
-            f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})"
-        )
+        logger.info(f"[{ticker}] Report generated. Recommendation: {rec} (Upside: {upside:.2%})")
 
         return EquityResearchReport(
             ticker=ticker,
@@ -57,4 +55,3 @@ class ResearchReportGenerator:
             investment_thesis=investment_thesis,
             sotp_result=sotp_result,
         )
-

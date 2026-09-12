@@ -3,6 +3,7 @@
     InstitutionalBacktestEngine,
 )
 
+
 def test_block21b_positive_signal_validation():
     engine = InstitutionalBacktestEngine()
     result = engine.evaluate_signal(
@@ -25,6 +26,7 @@ def test_block21b_positive_signal_validation():
     assert result.holding_period_days == 365
     assert result.model_attribution["DCF"] == 0.40
 
+
 def test_block21b_negative_signal_validation():
     engine = InstitutionalBacktestEngine()
     result = engine.evaluate_signal(
@@ -36,6 +38,7 @@ def test_block21b_negative_signal_validation():
     assert isinstance(result, BacktestResult)
     assert result.return_pct == -10.0
     assert result.accuracy is False
+
 
 def test_block21b_default_attribution():
     engine = InstitutionalBacktestEngine()

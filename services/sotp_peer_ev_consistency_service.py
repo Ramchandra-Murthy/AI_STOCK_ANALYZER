@@ -128,11 +128,7 @@ def analyze_peer_ev_consistency(
 
     reconstructed_ev = None
 
-    if (
-        market_cap is not None
-        and total_debt_info is not None
-        and total_cash_info is not None
-    ):
+    if market_cap is not None and total_debt_info is not None and total_cash_info is not None:
         reconstructed_ev = market_cap + total_debt_info - total_cash_info
 
     ev_residual = None
@@ -227,9 +223,7 @@ def analyze_peer_ev_consistency(
             "lease_liabilities": lease_liabilities,
             "included_in_provider_total_debt": (lease_ev_evidence),
             "provider_net_debt_excludes_leases": (net_debt_excludes_leases),
-            "ev_consistency_evidence": (
-                "STRONG" if lease_ev_evidence else "UNRESOLVED"
-            ),
+            "ev_consistency_evidence": ("STRONG" if lease_ev_evidence else "UNRESOLVED"),
         },
         "spectrum_analysis": {
             "explicit_spectrum_liability_found": False,
@@ -255,9 +249,6 @@ def analyze_peer_ev_consistency(
                 "Lease treatment can be investigated because "
                 "lease liabilities are explicitly identified."
             ),
-            (
-                "Spectrum treatment must not be inferred from "
-                "unclassified liability balances."
-            ),
+            ("Spectrum treatment must not be inferred from " "unclassified liability balances."),
         ],
     }

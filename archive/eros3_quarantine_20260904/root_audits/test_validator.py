@@ -48,8 +48,7 @@ def test_broken_accounting_identity_is_rejected():
     with pytest.raises(ValueError) as exc:
         validate_financial_statements(invalid_fs)
 
-    assert "accounting" in str(exc.value).lower() or \
-           "asset" in str(exc.value).lower()
+    assert "accounting" in str(exc.value).lower() or "asset" in str(exc.value).lower()
 
 
 def test_validator_contract_imports():

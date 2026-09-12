@@ -1,6 +1,6 @@
-from pathlib import Path
 import ast
 import subprocess
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -10,9 +10,11 @@ targets = {
 
 output = []
 
+
 def p(text=""):
     print(text)
     output.append(str(text))
+
 
 p("=" * 100)
 p("EROS 3.0 - BLOCK 94-96 BLOCKED HELPER TRACE")
@@ -30,15 +32,10 @@ for block_id, path in targets.items():
         p("ERROR: FILE NOT FOUND")
         continue
 
-    source = path.read_text(
-        encoding="utf-8-sig"
-    )
+    source = path.read_text(encoding="utf-8-sig")
 
     try:
-        tree = ast.parse(
-            source,
-            filename=str(path)
-        )
+        tree = ast.parse(source, filename=str(path))
     except SyntaxError as exc:
         p("AST PARSE ERROR")
         p(f"{type(exc).__name__}: {exc}")
@@ -54,46 +51,27 @@ for block_id, path in targets.items():
 
     for node in ast.walk(tree):
 
-        if not isinstance(
-            node,
-            (ast.FunctionDef, ast.AsyncFunctionDef)
-        ):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
 
         name = node.name.lower()
 
-        if (
-            "blocked" in name
-            or "block" in name
-            or "reject" in name
-            or "fail" in name
-        ):
+        if "blocked" in name or "block" in name or "reject" in name or "fail" in name:
             candidates.append(node)
 
     if not candidates:
         p("NO BLOCKED/REJECTION HELPER FOUND")
         continue
 
-    for method in sorted(
-        candidates,
-        key=lambda x: x.lineno
-    ):
+    for method in sorted(candidates, key=lambda x: x.lineno):
 
         start = method.lineno
-        end = getattr(
-            method,
-            "end_lineno",
-            method.lineno
-        )
+        end = getattr(method, "end_lineno", method.lineno)
 
         p()
         p("-" * 100)
-        p(
-            f"HELPER: {method.name}"
-        )
-        p(
-            f"LOCATION: L{start}-L{end}"
-        )
+        p(f"HELPER: {method.name}")
+        p(f"LOCATION: L{start}-L{end}")
         p("-" * 100)
 
         for n in range(start, end + 1):
@@ -103,54 +81,28 @@ for block_id, path in targets.items():
         # Analyze returns
         # --------------------------------------------------------
 
-        returns = [
-            node
-            for node in ast.walk(method)
-            if isinstance(node, ast.Return)
-        ]
+        returns = [node for node in ast.walk(method) if isinstance(node, ast.Return)]
 
         p()
-        p(
-            f"RETURN COUNT: {len(returns)}"
-        )
+        p(f"RETURN COUNT: {len(returns)}")
 
-        for idx, ret in enumerate(
-            sorted(
-                returns,
-                key=lambda x: x.lineno
-            ),
-            start=1
-        ):
+        for idx, ret in enumerate(sorted(returns, key=lambda x: x.lineno), start=1):
 
             p()
-            p(
-                f"RETURN #{idx} AT L{ret.lineno}"
-            )
+            p(f"RETURN #{idx} AT L{ret.lineno}")
 
-            if isinstance(
-                ret.value,
-                ast.Dict
-            ):
+            if isinstance(ret.value, ast.Dict):
 
                 keys = []
 
                 for key in ret.value.keys:
 
-                    if isinstance(
-                        key,
-                        ast.Constant
-                    ):
-                        keys.append(
-                            str(key.value)
-                        )
+                    if isinstance(key, ast.Constant):
+                        keys.append(str(key.value))
                     elif key is None:
-                        keys.append(
-                            "<**>"
-                        )
+                        keys.append("<**>")
                     else:
-                        keys.append(
-                            ast.unparse(key)
-                        )
+                        keys.append(ast.unparse(key))
 
                 p("RETURN DICTIONARY KEYS:")
 
@@ -164,40 +116,24 @@ for block_id, path in targets.items():
                     "live_order_submission",
                 }
 
-                missing = (
-                    required -
-                    set(keys)
-                )
+                missing = required - set(keys)
 
                 p()
 
                 if missing:
-                    p(
-                        "SAFETY CONTRACT: MISSING"
-                    )
+                    p("SAFETY CONTRACT: MISSING")
 
                     for field in sorted(missing):
-                        p(
-                            f"  MISSING: {field}"
-                        )
+                        p(f"  MISSING: {field}")
                 else:
-                    p(
-                        "SAFETY CONTRACT: PRESENT"
-                    )
+                    p("SAFETY CONTRACT: PRESENT")
 
             else:
 
-                p(
-                    "RETURN VALUE IS NOT A LITERAL DICTIONARY"
-                )
+                p("RETURN VALUE IS NOT A LITERAL DICTIONARY")
 
                 if ret.value is not None:
-                    p(
-                        ast.dump(
-                            ret.value,
-                            include_attributes=False
-                        )
-                    )
+                    p(ast.dump(ret.value, include_attributes=False))
 
 p()
 p("=" * 100)
@@ -250,9 +186,5 @@ except Exception as exc:
     print("=" * 100)
     print("CLIPBOARD : FAIL")
     print("=" * 100)
-    print(
-        type(exc).__name__,
-        str(exc)
-    )
+    print(type(exc).__name__, str(exc))
     print("=" * 100)
-

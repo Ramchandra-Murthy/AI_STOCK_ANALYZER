@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, Generic, TypeVar, runtime_checkable
+from typing import Any, Generic, TypeVar, runtime_checkable
 
 TContext = TypeVar("TContext")
 TResult = TypeVar("TResult")
@@ -13,9 +13,9 @@ class ValuationContext:
     """Encapsulates inputs required to perform a valuation."""
 
     symbol: str
-    financials: Dict[str, Any] = field(default_factory=dict)
-    market_data: Dict[str, Any] = field(default_factory=dict)
-    assumptions: Dict[str, Any] = field(default_factory=dict)
+    financials: dict[str, Any] = field(default_factory=dict)
+    market_data: dict[str, Any] = field(default_factory=dict)
+    assumptions: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -26,7 +26,7 @@ class ValuationResult:
     intrinsic_value: float
     currency: str = "INR"
     confidence_score: float = 0.0
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 @runtime_checkable

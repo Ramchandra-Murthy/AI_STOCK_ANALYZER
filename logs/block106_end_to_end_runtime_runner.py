@@ -2,9 +2,7 @@
 
 import inspect
 import json
-import sys
-from typing import Any, Dict
-
+from typing import Any
 
 print("")
 print("=" * 70)
@@ -23,11 +21,9 @@ print("-" * 70)
 from services.quantitative.block103_institutional_frontend_read_model import (
     EROSBlock103InstitutionalFrontendReadModel,
 )
-
 from services.quantitative.block104_eros_command_center import (
     EROSBlock104CommandCenter,
 )
-
 from services.quantitative.block106_institutional_integration_boundary import (
     EROSBlock106InstitutionalIntegrationBoundary,
 )
@@ -62,23 +58,17 @@ print(
 
 print(
     "BLOCK 106 BUILD     :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_integration_payload),
 )
 
 print(
     "BLOCK 106 SNAPSHOT  :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.build_read_only_snapshot),
 )
 
 print(
     "BLOCK 106 VALIDATE  :",
-    inspect.signature(
-        EROSBlock106InstitutionalIntegrationBoundary.validate_payload
-    ),
+    inspect.signature(EROSBlock106InstitutionalIntegrationBoundary.validate_payload),
 )
 
 print("SIGNATURE VERIFICATION : PASS")
@@ -92,10 +82,9 @@ print("")
 print("3. BUILD BLOCK 103 UPSTREAM CONTRACT")
 print("-" * 70)
 
-contract: Dict[str, Any] = {
+contract: dict[str, Any] = {
     "status": "CERTIFIED",
     "block_id": 102,
-
     "pipeline": {
         "blocks": [
             "94",
@@ -109,17 +98,14 @@ contract: Dict[str, Any] = {
         ],
         "status": "CERTIFIED",
     },
-
     "risk": {
         "status": "CERTIFIED",
         "risk_state": "CONTROLLED",
     },
-
     "governance": {
         "status": "APPROVED",
         "authorization": "AUTHORIZED",
     },
-
     "intent": {
         "status": "CERTIFIED",
         "authorization": "AUTHORIZED",
@@ -128,7 +114,6 @@ contract: Dict[str, Any] = {
         "quantity": 100.0,
         "reference_price": 2500.0,
     },
-
     "execution": {
         "status": "SIMULATED",
         "execution_status": "SIMULATED",
@@ -136,7 +121,6 @@ contract: Dict[str, Any] = {
         "broker_submission": False,
         "live_execution": False,
     },
-
     "reconciliation": {
         "status": "RECONCILED",
         "quantity_reconciled": True,
@@ -145,12 +129,10 @@ contract: Dict[str, Any] = {
         "cost_reconciled": True,
         "lineage_reconciled": True,
     },
-
     "lineage": {
         "status": "PRESERVED",
         "source_block": "102",
     },
-
     "safety": {
         "read_only": True,
         "allow_order_creation": False,
@@ -185,9 +167,7 @@ block103 = EROSBlock103InstitutionalFrontendReadModel()
 
 print("INSTANCE TYPE     :", type(block103).__name__)
 
-read_model = block103.build(
-    contract=contract
-)
+read_model = block103.build(contract=contract)
 
 print("BLOCK 103 STATUS  :", read_model.get("status"))
 print("BLOCK 103 ID      :", read_model.get("block_id"))
@@ -211,9 +191,7 @@ block104 = EROSBlock104CommandCenter()
 
 print("INSTANCE TYPE     :", type(block104).__name__)
 
-command_center = block104.snapshot(
-    read_model
-)
+command_center = block104.snapshot(read_model)
 
 print(
     "BLOCK 104 STATUS  :",
@@ -271,9 +249,7 @@ print("BLOCK ID          :", block106.BLOCK_ID)
 print("BLOCK NAME        :", block106.BLOCK_NAME)
 print("VERSION           :", block106.VERSION)
 
-integration_payload = block106.build_integration_payload(
-    command_center=command_center
-)
+integration_payload = block106.build_integration_payload(command_center=command_center)
 
 print("")
 print("INTEGRATION PAYLOAD CREATED : PASS")
@@ -296,9 +272,7 @@ print("")
 print("7. BLOCK 106 PAYLOAD VALIDATION")
 print("-" * 70)
 
-payload_valid = block106.validate_payload(
-    integration_payload
-)
+payload_valid = block106.validate_payload(integration_payload)
 
 print("VALIDATION RESULT :", payload_valid)
 
@@ -316,9 +290,7 @@ print("")
 print("8. BLOCK 106 READ-ONLY SNAPSHOT")
 print("-" * 70)
 
-snapshot = block106.build_read_only_snapshot(
-    command_center=command_center
-)
+snapshot = block106.build_read_only_snapshot(command_center=command_center)
 
 print("SNAPSHOT CREATED  : PASS")
 print(
@@ -375,15 +347,11 @@ required_false = (
 
 for key in required_true:
     if policy.get(key) is not True:
-        raise RuntimeError(
-            f"Safety violation: {key} must be True"
-        )
+        raise RuntimeError(f"Safety violation: {key} must be True")
 
 for key in required_false:
     if policy.get(key) is not False:
-        raise RuntimeError(
-            f"Safety violation: {key} must be False"
-        )
+        raise RuntimeError(f"Safety violation: {key} must be False")
 
 print("")
 print("SAFETY POLICY : PASS")

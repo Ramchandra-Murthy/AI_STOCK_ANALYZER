@@ -66,14 +66,10 @@ def calculate_classification_relevance(
     peer_sector = _clean_text(peer_sector)
     peer_industry = _clean_text(peer_industry)
 
-    sector_match = (
-        bool(company_sector) and bool(peer_sector) and company_sector == peer_sector
-    )
+    sector_match = bool(company_sector) and bool(peer_sector) and company_sector == peer_sector
 
     industry_match = (
-        bool(company_industry)
-        and bool(peer_industry)
-        and company_industry == peer_industry
+        bool(company_industry) and bool(peer_industry) and company_industry == peer_industry
     )
 
     score = 0.0
@@ -129,12 +125,7 @@ def _relative_similarity(
     company_value = _safe_float(company_value)
     peer_value = _safe_float(peer_value)
 
-    if (
-        company_value is None
-        or peer_value is None
-        or company_value < 0
-        or peer_value < 0
-    ):
+    if company_value is None or peer_value is None or company_value < 0 or peer_value < 0:
         return None
 
     denominator = max(
@@ -547,15 +538,11 @@ def calculate_peer_relevance(
     themselves establish economic comparability.
     """
 
-    classification_result = (
-        classification_result if isinstance(classification_result, dict) else {}
-    )
+    classification_result = classification_result if isinstance(classification_result, dict) else {}
 
     financial_result = financial_result if isinstance(financial_result, dict) else {}
 
-    business_model_result = (
-        business_model_result if isinstance(business_model_result, dict) else {}
-    )
+    business_model_result = business_model_result if isinstance(business_model_result, dict) else {}
 
     classification_score = _safe_float(classification_result.get("score"))
 

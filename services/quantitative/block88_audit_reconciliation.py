@@ -18,23 +18,23 @@ Block 88 NEVER upgrades a blocked decision. It only:
 No broker/live order submission is performed by this module.
 """
 
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
 import hashlib
 import json
 import math
-from typing import Any, Dict, Iterable, List, Mapping, Optional
-
+from collections.abc import Iterable, Mapping
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 
 ENGINE_VERSION = "EROS-3.0-BLOCK-88"
 AUDIT_SCHEMA_VERSION = "1.0"
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
-def _dict(value: Any) -> Dict[str, Any]:
+def _dict(value: Any) -> dict[str, Any]:
     if value is None:
         return {}
     if isinstance(value, Mapping):
@@ -47,7 +47,7 @@ def _dict(value: Any) -> Dict[str, Any]:
     return {}
 
 
-def _list(value: Any) -> List[Any]:
+def _list(value: Any) -> list[Any]:
     if value is None:
         return []
     if isinstance(value, list):
@@ -122,18 +122,18 @@ class ExecutionAuditRecord:
 
     reconciliation_status: str
     exception_count: int
-    exceptions: List[str] = field(default_factory=list)
+    exceptions: list[str] = field(default_factory=list)
 
     broker_submission: bool = False
     live_order_submission: bool = False
     paper_execution: bool = True
 
-    source_order_ids: List[str] = field(default_factory=list)
-    source_fill_ids: List[str] = field(default_factory=list)
+    source_order_ids: list[str] = field(default_factory=list)
+    source_fill_ids: list[str] = field(default_factory=list)
 
     audit_hash: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -152,7 +152,7 @@ class Block88AuditCertificate:
     certificate_hash: str
     created_at_utc: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -179,22 +179,22 @@ class EROSBlock88AuditReconciliationEngine:
         self.cost_tolerance = max(float(cost_tolerance), 0.0)
 
     @staticmethod
-    def _decision(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _decision(payload: Mapping[str, Any]) -> dict[str, Any]:
         value = _first(payload, "decision", "control_decision", default={})
         return _dict(value)
 
     @staticmethod
-    def _orders(payload: Mapping[str, Any]) -> List[Dict[str, Any]]:
+    def _orders(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
         value = _first(payload, "orders", "execution_orders", "order_plan", default=[])
         return [_dict(x) for x in _list(value) if _dict(x)]
 
     @staticmethod
-    def _fills(payload: Mapping[str, Any]) -> List[Dict[str, Any]]:
+    def _fills(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
         value = _first(payload, "fills", "paper_fills", "executions", default=[])
         return [_dict(x) for x in _list(value) if _dict(x)]
 
     @staticmethod
-    def _tca(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    def _tca(payload: Mapping[str, Any]) -> dict[str, Any]:
         return _dict(_first(payload, "tca", "transaction_cost_analysis", default={}))
 
     @staticmethod
@@ -261,21 +261,15 @@ class EROSBlock88AuditReconciliationEngine:
 
     @staticmethod
     def _order_id(order: Mapping[str, Any]) -> str:
-        return _text(
-            _first(order, "order_id", "execution_id", "id", default="")
-        )
+        return _text(_first(order, "order_id", "execution_id", "id", default=""))
 
     @staticmethod
     def _fill_id(fill: Mapping[str, Any]) -> str:
-        return _text(
-            _first(fill, "fill_id", "execution_id", "id", default="")
-        )
+        return _text(_first(fill, "fill_id", "execution_id", "id", default=""))
 
     @staticmethod
     def _quantity(item: Mapping[str, Any]) -> float:
-        return _number(
-            _first(item, "quantity", "filled_quantity", "qty", default=0.0)
-        )
+        return _number(_first(item, "quantity", "filled_quantity", "qty", default=0.0))
 
     @staticmethod
     def _price(item: Mapping[str, Any]) -> float:
@@ -288,8 +282,10 @@ class EROSBlock88AuditReconciliationEngine:
         explicit = _first(item, "notional", "notional_value", "gross_notional")
         if explicit is not None:
             return _number(explicit)
-        return abs(EROSBlock88AuditReconciliationEngine._quantity(item)
-                   * EROSBlock88AuditReconciliationEngine._price(item))
+        return abs(
+            EROSBlock88AuditReconciliationEngine._quantity(item)
+            * EROSBlock88AuditReconciliationEngine._price(item)
+        )
 
     @staticmethod
     def _cost(tca: Mapping[str, Any]) -> float:
@@ -307,7 +303,7 @@ class EROSBlock88AuditReconciliationEngine:
         self,
         decision: Mapping[str, Any],
         payload: Mapping[str, Any],
-        exceptions: List[str],
+        exceptions: list[str],
     ) -> None:
         if not self._allowed(decision, payload):
             exceptions.append("EXECUTION_NOT_ALLOWED")
@@ -326,9 +322,9 @@ class EROSBlock88AuditReconciliationEngine:
         self,
         execution_result: Any,
         *,
-        expected_orders: Optional[Iterable[Mapping[str, Any]]] = None,
-        expected_fills: Optional[Iterable[Mapping[str, Any]]] = None,
-        expected_tca: Optional[Mapping[str, Any]] = None,
+        expected_orders: Iterable[Mapping[str, Any]] | None = None,
+        expected_fills: Iterable[Mapping[str, Any]] | None = None,
+        expected_tca: Mapping[str, Any] | None = None,
     ) -> ExecutionAuditRecord:
         payload = _dict(execution_result)
         decision = self._decision(payload)
@@ -349,7 +345,7 @@ class EROSBlock88AuditReconciliationEngine:
 
         expected_tca_dict = _dict(expected_tca) if expected_tca is not None else tca
 
-        exceptions: List[str] = []
+        exceptions: list[str] = []
         self._validate_gate(decision, payload, exceptions)
 
         decision_id = self._decision_id(decision)
@@ -381,17 +377,10 @@ class EROSBlock88AuditReconciliationEngine:
 
         expected_quantity = sum(
             self._quantity(x)
-            for x in (
-                expected_fill_list
-                if expected_fills is not None
-                else expected_order_list
-            )
+            for x in (expected_fill_list if expected_fills is not None else expected_order_list)
         )
 
-        actual_quantity = sum(
-            self._quantity(x)
-            for x in fills
-        )
+        actual_quantity = sum(self._quantity(x) for x in fills)
 
         # ------------------------------------------------------
         # BLOCK 88 EXECUTED-NOTIONAL CONTRACT
@@ -411,20 +400,11 @@ class EROSBlock88AuditReconciliationEngine:
         # ------------------------------------------------------
 
         if expected_fills is not None:
-            expected_notional = sum(
-                self._notional(x)
-                for x in expected_fill_list
-            )
+            expected_notional = sum(self._notional(x) for x in expected_fill_list)
         else:
-            expected_notional = sum(
-                self._notional(x)
-                for x in expected_order_list
-            )
+            expected_notional = sum(self._notional(x) for x in expected_order_list)
 
-        actual_notional = sum(
-            self._notional(x)
-            for x in fills
-        )
+        actual_notional = sum(self._notional(x) for x in fills)
 
         expected_cost = self._cost(expected_tca_dict)
         actual_cost = self._cost(tca)
@@ -451,7 +431,9 @@ class EROSBlock88AuditReconciliationEngine:
         # An audit must never certify a blocked execution as reconciled.
         if exceptions:
             reconciliation_status = "EXCEPTION"
-            execution_status = "BLOCKED" if not self._allowed(decision, payload) else "AUDIT_EXCEPTION"
+            execution_status = (
+                "BLOCKED" if not self._allowed(decision, payload) else "AUDIT_EXCEPTION"
+            )
         else:
             reconciliation_status = "RECONCILED"
             execution_status = "RECONCILED"
@@ -512,9 +494,7 @@ class EROSBlock88AuditReconciliationEngine:
     def certify(self, audit: Any) -> Block88AuditCertificate:
         record = _dict(audit)
 
-        reconciliation_status = _text(
-            record.get("reconciliation_status"), "EXCEPTION"
-        ).upper()
+        reconciliation_status = _text(record.get("reconciliation_status"), "EXCEPTION").upper()
         exceptions = _list(record.get("exceptions"))
 
         execution_allowed = bool(record.get("execution_allowed", False))
@@ -563,10 +543,10 @@ class EROSBlock88AuditReconciliationEngine:
         self,
         execution_result: Any,
         *,
-        expected_orders: Optional[Iterable[Mapping[str, Any]]] = None,
-        expected_fills: Optional[Iterable[Mapping[str, Any]]] = None,
-        expected_tca: Optional[Mapping[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        expected_orders: Iterable[Mapping[str, Any]] | None = None,
+        expected_fills: Iterable[Mapping[str, Any]] | None = None,
+        expected_tca: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
         audit = self.reconcile(
             execution_result,
             expected_orders=expected_orders,
@@ -579,5 +559,3 @@ class EROSBlock88AuditReconciliationEngine:
             "audit": audit.to_dict(),
             "certificate": certificate.to_dict(),
         }
-
-

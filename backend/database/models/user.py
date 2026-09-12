@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime, Enum as SQLEnum
+
+from sqlalchemy import Boolean, Column, DateTime, String
+from sqlalchemy import Enum as SQLEnum
+
 from backend.database.engine import Base
+
 
 class UserRole(str, enum.Enum):
     ADMIN = "ADMIN"
     ANALYST = "ANALYST"
     RESEARCHER = "RESEARCHER"
     VIEWER = "VIEWER"
+
 
 class UserModel(Base):
     __tablename__ = "users"

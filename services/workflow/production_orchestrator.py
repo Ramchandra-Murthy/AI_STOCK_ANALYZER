@@ -13,16 +13,14 @@ class EROSProductionWorkflowOrchestrator:
     """Expose the validated production market-data workflow contract."""
 
     def __init__(self, policy_profile: str = "Institutional") -> None:
-        self.market_pipeline = FullyIntegratedMarketPipeline(
-            policy_profile=policy_profile
-        )
+        self.market_pipeline = FullyIntegratedMarketPipeline(policy_profile=policy_profile)
 
     def execute_workflow(self, symbol: str) -> dict[str, Any]:
         """Execute the integrity-gated workflow without fabricating decisions."""
         normalized_symbol = symbol.strip().upper() if isinstance(symbol, str) else ""
 
-        packet, decision, result, trace = (
-            self.market_pipeline.evaluate_stock_securely(normalized_symbol)
+        packet, decision, result, trace = self.market_pipeline.evaluate_stock_securely(
+            normalized_symbol
         )
 
         if not decision.allowed_in_scoring or result is None:
@@ -54,9 +52,7 @@ class EROSProductionWorkflowOrchestrator:
             "growth_score": investment_decision.growth_score,
             "quality_score": investment_decision.quality_score,
             "profitability_score": investment_decision.profitability_score,
-            "capital_allocation_score": (
-                investment_decision.capital_allocation_score
-            ),
+            "capital_allocation_score": (investment_decision.capital_allocation_score),
             "valuation_score": investment_decision.valuation_score,
             "momentum_score": investment_decision.momentum_score,
             "risk_score": investment_decision.risk_score,
@@ -133,9 +129,7 @@ class EROSProductionWorkflowOrchestrator:
             },
             "audit_trace": {
                 "timestamp": trace.timestamp,
-                "engine_version": trace.details.get(
-                    "engine_version", "EROS-3.0-BLOCK-23J"
-                ),
+                "engine_version": trace.details.get("engine_version", "EROS-3.0-BLOCK-23J"),
             },
         }
 

@@ -1,6 +1,5 @@
 ﻿import ast
 import hashlib
-import os
 import sys
 import traceback
 from pathlib import Path
@@ -47,6 +46,7 @@ SQL_WRITE_PREFIXES = (
     "create ",
 )
 
+
 def sha256_file(path):
     h = hashlib.sha256()
 
@@ -74,9 +74,7 @@ def active_write_calls(path):
     try:
         tree = ast.parse(source, filename=str(path))
     except Exception as exc:
-        results.append(
-            f"AST PARSE ERROR: {type(exc).__name__}: {exc}"
-        )
+        results.append(f"AST PARSE ERROR: {type(exc).__name__}: {exc}")
         return results
 
     for node in ast.walk(tree):
@@ -93,17 +91,14 @@ def active_write_calls(path):
 
             if func_name in WRITE_METHODS or func_name in WRITE_NAMES:
 
-                results.append(
-                    f"ACTIVE CALL {path}:{node.lineno}: {func_name}(...)"
-                )
+                results.append(f"ACTIVE CALL {path}:{node.lineno}: {func_name}(...)")
 
             for arg in node.args:
 
                 if isinstance(arg, ast.Constant):
                     if is_sql_write(arg.value):
                         results.append(
-                            f"ACTIVE SQL WRITE {path}:{node.lineno}: "
-                            f"{repr(arg.value)}"
+                            f"ACTIVE SQL WRITE {path}:{node.lineno}: " f"{repr(arg.value)}"
                         )
 
         if isinstance(node, ast.Constant):
@@ -111,8 +106,7 @@ def active_write_calls(path):
             if isinstance(node.value, str) and is_sql_write(node.value):
 
                 results.append(
-                    f"ACTIVE SQL WRITE STRING {path}:{node.lineno}: "
-                    f"{repr(node.value)}"
+                    f"ACTIVE SQL WRITE STRING {path}:{node.lineno}: " f"{repr(node.value)}"
                 )
 
     return results
@@ -172,10 +166,7 @@ for path in CRITICAL_FILES:
 
     else:
 
-        print(
-            f"{path.relative_to(ROOT)} : "
-            "NO ACTIVE DATABASE WRITE CALLS"
-        )
+        print(f"{path.relative_to(ROOT)} : " "NO ACTIVE DATABASE WRITE CALLS")
 
 print()
 
@@ -207,12 +198,8 @@ for path in CRITICAL_FILES:
 
     except Exception as exc:
 
-        print(
-            f"COMPILE FAIL : {path.relative_to(ROOT)}"
-        )
-        print(
-            f"{type(exc).__name__}: {exc}"
-        )
+        print(f"COMPILE FAIL : {path.relative_to(ROOT)}")
+        print(f"{type(exc).__name__}: {exc}")
 
         sys.exit(4)
 
@@ -278,11 +265,7 @@ try:
 
     result = analyze_stock("RELIANCE.NS")
 
-    print(
-        "ANALYZER RUNTIME : PASS"
-        if result is not None
-        else "ANALYZER RUNTIME : FAIL"
-    )
+    print("ANALYZER RUNTIME : PASS" if result is not None else "ANALYZER RUNTIME : FAIL")
 
     from scanner.market_scanner import market_scan
 
@@ -382,4 +365,3 @@ print("FINAL RESULT : PASS")
 print()
 print("V2.6 SAFETY GATE : CLEARED")
 print()
-

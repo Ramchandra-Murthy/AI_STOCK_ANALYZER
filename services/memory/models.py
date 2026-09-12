@@ -1,8 +1,9 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any
+
 
 @dataclass(frozen=True)
 class ResearchMemory:
@@ -10,9 +11,9 @@ class ResearchMemory:
     research_date: str
     summary: str
     committee_decision: str
-    valuation_snapshot: Dict[str, float]
-    forecast_snapshot: Dict[str, float]
+    valuation_snapshot: dict[str, float]
+    forecast_snapshot: dict[str, float]
     thesis: str
-    outcome: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    outcome: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())

@@ -1,4 +1,3 @@
-import importlib
 from pprint import pprint
 
 print("=" * 90)
@@ -20,31 +19,24 @@ print()
 from services.quantitative.block94_portfolio_stress_scenario_engine import (
     EROSBlock94PortfolioStressScenarioEngine,
 )
-
 from services.quantitative.block95_stress_evidence_gate import (
     EROSBlock95StressEvidenceGate,
 )
-
 from services.quantitative.block96_stress_decision_gate import (
     EROSBlock96StressDecisionGate,
 )
-
 from services.quantitative.block97_stress_readiness_gate import (
     EROSBlock97StressReadinessGate,
 )
-
 from services.quantitative.block98_execution_governance_bridge import (
     EROSBlock98ExecutionGovernanceBridge,
 )
-
 from services.quantitative.block99_execution_intent_authorization_gate import (
     EROSBlock99ExecutionIntentAuthorizationGate,
 )
-
 from services.quantitative.block100_paper_execution_fill_gate import (
     EROSBlock100PaperExecutionFillGate,
 )
-
 from services.quantitative.block101_execution_evidence_reconciliation import (
     EROSBlock101ExecutionEvidenceReconciliationGate,
 )
@@ -93,6 +85,7 @@ scenarios = [
         "shock_pct": -10.0,
     }
 ]
+
 
 def print_payload(label, payload):
     print()
@@ -192,9 +185,7 @@ if out94 is not None:
     b95 = EROSBlock95StressEvidenceGate()
 
     try:
-        out95 = b95.certify(
-            stress_certificate=out94
-        )
+        out95 = b95.certify(stress_certificate=out94)
 
         print_payload("BLOCK 95 CERTIFY OUTPUT", out95)
 
@@ -217,9 +208,7 @@ if out95 is not None:
     b96 = EROSBlock96StressDecisionGate()
 
     try:
-        out96 = b96.certify(
-            stress_gate=out95
-        )
+        out96 = b96.certify(stress_gate=out95)
 
         print_payload("BLOCK 96 CERTIFY OUTPUT", out96)
 
@@ -242,9 +231,7 @@ if out96 is not None:
     b97 = EROSBlock97StressReadinessGate()
 
     try:
-        out97 = b97.certify(
-            decision=out96
-        )
+        out97 = b97.certify(decision=out96)
 
         print_payload("BLOCK 97 CERTIFY OUTPUT", out97)
 
@@ -267,9 +254,7 @@ if out97 is not None:
     b98 = EROSBlock98ExecutionGovernanceBridge()
 
     try:
-        out98 = b98.certify(
-            decision=out97
-        )
+        out98 = b98.certify(decision=out97)
 
         print_payload("BLOCK 98 CERTIFY OUTPUT", out98)
 
@@ -292,9 +277,7 @@ if out98 is not None:
     b99 = EROSBlock99ExecutionIntentAuthorizationGate()
 
     try:
-        out99 = b99.certify(
-            governance=out98
-        )
+        out99 = b99.certify(governance=out98)
 
         print_payload("BLOCK 99 CERTIFY OUTPUT", out99)
 
@@ -343,9 +326,7 @@ if out100 is not None:
     b101 = EROSBlock101ExecutionEvidenceReconciliationGate()
 
     try:
-        out101 = b101.certify(
-            execution=out100
-        )
+        out101 = b101.certify(execution=out100)
 
         print_payload("BLOCK 101 CERTIFY OUTPUT", out101)
 

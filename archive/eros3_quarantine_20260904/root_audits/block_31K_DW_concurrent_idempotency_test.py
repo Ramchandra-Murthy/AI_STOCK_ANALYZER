@@ -34,6 +34,7 @@ errors = []
 barrier = threading.Barrier(10)
 results_lock = threading.Lock()
 
+
 def submit(index):
     try:
         barrier.wait()
@@ -54,12 +55,10 @@ def submit(index):
         with results_lock:
             errors.append((index, repr(exc)))
 
+
 print("\n4. STARTING 10 SIMULTANEOUS SUBMISSIONS")
 
-threads = [
-    threading.Thread(target=submit, args=(i,))
-    for i in range(10)
-]
+threads = [threading.Thread(target=submit, args=(i,)) for i in range(10)]
 
 for thread in threads:
     thread.start()
@@ -82,18 +81,11 @@ if errors:
     for index, error in errors:
         print(f"REQUEST {index}: {error}")
 
-task_ids = [
-    result.get("task_id")
-    for _, result in results
-]
+task_ids = [result.get("task_id") for _, result in results]
 
 unique_task_ids = set(task_ids)
 
-replays = sum(
-    1
-    for _, result in results
-    if result.get("idempotent_replay") is True
-)
+replays = sum(1 for _, result in results if result.get("idempotent_replay") is True)
 
 print("\n6. TASK ID ANALYSIS")
 print("TOTAL SUBMISSIONS:", len(results))

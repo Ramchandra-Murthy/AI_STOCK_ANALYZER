@@ -33,17 +33,13 @@ class MeanReversionCalculator:
         1.0 = instant jump to historical mean in year 1).
         """
         if not historical_values or len(historical_values) < 2:
-            raise ValuationError(
-                "At least 2 periods are required for mean reversion forecasting."
-            )
+            raise ValuationError("At least 2 periods are required for mean reversion forecasting.")
 
         if horizon < 1:
             raise ValuationError("Forecast horizon must be at least 1 year.")
 
         if not (0.0 <= reversion_speed <= 1.0):
-            raise ValuationError(
-                "Reversion speed must be between 0.0 and 1.0 inclusive."
-            )
+            raise ValuationError("Reversion speed must be between 0.0 and 1.0 inclusive.")
 
         historical_mean = sum(historical_values) / len(historical_values)
         last_val = historical_values[-1]

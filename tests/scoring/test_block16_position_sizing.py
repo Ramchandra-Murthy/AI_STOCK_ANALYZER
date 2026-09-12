@@ -1,5 +1,6 @@
-﻿from services.scoring.models import AIScoreResult
-from services.scoring.investment_decision import InvestmentDecisionOrchestrator
+﻿from services.scoring.investment_decision import InvestmentDecisionOrchestrator
+from services.scoring.models import AIScoreResult
+
 
 def test_block16c_position_sizing_allocation():
     ai_score = AIScoreResult(
@@ -15,10 +16,12 @@ def test_block16c_position_sizing_allocation():
         breakdown_details={
             "rating": "STRONG BUY",
             "engine_version": "EROS-3.0-BLOCK-15",
-        }
+        },
     )
 
-    orchestrator = InvestmentDecisionOrchestrator(policy_profile="Institutional", max_position_limit=0.10)
+    orchestrator = InvestmentDecisionOrchestrator(
+        policy_profile="Institutional", max_position_limit=0.10
+    )
     result = orchestrator.evaluate(ai_score, holdings=None, current_weight=0.03)
 
     assert result.symbol == "TCS.NS"
@@ -27,4 +30,3 @@ def test_block16c_position_sizing_allocation():
     assert result.incremental_weight == round(result.target_weight - 0.03, 4)
     assert result.details["engine_version"] == "EROS-3.0-BLOCK-16D"
     assert "sizing_metrics" in result.details
-

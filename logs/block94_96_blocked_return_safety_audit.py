@@ -1,5 +1,5 @@
-from pathlib import Path
 import ast
+from pathlib import Path
 
 targets = {
     94: Path(r"services\quantitative\block94_portfolio_stress_scenario_engine.py"),
@@ -54,14 +54,8 @@ for block_id, path in targets.items():
 
         for key_node, value_node in zip(value.keys, value.values):
 
-            if (
-                isinstance(key_node, ast.Constant)
-                and key_node.value == "status"
-            ):
-                if (
-                    isinstance(value_node, ast.Constant)
-                    and value_node.value == "BLOCKED"
-                ):
+            if isinstance(key_node, ast.Constant) and key_node.value == "status":
+                if isinstance(value_node, ast.Constant) and value_node.value == "BLOCKED":
                     is_blocked = True
 
         if is_blocked:
