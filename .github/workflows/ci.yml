@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   push:
@@ -26,14 +26,14 @@ jobs:
       with:
         version: "0.12.1"
     - name: Install locked dependencies
-      run: uv sync --locked --no-build
+      run: uv sync --locked --no-build --no-install-project
     - name: Lint with Ruff
-      run: uv run --locked --no-build ruff check .
+      run: uv run --locked --no-sync --no-build ruff check .
     - name: Check formatting with Black
-      run: uv run --locked --no-build black --check .
+      run: uv run --locked --no-sync --no-build black --check .
     - name: Type check supported runtime surface
       run: >-
-        uv run --locked --no-build mypy
+        uv run --locked --no-sync --no-build mypy
         services/ai_service.py
         services/fundamental_score_service.py
         services/recommendation_service.py
@@ -44,7 +44,7 @@ jobs:
         services/ui_formatters.py
     - name: Test repaired contracts and market-data boundaries
       run: >-
-        uv run --locked --no-build pytest -q
+        uv run --locked --no-sync --no-build pytest -q
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
     - name: Build production Docker image
