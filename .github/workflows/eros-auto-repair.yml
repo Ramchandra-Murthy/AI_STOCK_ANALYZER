@@ -28,16 +28,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Collect Ruff diagnostics
+      - name: Collect Ruff diagnostics and safe fixes
         run: |
           ruff check . --output-format=concise > ruff-report.txt 2>&1 || true
+          ruff check . --fix > ruff-fix-report.txt 2>&1 || true
           cat ruff-report.txt
+          cat ruff-fix-report.txt
 
-      - name: Apply safe Ruff fixes
-        run: ruff check . --fix || true
-
-      - name: Apply Black formatting
-        run: black .
+      - name: Collect Black diagnostics and apply formatting
+        run: |
+          black . > black-report.txt 2>&1 || true
+          cat black-report.txt
+          black --check . > black-check-report.txt 2>&1 || true
+          cat black-check-report.txt
 
       - name: Recheck Ruff
         run: |
