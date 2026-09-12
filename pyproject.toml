@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0.0"]
+requires = ["setuptools==82.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,23 +8,23 @@ version = "0.6.0"
 description = "AI-powered stock analysis and valuation platform"
 requires-python = ">=3.13"
 dependencies = [
-    "streamlit>=1.32.0",
-    "yfinance>=0.2.36",
-    "pandas>=2.2.0",
-    "numpy>=1.26.4",
-    "plotly>=5.19.0",
-    "scikit-learn>=1.4.1",
-    "pandas_ta>=0.3.14b0",
-    "python-dotenv>=1.0.1",
-    "pydantic>=2.6.0",
+    "streamlit==1.63.0",
+    "yfinance==1.7.0",
+    "pandas==3.0.5",
+    "numpy==2.2.6",
+    "plotly==7.0.0",
+    "scikit-learn==1.9.1",
+    "pandas_ta==0.4.71b0",
+    "python-dotenv==1.2.3",
+    "pydantic==2.13.5",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0.0",
-    "ruff>=0.2.1",
-    "black>=24.2.0",
-    "mypy>=1.10.0",
+    "pytest==9.1.1",
+    "ruff==0.16.7",
+    "black==26.5.1",
+    "mypy==2.3.1",
 ]
 
 [tool.pytest.ini_options]
@@ -36,13 +36,4 @@ testpaths = ["tests"]
 line-length = 100
 target-version = ["py313"]
 exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.venv
-  | build
-  | dist
-  | archive
-  | backup_before_v2
-)/
-'''
+/(\n    \.eggs\n  | \.git\n  | \.venv\n  | build\n  | dist\n  | archive\n  | backup_before_v2\n)/\n'''
