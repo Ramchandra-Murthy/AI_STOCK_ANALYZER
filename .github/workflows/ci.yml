@@ -45,4 +45,5 @@ jobs:
         pytest -q
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
-
+    - name: Build production Docker image
+      run: docker build --pull -t ai-stock-analyzer:ci .
