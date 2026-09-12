@@ -8,6 +8,14 @@ version = "0.6.0"
 description = "AI-powered stock analysis and valuation platform"
 requires-python = ">=3.13"
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.11",
+    "black>=25.1",
+    "mypy>=1.15",
+    "pytest>=8.3",
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["backend*", "core*", "services*", "api*"]
@@ -23,3 +31,7 @@ line-length = 100
 target-version = ["py313"]
 exclude = '''
 /(\n    \.eggs\n  | \.git\n  | \.venv\n  | build\n  | dist\n  | archive\n  | backup_before_v2\n)/\n'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
