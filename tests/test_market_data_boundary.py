@@ -3,63 +3,41 @@ import pandas as pd
 from services import research_service, technical_service
 
 
-class FakeTicker:
-    def __init__(self):
-        self.fast_info = {
-            "last_price": 2510.25,
-            "previous_close": 2498.00,
-            "last_volume": 123456,
-            "last_trade_time": None,
-        }
-        self._financials = pd.DataFrame()
-        self._balance_sheet = pd.DataFrame()
-        self._cashflow = pd.DataFrame()
-
-    @property
-    def info(self):
-        return {
-            "longName": "Test Company",
-            "currentPrice": 2490.00,
-            "previousClose": 2480.00,
-            "marketState": "REGULAR",
-        }
-
-    @property
-    def financials(self):
-        return self._financials
-
-    @property
-    def balance_sheet(self):
-        return self._balance_sheet
-
-    @property
-    def cashflow(self):
-        return self._cashflow
-
-
 def test_fast_quote_is_preferred_over_info(monkeypatch):
-    monkeypatch.setattr(research_service.yf, "Ticker", lambda symbol: FakeTicker())
+    monkeypatch.setattr(
+        research_service,
+        "get_latest_available_price",
+        lambda symbol: {
+            "price": 2510.25,
+            "previous_close": 2498.00,
+            "source": "yfinance.fast_info",
+            "observed_at": "2026-09-12T09:00:00",
+            "frequency": "available",
+            "is_intraday": True,
+            "is_tick_live": False,
+        },
+    )
 
     result = research_service.get_stock_profile("TEST")
 
     assert result["price"] == 2510.25
     assert result["price_source"] == "yfinance.fast_info"
     assert result["previous_close"] == 2498.00
-    assert result["market_state"] == "REGULAR"
+    assert result["market_state"] == "UNKNOWN"
 
 
-def test_fast_quote_failure_falls_back_to_info(monkeypatch):
-    class NoFastTicker(FakeTicker):
-        @property
-        def fast_info(self):
-            raise RuntimeError("quote unavailable")
-
-    monkeypatch.setattr(research_service.yf, "Ticker", lambda symbol: NoFastTicker())
+def test_canonical_quote_failure_returns_unavailable_profile(monkeypatch):
+    monkeypatch.setattr(
+        research_service,
+        "get_latest_available_price",
+        lambda symbol: {"price": None, "previous_close": None, "source": "unavailable"},
+    )
 
     result = research_service.get_stock_profile("TEST")
 
-    assert result["price"] == 2490.00
-    assert result["price_source"] == "yfinance.info"
+    assert result is not None
+    assert result["price"] is None
+    assert result["price_source"] == "unavailable"
 
 
 def test_history_boundary_records_provenance(monkeypatch):
