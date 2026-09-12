@@ -47,3 +47,17 @@ jobs:
         tests/test_market_data_boundary.py
     - name: Build production Docker image
       run: docker build --pull -t ai-stock-analyzer:ci .
+    - name: Smoke test container runtime health
+      run: |
+        set -e
+        docker run -d --rm --name ai-stock-analyzer-ci -p 8501:8501 ai-stock-analyzer:ci
+        trap 'docker logs ai-stock-analyzer-ci || true; docker stop ai-stock-analyzer-ci || true' EXIT
+        for i in $(seq 1 30); do
+          if curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null; then
+            echo "Streamlit health endpoint is healthy"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Streamlit health endpoint did not become healthy"
+        exit 1
