@@ -7,6 +7,7 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+# EROS: canonical CI gate after automated lint/format repair.
 jobs:
   build:
     runs-on: ubuntu-latest
