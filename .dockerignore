@@ -1,0 +1,35 @@
+# VCS and local tooling
+.git
+.github
+.vscode
+.idea
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build/test artifacts
+build/
+dist/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Archived/backup source is not part of the production image
+archive/
+backup_before_v2/
+*.bak
+
+# Local/editor/temporary files
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
