@@ -1,7 +1,6 @@
 # Resolved from the successful Python 3.13 EROS CI run on 2026-09-12.
 # Keep this file in sync with pyproject.toml / requirements.txt when dependencies change.
 MarkupSafe==3.0.3
-ai-stock-analyzer==0.6.0
 altair==6.2.2
 annotated-types==0.8.0
 anyio==4.15.1
