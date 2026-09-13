@@ -30,7 +30,7 @@ jobs:
     - name: Lint with Ruff
       run: uv run --locked --no-sync --no-build ruff check .
     - name: Check formatting with Black
-      run: uv run --locked --no-sync --no-build black --check --exclude '(^|/)(\.venv|venv|archive|backup_before_v2)/' .
+      run: uv run --locked --no-sync --no-build black --check --exclude '(^|/)(\\.venv|venv|archive|backup_before_v2)/' .
     - name: Type check supported runtime surface
       run: >-
         uv run --locked --no-sync --no-build mypy
@@ -44,7 +44,7 @@ jobs:
         services/ui_formatters.py
     - name: Test repaired contracts and market-data boundaries
       run: >-
-        uv run --locked --no-sync --no-build pytest -q
+        uv run --locked --no-sync --no-build python -m pytest -q
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
     - name: Build production Docker image
