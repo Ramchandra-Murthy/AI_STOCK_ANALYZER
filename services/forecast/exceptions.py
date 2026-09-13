@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 class ForecastError(Exception):
@@ -29,3 +29,7 @@ class ForecastSerializationError(ForecastError):
     """Raised when serialization or deserialization of forecast data fails."""
 
     pass
+
+
+# Legacy import compatibility. Forecast valuation failures are forecast errors.
+ValuationError = ForecastError
