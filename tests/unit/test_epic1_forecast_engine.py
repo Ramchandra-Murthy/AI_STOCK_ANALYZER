@@ -1,9 +1,9 @@
-﻿import pytest
-from services.forecast.forecast_models import ScenarioType
-from services.forecast.forecast_service import ForecastService
+import pytest
 
 from core.exceptions import ValidationError
 from services.forecast.forecast_input import ForecastInput
+from services.forecast.forecast_models import ScenarioType
+from services.forecast.forecast_service import ForecastService
 
 
 def test_epic1_forecast_engine_full_flow():
