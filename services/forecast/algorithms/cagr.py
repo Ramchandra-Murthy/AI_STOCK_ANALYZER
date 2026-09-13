@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from services.forecast.algorithms.base import BaseForecastAlgorithm
 from services.forecast.exceptions import ForecastAlgorithmError
@@ -46,3 +46,7 @@ class CAGRForecastAlgorithm(BaseForecastAlgorithm):
         taxes = forecast_input.historical_taxes
         last_tax = taxes[-1] if taxes else 0.25
         return tuple(max(0.0, min(1.0, last_tax)) for _ in forecast_input.forecast_years)
+
+
+# Backward-compatible name used by the original forecast test suite.
+CAGRForecastEngine = CAGRForecastAlgorithm
