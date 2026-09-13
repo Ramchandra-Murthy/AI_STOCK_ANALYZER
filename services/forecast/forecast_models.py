@@ -7,7 +7,7 @@ module. The canonical model definitions live in ``services.forecast.models``.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from services.forecast.models import (
     CapexForecast,
@@ -25,7 +25,7 @@ from services.forecast.models import (
 )
 
 
-class ScenarioType(str, Enum):
+class ScenarioType(StrEnum):
     BASE = "BASE"
     BULL = "BULL"
     BEAR = "BEAR"
