@@ -296,7 +296,7 @@ def validate_sotp_valuation(
     if not retail_cap_respected:
         failures.append("RETAIL_MULTIPLE_CAP_FAILED")
 
-    if retail_multiple == 30.0:
+    if retail_multiple is not None and retail_multiple >= 30.0:
         warnings.append("Retail valuation is operating at the 30x " "EV/EBITDA policy cap.")
 
     # --------------------------------------------------
