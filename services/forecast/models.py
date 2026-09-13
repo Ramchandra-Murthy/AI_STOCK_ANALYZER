@@ -10,6 +10,8 @@ from services.forecast.exceptions import ForecastValidationError
 class ForecastMethod(str, Enum):
     CAGR = "CAGR"
     LINEAR_REGRESSION = "LINEAR_REGRESSION"
+    ROLLING_AVERAGE = "ROLLING_AVERAGE"
+    MANAGEMENT_GUIDANCE = "MANAGEMENT_GUIDANCE"
 
 
 class ConfidenceLevel(str, Enum):
