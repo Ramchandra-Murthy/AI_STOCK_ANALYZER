@@ -1,36 +1,21 @@
-import io
-
 import streamlit as st
-from openpyxl import Workbook
 
 
 def export_portfolio(df):
-    """
-    Display a button to download the portfolio as an Excel file.
-    """
+    """Display a button to download the portfolio as a CSV file.
 
+    CSV uses pandas' built-in export and avoids an optional Excel dependency
+    during application startup on hosts that install from uv.lock.
+    """
     if df.empty:
         return
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Portfolio"
-
-    # Header
-    ws.append(list(df.columns))
-
-    # Data
-    for row in df.itertuples(index=False):
-        ws.append(list(row))
-
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
+    csv_data = df.to_csv(index=False).encode("utf-8-sig")
 
     st.download_button(
-        label="📥 Download Portfolio (Excel)",
-        data=output,
-        file_name="portfolio.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        label="📥 Download Portfolio (CSV)",
+        data=csv_data,
+        file_name="portfolio.csv",
+        mime="text/csv",
         use_container_width=True,
     )
