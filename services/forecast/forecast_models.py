@@ -1,8 +1,7 @@
 """Compatibility exports for the legacy forecast API.
 
-Older forecast subservices import their shared input and enum contracts from
-this module. Keep the compatibility definitions here while the newer forecast
-package remains the implementation used by current callers.
+Older forecast subservices import shared model and input contracts from this
+module. The canonical model definitions live in ``services.forecast.models``.
 """
 
 from __future__ import annotations
@@ -10,7 +9,20 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from services.forecast.models import ForecastMethod
+from services.forecast.models import (
+    CapexForecast,
+    ConfidenceLevel,
+    DepreciationForecast,
+    ForecastAssumption,
+    ForecastConfidence,
+    ForecastMethod,
+    ForecastScenario,
+    MarginForecast,
+    RevenueForecast,
+    TaxForecast,
+    TerminalGrowthForecast,
+    WorkingCapitalForecast,
+)
 
 
 class ScenarioType(str, Enum):
@@ -34,4 +46,19 @@ class AlgorithmInput:
             raise ValueError("forecast_periods must be at least 1")
 
 
-__all__ = ["AlgorithmInput", "ForecastMethod", "ScenarioType"]
+__all__ = [
+    "AlgorithmInput",
+    "CapexForecast",
+    "ConfidenceLevel",
+    "DepreciationForecast",
+    "ForecastAssumption",
+    "ForecastConfidence",
+    "ForecastMethod",
+    "ForecastScenario",
+    "MarginForecast",
+    "RevenueForecast",
+    "ScenarioType",
+    "TaxForecast",
+    "TerminalGrowthForecast",
+    "WorkingCapitalForecast",
+]
