@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any, ClassVar
 
 from services.forecast.exceptions import ForecastValidationError
 
 
-class ForecastMethod(str, Enum):
+class ForecastMethod(StrEnum):
     CAGR = "CAGR"
     LINEAR_REGRESSION = "LINEAR_REGRESSION"
     ROLLING_AVERAGE = "ROLLING_AVERAGE"
     MANAGEMENT_GUIDANCE = "MANAGEMENT_GUIDANCE"
 
 
-class ConfidenceLevel(str, Enum):
+class ConfidenceLevel(StrEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
