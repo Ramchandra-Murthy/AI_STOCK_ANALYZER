@@ -238,36 +238,36 @@ def show():
 
     with tab1:
         st.subheader("Company Profile")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Company", data.get("company", "N/A"))
-            st.metric("Sector", data.get("sector", "N/A"))
-            st.metric("Industry", data.get("industry", "N/A"))
-        with col2:
+        profile_col, market_col = st.columns([3, 2])
+        with profile_col:
+            st.write("**Company**")
+            st.write(data.get("company") or "N/A")
+            st.write("**Sector**")
+            st.write(data.get("sector") or "N/A")
+            st.write("**Industry**")
+            st.write(data.get("industry") or "N/A")
+        with market_col:
             st.metric("Current Price", format_price(data.get("price")))
             st.metric("Market Cap", format_market_cap(data.get("market_cap")))
             st.metric("Currency", data.get("currency", "N/A"))
 
     with tab2:
         st.subheader("Financial Ratios")
-        c1, c2, c3, c4 = st.columns(4)
+        c1, c2 = st.columns(2)
         with c1:
             st.metric("P/E", data.get("pe", "N/A"))
+            st.metric("EPS", data.get("eps", "N/A"))
         with c2:
             st.metric("P/B", data.get("pb", "N/A"))
-        with c3:
-            st.metric("EPS", data.get("eps", "N/A"))
-        with c4:
             st.metric("Beta", data.get("beta", "N/A"))
 
         st.write("### Profitability & Financial Health")
-        a1, a2, a3 = st.columns(3)
+        a1, a2 = st.columns(2)
         with a1:
             st.metric("ROA", format_percent(data.get("roa")))
+            st.metric("Current Ratio", format_ratio(data.get("current_ratio")))
         with a2:
             st.metric("Debt / Equity", format_debt_to_equity(data.get("debt_to_equity")))
-        with a3:
-            st.metric("Current Ratio", format_ratio(data.get("current_ratio")))
 
         st.write("### Growth")
         g1, g2 = st.columns(2)
