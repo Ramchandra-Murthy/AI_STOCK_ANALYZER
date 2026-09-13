@@ -1,4 +1,4 @@
-﻿"""
+"""
 ==========================================================
 FORECAST INPUT DOMAIN MODEL
 Module  : services.forecast.forecast_input
@@ -40,21 +40,18 @@ class ScenarioOverrides:
 
 @dataclass(slots=True, frozen=True)
 class ForecastInput:
-    """
-    Immutable domain payload supplied to the Forecast Engine.
-    Supports both nested domain objects and legacy flat keyword arguments.
-    """
+    """Immutable forecast input supporting nested and legacy flat arguments."""
 
     symbol: str = "GENERIC"
     historical_data: HistoricalFinancials | None = None
     forecast_horizon: int = 5
-
-    # Direct flat/legacy parameter accessors
     historical_revenues: tuple[float, ...] = field(default_factory=tuple)
     historical_ebits: tuple[float, ...] = field(default_factory=tuple)
     historical_nwc: tuple[float, ...] = field(default_factory=tuple)
     historical_capex: tuple[float, ...] = field(default_factory=tuple)
     historical_depreciation: tuple[float, ...] = field(default_factory=tuple)
+    historical_pbt: tuple[float, ...] = field(default_factory=tuple)
+    historical_tax: tuple[float, ...] = field(default_factory=tuple)
     forecast_years: int = 5
     method: ForecastMethod = ForecastMethod.CAGR
     management_guidance_revenue: tuple[float, ...] | None = None
@@ -62,61 +59,64 @@ class ForecastInput:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """Normalizes and validates input state upon instantiation."""
-
-        # 1. Symbol validation
-        if not self.symbol or not isinstance(self.symbol, str) or not self.symbol.strip():
+        if not isinstance(self.symbol, str) or not self.symbol.strip():
             raise ValuationError("Ticker symbol cannot be empty.")
 
-        # 2. Extract and freeze revenue series from flat arg or sub-container
-        revs = self.historical_revenues
-        if not revs and self.historical_data and self.historical_data.revenue:
-            revs = self.historical_data.revenue
-
-        revs_tuple = tuple(revs)
-        if len(revs_tuple) < 2:
+        revenues = self.historical_revenues
+        if not revenues and self.historical_data and self.historical_data.revenue:
+            revenues = self.historical_data.revenue
+        revenues = tuple(revenues)
+        if len(revenues) < 2:
             raise ValuationError("Historical revenues must contain at least 2 periods.")
 
-        # 3. Horizon validation & sync
         horizon = self.forecast_years if self.forecast_years != 5 else self.forecast_horizon
-        if horizon < 1 or horizon > 10:
-            raise ValuationError(f"Forecast horizon ({horizon}) must be between 1 and 10 years.")
-
-        # 4. Series length checks
-        ebits_tuple = tuple(self.historical_ebits)
-        if ebits_tuple and len(ebits_tuple) != len(revs_tuple):
+        if not 1 <= horizon <= 10:
             raise ValuationError(
-                f"historical_ebits length ({len(ebits_tuple)}) must match historical_revenues length ({len(revs_tuple)})."
+                f"Forecast horizon ({horizon}) must be between 1 and 10 years."
             )
 
-        # 5. Guidance validation
-        if self.management_guidance_revenue is not None:
-            guidance_tuple = tuple(self.management_guidance_revenue)
-            if len(guidance_tuple) != horizon:
+        series_fields = (
+            "historical_ebits",
+            "historical_nwc",
+            "historical_capex",
+            "historical_depreciation",
+            "historical_pbt",
+            "historical_tax",
+        )
+        normalized: dict[str, tuple[float, ...]] = {}
+        for name in series_fields:
+            values = tuple(getattr(self, name))
+            if values and len(values) != len(revenues):
                 raise ValuationError(
-                    f"management_guidance_revenue length ({len(guidance_tuple)}) must match forecast_years ({horizon})."
+                    f"{name} length ({len(values)}) must match historical_revenues "
+                    f"length ({len(revenues)})."
                 )
-            object.__setattr__(self, "management_guidance_revenue", guidance_tuple)
+            normalized[name] = values
 
-        # Freeze synchronized tuple states
-        object.__setattr__(self, "historical_revenues", revs_tuple)
-        object.__setattr__(self, "historical_ebits", ebits_tuple)
-        object.__setattr__(self, "historical_nwc", tuple(self.historical_nwc))
-        object.__setattr__(self, "historical_capex", tuple(self.historical_capex))
-        object.__setattr__(self, "historical_depreciation", tuple(self.historical_depreciation))
+        guidance = self.management_guidance_revenue
+        if guidance is not None:
+            guidance = tuple(guidance)
+            if len(guidance) != horizon:
+                raise ValuationError(
+                    "management_guidance_revenue length must match forecast horizon."
+                )
+            object.__setattr__(self, "management_guidance_revenue", guidance)
+
+        object.__setattr__(self, "historical_revenues", revenues)
+        for name, values in normalized.items():
+            object.__setattr__(self, name, values)
         object.__setattr__(self, "forecast_horizon", horizon)
         object.__setattr__(self, "forecast_years", horizon)
 
-        # Construct or align historical_data container
         if self.historical_data is None:
             object.__setattr__(
                 self,
                 "historical_data",
                 HistoricalFinancials(
-                    revenue=revs_tuple,
-                    ebitda=ebits_tuple,
-                    capex=self.historical_capex,
-                    depreciation=self.historical_depreciation,
-                    nwc=self.historical_nwc,
+                    revenue=revenues,
+                    ebitda=normalized["historical_ebits"],
+                    capex=normalized["historical_capex"],
+                    depreciation=normalized["historical_depreciation"],
+                    nwc=normalized["historical_nwc"],
                 ),
             )
