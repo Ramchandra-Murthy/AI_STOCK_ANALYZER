@@ -25,6 +25,10 @@ class ValuationError(DomainError):
     """Valuation error."""
 
 
+class ForecastError(AIERPError):
+    """Forecast-related error."""
+
+
 class SerializationError(AIERPError):
     """Serialization error."""
 
