@@ -12,6 +12,7 @@ class ForecastMethod(StrEnum):
     LINEAR_REGRESSION = "LINEAR_REGRESSION"
     ROLLING_AVERAGE = "ROLLING_AVERAGE"
     MANAGEMENT_GUIDANCE = "MANAGEMENT_GUIDANCE"
+    HISTORICAL_MEAN = "HISTORICAL_MEAN"
 
 
 class ConfidenceLevel(StrEnum):
@@ -73,55 +74,109 @@ class ForecastPackage:
         )
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class _ForecastSeries:
     values: tuple[float, ...]
     years: tuple[int, ...]
+    historical: tuple[float, ...]
+    projected: tuple[float, ...]
+    method: ForecastMethod
+    confidence: ConfidenceLevel
+    growth_rates: tuple[float, ...]
     _kind: ClassVar[str] = "forecast"
 
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "values", tuple(float(value) for value in self.values))
-        object.__setattr__(self, "years", tuple(int(year) for year in self.years))
-        if len(self.values) != len(self.years):
+    def __init__(
+        self,
+        values: tuple[float, ...] = (),
+        years: tuple[int, ...] = (),
+        *,
+        historical: tuple[float, ...] | None = None,
+        projected: tuple[float, ...] | None = None,
+        method: ForecastMethod = ForecastMethod.CAGR,
+        confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
+        growth_rates: tuple[float, ...] = (),
+    ) -> None:
+        if historical is not None or projected is not None:
+            hist = tuple(float(value) for value in (historical or ()))
+            proj = tuple(float(value) for value in (projected or ()))
+            vals = proj
+            yrs = tuple(range(1, len(proj) + 1))
+        else:
+            hist = ()
+            proj = tuple(float(value) for value in values)
+            vals = proj
+            yrs = tuple(int(year) for year in years)
+            if not yrs and proj:
+                yrs = tuple(range(1, len(proj) + 1))
+        if len(vals) != len(yrs):
             raise ForecastValidationError("values and years must have the same length")
+        object.__setattr__(self, "values", vals)
+        object.__setattr__(self, "years", yrs)
+        object.__setattr__(self, "historical", hist)
+        object.__setattr__(self, "projected", proj)
+        object.__setattr__(self, "method", ForecastMethod(method))
+        object.__setattr__(self, "confidence", ConfidenceLevel(confidence))
+        object.__setattr__(self, "growth_rates", tuple(float(value) for value in growth_rates))
 
     def to_dict(self) -> dict[str, Any]:
-        return {"values": list(self.values), "years": list(self.years)}
+        return {
+            "values": list(self.values),
+            "years": list(self.years),
+            "historical": list(self.historical),
+            "projected": list(self.projected),
+            "method": self.method.value.lower(),
+            "confidence": self.confidence.value.lower(),
+            "growth_rates": list(self.growth_rates),
+        }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> _ForecastSeries:
-        return cls(values=tuple(data["values"]), years=tuple(data["years"]))
+        return cls(
+            values=tuple(data.get("values", data.get("projected", ()))),
+            years=tuple(data.get("years", range(1, len(data.get("projected", ())) + 1))),
+            historical=tuple(data.get("historical", ())),
+            projected=tuple(data.get("projected", ())),
+            method=ForecastMethod(str(data.get("method", "CAGR")).upper()),
+            confidence=ConfidenceLevel(str(data.get("confidence", "MEDIUM")).upper()),
+            growth_rates=tuple(data.get("growth_rates", ())),
+        )
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class RevenueForecast(_ForecastSeries):
     pass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class MarginForecast(_ForecastSeries):
-    def __post_init__(self) -> None:
-        super(MarginForecast, self).__post_init__()
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
         if any(value < 0.0 or value > 1.0 for value in self.values):
             raise ForecastValidationError("margin values must be between 0 and 1")
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class CapexForecast(_ForecastSeries):
     pass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class DepreciationForecast(_ForecastSeries):
     pass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class WorkingCapitalForecast(_ForecastSeries):
-    pass
+    @property
+    def delta(self) -> tuple[float, ...]:
+        combined = self.historical + self.projected
+        if not combined:
+            return ()
+        previous = self.historical[-1] if self.historical else 0.0
+        return tuple((previous := value) - (self.historical[-1] if index == 0 else self.projected[index - 1]) for index, value in enumerate(self.projected))
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class TaxForecast(_ForecastSeries):
     pass
 
@@ -162,21 +217,39 @@ class ForecastConfidence:
         return cls(score=float(data["score"]), level=ConfidenceLevel(data["level"]))
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class ForecastAssumption:
     revenue_growth_rate: float
     ebitda_margin: float
     tax_rate: float
     capex_pct_revenue: float
     working_capital_pct_revenue: float
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> dict[str, float]:
+    def __init__(
+        self,
+        revenue_growth_rate: float,
+        ebitda_margin: float,
+        tax_rate: float,
+        capex_pct_revenue: float,
+        working_capital_pct_revenue: float,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        object.__setattr__(self, "revenue_growth_rate", float(revenue_growth_rate))
+        object.__setattr__(self, "ebitda_margin", float(ebitda_margin))
+        object.__setattr__(self, "tax_rate", float(tax_rate))
+        object.__setattr__(self, "capex_pct_revenue", float(capex_pct_revenue))
+        object.__setattr__(self, "working_capital_pct_revenue", float(working_capital_pct_revenue))
+        object.__setattr__(self, "metadata", dict(metadata or {}))
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "revenue_growth_rate": self.revenue_growth_rate,
             "ebitda_margin": self.ebitda_margin,
             "tax_rate": self.tax_rate,
             "capex_pct_revenue": self.capex_pct_revenue,
             "working_capital_pct_revenue": self.working_capital_pct_revenue,
+            "metadata": dict(self.metadata),
         }
 
     @classmethod
@@ -191,7 +264,8 @@ class ForecastAssumption:
                     "capex_pct_revenue",
                     "working_capital_pct_revenue",
                 )
-            }
+            },
+            metadata=dict(data.get("metadata", {})),
         )
 
 
