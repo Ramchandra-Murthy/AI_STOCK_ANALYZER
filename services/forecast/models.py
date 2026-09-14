@@ -135,20 +135,23 @@ class _ForecastSeries:
         historical = tuple(data.get("historical", ()))
         projected = tuple(data.get("projected", data.get("values", ())))
         years = tuple(data.get("years", ()))
-        if years:
+        method = ForecastMethod(str(data.get("method", "CAGR")).upper())
+        confidence = ConfidenceLevel(str(data.get("confidence", "MEDIUM")).upper())
+        growth_rates = tuple(data.get("growth_rates", ()))
+        if historical:
             return cls(
-                values=tuple(data.get("values", projected)),
-                years=years,
-                method=ForecastMethod(str(data.get("method", "CAGR")).upper()),
-                confidence=ConfidenceLevel(str(data.get("confidence", "MEDIUM")).upper()),
-                growth_rates=tuple(data.get("growth_rates", ())),
+                historical=historical,
+                projected=projected,
+                method=method,
+                confidence=confidence,
+                growth_rates=growth_rates,
             )
         return cls(
-            historical=historical,
-            projected=projected,
-            method=ForecastMethod(str(data.get("method", "CAGR")).upper()),
-            confidence=ConfidenceLevel(str(data.get("confidence", "MEDIUM")).upper()),
-            growth_rates=tuple(data.get("growth_rates", ())),
+            values=tuple(data.get("values", projected)),
+            years=years,
+            method=method,
+            confidence=confidence,
+            growth_rates=growth_rates,
         )
 
 
