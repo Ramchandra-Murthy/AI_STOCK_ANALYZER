@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
-from core.validation import validate_non_empty_string, validate_non_negative
 from core.primitives.base import ValueObject
+from core.validation import validate_non_empty_string, validate_non_negative
 
 
 @dataclass(frozen=True, order=True)
