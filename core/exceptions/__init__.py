@@ -5,6 +5,8 @@ from .base import (
     CalculationError,
     DomainError,
     InfrastructureError,
+    PlatformError,
+    RepositoryError,
     SerializationError,
     ValidationError,
 )
@@ -16,9 +18,11 @@ AIStockAnalyzerError = AIERPError
 __all__ = [
     "AIStockAnalyzerError",
     "AIERPError",
+    "PlatformError",
     "DomainError",
     "CalculationError",
     "ValidationError",
+    "RepositoryError",
     "ValuationError",
     "SerializationError",
     "InfrastructureError",
