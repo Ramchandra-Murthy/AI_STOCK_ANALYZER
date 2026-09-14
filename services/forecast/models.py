@@ -101,8 +101,6 @@ class _ForecastSeries:
             hist = tuple(float(value) for value in (historical or ()))
             proj = tuple(float(value) for value in (projected or ()))
             vals = proj
-            # Legacy construction does not provide years; preserve a stable synthetic
-            # forecast timeline, while round-trips from the modern API retain explicit years.
             yrs = tuple(range(1, len(proj) + 1))
         else:
             hist = ()
@@ -134,9 +132,20 @@ class _ForecastSeries:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> _ForecastSeries:
+        historical = tuple(data.get("historical", ()))
+        projected = tuple(data.get("projected", data.get("values", ())))
+        years = tuple(data.get("years", ()))
+        if years:
+            return cls(
+                values=tuple(data.get("values", projected)),
+                years=years,
+                method=ForecastMethod(str(data.get("method", "CAGR")).upper()),
+                confidence=ConfidenceLevel(str(data.get("confidence", "MEDIUM")).upper()),
+                growth_rates=tuple(data.get("growth_rates", ())),
+            )
         return cls(
-            values=tuple(data.get("values", data.get("projected", ()))),
-            years=tuple(data.get("years", range(1, len(data.get("projected", ())) + 1))),
+            historical=historical,
+            projected=projected,
             method=ForecastMethod(str(data.get("method", "CAGR")).upper()),
             confidence=ConfidenceLevel(str(data.get("confidence", "MEDIUM")).upper()),
             growth_rates=tuple(data.get("growth_rates", ())),
@@ -304,7 +313,6 @@ class ForecastScenario:
         probability: float = 1.0,
         **legacy: Any,
     ) -> None:
-        # Accept the historical service API names used by the legacy test suite.
         revenue = revenue or legacy.pop("revenue_forecast", None)
         margins = margins or legacy.pop("margin_forecast", None)
         capex = capex or legacy.pop("capex_forecast", None)
