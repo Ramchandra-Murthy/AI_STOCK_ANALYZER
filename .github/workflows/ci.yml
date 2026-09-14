@@ -43,6 +43,8 @@ jobs:
         services/trade_plan_service.py
         services/ui_formatters.py
     - name: Test repaired contracts and market-data boundaries
+      env:
+        PYTHONPATH: ${{ github.workspace }}
       run: >-
         uv run --locked --no-sync --no-build python -m pytest -q
         tests/test_repaired_contracts.py
