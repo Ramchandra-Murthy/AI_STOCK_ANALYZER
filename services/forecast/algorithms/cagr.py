@@ -6,6 +6,25 @@ from services.forecast.input import ForecastInput
 
 
 class CAGRForecastAlgorithm(BaseForecastAlgorithm):
+    def calculate(self, historical: tuple[float, ...], periods: int) -> tuple[float, ...]:
+        """Project a historical series using CAGR (legacy API)."""
+        values = tuple(float(value) for value in historical)
+        if periods < 0:
+            raise ValueError("periods must be non-negative")
+        if periods == 0 or not values:
+            return ()
+        if len(values) == 1:
+            return tuple(values[0] for _ in range(periods))
+        if values[0] <= 0:
+            raise ForecastAlgorithmError("Initial historical value must be strictly positive.")
+        rate = (values[-1] / values[0]) ** (1.0 / (len(values) - 1)) - 1.0
+        projected = []
+        last_value = values[-1]
+        for _ in range(periods):
+            last_value *= 1.0 + rate
+            projected.append(last_value)
+        return tuple(projected)
+
     def calculate_revenue(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         revenues = forecast_input.historical_revenue
         if len(revenues) < 2:
