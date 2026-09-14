@@ -17,11 +17,7 @@ def _number(value):
 
 
 def get_ai_recommendation(stock_data, history=None):
-    """Return the AI component score and supporting reasons.
-
-    The AI component is evidence-driven. When no supported AI inputs are
-    available, it returns no score rather than fabricating a neutral 50.
-    """
+    """Return the AI component score and supporting reasons."""
     data = stock_data if isinstance(stock_data, dict) else {}
     score = 50.0
     reasons = []
@@ -99,16 +95,8 @@ def get_ai_recommendation(stock_data, history=None):
                     reasons.append("Price Below EMA200")
 
     if observed_components == 0:
-        return {
-            "score": None,
-            "reasons": ["Insufficient AI evidence for scoring"],
-            "component": "AI",
-        }
+        score = 50.0
+        reasons.append("Insufficient AI evidence; neutral baseline applied")
 
     score = round(max(0.0, min(score, 100.0)))
-
-    return {
-        "score": score,
-        "reasons": reasons,
-        "component": "AI",
-    }
+    return {"score": score, "reasons": reasons, "component": "AI"}
