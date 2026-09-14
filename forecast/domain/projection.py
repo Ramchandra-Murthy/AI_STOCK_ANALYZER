@@ -1,11 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
-from core.validation.rules import NumericValidators, StringValidators
-
+from core.validation import validate_non_empty_string, validate_non_negative
 from core.primitives.base import ValueObject
 
 
@@ -19,10 +18,10 @@ class FinancialProjection(ValueObject):
     confidence_score: Decimal  # Between 0.0 and 1.0
 
     def __post_init__(self) -> None:
-        StringValidators.non_empty(self.period_label, "Period Label")
-        NumericValidators.non_negative(self.projected_revenue, "Projected Revenue")
-        NumericValidators.non_negative(self.projected_ebitda, "Projected EBITDA")
-        NumericValidators.non_negative(self.confidence_score, "Confidence Score")
+        validate_non_empty_string(self.period_label, "Period Label")
+        validate_non_negative(self.projected_revenue, "Projected Revenue")
+        validate_non_negative(self.projected_ebitda, "Projected EBITDA")
+        validate_non_negative(self.confidence_score, "Confidence Score")
 
         if self.confidence_score > Decimal("1.0"):
             raise ValueError("Confidence score cannot exceed 1.0.")
