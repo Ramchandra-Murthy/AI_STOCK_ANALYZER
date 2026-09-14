@@ -11,9 +11,7 @@ class StringValidators:
 
     @staticmethod
     def non_empty(value: str, field_name: str = "Value") -> str:
-        result = validate_non_empty_string(value)
-        if result is False or result is None:
-            raise ValueError(f"{field_name} must not be empty")
+        validate_non_empty_string(value, field_name)
         return value
 
 
