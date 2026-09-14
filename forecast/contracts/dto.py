@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
@@ -23,7 +23,7 @@ class ForecastRequestDTO:
             "horizon_periods": self.horizon_periods,
             "confidence_level": str(self.confidence_level),
             "base_amount": str(self.base_amount),
-            "currency": self.currency.value,
+            "currency": self.currency.code,
         }
 
 
@@ -43,5 +43,5 @@ class ForecastResultDTO:
             "projected_value": str(self.projected_value),
             "lower_bound": str(self.lower_bound),
             "upper_bound": str(self.upper_bound),
-            "currency": self.currency.value,
+            "currency": self.currency.code,
         }
