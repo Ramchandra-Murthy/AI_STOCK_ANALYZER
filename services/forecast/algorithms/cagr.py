@@ -16,7 +16,8 @@ class CAGRForecastAlgorithm(BaseForecastAlgorithm):
         if len(values) == 1:
             return tuple(values[0] for _ in range(periods))
         if values[0] <= 0:
-            raise ForecastAlgorithmError("Initial historical value must be strictly positive.")
+            # Legacy forecast contract: zero/negative starting history falls back to a flat projection.
+            return tuple(values[-1] for _ in range(periods))
         rate = (values[-1] / values[0]) ** (1.0 / (len(values) - 1)) - 1.0
         projected = []
         last_value = values[-1]
