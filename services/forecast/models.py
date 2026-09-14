@@ -96,10 +96,13 @@ class _ForecastSeries:
         confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
         growth_rates: tuple[float, ...] = (),
     ) -> None:
-        if historical is not None or projected is not None:
+        has_legacy = historical is not None or projected is not None
+        if has_legacy:
             hist = tuple(float(value) for value in (historical or ()))
             proj = tuple(float(value) for value in (projected or ()))
             vals = proj
+            # Legacy construction does not provide years; preserve a stable synthetic
+            # forecast timeline, while round-trips from the modern API retain explicit years.
             yrs = tuple(range(1, len(proj) + 1))
         else:
             hist = ()
@@ -134,8 +137,6 @@ class _ForecastSeries:
         return cls(
             values=tuple(data.get("values", data.get("projected", ()))),
             years=tuple(data.get("years", range(1, len(data.get("projected", ())) + 1))),
-            historical=tuple(data.get("historical", ())),
-            projected=tuple(data.get("projected", ())),
             method=ForecastMethod(str(data.get("method", "CAGR")).upper()),
             confidence=ConfidenceLevel(str(data.get("confidence", "MEDIUM")).upper()),
             growth_rates=tuple(data.get("growth_rates", ())),
@@ -169,11 +170,14 @@ class DepreciationForecast(_ForecastSeries):
 class WorkingCapitalForecast(_ForecastSeries):
     @property
     def delta(self) -> tuple[float, ...]:
-        combined = self.historical + self.projected
-        if not combined:
+        if not self.projected:
             return ()
         previous = self.historical[-1] if self.historical else 0.0
-        return tuple((previous := value) - (self.historical[-1] if index == 0 else self.projected[index - 1]) for index, value in enumerate(self.projected))
+        deltas: list[float] = []
+        for value in self.projected:
+            deltas.append(float(value - previous))
+            previous = value
+        return tuple(deltas)
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -269,7 +273,7 @@ class ForecastAssumption:
         )
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class ForecastScenario:
     scenario_name: str
     method: ForecastMethod
@@ -282,14 +286,76 @@ class ForecastScenario:
     terminal_growth: TerminalGrowthForecast
     confidence: ForecastConfidence
     assumptions: ForecastAssumption
+    probability: float
 
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "method", ForecastMethod(self.method))
+    def __init__(
+        self,
+        scenario_name: str,
+        method: ForecastMethod,
+        revenue: RevenueForecast | None = None,
+        margins: MarginForecast | None = None,
+        capex: CapexForecast | None = None,
+        depreciation: DepreciationForecast | None = None,
+        working_capital: WorkingCapitalForecast | None = None,
+        taxes: TaxForecast | None = None,
+        terminal_growth: TerminalGrowthForecast | None = None,
+        confidence: ForecastConfidence | None = None,
+        assumptions: ForecastAssumption | None = None,
+        probability: float = 1.0,
+        **legacy: Any,
+    ) -> None:
+        # Accept the historical service API names used by the legacy test suite.
+        revenue = revenue or legacy.pop("revenue_forecast", None)
+        margins = margins or legacy.pop("margin_forecast", None)
+        capex = capex or legacy.pop("capex_forecast", None)
+        taxes = taxes or legacy.pop("tax_forecast", None)
+        terminal_growth = terminal_growth or legacy.pop("terminal_growth", None)
+        probability = float(legacy.pop("probability", probability))
+        if legacy:
+            raise TypeError(f"Unexpected ForecastScenario arguments: {', '.join(legacy)}")
+        if revenue is None or margins is None or capex is None or taxes is None:
+            raise TypeError("ForecastScenario requires revenue, margins, capex, and taxes")
+        depreciation = depreciation or DepreciationForecast()
+        working_capital = working_capital or WorkingCapitalForecast()
+        terminal_growth = terminal_growth or TerminalGrowthForecast(0.03, ConfidenceLevel.MEDIUM)
+        confidence = confidence or ForecastConfidence(0.0, ConfidenceLevel.MEDIUM)
+        assumptions = assumptions or ForecastAssumption(0.0, 0.0, 0.25, 0.0, 0.0)
+        object.__setattr__(self, "scenario_name", scenario_name)
+        object.__setattr__(self, "method", ForecastMethod(method))
+        object.__setattr__(self, "revenue", revenue)
+        object.__setattr__(self, "margins", margins)
+        object.__setattr__(self, "capex", capex)
+        object.__setattr__(self, "depreciation", depreciation)
+        object.__setattr__(self, "working_capital", working_capital)
+        object.__setattr__(self, "taxes", taxes)
+        object.__setattr__(self, "terminal_growth", terminal_growth)
+        object.__setattr__(self, "confidence", confidence)
+        object.__setattr__(self, "assumptions", assumptions)
+        if not 0.0 <= probability <= 1.0:
+            raise ForecastValidationError("scenario probability must be between 0 and 1")
+        object.__setattr__(self, "probability", probability)
+
+    @property
+    def revenue_forecast(self) -> RevenueForecast:
+        return self.revenue
+
+    @property
+    def margin_forecast(self) -> MarginForecast:
+        return self.margins
+
+    @property
+    def capex_forecast(self) -> CapexForecast:
+        return self.capex
+
+    @property
+    def tax_forecast(self) -> TaxForecast:
+        return self.taxes
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "scenario_name": self.scenario_name,
             "method": self.method.value,
+            "probability": self.probability,
             "revenue": self.revenue.to_dict(),
             "margins": self.margins.to_dict(),
             "capex": self.capex.to_dict(),
@@ -306,6 +372,7 @@ class ForecastScenario:
         return cls(
             scenario_name=data["scenario_name"],
             method=ForecastMethod(data["method"]),
+            probability=float(data.get("probability", 1.0)),
             revenue=RevenueForecast.from_dict(data["revenue"]),
             margins=MarginForecast.from_dict(data["margins"]),
             capex=CapexForecast.from_dict(data["capex"]),
