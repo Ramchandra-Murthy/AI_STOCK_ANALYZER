@@ -22,12 +22,14 @@ class NumericValidators:
 
     @staticmethod
     def non_negative(value: float, field_name: str = "Value") -> float:
-        number = validate_finite_number(value)
+        number = float(value)
+        validate_finite_number(number, field_name)
         if number < 0:
             raise ValueError(f"{field_name} must be non-negative")
         return number
 
     @staticmethod
     def positive(value: float, field_name: str = "Value") -> float:
-        number = validate_positive(value)
+        number = float(value)
+        validate_positive(number, field_name)
         return number
