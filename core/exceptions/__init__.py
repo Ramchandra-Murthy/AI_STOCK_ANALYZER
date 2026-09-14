@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from .base import (
     AIERPError,
-    AIStockAnalyzerError,
     CalculationError,
     DomainError,
     InfrastructureError,
@@ -11,6 +10,8 @@ from .base import (
 )
 from .forecast import ForecastError
 from .valuation import ValuationError
+
+AIStockAnalyzerError = AIERPError
 
 __all__ = [
     "AIStockAnalyzerError",
