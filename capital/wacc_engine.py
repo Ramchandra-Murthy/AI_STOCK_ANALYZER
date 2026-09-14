@@ -1,5 +1,3 @@
-"""Compatibility implementation of the capital cost engine."""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -18,8 +16,6 @@ class CAPMOutput:
 
 
 class CapitalCostEngine:
-    """Compute CAPM cost of equity and weighted average cost of capital."""
-
     @staticmethod
     def calculate_wacc(
         risk_free_rate: float,
@@ -41,14 +37,12 @@ class CapitalCostEngine:
         debt_weight = total_debt / total_capital if total_capital > 0 else 0.20
 
         wacc = (equity_weight * cost_of_equity) + (debt_weight * cost_of_debt_post_tax)
+
         if wacc <= 0:
             raise ValuationError("WACC must be positive.")
 
         logger.info(
-            "[CAPITAL_COST] Ke: %.2f%% | Kd: %.2f%% | WACC: %.2f%%",
-            cost_of_equity * 100,
-            cost_of_debt_post_tax * 100,
-            wacc * 100,
+            f"[CAPITAL_COST] Ke: {cost_of_equity:.2%} | Kd: {cost_of_debt_post_tax:.2%} | WACC: {wacc:.2%}"
         )
 
         return CAPMOutput(
