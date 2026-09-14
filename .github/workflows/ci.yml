@@ -47,6 +47,7 @@ jobs:
         uv run --locked --no-sync --no-build python -m pytest -q
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
+        tests/forecast
     - name: Build production Docker image
       run: docker build --pull -t ai-stock-analyzer:ci .
     - name: Smoke test container runtime health
