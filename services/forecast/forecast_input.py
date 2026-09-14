@@ -9,20 +9,15 @@ Layer   : Services / Forecast / Input
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from typing import Any
 
 from services.forecast.exceptions import ValuationError
 from services.forecast.forecast_models import ForecastMethod
 
-logger = logging.getLogger(__name__)
-
 
 @dataclass(slots=True, frozen=True)
 class HistoricalFinancials:
-    """Container for historical financial time-series data."""
-
     revenue: tuple[float, ...]
     ebitda: tuple[float, ...] = field(default_factory=tuple)
     capex: tuple[float, ...] = field(default_factory=tuple)
@@ -32,8 +27,6 @@ class HistoricalFinancials:
 
 @dataclass(slots=True, frozen=True)
 class ScenarioOverrides:
-    """Container for scenario-specific growth and margin overrides."""
-
     revenue_growth_override: tuple[float, ...] | None = None
     margin_override: tuple[float, ...] | None = None
 
@@ -66,12 +59,13 @@ class ForecastInput:
         if not revenues and self.historical_data and self.historical_data.revenue:
             revenues = self.historical_data.revenue
         revenues = tuple(revenues)
-        if len(revenues) < 2:
-            raise ValuationError("Historical revenues must contain at least 2 periods.")
 
         horizon = self.forecast_years if self.forecast_years != 5 else self.forecast_horizon
         if not 1 <= horizon <= 10:
             raise ValuationError(f"Forecast horizon ({horizon}) must be between 1 and 10 years.")
+
+        if len(revenues) < 2:
+            raise ValuationError("Historical revenues must contain at least 2 periods.")
 
         series_fields = (
             "historical_ebits",
@@ -86,8 +80,7 @@ class ForecastInput:
             values = tuple(getattr(self, name))
             if values and len(values) != len(revenues):
                 raise ValuationError(
-                    f"{name} length ({len(values)}) must match historical_revenues "
-                    f"length ({len(revenues)})."
+                    f"{name} length ({len(values)}) must match historical_revenues length ({len(revenues)})."
                 )
             normalized[name] = values
 
@@ -95,9 +88,7 @@ class ForecastInput:
         if guidance is not None:
             guidance = tuple(guidance)
             if len(guidance) != horizon:
-                raise ValuationError(
-                    "management_guidance_revenue length must match forecast horizon."
-                )
+                raise ValuationError("management_guidance_revenue length must match forecast horizon.")
             object.__setattr__(self, "management_guidance_revenue", guidance)
 
         object.__setattr__(self, "historical_revenues", revenues)
