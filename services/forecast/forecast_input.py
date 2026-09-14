@@ -69,7 +69,11 @@ class ForecastInput:
         if len(revenues) < 2:
             raise ValuationError("Historical revenues must contain at least 2 periods.")
 
-        horizon = self.forecast_years if self.forecast_years != 5 else self.forecast_horizon
+        horizon = (
+            self.forecast_years
+            if self.forecast_years != 5
+            else self.forecast_horizon
+        )
         if not 1 <= horizon <= 10:
             raise ValuationError(
                 f"Forecast horizon ({horizon}) must be between 1 and 10 years."
