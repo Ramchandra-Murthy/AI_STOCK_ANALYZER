@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
@@ -43,7 +43,7 @@ class ForecastResult:
         ebit_forecast: tuple[float, ...] = (),
         capex_forecast: tuple[float, ...] = (),
     ) -> None:
-        legacy = any(
+        legacy = package is None and any(
             value is not None
             for value in (
                 symbol,
