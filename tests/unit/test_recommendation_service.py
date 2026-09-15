@@ -17,12 +17,12 @@ def test_recommendation_clamps_score():
 def test_recommendation_missing_data_is_not_hold():
     result = generate_recommendation(None)
     assert result["recommendation"] == "INSUFFICIENT DATA"
-    assert result["confidence"] == 0
+    assert result["confidence"] is None
     assert result["overall_score"] is None
 
 
 def test_recommendation_invalid_data_is_not_hold():
     result = generate_recommendation("not-a-score")
     assert result["recommendation"] == "INSUFFICIENT DATA"
-    assert result["confidence"] == 0
+    assert result["confidence"] is None
     assert result["overall_score"] is None
