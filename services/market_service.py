@@ -120,8 +120,8 @@ def get_latest_available_price(symbol: str) -> dict[str, Any]:
 def get_market_indices() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     for name, ticker in MARKET_INDICES.items():
-        value, change, _previous_close, observed_at, frequency, is_intraday = (
-            _get_last_observation(ticker)
+        value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+            ticker
         )
         result[name] = {
             "value": value,
@@ -138,8 +138,8 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
 def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
     rows: list[dict[str, Any]] = []
     for name, ticker in WATCHLIST.items():
-        value, change, _previous_close, observed_at, frequency, is_intraday = (
-            _get_last_observation(ticker)
+        value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+            ticker
         )
         if value is not None and change is not None:
             rows.append(
