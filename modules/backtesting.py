@@ -1,4 +1,5 @@
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
 from services.technical_service import get_price_history
@@ -56,7 +57,7 @@ def _run_backtest(history, initial_capital, cost_bps):
         "cagr": cagr,
         "max_drawdown": data["drawdown"].min(),
         "buy_hold_return": (data["buy_hold_equity"].iloc[-1] / initial_capital - 1),
-        "trade_count": int(((data["position"].diff().fillna(data["position"])) > 0).sum()),
+        "trade_count": int((data["position"].diff().fillna(data["position"]) > 0).sum()),
     }
 
     return data, metrics
@@ -91,6 +92,7 @@ def show():
         )
 
         col1, col2 = st.columns(2)
+
         with col1:
             initial_capital = st.number_input(
                 "Starting capital (₹)",
@@ -99,6 +101,7 @@ def show():
                 value=100_000,
                 step=10_000,
             )
+
         with col2:
             cost_bps = st.number_input(
                 "Estimated cost per position change (basis points)",
@@ -154,15 +157,31 @@ def show():
     m5.metric("Entries", metrics["trade_count"])
 
     st.subheader("Portfolio value")
-    st.line_chart(
-        results[["strategy_equity", "buy_hold_equity"]].rename(
-            columns={
-                "strategy_equity": "EMA strategy",
-                "buy_hold_equity": "Buy & hold",
-            }
-        ),
-        use_container_width=True,
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=results.index,
+            y=results["buy_hold_equity"],
+            mode="lines",
+            name="Buy & hold",
+        )
     )
+    fig.add_trace(
+        go.Scatter(
+            x=results.index,
+            y=results["strategy_equity"],
+            mode="lines",
+            name="EMA strategy",
+        )
+    )
+    fig.update_layout(
+        xaxis_title="Date",
+        yaxis_title="Portfolio value (₹)",
+        yaxis=dict(rangemode="tozero"),
+        margin=dict(l=10, r=10, t=20, b=10),
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("Recent backtest data")
     display_columns = [
@@ -174,7 +193,9 @@ def show():
         "buy_hold_equity",
         "drawdown",
     ]
+
+    recent_results = results[display_columns].tail(20).sort_index(ascending=False)
     st.dataframe(
-        results[display_columns].tail(20).sort_index(ascending=False),
+        recent_results,
         use_container_width=True,
     )
