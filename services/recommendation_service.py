@@ -10,10 +10,15 @@ def generate_recommendation(investment_score):
     try:
         overall_score = float(investment_score)
     except (TypeError, ValueError):
-        overall_score = 0.0
+        overall_score = None
 
-    if not math.isfinite(overall_score):
-        overall_score = 0.0
+    if overall_score is None or not math.isfinite(overall_score):
+        return {
+            "recommendation": "INSUFFICIENT DATA",
+            "confidence": None,
+            "overall_score": None,
+        }
+
     overall_score = max(0.0, min(overall_score, 100.0))
 
     if overall_score >= 85:
