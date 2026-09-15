@@ -8,12 +8,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isfinite
-from typing import Any
 
 from core.exceptions import ValidationError
+from services.forecast.algorithms.cagr import CAGRForecastEngine
 from services.forecast.forecast_input import ForecastInput
 from services.forecast.forecast_models import ScenarioType
-from services.forecast.algorithms.cagr import CAGRForecastEngine
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,7 +89,6 @@ class ForecastService:
             capex_ratio = abs(capex[-1] / revenues[-1]) if revenues[-1] else 0.0
             nwc_ratio = nwc[-1] / revenues[-1] if revenues[-1] else 0.0
             dep_ratio = (depreciation[-1] / revenues[-1]) if depreciation and revenues[-1] else 0.0
-            previous_revenue = revenues[-1]
             previous_nwc = nwc[-1]
 
             for revenue in projected_revenues:
@@ -106,7 +104,6 @@ class ForecastService:
                         revenue, ebit, projected_capex, projected_dep, projected_nwc, tax_rate, fcf
                     )
                 )
-                previous_revenue = revenue
                 previous_nwc = projected_nwc
 
             return ScenarioForecast(

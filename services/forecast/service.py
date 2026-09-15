@@ -1,7 +1,6 @@
 ﻿from __future__ import annotations
 
 import time
-from typing import Any
 
 from services.forecast.algorithms.base import BaseForecastAlgorithm
 from services.forecast.algorithms.cagr import CAGRForecastEngine
@@ -13,7 +12,6 @@ from services.forecast.models import (
     CapexForecast,
     ConfidenceLevel,
     DepreciationForecast,
-    ForecastAssumption,
     ForecastConfidence,
     ForecastLineItem,
     ForecastMethod,

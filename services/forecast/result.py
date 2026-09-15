@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from services.forecast.models import ConfidenceLevel, ForecastMethod, ForecastPackage

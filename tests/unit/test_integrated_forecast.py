@@ -1,4 +1,5 @@
 ﻿import pytest
+
 from services.forecast.forecast_service import ForecastService
 
 
