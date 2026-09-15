@@ -150,15 +150,21 @@ def show():
 
     gainers, losers = get_top_movers()
 
+    # Keep side-by-side mover tables compact; detailed observation fields
+    # remain available in the Personal Watchlist table below.
+    mover_columns = ["Symbol", "Price", "Change %"]
+    gainers_display = gainers[[column for column in mover_columns if column in gainers.columns]]
+    losers_display = losers[[column for column in mover_columns if column in losers.columns]]
+
     left, right = st.columns(2)
 
     with left:
         st.subheader("📈 Top Gainers")
-        st.dataframe(gainers, hide_index=True, use_container_width=True)
+        st.dataframe(gainers_display, hide_index=True, use_container_width=True)
 
     with right:
         st.subheader("📉 Top Losers")
-        st.dataframe(losers, hide_index=True, use_container_width=True)
+        st.dataframe(losers_display, hide_index=True, use_container_width=True)
 
     st.divider()
 
