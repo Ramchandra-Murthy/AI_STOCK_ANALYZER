@@ -53,9 +53,7 @@ def _get_sector_performance():
         rows.append(
             {
                 "Sector": sector,
-                "Average Change %": (
-                    round(sum(changes) / len(changes), 2) if changes else None
-                ),
+                "Average Change %": (round(sum(changes) / len(changes), 2) if changes else None),
                 "Stocks Available": len(changes),
             }
         )
@@ -211,9 +209,7 @@ def show():
         remove_symbol = st.selectbox(
             "Remove a saved symbol",
             options=[""] + saved_symbols,
-            format_func=lambda value: (
-                "Select a symbol" if value == "" else value
-            ),
+            format_func=lambda value: ("Select a symbol" if value == "" else value),
         )
 
         if st.button("Remove selected symbol", disabled=not remove_symbol):
