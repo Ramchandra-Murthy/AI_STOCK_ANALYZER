@@ -43,8 +43,8 @@ def _clean_close_series(history: pd.DataFrame) -> pd.Series:
 
 def _get_last_observation(
     ticker: str,
-) -> tuple[float | None, float | None, str | None, str | None, bool]:
-    """Return latest price, change, observation time, frequency and intraday flag."""
+) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
+    """Return price, change, previous close, time, frequency and intraday flag."""
     try:
         symbol = yf.Ticker(ticker)
         intraday = symbol.history(period="1d", interval="1m", auto_adjust=True)
@@ -71,6 +71,7 @@ def _get_last_observation(
             return (
                 round(latest, 2),
                 round(change, 2) if change is not None else None,
+                round(previous, 2) if previous is not None else None,
                 observed_at,
                 "intraday_1m",
                 True,
@@ -79,7 +80,7 @@ def _get_last_observation(
         daily = symbol.history(period="5d", interval="1d", auto_adjust=True)
         close = _clean_close_series(daily)
         if close.empty:
-            return None, None, None, "unavailable", False
+            return None, None, None, None, "unavailable", False
         latest = float(close.iloc[-1])
         previous = float(close.iloc[-2]) if len(close) > 1 else None
         change = ((latest - previous) / previous) * 100 if previous else None
@@ -88,19 +89,22 @@ def _get_last_observation(
         return (
             round(latest, 2),
             round(change, 2) if change is not None else None,
+            round(previous, 2) if previous is not None else None,
             observed_at,
             "daily",
             False,
         )
     except Exception:
-        return None, None, None, "unavailable", False
+        return None, None, None, None, "unavailable", False
 
 
 def get_latest_available_price(symbol: str) -> dict[str, Any]:
     normalized = symbol.strip().upper()
     if "." not in normalized:
         normalized += ".NS"
-    value, change, observed_at, frequency, is_intraday = _get_last_observation(normalized)
+    value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+        normalized
+    )
     return {
         "symbol": normalized,
         "price": value,
@@ -116,7 +120,9 @@ def get_latest_available_price(symbol: str) -> dict[str, Any]:
 def get_market_indices() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     for name, ticker in MARKET_INDICES.items():
-        value, change, observed_at, frequency, is_intraday = _get_last_observation(ticker)
+        value, change, _previous_close, observed_at, frequency, is_intraday = (
+            _get_last_observation(ticker)
+        )
         result[name] = {
             "value": value,
             "change": change,
@@ -132,7 +138,9 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
 def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
     rows: list[dict[str, Any]] = []
     for name, ticker in WATCHLIST.items():
-        value, change, observed_at, frequency, is_intraday = _get_last_observation(ticker)
+        value, change, _previous_close, observed_at, frequency, is_intraday = (
+            _get_last_observation(ticker)
+        )
         if value is not None and change is not None:
             rows.append(
                 {
