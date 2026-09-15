@@ -15,7 +15,7 @@ def _valid_number(value) -> bool:
 def calculate_technical_score(df):
     """Calculate a bounded 0-100 technical component score."""
     if df is None or getattr(df, "empty", True):
-        return 0, ["Historical price data is unavailable"]
+        return None, ["Historical price data is unavailable"]
 
     score = 50
     reasons = []
@@ -125,6 +125,6 @@ def calculate_technical_score(df):
             reasons.append("Price is trading at support")
 
     if observed_components == 0:
-        return 0, ["Insufficient technical indicators for scoring"]
+        return None, ["Insufficient technical indicators for scoring"]
 
     return max(0, min(round(score), 100)), reasons
