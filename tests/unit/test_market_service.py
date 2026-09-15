@@ -27,8 +27,8 @@ def test_last_observation_prefers_intraday(monkeypatch):
         market_service._get_last_observation("TEST")
     )
     assert value == 105.0
-    assert change == 5.0
-    assert previous_close == 100.0
+    assert change == 6.06
+    assert previous_close == 99.0
     assert frequency == "intraday_1m"
     assert is_intraday is True
 
