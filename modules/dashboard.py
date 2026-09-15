@@ -87,23 +87,24 @@ def show():
     st.divider()
 
     # ============================
-    # ROW 3
+    # ROW 3 — FULL-WIDTH SECTIONS
     # ============================
 
-    col1, col2 = st.columns([2, 1])
+    st.subheader("📋 Top Holdings")
+    show_top_holdings(df)
 
-    with col1:
-        st.subheader("📋 Top Holdings")
-        show_top_holdings(df)
-        st.divider()
+    st.divider()
 
-        show_market_movers()
-        st.divider()
+    show_market_movers()
 
-        show_ai_market_summary()
-    with col2:
-        st.subheader("📊 Portfolio Analytics")
-        show_portfolio_analytics(df)
+    st.divider()
+
+    show_ai_market_summary()
+
+    st.divider()
+
+    st.subheader("📊 Portfolio Analytics")
+    show_portfolio_analytics(df)
 
     st.divider()
 
