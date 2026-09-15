@@ -17,7 +17,7 @@ def _number(value):
 
 
 def get_ai_recommendation(stock_data, history=None):
-    """Return the AI component score and supporting reasons."""
+    """Return a bounded AI component score and supporting reasons."""
     data = stock_data if isinstance(stock_data, dict) else {}
     score = 50.0
     reasons = []
@@ -95,8 +95,11 @@ def get_ai_recommendation(stock_data, history=None):
                     reasons.append("Price Below EMA200")
 
     if observed_components == 0:
-        score = 50.0
-        reasons.append("Insufficient AI evidence; neutral baseline applied")
+        return {
+            "score": None,
+            "reasons": ["Insufficient AI evidence; no score calculated"],
+            "component": "AI",
+        }
 
     score = round(max(0.0, min(score, 100.0)))
     return {"score": score, "reasons": reasons, "component": "AI"}
