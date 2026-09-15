@@ -79,7 +79,7 @@ def _get_personal_watchlist(symbols):
                 "Observed": quote.get("observed_at"),
                 "Frequency": quote.get("frequency"),
             }
-        )
+n        )
 
     return pd.DataFrame(
         rows,
@@ -150,15 +150,21 @@ def show():
 
     gainers, losers = get_top_movers()
 
+    # Keep these side-by-side tables narrow-screen friendly by showing only
+    # the key comparison fields. Full observation details remain in the watchlist.
+    mover_columns = ["Symbol", "Price", "Change %"]
+    gainers_display = gainers[[column for column in mover_columns if column in gainers.columns]]
+    losers_display = losers[[column for column in mover_columns if column in losers.columns]]
+
     left, right = st.columns(2)
 
     with left:
         st.subheader("📈 Top Gainers")
-        st.dataframe(gainers, hide_index=True, use_container_width=True)
+        st.dataframe(gainers_display, hide_index=True, use_container_width=True)
 
     with right:
         st.subheader("📉 Top Losers")
-        st.dataframe(losers, hide_index=True, use_container_width=True)
+        st.dataframe(losers_display, hide_index=True, use_container_width=True)
 
     st.divider()
 
