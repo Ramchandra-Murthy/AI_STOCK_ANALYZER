@@ -7,8 +7,6 @@ def show_investment_chart(df):
     Compare invested amount with current value for each holding.
     """
 
-    st.subheader("💰 Investment vs Current Value")
-
     if df.empty:
         st.info("No holdings available.")
         return
