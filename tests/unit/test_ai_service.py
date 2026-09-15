@@ -15,8 +15,8 @@ def test_ai_service_returns_component_only():
     assert "risk" not in result
 
 
-def test_ai_service_ignores_non_finite_values():
+def test_ai_service_returns_no_score_for_only_invalid_values():
     result = get_ai_recommendation({"pe": float("nan"), "eps": "bad"})
 
-    assert result["score"] == 50
-    assert result["reasons"] == []
+    assert result["score"] is None
+    assert result["reasons"] == ["Insufficient AI evidence; no score calculated"]
