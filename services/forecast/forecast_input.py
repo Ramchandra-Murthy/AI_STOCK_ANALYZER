@@ -88,7 +88,9 @@ class ForecastInput:
         if guidance is not None:
             guidance = tuple(guidance)
             if len(guidance) != horizon:
-                raise ValuationError("management_guidance_revenue length must match forecast horizon.")
+                raise ValuationError(
+                    "management_guidance_revenue length must match forecast horizon."
+                )
             object.__setattr__(self, "management_guidance_revenue", guidance)
 
         object.__setattr__(self, "historical_revenues", revenues)

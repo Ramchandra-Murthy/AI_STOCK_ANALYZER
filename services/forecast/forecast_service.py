@@ -49,7 +49,9 @@ class ForecastService:
         self._engine = CAGRForecastEngine()
 
     @staticmethod
-    def _validate_series(name: str, values: list[float] | tuple[float, ...], min_len: int = 2) -> tuple[float, ...]:
+    def _validate_series(
+        name: str, values: list[float] | tuple[float, ...], min_len: int = 2
+    ) -> tuple[float, ...]:
         normalized = tuple(float(v) for v in values)
         if len(normalized) < min_len:
             raise ValidationError(f"{name} must contain at least {min_len} periods.")
@@ -57,7 +59,9 @@ class ForecastService:
             raise ValidationError(f"{name} must contain only finite numbers.")
         return normalized
 
-    def generate_full_forecast(self, forecast_input: ForecastInput) -> dict[ScenarioType, ScenarioForecast]:
+    def generate_full_forecast(
+        self, forecast_input: ForecastInput
+    ) -> dict[ScenarioType, ScenarioForecast]:
         revenues = self._validate_series("historical_revenues", forecast_input.historical_revenues)
         ebits = self._validate_series("historical_ebits", forecast_input.historical_ebits)
         nwc = self._validate_series("historical_nwc", forecast_input.historical_nwc)
@@ -97,7 +101,11 @@ class ForecastService:
                 delta_nwc = projected_nwc - previous_nwc
                 fcf = ebit * (1.0 - tax_rate) + projected_dep - projected_capex - delta_nwc
                 projected_fcfs.append(fcf)
-                yearly.append(YearlyForecast(revenue, ebit, projected_capex, projected_dep, projected_nwc, tax_rate, fcf))
+                yearly.append(
+                    YearlyForecast(
+                        revenue, ebit, projected_capex, projected_dep, projected_nwc, tax_rate, fcf
+                    )
+                )
                 previous_revenue = revenue
                 previous_nwc = projected_nwc
 

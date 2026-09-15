@@ -59,8 +59,14 @@ class ForecastResult:
             object.__setattr__(self, "package", None)
             object.__setattr__(self, "symbol", symbol or "")
             object.__setattr__(self, "forecast_horizon", int(forecast_horizon or 0))
-            object.__setattr__(self, "method_used", ForecastMethod(method_used or ForecastMethod.CAGR))
-            object.__setattr__(self, "confidence_level", ConfidenceLevel(confidence_level or ConfidenceLevel.MEDIUM))
+            object.__setattr__(
+                self, "method_used", ForecastMethod(method_used or ForecastMethod.CAGR)
+            )
+            object.__setattr__(
+                self,
+                "confidence_level",
+                ConfidenceLevel(confidence_level or ConfidenceLevel.MEDIUM),
+            )
             object.__setattr__(self, "confidence_score", float(confidence_score or 0.0))
             object.__setattr__(self, "revenue_forecast", revenue_forecast)
             object.__setattr__(self, "margin_forecast", margin_forecast)
@@ -106,8 +112,12 @@ class ForecastResult:
             "method_used": self.method_used.value.lower(),
             "confidence_level": self.confidence_level.value.lower(),
             "confidence_score": self.confidence_score,
-            "revenue_forecast": self.revenue_forecast.to_dict() if self.revenue_forecast is not None else None,
-            "margin_forecast": self.margin_forecast.to_dict() if self.margin_forecast is not None else None,
+            "revenue_forecast": (
+                self.revenue_forecast.to_dict() if self.revenue_forecast is not None else None
+            ),
+            "margin_forecast": (
+                self.margin_forecast.to_dict() if self.margin_forecast is not None else None
+            ),
             "ebit_forecast": list(self.ebit_forecast),
             "capex_forecast": list(self.capex_forecast),
             "package": None,
@@ -121,6 +131,7 @@ class ForecastResult:
     def from_dict(cls, data: dict[str, Any]) -> ForecastResult:
         package = ForecastPackage.from_dict(data["package"]) if data.get("package") else None
         from services.forecast.models import MarginForecast, RevenueForecast
+
         revenue = data.get("revenue_forecast")
         margin = data.get("margin_forecast")
         return cls(

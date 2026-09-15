@@ -41,7 +41,9 @@ def _clean_close_series(history: pd.DataFrame) -> pd.Series:
     return pd.to_numeric(close, errors="coerce").dropna()
 
 
-def _get_last_observation(ticker: str) -> tuple[float | None, float | None, str | None, str | None, bool]:
+def _get_last_observation(
+    ticker: str,
+) -> tuple[float | None, float | None, str | None, str | None, bool]:
     """Return latest price, change, observation time, frequency and intraday flag."""
     try:
         symbol = yf.Ticker(ticker)
@@ -63,8 +65,16 @@ def _get_last_observation(ticker: str) -> tuple[float | None, float | None, str 
                 previous = float(close.iloc[-2])
             change = ((latest - previous) / previous) * 100 if previous else None
             timestamp = close.index[-1]
-            observed_at = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
-            return round(latest, 2), round(change, 2) if change is not None else None, observed_at, "intraday_1m", True
+            observed_at = (
+                timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
+            )
+            return (
+                round(latest, 2),
+                round(change, 2) if change is not None else None,
+                observed_at,
+                "intraday_1m",
+                True,
+            )
 
         daily = symbol.history(period="5d", interval="1d", auto_adjust=True)
         close = _clean_close_series(daily)
@@ -75,7 +85,13 @@ def _get_last_observation(ticker: str) -> tuple[float | None, float | None, str 
         change = ((latest - previous) / previous) * 100 if previous else None
         timestamp = close.index[-1]
         observed_at = timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
-        return round(latest, 2), round(change, 2) if change is not None else None, observed_at, "daily", False
+        return (
+            round(latest, 2),
+            round(change, 2) if change is not None else None,
+            observed_at,
+            "daily",
+            False,
+        )
     except Exception:
         return None, None, None, "unavailable", False
 
@@ -118,17 +134,21 @@ def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
     for name, ticker in WATCHLIST.items():
         value, change, observed_at, frequency, is_intraday = _get_last_observation(ticker)
         if value is not None and change is not None:
-            rows.append({
-                "Symbol": name,
-                "Price": value,
-                "Change %": change,
-                "Observed": observed_at,
-                "Frequency": frequency,
-                "Intraday": is_intraday,
-            })
+            rows.append(
+                {
+                    "Symbol": name,
+                    "Price": value,
+                    "Change %": change,
+                    "Observed": observed_at,
+                    "Frequency": frequency,
+                    "Intraday": is_intraday,
+                }
+            )
     columns = ["Symbol", "Price", "Change %", "Observed", "Frequency", "Intraday"]
     if not rows:
         empty = pd.DataFrame(columns=columns)
         return empty, empty.copy()
     frame = pd.DataFrame(rows, columns=columns)
-    return frame.sort_values("Change %", ascending=False).head(5).reset_index(drop=True), frame.sort_values("Change %", ascending=True).head(5).reset_index(drop=True)
+    return frame.sort_values("Change %", ascending=False).head(5).reset_index(
+        drop=True
+    ), frame.sort_values("Change %", ascending=True).head(5).reset_index(drop=True)

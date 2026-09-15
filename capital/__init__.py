@@ -6,5 +6,6 @@ __all__ = ["CAPMOutput", "CapitalCostEngine"]
 def __getattr__(name: str):
     if name in __all__:
         from .wacc_engine import CAPMOutput, CapitalCostEngine
+
         return {"CAPMOutput": CAPMOutput, "CapitalCostEngine": CapitalCostEngine}[name]
     raise AttributeError(name)

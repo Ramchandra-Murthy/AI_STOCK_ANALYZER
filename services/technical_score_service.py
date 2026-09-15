@@ -41,8 +41,10 @@ def calculate_technical_score(df):
         reasons.append("RSI data is unavailable")
 
     if (
-        "EMA20" in latest.index and "EMA50" in latest.index
-        and _valid_number(latest["EMA20"]) and _valid_number(latest["EMA50"])
+        "EMA20" in latest.index
+        and "EMA50" in latest.index
+        and _valid_number(latest["EMA20"])
+        and _valid_number(latest["EMA50"])
     ):
         observed_components += 1
         ema20, ema50 = float(latest["EMA20"]), float(latest["EMA50"])
@@ -56,8 +58,10 @@ def calculate_technical_score(df):
             reasons.append("EMA20 is equal to EMA50")
 
     if (
-        "EMA50" in latest.index and "EMA200" in latest.index
-        and _valid_number(latest["EMA50"]) and _valid_number(latest["EMA200"])
+        "EMA50" in latest.index
+        and "EMA200" in latest.index
+        and _valid_number(latest["EMA50"])
+        and _valid_number(latest["EMA200"])
     ):
         observed_components += 1
         ema50, ema200 = float(latest["EMA50"]), float(latest["EMA200"])
@@ -71,8 +75,10 @@ def calculate_technical_score(df):
             reasons.append("EMA50 is equal to EMA200")
 
     if (
-        "MACD" in latest.index and "MACD_Signal" in latest.index
-        and _valid_number(latest["MACD"]) and _valid_number(latest["MACD_Signal"])
+        "MACD" in latest.index
+        and "MACD_Signal" in latest.index
+        and _valid_number(latest["MACD"])
+        and _valid_number(latest["MACD_Signal"])
     ):
         observed_components += 1
         macd, signal = float(latest["MACD"]), float(latest["MACD_Signal"])
@@ -88,8 +94,10 @@ def calculate_technical_score(df):
         reasons.append("MACD data is unavailable")
 
     if (
-        "Close" in latest.index and "Resistance" in latest.index
-        and _valid_number(latest["Close"]) and _valid_number(latest["Resistance"])
+        "Close" in latest.index
+        and "Resistance" in latest.index
+        and _valid_number(latest["Close"])
+        and _valid_number(latest["Resistance"])
     ):
         observed_components += 1
         close, resistance = float(latest["Close"]), float(latest["Resistance"])
@@ -100,8 +108,10 @@ def calculate_technical_score(df):
             reasons.append("Price remains below resistance")
 
     if (
-        "Close" in latest.index and "Support" in latest.index
-        and _valid_number(latest["Close"]) and _valid_number(latest["Support"])
+        "Close" in latest.index
+        and "Support" in latest.index
+        and _valid_number(latest["Close"])
+        and _valid_number(latest["Support"])
     ):
         observed_components += 1
         close, support = float(latest["Close"]), float(latest["Support"])

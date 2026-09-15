@@ -134,7 +134,8 @@ class ForecastService:
         revenue = self.generate_revenue_forecast(historical_revenue, periods, method, confidence)
         margin_algorithm = self._algorithm_for(method)
         margins = tuple(
-            max(0.0, min(1.0, value)) for value in margin_algorithm.calculate(historical_margin, periods)
+            max(0.0, min(1.0, value))
+            for value in margin_algorithm.calculate(historical_margin, periods)
         )
         capex = CapexForecast(
             historical=historical_capex,
@@ -162,7 +163,9 @@ class ForecastService:
             ),
             capex=capex,
             depreciation=DepreciationForecast(projected=(), method=method, confidence=confidence),
-            working_capital=WorkingCapitalForecast(projected=(), method=method, confidence=confidence),
+            working_capital=WorkingCapitalForecast(
+                projected=(), method=method, confidence=confidence
+            ),
             taxes=taxes,
             terminal_growth=TerminalGrowthForecast(0.03, ConfidenceLevel.HIGH),
             confidence=ForecastConfidence(85.0, ConfidenceLevel.HIGH),
