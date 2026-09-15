@@ -17,8 +17,9 @@ def test_clean_close_series_handles_multiindex_close():
 def test_last_observation_prefers_intraday(monkeypatch):
     class FakeTicker:
         def history(self, **kwargs):
-            assert kwargs["interval"] == "1m"
-            return pd.DataFrame({"Close": [100.0, 105.0]})
+            if kwargs["interval"] == "1m":
+                return pd.DataFrame({"Close": [100.0, 105.0]})
+            return pd.DataFrame({"Close": [99.0, 100.0]})
 
     monkeypatch.setattr(market_service.yf, "Ticker", lambda _: FakeTicker())
 
@@ -27,6 +28,7 @@ def test_last_observation_prefers_intraday(monkeypatch):
     )
     assert value == 105.0
     assert change == 5.0
+    assert previous_close == 100.0
     assert frequency == "intraday_1m"
     assert is_intraday is True
 
@@ -40,11 +42,12 @@ def test_last_observation_falls_back_to_daily(monkeypatch):
 
     monkeypatch.setattr(market_service.yf, "Ticker", lambda _: FakeTicker())
 
-    value, change, observed_at, frequency, is_intraday = market_service._get_last_observation(
-        "TEST"
+    value, change, previous_close, observed_at, frequency, is_intraday = (
+        market_service._get_last_observation("TEST")
     )
     assert value == 105.0
     assert change == 5.0
+    assert previous_close == 100.0
     assert frequency == "daily"
     assert is_intraday is False
 
