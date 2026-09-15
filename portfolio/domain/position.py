@@ -3,11 +3,10 @@
 from dataclasses import dataclass
 from typing import Any
 
-from core.validation.rules import NumericValidators
-
 from core.identifiers import ISIN, CompanySymbol
 from core.primitives import Money, Quantity
 from core.primitives.base import ValueObject
+from core.validation.rules import NumericValidators
 
 
 @dataclass(frozen=True, order=True)

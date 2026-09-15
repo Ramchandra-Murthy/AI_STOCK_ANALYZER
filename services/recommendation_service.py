@@ -6,36 +6,20 @@ import math
 
 
 def generate_recommendation(investment_score):
-    """
-    Generate the final investment recommendation from
-    the authoritative Investment Score.
-
-    Missing, non-finite, non-numeric, or out-of-domain scores
-    are not converted into a recommendation.
-    """
-
-    if investment_score is None:
-        return {
-            "recommendation": "INSUFFICIENT DATA",
-            "confidence": 0,
-            "overall_score": None,
-        }
-
+    """Generate a bounded recommendation from the authoritative score."""
     try:
         overall_score = float(investment_score)
     except (TypeError, ValueError):
+        overall_score = None
+
+    if overall_score is None or not math.isfinite(overall_score):
         return {
             "recommendation": "INSUFFICIENT DATA",
-            "confidence": 0,
+            "confidence": None,
             "overall_score": None,
         }
 
-    if not math.isfinite(overall_score) or not 0.0 <= overall_score <= 100.0:
-        return {
-            "recommendation": "INSUFFICIENT DATA",
-            "confidence": 0,
-            "overall_score": None,
-        }
+    overall_score = max(0.0, min(overall_score, 100.0))
 
     if overall_score >= 85:
         recommendation = "STRONG BUY"

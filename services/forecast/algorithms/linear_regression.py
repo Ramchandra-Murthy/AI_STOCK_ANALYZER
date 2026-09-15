@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from services.forecast.algorithms.base import BaseForecastAlgorithm
 from services.forecast.exceptions import ForecastAlgorithmError
@@ -6,6 +6,24 @@ from services.forecast.input import ForecastInput
 
 
 class LinearRegressionForecastAlgorithm(BaseForecastAlgorithm):
+    def calculate(self, historical: tuple[float, ...], periods: int) -> tuple[float, ...]:
+        """Project a historical series using linear regression (legacy API)."""
+        values = tuple(float(value) for value in historical)
+        if periods < 0:
+            raise ValueError("periods must be non-negative")
+        if periods == 0 or not values:
+            return ()
+        if len(values) == 1:
+            return tuple(values[0] for _ in range(periods))
+        n = len(values)
+        mean_x = (n - 1) / 2.0
+        mean_y = sum(values) / n
+        numerator = sum((i - mean_x) * (value - mean_y) for i, value in enumerate(values))
+        denominator = sum((i - mean_x) ** 2 for i in range(n))
+        slope = numerator / denominator if denominator else 0.0
+        intercept = mean_y - slope * mean_x
+        return tuple(max(0.0, intercept + slope * (n - 1 + step)) for step in range(1, periods + 1))
+
     def calculate_revenue(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         revenues = forecast_input.historical_revenue
         n = len(revenues)
@@ -46,3 +64,7 @@ class LinearRegressionForecastAlgorithm(BaseForecastAlgorithm):
         taxes = forecast_input.historical_taxes
         avg = (sum(taxes) / len(taxes)) if taxes else 0.25
         return tuple(max(0.0, min(1.0, avg)) for _ in forecast_input.forecast_years)
+
+
+# Backward-compatible name used by the original forecast test suite.
+LinearRegressionForecastEngine = LinearRegressionForecastAlgorithm

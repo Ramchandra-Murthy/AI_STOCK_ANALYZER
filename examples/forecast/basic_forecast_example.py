@@ -7,6 +7,7 @@ Summary : Demonstrates construction of ForecastInput, creation of
 ==========================================================
 """
 
+from services.forecast.forecast_input import ForecastInput
 from services.forecast.forecast_models import (
     CapexForecast,
     DepreciationForecast,
@@ -18,8 +19,6 @@ from services.forecast.forecast_models import (
     TerminalGrowthForecast,
     WorkingCapitalForecast,
 )
-
-from services.forecast.forecast_input import ForecastInput
 from services.forecast.forecast_result import ForecastResult
 
 

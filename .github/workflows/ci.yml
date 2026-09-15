@@ -43,10 +43,13 @@ jobs:
         services/trade_plan_service.py
         services/ui_formatters.py
     - name: Test repaired contracts and market-data boundaries
+      env:
+        PYTHONPATH: ${{ github.workspace }}
       run: >-
-        uv run --locked --no-sync --no-build python -m pytest -q
+        uv run --locked --no-sync --no-build python -m pytest --import-mode=importlib -q
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
+        tests/forecast
     - name: Build production Docker image
       run: docker build --pull -t ai-stock-analyzer:ci .
     - name: Smoke test container runtime health

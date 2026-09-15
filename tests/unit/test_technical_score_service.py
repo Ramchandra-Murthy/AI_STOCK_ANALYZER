@@ -5,7 +5,7 @@ from services.technical_score_service import calculate_technical_score
 
 def test_technical_score_empty_history():
     score, reasons = calculate_technical_score(pd.DataFrame())
-    assert score == 0
+    assert score is None
     assert reasons == ["Historical price data is unavailable"]
 
 

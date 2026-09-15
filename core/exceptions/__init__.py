@@ -1,45 +1,30 @@
 from __future__ import annotations
 
+from .base import (
+    AIERPError,
+    CalculationError,
+    DomainError,
+    InfrastructureError,
+    PlatformError,
+    RepositoryError,
+    SerializationError,
+    ValidationError,
+)
+from .forecast import ForecastError
+from .valuation import ValuationError
 
-class AIStockAnalyzerError(Exception):
-    """Base exception for AI Stock Analyzer."""
+AIStockAnalyzerError = AIERPError
 
-
-class AIERPError(AIStockAnalyzerError):
-    """ERP related error."""
-
-
-class DomainError(AIERPError):
-    """Domain layer error."""
-
-
-class CalculationError(DomainError):
-    """Calculation related error."""
-
-
-class ValidationError(DomainError):
-    """Validation error."""
-
-
-class ValuationError(DomainError):
-    """Valuation error."""
-
-
-class ForecastError(AIERPError):
-    """Forecast-related error."""
-
-
-class SerializationError(AIERPError):
-    """Serialization error."""
-
-
-class PlatformError(AIERPError):
-    """Platform level error."""
-
-
-class RepositoryError(AIERPError):
-    """Repository error."""
-
-
-class InfrastructureError(AIERPError):
-    """Infrastructure layer error."""
+__all__ = [
+    "AIStockAnalyzerError",
+    "AIERPError",
+    "PlatformError",
+    "DomainError",
+    "CalculationError",
+    "ValidationError",
+    "RepositoryError",
+    "ValuationError",
+    "SerializationError",
+    "InfrastructureError",
+    "ForecastError",
+]

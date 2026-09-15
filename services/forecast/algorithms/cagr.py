@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from services.forecast.algorithms.base import BaseForecastAlgorithm
 from services.forecast.exceptions import ForecastAlgorithmError
@@ -6,6 +6,26 @@ from services.forecast.input import ForecastInput
 
 
 class CAGRForecastAlgorithm(BaseForecastAlgorithm):
+    def calculate(self, historical: tuple[float, ...], periods: int) -> tuple[float, ...]:
+        """Project a historical series using CAGR (legacy API)."""
+        values = tuple(float(value) for value in historical)
+        if periods < 0:
+            raise ValueError("periods must be non-negative")
+        if periods == 0 or not values:
+            return ()
+        if len(values) == 1:
+            return tuple(values[0] for _ in range(periods))
+        if values[0] <= 0:
+            # Legacy forecast contract: zero/negative starting history falls back to a flat projection.
+            return tuple(values[-1] for _ in range(periods))
+        rate = (values[-1] / values[0]) ** (1.0 / (len(values) - 1)) - 1.0
+        projected = []
+        last_value = values[-1]
+        for _ in range(periods):
+            last_value *= 1.0 + rate
+            projected.append(last_value)
+        return tuple(projected)
+
     def calculate_revenue(self, forecast_input: ForecastInput) -> tuple[float, ...]:
         revenues = forecast_input.historical_revenue
         if len(revenues) < 2:
@@ -46,3 +66,7 @@ class CAGRForecastAlgorithm(BaseForecastAlgorithm):
         taxes = forecast_input.historical_taxes
         last_tax = taxes[-1] if taxes else 0.25
         return tuple(max(0.0, min(1.0, last_tax)) for _ in forecast_input.forecast_years)
+
+
+# Backward-compatible name used by the original forecast test suite.
+CAGRForecastEngine = CAGRForecastAlgorithm

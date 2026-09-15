@@ -4,10 +4,9 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Any
 
-from core.validation.rules import StringValidators
-
 from core.primitives import Currency, Money
 from core.primitives.base import ValueObject
+from core.validation.rules import StringValidators
 from portfolio.domain.position import Position
 
 

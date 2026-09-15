@@ -1,9 +1,4 @@
-"""Canonical boundary for externally sourced market observations.
-
-The service deliberately distinguishes the latest available observation from
-exchange tick/live data. Downstream EROS components must consume the metadata
-returned here instead of inferring freshness from the presence of a price.
-"""
+"""Canonical boundary for externally sourced market observations."""
 
 from __future__ import annotations
 
@@ -49,17 +44,13 @@ def _clean_close_series(history: pd.DataFrame) -> pd.Series:
 def _get_last_observation(
     ticker: str,
 ) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
-    """Return the freshest provider observation without claiming tick-level data."""
+    """Return price, change, previous close, time, frequency and intraday flag."""
     try:
         symbol = yf.Ticker(ticker)
-
         intraday = symbol.history(period="1d", interval="1m", auto_adjust=True)
         close = _clean_close_series(intraday)
         if not close.empty:
             latest = float(close.iloc[-1])
-            # Percentage change is a session move, not a one-minute move.
-            # Prefer the previous daily close; fall back to the previous intraday
-            # bar only when the provider cannot supply a daily reference.
             previous = None
             try:
                 daily = symbol.history(period="5d", interval="1d", auto_adjust=True)
@@ -111,13 +102,12 @@ def get_latest_available_price(symbol: str) -> dict[str, Any]:
     normalized = symbol.strip().upper()
     if "." not in normalized:
         normalized += ".NS"
-    value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+    value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
         normalized
     )
     return {
         "symbol": normalized,
         "price": value,
-        "previous_close": previous_close,
         "change_pct": change,
         "observed_at": observed_at,
         "source": "Yahoo Finance",
@@ -130,12 +120,11 @@ def get_latest_available_price(symbol: str) -> dict[str, Any]:
 def get_market_indices() -> dict[str, dict[str, Any]]:
     result: dict[str, dict[str, Any]] = {}
     for name, ticker in MARKET_INDICES.items():
-        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+        value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
             ticker
         )
         result[name] = {
             "value": value,
-            "previous_close": previous_close,
             "change": change,
             "observed_at": observed_at,
             "source": "Yahoo Finance",
@@ -149,7 +138,7 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
 def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
     rows: list[dict[str, Any]] = []
     for name, ticker in WATCHLIST.items():
-        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+        value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
             ticker
         )
         if value is not None and change is not None:
@@ -157,14 +146,13 @@ def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
                 {
                     "Symbol": name,
                     "Price": value,
-                    "Previous Close": previous_close,
                     "Change %": change,
                     "Observed": observed_at,
                     "Frequency": frequency,
                     "Intraday": is_intraday,
                 }
             )
-    columns = ["Symbol", "Price", "Previous Close", "Change %", "Observed", "Frequency", "Intraday"]
+    columns = ["Symbol", "Price", "Change %", "Observed", "Frequency", "Intraday"]
     if not rows:
         empty = pd.DataFrame(columns=columns)
         return empty, empty.copy()

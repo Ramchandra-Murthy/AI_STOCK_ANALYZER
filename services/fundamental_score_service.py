@@ -46,9 +46,16 @@ def _is_bank(data):
     sector = str(data.get("sector") or "").strip().lower()
     industry = str(data.get("industry") or "").strip().lower()
     text = f"{sector} {industry}"
-    return any(term in text for term in (
-        "bank", "banks", "banking", "credit intermediation", "commercial lending",
-    ))
+    return any(
+        term in text
+        for term in (
+            "bank",
+            "banks",
+            "banking",
+            "credit intermediation",
+            "commercial lending",
+        )
+    )
 
 
 def calculate_fundamental_score(data):
@@ -75,7 +82,15 @@ def calculate_fundamental_score(data):
     metrics = []
     if pe is not None:
         points = 10 if pe <= 15 else 8 if pe <= 25 else 5 if pe <= 35 else 2 if pe <= 50 else 0
-        label = "attractive" if pe <= 15 else "reasonable" if pe <= 25 else "moderate" if pe <= 35 else "expensive" if pe <= 50 else "very high"
+        label = (
+            "attractive"
+            if pe <= 15
+            else (
+                "reasonable"
+                if pe <= 25
+                else "moderate" if pe <= 35 else "expensive" if pe <= 50 else "very high"
+            )
+        )
         reasons.append(f"P/E of {pe:.2f} indicates {label} valuation.")
         metrics.append((points, 10))
     if pb is not None:
@@ -95,11 +110,27 @@ def calculate_fundamental_score(data):
         reasons.append(f"ROA of {roa:.2f}%.")
         metrics.append((points, 4))
     if profit_margin is not None:
-        points = 5 if profit_margin >= 20 else 4 if profit_margin >= 10 else 3 if profit_margin >= 5 else 1 if profit_margin > 0 else 0
+        points = (
+            5
+            if profit_margin >= 20
+            else (
+                4
+                if profit_margin >= 10
+                else 3 if profit_margin >= 5 else 1 if profit_margin > 0 else 0
+            )
+        )
         reasons.append(f"Net profit margin is {profit_margin:.2f}%.")
         metrics.append((points, 5))
     if operating_margin is not None:
-        points = 5 if operating_margin >= 25 else 4 if operating_margin >= 15 else 3 if operating_margin >= 10 else 1 if operating_margin > 0 else 0
+        points = (
+            5
+            if operating_margin >= 25
+            else (
+                4
+                if operating_margin >= 15
+                else 3 if operating_margin >= 10 else 1 if operating_margin > 0 else 0
+            )
+        )
         reasons.append(f"Operating margin is {operating_margin:.2f}%.")
         metrics.append((points, 5))
     profitability_score = _normalize_category(metrics)
@@ -109,7 +140,9 @@ def calculate_fundamental_score(data):
     for value, name in ((revenue_growth, "Revenue"), (earnings_growth, "Earnings")):
         if value is None:
             continue
-        points = 10 if value >= 20 else 8 if value >= 10 else 6 if value >= 5 else 4 if value >= 0 else 0
+        points = (
+            10 if value >= 20 else 8 if value >= 10 else 6 if value >= 5 else 4 if value >= 0 else 0
+        )
         reasons.append(f"{name} growth is {value:.2f}%.")
         metrics.append((points, 10))
     growth_score = _normalize_category(metrics)
@@ -119,7 +152,9 @@ def calculate_fundamental_score(data):
     if is_bank:
         health_score = None
         cash_flow_score = None
-        reasons.append("Bank detected: debt/liquidity and operating/free-cash-flow metrics excluded from scoring.")
+        reasons.append(
+            "Bank detected: debt/liquidity and operating/free-cash-flow metrics excluded from scoring."
+        )
     else:
         metrics = []
         debt_to_equity = _debt_equity_ratio(data.get("debt_to_equity"))
@@ -132,30 +167,57 @@ def calculate_fundamental_score(data):
         if total_cash is not None and total_cash < 0:
             total_cash = None
         if debt_to_equity is not None:
-            points = 8 if debt_to_equity <= .30 else 7 if debt_to_equity <= .75 else 5 if debt_to_equity <= 1.5 else 3 if debt_to_equity <= 2 else 0
+            points = (
+                8
+                if debt_to_equity <= 0.30
+                else (
+                    7
+                    if debt_to_equity <= 0.75
+                    else 5 if debt_to_equity <= 1.5 else 3 if debt_to_equity <= 2 else 0
+                )
+            )
             reasons.append(f"Debt-to-equity of {debt_to_equity:.2f}x.")
             metrics.append((points, 8))
         if current_ratio is not None:
-            points = 7 if 1.5 <= current_ratio <= 3 else 5 if current_ratio >= 1 else 2 if current_ratio >= .75 else 0
+            points = (
+                7
+                if 1.5 <= current_ratio <= 3
+                else 5 if current_ratio >= 1 else 2 if current_ratio >= 0.75 else 0
+            )
             reasons.append(f"Current ratio of {current_ratio:.2f}x.")
             metrics.append((points, 7))
         if total_cash is not None and total_debt is not None:
             ratio = float("inf") if total_debt <= 0 else total_cash / total_debt
-            points = 5 if ratio >= 1 else 4 if ratio >= .5 else 2 if ratio >= .25 else 0
+            points = 5 if ratio >= 1 else 4 if ratio >= 0.5 else 2 if ratio >= 0.25 else 0
             reasons.append("Cash coverage of reported debt assessed.")
             metrics.append((points, 5))
         health_score = _normalize_category(metrics)
 
         metrics = []
-        for value, name in ((to_float(data.get("operating_cash_flow")), "Operating cash flow"), (to_float(data.get("free_cash_flow")), "Free cash flow")):
+        for value, name in (
+            (to_float(data.get("operating_cash_flow")), "Operating cash flow"),
+            (to_float(data.get("free_cash_flow")), "Free cash flow"),
+        ):
             if value is None:
                 continue
             points = 10 if value > 0 else 3 if value == 0 else 0
-            reasons.append(f"{name} is {'positive' if value > 0 else 'approximately neutral' if value == 0 else 'negative'}.")
+            reasons.append(
+                f"{name} is {'positive' if value > 0 else 'approximately neutral' if value == 0 else 'negative'}."
+            )
             metrics.append((points, 10))
         cash_flow_score = _normalize_category(metrics)
 
-    available_scores = [score for score in (valuation_score, profitability_score, growth_score, health_score, cash_flow_score) if score is not None]
+    available_scores = [
+        score
+        for score in (
+            valuation_score,
+            profitability_score,
+            growth_score,
+            health_score,
+            cash_flow_score,
+        )
+        if score is not None
+    ]
     if not available_scores:
         return None, ["Insufficient fundamental data to calculate a score."]
     final_score = round(max(0, min((sum(available_scores) / len(available_scores)) * 5, 100)))
