@@ -15,8 +15,7 @@ def _run_backtest(history, initial_capital, cost_bps):
     missing = required.difference(data.columns)
     if missing:
         raise ValueError(
-            "Historical data is missing required columns: "
-            + ", ".join(sorted(missing))
+            "Historical data is missing required columns: " + ", ".join(sorted(missing))
         )
 
     data = data.dropna(subset=["Close", "EMA20", "EMA50"]).copy()
@@ -35,16 +34,11 @@ def _run_backtest(history, initial_capital, cost_bps):
 
     transaction_cost = cost_bps / 10_000
     data["strategy_return"] = (
-        data["position"] * data["market_return"]
-        - data["turnover"] * transaction_cost
+        data["position"] * data["market_return"] - data["turnover"] * transaction_cost
     )
 
-    data["strategy_equity"] = (
-        initial_capital * (1 + data["strategy_return"]).cumprod()
-    )
-    data["buy_hold_equity"] = (
-        initial_capital * (1 + data["market_return"]).cumprod()
-    )
+    data["strategy_equity"] = initial_capital * (1 + data["strategy_return"]).cumprod()
+    data["buy_hold_equity"] = initial_capital * (1 + data["market_return"]).cumprod()
 
     peak = data["strategy_equity"].cummax()
     data["drawdown"] = data["strategy_equity"] / peak - 1
@@ -53,9 +47,7 @@ def _run_backtest(history, initial_capital, cost_bps):
     total_return = data["strategy_equity"].iloc[-1] / initial_capital - 1
 
     if elapsed_days > 0 and data["strategy_equity"].iloc[-1] > 0:
-        cagr = (
-            data["strategy_equity"].iloc[-1] / initial_capital
-        ) ** (365.25 / elapsed_days) - 1
+        cagr = (data["strategy_equity"].iloc[-1] / initial_capital) ** (365.25 / elapsed_days) - 1
     else:
         cagr = float("nan")
 
@@ -63,12 +55,8 @@ def _run_backtest(history, initial_capital, cost_bps):
         "total_return": total_return,
         "cagr": cagr,
         "max_drawdown": data["drawdown"].min(),
-        "buy_hold_return": (
-            data["buy_hold_equity"].iloc[-1] / initial_capital - 1
-        ),
-        "trade_count": int(
-            ((data["position"].diff().fillna(data["position"])) > 0).sum()
-        ),
+        "buy_hold_return": (data["buy_hold_equity"].iloc[-1] / initial_capital - 1),
+        "trade_count": int(((data["position"].diff().fillna(data["position"])) > 0).sum()),
     }
 
     return data, metrics
@@ -85,11 +73,15 @@ def show():
     )
 
     with st.form("backtesting_form"):
-        symbol = st.text_input(
-            "NSE symbol",
-            value="RELIANCE",
-            key="backtesting_symbol",
-        ).strip().upper()
+        symbol = (
+            st.text_input(
+                "NSE symbol",
+                value="RELIANCE",
+                key="backtesting_symbol",
+            )
+            .strip()
+            .upper()
+        )
 
         period = st.selectbox(
             "Historical period",
