@@ -170,7 +170,9 @@ def show():
         )
     with c5:
         metric_card(
-            "USD / INR", market["USD/INR"]["value"], market["USD/INR"]["change"]
+            "USD / INR",
+            market["USD/INR"]["value"],
+            market["USD/INR"]["change"],
         )
     with c6:
         metric_card("GOLD", market["GOLD"]["value"], market["GOLD"]["change"])
