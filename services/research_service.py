@@ -208,7 +208,7 @@ def get_stock_profile(symbol):
         info = ticker.info or {}
         fast_info = _get_fast_info(ticker)
         exchange = "BSE" if symbol.endswith(".BO") else "NSE"
-        market_quote = get_latest_available_price(symbol, exchange=exchange)
+        market_quote = get_latest_available_price(symbol)
 
         price = _safe_float(market_quote.get("price"))
         previous_close = _safe_float(market_quote.get("previous_close"))
