@@ -4,6 +4,7 @@ import streamlit as st
 from scanner.market_scanner import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_service import (
     WATCHLIST,
+    get_company_name,
     get_latest_available_price,
     get_market_indices,
     scan_market_universe,
@@ -71,6 +72,7 @@ def get_personal_watchlist(symbols):
         rows.append(
             {
                 "Symbol": symbol,
+                "Name": get_company_name(quote.get("symbol", symbol)),
                 "Exchange": quote.get("exchange"),
                 "Price": quote.get("price"),
                 "Change %": quote.get("change_pct"),
@@ -82,6 +84,7 @@ def get_personal_watchlist(symbols):
         rows,
         columns=[
             "Symbol",
+            "Name",
             "Exchange",
             "Price",
             "Change %",
@@ -134,10 +137,18 @@ def show():
         gainers = pd.DataFrame()
         losers = pd.DataFrame()
     else:
-        gainers = scanner[scanner["Change %"] >= 0].sort_values("Change %", ascending=False).head(5)
-        losers = scanner[scanner["Change %"] < 0].sort_values("Change %", ascending=True).head(5)
+        gainers = (
+            scanner[scanner["Change %"] >= 0]
+            .sort_values("Change %", ascending=False)
+            .head(5)
+        )
+        losers = (
+            scanner[scanner["Change %"] < 0]
+            .sort_values("Change %", ascending=True)
+            .head(5)
+        )
 
-    display_columns = ["Symbol", "Exchange", "Price", "Change %"]
+    display_columns = ["Symbol", "Name", "Exchange", "Price", "Change %"]
     gainers = gainers[[c for c in display_columns if c in gainers.columns]]
     losers = losers[[c for c in display_columns if c in losers.columns]]
 
