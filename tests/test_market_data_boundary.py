@@ -1,6 +1,20 @@
 import pandas as pd
 
 from services import research_service, technical_service
+from services.market_service import normalize_market_symbol
+
+
+def test_normalize_nse_symbol():
+    assert normalize_market_symbol("RELIANCE", "NSE") == "RELIANCE.NS"
+
+
+def test_normalize_bse_symbol():
+    assert normalize_market_symbol("500570", "BSE") == "500570.BO"
+
+
+def test_explicit_exchange_suffix_is_preserved():
+    assert normalize_market_symbol("TCS.NS", "BSE") == "TCS.NS"
+    assert normalize_market_symbol("500570.BO", "NSE") == "500570.BO"
 
 
 def test_fast_quote_is_preferred_over_info(monkeypatch):
