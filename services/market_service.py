@@ -17,8 +17,6 @@ MARKET_INDICES = {
     "GOLD": "GC=F",
 }
 
-# Keep the existing dashboard universe on NSE, while allowing explicit
-# BSE tickers to be passed through the same market-data boundary.
 WATCHLIST = {
     "RELIANCE": "RELIANCE.NS",
     "TCS": "TCS.NS",
@@ -39,11 +37,7 @@ EXCHANGE_SUFFIXES = {
 
 
 def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
-    """Normalize an Indian equity symbol to a Yahoo Finance ticker.
-
-    Explicit Yahoo Finance suffixes (.NS/.BO) are preserved.  Bare symbols
-    default to NSE for backward compatibility with the existing dashboard.
-    """
+    """Normalize an Indian equity symbol to a Yahoo Finance ticker."""
     normalized = symbol.strip().upper()
     if not normalized:
         return ""
@@ -123,7 +117,7 @@ def _get_last_observation(
 
 def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, Any]:
     normalized = normalize_market_symbol(symbol, exchange)
-    value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+    value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
         normalized
     )
     resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
@@ -131,6 +125,7 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
         "symbol": normalized,
         "exchange": resolved_exchange,
         "price": value,
+        "previous_close": previous_close,
         "change_pct": change,
         "observed_at": observed_at,
         "source": "Yahoo Finance",
@@ -158,29 +153,75 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
     return result
 
 
-def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
+def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
-    for name, ticker in WATCHLIST.items():
+    for name, ticker in watchlist.items():
         value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
             ticker
         )
-        if value is not None and change is not None:
+        if value is None or change is None:
+            continue
+        exchange = "BSE" if ticker.endswith(".BO") else "NSE"
+        rows.append(
+            {
+                "Symbol": name,
+                "Exchange": exchange,
+                "Ticker": ticker,
+                "Price": value,
+                "Change %": change,
+                "Observed": observed_at,
+                "Frequency": frequency,
+                "Intraday": is_intraday,
+            }
+        )
+    return pd.DataFrame(
+        rows,
+        columns=["Symbol", "Exchange", "Ticker", "Price", "Change %", "Observed", "Frequency", "Intraday"],
+    )
+
+
+def get_top_movers(watchlist: dict[str, str] | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return top gainers and losers from the supplied NSE/BSE universe."""
+    frame = _scan_watchlist(watchlist or WATCHLIST)
+    if frame.empty:
+        return frame.copy(), frame.copy()
+    return (
+        frame.sort_values("Change %", ascending=False).head(5).reset_index(drop=True),
+        frame.sort_values("Change %", ascending=True).head(5).reset_index(drop=True),
+    )
+
+
+def scan_market_universe(
+    symbols_by_exchange: dict[str, list[str]],
+    top_n: int = 10,
+) -> pd.DataFrame:
+    """Scan an explicit NSE/BSE universe and return the largest movers."""
+    rows: list[dict[str, Any]] = []
+    for exchange, symbols in symbols_by_exchange.items():
+        for symbol in symbols:
+            normalized = normalize_market_symbol(symbol, exchange)
+            quote = get_latest_available_price(normalized, exchange)
+            if quote.get("price") is None or quote.get("change_pct") is None:
+                continue
             rows.append(
                 {
-                    "Symbol": name,
-                    "Exchange": "NSE" if ticker.endswith(".NS") else "BSE",
-                    "Price": value,
-                    "Change %": change,
-                    "Observed": observed_at,
-                    "Frequency": frequency,
-                    "Intraday": is_intraday,
+                    "Symbol": normalized.removesuffix(".NS").removesuffix(".BO"),
+                    "Exchange": quote["exchange"],
+                    "Ticker": normalized,
+                    "Price": quote["price"],
+                    "Change %": quote["change_pct"],
+                    "Observed": quote["observed_at"],
+                    "Frequency": quote["frequency"],
+                    "Intraday": quote["is_intraday"],
                 }
             )
-    columns = ["Symbol", "Exchange", "Price", "Change %", "Observed", "Frequency", "Intraday"]
-    if not rows:
-        empty = pd.DataFrame(columns=columns)
-        return empty, empty.copy()
-    frame = pd.DataFrame(rows, columns=columns)
-    return frame.sort_values("Change %", ascending=False).head(5).reset_index(
-        drop=True
-    ), frame.sort_values("Change %", ascending=True).head(5).reset_index(drop=True)
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        return frame
+    frame["Absolute Change %"] = frame["Change %"].abs()
+    return (
+        frame.sort_values(["Absolute Change %", "Change %"], ascending=[False, False])
+        .head(top_n)
+        .drop(columns=["Absolute Change %"])
+        .reset_index(drop=True)
+    )
