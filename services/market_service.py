@@ -16,6 +16,9 @@ MARKET_INDICES = {
     "USD/INR": "INR=X",
     "GOLD": "GC=F",
 }
+
+# Keep the existing dashboard universe on NSE, while allowing explicit
+# BSE tickers to be passed through the same market-data boundary.
 WATCHLIST = {
     "RELIANCE": "RELIANCE.NS",
     "TCS": "TCS.NS",
@@ -28,6 +31,26 @@ WATCHLIST = {
     "BHARTIARTL": "BHARTIARTL.NS",
     "HINDUNILVR": "HINDUNILVR.NS",
 }
+
+EXCHANGE_SUFFIXES = {
+    "NSE": ".NS",
+    "BSE": ".BO",
+}
+
+
+def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
+    """Normalize an Indian equity symbol to a Yahoo Finance ticker.
+
+    Explicit Yahoo Finance suffixes (.NS/.BO) are preserved.  Bare symbols
+    default to NSE for backward compatibility with the existing dashboard.
+    """
+    normalized = symbol.strip().upper()
+    if not normalized:
+        return ""
+    if normalized.endswith((".NS", ".BO")):
+        return normalized
+    suffix = EXCHANGE_SUFFIXES.get(exchange.strip().upper(), ".NS")
+    return f"{normalized}{suffix}"
 
 
 def _clean_close_series(history: pd.DataFrame) -> pd.Series:
@@ -98,15 +121,15 @@ def _get_last_observation(
         return None, None, None, None, "unavailable", False
 
 
-def get_latest_available_price(symbol: str) -> dict[str, Any]:
-    normalized = symbol.strip().upper()
-    if "." not in normalized:
-        normalized += ".NS"
+def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, Any]:
+    normalized = normalize_market_symbol(symbol, exchange)
     value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
         normalized
     )
+    resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
     return {
         "symbol": normalized,
+        "exchange": resolved_exchange,
         "price": value,
         "change_pct": change,
         "observed_at": observed_at,
@@ -145,6 +168,7 @@ def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
             rows.append(
                 {
                     "Symbol": name,
+                    "Exchange": "NSE" if ticker.endswith(".NS") else "BSE",
                     "Price": value,
                     "Change %": change,
                     "Observed": observed_at,
@@ -152,7 +176,7 @@ def get_top_movers() -> tuple[pd.DataFrame, pd.DataFrame]:
                     "Intraday": is_intraday,
                 }
             )
-    columns = ["Symbol", "Price", "Change %", "Observed", "Frequency", "Intraday"]
+    columns = ["Symbol", "Exchange", "Price", "Change %", "Observed", "Frequency", "Intraday"]
     if not rows:
         empty = pd.DataFrame(columns=columns)
         return empty, empty.copy()
