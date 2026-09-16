@@ -8,7 +8,7 @@ from services.market_service import (
     scan_market_universe,
 )
 
-# Representative stocks from the dashboard's existing universe.
+# Representative stocks from the existing dashboard universe.
 SECTOR_STOCKS = {
     "Financials": ["HDFCBANK", "ICICIBANK", "SBIN"],
     "Information Technology": ["TCS", "INFY"],
@@ -18,6 +18,8 @@ SECTOR_STOCKS = {
     "Telecommunications": ["BHARTIARTL"],
 }
 
+# Built-in baseline universe. The scanner evaluates the configured exchange
+# universe dynamically on every refresh; it does not hard-code the winners.
 NSE_UNIVERSE = [
     "RELIANCE",
     "TCS",
@@ -65,13 +67,17 @@ def _normalize_symbol(symbol, exchange="NSE"):
 
 def _get_sector_performance():
     rows = []
+
     for sector, symbols in SECTOR_STOCKS.items():
         changes = []
+
         for symbol in symbols:
             quote = get_latest_available_price(symbol)
             change = quote.get("change_pct")
+
             if isinstance(change, (int, float)):
                 changes.append(change)
+
         rows.append(
             {
                 "Sector": sector,
@@ -81,14 +87,18 @@ def _get_sector_performance():
                 "Stocks Available": len(changes),
             }
         )
+
     frame = pd.DataFrame(rows)
     return frame.sort_values(
-        "Average Change %", ascending=False, na_position="last"
+        "Average Change %",
+        ascending=False,
+        na_position="last",
     ).reset_index(drop=True)
 
 
 def _get_personal_watchlist(symbols):
     rows = []
+
     for symbol in symbols:
         quote = get_latest_available_price(symbol)
         rows.append(
@@ -101,6 +111,7 @@ def _get_personal_watchlist(symbols):
                 "Frequency": quote.get("frequency"),
             }
         )
+
     return pd.DataFrame(
         rows,
         columns=["Symbol", "Exchange", "Price", "Change %", "Observed", "Frequency"],
@@ -127,18 +138,38 @@ def show():
     st.subheader("Market Overview")
 
     c1, c2, c3 = st.columns(3)
+
     with c1:
-        metric_card("NIFTY 50", market["NIFTY 50"]["value"], market["NIFTY 50"]["change"])
+        metric_card(
+            "NIFTY 50",
+            market["NIFTY 50"]["value"],
+            market["NIFTY 50"]["change"],
+        )
+
     with c2:
-        metric_card("SENSEX", market["SENSEX"]["value"], market["SENSEX"]["change"])
+        metric_card(
+            "SENSEX",
+            market["SENSEX"]["value"],
+            market["SENSEX"]["change"],
+        )
+
     with c3:
-        metric_card("BANK NIFTY", market["BANK NIFTY"]["value"], market["BANK NIFTY"]["change"])
+        metric_card(
+            "BANK NIFTY",
+            market["BANK NIFTY"]["value"],
+            market["BANK NIFTY"]["change"],
+        )
 
     c4, c5, c6 = st.columns(3)
+
     with c4:
-        metric_card("INDIA VIX", market["INDIA VIX"]["value"], market["INDIA VIX"]["change"])
+        metric_card(
+            "INDIA VIX", market["INDIA VIX"]["value"], market["INDIA VIX"]["change"]
+        )
     with c5:
-        metric_card("USD / INR", market["USD/INR"]["value"], market["USD/INR"]["change"])
+        metric_card(
+            "USD / INR", market["USD/INR"]["value"], market["USD/INR"]["change"]
+        )
     with c6:
         metric_card("GOLD", market["GOLD"]["value"], market["GOLD"]["change"])
 
@@ -146,7 +177,10 @@ def show():
 
     st.subheader("Exchange")
     selected_exchange = st.radio(
-        "Select exchange", options=["NSE", "BSE"], horizontal=True, index=0
+        "Select exchange",
+        options=["NSE", "BSE"],
+        horizontal=True,
+        index=0,
     )
 
     scanner = scan_market_universe(_get_scanner_universe(selected_exchange), top_n=10)
@@ -178,10 +212,12 @@ def show():
         st.dataframe(losers_display, hide_index=True, use_container_width=True)
 
     st.caption(
-        f"Scanner universe: {selected_exchange}. Results are selected dynamically from the configured exchange universe."
+        f"Scanner universe: {selected_exchange}. "
+        "Candidates are re-evaluated from the configured exchange universe on refresh."
     )
 
     st.divider()
+
     st.subheader("🔥 Sector Performance")
     st.caption(
         "Average percentage change of the mapped dashboard stocks in each sector. "
@@ -191,6 +227,7 @@ def show():
     st.dataframe(sectors, hide_index=True, use_container_width=True)
 
     st.divider()
+
     st.subheader("⭐ Personal Watchlist")
     st.caption(
         "Your list is kept in this Streamlit browser session. "
