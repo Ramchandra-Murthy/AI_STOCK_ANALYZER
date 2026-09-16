@@ -6,10 +6,10 @@ from services.market_service import (
     get_latest_available_price,
     get_market_indices,
     get_top_movers,
+    scan_market_universe,
 )
 
-# Representative stocks from the dashboard's existing 10-stock universe.
-# These are not official NSE sector-index constituents.
+# Representative stocks from the dashboard's existing universe.
 SECTOR_STOCKS = {
     "Financials": ["HDFCBANK", "ICICIBANK", "SBIN"],
     "Information Technology": ["TCS", "INFY"],
@@ -19,6 +19,9 @@ SECTOR_STOCKS = {
     "Telecommunications": ["BHARTIARTL"],
 }
 
+# Built-in baseline universe. Users can expand the scanner through the exchange-aware watchlist.
+NSE_UNIVERSE = ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK", "SBIN", "LT", "ITC", "BHARTIARTL", "HINDUNILVR"]
+BSE_UNIVERSE = ["500325", "532540", "500209", "500180", "532174", "500112", "500510", "500875", "532454", "500696"]
 DEFAULT_WATCHLIST = [f"{symbol}.NS" for symbol in WATCHLIST]
 
 
@@ -34,7 +37,7 @@ def _normalize_symbol(symbol, exchange="NSE"):
     normalized = symbol.strip().upper()
     if not normalized:
         return normalized
-    if "." in normalized:
+    if normalized.endswith((".NS", ".BO")):
         return normalized
     suffix = ".BO" if exchange == "BSE" else ".NS"
     return f"{normalized}{suffix}"
@@ -91,6 +94,12 @@ def _get_personal_watchlist(symbols):
     )
 
 
+def _get_scanner_universe(selected_exchange):
+    if selected_exchange == "NSE":
+        return {"NSE": NSE_UNIVERSE}
+    return {"BSE": BSE_UNIVERSE}
+
+
 def show():
     st.title("📈 Indian Market Dashboard")
 
@@ -130,25 +139,11 @@ def show():
     c4, c5, c6 = st.columns(3)
 
     with c4:
-        metric_card(
-            "INDIA VIX",
-            market["INDIA VIX"]["value"],
-            market["INDIA VIX"]["change"],
-        )
-
+        metric_card("INDIA VIX", market["INDIA VIX"]["value"], market["INDIA VIX"]["change"])
     with c5:
-        metric_card(
-            "USD / INR",
-            market["USD/INR"]["value"],
-            market["USD/INR"]["change"],
-        )
-
+        metric_card("USD / INR", market["USD/INR"]["value"], market["USD/INR"]["change"])
     with c6:
-        metric_card(
-            "GOLD",
-            market["GOLD"]["value"],
-            market["GOLD"]["change"],
-        )
+        metric_card("GOLD", market["GOLD"]["value"], market["GOLD"]["change"])
 
     st.divider()
 
@@ -160,23 +155,29 @@ def show():
         index=0,
     )
 
-    gainers, losers = get_top_movers()
-    gainers = gainers[gainers["Exchange"] == selected_exchange].copy()
-    losers = losers[losers["Exchange"] == selected_exchange].copy()
+    scanner = scan_market_universe(_get_scanner_universe(selected_exchange), top_n=10)
+    if scanner.empty:
+        gainers = pd.DataFrame()
+        losers = pd.DataFrame()
+    else:
+        gainers = scanner[scanner["Change %"] >= 0].sort_values("Change %", ascending=False).head(5)
+        losers = scanner[scanner["Change %"] < 0].sort_values("Change %", ascending=True).head(5)
 
     mover_columns = ["Symbol", "Exchange", "Price", "Change %"]
-    gainers_display = gainers[[column for column in mover_columns if column in gainers.columns]]
-    losers_display = losers[[column for column in mover_columns if column in losers.columns]]
+    gainers_display = gainers[[c for c in mover_columns if c in gainers.columns]]
+    losers_display = losers[[c for c in mover_columns if c in losers.columns]]
 
     left, right = st.columns(2)
-
     with left:
         st.subheader("📈 Top Gainers")
         st.dataframe(gainers_display, hide_index=True, use_container_width=True)
-
     with right:
         st.subheader("📉 Top Losers")
         st.dataframe(losers_display, hide_index=True, use_container_width=True)
+
+    st.caption(
+        f"Scanner universe: {selected_exchange}. The displayed candidates are selected from the configured exchange universe, not hard-coded top movers."
+    )
 
     st.divider()
 
@@ -185,7 +186,6 @@ def show():
         "Average percentage change of the mapped dashboard stocks in each sector. "
         "This is not official NSE sector-index performance."
     )
-
     sectors = _get_sector_performance()
     st.dataframe(sectors, hide_index=True, use_container_width=True)
 
@@ -206,14 +206,13 @@ def show():
             placeholder=(
                 "e.g. TATAMOTORS or TATAMOTORS.NS"
                 if selected_exchange == "NSE"
-                else "e.g. TATAMOTORS or TATAMOTORS.BO"
+                else "e.g. 500570 or 500570.BO"
             ),
         )
         submitted = st.form_submit_button("Add to watchlist")
 
     if submitted:
         symbol = _normalize_symbol(symbol_input, selected_exchange)
-
         if not symbol:
             st.warning("Enter a stock symbol first.")
         elif symbol in st.session_state.personal_watchlist:
@@ -223,17 +222,14 @@ def show():
             st.rerun()
 
     saved_symbols = st.session_state.personal_watchlist
-
     if saved_symbols:
         watchlist_df = _get_personal_watchlist(saved_symbols)
         st.dataframe(watchlist_df, hide_index=True, use_container_width=True)
-
         remove_symbol = st.selectbox(
             "Remove a saved symbol",
             options=[""] + saved_symbols,
-            format_func=lambda value: ("Select a symbol" if value == "" else value),
+            format_func=lambda value: "Select a symbol" if value == "" else value,
         )
-
         if st.button("Remove selected symbol", disabled=not remove_symbol):
             st.session_state.personal_watchlist.remove(remove_symbol)
             st.rerun()
