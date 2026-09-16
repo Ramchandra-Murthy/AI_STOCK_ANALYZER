@@ -54,8 +54,9 @@ def show() -> None:
     st.title("⏱️ Intraday Trading")
     st.caption("Technical analysis and paper-trading review — no orders are placed.")
 
-    st.subheader("NSE & BSE unusual activity scanner")
+    st.subheader("Unusual activity scanner")
     st.caption("Screens candidate stocks for positive intraday moves and latest 5-minute volume at least 1.5× the average volume of the same time slot in up to four prior sessions. Yahoo Finance coverage and delays may vary.")
+    exchange_category = st.selectbox("Exchange", ["Both", "NSE", "BSE"], key="unusual_exchange_category", format_func=lambda value: "NSE + BSE" if value == "Both" else value)
     cap_category = st.selectbox("Market-cap basket", ["All caps", "Large cap", "Mid cap", "Small cap"], key="unusual_cap_category")
     if cap_category == "All caps":
         st.caption("All caps includes the existing NSE and BSE candidate lists. Cap-specific baskets currently screen representative NSE symbols only; they are not exhaustive or official live market-cap classifications.")
@@ -63,22 +64,23 @@ def show() -> None:
         st.caption("Cap-specific baskets screen representative NSE symbols only. BSE scrip codes are not included because the app does not maintain a verified cap-category mapping for them. Constituents and market-cap ranks can change.")
     scan_limit = st.selectbox("Maximum results", [10, 20, 30, 50], index=1, key="unusual_scan_limit")
     if st.button("Scan for unusual activity", key="run_unusual_scan"):
-        with st.spinner(f"Scanning the {cap_category.lower()} candidate basket…"):
+        with st.spinner(f"Scanning {exchange_category} · {cap_category.lower()}…"):
             try:
-                scan_results = scan_unusual_activity(scan_limit, cap_category)
+                scan_results = scan_unusual_activity(scan_limit, cap_category, exchange_category)
                 st.session_state["unusual_activity_results"] = scan_results
                 st.session_state["unusual_activity_scan_category"] = cap_category
+                st.session_state["unusual_activity_scan_exchange"] = exchange_category
                 st.session_state["unusual_activity_scan_time"] = datetime.now(IST).strftime("%d %b %Y, %H:%M IST")
             except Exception as exc:
                 st.error(f"Scanner could not complete: {exc}")
     scan_results = st.session_state.get("unusual_activity_results")
     if scan_results is not None:
-        st.caption(f"Last scan: {st.session_state.get('unusual_activity_scan_time', 'unknown')} · Basket: {st.session_state.get('unusual_activity_scan_category', 'unknown')} · Candidate universe is limited; not an exhaustive exchange-wide scan.")
+        st.caption(f"Last scan: {st.session_state.get('unusual_activity_scan_time', 'unknown')} · Exchange: {st.session_state.get('unusual_activity_scan_exchange', 'unknown')} · Basket: {st.session_state.get('unusual_activity_scan_category', 'unknown')} · Candidate universe is limited; not an exhaustive exchange-wide scan.")
         if scan_results.empty:
             st.info("No candidates met the screening conditions, or the data provider returned insufficient data. Try again during market hours.")
         else:
             st.dataframe(scan_results, use_container_width=True, hide_index=True)
-            st.download_button("Download unusual activity CSV", scan_results.to_csv(index=False).encode("utf-8"), file_name="nse_bse_unusual_activity.csv", mime="text/csv", key="download_unusual_activity")
+            st.download_button("Download unusual activity CSV", scan_results.to_csv(index=False).encode("utf-8"), file_name="unusual_activity.csv", mime="text/csv", key="download_unusual_activity")
 
     st.divider()
     left, right = st.columns([2, 1])
