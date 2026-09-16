@@ -155,9 +155,7 @@ def _calculate_current_ratio(ticker):
         if balance is None or balance.empty:
             return None
         latest = balance.columns[0]
-        assets = _get_statement_value(
-            balance, ["Current Assets", "Total Current Assets"], latest
-        )
+        assets = _get_statement_value(balance, ["Current Assets", "Total Current Assets"], latest)
         liabilities = _get_statement_value(
             balance,
             ["Current Liabilities", "Total Current Liabilities"],
@@ -364,7 +362,9 @@ def get_stock_profile(symbol):
         if earnings_growth is None:
             earnings_values = _get_statement_values(income, net_income_names)
             if len(earnings_values) >= 2 and earnings_values[1] != 0:
-                earnings_growth = (earnings_values[0] - earnings_values[1]) / abs(earnings_values[1])
+                earnings_growth = (earnings_values[0] - earnings_values[1]) / abs(
+                    earnings_values[1]
+                )
 
         debt_to_equity = _safe_float(info.get("debtToEquity"))
         if debt_to_equity is None and total_debt is not None and equity and equity != 0:
