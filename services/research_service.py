@@ -128,9 +128,7 @@ def _calculate_current_ratio(ticker):
         if balance is None or balance.empty:
             return None
         latest = balance.columns[0]
-        assets = _get_statement_value(
-            balance, ["Current Assets", "Total Current Assets"], latest
-        )
+        assets = _get_statement_value(balance, ["Current Assets", "Total Current Assets"], latest)
         liabilities = _get_statement_value(
             balance,
             ["Current Liabilities", "Total Current Liabilities"],
