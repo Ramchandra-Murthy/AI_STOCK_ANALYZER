@@ -23,6 +23,18 @@ def _safe_float(value):
         return None
 
 
+def _get_mapping_value(mapping, *keys):
+    """Return the first usable value from a mapping-like object."""
+    for key in keys:
+        try:
+            value = mapping.get(key)
+        except Exception:
+            value = None
+        if value is not None:
+            return value
+    return None
+
+
 def _get_statement_value(statement, possible_names, column):
     """Return the first matching financial-statement value."""
     if statement is None or statement.empty:
@@ -34,6 +46,21 @@ def _get_statement_value(statement, possible_names, column):
             except Exception:
                 continue
     return None
+
+
+def _get_statement_values(statement, possible_names, limit=2):
+    """Return the latest statement values for growth calculations."""
+    if statement is None or statement.empty:
+        return []
+    for name in possible_names:
+        if name in statement.index:
+            values = []
+            for column in list(statement.columns)[:limit]:
+                value = _safe_float(statement.loc[name, column])
+                if value is not None:
+                    values.append(value)
+            return values
+    return []
 
 
 def _calculate_roe(ticker):
@@ -128,7 +155,9 @@ def _calculate_current_ratio(ticker):
         if balance is None or balance.empty:
             return None
         latest = balance.columns[0]
-        assets = _get_statement_value(balance, ["Current Assets", "Total Current Assets"], latest)
+        assets = _get_statement_value(
+            balance, ["Current Assets", "Total Current Assets"], latest
+        )
         liabilities = _get_statement_value(
             balance,
             ["Current Liabilities", "Total Current Liabilities"],
@@ -216,6 +245,85 @@ def get_stock_profile(symbol):
         if observed_at is not None and not isinstance(observed_at, str):
             observed_at = str(observed_at)
 
+        income = ticker.financials
+        balance = ticker.balance_sheet
+        cash_flow = ticker.cashflow
+
+        equity_names = [
+            "Stockholders Equity",
+            "Total Stockholder Equity",
+            "Common Stock Equity",
+        ]
+        shares_names = [
+            "Ordinary Shares Number",
+            "Share Issued",
+            "Common Stock Shares Outstanding",
+        ]
+        debt_names = ["Total Debt", "Total Debt And Capital Lease Obligations"]
+        cash_names = [
+            "Cash And Cash Equivalents",
+            "Cash Cash Equivalents And Short Term Investments",
+            "Other Short Term Investments",
+        ]
+        revenue_names = ["Total Revenue", "Operating Revenue", "Revenue"]
+        net_income_names = [
+            "Net Income",
+            "Net Income Common Stockholders",
+            "Net Income Including Noncontrolling Interests",
+        ]
+        operating_income_names = ["Operating Income", "Operating Income As Reported"]
+
+        balance_latest = balance.columns[0] if balance is not None and not balance.empty else None
+        income_latest = income.columns[0] if income is not None and not income.empty else None
+
+        shares_outstanding = _safe_float(info.get("sharesOutstanding"))
+        if shares_outstanding is None:
+            shares_outstanding = _safe_float(
+                _get_mapping_value(fast_info, "shares", "shares_outstanding")
+            )
+        if shares_outstanding is None and balance_latest is not None:
+            shares_outstanding = _get_statement_value(balance, shares_names, balance_latest)
+
+        equity = None
+        if balance_latest is not None:
+            equity = _get_statement_value(balance, equity_names, balance_latest)
+        total_debt = _safe_float(info.get("totalDebt"))
+        if total_debt is None and balance_latest is not None:
+            total_debt = _get_statement_value(balance, debt_names, balance_latest)
+        total_cash = _safe_float(info.get("totalCash"))
+        if total_cash is None and balance_latest is not None:
+            total_cash = _get_statement_value(balance, cash_names, balance_latest)
+
+        revenue = _safe_float(info.get("totalRevenue"))
+        if revenue is None and income_latest is not None:
+            revenue = _get_statement_value(income, revenue_names, income_latest)
+        net_income = _safe_float(info.get("netIncomeToCommon"))
+        if net_income is None and income_latest is not None:
+            net_income = _get_statement_value(income, net_income_names, income_latest)
+        operating_income = _safe_float(info.get("operatingIncome"))
+        if operating_income is None and income_latest is not None:
+            operating_income = _get_statement_value(income, operating_income_names, income_latest)
+
+        market_cap = _safe_float(info.get("marketCap"))
+        if market_cap is None:
+            market_cap = _safe_float(_get_mapping_value(fast_info, "market_cap"))
+        if market_cap is None and price is not None and shares_outstanding is not None:
+            market_cap = price * shares_outstanding
+
+        eps = _safe_float(info.get("trailingEps"))
+        if eps is None and net_income is not None and shares_outstanding:
+            eps = net_income / shares_outstanding
+        pe = _safe_float(info.get("trailingPE"))
+        if pe is None and price is not None and eps is not None and eps > 0:
+            pe = price / eps
+
+        book_value_per_share = None
+        if equity is not None and shares_outstanding:
+            book_value_per_share = equity / shares_outstanding
+        pb = _safe_float(info.get("priceToBook"))
+        if pb is None and price is not None and book_value_per_share and book_value_per_share > 0:
+            pb = price / book_value_per_share
+
         roe = _safe_float(info.get("returnOnEquity"))
         if roe is None:
             roe = _calculate_roe(ticker)
@@ -235,9 +343,45 @@ def get_stock_profile(symbol):
         if free_cash_flow is None:
             free_cash_flow = _calculate_free_cash_flow(ticker)
 
-        volume = _safe_float(fast_info.get("last_volume"))
+        volume = _safe_float(_get_mapping_value(fast_info, "last_volume"))
         if volume is None:
             volume = _safe_float(info.get("volume"))
+
+        profit_margin = _safe_float(info.get("profitMargins"))
+        if profit_margin is None and revenue and net_income is not None:
+            profit_margin = net_income / revenue
+
+        operating_margin = _safe_float(info.get("operatingMargins"))
+        if operating_margin is None and revenue and operating_income is not None:
+            operating_margin = operating_income / revenue
+
+        revenue_growth = _safe_float(info.get("revenueGrowth"))
+        if revenue_growth is None:
+            revenue_values = _get_statement_values(income, revenue_names)
+            if len(revenue_values) >= 2 and revenue_values[1] != 0:
+                revenue_growth = (revenue_values[0] - revenue_values[1]) / abs(revenue_values[1])
+
+        earnings_growth = _safe_float(info.get("earningsGrowth"))
+        if earnings_growth is None:
+            earnings_values = _get_statement_values(income, net_income_names)
+            if len(earnings_values) >= 2 and earnings_values[1] != 0:
+                earnings_growth = (earnings_values[0] - earnings_values[1]) / abs(earnings_values[1])
+
+        debt_to_equity = _safe_float(info.get("debtToEquity"))
+        if debt_to_equity is None and total_debt is not None and equity and equity != 0:
+            debt_to_equity = total_debt / equity
+
+        dividend_yield = _safe_float(info.get("dividendYield"))
+        if dividend_yield is None and price is not None:
+            try:
+                dividends = ticker.dividends
+                if dividends is not None and not dividends.empty:
+                    cutoff = dividends.index.max() - dividends.index.max().__class__(days=365)
+                    annual_dividends = float(dividends[dividends.index >= cutoff].sum())
+                    if annual_dividends > 0:
+                        dividend_yield = annual_dividends / price
+            except Exception:
+                dividend_yield = None
 
         return {
             "company": info.get("longName") or info.get("shortName") or symbol,
@@ -255,31 +399,31 @@ def get_stock_profile(symbol):
             "is_intraday": market_quote.get("is_intraday", False),
             "is_tick_live": market_quote.get("is_tick_live", False),
             "volume": volume,
-            "market_cap": _safe_float(info.get("marketCap")),
-            "pe": _safe_float(info.get("trailingPE")),
+            "market_cap": market_cap,
+            "pe": pe,
             "forward_pe": _safe_float(info.get("forwardPE")),
-            "pb": _safe_float(info.get("priceToBook")),
-            "eps": _safe_float(info.get("trailingEps")),
+            "pb": pb,
+            "eps": eps,
             "forward_eps": _safe_float(info.get("forwardEps")),
             "beta": _safe_float(info.get("beta")),
-            "dividend_yield": _safe_float(info.get("dividendYield")),
+            "dividend_yield": dividend_yield,
             "roe": roe,
             "roa": roa,
-            "profit_margin": _safe_float(info.get("profitMargins")),
-            "operating_margin": _safe_float(info.get("operatingMargins")),
-            "revenue_growth": _safe_float(info.get("revenueGrowth")),
-            "earnings_growth": _safe_float(info.get("earningsGrowth")),
-            "debt_to_equity": _safe_float(info.get("debtToEquity")),
+            "profit_margin": profit_margin,
+            "operating_margin": operating_margin,
+            "revenue_growth": revenue_growth,
+            "earnings_growth": earnings_growth,
+            "debt_to_equity": debt_to_equity,
             "current_ratio": current_ratio,
-            "total_debt": _safe_float(info.get("totalDebt")),
-            "total_cash": _safe_float(info.get("totalCash")),
+            "total_debt": total_debt,
+            "total_cash": total_cash,
             "operating_cash_flow": operating_cash_flow,
             "free_cash_flow": free_cash_flow,
             "ebitda": _safe_float(info.get("ebitda")),
             "enterprise_value": _safe_float(info.get("enterpriseValue")),
-            "shares_outstanding": _safe_float(info.get("sharesOutstanding")),
-            "total_revenue": _safe_float(info.get("totalRevenue")),
-            "net_income": _safe_float(info.get("netIncomeToCommon")),
+            "shares_outstanding": shares_outstanding,
+            "total_revenue": revenue,
+            "net_income": net_income,
             "enterprise_to_ebitda": _safe_float(info.get("enterpriseToEbitda")),
             "enterprise_to_revenue": _safe_float(info.get("enterpriseToRevenue")),
             "market_state": "UNKNOWN",
