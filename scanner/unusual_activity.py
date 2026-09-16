@@ -9,6 +9,35 @@ from scanner.market_scanner import BSE_CANDIDATES, NSE_CANDIDATES
 
 CHUNK_SIZE = 10
 
+# Representative NSE candidate baskets, not exhaustive exchange classifications.
+# Categories are based on widely followed index constituents; market-cap ranks can change.
+CAP_UNIVERSES = {
+    "Large cap": {
+        "RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK", "SBIN", "LT", "ITC",
+        "BHARTIARTL", "HINDUNILVR", "KOTAKBANK", "AXISBANK", "MARUTI", "M&M", "TITAN",
+        "SUNPHARMA", "ADANIENT", "ADANIPORTS", "HCLTECH", "WIPRO", "ULTRACEMCO", "NTPC",
+        "POWERGRID", "ONGC", "COALINDIA", "TATASTEEL", "JSWSTEEL", "BAJFINANCE",
+        "BAJAJFINSV", "ASIANPAINT", "NESTLEIND", "TECHM", "TATAMOTORS", "TATACONSUM",
+        "CIPLA", "DRREDDY", "DIVISLAB", "APOLLOHOSP", "GRASIM", "EICHERMOT", "HEROMOTOCO",
+        "BAJAJ-AUTO", "BRITANNIA", "HINDALCO", "BPCL", "IOC", "GAIL", "INDUSINDBK",
+        "BANKBARODA", "CANBK", "IDFCFIRSTB", "PNB", "DLF", "BEL", "HAL", "DMART",
+        "TRENT", "SIEMENS", "ABB", "VEDL", "HAVELLS", "DABUR", "GODREJCP", "PIDILITIND",
+        "COLPAL", "MOTHERSON", "TVSMOTOR", "INDIGO", "ICICIGI", "SBILIFE", "HDFCLIFE", "LICI",
+    },
+    "Mid cap": {
+        "IRFC", "RVNL", "ZOMATO", "NYKAA", "PAYTM", "JIOFIN", "ASHOKLEY", "LODHA",
+        "BHEL", "POLICYBZR", "PERSISTENT", "COFORGE", "MPHASIS", "LTIM", "AUROPHARMA",
+        "LUPIN", "TORNTPHARM", "BOSCHLTD", "INDUSTOWER", "NAUKRI", "CHOLAFIN", "HINDPETRO",
+        "UNIONBANK", "FEDERALBNK", "IDBI", "CUMMINSIND", "MAXHEALTH", "FORTIS", "PAGEIND",
+    },
+    "Small cap": {
+        "CESC", "YESBANK", "IDFC", "RBLBANK", "BANDHANBNK", "CANFINHOME", "SUZLON", "NHPC",
+        "SJVN", "IREDA", "NBCC", "HUDCO", "IRCON", "RITES", "KALYANKJIL", "DELHIVERY",
+        "CROMPTON", "VOLTAS", "BATAINDIA", "ZEEL", "SAIL", "NMDC", "NATIONALUM", "JINDALSTEL",
+        "MANAPPURAM", "MUTHOOTFIN", "ANGELONE", "BSE", "CAMS", "HFCL", "INOXWIND",
+    },
+}
+
 
 def _ticker(symbol: str, exchange: str) -> str:
     return f"{symbol}.{ 'NS' if exchange == 'NSE' else 'BO'}"
@@ -26,20 +55,24 @@ def _frame_for(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     return frame
 
 
-def scan_unusual_activity(limit: int = 20) -> pd.DataFrame:
-    """Find positive intraday movers whose latest bar volume is unusually high.
+def scan_unusual_activity(limit: int = 20, cap_category: str = "All caps") -> pd.DataFrame:
+    """Find positive intraday movers with unusually high latest-bar volume.
 
-    Uses Yahoo Finance 5-minute candles and the existing broad NSE/BSE candidate
-    lists. Relative volume compares the latest bar with the same time-of-day bar
-    on up to four preceding sessions; it is a screening signal, not a live-feed
-    guarantee.
+    Uses Yahoo Finance 5-minute candles and representative candidate baskets.
+    BSE numeric scrip-code candidates are included only in All caps because this
+    repository does not maintain a verified cap-category mapping for those codes.
     """
     rows: list[dict[str, Any]] = []
-    universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
-        (symbol, "BSE") for symbol in BSE_CANDIDATES
-    ]
+    if cap_category == "All caps":
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
+            (symbol, "BSE") for symbol in BSE_CANDIDATES
+        ]
+    else:
+        selected = CAP_UNIVERSES.get(cap_category, set())
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
+        # BSE scrip codes are not reliably classifiable without a maintained mapping.
     for exchange in ("NSE", "BSE"):
-        symbols = NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES
+        symbols = [symbol for symbol, venue in universe if venue == exchange]
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
@@ -85,6 +118,7 @@ def scan_unusual_activity(limit: int = 20) -> pd.DataFrame:
                     rows.append({
                         "Symbol": ticker.rsplit(".", 1)[0],
                         "Exchange": exchange,
+                        "Market-cap basket": cap_category,
                         "Last price": round(price, 2),
                         "Session change %": round((price / opening_price - 1) * 100, 2),
                         "Latest bar volume": int(volume),
