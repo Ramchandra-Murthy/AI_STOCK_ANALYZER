@@ -7,6 +7,8 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from scanner.unusual_activity import scan_unusual_activity
+
 IST = ZoneInfo("Asia/Kolkata")
 
 
@@ -51,6 +53,28 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
 def show() -> None:
     st.title("⏱️ Intraday Trading")
     st.caption("Technical analysis and paper-trading review — no orders are placed.")
+
+    st.subheader("NSE & BSE unusual activity scanner")
+    st.caption("Screens the app's broad candidate lists for positive intraday moves and latest 5-minute volume at least 1.5× the average volume of the same time slot in up to four prior sessions. Data is supplied by Yahoo Finance; coverage and delays may vary.")
+    scan_limit = st.selectbox("Maximum results", [10, 20, 30, 50], index=1, key="unusual_scan_limit")
+    if st.button("Scan NSE + BSE for unusual activity", key="run_unusual_scan"):
+        with st.spinner("Scanning the candidate lists for unusual activity…"):
+            try:
+                scan_results = scan_unusual_activity(scan_limit)
+                st.session_state["unusual_activity_results"] = scan_results
+                st.session_state["unusual_activity_scan_time"] = datetime.now(IST).strftime("%d %b %Y, %H:%M IST")
+            except Exception as exc:
+                st.error(f"Scanner could not complete: {exc}")
+    scan_results = st.session_state.get("unusual_activity_results")
+    if scan_results is not None:
+        st.caption(f"Last scan: {st.session_state.get('unusual_activity_scan_time', 'unknown')} · Candidate universe is limited; this is not an exhaustive exchange-wide scan.")
+        if scan_results.empty:
+            st.info("No candidates met the screening conditions, or the data provider returned insufficient data. Try again during market hours.")
+        else:
+            st.dataframe(scan_results, use_container_width=True, hide_index=True)
+            st.download_button("Download unusual activity CSV", scan_results.to_csv(index=False).encode("utf-8"), file_name="nse_bse_unusual_activity.csv", mime="text/csv", key="download_unusual_activity")
+
+    st.divider()
     left, right = st.columns([2, 1])
     with left:
         symbol = st.text_input("Stock symbol", value="RELIANCE", help="Enter the NSE/BSE trading symbol without an exchange suffix.")
@@ -107,7 +131,6 @@ def show() -> None:
     metrics[2].metric("RSI (14)", f"{latest['RSI 14']:.1f}" if pd.notna(latest["RSI 14"]) else "—")
     metrics[3].metric("EMA 9 / 21", f"{latest['EMA 9']:.2f} / {latest['EMA 21']:.2f}")
 
-    # Opening range is calculated from the first complete bars of each date.
     bars_needed = max(1, orb_minutes // int(interval[:-1]))
     session_dates = pd.Series(data.index.date, index=data.index)
     today = session_dates.iloc[-1]
