@@ -7,6 +7,7 @@ from modules.backtesting import show as backtesting
 # ==========================================================
 from modules.dashboard import show as dashboard
 from modules.fundamentals import show as fundamentals
+from modules.intraday import show as intraday
 from modules.market import show as market
 from modules.portfolio import show as portfolio
 from modules.prediction import show as prediction
@@ -46,6 +47,7 @@ PAGES = {
     "📈 Market": market,
     "💼 Portfolio": portfolio,
     "🔍 Scanner": scanner,
+    "⏱️ Intraday Trading": intraday,
     "🔍 Stock Research": research,
     "📊 Fundamentals": fundamentals,
     "📉 Backtesting": backtesting,
