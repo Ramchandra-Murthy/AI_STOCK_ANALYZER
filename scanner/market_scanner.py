@@ -204,7 +204,7 @@ def _batch_change_screen(candidates: dict[str, list[str]]) -> list[tuple[str, st
         if history is None or history.empty:
             continue
 
-        for symbol, ticker in zip(symbols, tickers):
+        for _symbol, ticker in zip(symbols, tickers, strict=False):
             try:
                 if isinstance(history.columns, pd.MultiIndex):
                     if ticker not in history.columns.get_level_values(0):
