@@ -1,7 +1,7 @@
 import pandas as pd
 
 from services import research_service, technical_service
-from services.market_service import normalize_market_symbol
+from services.market_service import normalize_market_symbol, scan_market_universe
 
 
 def test_normalize_nse_symbol():
@@ -15,6 +15,34 @@ def test_normalize_bse_symbol():
 def test_explicit_exchange_suffix_is_preserved():
     assert normalize_market_symbol("TCS.NS", "BSE") == "TCS.NS"
     assert normalize_market_symbol("500570.BO", "NSE") == "500570.BO"
+
+
+def test_scanner_accepts_both_exchanges(monkeypatch):
+    def fake_quote(symbol, exchange="NSE"):
+        return {
+            "symbol": symbol,
+            "exchange": "BSE" if symbol.endswith(".BO") else "NSE",
+            "price": 100.0,
+            "change_pct": 2.0 if symbol.endswith(".NS") else -3.0,
+            "observed_at": "2026-09-16T09:00:00",
+            "source": "test",
+            "frequency": "daily",
+            "is_tick_live": False,
+            "is_intraday": False,
+        }
+
+    monkeypatch.setattr(
+        "services.market_service.get_latest_available_price",
+        fake_quote,
+    )
+
+    result = scan_market_universe(
+        {"NSE": ["RELIANCE"], "BSE": ["500570"]},
+        top_n=2,
+    )
+
+    assert set(result["Exchange"]) == {"NSE", "BSE"}
+    assert set(result["Ticker"]) == {"RELIANCE.NS", "500570.BO"}
 
 
 def test_fast_quote_is_preferred_over_info(monkeypatch):
