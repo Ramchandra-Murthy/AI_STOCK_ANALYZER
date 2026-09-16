@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 
+from scanner.market_scanner import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_service import (
     WATCHLIST,
     get_latest_available_price,
@@ -17,30 +18,8 @@ SECTOR_STOCKS = {
     "Telecommunications": ["BHARTIARTL"],
 }
 
-NSE_UNIVERSE = [
-    "RELIANCE",
-    "TCS",
-    "INFY",
-    "HDFCBANK",
-    "ICICIBANK",
-    "SBIN",
-    "LT",
-    "ITC",
-    "BHARTIARTL",
-    "HINDUNILVR",
-]
-BSE_UNIVERSE = [
-    "500325",
-    "532540",
-    "500209",
-    "500180",
-    "532174",
-    "500112",
-    "500510",
-    "500875",
-    "532454",
-    "500696",
-]
+NSE_UNIVERSE = NSE_CANDIDATES
+BSE_UNIVERSE = BSE_CANDIDATES
 DEFAULT_WATCHLIST = [f"{symbol}.NS" for symbol in WATCHLIST]
 
 
@@ -111,7 +90,9 @@ def get_personal_watchlist(symbols):
 
 
 def scanner_universe(exchange):
-    return {exchange: NSE_UNIVERSE if exchange == "NSE" else BSE_UNIVERSE}
+    if exchange == "NSE":
+        return {"NSE": NSE_UNIVERSE}
+    return {"BSE": BSE_UNIVERSE}
 
 
 def show():
