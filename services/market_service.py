@@ -231,9 +231,7 @@ def scan_market_universe(
         return frame
     frame["Absolute Change %"] = frame["Change %"].abs()
     return (
-        frame.sort_values(
-            ["Absolute Change %", "Change %"], ascending=[False, False]
-        )
+        frame.sort_values(["Absolute Change %", "Change %"], ascending=[False, False])
         .head(top_n)
         .drop(columns=["Absolute Change %"])
         .reset_index(drop=True)
