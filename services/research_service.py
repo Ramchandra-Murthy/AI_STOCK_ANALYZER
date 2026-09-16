@@ -247,7 +247,6 @@ def get_stock_profile(symbol):
 
         income = ticker.financials
         balance = ticker.balance_sheet
-        cash_flow = ticker.cashflow
 
         equity_names = [
             "Stockholders Equity",
