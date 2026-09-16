@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from functools import lru_cache
 from typing import Any
 
 import pandas as pd
@@ -45,6 +46,19 @@ def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
         return normalized
     suffix = EXCHANGE_SUFFIXES.get(exchange.strip().upper(), ".NS")
     return f"{normalized}{suffix}"
+
+
+@lru_cache(maxsize=512)
+def get_company_name(ticker: str) -> str:
+    """Resolve a human-readable company name, falling back to the ticker."""
+    try:
+        info = yf.Ticker(ticker).get_info()
+        name = info.get("longName") or info.get("shortName")
+        if isinstance(name, str) and name.strip():
+            return name.strip()
+    except Exception:
+        pass
+    return ticker
 
 
 def _clean_close_series(history: pd.DataFrame) -> pd.Series:
@@ -165,6 +179,7 @@ def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
         rows.append(
             {
                 "Symbol": name,
+                "Name": get_company_name(ticker),
                 "Exchange": exchange,
                 "Ticker": ticker,
                 "Price": value,
@@ -178,6 +193,7 @@ def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
         rows,
         columns=[
             "Symbol",
+            "Name",
             "Exchange",
             "Ticker",
             "Price",
@@ -217,6 +233,7 @@ def scan_market_universe(
             rows.append(
                 {
                     "Symbol": normalized.removesuffix(".NS").removesuffix(".BO"),
+                    "Name": "",
                     "Exchange": quote["exchange"],
                     "Ticker": normalized,
                     "Price": quote["price"],
@@ -230,9 +247,11 @@ def scan_market_universe(
     if frame.empty:
         return frame
     frame["Absolute Change %"] = frame["Change %"].abs()
-    return (
+    result = (
         frame.sort_values(["Absolute Change %", "Change %"], ascending=[False, False])
         .head(top_n)
         .drop(columns=["Absolute Change %"])
         .reset_index(drop=True)
     )
+    result["Name"] = [get_company_name(ticker) for ticker in result["Ticker"]]
+    return result
