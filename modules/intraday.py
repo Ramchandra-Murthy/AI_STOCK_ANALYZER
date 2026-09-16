@@ -56,10 +56,10 @@ def show() -> None:
     st.caption("Technical analysis and paper-trading review — no orders are placed.")
 
     st.subheader("Price jump scanner")
-    st.caption("Flags candidate stocks whose latest 5-minute close has risen by the selected percentage over the chosen lookback. It is a retrospective candle screen, not a live tick alert; Yahoo Finance coverage and delays vary.")
+    st.caption("Screens candidate stocks for price rises over the selected lookback. The 2- and 3-minute choices use Yahoo Finance 1-minute candles; longer lookbacks use 5-minute candles. This is a retrospective candle screen, not a live tick alert; Yahoo coverage and delays vary.")
     jump_exchange = st.selectbox("Exchange for price jumps", ["Both", "NSE", "BSE"], key="jump_exchange", format_func=lambda value: "NSE + BSE" if value == "Both" else value)
     jump_cap = st.selectbox("Market-cap basket for price jumps", ["All caps", "Large cap", "Mid cap", "Small cap"], key="jump_cap")
-    jump_window = st.selectbox("Jump lookback", [5, 10, 15, 30], index=0, format_func=lambda value: f"{value} minutes", key="jump_window")
+    jump_window = st.selectbox("Jump lookback", [2, 3, 5, 10, 15, 30], index=2, format_func=lambda value: f"{value} minutes", key="jump_window")
     jump_threshold = st.selectbox("Minimum price rise", [0.5, 1.0, 1.5, 2.0, 3.0], index=1, format_func=lambda value: f"{value:.1f}%", key="jump_threshold")
     jump_limit = st.selectbox("Maximum price-jump results", [10, 20, 30, 50], index=1, key="jump_limit")
     if st.button("Scan for price jumps", key="run_price_jump"):
@@ -70,11 +70,12 @@ def show() -> None:
                 st.session_state["price_jump_scan_time"] = datetime.now(IST).strftime("%d %b %Y, %H:%M IST")
                 st.session_state["price_jump_scan_exchange"] = jump_exchange
                 st.session_state["price_jump_scan_cap"] = jump_cap
+                st.session_state["price_jump_scan_window"] = jump_window
             except Exception as exc:
                 st.error(f"Price-jump scan could not complete: {exc}")
     jump_results = st.session_state.get("price_jump_results")
     if jump_results is not None:
-        st.caption(f"Last scan: {st.session_state.get('price_jump_scan_time', 'unknown')} · Exchange: {st.session_state.get('price_jump_scan_exchange', 'unknown')} · Basket: {st.session_state.get('price_jump_scan_cap', 'unknown')} · Candidate list is limited, not exchange-wide.")
+        st.caption(f"Last scan: {st.session_state.get('price_jump_scan_time', 'unknown')} · Exchange: {st.session_state.get('price_jump_scan_exchange', 'unknown')} · Basket: {st.session_state.get('price_jump_scan_cap', 'unknown')} · Lookback: {st.session_state.get('price_jump_scan_window', 'unknown')} min · Candidate list is limited, not exchange-wide.")
         if jump_results.empty:
             st.info("No candidates met this threshold, or the provider returned insufficient candles. Try a lower threshold or scan during market hours.")
         else:
