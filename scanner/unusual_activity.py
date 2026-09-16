@@ -75,20 +75,34 @@ def scan_unusual_activity(
     else:
         selected = CAP_UNIVERSES.get(cap_category, set())
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
-        # BSE scrip codes are not reliably classifiable without a maintained mapping.
+
+    selected_universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    stats = {
+        "candidate_count": len(selected_universe),
+        "attempted_count": 0,
+        "usable_count": 0,
+        "download_failed_chunks": 0,
+        "empty_chunks": 0,
+        "processing_errors": 0,
+        "matches_before_limit": 0,
+        "displayed_count": 0,
+    }
     for exchange in exchanges:
-        symbols = [symbol for symbol, venue in universe if venue == exchange]
+        symbols = [symbol for symbol, venue in selected_universe if venue == exchange]
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
+            stats["attempted_count"] += len(chunk)
             try:
                 history = yf.download(
                     tickers=chunk, period="5d", interval="5m", progress=False,
                     auto_adjust=False, group_by="ticker", threads=False,
                 )
             except Exception:
+                stats["download_failed_chunks"] += 1
                 continue
             if history is None or history.empty:
+                stats["empty_chunks"] += 1
                 continue
             for ticker in chunk:
                 try:
@@ -98,6 +112,9 @@ def scan_unusual_activity(
                         continue
                     frame = frame.dropna(subset=list(required)).sort_index()
                     frame = frame[~frame.index.duplicated(keep="last")]
+                    if frame.empty:
+                        continue
+                    stats["usable_count"] += 1
                     if len(frame) < 3:
                         continue
                     dates = pd.Series(frame.index.date, index=frame.index)
@@ -131,10 +148,15 @@ def scan_unusual_activity(
                         "Latest candle (provider time)": str(current.index[-1]),
                     })
                 except (KeyError, TypeError, ValueError, IndexError):
+                    stats["processing_errors"] += 1
                     continue
+    stats["matches_before_limit"] = len(rows)
     if not rows:
-        return pd.DataFrame()
-    result = pd.DataFrame(rows)
-    return result.sort_values(
-        ["Relative volume", "Session change %"], ascending=[False, False]
-    ).head(max(1, min(int(limit), 100))).reset_index(drop=True)
+        result = pd.DataFrame()
+    else:
+        result = pd.DataFrame(rows).sort_values(
+            ["Relative volume", "Session change %"], ascending=[False, False]
+        ).head(max(1, min(int(limit), 100))).reset_index(drop=True)
+    stats["displayed_count"] = len(result)
+    result.attrs["scan_stats"] = stats
+    return result
