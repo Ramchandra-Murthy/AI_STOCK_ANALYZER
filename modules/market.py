@@ -137,16 +137,8 @@ def show():
         gainers = pd.DataFrame()
         losers = pd.DataFrame()
     else:
-        gainers = (
-            scanner[scanner["Change %"] >= 0]
-            .sort_values("Change %", ascending=False)
-            .head(5)
-        )
-        losers = (
-            scanner[scanner["Change %"] < 0]
-            .sort_values("Change %", ascending=True)
-            .head(5)
-        )
+        gainers = scanner[scanner["Change %"] >= 0].sort_values("Change %", ascending=False).head(5)
+        losers = scanner[scanner["Change %"] < 0].sort_values("Change %", ascending=True).head(5)
 
     display_columns = ["Symbol", "Name", "Exchange", "Price", "Change %"]
     gainers = gainers[[c for c in display_columns if c in gainers.columns]]
