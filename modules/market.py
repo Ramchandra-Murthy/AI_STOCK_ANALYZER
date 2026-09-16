@@ -30,11 +30,14 @@ def metric_card(title, value, change):
         st.metric(title, value, delta)
 
 
-def _normalize_symbol(symbol):
+def _normalize_symbol(symbol, exchange="NSE"):
     normalized = symbol.strip().upper()
-    if normalized and "." not in normalized:
-        normalized += ".NS"
-    return normalized
+    if not normalized:
+        return normalized
+    if "." in normalized:
+        return normalized
+    suffix = ".BO" if exchange == "BSE" else ".NS"
+    return f"{normalized}{suffix}"
 
 
 def _get_sector_performance():
@@ -74,6 +77,7 @@ def _get_personal_watchlist(symbols):
         rows.append(
             {
                 "Symbol": symbol,
+                "Exchange": quote.get("exchange"),
                 "Price": quote.get("price"),
                 "Change %": quote.get("change_pct"),
                 "Observed": quote.get("observed_at"),
@@ -83,7 +87,7 @@ def _get_personal_watchlist(symbols):
 
     return pd.DataFrame(
         rows,
-        columns=["Symbol", "Price", "Change %", "Observed", "Frequency"],
+        columns=["Symbol", "Exchange", "Price", "Change %", "Observed", "Frequency"],
     )
 
 
@@ -148,11 +152,19 @@ def show():
 
     st.divider()
 
-    gainers, losers = get_top_movers()
+    st.subheader("Exchange")
+    selected_exchange = st.radio(
+        "Select exchange",
+        options=["NSE", "BSE"],
+        horizontal=True,
+        index=0,
+    )
 
-    # Keep side-by-side mover tables compact; detailed observation fields
-    # remain available in the Personal Watchlist table below.
-    mover_columns = ["Symbol", "Price", "Change %"]
+    gainers, losers = get_top_movers()
+    gainers = gainers[gainers["Exchange"] == selected_exchange].copy()
+    losers = losers[losers["Exchange"] == selected_exchange].copy()
+
+    mover_columns = ["Symbol", "Exchange", "Price", "Change %"]
     gainers_display = gainers[[column for column in mover_columns if column in gainers.columns]]
     losers_display = losers[[column for column in mover_columns if column in losers.columns]]
 
@@ -190,13 +202,17 @@ def show():
 
     with st.form("add_personal_watchlist_symbol"):
         symbol_input = st.text_input(
-            "Add an NSE symbol",
-            placeholder="e.g. TATAMOTORS or TATAMOTORS.NS",
+            f"Add a {selected_exchange} symbol",
+            placeholder=(
+                "e.g. TATAMOTORS or TATAMOTORS.NS"
+                if selected_exchange == "NSE"
+                else "e.g. TATAMOTORS or TATAMOTORS.BO"
+            ),
         )
         submitted = st.form_submit_button("Add to watchlist")
 
     if submitted:
-        symbol = _normalize_symbol(symbol_input)
+        symbol = _normalize_symbol(symbol_input, selected_exchange)
 
         if not symbol:
             st.warning("Enter a stock symbol first.")

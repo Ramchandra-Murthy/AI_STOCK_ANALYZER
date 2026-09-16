@@ -67,9 +67,6 @@ def _calculate_roe(ticker):
         ):
             return None
 
-        # --------------------------------------------------
-        # Find latest common reporting period
-        # --------------------------------------------------
         common_columns = [
             column for column in income_statement.columns if column in balance_sheet.columns
         ]
@@ -79,9 +76,6 @@ def _calculate_roe(ticker):
 
         latest_column = common_columns[0]
 
-        # --------------------------------------------------
-        # Net Income
-        # --------------------------------------------------
         net_income = _get_statement_value(
             income_statement,
             [
@@ -95,9 +89,6 @@ def _calculate_roe(ticker):
         if net_income is None:
             return None
 
-        # --------------------------------------------------
-        # Shareholders' Equity
-        # --------------------------------------------------
         equity_names = [
             "Stockholders Equity",
             "Total Stockholder Equity",
@@ -113,9 +104,6 @@ def _calculate_roe(ticker):
         if current_equity is None or current_equity <= 0:
             return None
 
-        # --------------------------------------------------
-        # Previous-period equity
-        # --------------------------------------------------
         previous_equity = None
 
         try:
@@ -130,13 +118,9 @@ def _calculate_roe(ticker):
         except Exception:
             previous_equity = None
 
-        # --------------------------------------------------
-        # Average equity
-        # --------------------------------------------------
         if previous_equity is not None and previous_equity > 0:
             average_equity = (current_equity + previous_equity) / 2
         else:
-            # Fallback if previous equity is unavailable.
             average_equity = current_equity
 
         if average_equity <= 0:
@@ -196,9 +180,7 @@ def _calculate_roa(ticker):
 
         total_assets = _get_statement_value(
             balance_sheet,
-            [
-                "Total Assets",
-            ],
+            ["Total Assets"],
             latest_column,
         )
 
@@ -213,12 +195,9 @@ def _calculate_roa(ticker):
 
             if position + 1 < len(columns):
                 previous_column = columns[position + 1]
-
                 previous_assets = _get_statement_value(
                     balance_sheet,
-                    [
-                        "Total Assets",
-                    ],
+                    ["Total Assets"],
                     previous_column,
                 )
 
@@ -341,24 +320,14 @@ def _calculate_free_cash_flow(ticker):
 
         latest_column = cash_flow.columns[0]
 
-        # ----------------------------------------------
-        # Direct FCF
-        # ----------------------------------------------
-
         free_cash_flow = _get_statement_value(
             cash_flow,
-            [
-                "Free Cash Flow",
-            ],
+            ["Free Cash Flow"],
             latest_column,
         )
 
         if free_cash_flow is not None:
             return free_cash_flow
-
-        # ----------------------------------------------
-        # Calculate FCF
-        # ----------------------------------------------
 
         operating_cash_flow = _get_statement_value(
             cash_flow,
@@ -382,8 +351,6 @@ def _calculate_free_cash_flow(ticker):
         if operating_cash_flow is None or capital_expenditure is None:
             return None
 
-        # Yahoo statement CapEx is commonly negative.
-        # Therefore OCF + CapEx gives FCF when negative.
         if capital_expenditure < 0:
             free_cash_flow = operating_cash_flow + capital_expenditure
         else:
@@ -403,12 +370,12 @@ def get_stock_profile(symbol):
     """
     Fetch company profile, financial statistics and
     valuation data from Yahoo Finance.
+
+    Bare symbols remain backward-compatible with NSE. Explicit .NS and .BO
+    suffixes are preserved so BSE-selected stocks are not redirected to NSE.
     """
     symbol = symbol.strip().upper()
 
-    # ------------------------------------------------------
-    # Add NSE suffix
-    # ------------------------------------------------------
     if "." not in symbol:
         symbol += ".NS"
 
@@ -417,24 +384,12 @@ def get_stock_profile(symbol):
         info = ticker.info or {}
         fast_info = _get_fast_info(ticker)
 
-        # --------------------------------------------------
-        # Prefer the fast quote snapshot for the current price.
-        # Yahoo's broad info payload can be cached/stale; fast_info
-        # is the narrower market-quote path and is therefore preferred.
-        # --------------------------------------------------
-        # Use the canonical market boundary for price/freshness metadata so
-        # research and the market dashboard cannot disagree about what "latest"
-        # means. Fundamental data continues to come from this service.
         market_quote = get_latest_available_price(symbol)
         canonical_price = _safe_float(market_quote.get("price"))
         canonical_previous_close = _safe_float(market_quote.get("previous_close"))
         fast_price = canonical_price
         fast_previous_close = canonical_previous_close
 
-        # Research is an input to EROS decisions. Never silently substitute a
-        # broad, potentially stale Yahoo info price when the canonical market
-        # boundary is unavailable. Downstream gates can now distinguish
-        # "unavailable" from an observed market price.
         fast_volume = _safe_float(fast_info.get("last_volume"))
         fast_trade_time = market_quote.get("observed_at")
         if hasattr(fast_trade_time, "isoformat"):
@@ -442,218 +397,71 @@ def get_stock_profile(symbol):
         elif fast_trade_time is not None:
             fast_trade_time = str(fast_trade_time)
 
-        # --------------------------------------------------
-        # ROE
-        # --------------------------------------------------
         roe = _safe_float(info.get("returnOnEquity"))
-
         if roe is None:
             roe = _calculate_roe(ticker)
 
-        # --------------------------------------------------
-        # ADVANCED FUNDAMENTAL METRICS
-        # --------------------------------------------------
         roa = _safe_float(info.get("returnOnAssets"))
-
         if roa is None:
             roa = _calculate_roa(ticker)
 
         debt_to_equity = _safe_float(info.get("debtToEquity"))
-
         current_ratio = _safe_float(info.get("currentRatio"))
-
         if current_ratio is None:
             current_ratio = _calculate_current_ratio(ticker)
 
         revenue_growth = _safe_float(info.get("revenueGrowth"))
         earnings_growth = _safe_float(info.get("earningsGrowth"))
 
-        # --------------------------------------------------
-        # CASH FLOW
-        # --------------------------------------------------
         operating_cash_flow = _safe_float(info.get("operatingCashflow"))
-
         if operating_cash_flow is None:
             operating_cash_flow = _calculate_operating_cash_flow(ticker)
 
         free_cash_flow = _safe_float(info.get("freeCashflow"))
-
         if free_cash_flow is None:
             free_cash_flow = _calculate_free_cash_flow(ticker)
 
-        # --------------------------------------------------
-        # BALANCE SHEET
-        # --------------------------------------------------
         total_debt = _safe_float(info.get("totalDebt"))
-
         total_cash = _safe_float(info.get("totalCash"))
 
-        # --------------------------------------------------
-        # VALUATION V4 DATA
-        # --------------------------------------------------
         forward_eps = _safe_float(info.get("forwardEps"))
-
         ebitda = _safe_float(info.get("ebitda"))
-
         enterprise_value = _safe_float(info.get("enterpriseValue"))
-
         shares_outstanding = _safe_float(info.get("sharesOutstanding"))
-
         total_revenue = _safe_float(info.get("totalRevenue"))
-
         net_income = _safe_float(info.get("netIncomeToCommon"))
-
         enterprise_to_ebitda = _safe_float(info.get("enterpriseToEbitda"))
-
         enterprise_to_revenue = _safe_float(info.get("enterpriseToRevenue"))
 
-        # --------------------------------------------------
-        # Return profile
-        # --------------------------------------------------
         return {
-            # ==============================================
-            # COMPANY
-            # ==============================================
-            "company": info.get(
-                "longName",
-                "N/A",
-            ),
+            "company": info.get("longName", "N/A"),
             "symbol": symbol,
-            "sector": info.get(
-                "sector",
-                "N/A",
-            ),
-            "industry": info.get(
-                "industry",
-                "N/A",
-            ),
-            "country": info.get(
-                "country",
-                "N/A",
-            ),
-            "website": info.get(
-                "website",
-                "",
-            ),
-            # ==============================================
-            # MARKET
-            # ==============================================
+            "exchange": market_quote.get("exchange", "BSE" if symbol.endswith(".BO") else "NSE"),
             "price": fast_price,
             "previous_close": fast_previous_close,
             "price_source": market_quote.get("source", "Yahoo Finance"),
-            "quote_timestamp": market_quote.get("observed_at"),
-            "quote_frequency": market_quote.get("frequency", "unavailable"),
-            "is_intraday": bool(market_quote.get("is_intraday", False)),
-            "is_tick_live": bool(market_quote.get("is_tick_live", False)),
-            "market_state": info.get("marketState", "UNKNOWN"),
-            "currency": info.get(
-                "currency",
-                "N/A",
-            ),
-            "market_cap": info.get(
-                "marketCap",
-                "N/A",
-            ),
-            # ==============================================
-            # VALUATION
-            # ==============================================
-            "pe": info.get(
-                "trailingPE",
-                "N/A",
-            ),
-            "forward_pe": info.get(
-                "forwardPE",
-                "N/A",
-            ),
-            "pb": info.get(
-                "priceToBook",
-                "N/A",
-            ),
-            "eps": info.get(
-                "trailingEps",
-                "N/A",
-            ),
-            "forward_eps": (forward_eps if forward_eps is not None else "N/A"),
-            "book_value": info.get(
-                "bookValue",
-                "N/A",
-            ),
-            "beta": info.get(
-                "beta",
-                "N/A",
-            ),
-            "dividend_yield": info.get(
-                "dividendYield",
-                "N/A",
-            ),
-            "dividend_rate": info.get(
-                "dividendRate",
-                "N/A",
-            ),
-            # ==============================================
-            # PROFITABILITY
-            # ==============================================
-            "roe": (roe if roe is not None else "N/A"),
-            "roa": (roa if roa is not None else "N/A"),
-            "profit_margin": info.get(
-                "profitMargins",
-                "N/A",
-            ),
-            "operating_margin": info.get(
-                "operatingMargins",
-                "N/A",
-            ),
-            # ==============================================
-            # FINANCIAL HEALTH
-            # ==============================================
-            "debt_to_equity": (debt_to_equity if debt_to_equity is not None else "N/A"),
-            "current_ratio": (current_ratio if current_ratio is not None else "N/A"),
-            "total_debt": (total_debt if total_debt is not None else "N/A"),
-            "total_cash": (total_cash if total_cash is not None else "N/A"),
-            # ==============================================
-            # GROWTH
-            # ==============================================
-            "revenue_growth": (revenue_growth if revenue_growth is not None else "N/A"),
-            "earnings_growth": (earnings_growth if earnings_growth is not None else "N/A"),
-            # ==============================================
-            # CASH FLOW
-            # ==============================================
-            "free_cash_flow": (free_cash_flow if free_cash_flow is not None else "N/A"),
-            "operating_cash_flow": (
-                operating_cash_flow if operating_cash_flow is not None else "N/A"
-            ),
-            # ==============================================
-            # VALUATION V4 DATA
-            # ==============================================
-            "ebitda": (ebitda if ebitda is not None else "N/A"),
-            "enterprise_value": (enterprise_value if enterprise_value is not None else "N/A"),
-            "shares_outstanding": (shares_outstanding if shares_outstanding is not None else "N/A"),
-            "total_revenue": (total_revenue if total_revenue is not None else "N/A"),
-            "net_income": (net_income if net_income is not None else "N/A"),
-            "enterprise_to_ebitda": (
-                enterprise_to_ebitda if enterprise_to_ebitda is not None else "N/A"
-            ),
-            "enterprise_to_revenue": (
-                enterprise_to_revenue if enterprise_to_revenue is not None else "N/A"
-            ),
-            # ==============================================
-            # MARKET STATISTICS
-            # ==============================================
-            "high52": info.get(
-                "fiftyTwoWeekHigh",
-                "N/A",
-            ),
-            "low52": info.get(
-                "fiftyTwoWeekLow",
-                "N/A",
-            ),
-            "avg_volume": info.get(
-                "averageVolume",
-                "N/A",
-            ),
-            "last_volume": (fast_volume if fast_volume is not None else info.get("volume", "N/A")),
+            "price_observed_at": fast_trade_time,
+            "volume": fast_volume,
+            "roe": roe,
+            "roa": roa,
+            "debt_to_equity": debt_to_equity,
+            "current_ratio": current_ratio,
+            "revenue_growth": revenue_growth,
+            "earnings_growth": earnings_growth,
+            "operating_cash_flow": operating_cash_flow,
+            "free_cash_flow": free_cash_flow,
+            "total_debt": total_debt,
+            "total_cash": total_cash,
+            "forward_eps": forward_eps,
+            "ebitda": ebitda,
+            "enterprise_value": enterprise_value,
+            "shares_outstanding": shares_outstanding,
+            "total_revenue": total_revenue,
+            "net_income": net_income,
+            "enterprise_to_ebitda": enterprise_to_ebitda,
+            "enterprise_to_revenue": enterprise_to_revenue,
+            "market_state": "UNKNOWN",
         }
-
     except Exception as error:
-        print(f"Research Service Error: {error}")
+        print(f"Stock Profile Error: {error}")
         return None
