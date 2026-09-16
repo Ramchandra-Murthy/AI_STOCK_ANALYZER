@@ -1,9 +1,39 @@
 """Streamlit UI for broad-market and personal-watchlist AI scanning."""
 
+import math
+
+import pandas as pd
 import streamlit as st
 
 from scanner.market_scanner import BSE_CANDIDATES, DISPLAY_COUNT, NSE_CANDIDATES, market_scan
 from scanner.watchlist_scanner import scan_watchlist
+
+
+def _show_data_quality(df: pd.DataFrame) -> None:
+    """Show transparent checks for the rows returned by the scanner."""
+    st.subheader("Data quality")
+    required = [column for column in ("Symbol", "Price", "RSI", "AI Score") if column in df.columns]
+    missing_cells = int(df[required].isna().sum().sum()) if required else 0
+    duplicate_symbols = (
+        int(df["Symbol"].astype(str).duplicated().sum()) if "Symbol" in df.columns else 0
+    )
+    invalid_numeric = 0
+    for column in ("Price", "RSI", "AI Score"):
+        if column in df.columns:
+            values = pd.to_numeric(df[column], errors="coerce")
+            invalid_numeric += int((values.isna() | ~values.map(math.isfinite)).sum())
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Rows returned", len(df))
+    col2.metric("Missing required cells", missing_cells)
+    col3.metric("Duplicate symbols", duplicate_symbols)
+    if invalid_numeric:
+        st.warning(f"{invalid_numeric} numeric field value(s) are missing or invalid. Review the rows before relying on them.")
+    elif missing_cells or duplicate_symbols:
+        st.warning("Some returned data needs review. Check missing cells and duplicate symbols.")
+    else:
+        st.success("Returned rows passed the available completeness and numeric checks.")
+    st.caption("These checks cover only rows returned by the scanner; they do not verify quote freshness or validate the underlying data provider.")
 
 
 def show():
@@ -55,6 +85,8 @@ def show():
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
             return
+
+        _show_data_quality(df)
 
         if selected_exchange in ("NSE", "BSE") and "Exchange" in df.columns:
             df = df.loc[df["Exchange"] == selected_exchange]
