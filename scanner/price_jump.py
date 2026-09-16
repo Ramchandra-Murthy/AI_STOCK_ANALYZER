@@ -27,6 +27,18 @@ def scan_price_jumps(
         selected = CAP_UNIVERSES.get(cap_category, set())
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
 
+    selected_universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    stats = {
+        "candidate_count": len(selected_universe),
+        "attempted_count": 0,
+        "usable_count": 0,
+        "download_failed_chunks": 0,
+        "empty_chunks": 0,
+        "processing_errors": 0,
+        "matches_before_limit": 0,
+        "displayed_count": 0,
+    }
+
     # Yahoo has no native 2- or 3-minute interval. Use 1-minute candles for
     # those lookbacks; retain 5-minute candles for longer lookbacks.
     candle_minutes = 1 if lookback_minutes in (2, 3) else 5
@@ -34,17 +46,20 @@ def scan_price_jumps(
     bars = max(1, int(round(lookback_minutes / candle_minutes)))
 
     for exchange in exchanges:
-        tickers = [_ticker(symbol, exchange) for symbol, venue in universe if venue == exchange]
+        tickers = [_ticker(symbol, exchange) for symbol, venue in selected_universe if venue == exchange]
         for start in range(0, len(tickers), 10):
             chunk = tickers[start : start + 10]
+            stats["attempted_count"] += len(chunk)
             try:
                 history = yf.download(
                     tickers=chunk, period="5d", interval=interval, progress=False,
                     auto_adjust=False, group_by="ticker", threads=False,
                 )
             except Exception:
+                stats["download_failed_chunks"] += 1
                 continue
             if history is None or history.empty:
+                stats["empty_chunks"] += 1
                 continue
             for ticker in chunk:
                 try:
@@ -54,6 +69,9 @@ def scan_price_jumps(
                         continue
                     frame = frame.dropna(subset=list(required)).sort_index()
                     frame = frame[~frame.index.duplicated(keep="last")]
+                    if frame.empty:
+                        continue
+                    stats["usable_count"] += 1
                     if len(frame) <= bars:
                         continue
                     session_date = frame.index[-1].date()
@@ -82,10 +100,16 @@ def scan_price_jumps(
                         "Latest candle (provider time)": str(current.index[-1]),
                     })
                 except (KeyError, TypeError, ValueError, IndexError):
+                    stats["processing_errors"] += 1
                     continue
+    stats["matches_before_limit"] = len(rows)
     if not rows:
-        return pd.DataFrame()
-    return pd.DataFrame(rows).sort_values(
-        [f"Change over {lookback_minutes} min %", "Volume vs recent bars"],
-        ascending=[False, False], na_position="last",
-    ).head(max(1, min(int(limit), 100))).reset_index(drop=True)
+        result = pd.DataFrame()
+    else:
+        result = pd.DataFrame(rows).sort_values(
+            [f"Change over {lookback_minutes} min %", "Volume vs recent bars"],
+            ascending=[False, False], na_position="last",
+        ).head(max(1, min(int(limit), 100))).reset_index(drop=True)
+    stats["displayed_count"] = len(result)
+    result.attrs["scan_stats"] = stats
+    return result
