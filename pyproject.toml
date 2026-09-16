@@ -40,3 +40,5 @@ testpaths = ["tests"]
 line-length = 100
 target-version = ["py313"]
 exclude = '/(\\.eggs|\\.git|\\.venv|build|dist|archive|backup_before_v2)/'
+
+# EROS CI validation trigger after automated Black repair.
