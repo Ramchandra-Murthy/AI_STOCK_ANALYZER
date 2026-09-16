@@ -7,16 +7,13 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-
 IST = ZoneInfo("Asia/Kolkata")
 
 
 def _ticker(symbol: str, exchange: str) -> str:
     cleaned = symbol.strip().upper()
     suffix = ".NS" if exchange == "NSE" else ".BO"
-    if cleaned.endswith((".NS", ".BO")):
-        return cleaned
-    return f"{cleaned}{suffix}"
+    return cleaned if cleaned.endswith((".NS", ".BO")) else f"{cleaned}{suffix}"
 
 
 def _rsi(close: pd.Series, period: int = 14) -> pd.Series:
@@ -34,7 +31,8 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
     required = {"Open", "High", "Low", "Close", "Volume"}
     if not required.issubset(data.columns):
         raise ValueError("The data provider did not return all required OHLCV fields.")
-    data = data.dropna(subset=["Open", "High", "Low", "Close", "Volume"])
+    data = data.dropna(subset=list(required)).sort_index()
+    data = data[~data.index.duplicated(keep="last")]
     if data.empty:
         return data
     data["EMA 9"] = data["Close"].ewm(span=9, adjust=False).mean()
@@ -46,22 +44,20 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
     data["MACD signal"] = data["MACD"].ewm(span=9, adjust=False).mean()
     typical = (data["High"] + data["Low"] + data["Close"]) / 3
     session = pd.Series(data.index.date, index=data.index)
-    cumulative_pv = (typical * data["Volume"]).groupby(session).cumsum()
-    cumulative_volume = data["Volume"].groupby(session).cumsum().replace(0, float("nan"))
-    data["VWAP"] = cumulative_pv / cumulative_volume
+    data["VWAP"] = (typical * data["Volume"]).groupby(session).cumsum() / data["Volume"].groupby(session).cumsum().replace(0, float("nan"))
     return data
 
 
 def show() -> None:
     st.title("⏱️ Intraday Trading")
     st.caption("Technical analysis and paper-trading review — no orders are placed.")
-
     left, right = st.columns([2, 1])
     with left:
         symbol = st.text_input("Stock symbol", value="RELIANCE", help="Enter the NSE/BSE trading symbol without an exchange suffix.")
     with right:
         exchange = st.selectbox("Exchange", ["NSE", "BSE"])
     interval = st.selectbox("Candle timeframe", ["5m", "15m", "30m"], index=1)
+    orb_minutes = st.selectbox("Opening range duration", [15, 30], index=0)
 
     if not st.button("Analyze intraday", type="primary"):
         st.info("Enter a symbol and select Analyze intraday to load recent candles.")
@@ -75,14 +71,12 @@ def show() -> None:
         try:
             intraday = yf.download(ticker, period="5d", interval=interval, progress=False, auto_adjust=False)
             daily = yf.download(ticker, period="5d", interval="1d", progress=False, auto_adjust=False)
-        except Exception as exc:  # Provider/network errors vary by symbol and session.
+        except Exception as exc:
             st.error(f"Could not retrieve market data: {exc}")
             return
-
     if intraday is None or intraday.empty:
         st.error("No intraday candles were returned. Verify the symbol/exchange and try again during market hours.")
         return
-
     try:
         data = _prepare(intraday)
     except ValueError as exc:
@@ -92,34 +86,60 @@ def show() -> None:
         st.error("The provider returned no complete OHLCV candles.")
         return
 
-    latest = data.iloc[-1]
     timestamp = pd.Timestamp(data.index[-1])
     if timestamp.tzinfo is None:
         timestamp = timestamp.tz_localize("UTC")
     timestamp_ist = timestamp.tz_convert(IST)
     now_ist = datetime.now(IST)
+    age_minutes = max(0, (now_ist - timestamp_ist.to_pydatetime()).total_seconds() / 60)
     st.caption(f"Latest candle: {timestamp_ist:%d %b %Y, %H:%M IST} · Retrieved: {now_ist:%d %b %Y, %H:%M IST}")
-    st.caption("Provider timestamps and delayed/partial candles may vary; verify quotes independently before acting.")
+    if age_minutes > max(60, int(interval[:-1]) * 3):
+        st.warning("Data freshness check: the latest candle is older than expected. This may be normal outside market hours; verify provider timestamps.")
+    else:
+        st.success("Data freshness check: latest candle is recent relative to the selected interval.")
+    missing = intraday[[c for c in ["Open", "High", "Low", "Close", "Volume"] if c in intraday.columns]].isna().sum().sum() if not isinstance(intraday.columns, pd.MultiIndex) else 0
+    st.caption(f"Data quality: {len(data)} complete candles after removing missing OHLCV rows and duplicate timestamps; missing cells detected: {int(missing)}. This does not prove quote accuracy or completeness of the trading session.")
 
+    latest = data.iloc[-1]
     metrics = st.columns(4)
     metrics[0].metric("Last close", f"₹{latest['Close']:,.2f}")
     metrics[1].metric("VWAP", f"₹{latest['VWAP']:,.2f}" if pd.notna(latest["VWAP"]) else "—")
     metrics[2].metric("RSI (14)", f"{latest['RSI 14']:.1f}" if pd.notna(latest["RSI 14"]) else "—")
     metrics[3].metric("EMA 9 / 21", f"{latest['EMA 9']:.2f} / {latest['EMA 21']:.2f}")
 
+    # Opening range is calculated from the first complete bars of each date.
+    bars_needed = max(1, orb_minutes // int(interval[:-1]))
+    session_dates = pd.Series(data.index.date, index=data.index)
+    today = session_dates.iloc[-1]
+    today_data = data.loc[session_dates == today]
+    opening = today_data.head(bars_needed)
+    st.subheader(f"Opening Range Breakout ({orb_minutes} minutes)")
+    if len(opening) < bars_needed:
+        st.info(f"Opening range is still forming: need {bars_needed} complete {interval} candles; have {len(opening)}.")
+    else:
+        orb_high, orb_low = opening["High"].max(), opening["Low"].min()
+        st.caption(f"Range high: ₹{orb_high:,.2f} · Range low: ₹{orb_low:,.2f} · Based on first {len(opening)} candles of the latest date in returned data.")
+        if latest["Close"] > orb_high:
+            st.info("Price is above the opening-range high. Treat as a condition to review, not an entry instruction.")
+        elif latest["Close"] < orb_low:
+            st.info("Price is below the opening-range low. Treat as a condition to review, not an entry instruction.")
+        else:
+            st.info("Price remains inside the opening range.")
+
     if not daily.empty:
         daily_clean = daily.copy()
         if isinstance(daily_clean.columns, pd.MultiIndex):
             daily_clean.columns = daily_clean.columns.get_level_values(0)
-        prior = daily_clean.dropna(subset=["High", "Low", "Close"])
-        if len(prior) >= 2:
-            previous = prior.iloc[-2]
-            pivot = (previous["High"] + previous["Low"] + previous["Close"]) / 3
-            st.subheader("Previous-session pivot levels")
-            p1, p2, p3 = st.columns(3)
-            p1.metric("Pivot", f"₹{pivot:,.2f}")
-            p2.metric("R1", f"₹{(2 * pivot - previous['Low']):,.2f}")
-            p3.metric("S1", f"₹{(2 * pivot - previous['High']):,.2f}")
+        if {"High", "Low", "Close"}.issubset(daily_clean.columns):
+            prior = daily_clean.dropna(subset=["High", "Low", "Close"])
+            if len(prior) >= 2:
+                previous = prior.iloc[-2]
+                pivot = (previous["High"] + previous["Low"] + previous["Close"]) / 3
+                st.subheader("Previous-session pivot levels")
+                p1, p2, p3 = st.columns(3)
+                p1.metric("Pivot", f"₹{pivot:,.2f}")
+                p2.metric("R1", f"₹{(2 * pivot - previous['Low']):,.2f}")
+                p3.metric("S1", f"₹{(2 * pivot - previous['High']):,.2f}")
 
     bullish = latest["Close"] > latest["VWAP"] and latest["EMA 9"] > latest["EMA 21"] and latest["MACD"] > latest["MACD signal"]
     bearish = latest["Close"] < latest["VWAP"] and latest["EMA 9"] < latest["EMA 21"] and latest["MACD"] < latest["MACD signal"]
