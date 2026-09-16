@@ -209,9 +209,7 @@ def _batch_change_screen(candidates: dict[str, list[str]]) -> list[tuple[str, st
                 if isinstance(history.columns, pd.MultiIndex):
                     if ticker not in history.columns.get_level_values(0):
                         continue
-                    close = pd.to_numeric(
-                        history[ticker]["Close"], errors="coerce"
-                    ).dropna()
+                    close = pd.to_numeric(history[ticker]["Close"], errors="coerce").dropna()
                 else:
                     close = pd.to_numeric(history["Close"], errors="coerce").dropna()
                 if len(close) < 2:
@@ -283,6 +281,8 @@ def market_scan() -> pd.DataFrame:
     df = pd.DataFrame(rows)
     if df.empty:
         return df
-    return df.sort_values(
-        by=["AI Score", "Confidence"], ascending=[False, False]
-    ).head(DISPLAY_COUNT).reset_index(drop=True)
+    return (
+        df.sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
+        .head(DISPLAY_COUNT)
+        .reset_index(drop=True)
+    )
