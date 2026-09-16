@@ -164,7 +164,9 @@ def show():
 
     with c4:
         metric_card(
-            "INDIA VIX", market["INDIA VIX"]["value"], market["INDIA VIX"]["change"]
+            "INDIA VIX",
+            market["INDIA VIX"]["value"],
+            market["INDIA VIX"]["change"],
         )
     with c5:
         metric_card(
