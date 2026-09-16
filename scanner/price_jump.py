@@ -27,14 +27,19 @@ def scan_price_jumps(
         selected = CAP_UNIVERSES.get(cap_category, set())
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
 
-    bars = max(1, int(round(lookback_minutes / 5)))
+    # Yahoo has no native 2- or 3-minute interval. Use 1-minute candles for
+    # those lookbacks; retain 5-minute candles for longer lookbacks.
+    candle_minutes = 1 if lookback_minutes in (2, 3) else 5
+    interval = f"{candle_minutes}m"
+    bars = max(1, int(round(lookback_minutes / candle_minutes)))
+
     for exchange in exchanges:
         tickers = [_ticker(symbol, exchange) for symbol, venue in universe if venue == exchange]
         for start in range(0, len(tickers), 10):
             chunk = tickers[start : start + 10]
             try:
                 history = yf.download(
-                    tickers=chunk, period="5d", interval="5m", progress=False,
+                    tickers=chunk, period="5d", interval=interval, progress=False,
                     auto_adjust=False, group_by="ticker", threads=False,
                 )
             except Exception:
