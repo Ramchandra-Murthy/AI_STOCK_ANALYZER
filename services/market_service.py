@@ -176,11 +176,22 @@ def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
         )
     return pd.DataFrame(
         rows,
-        columns=["Symbol", "Exchange", "Ticker", "Price", "Change %", "Observed", "Frequency", "Intraday"],
+        columns=[
+            "Symbol",
+            "Exchange",
+            "Ticker",
+            "Price",
+            "Change %",
+            "Observed",
+            "Frequency",
+            "Intraday",
+        ],
     )
 
 
-def get_top_movers(watchlist: dict[str, str] | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+def get_top_movers(
+    watchlist: dict[str, str] | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Return top gainers and losers from the supplied NSE/BSE universe."""
     frame = _scan_watchlist(watchlist or WATCHLIST)
     if frame.empty:
@@ -220,7 +231,9 @@ def scan_market_universe(
         return frame
     frame["Absolute Change %"] = frame["Change %"].abs()
     return (
-        frame.sort_values(["Absolute Change %", "Change %"], ascending=[False, False])
+        frame.sort_values(
+            ["Absolute Change %", "Change %"], ascending=[False, False]
+        )
         .head(top_n)
         .drop(columns=["Absolute Change %"])
         .reset_index(drop=True)
