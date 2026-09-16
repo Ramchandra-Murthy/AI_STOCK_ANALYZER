@@ -50,7 +50,7 @@ def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
 
 @lru_cache(maxsize=512)
 def get_company_name(ticker: str) -> str:
-    """Resolve a human-readable company name, falling back to the ticker."""
+    """Resolve a human-readable company name, with Yahoo search as fallback."""
     try:
         info = yf.Ticker(ticker).get_info()
         name = info.get("longName") or info.get("shortName")
@@ -58,6 +58,24 @@ def get_company_name(ticker: str) -> str:
             return name.strip()
     except Exception:
         pass
+
+    try:
+        quotes = yf.Search(ticker, max_results=8, news_count=0).quotes
+        normalized = ticker.strip().upper()
+        for quote in quotes:
+            symbol = str(quote.get("symbol", "")).strip().upper()
+            if symbol != normalized:
+                continue
+            name = quote.get("longname") or quote.get("shortname")
+            if isinstance(name, str) and name.strip():
+                return name.strip()
+        for quote in quotes:
+            name = quote.get("longname") or quote.get("shortname")
+            if isinstance(name, str) and name.strip():
+                return name.strip()
+    except Exception:
+        pass
+
     return ticker
 
 
