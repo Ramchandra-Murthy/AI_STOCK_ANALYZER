@@ -55,7 +55,11 @@ def _frame_for(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     return frame
 
 
-def scan_unusual_activity(limit: int = 20, cap_category: str = "All caps") -> pd.DataFrame:
+def scan_unusual_activity(
+    limit: int = 20,
+    cap_category: str = "All caps",
+    exchange_category: str = "Both",
+) -> pd.DataFrame:
     """Find positive intraday movers with unusually high latest-bar volume.
 
     Uses Yahoo Finance 5-minute candles and representative candidate baskets.
@@ -63,6 +67,7 @@ def scan_unusual_activity(limit: int = 20, cap_category: str = "All caps") -> pd
     repository does not maintain a verified cap-category mapping for those codes.
     """
     rows: list[dict[str, Any]] = []
+    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     if cap_category == "All caps":
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
             (symbol, "BSE") for symbol in BSE_CANDIDATES
@@ -71,7 +76,7 @@ def scan_unusual_activity(limit: int = 20, cap_category: str = "All caps") -> pd
         selected = CAP_UNIVERSES.get(cap_category, set())
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
         # BSE scrip codes are not reliably classifiable without a maintained mapping.
-    for exchange in ("NSE", "BSE"):
+    for exchange in exchanges:
         symbols = [symbol for symbol, venue in universe if venue == exchange]
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
         for start in range(0, len(tickers), CHUNK_SIZE):
