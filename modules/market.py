@@ -57,9 +57,11 @@ def get_sector_performance():
                 "Stocks Available": len(changes),
             }
         )
-    return pd.DataFrame(rows).sort_values(
-        "Average Change %", ascending=False, na_position="last"
-    ).reset_index(drop=True)
+    return (
+        pd.DataFrame(rows)
+        .sort_values("Average Change %", ascending=False, na_position="last")
+        .reset_index(drop=True)
+    )
 
 
 def get_personal_watchlist(symbols):
@@ -132,16 +134,8 @@ def show():
         gainers = pd.DataFrame()
         losers = pd.DataFrame()
     else:
-        gainers = (
-            scanner[scanner["Change %"] >= 0]
-            .sort_values("Change %", ascending=False)
-            .head(5)
-        )
-        losers = (
-            scanner[scanner["Change %"] < 0]
-            .sort_values("Change %", ascending=True)
-            .head(5)
-        )
+        gainers = scanner[scanner["Change %"] >= 0].sort_values("Change %", ascending=False).head(5)
+        losers = scanner[scanner["Change %"] < 0].sort_values("Change %", ascending=True).head(5)
 
     display_columns = ["Symbol", "Exchange", "Price", "Change %"]
     gainers = gainers[[c for c in display_columns if c in gainers.columns]]
@@ -182,9 +176,7 @@ def show():
             if selected_exchange == "NSE"
             else "e.g. 500570 or 500570.BO"
         )
-        symbol_input = st.text_input(
-            f"Add a {selected_exchange} symbol", placeholder=placeholder
-        )
+        symbol_input = st.text_input(f"Add a {selected_exchange} symbol", placeholder=placeholder)
         submitted = st.form_submit_button("Add to watchlist")
 
     if submitted:
