@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -53,6 +54,32 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
 def show() -> None:
     st.title("⏱️ Intraday Trading")
     st.caption("Technical analysis and paper-trading review — no orders are placed.")
+
+    st.subheader("Price jump scanner")
+    st.caption("Flags candidate stocks whose latest 5-minute close has risen by the selected percentage over the chosen lookback. It is a retrospective candle screen, not a live tick alert; Yahoo Finance coverage and delays vary.")
+    jump_exchange = st.selectbox("Exchange for price jumps", ["Both", "NSE", "BSE"], key="jump_exchange", format_func=lambda value: "NSE + BSE" if value == "Both" else value)
+    jump_cap = st.selectbox("Market-cap basket for price jumps", ["All caps", "Large cap", "Mid cap", "Small cap"], key="jump_cap")
+    jump_window = st.selectbox("Jump lookback", [5, 10, 15, 30], index=0, format_func=lambda value: f"{value} minutes", key="jump_window")
+    jump_threshold = st.selectbox("Minimum price rise", [0.5, 1.0, 1.5, 2.0, 3.0], index=1, format_func=lambda value: f"{value:.1f}%", key="jump_threshold")
+    jump_limit = st.selectbox("Maximum price-jump results", [10, 20, 30, 50], index=1, key="jump_limit")
+    if st.button("Scan for price jumps", key="run_price_jump"):
+        with st.spinner(f"Checking {jump_exchange} · {jump_cap.lower()} candidates…"):
+            try:
+                result = scan_price_jumps(jump_limit, jump_cap, jump_exchange, jump_window, jump_threshold)
+                st.session_state["price_jump_results"] = result
+                st.session_state["price_jump_scan_time"] = datetime.now(IST).strftime("%d %b %Y, %H:%M IST")
+                st.session_state["price_jump_scan_exchange"] = jump_exchange
+                st.session_state["price_jump_scan_cap"] = jump_cap
+            except Exception as exc:
+                st.error(f"Price-jump scan could not complete: {exc}")
+    jump_results = st.session_state.get("price_jump_results")
+    if jump_results is not None:
+        st.caption(f"Last scan: {st.session_state.get('price_jump_scan_time', 'unknown')} · Exchange: {st.session_state.get('price_jump_scan_exchange', 'unknown')} · Basket: {st.session_state.get('price_jump_scan_cap', 'unknown')} · Candidate list is limited, not exchange-wide.")
+        if jump_results.empty:
+            st.info("No candidates met this threshold, or the provider returned insufficient candles. Try a lower threshold or scan during market hours.")
+        else:
+            st.dataframe(jump_results, use_container_width=True, hide_index=True)
+            st.download_button("Download price-jump CSV", jump_results.to_csv(index=False).encode("utf-8"), file_name="price_jumps.csv", mime="text/csv", key="download_price_jumps")
 
     st.subheader("Unusual activity scanner")
     st.caption("Screens candidate stocks for positive intraday moves and latest 5-minute volume at least 1.5× the average volume of the same time slot in up to four prior sessions. Yahoo Finance coverage and delays may vary.")
