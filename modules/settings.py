@@ -6,7 +6,6 @@ They are not persisted across sessions until a durable settings store is added.
 
 import streamlit as st  # isort: skip
 
-
 DEFAULT_SETTINGS = {
     "exchange": "NSE",
     "market_segment": "Equity / Cash",
@@ -102,20 +101,32 @@ def show() -> None:
             )
             col1, col2, col3 = st.columns(3)
             ma_short = col1.number_input(
-                "Short MA period", min_value=1, max_value=500,
-                value=int(settings["ma_short"]), step=1,
+                "Short MA period",
+                min_value=1,
+                max_value=500,
+                value=int(settings["ma_short"]),
+                step=1,
             )
             ma_long = col2.number_input(
-                "Long MA period", min_value=1, max_value=500,
-                value=int(settings["ma_long"]), step=1,
+                "Long MA period",
+                min_value=1,
+                max_value=500,
+                value=int(settings["ma_long"]),
+                step=1,
             )
             ma_trend = col3.number_input(
-                "Trend MA period", min_value=1, max_value=500,
-                value=int(settings["ma_trend"]), step=1,
+                "Trend MA period",
+                min_value=1,
+                max_value=500,
+                value=int(settings["ma_trend"]),
+                step=1,
             )
             rsi_period = st.number_input(
-                "RSI period", min_value=2, max_value=100,
-                value=int(settings["rsi_period"]), step=1,
+                "RSI period",
+                min_value=2,
+                max_value=100,
+                value=int(settings["rsi_period"]),
+                step=1,
             )
             if not ma_short < ma_long < ma_trend:
                 st.warning("For conventional short/long/trend ordering, use increasing MA periods.")

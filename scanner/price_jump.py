@@ -46,14 +46,21 @@ def scan_price_jumps(
     bars = max(1, int(round(lookback_minutes / candle_minutes)))
 
     for exchange in exchanges:
-        tickers = [_ticker(symbol, exchange) for symbol, venue in selected_universe if venue == exchange]
+        tickers = [
+            _ticker(symbol, exchange) for symbol, venue in selected_universe if venue == exchange
+        ]
         for start in range(0, len(tickers), 10):
             chunk = tickers[start : start + 10]
             stats["attempted_count"] += len(chunk)
             try:
                 history = yf.download(
-                    tickers=chunk, period="5d", interval=interval, progress=False,
-                    auto_adjust=False, group_by="ticker", threads=False,
+                    tickers=chunk,
+                    period="5d",
+                    interval=interval,
+                    progress=False,
+                    auto_adjust=False,
+                    group_by="ticker",
+                    threads=False,
                 )
             except Exception:
                 stats["download_failed_chunks"] += 1
@@ -86,19 +93,23 @@ def scan_price_jumps(
                     change_pct = (price / prior_close - 1) * 100
                     if change_pct < jump_percent:
                         continue
-                    baseline = float(current["Volume"].iloc[-min(13, len(current) - 1):-1].mean())
+                    baseline = float(current["Volume"].iloc[-min(13, len(current) - 1) : -1].mean())
                     volume = float(latest["Volume"])
                     relative_volume = volume / baseline if baseline > 0 else float("nan")
-                    rows.append({
-                        "Symbol": ticker.rsplit(".", 1)[0],
-                        "Exchange": exchange,
-                        "Market-cap basket": cap_category,
-                        "Last price": round(price, 2),
-                        f"Change over {lookback_minutes} min %": round(change_pct, 2),
-                        "Latest bar volume": int(volume),
-                        "Volume vs recent bars": round(relative_volume, 2) if pd.notna(relative_volume) else None,
-                        "Latest candle (provider time)": str(current.index[-1]),
-                    })
+                    rows.append(
+                        {
+                            "Symbol": ticker.rsplit(".", 1)[0],
+                            "Exchange": exchange,
+                            "Market-cap basket": cap_category,
+                            "Last price": round(price, 2),
+                            f"Change over {lookback_minutes} min %": round(change_pct, 2),
+                            "Latest bar volume": int(volume),
+                            "Volume vs recent bars": (
+                                round(relative_volume, 2) if pd.notna(relative_volume) else None
+                            ),
+                            "Latest candle (provider time)": str(current.index[-1]),
+                        }
+                    )
                 except (KeyError, TypeError, ValueError, IndexError):
                     stats["processing_errors"] += 1
                     continue
@@ -106,10 +117,16 @@ def scan_price_jumps(
     if not rows:
         result = pd.DataFrame()
     else:
-        result = pd.DataFrame(rows).sort_values(
-            [f"Change over {lookback_minutes} min %", "Volume vs recent bars"],
-            ascending=[False, False], na_position="last",
-        ).head(max(1, min(int(limit), 100))).reset_index(drop=True)
+        result = (
+            pd.DataFrame(rows)
+            .sort_values(
+                [f"Change over {lookback_minutes} min %", "Volume vs recent bars"],
+                ascending=[False, False],
+                na_position="last",
+            )
+            .head(max(1, min(int(limit), 100)))
+            .reset_index(drop=True)
+        )
     stats["displayed_count"] = len(result)
     result.attrs["scan_stats"] = stats
     return result
