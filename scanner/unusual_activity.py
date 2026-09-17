@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from scanner.market_scanner import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 CHUNK_SIZE = 10
 
