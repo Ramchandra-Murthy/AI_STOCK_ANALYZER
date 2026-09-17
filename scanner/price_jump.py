@@ -47,9 +47,7 @@ def scan_price_jumps(
 
     for exchange in exchanges:
         tickers = [
-            _ticker(symbol, exchange)
-            for symbol, venue in selected_universe
-            if venue == exchange
+            _ticker(symbol, exchange) for symbol, venue in selected_universe if venue == exchange
         ]
         for start in range(0, len(tickers), 10):
             chunk = tickers[start : start + 10]
@@ -99,9 +97,7 @@ def scan_price_jumps(
                     price = float(current.iloc[-1]["Close"])
                     prior_intraday = float(current.iloc[-1 - bars]["Close"])
                     intraday_pct = (
-                        (price / prior_intraday - 1) * 100
-                        if prior_intraday > 0
-                        else None
+                        (price / prior_intraday - 1) * 100 if prior_intraday > 0 else None
                     )
 
                     # Daily gain is current price versus the previous session's
@@ -109,28 +105,24 @@ def scan_price_jumps(
                     daily_pct: float | None = None
                     daily_frame = _frame_for(daily_history, ticker)
                     if not daily_frame.empty and "Close" in daily_frame.columns:
-                        daily_close = pd.to_numeric(
-                            daily_frame["Close"], errors="coerce"
-                        ).dropna().sort_index()
+                        daily_close = (
+                            pd.to_numeric(daily_frame["Close"], errors="coerce")
+                            .dropna()
+                            .sort_index()
+                        )
                         if len(daily_close) >= 2:
                             previous_close = float(daily_close.iloc[-2])
                             if previous_close > 0:
                                 daily_pct = (price / previous_close - 1) * 100
 
-                    qualifies_intraday = (
-                        intraday_pct is not None and intraday_pct >= jump_percent
-                    )
+                    qualifies_intraday = intraday_pct is not None and intraday_pct >= jump_percent
                     qualifies_daily = daily_pct is not None and daily_pct >= jump_percent
                     if not (qualifies_intraday or qualifies_daily):
                         continue
 
-                    baseline = float(
-                        current["Volume"].iloc[-min(13, len(current) - 1) : -1].mean()
-                    )
+                    baseline = float(current["Volume"].iloc[-min(13, len(current) - 1) : -1].mean())
                     volume = float(current.iloc[-1]["Volume"])
-                    relative_volume = (
-                        volume / baseline if baseline > 0 else float("nan")
-                    )
+                    relative_volume = volume / baseline if baseline > 0 else float("nan")
                     reasons = []
                     if qualifies_daily:
                         reasons.append("Daily gain")
@@ -142,19 +134,17 @@ def scan_price_jumps(
                             "Exchange": exchange,
                             "Market-cap basket": cap_category,
                             "Last price": round(price, 2),
-                            "Today change %": round(daily_pct, 2)
-                            if daily_pct is not None
-                            else None,
-                            f"Change over {lookback_minutes} min %": round(
-                                intraday_pct, 2
-                            )
-                            if intraday_pct is not None
-                            else None,
+                            "Today change %": (
+                                round(daily_pct, 2) if daily_pct is not None else None
+                            ),
+                            f"Change over {lookback_minutes} min %": (
+                                round(intraday_pct, 2) if intraday_pct is not None else None
+                            ),
                             "Matched by": " + ".join(reasons),
                             "Latest bar volume": int(volume),
-                            "Volume vs recent bars": round(relative_volume, 2)
-                            if pd.notna(relative_volume)
-                            else None,
+                            "Volume vs recent bars": (
+                                round(relative_volume, 2) if pd.notna(relative_volume) else None
+                            ),
                             "Latest candle (provider time)": str(current.index[-1]),
                         }
                     )
@@ -166,11 +156,16 @@ def scan_price_jumps(
     if not rows:
         result = pd.DataFrame()
     else:
-        result = pd.DataFrame(rows).sort_values(
-            ["Today change %", f"Change over {lookback_minutes} min %"],
-            ascending=[False, False],
-            na_position="last",
-        ).head(max(1, min(int(limit), 100))).reset_index(drop=True)
+        result = (
+            pd.DataFrame(rows)
+            .sort_values(
+                ["Today change %", f"Change over {lookback_minutes} min %"],
+                ascending=[False, False],
+                na_position="last",
+            )
+            .head(max(1, min(int(limit), 100)))
+            .reset_index(drop=True)
+        )
     stats["displayed_count"] = len(result)
     result.attrs["scan_stats"] = stats
     return result
