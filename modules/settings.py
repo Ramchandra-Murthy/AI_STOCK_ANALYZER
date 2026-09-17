@@ -4,7 +4,7 @@ Preferences are stored in Streamlit session state for the current session.
 They are not persisted across sessions until a durable settings store is added.
 """
 
-import streamlit as st
+import streamlit as st  # isort: skip
 
 
 DEFAULT_SETTINGS = {
