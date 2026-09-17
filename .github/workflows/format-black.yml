@@ -1,0 +1,55 @@
+name: Format PR branch with Black
+
+on:
+  push:
+    branches:
+      - fix/settings-ruff-isort-skip
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/settings-ruff-isort-skip
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
+        with:
+          version: "0.12.1"
+
+      - name: Install locked dependencies
+        run: uv sync --locked --no-build --no-install-project
+
+      - name: Format files reported by CI
+        run: >-
+          uv run --locked --no-sync --no-build black
+          modules/scanner.py
+          modules/intraday.py
+          modules/settings.py
+          scanner/price_jump.py
+          scanner/market_scanner.py
+          scanner/watchlist_scanner.py
+          scanner/unusual_activity.py
+
+      - name: Commit formatting changes
+        run: |
+          if git diff --quiet; then
+            echo "Black made no changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add modules/scanner.py modules/intraday.py modules/settings.py scanner/price_jump.py scanner/market_scanner.py scanner/watchlist_scanner.py scanner/unusual_activity.py
+          git commit -m "Apply Black formatting to CI-reported files"
+          git push origin HEAD:fix/settings-ruff-isort-skip

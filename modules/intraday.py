@@ -47,7 +47,9 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
     data["MACD signal"] = data["MACD"].ewm(span=9, adjust=False).mean()
     typical = (data["High"] + data["Low"] + data["Close"]) / 3
     session = pd.Series(data.index.date, index=data.index)
-    data["VWAP"] = (typical * data["Volume"]).groupby(session).cumsum() / data["Volume"].groupby(session).cumsum().replace(0, float("nan"))
+    data["VWAP"] = (typical * data["Volume"]).groupby(session).cumsum() / data["Volume"].groupby(
+        session
+    ).cumsum().replace(0, float("nan"))
     return data
 
 
@@ -56,18 +58,47 @@ def show() -> None:
     st.caption("Technical analysis and paper-trading review — no orders are placed.")
 
     st.subheader("Price jump scanner")
-    st.caption("Screens candidate stocks for price rises over the selected lookback. The 2- and 3-minute choices use Yahoo Finance 1-minute candles; longer lookbacks use 5-minute candles. This is a retrospective candle screen, not a live tick alert; Yahoo coverage and delays vary.")
-    jump_exchange = st.selectbox("Exchange for price jumps", ["Both", "NSE", "BSE"], key="jump_exchange", format_func=lambda value: "NSE + BSE" if value == "Both" else value)
-    jump_cap = st.selectbox("Market-cap basket for price jumps", ["All caps", "Large cap", "Mid cap", "Small cap"], key="jump_cap")
-    jump_window = st.selectbox("Jump lookback", [2, 3, 5, 10, 15, 30], index=2, format_func=lambda value: f"{value} minutes", key="jump_window")
-    jump_threshold = st.selectbox("Minimum price rise", [0.5, 1.0, 1.5, 2.0, 3.0], index=1, format_func=lambda value: f"{value:.1f}%", key="jump_threshold")
-    jump_limit = st.selectbox("Maximum price-jump results", [10, 20, 30, 50], index=1, key="jump_limit")
+    st.caption(
+        "Screens candidate stocks for price rises over the selected lookback. The 2- and 3-minute choices use Yahoo Finance 1-minute candles; longer lookbacks use 5-minute candles. This is a retrospective candle screen, not a live tick alert; Yahoo coverage and delays vary."
+    )
+    jump_exchange = st.selectbox(
+        "Exchange for price jumps",
+        ["Both", "NSE", "BSE"],
+        key="jump_exchange",
+        format_func=lambda value: "NSE + BSE" if value == "Both" else value,
+    )
+    jump_cap = st.selectbox(
+        "Market-cap basket for price jumps",
+        ["All caps", "Large cap", "Mid cap", "Small cap"],
+        key="jump_cap",
+    )
+    jump_window = st.selectbox(
+        "Jump lookback",
+        [2, 3, 5, 10, 15, 30],
+        index=2,
+        format_func=lambda value: f"{value} minutes",
+        key="jump_window",
+    )
+    jump_threshold = st.selectbox(
+        "Minimum price rise",
+        [0.5, 1.0, 1.5, 2.0, 3.0],
+        index=1,
+        format_func=lambda value: f"{value:.1f}%",
+        key="jump_threshold",
+    )
+    jump_limit = st.selectbox(
+        "Maximum price-jump results", [10, 20, 30, 50], index=1, key="jump_limit"
+    )
     if st.button("Scan for price jumps", key="run_price_jump"):
         with st.spinner(f"Checking {jump_exchange} · {jump_cap.lower()} candidates…"):
             try:
-                result = scan_price_jumps(jump_limit, jump_cap, jump_exchange, jump_window, jump_threshold)
+                result = scan_price_jumps(
+                    jump_limit, jump_cap, jump_exchange, jump_window, jump_threshold
+                )
                 st.session_state["price_jump_results"] = result
-                st.session_state["price_jump_scan_time"] = datetime.now(IST).strftime("%d %b %Y, %H:%M IST")
+                st.session_state["price_jump_scan_time"] = datetime.now(IST).strftime(
+                    "%d %b %Y, %H:%M IST"
+                )
                 st.session_state["price_jump_scan_exchange"] = jump_exchange
                 st.session_state["price_jump_scan_cap"] = jump_cap
                 st.session_state["price_jump_scan_window"] = jump_window
@@ -75,22 +106,49 @@ def show() -> None:
                 st.error(f"Price-jump scan could not complete: {exc}")
     jump_results = st.session_state.get("price_jump_results")
     if jump_results is not None:
-        st.caption(f"Last scan: {st.session_state.get('price_jump_scan_time', 'unknown')} · Exchange: {st.session_state.get('price_jump_scan_exchange', 'unknown')} · Basket: {st.session_state.get('price_jump_scan_cap', 'unknown')} · Lookback: {st.session_state.get('price_jump_scan_window', 'unknown')} min · Candidate list is limited, not exchange-wide.")
+        st.caption(
+            f"Last scan: {st.session_state.get('price_jump_scan_time', 'unknown')} · Exchange: {st.session_state.get('price_jump_scan_exchange', 'unknown')} · Basket: {st.session_state.get('price_jump_scan_cap', 'unknown')} · Lookback: {st.session_state.get('price_jump_scan_window', 'unknown')} min · Candidate list is limited, not exchange-wide."
+        )
         if jump_results.empty:
-            st.info("No candidates met this threshold, or the provider returned insufficient candles. Try a lower threshold or scan during market hours.")
+            st.info(
+                "No candidates met this threshold, or the provider returned insufficient candles. Try a lower threshold or scan during market hours."
+            )
         else:
             st.dataframe(jump_results, use_container_width=True, hide_index=True)
-            st.download_button("Download price-jump CSV", jump_results.to_csv(index=False).encode("utf-8"), file_name="price_jumps.csv", mime="text/csv", key="download_price_jumps")
+            st.download_button(
+                "Download price-jump CSV",
+                jump_results.to_csv(index=False).encode("utf-8"),
+                file_name="price_jumps.csv",
+                mime="text/csv",
+                key="download_price_jumps",
+            )
 
     st.subheader("Unusual activity scanner")
-    st.caption("Screens candidate stocks for positive intraday moves and latest 5-minute volume at least 1.5× the average volume of the same time slot in up to four prior sessions. Yahoo Finance coverage and delays may vary.")
-    exchange_category = st.selectbox("Exchange", ["Both", "NSE", "BSE"], key="unusual_exchange_category", format_func=lambda value: "NSE + BSE" if value == "Both" else value)
-    cap_category = st.selectbox("Market-cap basket", ["All caps", "Large cap", "Mid cap", "Small cap"], key="unusual_cap_category")
+    st.caption(
+        "Screens candidate stocks for positive intraday moves and latest 5-minute volume at least 1.5× the average volume of the same time slot in up to four prior sessions. Yahoo Finance coverage and delays may vary."
+    )
+    exchange_category = st.selectbox(
+        "Exchange",
+        ["Both", "NSE", "BSE"],
+        key="unusual_exchange_category",
+        format_func=lambda value: "NSE + BSE" if value == "Both" else value,
+    )
+    cap_category = st.selectbox(
+        "Market-cap basket",
+        ["All caps", "Large cap", "Mid cap", "Small cap"],
+        key="unusual_cap_category",
+    )
     if cap_category == "All caps":
-        st.caption("All caps includes the existing NSE and BSE candidate lists. Cap-specific baskets currently screen representative NSE symbols only; they are not exhaustive or official live market-cap classifications.")
+        st.caption(
+            "All caps includes the existing NSE and BSE candidate lists. Cap-specific baskets currently screen representative NSE symbols only; they are not exhaustive or official live market-cap classifications."
+        )
     else:
-        st.caption("Cap-specific baskets screen representative NSE symbols only. BSE scrip codes are not included because the app does not maintain a verified cap-category mapping for them. Constituents and market-cap ranks can change.")
-    scan_limit = st.selectbox("Maximum results", [10, 20, 30, 50], index=1, key="unusual_scan_limit")
+        st.caption(
+            "Cap-specific baskets screen representative NSE symbols only. BSE scrip codes are not included because the app does not maintain a verified cap-category mapping for them. Constituents and market-cap ranks can change."
+        )
+    scan_limit = st.selectbox(
+        "Maximum results", [10, 20, 30, 50], index=1, key="unusual_scan_limit"
+    )
     if st.button("Scan for unusual activity", key="run_unusual_scan"):
         with st.spinner(f"Scanning {exchange_category} · {cap_category.lower()}…"):
             try:
@@ -98,22 +156,38 @@ def show() -> None:
                 st.session_state["unusual_activity_results"] = scan_results
                 st.session_state["unusual_activity_scan_category"] = cap_category
                 st.session_state["unusual_activity_scan_exchange"] = exchange_category
-                st.session_state["unusual_activity_scan_time"] = datetime.now(IST).strftime("%d %b %Y, %H:%M IST")
+                st.session_state["unusual_activity_scan_time"] = datetime.now(IST).strftime(
+                    "%d %b %Y, %H:%M IST"
+                )
             except Exception as exc:
                 st.error(f"Scanner could not complete: {exc}")
     scan_results = st.session_state.get("unusual_activity_results")
     if scan_results is not None:
-        st.caption(f"Last scan: {st.session_state.get('unusual_activity_scan_time', 'unknown')} · Exchange: {st.session_state.get('unusual_activity_scan_exchange', 'unknown')} · Basket: {st.session_state.get('unusual_activity_scan_category', 'unknown')} · Candidate universe is limited; not an exhaustive exchange-wide scan.")
+        st.caption(
+            f"Last scan: {st.session_state.get('unusual_activity_scan_time', 'unknown')} · Exchange: {st.session_state.get('unusual_activity_scan_exchange', 'unknown')} · Basket: {st.session_state.get('unusual_activity_scan_category', 'unknown')} · Candidate universe is limited; not an exhaustive exchange-wide scan."
+        )
         if scan_results.empty:
-            st.info("No candidates met the screening conditions, or the data provider returned insufficient data. Try again during market hours.")
+            st.info(
+                "No candidates met the screening conditions, or the data provider returned insufficient data. Try again during market hours."
+            )
         else:
             st.dataframe(scan_results, use_container_width=True, hide_index=True)
-            st.download_button("Download unusual activity CSV", scan_results.to_csv(index=False).encode("utf-8"), file_name="unusual_activity.csv", mime="text/csv", key="download_unusual_activity")
+            st.download_button(
+                "Download unusual activity CSV",
+                scan_results.to_csv(index=False).encode("utf-8"),
+                file_name="unusual_activity.csv",
+                mime="text/csv",
+                key="download_unusual_activity",
+            )
 
     st.divider()
     left, right = st.columns([2, 1])
     with left:
-        symbol = st.text_input("Stock symbol", value="RELIANCE", help="Enter the NSE/BSE trading symbol without an exchange suffix.")
+        symbol = st.text_input(
+            "Stock symbol",
+            value="RELIANCE",
+            help="Enter the NSE/BSE trading symbol without an exchange suffix.",
+        )
     with right:
         exchange = st.selectbox("Exchange", ["NSE", "BSE"])
     interval = st.selectbox("Candle timeframe", ["5m", "15m", "30m"], index=1)
@@ -129,13 +203,19 @@ def show() -> None:
     ticker = _ticker(symbol, exchange)
     with st.spinner(f"Loading recent {interval} candles for {ticker}…"):
         try:
-            intraday = yf.download(ticker, period="5d", interval=interval, progress=False, auto_adjust=False)
-            daily = yf.download(ticker, period="5d", interval="1d", progress=False, auto_adjust=False)
+            intraday = yf.download(
+                ticker, period="5d", interval=interval, progress=False, auto_adjust=False
+            )
+            daily = yf.download(
+                ticker, period="5d", interval="1d", progress=False, auto_adjust=False
+            )
         except Exception as exc:
             st.error(f"Could not retrieve market data: {exc}")
             return
     if intraday is None or intraday.empty:
-        st.error("No intraday candles were returned. Verify the symbol/exchange and try again during market hours.")
+        st.error(
+            "No intraday candles were returned. Verify the symbol/exchange and try again during market hours."
+        )
         return
     try:
         data = _prepare(intraday)
@@ -152,13 +232,28 @@ def show() -> None:
     timestamp_ist = timestamp.tz_convert(IST)
     now_ist = datetime.now(IST)
     age_minutes = max(0, (now_ist - timestamp_ist.to_pydatetime()).total_seconds() / 60)
-    st.caption(f"Latest candle: {timestamp_ist:%d %b %Y, %H:%M IST} · Retrieved: {now_ist:%d %b %Y, %H:%M IST}")
+    st.caption(
+        f"Latest candle: {timestamp_ist:%d %b %Y, %H:%M IST} · Retrieved: {now_ist:%d %b %Y, %H:%M IST}"
+    )
     if age_minutes > max(60, int(interval[:-1]) * 3):
-        st.warning("Data freshness check: the latest candle is older than expected. This may be normal outside market hours; verify provider timestamps.")
+        st.warning(
+            "Data freshness check: the latest candle is older than expected. This may be normal outside market hours; verify provider timestamps."
+        )
     else:
-        st.success("Data freshness check: latest candle is recent relative to the selected interval.")
-    missing = intraday[[c for c in ["Open", "High", "Low", "Close", "Volume"] if c in intraday.columns]].isna().sum().sum() if not isinstance(intraday.columns, pd.MultiIndex) else 0
-    st.caption(f"Data quality: {len(data)} complete candles after removing missing OHLCV rows and duplicate timestamps; missing cells detected: {int(missing)}. This does not prove quote accuracy or completeness of the trading session.")
+        st.success(
+            "Data freshness check: latest candle is recent relative to the selected interval."
+        )
+    missing = (
+        intraday[[c for c in ["Open", "High", "Low", "Close", "Volume"] if c in intraday.columns]]
+        .isna()
+        .sum()
+        .sum()
+        if not isinstance(intraday.columns, pd.MultiIndex)
+        else 0
+    )
+    st.caption(
+        f"Data quality: {len(data)} complete candles after removing missing OHLCV rows and duplicate timestamps; missing cells detected: {int(missing)}. This does not prove quote accuracy or completeness of the trading session."
+    )
 
     latest = data.iloc[-1]
     metrics = st.columns(4)
@@ -174,14 +269,22 @@ def show() -> None:
     opening = today_data.head(bars_needed)
     st.subheader(f"Opening Range Breakout ({orb_minutes} minutes)")
     if len(opening) < bars_needed:
-        st.info(f"Opening range is still forming: need {bars_needed} complete {interval} candles; have {len(opening)}.")
+        st.info(
+            f"Opening range is still forming: need {bars_needed} complete {interval} candles; have {len(opening)}."
+        )
     else:
         orb_high, orb_low = opening["High"].max(), opening["Low"].min()
-        st.caption(f"Range high: ₹{orb_high:,.2f} · Range low: ₹{orb_low:,.2f} · Based on first {len(opening)} candles of the latest date in returned data.")
+        st.caption(
+            f"Range high: ₹{orb_high:,.2f} · Range low: ₹{orb_low:,.2f} · Based on first {len(opening)} candles of the latest date in returned data."
+        )
         if latest["Close"] > orb_high:
-            st.info("Price is above the opening-range high. Treat as a condition to review, not an entry instruction.")
+            st.info(
+                "Price is above the opening-range high. Treat as a condition to review, not an entry instruction."
+            )
         elif latest["Close"] < orb_low:
-            st.info("Price is below the opening-range low. Treat as a condition to review, not an entry instruction.")
+            st.info(
+                "Price is below the opening-range low. Treat as a condition to review, not an entry instruction."
+            )
         else:
             st.info("Price remains inside the opening range.")
 
@@ -200,13 +303,25 @@ def show() -> None:
                 p2.metric("R1", f"₹{(2 * pivot - previous['Low']):,.2f}")
                 p3.metric("S1", f"₹{(2 * pivot - previous['High']):,.2f}")
 
-    bullish = latest["Close"] > latest["VWAP"] and latest["EMA 9"] > latest["EMA 21"] and latest["MACD"] > latest["MACD signal"]
-    bearish = latest["Close"] < latest["VWAP"] and latest["EMA 9"] < latest["EMA 21"] and latest["MACD"] < latest["MACD signal"]
+    bullish = (
+        latest["Close"] > latest["VWAP"]
+        and latest["EMA 9"] > latest["EMA 21"]
+        and latest["MACD"] > latest["MACD signal"]
+    )
+    bearish = (
+        latest["Close"] < latest["VWAP"]
+        and latest["EMA 9"] < latest["EMA 21"]
+        and latest["MACD"] < latest["MACD signal"]
+    )
     st.subheader("Technical conditions (not trade instructions)")
     if bullish:
-        st.success("Bullish conditions: close above VWAP, EMA 9 above EMA 21, and MACD above its signal line.")
+        st.success(
+            "Bullish conditions: close above VWAP, EMA 9 above EMA 21, and MACD above its signal line."
+        )
     elif bearish:
-        st.warning("Bearish conditions: close below VWAP, EMA 9 below EMA 21, and MACD below its signal line.")
+        st.warning(
+            "Bearish conditions: close below VWAP, EMA 9 below EMA 21, and MACD below its signal line."
+        )
     else:
         st.info("Mixed conditions: the selected indicators do not align in one direction.")
 
@@ -214,5 +329,12 @@ def show() -> None:
     st.line_chart(data[["Close", "VWAP", "EMA 9", "EMA 21"]].tail(120))
     st.line_chart(data[["RSI 14"]].tail(120))
     st.dataframe(data.tail(20).sort_index(ascending=False), use_container_width=True)
-    st.download_button("Download analysis CSV", data.to_csv().encode("utf-8"), file_name=f"{ticker.replace('.', '_')}_{interval}_analysis.csv", mime="text/csv")
-    st.warning("For education and paper trading only. Indicators can lag; this module does not calculate guaranteed entries, stop-losses, or targets and does not place trades.")
+    st.download_button(
+        "Download analysis CSV",
+        data.to_csv().encode("utf-8"),
+        file_name=f"{ticker.replace('.', '_')}_{interval}_analysis.csv",
+        mime="text/csv",
+    )
+    st.warning(
+        "For education and paper trading only. Indicators can lag; this module does not calculate guaranteed entries, stop-losses, or targets and does not place trades."
+    )

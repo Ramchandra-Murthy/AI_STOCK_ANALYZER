@@ -1,4 +1,5 @@
 """Scan symbols saved in the user's personal watchlist."""
+
 from typing import Any
 
 import pandas as pd
@@ -29,24 +30,28 @@ def scan_watchlist(symbols: list[str]) -> pd.DataFrame:
             last = result["last"]
             signal = result["signal"]
             trend = result["trend"]
-            rows.append({
-                "Symbol": ticker.removesuffix(".NS").removesuffix(".BO"),
-                "Exchange": "BSE" if ticker.endswith(".BO") else "NSE",
-                "Price": round(float(last["Close"]), 2),
-                "Trend": trend["Trend"],
-                "RSI": round(float(last["RSI_14"]), 2),
-                "MACD": round(float(last["MACD"]), 2),
-                "ATR": round(float(last["ATR"]), 2),
-                "AI Score": signal["Score"],
-                "Confidence": abs(signal["Score"]),
-                "Risk": "Medium",
-                "Recommendation": signal["Recommendation"],
-            })
+            rows.append(
+                {
+                    "Symbol": ticker.removesuffix(".NS").removesuffix(".BO"),
+                    "Exchange": "BSE" if ticker.endswith(".BO") else "NSE",
+                    "Price": round(float(last["Close"]), 2),
+                    "Trend": trend["Trend"],
+                    "RSI": round(float(last["RSI_14"]), 2),
+                    "MACD": round(float(last["MACD"]), 2),
+                    "ATR": round(float(last["ATR"]), 2),
+                    "AI Score": signal["Score"],
+                    "Confidence": abs(signal["Score"]),
+                    "Risk": "Medium",
+                    "Recommendation": signal["Recommendation"],
+                }
+            )
         except Exception:
             # One unavailable/invalid ticker must not prevent the rest of the list.
             continue
     if not rows:
         return pd.DataFrame()
-    return pd.DataFrame(rows).sort_values(
-        by=["AI Score", "Confidence"], ascending=[False, False]
-    ).reset_index(drop=True)
+    return (
+        pd.DataFrame(rows)
+        .sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
+        .reset_index(drop=True)
+    )
