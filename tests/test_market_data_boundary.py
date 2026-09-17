@@ -46,6 +46,21 @@ def test_scanner_accepts_both_exchanges(monkeypatch):
 
 
 def test_fast_quote_is_preferred_over_info(monkeypatch):
+    class FakeTicker:
+        info = {
+            "longName": "Test Company",
+            "shortName": "TEST",
+            "currency": "INR",
+        }
+        financials = pd.DataFrame()
+        balance_sheet = pd.DataFrame()
+        dividends = pd.Series(dtype=float)
+
+    monkeypatch.setattr(
+        research_service.yf,
+        "Ticker",
+        lambda symbol: FakeTicker(),
+    )
     monkeypatch.setattr(
         research_service,
         "get_latest_available_price",
