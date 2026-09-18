@@ -15,9 +15,9 @@ def analyze_eros_fusion_trend(
     if frame.empty:
         return pd.DataFrame()
 
-    frame = frame.sort_values(
-        ["Symbol", "Exchange", "Timestamp"]
-    ).reset_index(drop=True)
+    frame = frame.sort_values(["Symbol", "Exchange", "Timestamp"]).reset_index(
+        drop=True
+    )
     frame["Fusion Change"] = frame.groupby(["Symbol", "Exchange"])["Fusion Score"].diff()
     frame["Previous Change"] = (
         frame.groupby(["Symbol", "Exchange"])["Fusion Change"].shift(1)
