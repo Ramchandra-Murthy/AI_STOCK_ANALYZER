@@ -53,9 +53,252 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
+# Dynamic market board settings.
+LIVE_BOARD_REFRESH_SECONDS = 120
+LIVE_BOARD_CHUNK_SIZE = 10
+
+# Broad sector labels for the NSE universe. BSE scrips without a verified
+# mapping are shown as "Unclassified" rather than inventing a sector.
+SECTOR_BY_SYMBOL = {
+    "RELIANCE": "Energy",
+    "TCS": "IT",
+    "INFY": "IT",
+    "HCLTECH": "IT",
+    "WIPRO": "IT",
+    "TECHM": "IT",
+    "HDFCBANK": "Financials",
+    "ICICIBANK": "Financials",
+    "SBIN": "Financials",
+    "KOTAKBANK": "Financials",
+    "AXISBANK": "Financials",
+    "BAJFINANCE": "Financials",
+    "BAJAJFINSV": "Financials",
+    "INDUSINDBK": "Financials",
+    "BANKBARODA": "Financials",
+    "CANBK": "Financials",
+    "IDFCFIRSTB": "Financials",
+    "PNB": "Financials",
+    "ICICIGI": "Financials",
+    "SBILIFE": "Financials",
+    "HDFCLIFE": "Financials",
+    "LICI": "Financials",
+    "LT": "Industrials",
+    "BEL": "Industrials",
+    "HAL": "Industrials",
+    "SIEMENS": "Industrials",
+    "ABB": "Industrials",
+    "ADANIENT": "Industrials",
+    "ADANIPORTS": "Industrials",
+    "IRFC": "Industrials",
+    "RVNL": "Industrials",
+    "ITC": "Consumer",
+    "HINDUNILVR": "Consumer",
+    "NESTLEIND": "Consumer",
+    "BRITANNIA": "Consumer",
+    "TATACONSUM": "Consumer",
+    "DABUR": "Consumer",
+    "GODREJCP": "Consumer",
+    "COLPAL": "Consumer",
+    "TITAN": "Consumer",
+    "TRENT": "Consumer",
+    "DMART": "Consumer",
+    "NYKAA": "Consumer",
+    "MARUTI": "Automobiles",
+    "M&M": "Automobiles",
+    "TATAMOTORS": "Automobiles",
+    "EICHERMOT": "Automobiles",
+    "HEROMOTOCO": "Automobiles",
+    "BAJAJ-AUTO": "Automobiles",
+    "TVSMOTOR": "Automobiles",
+    "ASHOKLEY": "Automobiles",
+    "MOTHERSON": "Automobiles",
+    "SUNPHARMA": "Pharma",
+    "CIPLA": "Pharma",
+    "DRREDDY": "Pharma",
+    "DIVISLAB": "Pharma",
+    "APOLLOHOSP": "Healthcare",
+    "ULTRACEMCO": "Cement",
+    "GRASIM": "Diversified",
+    "HINDALCO": "Metals",
+    "TATASTEEL": "Metals",
+    "JSWSTEEL": "Metals",
+    "VEDL": "Metals",
+    "COALINDIA": "Mining",
+    "ONGC": "Energy",
+    "BPCL": "Energy",
+    "IOC": "Energy",
+    "GAIL": "Energy",
+    "NTPC": "Utilities",
+    "POWERGRID": "Utilities",
+    "ASIANPAINT": "Materials",
+    "PIDILITIND": "Materials",
+    "HAVELLS": "Consumer Durables",
+    "BHARTIARTL": "Telecom",
+    "INDIGO": "Airlines",
+    "LODHA": "Real Estate",
+    "ZOMATO": "Internet",
+    "PAYTM": "Financial Technology",
+    "JIOFIN": "Financials",
+}
+
+
+def _live_board_ticker(symbol: str, exchange: str) -> str:
+    cleaned = str(symbol).strip().upper()
+    suffix = ".NS" if exchange == "NSE" else ".BO"
+    return cleaned if cleaned.endswith((".NS", ".BO")) else f"{cleaned}{suffix}"
+
+
+def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
+    if history is None or history.empty:
+        return pd.DataFrame()
+    if isinstance(history.columns, pd.MultiIndex):
+        if ticker not in history.columns.get_level_values(0):
+            return pd.DataFrame()
+        frame = history[ticker].copy()
+    else:
+        frame = history.copy()
+    required = {"Close"}
+    if not required.issubset(frame.columns):
+        return pd.DataFrame()
+    frame = frame.dropna(subset=["Close"]).sort_index()
+    return frame[~frame.index.duplicated(keep="last")]
+
+
+def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
+    """Build a dynamic 20-stock board from the broad NSE+BSE universe."""
+    from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+
+    candidates = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
+        (symbol, "BSE") for symbol in BSE_CANDIDATES
+    ]
+    rows: list[dict[str, object]] = []
+    stats = {"candidates": len(candidates), "usable": 0, "failed_chunks": 0}
+
+    for exchange in ("NSE", "BSE"):
+        symbols = [symbol for symbol, venue in candidates if venue == exchange]
+        tickers = [_live_board_ticker(symbol, exchange) for symbol in symbols]
+        for start in range(0, len(tickers), LIVE_BOARD_CHUNK_SIZE):
+            chunk = tickers[start : start + LIVE_BOARD_CHUNK_SIZE]
+            try:
+                history = yf.download(
+                    tickers=chunk,
+                    period="5d",
+                    interval="1m",
+                    progress=False,
+                    auto_adjust=False,
+                    group_by="ticker",
+                    threads=False,
+                )
+                daily_history = yf.download(
+                    tickers=chunk,
+                    period="5d",
+                    interval="1d",
+                    progress=False,
+                    auto_adjust=False,
+                    group_by="ticker",
+                    threads=False,
+                )
+            except Exception:
+                stats["failed_chunks"] += 1
+                continue
+
+            for ticker in chunk:
+                frame = _frame_from_board_download(history, ticker)
+                if len(frame) < 2:
+                    continue
+                stats["usable"] += 1
+                close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
+                if len(close) < 2:
+                    continue
+                price = float(close.iloc[-1])
+                previous_bar = float(close.iloc[-2])
+                if price <= 0 or previous_bar <= 0:
+                    continue
+
+                today_change = None
+                try:
+                    daily_frame = _frame_from_board_download(daily_history, ticker)
+                    daily_close = pd.to_numeric(daily_frame["Close"], errors="coerce").dropna()
+                    if len(daily_close) >= 2 and float(daily_close.iloc[-2]) > 0:
+                        today_change = (price / float(daily_close.iloc[-2]) - 1.0) * 100
+                except (KeyError, TypeError, ValueError, IndexError):
+                    today_change = None
+
+                symbol = ticker.rsplit(".", 1)[0]
+                rows.append(
+                    {
+                        "Symbol": symbol,
+                        "Exchange": exchange,
+                        "Sector": SECTOR_BY_SYMBOL.get(symbol, "Unclassified"),
+                        "Price": round(price, 2),
+                        "1-min change %": round((price / previous_bar - 1.0) * 100, 2),
+                        "Today change %": (
+                            round(today_change, 2) if today_change is not None else None
+                        ),
+                        "Last update": str(close.index[-1]),
+                    }
+                )
+
+    board = pd.DataFrame(rows)
+    if board.empty:
+        return board, stats
+
+    board = (
+        board.sort_values(
+            ["1-min change %", "Today change %"],
+            ascending=[False, False],
+            na_position="last",
+        )
+        .head(20)
+        .reset_index(drop=True)
+    )
+    board.insert(0, "Rank", range(1, len(board) + 1))
+    return board, stats
+
+
+def _show_live_20_panel() -> None:
+    st.subheader("📈 Live 20-Stock Market Board")
+    st.caption(
+        "Top 20 positive movers selected dynamically from the current NSE+BSE candidate universe across sectors. "
+        "Prices use Yahoo Finance 1-minute candles and refresh about every 2 minutes; this is not a tick-by-tick exchange feed."
+    )
+
+    @st.fragment(run_every=LIVE_BOARD_REFRESH_SECONDS)
+    def _live_board_fragment() -> None:
+        board, stats = _fetch_live_board()
+        if board.empty:
+            st.warning(
+                "No live board data is currently available. Try again during market hours or check the data provider."
+            )
+            return
+
+        now = datetime.now(IST)
+        st.caption(
+            f"Updated: {now:%d %b %Y, %H:%M:%S IST} · "
+            f"Universe checked: {stats['candidates']} · Usable symbols: {stats['usable']} · "
+            f"Refresh: ~{LIVE_BOARD_REFRESH_SECONDS // 60} min"
+        )
+        st.dataframe(
+            board,
+            use_container_width=True,
+            hide_index=True,
+            height=620,
+            column_config={
+                "Price": st.column_config.NumberColumn("Price (₹)", format="₹ %.2f"),
+                "1-min change %": st.column_config.NumberColumn("1-min %", format="%.2f%%"),
+                "Today change %": st.column_config.NumberColumn("Today %", format="%.2f%%"),
+            },
+        )
+
+    _live_board_fragment()
+
+
 def show() -> None:
     st.title("⏱️ Intraday Trading")
     st.caption("Technical analysis and paper-trading review — no orders are placed.")
+
+    _show_live_20_panel()
+    st.divider()
 
     st.subheader("Price jump scanner")
     st.caption(
