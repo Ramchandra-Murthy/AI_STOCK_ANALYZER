@@ -30,7 +30,7 @@ jobs:
     - name: Lint with Ruff
       run: uv run --locked --no-sync --no-build ruff check .
     - name: Check formatting with Black
-      run: uv run --locked --no-sync --no-build black --diff --exclude '(^|/)(\.venv|venv|archive|backup_before_v2)/' scanner/eros_fusion.py
+      run: uv run --locked --no-sync --no-build black --check --exclude '(^|/)(\.venv|venv|archive|backup_before_v2)/' .
     - name: Type check supported runtime surface
       run: >-
         uv run --locked --no-sync --no-build mypy
