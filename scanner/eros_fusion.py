@@ -55,7 +55,7 @@ def compute_eros_fusion(
     jump_keys = set()
     if price_jumps is not None and not price_jumps.empty:
         if {"Symbol", "Exchange"}.issubset(price_jumps.columns):
-            jump_keys = set(zip(price_jumps["Symbol"], price_jumps["Exchange"]))
+            jump_keys = set(zip(price_jumps["Symbol"], price_jumps["Exchange"], strict=True))
     result["Price Jump Component"] = [
         100.0 if (symbol, exchange) in jump_keys else 0.0
         for symbol, exchange in zip(result["Symbol"], result["Exchange"])
