@@ -214,6 +214,13 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
                 previous_bar = float(close.iloc[-2])
                 change_2m = (price / float(close.iloc[-3]) - 1.0) * 100 if len(close) >= 3 else None
                 change_3m = (price / float(close.iloc[-4]) - 1.0) * 100 if len(close) >= 4 else None
+                change_5m = (price / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
+                change_10m = (
+                    (price / float(close.iloc[-11]) - 1.0) * 100 if len(close) >= 11 else None
+                )
+                change_15m = (
+                    (price / float(close.iloc[-16]) - 1.0) * 100 if len(close) >= 16 else None
+                )
                 volume_surge = None
                 if "Volume" in frame.columns:
                     volumes = pd.to_numeric(frame["Volume"], errors="coerce").dropna()
@@ -252,6 +259,13 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
                         "1-min change %": round((price / previous_bar - 1.0) * 100, 2),
                         "2-min change %": round(change_2m, 2) if change_2m is not None else None,
                         "3-min change %": round(change_3m, 2) if change_3m is not None else None,
+                        "5-min change %": round(change_5m, 2) if change_5m is not None else None,
+                        "10-min change %": (
+                            round(change_10m, 2) if change_10m is not None else None
+                        ),
+                        "15-min change %": (
+                            round(change_15m, 2) if change_15m is not None else None
+                        ),
                         "Volume surge x": (
                             round(volume_surge, 2) if volume_surge is not None else None
                         ),
@@ -400,7 +414,8 @@ def _show_live_20_panel() -> None:
         st.subheader("⚡ Intraday Price-Jump & Breakout Signals")
         st.caption(
             "Dynamic screen from the same NSE+BSE universe. Signals use 2-minute ≥0.75%, "
-            "3-minute ≥1.0%, volume ≥1.5× recent intraday median, or a prior-20-bar breakout. "
+            "3-minute ≥1.0%, 5-minute ≥1.5%, 10-minute ≥2.0%, 15-minute ≥2.5%, "
+            "volume ≥1.5× recent intraday median, or a prior-20-bar breakout. "
             "Signal status tracks NEW, CONTINUING, WEAKENING, and EXITED across refreshes. "
             "These are screening conditions, not trade instructions."
         )
@@ -462,6 +477,9 @@ def _show_live_20_panel() -> None:
                         "1-min change %",
                         "2-min change %",
                         "3-min change %",
+                        "5-min change %",
+                        "10-min change %",
+                        "15-min change %",
                         "Today change %",
                         "Volume surge x",
                         "Breakout",
@@ -476,6 +494,9 @@ def _show_live_20_panel() -> None:
                     "1-min change %": st.column_config.NumberColumn("1-min %", format="%.2f%%"),
                     "2-min change %": st.column_config.NumberColumn("2-min %", format="%.2f%%"),
                     "3-min change %": st.column_config.NumberColumn("3-min %", format="%.2f%%"),
+                    "5-min change %": st.column_config.NumberColumn("5-min %", format="%.2f%%"),
+                    "10-min change %": st.column_config.NumberColumn("10-min %", format="%.2f%%"),
+                    "15-min change %": st.column_config.NumberColumn("15-min %", format="%.2f%%"),
                     "Today change %": st.column_config.NumberColumn("Today %", format="%.2f%%"),
                     "Volume surge x": st.column_config.NumberColumn("Volume x", format="%.2fx"),
                 },
