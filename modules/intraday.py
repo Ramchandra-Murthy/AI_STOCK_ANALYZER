@@ -914,7 +914,6 @@ def show() -> None:
                 hide_index=True,
             )
 
-
     fusion = compute_eros_fusion(
         st.session_state.get("live_confluence"),
         st.session_state.get("intraday_confluence_history"),
