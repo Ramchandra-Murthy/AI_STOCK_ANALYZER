@@ -15,13 +15,9 @@ def analyze_eros_fusion_trend(
     if frame.empty:
         return pd.DataFrame()
 
-    frame = frame.sort_values(
-        ["Symbol", "Exchange", "Timestamp"]
-    ).reset_index(drop=True)
+    frame = frame.sort_values(["Symbol", "Exchange", "Timestamp"]).reset_index(drop=True)
     frame["Fusion Change"] = frame.groupby(["Symbol", "Exchange"])["Fusion Score"].diff()
-    frame["Previous Change"] = (
-        frame.groupby(["Symbol", "Exchange"])["Fusion Change"].shift(1)
-    )
+    frame["Previous Change"] = frame.groupby(["Symbol", "Exchange"])["Fusion Change"].shift(1)
     frame["Fusion Acceleration"] = frame["Fusion Change"] - frame["Previous Change"]
 
     latest = frame.groupby(["Symbol", "Exchange"], as_index=False).tail(1).copy()
@@ -31,17 +27,21 @@ def analyze_eros_fusion_trend(
     latest.loc[latest["Fusion Change"] > 0, "Trend"] = "RISING"
     latest.loc[latest["Fusion Change"] < 0, "Trend"] = "FALLING"
     latest = latest.drop(columns=["Previous Change"], errors="ignore")
-    return latest[
-        [
-            "Symbol",
-            "Exchange",
-            "Timestamp",
-            "Fusion Score",
-            "Fusion Change",
-            "Fusion Acceleration",
-            "Trend",
+    return (
+        latest[
+            [
+                "Symbol",
+                "Exchange",
+                "Timestamp",
+                "Fusion Score",
+                "Fusion Change",
+                "Fusion Acceleration",
+                "Trend",
+            ]
         ]
-    ].sort_values(
-        ["Fusion Change", "Fusion Acceleration", "Fusion Score"],
-        ascending=[False, False, False],
-    ).reset_index(drop=True)
+        .sort_values(
+            ["Fusion Change", "Fusion Acceleration", "Fusion Score"],
+            ascending=[False, False, False],
+        )
+        .reset_index(drop=True)
+    )
