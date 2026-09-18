@@ -164,7 +164,7 @@ def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFra
     return frame[~frame.index.duplicated(keep="last")]
 
 
-def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
+def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, int]]:
     """Build a dynamic 20-stock board from the broad NSE+BSE universe."""
     from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
@@ -265,7 +265,25 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
 
     board = pd.DataFrame(rows)
     if board.empty:
-        return board, pd.DataFrame(), stats
+        return board, pd.DataFrame(), pd.DataFrame(), stats
+
+    sector_summary = (
+        board.groupby("Sector", dropna=False)
+        .agg(
+            Stocks=("Symbol", "count"),
+            Advancers=("Today change %", lambda values: int((values > 0).sum())),
+            Decliners=("Today change %", lambda values: int((values < 0).sum())),
+            Avg_change_pct=("Today change %", "mean"),
+            Avg_1min_pct=("1-min change %", "mean"),
+        )
+        .reset_index()
+        .rename(columns={"Avg_change_pct": "Avg change %", "Avg_1min_pct": "Avg 1-min %"})
+    )
+    sector_summary["Breadth"] = sector_summary["Advancers"] - sector_summary["Decliners"]
+    sector_summary = sector_summary.sort_values(
+        ["Breadth", "Avg change %", "Stocks"],
+        ascending=[False, False, False],
+    ).reset_index(drop=True)
 
     signals = board[
         (board["2-min change %"].fillna(-999) >= 0.75)
@@ -297,7 +315,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
         .reset_index(drop=True)
     )
     board.insert(0, "Rank", range(1, len(board) + 1))
-    return board, signals, stats
+    return board, signals, sector_summary, stats
 
 
 def _show_live_20_panel() -> None:
@@ -309,7 +327,7 @@ def _show_live_20_panel() -> None:
 
     @st.fragment(run_every=LIVE_BOARD_REFRESH_SECONDS)
     def _live_board_fragment() -> None:
-        board, signals, stats = _fetch_live_board()
+        board, signals, sector_summary, stats = _fetch_live_board()
         if board.empty:
             st.warning(
                 "No live board data is currently available. Try again during market hours or check the data provider."
@@ -332,6 +350,44 @@ def _show_live_20_panel() -> None:
                 "1-min change %": st.column_config.NumberColumn("1-min %", format="%.2f%%"),
                 "Today change %": st.column_config.NumberColumn("Today %", format="%.2f%%"),
             },
+        )
+
+        st.subheader("🏭 Sector Momentum & Market Breadth")
+        st.caption(
+            "Sector figures use symbols with usable Yahoo Finance data from the current NSE+BSE candidate universe."
+        )
+        total = int(sector_summary["Stocks"].sum())
+        advances = int(sector_summary["Advancers"].sum())
+        declines = int(sector_summary["Decliners"].sum())
+        unchanged = max(total - advances - declines, 0)
+        breadth_ratio = advances / declines if declines else float("inf")
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Stocks", total)
+        col2.metric("Advancing", advances)
+        col3.metric("Declining", declines)
+        col4.metric("A/D ratio", "∞" if declines == 0 else f"{breadth_ratio:.2f}")
+
+        st.dataframe(
+            sector_summary[
+                [
+                    "Sector",
+                    "Stocks",
+                    "Advancers",
+                    "Decliners",
+                    "Breadth",
+                    "Avg change %",
+                    "Avg 1-min %",
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Avg change %": st.column_config.NumberColumn("Avg today %", format="%.2f%%"),
+                "Avg 1-min %": st.column_config.NumberColumn("Avg 1-min %", format="%.2f%%"),
+            },
+        )
+        st.caption(
+            f"Universe breadth: {advances} advancing · {declines} declining · {unchanged} unchanged/unknown."
         )
 
         st.subheader("⚡ Intraday Price-Jump & Breakout Signals")
