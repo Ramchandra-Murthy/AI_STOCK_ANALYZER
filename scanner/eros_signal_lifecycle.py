@@ -7,7 +7,6 @@ import pandas as pd
 from scanner.eros_fusion_history_analytics import prepare_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 
-
 LIFECYCLE_STATES = (
     "NEW",
     "CONFIRMED",
@@ -57,9 +56,7 @@ def analyze_eros_signal_lifecycle(
     if current_fusion is None or current_fusion.empty:
         current_keys: set[tuple[object, object]] = set()
     elif {"Symbol", "Exchange"}.issubset(current_fusion.columns):
-        current_keys = set(
-            zip(current_fusion["Symbol"], current_fusion["Exchange"], strict=True)
-        )
+        current_keys = set(zip(current_fusion["Symbol"], current_fusion["Exchange"], strict=True))
     else:
         current_keys = set()
 
