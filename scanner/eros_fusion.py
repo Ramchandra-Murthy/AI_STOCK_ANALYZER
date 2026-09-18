@@ -45,11 +45,7 @@ def compute_eros_fusion(
 
     result["Persistence Component"] = [
         persistence.get((symbol, exchange), 0.0)
-        for symbol, exchange in zip(
-            result["Symbol"],
-            result["Exchange"],
-            strict=True,
-        )
+        for symbol, exchange in zip(result["Symbol"], result["Exchange"], strict=True)
     ]
 
     jump_keys = set()
