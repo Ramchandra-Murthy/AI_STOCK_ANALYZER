@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from scanner.market_scanner import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 CHUNK_SIZE = 10
 
@@ -13,28 +13,142 @@ CHUNK_SIZE = 10
 # Categories are based on widely followed index constituents; market-cap ranks can change.
 CAP_UNIVERSES = {
     "Large cap": {
-        "RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK", "SBIN", "LT", "ITC",
-        "BHARTIARTL", "HINDUNILVR", "KOTAKBANK", "AXISBANK", "MARUTI", "M&M", "TITAN",
-        "SUNPHARMA", "ADANIENT", "ADANIPORTS", "HCLTECH", "WIPRO", "ULTRACEMCO", "NTPC",
-        "POWERGRID", "ONGC", "COALINDIA", "TATASTEEL", "JSWSTEEL", "BAJFINANCE",
-        "BAJAJFINSV", "ASIANPAINT", "NESTLEIND", "TECHM", "TATAMOTORS", "TATACONSUM",
-        "CIPLA", "DRREDDY", "DIVISLAB", "APOLLOHOSP", "GRASIM", "EICHERMOT", "HEROMOTOCO",
-        "BAJAJ-AUTO", "BRITANNIA", "HINDALCO", "BPCL", "IOC", "GAIL", "INDUSINDBK",
-        "BANKBARODA", "CANBK", "IDFCFIRSTB", "PNB", "DLF", "BEL", "HAL", "DMART",
-        "TRENT", "SIEMENS", "ABB", "VEDL", "HAVELLS", "DABUR", "GODREJCP", "PIDILITIND",
-        "COLPAL", "MOTHERSON", "TVSMOTOR", "INDIGO", "ICICIGI", "SBILIFE", "HDFCLIFE", "LICI",
+        "RELIANCE",
+        "TCS",
+        "INFY",
+        "HDFCBANK",
+        "ICICIBANK",
+        "SBIN",
+        "LT",
+        "ITC",
+        "BHARTIARTL",
+        "HINDUNILVR",
+        "KOTAKBANK",
+        "AXISBANK",
+        "MARUTI",
+        "M&M",
+        "TITAN",
+        "SUNPHARMA",
+        "ADANIENT",
+        "ADANIPORTS",
+        "HCLTECH",
+        "WIPRO",
+        "ULTRACEMCO",
+        "NTPC",
+        "POWERGRID",
+        "ONGC",
+        "COALINDIA",
+        "TATASTEEL",
+        "JSWSTEEL",
+        "BAJFINANCE",
+        "BAJAJFINSV",
+        "ASIANPAINT",
+        "NESTLEIND",
+        "TECHM",
+        "TATAMOTORS",
+        "TATACONSUM",
+        "CIPLA",
+        "DRREDDY",
+        "DIVISLAB",
+        "APOLLOHOSP",
+        "GRASIM",
+        "EICHERMOT",
+        "HEROMOTOCO",
+        "BAJAJ-AUTO",
+        "BRITANNIA",
+        "HINDALCO",
+        "BPCL",
+        "IOC",
+        "GAIL",
+        "INDUSINDBK",
+        "BANKBARODA",
+        "CANBK",
+        "IDFCFIRSTB",
+        "PNB",
+        "DLF",
+        "BEL",
+        "HAL",
+        "DMART",
+        "TRENT",
+        "SIEMENS",
+        "ABB",
+        "VEDL",
+        "HAVELLS",
+        "DABUR",
+        "GODREJCP",
+        "PIDILITIND",
+        "COLPAL",
+        "MOTHERSON",
+        "TVSMOTOR",
+        "INDIGO",
+        "ICICIGI",
+        "SBILIFE",
+        "HDFCLIFE",
+        "LICI",
     },
     "Mid cap": {
-        "IRFC", "RVNL", "ZOMATO", "NYKAA", "PAYTM", "JIOFIN", "ASHOKLEY", "LODHA",
-        "BHEL", "POLICYBZR", "PERSISTENT", "COFORGE", "MPHASIS", "LTIM", "AUROPHARMA",
-        "LUPIN", "TORNTPHARM", "BOSCHLTD", "INDUSTOWER", "NAUKRI", "CHOLAFIN", "HINDPETRO",
-        "UNIONBANK", "FEDERALBNK", "IDBI", "CUMMINSIND", "MAXHEALTH", "FORTIS", "PAGEIND",
+        "IRFC",
+        "RVNL",
+        "ZOMATO",
+        "NYKAA",
+        "PAYTM",
+        "JIOFIN",
+        "ASHOKLEY",
+        "LODHA",
+        "BHEL",
+        "POLICYBZR",
+        "PERSISTENT",
+        "COFORGE",
+        "MPHASIS",
+        "LTIM",
+        "AUROPHARMA",
+        "LUPIN",
+        "TORNTPHARM",
+        "BOSCHLTD",
+        "INDUSTOWER",
+        "NAUKRI",
+        "CHOLAFIN",
+        "HINDPETRO",
+        "UNIONBANK",
+        "FEDERALBNK",
+        "IDBI",
+        "CUMMINSIND",
+        "MAXHEALTH",
+        "FORTIS",
+        "PAGEIND",
     },
     "Small cap": {
-        "CESC", "YESBANK", "IDFC", "RBLBANK", "BANDHANBNK", "CANFINHOME", "SUZLON", "NHPC",
-        "SJVN", "IREDA", "NBCC", "HUDCO", "IRCON", "RITES", "KALYANKJIL", "DELHIVERY",
-        "CROMPTON", "VOLTAS", "BATAINDIA", "ZEEL", "SAIL", "NMDC", "NATIONALUM", "JINDALSTEL",
-        "MANAPPURAM", "MUTHOOTFIN", "ANGELONE", "BSE", "CAMS", "HFCL", "INOXWIND",
+        "CESC",
+        "YESBANK",
+        "IDFC",
+        "RBLBANK",
+        "BANDHANBNK",
+        "CANFINHOME",
+        "SUZLON",
+        "NHPC",
+        "SJVN",
+        "IREDA",
+        "NBCC",
+        "HUDCO",
+        "IRCON",
+        "RITES",
+        "KALYANKJIL",
+        "DELHIVERY",
+        "CROMPTON",
+        "VOLTAS",
+        "BATAINDIA",
+        "ZEEL",
+        "SAIL",
+        "NMDC",
+        "NATIONALUM",
+        "JINDALSTEL",
+        "MANAPPURAM",
+        "MUTHOOTFIN",
+        "ANGELONE",
+        "BSE",
+        "CAMS",
+        "HFCL",
+        "INOXWIND",
     },
 }
 
@@ -95,8 +209,13 @@ def scan_unusual_activity(
             stats["attempted_count"] += len(chunk)
             try:
                 history = yf.download(
-                    tickers=chunk, period="5d", interval="5m", progress=False,
-                    auto_adjust=False, group_by="ticker", threads=False,
+                    tickers=chunk,
+                    period="5d",
+                    interval="5m",
+                    progress=False,
+                    auto_adjust=False,
+                    group_by="ticker",
+                    threads=False,
                 )
             except Exception:
                 stats["download_failed_chunks"] += 1
@@ -130,23 +249,27 @@ def scan_unusual_activity(
                         continue
                     clock = pd.Timestamp(current.index[-1]).strftime("%H:%M")
                     same_time = previous.loc[previous.index.strftime("%H:%M") == clock, "Volume"]
-                    baseline = float(same_time.tail(4).mean()) if not same_time.empty else float("nan")
+                    baseline = (
+                        float(same_time.tail(4).mean()) if not same_time.empty else float("nan")
+                    )
                     volume = float(latest["Volume"])
                     if pd.isna(baseline) or baseline <= 0:
                         continue
                     relative_volume = volume / baseline
                     if relative_volume < 1.5:
                         continue
-                    rows.append({
-                        "Symbol": ticker.rsplit(".", 1)[0],
-                        "Exchange": exchange,
-                        "Market-cap basket": cap_category,
-                        "Last price": round(price, 2),
-                        "Session change %": round((price / opening_price - 1) * 100, 2),
-                        "Latest bar volume": int(volume),
-                        "Relative volume": round(relative_volume, 2),
-                        "Latest candle (provider time)": str(current.index[-1]),
-                    })
+                    rows.append(
+                        {
+                            "Symbol": ticker.rsplit(".", 1)[0],
+                            "Exchange": exchange,
+                            "Market-cap basket": cap_category,
+                            "Last price": round(price, 2),
+                            "Session change %": round((price / opening_price - 1) * 100, 2),
+                            "Latest bar volume": int(volume),
+                            "Relative volume": round(relative_volume, 2),
+                            "Latest candle (provider time)": str(current.index[-1]),
+                        }
+                    )
                 except (KeyError, TypeError, ValueError, IndexError):
                     stats["processing_errors"] += 1
                     continue
@@ -154,9 +277,12 @@ def scan_unusual_activity(
     if not rows:
         result = pd.DataFrame()
     else:
-        result = pd.DataFrame(rows).sort_values(
-            ["Relative volume", "Session change %"], ascending=[False, False]
-        ).head(max(1, min(int(limit), 100))).reset_index(drop=True)
+        result = (
+            pd.DataFrame(rows)
+            .sort_values(["Relative volume", "Session change %"], ascending=[False, False])
+            .head(max(1, min(int(limit), 100)))
+            .reset_index(drop=True)
+        )
     stats["displayed_count"] = len(result)
     result.attrs["scan_stats"] = stats
     return result
