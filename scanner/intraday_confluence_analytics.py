@@ -16,9 +16,7 @@ def summarize_confluence_history(history: pd.DataFrame | None) -> pd.DataFrame:
 
     frame = history.copy()
     frame["Timestamp"] = pd.to_datetime(frame["Timestamp"], errors="coerce")
-    frame["Confluence Score"] = pd.to_numeric(
-        frame["Confluence Score"], errors="coerce"
-    )
+    frame["Confluence Score"] = pd.to_numeric(frame["Confluence Score"], errors="coerce")
     frame = frame.dropna(subset=["Timestamp", "Confluence Score"])
     if frame.empty:
         return pd.DataFrame()
