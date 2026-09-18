@@ -575,9 +575,7 @@ def _show_live_20_panel() -> None:
                     "Status": "EXITED",
                     "Symbol": symbol,
                     "Signal": previous_history[symbol].get("signal", "—"),
-                    "Momentum score": round(
-                        float(previous_history[symbol].get("score", 0)), 2
-                    ),
+                    "Momentum score": round(float(previous_history[symbol].get("score", 0)), 2),
                     "First seen": previous_history[symbol].get("first_seen", "—"),
                     "Last seen": previous_history[symbol].get("last_seen", "—"),
                 }
@@ -669,12 +667,7 @@ def _show_live_20_panel() -> None:
                     .reset_index(name="Refreshes seen")
                     .head(10)
                 )
-                counts = (
-                    events.groupby("Status")["Symbol"]
-                    .count()
-                    .rename("Observations")
-                    .reset_index()
-                )
+                counts = events.groupby("Status")["Symbol"].count().rename("Observations").reset_index()
                 h1, h2 = st.columns(2)
                 with h1:
                     st.caption("Most frequently observed signals")
@@ -687,18 +680,12 @@ def _show_live_20_panel() -> None:
                     use_container_width=True,
                     hide_index=True,
                     column_config={
-                        "Price": st.column_config.NumberColumn(
-                            "Price (₹)", format="₹ %.2f"
-                        ),
-                        "Momentum score": st.column_config.NumberColumn(
-                            "Momentum", format="%.2f"
-                        ),
+                        "Price": st.column_config.NumberColumn("Price (₹)", format="₹ %.2f"),
+                        "Momentum score": st.column_config.NumberColumn("Momentum", format="%.2f"),
                         "Relative Strength": st.column_config.NumberColumn(
                             "Relative strength", format="%.2f"
                         ),
-                        "Volume surge x": st.column_config.NumberColumn(
-                            "Volume x", format="%.2fx"
-                        ),
+                        "Volume surge x": st.column_config.NumberColumn("Volume x", format="%.2fx"),
                     },
                 )
                 st.download_button(
