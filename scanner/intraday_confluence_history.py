@@ -23,7 +23,9 @@ def append_confluence_snapshot(
     if not required.issubset(board.columns):
         return history.copy() if history is not None else pd.DataFrame()
 
-    rows = board[pd.to_numeric(board["Confluence Score"], errors="coerce") >= min_score].copy()
+    rows = board[
+        pd.to_numeric(board["Confluence Score"], errors="coerce") >= min_score
+    ].copy()
     if rows.empty:
         return history.copy() if history is not None else pd.DataFrame()
 
@@ -39,7 +41,11 @@ def append_confluence_snapshot(
     )
     snapshot["Confluence"] = snapshot["Confluence"].astype(str)
 
-    combined = pd.concat([history, snapshot], ignore_index=True) if history is not None else snapshot
+    combined = (
+        pd.concat([history, snapshot], ignore_index=True)
+        if history is not None
+        else snapshot
+    )
     combined = combined.drop_duplicates(
         subset=["Timestamp", "Symbol", "Exchange"], keep="last"
     )
