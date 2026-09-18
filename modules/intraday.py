@@ -164,7 +164,7 @@ def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFra
     return frame[~frame.index.duplicated(keep="last")]
 
 
-def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
+def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
     """Build a dynamic 20-stock board from the broad NSE+BSE universe."""
     from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
@@ -212,6 +212,24 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
                     continue
                 price = float(close.iloc[-1])
                 previous_bar = float(close.iloc[-2])
+                change_2m = (price / float(close.iloc[-3]) - 1.0) * 100 if len(close) >= 3 else None
+                change_3m = (price / float(close.iloc[-4]) - 1.0) * 100 if len(close) >= 4 else None
+                volume_surge = None
+                if "Volume" in frame.columns:
+                    volumes = pd.to_numeric(frame["Volume"], errors="coerce").dropna()
+                    if len(volumes) >= 6 and float(volumes.iloc[-1]) > 0:
+                        baseline = (
+                            float(volumes.iloc[-21:-1].median())
+                            if len(volumes) >= 21
+                            else float(volumes.iloc[:-1].median())
+                        )
+                        if baseline > 0:
+                            volume_surge = float(volumes.iloc[-1] / baseline)
+                breakout = False
+                if "High" in frame.columns and len(frame) >= 21:
+                    highs = pd.to_numeric(frame["High"], errors="coerce").dropna()
+                    if len(highs) >= 21:
+                        breakout = price > float(highs.iloc[-21:-1].max())
                 if price <= 0 or previous_bar <= 0:
                     continue
 
@@ -232,6 +250,12 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
                         "Sector": SECTOR_BY_SYMBOL.get(symbol, "Unclassified"),
                         "Price": round(price, 2),
                         "1-min change %": round((price / previous_bar - 1.0) * 100, 2),
+                        "2-min change %": round(change_2m, 2) if change_2m is not None else None,
+                        "3-min change %": round(change_3m, 2) if change_3m is not None else None,
+                        "Volume surge x": (
+                            round(volume_surge, 2) if volume_surge is not None else None
+                        ),
+                        "Breakout": "YES" if breakout else "—",
                         "Today change %": (
                             round(today_change, 2) if today_change is not None else None
                         ),
@@ -241,7 +265,27 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
 
     board = pd.DataFrame(rows)
     if board.empty:
-        return board, stats
+        return board, pd.DataFrame(), stats
+
+    signals = board[
+        (board["2-min change %"].fillna(-999) >= 0.75)
+        | (board["3-min change %"].fillna(-999) >= 1.0)
+        | (board["Volume surge x"].fillna(0) >= 1.5)
+        | (board["Breakout"] == "YES")
+    ].copy()
+    if not signals.empty:
+        signals["Signal"] = "PRICE JUMP"
+        signals.loc[signals["Volume surge x"].fillna(0) >= 1.5, "Signal"] = "VOLUME + PRICE"
+        signals.loc[signals["Breakout"] == "YES", "Signal"] = "BREAKOUT"
+        signals = (
+            signals.sort_values(
+                ["3-min change %", "2-min change %", "Volume surge x"],
+                ascending=[False, False, False],
+                na_position="last",
+            )
+            .head(20)
+            .reset_index(drop=True)
+        )
 
     board = (
         board.sort_values(
@@ -253,7 +297,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
         .reset_index(drop=True)
     )
     board.insert(0, "Rank", range(1, len(board) + 1))
-    return board, stats
+    return board, signals, stats
 
 
 def _show_live_20_panel() -> None:
@@ -265,7 +309,7 @@ def _show_live_20_panel() -> None:
 
     @st.fragment(run_every=LIVE_BOARD_REFRESH_SECONDS)
     def _live_board_fragment() -> None:
-        board, stats = _fetch_live_board()
+        board, signals, stats = _fetch_live_board()
         if board.empty:
             st.warning(
                 "No live board data is currently available. Try again during market hours or check the data provider."
@@ -289,6 +333,56 @@ def _show_live_20_panel() -> None:
                 "Today change %": st.column_config.NumberColumn("Today %", format="%.2f%%"),
             },
         )
+
+        st.subheader("⚡ Intraday Price-Jump & Breakout Signals")
+        st.caption(
+            "Dynamic screen from the same NSE+BSE universe. Signals use 2-minute ≥0.75%, "
+            "3-minute ≥1.0%, volume ≥1.5× recent intraday median, or a prior-20-bar breakout. "
+            "These are screening conditions, not trade instructions."
+        )
+        if signals.empty:
+            st.info(
+                "No price-jump, volume-surge, or breakout conditions detected in the current universe."
+            )
+        else:
+            prior = set(st.session_state.get("live_signal_symbols", []))
+            current = set(signals["Symbol"])
+            signals = signals.copy()
+            signals.insert(
+                0,
+                "Status",
+                ["CONTINUING" if symbol in prior else "NEW" for symbol in signals["Symbol"]],
+            )
+            st.session_state["live_signal_symbols"] = sorted(current)
+            st.dataframe(
+                signals[
+                    [
+                        "Status",
+                        "Symbol",
+                        "Exchange",
+                        "Sector",
+                        "Price",
+                        "1-min change %",
+                        "2-min change %",
+                        "3-min change %",
+                        "Today change %",
+                        "Volume surge x",
+                        "Breakout",
+                        "Signal",
+                        "Last update",
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Price": st.column_config.NumberColumn("Price (₹)", format="₹ %.2f"),
+                    "1-min change %": st.column_config.NumberColumn("1-min %", format="%.2f%%"),
+                    "2-min change %": st.column_config.NumberColumn("2-min %", format="%.2f%%"),
+                    "3-min change %": st.column_config.NumberColumn("3-min %", format="%.2f%%"),
+                    "Today change %": st.column_config.NumberColumn("Today %", format="%.2f%%"),
+                    "Volume surge x": st.column_config.NumberColumn("Volume x", format="%.2fx"),
+                },
+            )
 
     _live_board_fragment()
 
