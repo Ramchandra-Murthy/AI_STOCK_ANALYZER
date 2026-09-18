@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import pandas as pd
+import pandas as pd  # noqa: I001
 
 
 REQUIRED_HISTORY_COLUMNS = {"Timestamp", "Symbol", "Exchange", "Fusion Score"}
