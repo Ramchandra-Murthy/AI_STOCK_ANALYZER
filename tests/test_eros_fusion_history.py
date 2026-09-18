@@ -4,7 +4,7 @@ from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 
 
-def test_append_eros_fusion_snapshot_is_bounded_and_deduplicated(): 
+def test_append_eros_fusion_snapshot_is_bounded_and_deduplicated():
     fusion = pd.DataFrame(
         {
             "Symbol": ["AAA"],
