@@ -1,5 +1,7 @@
 """EROS fusion trend and acceleration analytics."""
 
+from __future__ import annotations
+
 import pandas as pd
 
 from scanner.eros_fusion_history_analytics import prepare_eros_fusion_history
