@@ -291,17 +291,11 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
             auto_adjust=False,
         )
         benchmark_frame = _frame_from_board_download(benchmark, "^NSEI")
-        benchmark_close = pd.to_numeric(
-            benchmark_frame["Close"], errors="coerce"
-        ).dropna()
+        benchmark_close = pd.to_numeric(benchmark_frame["Close"], errors="coerce").dropna()
         if len(benchmark_close) >= 2:
-            nifty_1m = (
-                float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-2]) - 1
-            ) * 100
+            nifty_1m = (float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-2]) - 1) * 100
         if len(benchmark_close) >= 6:
-            nifty_5m = (
-                float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-6]) - 1
-            ) * 100
+            nifty_5m = (float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-6]) - 1) * 100
         daily_benchmark = yf.download(
             "^NSEI",
             period="5d",
@@ -312,18 +306,12 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         daily_frame = _frame_from_board_download(daily_benchmark, "^NSEI")
         daily_close = pd.to_numeric(daily_frame["Close"], errors="coerce").dropna()
         if len(daily_close) >= 2:
-            nifty_today = (
-                float(benchmark_close.iloc[-1]) / float(daily_close.iloc[-2]) - 1
-            ) * 100
+            nifty_today = (float(benchmark_close.iloc[-1]) / float(daily_close.iloc[-2]) - 1) * 100
     except (KeyError, TypeError, ValueError, IndexError):
         pass
 
-    board["vs NIFTY 1-min %"] = (
-        board["1-min change %"] - nifty_1m if nifty_1m is not None else None
-    )
-    board["vs NIFTY 5-min %"] = (
-        board["5-min change %"] - nifty_5m if nifty_5m is not None else None
-    )
+    board["vs NIFTY 1-min %"] = board["1-min change %"] - nifty_1m if nifty_1m is not None else None
+    board["vs NIFTY 5-min %"] = board["5-min change %"] - nifty_5m if nifty_5m is not None else None
     board["vs NIFTY Today %"] = (
         board["Today change %"] - nifty_today if nifty_today is not None else None
     )
