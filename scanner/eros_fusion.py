@@ -55,11 +55,7 @@ def compute_eros_fusion(
     if price_jump_history is not None and not price_jump_history.empty:
         required_jump_history = {"Symbol", "Exchange", "Timestamp"}
         if required_jump_history.issubset(price_jump_history.columns):
-            counts = (
-                price_jump_history.groupby(["Symbol", "Exchange"])
-                .size()
-                .to_dict()
-            )
+            counts = price_jump_history.groupby(["Symbol", "Exchange"]).size().to_dict()
             jump_persistence = {
                 (symbol, exchange): _persistence_score(count)
                 for (symbol, exchange), count in counts.items()
