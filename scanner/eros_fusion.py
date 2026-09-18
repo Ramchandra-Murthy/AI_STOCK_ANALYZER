@@ -1,4 +1,4 @@
-"""Transparent EROS fusion scoring helpers."""
+""""Transparent EROS fusion scoring helpers."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def compute_eros_fusion(
             jump_keys = set(zip(price_jumps["Symbol"], price_jumps["Exchange"], strict=True))
     result["Price Jump Component"] = [
         100.0 if (symbol, exchange) in jump_keys else 0.0
-        for symbol, exchange in zip(result["Symbol"], result["Exchange"])
+        for symbol, exchange in zip(result["Symbol"], result["Exchange"], strict=True)
     ]
 
     institutional_score = None
