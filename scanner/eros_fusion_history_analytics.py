@@ -1,8 +1,10 @@
 """EROS fusion history analytics helpers."""
 
+# ruff: noqa: I001
+
 from __future__ import annotations
 
-import pandas as pd  # noqa: I001
+import pandas as pd
 
 
 REQUIRED_HISTORY_COLUMNS = {"Timestamp", "Symbol", "Exchange", "Fusion Score"}
