@@ -37,11 +37,7 @@ def compute_eros_fusion(
     if confluence_history is not None and not confluence_history.empty:
         required_history = {"Symbol", "Exchange", "Timestamp"}
         if required_history.issubset(confluence_history.columns):
-            counts = (
-                confluence_history.groupby(["Symbol", "Exchange"])
-                .size()
-                .to_dict()
-            )
+            counts = confluence_history.groupby(["Symbol", "Exchange"]).size().to_dict()
             persistence = {
                 (symbol, exchange): _persistence_score(count)
                 for (symbol, exchange), count in counts.items()
@@ -59,13 +55,7 @@ def compute_eros_fusion(
     jump_keys = set()
     if price_jumps is not None and not price_jumps.empty:
         if {"Symbol", "Exchange"}.issubset(price_jumps.columns):
-            jump_keys = set(
-                zip(
-                    price_jumps["Symbol"],
-                    price_jumps["Exchange"],
-                    strict=True,
-                )
-            )
+            jump_keys = set(zip(price_jumps["Symbol"], price_jumps["Exchange"], strict=True))
     result["Price Jump Component"] = [
         100.0 if (symbol, exchange) in jump_keys else 0.0
         for symbol, exchange in zip(
