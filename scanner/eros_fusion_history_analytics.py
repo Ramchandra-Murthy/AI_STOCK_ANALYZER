@@ -1,25 +1,32 @@
 """EROS fusion history analytics helpers."""
 
-from __future__ import annotations
+import pandas as pd  # noqa: I001
 
-import pandas as pd
+REQUIRED_HISTORY_COLUMNS = {"Timestamp", "Symbol", "Exchange", "Fusion Score"}
 
 
-def summarize_eros_fusion_history(
+def prepare_eros_fusion_history(
     history: pd.DataFrame | None,
 ) -> pd.DataFrame:
-    """Summarize repeated EROS fusion observations by symbol and exchange."""
+    """Validate and normalize EROS fusion history for downstream analytics."""
     if history is None or history.empty:
         return pd.DataFrame()
 
-    required = {"Timestamp", "Symbol", "Exchange", "Fusion Score"}
-    if not required.issubset(history.columns):
+    if not REQUIRED_HISTORY_COLUMNS.issubset(history.columns):
         return pd.DataFrame()
 
     frame = history.copy()
     frame["Timestamp"] = pd.to_datetime(frame["Timestamp"], errors="coerce")
     frame["Fusion Score"] = pd.to_numeric(frame["Fusion Score"], errors="coerce")
     frame = frame.dropna(subset=["Timestamp", "Fusion Score"])
+    return frame.reset_index(drop=True)
+
+
+def summarize_eros_fusion_history(
+    history: pd.DataFrame | None,
+) -> pd.DataFrame:
+    """Summarize repeated EROS fusion observations by symbol and exchange."""
+    frame = prepare_eros_fusion_history(history)
     if frame.empty:
         return pd.DataFrame()
 

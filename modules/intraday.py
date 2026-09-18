@@ -10,6 +10,7 @@ import yfinance as yf
 from scanner.eros_fusion import compute_eros_fusion
 from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
+from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.institutional_momentum_history import append_momentum_snapshot
@@ -975,6 +976,26 @@ def show() -> None:
                     fusion_summary.head(30),
                     use_container_width=True,
                     hide_index=True,
+                )
+
+            fusion_trend = analyze_eros_fusion_trend(fusion_history)
+            if not fusion_trend.empty:
+                st.subheader("📈 EROS Fusion Trend & Acceleration")
+                st.caption(
+                    "Compares the latest fusion observation with the previous observation for each symbol. "
+                    "Acceleration is the change in the fusion change between observations; this is descriptive analytics, not a trade instruction."
+                )
+                st.dataframe(
+                    fusion_trend.head(30),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download EROS fusion trend CSV",
+                    fusion_trend.to_csv(index=False).encode("utf-8"),
+                    file_name="eros_fusion_trend.csv",
+                    mime="text/csv",
+                    key="download_eros_fusion_trend",
                 )
 
     st.subheader("🏦 Institutional Momentum Score")
