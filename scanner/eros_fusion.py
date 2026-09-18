@@ -14,6 +14,7 @@ def compute_eros_fusion(
     confluence_history: pd.DataFrame | None = None,
     price_jumps: pd.DataFrame | None = None,
     institutional_momentum: dict[str, object] | None = None,
+    price_jump_history: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Combine available stock-level and market-context screening signals."""
     if confluence is None or confluence.empty:
@@ -50,8 +51,21 @@ def compute_eros_fusion(
     if price_jumps is not None and not price_jumps.empty:
         if {"Symbol", "Exchange"}.issubset(price_jumps.columns):
             jump_keys = set(zip(price_jumps["Symbol"], price_jumps["Exchange"], strict=True))
+    jump_persistence = {}
+    if price_jump_history is not None and not price_jump_history.empty:
+        required_jump_history = {"Symbol", "Exchange", "Timestamp"}
+        if required_jump_history.issubset(price_jump_history.columns):
+            counts = price_jump_history.groupby(["Symbol", "Exchange"]).size().to_dict()
+            jump_persistence = {
+                (symbol, exchange): _persistence_score(count)
+                for (symbol, exchange), count in counts.items()
+            }
+
     result["Price Jump Component"] = [
-        100.0 if (symbol, exchange) in jump_keys else 0.0
+        jump_persistence.get(
+            (symbol, exchange),
+            100.0 if (symbol, exchange) in jump_keys else 0.0,
+        )
         for symbol, exchange in zip(
             result["Symbol"],
             result["Exchange"],
