@@ -15,8 +15,7 @@ _HEADERS = {
 }
 
 
-def fetch_fii_dii_flow(timeout: int = 10) -> pd.DataFrame:
-    """Fetch the latest NSE FII/FPI and DII cash-market activity."""
+def _fetch_payload(timeout: int = 10) -> list[dict[str, object]]:
     session = requests.Session()
     session.headers.update(_HEADERS)
     session.get("https://www.nseindia.com", timeout=timeout)
@@ -25,6 +24,10 @@ def fetch_fii_dii_flow(timeout: int = 10) -> pd.DataFrame:
     payload = response.json()
     if not isinstance(payload, list):
         raise ValueError("NSE FII/DII response format was not a list.")
+    return payload
+
+
+def _normalize_payload(payload: list[dict[str, object]]) -> pd.DataFrame:
     frame = pd.DataFrame(payload)
     if frame.empty:
         return frame
@@ -35,12 +38,50 @@ def fetch_fii_dii_flow(timeout: int = 10) -> pd.DataFrame:
         "buyValue": "Buy Value (₹ Cr)",
         "sellValue": "Sell Value (₹ Cr)",
         "netValue": "Net Value (₹ Cr)",
+        "fiibuy": "FII Buy Value (₹ Cr)",
+        "fiisell": "FII Sell Value (₹ Cr)",
+        "fiinet": "FII Net Value (₹ Cr)",
+        "diibuy": "DII Buy Value (₹ Cr)",
+        "diisell": "DII Sell Value (₹ Cr)",
+        "diinet": "DII Net Value (₹ Cr)",
     }
     frame = frame.rename(columns=rename)
-    required = list(rename.values())
+
+    if {"FII Net Value (₹ Cr)", "DII Net Value (₹ Cr)"}.issubset(frame.columns):
+        columns = [
+            "Date",
+            "FII Buy Value (₹ Cr)",
+            "FII Sell Value (₹ Cr)",
+            "FII Net Value (₹ Cr)",
+            "DII Buy Value (₹ Cr)",
+            "DII Sell Value (₹ Cr)",
+            "DII Net Value (₹ Cr)",
+        ]
+        available = [column for column in columns if column in frame.columns]
+        for column in available[1:]:
+            frame[column] = pd.to_numeric(frame[column], errors="coerce")
+        return frame[available]
+
+    required = [
+        "Category",
+        "Date",
+        "Buy Value (₹ Cr)",
+        "Sell Value (₹ Cr)",
+        "Net Value (₹ Cr)",
+    ]
     missing = [column for column in required if column not in frame.columns]
     if missing:
         raise ValueError(f"NSE FII/DII response is missing: {', '.join(missing)}")
     for column in required[2:]:
         frame[column] = pd.to_numeric(frame[column], errors="coerce")
     return frame[required]
+
+
+def fetch_fii_dii_flow(timeout: int = 10) -> pd.DataFrame:
+    """Fetch and normalize the latest NSE FII/FPI and DII activity."""
+    return _normalize_payload(_fetch_payload(timeout))
+
+
+def fetch_fii_dii_history(timeout: int = 10) -> pd.DataFrame:
+    """Fetch the historical FII/FPI and DII rows exposed by the NSE endpoint."""
+    return _normalize_payload(_fetch_payload(timeout))
