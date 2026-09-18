@@ -79,7 +79,9 @@ def scan_price_jumps(
         selected = CAP_UNIVERSES.get(cap_category, set())
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
 
-    selected_universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    selected_universe = [
+        (symbol, venue) for symbol, venue in universe if venue in exchanges
+    ]
     stats = {
         "candidate_count": len(selected_universe),
         "attempted_count": 0,
