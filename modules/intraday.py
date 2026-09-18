@@ -889,11 +889,15 @@ def show() -> None:
             "Repeated observations of the same symbol are retained at different scan times; "
             "duplicate rows from the same scan timestamp are suppressed."
         )
-        history_display = price_jump_history.sort_values("Timestamp", ascending=False).copy()
+        history_display = (
+            price_jump_history.sort_values("Timestamp", ascending=False).copy()
+        )
         history_display["Timestamp"] = pd.to_datetime(
             history_display["Timestamp"], errors="coerce"
         ).dt.strftime("%d %b %Y, %H:%M:%S")
-        st.dataframe(history_display.head(50), use_container_width=True, hide_index=True)
+        st.dataframe(
+            history_display.head(50), use_container_width=True, hide_index=True
+        )
         st.download_button(
             "Download price-jump history CSV",
             price_jump_history.to_csv(index=False).encode("utf-8"),
