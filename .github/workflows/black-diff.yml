@@ -1,0 +1,14 @@
+name: Black Diff Diagnostic
+
+on:
+  push:
+    branches:
+      - feature/dynamic-5m-price-jump-scanner
+
+jobs:
+  black-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uvx black==26.5.1 --diff --line-length 88 scanner/price_jump.py
