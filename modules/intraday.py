@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from scanner.eros_fusion import compute_eros_fusion
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.institutional_momentum_history import append_momentum_snapshot
@@ -428,6 +429,7 @@ def _show_live_20_panel() -> None:
             f"Refresh: ~{LIVE_BOARD_REFRESH_SECONDS // 60} min"
         )
         confluence = compute_signal_confluence(board)
+        st.session_state["live_confluence"] = confluence.copy()
         if not confluence.empty:
             st.subheader("🎯 Intraday Signal Confluence")
             st.caption(
@@ -871,6 +873,28 @@ def show() -> None:
                         mime="text/csv",
                         key="download_price_jump_confluence",
                     )
+
+    fusion = compute_eros_fusion(
+        st.session_state.get("live_confluence"),
+        st.session_state.get("intraday_confluence_history"),
+        st.session_state.get("price_jump_results"),
+        st.session_state.get("institutional_momentum_score"),
+    )
+    if not fusion.empty:
+        st.subheader("🧩 EROS Signal Fusion")
+        st.caption(
+            "Transparent screening score combining confluence (50%), persistence (20%), "
+            "price-jump presence (15%), and institutional momentum context (15%). "
+            "It is a descriptive screening metric, not a trade instruction."
+        )
+        st.dataframe(fusion.head(20), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download EROS fusion CSV",
+            fusion.to_csv(index=False).encode("utf-8"),
+            file_name="eros_fusion.csv",
+            mime="text/csv",
+            key="download_eros_fusion",
+        )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
