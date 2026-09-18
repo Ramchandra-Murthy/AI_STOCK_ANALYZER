@@ -10,6 +10,7 @@ import yfinance as yf
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.institutional_momentum_history import append_momentum_snapshot
+from scanner.intraday_signal_confluence import compute_signal_confluence
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
 
@@ -423,6 +424,33 @@ def _show_live_20_panel() -> None:
             f"Universe checked: {stats['candidates']} · Usable symbols: {stats['usable']} · "
             f"Refresh: ~{LIVE_BOARD_REFRESH_SECONDS // 60} min"
         )
+        confluence = compute_signal_confluence(board)
+        if not confluence.empty:
+            st.subheader("🎯 Intraday Signal Confluence")
+            st.caption(
+                "Descriptive confluence score across 2m/3m/5m/10m/15m momentum, volume surge, "
+                "breakout status, and relative strength. It is a screening metric, not a trade instruction."
+            )
+            st.dataframe(
+                confluence[
+                    [
+                        "Symbol",
+                        "Exchange",
+                        "Sector",
+                        "Price",
+                        "Confluence Score",
+                        "Confluence",
+                        "3-min change %",
+                        "5-min change %",
+                        "Volume surge x",
+                        "Breakout",
+                        "Relative Strength",
+                    ]
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+
         st.dataframe(
             board,
             use_container_width=True,
