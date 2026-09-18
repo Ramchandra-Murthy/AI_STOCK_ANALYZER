@@ -6,9 +6,7 @@ from scanner.intraday_confluence_history import append_confluence_snapshot
 
 
 def test_empty_inputs_are_safe():
-    assert append_confluence_snapshot(
-        None, datetime(2026, 9, 18, 10, 0), pd.DataFrame()
-    ).empty
+    assert append_confluence_snapshot(None, datetime(2026, 9, 18, 10, 0), pd.DataFrame()).empty
 
 
 def test_only_high_confluence_rows_are_recorded():
