@@ -42,7 +42,7 @@ def match_price_jumps_to_confluence(
     if result.empty:
         return result
 
-    result["Confluence Score"] = pd.to_numeric(result["Confluence Score"], errors="coerce")
+    result["Confluence Score"] = pd.to_numeric(\n        result["Confluence Score"], errors="coerce"\n    )
     result["Confluence Confirmation"] = result["Confluence Score"] >= min_score
     result = result.sort_values(
         ["Confluence Confirmation", "Confluence Score"],
