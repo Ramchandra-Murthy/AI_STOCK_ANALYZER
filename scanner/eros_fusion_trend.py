@@ -4,22 +4,14 @@ from __future__ import annotations
 
 import pandas as pd
 
+from scanner.eros_fusion_history_analytics import prepare_eros_fusion_history
+
 
 def analyze_eros_fusion_trend(
     history: pd.DataFrame | None,
 ) -> pd.DataFrame:
     """Calculate latest fusion change, acceleration, and direction per symbol."""
-    if history is None or history.empty:
-        return pd.DataFrame()
-
-    required = {"Timestamp", "Symbol", "Exchange", "Fusion Score"}
-    if not required.issubset(history.columns):
-        return pd.DataFrame()
-
-    frame = history.copy()
-    frame["Timestamp"] = pd.to_datetime(frame["Timestamp"], errors="coerce")
-    frame["Fusion Score"] = pd.to_numeric(frame["Fusion Score"], errors="coerce")
-    frame = frame.dropna(subset=["Timestamp", "Fusion Score"])
+    frame = prepare_eros_fusion_history(history)
     if frame.empty:
         return pd.DataFrame()
 
