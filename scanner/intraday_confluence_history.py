@@ -37,6 +37,8 @@ def append_confluence_snapshot(
     snapshot["Confluence Score"] = pd.to_numeric(snapshot["Confluence Score"], errors="coerce")
     snapshot["Confluence"] = snapshot["Confluence"].astype(str)
 
-    combined = pd.concat([history, snapshot], ignore_index=True) if history is not None else snapshot
+    combined = (
+        pd.concat([history, snapshot], ignore_index=True) if history is not None else snapshot
+    )
     combined = combined.drop_duplicates(subset=["Timestamp", "Symbol", "Exchange"], keep="last")
     return combined.tail(HISTORY_LIMIT).reset_index(drop=True)
