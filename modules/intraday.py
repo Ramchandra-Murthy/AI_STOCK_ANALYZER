@@ -10,6 +10,7 @@ import yfinance as yf
 from scanner.eros_fusion import compute_eros_fusion
 from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
+from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
@@ -997,6 +998,63 @@ def show() -> None:
                     mime="text/csv",
                     key="download_eros_fusion_trend",
                 )
+
+                lifecycle = analyze_eros_signal_lifecycle(
+                    fusion_history,
+                    fusion,
+                )
+                if not lifecycle.empty:
+                    st.subheader("🔄 EROS Signal Lifecycle & Confirmation Matrix")
+                    st.caption(
+                        "Descriptive lifecycle state derived from repeated EROS observations, "
+                        "fusion change, acceleration, and whether the signal is present in the latest "
+                        "fusion snapshot. It is an analytics layer, not a trade instruction."
+                    )
+                    matrix = fusion.merge(
+                        lifecycle[
+                            [
+                                "Symbol",
+                                "Exchange",
+                                "Observations",
+                                "Fusion Change",
+                                "Fusion Acceleration",
+                                "Trend",
+                                "Lifecycle",
+                            ]
+                        ],
+                        on=["Symbol", "Exchange"],
+                        how="left",
+                    )
+                    matrix_columns = [
+                        "Symbol",
+                        "Exchange",
+                        "Sector",
+                        "Fusion Score",
+                        "Confluence Component",
+                        "Persistence Component",
+                        "Price Jump Component",
+                        "Institutional Component",
+                        "Observations",
+                        "Fusion Change",
+                        "Fusion Acceleration",
+                        "Trend",
+                        "Lifecycle",
+                    ]
+                    matrix = matrix[
+                        [column for column in matrix_columns if column in matrix.columns]
+                    ]
+                    st.dataframe(
+                        matrix.head(30),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    st.download_button(
+                        "Download EROS lifecycle matrix CSV",
+                        matrix.to_csv(index=False).encode("utf-8"),
+                        file_name="eros_signal_lifecycle.csv",
+                        mime="text/csv",
+                        key="download_eros_signal_lifecycle",
+                    )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
