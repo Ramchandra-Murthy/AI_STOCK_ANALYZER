@@ -86,7 +86,9 @@ def _category_rows(frame: pd.DataFrame) -> pd.DataFrame:
         if net in frame.columns:
             row = {
                 "Category": category,
-                "Date": frame["Date"].iloc[0] if "Date" in frame.columns and not frame.empty else None,
+                "Date": (
+                    frame["Date"].iloc[0] if "Date" in frame.columns and not frame.empty else None
+                ),
                 "Buy Value (₹ Cr)": frame[buy].iloc[0] if buy in frame.columns else None,
                 "Sell Value (₹ Cr)": frame[sell].iloc[0] if sell in frame.columns else None,
                 "Net Value (₹ Cr)": frame[net].iloc[0],
