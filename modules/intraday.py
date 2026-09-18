@@ -131,8 +131,17 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
             try:
                 history = yf.download(
                     tickers=chunk,
-                    period="1d",
+                    period="5d",
                     interval="1m",
+                    progress=False,
+                    auto_adjust=False,
+                    group_by="ticker",
+                    threads=False,
+                )
+                daily_history = yf.download(
+                    tickers=chunk,
+                    period="5d",
+                    interval="1d",
                     progress=False,
                     auto_adjust=False,
                     group_by="ticker",
@@ -155,26 +164,17 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
                 if price <= 0 or previous_bar <= 0:
                     continue
 
-                daily_history = None
+                today_change = None
                 try:
-                    daily_history = yf.download(
-                        tickers=ticker,
-                        period="5d",
-                        interval="1d",
-                        progress=False,
-                        auto_adjust=False,
-                        threads=False,
-                    )
                     daily_frame = _frame_from_board_download(daily_history, ticker)
                     daily_close = pd.to_numeric(
                         daily_frame["Close"], errors="coerce"
                     ).dropna()
-                    today_change = None
                     if len(daily_close) >= 2 and float(daily_close.iloc[-2]) > 0:
                         today_change = (
                             price / float(daily_close.iloc[-2]) - 1.0
                         ) * 100
-                except Exception:
+                except (KeyError, TypeError, ValueError, IndexError):
                     today_change = None
 
                 symbol = ticker.rsplit(".", 1)[0]
