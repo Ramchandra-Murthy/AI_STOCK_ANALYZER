@@ -77,9 +77,33 @@ def _normalize_payload(payload: list[dict[str, object]]) -> pd.DataFrame:
     return frame[required]
 
 
+def _category_rows(frame: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+    for category, buy, sell, net in [
+        ("FII/FPI", "FII Buy Value (₹ Cr)", "FII Sell Value (₹ Cr)", "FII Net Value (₹ Cr)"),
+        ("DII", "DII Buy Value (₹ Cr)", "DII Sell Value (₹ Cr)", "DII Net Value (₹ Cr)"),
+    ]:
+        if net in frame.columns:
+            row = {
+                "Category": category,
+                "Date": (
+                    frame["Date"].iloc[0] if "Date" in frame.columns and not frame.empty else None
+                ),
+                "Buy Value (₹ Cr)": frame[buy].iloc[0] if buy in frame.columns else None,
+                "Sell Value (₹ Cr)": frame[sell].iloc[0] if sell in frame.columns else None,
+                "Net Value (₹ Cr)": frame[net].iloc[0],
+            }
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def fetch_fii_dii_flow(timeout: int = 10) -> pd.DataFrame:
-    """Fetch and normalize the latest NSE FII/FPI and DII activity."""
-    return _normalize_payload(_fetch_payload(timeout))
+    """Fetch the latest NSE FII/FPI and DII activity in category-row form."""
+    payload = _fetch_payload(timeout)
+    frame = _normalize_payload(payload)
+    if {"FII Net Value (₹ Cr)", "DII Net Value (₹ Cr)"}.issubset(frame.columns):
+        return _category_rows(frame)
+    return frame
 
 
 def fetch_fii_dii_history(timeout: int = 10) -> pd.DataFrame:

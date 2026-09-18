@@ -8,6 +8,7 @@ import streamlit as st
 import yfinance as yf
 
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
+from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
 
@@ -412,6 +413,9 @@ def _show_live_20_panel() -> None:
             )
             return
 
+        st.session_state["live_board"] = board.copy()
+        st.session_state["live_sector_summary"] = sector_summary.copy()
+
         now = datetime.now(IST)
         st.caption(
             f"Updated: {now:%d %b %Y, %H:%M:%S IST} · "
@@ -774,6 +778,27 @@ def show() -> None:
                 mime="text/csv",
                 key="download_price_jumps",
             )
+
+    st.subheader("🏦 Institutional Momentum Score")
+    st.caption(
+        "Composite descriptive score from institutional flow, flow trend, market breadth, sector momentum, "
+        "market momentum, and relative strength. It is a screening metric, not a trade instruction."
+    )
+    score_result = compute_institutional_momentum(
+        flow=st.session_state.get("institutional_flow"),
+        history=st.session_state.get("institutional_flow_history"),
+        board=st.session_state.get("live_board"),
+        sector_summary=st.session_state.get("live_sector_summary"),
+    )
+    st.session_state["institutional_momentum_score"] = score_result
+    score = score_result["score"]
+    label = score_result["label"]
+    st.metric("Institutional Momentum Score", f"{score:.0f} / 100", label)
+    score_frame = pd.DataFrame(
+        [{"Component": key, "Score": value} for key, value in score_result["components"].items()]
+    )
+    st.dataframe(score_frame, use_container_width=True, hide_index=True)
+    st.caption(score_result["explanation"])
 
     st.subheader("🏦 Institutional Flow — FII/FPI & DII")
     st.caption(
