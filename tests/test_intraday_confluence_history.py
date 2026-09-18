@@ -6,7 +6,9 @@ from scanner.intraday_confluence_history import append_confluence_snapshot
 
 
 def test_empty_inputs_are_safe():
-    assert append_confluence_snapshot(None, datetime(2026, 9, 18, 10, 0), pd.DataFrame()).empty
+    assert append_confluence_snapshot(
+        None, datetime(2026, 9, 18, 10, 0), pd.DataFrame()
+    ).empty
 
 
 def test_only_high_confluence_rows_are_recorded():
@@ -37,6 +39,8 @@ def test_duplicate_snapshot_is_replaced():
         }
     )
     first = append_confluence_snapshot(None, timestamp, board)
-    second = append_confluence_snapshot(first, timestamp, board.assign(**{"Confluence Score": [90.0]}))
+    second = append_confluence_snapshot(
+        first, timestamp, board.assign(**{"Confluence Score": [90.0]})
+    )
     assert len(second) == 1
     assert second.iloc[0]["Confluence Score"] == 90.0
