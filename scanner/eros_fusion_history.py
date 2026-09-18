@@ -40,7 +40,7 @@ def append_eros_fusion_snapshot(
     if snapshot.empty:
         return history.copy() if history is not None else pd.DataFrame()
 
-    combined = pd.concat([history, snapshot], ignore_index=True) if history is not None else snapshot
+    combined = (\n        pd.concat([history, snapshot], ignore_index=True) if history is not None else snapshot\n    )
     combined = combined.drop_duplicates(
         subset=["Timestamp", "Symbol", "Exchange"],
         keep="last",
