@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from scanner.institutional_flow import fetch_fii_dii_flow
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
 
@@ -773,6 +774,47 @@ def show() -> None:
                 mime="text/csv",
                 key="download_price_jumps",
             )
+
+    st.subheader("🏦 Institutional Flow — FII/FPI & DII")
+    st.caption(
+        "Latest NSE cash-market institutional activity. NSE states these figures are "
+        "provisional and may change after custodial confirmation."
+    )
+    if st.button("Refresh FII/DII flow", key="refresh_institutional_flow"):
+        try:
+            flow = fetch_fii_dii_flow()
+            st.session_state["institutional_flow"] = flow
+            st.session_state["institutional_flow_time"] = datetime.now(IST).strftime(
+                "%d %b %Y, %H:%M IST"
+            )
+        except Exception as exc:
+            st.error(f"Institutional flow could not be loaded: {exc}")
+
+    flow = st.session_state.get("institutional_flow")
+    if flow is not None and not flow.empty:
+        fii = flow[flow["Category"].astype(str).str.contains("FII", case=False, na=False)][
+            "Net Value (₹ Cr)"
+        ].sum()
+        dii = flow[flow["Category"].astype(str).str.contains("DII", case=False, na=False)][
+            "Net Value (₹ Cr)"
+        ].sum()
+        m1, m2, m3 = st.columns(3)
+        m1.metric("FII/FPI net", f"₹{fii:,.2f} Cr")
+        m2.metric("DII net", f"₹{dii:,.2f} Cr")
+        m3.metric("Combined net", f"₹{fii + dii:,.2f} Cr")
+        st.caption(f"Last updated: {st.session_state.get('institutional_flow_time', 'unknown')}")
+        st.dataframe(flow, use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download FII/DII CSV",
+            flow.to_csv(index=False).encode("utf-8"),
+            file_name="fii_dii_flow.csv",
+            mime="text/csv",
+            key="download_institutional_flow",
+        )
+    else:
+        st.info("Click Refresh FII/DII flow during market hours to load the latest NSE data.")
+
+    st.divider()
 
     st.subheader("Unusual activity scanner")
     st.caption(
