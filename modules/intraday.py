@@ -8,6 +8,8 @@ import streamlit as st
 import yfinance as yf
 
 from scanner.eros_fusion import compute_eros_fusion
+from scanner.eros_fusion_history import append_eros_fusion_snapshot
+from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.institutional_momentum_history import append_momentum_snapshot
@@ -936,6 +938,46 @@ def show() -> None:
             mime="text/csv",
             key="download_eros_fusion",
         )
+
+        fusion_history = append_eros_fusion_snapshot(
+            st.session_state.get("eros_fusion_history"),
+            datetime.now(IST),
+            fusion,
+        )
+        st.session_state["eros_fusion_history"] = fusion_history
+        if not fusion_history.empty:
+            st.subheader("📊 EROS Fusion History")
+            st.caption(
+                "Session-scoped history of EROS fusion scores across dashboard refreshes. "
+                "Repeated observations help distinguish one-time scores from persistent signals."
+            )
+            history_display = fusion_history.sort_values("Timestamp", ascending=False).copy()
+            history_display["Timestamp"] = pd.to_datetime(
+                history_display["Timestamp"], errors="coerce"
+            ).dt.strftime("%d %b %Y, %H:%M:%S")
+            st.dataframe(
+                history_display.head(50),
+                use_container_width=True,
+                hide_index=True,
+            )
+            st.download_button(
+                "Download EROS fusion history CSV",
+                fusion_history.to_csv(index=False).encode("utf-8"),
+                file_name="eros_fusion_history.csv",
+                mime="text/csv",
+                key="download_eros_fusion_history",
+            )
+
+            fusion_summary = summarize_eros_fusion_history(fusion_history)
+            if not fusion_summary.empty:
+                st.caption(
+                    "Persistence summary of repeated EROS fusion observations by symbol."
+                )
+                st.dataframe(
+                    fusion_summary.head(30),
+                    use_container_width=True,
+                    hide_index=True,
+                )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
