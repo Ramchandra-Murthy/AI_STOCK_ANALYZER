@@ -469,9 +469,7 @@ def _show_live_20_panel() -> None:
                     "Status": "EXITED",
                     "Symbol": symbol,
                     "Signal": previous_history[symbol].get("signal", "—"),
-                    "Momentum score": round(
-                        float(previous_history[symbol].get("score", 0)), 2
-                    ),
+                    "Momentum score": round(float(previous_history[symbol].get("score", 0)), 2),
                     "Last seen": previous_history[symbol].get("last_seen", "—"),
                 }
                 for symbol in exited
