@@ -24,9 +24,7 @@ def compute_eros_fusion(
         return pd.DataFrame()
 
     result = confluence.copy()
-    result["Confluence Score"] = pd.to_numeric(
-        result["Confluence Score"], errors="coerce"
-    )
+    result["Confluence Score"] = pd.to_numeric(result["Confluence Score"], errors="coerce")
     result = result.dropna(subset=["Confluence Score"])
     if result.empty:
         return pd.DataFrame()
@@ -85,9 +83,9 @@ def compute_eros_fusion(
     if institutional_score is not None:
         active_weights.append("Institutional Component")
     weight_total = sum(weights[column] for column in active_weights)
-    result["Fusion Score"] = sum(
-        result[column] * weights[column] for column in active_weights
-    ) / weight_total
+    result["Fusion Score"] = (
+        sum(result[column] * weights[column] for column in active_weights) / weight_total
+    )
     result["Fusion Score"] = result["Fusion Score"].clip(0, 100).round(2)
     result["Fusion Coverage"] = len(active_weights)
 
@@ -106,7 +104,11 @@ def compute_eros_fusion(
         for column in ["Sector", "Price", "Confluence", "Relative Strength"]
         if column in result.columns
     ]
-    return result[display_columns[:2] + extras + display_columns[2:]].sort_values(
-        ["Fusion Score", "Confluence Component"],
-        ascending=[False, False],
-    ).reset_index(drop=True)
+    return (
+        result[display_columns[:2] + extras + display_columns[2:]]
+        .sort_values(
+            ["Fusion Score", "Confluence Component"],
+            ascending=[False, False],
+        )
+        .reset_index(drop=True)
+    )
