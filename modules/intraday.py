@@ -62,32 +62,86 @@ LIVE_BOARD_CHUNK_SIZE = 10
 # mapping are shown as "Unclassified" rather than inventing a sector.
 SECTOR_BY_SYMBOL = {
     "RELIANCE": "Energy",
-    "TCS": "IT", "INFY": "IT", "HCLTECH": "IT", "WIPRO": "IT", "TECHM": "IT",
-    "HDFCBANK": "Financials", "ICICIBANK": "Financials", "SBIN": "Financials",
-    "KOTAKBANK": "Financials", "AXISBANK": "Financials", "BAJFINANCE": "Financials",
-    "BAJAJFINSV": "Financials", "INDUSINDBK": "Financials", "BANKBARODA": "Financials",
-    "CANBK": "Financials", "IDFCFIRSTB": "Financials", "PNB": "Financials",
-    "ICICIGI": "Financials", "SBILIFE": "Financials", "HDFCLIFE": "Financials", "LICI": "Financials",
-    "LT": "Industrials", "BEL": "Industrials", "HAL": "Industrials", "SIEMENS": "Industrials",
-    "ABB": "Industrials", "ADANIENT": "Industrials", "ADANIPORTS": "Industrials",
-    "IRFC": "Industrials", "RVNL": "Industrials",
-    "ITC": "Consumer", "HINDUNILVR": "Consumer", "NESTLEIND": "Consumer",
-    "BRITANNIA": "Consumer", "TATACONSUM": "Consumer", "DABUR": "Consumer",
-    "GODREJCP": "Consumer", "COLPAL": "Consumer", "TITAN": "Consumer", "TRENT": "Consumer",
-    "DMART": "Consumer", "NYKAA": "Consumer",
-    "MARUTI": "Automobiles", "M&M": "Automobiles", "TATAMOTORS": "Automobiles",
-    "EICHERMOT": "Automobiles", "HEROMOTOCO": "Automobiles", "BAJAJ-AUTO": "Automobiles",
-    "TVSMOTOR": "Automobiles", "ASHOKLEY": "Automobiles", "MOTHERSON": "Automobiles",
-    "SUNPHARMA": "Pharma", "CIPLA": "Pharma", "DRREDDY": "Pharma",
-    "DIVISLAB": "Pharma", "APOLLOHOSP": "Healthcare",
-    "ULTRACEMCO": "Cement", "GRASIM": "Diversified", "HINDALCO": "Metals",
-    "TATASTEEL": "Metals", "JSWSTEEL": "Metals", "VEDL": "Metals", "COALINDIA": "Mining",
-    "ONGC": "Energy", "BPCL": "Energy", "IOC": "Energy", "GAIL": "Energy",
-    "NTPC": "Utilities", "POWERGRID": "Utilities",
-    "ASIANPAINT": "Materials", "PIDILITIND": "Materials", "HAVELLS": "Consumer Durables",
-    "BHARTIARTL": "Telecom", "INDIGO": "Airlines", "LODHA": "Real Estate",
-    "ZOMATO": "Internet", "PAYTM": "Financial Technology", "JIOFIN": "Financials",
+    "TCS": "IT",
+    "INFY": "IT",
+    "HCLTECH": "IT",
+    "WIPRO": "IT",
+    "TECHM": "IT",
+    "HDFCBANK": "Financials",
+    "ICICIBANK": "Financials",
+    "SBIN": "Financials",
+    "KOTAKBANK": "Financials",
+    "AXISBANK": "Financials",
+    "BAJFINANCE": "Financials",
+    "BAJAJFINSV": "Financials",
+    "INDUSINDBK": "Financials",
+    "BANKBARODA": "Financials",
+    "CANBK": "Financials",
+    "IDFCFIRSTB": "Financials",
+    "PNB": "Financials",
+    "ICICIGI": "Financials",
+    "SBILIFE": "Financials",
+    "HDFCLIFE": "Financials",
+    "LICI": "Financials",
+    "LT": "Industrials",
+    "BEL": "Industrials",
+    "HAL": "Industrials",
+    "SIEMENS": "Industrials",
+    "ABB": "Industrials",
+    "ADANIENT": "Industrials",
+    "ADANIPORTS": "Industrials",
+    "IRFC": "Industrials",
+    "RVNL": "Industrials",
+    "ITC": "Consumer",
+    "HINDUNILVR": "Consumer",
+    "NESTLEIND": "Consumer",
+    "BRITANNIA": "Consumer",
+    "TATACONSUM": "Consumer",
+    "DABUR": "Consumer",
+    "GODREJCP": "Consumer",
+    "COLPAL": "Consumer",
+    "TITAN": "Consumer",
+    "TRENT": "Consumer",
+    "DMART": "Consumer",
+    "NYKAA": "Consumer",
+    "MARUTI": "Automobiles",
+    "M&M": "Automobiles",
+    "TATAMOTORS": "Automobiles",
+    "EICHERMOT": "Automobiles",
+    "HEROMOTOCO": "Automobiles",
+    "BAJAJ-AUTO": "Automobiles",
+    "TVSMOTOR": "Automobiles",
+    "ASHOKLEY": "Automobiles",
+    "MOTHERSON": "Automobiles",
+    "SUNPHARMA": "Pharma",
+    "CIPLA": "Pharma",
+    "DRREDDY": "Pharma",
+    "DIVISLAB": "Pharma",
+    "APOLLOHOSP": "Healthcare",
+    "ULTRACEMCO": "Cement",
+    "GRASIM": "Diversified",
+    "HINDALCO": "Metals",
+    "TATASTEEL": "Metals",
+    "JSWSTEEL": "Metals",
+    "VEDL": "Metals",
+    "COALINDIA": "Mining",
+    "ONGC": "Energy",
+    "BPCL": "Energy",
+    "IOC": "Energy",
+    "GAIL": "Energy",
+    "NTPC": "Utilities",
+    "POWERGRID": "Utilities",
+    "ASIANPAINT": "Materials",
+    "PIDILITIND": "Materials",
+    "HAVELLS": "Consumer Durables",
+    "BHARTIARTL": "Telecom",
+    "INDIGO": "Airlines",
+    "LODHA": "Real Estate",
+    "ZOMATO": "Internet",
+    "PAYTM": "Financial Technology",
+    "JIOFIN": "Financials",
 }
+
 
 def _live_board_ticker(symbol: str, exchange: str) -> str:
     cleaned = str(symbol).strip().upper()
@@ -115,9 +169,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
     """Build a dynamic 20-stock board from the broad NSE+BSE universe."""
     from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
-    candidates = [
-        (symbol, "NSE") for symbol in NSE_CANDIDATES
-    ] + [
+    candidates = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
         (symbol, "BSE") for symbol in BSE_CANDIDATES
     ]
     rows: list[dict[str, object]] = []
@@ -184,9 +236,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
                         "Exchange": exchange,
                         "Sector": SECTOR_BY_SYMBOL.get(symbol, "Unclassified"),
                         "Price": round(price, 2),
-                        "1-min change %": round(
-                            (price / previous_bar - 1.0) * 100, 2
-                        ),
+                        "1-min change %": round((price / previous_bar - 1.0) * 100, 2),
                         "Today change %": (
                             round(today_change, 2)
                             if today_change is not None
@@ -248,7 +298,6 @@ def _show_live_20_panel() -> None:
         )
 
     _live_board_fragment()
-
 
 def show() -> None:
     st.title("⏱️ Intraday Trading")
