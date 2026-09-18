@@ -970,9 +970,7 @@ def show() -> None:
 
             fusion_summary = summarize_eros_fusion_history(fusion_history)
             if not fusion_summary.empty:
-                st.caption(
-                    "Persistence summary of repeated EROS fusion observations by symbol."
-                )
+                st.caption("Persistence summary of repeated EROS fusion observations by symbol.")
                 st.dataframe(
                     fusion_summary.head(30),
                     use_container_width=True,
