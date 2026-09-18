@@ -1,0 +1,13 @@
+name: Temporary Black Diff
+
+on:
+  pull_request:
+    types: [synchronize]
+
+jobs:
+  black-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uvx black==26.5.1 --diff --line-length 100 scanner/price_jump.py
