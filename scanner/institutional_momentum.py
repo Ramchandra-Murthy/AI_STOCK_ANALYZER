@@ -43,9 +43,19 @@ def _history_nets(history: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
         frame["Date"] = pd.to_datetime(frame["Date"], errors="coerce")
         frame["Net Value (₹ Cr)"] = pd.to_numeric(frame["Net Value (₹ Cr)"], errors="coerce")
         frame = frame.dropna(subset=["Date", "Net Value (₹ Cr)"])
-        pivot = frame.pivot_table(index="Date", columns="Category", values="Net Value (₹ Cr)", aggfunc="sum")
-        fii = pivot.filter(regex="FII", axis=1).sum(axis=1) if not pivot.empty else pd.Series(dtype=float)
-        dii = pivot.filter(regex="DII", axis=1).sum(axis=1) if not pivot.empty else pd.Series(dtype=float)
+        pivot = frame.pivot_table(
+            index="Date", columns="Category", values="Net Value (₹ Cr)", aggfunc="sum"
+        )
+        fii = (
+            pivot.filter(regex="FII", axis=1).sum(axis=1)
+            if not pivot.empty
+            else pd.Series(dtype=float)
+        )
+        dii = (
+            pivot.filter(regex="DII", axis=1).sum(axis=1)
+            if not pivot.empty
+            else pd.Series(dtype=float)
+        )
         return fii, dii
     return pd.Series(dtype=float), pd.Series(dtype=float)
 
