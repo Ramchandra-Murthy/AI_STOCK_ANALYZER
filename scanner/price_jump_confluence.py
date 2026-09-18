@@ -16,9 +16,7 @@ def match_price_jumps_to_confluence(
 
     required_jumps = {"Symbol", "Exchange"}
     required_board = {"Symbol", "Exchange", "Confluence Score", "Confluence"}
-    if not required_jumps.issubset(jumps.columns) or not required_board.issubset(
-        board.columns
-    ):
+    if not required_jumps.issubset(jumps.columns) or not required_board.issubset(board.columns):
         return pd.DataFrame()
 
     metrics = board[
@@ -42,9 +40,7 @@ def match_price_jumps_to_confluence(
     if result.empty:
         return result
 
-    result["Confluence Score"] = pd.to_numeric(
-        result["Confluence Score"], errors="coerce"
-    )
+    result["Confluence Score"] = pd.to_numeric(result["Confluence Score"], errors="coerce")
     result["Confluence Confirmation"] = result["Confluence Score"] >= min_score
     result = result.sort_values(
         ["Confluence Confirmation", "Confluence Score"],
