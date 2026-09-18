@@ -8,6 +8,7 @@ import streamlit as st
 import yfinance as yf
 
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
+from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
 
@@ -412,6 +413,9 @@ def _show_live_20_panel() -> None:
             )
             return
 
+        st.session_state["live_board"] = board.copy()
+        st.session_state["live_sector_summary"] = sector_summary.copy()
+
         now = datetime.now(IST)
         st.caption(
             f"Updated: {now:%d %b %Y, %H:%M:%S IST} · "
@@ -780,6 +784,14 @@ def show() -> None:
         "Composite descriptive score from institutional flow, flow trend, market breadth, sector momentum, "
         "market momentum, and relative strength. It is a screening metric, not a trade instruction."
     )
+    score_result = compute_institutional_momentum(
+        flow=st.session_state.get("institutional_flow"),
+        history=st.session_state.get("institutional_flow_history"),
+        board=st.session_state.get("live_board"),
+        sector_summary=st.session_state.get("live_sector_summary"),
+    )
+    st.session_state["institutional_momentum_score"] = score_result
+
     if "institutional_momentum_score" in st.session_state:
         score_data = st.session_state["institutional_momentum_score"]
         score = score_data["score"]
