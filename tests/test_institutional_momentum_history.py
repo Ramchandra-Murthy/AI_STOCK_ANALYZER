@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -8,7 +8,7 @@ from scanner.institutional_momentum_history import append_momentum_snapshot
 def test_append_momentum_snapshot_creates_history():
     result = append_momentum_snapshot(
         None,
-        datetime(2026, 9, 18, 10, tzinfo=timezone.utc),
+        datetime(2026, 9, 18, 10, tzinfo=UTC),
         62.5,
         "POSITIVE",
     )
@@ -18,7 +18,7 @@ def test_append_momentum_snapshot_creates_history():
 
 
 def test_append_momentum_snapshot_replaces_duplicate_timestamp():
-    timestamp = datetime(2026, 9, 18, 10, tzinfo=timezone.utc)
+    timestamp = datetime(2026, 9, 18, 10, tzinfo=UTC)
     history = pd.DataFrame(
         [{"Timestamp": timestamp, "Score": 55.0, "Label": "NEUTRAL"}]
     )
