@@ -53,6 +53,7 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
+# Dynamic market board settings.
 LIVE_BOARD_REFRESH_SECONDS = 120
 LIVE_BOARD_CHUNK_SIZE = 10
 
