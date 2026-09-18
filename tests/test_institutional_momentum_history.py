@@ -19,9 +19,7 @@ def test_append_momentum_snapshot_creates_history():
 
 def test_append_momentum_snapshot_replaces_duplicate_timestamp():
     timestamp = datetime(2026, 9, 18, 10, tzinfo=UTC)
-    history = pd.DataFrame(
-        [{"Timestamp": timestamp, "Score": 55.0, "Label": "NEUTRAL"}]
-    )
+    history = pd.DataFrame([{"Timestamp": timestamp, "Score": 55.0, "Label": "NEUTRAL"}])
     result = append_momentum_snapshot(history, timestamp, 70.0, "POSITIVE")
     assert len(result) == 1
     assert result.iloc[0]["Score"] == 70.0
