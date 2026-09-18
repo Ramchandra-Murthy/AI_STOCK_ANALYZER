@@ -144,10 +144,16 @@ SECTOR_BY_SYMBOL = {
 def _live_board_ticker(symbol: str, exchange: str) -> str:
     cleaned = str(symbol).strip().upper()
     suffix = ".NS" if exchange == "NSE" else ".BO"
-    return cleaned if cleaned.endswith((".NS", ".BO")) else f"{cleaned}{suffix}"
+    return (
+        cleaned
+        if cleaned.endswith((".NS", ".BO"))
+        else f"{cleaned}{suffix}"
+    )
 
 
-def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
+def _frame_from_board_download(
+    history: pd.DataFrame, ticker: str
+) -> pd.DataFrame:
     if history is None or history.empty:
         return pd.DataFrame()
     if isinstance(history.columns, pd.MultiIndex):
@@ -234,7 +240,9 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
                         "Exchange": exchange,
                         "Sector": SECTOR_BY_SYMBOL.get(symbol, "Unclassified"),
                         "Price": round(price, 2),
-                        "1-min change %": round((price / previous_bar - 1.0) * 100, 2),
+                        "1-min change %": round(
+                            (price / previous_bar - 1.0) * 100, 2
+                        ),
                         "Today change %": (
                             round(today_change, 2)
                             if today_change is not None
@@ -285,7 +293,9 @@ def _show_live_20_panel() -> None:
             hide_index=True,
             height=620,
             column_config={
-                "Price": st.column_config.NumberColumn("Price (₹)", format="₹ %.2f"),
+                "Price": st.column_config.NumberColumn(
+                    "Price (₹)", format="₹ %.2f"
+                ),
                 "1-min change %": st.column_config.NumberColumn(
                     "1-min %", format="%.2f%%"
                 ),
