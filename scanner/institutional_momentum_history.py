@@ -6,7 +6,6 @@ from datetime import datetime
 
 import pandas as pd
 
-
 HISTORY_LIMIT = 300
 
 
