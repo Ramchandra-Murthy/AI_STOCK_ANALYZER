@@ -34,11 +34,6 @@ def analyze_eros_fusion_trend(
     latest["Trend"] = "STABLE"
     latest.loc[latest["Fusion Change"] > 0, "Trend"] = "RISING"
     latest.loc[latest["Fusion Change"] < 0, "Trend"] = "FALLING"
-    latest["Improving Observations"] = (
-        frame.assign(_improving=frame["Fusion Change"] > 0)
-        .groupby(["Symbol", "Exchange"])["_improving"]
-        .transform(lambda values: values.iloc[::-1].cumprod().iloc[::-1])
-    )
     latest = latest.drop(columns=["Previous Change"], errors="ignore")
     return latest[
         [
