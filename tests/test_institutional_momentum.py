@@ -17,9 +17,7 @@ def test_institutional_momentum_combines_positive_inputs():
             "Net Value (₹ Cr)": [6000.0, 3000.0],
         }
     )
-    board = pd.DataFrame(
-        {"Today change %": [1.0, 2.0], "Relative Strength": [1.0, 2.0]}
-    )
+    board = pd.DataFrame({"Today change %": [1.0, 2.0], "Relative Strength": [1.0, 2.0]})
     sectors = pd.DataFrame(
         {
             "Stocks": [10],
@@ -49,9 +47,7 @@ def test_institutional_momentum_negative_inputs_lower_score():
             "Avg change %": [-1.5],
         }
     )
-    board = pd.DataFrame(
-        {"Today change %": [-1.0, -2.0], "Relative Strength": [-1.0, -2.0]}
-    )
+    board = pd.DataFrame({"Today change %": [-1.0, -2.0], "Relative Strength": [-1.0, -2.0]})
     result = compute_institutional_momentum(flow=flow, board=board, sector_summary=sectors)
     assert result["score"] < 50
     assert result["label"] in {"NEGATIVE", "STRONG NEGATIVE"}
