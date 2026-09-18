@@ -16,9 +16,7 @@ def append_momentum_snapshot(
     label: str,
 ) -> pd.DataFrame:
     """Append one score observation and keep the session history bounded."""
-    row = pd.DataFrame(
-        [{"Timestamp": timestamp, "Score": float(score), "Label": str(label)}]
-    )
+    row = pd.DataFrame([{"Timestamp": timestamp, "Score": float(score), "Label": str(label)}])
     if history is None or history.empty:
         return row
 
