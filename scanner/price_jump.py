@@ -97,7 +97,11 @@ def scan_price_jumps(
     bars = max(1, int(round(lookback_minutes / candle_minutes)))
 
     for exchange in exchanges:
-        tickers = [_ticker(symbol, exchange) for symbol, venue in selected_universe if venue == exchange]
+        tickers = [
+            _ticker(symbol, exchange)
+            for symbol, venue in selected_universe
+            if venue == exchange
+        ]
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
             stats["attempted_count"] += len(chunk)
