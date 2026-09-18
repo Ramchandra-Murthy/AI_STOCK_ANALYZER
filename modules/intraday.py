@@ -310,12 +310,28 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         signals.loc[signals["Volume surge x"].fillna(0) >= 1.5, "Signal"] = "VOLUME + PRICE"
         signals.loc[signals["Breakout"] == "YES", "Signal"] = "BREAKOUT"
         signals["Momentum score"] = (
-            (signals["2-min change %"].fillna(0) / 0.75).clip(lower=0)
-            .combine((signals["3-min change %"].fillna(0) / 1.0).clip(lower=0), max)
-            .combine((signals["5-min change %"].fillna(0) / 1.5).clip(lower=0), max)
-            .combine((signals["10-min change %"].fillna(0) / 2.0).clip(lower=0), max)
-            .combine((signals["15-min change %"].fillna(0) / 2.5).clip(lower=0), max)
-            .combine((signals["Volume surge x"].fillna(0) / 1.5).clip(lower=0), max)
+            (signals["2-min change %"].fillna(0) / 0.75)
+            .clip(lower=0)
+            .combine(
+                (signals["3-min change %"].fillna(0) / 1.0).clip(lower=0),
+                max,
+            )
+            .combine(
+                (signals["5-min change %"].fillna(0) / 1.5).clip(lower=0),
+                max,
+            )
+            .combine(
+                (signals["10-min change %"].fillna(0) / 2.0).clip(lower=0),
+                max,
+            )
+            .combine(
+                (signals["15-min change %"].fillna(0) / 2.5).clip(lower=0),
+                max,
+            )
+            .combine(
+                (signals["Volume surge x"].fillna(0) / 1.5).clip(lower=0),
+                max,
+            )
         )
         signals.loc[signals["Breakout"] == "YES", "Momentum score"] = signals[
             "Momentum score"
@@ -453,7 +469,9 @@ def _show_live_20_panel() -> None:
                     "Status": "EXITED",
                     "Symbol": symbol,
                     "Signal": previous_history[symbol].get("signal", "—"),
-                    "Momentum score": round(float(previous_history[symbol].get("score", 0)), 2),
+                    "Momentum score": round(
+                        float(previous_history[symbol].get("score", 0)), 2
+                    ),
                     "Last seen": previous_history[symbol].get("last_seen", "—"),
                 }
                 for symbol in exited
@@ -503,7 +521,9 @@ def _show_live_20_panel() -> None:
             )
 
             if history_rows:
-                st.caption("Signals that disappeared since the previous refresh are retained below as EXITED.")
+                st.caption(
+                    "Signals that disappeared since the previous refresh are retained below as EXITED."
+                )
                 st.dataframe(
                     pd.DataFrame(history_rows),
                     use_container_width=True,
