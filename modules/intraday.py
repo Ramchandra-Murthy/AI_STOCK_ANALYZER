@@ -212,12 +212,8 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
                     continue
                 price = float(close.iloc[-1])
                 previous_bar = float(close.iloc[-2])
-                change_2m = (
-                    (price / float(close.iloc[-3]) - 1.0) * 100 if len(close) >= 3 else None
-                )
-                change_3m = (
-                    (price / float(close.iloc[-4]) - 1.0) * 100 if len(close) >= 4 else None
-                )
+                change_2m = (price / float(close.iloc[-3]) - 1.0) * 100 if len(close) >= 3 else None
+                change_3m = (price / float(close.iloc[-4]) - 1.0) * 100 if len(close) >= 4 else None
                 volume_surge = None
                 if "Volume" in frame.columns:
                     volumes = pd.to_numeric(frame["Volume"], errors="coerce").dropna()
@@ -256,7 +252,9 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
                         "1-min change %": round((price / previous_bar - 1.0) * 100, 2),
                         "2-min change %": round(change_2m, 2) if change_2m is not None else None,
                         "3-min change %": round(change_3m, 2) if change_3m is not None else None,
-                        "Volume surge x": round(volume_surge, 2) if volume_surge is not None else None,
+                        "Volume surge x": (
+                            round(volume_surge, 2) if volume_surge is not None else None
+                        ),
                         "Breakout": "YES" if breakout else "—",
                         "Today change %": (
                             round(today_change, 2) if today_change is not None else None
@@ -279,11 +277,15 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
         signals["Signal"] = "PRICE JUMP"
         signals.loc[signals["Volume surge x"].fillna(0) >= 1.5, "Signal"] = "VOLUME + PRICE"
         signals.loc[signals["Breakout"] == "YES", "Signal"] = "BREAKOUT"
-        signals = signals.sort_values(
-            ["3-min change %", "2-min change %", "Volume surge x"],
-            ascending=[False, False, False],
-            na_position="last",
-        ).head(20).reset_index(drop=True)
+        signals = (
+            signals.sort_values(
+                ["3-min change %", "2-min change %", "Volume surge x"],
+                ascending=[False, False, False],
+                na_position="last",
+            )
+            .head(20)
+            .reset_index(drop=True)
+        )
 
     board = (
         board.sort_values(
@@ -339,7 +341,9 @@ def _show_live_20_panel() -> None:
             "These are screening conditions, not trade instructions."
         )
         if signals.empty:
-            st.info("No price-jump, volume-surge, or breakout conditions detected in the current universe.")
+            st.info(
+                "No price-jump, volume-surge, or breakout conditions detected in the current universe."
+            )
         else:
             prior = set(st.session_state.get("live_signal_symbols", []))
             current = set(signals["Symbol"])
@@ -353,9 +357,18 @@ def _show_live_20_panel() -> None:
             st.dataframe(
                 signals[
                     [
-                        "Status", "Symbol", "Exchange", "Sector", "Price",
-                        "1-min change %", "2-min change %", "3-min change %",
-                        "Today change %", "Volume surge x", "Breakout", "Signal",
+                        "Status",
+                        "Symbol",
+                        "Exchange",
+                        "Sector",
+                        "Price",
+                        "1-min change %",
+                        "2-min change %",
+                        "3-min change %",
+                        "Today change %",
+                        "Volume surge x",
+                        "Breakout",
+                        "Signal",
                         "Last update",
                     ]
                 ],
