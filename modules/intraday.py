@@ -145,16 +145,10 @@ SECTOR_BY_SYMBOL = {
 def _live_board_ticker(symbol: str, exchange: str) -> str:
     cleaned = str(symbol).strip().upper()
     suffix = ".NS" if exchange == "NSE" else ".BO"
-    return (
-        cleaned
-        if cleaned.endswith((".NS", ".BO"))
-        else f"{cleaned}{suffix}"
-    )
+    return cleaned if cleaned.endswith((".NS", ".BO")) else f"{cleaned}{suffix}"
 
 
-def _frame_from_board_download(
-    history: pd.DataFrame, ticker: str
-) -> pd.DataFrame:
+def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     if history is None or history.empty:
         return pd.DataFrame()
     if isinstance(history.columns, pd.MultiIndex):
@@ -224,13 +218,9 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
                 today_change = None
                 try:
                     daily_frame = _frame_from_board_download(daily_history, ticker)
-                    daily_close = pd.to_numeric(
-                        daily_frame["Close"], errors="coerce"
-                    ).dropna()
+                    daily_close = pd.to_numeric(daily_frame["Close"], errors="coerce").dropna()
                     if len(daily_close) >= 2 and float(daily_close.iloc[-2]) > 0:
-                        today_change = (
-                            price / float(daily_close.iloc[-2]) - 1.0
-                        ) * 100
+                        today_change = (price / float(daily_close.iloc[-2]) - 1.0) * 100
                 except (KeyError, TypeError, ValueError, IndexError):
                     today_change = None
 
@@ -241,13 +231,9 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
                         "Exchange": exchange,
                         "Sector": SECTOR_BY_SYMBOL.get(symbol, "Unclassified"),
                         "Price": round(price, 2),
-                        "1-min change %": round(
-                            (price / previous_bar - 1.0) * 100, 2
-                        ),
+                        "1-min change %": round((price / previous_bar - 1.0) * 100, 2),
                         "Today change %": (
-                            round(today_change, 2)
-                            if today_change is not None
-                            else None
+                            round(today_change, 2) if today_change is not None else None
                         ),
                         "Last update": str(close.index[-1]),
                     }
@@ -257,11 +243,15 @@ def _fetch_live_board() -> tuple[pd.DataFrame, dict[str, int]]:
     if board.empty:
         return board, stats
 
-    board = board.sort_values(
-        ["1-min change %", "Today change %"],
-        ascending=[False, False],
-        na_position="last",
-    ).head(20).reset_index(drop=True)
+    board = (
+        board.sort_values(
+            ["1-min change %", "Today change %"],
+            ascending=[False, False],
+            na_position="last",
+        )
+        .head(20)
+        .reset_index(drop=True)
+    )
     board.insert(0, "Rank", range(1, len(board) + 1))
     return board, stats
 
@@ -294,15 +284,9 @@ def _show_live_20_panel() -> None:
             hide_index=True,
             height=620,
             column_config={
-                "Price": st.column_config.NumberColumn(
-                    "Price (₹)", format="₹ %.2f"
-                ),
-                "1-min change %": st.column_config.NumberColumn(
-                    "1-min %", format="%.2f%%"
-                ),
-                "Today change %": st.column_config.NumberColumn(
-                    "Today %", format="%.2f%%"
-                ),
+                "Price": st.column_config.NumberColumn("Price (₹)", format="₹ %.2f"),
+                "1-min change %": st.column_config.NumberColumn("1-min %", format="%.2f%%"),
+                "Today change %": st.column_config.NumberColumn("Today %", format="%.2f%%"),
             },
         )
 
