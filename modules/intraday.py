@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from scanner.institutional_flow import fetch_fii_dii_flow
+from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
 
@@ -813,6 +813,109 @@ def show() -> None:
         )
     else:
         st.info("Click Refresh FII/DII flow during market hours to load the latest NSE data.")
+
+    st.subheader("📅 Institutional Flow History & Trend")
+    st.caption(
+        "Historical rows exposed by the NSE FII/FPI and DII endpoint. "
+        "Use 5, 20, or 60 available sessions for rolling flow context."
+    )
+    if st.button("Refresh institutional history", key="refresh_institutional_history"):
+        try:
+            history = fetch_fii_dii_history()
+            st.session_state["institutional_flow_history"] = history
+            st.session_state["institutional_flow_history_time"] = datetime.now(IST).strftime(
+                "%d %b %Y, %H:%M IST"
+            )
+        except Exception as exc:
+            st.error(f"Institutional history could not be loaded: {exc}")
+
+    history = st.session_state.get("institutional_flow_history")
+    if history is not None and not history.empty:
+        if {"FII Net Value (₹ Cr)", "DII Net Value (₹ Cr)"}.issubset(history.columns):
+            trend = history.copy()
+            trend["Date"] = pd.to_datetime(trend["Date"], errors="coerce")
+            trend = trend.dropna(subset=["Date"]).sort_values("Date", ascending=False)
+        else:
+            category = history.copy()
+            category["Date"] = pd.to_datetime(category["Date"], errors="coerce")
+            category = category.dropna(subset=["Date"])
+            pivot = category.pivot_table(
+                index="Date",
+                columns="Category",
+                values=[
+                    "Buy Value (₹ Cr)",
+                    "Sell Value (₹ Cr)",
+                    "Net Value (₹ Cr)",
+                ],
+                aggfunc="sum",
+            )
+            trend = pd.DataFrame(index=pivot.index)
+            for label, category_name in [
+                ("FII/FPI", "FII/FPI"),
+                ("DII", "DII"),
+            ]:
+                for metric, short_name in [
+                    ("Buy Value (₹ Cr)", "Buy"),
+                    ("Sell Value (₹ Cr)", "Sell"),
+                    ("Net Value (₹ Cr)", "Net"),
+                ]:
+                    key = (metric, category_name)
+                    if key in pivot.columns:
+                        trend[f"{label} {short_name} (₹ Cr)"] = pivot[key]
+            trend = trend.reset_index().sort_values("Date", ascending=False)
+
+        if not trend.empty:
+            window = st.selectbox(
+                "History window",
+                [5, 20, 60],
+                index=1,
+                format_func=lambda value: f"Last {value} available sessions",
+                key="institutional_history_window",
+            )
+            windowed = trend.head(window).copy()
+            if "FII Net Value (₹ Cr)" in windowed.columns:
+                fii_net = windowed["FII Net Value (₹ Cr)"].sum()
+                dii_net = windowed["DII Net Value (₹ Cr)"].sum()
+            else:
+                fii_net = windowed.get("FII/FPI Net (₹ Cr)", pd.Series(dtype=float)).sum()
+                dii_net = windowed.get("DII Net (₹ Cr)", pd.Series(dtype=float)).sum()
+            combined_net = fii_net + dii_net
+            m1, m2, m3 = st.columns(3)
+            m1.metric(f"FII/FPI {window}S net", f"₹{fii_net:,.2f} Cr")
+            m2.metric(f"DII {window}S net", f"₹{dii_net:,.2f} Cr")
+            m3.metric(f"Combined {window}S net", f"₹{combined_net:,.2f} Cr")
+
+            display = windowed.copy()
+            display["Date"] = display["Date"].dt.strftime("%d %b %Y")
+            st.dataframe(display, use_container_width=True, hide_index=True)
+            chart = windowed.set_index("Date")
+            chart_columns = [
+                column
+                for column in ["FII Net Value (₹ Cr)", "DII Net Value (₹ Cr)"]
+                if column in chart.columns
+            ]
+            if not chart_columns:
+                chart_columns = [
+                    column
+                    for column in ["FII/FPI Net (₹ Cr)", "DII Net (₹ Cr)"]
+                    if column in chart.columns
+                ]
+            if chart_columns:
+                st.line_chart(chart[chart_columns].sort_index())
+            st.caption(
+                f"Last updated: {st.session_state.get('institutional_flow_history_time', 'unknown')}"
+            )
+            st.download_button(
+                "Download institutional history CSV",
+                windowed.to_csv(index=False).encode("utf-8"),
+                file_name="institutional_flow_history.csv",
+                mime="text/csv",
+                key="download_institutional_history",
+            )
+        else:
+            st.info("No dated institutional history rows were returned.")
+    else:
+        st.info("Click Refresh institutional history to load available NSE history.")
 
     st.divider()
 
