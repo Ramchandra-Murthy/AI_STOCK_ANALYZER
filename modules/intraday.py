@@ -281,6 +281,58 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
     if board.empty:
         return board, pd.DataFrame(), pd.DataFrame(), stats
 
+    nifty_1m = nifty_5m = nifty_today = None
+    try:
+        benchmark = yf.download(
+            "^NSEI",
+            period="5d",
+            interval="1m",
+            progress=False,
+            auto_adjust=False,
+        )
+        benchmark_frame = _frame_from_board_download(benchmark, "^NSEI")
+        benchmark_close = pd.to_numeric(
+            benchmark_frame["Close"], errors="coerce"
+        ).dropna()
+        if len(benchmark_close) >= 2:
+            nifty_1m = (
+                float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-2]) - 1
+            ) * 100
+        if len(benchmark_close) >= 6:
+            nifty_5m = (
+                float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-6]) - 1
+            ) * 100
+        daily_benchmark = yf.download(
+            "^NSEI",
+            period="5d",
+            interval="1d",
+            progress=False,
+            auto_adjust=False,
+        )
+        daily_frame = _frame_from_board_download(daily_benchmark, "^NSEI")
+        daily_close = pd.to_numeric(daily_frame["Close"], errors="coerce").dropna()
+        if len(daily_close) >= 2:
+            nifty_today = (
+                float(benchmark_close.iloc[-1]) / float(daily_close.iloc[-2]) - 1
+            ) * 100
+    except (KeyError, TypeError, ValueError, IndexError):
+        pass
+
+    board["vs NIFTY 1-min %"] = (
+        board["1-min change %"] - nifty_1m if nifty_1m is not None else None
+    )
+    board["vs NIFTY 5-min %"] = (
+        board["5-min change %"] - nifty_5m if nifty_5m is not None else None
+    )
+    board["vs NIFTY Today %"] = (
+        board["Today change %"] - nifty_today if nifty_today is not None else None
+    )
+    sector_avg = board.groupby("Sector")["Today change %"].transform("mean")
+    board["vs Sector Today %"] = board["Today change %"] - sector_avg
+    board["Relative Strength"] = (
+        board["vs NIFTY Today %"].fillna(0) + board["vs Sector Today %"].fillna(0)
+    ) / 2
+
     sector_summary = (
         board.groupby("Sector", dropna=False)
         .agg(
@@ -344,8 +396,8 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
 
     board = (
         board.sort_values(
-            ["1-min change %", "Today change %"],
-            ascending=[False, False],
+            ["Relative Strength", "1-min change %", "Today change %"],
+            ascending=[False, False, False],
             na_position="last",
         )
         .head(20)
@@ -425,6 +477,47 @@ def _show_live_20_panel() -> None:
         )
         st.caption(
             f"Universe breadth: {advances} advancing · {declines} declining · {unchanged} unchanged/unknown."
+        )
+
+        st.subheader("💪 Relative Strength vs NIFTY & Sector")
+        st.caption(
+            "Descriptive comparison: stock return minus NIFTY 50 return and minus its current "
+            "board-sector average. It is a screening metric, not a trade instruction."
+        )
+        st.dataframe(
+            board[
+                [
+                    "Symbol",
+                    "Exchange",
+                    "Sector",
+                    "Price",
+                    "vs NIFTY 1-min %",
+                    "vs NIFTY 5-min %",
+                    "vs NIFTY Today %",
+                    "vs Sector Today %",
+                    "Relative Strength",
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Price": st.column_config.NumberColumn("Price (₹)", format="₹ %.2f"),
+                "vs NIFTY 1-min %": st.column_config.NumberColumn(
+                    "vs NIFTY 1-min", format="%.2f%%"
+                ),
+                "vs NIFTY 5-min %": st.column_config.NumberColumn(
+                    "vs NIFTY 5-min", format="%.2f%%"
+                ),
+                "vs NIFTY Today %": st.column_config.NumberColumn(
+                    "vs NIFTY today", format="%.2f%%"
+                ),
+                "vs Sector Today %": st.column_config.NumberColumn(
+                    "vs sector today", format="%.2f%%"
+                ),
+                "Relative Strength": st.column_config.NumberColumn(
+                    "Relative strength", format="%.2f"
+                ),
+            },
         )
 
         st.subheader("⚡ Intraday Price-Jump & Breakout Signals")
