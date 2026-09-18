@@ -4,12 +4,8 @@ from scanner.price_jump_history import append_price_jump_snapshot
 
 
 def test_empty_snapshot_preserves_history():
-    history = pd.DataFrame(
-        [{"Timestamp": "2026-09-18 09:20", "Symbol": "TCS", "Exchange": "NSE"}]
-    )
-    result = append_price_jump_snapshot(
-        history, pd.Timestamp("2026-09-18 09:25"), pd.DataFrame()
-    )
+    history = pd.DataFrame([{"Timestamp": "2026-09-18 09:20", "Symbol": "TCS", "Exchange": "NSE"}])
+    result = append_price_jump_snapshot(history, pd.Timestamp("2026-09-18 09:25"), pd.DataFrame())
     pd.testing.assert_frame_equal(result, history)
 
 
@@ -47,7 +43,5 @@ def test_snapshot_ignores_rows_without_numeric_change():
             }
         ]
     )
-    result = append_price_jump_snapshot(
-        None, pd.Timestamp("2026-09-18 09:30"), jumps
-    )
+    result = append_price_jump_snapshot(None, pd.Timestamp("2026-09-18 09:30"), jumps)
     assert result.empty
