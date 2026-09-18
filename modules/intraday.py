@@ -10,8 +10,8 @@ import yfinance as yf
 from scanner.eros_fusion import compute_eros_fusion
 from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
-from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
+from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.institutional_momentum_history import append_momentum_snapshot
