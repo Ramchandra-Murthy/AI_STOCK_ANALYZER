@@ -10,6 +10,7 @@ import yfinance as yf
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.institutional_momentum_history import append_momentum_snapshot
+from scanner.intraday_confluence_analytics import summarize_confluence_history
 from scanner.intraday_confluence_history import append_confluence_snapshot
 from scanner.intraday_signal_confluence import compute_signal_confluence
 from scanner.price_jump import scan_price_jumps
@@ -479,6 +480,22 @@ def _show_live_20_panel() -> None:
                     key="download_intraday_confluence_history",
                 )
 
+                confluence_summary = summarize_confluence_history(confluence_history)
+                if not confluence_summary.empty:
+                    st.subheader("📊 Confluence Persistence Analytics")
+                    st.caption(
+                        "Session summary of repeated high-confluence observations by symbol."
+                    )
+                    summary_display = confluence_summary.copy()
+                    for column in ["First_Seen", "Last_Seen"]:
+                        summary_display[column] = summary_display[column].dt.strftime(
+                            "%d %b %Y, %H:%M:%S"
+                        )
+                    st.dataframe(
+                        summary_display.head(20),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
         st.dataframe(
             board,
             use_container_width=True,
