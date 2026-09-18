@@ -212,13 +212,21 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, dict[str, int]]:
                     continue
                 price = float(close.iloc[-1])
                 previous_bar = float(close.iloc[-2])
-                change_2m = (price / float(close.iloc[-3]) - 1.0) * 100 if len(close) >= 3 else None
-                change_3m = (price / float(close.iloc[-4]) - 1.0) * 100 if len(close) >= 4 else None
+                change_2m = (
+                    (price / float(close.iloc[-3]) - 1.0) * 100 if len(close) >= 3 else None
+                )
+                change_3m = (
+                    (price / float(close.iloc[-4]) - 1.0) * 100 if len(close) >= 4 else None
+                )
                 volume_surge = None
                 if "Volume" in frame.columns:
                     volumes = pd.to_numeric(frame["Volume"], errors="coerce").dropna()
                     if len(volumes) >= 6 and float(volumes.iloc[-1]) > 0:
-                        baseline = float(volumes.iloc[-21:-1].median()) if len(volumes) >= 21 else float(volumes.iloc[:-1].median())
+                        baseline = (
+                            float(volumes.iloc[-21:-1].median())
+                            if len(volumes) >= 21
+                            else float(volumes.iloc[:-1].median())
+                        )
                         if baseline > 0:
                             volume_surge = float(volumes.iloc[-1] / baseline)
                 breakout = False
