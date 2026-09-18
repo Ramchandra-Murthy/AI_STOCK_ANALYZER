@@ -30,7 +30,7 @@ jobs:
     - name: Lint with Ruff
       run: uv run --locked --no-sync --no-build ruff check .
     - name: Check formatting with Black
-      run: uv run --locked --no-sync --no-build black --diff --line-length 88 scanner/price_jump.py
+      run: uv run --locked --no-sync --no-build black --check --diff --line-length 88 scanner/price_jump.py
     - name: Type check supported runtime surface
       run: >-
         uv run --locked --no-sync --no-build mypy
