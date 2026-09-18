@@ -16,6 +16,7 @@ from scanner.intraday_confluence_history import append_confluence_snapshot
 from scanner.intraday_signal_confluence import compute_signal_confluence
 from scanner.price_jump import scan_price_jumps
 from scanner.price_jump_confluence import match_price_jumps_to_confluence
+from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.unusual_activity import scan_unusual_activity
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -835,6 +836,11 @@ def show() -> None:
                 st.session_state["price_jump_scan_exchange"] = jump_exchange
                 st.session_state["price_jump_scan_cap"] = jump_cap
                 st.session_state["price_jump_scan_window"] = jump_window
+                st.session_state["price_jump_history"] = append_price_jump_snapshot(
+                    st.session_state.get("price_jump_history"),
+                    datetime.now(IST),
+                    result,
+                )
             except Exception as exc:
                 st.error(f"Price-jump scan could not complete: {exc}")
     jump_results = st.session_state.get("price_jump_results")
@@ -873,6 +879,27 @@ def show() -> None:
                         mime="text/csv",
                         key="download_price_jump_confluence",
                     )
+
+    price_jump_history = st.session_state.get("price_jump_history")
+    if price_jump_history is not None and not price_jump_history.empty:
+        st.subheader("📈 Price-Jump Session History")
+        st.caption(
+            "Session-scoped record of qualifying price-jump observations. "
+            "Repeated observations of the same symbol are retained at different scan times; "
+            "duplicate rows from the same scan timestamp are suppressed."
+        )
+        history_display = price_jump_history.sort_values("Timestamp", ascending=False).copy()
+        history_display["Timestamp"] = pd.to_datetime(
+            history_display["Timestamp"], errors="coerce"
+        ).dt.strftime("%d %b %Y, %H:%M:%S")
+        st.dataframe(history_display.head(50), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download price-jump history CSV",
+            price_jump_history.to_csv(index=False).encode("utf-8"),
+            file_name="price_jump_history.csv",
+            mime="text/csv",
+            key="download_price_jump_history",
+        )
 
     fusion = compute_eros_fusion(
         st.session_state.get("live_confluence"),
