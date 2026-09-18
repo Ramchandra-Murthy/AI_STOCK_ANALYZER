@@ -5,9 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 
-def _threshold_signal(
-    frame: pd.DataFrame, column: str, threshold: float
-) -> pd.Series:
+def _threshold_signal(frame: pd.DataFrame, column: str, threshold: float) -> pd.Series:
     values = pd.to_numeric(frame.get(column), errors="coerce").fillna(0)
     return values >= threshold
 
