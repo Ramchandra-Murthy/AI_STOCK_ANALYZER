@@ -524,7 +524,9 @@ def _show_live_20_panel() -> None:
             previous_history = st.session_state.get("live_signal_history", {})
             current = set(signals["Symbol"])
             now = datetime.now(IST)
+            now_text = now.strftime("%d %b %Y, %H:%M:%S IST")
             active_history = {}
+            signal_events = st.session_state.get("live_signal_events", [])
             display = signals.copy()
 
             for _, row in display.iterrows():
@@ -533,16 +535,39 @@ def _show_live_20_panel() -> None:
                 previous = previous_history.get(symbol)
                 if previous is None:
                     status = "NEW"
+                    first_seen = now_text
                 elif score < float(previous.get("score", score)) * 0.90:
                     status = "WEAKENING"
+                    first_seen = previous.get("first_seen", now_text)
                 else:
                     status = "CONTINUING"
+                    first_seen = previous.get("first_seen", now_text)
                 active_history[symbol] = {
                     "score": score,
                     "signal": row["Signal"],
-                    "last_seen": now.strftime("%d %b %Y, %H:%M:%S IST"),
+                    "first_seen": first_seen,
+                    "last_seen": now_text,
                 }
                 display.loc[display["Symbol"] == symbol, "Status"] = status
+                signal_events.append(
+                    {
+                        "Time": now_text,
+                        "Status": status,
+                        "Symbol": symbol,
+                        "Exchange": row["Exchange"],
+                        "Sector": row["Sector"],
+                        "Price": float(row["Price"]),
+                        "Momentum score": score,
+                        "Relative Strength": float(row["Relative Strength"]),
+                        "Volume surge x": (
+                            float(row["Volume surge x"])
+                            if pd.notna(row["Volume surge x"])
+                            else None
+                        ),
+                        "Signal": row["Signal"],
+                        "First seen": first_seen,
+                    }
+                )
 
             exited = sorted(set(previous_history) - current)
             history_rows = [
@@ -550,13 +575,33 @@ def _show_live_20_panel() -> None:
                     "Status": "EXITED",
                     "Symbol": symbol,
                     "Signal": previous_history[symbol].get("signal", "—"),
-                    "Momentum score": round(float(previous_history[symbol].get("score", 0)), 2),
+                    "Momentum score": round(
+                        float(previous_history[symbol].get("score", 0)), 2
+                    ),
+                    "First seen": previous_history[symbol].get("first_seen", "—"),
                     "Last seen": previous_history[symbol].get("last_seen", "—"),
                 }
                 for symbol in exited
             ]
+            for row in history_rows:
+                signal_events.append(
+                    {
+                        "Time": now_text,
+                        "Status": "EXITED",
+                        "Symbol": row["Symbol"],
+                        "Exchange": "—",
+                        "Sector": "—",
+                        "Price": None,
+                        "Momentum score": row["Momentum score"],
+                        "Relative Strength": None,
+                        "Volume surge x": None,
+                        "Signal": row["Signal"],
+                        "First seen": row["First seen"],
+                    }
+                )
 
             st.session_state["live_signal_history"] = active_history
+            st.session_state["live_signal_events"] = signal_events[-300:]
             display = display.sort_values(
                 ["Momentum score", "3-min change %", "2-min change %"],
                 ascending=[False, False, False],
@@ -607,6 +652,61 @@ def _show_live_20_panel() -> None:
                     pd.DataFrame(history_rows),
                     use_container_width=True,
                     hide_index=True,
+                )
+
+            events = pd.DataFrame(st.session_state.get("live_signal_events", []))
+            if not events.empty:
+                st.subheader("📊 Intraday Signal History & Analytics")
+                st.caption(
+                    "Session history records each refresh while the app is running. "
+                    "It resets when the Streamlit session ends."
+                )
+                active_events = events[events["Status"] != "EXITED"]
+                frequent = (
+                    active_events["Symbol"]
+                    .value_counts()
+                    .rename_axis("Symbol")
+                    .reset_index(name="Refreshes seen")
+                    .head(10)
+                )
+                counts = (
+                    events.groupby("Status")["Symbol"]
+                    .count()
+                    .rename("Observations")
+                    .reset_index()
+                )
+                h1, h2 = st.columns(2)
+                with h1:
+                    st.caption("Most frequently observed signals")
+                    st.dataframe(frequent, use_container_width=True, hide_index=True)
+                with h2:
+                    st.caption("Signal status observations")
+                    st.dataframe(counts, use_container_width=True, hide_index=True)
+                st.dataframe(
+                    events.sort_values("Time", ascending=False).head(100),
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Price": st.column_config.NumberColumn(
+                            "Price (₹)", format="₹ %.2f"
+                        ),
+                        "Momentum score": st.column_config.NumberColumn(
+                            "Momentum", format="%.2f"
+                        ),
+                        "Relative Strength": st.column_config.NumberColumn(
+                            "Relative strength", format="%.2f"
+                        ),
+                        "Volume surge x": st.column_config.NumberColumn(
+                            "Volume x", format="%.2fx"
+                        ),
+                    },
+                )
+                st.download_button(
+                    "Download signal history CSV",
+                    events.to_csv(index=False).encode("utf-8"),
+                    file_name="intraday_signal_history.csv",
+                    mime="text/csv",
+                    key="download_signal_history",
                 )
 
     _live_board_fragment()
