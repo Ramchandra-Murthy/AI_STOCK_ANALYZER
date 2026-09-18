@@ -792,19 +792,17 @@ def show() -> None:
 
     flow = st.session_state.get("institutional_flow")
     if flow is not None and not flow.empty:
-        fii = flow[
-            flow["Category"].astype(str).str.contains("FII", case=False, na=False)
-        ]["Net Value (₹ Cr)"].sum()
-        dii = flow[
-            flow["Category"].astype(str).str.contains("DII", case=False, na=False)
-        ]["Net Value (₹ Cr)"].sum()
+        fii = flow[flow["Category"].astype(str).str.contains("FII", case=False, na=False)][
+            "Net Value (₹ Cr)"
+        ].sum()
+        dii = flow[flow["Category"].astype(str).str.contains("DII", case=False, na=False)][
+            "Net Value (₹ Cr)"
+        ].sum()
         m1, m2, m3 = st.columns(3)
         m1.metric("FII/FPI net", f"₹{fii:,.2f} Cr")
         m2.metric("DII net", f"₹{dii:,.2f} Cr")
         m3.metric("Combined net", f"₹{fii + dii:,.2f} Cr")
-        st.caption(
-            f"Last updated: {st.session_state.get('institutional_flow_time', 'unknown')}"
-        )
+        st.caption(f"Last updated: {st.session_state.get('institutional_flow_time', 'unknown')}")
         st.dataframe(flow, use_container_width=True, hide_index=True)
         st.download_button(
             "Download FII/DII CSV",
@@ -814,9 +812,7 @@ def show() -> None:
             key="download_institutional_flow",
         )
     else:
-        st.info(
-            "Click Refresh FII/DII flow during market hours to load the latest NSE data."
-        )
+        st.info("Click Refresh FII/DII flow during market hours to load the latest NSE data.")
 
     st.divider()
 
