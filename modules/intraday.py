@@ -309,15 +309,22 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         signals["Signal"] = "PRICE JUMP"
         signals.loc[signals["Volume surge x"].fillna(0) >= 1.5, "Signal"] = "VOLUME + PRICE"
         signals.loc[signals["Breakout"] == "YES", "Signal"] = "BREAKOUT"
-        signals = (
-            signals.sort_values(
-                ["3-min change %", "2-min change %", "Volume surge x"],
-                ascending=[False, False, False],
-                na_position="last",
-            )
-            .head(20)
-            .reset_index(drop=True)
+        signals["Momentum score"] = (
+            (signals["2-min change %"].fillna(0) / 0.75).clip(lower=0)
+            .combine((signals["3-min change %"].fillna(0) / 1.0).clip(lower=0), max)
+            .combine((signals["5-min change %"].fillna(0) / 1.5).clip(lower=0), max)
+            .combine((signals["10-min change %"].fillna(0) / 2.0).clip(lower=0), max)
+            .combine((signals["15-min change %"].fillna(0) / 2.5).clip(lower=0), max)
+            .combine((signals["Volume surge x"].fillna(0) / 1.5).clip(lower=0), max)
         )
+        signals.loc[signals["Breakout"] == "YES", "Momentum score"] = signals[
+            "Momentum score"
+        ].clip(lower=1.0)
+        signals = signals.sort_values(
+            ["Momentum score", "3-min change %", "2-min change %"],
+            ascending=[False, False, False],
+            na_position="last",
+        ).reset_index(drop=True)
 
     board = (
         board.sort_values(
@@ -409,6 +416,7 @@ def _show_live_20_panel() -> None:
             "Dynamic screen from the same NSE+BSE universe. Signals use 2-minute ≥0.75%, "
             "3-minute ≥1.0%, 5-minute ≥1.5%, 10-minute ≥2.0%, 15-minute ≥2.5%, "
             "volume ≥1.5× recent intraday median, or a prior-20-bar breakout. "
+            "Signal status tracks NEW, CONTINUING, WEAKENING, and EXITED across refreshes. "
             "These are screening conditions, not trade instructions."
         )
         if signals.empty:
@@ -416,17 +424,50 @@ def _show_live_20_panel() -> None:
                 "No price-jump, volume-surge, or breakout conditions detected in the current universe."
             )
         else:
-            prior = set(st.session_state.get("live_signal_symbols", []))
+            previous_history = st.session_state.get("live_signal_history", {})
             current = set(signals["Symbol"])
-            signals = signals.copy()
-            signals.insert(
-                0,
-                "Status",
-                ["CONTINUING" if symbol in prior else "NEW" for symbol in signals["Symbol"]],
-            )
-            st.session_state["live_signal_symbols"] = sorted(current)
+            now = datetime.now(IST)
+            active_history = {}
+            display = signals.copy()
+
+            for _, row in display.iterrows():
+                symbol = row["Symbol"]
+                score = float(row["Momentum score"])
+                previous = previous_history.get(symbol)
+                if previous is None:
+                    status = "NEW"
+                elif score < float(previous.get("score", score)) * 0.90:
+                    status = "WEAKENING"
+                else:
+                    status = "CONTINUING"
+                active_history[symbol] = {
+                    "score": score,
+                    "signal": row["Signal"],
+                    "last_seen": now.strftime("%d %b %Y, %H:%M:%S IST"),
+                }
+                display.loc[display["Symbol"] == symbol, "Status"] = status
+
+            exited = sorted(set(previous_history) - current)
+            history_rows = [
+                {
+                    "Status": "EXITED",
+                    "Symbol": symbol,
+                    "Signal": previous_history[symbol].get("signal", "—"),
+                    "Momentum score": round(float(previous_history[symbol].get("score", 0)), 2),
+                    "Last seen": previous_history[symbol].get("last_seen", "—"),
+                }
+                for symbol in exited
+            ]
+
+            st.session_state["live_signal_history"] = active_history
+            display = display.sort_values(
+                ["Momentum score", "3-min change %", "2-min change %"],
+                ascending=[False, False, False],
+                na_position="last",
+            ).head(20)
+            display.insert(0, "Status", display.pop("Status"))
             st.dataframe(
-                signals[
+                display[
                     [
                         "Status",
                         "Symbol",
@@ -460,6 +501,14 @@ def _show_live_20_panel() -> None:
                     "Volume surge x": st.column_config.NumberColumn("Volume x", format="%.2fx"),
                 },
             )
+
+            if history_rows:
+                st.caption("Signals that disappeared since the previous refresh are retained below as EXITED.")
+                st.dataframe(
+                    pd.DataFrame(history_rows),
+                    use_container_width=True,
+                    hide_index=True,
+                )
 
     _live_board_fragment()
 
