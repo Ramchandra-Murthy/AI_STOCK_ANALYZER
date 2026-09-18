@@ -7,10 +7,10 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from scanner.eros_fusion import compute_eros_fusion
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.institutional_momentum_history import append_momentum_snapshot
-from scanner.eros_fusion import compute_eros_fusion
 from scanner.intraday_confluence_analytics import summarize_confluence_history
 from scanner.intraday_confluence_history import append_confluence_snapshot
 from scanner.intraday_signal_confluence import compute_signal_confluence
