@@ -86,19 +86,23 @@ def analyze_eros_signal_lifecycle(
             "Lifecycle",
         ] = "EXPIRED"
 
-    return result[
-        [
-            "Symbol",
-            "Exchange",
-            "Timestamp",
-            "Fusion Score",
-            "Observations",
-            "Fusion Change",
-            "Fusion Acceleration",
-            "Trend",
-            "Lifecycle",
+    return (
+        result[
+            [
+                "Symbol",
+                "Exchange",
+                "Timestamp",
+                "Fusion Score",
+                "Observations",
+                "Fusion Change",
+                "Fusion Acceleration",
+                "Trend",
+                "Lifecycle",
+            ]
         ]
-    ].sort_values(
-        ["Lifecycle", "Fusion Score", "Fusion Change"],
-        ascending=[True, False, False],
-    ).reset_index(drop=True)
+        .sort_values(
+            ["Lifecycle", "Fusion Score", "Fusion Change"],
+            ascending=[True, False, False],
+        )
+        .reset_index(drop=True)
+    )
