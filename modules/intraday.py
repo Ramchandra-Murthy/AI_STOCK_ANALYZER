@@ -17,6 +17,7 @@ from scanner.intraday_signal_confluence import compute_signal_confluence
 from scanner.price_jump import scan_price_jumps
 from scanner.price_jump_confluence import match_price_jumps_to_confluence
 from scanner.price_jump_history import append_price_jump_snapshot
+from scanner.price_jump_history_analytics import summarize_price_jump_history
 from scanner.unusual_activity import scan_unusual_activity
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -900,6 +901,19 @@ def show() -> None:
             mime="text/csv",
             key="download_price_jump_history",
         )
+
+        price_jump_summary = summarize_price_jump_history(price_jump_history)
+        if not price_jump_summary.empty:
+            st.subheader("🔎 Price-Jump Persistence Analytics")
+            st.caption(
+                "Groups session observations by symbol and exchange to show repeated price-jump activity."
+            )
+            st.dataframe(
+                price_jump_summary.head(30),
+                use_container_width=True,
+                hide_index=True,
+            )
+
 
     fusion = compute_eros_fusion(
         st.session_state.get("live_confluence"),
