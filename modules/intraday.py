@@ -53,8 +53,6 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-
-
 LIVE_BOARD_REFRESH_SECONDS = 120
 LIVE_BOARD_CHUNK_SIZE = 10
 
@@ -298,6 +296,7 @@ def _show_live_20_panel() -> None:
         )
 
     _live_board_fragment()
+
 
 def show() -> None:
     st.title("⏱️ Intraday Trading")
