@@ -919,12 +919,13 @@ def show() -> None:
         st.session_state.get("intraday_confluence_history"),
         st.session_state.get("price_jump_results"),
         st.session_state.get("institutional_momentum_score"),
+        st.session_state.get("price_jump_history"),
     )
     if not fusion.empty:
         st.subheader("🧩 EROS Signal Fusion")
         st.caption(
-            "Transparent screening score combining confluence (50%), persistence (20%), "
-            "price-jump presence (15%), and institutional momentum context (15%). "
+            "Transparent screening score combining confluence (50%), confluence persistence (20%), "
+            "price-jump persistence (15%), and institutional momentum context (15%). "
             "It is a descriptive screening metric, not a trade instruction."
         )
         st.dataframe(fusion.head(20), use_container_width=True, hide_index=True)
