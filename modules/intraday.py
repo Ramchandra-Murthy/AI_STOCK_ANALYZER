@@ -791,22 +791,14 @@ def show() -> None:
         sector_summary=st.session_state.get("live_sector_summary"),
     )
     st.session_state["institutional_momentum_score"] = score_result
-
-    if "institutional_momentum_score" in st.session_state:
-        score_data = st.session_state["institutional_momentum_score"]
-        score = score_data["score"]
-        label = score_data["label"]
-        st.metric("Institutional Momentum Score", f"{score:.0f} / 100", label)
-        score_frame = pd.DataFrame(
-            [
-                {"Component": key, "Score": value}
-                for key, value in score_data["components"].items()
-            ]
-        )
-        st.dataframe(score_frame, use_container_width=True, hide_index=True)
-        st.caption(score_data["explanation"])
-    else:
-        st.info("Refresh the FII/DII flow and live market board to calculate the Institutional Momentum Score.")
+    score = score_result["score"]
+    label = score_result["label"]
+    st.metric("Institutional Momentum Score", f"{score:.0f} / 100", label)
+    score_frame = pd.DataFrame(
+        [{"Component": key, "Score": value} for key, value in score_result["components"].items()]
+    )
+    st.dataframe(score_frame, use_container_width=True, hide_index=True)
+    st.caption(score_result["explanation"])
 
     st.subheader("🏦 Institutional Flow — FII/FPI & DII")
     st.caption(
@@ -931,3 +923,239 @@ def show() -> None:
                 chart_columns = [
                     column
                     for column in ["FII/FPI Net (₹ Cr)", "DII Net (₹ Cr)"]
+                    if column in chart.columns
+                ]
+            if chart_columns:
+                st.line_chart(chart[chart_columns].sort_index())
+            st.caption(
+                f"Last updated: {st.session_state.get('institutional_flow_history_time', 'unknown')}"
+            )
+            st.download_button(
+                "Download institutional history CSV",
+                windowed.to_csv(index=False).encode("utf-8"),
+                file_name="institutional_flow_history.csv",
+                mime="text/csv",
+                key="download_institutional_history",
+            )
+        else:
+            st.info("No dated institutional history rows were returned.")
+    else:
+        st.info("Click Refresh institutional history to load available NSE history.")
+
+    st.divider()
+
+    st.subheader("Unusual activity scanner")
+    st.caption(
+        "Screens candidate stocks for positive intraday moves and latest 5-minute volume at least 1.5× the average volume of the same time slot in up to four prior sessions. Yahoo Finance coverage and delays may vary."
+    )
+    exchange_category = st.selectbox(
+        "Exchange",
+        ["Both", "NSE", "BSE"],
+        key="unusual_exchange_category",
+        format_func=lambda value: "NSE + BSE" if value == "Both" else value,
+    )
+    cap_category = st.selectbox(
+        "Market-cap basket",
+        ["All caps", "Large cap", "Mid cap", "Small cap"],
+        key="unusual_cap_category",
+    )
+    if cap_category == "All caps":
+        st.caption(
+            "All caps includes the existing NSE and BSE candidate lists. Cap-specific baskets currently screen representative NSE symbols only; they are not exhaustive or official live market-cap classifications."
+        )
+    else:
+        st.caption(
+            "Cap-specific baskets screen representative NSE symbols only. BSE scrip codes are not included because the app does not maintain a verified cap-category mapping for them. Constituents and market-cap ranks can change."
+        )
+    scan_limit = st.selectbox(
+        "Maximum results", [10, 20, 30, 50], index=1, key="unusual_scan_limit"
+    )
+    if st.button("Scan for unusual activity", key="run_unusual_scan"):
+        with st.spinner(f"Scanning {exchange_category} · {cap_category.lower()}…"):
+            try:
+                scan_results = scan_unusual_activity(scan_limit, cap_category, exchange_category)
+                st.session_state["unusual_activity_results"] = scan_results
+                st.session_state["unusual_activity_scan_category"] = cap_category
+                st.session_state["unusual_activity_scan_exchange"] = exchange_category
+                st.session_state["unusual_activity_scan_time"] = datetime.now(IST).strftime(
+                    "%d %b %Y, %H:%M IST"
+                )
+            except Exception as exc:
+                st.error(f"Scanner could not complete: {exc}")
+    scan_results = st.session_state.get("unusual_activity_results")
+    if scan_results is not None:
+        st.caption(
+            f"Last scan: {st.session_state.get('unusual_activity_scan_time', 'unknown')} · Exchange: {st.session_state.get('unusual_activity_scan_exchange', 'unknown')} · Basket: {st.session_state.get('unusual_activity_scan_category', 'unknown')} · Candidate universe is limited; not an exhaustive exchange-wide scan."
+        )
+        if scan_results.empty:
+            st.info(
+                "No candidates met the screening conditions, or the data provider returned insufficient data. Try again during market hours."
+            )
+        else:
+            st.dataframe(scan_results, use_container_width=True, hide_index=True)
+            st.download_button(
+                "Download unusual activity CSV",
+                scan_results.to_csv(index=False).encode("utf-8"),
+                file_name="unusual_activity.csv",
+                mime="text/csv",
+                key="download_unusual_activity",
+            )
+
+    st.divider()
+    left, right = st.columns([2, 1])
+    with left:
+        symbol = st.text_input(
+            "Stock symbol",
+            value="RELIANCE",
+            help="Enter the NSE/BSE trading symbol without an exchange suffix.",
+        )
+    with right:
+        exchange = st.selectbox("Exchange", ["NSE", "BSE"])
+    interval = st.selectbox("Candle timeframe", ["5m", "15m", "30m"], index=1)
+    orb_minutes = st.selectbox("Opening range duration", [15, 30], index=0)
+
+    if not st.button("Analyze intraday", type="primary"):
+        st.info("Enter a symbol and select Analyze intraday to load recent candles.")
+        return
+    if not symbol.strip():
+        st.warning("Please enter a stock symbol.")
+        return
+
+    ticker = _ticker(symbol, exchange)
+    with st.spinner(f"Loading recent {interval} candles for {ticker}…"):
+        try:
+            intraday = yf.download(
+                ticker, period="5d", interval=interval, progress=False, auto_adjust=False
+            )
+            daily = yf.download(
+                ticker, period="5d", interval="1d", progress=False, auto_adjust=False
+            )
+        except Exception as exc:
+            st.error(f"Could not retrieve market data: {exc}")
+            return
+    if intraday is None or intraday.empty:
+        st.error(
+            "No intraday candles were returned. Verify the symbol/exchange and try again during market hours."
+        )
+        return
+    try:
+        data = _prepare(intraday)
+    except ValueError as exc:
+        st.error(str(exc))
+        return
+    if data.empty:
+        st.error("The provider returned no complete OHLCV candles.")
+        return
+
+    timestamp = pd.Timestamp(data.index[-1])
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.tz_localize("UTC")
+    timestamp_ist = timestamp.tz_convert(IST)
+    now_ist = datetime.now(IST)
+    age_minutes = max(0, (now_ist - timestamp_ist.to_pydatetime()).total_seconds() / 60)
+    st.caption(
+        f"Latest candle: {timestamp_ist:%d %b %Y, %H:%M IST} · Retrieved: {now_ist:%d %b %Y, %H:%M IST}"
+    )
+    if age_minutes > max(60, int(interval[:-1]) * 3):
+        st.warning(
+            "Data freshness check: the latest candle is older than expected. This may be normal outside market hours; verify provider timestamps."
+        )
+    else:
+        st.success(
+            "Data freshness check: latest candle is recent relative to the selected interval."
+        )
+    missing = (
+        intraday[[c for c in ["Open", "High", "Low", "Close", "Volume"] if c in intraday.columns]]
+        .isna()
+        .sum()
+        .sum()
+        if not isinstance(intraday.columns, pd.MultiIndex)
+        else 0
+    )
+    st.caption(
+        f"Data quality: {len(data)} complete candles after removing missing OHLCV rows and duplicate timestamps; missing cells detected: {int(missing)}. This does not prove quote accuracy or completeness of the trading session."
+    )
+
+    latest = data.iloc[-1]
+    metrics = st.columns(4)
+    metrics[0].metric("Last close", f"₹{latest['Close']:,.2f}")
+    metrics[1].metric("VWAP", f"₹{latest['VWAP']:,.2f}" if pd.notna(latest["VWAP"]) else "—")
+    metrics[2].metric("RSI (14)", f"{latest['RSI 14']:.1f}" if pd.notna(latest["RSI 14"]) else "—")
+    metrics[3].metric("EMA 9 / 21", f"{latest['EMA 9']:.2f} / {latest['EMA 21']:.2f}")
+
+    bars_needed = max(1, orb_minutes // int(interval[:-1]))
+    session_dates = pd.Series(data.index.date, index=data.index)
+    today = session_dates.iloc[-1]
+    today_data = data.loc[session_dates == today]
+    opening = today_data.head(bars_needed)
+    st.subheader(f"Opening Range Breakout ({orb_minutes} minutes)")
+    if len(opening) < bars_needed:
+        st.info(
+            f"Opening range is still forming: need {bars_needed} complete {interval} candles; have {len(opening)}."
+        )
+    else:
+        orb_high, orb_low = opening["High"].max(), opening["Low"].min()
+        st.caption(
+            f"Range high: ₹{orb_high:,.2f} · Range low: ₹{orb_low:,.2f} · Based on first {len(opening)} candles of the latest date in returned data."
+        )
+        if latest["Close"] > orb_high:
+            st.info(
+                "Price is above the opening-range high. Treat as a condition to review, not an entry instruction."
+            )
+        elif latest["Close"] < orb_low:
+            st.info(
+                "Price is below the opening-range low. Treat as a condition to review, not an entry instruction."
+            )
+        else:
+            st.info("Price remains inside the opening range.")
+
+    if not daily.empty:
+        daily_clean = daily.copy()
+        if isinstance(daily_clean.columns, pd.MultiIndex):
+            daily_clean.columns = daily_clean.columns.get_level_values(0)
+        if {"High", "Low", "Close"}.issubset(daily_clean.columns):
+            prior = daily_clean.dropna(subset=["High", "Low", "Close"])
+            if len(prior) >= 2:
+                previous = prior.iloc[-2]
+                pivot = (previous["High"] + previous["Low"] + previous["Close"]) / 3
+                st.subheader("Previous-session pivot levels")
+                p1, p2, p3 = st.columns(3)
+                p1.metric("Pivot", f"₹{pivot:,.2f}")
+                p2.metric("R1", f"₹{(2 * pivot - previous['Low']):,.2f}")
+                p3.metric("S1", f"₹{(2 * pivot - previous['High']):,.2f}")
+
+    bullish = (
+        latest["Close"] > latest["VWAP"]
+        and latest["EMA 9"] > latest["EMA 21"]
+        and latest["MACD"] > latest["MACD signal"]
+    )
+    bearish = (
+        latest["Close"] < latest["VWAP"]
+        and latest["EMA 9"] < latest["EMA 21"]
+        and latest["MACD"] < latest["MACD signal"]
+    )
+    st.subheader("Technical conditions (not trade instructions)")
+    if bullish:
+        st.success(
+            "Bullish conditions: close above VWAP, EMA 9 above EMA 21, and MACD above its signal line."
+        )
+    elif bearish:
+        st.warning(
+            "Bearish conditions: close below VWAP, EMA 9 below EMA 21, and MACD below its signal line."
+        )
+    else:
+        st.info("Mixed conditions: the selected indicators do not align in one direction.")
+
+    st.subheader("Recent candles and indicators")
+    st.line_chart(data[["Close", "VWAP", "EMA 9", "EMA 21"]].tail(120))
+    st.line_chart(data[["RSI 14"]].tail(120))
+    st.dataframe(data.tail(20).sort_index(ascending=False), use_container_width=True)
+    st.download_button(
+        "Download analysis CSV",
+        data.to_csv().encode("utf-8"),
+        file_name=f"{ticker.replace('.', '_')}_{interval}_analysis.csv",
+        mime="text/csv",
+    )
+    st.warning(
+        "For education and paper trading only. Indicators can lag; this module does not calculate guaranteed entries, stop-losses, or targets and does not place trades."
+    )
