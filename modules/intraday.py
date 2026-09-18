@@ -10,6 +10,7 @@ import yfinance as yf
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
 from scanner.institutional_momentum_history import append_momentum_snapshot
+from scanner.intraday_confluence_history import append_confluence_snapshot
 from scanner.intraday_signal_confluence import compute_signal_confluence
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
@@ -450,6 +451,33 @@ def _show_live_20_panel() -> None:
                 use_container_width=True,
                 hide_index=True,
             )
+
+            confluence_history = append_confluence_snapshot(
+                st.session_state.get("intraday_confluence_history"),
+                now,
+                confluence,
+            )
+            st.session_state["intraday_confluence_history"] = confluence_history
+            if not confluence_history.empty:
+                st.caption("Session history of confluence scores at or above 75.")
+                history_display = confluence_history.sort_values(
+                    "Timestamp", ascending=False
+                ).copy()
+                history_display["Timestamp"] = history_display["Timestamp"].dt.strftime(
+                    "%d %b %Y, %H:%M:%S"
+                )
+                st.dataframe(
+                    history_display.head(20),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download confluence history CSV",
+                    confluence_history.to_csv(index=False).encode("utf-8"),
+                    file_name="intraday_confluence_history.csv",
+                    mime="text/csv",
+                    key="download_intraday_confluence_history",
+                )
 
         st.dataframe(
             board,
