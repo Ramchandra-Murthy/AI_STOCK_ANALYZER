@@ -15,8 +15,8 @@ from scanner.intraday_confluence_analytics import summarize_confluence_history
 from scanner.intraday_confluence_history import append_confluence_snapshot
 from scanner.intraday_signal_confluence import compute_signal_confluence
 from scanner.price_jump import scan_price_jumps
-from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.price_jump_confluence import match_price_jumps_to_confluence
+from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.unusual_activity import scan_unusual_activity
 
 IST = ZoneInfo("Asia/Kolkata")
