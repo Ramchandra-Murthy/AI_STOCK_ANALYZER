@@ -14,6 +14,7 @@ from scanner.intraday_confluence_analytics import summarize_confluence_history
 from scanner.intraday_confluence_history import append_confluence_snapshot
 from scanner.intraday_signal_confluence import compute_signal_confluence
 from scanner.price_jump import scan_price_jumps
+from scanner.price_jump_confluence import match_price_jumps_to_confluence
 from scanner.unusual_activity import scan_unusual_activity
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -852,6 +853,30 @@ def show() -> None:
                 mime="text/csv",
                 key="download_price_jumps",
             )
+
+            live_board = st.session_state.get("live_board")
+            if live_board is not None and not live_board.empty:
+                confirmed_jumps = match_price_jumps_to_confluence(
+                    jump_results, live_board
+                )
+                if not confirmed_jumps.empty:
+                    st.subheader("🎯 Price Jump + Confluence")
+                    st.caption(
+                        "Matches price-jump results with the latest live-board confluence metrics. "
+                        "Confirmation means confluence score meets the configured 75-point screening threshold; it is not a trade instruction."
+                    )
+                    st.dataframe(
+                        confirmed_jumps,
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    st.download_button(
+                        "Download price-jump confluence CSV",
+                        confirmed_jumps.to_csv(index=False).encode("utf-8"),
+                        file_name="price_jump_confluence.csv",
+                        mime="text/csv",
+                        key="download_price_jump_confluence",
+                    )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
