@@ -11,6 +11,7 @@ from scanner.eros_fusion import compute_eros_fusion
 from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
+from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
@@ -1055,6 +1056,26 @@ def show() -> None:
                         mime="text/csv",
                         key="download_eros_signal_lifecycle",
                     )
+
+                    multi_window = analyze_eros_multi_window_trend(fusion_history)
+                    if not multi_window.empty:
+                        st.subheader("🕒 EROS Multi-Window Trend")
+                        st.caption(
+                            "Compares fusion-score change over the latest 2, 3, and 5 observations. "
+                            "These are observation windows, not separate market-data timeframes."
+                        )
+                        st.dataframe(
+                            multi_window.head(30),
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+                        st.download_button(
+                            "Download EROS multi-window CSV",
+                            multi_window.to_csv(index=False).encode("utf-8"),
+                            file_name="eros_multi_window_trend.csv",
+                            mime="text/csv",
+                            key="download_eros_multi_window_trend",
+                        )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
