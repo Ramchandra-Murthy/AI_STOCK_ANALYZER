@@ -856,20 +856,14 @@ def show() -> None:
 
             live_board = st.session_state.get("live_board")
             if live_board is not None and not live_board.empty:
-                confirmed_jumps = match_price_jumps_to_confluence(
-                    jump_results, live_board
-                )
+                confirmed_jumps = match_price_jumps_to_confluence(jump_results, live_board)
                 if not confirmed_jumps.empty:
                     st.subheader("🎯 Price Jump + Confluence")
                     st.caption(
                         "Matches price-jump results with the latest live-board confluence metrics. "
                         "Confirmation means confluence score meets the configured 75-point screening threshold; it is not a trade instruction."
                     )
-                    st.dataframe(
-                        confirmed_jumps,
-                        use_container_width=True,
-                        hide_index=True,
-                    )
+                    st.dataframe(confirmed_jumps, use_container_width=True, hide_index=True)
                     st.download_button(
                         "Download price-jump confluence CSV",
                         confirmed_jumps.to_csv(index=False).encode("utf-8"),
