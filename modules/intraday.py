@@ -667,7 +667,9 @@ def _show_live_20_panel() -> None:
                     .reset_index(name="Refreshes seen")
                     .head(10)
                 )
-                counts = events.groupby("Status")["Symbol"].count().rename("Observations").reset_index()
+                counts = (
+                    events.groupby("Status")["Symbol"].count().rename("Observations").reset_index()
+                )
                 h1, h2 = st.columns(2)
                 with h1:
                     st.caption("Most frequently observed signals")
