@@ -34,7 +34,6 @@ def test_empty_confluence_returns_empty():
     assert compute_eros_fusion(pd.DataFrame()).empty
 
 
-
 def test_price_jump_persistence_replaces_binary_presence_component():
     confluence = pd.DataFrame(
         {
