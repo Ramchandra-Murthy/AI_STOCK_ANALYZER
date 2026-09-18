@@ -22,11 +22,7 @@ def append_price_jump_snapshot(
     if not required.issubset(jumps.columns):
         return history.copy() if history is not None else pd.DataFrame()
 
-    change_columns = [
-        column
-        for column in jumps.columns
-        if str(column).startswith("Change over ")
-    ]
+    change_columns = [column for column in jumps.columns if str(column).startswith("Change over ")]
     if not change_columns:
         return history.copy() if history is not None else pd.DataFrame()
 
@@ -44,20 +40,14 @@ def append_price_jump_snapshot(
 
     snapshot = jumps[columns].copy()
     snapshot.insert(0, "Timestamp", timestamp)
-    snapshot[change_columns[0]] = pd.to_numeric(
-        snapshot[change_columns[0]], errors="coerce"
-    )
+    snapshot[change_columns[0]] = pd.to_numeric(snapshot[change_columns[0]], errors="coerce")
     snapshot = snapshot.dropna(subset=[change_columns[0]])
 
     if snapshot.empty:
         return history.copy() if history is not None else pd.DataFrame()
 
     combined = (
-        pd.concat([history, snapshot], ignore_index=True)
-        if history is not None
-        else snapshot
+        pd.concat([history, snapshot], ignore_index=True) if history is not None else snapshot
     )
-    combined = combined.drop_duplicates(
-        subset=["Timestamp", "Symbol", "Exchange"], keep="last"
-    )
+    combined = combined.drop_duplicates(subset=["Timestamp", "Symbol", "Exchange"], keep="last")
     return combined.tail(HISTORY_LIMIT).reset_index(drop=True)
