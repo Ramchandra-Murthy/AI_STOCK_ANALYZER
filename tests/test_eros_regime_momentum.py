@@ -50,9 +50,7 @@ def test_falling_strength():
 
 
 def test_stable_and_initial_states():
-    initial = analyze_eros_regime_momentum(
-        _history([50.0], [50.0], [60.0], ["BALANCED"])
-    )
+    initial = analyze_eros_regime_momentum(_history([50.0], [50.0], [60.0], ["BALANCED"]))
     stable = analyze_eros_regime_momentum(
         _history([50.0, 51.0], [50.0, 49.0], [60.0, 61.0], ["BALANCED", "BALANCED"])
     )
