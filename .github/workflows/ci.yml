@@ -28,7 +28,7 @@ jobs:
     - name: Install locked dependencies
       run: uv sync --locked --no-build --no-install-project
     - name: Lint with Ruff
-      run: uv run --locked --no-sync --no-build ruff check .
+      run: uv run --locked --no-sync --no-build ruff check --fix --diff .
     - name: Check formatting with Black
       run: uv run --locked --no-sync --no-build black --check --exclude '(^|/)(\.venv|venv|archive|backup_before_v2)/' .
     - name: Type check supported runtime surface
