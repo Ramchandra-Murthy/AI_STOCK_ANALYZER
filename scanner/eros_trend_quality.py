@@ -36,7 +36,9 @@ def analyze_eros_trend_quality(history: pd.DataFrame | None) -> pd.DataFrame:
             )
             continue
 
-        direction = "RISING" if changes[-1] > 0 else "FALLING" if changes[-1] < 0 else "STABLE"
+        direction = (
+            "RISING" if changes[-1] > 0 else "FALLING" if changes[-1] < 0 else "STABLE"
+        )
         non_zero = [change for change in changes if change != 0]
         consistency = (
             100.0
@@ -52,7 +54,12 @@ def analyze_eros_trend_quality(history: pd.DataFrame | None) -> pd.DataFrame:
 
         if direction == "STABLE":
             quality = "STABLE"
-        elif consistency is not None and efficiency is not None and consistency >= 80 and efficiency >= 70:
+        elif (
+            consistency is not None
+            and efficiency is not None
+            and consistency >= 80
+            and efficiency >= 70
+        ):
             quality = "COHERENT"
         elif consistency is not None and consistency >= 60:
             quality = "DEVELOPING"
@@ -71,7 +78,9 @@ def analyze_eros_trend_quality(history: pd.DataFrame | None) -> pd.DataFrame:
                 "Directional Consistency %": (
                     round(consistency, 2) if consistency is not None else None
                 ),
-                "Trend Efficiency %": round(efficiency, 2) if efficiency is not None else None,
+                "Trend Efficiency %": (
+                    round(efficiency, 2) if efficiency is not None else None
+                ),
                 "Trend Quality": quality,
             }
         )
