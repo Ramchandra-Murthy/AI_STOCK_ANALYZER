@@ -14,6 +14,7 @@ from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_trend_consensus import analyze_eros_trend_consensus
+from scanner.eros_trend_persistence import analyze_eros_trend_persistence
 from scanner.eros_trend_transitions import analyze_eros_trend_transitions
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
@@ -1122,6 +1123,27 @@ def show() -> None:
                                     file_name="eros_trend_transitions.csv",
                                     mime="text/csv",
                                     key="download_eros_trend_transitions",
+                                )
+
+                            persistence = analyze_eros_trend_persistence(fusion_history)
+                            if not persistence.empty:
+                                st.subheader("📈 EROS Trend Persistence")
+                                st.caption(
+                                    "Measures the latest directional streak and recent directional "
+                                    "consistency of each EROS fusion signal. This is descriptive "
+                                    "analytics, not a trade instruction."
+                                )
+                                st.dataframe(
+                                    persistence.head(30),
+                                    use_container_width=True,
+                                    hide_index=True,
+                                )
+                                st.download_button(
+                                    "Download EROS trend persistence CSV",
+                                    persistence.to_csv(index=False).encode("utf-8"),
+                                    file_name="eros_trend_persistence.csv",
+                                    mime="text/csv",
+                                    key="download_eros_trend_persistence",
                                 )
 
     st.subheader("🏦 Institutional Momentum Score")
