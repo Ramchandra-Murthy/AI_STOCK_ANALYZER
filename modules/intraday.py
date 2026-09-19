@@ -11,6 +11,7 @@ from scanner.eros_fusion import compute_eros_fusion
 from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
+from scanner.eros_master_dashboard import build_eros_master_dashboard
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
 from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
@@ -1324,6 +1325,39 @@ def show() -> None:
                                                 file_name="eros_regime_stability.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_stability",
+                                            )
+
+                                        master_summary, master_signals = (
+                                            build_eros_master_dashboard(
+                                                fusion_history,
+                                                fusion,
+                                                regime_history,
+                                            )
+                                        )
+                                        if not master_summary.empty:
+                                            st.subheader("🧩 EROS Master Dashboard")
+                                            st.caption(
+                                                "Compact view combining the existing EROS signal lifecycle, "
+                                                "trend confidence, fusion score, regime momentum, and regime "
+                                                "stability analytics. It is descriptive analytics, not a trade instruction."
+                                            )
+                                            st.dataframe(
+                                                master_summary,
+                                                use_container_width=True,
+                                                hide_index=True,
+                                            )
+                                            if not master_signals.empty:
+                                                st.dataframe(
+                                                    master_signals.head(30),
+                                                    use_container_width=True,
+                                                    hide_index=True,
+                                                )
+                                            st.download_button(
+                                                "Download EROS master dashboard CSV",
+                                                master_signals.to_csv(index=False).encode("utf-8"),
+                                                file_name="eros_master_dashboard.csv",
+                                                mime="text/csv",
+                                                key="download_eros_master_dashboard",
                                             )
 
     st.subheader("🏦 Institutional Momentum Score")
