@@ -45,7 +45,9 @@ def analyze_eros_signal_lifecycle_transitions(
         lifecycle_values = group["Lifecycle"].astype(str).tolist()
         latest = group.iloc[-1]
         previous = group.iloc[-2] if len(group) >= 2 else None
-        transition = "INITIAL" if previous is None else f"{previous['Lifecycle']} → {latest['Lifecycle']}"
+        transition = (
+            "INITIAL" if previous is None else f"{previous['Lifecycle']} → {latest['Lifecycle']}"
+        )
         transitions = sum(
             current != prior
             for prior, current in zip(lifecycle_values, lifecycle_values[1:], strict=True)
