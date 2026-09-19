@@ -43,9 +43,7 @@ def test_low_or_initial_stability():
     low = analyze_eros_regime_stability(
         _history(["RISING DOMINANT", "RISING DOMINANT"], [60, 85], [60, 90])
     )
-    initial = analyze_eros_regime_stability(
-        _history(["BALANCED"], [50], [60])
-    )
+    initial = analyze_eros_regime_stability(_history(["BALANCED"], [50], [60]))
     assert low.loc[0, "Stability"] == "LOW"
     assert initial.loc[0, "Stability"] == "INITIAL"
 
