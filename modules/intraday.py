@@ -16,6 +16,10 @@ from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_trend_confidence import analyze_eros_trend_confidence
 from scanner.eros_trend_consensus import analyze_eros_trend_consensus
 from scanner.eros_trend_persistence import analyze_eros_trend_persistence
+from scanner.eros_regime_history import (
+    append_eros_regime_snapshot,
+    summarize_eros_regime_history,
+)
 from scanner.eros_trend_quality import analyze_eros_trend_quality
 from scanner.eros_trend_regime import analyze_eros_trend_regime
 from scanner.eros_trend_transitions import analyze_eros_trend_transitions
@@ -1211,6 +1215,44 @@ def show() -> None:
                                     mime="text/csv",
                                     key="download_eros_trend_regime",
                                 )
+
+                                regime_history = append_eros_regime_snapshot(
+                                    st.session_state.get("eros_regime_history"),
+                                    datetime.now(IST),
+                                    regime,
+                                )
+                                st.session_state["eros_regime_history"] = regime_history
+                                regime_summary = summarize_eros_regime_history(regime_history)
+                                if not regime_summary.empty:
+                                    st.subheader("🕒 EROS Regime History & Transition")
+                                    st.caption(
+                                        "Tracks the session history of the aggregate EROS regime and "
+                                        "breadth changes. A transition describes a change between successive "
+                                        "dashboard snapshots; it is descriptive analytics, not a trade instruction."
+                                    )
+                                    st.dataframe(
+                                        regime_summary,
+                                        use_container_width=True,
+                                        hide_index=True,
+                                    )
+                                    history_display = regime_history.sort_values(
+                                        "Timestamp", ascending=False
+                                    ).copy()
+                                    history_display["Timestamp"] = pd.to_datetime(
+                                        history_display["Timestamp"], errors="coerce"
+                                    ).dt.strftime("%d %b %Y, %H:%M:%S")
+                                    st.dataframe(
+                                        history_display.head(30),
+                                        use_container_width=True,
+                                        hide_index=True,
+                                    )
+                                    st.download_button(
+                                        "Download EROS regime history CSV",
+                                        regime_history.to_csv(index=False).encode("utf-8"),
+                                        file_name="eros_regime_history.csv",
+                                        mime="text/csv",
+                                        key="download_eros_regime_history",
+                                    )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
