@@ -91,9 +91,7 @@ def analyze_eros_regime_momentum(history: pd.DataFrame | None) -> pd.DataFrame:
                 "Confidence Δ": confidence_delta,
                 "Current Rising Breadth %": float(latest["Rising Breadth %"]),
                 "Current Falling Breadth %": float(latest["Falling Breadth %"]),
-                "Current Average Confidence %": float(
-                    latest["Average Trend Confidence %"]
-                ),
+                "Current Average Confidence %": float(latest["Average Trend Confidence %"]),
                 "Regime Momentum": momentum,
                 "Snapshots": len(frame),
             }
