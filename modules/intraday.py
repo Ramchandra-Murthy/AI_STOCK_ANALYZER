@@ -12,14 +12,14 @@ from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
-from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
-from scanner.eros_trend_confidence import analyze_eros_trend_confidence
-from scanner.eros_trend_consensus import analyze_eros_trend_consensus
-from scanner.eros_trend_persistence import analyze_eros_trend_persistence
 from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
     summarize_eros_regime_history,
 )
+from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
+from scanner.eros_trend_confidence import analyze_eros_trend_confidence
+from scanner.eros_trend_consensus import analyze_eros_trend_consensus
+from scanner.eros_trend_persistence import analyze_eros_trend_persistence
 from scanner.eros_trend_quality import analyze_eros_trend_quality
 from scanner.eros_trend_regime import analyze_eros_trend_regime
 from scanner.eros_trend_transitions import analyze_eros_trend_transitions
