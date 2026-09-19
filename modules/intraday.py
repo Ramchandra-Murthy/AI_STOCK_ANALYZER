@@ -1327,10 +1327,12 @@ def show() -> None:
                                                 key="download_eros_regime_stability",
                                             )
 
-                                        master_summary, master_signals = build_eros_master_dashboard(
-                                            fusion_history,
-                                            fusion,
-                                            regime_history,
+                                        master_summary, master_signals = (
+                                            build_eros_master_dashboard(
+                                                fusion_history,
+                                                fusion,
+                                                regime_history,
+                                            )
                                         )
                                         if not master_summary.empty:
                                             st.subheader("🧩 EROS Master Dashboard")
