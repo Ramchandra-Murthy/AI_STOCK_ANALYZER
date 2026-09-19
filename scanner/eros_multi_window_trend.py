@@ -1,5 +1,8 @@
 """EROS multi-window trend analytics helpers."""
 
+# Ruff's I001 is explicitly skipped for this manually ordered import block.
+# ruff: isort: skip_file
+
 from __future__ import annotations
 
 import pandas as pd
