@@ -12,6 +12,7 @@ from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
+from scanner.eros_trend_consensus import analyze_eros_trend_consensus
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
@@ -1076,6 +1077,30 @@ def show() -> None:
                             mime="text/csv",
                             key="download_eros_multi_window_trend",
                         )
+
+                        consensus = analyze_eros_trend_consensus(
+                            fusion_history,
+                            fusion,
+                        )
+                        if not consensus.empty:
+                            st.subheader("🧭 EROS Trend Consensus")
+                            st.caption(
+                                "Cross-checks multi-window alignment with latest fusion change, "
+                                "acceleration, and lifecycle state. This is descriptive analytics, "
+                                "not a trade instruction."
+                            )
+                            st.dataframe(
+                                consensus.head(30),
+                                use_container_width=True,
+                                hide_index=True,
+                            )
+                            st.download_button(
+                                "Download EROS trend consensus CSV",
+                                consensus.to_csv(index=False).encode("utf-8"),
+                                file_name="eros_trend_consensus.csv",
+                                mime="text/csv",
+                                key="download_eros_trend_consensus",
+                            )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
