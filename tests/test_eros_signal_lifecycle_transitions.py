@@ -25,8 +25,8 @@ def test_lifecycle_transition_reports_initial_and_age():
     row = result.iloc[0]
 
     assert row["Lifecycle"] == "ACCELERATING"
-    assert row["Previous Lifecycle"] == "PERSISTENT"
-    assert row["Lifecycle Transition"] == "PERSISTENT → ACCELERATING"
+    assert row["Previous Lifecycle"] == "CONFIRMED"
+    assert row["Lifecycle Transition"] == "CONFIRMED → ACCELERATING"
     assert row["Lifecycle Age"] == 3
     assert row["Transition Count"] == 2
 
