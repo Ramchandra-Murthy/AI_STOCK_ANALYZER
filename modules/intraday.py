@@ -11,6 +11,7 @@ from scanner.eros_fusion import compute_eros_fusion
 from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
+from scanner.eros_master_dashboard import build_eros_master_dashboard
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
 from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
@@ -25,7 +26,6 @@ from scanner.eros_trend_consensus import analyze_eros_trend_consensus
 from scanner.eros_trend_persistence import analyze_eros_trend_persistence
 from scanner.eros_trend_quality import analyze_eros_trend_quality
 from scanner.eros_trend_regime import analyze_eros_trend_regime
-from scanner.eros_master_dashboard import build_eros_master_dashboard
 from scanner.eros_trend_transitions import analyze_eros_trend_transitions
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
