@@ -75,12 +75,8 @@ def analyze_eros_regime_stability(history: pd.DataFrame | None) -> pd.DataFrame:
                 "Rising Breadth Range": breadth_range,
                 "Confidence Range": confidence_range,
                 "Latest Rising Breadth %": float(latest["Rising Breadth %"]),
-                "Latest Falling Breadth %": float(
-                    100.0 - float(latest["Rising Breadth %"])
-                ),
-                "Latest Average Confidence %": float(
-                    latest["Average Trend Confidence %"]
-                ),
+                "Latest Falling Breadth %": float(100.0 - float(latest["Rising Breadth %"])),
+                "Latest Average Confidence %": float(latest["Average Trend Confidence %"]),
                 "Total Snapshots": len(frame),
             }
         ]
