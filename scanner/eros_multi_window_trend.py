@@ -9,7 +9,6 @@ import pandas as pd
 
 from scanner.eros_fusion_history_analytics import prepare_eros_fusion_history
 
-
 WINDOWS = (2, 3, 5)
 
 
