@@ -19,6 +19,7 @@ from scanner.eros_regime_history import (
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
+from scanner.eros_signal_lifecycle_transitions import analyze_eros_signal_lifecycle_transitions
 from scanner.eros_trend_confidence import analyze_eros_trend_confidence
 from scanner.eros_trend_consensus import analyze_eros_trend_consensus
 from scanner.eros_trend_persistence import analyze_eros_trend_persistence
@@ -1112,6 +1113,29 @@ def show() -> None:
                                 mime="text/csv",
                                 key="download_eros_trend_consensus",
                             )
+
+                            lifecycle_transitions = analyze_eros_signal_lifecycle_transitions(
+                                fusion_history
+                            )
+                            if not lifecycle_transitions.empty:
+                                st.subheader("🔄 EROS Signal Lifecycle Transitions")
+                                st.caption(
+                                    "Tracks the latest lifecycle state, previous state, transition count, "
+                                    "and lifecycle age for each signal. This is descriptive analytics, "
+                                    "not a trade instruction."
+                                )
+                                st.dataframe(
+                                    lifecycle_transitions.head(30),
+                                    use_container_width=True,
+                                    hide_index=True,
+                                )
+                                st.download_button(
+                                    "Download EROS lifecycle transitions CSV",
+                                    lifecycle_transitions.to_csv(index=False).encode("utf-8"),
+                                    file_name="eros_signal_lifecycle_transitions.csv",
+                                    mime="text/csv",
+                                    key="download_eros_lifecycle_transitions",
+                                )
 
                             transitions = analyze_eros_trend_transitions(fusion_history)
                             if not transitions.empty:
