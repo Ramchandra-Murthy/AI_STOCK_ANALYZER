@@ -16,6 +16,7 @@ from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
     summarize_eros_regime_history,
 )
+from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_trend_confidence import analyze_eros_trend_confidence
 from scanner.eros_trend_consensus import analyze_eros_trend_consensus
@@ -1253,6 +1254,27 @@ def show() -> None:
                                         mime="text/csv",
                                         key="download_eros_regime_history",
                                     )
+
+                                    regime_momentum = analyze_eros_regime_momentum(regime_history)
+                                    if not regime_momentum.empty:
+                                        st.subheader("📈 EROS Regime Momentum")
+                                        st.caption(
+                                            "Measures recent changes in aggregate breadth and confidence "
+                                            "to describe whether the current regime is strengthening, "
+                                            "weakening, or stable. It is descriptive analytics, not a trade instruction."
+                                        )
+                                        st.dataframe(
+                                            regime_momentum,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                        )
+                                        st.download_button(
+                                            "Download EROS regime momentum CSV",
+                                            regime_momentum.to_csv(index=False).encode("utf-8"),
+                                            file_name="eros_regime_momentum.csv",
+                                            mime="text/csv",
+                                            key="download_eros_regime_momentum",
+                                        )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
