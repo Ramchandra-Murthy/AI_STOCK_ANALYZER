@@ -4,54 +4,49 @@ from __future__ import annotations
 
 import pandas as pd
 
+
 REQUIRED_COLUMNS = {
     "Timestamp",
     "Regime",
     "Rising Breadth %",
-    "Falling Breadth %",
     "Average Trend Confidence %",
 }
 
 
 def analyze_eros_regime_stability(history: pd.DataFrame | None) -> pd.DataFrame:
-    """Measure how stable the latest aggregate EROS regime has been."""
+    """Measure persistence and variability of the latest aggregate regime."""
     if history is None or history.empty:
         return pd.DataFrame()
     if not REQUIRED_COLUMNS.issubset(history.columns):
         return pd.DataFrame()
 
-    frame = history.copy()
-    frame["Timestamp"] = pd.to_datetime(frame["Timestamp"], errors="coerce")
-    for column in (
-        "Rising Breadth %",
-        "Falling Breadth %",
-        "Average Trend Confidence %",
-    ):
-        frame[column] = pd.to_numeric(frame[column], errors="coerce")
-
-    frame = frame.dropna(
-        subset=[
+    frame = history.loc[
+        :,
+        [
             "Timestamp",
+            "Regime",
             "Rising Breadth %",
-            "Falling Breadth %",
             "Average Trend Confidence %",
-        ]
-    ).sort_values("Timestamp")
+        ],
+    ].copy()
+    frame["Timestamp"] = pd.to_datetime(frame["Timestamp"], errors="coerce")
+    frame = frame.dropna(subset=["Timestamp"]).sort_values("Timestamp")
     if frame.empty:
         return pd.DataFrame()
 
-    latest_regime = str(frame.iloc[-1]["Regime"])
-    current = frame[frame["Regime"].astype(str) == latest_regime]
+    latest = frame.iloc[-1]
+    latest_regime = str(latest["Regime"])
+    regimes = frame["Regime"].astype(str).tolist()
+
     streak = 0
-    for regime in reversed(frame["Regime"].astype(str).tolist()):
+    for regime in reversed(regimes):
         if regime != latest_regime:
             break
         streak += 1
 
+    current = frame[frame["Regime"].astype(str) == latest_regime]
     breadth_range = round(
-        float(
-            current["Rising Breadth %"].max() - current["Rising Breadth %"].min()
-        ),
+        float(current["Rising Breadth %"].max() - current["Rising Breadth %"].min()),
         2,
     )
     confidence_range = round(
@@ -80,10 +75,12 @@ def analyze_eros_regime_stability(history: pd.DataFrame | None) -> pd.DataFrame:
                 "Regime Snapshots": len(current),
                 "Rising Breadth Range": breadth_range,
                 "Confidence Range": confidence_range,
-                "Latest Rising Breadth %": float(frame.iloc[-1]["Rising Breadth %"]),
-                "Latest Falling Breadth %": float(frame.iloc[-1]["Falling Breadth %"]),
+                "Latest Rising Breadth %": float(latest["Rising Breadth %"]),
+                "Latest Falling Breadth %": float(
+                    100.0 - float(latest["Rising Breadth %"])
+                ),
                 "Latest Average Confidence %": float(
-                    frame.iloc[-1]["Average Trend Confidence %"]
+                    latest["Average Trend Confidence %"]
                 ),
                 "Total Snapshots": len(frame),
             }
