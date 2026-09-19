@@ -77,9 +77,7 @@ def analyze_eros_trend_confidence(
         pd.to_numeric(result["Trend Efficiency %"], errors="coerce").fillna(0.0) * 0.3
     )
     result["Trend Confidence %"] = (
-        result["Consensus Points"]
-        + result["Persistence Points"]
-        + result["Quality Points"]
+        result["Consensus Points"] + result["Persistence Points"] + result["Quality Points"]
     ).round(2)
 
     result["Confidence"] = "LOW"
