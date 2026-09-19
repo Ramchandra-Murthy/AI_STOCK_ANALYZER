@@ -14,9 +14,7 @@ def analyze_eros_trend_persistence(history: pd.DataFrame | None) -> pd.DataFrame
         return pd.DataFrame()
 
     frame = frame.sort_values(["Symbol", "Exchange", "Timestamp"]).copy()
-    frame["Fusion Change"] = (
-        frame.groupby(["Symbol", "Exchange"])["Fusion Score"].diff()
-    )
+    frame["Fusion Change"] = frame.groupby(["Symbol", "Exchange"])["Fusion Score"].diff()
 
     rows: list[dict[str, object]] = []
     for (symbol, exchange), group in frame.groupby(["Symbol", "Exchange"]):
@@ -37,13 +35,7 @@ def analyze_eros_trend_persistence(history: pd.DataFrame | None) -> pd.DataFrame
             )
             continue
 
-        direction = (
-            "RISING"
-            if changes[-1] > 0
-            else "FALLING"
-            if changes[-1] < 0
-            else "STABLE"
-        )
+        direction = "RISING" if changes[-1] > 0 else "FALLING" if changes[-1] < 0 else "STABLE"
         streak = 1
         if direction != "STABLE":
             for change in reversed(changes[:-1]):
@@ -57,7 +49,8 @@ def analyze_eros_trend_persistence(history: pd.DataFrame | None) -> pd.DataFrame
         recent = changes[-5:]
         directional = [change for change in recent if change != 0]
         consistency = (
-            100.0 * sum((change > 0) == (changes[-1] > 0) for change in directional)
+            100.0
+            * sum((change > 0) == (changes[-1] > 0) for change in directional)
             / len(directional)
             if directional
             else None
