@@ -35,7 +35,13 @@ def analyze_eros_trend_persistence(history: pd.DataFrame | None) -> pd.DataFrame
             )
             continue
 
-        direction = "RISING" if changes[-1] > 0 else "FALLING" if changes[-1] < 0 else "STABLE"
+        direction = (
+            "RISING"
+            if changes[-1] > 0
+            else "FALLING"
+            if changes[-1] < 0
+            else "STABLE"
+        )
         streak = 1
         if direction != "STABLE":
             for change in reversed(changes[:-1]):
