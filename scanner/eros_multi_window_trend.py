@@ -13,9 +13,7 @@ from scanner.eros_fusion_history_analytics import prepare_eros_fusion_history
 WINDOWS = (2, 3, 5)
 
 
-def analyze_eros_multi_window_trend(
-    history: pd.DataFrame | None,
-) -> pd.DataFrame:
+def analyze_eros_multi_window_trend(history: pd.DataFrame | None) -> pd.DataFrame:
     """Compare recent EROS fusion changes across observation windows."""
     frame = prepare_eros_fusion_history(history)
     if frame.empty:
