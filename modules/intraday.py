@@ -13,6 +13,7 @@ from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
+from scanner.eros_trend_confidence import analyze_eros_trend_confidence
 from scanner.eros_trend_consensus import analyze_eros_trend_consensus
 from scanner.eros_trend_persistence import analyze_eros_trend_persistence
 from scanner.eros_trend_quality import analyze_eros_trend_quality
@@ -1166,6 +1167,27 @@ def show() -> None:
                                     file_name="eros_trend_quality.csv",
                                     mime="text/csv",
                                     key="download_eros_trend_quality",
+                                )
+
+                            confidence = analyze_eros_trend_confidence(fusion_history)
+                            if not confidence.empty:
+                                st.subheader("🎯 EROS Trend Confidence")
+                                st.caption(
+                                    "Combines trend consensus, persistence, and movement efficiency into a "
+                                    "transparent descriptive confidence metric. It does not change EROS "
+                                    "scoring weights or provide a trade instruction."
+                                )
+                                st.dataframe(
+                                    confidence.head(30),
+                                    use_container_width=True,
+                                    hide_index=True,
+                                )
+                                st.download_button(
+                                    "Download EROS trend confidence CSV",
+                                    confidence.to_csv(index=False).encode("utf-8"),
+                                    file_name="eros_trend_confidence.csv",
+                                    mime="text/csv",
+                                    key="download_eros_trend_confidence",
                                 )
 
     st.subheader("🏦 Institutional Momentum Score")
