@@ -21,9 +21,7 @@ def analyze_eros_multi_window_trend(
     if frame.empty:
         return pd.DataFrame()
 
-    frame = frame.sort_values(
-        ["Symbol", "Exchange", "Timestamp"]
-    ).reset_index(drop=True)
+    frame = frame.sort_values(["Symbol", "Exchange", "Timestamp"]).reset_index(drop=True)
     grouped = frame.groupby(["Symbol", "Exchange"], group_keys=False)
 
     rows: list[dict[str, object]] = []
