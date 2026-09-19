@@ -14,7 +14,9 @@ def analyze_eros_trend_persistence(history: pd.DataFrame | None) -> pd.DataFrame
         return pd.DataFrame()
 
     frame = frame.sort_values(["Symbol", "Exchange", "Timestamp"]).copy()
-    frame["Fusion Change"] = frame.groupby(["Symbol", "Exchange"])["Fusion Score"].diff()
+    frame["Fusion Change"] = (
+        frame.groupby(["Symbol", "Exchange"])["Fusion Score"].diff()
+    )
 
     rows: list[dict[str, object]] = []
     for (symbol, exchange), group in frame.groupby(["Symbol", "Exchange"]):
