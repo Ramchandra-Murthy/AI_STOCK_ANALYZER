@@ -36,8 +36,6 @@ addopts = "-ra -q"
 pythonpath = ["."]
 testpaths = ["tests"]
 
-[tool.ruff.lint.isort]
-known-first-party = ["scanner"]
 
 [tool.black]
 line-length = 100
