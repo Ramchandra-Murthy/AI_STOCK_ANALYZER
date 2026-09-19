@@ -51,9 +51,7 @@ def append_eros_regime_snapshot(
     combined = pd.concat([previous, row], ignore_index=True)
     combined["Timestamp"] = pd.to_datetime(combined["Timestamp"], errors="coerce")
     combined = combined.dropna(subset=["Timestamp"])
-    combined = combined.sort_values("Timestamp").drop_duplicates(
-        subset=["Timestamp"], keep="last"
-    )
+    combined = combined.sort_values("Timestamp").drop_duplicates(subset=["Timestamp"], keep="last")
     return combined.tail(HISTORY_LIMIT).reset_index(drop=True)
 
 
@@ -104,9 +102,7 @@ def summarize_eros_regime_history(history: pd.DataFrame | None) -> pd.DataFrame:
                 "Falling Breadth %": float(latest["Falling Breadth %"]),
                 "Rising Breadth Δ": rising_delta,
                 "Falling Breadth Δ": falling_delta,
-                "Average Trend Confidence %": float(
-                    latest["Average Trend Confidence %"]
-                ),
+                "Average Trend Confidence %": float(latest["Average Trend Confidence %"]),
                 "Snapshots": len(frame),
             }
         ]
