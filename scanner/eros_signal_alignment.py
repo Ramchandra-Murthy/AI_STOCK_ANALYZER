@@ -66,13 +66,11 @@ def analyze_eros_signal_alignment(
     )
 
     result.loc[
-        result["Trend Direction"].notna()
-        & result["Direction"].eq(result["Trend Direction"]),
+        result["Trend Direction"].notna() & result["Direction"].eq(result["Trend Direction"]),
         "Aligned Diagnostics",
     ] += 1
     result.loc[
-        result["Trend Direction"].notna()
-        & result["Trend"].eq(result["Trend Direction"]),
+        result["Trend Direction"].notna() & result["Trend"].eq(result["Trend Direction"]),
         "Aligned Diagnostics",
     ] += 1
     result.loc[
