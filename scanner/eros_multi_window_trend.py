@@ -63,7 +63,11 @@ def analyze_eros_multi_window_trend(history: pd.DataFrame | None) -> pd.DataFram
     if not rows:
         return pd.DataFrame()
 
-    return pd.DataFrame(rows).sort_values(
-        ["Window Alignment", "Fusion Score"],
-        ascending=[True, False],
-    ).reset_index(drop=True)
+    return (
+        pd.DataFrame(rows)
+        .sort_values(
+            ["Window Alignment", "Fusion Score"],
+            ascending=[True, False],
+        )
+        .reset_index(drop=True)
+    )
