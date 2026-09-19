@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -34,7 +34,7 @@ def test_append_is_bounded_and_deduplicates_timestamp():
     for index in range(125):
         history = append_eros_regime_snapshot(
             history,
-            datetime(2026, 1, 1, 9, 15 + index),
+            datetime(2026, 1, 1, 9, 15) + timedelta(minutes=index),
             _regime("BALANCED", 50.0, 50.0, 60.0),
         )
 
