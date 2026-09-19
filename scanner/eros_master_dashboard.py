@@ -84,9 +84,7 @@ def build_eros_master_dashboard(
 
     if "Alignment %" in signal.columns:
         alignment_values = pd.to_numeric(signal["Alignment %"], errors="coerce")
-        summary_values["Average Signal Alignment %"] = round(
-            float(alignment_values.mean()), 2
-        )
+        summary_values["Average Signal Alignment %"] = round(float(alignment_values.mean()), 2)
 
     if "Trend Confidence %" in signal.columns:
         confidence_values = pd.to_numeric(signal["Trend Confidence %"], errors="coerce")
