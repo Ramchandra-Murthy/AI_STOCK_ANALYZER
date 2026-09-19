@@ -1255,9 +1255,7 @@ def show() -> None:
                                         key="download_eros_regime_history",
                                     )
 
-                                    regime_momentum = analyze_eros_regime_momentum(
-                                        regime_history
-                                    )
+                                    regime_momentum = analyze_eros_regime_momentum(regime_history)
                                     if not regime_momentum.empty:
                                         st.subheader("📈 EROS Regime Momentum")
                                         st.caption(
