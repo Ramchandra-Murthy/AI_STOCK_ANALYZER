@@ -17,6 +17,7 @@ from scanner.eros_regime_history import (
     summarize_eros_regime_history,
 )
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
+from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_trend_confidence import analyze_eros_trend_confidence
 from scanner.eros_trend_consensus import analyze_eros_trend_consensus
@@ -1275,6 +1276,31 @@ def show() -> None:
                                             mime="text/csv",
                                             key="download_eros_regime_momentum",
                                         )
+
+                                        regime_stability = analyze_eros_regime_stability(
+                                            regime_history
+                                        )
+                                        if not regime_stability.empty:
+                                            st.subheader("🧭 EROS Regime Stability")
+                                            st.caption(
+                                                "Measures the persistence and variability of the current "
+                                                "aggregate regime across session snapshots. This is descriptive "
+                                                "analytics, not a trade instruction."
+                                            )
+                                            st.dataframe(
+                                                regime_stability,
+                                                use_container_width=True,
+                                                hide_index=True,
+                                            )
+                                            st.download_button(
+                                                "Download EROS regime stability CSV",
+                                                regime_stability.to_csv(index=False).encode(
+                                                    "utf-8"
+                                                ),
+                                                file_name="eros_regime_stability.csv",
+                                                mime="text/csv",
+                                                key="download_eros_regime_stability",
+                                            )
 
     st.subheader("🏦 Institutional Momentum Score")
     st.caption(
