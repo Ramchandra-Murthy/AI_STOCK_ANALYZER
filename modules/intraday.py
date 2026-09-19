@@ -1294,7 +1294,7 @@ def show() -> None:
                                             )
                                             st.download_button(
                                                 "Download EROS regime stability CSV",
-                                                regime_stability.to_csv(index=False).encode("utf-8"),
+                                                regime_stability.to_csv(index=False).encode(\n                                                    "utf-8"\n                                                ),
                                                 file_name="eros_regime_stability.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_stability",
