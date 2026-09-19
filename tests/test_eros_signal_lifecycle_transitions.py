@@ -8,9 +8,7 @@ from scanner.eros_signal_lifecycle_transitions import (
 def _history(symbol, scores):
     return pd.DataFrame(
         {
-            "Timestamp": pd.date_range(
-                "2026-09-18 10:00", periods=len(scores), freq="5min"
-            ),
+            "Timestamp": pd.date_range("2026-09-18 10:00", periods=len(scores), freq="5min"),
             "Symbol": [symbol] * len(scores),
             "Exchange": ["NSE"] * len(scores),
             "Fusion Score": scores,
@@ -19,9 +17,7 @@ def _history(symbol, scores):
 
 
 def test_lifecycle_transition_reports_initial_and_age():
-    result = analyze_eros_signal_lifecycle_transitions(
-        _history("AAA", [60.0, 70.0, 85.0])
-    )
+    result = analyze_eros_signal_lifecycle_transitions(_history("AAA", [60.0, 70.0, 85.0]))
     row = result.iloc[0]
 
     assert row["Lifecycle"] == "ACCELERATING"
@@ -48,6 +44,4 @@ def test_lifecycle_transition_handles_multiple_symbols():
 def test_invalid_input_returns_empty():
     assert analyze_eros_signal_lifecycle_transitions(None).empty
     assert analyze_eros_signal_lifecycle_transitions(pd.DataFrame()).empty
-    assert analyze_eros_signal_lifecycle_transitions(
-        pd.DataFrame({"Symbol": ["AAA"]})
-    ).empty
+    assert analyze_eros_signal_lifecycle_transitions(pd.DataFrame({"Symbol": ["AAA"]})).empty
