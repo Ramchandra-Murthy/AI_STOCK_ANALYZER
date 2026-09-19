@@ -17,6 +17,7 @@ from scanner.eros_trend_confidence import analyze_eros_trend_confidence
 from scanner.eros_trend_consensus import analyze_eros_trend_consensus
 from scanner.eros_trend_persistence import analyze_eros_trend_persistence
 from scanner.eros_trend_quality import analyze_eros_trend_quality
+from scanner.eros_trend_regime import analyze_eros_trend_regime
 from scanner.eros_trend_transitions import analyze_eros_trend_transitions
 from scanner.institutional_flow import fetch_fii_dii_flow, fetch_fii_dii_history
 from scanner.institutional_momentum import compute_institutional_momentum
@@ -1188,6 +1189,27 @@ def show() -> None:
                                     file_name="eros_trend_confidence.csv",
                                     mime="text/csv",
                                     key="download_eros_trend_confidence",
+                                )
+
+                            regime = analyze_eros_trend_regime(confidence)
+                            if not regime.empty:
+                                st.subheader("🌐 EROS Trend Breadth & Regime")
+                                st.caption(
+                                    "Aggregates the latest EROS trend-confidence distribution across the "
+                                    "scanned universe. Breadth describes the balance of confirmed rising "
+                                    "versus falling signals; it is descriptive analytics, not a trade instruction."
+                                )
+                                st.dataframe(
+                                    regime,
+                                    use_container_width=True,
+                                    hide_index=True,
+                                )
+                                st.download_button(
+                                    "Download EROS trend regime CSV",
+                                    regime.to_csv(index=False).encode("utf-8"),
+                                    file_name="eros_trend_regime.csv",
+                                    mime="text/csv",
+                                    key="download_eros_trend_regime",
                                 )
 
     st.subheader("🏦 Institutional Momentum Score")
