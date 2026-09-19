@@ -6,6 +6,7 @@ import pandas as pd
 
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_stability import analyze_eros_regime_stability
+from scanner.eros_signal_alignment import analyze_eros_signal_alignment
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_trend_confidence import analyze_eros_trend_confidence
 
@@ -21,6 +22,7 @@ def build_eros_master_dashboard(
 
     lifecycle = analyze_eros_signal_lifecycle(history, current_fusion)
     confidence = analyze_eros_trend_confidence(history, current_fusion)
+    alignment = analyze_eros_signal_alignment(history, current_fusion)
 
     signal = (
         history.sort_values("Timestamp").groupby(["Symbol", "Exchange"], as_index=False).tail(1)
@@ -39,7 +41,7 @@ def build_eros_master_dashboard(
     ]
     signal = signal[signal_columns]
 
-    for frame in (lifecycle, confidence):
+    for frame in (lifecycle, confidence, alignment):
         if not frame.empty and {"Symbol", "Exchange"}.issubset(frame.columns):
             columns = [
                 column
@@ -53,6 +55,8 @@ def build_eros_master_dashboard(
                     "Trend Confidence %",
                     "Confidence",
                     "Trend Quality",
+                    "Alignment %",
+                    "Alignment",
                     "Persistence",
                 }
             ]
@@ -77,6 +81,10 @@ def build_eros_master_dashboard(
         summary_values["Accelerating Signals"] = int((signal["Lifecycle"] == "ACCELERATING").sum())
         summary_values["Weakening Signals"] = int((signal["Lifecycle"] == "WEAKENING").sum())
         summary_values["Expired Signals"] = int((signal["Lifecycle"] == "EXPIRED").sum())
+
+    if "Alignment %" in signal.columns:
+        alignment_values = pd.to_numeric(signal["Alignment %"], errors="coerce")
+        summary_values["Average Signal Alignment %"] = round(float(alignment_values.mean()), 2)
 
     if "Trend Confidence %" in signal.columns:
         confidence_values = pd.to_numeric(signal["Trend Confidence %"], errors="coerce")
