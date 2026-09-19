@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
+from scanner.eros_regime_signal_sync import analyze_eros_regime_signal_sync
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_signal_alignment import analyze_eros_signal_alignment
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
@@ -23,6 +24,7 @@ def build_eros_master_dashboard(
     lifecycle = analyze_eros_signal_lifecycle(history, current_fusion)
     confidence = analyze_eros_trend_confidence(history, current_fusion)
     alignment = analyze_eros_signal_alignment(history, current_fusion)
+    regime_sync = analyze_eros_regime_signal_sync(history, regime_history, current_fusion)
 
     signal = (
         history.sort_values("Timestamp").groupby(["Symbol", "Exchange"], as_index=False).tail(1)
@@ -41,7 +43,7 @@ def build_eros_master_dashboard(
     ]
     signal = signal[signal_columns]
 
-    for frame in (lifecycle, confidence, alignment):
+    for frame in (lifecycle, confidence, alignment, regime_sync):
         if not frame.empty and {"Symbol", "Exchange"}.issubset(frame.columns):
             columns = [
                 column
@@ -58,6 +60,10 @@ def build_eros_master_dashboard(
                     "Alignment %",
                     "Alignment",
                     "Persistence",
+                    "Current Regime",
+                    "Regime Direction",
+                    "Signal Direction",
+                    "Regime-Signal Sync",
                 }
             ]
             signal = signal.merge(
@@ -85,6 +91,11 @@ def build_eros_master_dashboard(
     if "Alignment %" in signal.columns:
         alignment_values = pd.to_numeric(signal["Alignment %"], errors="coerce")
         summary_values["Average Signal Alignment %"] = round(float(alignment_values.mean()), 2)
+
+    if "Regime-Signal Sync" in signal.columns:
+        sync = signal["Regime-Signal Sync"]
+        summary_values["Regime-Signal Aligned Signals"] = int((sync == "ALIGNED").sum())
+        summary_values["Regime-Signal Mismatch Signals"] = int((sync == "MISMATCH").sum())
 
     if "Trend Confidence %" in signal.columns:
         confidence_values = pd.to_numeric(signal["Trend Confidence %"], errors="coerce")
