@@ -36,23 +36,24 @@ def analyze_eros_multi_window_trend(history: pd.DataFrame | None) -> pd.DataFram
         }
         changes: list[float] = []
         for window in WINDOWS:
-            change = (
-                float(scores.iloc[-1] - scores.iloc[-1 - window])
-                if len(scores) > window
-                else None
-            )
+            if len(scores) > window:
+                change = float(scores.iloc[-1] - scores.iloc[-1 - window])
+            else:
+                change = None
+
             row[f"{window}-observation Change"] = change
             if change is not None:
                 changes.append(change)
 
         if changes:
-            row["Window Alignment"] = (
-                "RISING"
-                if all(change > 0 for change in changes)
-                else "FALLING"
-                if all(change < 0 for change in changes)
-                else "MIXED"
-            )
+            if all(change > 0 for change in changes):
+                alignment = "RISING"
+            elif all(change < 0 for change in changes):
+                alignment = "FALLING"
+            else:
+                alignment = "MIXED"
+
+            row["Window Alignment"] = alignment
             row["Strongest Window Change"] = max(changes, key=abs)
         else:
             row["Window Alignment"] = "INSUFFICIENT DATA"
@@ -63,11 +64,8 @@ def analyze_eros_multi_window_trend(history: pd.DataFrame | None) -> pd.DataFram
     if not rows:
         return pd.DataFrame()
 
-    return (
-        pd.DataFrame(rows)
-        .sort_values(
-            ["Window Alignment", "Fusion Score"],
-            ascending=[True, False],
-        )
-        .reset_index(drop=True)
-    )
+    result = pd.DataFrame(rows)
+    return result.sort_values(
+        ["Window Alignment", "Fusion Score"],
+        ascending=[True, False],
+    ).reset_index(drop=True)
