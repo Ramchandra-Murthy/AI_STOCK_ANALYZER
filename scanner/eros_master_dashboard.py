@@ -22,9 +22,9 @@ def build_eros_master_dashboard(
     lifecycle = analyze_eros_signal_lifecycle(history, current_fusion)
     confidence = analyze_eros_trend_confidence(history, current_fusion)
 
-    signal = history.sort_values("Timestamp").groupby(
-        ["Symbol", "Exchange"], as_index=False
-    ).tail(1)
+    signal = (
+        history.sort_values("Timestamp").groupby(["Symbol", "Exchange"], as_index=False).tail(1)
+    )
 
     if current_fusion is not None and not current_fusion.empty:
         keys = ["Symbol", "Exchange"]
@@ -44,7 +44,8 @@ def build_eros_master_dashboard(
             columns = [
                 column
                 for column in frame.columns
-                if column in {
+                if column
+                in {
                     "Symbol",
                     "Exchange",
                     "Lifecycle",
@@ -72,26 +73,14 @@ def build_eros_master_dashboard(
 
     if "Lifecycle" in signal.columns:
         summary_values["New Signals"] = int((signal["Lifecycle"] == "NEW").sum())
-        summary_values["Persistent Signals"] = int(
-            (signal["Lifecycle"] == "PERSISTENT").sum()
-        )
-        summary_values["Accelerating Signals"] = int(
-            (signal["Lifecycle"] == "ACCELERATING").sum()
-        )
-        summary_values["Weakening Signals"] = int(
-            (signal["Lifecycle"] == "WEAKENING").sum()
-        )
-        summary_values["Expired Signals"] = int(
-            (signal["Lifecycle"] == "EXPIRED").sum()
-        )
+        summary_values["Persistent Signals"] = int((signal["Lifecycle"] == "PERSISTENT").sum())
+        summary_values["Accelerating Signals"] = int((signal["Lifecycle"] == "ACCELERATING").sum())
+        summary_values["Weakening Signals"] = int((signal["Lifecycle"] == "WEAKENING").sum())
+        summary_values["Expired Signals"] = int((signal["Lifecycle"] == "EXPIRED").sum())
 
     if "Trend Confidence %" in signal.columns:
-        confidence_values = pd.to_numeric(
-            signal["Trend Confidence %"], errors="coerce"
-        )
-        summary_values["Average Trend Confidence %"] = round(
-            float(confidence_values.mean()), 2
-        )
+        confidence_values = pd.to_numeric(signal["Trend Confidence %"], errors="coerce")
+        summary_values["Average Trend Confidence %"] = round(float(confidence_values.mean()), 2)
 
     if regime_history is not None and not regime_history.empty:
         momentum = analyze_eros_regime_momentum(regime_history)
