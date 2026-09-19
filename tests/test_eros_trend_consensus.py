@@ -33,5 +33,5 @@ def test_insufficient_history_is_explicit():
 
 
 def test_mixed_windows_are_not_confirmed():
-    result = analyze_eros_trend_consensus(_history([40, 45, 42, 44, 43, 46]))
+    result = analyze_eros_trend_consensus(_history([40, 50, 45, 48, 46, 47]))
     assert result.loc[0, "Trend Consensus"] == "MIXED"
