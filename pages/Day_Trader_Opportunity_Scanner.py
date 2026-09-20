@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
 from services.intraday_state_history import (
@@ -101,6 +102,12 @@ if st.button("Scan now", type="primary"):
     previous_outcomes = st.session_state.get("intraday_setup_outcomes", {})
     st.session_state["intraday_setup_outcomes"] = record_setup_outcomes(
         previous_outcomes,
+        results,
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
+    previous_windows = st.session_state.get("intraday_multi_window_outcomes", {})
+    st.session_state["intraday_multi_window_outcomes"] = record_multi_window_outcomes(
+        previous_windows,
         results,
         pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
     )
@@ -231,6 +238,23 @@ else:
             "Download setup outcome CSV",
             outcomes.to_csv(index=False).encode("utf-8"),
             file_name="intraday_setup_outcomes.csv",
+            mime="text/csv",
+        )
+
+    window_outcomes = multi_window_frame(st.session_state.get("intraday_multi_window_outcomes", {}))
+    st.subheader("Multi-window setup outcomes")
+    st.caption(
+        "Observed price change is measured from the start of the current setup state. "
+        "A window is filled when a later scan reaches that elapsed time."
+    )
+    if window_outcomes.empty:
+        st.caption("No multi-window observations are available yet.")
+    else:
+        st.dataframe(window_outcomes.head(50), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download multi-window outcome CSV",
+            window_outcomes.to_csv(index=False).encode("utf-8"),
+            file_name="intraday_multi_window_outcomes.csv",
             mime="text/csv",
         )
 

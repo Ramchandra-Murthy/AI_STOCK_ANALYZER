@@ -7,6 +7,8 @@ from typing import Any
 
 import pandas as pd
 
+from services.intraday_tracking import copy_records, setup_rows
+
 
 def record_setup_outcomes(
     previous_outcomes: dict[str, dict[str, Any]],
@@ -14,16 +16,9 @@ def record_setup_outcomes(
     observed_at: datetime,
 ) -> dict[str, dict[str, Any]]:
     """Record price observations relative to the first observed setup."""
-    updated = {symbol: dict(value) for symbol, value in previous_outcomes.items()}
+    updated = copy_records(previous_outcomes)
 
-    if results is None or results.empty:
-        return updated
-
-    required = {"Symbol", "Plan state", "Price"}
-    if not required.issubset(results.columns):
-        return updated
-
-    for row in results[["Symbol", "Plan state", "Price"]].itertuples(index=False):
+    for row in setup_rows(results, ("Symbol", "Plan state", "Price")):
         symbol = str(row[0])
         state = str(row[1])
 
