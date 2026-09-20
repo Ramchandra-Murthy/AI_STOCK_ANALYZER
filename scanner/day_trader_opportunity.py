@@ -62,7 +62,8 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
         result["Opportunity score"] * 0.6 + setup_score * 0.4
     ).round(1)
 
-    result["Setup"] = "Momentum watch"\n    result.loc[
+    result["Setup"] = "Momentum watch"
+    result.loc[
         (result["Volume surge x"] >= 1.5) & (result["5-min change %"] >= 0.75),
         "Setup",
     ] = "Volume + momentum"
