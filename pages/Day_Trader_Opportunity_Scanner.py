@@ -69,7 +69,7 @@ if st.button("Scan now", type="primary"):
 raw_results = st.session_state.get("day_trader_opportunities")
 if raw_results is None:
     st.info("Run a scan during market hours to populate the opportunity table.")
-elif results.empty:
+elif raw_results.empty:
     st.warning(
         "No candidates met the selected conditions. Try a lower threshold or scan again "
         "when intraday volume is active."
