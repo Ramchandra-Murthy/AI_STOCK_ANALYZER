@@ -30,19 +30,14 @@ def analyze_eros_regime_recency(
 
     current_regime = frame.iloc[-1]["Regime"]
     run_start_index = len(frame) - 1
-    while (
-        run_start_index > 0
-        and frame.iloc[run_start_index - 1]["Regime"] == current_regime
-    ):
+    while run_start_index > 0 and frame.iloc[run_start_index - 1]["Regime"] == current_regime:
         run_start_index -= 1
 
     current_run = frame.iloc[run_start_index:]
     run_start = current_run.iloc[0]["Timestamp"]
     latest_timestamp = frame.iloc[-1]["Timestamp"]
     previous_regime = (
-        frame.iloc[run_start_index - 1]["Regime"]
-        if run_start_index > 0
-        else "NO PRIOR REGIME"
+        frame.iloc[run_start_index - 1]["Regime"] if run_start_index > 0 else "NO PRIOR REGIME"
     )
     transition_count = int((frame["Regime"] != frame["Regime"].shift()).sum() - 1)
 
