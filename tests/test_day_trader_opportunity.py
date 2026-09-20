@@ -1,6 +1,9 @@
 import pandas as pd
 
-from scanner.day_trader_opportunity import score_opportunity_rows
+from scanner.day_trader_opportunity import (
+    score_opportunity_rows,
+    select_day_trader_universe,
+)
 
 
 def test_score_ranks_volume_momentum_breakout():
@@ -77,6 +80,23 @@ def test_liquidity_warning():
     assert liquidity_warning(10.0, 200_000) == "Low recent traded value"
     assert liquidity_warning(10.0, 100_000) == "Low recent traded value"
     assert liquidity_warning(20.0, 100_000) == "OK"
+
+
+def test_universe_filters_exchange_and_cap_basket():
+    large_nse = select_day_trader_universe("Large cap", "NSE")
+    assert large_nse
+    assert all(exchange == "NSE" for _, exchange in large_nse)
+    assert "RELIANCE" in {symbol for symbol, _ in large_nse}
+    assert "IRFC" not in {symbol for symbol, _ in large_nse}
+
+    mid_both = select_day_trader_universe("Mid cap", "Both")
+    assert mid_both
+    assert all(exchange == "NSE" for _, exchange in mid_both)
+    assert "IRFC" in {symbol for symbol, _ in mid_both}
+
+
+def test_universe_rejects_unknown_filters():
+    assert select_day_trader_universe("Unknown cap", "Both") == []
 
 
 def test_score_combines_opportunity_and_setup_scores():
