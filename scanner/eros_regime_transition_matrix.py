@@ -36,9 +36,7 @@ def analyze_eros_regime_transition_matrix(
         }
     )
     transitions = transitions.dropna()
-    transitions = transitions[
-        transitions["Previous Regime"] != transitions["Current Regime"]
-    ]
+    transitions = transitions[transitions["Previous Regime"] != transitions["Current Regime"]]
     if transitions.empty:
         return pd.DataFrame()
 
@@ -56,7 +54,5 @@ def analyze_eros_regime_transition_matrix(
         .reset_index(drop=True)
     )
     total = int(summary["Transition Count"].sum())
-    summary["Transition Share %"] = (
-        summary["Transition Count"].div(total).mul(100).round(2)
-    )
+    summary["Transition Share %"] = summary["Transition Count"].div(total).mul(100).round(2)
     return summary
