@@ -24,6 +24,48 @@ from scanner.unusual_activity import CAP_UNIVERSES
 CHUNK_SIZE = 10
 
 
+def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
+    """Convert setup-engine conditions into concise scanner evidence."""
+    long_score = strategy["Long setup score"]
+    short_score = strategy["Short setup score"]
+    direction = (
+        "LONG" if long_score > short_score else "SHORT" if short_score > long_score else "NEUTRAL"
+    )
+    trend = strategy["Trend"]
+    vwap_relation = strategy["VWAP relation"]
+    ema_alignment = strategy["EMA 9/20"]
+    rvol = strategy["RVOL"]
+    breakout = strategy["Breakout"]
+    breakdown = strategy["Breakdown"]
+
+    evidence = []
+    if trend != "MIXED":
+        evidence.append(trend)
+    if vwap_relation in {"ABOVE", "BELOW"}:
+        evidence.append(f"VWAP {vwap_relation}")
+    if ema_alignment in {"BULLISH", "BEARISH"}:
+        evidence.append(f"EMA {ema_alignment}")
+    if rvol >= 1.5:
+        evidence.append("RVOL CONFIRMED")
+    if breakout == "YES":
+        evidence.append("BREAKOUT")
+    if breakdown == "YES":
+        evidence.append("BREAKDOWN")
+
+    if direction == "LONG" and long_score >= 70:
+        setup_state = "LONG SETUP WATCH"
+    elif direction == "SHORT" and short_score >= 70:
+        setup_state = "SHORT SETUP WATCH"
+    else:
+        setup_state = "CONTEXT ONLY"
+
+    return {
+        "Direction": direction,
+        "Setup state": setup_state,
+        "Evidence": " • ".join(evidence) if evidence else "No strong confirmation",
+    }
+
+
 def select_day_trader_universe(
     cap_category: str = "All caps",
     exchange_category: str = "Both",
@@ -124,6 +166,7 @@ def scan_day_trader_opportunities(
         return pd.DataFrame()
 
     universe = select_day_trader_universe(cap_category, exchange_category)
+    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
 
     candle_minutes = 1 if lookback_minutes in (2, 3) else 5
     interval = f"{candle_minutes}m"
@@ -202,6 +245,10 @@ def scan_day_trader_opportunities(
                     strategy_breakdown = strategy["Breakdown"]
                     orb_high = strategy["ORB high"]
                     orb_low = strategy["ORB low"]
+                    strategy_summary = summarize_day_trading_setup(strategy)
+                    direction = strategy_summary["Direction"]
+                    setup_state = strategy_summary["Setup state"]
+                    evidence_text = strategy_summary["Evidence"]
 
                     if change < min_change_percent or volume_surge < min_volume_surge:
                         continue
@@ -220,6 +267,9 @@ def scan_day_trader_opportunities(
                             "Session range %": round(session_range, 2),
                             "Breakout": "YES" if breakout else "—",
                             "Day-trading setup": strategy_name,
+                            "Direction": direction,
+                            "Setup state": setup_state,
+                            "Evidence": evidence_text,
                             "Setup score": setup_score,
                             "Trend": trend,
                             "VWAP": vwap_relation,

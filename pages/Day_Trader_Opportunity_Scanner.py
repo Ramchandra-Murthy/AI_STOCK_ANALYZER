@@ -95,13 +95,34 @@ else:
         results = results[results["Safety flags"].fillna("").eq("")].copy()
 
     st.subheader("Current opportunity candidates")
+    preferred_columns = [
+        "Symbol",
+        "Exchange",
+        "Market-cap basket",
+        "Price",
+        "5-min change %",
+        "Volume surge x",
+        "Day-trading setup",
+        "Direction",
+        "Setup state",
+        "Composite score",
+        "RVOL",
+        "Trend",
+        "VWAP",
+        "EMA 9/20",
+        "Evidence",
+        "Breakout",
+        "Strategy breakdown",
+        "Liquidity",
+    ]
     if results.empty:
         st.warning(
             "All scanned candidates were removed by the surveillance safety filter. "
             "Uncheck the filter only if you intend to review the flagged names separately."
         )
     else:
-        st.dataframe(results, use_container_width=True, hide_index=True)
+        display_columns = [column for column in preferred_columns if column in results.columns]
+        st.dataframe(results[display_columns], use_container_width=True, hide_index=True)
     st.download_button(
         "Download opportunity CSV",
         results.to_csv(index=False).encode("utf-8"),
