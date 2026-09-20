@@ -142,9 +142,7 @@ def build_eros_master_dashboard(
             if "Current Regime" in summary_values
             else str(regime_breadth.iloc[-1]["Regime"])
         )
-        current_breadth = regime_breadth[
-            regime_breadth["Regime"] == current_regime
-        ]
+        current_breadth = regime_breadth[regime_breadth["Regime"] == current_regime]
         if not current_breadth.empty:
             breadth_row = current_breadth.iloc[-1]
             summary_values["Current Regime Average Rising Breadth %"] = (
