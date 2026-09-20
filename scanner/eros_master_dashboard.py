@@ -6,6 +6,7 @@ import pandas as pd
 
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_signal_sync import analyze_eros_regime_signal_sync
+from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_alignment import analyze_eros_signal_alignment
@@ -27,6 +28,7 @@ def build_eros_master_dashboard(
     alignment = analyze_eros_signal_alignment(history, current_fusion)
     regime_sync = analyze_eros_regime_signal_sync(history, regime_history, current_fusion)
     regime_transitions = analyze_eros_regime_transitions(regime_history)
+    regime_duration = analyze_eros_regime_duration(regime_history)
 
     signal = (
         history.sort_values("Timestamp").groupby(["Symbol", "Exchange"], as_index=False).tail(1)
@@ -125,6 +127,12 @@ def build_eros_master_dashboard(
         summary_values["Latest Regime Transition"] = latest_transition["Transition"]
         summary_values["Latest Transition Timestamp"] = latest_transition["Timestamp"]
         summary_values["Latest Direction Transition"] = latest_transition["Direction Transition"]
+
+    if not regime_duration.empty:
+        current_duration = regime_duration.iloc[-1]
+        summary_values["Regime Run Count"] = len(regime_duration)
+        summary_values["Current Regime Duration Minutes"] = current_duration["Duration Minutes"]
+        summary_values["Current Regime Snapshots"] = current_duration["Snapshots"]
 
     summary = pd.DataFrame([summary_values])
     return summary, signal.sort_values(
