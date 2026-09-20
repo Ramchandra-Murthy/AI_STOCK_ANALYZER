@@ -166,7 +166,11 @@ else:
         display_columns = [
             column for column in preferred_columns if column in results.columns
         ]
-        st.dataframe(results[display_columns], use_container_width=True, hide_index=True)
+        st.dataframe(
+            results[display_columns],
+            use_container_width=True,
+            hide_index=True,
+        )
     st.download_button(
         "Download opportunity CSV",
         results.to_csv(index=False).encode("utf-8"),
