@@ -4,9 +4,7 @@ import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 
-st.set_page_config(
-    page_title="Day-Trader Opportunity Scanner", page_icon="⚡", layout="wide"
-)
+st.set_page_config(page_title="Day-Trader Opportunity Scanner", page_icon="⚡", layout="wide")
 
 st.title("⚡ Day-Trader Opportunity Scanner")
 st.caption(
@@ -109,16 +107,14 @@ else:
 
 st.divider()
 st.subheader("Risk and data checks")
-st.markdown(
-    """
+st.markdown("""
 - Verify the latest candle timestamp before acting; Yahoo Finance may be delayed or incomplete.
 - The safety filter checks the latest available NSE surveillance indicator archive (ASM/GSM/ESM and Trade-to-Trade where reported).
 - Price bands, bid/ask spreads and BSE surveillance status still require broker/exchange confirmation.
 - NSE surveillance measures can change after the archive snapshot; re-check before placing an order.
 - Low price is not the same as low risk. A ₹10 stock can be substantially harder to trade than a liquid higher-priced stock.
 - The scanner does not calculate guaranteed entries, targets or stop-losses and does not place trades.
-"""
-)
+""")
 st.caption(
     "Use the results as candidates for further chart/order-book review and paper trading, "
     "not as guaranteed money-making selections."
