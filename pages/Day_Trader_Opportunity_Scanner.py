@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
@@ -90,6 +91,12 @@ if st.button("Scan now", type="primary"):
         pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
     )
     st.session_state["intraday_setup_states"] = updated_states
+    previous_monitor = st.session_state.get("intraday_setup_monitor", {})
+    st.session_state["intraday_setup_monitor"] = record_setup_observations(
+        previous_monitor,
+        results,
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
     history = st.session_state.get("intraday_state_transitions", [])
     st.session_state["intraday_state_transitions"] = transitions + history
 
@@ -180,6 +187,26 @@ else:
             "Download state-change history CSV",
             transition_history.to_csv(index=False).encode("utf-8"),
             file_name="intraday_setup_state_changes.csv",
+            mime="text/csv",
+        )
+
+    monitor = monitor_frame(
+        st.session_state.get("intraday_setup_monitor", {}),
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
+    st.subheader("Intraday setup monitoring")
+    st.caption(
+        "This view shows how long each observed setup has persisted in this Streamlit session. "
+        "It records observations; it does not predict future price movement."
+    )
+    if monitor.empty:
+        st.caption("No setup observations are available yet.")
+    else:
+        st.dataframe(monitor.head(50), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download setup monitoring CSV",
+            monitor.to_csv(index=False).encode("utf-8"),
+            file_name="intraday_setup_monitoring.csv",
             mime="text/csv",
         )
 
