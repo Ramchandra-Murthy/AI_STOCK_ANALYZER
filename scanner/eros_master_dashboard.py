@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pandas as pd
 
+from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_signal_sync import analyze_eros_regime_signal_sync
-from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_alignment import analyze_eros_signal_alignment
