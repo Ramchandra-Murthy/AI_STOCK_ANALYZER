@@ -18,6 +18,7 @@ from scanner.eros_regime_history import (
     summarize_eros_regime_history,
 )
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
+from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
@@ -1309,6 +1310,36 @@ def show() -> None:
                                             file_name="eros_regime_transitions.csv",
                                             mime="text/csv",
                                             key="download_eros_regime_transitions",
+                                        )
+
+                                    regime_duration = analyze_eros_regime_duration(
+                                        regime_history
+                                    )
+                                    if not regime_duration.empty:
+                                        st.subheader("⏱️ EROS Regime Duration History")
+                                        st.caption(
+                                            "Measures how long each contiguous aggregate EROS regime "
+                                            "remained active in the recorded session snapshots. This is "
+                                            "descriptive analytics, not a trade instruction."
+                                        )
+                                        duration_display = regime_duration.sort_values(
+                                            "Run Number", ascending=False
+                                        ).copy()
+                                        for column in ["Start", "End"]:
+                                            duration_display[column] = pd.to_datetime(
+                                                duration_display[column], errors="coerce"
+                                            ).dt.strftime("%d %b %Y, %H:%M:%S")
+                                        st.dataframe(
+                                            duration_display,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                        )
+                                        st.download_button(
+                                            "Download EROS regime duration CSV",
+                                            regime_duration.to_csv(index=False).encode("utf-8"),
+                                            file_name="eros_regime_duration.csv",
+                                            mime="text/csv",
+                                            key="download_eros_regime_duration",
                                         )
 
                                     regime_momentum = analyze_eros_regime_momentum(regime_history)
