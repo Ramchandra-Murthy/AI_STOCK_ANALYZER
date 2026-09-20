@@ -5,6 +5,7 @@ import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
+from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
 from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
@@ -94,6 +95,12 @@ if st.button("Scan now", type="primary"):
     previous_monitor = st.session_state.get("intraday_setup_monitor", {})
     st.session_state["intraday_setup_monitor"] = record_setup_observations(
         previous_monitor,
+        results,
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
+    previous_outcomes = st.session_state.get("intraday_setup_outcomes", {})
+    st.session_state["intraday_setup_outcomes"] = record_setup_outcomes(
+        previous_outcomes,
         results,
         pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
     )
@@ -207,6 +214,23 @@ else:
             "Download setup monitoring CSV",
             monitor.to_csv(index=False).encode("utf-8"),
             file_name="intraday_setup_monitoring.csv",
+            mime="text/csv",
+        )
+
+    outcomes = outcomes_frame(st.session_state.get("intraday_setup_outcomes", {}))
+    st.subheader("Observed setup outcomes")
+    st.caption(
+        "Price change is measured from the first observation of the current setup state. "
+        "It describes observed movement and is not a forecast or performance guarantee."
+    )
+    if outcomes.empty:
+        st.caption("No repeated setup observations are available yet.")
+    else:
+        st.dataframe(outcomes.head(50), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download setup outcome CSV",
+            outcomes.to_csv(index=False).encode("utf-8"),
+            file_name="intraday_setup_outcomes.csv",
             mime="text/csv",
         )
 
