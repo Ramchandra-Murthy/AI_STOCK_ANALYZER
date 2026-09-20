@@ -3,6 +3,7 @@ import pandas as pd
 from scanner.day_trader_opportunity import (
     score_opportunity_rows,
     select_day_trader_universe,
+    summarize_day_trading_setup,
 )
 
 
@@ -118,3 +119,45 @@ def test_score_combines_opportunity_and_setup_scores():
 
     assert result.iloc[0]["Opportunity score"] == 75.0
     assert result.iloc[0]["Composite score"] == 77.0
+
+
+def test_setup_evidence_reports_direction_and_confirmations():
+    result = summarize_day_trading_setup(
+        {
+            "Long setup score": 80,
+            "Short setup score": 35,
+            "Trend": "UPTREND",
+            "VWAP relation": "ABOVE",
+            "EMA 9/20": "BULLISH",
+            "RVOL": 2.1,
+            "Breakout": "YES",
+            "Breakdown": "NO",
+        }
+    )
+
+    assert result["Direction"] == "LONG"
+    assert result["Setup state"] == "LONG SETUP WATCH"
+    assert "UPTREND" in result["Evidence"]
+    assert "VWAP ABOVE" in result["Evidence"]
+    assert "EMA BULLISH" in result["Evidence"]
+    assert "RVOL CONFIRMED" in result["Evidence"]
+    assert "BREAKOUT" in result["Evidence"]
+
+
+def test_setup_evidence_marks_weak_context():
+    result = summarize_day_trading_setup(
+        {
+            "Long setup score": 45,
+            "Short setup score": 40,
+            "Trend": "MIXED",
+            "VWAP relation": "ABOVE",
+            "EMA 9/20": "BULLISH",
+            "RVOL": 0.9,
+            "Breakout": "NO",
+            "Breakdown": "NO",
+        }
+    )
+
+    assert result["Direction"] == "LONG"
+    assert result["Setup state"] == "CONTEXT ONLY"
+    assert "No strong confirmation" not in result["Evidence"]
