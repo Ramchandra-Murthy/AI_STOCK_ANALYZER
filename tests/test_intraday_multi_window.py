@@ -13,12 +13,8 @@ from services.intraday_multi_window import (
 def test_fills_elapsed_windows():
     first = datetime(2026, 9, 20, 10, 0, tzinfo=UTC)
     tenth = datetime(2026, 9, 20, 10, 10, tzinfo=UTC)
-    start = pd.DataFrame(
-        {"Symbol": ["RELIANCE"], "Plan state": ["TRIGGERED"], "Price": [100.0]}
-    )
-    later = pd.DataFrame(
-        {"Symbol": ["RELIANCE"], "Plan state": ["TRIGGERED"], "Price": [102.0]}
-    )
+    start = pd.DataFrame({"Symbol": ["RELIANCE"], "Plan state": ["TRIGGERED"], "Price": [100.0]})
+    later = pd.DataFrame({"Symbol": ["RELIANCE"], "Plan state": ["TRIGGERED"], "Price": [102.0]})
 
     tracked = record_multi_window_outcomes({}, start, first)
     tracked = record_multi_window_outcomes(tracked, later, tenth)
@@ -33,16 +29,12 @@ def test_state_change_resets_all_windows():
     observed = datetime(2026, 9, 20, 10, 10, tzinfo=UTC)
     tracked = record_multi_window_outcomes(
         {},
-        pd.DataFrame(
-            {"Symbol": ["TCS"], "Plan state": ["WATCH"], "Price": [200.0]}
-        ),
+        pd.DataFrame({"Symbol": ["TCS"], "Plan state": ["WATCH"], "Price": [200.0]}),
         observed,
     )
     updated = record_multi_window_outcomes(
         tracked,
-        pd.DataFrame(
-            {"Symbol": ["TCS"], "Plan state": ["TRIGGERED"], "Price": [210.0]}
-        ),
+        pd.DataFrame({"Symbol": ["TCS"], "Plan state": ["TRIGGERED"], "Price": [210.0]}),
         observed,
     )
 
