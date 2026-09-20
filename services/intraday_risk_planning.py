@@ -21,17 +21,17 @@ def risk_plan_frame(
 
     if "Risk per share" not in frame.columns:
         if {"Entry reference", "Stop reference"}.issubset(frame.columns):
-            frame["Risk per share"] = (
-                frame["Entry reference"] - frame["Stop reference"]
-            ).abs()
+            frame["Risk per share"] = (frame["Entry reference"] - frame["Stop reference"]).abs()
         else:
             frame["Risk per share"] = pd.NA
 
     frame["Risk budget"] = float(max(0.0, risk_budget))
     frame["Capital limit"] = float(max(0.0, capital_limit))
     frame["Risk-based quantity"] = (
-        frame["Risk budget"] / frame["Risk per share"].replace(0, pd.NA)
-    ).fillna(0).floordiv(1)
+        (frame["Risk budget"] / frame["Risk per share"].replace(0, pd.NA))
+        .fillna(0)
+        .floordiv(1)
+    )
     entry = frame.get("Entry reference", frame.get("Price"))
     frame["Capital-based quantity"] = (
         float(max(0.0, capital_limit)) / pd.to_numeric(entry, errors="coerce")
@@ -42,9 +42,7 @@ def risk_plan_frame(
     frame["Planned capital"] = (
         pd.to_numeric(entry, errors="coerce") * frame["Suggested quantity"]
     ).round(2)
-    frame["Planned risk"] = (
-        frame["Risk per share"] * frame["Suggested quantity"]
-    ).round(2)
+    frame["Planned risk"] = (frame["Risk per share"] * frame["Suggested quantity"]).round(2)
 
     return frame.reset_index(drop=True)
 
