@@ -271,9 +271,7 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def classify_day_trade_plan_state(
-    strategy: dict[str, Any], plan: dict[str, Any]
-) -> str:
+def classify_day_trade_plan_state(strategy: dict[str, Any], plan: dict[str, Any]) -> str:
     """Classify the current setup against its reference levels."""
     if not plan.get("Entry reference") or not plan.get("Stop reference"):
         return "NO TRADE PLAN"
