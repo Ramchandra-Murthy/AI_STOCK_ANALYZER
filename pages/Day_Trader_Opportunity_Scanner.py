@@ -4,9 +4,17 @@ import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from services.intraday_state_history import (
+    record_setup_state_transitions,
+    transitions_frame,
+)
 from services.market_status import describe_market_status
 
-st.set_page_config(page_title="Day-Trader Opportunity Scanner", page_icon="⚡", layout="wide")
+st.set_page_config(
+    page_title="Day-Trader Opportunity Scanner",
+    page_icon="⚡",
+    layout="wide",
+)
 
 st.title("⚡ Day-Trader Opportunity Scanner")
 st.caption(
@@ -75,6 +83,15 @@ if st.button("Scan now", type="primary"):
         )
     results = results.head(limit).reset_index(drop=True)
     st.session_state["day_trader_opportunities"] = results
+    previous_states = st.session_state.get("intraday_setup_states", {})
+    updated_states, transitions = record_setup_state_transitions(
+        previous_states,
+        results,
+        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+    )
+    st.session_state["intraday_setup_states"] = updated_states
+    history = st.session_state.get("intraday_state_transitions", [])
+    st.session_state["intraday_state_transitions"] = transitions + history
 
 raw_results = st.session_state.get("day_trader_opportunities")
 if raw_results is None:
@@ -152,6 +169,19 @@ else:
         file_name="day_trader_opportunities.csv",
         mime="text/csv",
     )
+
+    transition_history = transitions_frame(st.session_state.get("intraday_state_transitions", []))
+    st.subheader("Intraday setup state changes")
+    if transition_history.empty:
+        st.caption("No setup-state changes have been observed in this session yet.")
+    else:
+        st.dataframe(transition_history.head(50), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download state-change history CSV",
+            transition_history.to_csv(index=False).encode("utf-8"),
+            file_name="intraday_setup_state_changes.csv",
+            mime="text/csv",
+        )
 
     st.caption(
         "Entry, stop and target columns are conditional reference levels calculated from "
