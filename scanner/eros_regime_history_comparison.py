@@ -53,9 +53,7 @@ def analyze_eros_regime_history_comparison(
                 "History Snapshots": len(frame),
                 "Prior Same-Regime Snapshots": len(same_regime),
                 "Current Rising Breadth %": float(latest["Rising Breadth %"]),
-                "Historical Same-Regime Rising Breadth %": _average(
-                    "Rising Breadth %"
-                ),
+                "Historical Same-Regime Rising Breadth %": _average("Rising Breadth %"),
                 "Current Falling Breadth %": float(latest["Falling Breadth %"]),
                 "Historical Same-Regime Falling Breadth %": _average(
                     "Falling Breadth %"
