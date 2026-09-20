@@ -33,9 +33,7 @@ def analyze_eros_regime_persistence(history: pd.DataFrame | None) -> pd.DataFram
         )
         .reset_index(drop=True)
     )
-    runs["Duration Minutes"] = (
-        (runs["End"] - runs["Start"]).dt.total_seconds().div(60).round(2)
-    )
+    runs["Duration Minutes"] = (runs["End"] - runs["Start"]).dt.total_seconds().div(60).round(2)
     runs["Is Current"] = runs.index == len(runs) - 1
 
     grouped = runs.groupby("Regime", sort=False)
