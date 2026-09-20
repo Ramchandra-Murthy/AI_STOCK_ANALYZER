@@ -14,9 +14,7 @@ import pandas as pd
 import requests
 
 NSE_HOME = "https://www.nseindia.com"
-REG_IND_URL = (
-    "https://nsearchives.nseindia.com/archives/equities/mkt/REG_IND{date}.csv"
-)
+REG_IND_URL = "https://nsearchives.nseindia.com/archives/equities/mkt/REG_IND{date}.csv"
 TIMEOUT_SECONDS = 8
 
 _FLAG_COLUMN_TERMS = (
@@ -136,9 +134,7 @@ def fetch_nse_safety_snapshot(
             lambda row, columns=flag_columns: _classify_row(row, columns),
             axis=1,
         )
-        result = frame[["_symbol", "Safety flags"]].rename(
-            columns={"_symbol": "Symbol"}
-        )
+        result = frame[["_symbol", "Safety flags"]].rename(columns={"_symbol": "Symbol"})
         result["Surveillance date"] = day.isoformat()
         result["Found in archive"] = True
         result = result.drop_duplicates("Symbol")
@@ -146,17 +142,13 @@ def fetch_nse_safety_snapshot(
         requested_frame = pd.DataFrame({"Symbol": sorted(requested)})
         result = requested_frame.merge(result, on="Symbol", how="left")
         result["Safety flags"] = result["Safety flags"].fillna("")
-        result["Surveillance date"] = result["Surveillance date"].fillna(
-            day.isoformat()
-        )
+        result["Surveillance date"] = result["Surveillance date"].fillna(day.isoformat())
         result["Found in archive"] = result["Found in archive"].fillna(False)
         result["Safety status"] = result.apply(
             lambda row: (
                 "Flagged - review before trading"
                 if str(row["Safety flags"]).strip()
-                else "NSE check clear"
-                if bool(row["Found in archive"])
-                else "NSE check unavailable"
+                else "NSE check clear" if bool(row["Found in archive"]) else "NSE check unavailable"
             ),
             axis=1,
         )
@@ -180,16 +172,12 @@ def apply_safety_filter(
 
     if safety is not None and not safety.empty:
         lookup = safety.drop_duplicates("Symbol").set_index("Symbol")
-        result["Safety flags"] = (
-            result["Symbol"].map(lookup["Safety flags"]).fillna("")
-        )
+        result["Safety flags"] = result["Symbol"].map(lookup["Safety flags"]).fillna("")
         status_series = (
-            lookup["Safety status"]
-            if "Safety status" in lookup.columns
-            else pd.Series(dtype=str)
+            lookup["Safety status"] if "Safety status" in lookup.columns else pd.Series(dtype=str)
         )
-        result["Safety status"] = result["Symbol"].map(status_series).fillna(
-            "NSE check unavailable"
+        result["Safety status"] = (
+            result["Symbol"].map(status_series).fillna("NSE check unavailable")
         )
 
     if exclude_flagged:
