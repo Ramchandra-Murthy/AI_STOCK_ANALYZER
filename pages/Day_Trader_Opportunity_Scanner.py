@@ -6,9 +6,7 @@ import streamlit as st
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.market_status import describe_market_status
 
-st.set_page_config(
-    page_title="Day-Trader Opportunity Scanner", page_icon="⚡", layout="wide"
-)
+st.set_page_config(page_title="Day-Trader Opportunity Scanner", page_icon="⚡", layout="wide")
 
 st.title("⚡ Day-Trader Opportunity Scanner")
 st.caption(
@@ -108,9 +106,7 @@ else:
             "reference levels; it is not a prediction of future price movement."
         )
         metrics = st.columns(min(4, len(state_counts)))
-        for column, (state, count) in zip(
-            metrics, state_counts.head(4).items(), strict=False
-        ):
+        for column, (state, count) in zip(metrics, state_counts.head(4).items(), strict=False):
             column.metric(str(state), int(count))
     preferred_columns = [
         "Symbol",
@@ -148,9 +144,7 @@ else:
             "Uncheck the filter only if you intend to review the flagged names separately."
         )
     else:
-        display_columns = [
-            column for column in preferred_columns if column in results.columns
-        ]
+        display_columns = [column for column in preferred_columns if column in results.columns]
         st.dataframe(results[display_columns], use_container_width=True, hide_index=True)
     st.download_button(
         "Download opportunity CSV",
