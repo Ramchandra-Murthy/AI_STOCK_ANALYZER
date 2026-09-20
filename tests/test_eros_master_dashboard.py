@@ -18,7 +18,7 @@ def _regime_history():
     return pd.DataFrame(
         {
             "Timestamp": pd.date_range("2026-09-19 10:00", periods=4, freq="5min"),
-            "Regime": ["RISING DOMINANT"] * 4,
+            "Regime": ["BALANCED", "RISING DOMINANT", "RISING DOMINANT", "FALLING DOMINANT"],
             "Rising Breadth %": [70.0, 72.0, 73.0, 74.0],
             "Falling Breadth %": [30.0, 28.0, 27.0, 26.0],
             "Average Trend Confidence %": [70.0, 72.0, 73.0, 74.0],
@@ -38,6 +38,8 @@ def test_master_dashboard_combines_signal_and_regime_analytics():
     assert summary.loc[0, "Signals"] == 1
     assert summary.loc[0, "Current Regime"] == "RISING DOMINANT"
     assert summary.loc[0, "Regime Momentum"] == "STABLE"
+    assert summary.loc[0, "Regime Transition Count"] == 2
+    assert summary.loc[0, "Latest Regime Transition"] == "RISING DOMINANT → FALLING DOMINANT"
     assert "Lifecycle" in signals.columns
     assert "Confidence" in signals.columns
 

@@ -7,6 +7,7 @@ import pandas as pd
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_signal_sync import analyze_eros_regime_signal_sync
 from scanner.eros_regime_stability import analyze_eros_regime_stability
+from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_alignment import analyze_eros_signal_alignment
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_trend_confidence import analyze_eros_trend_confidence
@@ -25,6 +26,7 @@ def build_eros_master_dashboard(
     confidence = analyze_eros_trend_confidence(history, current_fusion)
     alignment = analyze_eros_signal_alignment(history, current_fusion)
     regime_sync = analyze_eros_regime_signal_sync(history, regime_history, current_fusion)
+    regime_transitions = analyze_eros_regime_transitions(regime_history)
 
     signal = (
         history.sort_values("Timestamp").groupby(["Symbol", "Exchange"], as_index=False).tail(1)
@@ -64,6 +66,10 @@ def build_eros_master_dashboard(
                     "Regime Direction",
                     "Signal Direction",
                     "Regime-Signal Sync",
+                    "Previous Regime",
+                    "Transition",
+                    "Direction Transition",
+                    "Transition Type",
                 }
             ]
             signal = signal.merge(
@@ -112,6 +118,13 @@ def build_eros_master_dashboard(
             row = stability.iloc[0]
             summary_values["Regime Stability"] = row["Stability"]
             summary_values["Regime Streak"] = row["Regime Streak"]
+
+    if not regime_transitions.empty:
+        latest_transition = regime_transitions.iloc[-1]
+        summary_values["Regime Transition Count"] = len(regime_transitions)
+        summary_values["Latest Regime Transition"] = latest_transition["Transition"]
+        summary_values["Latest Transition Timestamp"] = latest_transition["Timestamp"]
+        summary_values["Latest Direction Transition"] = latest_transition["Direction Transition"]
 
     summary = pd.DataFrame([summary_values])
     return summary, signal.sort_values(
