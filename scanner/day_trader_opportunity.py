@@ -58,9 +58,7 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
         upper=20
     )
     breakout = result["Breakout"].eq("YES").astype(float) * 15
-    result["Opportunity score"] = (
-        momentum + volume + volatility + breakout
-    ).round(1)
+    result["Opportunity score"] = (momentum + volume + volatility + breakout).round(1)
 
     result["Setup"] = "Momentum watch"
     result.loc[
@@ -105,9 +103,7 @@ def scan_day_trader_opportunities(
         return pd.DataFrame()
 
     exchanges = (
-        ("NSE", "BSE")
-        if exchange_category == "Both"
-        else (exchange_category,)
+        ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     )
     universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
         (symbol, "BSE") for symbol in BSE_CANDIDATES
@@ -182,9 +178,7 @@ def scan_day_trader_opportunities(
                     prior_highs = (
                         high.iloc[-21:-1] if len(high) >= 21 else high.iloc[:-1]
                     )
-                    breakout = (
-                        len(prior_highs) > 0 and price > float(prior_highs.max())
-                    )
+                    breakout = len(prior_highs) > 0 and price > float(prior_highs.max())
 
                     if change < min_change_percent or volume_surge < min_volume_surge:
                         continue
