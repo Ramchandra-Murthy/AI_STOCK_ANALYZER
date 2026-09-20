@@ -8,9 +8,7 @@ from scanner.eros_regime_history_comparison import (
 def _history():
     return pd.DataFrame(
         {
-            "Timestamp": pd.date_range(
-                "2026-09-20 09:15", periods=4, freq="5min"
-            ),
+            "Timestamp": pd.date_range("2026-09-20 09:15", periods=4, freq="5min"),
             "Regime": ["RISING DOMINANT"] * 3 + ["FALLING DOMINANT"],
             "Rising Breadth %": [70, 72, 68, 35],
             "Falling Breadth %": [30, 28, 32, 65],
