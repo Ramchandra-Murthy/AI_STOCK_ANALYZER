@@ -1,4 +1,4 @@
-"""EROS aggregate regime consistency analytics helpers."""
+"""EROS aggregate regime consistency analytics helpers for dashboard reporting."""
 
 from __future__ import annotations
 
