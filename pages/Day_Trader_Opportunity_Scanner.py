@@ -4,7 +4,9 @@ import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 
-st.set_page_config(page_title="Day-Trader Opportunity Scanner", page_icon="⚡", layout="wide")
+st.set_page_config(
+    page_title="Day-Trader Opportunity Scanner", page_icon="⚡", layout="wide"
+)
 
 st.title("⚡ Day-Trader Opportunity Scanner")
 st.caption(
@@ -48,7 +50,8 @@ exclude_flagged = st.checkbox(
     value=True,
     help=(
         "Removes NSE candidates carrying a known surveillance indicator in the "
-        "latest available REG_IND archive. BSE candidates remain marked for manual review."
+        "latest available REG_IND archive. BSE candidates remain marked for manual "
+        "review."
     ),
 )
 
