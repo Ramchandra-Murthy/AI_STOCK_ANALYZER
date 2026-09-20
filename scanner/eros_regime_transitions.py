@@ -65,9 +65,7 @@ def analyze_eros_regime_transitions(history: pd.DataFrame | None) -> pd.DataFram
     transitions["Previous Regime"] = previous_regime.loc[changed].to_numpy()
     transitions["Previous Direction"] = previous_direction.loc[changed].to_numpy()
     transitions["Current Direction"] = transitions["Direction"]
-    transitions["Transition"] = (
-        transitions["Previous Regime"] + " → " + transitions["Regime"]
-    )
+    transitions["Transition"] = transitions["Previous Regime"] + " → " + transitions["Regime"]
     transitions["Direction Transition"] = (
         transitions["Previous Direction"] + " → " + transitions["Current Direction"]
     )
