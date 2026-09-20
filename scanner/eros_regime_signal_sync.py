@@ -30,9 +30,7 @@ def analyze_eros_regime_signal_sync(
     regime_direction = (
         "RISING"
         if "RISING" in latest_regime
-        else "FALLING"
-        if "FALLING" in latest_regime
-        else "NEUTRAL"
+        else "FALLING" if "FALLING" in latest_regime else "NEUTRAL"
     )
 
     alignment = analyze_eros_signal_alignment(history, current_fusion)
