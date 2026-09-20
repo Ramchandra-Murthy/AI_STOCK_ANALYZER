@@ -12,6 +12,7 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
+from scanner.day_trading_strategy import analyze_day_trade_setup
 from scanner.surveillance import (
     apply_safety_filter,
     fetch_nse_safety_snapshot,
@@ -56,6 +57,9 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     breakout = result["Breakout"].eq("YES").astype(float) * 15
     result["Opportunity score"] = (momentum + volume + volatility + breakout).round(1)
 
+    setup_score = result.get("Setup score", result["Opportunity score"])
+    result["Composite score"] = (result["Opportunity score"] * 0.6 + setup_score * 0.4).round(1)
+
     result["Setup"] = "Momentum watch"
     result.loc[
         (result["Volume surge x"] >= 1.5) & (result["5-min change %"] >= 0.75),
@@ -68,8 +72,8 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     ] = "Low-price volume watch"
 
     return result.sort_values(
-        ["Opportunity score", "5-min change %", "Volume surge x"],
-        ascending=[False, False, False],
+        ["Composite score", "Opportunity score", "5-min change %", "Volume surge x"],
+        ascending=[False, False, False, False],
         na_position="last",
     ).reset_index(drop=True)
 
@@ -160,6 +164,28 @@ def scan_day_trader_opportunities(
                     prior_highs = high.iloc[-21:-1] if len(high) >= 21 else high.iloc[:-1]
                     breakout = len(prior_highs) > 0 and price > float(prior_highs.max())
 
+                    strategy = analyze_day_trade_setup(
+                        data,
+                        opening_range_bars=5 if candle_minutes == 1 else 1,
+                        level_lookback=min(20, max(5, len(data) - 1)),
+                    )
+                    if not strategy:
+                        continue
+
+                    setup_score = max(
+                        strategy["Long setup score"],
+                        strategy["Short setup score"],
+                    )
+                    strategy_name = strategy["Setup"]
+                    trend = strategy["Trend"]
+                    vwap_relation = strategy["VWAP relation"]
+                    ema_alignment = strategy["EMA 9/20"]
+                    strategy_rvol = strategy["RVOL"]
+                    strategy_breakout = strategy["Breakout"]
+                    strategy_breakdown = strategy["Breakdown"]
+                    orb_high = strategy["ORB high"]
+                    orb_low = strategy["ORB low"]
+
                     if change < min_change_percent or volume_surge < min_volume_surge:
                         continue
                     low_price = price <= max_price
@@ -175,6 +201,16 @@ def scan_day_trader_opportunities(
                             "Volume surge x": round(volume_surge, 2),
                             "Session range %": round(session_range, 2),
                             "Breakout": "YES" if breakout else "—",
+                            "Day-trading setup": strategy_name,
+                            "Setup score": setup_score,
+                            "Trend": trend,
+                            "VWAP": vwap_relation,
+                            "EMA 9/20": ema_alignment,
+                            "RVOL": strategy_rvol,
+                            "ORB high": orb_high,
+                            "ORB low": orb_low,
+                            "Strategy breakout": strategy_breakout,
+                            "Strategy breakdown": strategy_breakdown,
                             "Low-price flag": "YES" if low_price else "—",
                             "Latest candle": str(data.index[-1]),
                             "Liquidity": liquidity_warning(price, latest_volume),

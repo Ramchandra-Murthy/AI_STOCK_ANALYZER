@@ -77,3 +77,24 @@ def test_liquidity_warning():
     assert liquidity_warning(10.0, 200_000) == "Low recent traded value"
     assert liquidity_warning(10.0, 100_000) == "Low recent traded value"
     assert liquidity_warning(20.0, 100_000) == "OK"
+
+
+def test_score_combines_opportunity_and_setup_scores():
+    rows = pd.DataFrame(
+        [
+            {
+                "Symbol": "SETUP",
+                "5-min change %": 2.0,
+                "Volume surge x": 2.0,
+                "Session range %": 2.0,
+                "Breakout": "YES",
+                "Low-price flag": "—",
+                "Setup score": 80,
+            }
+        ]
+    )
+
+    result = score_opportunity_rows(rows)
+
+    assert result.iloc[0]["Opportunity score"] == 75.0
+    assert result.iloc[0]["Composite score"] == 77.0
