@@ -7,6 +7,8 @@ from typing import Any
 
 import pandas as pd
 
+from services.intraday_tracking import setup_rows
+
 
 def record_setup_state_transitions(
     previous_states: dict[str, str],
@@ -17,14 +19,7 @@ def record_setup_state_transitions(
     updated_states = dict(previous_states)
     transitions: list[dict[str, Any]] = []
 
-    if results is None or results.empty:
-        return updated_states, transitions
-
-    required = {"Symbol", "Plan state"}
-    if not required.issubset(results.columns):
-        return updated_states, transitions
-
-    for row in results[["Symbol", "Plan state"]].itertuples(index=False):
+    for row in setup_rows(results, ("Symbol", "Plan state")):
         symbol = str(row[0])
         new_state = str(row[1])
         old_state = updated_states.get(symbol)
