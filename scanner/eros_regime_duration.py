@@ -32,8 +32,8 @@ def analyze_eros_regime_duration(history: pd.DataFrame | None) -> pd.DataFrame:
     ).reset_index(drop=True)
 
     result["Duration Minutes"] = (
-        result["End"] - result["Start"]
-    ).dt.total_seconds().div(60).round(2)
+        (result["End"] - result["Start"]).dt.total_seconds().div(60).round(2)
+    )
     result["Run Number"] = range(1, len(result) + 1)
     result["Is Current"] = result.index == len(result) - 1
 
