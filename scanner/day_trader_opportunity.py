@@ -29,11 +29,7 @@ def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
     long_score = strategy["Long setup score"]
     short_score = strategy["Short setup score"]
     direction = (
-        "LONG"
-        if long_score > short_score
-        else "SHORT"
-        if short_score > long_score
-        else "NEUTRAL"
+        "LONG" if long_score > short_score else "SHORT" if short_score > long_score else "NEUTRAL"
     )
     trend = strategy["Trend"]
     vwap_relation = strategy["VWAP relation"]
