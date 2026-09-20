@@ -38,6 +38,4 @@ def test_compares_recorded_regime_with_breadth_implied_regime():
 def test_invalid_input_returns_empty():
     assert analyze_eros_regime_consistency(None).empty
     assert analyze_eros_regime_consistency(pd.DataFrame()).empty
-    assert analyze_eros_regime_consistency(
-        pd.DataFrame({"Regime": ["BALANCED"]})
-    ).empty
+    assert analyze_eros_regime_consistency(pd.DataFrame({"Regime": ["BALANCED"]})).empty
