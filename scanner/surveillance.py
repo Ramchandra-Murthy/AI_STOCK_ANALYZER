@@ -133,7 +133,7 @@ def fetch_nse_safety_snapshot(
         frame["_symbol"] = frame[symbol_column].map(_normalise_symbol)
         frame = frame[frame["_symbol"].isin(requested)]
         frame["Safety flags"] = frame.apply(
-            lambda row: _classify_row(row, flag_columns),
+            lambda row, columns=flag_columns: _classify_row(row, columns),
             axis=1,
         )
         result = frame[["_symbol", "Safety flags"]].rename(
