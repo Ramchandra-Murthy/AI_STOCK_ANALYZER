@@ -21,6 +21,7 @@ from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
     summarize_eros_regime_history,
 )
+from scanner.eros_regime_history_comparison import analyze_eros_regime_history_comparison
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_persistence import analyze_eros_regime_persistence
 from scanner.eros_regime_quality import analyze_eros_regime_quality
@@ -1478,6 +1479,31 @@ def show() -> None:
                                                 file_name="eros_regime_stability.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_stability",
+                                            )
+
+                                        regime_history_comparison = (
+                                            analyze_eros_regime_history_comparison(regime_history)
+                                        )
+                                        if not regime_history_comparison.empty:
+                                            st.subheader("🕰️ EROS Historical Comparison")
+                                            st.caption(
+                                                "Compares the latest regime snapshot with prior session "
+                                                "history and prior observations of the same regime. "
+                                                "Descriptive analytics only."
+                                            )
+                                            st.dataframe(
+                                                regime_history_comparison,
+                                                use_container_width=True,
+                                                hide_index=True,
+                                            )
+                                            st.download_button(
+                                                "Download EROS historical comparison CSV",
+                                                regime_history_comparison.to_csv(
+                                                    index=False
+                                                ).encode("utf-8"),
+                                                file_name="eros_regime_historical_comparison.csv",
+                                                mime="text/csv",
+                                                key="download_eros_regime_historical_comparison",
                                             )
 
                                         master_summary, master_signals = (
