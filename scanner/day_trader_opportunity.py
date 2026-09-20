@@ -166,6 +166,9 @@ def scan_day_trader_opportunities(
         return pd.DataFrame()
 
     universe = select_day_trader_universe(cap_category, exchange_category)
+    exchanges = (
+        ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
+    )
 
     candle_minutes = 1 if lookback_minutes in (2, 3) else 5
     interval = f"{candle_minutes}m"
@@ -241,6 +244,9 @@ def scan_day_trader_opportunities(
                     ema_alignment = strategy["EMA 9/20"]
                     strategy_rvol = strategy["RVOL"]
                     strategy_breakout = strategy["Breakout"]
+                    strategy_breakdown = strategy["Breakdown"]
+                    orb_high = strategy["ORB high"]
+                    orb_low = strategy["ORB low"]
                     strategy_summary = summarize_day_trading_setup(strategy)
                     direction = strategy_summary["Direction"]
                     setup_state = strategy_summary["Setup state"]
