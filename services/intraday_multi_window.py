@@ -7,6 +7,8 @@ from typing import Any
 
 import pandas as pd
 
+from services.intraday_tracking import copy_records, setup_rows
+
 WINDOWS_MINUTES = (5, 10, 15, 30)
 
 
@@ -16,16 +18,9 @@ def record_multi_window_outcomes(
     observed_at: datetime,
 ) -> dict[str, dict[str, Any]]:
     """Record setup-state baselines and fill elapsed outcome windows."""
-    updated = {symbol: dict(value) for symbol, value in previous.items()}
+    updated = copy_records(previous)
 
-    if results is None or results.empty:
-        return updated
-
-    required = {"Symbol", "Plan state", "Price"}
-    if not required.issubset(results.columns):
-        return updated
-
-    for row in results[["Symbol", "Plan state", "Price"]].itertuples(index=False):
+    for row in setup_rows(results, ("Symbol", "Plan state", "Price")):
         symbol = str(row[0])
         state = str(row[1])
         try:
