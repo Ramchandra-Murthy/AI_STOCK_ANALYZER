@@ -22,6 +22,7 @@ from scanner.eros_regime_history import (
     summarize_eros_regime_history,
 )
 from scanner.eros_regime_history_comparison import analyze_eros_regime_history_comparison
+from scanner.eros_regime_distribution import analyze_eros_regime_distribution
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_persistence import analyze_eros_regime_persistence
 from scanner.eros_regime_quality import analyze_eros_regime_quality
@@ -1504,6 +1505,29 @@ def show() -> None:
                                                 file_name="eros_regime_historical_comparison.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_historical_comparison",
+                                            )
+
+                                        regime_distribution = analyze_eros_regime_distribution(regime_history)
+                                        if not regime_distribution.empty:
+                                            st.subheader("📊 EROS Regime Distribution")
+                                            st.caption(
+                                                "Summarizes how often each observed EROS regime appears in "
+                                                "the stored history, with descriptive breadth and trend-confidence "
+                                                "statistics. Descriptive analytics only."
+                                            )
+                                            st.dataframe(
+                                                regime_distribution,
+                                                use_container_width=True,
+                                                hide_index=True,
+                                            )
+                                            st.download_button(
+                                                "Download EROS regime distribution CSV",
+                                                regime_distribution.to_csv(
+                                                    index=False
+                                                ).encode("utf-8"),
+                                                file_name="eros_regime_distribution.csv",
+                                                mime="text/csv",
+                                                key="download_eros_regime_distribution",
                                             )
 
                                         master_summary, master_signals = (
