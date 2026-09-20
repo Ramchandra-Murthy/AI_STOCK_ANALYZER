@@ -1,8 +1,10 @@
 """Streamlit page for objective intraday opportunity screening."""
 
+import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from services.market_status import describe_market_status
 
 st.set_page_config(page_title="Day-Trader Opportunity Scanner", page_icon="⚡", layout="wide")
 
@@ -77,6 +79,11 @@ elif raw_results.empty:
     )
 else:
     results = raw_results.copy()
+    if "Latest candle" in results.columns:
+        observed = pd.to_datetime(results["Latest candle"], errors="coerce").dropna()
+        if not observed.empty:
+            status = describe_market_status(observed.max())
+            st.info(f"**{status['label']}**\n\n{status['message']}")
     if exclude_flagged and "Safety flags" in results.columns:
         results = results[results["Safety flags"].fillna("").eq("")].copy()
 

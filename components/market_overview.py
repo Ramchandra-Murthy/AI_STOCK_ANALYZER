@@ -1,6 +1,8 @@
+import pandas as pd
 import streamlit as st
 
 from services.market_service import get_market_indices
+from services.market_status import describe_market_status
 
 
 def _format_change(change):
@@ -26,6 +28,21 @@ def show_market_overview():
         return
 
     items = list(data.items())
+
+    observed_times = []
+    for _, info in items:
+        observed_at = info.get("observed_at")
+        if observed_at:
+            observed_times.append(observed_at)
+
+    if observed_times:
+        latest_observed = max(observed_times, key=lambda value: pd.Timestamp(value))
+        status = describe_market_status(latest_observed)
+        st.info(f"**{status['label']}**\n\n{status['message']}")
+    else:
+        st.warning(
+            "Market status cannot be determined because observation timestamps " "are unavailable."
+        )
 
     # Show three readable index cards per row.
     for start in range(0, len(items), 3):
