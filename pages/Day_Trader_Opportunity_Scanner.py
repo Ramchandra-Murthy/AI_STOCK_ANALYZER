@@ -53,13 +53,9 @@ if st.button("Scan now", type="primary"):
             lookback_minutes=lookback,
             min_change_percent=min_change,
             min_volume_surge=min_volume,
+            low_price_only=low_price_only,
         )
-    if low_price_only and not results.empty:
-        results = results[results["Low-price flag"] == "YES"].head(limit).reset_index(
-            drop=True
-        )
-    else:
-        results = results.head(limit).reset_index(drop=True)
+    results = results.head(limit).reset_index(drop=True)
     st.session_state["day_trader_opportunities"] = results
 
 results = st.session_state.get("day_trader_opportunities")
