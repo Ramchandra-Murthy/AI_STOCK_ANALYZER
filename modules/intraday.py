@@ -28,6 +28,7 @@ from scanner.eros_regime_persistence import analyze_eros_regime_persistence
 from scanner.eros_regime_quality import analyze_eros_regime_quality
 from scanner.eros_regime_recency import analyze_eros_regime_recency
 from scanner.eros_regime_stability import analyze_eros_regime_stability
+from scanner.eros_regime_transition_matrix import analyze_eros_regime_transition_matrix
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_signal_lifecycle_transitions import analyze_eros_signal_lifecycle_transitions
@@ -1551,6 +1552,28 @@ def show() -> None:
                                                 file_name="eros_regime_recency.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_recency",
+                                            )
+
+                                        regime_transition_matrix = analyze_eros_regime_transition_matrix(
+                                            regime_history
+                                        )
+                                        if not regime_transition_matrix.empty:
+                                            st.subheader("🔄 EROS Regime Transition Matrix")
+                                            st.caption(
+                                                "Summarizes observed changes from one EROS regime to another "
+                                                "and their share of recorded transitions. Descriptive analytics only."
+                                            )
+                                            st.dataframe(
+                                                regime_transition_matrix,
+                                                use_container_width=True,
+                                                hide_index=True,
+                                            )
+                                            st.download_button(
+                                                "Download EROS regime transition matrix CSV",
+                                                regime_transition_matrix.to_csv(index=False).encode("utf-8"),
+                                                file_name="eros_regime_transition_matrix.csv",
+                                                mime="text/csv",
+                                                key="download_eros_regime_transition_matrix",
                                             )
 
                                         master_summary, master_signals = (
