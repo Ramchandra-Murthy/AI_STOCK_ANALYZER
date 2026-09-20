@@ -42,9 +42,15 @@ def setup_statistics(outcomes: dict[str, dict[str, Any]]) -> pd.DataFrame:
             "Worst change %": "min",
         },
     ).reset_index()
-    stats["Positive outcomes"] = grouped.apply(lambda values: int((values > 0).sum())).values
-    stats["Negative outcomes"] = grouped.apply(lambda values: int((values < 0).sum())).values
-    stats["Flat outcomes"] = grouped.apply(lambda values: int((values == 0).sum())).values
+    stats["Positive outcomes"] = (
+        grouped.apply(lambda values: int((values > 0).sum())).values
+    )
+    stats["Negative outcomes"] = (
+        grouped.apply(lambda values: int((values < 0).sum())).values
+    )
+    stats["Flat outcomes"] = (
+        grouped.apply(lambda values: int((values == 0).sum())).values
+    )
     stats["Positive rate %"] = (
         stats["Positive outcomes"] / stats["Setups"] * 100
     )
