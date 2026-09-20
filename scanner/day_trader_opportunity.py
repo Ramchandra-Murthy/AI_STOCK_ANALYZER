@@ -15,6 +15,7 @@ import yfinance as yf
 from scanner.day_trading_strategy import (
     analyze_day_trade_setup,
     calculate_day_trade_plan,
+    classify_day_trade_plan_state,
 )
 from scanner.surveillance import (
     apply_safety_filter,
@@ -250,6 +251,7 @@ def scan_day_trader_opportunities(
                     orb_low = strategy["ORB low"]
                     strategy_summary = summarize_day_trading_setup(strategy)
                     trade_plan = calculate_day_trade_plan(strategy)
+                    plan_state = classify_day_trade_plan_state(strategy, trade_plan)
                     direction = strategy_summary["Direction"]
                     setup_state = strategy_summary["Setup state"]
                     evidence_text = strategy_summary["Evidence"]
@@ -275,6 +277,7 @@ def scan_day_trader_opportunities(
                             "Setup state": setup_state,
                             "Evidence": evidence_text,
                             "Plan": trade_plan["Plan"],
+                            "Plan state": plan_state,
                             "Entry reference": trade_plan["Entry reference"],
                             "Stop reference": trade_plan["Stop reference"],
                             "Target 1": trade_plan["Target 1"],

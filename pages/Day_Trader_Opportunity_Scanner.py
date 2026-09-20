@@ -95,6 +95,19 @@ else:
         results = results[results["Safety flags"].fillna("").eq("")].copy()
 
     st.subheader("Current opportunity candidates")
+    state_counts = (
+        results["Plan state"].value_counts()
+        if "Plan state" in results.columns
+        else pd.Series(dtype="int64")
+    )
+    if not state_counts.empty:
+        st.caption(
+            "Setup state is a snapshot of the latest observed price versus the calculated "
+            "reference levels; it is not a prediction of future price movement."
+        )
+        metrics = st.columns(min(4, len(state_counts)))
+        for column, (state, count) in zip(metrics, state_counts.head(4).items(), strict=False):
+            column.metric(str(state), int(count))
     preferred_columns = [
         "Symbol",
         "Exchange",
@@ -112,6 +125,7 @@ else:
         "EMA 9/20",
         "Evidence",
         "Plan",
+        "Plan state",
         "Entry reference",
         "Stop reference",
         "Target 1",

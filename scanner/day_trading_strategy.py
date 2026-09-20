@@ -63,13 +63,13 @@ def prepare_day_trading_frame(
     if vwap_session:
         session = pd.Series(data.index.date, index=data.index)
         volume_cumulative = volume.groupby(session).cumsum()
-        data["VWAP"] = (typical * volume).groupby(session).cumsum() / volume_cumulative.replace(
-            0, float("nan")
+        data["VWAP"] = (typical * volume).groupby(session).cumsum() / (
+            volume_cumulative.replace(0, float("nan"))
         )
     else:
-        data["VWAP"] = (typical * volume).rolling(20, min_periods=1).sum() / volume.rolling(
-            20, min_periods=1
-        ).sum().replace(0, float("nan"))
+        data["VWAP"] = (typical * volume).rolling(20, min_periods=1).sum() / (
+            volume.rolling(20, min_periods=1).sum().replace(0, float("nan"))
+        )
 
     volume_median = volume.rolling(20, min_periods=5).median().replace(0, float("nan"))
     data["RVOL 20"] = volume / volume_median
@@ -262,3 +262,29 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
         "R:R T2": 2.0,
         "R:R T3": 3.0,
     }
+
+
+def classify_day_trade_plan_state(strategy: dict[str, Any], plan: dict[str, Any]) -> str:
+    """Classify the current setup against its reference levels."""
+    if not plan.get("Entry reference") or not plan.get("Stop reference"):
+        return "NO TRADE PLAN"
+
+    close = float(strategy.get("Close", 0) or 0)
+    entry = float(plan["Entry reference"])
+    stop = float(plan["Stop reference"])
+    direction = "LONG" if "LONG" in str(plan.get("Plan", "")) else "SHORT"
+
+    if close <= 0:
+        return "NO TRADE PLAN"
+
+    if direction == "LONG":
+        if close <= stop:
+            return "INVALIDATED"
+        if close >= entry:
+            return "TRIGGERED / ABOVE REFERENCE"
+        return "WAITING FOR REFERENCE"
+    if close >= stop:
+        return "INVALIDATED"
+    if close <= entry:
+        return "TRIGGERED / BELOW REFERENCE"
+    return "WAITING FOR REFERENCE"
