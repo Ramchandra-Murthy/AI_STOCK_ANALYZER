@@ -37,8 +37,11 @@ def analyze_eros_regime_transition_intervals(
     transitions["Previous Regime"] = previous_regime.loc[changed].to_numpy()
     transitions["Previous Transition Timestamp"] = transitions["Timestamp"].shift(1)
     transitions["Minutes Since Previous Transition"] = (
-        transitions["Timestamp"] - transitions["Previous Transition Timestamp"]
-    ).dt.total_seconds().div(60).round(2)
+        (transitions["Timestamp"] - transitions["Previous Transition Timestamp"])
+        .dt.total_seconds()
+        .div(60)
+        .round(2)
+    )
 
     transitions = transitions.rename(columns={"Regime": "Current Regime"})
     transitions["Transition"] = (
