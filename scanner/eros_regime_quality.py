@@ -61,10 +61,7 @@ def analyze_eros_regime_quality(history: pd.DataFrame | None) -> pd.DataFrame:
                 "Latest Breadth Strength": breadth_strength,
                 "Latest Average Trend Confidence %": confidence,
                 "Regime Breadth Range": round(
-                    float(
-                        current["Rising Breadth %"].max()
-                        - current["Rising Breadth %"].min()
-                    ),
+                    float(current["Rising Breadth %"].max() - current["Rising Breadth %"].min()),
                     2,
                 ),
                 "Regime Confidence Range": round(
