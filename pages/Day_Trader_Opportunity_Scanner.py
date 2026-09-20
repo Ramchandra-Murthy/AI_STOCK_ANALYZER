@@ -5,8 +5,8 @@ import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_dynamic_filter import filter_intraday_candidates
-from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
+from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
