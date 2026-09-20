@@ -78,7 +78,11 @@ def outcomes_frame(outcomes: dict[str, dict[str, Any]]) -> pd.DataFrame:
         return pd.DataFrame(columns=columns)
 
     frame = pd.DataFrame(list(outcomes.values()))
-    return frame[columns].sort_values(
-        ["Price change %", "Observations", "Symbol"],
-        ascending=[False, False, True],
-    ).reset_index(drop=True)
+    return (
+        frame[columns]
+        .sort_values(
+            ["Price change %", "Observations", "Symbol"],
+            ascending=[False, False, True],
+        )
+        .reset_index(drop=True)
+    )
