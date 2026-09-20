@@ -19,8 +19,27 @@ from scanner.surveillance import (
     liquidity_warning,
 )
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.unusual_activity import CAP_UNIVERSES
 
 CHUNK_SIZE = 10
+
+
+def select_day_trader_universe(
+    cap_category: str = "All caps",
+    exchange_category: str = "Both",
+) -> list[tuple[str, str]]:
+    """Return the configured candidate universe for the selected filters."""
+    if cap_category not in {"All caps", *CAP_UNIVERSES}:
+        return []
+    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
+    if cap_category == "All caps":
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
+            (symbol, "BSE") for symbol in BSE_CANDIDATES
+        ]
+    else:
+        selected = CAP_UNIVERSES[cap_category]
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
+    return [(symbol, venue) for symbol, venue in universe if venue in exchanges]
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -81,6 +100,7 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
 def scan_day_trader_opportunities(
     limit: int = 20,
     exchange_category: str = "Both",
+    cap_category: str = "All caps",
     max_price: float = 50.0,
     lookback_minutes: int = 5,
     min_change_percent: float = 0.5,
@@ -96,17 +116,14 @@ def scan_day_trader_opportunities(
     if (
         limit < 1
         or max_price <= 0
-        or lookback_minutes < 1
+        or lookback_minutes not in (2, 3, 5)
         or min_change_percent < 0
         or min_volume_surge < 0
+        or cap_category not in {"All caps", *CAP_UNIVERSES}
     ):
         return pd.DataFrame()
 
-    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
-    universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
-        (symbol, "BSE") for symbol in BSE_CANDIDATES
-    ]
-    universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    universe = select_day_trader_universe(cap_category, exchange_category)
 
     candle_minutes = 1 if lookback_minutes in (2, 3) else 5
     interval = f"{candle_minutes}m"
@@ -196,6 +213,7 @@ def scan_day_trader_opportunities(
                         {
                             "Symbol": ticker.rsplit(".", 1)[0],
                             "Exchange": exchange,
+                            "Market-cap basket": cap_category,
                             "Price": round(price, 2),
                             "5-min change %": round(change, 2),
                             "Volume surge x": round(volume_surge, 2),

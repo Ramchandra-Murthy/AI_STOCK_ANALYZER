@@ -15,6 +15,8 @@ st.caption(
 )
 
 st.info(
+    "The scanner rescans the selected NSE/BSE candidate universe on each run. "
+    "Results can change as intraday price, volume and setup conditions change. "
     "Low-priced stocks are shown using a configurable price threshold. "
     "There is no universal formal definition of a penny stock. "
     "The current candidate universe is limited to the symbols maintained by this app."
@@ -28,14 +30,18 @@ with left:
         format_func=lambda value: "NSE + BSE" if value == "Both" else value,
     )
 with middle:
+    cap_category = st.selectbox(
+        "Market-cap basket",
+        ["All caps", "Large cap", "Mid cap", "Small cap"],
+    )
+with right:
     price_limit = st.selectbox(
         "Low-price threshold",
         [10.0, 20.0, 50.0, 100.0],
         index=2,
         format_func=lambda value: f"₹{value:g}",
     )
-with right:
-    lookback = st.selectbox("Momentum window", [2, 3, 5], index=2)
+lookback = st.selectbox("Momentum window", [2, 3, 5], index=2)
 
 low_price_only = st.checkbox(
     "Show low-price candidates only",
@@ -60,6 +66,7 @@ if st.button("Scan now", type="primary"):
         results = scan_day_trader_opportunities(
             limit=100,
             exchange_category=exchange,
+            cap_category=cap_category,
             max_price=price_limit,
             lookback_minutes=lookback,
             min_change_percent=min_change,
@@ -102,6 +109,11 @@ else:
         mime="text/csv",
     )
 
+    st.caption(
+        "Composite score combines the existing opportunity score with the book-based "
+        "day-trading setup score. Higher scores describe more observed conditions; they "
+        "do not imply a higher probability of profit. "
+    )
     st.caption(
         "Opportunity score is descriptive: momentum 35%, volume surge 30%, session "
         "range 20%, breakout condition 15%. A higher score does not imply a higher "
