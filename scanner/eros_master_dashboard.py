@@ -124,9 +124,7 @@ def build_eros_master_dashboard(
         summary_values["Regime Transition Count"] = len(regime_transitions)
         summary_values["Latest Regime Transition"] = latest_transition["Transition"]
         summary_values["Latest Transition Timestamp"] = latest_transition["Timestamp"]
-        summary_values["Latest Direction Transition"] = latest_transition[
-            "Direction Transition"
-        ]
+        summary_values["Latest Direction Transition"] = latest_transition["Direction Transition"]
 
     summary = pd.DataFrame([summary_values])
     return summary, signal.sort_values(
