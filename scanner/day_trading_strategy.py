@@ -73,7 +73,8 @@ def prepare_day_trading_frame(
             / volume.rolling(20, min_periods=1).sum().replace(0, float("nan"))
         )
 
-    data["RVOL 20"] = volume / volume.rolling(20, min_periods=5).median().replace(0, float("nan"))
+    volume_median = volume.rolling(20, min_periods=5).median().replace(0, float("nan"))
+    data["RVOL 20"] = volume / volume_median
 
     data["Candle body %"] = (
         (close - _series(data, "Open")).abs() / close.replace(0, float("nan")) * 100.0
