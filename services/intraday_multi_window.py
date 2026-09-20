@@ -51,9 +51,7 @@ def record_multi_window_outcomes(
 
         baseline_price = float(current.get("Baseline price", price))
         baseline_time = current.get("Baseline time", observed_at)
-        elapsed = (
-            pd.Timestamp(observed_at) - pd.Timestamp(baseline_time)
-        ).total_seconds() / 60
+        elapsed = (pd.Timestamp(observed_at) - pd.Timestamp(baseline_time)).total_seconds() / 60
         updated_record = {**current, "Observations": int(current.get("Observations", 0)) + 1}
 
         if baseline_price > 0:
@@ -94,8 +92,12 @@ def multi_window_frame(
             "30m change %": "30m change %",
         }
     )
-    return frame[columns].sort_values(
-        ["30m change %", "15m change %", "10m change %", "5m change %", "Symbol"],
-        ascending=[False, False, False, False, True],
-        na_position="last",
-    ).reset_index(drop=True)
+    return (
+        frame[columns]
+        .sort_values(
+            ["30m change %", "15m change %", "10m change %", "5m change %", "Symbol"],
+            ascending=[False, False, False, False, True],
+            na_position="last",
+        )
+        .reset_index(drop=True)
+    )
