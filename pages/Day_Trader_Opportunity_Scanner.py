@@ -7,6 +7,7 @@ from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_quality_dashboard import dashboard_summary
+from services.intraday_risk_planning import risk_plan_frame
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
@@ -152,6 +153,21 @@ else:
         if "Exchange" in results.columns:
             live_exchange_options.extend(sorted(results["Exchange"].dropna().astype(str).unique()))
         live_exchange = st.selectbox("Live exchange filter", live_exchange_options)
+    risk_left, risk_right = st.columns(2)
+    with risk_left:
+        risk_budget = st.number_input(
+            "Risk budget per candidate (₹)",
+            min_value=0.0,
+            value=1000.0,
+            step=100.0,
+        )
+    with risk_right:
+        capital_limit = st.number_input(
+            "Capital limit per candidate (₹)",
+            min_value=0.0,
+            value=100000.0,
+            step=5000.0,
+        )
     minimum_live_score = st.slider(
         "Minimum composite score",
         0.0,
@@ -167,6 +183,12 @@ else:
         exchange=live_exchange,
         minimum_score=minimum_live_score,
         limit=limit,
+    )
+
+    risk_results = risk_plan_frame(
+        filtered_results,
+        risk_budget=risk_budget,
+        capital_limit=capital_limit,
     )
 
     st.subheader("Intraday quality dashboard")
@@ -227,10 +249,10 @@ else:
         )
     else:
         display_columns = [column for column in preferred_columns if column in results.columns]
-        st.dataframe(filtered_results[display_columns], use_container_width=True, hide_index=True)
+        st.dataframe(risk_results[display_columns + [column for column in ["Risk-based quantity", "Capital-based quantity", "Suggested quantity", "Planned capital", "Planned risk"] if column in risk_results.columns]], use_container_width=True, hide_index=True)
     st.download_button(
         "Download opportunity CSV",
-        filtered_results.to_csv(index=False).encode("utf-8"),
+        risk_results.to_csv(index=False).encode("utf-8"),
         file_name="day_trader_opportunities.csv",
         mime="text/csv",
     )
