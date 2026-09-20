@@ -14,6 +14,7 @@ from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.eros_master_dashboard import build_eros_master_dashboard
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
 from scanner.eros_regime_breadth import analyze_eros_regime_breadth
+from scanner.eros_regime_consistency import analyze_eros_regime_consistency
 from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
@@ -1361,6 +1362,29 @@ def show() -> None:
                                             file_name="eros_regime_breadth.csv",
                                             mime="text/csv",
                                             key="download_eros_regime_breadth",
+                                        )
+
+                                    regime_consistency = analyze_eros_regime_consistency(
+                                        regime_history
+                                    )
+                                    if not regime_consistency.empty:
+                                        st.subheader("🔎 EROS Regime Consistency")
+                                        st.caption(
+                                            "Compares each recorded aggregate regime with the regime "
+                                            "implied by its recorded directional breadth. This is "
+                                            "descriptive analytics, not a trade instruction."
+                                        )
+                                        st.dataframe(
+                                            regime_consistency,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                        )
+                                        st.download_button(
+                                            "Download EROS regime consistency CSV",
+                                            regime_consistency.to_csv(index=False).encode("utf-8"),
+                                            file_name="eros_regime_consistency.csv",
+                                            mime="text/csv",
+                                            key="download_eros_regime_consistency",
                                         )
 
                                     regime_persistence = analyze_eros_regime_persistence(
