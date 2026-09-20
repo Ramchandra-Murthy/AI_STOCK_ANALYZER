@@ -166,9 +166,7 @@ def scan_day_trader_opportunities(
         return pd.DataFrame()
 
     universe = select_day_trader_universe(cap_category, exchange_category)
-    exchanges = (
-        ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
-    )
+    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
 
     candle_minutes = 1 if lookback_minutes in (2, 3) else 5
     interval = f"{candle_minutes}m"
