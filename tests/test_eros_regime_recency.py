@@ -25,7 +25,7 @@ def test_summarizes_current_regime_recency():
     assert row["Current Regime"] == "FALLING DOMINANT"
     assert row["Current Run Snapshots"] == 2
     assert row["Current Run Duration Minutes"] == 5.0
-    assert row["Previous Regime"] == "FALLING DOMINANT"
+    assert row["Previous Regime"] == "RISING DOMINANT"
     assert row["Historical Transitions"] == 1
 
 
