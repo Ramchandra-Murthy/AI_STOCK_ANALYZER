@@ -63,13 +63,13 @@ def prepare_day_trading_frame(
     if vwap_session:
         session = pd.Series(data.index.date, index=data.index)
         volume_cumulative = volume.groupby(session).cumsum()
-        data["VWAP"] = (typical * volume).groupby(session).cumsum() / volume_cumulative.replace(
-            0, float("nan")
+        data["VWAP"] = (typical * volume).groupby(session).cumsum() / (
+            volume_cumulative.replace(0, float("nan"))
         )
     else:
-        data["VWAP"] = (typical * volume).rolling(20, min_periods=1).sum() / volume.rolling(
-            20, min_periods=1
-        ).sum().replace(0, float("nan"))
+        data["VWAP"] = (typical * volume).rolling(20, min_periods=1).sum() / (
+            volume.rolling(20, min_periods=1).sum().replace(0, float("nan"))
+        )
 
     volume_median = volume.rolling(20, min_periods=5).median().replace(0, float("nan"))
     data["RVOL 20"] = volume / volume_median
@@ -159,7 +159,9 @@ def analyze_day_trade_setup(
         "Setup": setup,
         "Long setup score": long_points,
         "Short setup score": short_points,
-        "Trend": ("UPTREND" if bullish_trend else "DOWNTREND" if bearish_trend else "MIXED"),
+        "Trend": (
+            "UPTREND" if bullish_trend else "DOWNTREND" if bearish_trend else "MIXED"
+        ),
         "VWAP relation": "ABOVE" if close > vwap else "BELOW",
         "EMA 9/20": "BULLISH" if ema9 > ema20 else "BEARISH",
         "RVOL": round(rvol, 2),
@@ -186,7 +188,8 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
         if strategy.get("Long setup score", 0) > strategy.get("Short setup score", 0)
         else (
             "SHORT"
-            if strategy.get("Short setup score", 0) > strategy.get("Long setup score", 0)
+            if strategy.get("Short setup score", 0)
+            > strategy.get("Long setup score", 0)
             else "NEUTRAL"
         )
     )
@@ -213,7 +216,11 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
             stop = close - atr
     elif direction == "SHORT":
         entry = float(support) if support is not None else close
-        stop = max(close + atr, float(resistance)) if resistance is not None else close + atr
+        stop = (
+            max(close + atr, float(resistance))
+            if resistance is not None
+            else close + atr
+        )
         if entry >= stop:
             entry = close
             stop = close + atr
