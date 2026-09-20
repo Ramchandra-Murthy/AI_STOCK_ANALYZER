@@ -30,9 +30,7 @@ def show_market_overview():
     items = list(data.items())
 
     observed_times = [
-        info.get("observed_at")
-        for _, info in items
-        if info.get("observed_at")
+        info.get("observed_at") for _, info in items if info.get("observed_at")
     ]
     if observed_times:
         latest_observed = max(observed_times, key=lambda value: pd.Timestamp(value))
