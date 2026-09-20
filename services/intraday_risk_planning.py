@@ -28,17 +28,17 @@ def risk_plan_frame(
     frame["Risk budget"] = float(max(0.0, risk_budget))
     frame["Capital limit"] = float(max(0.0, capital_limit))
     frame["Risk-based quantity"] = (
-        (frame["Risk budget"] / frame["Risk per share"].replace(0, pd.NA))
-        .fillna(0)
-        .floordiv(1)
+        (frame["Risk budget"] / frame["Risk per share"].replace(0, pd.NA)).fillna(0).floordiv(1)
     )
     entry = frame.get("Entry reference", frame.get("Price"))
     frame["Capital-based quantity"] = (
-        float(max(0.0, capital_limit)) / pd.to_numeric(entry, errors="coerce")
-    ).fillna(0).floordiv(1)
-    frame["Suggested quantity"] = frame[
-        ["Risk-based quantity", "Capital-based quantity"]
-    ].min(axis=1)
+        (float(max(0.0, capital_limit)) / pd.to_numeric(entry, errors="coerce"))
+        .fillna(0)
+        .floordiv(1)
+    )
+    frame["Suggested quantity"] = frame[["Risk-based quantity", "Capital-based quantity"]].min(
+        axis=1
+    )
     frame["Planned capital"] = (
         pd.to_numeric(entry, errors="coerce") * frame["Suggested quantity"]
     ).round(2)
