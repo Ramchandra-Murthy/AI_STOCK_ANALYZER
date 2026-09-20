@@ -26,6 +26,7 @@ from scanner.eros_regime_history_comparison import analyze_eros_regime_history_c
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_persistence import analyze_eros_regime_persistence
 from scanner.eros_regime_quality import analyze_eros_regime_quality
+from scanner.eros_regime_recency import analyze_eros_regime_recency
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
@@ -1530,6 +1531,26 @@ def show() -> None:
                                                 file_name="eros_regime_distribution.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_distribution",
+                                            )
+
+                                        regime_recency = analyze_eros_regime_recency(regime_history)
+                                        if not regime_recency.empty:
+                                            st.subheader("⏱️ EROS Regime Recency")
+                                            st.caption(
+                                                "Shows how recently the current regime began and "
+                                                "its contiguous run duration. Descriptive analytics only."
+                                            )
+                                            st.dataframe(
+                                                regime_recency,
+                                                use_container_width=True,
+                                                hide_index=True,
+                                            )
+                                            st.download_button(
+                                                "Download EROS regime recency CSV",
+                                                regime_recency.to_csv(index=False).encode("utf-8"),
+                                                file_name="eros_regime_recency.csv",
+                                                mime="text/csv",
+                                                key="download_eros_regime_recency",
                                             )
 
                                         master_summary, master_signals = (
