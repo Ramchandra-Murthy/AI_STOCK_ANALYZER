@@ -1498,9 +1498,9 @@ def show() -> None:
                                             )
                                             st.download_button(
                                                 "Download EROS historical comparison CSV",
-                                                regime_history_comparison.to_csv(index=False).encode(
-                                                    "utf-8"
-                                                ),
+                                                regime_history_comparison.to_csv(
+                                                    index=False
+                                                ).encode("utf-8"),
                                                 file_name="eros_regime_historical_comparison.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_historical_comparison",
