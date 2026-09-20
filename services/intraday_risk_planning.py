@@ -36,7 +36,9 @@ def risk_plan_frame(
     frame["Capital-based quantity"] = (
         float(max(0.0, capital_limit)) / pd.to_numeric(entry, errors="coerce")
     ).fillna(0).floordiv(1)
-    frame["Suggested quantity"] = frame[["Risk-based quantity", "Capital-based quantity"]].min(axis=1)
+    frame["Suggested quantity"] = frame[
+        ["Risk-based quantity", "Capital-based quantity"]
+    ].min(axis=1)
     frame["Planned capital"] = (
         pd.to_numeric(entry, errors="coerce") * frame["Suggested quantity"]
     ).round(2)
