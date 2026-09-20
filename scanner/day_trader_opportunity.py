@@ -57,7 +57,12 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     breakout = result["Breakout"].eq("YES").astype(float) * 15
     result["Opportunity score"] = (momentum + volume + volatility + breakout).round(1)
 
-    result["Composite score"] = (\n        result["Opportunity score"] * 0.6 + result["Setup score"] * 0.4\n    ).round(1)\n\n    result["Setup"] = "Momentum watch"\n    result.loc[
+    setup_score = result.get("Setup score", result["Opportunity score"])
+    result["Composite score"] = (
+        result["Opportunity score"] * 0.6 + setup_score * 0.4
+    ).round(1)
+
+    result["Setup"] = "Momentum watch"\n    result.loc[
         (result["Volume surge x"] >= 1.5) & (result["5-min change %"] >= 0.75),
         "Setup",
     ] = "Volume + momentum"
