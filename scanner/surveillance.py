@@ -183,9 +183,14 @@ def apply_safety_filter(
         result["Safety flags"] = (
             result["Symbol"].map(lookup["Safety flags"]).fillna("")
         )
-        result["Safety status"] = result["Symbol"].map(
-            lookup["Safety status"] if "Safety status" in lookup.columns else pd.Series(dtype=str)
-        ).fillna("NSE check unavailable")
+        status_series = (
+            lookup["Safety status"]
+            if "Safety status" in lookup.columns
+            else pd.Series(dtype=str)
+        )
+        result["Safety status"] = result["Symbol"].map(status_series).fillna(
+            "NSE check unavailable"
+        )
 
     if exclude_flagged:
         result = result[result["Safety flags"].fillna("").eq("")].copy()
