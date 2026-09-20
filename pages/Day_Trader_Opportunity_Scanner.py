@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
@@ -134,6 +135,13 @@ else:
     if exclude_flagged and "Safety flags" in results.columns:
         results = results[results["Safety flags"].fillna("").eq("")].copy()
 
+    st.subheader("Intraday quality dashboard")
+    st.caption(
+        "Consolidated session metrics from the observed setup history. "
+        "These metrics describe the current session and do not predict future returns."
+    )
+    st.dataframe(quality_summary, use_container_width=True, hide_index=True)
+
     st.subheader("Current opportunity candidates")
     state_counts = (
         results["Plan state"].value_counts()
@@ -229,6 +237,13 @@ else:
     outcomes = outcomes_frame(st.session_state.get("intraday_setup_outcomes", {}))
     statistics = setup_statistics(st.session_state.get("intraday_setup_outcomes", {}))
     regime = regime_statistics(st.session_state.get("intraday_setup_outcomes", {}))
+    quality_summary = dashboard_summary(
+        st.session_state.get("intraday_setup_states", {}),
+        st.session_state.get("intraday_setup_monitor", {}),
+        st.session_state.get("intraday_setup_outcomes", {}),
+        st.session_state.get("intraday_state_transitions", []),
+        st.session_state.get("intraday_multi_window_outcomes", {}),
+    )
     st.subheader("Observed setup outcomes")
     st.caption(
         "Price change is measured from the first observation of the current setup state. "
