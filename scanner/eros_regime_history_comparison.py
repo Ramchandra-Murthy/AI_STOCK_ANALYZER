@@ -55,15 +55,9 @@ def analyze_eros_regime_history_comparison(
                 "Current Rising Breadth %": float(latest["Rising Breadth %"]),
                 "Historical Same-Regime Rising Breadth %": _average("Rising Breadth %"),
                 "Current Falling Breadth %": float(latest["Falling Breadth %"]),
-                "Historical Same-Regime Falling Breadth %": _average(
-                    "Falling Breadth %"
-                ),
-                "Current Trend Confidence %": float(
-                    latest["Average Trend Confidence %"]
-                ),
-                "Historical Same-Regime Trend Confidence %": _average(
-                    "Average Trend Confidence %"
-                ),
+                "Historical Same-Regime Falling Breadth %": _average("Falling Breadth %"),
+                "Current Trend Confidence %": float(latest["Average Trend Confidence %"]),
+                "Historical Same-Regime Trend Confidence %": _average("Average Trend Confidence %"),
             }
         ]
     )
