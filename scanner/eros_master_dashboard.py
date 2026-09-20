@@ -158,9 +158,7 @@ def build_eros_master_dashboard(
             ]
 
     if not regime_persistence.empty:
-        current_persistence = regime_persistence[
-            regime_persistence["Current Run"]
-        ]
+        current_persistence = regime_persistence[regime_persistence["Current Run"]]
         if not current_persistence.empty:
             persistence_row = current_persistence.iloc[0]
             summary_values["Regime Overall Continuation %"] = persistence_row[
