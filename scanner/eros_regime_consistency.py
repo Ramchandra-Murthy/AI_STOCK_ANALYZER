@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import pandas as pd
 
-REQUIRED_COLUMNS = {"Timestamp", "Regime", "Rising Breadth %", "Falling Breadth %"}
+REQUIRED_COLUMNS = {
+    "Timestamp",
+    "Regime",
+    "Rising Breadth %",
+    "Falling Breadth %",
+}
 
 
 def _breadth_regime(rising: float, falling: float) -> str:
