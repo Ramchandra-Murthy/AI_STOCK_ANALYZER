@@ -29,16 +29,20 @@ def analyze_eros_regime_recency(
         return pd.DataFrame()
 
     current_regime = frame.iloc[-1]["Regime"]
-    current_run = frame[frame["Regime"] == current_regime]
-    run_start = current_run.iloc[-1]["Timestamp"]
-    for index in range(len(frame) - 2, -1, -1):
-        if frame.iloc[index]["Regime"] != current_regime:
-            break
-        run_start = frame.iloc[index]["Timestamp"]
+    run_start_index = len(frame) - 1
+    while (
+        run_start_index > 0
+        and frame.iloc[run_start_index - 1]["Regime"] == current_regime
+    ):
+        run_start_index -= 1
 
+    current_run = frame.iloc[run_start_index:]
+    run_start = current_run.iloc[0]["Timestamp"]
     latest_timestamp = frame.iloc[-1]["Timestamp"]
     previous_regime = (
-        frame.iloc[-1]["Regime"] if len(frame) == 1 else frame.iloc[-2]["Regime"]
+        frame.iloc[run_start_index - 1]["Regime"]
+        if run_start_index > 0
+        else "NO PRIOR REGIME"
     )
     transition_count = int((frame["Regime"] != frame["Regime"].shift()).sum() - 1)
 
