@@ -244,7 +244,10 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
             "R:R T3": None,
         }
 
-    targets = [entry + risk * multiple if direction == "LONG" else entry - risk * multiple for multiple in (1.0, 2.0, 3.0)]
+    targets = [
+        entry + risk * multiple if direction == "LONG" else entry - risk * multiple
+        for multiple in (1.0, 2.0, 3.0)
+    ]
     return {
         "Plan": f"{direction} reference plan",
         "Entry reference": round(entry, 2),
