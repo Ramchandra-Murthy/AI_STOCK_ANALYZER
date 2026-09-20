@@ -13,13 +13,13 @@ import pandas as pd
 import yfinance as yf
 
 from scanner.day_trading_strategy import analyze_day_trade_setup
-from scanner.unusual_activity import CAP_UNIVERSES
 from scanner.surveillance import (
     apply_safety_filter,
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.unusual_activity import CAP_UNIVERSES
 
 CHUNK_SIZE = 10
 
