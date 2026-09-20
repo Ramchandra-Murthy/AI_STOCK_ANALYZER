@@ -59,11 +59,10 @@ def analyze_eros_regime_persistence(history: pd.DataFrame | None) -> pd.DataFram
     ).fillna(0.0)
     result["Current Run"] = result["Regime"] == current["Regime"]
 
-    opportunities = runs["Snapshots"].sub(1).clip(lower=0)
-    continued = opportunities.sum()
     same_regime_links = frame["Regime"].eq(frame["Regime"].shift()).iloc[1:].sum()
+    total_links = len(frame) - 1
     overall_continuation = (
-        round(float(same_regime_links / continued * 100), 2) if continued else 0.0
+        round(float(same_regime_links / total_links * 100), 2) if total_links else 0.0
     )
     result["Overall Continuation %"] = overall_continuation
 
