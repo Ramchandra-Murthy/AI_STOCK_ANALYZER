@@ -6,9 +6,7 @@ from scanner.eros_regime_duration import analyze_eros_regime_duration
 def _history(regimes):
     return pd.DataFrame(
         {
-            "Timestamp": pd.date_range(
-                "2026-09-20 09:15", periods=len(regimes), freq="5min"
-            ),
+            "Timestamp": pd.date_range("2026-09-20 09:15", periods=len(regimes), freq="5min"),
             "Regime": regimes,
         }
     )
