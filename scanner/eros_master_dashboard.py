@@ -7,6 +7,7 @@ import pandas as pd
 from scanner.eros_regime_breadth import analyze_eros_regime_breadth
 from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
+from scanner.eros_regime_persistence import analyze_eros_regime_persistence
 from scanner.eros_regime_signal_sync import analyze_eros_regime_signal_sync
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
@@ -31,6 +32,7 @@ def build_eros_master_dashboard(
     regime_transitions = analyze_eros_regime_transitions(regime_history)
     regime_duration = analyze_eros_regime_duration(regime_history)
     regime_breadth = analyze_eros_regime_breadth(regime_history)
+    regime_persistence = analyze_eros_regime_persistence(regime_history)
 
     signal = (
         history.sort_values("Timestamp").groupby(["Symbol", "Exchange"], as_index=False).tail(1)
@@ -153,6 +155,23 @@ def build_eros_master_dashboard(
             ]
             summary_values["Current Regime Average Trend Confidence %"] = breadth_row[
                 "Average_Trend_Confidence"
+            ]
+
+    if not regime_persistence.empty:
+        current_persistence = regime_persistence[regime_persistence["Current Run"]]
+        if not current_persistence.empty:
+            persistence_row = current_persistence.iloc[0]
+            summary_values["Regime Overall Continuation %"] = persistence_row[
+                "Overall Continuation %"
+            ]
+            summary_values["Current Regime Run Snapshots"] = persistence_row[
+                "Current Run Snapshots"
+            ]
+            summary_values["Current Regime Run Duration Minutes"] = persistence_row[
+                "Current Run Duration Minutes"
+            ]
+            summary_values["Current Regime Average Run Snapshots"] = persistence_row[
+                "Average_Run_Snapshots"
             ]
 
     summary = pd.DataFrame([summary_values])

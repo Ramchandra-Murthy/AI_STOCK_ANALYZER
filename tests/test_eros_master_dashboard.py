@@ -46,6 +46,10 @@ def test_master_dashboard_combines_signal_and_regime_analytics():
     assert summary.loc[0, "Current Regime Average Falling Breadth %"] == 26.0
     assert summary.loc[0, "Current Regime Average Trend Confidence %"] == 74.0
     assert summary.loc[0, "Current Regime Snapshots"] == 1
+    assert summary.loc[0, "Regime Overall Continuation %"] == 33.33
+    assert summary.loc[0, "Current Regime Run Snapshots"] == 1
+    assert summary.loc[0, "Current Regime Run Duration Minutes"] == 0.0
+    assert summary.loc[0, "Current Regime Average Run Snapshots"] == 1.0
     assert "Lifecycle" in signals.columns
     assert "Confidence" in signals.columns
 
