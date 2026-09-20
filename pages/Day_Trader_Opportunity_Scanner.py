@@ -137,6 +137,14 @@ else:
     if exclude_flagged and "Safety flags" in results.columns:
         results = results[results["Safety flags"].fillna("").eq("")].copy()
 
+    quality_summary = dashboard_summary(
+        st.session_state.get("intraday_setup_states", {}),
+        st.session_state.get("intraday_setup_monitor", {}),
+        st.session_state.get("intraday_setup_outcomes", {}),
+        st.session_state.get("intraday_state_transitions", []),
+        st.session_state.get("intraday_multi_window_outcomes", {}),
+    )
+
     filter_left, filter_mid, filter_right = st.columns(3)
     with filter_left:
         live_direction = st.selectbox(
@@ -146,12 +154,16 @@ else:
     with filter_mid:
         live_state_options = ["All"]
         if "Plan state" in results.columns:
-            live_state_options.extend(sorted(results["Plan state"].dropna().astype(str).unique()))
+            live_state_options.extend(
+                sorted(results["Plan state"].dropna().astype(str).unique())
+            )
         live_state = st.selectbox("Live setup-state filter", live_state_options)
     with filter_right:
         live_exchange_options = ["All"]
         if "Exchange" in results.columns:
-            live_exchange_options.extend(sorted(results["Exchange"].dropna().astype(str).unique()))
+            live_exchange_options.extend(
+                sorted(results["Exchange"].dropna().astype(str).unique())
+            )
         live_exchange = st.selectbox("Live exchange filter", live_exchange_options)
     risk_left, risk_right = st.columns(2)
     with risk_left:
@@ -249,7 +261,22 @@ else:
         )
     else:
         display_columns = [column for column in preferred_columns if column in results.columns]
-        st.dataframe(risk_results[display_columns + [column for column in ["Risk-based quantity", "Capital-based quantity", "Suggested quantity", "Planned capital", "Planned risk"] if column in risk_results.columns]], use_container_width=True, hide_index=True)
+        risk_columns = display_columns + [
+            column
+            for column in [
+                "Risk-based quantity",
+                "Capital-based quantity",
+                "Suggested quantity",
+                "Planned capital",
+                "Planned risk",
+            ]
+            if column in risk_results.columns
+        ]
+        st.dataframe(
+            risk_results[risk_columns],
+            use_container_width=True,
+            hide_index=True,
+        )
     st.download_button(
         "Download opportunity CSV",
         risk_results.to_csv(index=False).encode("utf-8"),
@@ -293,13 +320,6 @@ else:
     outcomes = outcomes_frame(st.session_state.get("intraday_setup_outcomes", {}))
     statistics = setup_statistics(st.session_state.get("intraday_setup_outcomes", {}))
     regime = regime_statistics(st.session_state.get("intraday_setup_outcomes", {}))
-    quality_summary = dashboard_summary(
-        st.session_state.get("intraday_setup_states", {}),
-        st.session_state.get("intraday_setup_monitor", {}),
-        st.session_state.get("intraday_setup_outcomes", {}),
-        st.session_state.get("intraday_state_transitions", []),
-        st.session_state.get("intraday_multi_window_outcomes", {}),
-    )
     st.subheader("Observed setup outcomes")
     st.caption(
         "Price change is measured from the first observation of the current setup state. "
