@@ -140,6 +140,7 @@ def fetch_nse_safety_snapshot(
             columns={"_symbol": "Symbol"}
         )
         result["Surveillance date"] = day.isoformat()
+        result["Found in archive"] = True
         result = result.drop_duplicates("Symbol")
 
         requested_frame = pd.DataFrame({"Symbol": sorted(requested)})
@@ -148,10 +149,16 @@ def fetch_nse_safety_snapshot(
         result["Surveillance date"] = result["Surveillance date"].fillna(
             day.isoformat()
         )
-        result["Safety status"] = result["Safety flags"].map(
-            lambda value: "Flagged - review before trading"
-            if str(value).strip()
-            else "NSE check clear"
+        result["Found in archive"] = result["Found in archive"].fillna(False)
+        result["Safety status"] = result.apply(
+            lambda row: (
+                "Flagged - review before trading"
+                if str(row["Safety flags"]).strip()
+                else "NSE check clear"
+                if bool(row["Found in archive"])
+                else "NSE check unavailable"
+            ),
+            axis=1,
         )
         return result, None
 
