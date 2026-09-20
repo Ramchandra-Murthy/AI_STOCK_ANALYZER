@@ -5,8 +5,9 @@ from __future__ import annotations
 from datetime import datetime, time
 from typing import Any
 
-import pandas as pd
 from zoneinfo import ZoneInfo
+
+import pandas as pd
 
 IST = ZoneInfo("Asia/Kolkata")
 MARKET_OPEN = time(9, 15)
