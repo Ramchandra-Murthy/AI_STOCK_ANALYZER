@@ -190,9 +190,7 @@ def build_eros_master_dashboard(
             "Latest Average Trend Confidence %"
         ]
         summary_values["Current Regime Breadth Range"] = quality_row["Regime Breadth Range"]
-        summary_values["Current Regime Confidence Range"] = quality_row[
-            "Regime Confidence Range"
-        ]
+        summary_values["Current Regime Confidence Range"] = quality_row["Regime Confidence Range"]
 
     summary = pd.DataFrame([summary_values])
     return summary, signal.sort_values(
