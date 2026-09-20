@@ -20,6 +20,7 @@ from scanner.eros_regime_history import (
     summarize_eros_regime_history,
 )
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
+from scanner.eros_regime_persistence import analyze_eros_regime_persistence
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
@@ -1360,6 +1361,29 @@ def show() -> None:
                                             file_name="eros_regime_breadth.csv",
                                             mime="text/csv",
                                             key="download_eros_regime_breadth",
+                                        )
+
+                                    regime_persistence = analyze_eros_regime_persistence(
+                                        regime_history
+                                    )
+                                    if not regime_persistence.empty:
+                                        st.subheader("📈 EROS Regime Persistence")
+                                        st.caption(
+                                            "Summarizes how consistently each aggregate EROS regime "
+                                            "persists across consecutive snapshots. This is descriptive "
+                                            "analytics, not a trade instruction."
+                                        )
+                                        st.dataframe(
+                                            regime_persistence,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                        )
+                                        st.download_button(
+                                            "Download EROS regime persistence CSV",
+                                            regime_persistence.to_csv(index=False).encode("utf-8"),
+                                            file_name="eros_regime_persistence.csv",
+                                            mime="text/csv",
+                                            key="download_eros_regime_persistence",
                                         )
 
                                     regime_momentum = analyze_eros_regime_momentum(regime_history)
