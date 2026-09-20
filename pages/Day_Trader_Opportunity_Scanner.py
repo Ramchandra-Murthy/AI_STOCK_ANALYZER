@@ -154,16 +154,12 @@ else:
     with filter_mid:
         live_state_options = ["All"]
         if "Plan state" in results.columns:
-            live_state_options.extend(
-                sorted(results["Plan state"].dropna().astype(str).unique())
-            )
+            live_state_options.extend(sorted(results["Plan state"].dropna().astype(str).unique()))
         live_state = st.selectbox("Live setup-state filter", live_state_options)
     with filter_right:
         live_exchange_options = ["All"]
         if "Exchange" in results.columns:
-            live_exchange_options.extend(
-                sorted(results["Exchange"].dropna().astype(str).unique())
-            )
+            live_exchange_options.extend(sorted(results["Exchange"].dropna().astype(str).unique()))
         live_exchange = st.selectbox("Live exchange filter", live_exchange_options)
     risk_left, risk_right = st.columns(2)
     with risk_left:
