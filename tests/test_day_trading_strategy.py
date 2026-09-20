@@ -25,9 +25,7 @@ def _bars(closes, volumes=None):
 def test_prepare_adds_core_day_trading_indicators():
     data = prepare_day_trading_frame(_bars([100, 101, 102, 103, 104, 105]))
 
-    assert {"EMA 9", "EMA 20", "SMA 50", "ATR 14", "VWAP", "RVOL 20"}.issubset(
-        data.columns
-    )
+    assert {"EMA 9", "EMA 20", "SMA 50", "ATR 14", "VWAP", "RVOL 20"}.issubset(data.columns)
     assert data["VWAP"].notna().all()
 
 
