@@ -239,6 +239,7 @@ def test_day_trade_plan_state_waiting_long():
     )
     assert state == "WAITING FOR REFERENCE"
 
+
 def test_day_trade_plan_state_triggered_short():
     from scanner.day_trading_strategy import classify_day_trade_plan_state
 
@@ -252,11 +253,16 @@ def test_day_trade_plan_state_triggered_short():
     )
     assert state == "TRIGGERED / BELOW REFERENCE"
 
+
 def test_day_trade_plan_state_invalidated():
     from scanner.day_trading_strategy import classify_day_trade_plan_state
 
     state = classify_day_trade_plan_state(
         {"Close": 97.0},
-        {"Plan": "LONG reference plan", "Entry reference": 101.0, "Stop reference": 98.0},
+        {
+            "Plan": "LONG reference plan",
+            "Entry reference": 101.0,
+            "Stop reference": 98.0,
+        },
     )
     assert state == "INVALIDATED"
