@@ -24,6 +24,52 @@ from scanner.unusual_activity import CAP_UNIVERSES
 CHUNK_SIZE = 10
 
 
+def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
+    """Convert setup-engine conditions into concise scanner evidence."""
+    long_score = strategy["Long setup score"]
+    short_score = strategy["Short setup score"]
+    direction = (
+        "LONG"
+        if long_score > short_score
+        else "SHORT"
+        if short_score > long_score
+        else "NEUTRAL"
+    )
+    trend = strategy["Trend"]
+    vwap_relation = strategy["VWAP relation"]
+    ema_alignment = strategy["EMA 9/20"]
+    rvol = strategy["RVOL"]
+    breakout = strategy["Breakout"]
+    breakdown = strategy["Breakdown"]
+
+    evidence = []
+    if trend != "MIXED":
+        evidence.append(trend)
+    if vwap_relation in {"ABOVE", "BELOW"}:
+        evidence.append(f"VWAP {vwap_relation}")
+    if ema_alignment in {"BULLISH", "BEARISH"}:
+        evidence.append(f"EMA {ema_alignment}")
+    if rvol >= 1.5:
+        evidence.append("RVOL CONFIRMED")
+    if breakout == "YES":
+        evidence.append("BREAKOUT")
+    if breakdown == "YES":
+        evidence.append("BREAKDOWN")
+
+    if direction == "LONG" and long_score >= 70:
+        setup_state = "LONG SETUP WATCH"
+    elif direction == "SHORT" and short_score >= 70:
+        setup_state = "SHORT SETUP WATCH"
+    else:
+        setup_state = "CONTEXT ONLY"
+
+    return {
+        "Direction": direction,
+        "Setup state": setup_state,
+        "Evidence": " • ".join(evidence) if evidence else "No strong confirmation",
+    }
+
+
 def select_day_trader_universe(
     cap_category: str = "All caps",
     exchange_category: str = "Both",
@@ -199,36 +245,10 @@ def scan_day_trader_opportunities(
                     ema_alignment = strategy["EMA 9/20"]
                     strategy_rvol = strategy["RVOL"]
                     strategy_breakout = strategy["Breakout"]
-                    strategy_breakdown = strategy["Breakdown"]
-                    direction = (
-                        "LONG"
-                        if strategy["Long setup score"] > strategy["Short setup score"]
-                        else "SHORT"
-                        if strategy["Short setup score"] > strategy["Long setup score"]
-                        else "NEUTRAL"
-                    )
-                    evidence = []
-                    if trend != "MIXED":
-                        evidence.append(trend)
-                    if vwap_relation in {"ABOVE", "BELOW"}:
-                        evidence.append(f"VWAP {vwap_relation}")
-                    if ema_alignment in {"BULLISH", "BEARISH"}:
-                        evidence.append(f"EMA {ema_alignment}")
-                    if strategy_rvol >= 1.5:
-                        evidence.append("RVOL CONFIRMED")
-                    if strategy_breakout == "YES":
-                        evidence.append("BREAKOUT")
-                    if strategy_breakdown == "YES":
-                        evidence.append("BREAKDOWN")
-                    if direction == "LONG" and strategy["Long setup score"] >= 70:
-                        setup_state = "LONG SETUP WATCH"
-                    elif direction == "SHORT" and strategy["Short setup score"] >= 70:
-                        setup_state = "SHORT SETUP WATCH"
-                    else:
-                        setup_state = "CONTEXT ONLY"
-                    evidence_text = " • ".join(evidence) if evidence else "No strong confirmation"
-                    orb_high = strategy["ORB high"]
-                    orb_low = strategy["ORB low"]
+                    strategy_summary = summarize_day_trading_setup(strategy)
+                    direction = strategy_summary["Direction"]
+                    setup_state = strategy_summary["Setup state"]
+                    evidence_text = strategy_summary["Evidence"]
 
                     if change < min_change_percent or volume_surge < min_volume_surge:
                         continue
