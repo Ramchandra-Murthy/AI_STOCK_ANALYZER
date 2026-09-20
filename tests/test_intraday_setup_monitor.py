@@ -9,17 +9,13 @@ from services.intraday_setup_monitor import monitor_frame, record_setup_observat
 
 def test_records_observations_and_state_changes():
     observed_at = datetime(2026, 9, 20, 10, 0, tzinfo=UTC)
-    results = pd.DataFrame(
-        {"Symbol": ["RELIANCE", "TCS"], "Plan state": ["WATCH", "TRIGGERED"]}
-    )
+    results = pd.DataFrame({"Symbol": ["RELIANCE", "TCS"], "Plan state": ["WATCH", "TRIGGERED"]})
 
     first = record_setup_observations({}, results, observed_at)
 
     second = record_setup_observations(
         first,
-        pd.DataFrame(
-            {"Symbol": ["RELIANCE", "TCS"], "Plan state": ["TRIGGERED", "TRIGGERED"]}
-        ),
+        pd.DataFrame({"Symbol": ["RELIANCE", "TCS"], "Plan state": ["TRIGGERED", "TRIGGERED"]}),
         datetime(2026, 9, 20, 10, 5, tzinfo=UTC),
     )
 
