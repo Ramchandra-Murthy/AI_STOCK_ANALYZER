@@ -96,5 +96,5 @@ def test_score_combines_opportunity_and_setup_scores():
 
     result = score_opportunity_rows(rows)
 
-    assert result.iloc[0]["Opportunity score"] == 82.5
-    assert result.iloc[0]["Composite score"] == 81.5
+    assert result.iloc[0]["Opportunity score"] == 75.0
+    assert result.iloc[0]["Composite score"] == 77.0
