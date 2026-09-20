@@ -123,9 +123,7 @@ else:
             "reference levels; it is not a prediction of future price movement."
         )
         metrics = st.columns(min(4, len(state_counts)))
-        for column, (state, count) in zip(
-            metrics, state_counts.head(4).items(), strict=False
-        ):
+        for column, (state, count) in zip(metrics, state_counts.head(4).items(), strict=False):
             column.metric(str(state), int(count))
     preferred_columns = [
         "Symbol",
@@ -163,14 +161,8 @@ else:
             "Uncheck the filter only if you intend to review the flagged names separately."
         )
     else:
-        display_columns = [
-            column for column in preferred_columns if column in results.columns
-        ]
-        st.dataframe(
-            results[display_columns],
-            use_container_width=True,
-            hide_index=True,
-        )
+        display_columns = [column for column in preferred_columns if column in results.columns]
+        st.dataframe(results[display_columns], use_container_width=True, hide_index=True)
     st.download_button(
         "Download opportunity CSV",
         results.to_csv(index=False).encode("utf-8"),
@@ -178,18 +170,12 @@ else:
         mime="text/csv",
     )
 
-    transition_history = transitions_frame(
-        st.session_state.get("intraday_state_transitions", [])
-    )
+    transition_history = transitions_frame(st.session_state.get("intraday_state_transitions", []))
     st.subheader("Intraday setup state changes")
     if transition_history.empty:
         st.caption("No setup-state changes have been observed in this session yet.")
     else:
-        st.dataframe(
-            transition_history.head(50),
-            use_container_width=True,
-            hide_index=True,
-        )
+        st.dataframe(transition_history.head(50), use_container_width=True, hide_index=True)
         st.download_button(
             "Download state-change history CSV",
             transition_history.to_csv(index=False).encode("utf-8"),
