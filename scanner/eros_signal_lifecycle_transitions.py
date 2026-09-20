@@ -50,7 +50,7 @@ def analyze_eros_signal_lifecycle_transitions(
         )
         transitions = sum(
             current != prior
-            for prior, current in zip(lifecycle_values, lifecycle_values[1:])
+            for prior, current in zip(lifecycle_values, lifecycle_values[1:], strict=False)
         )
 
         rows.append(
