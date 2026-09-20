@@ -1,7 +1,9 @@
 name: Temporary Black Autofix
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - feature/eros-regime-breadth
 
 permissions:
   contents: write
