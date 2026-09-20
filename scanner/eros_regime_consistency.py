@@ -30,7 +30,9 @@ def analyze_eros_regime_consistency(history: pd.DataFrame | None) -> pd.DataFram
 
     frame = history.loc[:, list(REQUIRED_COLUMNS)].copy()
     frame["Timestamp"] = pd.to_datetime(frame["Timestamp"], errors="coerce")
-    frame["Rising Breadth %"] = pd.to_numeric(frame["Rising Breadth %"], errors="coerce")
+    frame["Rising Breadth %"] = pd.to_numeric(
+        frame["Rising Breadth %"], errors="coerce"
+    )
     frame["Falling Breadth %"] = pd.to_numeric(
         frame["Falling Breadth %"], errors="coerce"
     )
