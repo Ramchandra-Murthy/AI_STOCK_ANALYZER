@@ -1,0 +1,25 @@
+name: Temporary Black Diff
+
+on:
+  push:
+    branches:
+      - feature/eros-regime-signal-sync
+
+permissions:
+  contents: read
+
+jobs:
+  black-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
+        with:
+          version: "0.12.1"
+      - name: Install locked dependencies
+        run: uv sync --locked --no-build --no-install-project
+      - name: Show Black formatting diff
+        run: uv run --locked --no-sync --no-build black --diff scanner/eros_regime_signal_sync.py
