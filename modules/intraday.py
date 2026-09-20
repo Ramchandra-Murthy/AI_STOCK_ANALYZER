@@ -22,6 +22,7 @@ from scanner.eros_regime_history import (
 )
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_persistence import analyze_eros_regime_persistence
+from scanner.eros_regime_quality import analyze_eros_regime_quality
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
@@ -1385,6 +1386,28 @@ def show() -> None:
                                             file_name="eros_regime_consistency.csv",
                                             mime="text/csv",
                                             key="download_eros_regime_consistency",
+                                        )
+
+                                    regime_quality = analyze_eros_regime_quality(regime_history)
+                                    if not regime_quality.empty:
+                                        st.subheader("🧭 EROS Regime Quality Dimensions")
+                                        st.caption(
+                                            "Reports current breadth strength, trend confidence, and "
+                                            "historical ranges for the current regime. These are "
+                                            "separate descriptive dimensions, not a composite score "
+                                            "or trade instruction."
+                                        )
+                                        st.dataframe(
+                                            regime_quality,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                        )
+                                        st.download_button(
+                                            "Download EROS regime quality CSV",
+                                            regime_quality.to_csv(index=False).encode("utf-8"),
+                                            file_name="eros_regime_quality.csv",
+                                            mime="text/csv",
+                                            key="download_eros_regime_quality",
                                         )
 
                                     regime_persistence = analyze_eros_regime_persistence(
