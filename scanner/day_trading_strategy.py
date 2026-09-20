@@ -184,9 +184,11 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
     direction = (
         "LONG"
         if strategy.get("Long setup score", 0) > strategy.get("Short setup score", 0)
-        else "SHORT"
-        if strategy.get("Short setup score", 0) > strategy.get("Long setup score", 0)
-        else "NEUTRAL"
+        else (
+            "SHORT"
+            if strategy.get("Short setup score", 0) > strategy.get("Long setup score", 0)
+            else "NEUTRAL"
+        )
     )
 
     if close <= 0 or atr <= 0:
