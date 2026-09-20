@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 from scanner.eros_regime_breadth import analyze_eros_regime_breadth
+from scanner.eros_regime_consistency import analyze_eros_regime_consistency
 from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_persistence import analyze_eros_regime_persistence
@@ -32,6 +33,7 @@ def build_eros_master_dashboard(
     regime_transitions = analyze_eros_regime_transitions(regime_history)
     regime_duration = analyze_eros_regime_duration(regime_history)
     regime_breadth = analyze_eros_regime_breadth(regime_history)
+    regime_consistency = analyze_eros_regime_consistency(regime_history)
     regime_persistence = analyze_eros_regime_persistence(regime_history)
 
     signal = (
@@ -173,6 +175,11 @@ def build_eros_master_dashboard(
             summary_values["Current Regime Average Run Snapshots"] = persistence_row[
                 "Average_Run_Snapshots"
             ]
+
+    if not regime_consistency.empty:
+        summary_values["Regime Overall Consistency %"] = regime_consistency[
+            "Overall Consistency %"
+        ].iloc[0]
 
     summary = pd.DataFrame([summary_values])
     return summary, signal.sort_values(
