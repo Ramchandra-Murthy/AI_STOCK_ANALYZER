@@ -226,26 +226,31 @@ def test_day_trade_plan_rejects_neutral_direction():
     assert result["Entry reference"] is None
 
 
-
 def test_day_trade_plan_state_waiting_long():
     from scanner.day_trading_strategy import classify_day_trade_plan_state
 
     state = classify_day_trade_plan_state(
         {"Close": 100.0},
-        {"Plan": "LONG reference plan", "Entry reference": 101.0, "Stop reference": 98.0},
+        {
+            "Plan": "LONG reference plan",
+            "Entry reference": 101.0,
+            "Stop reference": 98.0,
+        },
     )
     assert state == "WAITING FOR REFERENCE"
-
 
 def test_day_trade_plan_state_triggered_short():
     from scanner.day_trading_strategy import classify_day_trade_plan_state
 
     state = classify_day_trade_plan_state(
         {"Close": 98.0},
-        {"Plan": "SHORT reference plan", "Entry reference": 99.0, "Stop reference": 102.0},
+        {
+            "Plan": "SHORT reference plan",
+            "Entry reference": 99.0,
+            "Stop reference": 102.0,
+        },
     )
     assert state == "TRIGGERED / BELOW REFERENCE"
-
 
 def test_day_trade_plan_state_invalidated():
     from scanner.day_trading_strategy import classify_day_trade_plan_state
