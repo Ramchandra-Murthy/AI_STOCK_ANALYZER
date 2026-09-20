@@ -1,6 +1,6 @@
 """Tests for intraday setup state transition history."""
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 import pandas as pd
 
@@ -26,7 +26,7 @@ def test_records_only_changed_states():
     updated, transitions = record_setup_state_transitions(
         previous,
         results,
-        datetime(2026, 9, 20, 10, 15, tzinfo=timezone.utc),
+        datetime(2026, 9, 20, 10, 15, tzinfo=UTC),
     )
 
     assert updated["RELIANCE"] == "TRIGGERED / ABOVE REFERENCE"
@@ -42,7 +42,7 @@ def test_empty_results_do_not_create_transitions():
     updated, transitions = record_setup_state_transitions(
         previous,
         pd.DataFrame(),
-        datetime.now(timezone.utc),
+        datetime.now(UTC),
     )
 
     assert updated == previous
