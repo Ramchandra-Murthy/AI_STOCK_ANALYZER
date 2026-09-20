@@ -19,6 +19,7 @@ from scanner.eros_regime_history import (
 )
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_stability import analyze_eros_regime_stability
+from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
 from scanner.eros_signal_lifecycle_transitions import analyze_eros_signal_lifecycle_transitions
 from scanner.eros_trend_confidence import analyze_eros_trend_confidence
@@ -1280,6 +1281,37 @@ def show() -> None:
                                         mime="text/csv",
                                         key="download_eros_regime_history",
                                     )
+
+                                    regime_transitions = analyze_eros_regime_transitions(
+                                        regime_history
+                                    )
+                                    if not regime_transitions.empty:
+                                        st.subheader("🔄 EROS Regime Transition History")
+                                        st.caption(
+                                            "Records each aggregate regime change with its timestamp, "
+                                            "direction change, and transition type. This is descriptive "
+                                            "analytics, not a trade instruction."
+                                        )
+                                        transition_display = regime_transitions.sort_values(
+                                            "Timestamp", ascending=False
+                                        ).copy()
+                                        transition_display["Timestamp"] = pd.to_datetime(
+                                            transition_display["Timestamp"], errors="coerce"
+                                        ).dt.strftime("%d %b %Y, %H:%M:%S")
+                                        st.dataframe(
+                                            transition_display,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                        )
+                                        st.download_button(
+                                            "Download EROS regime transitions CSV",
+                                            regime_transitions.to_csv(index=False).encode(
+                                                "utf-8"
+                                            ),
+                                            file_name="eros_regime_transitions.csv",
+                                            mime="text/csv",
+                                            key="download_eros_regime_transitions",
+                                        )
 
                                     regime_momentum = analyze_eros_regime_momentum(regime_history)
                                     if not regime_momentum.empty:
