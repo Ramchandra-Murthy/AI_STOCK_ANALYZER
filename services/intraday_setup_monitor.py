@@ -7,6 +7,8 @@ from typing import Any
 
 import pandas as pd
 
+from services.intraday_tracking import copy_records, setup_rows
+
 
 def record_setup_observations(
     previous_monitor: dict[str, dict[str, Any]],
@@ -14,16 +16,9 @@ def record_setup_observations(
     observed_at: datetime,
 ) -> dict[str, dict[str, Any]]:
     """Update per-symbol setup observations for the current scan."""
-    updated = {symbol: dict(value) for symbol, value in previous_monitor.items()}
+    updated = copy_records(previous_monitor)
 
-    if results is None or results.empty:
-        return updated
-
-    required = {"Symbol", "Plan state"}
-    if not required.issubset(results.columns):
-        return updated
-
-    for row in results[["Symbol", "Plan state"]].itertuples(index=False):
+    for row in setup_rows(results, ("Symbol", "Plan state")):
         symbol = str(row[0])
         new_state = str(row[1])
         previous = updated.get(symbol)
