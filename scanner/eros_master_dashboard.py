@@ -185,9 +185,7 @@ def build_eros_master_dashboard(
 
     if not regime_quality.empty:
         quality_row = regime_quality.iloc[0]
-        summary_values["Latest Regime Breadth Strength"] = quality_row[
-            "Latest Breadth Strength"
-        ]
+        summary_values["Latest Regime Breadth Strength"] = quality_row["Latest Breadth Strength"]
         summary_values["Latest Regime Average Confidence %"] = quality_row[
             "Latest Average Trend Confidence %"
         ]
