@@ -16,13 +16,13 @@ from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
 from scanner.eros_regime_breadth import analyze_eros_regime_breadth
 from scanner.eros_regime_consistency import analyze_eros_regime_consistency
 from scanner.eros_regime_dashboard import build_eros_regime_dashboard_snapshot
+from scanner.eros_regime_distribution import analyze_eros_regime_distribution
 from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
     summarize_eros_regime_history,
 )
 from scanner.eros_regime_history_comparison import analyze_eros_regime_history_comparison
-from scanner.eros_regime_distribution import analyze_eros_regime_distribution
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_persistence import analyze_eros_regime_persistence
 from scanner.eros_regime_quality import analyze_eros_regime_quality
