@@ -173,3 +173,92 @@ def analyze_day_trade_setup(
         "ATR 14": round(atr, 2),
         "Close": round(close, 2),
     }
+
+
+def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
+    """Calculate conditional entry, stop and target reference levels."""
+    close = float(strategy.get("Close", 0) or 0)
+    atr = float(strategy.get("ATR 14", 0) or 0)
+    support = strategy.get("Support")
+    resistance = strategy.get("Resistance")
+    direction = (
+        "LONG"
+        if strategy.get("Long setup score", 0) > strategy.get("Short setup score", 0)
+        else (
+            "SHORT"
+            if strategy.get("Short setup score", 0) > strategy.get("Long setup score", 0)
+            else "NEUTRAL"
+        )
+    )
+
+    if close <= 0 or atr <= 0:
+        return {
+            "Plan": "INSUFFICIENT DATA",
+            "Entry reference": None,
+            "Stop reference": None,
+            "Target 1": None,
+            "Target 2": None,
+            "Target 3": None,
+            "Risk per share": None,
+            "R:R T1": None,
+            "R:R T2": None,
+            "R:R T3": None,
+        }
+
+    if direction == "LONG":
+        entry = float(resistance) if resistance is not None else close
+        stop = min(close - atr, float(support)) if support is not None else close - atr
+        if entry <= stop:
+            entry = close
+            stop = close - atr
+    elif direction == "SHORT":
+        entry = float(support) if support is not None else close
+        stop = max(close + atr, float(resistance)) if resistance is not None else close + atr
+        if entry >= stop:
+            entry = close
+            stop = close + atr
+    else:
+        return {
+            "Plan": "NO CLEAR DIRECTION",
+            "Entry reference": None,
+            "Stop reference": None,
+            "Target 1": None,
+            "Target 2": None,
+            "Target 3": None,
+            "Risk per share": None,
+            "R:R T1": None,
+            "R:R T2": None,
+            "R:R T3": None,
+        }
+
+    risk = abs(entry - stop)
+    if risk <= 0:
+        return {
+            "Plan": "INSUFFICIENT RISK RANGE",
+            "Entry reference": round(entry, 2),
+            "Stop reference": round(stop, 2),
+            "Target 1": None,
+            "Target 2": None,
+            "Target 3": None,
+            "Risk per share": None,
+            "R:R T1": None,
+            "R:R T2": None,
+            "R:R T3": None,
+        }
+
+    targets = [
+        entry + risk * multiple if direction == "LONG" else entry - risk * multiple
+        for multiple in (1.0, 2.0, 3.0)
+    ]
+    return {
+        "Plan": f"{direction} reference plan",
+        "Entry reference": round(entry, 2),
+        "Stop reference": round(stop, 2),
+        "Target 1": round(targets[0], 2),
+        "Target 2": round(targets[1], 2),
+        "Target 3": round(targets[2], 2),
+        "Risk per share": round(risk, 2),
+        "R:R T1": 1.0,
+        "R:R T2": 2.0,
+        "R:R T3": 3.0,
+    }

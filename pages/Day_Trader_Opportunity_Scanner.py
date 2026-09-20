@@ -111,6 +111,15 @@ else:
         "VWAP",
         "EMA 9/20",
         "Evidence",
+        "Plan",
+        "Entry reference",
+        "Stop reference",
+        "Target 1",
+        "Target 2",
+        "Target 3",
+        "R:R T1",
+        "R:R T2",
+        "R:R T3",
         "Breakout",
         "Strategy breakdown",
         "Liquidity",
@@ -130,6 +139,11 @@ else:
         mime="text/csv",
     )
 
+    st.caption(
+        "Entry, stop and target columns are conditional reference levels calculated from "
+        "the current setup, support/resistance and ATR. They are not guaranteed execution "
+        "levels and should be rechecked against live market data. "
+    )
     st.caption(
         "Composite score combines the existing opportunity score with the book-based "
         "day-trading setup score. Higher scores describe more observed conditions; they "

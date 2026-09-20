@@ -161,3 +161,66 @@ def test_setup_evidence_marks_weak_context():
     assert result["Direction"] == "LONG"
     assert result["Setup state"] == "CONTEXT ONLY"
     assert "No strong confirmation" not in result["Evidence"]
+
+
+def test_day_trade_plan_long_references():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    result = calculate_day_trade_plan(
+        {
+            "Long setup score": 80,
+            "Short setup score": 30,
+            "Close": 100.0,
+            "ATR 14": 2.0,
+            "Support": 98.0,
+            "Resistance": 101.0,
+        }
+    )
+
+    assert result["Plan"] == "LONG reference plan"
+    assert result["Entry reference"] == 101.0
+    assert result["Stop reference"] == 98.0
+    assert result["Target 1"] == 104.0
+    assert result["Target 2"] == 107.0
+    assert result["Target 3"] == 110.0
+    assert result["R:R T1"] == 1.0
+    assert result["R:R T3"] == 3.0
+
+
+def test_day_trade_plan_short_references():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    result = calculate_day_trade_plan(
+        {
+            "Long setup score": 30,
+            "Short setup score": 80,
+            "Close": 100.0,
+            "ATR 14": 2.0,
+            "Support": 99.0,
+            "Resistance": 102.0,
+        }
+    )
+
+    assert result["Plan"] == "SHORT reference plan"
+    assert result["Entry reference"] == 99.0
+    assert result["Stop reference"] == 102.0
+    assert result["Target 1"] == 96.0
+    assert result["Target 3"] == 90.0
+
+
+def test_day_trade_plan_rejects_neutral_direction():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    result = calculate_day_trade_plan(
+        {
+            "Long setup score": 50,
+            "Short setup score": 50,
+            "Close": 100.0,
+            "ATR 14": 2.0,
+            "Support": 98.0,
+            "Resistance": 102.0,
+        }
+    )
+
+    assert result["Plan"] == "NO CLEAR DIRECTION"
+    assert result["Entry reference"] is None
