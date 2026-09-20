@@ -241,9 +241,7 @@ else:
             mime="text/csv",
         )
 
-    window_outcomes = multi_window_frame(
-        st.session_state.get("intraday_multi_window_outcomes", {})
-    )
+    window_outcomes = multi_window_frame(st.session_state.get("intraday_multi_window_outcomes", {}))
     st.subheader("Multi-window setup outcomes")
     st.caption(
         "Observed price change is measured from the start of the current setup state. "
