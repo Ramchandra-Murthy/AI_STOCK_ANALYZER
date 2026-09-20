@@ -1554,8 +1554,8 @@ def show() -> None:
                                                 key="download_eros_regime_recency",
                                             )
 
-                                        regime_transition_matrix = analyze_eros_regime_transition_matrix(
-                                            regime_history
+                                        regime_transition_matrix = (
+                                            analyze_eros_regime_transition_matrix(regime_history)
                                         )
                                         if not regime_transition_matrix.empty:
                                             st.subheader("🔄 EROS Regime Transition Matrix")
@@ -1570,7 +1570,9 @@ def show() -> None:
                                             )
                                             st.download_button(
                                                 "Download EROS regime transition matrix CSV",
-                                                regime_transition_matrix.to_csv(index=False).encode("utf-8"),
+                                                regime_transition_matrix.to_csv(index=False).encode(
+                                                    "utf-8"
+                                                ),
                                                 file_name="eros_regime_transition_matrix.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_transition_matrix",
