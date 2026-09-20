@@ -140,7 +140,20 @@ def fetch_nse_safety_snapshot(
             columns={"_symbol": "Symbol"}
         )
         result["Surveillance date"] = day.isoformat()
-        return result.drop_duplicates("Symbol"), None
+        result = result.drop_duplicates("Symbol")
+
+        requested_frame = pd.DataFrame({"Symbol": sorted(requested)})
+        result = requested_frame.merge(result, on="Symbol", how="left")
+        result["Safety flags"] = result["Safety flags"].fillna("")
+        result["Surveillance date"] = result["Surveillance date"].fillna(
+            day.isoformat()
+        )
+        result["Safety status"] = result["Safety flags"].map(
+            lambda value: "Flagged - review before trading"
+            if str(value).strip()
+            else "NSE check clear"
+        )
+        return result, None
 
     return pd.DataFrame(columns=["Symbol", "Safety flags"]), last_error
 
@@ -163,11 +176,9 @@ def apply_safety_filter(
         result["Safety flags"] = (
             result["Symbol"].map(lookup["Safety flags"]).fillna("")
         )
-        result["Safety status"] = result["Safety flags"].map(
-            lambda value: "Flagged - review before trading"
-            if str(value).strip()
-            else "NSE check clear"
-        )
+        result["Safety status"] = result["Symbol"].map(
+            lookup["Safety status"] if "Safety status" in lookup.columns else pd.Series(dtype=str)
+        ).fillna("NSE check unavailable")
 
     if exclude_flagged:
         result = result[result["Safety flags"].fillna("").eq("")].copy()
