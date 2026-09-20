@@ -9,6 +9,7 @@ from scanner.eros_regime_consistency import analyze_eros_regime_consistency
 from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
 from scanner.eros_regime_persistence import analyze_eros_regime_persistence
+from scanner.eros_regime_quality import analyze_eros_regime_quality
 from scanner.eros_regime_signal_sync import analyze_eros_regime_signal_sync
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
@@ -35,6 +36,7 @@ def build_eros_master_dashboard(
     regime_breadth = analyze_eros_regime_breadth(regime_history)
     regime_consistency = analyze_eros_regime_consistency(regime_history)
     regime_persistence = analyze_eros_regime_persistence(regime_history)
+    regime_quality = analyze_eros_regime_quality(regime_history)
 
     signal = (
         history.sort_values("Timestamp").groupby(["Symbol", "Exchange"], as_index=False).tail(1)
@@ -180,6 +182,21 @@ def build_eros_master_dashboard(
         summary_values["Regime Overall Consistency %"] = regime_consistency[
             "Overall Consistency %"
         ].iloc[0]
+
+    if not regime_quality.empty:
+        quality_row = regime_quality.iloc[0]
+        summary_values["Latest Regime Breadth Strength"] = quality_row[
+            "Latest Breadth Strength"
+        ]
+        summary_values["Latest Regime Average Confidence %"] = quality_row[
+            "Latest Average Trend Confidence %"
+        ]
+        summary_values["Current Regime Breadth Range"] = quality_row[
+            "Regime Breadth Range"
+        ]
+        summary_values["Current Regime Confidence Range"] = quality_row[
+            "Regime Confidence Range"
+        ]
 
     summary = pd.DataFrame([summary_values])
     return summary, signal.sort_values(
