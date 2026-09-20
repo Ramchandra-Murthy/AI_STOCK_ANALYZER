@@ -23,9 +23,7 @@ def test_summarizes_regime_transitions():
     result = analyze_eros_regime_transition_matrix(_history())
 
     assert list(result["Transition Count"]) == [1, 1, 1]
-    assert set(
-        zip(result["Previous Regime"], result["Current Regime"], strict=True)
-    ) == {
+    assert set(zip(result["Previous Regime"], result["Current Regime"], strict=True)) == {
         ("BALANCED", "RISING DOMINANT"),
         ("FALLING DOMINANT", "BALANCED"),
         ("RISING DOMINANT", "FALLING DOMINANT"),
