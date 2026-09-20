@@ -1,6 +1,6 @@
 """Tests for intraday setup state transition history."""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 import pandas as pd
 
