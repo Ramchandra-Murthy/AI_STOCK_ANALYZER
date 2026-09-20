@@ -13,6 +13,7 @@ from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.eros_master_dashboard import build_eros_master_dashboard
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
+from scanner.eros_regime_breadth import analyze_eros_regime_breadth
 from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
@@ -1338,6 +1339,27 @@ def show() -> None:
                                             file_name="eros_regime_duration.csv",
                                             mime="text/csv",
                                             key="download_eros_regime_duration",
+                                        )
+
+                                    regime_breadth = analyze_eros_regime_breadth(regime_history)
+                                    if not regime_breadth.empty:
+                                        st.subheader("📊 EROS Regime Breadth & Strength")
+                                        st.caption(
+                                            "Summarizes rising/falling breadth and trend confidence "
+                                            "within each recorded aggregate regime. This is descriptive "
+                                            "analytics, not a trade instruction."
+                                        )
+                                        st.dataframe(
+                                            regime_breadth,
+                                            use_container_width=True,
+                                            hide_index=True,
+                                        )
+                                        st.download_button(
+                                            "Download EROS regime breadth CSV",
+                                            regime_breadth.to_csv(index=False).encode("utf-8"),
+                                            file_name="eros_regime_breadth.csv",
+                                            mime="text/csv",
+                                            key="download_eros_regime_breadth",
                                         )
 
                                     regime_momentum = analyze_eros_regime_momentum(regime_history)
