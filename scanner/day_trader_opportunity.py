@@ -82,8 +82,9 @@ def scan_day_trader_opportunities(
     lookback_minutes: int = 5,
     min_change_percent: float = 0.5,
     min_volume_surge: float = 1.2,
+    low_price_only: bool = False,
 ) -> pd.DataFrame:
-    """Find intraday momentum candidates, including low-price mode.
+    """Find intraday momentum candidates, including configurable low-price mode.
 
     max_price is a configurable low-price threshold, not a formal definition
     of a penny stock. Prices and eligibility use the latest Yahoo Finance
@@ -152,7 +153,9 @@ def scan_day_trader_opportunities(
                         continue
 
                     change = (price / prior - 1.0) * 100.0
-                    baseline = float(volume.iloc[-min(21, len(volume) - 1) : -1].median())
+                    baseline = float(
+                        volume.iloc[-min(21, len(volume) - 1) : -1].median()
+                    )
                     latest_volume = float(volume.iloc[-1])
                     volume_surge = latest_volume / baseline if baseline > 0 else 0.0
 
@@ -171,12 +174,17 @@ def scan_day_trader_opportunities(
                         else 0.0
                     )
 
-                    prior_highs = high.iloc[-21:-1] if len(high) >= 21 else high.iloc[:-1]
+                    prior_highs = (
+                        high.iloc[-21:-1] if len(high) >= 21 else high.iloc[:-1]
+                    )
                     breakout = (
                         len(prior_highs) > 0 and price > float(prior_highs.max())
                     )
 
                     if change < min_change_percent or volume_surge < min_volume_surge:
+                        continue
+                    low_price = price <= max_price
+                    if low_price_only and not low_price:
                         continue
 
                     rows.append(
@@ -188,7 +196,7 @@ def scan_day_trader_opportunities(
                             "Volume surge x": round(volume_surge, 2),
                             "Session range %": round(session_range, 2),
                             "Breakout": "YES" if breakout else "—",
-                            "Low-price flag": "YES" if price <= max_price else "—",
+                            "Low-price flag": "YES" if low_price else "—",
                             "Latest candle": str(data.index[-1]),
                         }
                     )
