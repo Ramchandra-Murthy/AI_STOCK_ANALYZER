@@ -6,6 +6,7 @@ import streamlit as st
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
+from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
 from services.intraday_state_history import (
     record_setup_state_transitions,
@@ -225,6 +226,7 @@ else:
         )
 
     outcomes = outcomes_frame(st.session_state.get("intraday_setup_outcomes", {}))
+    statistics = setup_statistics(st.session_state.get("intraday_setup_outcomes", {}))
     st.subheader("Observed setup outcomes")
     st.caption(
         "Price change is measured from the first observation of the current setup state. "
@@ -255,6 +257,22 @@ else:
             "Download multi-window outcome CSV",
             window_outcomes.to_csv(index=False).encode("utf-8"),
             file_name="intraday_multi_window_outcomes.csv",
+            mime="text/csv",
+        )
+
+    st.subheader("Setup evaluation statistics")
+    st.caption(
+        "These statistics summarize observed session outcomes by setup state. "
+        "They are descriptive and are not a prediction or guarantee of future returns."
+    )
+    if statistics.empty:
+        st.caption("Not enough observed outcomes for statistics yet.")
+    else:
+        st.dataframe(statistics, use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download setup statistics CSV",
+            statistics.to_csv(index=False).encode("utf-8"),
+            file_name="intraday_setup_statistics.csv",
             mime="text/csv",
         )
 
