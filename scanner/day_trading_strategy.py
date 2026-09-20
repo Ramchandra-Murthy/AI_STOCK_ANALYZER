@@ -271,7 +271,6 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-
 def classify_day_trade_plan_state(
     strategy: dict[str, Any], plan: dict[str, Any]
 ) -> str:
