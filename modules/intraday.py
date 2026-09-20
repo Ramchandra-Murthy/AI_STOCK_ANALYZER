@@ -15,6 +15,7 @@ from scanner.eros_master_dashboard import build_eros_master_dashboard
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
 from scanner.eros_regime_breadth import analyze_eros_regime_breadth
 from scanner.eros_regime_consistency import analyze_eros_regime_consistency
+from scanner.eros_regime_dashboard import build_eros_regime_dashboard_snapshot
 from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
@@ -1486,6 +1487,31 @@ def show() -> None:
                                                 regime_history,
                                             )
                                         )
+                                        regime_dashboard_snapshot = (
+                                            build_eros_regime_dashboard_snapshot(regime_history)
+                                        )
+                                        if not regime_dashboard_snapshot.empty:
+                                            st.subheader("🧭 EROS Regime Dashboard Snapshot")
+                                            st.caption(
+                                                "Consolidates the existing regime dimensions into one "
+                                                "current-state view. No new score or trade instruction is "
+                                                "created."
+                                            )
+                                            st.dataframe(
+                                                regime_dashboard_snapshot,
+                                                use_container_width=True,
+                                                hide_index=True,
+                                            )
+                                            st.download_button(
+                                                "Download EROS regime snapshot CSV",
+                                                regime_dashboard_snapshot.to_csv(
+                                                    index=False
+                                                ).encode("utf-8"),
+                                                file_name="eros_regime_dashboard_snapshot.csv",
+                                                mime="text/csv",
+                                                key="download_eros_regime_dashboard_snapshot",
+                                            )
+
                                         if not master_summary.empty:
                                             st.subheader("🧩 EROS Master Dashboard")
                                             st.caption(
