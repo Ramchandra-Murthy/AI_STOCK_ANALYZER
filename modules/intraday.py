@@ -1312,9 +1312,7 @@ def show() -> None:
                                             key="download_eros_regime_transitions",
                                         )
 
-                                    regime_duration = analyze_eros_regime_duration(
-                                        regime_history
-                                    )
+                                    regime_duration = analyze_eros_regime_duration(regime_history)
                                     if not regime_duration.empty:
                                         st.subheader("⏱️ EROS Regime Duration History")
                                         st.caption(
