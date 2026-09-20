@@ -8,6 +8,7 @@ from services.intraday_multi_window import multi_window_frame, record_multi_wind
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
+from services.intraday_setup_regime import regime_statistics
 from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
@@ -227,6 +228,7 @@ else:
 
     outcomes = outcomes_frame(st.session_state.get("intraday_setup_outcomes", {}))
     statistics = setup_statistics(st.session_state.get("intraday_setup_outcomes", {}))
+    regime = regime_statistics(st.session_state.get("intraday_setup_outcomes", {}))
     st.subheader("Observed setup outcomes")
     st.caption(
         "Price change is measured from the first observation of the current setup state. "
@@ -273,6 +275,22 @@ else:
             "Download setup statistics CSV",
             statistics.to_csv(index=False).encode("utf-8"),
             file_name="intraday_setup_statistics.csv",
+            mime="text/csv",
+        )
+
+    st.subheader("Session-phase setup analysis")
+    st.caption(
+        "Observed outcomes are grouped by the session phase in which the setup state "
+        "was first observed. This is descriptive session context, not a prediction."
+    )
+    if regime.empty:
+        st.caption("Not enough observations for session-phase analysis yet.")
+    else:
+        st.dataframe(regime, use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download session-phase statistics CSV",
+            regime.to_csv(index=False).encode("utf-8"),
+            file_name="intraday_session_phase_statistics.csv",
             mime="text/csv",
         )
 
