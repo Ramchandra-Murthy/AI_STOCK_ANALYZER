@@ -10,9 +10,7 @@ from services.intraday_setup_outcome import outcomes_frame, record_setup_outcome
 def test_records_price_change_for_same_setup_state():
     first_time = datetime(2026, 9, 20, 10, 0, tzinfo=UTC)
     second_time = datetime(2026, 9, 20, 10, 5, tzinfo=UTC)
-    results = pd.DataFrame(
-        {"Symbol": ["RELIANCE"], "Plan state": ["TRIGGERED"], "Price": [100.0]}
-    )
+    results = pd.DataFrame({"Symbol": ["RELIANCE"], "Plan state": ["TRIGGERED"], "Price": [100.0]})
 
     first = record_setup_outcomes({}, results, first_time)
     second = record_setup_outcomes(
@@ -33,17 +31,13 @@ def test_new_state_resets_outcome_baseline():
     observed = datetime(2026, 9, 20, 10, 5, tzinfo=UTC)
     previous = record_setup_outcomes(
         {},
-        pd.DataFrame(
-            {"Symbol": ["TCS"], "Plan state": ["WATCH"], "Price": [200.0]}
-        ),
+        pd.DataFrame({"Symbol": ["TCS"], "Plan state": ["WATCH"], "Price": [200.0]}),
         observed,
     )
 
     updated = record_setup_outcomes(
         previous,
-        pd.DataFrame(
-            {"Symbol": ["TCS"], "Plan state": ["TRIGGERED"], "Price": [210.0]}
-        ),
+        pd.DataFrame({"Symbol": ["TCS"], "Plan state": ["TRIGGERED"], "Price": [210.0]}),
         observed,
     )
 
