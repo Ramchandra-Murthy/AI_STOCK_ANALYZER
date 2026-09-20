@@ -22,6 +22,7 @@ def _history():
 
 
 def test_summarizes_breadth_by_regime():
+    """Verify descriptive breadth statistics for each aggregate regime."""
     result = analyze_eros_regime_breadth(_history())
 
     rising = result[result["Regime"] == "RISING DOMINANT"].iloc[0]
