@@ -205,6 +205,7 @@ def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFra
     return frame[~frame.index.duplicated(keep="last")]
 
 
+@st.cache_data(ttl=LIVE_BOARD_REFRESH_SECONDS, show_spinner=False)
 def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, int]]:
     """Build a dynamic 20-stock board from the broad NSE+BSE universe."""
     from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
@@ -456,11 +457,26 @@ def _show_live_20_panel() -> None:
         st.session_state["live_sector_summary"] = sector_summary.copy()
 
         now = datetime.now(IST)
+        market_open = now.weekday() < 5 and (
+            (now.hour, now.minute) >= (9, 15) and (now.hour, now.minute) < (15, 30)
+        )
+        latest_candle = pd.to_datetime(board["Last update"], errors="coerce").max()
+        freshness_text = (
+            f"Latest Yahoo candle: {latest_candle:%d %b %Y, %H:%M:%S %Z}"
+            if pd.notna(latest_candle)
+            else "Latest Yahoo candle: unavailable"
+        )
+        market_text = (
+            "Market status: OPEN · Yahoo 1-minute data is expected to be current."
+            if market_open
+            else "Market status: CLOSED · Yahoo may be showing the latest available session candles."
+        )
         st.caption(
-            f"Updated: {now:%d %b %Y, %H:%M:%S IST} · "
+            f"Checked: {now:%d %b %Y, %H:%M:%S IST} · "
             f"Universe checked: {stats['candidates']} · Usable symbols: {stats['usable']} · "
             f"Refresh: ~{LIVE_BOARD_REFRESH_SECONDS // 60} min"
         )
+        st.info(f"{market_text} {freshness_text}")
         confluence = compute_signal_confluence(board)
         st.session_state["live_confluence"] = confluence.copy()
         if not confluence.empty:
