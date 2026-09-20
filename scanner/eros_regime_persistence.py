@@ -29,9 +29,11 @@ def analyze_eros_regime_persistence(history: pd.DataFrame | None) -> pd.DataFram
     result["Current Run Snapshots"] = (
         result["Regime"].map({current["Regime"]: int(current["Snapshots"])}).fillna(0)
     )
-    result["Current Run Duration Minutes"] = result["Regime"].map(
-        {current["Regime"]: float(current["Duration Minutes"])}
-    ).fillna(0.0)
+    result["Current Run Duration Minutes"] = (
+        result["Regime"]
+        .map({current["Regime"]: float(current["Duration Minutes"])})
+        .fillna(0.0)
+    )
     result["Current Run"] = result["Regime"] == current["Regime"]
 
     total_links = max(int(runs["Snapshots"].sum()) - 1, 0)
