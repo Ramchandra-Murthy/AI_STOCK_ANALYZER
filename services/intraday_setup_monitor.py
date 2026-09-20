@@ -80,15 +80,23 @@ def monitor_frame(
     now = observed_at or datetime.now().astimezone()
     frame = pd.DataFrame(list(monitor.values()))
     frame["Current state duration (min)"] = (
-        pd.to_datetime(now) - pd.to_datetime(frame["State started"])
-    ).dt.total_seconds().div(60).clip(lower=0).round(1)
+        (pd.to_datetime(now) - pd.to_datetime(frame["State started"]))
+        .dt.total_seconds()
+        .div(60)
+        .clip(lower=0)
+        .round(1)
+    )
     frame = frame.rename(
         columns={
             "First observed": "First observed",
             "Last observed": "Last observed",
         }
     )
-    return frame[columns].sort_values(
-        ["State changes", "Observations", "Symbol"],
-        ascending=[False, False, True],
-    ).reset_index(drop=True)
+    return (
+        frame[columns]
+        .sort_values(
+            ["State changes", "Observations", "Symbol"],
+            ascending=[False, False, True],
+        )
+        .reset_index(drop=True)
+    )
