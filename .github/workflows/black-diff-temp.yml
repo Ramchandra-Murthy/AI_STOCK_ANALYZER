@@ -1,0 +1,16 @@
+name: Temporary Black Diff
+
+on:
+  pull_request:
+
+jobs:
+  black-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --locked --no-build --no-install-project
+      - run: uv run --locked --no-sync --no-build black --diff --exclude '(^|/)(\.venv|venv|archive|backup_before_v2)/' .
