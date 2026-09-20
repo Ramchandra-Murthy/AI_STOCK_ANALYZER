@@ -1487,8 +1487,8 @@ def show() -> None:
                                                 regime_history,
                                             )
                                         )
-                                        regime_dashboard_snapshot = build_eros_regime_dashboard_snapshot(
-                                            regime_history
+                                        regime_dashboard_snapshot = (
+                                            build_eros_regime_dashboard_snapshot(regime_history)
                                         )
                                         if not regime_dashboard_snapshot.empty:
                                             st.subheader("🧭 EROS Regime Dashboard Snapshot")
@@ -1504,9 +1504,9 @@ def show() -> None:
                                             )
                                             st.download_button(
                                                 "Download EROS regime snapshot CSV",
-                                                regime_dashboard_snapshot.to_csv(index=False).encode(
-                                                    "utf-8"
-                                                ),
+                                                regime_dashboard_snapshot.to_csv(
+                                                    index=False
+                                                ).encode("utf-8"),
                                                 file_name="eros_regime_dashboard_snapshot.csv",
                                                 mime="text/csv",
                                                 key="download_eros_regime_dashboard_snapshot",
