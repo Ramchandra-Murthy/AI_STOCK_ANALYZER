@@ -38,11 +38,12 @@ def show_market_overview():
     if observed_times:
         latest_observed = max(observed_times, key=lambda value: pd.Timestamp(value))
         status = describe_market_status(latest_observed)
-        st.info(f"**{status['label']}**\n\n{status['message']}")
+        st.info(f"**{status['label']}**
+
+{status['message']}")
     else:
         st.warning(
-            "Market status cannot be determined because observation timestamps "
-            "are unavailable."
+            "Market status cannot be determined because observation timestamps " "are unavailable."
         )
 
     # Show three readable index cards per row.
