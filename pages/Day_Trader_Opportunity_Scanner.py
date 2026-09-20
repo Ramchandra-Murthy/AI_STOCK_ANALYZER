@@ -102,7 +102,7 @@ else:
             "reference levels; it is not a prediction of future price movement."
         )
         metrics = st.columns(min(4, len(state_counts)))
-        for column, (state, count) in zip(metrics, state_counts.head(4).items()):
+        for column, (state, count) in zip(metrics, state_counts.head(4).items(), strict=False):
             column.metric(str(state), int(count))
     preferred_columns = [
         "Symbol",
