@@ -4,8 +4,9 @@ import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
-from services.intraday_quality_dashboard import dashboard_summary
+from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
+from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
@@ -135,6 +136,39 @@ else:
     if exclude_flagged and "Safety flags" in results.columns:
         results = results[results["Safety flags"].fillna("").eq("")].copy()
 
+    filter_left, filter_mid, filter_right = st.columns(3)
+    with filter_left:
+        live_direction = st.selectbox(
+            "Live direction filter",
+            ["All", "LONG", "SHORT", "NEUTRAL"],
+        )
+    with filter_mid:
+        live_state_options = ["All"]
+        if "Plan state" in results.columns:
+            live_state_options.extend(sorted(results["Plan state"].dropna().astype(str).unique()))
+        live_state = st.selectbox("Live setup-state filter", live_state_options)
+    with filter_right:
+        live_exchange_options = ["All"]
+        if "Exchange" in results.columns:
+            live_exchange_options.extend(sorted(results["Exchange"].dropna().astype(str).unique()))
+        live_exchange = st.selectbox("Live exchange filter", live_exchange_options)
+    minimum_live_score = st.slider(
+        "Minimum composite score",
+        0.0,
+        100.0,
+        0.0,
+        5.0,
+        help="Filters the latest scan; it does not create a new score or predict returns.",
+    )
+    filtered_results = filter_intraday_candidates(
+        results,
+        direction=live_direction,
+        setup_state=live_state,
+        exchange=live_exchange,
+        minimum_score=minimum_live_score,
+        limit=limit,
+    )
+
     st.subheader("Intraday quality dashboard")
     st.caption(
         "Consolidated session metrics from the observed setup history. "
@@ -144,8 +178,8 @@ else:
 
     st.subheader("Current opportunity candidates")
     state_counts = (
-        results["Plan state"].value_counts()
-        if "Plan state" in results.columns
+        filtered_results["Plan state"].value_counts()
+        if "Plan state" in filtered_results.columns
         else pd.Series(dtype="int64")
     )
     if not state_counts.empty:
@@ -186,17 +220,17 @@ else:
         "Strategy breakdown",
         "Liquidity",
     ]
-    if results.empty:
+    if filtered_results.empty:
         st.warning(
-            "All scanned candidates were removed by the surveillance safety filter. "
+            "No candidates match the current live filters. "
             "Uncheck the filter only if you intend to review the flagged names separately."
         )
     else:
         display_columns = [column for column in preferred_columns if column in results.columns]
-        st.dataframe(results[display_columns], use_container_width=True, hide_index=True)
+        st.dataframe(filtered_results[display_columns], use_container_width=True, hide_index=True)
     st.download_button(
         "Download opportunity CSV",
-        results.to_csv(index=False).encode("utf-8"),
+        filtered_results.to_csv(index=False).encode("utf-8"),
         file_name="day_trader_opportunities.csv",
         mime="text/csv",
     )
