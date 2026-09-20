@@ -262,3 +262,32 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
         "R:R T2": 2.0,
         "R:R T3": 3.0,
     }
+
+
+
+def classify_day_trade_plan_state(
+    strategy: dict[str, Any], plan: dict[str, Any]
+) -> str:
+    """Classify the current setup against its reference levels."""
+    if not plan.get("Entry reference") or not plan.get("Stop reference"):
+        return "NO TRADE PLAN"
+
+    close = float(strategy.get("Close", 0) or 0)
+    entry = float(plan["Entry reference"])
+    stop = float(plan["Stop reference"])
+    direction = "LONG" if "LONG" in str(plan.get("Plan", "")) else "SHORT"
+
+    if close <= 0:
+        return "NO TRADE PLAN"
+
+    if direction == "LONG":
+        if close <= stop:
+            return "INVALIDATED"
+        if close >= entry:
+            return "TRIGGERED / ABOVE REFERENCE"
+        return "WAITING FOR REFERENCE"
+    if close >= stop:
+        return "INVALIDATED"
+    if close <= entry:
+        return "TRIGGERED / BELOW REFERENCE"
+    return "WAITING FOR REFERENCE"
