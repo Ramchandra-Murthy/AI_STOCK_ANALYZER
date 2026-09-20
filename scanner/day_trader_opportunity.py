@@ -200,6 +200,33 @@ def scan_day_trader_opportunities(
                     strategy_rvol = strategy["RVOL"]
                     strategy_breakout = strategy["Breakout"]
                     strategy_breakdown = strategy["Breakdown"]
+                    direction = (
+                        "LONG"
+                        if strategy["Long setup score"] > strategy["Short setup score"]
+                        else "SHORT"
+                        if strategy["Short setup score"] > strategy["Long setup score"]
+                        else "NEUTRAL"
+                    )
+                    evidence = []
+                    if trend != "MIXED":
+                        evidence.append(trend)
+                    if vwap_relation in {"ABOVE", "BELOW"}:
+                        evidence.append(f"VWAP {vwap_relation}")
+                    if ema_alignment in {"BULLISH", "BEARISH"}:
+                        evidence.append(f"EMA {ema_alignment}")
+                    if strategy_rvol >= 1.5:
+                        evidence.append("RVOL CONFIRMED")
+                    if strategy_breakout == "YES":
+                        evidence.append("BREAKOUT")
+                    if strategy_breakdown == "YES":
+                        evidence.append("BREAKDOWN")
+                    if direction == "LONG" and strategy["Long setup score"] >= 70:
+                        setup_state = "LONG SETUP WATCH"
+                    elif direction == "SHORT" and strategy["Short setup score"] >= 70:
+                        setup_state = "SHORT SETUP WATCH"
+                    else:
+                        setup_state = "CONTEXT ONLY"
+                    evidence_text = " • ".join(evidence) if evidence else "No strong confirmation"
                     orb_high = strategy["ORB high"]
                     orb_low = strategy["ORB low"]
 
@@ -220,6 +247,9 @@ def scan_day_trader_opportunities(
                             "Session range %": round(session_range, 2),
                             "Breakout": "YES" if breakout else "—",
                             "Day-trading setup": strategy_name,
+                            "Direction": direction,
+                            "Setup state": setup_state,
+                            "Evidence": evidence_text,
                             "Setup score": setup_score,
                             "Trend": trend,
                             "VWAP": vwap_relation,
