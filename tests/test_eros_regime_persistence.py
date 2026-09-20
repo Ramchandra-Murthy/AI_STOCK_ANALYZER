@@ -36,13 +36,13 @@ def test_summarizes_regime_persistence():
     assert balanced["Average_Run_Snapshots"] == 1.5
     assert balanced["Maximum_Run_Snapshots"] == 2
     assert balanced["Average_Duration_Minutes"] == 2.5
-    assert balanced["Current Run"] is True
+    assert balanced["Current Run"] == True
     assert balanced["Current Run Snapshots"] == 1
 
     assert rising["Runs"] == 1
     assert rising["Maximum_Run_Snapshots"] == 3
     assert rising["Maximum_Duration_Minutes"] == 10.0
-    assert rising["Current Run"] is False
+    assert rising["Current Run"] == False
 
     assert balanced["Overall Continuation %"] == 60.0
 
