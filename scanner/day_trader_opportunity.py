@@ -12,6 +12,11 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
+from scanner.surveillance import (
+    apply_safety_filter,
+    fetch_nse_safety_snapshot,
+    liquidity_warning,
+)
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 CHUNK_SIZE = 10
@@ -198,6 +203,7 @@ def scan_day_trader_opportunities(
                             "Breakout": "YES" if breakout else "—",
                             "Low-price flag": "YES" if low_price else "—",
                             "Latest candle": str(data.index[-1]),
+                            "Liquidity": liquidity_warning(price, latest_volume),
                         }
                     )
                 except (KeyError, TypeError, ValueError, IndexError):
@@ -211,4 +217,9 @@ def scan_day_trader_opportunities(
     result["Screen"] = result["Low-price flag"].map(
         {"YES": f"Low-price <= ₹{max_price:g}", "—": "Momentum"}
     )
+
+    nse_symbols = result.loc[result["Exchange"].eq("NSE"), "Symbol"].tolist()
+    safety, _ = fetch_nse_safety_snapshot(nse_symbols)
+    result = apply_safety_filter(result, safety, exclude_flagged=False)
+
     return result.head(max(1, min(int(limit), 100))).reset_index(drop=True)
