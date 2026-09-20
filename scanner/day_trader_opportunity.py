@@ -24,6 +24,24 @@ from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 CHUNK_SIZE = 10
 
 
+def select_day_trader_universe(
+    cap_category: str = "All caps",
+    exchange_category: str = "Both",
+) -> list[tuple[str, str]]:
+    """Return the configured candidate universe for the selected filters."""
+    if cap_category not in {"All caps", *CAP_UNIVERSES}:
+        return []
+    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
+    if cap_category == "All caps":
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
+            (symbol, "BSE") for symbol in BSE_CANDIDATES
+        ]
+    else:
+        selected = CAP_UNIVERSES[cap_category]
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
+    return [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+
+
 def _ticker(symbol: str, exchange: str) -> str:
     cleaned = str(symbol).strip().upper()
     suffix = ".NS" if exchange == "NSE" else ".BO"
@@ -105,15 +123,7 @@ def scan_day_trader_opportunities(
     ):
         return pd.DataFrame()
 
-    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
-    if cap_category == "All caps":
-        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
-            (symbol, "BSE") for symbol in BSE_CANDIDATES
-        ]
-    else:
-        selected = CAP_UNIVERSES[cap_category]
-        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
-    universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    universe = select_day_trader_universe(cap_category, exchange_category)
 
     candle_minutes = 1 if lookback_minutes in (2, 3) else 5
     interval = f"{candle_minutes}m"
