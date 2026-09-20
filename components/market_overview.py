@@ -36,10 +36,7 @@ def show_market_overview():
             observed_times.append(observed_at)
 
     if observed_times:
-        latest_observed = max(
-            observed_times,
-            key=lambda value: pd.Timestamp(value),
-        )
+        latest_observed = max(observed_times, key=lambda value: pd.Timestamp(value))
         status = describe_market_status(latest_observed)
         st.info(f"**{status['label']}**\n\n{status['message']}")
     else:
