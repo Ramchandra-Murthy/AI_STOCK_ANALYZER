@@ -51,22 +51,14 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
 
     result = rows.copy()
-    momentum = (
-        result["5-min change %"].clip(lower=0) / 2.0 * 35
-    ).clip(upper=35)
-    volume = (
-        (result["Volume surge x"] - 1.0).clip(lower=0) / 2.0 * 30
-    ).clip(upper=30)
-    volatility = (
-        result["Session range %"].clip(lower=0) / 4.0 * 20
-    ).clip(upper=20)
+    momentum = (result["5-min change %"].clip(lower=0) / 2.0 * 35).clip(upper=35)
+    volume = ((result["Volume surge x"] - 1.0).clip(lower=0) / 2.0 * 30).clip(upper=30)
+    volatility = (result["Session range %"].clip(lower=0) / 4.0 * 20).clip(upper=20)
     breakout = result["Breakout"].eq("YES").astype(float) * 15
     result["Opportunity score"] = (momentum + volume + volatility + breakout).round(1)
 
     setup_score = result.get("Setup score", result["Opportunity score"])
-    result["Composite score"] = (
-        result["Opportunity score"] * 0.6 + setup_score * 0.4
-    ).round(1)
+    result["Composite score"] = (result["Opportunity score"] * 0.6 + setup_score * 0.4).round(1)
 
     result["Setup"] = "Momentum watch"
     result.loc[
@@ -110,9 +102,7 @@ def scan_day_trader_opportunities(
     ):
         return pd.DataFrame()
 
-    exchanges = (
-        ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
-    )
+    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
         (symbol, "BSE") for symbol in BSE_CANDIDATES
     ]
@@ -124,11 +114,7 @@ def scan_day_trader_opportunities(
     rows: list[dict[str, Any]] = []
 
     for exchange in exchanges:
-        tickers = [
-            _ticker(symbol, exchange)
-            for symbol, venue in universe
-            if venue == exchange
-        ]
+        tickers = [_ticker(symbol, exchange) for symbol, venue in universe if venue == exchange]
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
             try:
@@ -162,28 +148,20 @@ def scan_day_trader_opportunities(
                         continue
 
                     change = (price / prior - 1.0) * 100.0
-                    baseline = float(
-                        volume.iloc[-min(21, len(volume) - 1) : -1].median()
-                    )
+                    baseline = float(volume.iloc[-min(21, len(volume) - 1) : -1].median())
                     latest_volume = float(volume.iloc[-1])
                     volume_surge = latest_volume / baseline if baseline > 0 else 0.0
 
                     session_date = data.index[-1].date()
                     session_mask = [stamp.date() == session_date for stamp in data.index]
                     session = data.loc[session_mask]
-                    session_high = float(
-                        pd.to_numeric(session["High"], errors="coerce").max()
-                    )
-                    session_low = float(
-                        pd.to_numeric(session["Low"], errors="coerce").min()
-                    )
+                    session_high = float(pd.to_numeric(session["High"], errors="coerce").max())
+                    session_low = float(pd.to_numeric(session["Low"], errors="coerce").min())
                     session_range = (
                         (session_high - session_low) / price * 100.0 if price > 0 else 0.0
                     )
 
-                    prior_highs = (
-                        high.iloc[-21:-1] if len(high) >= 21 else high.iloc[:-1]
-                    )
+                    prior_highs = high.iloc[-21:-1] if len(high) >= 21 else high.iloc[:-1]
                     breakout = len(prior_highs) > 0 and price > float(prior_highs.max())
 
                     strategy = analyze_day_trade_setup(
@@ -208,10 +186,7 @@ def scan_day_trader_opportunities(
                     orb_high = strategy["ORB high"]
                     orb_low = strategy["ORB low"]
 
-                    if (
-                        change < min_change_percent
-                        or volume_surge < min_volume_surge
-                    ):
+                    if change < min_change_percent or volume_surge < min_volume_surge:
                         continue
                     low_price = price <= max_price
                     if low_price_only and not low_price:
@@ -253,9 +228,7 @@ def scan_day_trader_opportunities(
         {"YES": f"Low-price <= ₹{max_price:g}", "—": "Momentum"}
     )
 
-    nse_symbols = result.loc[
-        result["Exchange"].eq("NSE"), "Symbol"
-    ].tolist()
+    nse_symbols = result.loc[result["Exchange"].eq("NSE"), "Symbol"].tolist()
     safety, _ = fetch_nse_safety_snapshot(nse_symbols)
     result = apply_safety_filter(result, safety, exclude_flagged=False)
 
