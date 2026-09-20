@@ -15,9 +15,7 @@ def test_records_price_change_for_same_setup_state():
     first = record_setup_outcomes({}, results, first_time)
     second = record_setup_outcomes(
         first,
-        pd.DataFrame(
-            {"Symbol": ["RELIANCE"], "Plan state": ["TRIGGERED"], "Price": [102.0]}
-        ),
+        pd.DataFrame({"Symbol": ["RELIANCE"], "Plan state": ["TRIGGERED"], "Price": [102.0]}),
         second_time,
     )
 
