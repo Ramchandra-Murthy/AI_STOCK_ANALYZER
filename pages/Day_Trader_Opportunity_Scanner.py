@@ -83,7 +83,7 @@ else:
         observed = pd.to_datetime(results["Latest candle"], errors="coerce").dropna()
         if not observed.empty:
             status = describe_market_status(observed.max())
-            st.info(f"**{status[\"label\"]}**  \\n{status[\"message\"]}")
+            st.info(f"**{status['label']}**\\n\\n{status['message']}")
     if exclude_flagged and "Safety flags" in results.columns:
         results = results[results["Safety flags"].fillna("").eq("")].copy()
 
