@@ -21,9 +21,7 @@ def analyze_eros_regime_breadth(history: pd.DataFrame | None) -> pd.DataFrame:
 
     frame = history.loc[:, list(REQUIRED_COLUMNS)].copy()
     frame["Timestamp"] = pd.to_datetime(frame["Timestamp"], errors="coerce")
-    frame["Rising Breadth %"] = pd.to_numeric(
-        frame["Rising Breadth %"], errors="coerce"
-    )
+    frame["Rising Breadth %"] = pd.to_numeric(frame["Rising Breadth %"], errors="coerce")
     frame["Average Trend Confidence %"] = pd.to_numeric(
         frame["Average Trend Confidence %"], errors="coerce"
     )

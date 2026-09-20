@@ -6,9 +6,7 @@ from scanner.eros_regime_breadth import analyze_eros_regime_breadth
 def _history():
     return pd.DataFrame(
         {
-            "Timestamp": pd.date_range(
-                "2026-09-20 09:15", periods=6, freq="5min"
-            ),
+            "Timestamp": pd.date_range("2026-09-20 09:15", periods=6, freq="5min"),
             "Regime": [
                 "RISING DOMINANT",
                 "RISING DOMINANT",

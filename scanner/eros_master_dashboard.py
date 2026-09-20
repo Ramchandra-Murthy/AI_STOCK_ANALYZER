@@ -145,15 +145,15 @@ def build_eros_master_dashboard(
         current_breadth = regime_breadth[regime_breadth["Regime"] == current_regime]
         if not current_breadth.empty:
             breadth_row = current_breadth.iloc[-1]
-            summary_values["Current Regime Average Rising Breadth %"] = (
-                breadth_row["Average_Rising_Breadth"]
-            )
-            summary_values["Current Regime Average Falling Breadth %"] = (
-                breadth_row["Average Falling Breadth"]
-            )
-            summary_values["Current Regime Average Trend Confidence %"] = (
-                breadth_row["Average_Trend_Confidence"]
-            )
+            summary_values["Current Regime Average Rising Breadth %"] = breadth_row[
+                "Average_Rising_Breadth"
+            ]
+            summary_values["Current Regime Average Falling Breadth %"] = breadth_row[
+                "Average Falling Breadth"
+            ]
+            summary_values["Current Regime Average Trend Confidence %"] = breadth_row[
+                "Average_Trend_Confidence"
+            ]
 
     summary = pd.DataFrame([summary_values])
     return summary, signal.sort_values(
