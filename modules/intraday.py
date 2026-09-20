@@ -13,12 +13,12 @@ from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
 from scanner.eros_fusion_trend import analyze_eros_fusion_trend
 from scanner.eros_master_dashboard import build_eros_master_dashboard
 from scanner.eros_multi_window_trend import analyze_eros_multi_window_trend
+from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_history import (
     append_eros_regime_snapshot,
     summarize_eros_regime_history,
 )
 from scanner.eros_regime_momentum import analyze_eros_regime_momentum
-from scanner.eros_regime_duration import analyze_eros_regime_duration
 from scanner.eros_regime_stability import analyze_eros_regime_stability
 from scanner.eros_regime_transitions import analyze_eros_regime_transitions
 from scanner.eros_signal_lifecycle import analyze_eros_signal_lifecycle
