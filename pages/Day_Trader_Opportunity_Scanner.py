@@ -6,7 +6,10 @@ import streamlit as st
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_health import assess_scan_health
-from services.intraday_health_history import health_history_frame, record_health_observation
+from services.intraday_health_history import (
+    health_history_frame,
+    record_health_observation,
+)
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
