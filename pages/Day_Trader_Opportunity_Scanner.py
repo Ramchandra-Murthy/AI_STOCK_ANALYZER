@@ -5,6 +5,7 @@ import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_dynamic_filter import filter_intraday_candidates
+from services.intraday_health import assess_scan_health
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
@@ -136,6 +137,18 @@ raw_results = st.session_state.get("day_trader_opportunities")
 last_scan_at = st.session_state.get("intraday_last_scan_at")
 if last_scan_at is not None:
     st.caption(f"Last scan: {pd.Timestamp(last_scan_at).strftime('%d %b %Y, %H:%M:%S IST')}")
+
+health = assess_scan_health(
+    raw_results,
+    pd.Timestamp(last_scan_at).to_pydatetime() if last_scan_at is not None else None,
+)
+if health["status"] == "HEALTHY":
+    st.success(f"Data health: {health['message']}")
+elif health["status"] == "STALE":
+    st.warning(f"Data health: {health['message']} Re-scan before reviewing candidates.")
+elif health["status"] != "NO_SCAN":
+    st.warning(f"Data health: {health['message']}")
+
 if raw_results is None:
     st.info("Run a scan during market hours to populate the opportunity table.")
 elif raw_results.empty:
