@@ -6,6 +6,9 @@ import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from scanner.price_jump import scan_price_jumps
+from scanner.price_jump_history import append_price_jump_snapshot
+from scanner.price_jump_history_analytics import summarize_price_jump_history
 from services.intraday_alert_engine import (
     alert_history_frame,
     append_alert_history,
@@ -244,6 +247,120 @@ if exchange_pulse.empty:
     st.caption("Run a scan with both exchanges selected to populate the exchange pulse.")
 else:
     st.dataframe(exchange_pulse, use_container_width=True, hide_index=True)
+price_jump_col, price_jump_status = st.columns([4, 1])
+with price_jump_col:
+    st.subheader("⚡ Intraday Price-Jump Pulse")
+    st.caption(
+        "Scans the maintained NSE/BSE candidate universe for short-window price jumps and relative volume. "
+        "This is a retrospective screen using Yahoo Finance candles, not a tick-level alert or trade instruction."
+    )
+with price_jump_status:
+    if st.session_state.get("price_jump_scan_time"):
+        st.caption(f"Last pulse: {st.session_state['price_jump_scan_time']}")
+
+jump_left, jump_mid, jump_right, jump_action = st.columns(4)
+with jump_left:
+    jump_exchange = st.selectbox(
+        "Pulse exchange",
+        ["Both", "NSE", "BSE"],
+        format_func=lambda value: "NSE + BSE" if value == "Both" else value,
+        key="pulse_exchange",
+    )
+with jump_mid:
+    jump_cap = st.selectbox(
+        "Pulse market-cap basket",
+        ["All caps", "Large cap", "Mid cap", "Small cap"],
+        key="pulse_cap",
+    )
+with jump_right:
+    jump_window = st.selectbox(
+        "Pulse window",
+        [2, 3, 5, 10],
+        index=2,
+        format_func=lambda value: f"{value} minutes",
+        key="pulse_window",
+    )
+with jump_action:
+    jump_threshold = st.selectbox(
+        "Minimum jump",
+        [0.5, 1.0, 1.5, 2.0],
+        index=1,
+        format_func=lambda value: f"{value:.1f}%",
+        key="pulse_threshold",
+    )
+
+pulse_scan = st.button("Run Price-Jump Pulse", type="primary", key="run_price_jump_pulse")
+if pulse_scan:
+    with st.spinner(
+        f"Scanning {jump_exchange} · {jump_cap.lower()} · {jump_window}-minute price jumps…"
+    ):
+        try:
+            pulse_results = scan_price_jumps(
+                limit=30,
+                cap_category=jump_cap,
+                exchange_category=jump_exchange,
+                lookback_minutes=jump_window,
+                jump_percent=jump_threshold,
+            )
+            pulse_at = pd.Timestamp.now(tz="Asia/Kolkata")
+            st.session_state["price_jump_results"] = pulse_results
+            st.session_state["price_jump_scan_time"] = pulse_at.strftime("%d %b %Y, %H:%M:%S IST")
+            st.session_state["price_jump_scan_stats"] = pulse_results.attrs.get("scan_stats", {})
+            st.session_state["price_jump_history"] = append_price_jump_snapshot(
+                st.session_state.get("price_jump_history"),
+                pulse_at.to_pydatetime(),
+                pulse_results,
+            )
+        except Exception as exc:
+            st.error(f"Price-jump pulse could not complete: {exc}")
+
+pulse_results = st.session_state.get("price_jump_results")
+if pulse_results is None:
+    st.info("Run the Price-Jump Pulse during market hours to populate short-window momentum candidates.")
+elif pulse_results.empty:
+    st.info(
+        "No candidates met the selected threshold, or the provider returned insufficient candles. "
+        "Try a lower threshold or another window during market hours."
+    )
+else:
+    pulse_columns = [
+        column
+        for column in [
+            "Symbol",
+            "Exchange",
+            "Market-cap basket",
+            "Last price",
+            f"Change over {st.session_state.get('pulse_window', 5)} min %",
+            "Volume vs recent bars",
+            "Latest candle (provider time)",
+        ]
+        if column in pulse_results.columns
+    ]
+    st.dataframe(pulse_results[pulse_columns], use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download price-jump pulse CSV",
+        pulse_results.to_csv(index=False).encode("utf-8"),
+        file_name="intraday_price_jump_pulse.csv",
+        mime="text/csv",
+        key="download_intraday_price_jump_pulse",
+    )
+
+pulse_stats = st.session_state.get("price_jump_scan_stats", {})
+if pulse_stats:
+    st.caption(
+        f"Candidates checked: {pulse_stats.get('candidate_count', 0)} · "
+        f"Usable candles: {pulse_stats.get('usable_count', 0)} · "
+        f"Matches before limit: {pulse_stats.get('matches_before_limit', 0)} · "
+        f"Interval: {pulse_stats.get('interval', '—')}"
+    )
+
+price_jump_history = st.session_state.get("price_jump_history")
+if price_jump_history is not None and not price_jump_history.empty:
+    pulse_history = summarize_price_jump_history(price_jump_history)
+    if not pulse_history.empty:
+        st.caption("Repeated observations in this Streamlit session show price-jump persistence by symbol and exchange.")
+        st.dataframe(pulse_history.head(20), use_container_width=True, hide_index=True)
+
 snapshots = snapshot_frame(st.session_state.get("intraday_scan_snapshots", []))
 st.subheader("Intraday scan history")
 st.caption(
