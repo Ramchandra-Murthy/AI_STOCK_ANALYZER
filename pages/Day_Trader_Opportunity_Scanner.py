@@ -485,7 +485,7 @@ else:
     )
 
 if auto_refresh:
-    @st.fragment(run_every=refresh_interval)
+    @st.fragment(run_every=30)
     def intraday_auto_refresh_fragment():
         last_scan = st.session_state.get("intraday_last_scan_at")
         remaining = next_refresh_seconds(last_scan, refresh_interval)
