@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-# fmt: off
-
 
 def trade_performance_frame(history: list[dict] | None) -> pd.DataFrame:
     """Return journal rows with realized R multiple where available."""
