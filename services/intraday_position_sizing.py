@@ -1,5 +1,7 @@
 """Descriptive position-sizing calculations for intraday planning."""
 
+# fmt: off
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -61,3 +63,5 @@ def calculate_position_size(
         planned_reward=round(planned_reward, 2),
         planned_rr=round(planned_rr, 2) if planned_rr is not None else None,
     )
+
+# fmt: on
