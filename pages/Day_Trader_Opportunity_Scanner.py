@@ -483,6 +483,7 @@ else:
         "latest available REG_IND archive; BSE candidates require a separate exchange check."
     )
 
+# fmt: off
 if auto_refresh:
     @st.fragment(run_every=30)
     def intraday_auto_refresh_fragment():
@@ -497,6 +498,7 @@ if auto_refresh:
             st.rerun()
 
     intraday_auto_refresh_fragment()
+# fmt: on
 
 st.divider()
 st.subheader("Risk and data checks")
