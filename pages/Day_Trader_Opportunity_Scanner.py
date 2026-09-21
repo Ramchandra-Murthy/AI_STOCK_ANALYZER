@@ -9,13 +9,7 @@ from services.intraday_alert_engine import (
     append_alert_history,
     detect_intraday_alerts,
 )
-from services.intraday_auto_refresh import (
-    ALLOWED_REFRESH_SECONDS,
-    DEFAULT_REFRESH_SECONDS,
-    market_is_open,
-    next_refresh_seconds,
-    refresh_label,
-)
+from services.intraday_auto_refresh import ALLOWED_REFRESH_SECONDS, DEFAULT_REFRESH_SECONDS
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_health import assess_scan_health
 from services.intraday_health_history import (
@@ -26,11 +20,11 @@ from services.intraday_multi_window import multi_window_frame, record_multi_wind
 from services.intraday_position_sizing import calculate_position_size
 from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
+from services.intraday_scan_snapshot import record_scan_snapshot, snapshot_frame
 from services.intraday_session import reset_intraday_session
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
-from services.intraday_scan_snapshot import record_scan_snapshot, snapshot_frame
 from services.intraday_setup_regime import regime_statistics
 from services.intraday_setup_scorecard import scorecard_frame
 from services.intraday_state_history import (
