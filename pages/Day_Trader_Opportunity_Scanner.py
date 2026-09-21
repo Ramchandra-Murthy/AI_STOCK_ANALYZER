@@ -370,10 +370,6 @@ else:
         5.0,
         help="Filters the latest scan; it does not create a new score or predict returns.",
     )
-    scored_results = scorecard_frame(filtered_results)
-    if not scored_results.empty:
-        filtered_results = scored_results
-
     filtered_results = filter_intraday_candidates(
         results,
         direction=live_direction,
@@ -382,6 +378,9 @@ else:
         minimum_score=minimum_live_score,
         limit=limit,
     )
+    scored_results = scorecard_frame(filtered_results)
+    if not scored_results.empty:
+        filtered_results = scored_results
 
     risk_results = risk_plan_frame(
         filtered_results,
