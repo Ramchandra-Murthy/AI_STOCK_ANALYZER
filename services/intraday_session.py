@@ -11,6 +11,7 @@ SESSION_KEYS = (
     "intraday_setup_outcomes",
     "intraday_multi_window_outcomes",
     "intraday_state_transitions",
+    "intraday_alert_history",
 )
 
 
