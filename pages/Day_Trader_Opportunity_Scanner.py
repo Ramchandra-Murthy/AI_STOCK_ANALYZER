@@ -202,7 +202,9 @@ elif health["status"] != "NO_SCAN":
 market_regime = st.session_state.get("intraday_market_regime", {})
 if market_regime:
     st.subheader("Observed intraday market regime")
-    st.caption("Descriptive breadth and volume context from the latest completed scan; not a forecast.")
+    st.caption(
+        "Descriptive breadth and volume context from the latest completed scan; not a forecast."
+    )
     st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
 
 alert_history = alert_history_frame(st.session_state.get("intraday_alert_history", []))
