@@ -694,22 +694,7 @@ else:
         "latest available REG_IND archive; BSE candidates require a separate exchange check."
     )
 
-# fmt: off
-if auto_refresh:
-    @st.fragment(run_every=30)
-    def intraday_auto_refresh_fragment():
-        last_scan = st.session_state.get("intraday_last_scan_at")
-        remaining = next_refresh_seconds(last_scan, refresh_interval)
-        if not market_is_open():
-            st.info("Auto-refresh paused: NSE market is closed.")
-            return
-        st.caption(f"🔄 Auto-refresh active • next scan in {refresh_label(remaining)}")
-        if remaining <= 0:
-            st.session_state["intraday_auto_refresh_pending"] = True
-            st.rerun()
 
-    intraday_auto_refresh_fragment()
-# fmt: on
 
 st.divider()
 st.subheader("Risk and data checks")
