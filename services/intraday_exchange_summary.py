@@ -10,7 +10,6 @@ from typing import Any
 
 import pandas as pd
 
-
 SUMMARY_COLUMNS = [
     "Exchange",
     "Candidates",
