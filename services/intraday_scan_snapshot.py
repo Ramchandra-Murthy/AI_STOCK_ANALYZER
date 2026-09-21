@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+# fmt: off
+
 from datetime import datetime
 from typing import Any
 
