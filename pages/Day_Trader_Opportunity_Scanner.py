@@ -9,7 +9,10 @@ from services.intraday_alert_engine import (
     append_alert_history,
     detect_intraday_alerts,
 )
-from services.intraday_auto_refresh import ALLOWED_REFRESH_SECONDS, DEFAULT_REFRESH_SECONDS
+from services.intraday_auto_refresh import (
+    ALLOWED_REFRESH_SECONDS,
+    DEFAULT_REFRESH_SECONDS,
+)
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_health import assess_scan_health
 from services.intraday_health_history import (
