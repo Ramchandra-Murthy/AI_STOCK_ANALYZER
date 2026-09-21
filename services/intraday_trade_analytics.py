@@ -49,7 +49,9 @@ def setup_performance(history: list[dict] | None) -> pd.DataFrame:
     """Group realized journal results by setup."""
     frame = trade_performance_frame(history)
     if frame.empty or "Setup" not in frame.columns:
-        return pd.DataFrame(columns=["Setup", "Trades", "Closed", "Win rate %", "Net PnL", "Average R"])
+        return pd.DataFrame(
+            columns=["Setup", "Trades", "Closed", "Win rate %", "Net PnL", "Average R"]
+        )
     frame["PnL"] = pd.to_numeric(frame["PnL"], errors="coerce")
     rows = []
     for setup, group in frame.groupby("Setup", dropna=False):
@@ -70,7 +72,9 @@ def side_performance(history: list[dict] | None) -> pd.DataFrame:
     """Group realized journal results by LONG/SHORT side."""
     frame = trade_performance_frame(history)
     if frame.empty or "Side" not in frame.columns:
-        return pd.DataFrame(columns=["Side", "Trades", "Closed", "Win rate %", "Net PnL", "Average R"])
+        return pd.DataFrame(
+            columns=["Side", "Trades", "Closed", "Win rate %", "Net PnL", "Average R"]
+        )
     frame["PnL"] = pd.to_numeric(frame["PnL"], errors="coerce")
     rows = []
     for side, group in frame.groupby("Side", dropna=False):
