@@ -6,6 +6,7 @@ import streamlit as st
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_health import assess_scan_health
+from services.intraday_health_history import health_history_frame, record_health_observation
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
@@ -104,7 +105,15 @@ if st.button("Scan now", type="primary"):
         )
     results = results.head(limit).reset_index(drop=True)
     st.session_state["day_trader_opportunities"] = results
-    st.session_state["intraday_last_scan_at"] = pd.Timestamp.now(tz="Asia/Kolkata")
+    scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
+    st.session_state["intraday_last_scan_at"] = scan_at
+    scan_health = assess_scan_health(results, scan_at.to_pydatetime())
+    health_history = st.session_state.get("intraday_health_history", [])
+    st.session_state["intraday_health_history"] = record_health_observation(
+        health_history,
+        scan_health,
+        scan_at.to_pydatetime(),
+    )
     previous_states = st.session_state.get("intraday_setup_states", {})
     updated_states, transitions = record_setup_state_transitions(
         previous_states,
@@ -148,6 +157,25 @@ elif health["status"] == "STALE":
     st.warning(f"Data health: {health['message']} Re-scan before reviewing candidates.")
 elif health["status"] != "NO_SCAN":
     st.warning(f"Data health: {health['message']}")
+
+health_history = health_history_frame(
+    st.session_state.get("intraday_health_history", [])
+)
+st.subheader("Intraday scan health history")
+st.caption(
+    "This session-local history records the descriptive health state of each completed scan. "
+    "It does not assess trade quality or predict market outcomes."
+)
+if health_history.empty:
+    st.caption("No completed scan health observations are available yet.")
+else:
+    st.dataframe(health_history.head(50), use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download scan health history CSV",
+        health_history.to_csv(index=False).encode("utf-8"),
+        file_name="intraday_scan_health_history.csv",
+        mime="text/csv",
+    )
 
 if raw_results is None:
     st.info("Run a scan during market hours to populate the opportunity table.")
