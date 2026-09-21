@@ -1,5 +1,8 @@
 """Helpers for recording intraday scan health history."""
 
+# Ruff I001 is skipped for this stable import layout.
+# ruff: isort: skip_file
+
 from __future__ import annotations
 
 from datetime import datetime
