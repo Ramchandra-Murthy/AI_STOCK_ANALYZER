@@ -3,7 +3,7 @@
 # Ruff's isort check conflicts with Black for this module-level constant layout.
 # Keep Black's required spacing and suppress only the conflicting I001 check.
 # ruff: noqa: I001
- 
+
 from __future__ import annotations
 
 from typing import Any
