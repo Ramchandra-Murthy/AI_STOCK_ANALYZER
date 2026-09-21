@@ -29,12 +29,12 @@ from services.intraday_session import reset_intraday_session
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
-from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
 from services.intraday_setup_regime import regime_statistics
 from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
 )
+from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
 from services.market_status import describe_market_status
 
 st.set_page_config(
