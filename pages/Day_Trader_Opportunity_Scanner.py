@@ -31,6 +31,7 @@ from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
 from services.intraday_setup_regime import regime_statistics
+from services.intraday_setup_scorecard import scorecard_frame
 from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
@@ -369,6 +370,10 @@ else:
         5.0,
         help="Filters the latest scan; it does not create a new score or predict returns.",
     )
+    scored_results = scorecard_frame(filtered_results)
+    if not scored_results.empty:
+        filtered_results = scored_results
+
     filtered_results = filter_intraday_candidates(
         results,
         direction=live_direction,
@@ -494,6 +499,13 @@ else:
         "Direction",
         "Setup state",
         "Composite score",
+        "Setup Total",
+        "Setup Trend",
+        "Setup Volume",
+        "Setup VWAP",
+        "Setup Momentum",
+        "Setup Breakout",
+        "Setup Session",
         "RVOL",
         "Trend",
         "VWAP",
