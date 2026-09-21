@@ -36,6 +36,11 @@ from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
 )
+from services.intraday_trade_analytics import (
+    performance_summary,
+    setup_performance,
+    side_performance,
+)
 from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
 from services.market_status import describe_market_status
 
@@ -288,6 +293,22 @@ else:
         file_name="intraday_trade_journal.csv",
         mime="text/csv",
     )
+
+trade_history = st.session_state.get("intraday_trade_journal", [])
+performance = performance_summary(trade_history)
+setup_stats = setup_performance(trade_history)
+side_stats = side_performance(trade_history)
+
+st.subheader("Trade performance analytics")
+st.caption(
+    "Descriptive statistics from journaled closed trades. They summarize recorded history "
+    "and are not a forecast of future performance."
+)
+st.dataframe(performance, use_container_width=True, hide_index=True)
+if not setup_stats.empty:
+    st.dataframe(setup_stats, use_container_width=True, hide_index=True)
+if not side_stats.empty:
+    st.dataframe(side_stats, use_container_width=True, hide_index=True)
 
 health_history = health_history_frame(st.session_state.get("intraday_health_history", []))
 st.subheader("Intraday scan health history")
