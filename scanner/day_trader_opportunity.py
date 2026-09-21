@@ -253,7 +253,7 @@ def scan_day_trader_opportunities(
                     strategy = analyze_day_trade_setup(
                         session,
                         opening_range_bars=5 if candle_minutes == 1 else 1,
-                        level_lookback=min(20, max(5, len(data) - 1)),
+                        level_lookback=min(20, max(5, len(session) - 1)),
                     )
                     if not strategy:
                         continue
