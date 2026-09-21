@@ -63,7 +63,6 @@ def show_market_overview():
     items = list(data.items())
     _show_market_status(items)
 
-
     # Show three readable index cards per row.
     for start in range(0, len(items), 3):
         row_items = items[start : start + 3]
