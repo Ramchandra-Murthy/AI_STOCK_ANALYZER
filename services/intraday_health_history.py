@@ -1,5 +1,6 @@
 """Helpers for recording intraday scan health history."""
 
+# fmt: off
 from __future__ import annotations  # noqa: I001
 
 from datetime import datetime
@@ -45,3 +46,5 @@ def health_history_frame(history: list[dict[str, Any]]) -> pd.DataFrame:
 
     frame["Observed at"] = pd.to_datetime(frame["Observed at"], errors="coerce")
     return frame[HEALTH_COLUMNS].reset_index(drop=True)
+
+# fmt: on
