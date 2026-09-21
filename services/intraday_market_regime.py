@@ -76,3 +76,33 @@ def classify_market_regime(
         "Latest/median volume x": round(volume_ratio, 2),
         "Average candle range %": round(range_pct, 2),
     }
+
+
+def classify_scan_regime(frame: pd.DataFrame | None) -> dict[str, Any]:
+    """Summarize observed breadth and volume conditions from scanner results."""
+    if frame is None or frame.empty:
+        return {}
+    change = pd.to_numeric(frame.get("5-min change %"), errors="coerce").dropna()
+    volume = pd.to_numeric(frame.get("Volume surge x"), errors="coerce").dropna()
+    if change.empty:
+        return {}
+    average_change = float(change.mean())
+    positive_rate = float((change > 0).mean() * 100)
+    average_volume = float(volume.mean()) if not volume.empty else 0.0
+    if average_change >= 0.5 and positive_rate >= 60:
+        breadth = "BULLISH BREADTH"
+    elif average_change <= -0.5 and positive_rate <= 40:
+        breadth = "BEARISH BREADTH"
+    else:
+        breadth = "MIXED / RANGE BREADTH"
+    volume_state = (
+        "ELEVATED" if average_volume >= 1.5 else "NORMAL" if average_volume >= 0.75 else "QUIET"
+    )
+    return {
+        "Breadth regime": breadth,
+        "Average 5-min change %": round(average_change, 2),
+        "Positive candidates %": round(positive_rate, 2),
+        "Average volume surge x": round(average_volume, 2),
+        "Volume regime": volume_state,
+        "Candidates": int(len(frame)),
+    }
