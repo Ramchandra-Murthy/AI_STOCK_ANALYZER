@@ -8,7 +8,7 @@ from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
-from services.intraday_session import reset_intraday_session, session_counts
+from services.intraday_session import reset_intraday_session
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
