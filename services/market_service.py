@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, time
 from functools import lru_cache
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yfinance as yf
@@ -36,6 +37,10 @@ EXCHANGE_SUFFIXES = {
     "BSE": ".BO",
 }
 
+INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
+MARKET_OPEN = time(9, 15)
+MARKET_CLOSE = time(15, 30)
+
 
 def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
     """Normalize an Indian equity symbol to a Yahoo Finance ticker."""
@@ -49,6 +54,74 @@ def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
 
 
 @lru_cache(maxsize=512)
+def market_session_status(
+    observed_at: str | None,
+    frequency: str = "unknown",
+    now: datetime | None = None,
+) -> dict[str, str | bool | None]:
+    """Describe whether the displayed observation is current for India."""
+    current = now.astimezone(INDIA_TIMEZONE) if now else datetime.now(INDIA_TIMEZONE)
+
+    if not observed_at:
+        return {
+            "status": "DATA UNAVAILABLE",
+            "detail": "No observation timestamp is available.",
+            "is_current_session": False,
+            "is_market_open": MARKET_OPEN <= current.time() < MARKET_CLOSE,
+        }
+
+    try:
+        observed = pd.Timestamp(observed_at)
+        if observed.tzinfo is None:
+            observed = observed.tz_localize(INDIA_TIMEZONE)
+        else:
+            observed = observed.tz_convert(INDIA_TIMEZONE)
+        observed_dt = observed.to_pydatetime()
+    except (TypeError, ValueError):
+        return {
+            "status": "DATA TIMESTAMP UNAVAILABLE",
+            "detail": "The latest observation timestamp could not be parsed.",
+            "is_current_session": False,
+            "is_market_open": False,
+        }
+
+    same_day = observed_dt.date() == current.date()
+    weekend = current.weekday() >= 5
+    market_open = MARKET_OPEN <= current.time() < MARKET_CLOSE
+    intraday = frequency.startswith("intraday")
+
+    if weekend:
+        status = "MARKET CLOSED · WEEKEND"
+        detail = f"Last available data: {observed_dt.strftime('%d %b %Y %H:%M IST')}"
+        current_session = False
+    elif not same_day:
+        status = "MARKET CLOSED · LAST SESSION"
+        detail = f"Last session data: {observed_dt.strftime('%d %b %Y %H:%M IST')}"
+        current_session = False
+    elif market_open and intraday:
+        status = "INTRADAY DATA · TODAY"
+        detail = (
+            "Yahoo Finance intraday observation; not exchange-tick live. "
+            f"Latest candle: {observed_dt.strftime('%H:%M:%S IST')}"
+        )
+        current_session = True
+    elif current.time() < MARKET_OPEN:
+        status = "PRE-MARKET"
+        detail = f"Latest available data: {observed_dt.strftime('%d %b %Y %H:%M IST')}"
+        current_session = False
+    else:
+        status = "MARKET CLOSED · TODAY'S DATA"
+        detail = f"Latest session data: {observed_dt.strftime('%d %b %Y %H:%M IST')}"
+        current_session = same_day
+
+    return {
+        "status": status,
+        "detail": detail,
+        "is_current_session": current_session,
+        "is_market_open": market_open and not weekend,
+    }
+
+
 def get_company_name(ticker: str) -> str:
     """Resolve a human-readable company name, with Yahoo search as fallback."""
     try:
