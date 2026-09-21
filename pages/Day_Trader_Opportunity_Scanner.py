@@ -9,7 +9,10 @@ from services.intraday_alert_engine import (
     append_alert_history,
     detect_intraday_alerts,
 )
-from services.intraday_auto_refresh import ALLOWED_REFRESH_SECONDS, DEFAULT_REFRESH_SECONDS
+from services.intraday_auto_refresh import (
+    ALLOWED_REFRESH_SECONDS,
+    DEFAULT_REFRESH_SECONDS,
+)
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_health import assess_scan_health
 from services.intraday_health_history import (
@@ -140,6 +143,7 @@ if scan_requested or auto_scan_requested:
             low_price_only=low_price_only,
         )
     results = results.head(limit).reset_index(drop=True)
+    scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
     snapshot_history = st.session_state.get("intraday_scan_snapshots", [])
     st.session_state["intraday_scan_snapshots"] = record_scan_snapshot(
         snapshot_history,
@@ -147,7 +151,6 @@ if scan_requested or auto_scan_requested:
         scan_at.to_pydatetime(),
     )
     st.session_state["day_trader_opportunities"] = results
-    scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
     st.session_state["intraday_last_scan_at"] = scan_at
     if previous_results is not None:
         alerts = detect_intraday_alerts(previous_results, results, scan_at.to_pydatetime())
