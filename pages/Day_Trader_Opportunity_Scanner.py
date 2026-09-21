@@ -42,6 +42,8 @@ from services.intraday_trade_analytics import (
 from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
 from services.market_status import describe_market_status
 
+# fmt: off
+
 st.set_page_config(
     page_title="Day-Trader Opportunity Scanner",
     page_icon="⚡",
