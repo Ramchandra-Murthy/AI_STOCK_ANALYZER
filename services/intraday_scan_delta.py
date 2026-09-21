@@ -59,10 +59,10 @@ def snapshot_delta_frame(
                     previous.get("Average volume surge x"),
                 ),
                 "New top symbols": ", ".join(
-                    sorted(current_symbols - previous_symbols)
+                    sorted(current_symbols - previous_symbols),
                 ),
                 "Dropped top symbols": ", ".join(
-                    sorted(previous_symbols - current_symbols)
+                    sorted(previous_symbols - current_symbols),
                 ),
             }
         )
