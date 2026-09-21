@@ -203,7 +203,8 @@ market_regime = st.session_state.get("intraday_market_regime", {})
 if market_regime:
     st.subheader("Observed intraday market regime")
     st.caption(
-        "Descriptive breadth and volume context from the latest completed scan; not a forecast."
+        "Descriptive breadth and volume context from the latest completed scan; "
+        "not a forecast."
     )
     st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
 
