@@ -4,6 +4,11 @@ import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from services.intraday_alert_engine import (
+    alert_history_frame,
+    append_alert_history,
+    detect_intraday_alerts,
+)
 from services.intraday_auto_refresh import (
     ALLOWED_REFRESH_SECONDS,
     DEFAULT_REFRESH_SECONDS,
@@ -119,6 +124,7 @@ scan_requested = st.button("Scan now", type="primary")
 auto_scan_requested = st.session_state.pop("intraday_auto_refresh_pending", False)
 
 if scan_requested or auto_scan_requested:
+    previous_results = st.session_state.get("day_trader_opportunities")
     with st.spinner("Scanning the current NSE+BSE candidate universe…"):
         results = scan_day_trader_opportunities(
             limit=100,
@@ -134,6 +140,10 @@ if scan_requested or auto_scan_requested:
     st.session_state["day_trader_opportunities"] = results
     scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
     st.session_state["intraday_last_scan_at"] = scan_at
+    if previous_results is not None:
+        alerts = detect_intraday_alerts(previous_results, results, scan_at.to_pydatetime())
+        alert_history = st.session_state.get("intraday_alert_history", [])
+        st.session_state["intraday_alert_history"] = append_alert_history(alert_history, alerts)
     scan_health = assess_scan_health(results, scan_at.to_pydatetime())
     health_history = st.session_state.get("intraday_health_history", [])
     st.session_state["intraday_health_history"] = record_health_observation(
@@ -184,6 +194,23 @@ elif health["status"] == "STALE":
     st.warning(f"Data health: {health['message']} Re-scan before reviewing candidates.")
 elif health["status"] != "NO_SCAN":
     st.warning(f"Data health: {health['message']}")
+
+alert_history = alert_history_frame(st.session_state.get("intraday_alert_history", []))
+st.subheader("Intraday change alerts")
+st.caption(
+    "Alerts describe changes between completed scans in this session. "
+    "They are observational notifications, not trade instructions or predictions."
+)
+if alert_history.empty:
+    st.caption("No changes have been detected between scans yet.")
+else:
+    st.dataframe(alert_history.head(100), use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download intraday alert history CSV",
+        alert_history.to_csv(index=False).encode("utf-8"),
+        file_name="intraday_alert_history.csv",
+        mime="text/csv",
+    )
 
 health_history = health_history_frame(st.session_state.get("intraday_health_history", []))
 st.subheader("Intraday scan health history")
