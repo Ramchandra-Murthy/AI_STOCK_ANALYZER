@@ -287,8 +287,6 @@ def scan_day_trader_opportunities(
                     setup_state = strategy_summary["Setup state"]
                     evidence_text = strategy_summary["Evidence"]
 
-                    if change < min_change_percent or volume_surge < min_volume_surge:
-                        continue
                     price_pass = change >= min_change_percent
                     volume_pass = volume_surge >= min_volume_surge
                     if price_pass:
@@ -301,6 +299,7 @@ def scan_day_trader_opportunities(
                     low_price = price <= max_price
                     if low_price:
                         scan_stats["low_price_pass_count"] += 1
+
                     if not price_pass or not volume_pass:
                         continue
                     if low_price_only and not low_price:
