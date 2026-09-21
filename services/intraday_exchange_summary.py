@@ -4,6 +4,7 @@
 # Keep Black's required spacing and suppress only the conflicting I001 check.
 # ruff: noqa: I001
 
+# fmt: off
 from __future__ import annotations
 
 from typing import Any
@@ -18,6 +19,7 @@ SUMMARY_COLUMNS = [
     "Average volume surge x",
     "Positive change %",
 ]
+# fmt: on
 
 
 def exchange_summary(frame: pd.DataFrame | None) -> pd.DataFrame:
