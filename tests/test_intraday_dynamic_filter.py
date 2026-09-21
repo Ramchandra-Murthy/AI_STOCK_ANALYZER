@@ -8,9 +8,33 @@ from services.intraday_dynamic_filter import filter_intraday_candidates
 def test_filters_and_sorts_current_candidates():
     results = pd.DataFrame(
         [
-            {"Symbol": "A", "Direction": "LONG", "Plan state": "TRIGGERED", "Exchange": "NSE", "Composite score": 80, "Opportunity score": 70, "5-min change %": 2},
-            {"Symbol": "B", "Direction": "SHORT", "Plan state": "WATCH", "Exchange": "NSE", "Composite score": 90, "Opportunity score": 80, "5-min change %": 3},
-            {"Symbol": "C", "Direction": "LONG", "Plan state": "TRIGGERED", "Exchange": "BSE", "Composite score": 95, "Opportunity score": 85, "5-min change %": 4},
+            {
+                "Symbol": "A",
+                "Direction": "LONG",
+                "Plan state": "TRIGGERED",
+                "Exchange": "NSE",
+                "Composite score": 80,
+                "Opportunity score": 70,
+                "5-min change %": 2,
+            },
+            {
+                "Symbol": "B",
+                "Direction": "SHORT",
+                "Plan state": "WATCH",
+                "Exchange": "NSE",
+                "Composite score": 90,
+                "Opportunity score": 80,
+                "5-min change %": 3,
+            },
+            {
+                "Symbol": "C",
+                "Direction": "LONG",
+                "Plan state": "TRIGGERED",
+                "Exchange": "BSE",
+                "Composite score": 95,
+                "Opportunity score": 85,
+                "5-min change %": 4,
+            },
         ]
     )
 

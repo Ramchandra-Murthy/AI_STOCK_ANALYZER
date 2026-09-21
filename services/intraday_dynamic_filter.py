@@ -26,8 +26,7 @@ def filter_intraday_candidates(
         filtered = filtered[filtered["Exchange"].eq(exchange)]
     if "Composite score" in filtered.columns:
         filtered = filtered[
-            pd.to_numeric(filtered["Composite score"], errors="coerce").fillna(0)
-            >= minimum_score
+            pd.to_numeric(filtered["Composite score"], errors="coerce").fillna(0) >= minimum_score
         ]
 
     sort_columns = [
