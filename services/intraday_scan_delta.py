@@ -8,7 +8,6 @@ from typing import Any
 
 import pandas as pd
 
-
 DELTA_COLUMNS = [
     "Timestamp",
     "Candidate delta",
