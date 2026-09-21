@@ -31,6 +31,7 @@ from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
 from services.intraday_setup_regime import regime_statistics
+from services.intraday_setup_scorecard import scorecard_frame
 from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
@@ -377,6 +378,9 @@ else:
         minimum_score=minimum_live_score,
         limit=limit,
     )
+    scored_results = scorecard_frame(filtered_results)
+    if not scored_results.empty:
+        filtered_results = scored_results
 
     risk_results = risk_plan_frame(
         filtered_results,
@@ -494,6 +498,13 @@ else:
         "Direction",
         "Setup state",
         "Composite score",
+        "Setup Total",
+        "Setup Trend",
+        "Setup Volume",
+        "Setup VWAP",
+        "Setup Momentum",
+        "Setup Breakout",
+        "Setup Session",
         "RVOL",
         "Trend",
         "VWAP",
@@ -673,22 +684,7 @@ else:
         "latest available REG_IND archive; BSE candidates require a separate exchange check."
     )
 
-# fmt: off
-if auto_refresh:
-    @st.fragment(run_every=30)
-    def intraday_auto_refresh_fragment():
-        last_scan = st.session_state.get("intraday_last_scan_at")
-        remaining = next_refresh_seconds(last_scan, refresh_interval)
-        if not market_is_open():
-            st.info("Auto-refresh paused: NSE market is closed.")
-            return
-        st.caption(f"🔄 Auto-refresh active • next scan in {refresh_label(remaining)}")
-        if remaining <= 0:
-            st.session_state["intraday_auto_refresh_pending"] = True
-            st.rerun()
 
-    intraday_auto_refresh_fragment()
-# fmt: on
 
 st.divider()
 st.subheader("Risk and data checks")
