@@ -26,7 +26,6 @@ st.set_page_config(
 )
 
 st.title("⚡ Day-Trader Opportunity Scanner")
-session_counts_now = session_counts(st.session_state)
 control_left, control_right = st.columns([3, 1])
 with control_left:
     st.caption(
