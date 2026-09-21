@@ -71,13 +71,6 @@ st.caption(
     "It is a screening tool, not a profit predictor or trade instruction."
 )
 
-if exchange == "BSE":
-    st.warning(
-        "Yahoo Finance identifies BSE (.BO) quotes as delayed by 15 minutes. "
-        "NSE (.NS) quotes are listed as real-time. BSE results should therefore "
-        "not be treated as real-time intraday data."
-    )
-
 st.info(
     "The scanner rescans the selected NSE/BSE candidate universe on each run. "
     "Results can change as intraday price, volume and setup conditions change. "
@@ -105,6 +98,14 @@ with right:
         index=2,
         format_func=lambda value: f"₹{value:g}",
     )
+
+if exchange == "BSE":
+    st.warning(
+        "Yahoo Finance identifies BSE (.BO) quotes as delayed by 15 minutes. "
+        "NSE (.NS) quotes are listed as real-time. BSE results should therefore "
+        "not be treated as real-time intraday data."
+    )
+
 lookback = st.selectbox("Momentum window", [2, 3, 5], index=2)
 
 low_price_only = st.checkbox(
