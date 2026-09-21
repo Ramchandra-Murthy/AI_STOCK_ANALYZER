@@ -30,18 +30,36 @@ def detect_intraday_alerts(
 
     for key in sorted(current_keys - previous_keys):
         row = current_rows[key]
-        alerts.append(_alert(observed_at, key, "NEW_CANDIDATE", row, "Candidate entered the latest scan."))
+        alerts.append(
+            _alert(
+                observed_at,
+                key,
+                "NEW_CANDIDATE",
+                row,
+                "Candidate entered the latest scan.",
+            )
+        )
 
     for key in sorted(previous_keys - current_keys):
         row = previous_rows[key]
-        alerts.append(_alert(observed_at, key, "REMOVED_CANDIDATE", row, "Candidate left the latest scan."))
+        alerts.append(
+            _alert(
+                observed_at,
+                key,
+                "REMOVED_CANDIDATE",
+                row,
+                "Candidate left the latest scan.",
+            )
+        )
 
     for key in sorted(previous_keys & current_keys):
         before = previous_rows[key]
         after = current_rows[key]
         symbol, exchange = key
 
-        price_delta = _number(after.get("5-min change %")) - _number(before.get("5-min change %"))
+        price_delta = _number(after.get("5-min change %")) - _number(
+            before.get("5-min change %")
+        )
         if abs(price_delta) >= price_change_delta:
             alerts.append(
                 _alert(
@@ -53,7 +71,9 @@ def detect_intraday_alerts(
                 )
             )
 
-        volume_delta = _number(after.get("Volume surge x")) - _number(before.get("Volume surge x"))
+        volume_delta = _number(after.get("Volume surge x")) - _number(
+            before.get("Volume surge x")
+        )
         if abs(volume_delta) >= volume_surge_delta:
             alerts.append(
                 _alert(
@@ -65,7 +85,9 @@ def detect_intraday_alerts(
                 )
             )
 
-        score_delta_value = _number(after.get("Composite score")) - _number(before.get("Composite score"))
+        score_delta_value = _number(after.get("Composite score")) - _number(
+            before.get("Composite score")
+        )
         if abs(score_delta_value) >= score_delta:
             alerts.append(
                 _alert(
@@ -86,7 +108,8 @@ def detect_intraday_alerts(
                     key,
                     "STATE_CHANGE",
                     after,
-                    f"{symbol} {exchange} setup state changed from {before_state or 'unknown'} to {after_state or 'unknown'}.",
+                    f"{symbol} {exchange} setup state changed from "
+                    f"{before_state or 'unknown'} to {after_state or 'unknown'}.",
                 )
             )
 
