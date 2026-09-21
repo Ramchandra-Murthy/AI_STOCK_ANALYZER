@@ -3,6 +3,7 @@
 import pandas as pd
 import streamlit as st
 
+from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_auto_refresh import (
     ALLOWED_REFRESH_SECONDS,
     DEFAULT_REFRESH_SECONDS,
@@ -10,8 +11,6 @@ from services.intraday_auto_refresh import (
     next_refresh_seconds,
     refresh_label,
 )
-
-from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_health import assess_scan_health
 from services.intraday_health_history import (
