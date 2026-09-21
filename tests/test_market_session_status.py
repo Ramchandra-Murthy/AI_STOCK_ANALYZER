@@ -1,11 +1,14 @@
 """Tests for market-session status helpers."""
 
 # ruff: isort: skip_file
+# fmt: off
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from services.market_service import market_session_status  # noqa: I001
+from services.market_service import market_session_status
+
+# fmt: on
 
 
 IST = ZoneInfo("Asia/Kolkata")
