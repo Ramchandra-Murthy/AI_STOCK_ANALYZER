@@ -1,5 +1,7 @@
 """Streamlit page for objective intraday opportunity screening."""
 
+# ruff: noqa: I001
+
 import pandas as pd
 import streamlit as st
 
@@ -24,6 +26,7 @@ from services.intraday_multi_window import multi_window_frame, record_multi_wind
 from services.intraday_position_sizing import calculate_position_size
 from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
+from services.intraday_scan_delta import snapshot_delta_frame
 from services.intraday_scan_snapshot import record_scan_snapshot, snapshot_frame
 from services.intraday_session import reset_intraday_session
 from services.intraday_setup_evaluation import setup_statistics
@@ -233,6 +236,23 @@ else:
         "Download scan snapshot history CSV",
         snapshots.to_csv(index=False).encode("utf-8"),
         file_name="intraday_scan_snapshot_history.csv",
+        mime="text/csv",
+    )
+
+snapshot_deltas = snapshot_delta_frame(st.session_state.get("intraday_scan_snapshots", []))
+st.subheader("Intraday scan changes")
+st.caption(
+    "Descriptive changes versus the previous completed scan, including candidate breadth "
+    "and top-symbol turnover."
+)
+if snapshot_deltas.empty:
+    st.caption("Run at least two completed scans to populate scan-change history.")
+else:
+    st.dataframe(snapshot_deltas, use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download scan change history CSV",
+        snapshot_deltas.to_csv(index=False).encode("utf-8"),
+        file_name="intraday_scan_change_history.csv",
         mime="text/csv",
     )
 
