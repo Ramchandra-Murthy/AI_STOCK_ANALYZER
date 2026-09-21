@@ -98,6 +98,14 @@ with right:
         index=2,
         format_func=lambda value: f"₹{value:g}",
     )
+
+if exchange == "BSE":
+    st.warning(
+        "Yahoo Finance identifies BSE (.BO) quotes as delayed by 15 minutes. "
+        "NSE (.NS) quotes are listed as real-time. BSE results should therefore "
+        "not be treated as real-time intraday data."
+    )
+
 lookback = st.selectbox("Momentum window", [2, 3, 5], index=2)
 
 low_price_only = st.checkbox(
@@ -148,6 +156,8 @@ if scan_requested or auto_scan_requested:
             min_volume_surge=min_volume,
             low_price_only=low_price_only,
         )
+    scan_stats = results.attrs.get("scan_stats", {}) if results is not None else {}
+    st.session_state["intraday_scan_stats"] = scan_stats
     results = results.head(limit).reset_index(drop=True)
     scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
     st.session_state["intraday_market_regime"] = classify_scan_regime(results)
@@ -383,12 +393,38 @@ else:
 if raw_results is None:
     st.info("Run a scan during market hours to populate the opportunity table.")
 elif raw_results.empty:
+    scan_stats = st.session_state.get("intraday_scan_stats", {})
     st.warning(
-        "No candidates met the selected conditions. Try a lower threshold or scan again "
-        "when intraday volume is active."
+        "No candidates met the selected conditions. The diagnostics below show whether "
+        "the cause is missing intraday data or the selected filters."
     )
+    if scan_stats:
+        diagnostics = {
+            "Candidate universe": scan_stats.get("candidate_count", 0),
+            "Symbols attempted": scan_stats.get("attempted_count", 0),
+            "Usable intraday data": scan_stats.get("usable_data_count", 0),
+            "Strategy data available": scan_stats.get("strategy_count", 0),
+            "Matches before safety": scan_stats.get("matches_before_safety", 0),
+            "Matches after safety": scan_stats.get("matches_after_safety", 0),
+            "Data interval": scan_stats.get("interval", "—"),
+            "Exchange": scan_stats.get("exchange", "—"),
+            "Market-cap basket": scan_stats.get("cap_category", "—"),
+        }
+        st.subheader("Scan diagnostics")
+        st.dataframe(
+            pd.DataFrame([diagnostics]),
+            use_container_width=True,
+            hide_index=True,
+        )
 else:
     results = raw_results.copy()
+    scan_stats = st.session_state.get("intraday_scan_stats", {})
+    if scan_stats:
+        st.caption(
+            f"Scan: {scan_stats.get('attempted_count', 0)} attempted • "
+            f"{scan_stats.get('usable_data_count', 0)} usable • "
+            f"{scan_stats.get('matches_before_safety', 0)} matched filters"
+        )
     if "Latest candle" in results.columns:
         observed = pd.to_datetime(results["Latest candle"], errors="coerce").dropna()
         if not observed.empty:
