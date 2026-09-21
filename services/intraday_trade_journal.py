@@ -1,5 +1,7 @@
 """Session-local trade journal helpers for intraday review."""
 
+# fmt: off
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -135,3 +137,5 @@ def _outcome(pnl: float | None, exit_price: float | None) -> str:
     if pnl < 0:
         return "LOSS"
     return "FLAT"
+
+# fmt: on
