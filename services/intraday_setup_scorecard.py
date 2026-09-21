@@ -1,5 +1,7 @@
 """Descriptive intraday setup scorecard from observed scanner fields."""
 
+# fmt: off
+
 from __future__ import annotations
 
 import pandas as pd
@@ -73,3 +75,4 @@ def _breakout_signal(row: dict) -> float:
 def _session_signal(row: dict) -> float:
     phase = str(row.get("Session phase", "")).upper()
     return 1.0 if phase in {"OPEN", "MIDDAY", "CLOSE"} else 0.5
+# fmt: on
