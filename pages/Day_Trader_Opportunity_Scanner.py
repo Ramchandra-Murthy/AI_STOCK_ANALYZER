@@ -23,8 +23,8 @@ from services.intraday_health_history import (
     record_health_observation,
 )
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
-from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_position_sizing import calculate_position_size
+from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
 from services.intraday_session import reset_intraday_session
 from services.intraday_setup_evaluation import setup_statistics
