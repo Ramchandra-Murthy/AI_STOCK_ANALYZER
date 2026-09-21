@@ -1,5 +1,7 @@
 """Session-local scan snapshot history helpers."""
 
+# ruff: isort: skip_file
+
 from __future__ import annotations
 
 from datetime import datetime
