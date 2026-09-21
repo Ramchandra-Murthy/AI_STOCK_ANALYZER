@@ -1,7 +1,5 @@
 """Tests for intraday scan snapshot deltas."""
 
-import pandas as pd
-
 from services.intraday_scan_delta import snapshot_delta_frame
 
 
