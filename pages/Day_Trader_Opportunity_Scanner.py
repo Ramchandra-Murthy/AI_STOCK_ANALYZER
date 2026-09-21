@@ -35,8 +35,12 @@ from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
 )
+from services.intraday_trade_analytics import (
+    performance_summary,
+    setup_performance,
+    side_performance,
+)
 from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
-from services.intraday_trade_analytics import performance_summary, setup_performance, side_performance
 from services.market_status import describe_market_status
 
 st.set_page_config(
