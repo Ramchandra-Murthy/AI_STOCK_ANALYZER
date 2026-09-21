@@ -24,6 +24,7 @@ from services.intraday_health_history import (
 )
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_quality_dashboard import dashboard_summary
+from services.intraday_position_sizing import calculate_position_size
 from services.intraday_risk_planning import risk_plan_frame
 from services.intraday_session import reset_intraday_session
 from services.intraday_setup_evaluation import setup_statistics
@@ -307,6 +308,83 @@ else:
         risk_budget=risk_budget,
         capital_limit=capital_limit,
     )
+
+    with st.expander("Position sizing calculator", expanded=False):
+        size_left, size_mid, size_right = st.columns(3)
+        with size_left:
+            sizing_capital = st.number_input(
+                "Sizing capital (₹)",
+                min_value=0.0,
+                value=100000.0,
+                step=5000.0,
+                key="sizing_capital",
+            )
+            sizing_risk = st.number_input(
+                "Risk per trade (%)",
+                min_value=0.0,
+                max_value=100.0,
+                value=1.0,
+                step=0.25,
+                key="sizing_risk",
+            )
+        with size_mid:
+            sizing_entry = st.number_input(
+                "Sizing entry",
+                min_value=0.0,
+                value=0.0,
+                step=0.05,
+                key="sizing_entry",
+            )
+            sizing_stop = st.number_input(
+                "Sizing stop loss",
+                min_value=0.0,
+                value=0.0,
+                step=0.05,
+                key="sizing_stop",
+            )
+        with size_right:
+            sizing_target = st.number_input(
+                "Sizing target",
+                min_value=0.0,
+                value=0.0,
+                step=0.05,
+                key="sizing_target",
+            )
+            sizing_side = st.selectbox(
+                "Sizing side",
+                ["LONG", "SHORT"],
+                key="sizing_side",
+            )
+        if sizing_entry > 0 and sizing_stop > 0 and sizing_target > 0:
+            sizing_result = calculate_position_size(
+                sizing_capital,
+                sizing_risk,
+                sizing_entry,
+                sizing_stop,
+                sizing_target,
+                sizing_side,
+            )
+            st.caption(
+                "Position size is a planning calculation from capital, risk and reference levels. "
+                "It does not place orders."
+            )
+            st.dataframe(
+                pd.DataFrame(
+                    [{
+                        "Risk budget": sizing_result.risk_amount,
+                        "Risk/share": sizing_result.risk_per_share,
+                        "Risk quantity": sizing_result.risk_quantity,
+                        "Capital quantity": sizing_result.capital_quantity,
+                        "Planned quantity": sizing_result.quantity,
+                        "Planned capital": sizing_result.planned_capital,
+                        "Planned risk": sizing_result.planned_risk,
+                        "Planned reward": sizing_result.planned_reward,
+                        "Planned R:R": sizing_result.planned_rr,
+                    }]
+                ),
+                use_container_width=True,
+                hide_index=True,
+            )
 
     st.subheader("Intraday quality dashboard")
     st.caption(
