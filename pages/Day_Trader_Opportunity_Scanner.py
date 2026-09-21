@@ -306,6 +306,7 @@ if pulse_scan:
             st.session_state["price_jump_results"] = pulse_results
             st.session_state["price_jump_scan_time"] = pulse_at.strftime("%d %b %Y, %H:%M:%S IST")
             st.session_state["price_jump_scan_stats"] = pulse_results.attrs.get("scan_stats", {})
+            st.session_state["price_jump_scan_window"] = jump_window
             st.session_state["price_jump_history"] = append_price_jump_snapshot(
                 st.session_state.get("price_jump_history"),
                 pulse_at.to_pydatetime(),
@@ -330,7 +331,7 @@ else:
             "Exchange",
             "Market-cap basket",
             "Last price",
-            f"Change over {st.session_state.get('pulse_window', 5)} min %",
+            f"Change over {st.session_state.get('price_jump_scan_window', st.session_state.get('pulse_window', 5))} min %",
             "Volume vs recent bars",
             "Latest candle (provider time)",
         ]
