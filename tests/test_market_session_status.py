@@ -1,5 +1,7 @@
 """Tests for market-session status helpers."""
 
+# ruff: isort: skip_file
+
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
