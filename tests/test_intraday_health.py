@@ -1,6 +1,6 @@
 """Tests for intraday dashboard health checks."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 
@@ -16,7 +16,7 @@ def test_no_scan_is_reported():
 def test_missing_required_columns_is_reported():
     result = assess_scan_health(
         pd.DataFrame({"Symbol": ["RELIANCE"]}),
-        datetime.now(timezone.utc),
+        datetime.now(UTC),
     )
 
     assert result["status"] == "INVALID_SCHEMA"
