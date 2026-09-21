@@ -26,7 +26,7 @@ from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
-CHUNK_SIZE = 10
+CHUNK_SIZE = 20
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
@@ -185,6 +185,10 @@ def scan_day_trader_opportunities(
         "download_failed_chunks": 0,
         "empty_chunks": 0,
         "filtered_count": 0,
+        "price_change_pass_count": 0,
+        "volume_surge_pass_count": 0,
+        "both_filters_pass_count": 0,
+        "low_price_pass_count": 0,
         "matches_before_safety": 0,
         "matches_after_safety": 0,
         "interval": interval,
@@ -201,7 +205,7 @@ def scan_day_trader_opportunities(
             try:
                 history = yf.download(
                     tickers=chunk,
-                    period="5d",
+                    period="1d",
                     interval=interval,
                     progress=False,
                     auto_adjust=False,
@@ -284,7 +288,20 @@ def scan_day_trader_opportunities(
 
                     if change < min_change_percent or volume_surge < min_volume_surge:
                         continue
+                    price_pass = change >= min_change_percent
+                    volume_pass = volume_surge >= min_volume_surge
+                    if price_pass:
+                        scan_stats["price_change_pass_count"] += 1
+                    if volume_pass:
+                        scan_stats["volume_surge_pass_count"] += 1
+                    if price_pass and volume_pass:
+                        scan_stats["both_filters_pass_count"] += 1
+
                     low_price = price <= max_price
+                    if low_price:
+                        scan_stats["low_price_pass_count"] += 1
+                    if not price_pass or not volume_pass:
+                        continue
                     if low_price_only and not low_price:
                         continue
 
