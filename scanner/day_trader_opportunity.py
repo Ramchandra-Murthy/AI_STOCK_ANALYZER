@@ -24,6 +24,7 @@ from scanner.surveillance import (
 )
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES
+from services.intraday_vwap_orb import vwap_orb_metrics
 
 CHUNK_SIZE = 10
 
@@ -236,6 +237,9 @@ def scan_day_trader_opportunities(
                     if not strategy:
                         continue
 
+                    vwap_orb = vwap_orb_metrics(data, orb_minutes=(5, 15))
+                    strategy.update(vwap_orb)
+
                     setup_score = max(
                         strategy["Long setup score"],
                         strategy["Short setup score"],
@@ -290,6 +294,15 @@ def scan_day_trader_opportunities(
                             "Setup score": setup_score,
                             "Trend": trend,
                             "VWAP": vwap_relation,
+                            "VWAP price": vwap_orb.get("VWAP"),
+                            "VWAP distance %": vwap_orb.get("VWAP distance %"),
+                            "VWAP bias": vwap_orb.get("VWAP bias"),
+                            "ORB 5m high": vwap_orb.get("ORB 5m high"),
+                            "ORB 5m low": vwap_orb.get("ORB 5m low"),
+                            "ORB 5m state": vwap_orb.get("ORB 5m state"),
+                            "ORB 15m high": vwap_orb.get("ORB 15m high"),
+                            "ORB 15m low": vwap_orb.get("ORB 15m low"),
+                            "ORB 15m state": vwap_orb.get("ORB 15m state"),
                             "EMA 9/20": ema_alignment,
                             "RVOL": strategy_rvol,
                             "ORB high": orb_high,
