@@ -30,8 +30,14 @@ def exchange_summary(frame: pd.DataFrame | None) -> pd.DataFrame:
             {
                 "Exchange": str(exchange),
                 "Candidates": int(len(group)),
-                "Average change %": round(float(valid_change.mean()), 2) if not valid_change.empty else None,
-                "Average volume surge x": round(float(volume.mean()), 2) if volume.notna().any() else None,
+                "Average change %": (
+                    round(float(valid_change.mean()), 2)
+                    if not valid_change.empty
+                    else None
+                ),
+                "Average volume surge x": (
+                    round(float(volume.mean()), 2) if volume.notna().any() else None
+                ),
                 "Positive change %": round(float((valid_change > 0).mean() * 100), 1)
                 if not valid_change.empty
                 else None,
