@@ -177,11 +177,27 @@ def scan_day_trader_opportunities(
     interval = f"{candle_minutes}m"
     bars = max(1, int(round(lookback_minutes / candle_minutes)))
     rows: list[dict[str, Any]] = []
+    scan_stats: dict[str, Any] = {
+        "candidate_count": len(universe),
+        "attempted_count": 0,
+        "usable_data_count": 0,
+        "strategy_count": 0,
+        "download_failed_chunks": 0,
+        "empty_chunks": 0,
+        "filtered_count": 0,
+        "matches_before_safety": 0,
+        "matches_after_safety": 0,
+        "interval": interval,
+        "lookback_minutes": lookback_minutes,
+        "exchange": exchange_category,
+        "cap_category": cap_category,
+    }
 
     for exchange in exchanges:
         tickers = [_ticker(symbol, exchange) for symbol, venue in universe if venue == exchange]
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
+            scan_stats["attempted_count"] += len(chunk)
             try:
                 history = yf.download(
                     tickers=chunk,
@@ -193,6 +209,11 @@ def scan_day_trader_opportunities(
                     threads=False,
                 )
             except Exception:
+                scan_stats["download_failed_chunks"] += 1
+                continue
+
+            if history is None or history.empty:
+                scan_stats["empty_chunks"] += 1
                 continue
 
             for ticker in chunk:
@@ -201,12 +222,15 @@ def scan_day_trader_opportunities(
                     if len(data) <= bars:
                         continue
 
-                    close = pd.to_numeric(data["Close"], errors="coerce").dropna()
-                    high = pd.to_numeric(data["High"], errors="coerce").dropna()
-                    volume = pd.to_numeric(data["Volume"], errors="coerce").dropna()
+                    session_date = data.index[-1].date()
+                    session = data.loc[[stamp.date() == session_date for stamp in data.index]]
+                    close = pd.to_numeric(session["Close"], errors="coerce").dropna()
+                    high = pd.to_numeric(session["High"], errors="coerce").dropna()
+                    volume = pd.to_numeric(session["Volume"], errors="coerce").dropna()
                     if len(close) <= bars or len(volume) < 6:
                         continue
 
+                    scan_stats["usable_data_count"] += 1
                     price = float(close.iloc[-1])
                     prior = float(close.iloc[-1 - bars])
                     if price <= 0 or prior <= 0:
@@ -217,9 +241,6 @@ def scan_day_trader_opportunities(
                     latest_volume = float(volume.iloc[-1])
                     volume_surge = latest_volume / baseline if baseline > 0 else 0.0
 
-                    session_date = data.index[-1].date()
-                    session_mask = [stamp.date() == session_date for stamp in data.index]
-                    session = data.loc[session_mask]
                     session_high = float(pd.to_numeric(session["High"], errors="coerce").max())
                     session_low = float(pd.to_numeric(session["Low"], errors="coerce").min())
                     session_range = (
@@ -230,14 +251,15 @@ def scan_day_trader_opportunities(
                     breakout = len(prior_highs) > 0 and price > float(prior_highs.max())
 
                     strategy = analyze_day_trade_setup(
-                        data,
+                        session,
                         opening_range_bars=5 if candle_minutes == 1 else 1,
                         level_lookback=min(20, max(5, len(data) - 1)),
                     )
                     if not strategy:
                         continue
 
-                    vwap_orb = vwap_orb_metrics(data, orb_minutes=(5, 15))
+                    scan_stats["strategy_count"] += 1
+                    vwap_orb = vwap_orb_metrics(session, orb_minutes=(5, 15))
                     strategy.update(vwap_orb)
 
                     setup_score = max(
@@ -310,7 +332,8 @@ def scan_day_trader_opportunities(
                             "Strategy breakout": strategy_breakout,
                             "Strategy breakdown": strategy_breakdown,
                             "Low-price flag": "YES" if low_price else "—",
-                            "Latest candle": str(data.index[-1]),
+                            "Latest candle": str(session.index[-1]),
+                            "Data delay": "15 min" if exchange == "BSE" else "Real-time",
                             "Liquidity": liquidity_warning(price, latest_volume),
                         }
                     )
@@ -318,9 +341,12 @@ def scan_day_trader_opportunities(
                     continue
 
     if not rows:
-        return pd.DataFrame()
+        empty = pd.DataFrame()
+        empty.attrs["scan_stats"] = scan_stats
+        return empty
 
     result = pd.DataFrame(rows)
+    scan_stats["matches_before_safety"] = len(result)
     result = score_opportunity_rows(result)
     result["Screen"] = result["Low-price flag"].map(
         {"YES": f"Low-price <= ₹{max_price:g}", "—": "Momentum"}
@@ -329,5 +355,12 @@ def scan_day_trader_opportunities(
     nse_symbols = result.loc[result["Exchange"].eq("NSE"), "Symbol"].tolist()
     safety, _ = fetch_nse_safety_snapshot(nse_symbols)
     result = apply_safety_filter(result, safety, exclude_flagged=False)
-
-    return result.head(max(1, min(int(limit), 100))).reset_index(drop=True)
+    scan_stats["matches_after_safety"] = len(result)
+    scan_stats["filtered_count"] = max(
+        0,
+        scan_stats["usable_data_count"] - scan_stats["matches_before_safety"],
+    )
+    result = result.head(max(1, min(int(limit), 100))).reset_index(drop=True)
+    scan_stats["displayed_count"] = len(result)
+    result.attrs["scan_stats"] = scan_stats
+    return result
