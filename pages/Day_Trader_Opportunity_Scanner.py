@@ -1,5 +1,7 @@
 """Streamlit page for objective intraday opportunity screening."""
 
+# ruff: noqa: I001
+
 import pandas as pd
 import streamlit as st
 
