@@ -19,6 +19,7 @@ from services.intraday_health_history import (
     health_history_frame,
     record_health_observation,
 )
+from services.intraday_market_regime import classify_scan_regime
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_position_sizing import calculate_position_size
 from services.intraday_quality_dashboard import dashboard_summary
@@ -146,6 +147,7 @@ if scan_requested or auto_scan_requested:
         )
     results = results.head(limit).reset_index(drop=True)
     scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
+    st.session_state["intraday_market_regime"] = classify_scan_regime(results)
     snapshot_history = st.session_state.get("intraday_scan_snapshots", [])
     st.session_state["intraday_scan_snapshots"] = record_scan_snapshot(
         snapshot_history,
@@ -208,6 +210,15 @@ elif health["status"] == "STALE":
     st.warning(f"Data health: {health['message']} Re-scan before reviewing candidates.")
 elif health["status"] != "NO_SCAN":
     st.warning(f"Data health: {health['message']}")
+
+market_regime = st.session_state.get("intraday_market_regime", {})
+if market_regime:
+    st.subheader("Observed intraday market regime")
+    st.caption(
+        "Descriptive breadth and volume context from the latest completed scan; "
+        "not a forecast."
+    )
+    st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
 
 snapshots = snapshot_frame(st.session_state.get("intraday_scan_snapshots", []))
 st.subheader("Intraday scan history")
@@ -507,8 +518,6 @@ else:
                 use_container_width=True,
                 hide_index=True,
             )
-    # fmt: on
-
     st.subheader("Intraday quality dashboard")
     st.caption(
         "Consolidated session metrics from the observed setup history. "
