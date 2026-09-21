@@ -161,9 +161,7 @@ elif health["status"] == "STALE":
 elif health["status"] != "NO_SCAN":
     st.warning(f"Data health: {health['message']}")
 
-health_history = health_history_frame(
-    st.session_state.get("intraday_health_history", [])
-)
+health_history = health_history_frame(st.session_state.get("intraday_health_history", []))
 st.subheader("Intraday scan health history")
 st.caption(
     "This session-local history records the descriptive health state of each completed scan. "
