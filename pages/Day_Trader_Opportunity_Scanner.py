@@ -16,6 +16,7 @@ from services.intraday_auto_refresh import (
     DEFAULT_REFRESH_SECONDS,
 )
 from services.intraday_dynamic_filter import filter_intraday_candidates
+from services.intraday_exchange_summary import exchange_summary
 from services.intraday_health import assess_scan_health
 from services.intraday_health_history import (
     health_history_frame,
@@ -233,6 +234,16 @@ if market_regime:
     )
     st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
 
+exchange_pulse = exchange_summary(raw_results)
+st.subheader("NSE / BSE intraday pulse")
+st.caption(
+    "Descriptive exchange-level metrics from the latest completed scan. "
+    "They summarize observed data and are not forecasts."
+)
+if exchange_pulse.empty:
+    st.caption("Run a scan with both exchanges selected to populate the exchange pulse.")
+else:
+    st.dataframe(exchange_pulse, use_container_width=True, hide_index=True)
 snapshots = snapshot_frame(st.session_state.get("intraday_scan_snapshots", []))
 st.subheader("Intraday scan history")
 st.caption(
