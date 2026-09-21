@@ -1,5 +1,7 @@
 """Reusable VWAP and opening-range calculations for intraday analysis."""
 
+# fmt: off
+
 from __future__ import annotations
 
 from typing import Any
@@ -86,3 +88,5 @@ def _interval_minutes(index: pd.Index) -> int:
     if positive.empty:
         return 1
     return max(1, int(round(float(positive.median()))))
+
+# fmt: on
