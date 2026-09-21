@@ -30,6 +30,7 @@ from services.intraday_session import reset_intraday_session
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
+from services.intraday_scan_snapshot import record_scan_snapshot, snapshot_frame
 from services.intraday_setup_regime import regime_statistics
 from services.intraday_setup_scorecard import scorecard_frame
 from services.intraday_state_history import (
@@ -145,6 +146,12 @@ if scan_requested or auto_scan_requested:
             low_price_only=low_price_only,
         )
     results = results.head(limit).reset_index(drop=True)
+    snapshot_history = st.session_state.get("intraday_scan_snapshots", [])
+    st.session_state["intraday_scan_snapshots"] = record_scan_snapshot(
+        snapshot_history,
+        results,
+        scan_at.to_pydatetime(),
+    )
     st.session_state["day_trader_opportunities"] = results
     scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
     st.session_state["intraday_last_scan_at"] = scan_at
@@ -202,6 +209,22 @@ elif health["status"] == "STALE":
     st.warning(f"Data health: {health['message']} Re-scan before reviewing candidates.")
 elif health["status"] != "NO_SCAN":
     st.warning(f"Data health: {health['message']}")
+
+snapshots = snapshot_frame(st.session_state.get("intraday_scan_snapshots", []))
+st.subheader("Intraday scan history")
+st.caption(
+    "Session-local snapshots show how the scanner's observed candidate set changes between scans."
+)
+if snapshots.empty:
+    st.caption("No completed scan snapshots are available yet.")
+else:
+    st.dataframe(snapshots.tail(50), use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download scan snapshot history CSV",
+        snapshots.to_csv(index=False).encode("utf-8"),
+        file_name="intraday_scan_snapshot_history.csv",
+        mime="text/csv",
+    )
 
 alert_history = alert_history_frame(st.session_state.get("intraday_alert_history", []))
 st.subheader("Intraday change alerts")
