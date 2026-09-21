@@ -12,6 +12,7 @@ SESSION_KEYS = (
     "intraday_multi_window_outcomes",
     "intraday_state_transitions",
     "intraday_alert_history",
+    "intraday_trade_journal",
 )
 
 
@@ -29,6 +30,7 @@ def session_counts(session_state: dict[str, Any]) -> dict[str, int]:
         "Persisting setups": _size(session_state.get("intraday_setup_monitor")),
         "Outcomes": _size(session_state.get("intraday_setup_outcomes")),
         "Transitions": _size(session_state.get("intraday_state_transitions")),
+        "Journal trades": _size(session_state.get("intraday_trade_journal")),
     }
 
 

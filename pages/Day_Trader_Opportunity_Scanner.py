@@ -34,6 +34,7 @@ from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
 )
+from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
 from services.market_status import describe_market_status
 
 st.set_page_config(
@@ -209,6 +210,80 @@ else:
         "Download intraday alert history CSV",
         alert_history.to_csv(index=False).encode("utf-8"),
         file_name="intraday_alert_history.csv",
+        mime="text/csv",
+    )
+
+journal = journal_frame(st.session_state.get("intraday_trade_journal", []))
+st.subheader("Intraday trade journal")
+st.caption(
+    "Record paper trades or completed trades for review. Journal calculations are descriptive "
+    "and do not place orders or recommend a trade."
+)
+with st.form("intraday_trade_journal_form", clear_on_submit=True):
+    journal_left, journal_mid, journal_right = st.columns(3)
+    with journal_left:
+        journal_symbol = st.text_input("Symbol")
+        journal_exchange = st.selectbox("Journal exchange", ["NSE", "BSE"])
+        journal_side = st.selectbox("Side", ["LONG", "SHORT"])
+        journal_setup = st.text_input("Setup", value="Intraday setup")
+        journal_entry = st.number_input("Entry price", min_value=0.0, value=0.0, step=0.05)
+    with journal_mid:
+        journal_stop = st.number_input("Stop loss", min_value=0.0, value=0.0, step=0.05)
+        journal_target = st.number_input("Target", min_value=0.0, value=0.0, step=0.05)
+        journal_exit = st.number_input(
+            "Exit price (0 = still open)",
+            min_value=0.0,
+            value=0.0,
+            step=0.05,
+        )
+        journal_quantity = st.number_input(
+            "Quantity",
+            min_value=1,
+            value=1,
+            step=1,
+        )
+    with journal_right:
+        journal_reason = st.text_area("Reason for entry")
+        journal_lesson = st.text_area("Lesson / review note")
+        journal_submit = st.form_submit_button("Add journal entry", type="primary")
+
+if journal_submit:
+    if not journal_symbol.strip() or journal_entry <= 0 or journal_stop <= 0 or journal_target <= 0:
+        st.error("Enter symbol, entry, stop loss and target before saving the journal entry.")
+    elif journal_side == "LONG" and not (journal_stop < journal_entry < journal_target):
+        st.error("For a LONG journal entry, use stop loss < entry < target.")
+    elif journal_side == "SHORT" and not (journal_target < journal_entry < journal_stop):
+        st.error("For a SHORT journal entry, use target < entry < stop loss.")
+    else:
+        exit_price = journal_exit if journal_exit > 0 else None
+        history = st.session_state.get("intraday_trade_journal", [])
+        st.session_state["intraday_trade_journal"] = add_trade(
+            history,
+            timestamp=pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+            symbol=journal_symbol,
+            exchange=journal_exchange,
+            side=journal_side,
+            setup=journal_setup,
+            entry=journal_entry,
+            stop_loss=journal_stop,
+            target=journal_target,
+            exit_price=exit_price,
+            quantity=journal_quantity,
+            reason=journal_reason,
+            lesson=journal_lesson,
+        )
+        st.rerun()
+
+journal_summary_frame = journal_summary(st.session_state.get("intraday_trade_journal", []))
+st.dataframe(journal_summary_frame, use_container_width=True, hide_index=True)
+if journal.empty:
+    st.caption("No journal entries recorded in this session yet.")
+else:
+    st.dataframe(journal.head(100), use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download trade journal CSV",
+        journal.to_csv(index=False).encode("utf-8"),
+        file_name="intraday_trade_journal.csv",
         mime="text/csv",
     )
 
