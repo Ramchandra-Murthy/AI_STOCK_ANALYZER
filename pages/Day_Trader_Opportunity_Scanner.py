@@ -4,6 +4,13 @@ import pandas as pd
 import streamlit as st
 
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from services.intraday_auto_refresh import (
+    ALLOWED_REFRESH_SECONDS,
+    DEFAULT_REFRESH_SECONDS,
+    market_is_open,
+    next_refresh_seconds,
+    refresh_label,
+)
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_health import assess_scan_health
 from services.intraday_health_history import (
@@ -84,6 +91,20 @@ low_price_only = st.checkbox(
 limit = st.selectbox("Maximum results", [10, 20, 30, 50], index=1)
 min_change = st.slider("Minimum price change (%)", 0.25, 3.0, 0.5, 0.25)
 min_volume = st.slider("Minimum volume surge (x)", 1.0, 5.0, 1.2, 0.1)
+refresh_left, refresh_right = st.columns(2)
+with refresh_left:
+    auto_refresh = st.checkbox(
+        "Auto-refresh and rescan",
+        value=False,
+        help="Refreshes the intraday scan at the selected interval during NSE market hours.",
+    )
+with refresh_right:
+    refresh_interval = st.selectbox(
+        "Refresh interval",
+        list(ALLOWED_REFRESH_SECONDS),
+        index=list(ALLOWED_REFRESH_SECONDS).index(DEFAULT_REFRESH_SECONDS),
+        format_func=lambda value: f"{value // 60} minute" + ("s" if value != 60 else ""),
+    )
 exclude_flagged = st.checkbox(
     "Exclude known NSE surveillance flags",
     value=True,
@@ -94,7 +115,10 @@ exclude_flagged = st.checkbox(
     ),
 )
 
-if st.button("Scan now", type="primary"):
+scan_requested = st.button("Scan now", type="primary")
+auto_scan_requested = st.session_state.pop("intraday_auto_refresh_pending", False)
+
+if scan_requested or auto_scan_requested:
     with st.spinner("Scanning the current NSE+BSE candidate universe…"):
         results = scan_day_trader_opportunities(
             limit=100,
@@ -458,6 +482,23 @@ else:
         "Safety status is a screening aid, not a clearance. NSE flags come from the "
         "latest available REG_IND archive; BSE candidates require a separate exchange check."
     )
+
+# fmt: off
+if auto_refresh:
+    @st.fragment(run_every=30)
+    def intraday_auto_refresh_fragment():
+        last_scan = st.session_state.get("intraday_last_scan_at")
+        remaining = next_refresh_seconds(last_scan, refresh_interval)
+        if not market_is_open():
+            st.info("Auto-refresh paused: NSE market is closed.")
+            return
+        st.caption(f"🔄 Auto-refresh active • next scan in {refresh_label(remaining)}")
+        if remaining <= 0:
+            st.session_state["intraday_auto_refresh_pending"] = True
+            st.rerun()
+
+    intraday_auto_refresh_fragment()
+# fmt: on
 
 st.divider()
 st.subheader("Risk and data checks")
