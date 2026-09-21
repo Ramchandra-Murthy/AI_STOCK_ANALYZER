@@ -213,6 +213,23 @@ if market_regime:
     )
     st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
 
+snapshot_deltas = snapshot_delta_frame(st.session_state.get("intraday_scan_snapshots", []))
+st.subheader("Intraday scan changes")
+st.caption(
+    "Descriptive changes versus the previous completed scan, including candidate breadth "
+    "and top-symbol turnover."
+)
+if snapshot_deltas.empty:
+    st.caption("Run at least two completed scans to populate scan-change history.")
+else:
+    st.dataframe(snapshot_deltas, use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download scan change history CSV",
+        snapshot_deltas.to_csv(index=False).encode("utf-8"),
+        file_name="intraday_scan_change_history.csv",
+        mime="text/csv",
+    )
+
 alert_history = alert_history_frame(st.session_state.get("intraday_alert_history", []))
 st.subheader("Intraday change alerts")
 st.caption(
