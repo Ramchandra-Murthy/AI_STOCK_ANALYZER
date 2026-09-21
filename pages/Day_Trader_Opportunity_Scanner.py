@@ -385,6 +385,7 @@ else:
                 use_container_width=True,
                 hide_index=True,
             )
+    # fmt: on
 
     st.subheader("Intraday quality dashboard")
     st.caption(
