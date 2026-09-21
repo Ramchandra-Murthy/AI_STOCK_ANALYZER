@@ -22,13 +22,31 @@ def performance_summary(history: list[dict] | None) -> pd.DataFrame:
     frame = trade_performance_frame(history)
     if frame.empty:
         return pd.DataFrame(
-            [{"Trades": 0, "Closed": 0, "Wins": 0, "Losses": 0, "Win rate %": 0.0, "Net PnL": 0.0}]
+            [
+                {
+                    "Trades": 0,
+                    "Closed": 0,
+                    "Wins": 0,
+                    "Losses": 0,
+                    "Win rate %": 0.0,
+                    "Net PnL": 0.0,
+                }
+            ]
         )
     pnl = pd.to_numeric(frame["PnL"], errors="coerce")
     closed = frame[pnl.notna()].copy()
     if closed.empty:
         return pd.DataFrame(
-            [{"Trades": len(frame), "Closed": 0, "Wins": 0, "Losses": 0, "Win rate %": 0.0, "Net PnL": 0.0}]
+            [
+                {
+                    "Trades": len(frame),
+                    "Closed": 0,
+                    "Wins": 0,
+                    "Losses": 0,
+                    "Win rate %": 0.0,
+                    "Net PnL": 0.0,
+                }
+            ]
         )
     wins = int((closed["PnL"] > 0).sum())
     losses = int((closed["PnL"] < 0).sum())
@@ -57,14 +75,22 @@ def setup_performance(history: list[dict] | None) -> pd.DataFrame:
     for setup, group in frame.groupby("Setup", dropna=False):
         closed = group[group["PnL"].notna()]
         wins = int((closed["PnL"] > 0).sum())
-        rows.append({
-            "Setup": str(setup),
-            "Trades": len(group),
-            "Closed": len(closed),
-            "Win rate %": round(wins / len(closed) * 100, 2) if len(closed) else 0.0,
-            "Net PnL": round(float(closed["PnL"].sum()), 2) if len(closed) else 0.0,
-            "Average R": round(float(closed["R Multiple"].mean()), 2) if len(closed) else 0.0,
-        })
+        rows.append(
+            {
+                "Setup": str(setup),
+                "Trades": len(group),
+                "Closed": len(closed),
+                "Win rate %": (
+                    round(wins / len(closed) * 100, 2) if len(closed) else 0.0
+                ),
+                "Net PnL": (
+                    round(float(closed["PnL"].sum()), 2) if len(closed) else 0.0
+                ),
+                "Average R": (
+                    round(float(closed["R Multiple"].mean()), 2) if len(closed) else 0.0
+                ),
+            }
+        )
     return pd.DataFrame(rows)
 
 
@@ -80,12 +106,20 @@ def side_performance(history: list[dict] | None) -> pd.DataFrame:
     for side, group in frame.groupby("Side", dropna=False):
         closed = group[group["PnL"].notna()]
         wins = int((closed["PnL"] > 0).sum())
-        rows.append({
-            "Side": str(side),
-            "Trades": len(group),
-            "Closed": len(closed),
-            "Win rate %": round(wins / len(closed) * 100, 2) if len(closed) else 0.0,
-            "Net PnL": round(float(closed["PnL"].sum()), 2) if len(closed) else 0.0,
-            "Average R": round(float(closed["R Multiple"].mean()), 2) if len(closed) else 0.0,
-        })
+        rows.append(
+            {
+                "Side": str(side),
+                "Trades": len(group),
+                "Closed": len(closed),
+                "Win rate %": (
+                    round(wins / len(closed) * 100, 2) if len(closed) else 0.0
+                ),
+                "Net PnL": (
+                    round(float(closed["PnL"].sum()), 2) if len(closed) else 0.0
+                ),
+                "Average R": (
+                    round(float(closed["R Multiple"].mean()), 2) if len(closed) else 0.0
+                ),
+            }
+        )
     return pd.DataFrame(rows)
