@@ -12,9 +12,6 @@ from services.intraday_alert_engine import (
 from services.intraday_auto_refresh import (
     ALLOWED_REFRESH_SECONDS,
     DEFAULT_REFRESH_SECONDS,
-    market_is_open,
-    next_refresh_seconds,
-    refresh_label,
 )
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_health import assess_scan_health
@@ -22,6 +19,7 @@ from services.intraday_health_history import (
     health_history_frame,
     record_health_observation,
 )
+from services.intraday_market_regime import classify_scan_regime
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_position_sizing import calculate_position_size
 from services.intraday_quality_dashboard import dashboard_summary
@@ -43,6 +41,8 @@ from services.intraday_trade_analytics import (
 )
 from services.intraday_trade_journal import add_trade, journal_frame, journal_summary
 from services.market_status import describe_market_status
+
+# fmt: off
 
 st.set_page_config(
     page_title="Day-Trader Opportunity Scanner",
@@ -145,6 +145,7 @@ if scan_requested or auto_scan_requested:
             low_price_only=low_price_only,
         )
     results = results.head(limit).reset_index(drop=True)
+    st.session_state["intraday_market_regime"] = classify_scan_regime(results)
     st.session_state["day_trader_opportunities"] = results
     scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
     st.session_state["intraday_last_scan_at"] = scan_at
@@ -202,6 +203,15 @@ elif health["status"] == "STALE":
     st.warning(f"Data health: {health['message']} Re-scan before reviewing candidates.")
 elif health["status"] != "NO_SCAN":
     st.warning(f"Data health: {health['message']}")
+
+market_regime = st.session_state.get("intraday_market_regime", {})
+if market_regime:
+    st.subheader("Observed intraday market regime")
+    st.caption(
+        "Descriptive breadth and volume context from the latest completed scan; "
+        "not a forecast."
+    )
+    st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
 
 alert_history = alert_history_frame(st.session_state.get("intraday_alert_history", []))
 st.subheader("Intraday change alerts")
@@ -485,8 +495,6 @@ else:
                 use_container_width=True,
                 hide_index=True,
             )
-    # fmt: on
-
     st.subheader("Intraday quality dashboard")
     st.caption(
         "Consolidated session metrics from the observed setup history. "
