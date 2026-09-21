@@ -24,6 +24,8 @@ from services.intraday_multi_window import multi_window_frame, record_multi_wind
 from services.intraday_position_sizing import calculate_position_size
 from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
+from services.intraday_scan_delta import snapshot_delta_frame
+from services.intraday_scan_snapshot import record_scan_snapshot, snapshot_frame
 from services.intraday_session import reset_intraday_session
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
@@ -145,9 +147,15 @@ if scan_requested or auto_scan_requested:
             low_price_only=low_price_only,
         )
     results = results.head(limit).reset_index(drop=True)
-    st.session_state["intraday_market_regime"] = classify_scan_regime(results)
-    st.session_state["day_trader_opportunities"] = results
     scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
+    st.session_state["intraday_market_regime"] = classify_scan_regime(results)
+    snapshot_history = st.session_state.get("intraday_scan_snapshots", [])
+    st.session_state["intraday_scan_snapshots"] = record_scan_snapshot(
+        snapshot_history,
+        results,
+        scan_at.to_pydatetime(),
+    )
+    st.session_state["day_trader_opportunities"] = results
     st.session_state["intraday_last_scan_at"] = scan_at
     if previous_results is not None:
         alerts = detect_intraday_alerts(previous_results, results, scan_at.to_pydatetime())
@@ -212,6 +220,22 @@ if market_regime:
         "not a forecast."
     )
     st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
+
+snapshots = snapshot_frame(st.session_state.get("intraday_scan_snapshots", []))
+st.subheader("Intraday scan history")
+st.caption(
+    "Session-local snapshots show how the scanner's observed candidate set changes between scans."
+)
+if snapshots.empty:
+    st.caption("No completed scan snapshots are available yet.")
+else:
+    st.dataframe(snapshots.tail(50), use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download scan snapshot history CSV",
+        snapshots.to_csv(index=False).encode("utf-8"),
+        file_name="intraday_scan_snapshot_history.csv",
+        mime="text/csv",
+    )
 
 snapshot_deltas = snapshot_delta_frame(st.session_state.get("intraday_scan_snapshots", []))
 st.subheader("Intraday scan changes")
