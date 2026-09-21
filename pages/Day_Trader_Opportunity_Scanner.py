@@ -8,6 +8,7 @@ from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_multi_window import multi_window_frame, record_multi_window_outcomes
 from services.intraday_quality_dashboard import dashboard_summary
 from services.intraday_risk_planning import risk_plan_frame
+from services.intraday_session import reset_intraday_session, session_counts
 from services.intraday_setup_evaluation import setup_statistics
 from services.intraday_setup_monitor import monitor_frame, record_setup_observations
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
@@ -25,6 +26,18 @@ st.set_page_config(
 )
 
 st.title("⚡ Day-Trader Opportunity Scanner")
+session_counts_now = session_counts(st.session_state)
+control_left, control_right = st.columns([3, 1])
+with control_left:
+    st.caption(
+        "Session data is local to this Streamlit session and should be refreshed for a new "
+        "trading session."
+    )
+with control_right:
+    if st.button("Reset intraday session", type="secondary"):
+        reset_intraday_session(st.session_state)
+        st.rerun()
+
 st.caption(
     "Ranks observable intraday momentum, volume, range and breakout conditions. "
     "It is a screening tool, not a profit predictor or trade instruction."
@@ -91,6 +104,7 @@ if st.button("Scan now", type="primary"):
         )
     results = results.head(limit).reset_index(drop=True)
     st.session_state["day_trader_opportunities"] = results
+    st.session_state["intraday_last_scan_at"] = pd.Timestamp.now(tz="Asia/Kolkata")
     previous_states = st.session_state.get("intraday_setup_states", {})
     updated_states, transitions = record_setup_state_transitions(
         previous_states,
@@ -120,6 +134,9 @@ if st.button("Scan now", type="primary"):
     st.session_state["intraday_state_transitions"] = transitions + history
 
 raw_results = st.session_state.get("day_trader_opportunities")
+last_scan_at = st.session_state.get("intraday_last_scan_at")
+if last_scan_at is not None:
+    st.caption(f"Last scan: {pd.Timestamp(last_scan_at).strftime('%d %b %Y, %H:%M:%S IST')}")
 if raw_results is None:
     st.info("Run a scan during market hours to populate the opportunity table.")
 elif raw_results.empty:
