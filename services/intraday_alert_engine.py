@@ -1,5 +1,7 @@
 """Helpers for detecting descriptive intraday scan changes."""
 
+# fmt: off
+
 from __future__ import annotations
 
 from datetime import datetime
