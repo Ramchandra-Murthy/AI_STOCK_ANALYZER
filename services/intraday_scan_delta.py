@@ -13,6 +13,8 @@ DELTA_COLUMNS = [
     "Candidate delta",
     "Average change delta %",
     "Average volume surge delta x",
+    "Exchanges",
+    "Market-cap baskets",
     "New top symbols",
     "Dropped top symbols",
 ]
@@ -57,6 +59,8 @@ def snapshot_delta_frame(
                     current.get("Average volume surge x"),
                     previous.get("Average volume surge x"),
                 ),
+                "Exchanges": current.get("Exchanges"),
+                "Market-cap baskets": current.get("Market-cap baskets"),
                 "New top symbols": ", ".join(sorted(current_symbols - previous_symbols)),
                 "Dropped top symbols": ", ".join(sorted(previous_symbols - current_symbols)),
             }
