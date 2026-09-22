@@ -17,6 +17,9 @@ from services.intraday_alert_engine import (
 from services.intraday_auto_refresh import (
     ALLOWED_REFRESH_SECONDS,
     DEFAULT_REFRESH_SECONDS,
+    market_is_open,
+    next_refresh_seconds,
+    refresh_label,
 )
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_exchange_summary import exchange_summary
@@ -143,6 +146,37 @@ exclude_flagged = st.checkbox(
         "review."
     ),
 )
+
+# Streamlit fragments provide the lightweight clock that drives the full-app
+# rescan only when Live Market Mode is enabled. The market-hours check prevents
+# unnecessary scans outside the NSE cash session.
+@st.fragment(run_every=60 if auto_refresh else None)
+def _live_market_mode_controller():
+    now = pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime()
+    if not auto_refresh:
+        st.caption("⚪ Live Market Mode: OFF")
+        return
+
+    if not market_is_open(now):
+        st.info(
+            "🔵 Live Market Mode: ARMED · scans are paused outside NSE market hours "
+            "(09:15–15:30 IST) and will resume automatically during the next session."
+        )
+        return
+
+    last_scan = st.session_state.get("intraday_last_scan_at")
+    remaining = next_refresh_seconds(last_scan, refresh_interval, now)
+    if last_scan is None or remaining <= 0:
+        st.session_state["intraday_auto_refresh_pending"] = True
+        st.rerun()
+
+    st.success(
+        f"🟢 LIVE MARKET MODE · next scan in {refresh_label(remaining)} · "
+        f"refresh interval {refresh_interval // 60} min"
+    )
+
+
+_live_market_mode_controller()
 
 scan_requested = st.button("Scan now", type="primary")
 auto_scan_requested = st.session_state.pop("intraday_auto_refresh_pending", False)
