@@ -82,7 +82,9 @@ def _download_bse_equity_list() -> list[str]:
         and str(row.get("Status", "")).strip().lower() == "active"
         and str(row.get("Segment", "")).strip().lower() == "equity"
     }
-    return sorted(symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol))
+    return sorted(
+        symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol)
+    )
 
 
 def dynamic_nse_symbols() -> list[str]:
@@ -145,10 +147,7 @@ def merge_bse_universe(extra_symbols: list[str] | None = None) -> list[str]:
     return sorted(symbols)
 
 
-def passes_liquidity_filter(
-    latest_price: float,
-    average_volume: float,
-) -> bool:
+def passes_liquidity_filter(latest_price: float, average_volume: float) -> bool:
     """Keep reasonably liquid stocks suitable for an intraday opportunity scan."""
     return (
         latest_price >= MIN_PRICE
