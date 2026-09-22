@@ -3,15 +3,18 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.dynamic_universe import (
+    merge_bse_universe,
+    merge_nse_universe,
+    passes_liquidity_filter,
+)
 from services.analyzer import analyze_stock
 
-# Broad, liquid candidate universe. The scanner ranks this universe on every scan;
-# the displayed ten stocks therefore change with current market conditions.
-# BSE scrip codes; unavailable symbols are skipped.
-TOP_CANDIDATES_TO_ANALYZE = 14
+# The curated lists remain a fallback, while NSE symbols are refreshed from
+# the exchange's current equity list before each cache window.
+TOP_CANDIDATES_TO_ANALYZE = 30
 DISPLAY_COUNT = 10
-DOWNLOAD_CHUNK_SIZE = 10
+DOWNLOAD_CHUNK_SIZE = 40
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -19,9 +22,12 @@ def _ticker(symbol: str, exchange: str) -> str:
     return f"{symbol}.{suffix}"
 
 
-def _batch_change_screen(candidates: dict[str, list[str]]) -> list[tuple[str, str, float]]:
-    """Rank candidates in small batches to limit Yahoo Finance batch failures."""
+def _batch_change_screen(
+    candidates: dict[str, list[str]],
+) -> list[tuple[str, str, float]]:
+    """Find liquid movers across the current NSE universe and BSE fallback list."""
     ranked: list[tuple[str, str, float]] = []
+
     for exchange, symbols in candidates.items():
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
         for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
@@ -38,6 +44,7 @@ def _batch_change_screen(candidates: dict[str, list[str]]) -> list[tuple[str, st
                 )
             except Exception:
                 continue
+
             if history is None or history.empty:
                 continue
 
@@ -47,15 +54,23 @@ def _batch_change_screen(candidates: dict[str, list[str]]) -> list[tuple[str, st
                         if ticker not in history.columns.get_level_values(0):
                             continue
                         close = pd.to_numeric(history[ticker]["Close"], errors="coerce").dropna()
+                        volume = pd.to_numeric(history[ticker]["Volume"], errors="coerce").dropna()
                     else:
-                        # yfinance returns flat columns for a single-symbol chunk.
                         close = pd.to_numeric(history["Close"], errors="coerce").dropna()
-                    if len(close) < 2:
+                        volume = pd.to_numeric(history["Volume"], errors="coerce").dropna()
+
+                    if len(close) < 2 or volume.empty:
                         continue
-                    latest, previous = float(close.iloc[-1]), float(close.iloc[-2])
-                    if previous == 0:
+
+                    latest = float(close.iloc[-1])
+                    previous = float(close.iloc[-2])
+                    average_volume = float(volume.tail(5).mean())
+
+                    if previous == 0 or not passes_liquidity_filter(latest, average_volume):
                         continue
-                    ranked.append((ticker, exchange, ((latest - previous) / previous) * 100))
+
+                    change_pct = ((latest - previous) / previous) * 100
+                    ranked.append((ticker, exchange, change_pct))
                 except (KeyError, TypeError, ValueError, IndexError):
                     continue
 
@@ -84,13 +99,16 @@ def _analyze_candidate(ticker: str) -> dict[str, Any] | None:
             "Recommendation": signal["Recommendation"],
         }
     except Exception:
-        # Unavailable symbols should not flood Streamlit logs or stop other analyses.
+        # Unavailable symbols should not stop the rest of the scan.
         return None
 
 
 def market_scan() -> pd.DataFrame:
-    """Rank a broad NSE+BSE candidate universe and return the top AI-scored stocks."""
-    candidates = {"NSE": NSE_CANDIDATES, "BSE": BSE_CANDIDATES}
+    """Scan a refreshed NSE universe plus the curated BSE universe."""
+    candidates = {
+        "NSE": merge_nse_universe(),
+        "BSE": merge_bse_universe(),
+    }
     movers = _batch_change_screen(candidates)
     if not movers:
         return pd.DataFrame()
@@ -113,6 +131,7 @@ def market_scan() -> pd.DataFrame:
     df = pd.DataFrame(rows)
     if df.empty:
         return df
+
     return (
         df.sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
         .head(DISPLAY_COUNT)
