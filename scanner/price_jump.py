@@ -5,6 +5,7 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
+from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES, _frame_for, _ticker
 
@@ -72,8 +73,8 @@ def scan_price_jumps(
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
 
     if cap_category == "All caps":
-        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
-            (symbol, "BSE") for symbol in BSE_CANDIDATES
+        universe = [(symbol, "NSE") for symbol in merge_nse_universe()] + [
+            (symbol, "BSE") for symbol in merge_bse_universe()
         ]
     else:
         selected = CAP_UNIVERSES.get(cap_category, set())
