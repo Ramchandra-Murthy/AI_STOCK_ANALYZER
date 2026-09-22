@@ -53,19 +53,11 @@ def _batch_change_screen(
                     if isinstance(history.columns, pd.MultiIndex):
                         if ticker not in history.columns.get_level_values(0):
                             continue
-                        close = pd.to_numeric(
-                            history[ticker]["Close"], errors="coerce"
-                        ).dropna()
-                        volume = pd.to_numeric(
-                            history[ticker]["Volume"], errors="coerce"
-                        ).dropna()
+                        close = pd.to_numeric(history[ticker]["Close"], errors="coerce").dropna()
+                        volume = pd.to_numeric(history[ticker]["Volume"], errors="coerce").dropna()
                     else:
-                        close = pd.to_numeric(
-                            history["Close"], errors="coerce"
-                        ).dropna()
-                        volume = pd.to_numeric(
-                            history["Volume"], errors="coerce"
-                        ).dropna()
+                        close = pd.to_numeric(history["Close"], errors="coerce").dropna()
+                        volume = pd.to_numeric(history["Volume"], errors="coerce").dropna()
 
                     if len(close) < 2 or volume.empty:
                         continue
@@ -74,10 +66,7 @@ def _batch_change_screen(
                     previous = float(close.iloc[-2])
                     average_volume = float(volume.tail(5).mean())
 
-                    if (
-                        previous == 0
-                        or not passes_liquidity_filter(latest, average_volume)
-                    ):
+                    if previous == 0 or not passes_liquidity_filter(latest, average_volume):
                         continue
 
                     change_pct = ((latest - previous) / previous) * 100

@@ -82,9 +82,7 @@ def _download_bse_equity_list() -> list[str]:
         and str(row.get("Status", "")).strip().lower() == "active"
         and str(row.get("Segment", "")).strip().lower() == "equity"
     }
-    return sorted(
-        symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol)
-    )
+    return sorted(symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol))
 
 
 def dynamic_nse_symbols() -> list[str]:
@@ -130,9 +128,7 @@ def merge_nse_universe(extra_symbols: list[str] | None = None) -> list[str]:
     symbols = set(dynamic_nse_symbols())
     symbols.update(NSE_CANDIDATES)
     if extra_symbols:
-        symbols.update(
-            symbol.strip().upper() for symbol in extra_symbols if symbol.strip()
-        )
+        symbols.update(symbol.strip().upper() for symbol in extra_symbols if symbol.strip())
     return sorted(symbols)
 
 
@@ -141,17 +137,10 @@ def merge_bse_universe(extra_symbols: list[str] | None = None) -> list[str]:
     symbols = set(dynamic_bse_symbols())
     symbols.update(BSE_CANDIDATES)
     if extra_symbols:
-        symbols.update(
-            symbol.strip().upper()
-            for symbol in extra_symbols
-            if symbol.strip()
-        )
+        symbols.update(symbol.strip().upper() for symbol in extra_symbols if symbol.strip())
     return sorted(symbols)
 
 
 def passes_liquidity_filter(latest_price: float, average_volume: float) -> bool:
     """Keep reasonably liquid stocks suitable for an intraday opportunity scan."""
-    return (
-        latest_price >= MIN_PRICE
-        and latest_price * average_volume >= MIN_AVG_DAILY_TURNOVER
-    )
+    return latest_price >= MIN_PRICE and latest_price * average_volume >= MIN_AVG_DAILY_TURNOVER
