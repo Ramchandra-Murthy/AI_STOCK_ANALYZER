@@ -74,8 +74,9 @@ def _batch_change_screen(
                     previous = float(close.iloc[-2])
                     average_volume = float(volume.tail(5).mean())
 
-                    if previous == 0 or not passes_liquidity_filter(
-                        latest, average_volume
+                    if (
+                        previous == 0
+                        or not passes_liquidity_filter(latest, average_volume)
                     ):
                         continue
 
