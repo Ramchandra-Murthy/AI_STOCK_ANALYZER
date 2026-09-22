@@ -6,7 +6,7 @@ import pandas as pd
 import yfinance as yf
 
 from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.universe import NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES, _frame_for, _ticker
 
 CHUNK_SIZE = 10
