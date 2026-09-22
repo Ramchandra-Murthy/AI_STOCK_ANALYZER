@@ -5,7 +5,8 @@ import math
 import pandas as pd
 import streamlit as st
 
-from scanner.market_scanner import BSE_CANDIDATES, DISPLAY_COUNT, NSE_CANDIDATES, market_scan
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.market_scanner import DISPLAY_COUNT, market_scan
 from scanner.watchlist_scanner import scan_watchlist
 
 
