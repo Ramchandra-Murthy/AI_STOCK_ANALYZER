@@ -3,7 +3,7 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from scanner.dynamic_universe import merge_nse_universe, passes_liquidity_filter
+from scanner.dynamic_universe import (\n    merge_bse_universe,\n    merge_nse_universe,\n    passes_liquidity_filter,\n)
 from scanner.universe import BSE_CANDIDATES
 from services.analyzer import analyze_stock
 
@@ -114,7 +114,7 @@ def market_scan() -> pd.DataFrame:
     """Scan a refreshed NSE universe plus the curated BSE universe."""
     candidates = {
         "NSE": merge_nse_universe(),
-        "BSE": BSE_CANDIDATES,
+        "BSE": merge_bse_universe(),
     }
     movers = _batch_change_screen(candidates)
     if not movers:
