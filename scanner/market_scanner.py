@@ -3,8 +3,11 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from scanner.dynamic_universe import (\n    merge_bse_universe,\n    merge_nse_universe,\n    passes_liquidity_filter,\n)
-from scanner.universe import BSE_CANDIDATES
+from scanner.dynamic_universe import (
+    merge_bse_universe,
+    merge_nse_universe,
+    passes_liquidity_filter,
+)
 from services.analyzer import analyze_stock
 
 # The curated lists remain a fallback, while NSE symbols are refreshed from
