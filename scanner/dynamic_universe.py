@@ -143,7 +143,11 @@ def merge_bse_universe(extra_symbols: list[str] | None = None) -> list[str]:
     symbols = set(dynamic_bse_symbols())
     symbols.update(BSE_CANDIDATES)
     if extra_symbols:
-        symbols.update(symbol.strip().upper() for symbol in extra_symbols if symbol.strip())
+        symbols.update(
+            symbol.strip().upper()
+            for symbol in extra_symbols
+            if symbol.strip()
+        )
     return sorted(symbols)
 
 
