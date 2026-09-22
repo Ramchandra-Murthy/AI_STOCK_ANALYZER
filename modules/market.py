@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from scanner.market_scanner import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_service import (
     WATCHLIST,
     get_company_name,
