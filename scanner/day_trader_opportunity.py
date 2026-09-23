@@ -17,12 +17,13 @@ from scanner.day_trading_strategy import (
     calculate_day_trade_plan,
     classify_day_trade_plan_state,
 )
+from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.surveillance import (
     apply_safety_filter,
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.universe import NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
@@ -75,13 +76,15 @@ def select_day_trader_universe(
     cap_category: str = "All caps",
     exchange_category: str = "Both",
 ) -> list[tuple[str, str]]:
-    """Return the configured candidate universe for the selected filters."""
+    """Return the selected candidate universe, using live NSE/BSE lists for All caps."""
     if cap_category not in {"All caps", *CAP_UNIVERSES}:
         return []
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     if cap_category == "All caps":
-        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
-            (symbol, "BSE") for symbol in BSE_CANDIDATES
+        # Use the live NSE/BSE exchange lists for the full-universe scan.
+        # Curated symbols are merged in by dynamic_universe as a fallback.
+        universe = [(symbol, "NSE") for symbol in merge_nse_universe()] + [
+            (symbol, "BSE") for symbol in merge_bse_universe()
         ]
     else:
         selected = CAP_UNIVERSES[cap_category]
