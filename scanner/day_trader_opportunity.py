@@ -17,12 +17,12 @@ from scanner.day_trading_strategy import (
     calculate_day_trade_plan,
     classify_day_trade_plan_state,
 )
+from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.surveillance import (
     apply_safety_filter,
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
-from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.universe import NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
