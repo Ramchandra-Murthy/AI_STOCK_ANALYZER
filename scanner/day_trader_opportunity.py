@@ -258,6 +258,26 @@ def scan_day_trader_opportunities(
                     prior_highs = high.iloc[-21:-1] if len(high) >= 21 else high.iloc[:-1]
                     breakout = len(prior_highs) > 0 and price > float(prior_highs.max())
 
+                    price_pass = change >= min_change_percent
+                    volume_pass = volume_surge >= min_volume_surge
+                    if price_pass:
+                        scan_stats["price_change_pass_count"] += 1
+                    if volume_pass:
+                        scan_stats["volume_surge_pass_count"] += 1
+                    if price_pass and volume_pass:
+                        scan_stats["both_filters_pass_count"] += 1
+
+                    low_price = price <= max_price
+                    if low_price:
+                        scan_stats["low_price_pass_count"] += 1
+
+                    # Cheap first-stage filters: avoid expensive strategy/VWAP
+                    # calculations for symbols that cannot enter the result set.
+                    if not price_pass or not volume_pass:
+                        continue
+                    if low_price_only and not low_price:
+                        continue
+
                     strategy = analyze_day_trade_setup(
                         session,
                         opening_range_bars=5 if candle_minutes == 1 else 1,
@@ -289,15 +309,6 @@ def scan_day_trader_opportunities(
                     direction = strategy_summary["Direction"]
                     setup_state = strategy_summary["Setup state"]
                     evidence_text = strategy_summary["Evidence"]
-
-                    price_pass = change >= min_change_percent
-                    volume_pass = volume_surge >= min_volume_surge
-                    if price_pass:
-                        scan_stats["price_change_pass_count"] += 1
-                    if volume_pass:
-                        scan_stats["volume_surge_pass_count"] += 1
-                    if price_pass and volume_pass:
-                        scan_stats["both_filters_pass_count"] += 1
 
                     low_price = price <= max_price
                     if low_price:
