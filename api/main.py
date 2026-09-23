@@ -63,7 +63,9 @@ def price_jumps(
             jump_percent=jump_percent,
         )
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Price-pulse scan failed: {exc}") from exc
+        raise HTTPException(
+            status_code=502, detail=f"Price-pulse scan failed: {exc}"
+        ) from exc
 
     return {
         "count": len(frame),
@@ -106,7 +108,9 @@ def market(
         future = _SCAN_EXECUTOR.submit(market_scan)
         frame = future.result()
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Market scan failed: {exc}") from exc
+        raise HTTPException(
+            status_code=502, detail=f"Market scan failed: {exc}"
+        ) from exc
 
     return {
         "count": min(len(frame), limit),
