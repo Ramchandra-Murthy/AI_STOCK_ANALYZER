@@ -27,7 +27,7 @@ from scanner.universe import NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
-CHUNK_SIZE = 50
+CHUNK_SIZE = 100
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
