@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Any
 from uuid import uuid4
@@ -62,7 +62,7 @@ class ErosScanManager:
             return dict(job) if job is not None else None
 
     def _run_price_jump_scan(self, job_id: str, kwargs: dict[str, Any]) -> None:
-        started = datetime.now(timezone.utc).isoformat()
+        started = datetime.now(UTC).isoformat()
         with self._lock:
             self._jobs[job_id]["status"] = "running"
             self._jobs[job_id]["started_at"] = started
