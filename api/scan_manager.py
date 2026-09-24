@@ -47,7 +47,11 @@ class ErosScanManager:
         with self._lock:
             if self._active_price_jump_job is not None:
                 active = self._jobs.get(self._active_price_jump_job)
-                if active is not None and active["status"] in {"queued", "running"}:
+                if (
+                    active is not None
+                    and active["status"] in {"queued", "running"}
+                    and active["kwargs"] == kwargs
+                ):
                     return self._active_price_jump_job
             if len(self._jobs) >= self._max_jobs:
                 oldest_job_id = next(iter(self._jobs))
@@ -61,8 +65,10 @@ class ErosScanManager:
                 "results": [],
                 "scan_stats": {},
                 "error": None,
+                "kwargs": dict(kwargs),
             }
-        self._active_price_jump_job = job_id
+        with self._lock:
+            self._active_price_jump_job = job_id
         self._executor.submit(self._run_price_jump_scan, job_id, kwargs)
         return job_id
 
