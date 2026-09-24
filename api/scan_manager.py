@@ -10,6 +10,7 @@ from uuid import uuid4
 
 import pandas as pd
 
+from api.scan_history import save_completed_scan
 from scanner.price_jump import scan_price_jumps
 
 
@@ -71,11 +72,17 @@ class ErosScanManager:
             with self._lock:
                 self._jobs[job_id].update(
                     status="completed",
-                    finished_at=datetime.now(timezone.utc).isoformat(),
+                    finished_at=datetime.now(UTC).isoformat(),
                     count=len(frame),
                     results=_records(frame),
                     scan_stats=_stats(frame),
                 )
+            save_completed_scan(
+                job_id,
+                self._jobs[job_id]["finished_at"],
+                self._jobs[job_id]["results"],
+                self._jobs[job_id]["scan_stats"],
+            )
         except Exception as exc:
             with self._lock:
                 self._jobs[job_id].update(
