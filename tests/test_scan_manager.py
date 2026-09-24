@@ -27,10 +27,11 @@ def test_background_price_jump_scan_completes() -> None:
         assert job["scan_stats"]["candidate_count"] == 1
         assert job["results"][0]["Symbol"] == "TEST"
 
+
 def test_active_price_jump_scan_reuses_identical_parameters() -> None:
     frame = pd.DataFrame({"Symbol": ["TEST"]})
     started = Event()
-    release = __import__("threading").Event()
+    release = Event()
 
     def scan(**_kwargs: object) -> pd.DataFrame:
         started.set()
@@ -58,10 +59,10 @@ def test_active_price_jump_scan_reuses_identical_parameters() -> None:
 
 def test_active_price_jump_scan_starts_for_different_parameters() -> None:
     frame = pd.DataFrame({"Symbol": ["TEST"]})
-    started = __import__("threading").Event()
-    release = __import__("threading").Event()
+    started = Event()
+    release = Event()
 
-    def scan(**kwargs: object) -> pd.DataFrame:
+    def scan(**_kwargs: object) -> pd.DataFrame:
         started.set()
         release.wait(timeout=5)
         return frame
