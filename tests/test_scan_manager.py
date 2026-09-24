@@ -1,5 +1,6 @@
 """Tests for the EROS FastAPI scan manager."""
 
+from threading import Event
 from unittest.mock import patch
 
 import pandas as pd
@@ -28,7 +29,7 @@ def test_background_price_jump_scan_completes() -> None:
 
 def test_active_price_jump_scan_reuses_identical_parameters() -> None:
     frame = pd.DataFrame({"Symbol": ["TEST"]})
-    started = __import__("threading").Event()
+    started = Event()
     release = __import__("threading").Event()
 
     def scan(**_kwargs: object) -> pd.DataFrame:
