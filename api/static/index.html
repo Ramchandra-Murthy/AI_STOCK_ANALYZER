@@ -23,9 +23,9 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:9px;bord
 <div class="card"><div class="muted">Scanner</div><div id="status" class="status">Ready</div></div>
 <div class="card"><div class="muted">Candidates</div><div id="count">—</div></div>
 <div class="card"><div class="muted">Universe</div><div id="universe">—</div></div>
-<div class="card"><button id="scan">Start price-pulse scan</button></div>
+<div class="card"><button id="scan">Start price-pulse scan</button><button id="refresh">Refresh history</button></div>
 </div>
-<div class="card"><h3>Latest price pulses</h3><div id="results">No scan yet.</div></div>
+<div class="card"><h3>Latest price pulses</h3><div id="results">No scan yet.</div></div><div class="card"><h3>Recent scan history</h3><div id="history">No saved scans yet.</div></div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -35,6 +35,8 @@ function render(rows){
  $("results").innerHTML="<table><thead><tr>"+cols.map(c=>"<th>"+c+"</th>").join("")+
  "</tr></thead><tbody>"+rows.map(r=>"<tr>"+cols.map(c=>"<td>"+(r[c]??"—")+"</td>").join("")+"</tr>").join("")+"</tbody></table>";
 }
+function renderHistory(scans){ if(!scans.length){$("history").textContent="No saved scans yet.";return} $("history").innerHTML="<table><thead><tr><th>Completed</th><th>Job</th><th>Candidates</th><th>Universe checked</th></tr></thead><tbody>"+scans.map(s=>"<tr><td>"+s.completed_at+"</td><td>"+s.job_id.slice(0,10)+"…</td><td>"+s.count+"</td><td>"+(s.scan_stats?.candidate_count??"—")+"</td></tr>").join("")+"</tbody></table>"; }
+async function refreshHistory(){ try{ const data=await fetch("/api/v1/intraday/history?limit=10").then(r=>r.json()); renderHistory(data.scans||[]); }catch(e){ $("history").textContent=e.message; } }
 async function start(){
  $("scan").disabled=true;$("status").textContent="Starting…";
  try{
@@ -54,7 +56,7 @@ async function start(){
   },1000);
  }catch(e){$("status").textContent="Error";$("results").textContent=e.message;$("scan").disabled=false}
 }
-$("scan").addEventListener("click",start);
+$("scan").addEventListener("click",start);$("refresh").addEventListener("click",refreshHistory);refreshHistory();setInterval(refreshHistory,15000);
 </script>
 </body>
 </html>
