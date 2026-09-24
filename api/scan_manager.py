@@ -87,6 +87,6 @@ class ErosScanManager:
             with self._lock:
                 self._jobs[job_id].update(
                     status="failed",
-                    finished_at=datetime.now(timezone.utc).isoformat(),
+                    finished_at=datetime.now(UTC).isoformat(),
                     error=str(exc),
                 )
