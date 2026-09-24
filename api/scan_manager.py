@@ -31,18 +31,22 @@ def _stats(frame: pd.DataFrame) -> dict[str, Any]:
 class ErosScanManager:
     """Run EROS scans outside the HTTP request thread."""
 
-    def __init__(self, max_workers: int = 2) -> None:
+    def __init__(self, max_workers: int = 2, max_jobs: int = 100) -> None:
         self._executor = ThreadPoolExecutor(
             max_workers=max_workers,
             thread_name_prefix="eros-scan",
         )
         self._jobs: dict[str, dict[str, Any]] = {}
+        self._max_jobs = max(1, max_jobs)
         self._lock = Lock()
 
     def start_price_jump_scan(self, **kwargs: Any) -> str:
         """Start a price-jump scan and return its job identifier."""
         job_id = uuid4().hex
         with self._lock:
+            if len(self._jobs) >= self._max_jobs:
+                oldest_job_id = next(iter(self._jobs))
+                del self._jobs[oldest_job_id]
             self._jobs[job_id] = {
                 "job_id": job_id,
                 "status": "queued",
