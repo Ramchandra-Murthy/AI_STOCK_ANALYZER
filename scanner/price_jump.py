@@ -31,7 +31,8 @@ def calculate_price_jump(
         return None
 
     session_date = clean.index[-1].date()
-    current = clean.loc[[stamp.date() == session_date for stamp in clean.index]]
+    session_mask = clean.index.date == session_date
+    current = clean.loc[session_mask]
     if len(current) <= lookback_bars:
         return None
 
