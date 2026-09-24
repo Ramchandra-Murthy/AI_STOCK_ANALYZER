@@ -86,9 +86,7 @@ def unusual_activity(
             exchange_category=exchange_category,
         )
     except Exception as exc:
-        raise HTTPException(
-            status_code=502, detail=f"Unusual-activity scan failed: {exc}"
-        ) from exc
+        raise HTTPException(status_code=502, detail=f"Unusual-activity scan failed: {exc}") from exc
 
     return {
         "count": len(frame),
