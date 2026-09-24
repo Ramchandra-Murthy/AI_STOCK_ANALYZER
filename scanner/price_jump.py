@@ -114,6 +114,7 @@ def scan_price_jumps(
                     auto_adjust=False,
                     group_by="ticker",
                     threads=False,
+                    timeout=15,
                 )
             except Exception:
                 stats["download_failed_chunks"] += 1
