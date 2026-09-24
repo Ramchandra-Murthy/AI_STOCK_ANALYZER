@@ -25,7 +25,7 @@ def calculate_price_jump(
     if not required.issubset(frame.columns):
         return None
 
-    clean = frame.dropna(subset=list(required)).sort_index()
+    clean = frame.loc[:, ["Close", "Volume"]].dropna().sort_index()
     clean = clean[~clean.index.duplicated(keep="last")]
     if clean.empty:
         return None
