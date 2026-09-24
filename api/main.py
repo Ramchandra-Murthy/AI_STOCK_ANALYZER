@@ -6,10 +6,12 @@ application remains the presentation layer until the new frontend is ready.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import FileResponse
 
 from api.scan_history import recent_scans
 from api.scan_manager import ErosScanManager
@@ -38,6 +40,12 @@ def _records(frame: pd.DataFrame) -> list[dict[str, Any]]:
 def _stats(frame: pd.DataFrame) -> dict[str, Any]:
     """Return scanner diagnostics attached to a DataFrame."""
     return dict(getattr(frame, "attrs", {}).get("scan_stats", {}))
+
+
+@app.get("/", include_in_schema=False)
+def dashboard() -> FileResponse:
+    """Serve the EROS browser dashboard."""
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
 @app.get("/health")
