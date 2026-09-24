@@ -40,3 +40,6 @@ htmlcov/
 .vscode/
 .idea/
 
+
+# EROS runtime persistence
+*.sqlite3
