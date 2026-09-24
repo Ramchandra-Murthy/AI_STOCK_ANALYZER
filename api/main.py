@@ -11,10 +11,9 @@ from typing import Any
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 
+from api.scan_manager import ErosScanManager
 from scanner.market_scanner import market_scan
 from scanner.price_jump import scan_price_jumps
-
-from api.scan_manager import ErosScanManager
 from scanner.unusual_activity import scan_unusual_activity
 
 app = FastAPI(
