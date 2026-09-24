@@ -8,6 +8,30 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+CREATE_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS scan_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id TEXT NOT NULL,
+    completed_at TEXT NOT NULL,
+    count INTEGER NOT NULL,
+    results_json TEXT NOT NULL,
+    stats_json TEXT NOT NULL
+)
+"""
+
+INSERT_SCAN_SQL = """
+INSERT INTO scan_history
+    (job_id, completed_at, count, results_json, stats_json)
+VALUES (?, ?, ?, ?, ?)
+"""
+
+SELECT_RECENT_SQL = """
+SELECT job_id, completed_at, count, results_json, stats_json
+FROM scan_history
+ORDER BY id DESC
+LIMIT ?
+"""
+
 
 def _db_path() -> Path:
     """Return the configurable EROS SQLite database path."""
@@ -18,18 +42,7 @@ def _connect() -> sqlite3.Connection:
     path = _db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(path)
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS scan_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            job_id TEXT NOT NULL,
-            completed_at TEXT NOT NULL,
-            count INTEGER NOT NULL,
-            results_json TEXT NOT NULL,
-            stats_json TEXT NOT NULL
-        )
-        """
-    )
+    connection.execute(CREATE_TABLE_SQL)
     return connection
 
 
@@ -40,35 +53,21 @@ def save_completed_scan(
     scan_stats: dict[str, Any],
 ) -> None:
     """Persist one completed scan result."""
+    values = (
+        job_id,
+        completed_at,
+        len(results),
+        json.dumps(results, default=str),
+        json.dumps(scan_stats, default=str),
+    )
     with _connect() as connection:
-        connection.execute(
-            """
-            INSERT INTO scan_history
-                (job_id, completed_at, count, results_json, stats_json)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                job_id,
-                completed_at,
-                len(results),
-                json.dumps(results, default=str),
-                json.dumps(scan_stats, default=str),
-            ),
-        )
+        connection.execute(INSERT_SCAN_SQL, values)
 
 
 def recent_scans(limit: int = 20) -> list[dict[str, Any]]:
     """Return the most recent completed scans."""
     with _connect() as connection:
-        rows = connection.execute(
-            """
-            SELECT job_id, completed_at, count, results_json, stats_json
-            FROM scan_history
-            ORDER BY id DESC
-            LIMIT ?
-            """,
-            (limit,),
-        ).fetchall()
+        rows = connection.execute(SELECT_RECENT_SQL, (limit,)).fetchall()
 
     return [
         {
