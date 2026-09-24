@@ -9,7 +9,8 @@ from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.universe import NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES, _frame_for, _ticker
 
-CHUNK_SIZE = 10
+CHUNK_SIZE = 25
+INTRADAY_PERIOD = "1d"
 
 
 def calculate_price_jump(
@@ -107,7 +108,7 @@ def scan_price_jumps(
             try:
                 history = yf.download(
                     tickers=chunk,
-                    period="5d",
+                    period=INTRADAY_PERIOD,
                     interval=interval,
                     progress=False,
                     auto_adjust=False,
