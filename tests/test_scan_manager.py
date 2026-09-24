@@ -1,8 +1,10 @@
 """Tests for the EROS FastAPI scan manager."""
 
+from threading import Event
 from unittest.mock import patch
 
 import pandas as pd
+import pytest
 
 from api.scan_manager import ErosScanManager
 
@@ -25,3 +27,42 @@ def test_background_price_jump_scan_completes() -> None:
         assert job["count"] == 1
         assert job["scan_stats"]["candidate_count"] == 1
         assert job["results"][0]["Symbol"] == "TEST"
+
+
+@pytest.mark.parametrize(
+    ("second_lookback", "same_job"),
+    [(5, True), (10, False)],
+)
+def test_active_price_jump_scan_parameter_handling(
+    second_lookback: int,
+    same_job: bool,
+) -> None:
+    frame = pd.DataFrame({"Symbol": ["TEST"]})
+    started = Event()
+    release = Event()
+
+    def scan(**_kwargs: object) -> pd.DataFrame:
+        started.set()
+        release.wait(timeout=5)
+        return frame
+
+    manager = ErosScanManager(max_workers=1)
+    with patch("api.scan_manager.scan_price_jumps", side_effect=scan):
+        first_job_id = manager.start_price_jump_scan(
+            exchange_category="NSE",
+            lookback_minutes=5,
+            jump_percent=1,
+        )
+        assert started.wait(timeout=2)
+
+        second_job_id = manager.start_price_jump_scan(
+            exchange_category="NSE",
+            lookback_minutes=second_lookback,
+            jump_percent=1,
+        )
+
+        if same_job:
+            assert second_job_id == first_job_id
+        else:
+            assert second_job_id != first_job_id
+        release.set()
