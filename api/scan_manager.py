@@ -31,7 +31,7 @@ def _stats(frame: pd.DataFrame) -> dict[str, Any]:
 class ErosScanManager:
     """Run EROS scans outside the HTTP request thread."""
 
-    def __init__(self, max_workers: int = 2, max_jobs: int = 100) -> None:
+    def __init__(self, max_workers: int = 1, max_jobs: int = 100) -> None:
         self._executor = ThreadPoolExecutor(
             max_workers=max_workers,
             thread_name_prefix="eros-scan",
@@ -41,21 +41,43 @@ class ErosScanManager:
         self._lock = Lock()
         self._active_price_jump_job: str | None = None
 
+    def _find_matching_price_jump_job(
+        self, kwargs: dict[str, Any]
+    ) -> str | None:
+        for job_id, job in self._jobs.items():
+            if (
+                job["status"] in {"queued", "running"}
+                and job["kwargs"] == kwargs
+            ):
+                return job_id
+        return None
+
+    def _next_queued_price_jump_job(self) -> str | None:
+        for job_id, job in self._jobs.items():
+            if job["status"] == "queued":
+                return job_id
+        return None
+
     def start_price_jump_scan(self, **kwargs: Any) -> str:
-        """Start a price-jump scan and return its job identifier."""
+        """Queue a price-jump scan and return its job identifier."""
         job_id = uuid4().hex
         with self._lock:
-            if self._active_price_jump_job is not None:
-                active = self._jobs.get(self._active_price_jump_job)
-                if (
-                    active is not None
-                    and active["status"] in {"queued", "running"}
-                    and active["kwargs"] == kwargs
-                ):
-                    return self._active_price_jump_job
+            matching_job_id = self._find_matching_price_jump_job(kwargs)
+            if matching_job_id is not None:
+                return matching_job_id
+
             if len(self._jobs) >= self._max_jobs:
-                oldest_job_id = next(iter(self._jobs))
-                del self._jobs[oldest_job_id]
+                terminal_job_id = next(
+                    (
+                        existing_id
+                        for existing_id, existing_job in self._jobs.items()
+                        if existing_job["status"] in {"completed", "failed"}
+                    ),
+                    None,
+                )
+                if terminal_job_id is not None:
+                    del self._jobs[terminal_job_id]
+
             self._jobs[job_id] = {
                 "job_id": job_id,
                 "status": "queued",
@@ -67,8 +89,9 @@ class ErosScanManager:
                 "error": None,
                 "kwargs": dict(kwargs),
             }
-        with self._lock:
-            self._active_price_jump_job = job_id
+            if self._active_price_jump_job is None:
+                self._active_price_jump_job = job_id
+
         self._executor.submit(self._run_price_jump_scan, job_id, kwargs)
         return job_id
 
@@ -81,24 +104,31 @@ class ErosScanManager:
     def _run_price_jump_scan(self, job_id: str, kwargs: dict[str, Any]) -> None:
         started = datetime.now(UTC).isoformat()
         with self._lock:
-            self._jobs[job_id]["status"] = "running"
-            self._jobs[job_id]["started_at"] = started
+            job = self._jobs.get(job_id)
+            if job is None:
+                return
+            job["status"] = "running"
+            job["started_at"] = started
         try:
             frame = scan_price_jumps(**kwargs)
             with self._lock:
-                self._jobs[job_id].update(
+                job = self._jobs[job_id]
+                job.update(
                     status="completed",
                     finished_at=datetime.now(UTC).isoformat(),
                     count=len(frame),
                     results=_records(frame),
                     scan_stats=_stats(frame),
                 )
-                self._active_price_jump_job = None
+                self._active_price_jump_job = self._next_queued_price_jump_job()
+                completed_at = job["finished_at"]
+                results = job["results"]
+                scan_stats = job["scan_stats"]
             save_completed_scan(
                 job_id,
-                self._jobs[job_id]["finished_at"],
-                self._jobs[job_id]["results"],
-                self._jobs[job_id]["scan_stats"],
+                completed_at,
+                results,
+                scan_stats,
             )
         except Exception as exc:
             with self._lock:
@@ -107,4 +137,4 @@ class ErosScanManager:
                     finished_at=datetime.now(UTC).isoformat(),
                     error=str(exc),
                 )
-                self._active_price_jump_job = None
+                self._active_price_jump_job = self._next_queued_price_jump_job()
