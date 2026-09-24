@@ -82,8 +82,12 @@ def scan_price_jumps(
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
 
     selected_universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    unique_universe = list(dict.fromkeys(selected_universe))
+    duplicate_count = len(selected_universe) - len(unique_universe)
+    selected_universe = unique_universe
     stats = {
         "candidate_count": len(selected_universe),
+        "duplicate_candidates_removed": duplicate_count,
         "attempted_count": 0,
         "usable_count": 0,
         "download_failed_chunks": 0,
