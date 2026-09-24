@@ -11,6 +11,7 @@ from typing import Any
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 
+from api.scan_history import recent_scans
 from api.scan_manager import ErosScanManager
 from scanner.market_scanner import market_scan
 from scanner.price_jump import scan_price_jumps
@@ -98,6 +99,14 @@ def price_jump_job(job_id: str) -> dict[str, Any]:
     if job is None:
         raise HTTPException(status_code=404, detail="Scan job not found.")
     return job
+
+
+@app.get("/api/v1/intraday/history")
+def scan_history(
+    limit: int = Query(20, ge=1, le=100),
+) -> dict[str, Any]:
+    """Return recent persisted EROS price-pulse scans."""
+    return {"count": limit, "scans": recent_scans(limit)}
 
 
 @app.get("/api/v1/intraday/unusual-activity")
