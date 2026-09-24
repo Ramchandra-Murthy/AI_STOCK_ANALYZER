@@ -23,7 +23,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:9px;bord
 <div class="card"><div class="muted">Scanner</div><div id="status" class="status">Ready</div></div>
 <div class="card"><div class="muted">Candidates</div><div id="count">—</div></div>
 <div class="card"><div class="muted">Universe</div><div id="universe">—</div></div>
-<div class="card"><button id="scan">Start price-pulse scan</button><button id="refresh">Refresh history</button></div>
+<div class="card"><label>Exchange <select id="exchange"><option>Both</option><option>NSE</option><option>BSE</option></select></label><label>Lookback <select id="lookback"><option value="5">5m</option><option value="10">10m</option><option value="15">15m</option></select></label><label>Jump <select id="jump"><option value="1">1%</option><option value="2">2%</option><option value="3">3%</option></select></label><button id="scan">Start price-pulse scan</button><button id="refresh">Refresh history</button></div>
 </div>
 <div class="card"><h3>Latest price pulses</h3><div id="results">No scan yet.</div></div><div class="card"><h3>Recent scan history</h3><div id="history">No saved scans yet.</div></div>
 </main>
@@ -40,7 +40,7 @@ async function refreshHistory(){ try{ const data=await fetch("/api/v1/intraday/h
 async function start(){
  $("scan").disabled=true;$("status").textContent="Starting…";
  try{
-  const q=await fetch("/api/v1/intraday/price-jumps/start",{method:"POST"}).then(r=>r.json());
+  const params=new URLSearchParams({exchange_category:$("exchange").value,lookback_minutes:$("lookback").value,jump_percent:$("jump").value}); const q=await fetch("/api/v1/intraday/price-jumps/start?"+params.toString(),{method:"POST"}).then(r=>r.json());
   $("status").textContent="Scanning…";
   const timer=setInterval(async()=>{
    const job=await fetch("/api/v1/intraday/price-jumps/jobs/"+q.job_id).then(r=>r.json());
