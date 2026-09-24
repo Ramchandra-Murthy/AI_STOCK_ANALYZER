@@ -39,11 +39,16 @@ class ErosScanManager:
         self._jobs: dict[str, dict[str, Any]] = {}
         self._max_jobs = max(1, max_jobs)
         self._lock = Lock()
+        self._active_price_jump_job: str | None = None
 
     def start_price_jump_scan(self, **kwargs: Any) -> str:
         """Start a price-jump scan and return its job identifier."""
         job_id = uuid4().hex
         with self._lock:
+            if self._active_price_jump_job is not None:
+                active = self._jobs.get(self._active_price_jump_job)
+                if active is not None and active["status"] in {"queued", "running"}:
+                    return self._active_price_jump_job
             if len(self._jobs) >= self._max_jobs:
                 oldest_job_id = next(iter(self._jobs))
                 del self._jobs[oldest_job_id]
@@ -57,6 +62,7 @@ class ErosScanManager:
                 "scan_stats": {},
                 "error": None,
             }
+        self._active_price_jump_job = job_id
         self._executor.submit(self._run_price_jump_scan, job_id, kwargs)
         return job_id
 
@@ -81,6 +87,7 @@ class ErosScanManager:
                     results=_records(frame),
                     scan_stats=_stats(frame),
                 )
+                self._active_price_jump_job = None
             save_completed_scan(
                 job_id,
                 self._jobs[job_id]["finished_at"],
@@ -94,3 +101,4 @@ class ErosScanManager:
                     finished_at=datetime.now(UTC).isoformat(),
                     error=str(exc),
                 )
+                self._active_price_jump_job = None
