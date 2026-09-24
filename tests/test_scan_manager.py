@@ -34,7 +34,8 @@ def test_background_price_jump_scan_completes() -> None:
     [(5, True), (10, False)],
 )
 def test_active_price_jump_scan_parameter_handling(
-    second_lookback: int, same_job: bool
+    second_lookback: int,
+    same_job: bool,
 ) -> None:
     frame = pd.DataFrame({"Symbol": ["TEST"]})
     started = Event()
