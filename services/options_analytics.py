@@ -172,7 +172,14 @@ def _normalize_chain(calls: pd.DataFrame, puts: pd.DataFrame) -> pd.DataFrame:
         put["changeinOpenInterest"] = pd.NA
 
     call = call[
-        ["strike", "lastPrice", "volume", "openInterest", "changeinOpenInterest", "impliedVolatility"]
+        [
+            "strike",
+            "lastPrice",
+            "volume",
+            "openInterest",
+            "changeinOpenInterest",
+            "impliedVolatility",
+        ]
     ].rename(
         columns={
             "lastPrice": "CE LTP",
