@@ -207,9 +207,9 @@ def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFra
 
 
 @st.cache_data(ttl=LIVE_BOARD_REFRESH_SECONDS, show_spinner=False)
-def _fetch_live_board() -> tuple[
-    pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, int | float]
-]:
+def _fetch_live_board() -> (
+    tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, int | float]]
+):
     """Build a dynamic 20-stock board from the broad NSE+BSE universe."""
     from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
