@@ -463,6 +463,16 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
     return board, signals, sector_summary, stats
 
 
+def _signal_freshness_label(age: float) -> str:
+    if pd.isna(age):
+        return "UNKNOWN"
+    if age <= 3:
+        return "FRESH"
+    if age <= 5:
+        return "AGING"
+    return "STALE"
+
+
 def _show_live_20_panel() -> None:
     st.subheader("📈 Live 20-Stock Market Board")
     st.caption(
@@ -553,21 +563,15 @@ def _show_live_20_panel() -> None:
         st.info(f"{market_text} {freshness_text}{freshness_detail}")
         confluence = compute_signal_confluence(board)
         if not confluence.empty and "Last update" in confluence.columns:
-            signal_times = pd.to_datetime(confluence["Last update"], errors="coerce", utc=True)
+            signal_times = pd.to_datetime(
+                confluence["Last update"], errors="coerce", utc=True
+            )
             signal_age_minutes = (
                 pd.Timestamp.now(tz="UTC") - signal_times
             ).dt.total_seconds().div(60).clip(lower=0)
             confluence["Signal age"] = signal_age_minutes.round(1)
             confluence["Signal freshness"] = confluence["Signal age"].map(
-                lambda age: (
-                    "UNKNOWN"
-                    if pd.isna(age)
-                    else "FRESH"
-                    if age <= 3
-                    else "AGING"
-                    if age <= 5
-                    else "STALE"
-                )
+                _signal_freshness_label
             )
         st.session_state["live_confluence"] = confluence.copy()
         if not confluence.empty:
