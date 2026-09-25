@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from time import perf_counter
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -214,7 +215,8 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         (symbol, "BSE") for symbol in BSE_CANDIDATES
     ]
     rows: list[dict[str, object]] = []
-    stats = {"candidates": len(candidates), "usable": 0, "failed_chunks": 0}
+    scan_started = perf_counter()
+    stats = {"candidates": len(candidates), "usable": 0, "failed_chunks": 0, "scan_seconds": 0.0}
 
     for exchange in ("NSE", "BSE"):
         symbols = [symbol for symbol, venue in candidates if venue == exchange]
@@ -321,6 +323,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
 
     board = pd.DataFrame(rows)
     if board.empty:
+        stats["scan_seconds"] = round(perf_counter() - scan_started, 2)
         return board, pd.DataFrame(), pd.DataFrame(), stats
 
     nifty_1m = nifty_5m = nifty_today = None
@@ -434,6 +437,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         .reset_index(drop=True)
     )
     board.insert(0, "Rank", range(1, len(board) + 1))
+    stats["scan_seconds"] = round(perf_counter() - scan_started, 2)
     return board, signals, sector_summary, stats
 
 
@@ -471,12 +475,49 @@ def _show_live_20_panel() -> None:
             if market_open
             else "Market status: CLOSED · Yahoo may be showing the latest available session candles."
         )
+        latest_age_seconds = None
+        if pd.notna(latest_candle):
+            try:
+                latest_ts = pd.Timestamp(latest_candle)
+                if latest_ts.tzinfo is None:
+                    latest_ts = latest_ts.tz_localize(IST)
+                else:
+                    latest_ts = latest_ts.tz_convert(IST)
+                latest_age_seconds = max(
+                    0.0,
+                    (pd.Timestamp.now(tz=IST) - latest_ts).total_seconds(),
+                )
+            except (TypeError, ValueError):
+                latest_age_seconds = None
+
+        if stats["failed_chunks"] > 0:
+            data_health = "DEGRADED"
+        elif latest_age_seconds is None:
+            data_health = "UNKNOWN"
+        elif market_open and latest_age_seconds > 180:
+            data_health = "STALE"
+        else:
+            data_health = "HEALTHY"
+
         st.caption(
             f"Checked: {now:%d %b %Y, %H:%M:%S IST} · "
             f"Universe checked: {stats['candidates']} · Usable symbols: {stats['usable']} · "
             f"Refresh: ~{LIVE_BOARD_REFRESH_SECONDS // 60} min"
         )
-        st.info(f"{market_text} {freshness_text}")
+        status_cols = st.columns(6)
+        status_cols[0].metric("Market", "OPEN" if market_open else "CLOSED")
+        status_cols[1].metric("Universe", f"{stats['candidates']:,}")
+        status_cols[2].metric("Usable", f"{stats['usable']:,}")
+        status_cols[3].metric("Signals", f"{len(signals):,}")
+        status_cols[4].metric("Scan time", f"{stats['scan_seconds']:.1f}s")
+        status_cols[5].metric("Data health", data_health)
+
+        freshness_detail = (
+            f" · Data age: {latest_age_seconds:.0f}s"
+            if latest_age_seconds is not None
+            else ""
+        )
+        st.info(f"{market_text} {freshness_text}{freshness_detail}")
         confluence = compute_signal_confluence(board)
         st.session_state["live_confluence"] = confluence.copy()
         if not confluence.empty:
