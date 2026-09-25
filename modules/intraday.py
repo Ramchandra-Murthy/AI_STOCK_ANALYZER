@@ -216,12 +216,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
     ]
     rows: list[dict[str, object]] = []
     scan_started = perf_counter()
-    stats = {
-        "candidates": len(candidates),
-        "usable": 0,
-        "failed_chunks": 0,
-        "scan_seconds": 0.0,
-    }
+    stats = {"candidates": len(candidates), "usable": 0, "failed_chunks": 0, "scan_seconds": 0.0}
 
     for exchange in ("NSE", "BSE"):
         symbols = [symbol for symbol, venue in candidates if venue == exchange]
