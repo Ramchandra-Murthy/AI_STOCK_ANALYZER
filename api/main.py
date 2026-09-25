@@ -25,7 +25,7 @@ app = FastAPI(
     description="Backend API for the EROS intraday NSE/BSE scanner.",
 )
 
-_SCAN_MANAGER = ErosScanManager(max_workers=2)
+_SCAN_MANAGER = ErosScanManager(max_workers=1)
 
 
 def _records(frame: pd.DataFrame) -> list[dict[str, Any]]:
