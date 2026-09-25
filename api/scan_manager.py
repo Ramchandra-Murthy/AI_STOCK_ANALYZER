@@ -43,10 +43,7 @@ class ErosScanManager:
 
     def _find_matching_price_jump_job(self, kwargs: dict[str, Any]) -> str | None:
         for job_id, job in self._jobs.items():
-            if (
-                job["status"] in {"queued", "running"}
-                and job["kwargs"] == kwargs
-            ):
+            if job["status"] in {"queued", "running"} and job["kwargs"] == kwargs:
                 return job_id
         return None
 
