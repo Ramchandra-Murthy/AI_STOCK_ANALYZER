@@ -56,7 +56,10 @@ def test_builds_validation_frame_from_observed_outcomes():
     frame = build_signal_validation_frame(outcomes, windows, results)
 
     assert list(frame["Symbol"]) == ["RELIANCE", "TCS"]
-    assert list(frame["Outcome"]) == ["Negative", "Positive"] or set(frame["Outcome"]) == {"Positive", "Negative"}
+    assert (
+        list(frame["Outcome"]) == ["Negative", "Positive"]
+        or set(frame["Outcome"]) == {"Positive", "Negative"}
+    )
     reliance = frame.loc[frame["Symbol"] == "RELIANCE"].iloc[0]
     assert reliance["5m change %"] == 0.8
     assert reliance["Direction"] == "LONG"
