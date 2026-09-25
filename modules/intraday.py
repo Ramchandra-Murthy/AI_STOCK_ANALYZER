@@ -220,6 +220,11 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         "candidates": len(candidates),
         "usable": 0,
         "failed_chunks": 0,
+        "chunks": 0,
+        "download_seconds": 0.0,
+        "processing_seconds": 0.0,
+        "benchmark_seconds": 0.0,
+        "signals_seconds": 0.0,
         "scan_seconds": 0.0,
     }
 
@@ -228,6 +233,8 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         tickers = [_live_board_ticker(symbol, exchange) for symbol in symbols]
         for start in range(0, len(tickers), LIVE_BOARD_CHUNK_SIZE):
             chunk = tickers[start : start + LIVE_BOARD_CHUNK_SIZE]
+            stats["chunks"] += 1
+            download_started = perf_counter()
             try:
                 history = yf.download(
                     tickers=chunk,
@@ -247,10 +254,13 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
                     group_by="ticker",
                     threads=False,
                 )
+                stats["download_seconds"] += perf_counter() - download_started
             except Exception:
+                stats["download_seconds"] += perf_counter() - download_started
                 stats["failed_chunks"] += 1
                 continue
 
+            processing_started = perf_counter()
             for ticker in chunk:
                 frame = _frame_from_board_download(history, ticker)
                 if len(frame) < 2:
@@ -326,12 +336,15 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
                     }
                 )
 
+    stats["processing_seconds"] += perf_counter() - processing_started
+
     board = pd.DataFrame(rows)
     if board.empty:
         stats["scan_seconds"] = round(perf_counter() - scan_started, 2)
         return board, pd.DataFrame(), pd.DataFrame(), stats
 
     nifty_1m = nifty_5m = nifty_today = None
+    benchmark_started = perf_counter()
     try:
         benchmark = yf.download(
             "^NSEI",
@@ -359,6 +372,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
             nifty_today = (float(benchmark_close.iloc[-1]) / float(daily_close.iloc[-2]) - 1) * 100
     except (KeyError, TypeError, ValueError, IndexError):
         pass
+    stats["benchmark_seconds"] = perf_counter() - benchmark_started
 
     board["vs NIFTY 1-min %"] = board["1-min change %"] - nifty_1m if nifty_1m is not None else None
     board["vs NIFTY 5-min %"] = board["5-min change %"] - nifty_5m if nifty_5m is not None else None
@@ -389,6 +403,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         ascending=[False, False, False],
     ).reset_index(drop=True)
 
+    signals_started = perf_counter()
     signals = board[
         (board["2-min change %"].fillna(-999) >= 0.75)
         | (board["3-min change %"].fillna(-999) >= 1.0)
@@ -431,6 +446,8 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
             ascending=[False, False, False],
             na_position="last",
         ).reset_index(drop=True)
+
+    stats["signals_seconds"] = perf_counter() - signals_started
 
     board = (
         board.sort_values(
@@ -516,6 +533,19 @@ def _show_live_20_panel() -> None:
         status_cols[3].metric("Signals", f"{len(signals):,}")
         status_cols[4].metric("Scan time", f"{stats['scan_seconds']:.1f}s")
         status_cols[5].metric("Data health", data_health)
+
+        with st.expander("⚙️ Scan diagnostics", expanded=False):
+            diagnostic_cols = st.columns(5)
+            diagnostic_cols[0].metric("Downloads", f"{stats['download_seconds']:.1f}s")
+            diagnostic_cols[1].metric("Processing", f"{stats['processing_seconds']:.1f}s")
+            diagnostic_cols[2].metric("Benchmark", f"{stats['benchmark_seconds']:.1f}s")
+            diagnostic_cols[3].metric("Signal calc", f"{stats['signals_seconds']:.1f}s")
+            diagnostic_cols[4].metric("Chunks", f"{stats['chunks']:,}")
+            st.caption(
+                f"Failed chunks: {stats['failed_chunks']:,} · "
+                "Use these timings to distinguish data-provider/download delays "
+                "from local processing time."
+            )
 
         freshness_detail = (
             f" · Data age: {latest_age_seconds:.0f}s" if latest_age_seconds is not None else ""
