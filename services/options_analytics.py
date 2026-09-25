@@ -133,9 +133,7 @@ def fetch_option_chain(
 def summarize_option_chain(chain: pd.DataFrame) -> pd.DataFrame:
     """Calculate descriptive OI and volume statistics from a normalized chain."""
     if chain.empty:
-        return pd.DataFrame(
-            columns=["Metric", "Value"]
-        )
+        return pd.DataFrame(columns=["Metric", "Value"])
 
     call_oi = pd.to_numeric(chain["CE OI"], errors="coerce").fillna(0)
     put_oi = pd.to_numeric(chain["PE OI"], errors="coerce").fillna(0)
