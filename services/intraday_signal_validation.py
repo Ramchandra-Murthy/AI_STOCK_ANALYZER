@@ -93,9 +93,7 @@ def build_signal_validation_frame(
         "30m change %",
     ]:
         if column in frame.columns:
-            frame[column] = pd.to_numeric(
-                frame[column], errors="coerce"
-            ).round(2)
+            frame[column] = pd.to_numeric(frame[column], errors="coerce").round(2)
 
     for column in VALIDATION_COLUMNS:
         if column not in frame.columns:
