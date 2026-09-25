@@ -536,21 +536,11 @@ def _show_live_20_panel() -> None:
 
         with st.expander("⚙️ Scan diagnostics", expanded=False):
             diagnostic_cols = st.columns(5)
-            diagnostic_cols[0].metric(
-                "Downloads", f"{stats['download_seconds']:.1f}s"
-            )
-            diagnostic_cols[1].metric(
-                "Processing", f"{stats['processing_seconds']:.1f}s"
-            )
-            diagnostic_cols[2].metric(
-                "Benchmark", f"{stats['benchmark_seconds']:.1f}s"
-            )
-            diagnostic_cols[3].metric(
-                "Signal calc", f"{stats['signals_seconds']:.1f}s"
-            )
-            diagnostic_cols[4].metric(
-                "Chunks", f"{stats['chunks']:,}"
-            )
+            diagnostic_cols[0].metric("Downloads", f"{stats['download_seconds']:.1f}s")
+            diagnostic_cols[1].metric("Processing", f"{stats['processing_seconds']:.1f}s")
+            diagnostic_cols[2].metric("Benchmark", f"{stats['benchmark_seconds']:.1f}s")
+            diagnostic_cols[3].metric("Signal calc", f"{stats['signals_seconds']:.1f}s")
+            diagnostic_cols[4].metric("Chunks", f"{stats['chunks']:,}")
             st.caption(
                 f"Failed chunks: {stats['failed_chunks']:,} · "
                 "Use these timings to distinguish data-provider/download delays "
