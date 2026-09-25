@@ -41,6 +41,10 @@ from services.intraday_setup_monitor import monitor_frame, record_setup_observat
 from services.intraday_setup_outcome import outcomes_frame, record_setup_outcomes
 from services.intraday_setup_regime import regime_statistics
 from services.intraday_setup_scorecard import scorecard_frame
+from services.intraday_signal_validation import (
+    build_signal_validation_frame,
+    validation_summary,
+)
 from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
@@ -747,6 +751,43 @@ else:
         "These metrics describe the current session and do not predict future returns."
     )
     st.dataframe(quality_summary, use_container_width=True, hide_index=True)
+
+    validation = build_signal_validation_frame(
+        st.session_state.get("intraday_setup_outcomes", {}),
+        st.session_state.get("intraday_multi_window_outcomes", {}),
+        results,
+    )
+    validation_summary_frame = validation_summary(validation)
+    st.subheader("Intraday signal validation")
+    st.caption(
+        "Consolidates observed setup outcomes with completed 5m, 10m, 15m and 30m "
+        "windows. Positive and negative labels describe recorded movement from the "
+        "first observed setup state; they are not predictions or trade recommendations."
+    )
+    summary_columns = st.columns(5)
+    summary_values = dict(
+        zip(
+            validation_summary_frame["Metric"],
+            validation_summary_frame["Value"],
+            strict=True,
+        )
+    )
+    for column, metric in zip(
+        summary_columns,
+        ["Tracked setups", "Positive", "Negative", "Flat", "Unresolved"],
+        strict=True,
+    ):
+        column.metric(metric, int(summary_values.get(metric, 0)))
+    if validation.empty:
+        st.caption("No observed setup outcomes are available for validation yet.")
+    else:
+        st.dataframe(validation.head(50), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download signal validation CSV",
+            validation.to_csv(index=False).encode("utf-8"),
+            file_name="intraday_signal_validation.csv",
+            mime="text/csv",
+        )
 
     st.subheader("Current opportunity candidates")
     state_counts = (
