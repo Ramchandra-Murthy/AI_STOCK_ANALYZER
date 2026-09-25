@@ -207,9 +207,7 @@ def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFra
 
 
 @st.cache_data(ttl=LIVE_BOARD_REFRESH_SECONDS, show_spinner=False)
-def _fetch_live_board() -> (
-    tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, int | float]]
-):
+def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, int | float]]:
     """Build a dynamic 20-stock board from the broad NSE+BSE universe."""
     from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
@@ -520,9 +518,7 @@ def _show_live_20_panel() -> None:
         status_cols[5].metric("Data health", data_health)
 
         freshness_detail = (
-            f" · Data age: {latest_age_seconds:.0f}s"
-            if latest_age_seconds is not None
-            else ""
+            f" · Data age: {latest_age_seconds:.0f}s" if latest_age_seconds is not None else ""
         )
         st.info(f"{market_text} {freshness_text}{freshness_detail}")
         confluence = compute_signal_confluence(board)
