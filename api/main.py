@@ -18,6 +18,8 @@ from api.scan_manager import ErosScanManager
 from scanner.market_scanner import market_scan
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
+from services.intraday_exchange_summary import exchange_summary
+from services.intraday_health import assess_scan_health
 
 app = FastAPI(
     title="EROS Market API",
@@ -107,6 +109,32 @@ def price_jump_job(job_id: str) -> dict[str, Any]:
     if job is None:
         raise HTTPException(status_code=404, detail="Scan job not found.")
     return job
+
+
+@app.get("/api/v1/intraday/health")
+def intraday_health() -> dict[str, Any]:
+    """Return lightweight health and exchange metrics from the latest saved scan."""
+    scans = recent_scans(1)
+    if not scans:
+        return {
+            "status": "NO_SCAN",
+            "message": "No completed intraday scan is available.",
+            "candidates": 0,
+            "exchanges": [],
+        }
+
+    latest = scans[0]
+    observed_at = pd.to_datetime(latest["completed_at"], utc=True).to_pydatetime()
+    frame = pd.DataFrame(latest.get("results", []))
+    health_result = assess_scan_health(frame, observed_at)
+    summary = exchange_summary(frame)
+
+    return {
+        **health_result,
+        "completed_at": latest["completed_at"],
+        "job_id": latest["job_id"],
+        "exchanges": _records(summary),
+    }
 
 
 @app.get("/api/v1/intraday/history")
