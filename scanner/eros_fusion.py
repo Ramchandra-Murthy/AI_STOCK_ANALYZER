@@ -64,11 +64,11 @@ def compute_eros_fusion(
     result["Price Jump Component"] = [
         jump_persistence.get(
             (symbol, exchange),
-            0.0
-            if price_jump_history is not None
-            else 100.0
-            if (symbol, exchange) in jump_keys
-            else 0.0,
+            (
+                0.0
+                if price_jump_history is not None
+                else 100.0 if (symbol, exchange) in jump_keys else 0.0
+            ),
         )
         for symbol, exchange in zip(
             result["Symbol"],
