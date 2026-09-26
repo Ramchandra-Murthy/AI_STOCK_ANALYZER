@@ -23,6 +23,9 @@ function App() {
   const [exchange, setExchange] = useState("Both");
   const [lookback, setLookback] = useState("5");
   const [jump, setJump] = useState("1");
+  const [view, setView] = useState("price-pulse");
+  const [marketRows, setMarketRows] = useState([]);
+  const [unusualRows, setUnusualRows] = useState([]);
 
   useEffect(() => {
     fetch("/health")
@@ -63,6 +66,40 @@ function App() {
     return () => clearInterval(timer);
   }, [jobId]);
 
+  async function loadUnusualActivity() {
+    setStatus("Loading unusual activity");
+    try {
+      const params = new URLSearchParams({
+        limit: "20",
+        exchange_category: exchange,
+      });
+      const response = await fetch(
+        `/api/v1/intraday/unusual-activity?${params.toString()}`,
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail ?? "Unable to load activity");
+      setUnusualRows(data.results ?? []);
+      setView("unusual");
+      setStatus("Ready");
+    } catch (error) {
+      setStatus(error.message);
+    }
+  }
+
+  async function loadMarketScanner() {
+    setStatus("Loading market scanner");
+    try {
+      const response = await fetch("/api/v1/scanner/market?limit=20");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail ?? "Unable to load market scan");
+      setMarketRows(data.results ?? []);
+      setView("market");
+      setStatus("Ready");
+    } catch (error) {
+      setStatus(error.message);
+    }
+  }
+
   async function refreshHistory() {
     try {
       const response = await fetch("/api/v1/intraday/history?limit=10");
@@ -75,6 +112,7 @@ function App() {
 
   async function startScan() {
     setRows([]);
+    setView("price-pulse");
     setStatus("Starting");
     try {
       const params = new URLSearchParams({
@@ -136,26 +174,70 @@ function App() {
           <button onClick={startScan} disabled={Boolean(jobId)}>
             {jobId ? "Scanning…" : "Start price-pulse scan"}
           </button>
+          <button className="secondary" onClick={loadUnusualActivity}>
+            Unusual activity
+          </button>
+          <button className="secondary" onClick={loadMarketScanner}>
+            Market scanner
+          </button>
           <button className="secondary" onClick={refreshHistory}>Refresh history</button>
         </section>
 
         <section className="panel">
-          <div className="panel-title"><h2>Latest price pulses</h2><span>{rows.length} results</span></div>
+          <div className="panel-title">
+            <h2>{view === "unusual" ? "Unusual activity" : view === "market" ? "Market scanner" : "Latest price pulses"}</h2>
+            <span>
+              {view === "unusual" ? unusualRows.length : view === "market" ? marketRows.length : rows.length} results
+            </span>
+          </div>
           <div className="table-wrap">
-            <table>
-              <thead><tr><th>Symbol</th><th>Exchange</th><th>Last price</th><th>Change</th><th>Volume</th></tr></thead>
-              <tbody>
-                {rows.length ? rows.map((row, i) => (
-                  <tr key={row.Symbol ?? i}>
-                    <td><strong>{row.Symbol ?? "—"}</strong></td>
-                    <td>{row.Exchange ?? "—"}</td>
-                    <td>{row["Last price"] ?? "—"}</td>
-                    <td>{row["Change over 5m"] ?? "—"}</td>
-                    <td>{row["Volume vs recent bars"] ?? "—"}</td>
-                  </tr>
-                )) : <tr><td colSpan="5" className="empty">Run a scan to populate candidates.</td></tr>}
-              </tbody>
-            </table>
+            {view === "price-pulse" ? (
+              <table>
+                <thead><tr><th>Symbol</th><th>Exchange</th><th>Last price</th><th>Change</th><th>Volume</th></tr></thead>
+                <tbody>
+                  {rows.length ? rows.map((row, i) => (
+                    <tr key={row.Symbol ?? i}>
+                      <td><strong>{row.Symbol ?? "—"}</strong></td>
+                      <td>{row.Exchange ?? "—"}</td>
+                      <td>{row["Last price"] ?? "—"}</td>
+                      <td>{row["Change over 5m"] ?? "—"}</td>
+                      <td>{row["Volume vs recent bars"] ?? "—"}</td>
+                    </tr>
+                  )) : <tr><td colSpan="5" className="empty">Run a price-pulse scan to populate candidates.</td></tr>}
+                </tbody>
+              </table>
+            ) : view === "unusual" ? (
+              <table>
+                <thead><tr><th>Symbol</th><th>Exchange</th><th>Signal</th><th>Price</th><th>Volume</th></tr></thead>
+                <tbody>
+                  {unusualRows.length ? unusualRows.map((row, i) => (
+                    <tr key={row.Symbol ?? i}>
+                      <td><strong>{row.Symbol ?? "—"}</strong></td>
+                      <td>{row.Exchange ?? "—"}</td>
+                      <td>{row.Signal ?? row["Activity signal"] ?? "—"}</td>
+                      <td>{row.Price ?? row["Last price"] ?? "—"}</td>
+                      <td>{row["Volume ratio"] ?? row["Volume vs recent bars"] ?? "—"}</td>
+                    </tr>
+                  )) : <tr><td colSpan="5" className="empty">No unusual activity returned.</td></tr>}
+                </tbody>
+              </table>
+            ) : (
+              <table>
+                <thead><tr><th>Symbol</th><th>Price</th><th>Trend</th><th>RSI</th><th>MACD</th><th>AI score</th></tr></thead>
+                <tbody>
+                  {marketRows.length ? marketRows.map((row, i) => (
+                    <tr key={row.Symbol ?? i}>
+                      <td><strong>{row.Symbol ?? "—"}</strong></td>
+                      <td>{row.Price ?? "—"}</td>
+                      <td>{row.Trend ?? "—"}</td>
+                      <td>{row.RSI ?? "—"}</td>
+                      <td>{row.MACD ?? "—"}</td>
+                      <td>{row["AI Score"] ?? row.AI_Score ?? "—"}</td>
+                    </tr>
+                  )) : <tr><td colSpan="6" className="empty">Load the market scanner to populate results.</td></tr>}
+                </tbody>
+              </table>
+            )}
           </div>
         </section>
 
