@@ -18,7 +18,7 @@ def analyze_eros_fusion_trend(
     frame = frame.sort_values(["Symbol", "Exchange", "Timestamp"]).reset_index(drop=True)
     frame["Fusion Change"] = frame.groupby(["Symbol", "Exchange"])["Fusion Score"].diff()
     frame["Previous Change"] = frame.groupby(["Symbol", "Exchange"])["Fusion Change"].shift(1)
-    frame["Fusion Acceleration"] = frame["Fusion Change"] - frame["Previous Change"]
+    frame["Fusion Acceleration"] = frame["Fusion Change"] - frame["Previous Change"].fillna(0.0)
 
     latest = frame.groupby(["Symbol", "Exchange"], as_index=False).tail(1).copy()
     latest["Fusion Change"] = latest["Fusion Change"].fillna(0.0)

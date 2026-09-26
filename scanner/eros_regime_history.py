@@ -34,7 +34,8 @@ def append_eros_regime_snapshot(
     if regime is None or regime.empty:
         return history.copy() if history is not None else pd.DataFrame()
 
-    if not REQUIRED_COLUMNS.issubset(regime.columns):
+    regime_columns = REQUIRED_COLUMNS - {"Timestamp"}
+    if not regime_columns.issubset(regime.columns):
         return history.copy() if history is not None else pd.DataFrame()
 
     row = regime.iloc[[0]].copy()
