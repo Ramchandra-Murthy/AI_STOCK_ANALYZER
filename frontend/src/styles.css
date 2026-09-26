@@ -26,3 +26,7 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
 .signal-strip span { display:block; color:#8190a7; font-size:12px; }
 .signal-strip strong { display:block; margin-top:6px; font-size:20px; }
 @media(max-width:800px){ .signal-strip{grid-template-columns:repeat(2,1fr)} }
+
+.table-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:12px; color:#8190a7; font-size:12px; }
+.table-toolbar select { min-width:90px; padding:7px 9px; }
+.table-sort { padding:0; border:0; background:transparent; color:inherit; font-weight:700; cursor:pointer; }

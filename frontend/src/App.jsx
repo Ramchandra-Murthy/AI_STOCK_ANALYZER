@@ -29,6 +29,9 @@ function App() {
   const [systemHealth, setSystemHealth] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [tableExchange, setTableExchange] = useState("All");
+  const [sortKey, setSortKey] = useState("Symbol");
+  const [sortDirection, setSortDirection] = useState("asc");
 
   useEffect(() => {
     fetch("/health")
@@ -170,6 +173,25 @@ function App() {
   const unusualCount = unusualRows.length;
   const marketCount = marketRows.length;
 
+  const activeRows = view === "price-pulse" ? rows : view === "unusual" ? unusualRows : marketRows;
+  const visibleRows = activeRows
+    .filter((row) => tableExchange === "All" || row.Exchange === tableExchange)
+    .slice()
+    .sort((a, b) => {
+      const left = a[sortKey] ?? "";
+      const right = b[sortKey] ?? "";
+      const numericLeft = Number.parseFloat(left);
+      const numericRight = Number.parseFloat(right);
+      const comparison = Number.isNaN(numericLeft) || Number.isNaN(numericRight)
+        ? String(left).localeCompare(String(right))
+        : numericLeft - numericRight;
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  const changeSort = (key) => {
+    setSortDirection(sortKey === key && sortDirection === "asc" ? "desc" : "asc");
+    setSortKey(key);
+  };
+
   return (
     <div className="app">
       <header>
@@ -248,12 +270,19 @@ function App() {
               {lastUpdated ? ` · updated ${new Date(lastUpdated).toLocaleTimeString()}` : ""}
             </span>
           </div>
+          <div className="table-toolbar">
+            <label htmlFor="table-exchange">Table exchange</label>
+            <select id="table-exchange" value={tableExchange} onChange={(e) => setTableExchange(e.target.value)}>
+              <option>All</option><option>NSE</option><option>BSE</option>
+            </select>
+            <span>{visibleRows.length} visible · sorted {sortDirection === "asc" ? "ascending" : "descending"}</span>
+          </div>
           <div className="table-wrap">
             {view === "price-pulse" ? (
               <table>
-                <thead><tr><th>Symbol</th><th>Exchange</th><th>Last price</th><th>Change</th><th>Volume</th></tr></thead>
+                <thead><tr><th><button className="table-sort" onClick={() => changeSort("Symbol")}>Symbol</button></th><th>Exchange</th><th><button className="table-sort" onClick={() => changeSort("Last price")}>Last price</button></th><th><button className="table-sort" onClick={() => changeSort("Change over 5m")}>Change</button></th><th><button className="table-sort" onClick={() => changeSort("Volume vs recent bars")}>Volume</button></th></tr></thead>
                 <tbody>
-                  {rows.length ? rows.map((row, i) => (
+                  {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
                       <td><strong>{row.Symbol ?? "—"}</strong></td>
                       <td>{row.Exchange ?? "—"}</td>
@@ -266,9 +295,9 @@ function App() {
               </table>
             ) : view === "unusual" ? (
               <table>
-                <thead><tr><th>Symbol</th><th>Exchange</th><th>Signal</th><th>Price</th><th>Volume</th></tr></thead>
+                <thead><tr><th><button className="table-sort" onClick={() => changeSort("Symbol")}>Symbol</button></th><th>Exchange</th><th><button className="table-sort" onClick={() => changeSort("Signal")}>Signal</button></th><th><button className="table-sort" onClick={() => changeSort("Price")}>Price</button></th><th><button className="table-sort" onClick={() => changeSort("Volume ratio")}>Volume</button></th></tr></thead>
                 <tbody>
-                  {unusualRows.length ? unusualRows.map((row, i) => (
+                  {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
                       <td><strong>{row.Symbol ?? "—"}</strong></td>
                       <td>{row.Exchange ?? "—"}</td>
@@ -281,9 +310,9 @@ function App() {
               </table>
             ) : (
               <table>
-                <thead><tr><th>Symbol</th><th>Price</th><th>Trend</th><th>RSI</th><th>MACD</th><th>AI score</th></tr></thead>
+                <thead><tr><th><button className="table-sort" onClick={() => changeSort("Symbol")}>Symbol</button></th><th><button className="table-sort" onClick={() => changeSort("Price")}>Price</button></th><th><button className="table-sort" onClick={() => changeSort("Trend")}>Trend</button></th><th><button className="table-sort" onClick={() => changeSort("RSI")}>RSI</button></th><th>MACD</th><th><button className="table-sort" onClick={() => changeSort("AI Score")}>AI score</button></th></tr></thead>
                 <tbody>
-                  {marketRows.length ? marketRows.map((row, i) => (
+                  {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
                       <td><strong>{row.Symbol ?? "—"}</strong></td>
                       <td>{row.Price ?? "—"}</td>
