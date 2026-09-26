@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react";
 
 function Stat({ label, value, detail }) {
-  useEffect(() => {
-    if (!autoRefresh || jobId) return undefined;
-    const timer = setInterval(() => {
-      startScan();
-    }, 60000);
-    return () => clearInterval(timer);
-  }, [autoRefresh, jobId, exchange, lookback, jump]);
-
   return (
     <section className="stat">
       <span>{label}</span>
@@ -163,6 +155,14 @@ function App() {
       setStatus(error.message);
     }
   }
+
+  useEffect(() => {
+    if (!autoRefresh || jobId) return undefined;
+    const timer = setInterval(() => {
+      startScan();
+    }, 60000);
+    return () => clearInterval(timer);
+  }, [autoRefresh, jobId, exchange, lookback, jump]);
 
   return (
     <div className="app">
