@@ -36,7 +36,7 @@ def test_master_dashboard_combines_signal_and_regime_analytics():
     assert not summary.empty
     assert not signals.empty
     assert summary.loc[0, "Signals"] == 1
-    assert summary.loc[0, "Current Regime"] == "RISING DOMINANT"
+    assert summary.loc[0, "Current Regime"] == "FALLING DOMINANT"
     assert summary.loc[0, "Regime Momentum"] == "STABLE"
     assert summary.loc[0, "Regime Transition Count"] == 2
     assert summary.loc[0, "Latest Regime Transition"] == "RISING DOMINANT → FALLING DOMINANT"
