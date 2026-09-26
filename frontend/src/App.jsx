@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "";
-
 function Stat({ label, value, detail }) {
   return (
     <section className="stat">
@@ -23,7 +21,7 @@ function App() {
   const [jump, setJump] = useState("1");
 
   useEffect(() => {
-    fetch(`${API_BASE}/health`)
+    fetch("/health")
       .then((r) => r.ok ? r.json() : Promise.reject(new Error("API unavailable")))
       .then(() => setHealth("online"))
       .catch(() => setHealth("offline"));
@@ -32,9 +30,12 @@ function App() {
 
   useEffect(() => {
     if (!jobId) return undefined;
+    const safeJobId = encodeURIComponent(jobId);
     const timer = setInterval(async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/v1/intraday/price-jumps/jobs/${jobId}`);
+        const response = await fetch(
+          `/api/v1/intraday/price-jumps/jobs/${safeJobId}`,
+        );
         const job = await response.json();
         setStatus(job.status ?? "unknown");
         if (job.status === "completed") {
@@ -57,7 +58,7 @@ function App() {
 
   async function refreshHistory() {
     try {
-      const response = await fetch(`${API_BASE}/api/v1/intraday/history?limit=10`);
+      const response = await fetch("/api/v1/intraday/history?limit=10");
       const data = await response.json();
       setHistory(data.scans ?? []);
     } catch {
@@ -75,7 +76,7 @@ function App() {
         jump_percent: jump,
       });
       const response = await fetch(
-        `${API_BASE}/api/v1/intraday/price-jumps/start?${params}`,
+        `/api/v1/intraday/price-jumps/start?${params.toString()}`,
         { method: "POST" },
       );
       const data = await response.json();
