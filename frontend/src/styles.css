@@ -16,7 +16,7 @@ main { max-width:1200px; margin:0 auto; padding:24px 20px 48px; }
 .controls div { display:flex; flex-direction:column; gap:6px; }.controls label { font-size:12px; color:#8190a7; }
 select { min-width:120px; padding:10px 12px; border-radius:9px; border:1px solid #334155; background:#111e31; color:#e8eef8; }
 button { padding:10px 15px; border:0; border-radius:9px; background:#38bdf8; color:#06111f; font-weight:700; cursor:pointer; }
-button.secondary { background:#1b2940; color:#dbeafe; } button:disabled { opacity:.55; cursor:not-allowed; }
+button.secondary { background:#1b2940; color:#dbeafe; } button.active { background:#4ade80; color:#052e16; } button:disabled { opacity:.55; cursor:not-allowed; }
 .panel-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }.panel-title h2 { margin:0; font-size:18px; }.panel-title span { color:#8190a7; font-size:13px; }
 .table-wrap { overflow:auto; } table { width:100%; border-collapse:collapse; } th,td { padding:12px 10px; border-bottom:1px solid #1d2a3d; text-align:left; white-space:nowrap; } th { color:#8190a7; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }.empty { color:#718096; text-align:center; padding:30px; }
 @media(max-width:800px){ .stats{grid-template-columns:repeat(2,1fr)} header{padding:24px 20px} h1{font-size:26px} }

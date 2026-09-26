@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 
 function Stat({ label, value, detail }) {
+  useEffect(() => {
+    if (!autoRefresh || jobId) return undefined;
+    const timer = setInterval(() => {
+      startScan();
+    }, 60000);
+    return () => clearInterval(timer);
+  }, [autoRefresh, jobId, exchange, lookback, jump]);
+
   return (
     <section className="stat">
       <span>{label}</span>
@@ -27,6 +35,8 @@ function App() {
   const [marketRows, setMarketRows] = useState([]);
   const [unusualRows, setUnusualRows] = useState([]);
   const [systemHealth, setSystemHealth] = useState(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     fetch("/health")
@@ -35,7 +45,10 @@ function App() {
       .catch(() => setHealth("offline"));
     refreshHistory();
     refreshHealth();
-    const healthTimer = setInterval(refreshHealth, 15000);
+    const healthTimer = setInterval(() => {
+      refreshHealth();
+      refreshHistory();
+    }, 15000);
     return () => clearInterval(healthTimer);
   }, []);
 
@@ -55,6 +68,9 @@ function App() {
         if (job.status === "completed") {
           setRows(job.results ?? []);
           setJobId(null);
+          setLastUpdated(new Date().toISOString());
+          refreshHistory();
+          refreshHealth();
           clearInterval(timer);
         }
         if (job.status === "failed") {
@@ -194,6 +210,13 @@ function App() {
           <button onClick={startScan} disabled={Boolean(jobId)}>
             {jobId ? "Scanning…" : "Start price-pulse scan"}
           </button>
+          <button
+            className={autoRefresh ? "active" : "secondary"}
+            onClick={() => setAutoRefresh((enabled) => !enabled)}
+            aria-pressed={autoRefresh}
+          >
+            {autoRefresh ? "Auto-scan: ON" : "Auto-scan: OFF"}
+          </button>
           <button className="secondary" onClick={loadUnusualActivity}>
             Unusual activity
           </button>
@@ -208,6 +231,7 @@ function App() {
             <h2>{view === "unusual" ? "Unusual activity" : view === "market" ? "Market scanner" : "Latest price pulses"}</h2>
             <span>
               {view === "unusual" ? unusualRows.length : view === "market" ? marketRows.length : rows.length} results
+              {lastUpdated ? ` · updated ${new Date(lastUpdated).toLocaleTimeString()}` : ""}
             </span>
           </div>
           <div className="table-wrap">
