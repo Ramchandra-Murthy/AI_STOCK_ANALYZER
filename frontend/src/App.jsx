@@ -10,6 +10,10 @@ function Stat({ label, value, detail }) {
   );
 }
 
+function isSafeJobId(value) {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+}
+
 function App() {
   const [health, setHealth] = useState("checking");
   const [rows, setRows] = useState([]);
@@ -29,7 +33,10 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!jobId) return undefined;
+    if (!jobId || !isSafeJobId(jobId)) {
+      if (jobId) setStatus("Invalid job id");
+      return undefined;
+    }
     const safeJobId = encodeURIComponent(jobId);
     const timer = setInterval(async () => {
       try {
@@ -109,20 +116,20 @@ function App() {
 
         <section className="panel controls">
           <div>
-            <label>Exchange</label>
-            <select value={exchange} onChange={(e) => setExchange(e.target.value)}>
+            <label htmlFor="exchange-select">Exchange</label>
+            <select id="exchange-select" value={exchange} onChange={(e) => setExchange(e.target.value)}>
               <option>Both</option><option>NSE</option><option>BSE</option>
             </select>
           </div>
           <div>
-            <label>Lookback</label>
-            <select value={lookback} onChange={(e) => setLookback(e.target.value)}>
+            <label htmlFor="lookback-select">Lookback</label>
+            <select id="lookback-select" value={lookback} onChange={(e) => setLookback(e.target.value)}>
               <option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option>
             </select>
           </div>
           <div>
-            <label>Jump threshold</label>
-            <select value={jump} onChange={(e) => setJump(e.target.value)}>
+            <label htmlFor="jump-select">Jump threshold</label>
+            <select id="jump-select" value={jump} onChange={(e) => setJump(e.target.value)}>
               <option value="1">1%</option><option value="2">2%</option><option value="3">3%</option>
             </select>
           </div>
