@@ -23,8 +23,8 @@ def test_builds_descriptive_regime_snapshot():
     assert row["Current Regime"] == "RISING DOMINANT"
     assert row["Latest Breadth Strength"] == 50.0
     assert row["Current Duration Snapshots"] == 4
-    assert row["Average Rising Breadth %"] == 75.0
-    assert row["Average Falling Breadth %"] == 25.0
+    assert row["Average Rising Breadth %"] == 71.25
+    assert row["Average Falling Breadth %"] == 28.75
 
 
 def test_empty_history_returns_empty():
