@@ -58,6 +58,9 @@ def analyze_eros_regime_transition_matrix(
         summary["Transition Count"].div(total).mul(100).round(2)
     )
     if len(summary) > 1:
-        residual = round(100.0 - float(summary["Transition Share %"].iloc[:-1].sum()), 2)
+        residual = round(
+            100.0 - float(summary["Transition Share %"].iloc[:-1].sum()),
+            2,
+        )
         summary.loc[summary.index[-1], "Transition Share %"] = residual
     return summary
