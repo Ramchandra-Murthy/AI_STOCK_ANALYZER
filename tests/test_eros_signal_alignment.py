@@ -20,6 +20,7 @@ def test_signal_alignment_returns_descriptive_diagnostics():
     assert not result.empty
     assert result.loc[0, "Symbol"] == "AAA"
     assert result.loc[0, "Directional Diagnostics"] >= 1
+    assert 0.0 <= result.loc[0, "Alignment %"] <= 100.0
     assert "Alignment %" in result.columns
     assert "Alignment" in result.columns
 
