@@ -26,6 +26,7 @@ function App() {
   const [view, setView] = useState("price-pulse");
   const [marketRows, setMarketRows] = useState([]);
   const [unusualRows, setUnusualRows] = useState([]);
+  const [systemHealth, setSystemHealth] = useState(null);
 
   useEffect(() => {
     fetch("/health")
@@ -33,6 +34,9 @@ function App() {
       .then(() => setHealth("online"))
       .catch(() => setHealth("offline"));
     refreshHistory();
+    refreshHealth();
+    const healthTimer = setInterval(refreshHealth, 15000);
+    return () => clearInterval(healthTimer);
   }, []);
 
   useEffect(() => {
@@ -65,6 +69,17 @@ function App() {
     }, 1000);
     return () => clearInterval(timer);
   }, [jobId]);
+
+  async function refreshHealth() {
+    try {
+      const response = await fetch("/api/v1/intraday/health");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail ?? "Health unavailable");
+      setSystemHealth(data);
+    } catch {
+      setSystemHealth(null);
+    }
+  }
 
   async function loadUnusualActivity() {
     setStatus("Loading unusual activity");
@@ -147,7 +162,12 @@ function App() {
       <main>
         <div className="stats">
           <Stat label="Scanner" value={status} detail="Background job" />
-          <Stat label="Candidates" value={rows.length || "—"} detail="Latest pulse" />
+          <Stat
+            label="Data health"
+            value={systemHealth?.status ?? "checking"}
+            detail={systemHealth?.message ?? "Latest persisted scan"}
+          />
+          <Stat label="Candidates" value={rows.length || systemHealth?.candidates || "—"} detail="Latest pulse" />
           <Stat label="History" value={history.length} detail="Saved scans" />
           <Stat label="Mode" value="NSE + BSE" detail="Existing scanner universe" />
         </div>
@@ -238,6 +258,28 @@ function App() {
                 </tbody>
               </table>
             )}
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-title"><h2>Exchange health</h2><span>{systemHealth?.completed_at ?? "No completed scan"}</span></div>
+          <div className="table-wrap">
+            {systemHealth?.exchanges?.length ? (
+              <table>
+                <thead><tr><th>Exchange</th><th>Candidates</th><th>Avg change</th><th>Avg volume surge</th><th>Positive change</th></tr></thead>
+                <tbody>
+                  {systemHealth.exchanges.map((item) => (
+                    <tr key={item.Exchange}>
+                      <td><strong>{item.Exchange}</strong></td>
+                      <td>{item.Candidates ?? "—"}</td>
+                      <td>{item["Average change %"] ?? "—"}</td>
+                      <td>{item["Average volume surge x"] ?? "—"}</td>
+                      <td>{item["Positive change %"] ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : <p className="empty">Run a price-pulse scan to populate exchange health.</p>}
           </div>
         </section>
 
