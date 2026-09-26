@@ -164,6 +164,12 @@ function App() {
     return () => clearInterval(timer);
   }, [autoRefresh, jobId, exchange, lookback, jump]);
 
+  const signalCount = rows.length + unusualRows.length + marketRows.length;
+  const healthStatus = systemHealth?.status ?? "checking";
+  const pulseCount = rows.length;
+  const unusualCount = unusualRows.length;
+  const marketCount = marketRows.length;
+
   return (
     <div className="app">
       <header>
@@ -187,6 +193,14 @@ function App() {
           <Stat label="History" value={history.length} detail="Saved scans" />
           <Stat label="Mode" value="NSE + BSE" detail="Existing scanner universe" />
         </div>
+
+        <section className="panel signal-strip">
+          <div><span>Pulse signals</span><strong>{pulseCount}</strong></div>
+          <div><span>Unusual activity</span><strong>{unusualCount}</strong></div>
+          <div><span>Market signals</span><strong>{marketCount}</strong></div>
+          <div><span>Combined signals</span><strong>{signalCount}</strong></div>
+          <div><span>System state</span><strong>{healthStatus}</strong></div>
+        </section>
 
         <section className="panel controls">
           <div>
