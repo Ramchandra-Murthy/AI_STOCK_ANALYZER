@@ -20,3 +20,9 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
 .panel-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }.panel-title h2 { margin:0; font-size:18px; }.panel-title span { color:#8190a7; font-size:13px; }
 .table-wrap { overflow:auto; } table { width:100%; border-collapse:collapse; } th,td { padding:12px 10px; border-bottom:1px solid #1d2a3d; text-align:left; white-space:nowrap; } th { color:#8190a7; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }.empty { color:#718096; text-align:center; padding:30px; }
 @media(max-width:800px){ .stats{grid-template-columns:repeat(2,1fr)} header{padding:24px 20px} h1{font-size:26px} }
+
+.signal-strip { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+.signal-strip div { padding:14px; border:1px solid #1e2d44; border-radius:10px; background:#0a1424; }
+.signal-strip span { display:block; color:#8190a7; font-size:12px; }
+.signal-strip strong { display:block; margin-top:6px; font-size:20px; }
+@media(max-width:800px){ .signal-strip{grid-template-columns:repeat(2,1fr)} }
