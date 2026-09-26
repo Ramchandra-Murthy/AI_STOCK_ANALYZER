@@ -30,7 +30,7 @@ def test_summarizes_breadth_by_regime():
 
     assert rising["Snapshots"] == 3
     assert rising["Average_Rising_Breadth"] == 80.0
-    assert rising["Average_Falling_Breadth"] == 20.0
+    assert rising["Average Falling Breadth"] == 20.0
     assert rising["Minimum_Rising_Breadth"] == 70.0
     assert rising["Maximum_Rising_Breadth"] == 90.0
     assert rising["Average_Trend_Confidence"] == 73.33
