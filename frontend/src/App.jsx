@@ -105,6 +105,38 @@ function App() {
   }, []);
 
   useEffect(() => {
+    function handleDashboardShortcut(event) {
+      const target = event.target;
+      const tagName = target?.tagName;
+      if (
+        target?.isContentEditable ||
+        ["INPUT", "SELECT", "TEXTAREA", "BUTTON"].includes(tagName)
+      ) {
+        return;
+      }
+
+      if (event.key === "1") {
+        setView("price-pulse");
+      } else if (event.key === "2") {
+        setView("unusual");
+      } else if (event.key === "3") {
+        setView("market");
+      } else if (event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        document.getElementById("stock-search")?.focus();
+      } else if (event.key.toLowerCase() === "r") {
+        event.preventDefault();
+        refreshSignalBoard();
+      } else if (event.key === "Escape" && tableSearch) {
+        setTableSearch("");
+      }
+    }
+
+    window.addEventListener("keydown", handleDashboardShortcut);
+    return () => window.removeEventListener("keydown", handleDashboardShortcut);
+  }, [tableSearch]);
+
+  useEffect(() => {
     if (!jobId || !isSafeJobId(jobId)) {
       if (jobId) setStatus("Invalid job id");
       return undefined;
@@ -605,6 +637,9 @@ function App() {
 
         <section className="panel view-tabs" aria-label="Dashboard result views">
           <div className="view-tab-group" role="tablist" aria-label="Signal result views">
+            <span className="shortcut-help" role="note">
+              Shortcuts: 1/2/3 views · F search · R refresh · Esc clear
+            </span>
             <button
               role="tab"
               aria-selected={view === "price-pulse"}
