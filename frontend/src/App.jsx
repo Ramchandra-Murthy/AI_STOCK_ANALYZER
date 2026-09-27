@@ -706,6 +706,7 @@ function App() {
             <select id="table-exchange" value={tableExchange} onChange={(e) => setTableExchange(e.target.value)}>
               <option>All</option><option>NSE</option><option>BSE</option>
             </select>
+            <span>
             <span role="status" aria-live="polite">
               {visibleRows.length} visible of {activeRows.length} · sorted by {sortKey} ({sortDirection === "asc" ? "ascending" : "descending"})
               {tableSearch ? ` · filtered by "${tableSearch}"` : ""}
