@@ -167,7 +167,7 @@ function App() {
       } else if (event.key.toLowerCase() === "f") {
         event.preventDefault();
         document.getElementById("stock-search")?.focus();
-      } else if (event.key.toLowerCase() === "r") {
+      } else if (event.key.toLowerCase() === "e") {\n        event.preventDefault();\n        exportVisibleRows();\n      } else if (event.key.toLowerCase() === "r") {
         event.preventDefault();
         refreshSignalBoard();
       } else if (event.key === "Escape" && tableSearch) {
@@ -318,6 +318,35 @@ function App() {
     } finally {
       setStockDetailLoading(false);
     }
+  }
+
+  function exportVisibleRows() {
+    if (!visibleRows.length) {
+      setStatus("No visible rows to export");
+      return;
+    }
+    const columns = Array.from(
+      new Set(visibleRows.flatMap((row) => Object.keys(row))),
+    );
+    const escapeCsv = (value) => {
+      const text = value == null ? "" : String(value);
+      return /[",\\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const csv = [
+      columns.map(escapeCsv).join(","),
+      ...visibleRows.map((row) => columns.map((column) => escapeCsv(row[column])).join(",")),
+    ].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const viewName = view.replace(/[^a-z0-9-]+/gi, "-");
+    link.href = url;
+    link.download = `eros-${viewName}-signals.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setStatus(`Exported ${visibleRows.length} rows`);
   }
 
   async function refreshSignalBoard() {
@@ -682,7 +711,7 @@ function App() {
         <section className="panel view-tabs" aria-label="Dashboard result views">
           <div className="view-tab-group" role="tablist" aria-label="Signal result views">
             <span className="shortcut-help" role="note">
-              Shortcuts: 1/2/3 views · F search · R refresh · Esc clear
+              Shortcuts: 1/2/3 views · F search · E export · R refresh · Esc clear
             </span>
             <button
               role="tab"
@@ -746,7 +775,7 @@ function App() {
           <button className="secondary" onClick={loadMarketScanner}>
             Market scanner
           </button>
-          <button className="secondary" onClick={refreshSignalBoard} disabled={signalRefreshing}>
+          <button className="secondary" onClick={exportVisibleRows} disabled={!visibleRows.length} aria-label="Export visible results as CSV">\n            Export CSV\n          </button>\n          <button className="secondary" onClick={refreshSignalBoard} disabled={signalRefreshing}>
             {signalRefreshing ? "Refreshing…" : "Refresh all signals"}
           </button>
           {signalRefreshing ? (
