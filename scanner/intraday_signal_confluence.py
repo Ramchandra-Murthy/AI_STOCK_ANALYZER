@@ -6,7 +6,10 @@ import pandas as pd
 
 
 def _threshold_signal(frame: pd.DataFrame, column: str, threshold: float) -> pd.Series:
-    values = pd.to_numeric(frame.get(column), errors="coerce").fillna(0)
+    values = pd.to_numeric(
+        frame[column] if column in frame.columns else pd.Series(0.0, index=frame.index),
+        errors="coerce",
+    ).fillna(0.0)
     return values >= threshold
 
 
