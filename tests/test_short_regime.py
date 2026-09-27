@@ -5,6 +5,10 @@ from scanner.short_regime import (
     moving_average_regime,
     regime_breakdown,
     turtle_regime,
+
+    moving_average_regime,
+    regime_breakdown,
+    turtle_regime,
 )
 
 
