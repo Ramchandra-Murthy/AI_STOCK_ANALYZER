@@ -223,3 +223,9 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
     flex-wrap: wrap;
   }
 }
+
+.history-preview-label {
+  margin-bottom: 10px;
+  color: #94a3b8;
+  font-size: 12px;
+}
