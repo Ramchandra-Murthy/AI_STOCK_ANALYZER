@@ -270,3 +270,6 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
   .options-controls > div,
   .options-controls > button { width: 100%; }
 }
+
+.table-density-compact th,
+.table-density-compact td { padding-top: 7px; padding-bottom: 7px; }
