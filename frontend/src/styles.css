@@ -212,3 +212,14 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
   color: #64748b;
   font-size: 11px;
 }
+
+.history-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+@media (max-width: 560px) {
+  .history-detail-actions {
+    flex-wrap: wrap;
+  }
+}
