@@ -133,6 +133,7 @@ function App() {
   const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(null);
   const [refreshStartedAt, setRefreshStartedAt] = useState(null);
   const [refreshDurationMs, setRefreshDurationMs] = useState(null);
+  const [refreshError, setRefreshError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [tableExchange, setTableExchange] = useState(() => readDashboardPreference("table-exchange", "All"));
   const [sortKey, setSortKey] = useState(() => readDashboardPreference("sort-key", "Symbol"));
@@ -380,6 +381,7 @@ function App() {
   async function refreshSignalBoard() {
     const refreshStarted = Date.now();
     setSignalRefreshing(true);
+    setRefreshError(null);
     setStatus("Refreshing signals");
     try {
       const activityParams = new URLSearchParams({
@@ -407,6 +409,7 @@ function App() {
       setRefreshDurationMs(refreshedAt - refreshStarted);
       setStatus("Ready");
     } catch (error) {
+      setRefreshError(error.message);
       setStatus(error.message);
     } finally {
       setSignalRefreshing(false);
@@ -856,6 +859,10 @@ function App() {
           {signalRefreshing ? (
             <span className="refresh-status" role="status" aria-live="polite" aria-busy="true">
               Updating activity, market signals, health, and history…
+            </span>
+          ) : refreshError ? (
+            <span className="refresh-status" role="alert">
+              Last refresh failed: {refreshError}
             </span>
           ) : refreshStartedAt ? (
             <span className="refresh-status" role="status" aria-live="polite">
