@@ -160,3 +160,14 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
 .error-boundary .panel {
   width: min(620px, 100%);
 }
+
+.refresh-status {
+  color: #7dd3fc;
+  font-size: 12px;
+  align-self: center;
+}
+@media (max-width: 560px) {
+  .refresh-status {
+    width: 100%;
+  }
+}
