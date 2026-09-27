@@ -6,9 +6,9 @@ application remains the presentation layer until the new frontend is ready.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
-import re
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
@@ -19,9 +19,9 @@ from api.scan_manager import ErosScanManager
 from scanner.market_scanner import market_scan
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
+from services.analyzer import analyze_stock
 from services.intraday_exchange_summary import exchange_summary
 from services.intraday_health import assess_scan_health
-from services.analyzer import analyze_stock
 
 app = FastAPI(
     title="EROS Market API",
