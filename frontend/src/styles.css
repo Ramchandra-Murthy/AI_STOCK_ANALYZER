@@ -47,3 +47,6 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
 .alert-warning { color:#f59e0b; }
 .alert-info { color:#60a5fa; }
 .alert-ok { color:#4ade80; }
+
+.sector-overview table td:nth-child(5) { font-weight:700; }
+.sector-overview table td:nth-child(6) { font-variant-numeric:tabular-nums; }

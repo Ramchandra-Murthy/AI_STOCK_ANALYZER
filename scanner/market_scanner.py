@@ -9,6 +9,7 @@ from scanner.dynamic_universe import (
     passes_liquidity_filter,
 )
 from services.analyzer import analyze_stock
+from services.sector_mapping import sector_for_symbol
 
 # The curated lists remain a fallback, while NSE symbols are refreshed from
 # the exchange's current equity list before each cache window.
@@ -85,9 +86,11 @@ def _analyze_candidate(ticker: str) -> dict[str, Any] | None:
         signal = result["signal"]
         trend = result["trend"]
         exchange = "BSE" if ticker.endswith(".BO") else "NSE"
+        symbol = ticker.removesuffix(".NS").removesuffix(".BO")
         return {
-            "Symbol": ticker.removesuffix(".NS").removesuffix(".BO"),
+            "Symbol": symbol,
             "Exchange": exchange,
+            "Sector": sector_for_symbol(symbol),
             "Price": round(float(last["Close"]), 2),
             "Trend": trend["Trend"],
             "RSI": round(float(last["RSI_14"]), 2),
