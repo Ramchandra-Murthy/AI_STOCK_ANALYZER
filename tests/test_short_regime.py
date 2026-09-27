@@ -2,7 +2,8 @@ import pandas as pd
 import pytest
 
 from scanner.short_regime import (
-    fractal_swings,\n    moving_average_regime,
+    fractal_swings,
+    moving_average_regime,
     regime_breakdown,
     turtle_regime,
 )
