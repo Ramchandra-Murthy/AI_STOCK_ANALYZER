@@ -187,7 +187,18 @@ def stock_detail(
         breakout = result["breakout"]
         observation = signal.get("MarketObservation", {})
         metrics = {}
-        for key in ("Close", "SMA_20", "SMA_50", "EMA_20", "RSI_14", "MACD", "MACD_Histogram", "Upper_Band", "Lower_Band", "ATR"):
+        for key in (
+            "Close",
+            "SMA_20",
+            "SMA_50",
+            "EMA_20",
+            "RSI_14",
+            "MACD",
+            "MACD_Histogram",
+            "Upper_Band",
+            "Lower_Band",
+            "ATR",
+        ):
             if key in last and pd.notna(last[key]):
                 metrics[key] = float(last[key])
         return {
