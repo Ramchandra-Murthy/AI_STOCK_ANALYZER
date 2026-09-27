@@ -68,3 +68,32 @@ def turtle_regime(
     turtle.loc[bullish] = "BULLISH"
     turtle.loc[bearish] = "BEARISH"
     return turtle
+
+
+def moving_average_regime(
+    df: pd.DataFrame,
+    fast_window: int = 20,
+    slow_window: int = 50,
+    price_column: str = "Close",
+) -> pd.Series:
+    """Classify regime from a fast/slow moving-average crossover.
+
+    A fast moving average above the slow moving average is bullish, below it
+    is bearish, and equality is neutral. Rolling windows use only observations
+    available at each bar, so the regime does not introduce look-ahead.
+    """
+    if fast_window < 1 or slow_window < 1:
+        raise ValueError("moving-average windows must be positive")
+    if fast_window >= slow_window:
+        raise ValueError("fast_window must be smaller than slow_window")
+    if price_column not in df.columns:
+        raise ValueError(f"missing required column: {price_column}")
+
+    prices = pd.to_numeric(df[price_column], errors="coerce")
+    fast_ma = prices.rolling(fast_window, min_periods=fast_window).mean()
+    slow_ma = prices.rolling(slow_window, min_periods=slow_window).mean()
+
+    regime = pd.Series("NEUTRAL", index=df.index, dtype="string")
+    regime.loc[fast_ma > slow_ma] = "BULLISH"
+    regime.loc[fast_ma < slow_ma] = "BEARISH"
+    return regime
