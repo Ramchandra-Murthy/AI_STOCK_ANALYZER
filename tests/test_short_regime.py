@@ -1,7 +1,11 @@
 import pandas as pd
 import pytest
 
-from scanner.short_regime import (\n    moving_average_regime,\n    regime_breakdown,\n    turtle_regime,\n)
+from scanner.short_regime import (
+    moving_average_regime,
+    regime_breakdown,
+    turtle_regime,
+)
 
 
 def test_fresh_high_is_bullish_after_lookback():
