@@ -132,6 +132,7 @@ function App() {
   const [nextAutoScanAt, setNextAutoScanAt] = useState(null);
   const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(null);
   const [refreshStartedAt, setRefreshStartedAt] = useState(null);
+  const [refreshDurationMs, setRefreshDurationMs] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [tableExchange, setTableExchange] = useState(() => readDashboardPreference("table-exchange", "All"));
   const [sortKey, setSortKey] = useState(() => readDashboardPreference("sort-key", "Symbol"));
@@ -377,6 +378,7 @@ function App() {
   }
 
   async function refreshSignalBoard() {
+    const refreshStarted = Date.now();
     setSignalRefreshing(true);
     setStatus("Refreshing signals");
     try {
@@ -402,6 +404,7 @@ function App() {
       const refreshedAt = Date.now();
       setLastUpdated(new Date(refreshedAt).toISOString());
       setRefreshStartedAt(refreshedAt);
+      setRefreshDurationMs(refreshedAt - refreshStarted);
       setStatus("Ready");
     } catch (error) {
       setStatus(error.message);
@@ -851,7 +854,7 @@ function App() {
             </span>
           ) : refreshStartedAt ? (
             <span className="refresh-status" role="status" aria-live="polite">
-              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}
+              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}
             </span>
           ) : null}
           <button className="secondary" onClick={refreshHistory} aria-label="Refresh saved scan history">Refresh history</button>
