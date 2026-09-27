@@ -460,6 +460,35 @@ function App() {
           )}
         </section>
 
+        <section className="panel view-tabs" aria-label="Dashboard result views">
+          <div className="view-tab-group" role="tablist" aria-label="Signal result views">
+            <button
+              role="tab"
+              aria-selected={view === "price-pulse"}
+              className={view === "price-pulse" ? "active" : "secondary"}
+              onClick={() => setView("price-pulse")}
+            >
+              Price pulse
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === "unusual"}
+              className={view === "unusual" ? "active" : "secondary"}
+              onClick={() => setView("unusual")}
+            >
+              Unusual activity
+            </button>
+            <button
+              role="tab"
+              aria-selected={view === "market"}
+              className={view === "market" ? "active" : "secondary"}
+              onClick={() => setView("market")}
+            >
+              Market scanner
+            </button>
+          </div>
+        </section>
+
         <section className="panel controls">
           <div>
             <label htmlFor="exchange-select">Exchange</label>
