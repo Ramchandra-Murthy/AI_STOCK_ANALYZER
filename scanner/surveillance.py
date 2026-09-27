@@ -177,7 +177,7 @@ def apply_safety_filter(
             lookup["Safety status"] if "Safety status" in lookup.columns else pd.Series(dtype=str)
         )
         result["Safety status"] = (
-            result["Symbol"].map(status_series).fillna("NSE check unavailable")
+            result["Symbol"].map(status_series).fillna("Manual check required")
         )
 
     if exclude_flagged:
