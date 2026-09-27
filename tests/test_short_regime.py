@@ -133,7 +133,7 @@ def test_fractal_swings_uses_hlc_average_and_finds_level_one_turns():
     assert result.loc[1, "Hi1"] == 14.0
     assert result.loc[2, "Lo1"] == 11.0
     assert result.loc[3, "Hi1"] == 13.0
-    assert result.loc[0, "Hi1"] != result.loc[0, "Hi1"]
+    assert pd.isna(result.loc[0, "Hi1"])
 
 
 def test_fractal_swings_builds_higher_levels_from_prior_swings():
