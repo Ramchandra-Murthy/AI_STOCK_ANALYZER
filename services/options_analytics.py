@@ -1,14 +1,15 @@
-"""Options analytics foundation for the Streamlit scanner.
+"""Options analytics providers for the Streamlit scanner.
 
-The module deliberately keeps the data-provider boundary separate from the UI.
-Yahoo Finance is used as the first provider because it is already part of the
-application dependency set. Availability and timestamps are surfaced rather
-than inferred when a provider does not expose an Indian index option chain.
+NSE is the primary provider for Indian index option chains. Yahoo Finance remains
+an explicit fallback because it is already part of the application dependency set.
+Provider availability and timestamps are surfaced rather than inferred.
 """
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from urllib.request import Request, urlopen
 
 import pandas as pd
 import yfinance as yf
@@ -17,6 +18,17 @@ OPTIONS_UNDERLYINGS = {
     "NIFTY": "^NSEI",
     "BANKNIFTY": "^NSEBANK",
     "FINNIFTY": "NIFTY_FIN_SERVICE.NS",
+}
+
+NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-indices"
+NSE_HEADERS = {
+    "Accept": "application/json,text/plain,*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.nseindia.com/option-chain",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0 Safari/537.36"
+    ),
 }
 
 CHAIN_COLUMNS = [
@@ -50,11 +62,21 @@ class OptionChainResult:
 
 
 def available_expiries(underlying: str) -> tuple[str, ...]:
-    """Return provider-reported expiries for an underlying."""
-    symbol = OPTIONS_UNDERLYINGS[underlying]
-    ticker = yf.Ticker(symbol)
+    """Return provider-reported expiries, preferring NSE."""
+    if underlying not in OPTIONS_UNDERLYINGS:
+        raise ValueError(f"Unsupported underlying: {underlying}")
+
     try:
-        return tuple(str(expiry) for expiry in ticker.options)
+        payload = _fetch_nse_option_chain(underlying)
+        expiries = _nse_expiries(payload)
+        if expiries:
+            return expiries
+    except Exception:
+        pass
+
+    symbol = OPTIONS_UNDERLYINGS[underlying]
+    try:
+        return tuple(str(expiry) for expiry in yf.Ticker(symbol).options)
     except Exception:
         return ()
 
@@ -63,69 +85,49 @@ def fetch_option_chain(
     underlying: str,
     expiry: str | None = None,
 ) -> OptionChainResult:
-    """Fetch and normalize an option chain without inventing missing data."""
+    """Fetch and normalize an Indian index option chain."""
     if underlying not in OPTIONS_UNDERLYINGS:
         raise ValueError(f"Unsupported underlying: {underlying}")
 
-    symbol = OPTIONS_UNDERLYINGS[underlying]
-    ticker = yf.Ticker(symbol)
     try:
-        expiries = tuple(str(value) for value in ticker.options)
+        payload = _fetch_nse_option_chain(underlying)
+        expiries = _nse_expiries(payload)
+        if expiries:
+            selected_expiry = expiry if expiry in expiries else expiries[0]
+            chain = _normalize_nse_chain(payload, selected_expiry)
+            spot = _nse_spot(payload)
+            if not chain.empty:
+                return OptionChainResult(
+                    underlying,
+                    f"NSE:{underlying}",
+                    selected_expiry,
+                    spot,
+                    chain,
+                    expiries,
+                    "AVAILABLE",
+                    "Option chain loaded from NSE.",
+                )
     except Exception as exc:
-        return OptionChainResult(
-            underlying,
-            symbol,
-            expiry,
-            None,
-            pd.DataFrame(columns=CHAIN_COLUMNS),
-            (),
-            "UNAVAILABLE",
-            f"Option expiries could not be loaded from Yahoo Finance: {exc}",
-        )
-
-    if not expiries:
-        return OptionChainResult(
-            underlying,
-            symbol,
-            expiry,
-            _spot_price(ticker),
-            pd.DataFrame(columns=CHAIN_COLUMNS),
-            (),
-            "UNAVAILABLE",
-            "Yahoo Finance did not expose an option chain for this underlying.",
-        )
-
-    selected_expiry = expiry if expiry in expiries else expiries[0]
-    try:
-        raw = ticker.option_chain(selected_expiry)
-        chain = _normalize_chain(raw.calls, raw.puts)
-    except Exception as exc:
-        return OptionChainResult(
-            underlying,
-            symbol,
-            selected_expiry,
-            _spot_price(ticker),
-            pd.DataFrame(columns=CHAIN_COLUMNS),
-            expiries,
-            "UNAVAILABLE",
-            f"Option chain could not be loaded: {exc}",
-        )
-
-    if chain.empty:
-        status = "UNAVAILABLE"
-        message = "The provider returned an empty option chain."
+        nse_error = str(exc)
     else:
-        status = "AVAILABLE"
-        message = "Option chain loaded from Yahoo Finance."
+        nse_error = "NSE returned no usable option-chain expiries."
 
+    yahoo_result = _fetch_yahoo_option_chain(underlying, expiry)
+    if yahoo_result.status == "AVAILABLE":
+        return yahoo_result
+
+    message = (
+        f"NSE option-chain data was unavailable ({nse_error}); "
+        f"Yahoo Finance fallback was also unavailable ({yahoo_result.message})."
+    )
     return OptionChainResult(
         underlying,
-        symbol,
-        selected_expiry,
-        _spot_price(ticker),
-        chain,
-        expiries,
-        status,
+        yahoo_result.provider_symbol,
+        yahoo_result.expiry,
+        yahoo_result.spot,
+        yahoo_result.chain,
+        yahoo_result.expiries,
+        "UNAVAILABLE",
         message,
     )
 
@@ -156,6 +158,134 @@ def summarize_option_chain(chain: pd.DataFrame) -> pd.DataFrame:
         ("Highest Put OI strike", max_put),
     ]
     return pd.DataFrame(rows, columns=["Metric", "Value"])
+
+
+def _fetch_nse_option_chain(underlying: str) -> dict:
+    """Fetch the public NSE index option-chain JSON with browser-like headers."""
+    request = Request(
+        f"{NSE_OPTION_CHAIN_URL}?symbol={underlying}",
+        headers=NSE_HEADERS,
+        method="GET",
+    )
+    with urlopen(request, timeout=12) as response:
+        if response.status != 200:
+            raise RuntimeError(f"NSE returned HTTP {response.status}.")
+        return json.loads(response.read().decode("utf-8"))
+
+
+def _nse_expiries(payload: dict) -> tuple[str, ...]:
+    records = payload.get("records", {})
+    values = records.get("expiryDates", [])
+    return tuple(str(value) for value in values if value)
+
+
+def _nse_spot(payload: dict) -> float | None:
+    value = payload.get("records", {}).get("underlyingValue")
+    try:
+        return float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalize_nse_chain(payload: dict, expiry: str) -> pd.DataFrame:
+    rows = []
+    for item in payload.get("records", {}).get("data", []):
+        if str(item.get("expiryDate")) != expiry:
+            continue
+        call = item.get("CE") or {}
+        put = item.get("PE") or {}
+        rows.append(
+            {
+                "strike": item.get("strikePrice"),
+                "CE LTP": call.get("lastPrice"),
+                "CE volume": call.get("totalTradedVolume"),
+                "CE OI": call.get("openInterest"),
+                "CE OI change": call.get("changeinOpenInterest"),
+                "CE IV": call.get("impliedVolatility"),
+                "PE LTP": put.get("lastPrice"),
+                "PE volume": put.get("totalTradedVolume"),
+                "PE OI": put.get("openInterest"),
+                "PE OI change": put.get("changeinOpenInterest"),
+                "PE IV": put.get("impliedVolatility"),
+            }
+        )
+
+    if not rows:
+        return pd.DataFrame(columns=CHAIN_COLUMNS)
+
+    return _finalize_chain(pd.DataFrame(rows))
+
+
+def _fetch_yahoo_option_chain(
+    underlying: str,
+    expiry: str | None,
+) -> OptionChainResult:
+    symbol = OPTIONS_UNDERLYINGS[underlying]
+    ticker = yf.Ticker(symbol)
+    try:
+        expiries = tuple(str(value) for value in ticker.options)
+    except Exception as exc:
+        return OptionChainResult(
+            underlying,
+            symbol,
+            expiry,
+            None,
+            pd.DataFrame(columns=CHAIN_COLUMNS),
+            (),
+            "UNAVAILABLE",
+            f"Yahoo Finance expiries could not be loaded: {exc}",
+        )
+
+    if not expiries:
+        return OptionChainResult(
+            underlying,
+            symbol,
+            expiry,
+            _spot_price(ticker),
+            pd.DataFrame(columns=CHAIN_COLUMNS),
+            (),
+            "UNAVAILABLE",
+            "Yahoo Finance did not expose an option chain for this underlying.",
+        )
+
+    selected_expiry = expiry if expiry in expiries else expiries[0]
+    try:
+        raw = ticker.option_chain(selected_expiry)
+        chain = _normalize_chain(raw.calls, raw.puts)
+    except Exception as exc:
+        return OptionChainResult(
+            underlying,
+            symbol,
+            selected_expiry,
+            _spot_price(ticker),
+            pd.DataFrame(columns=CHAIN_COLUMNS),
+            expiries,
+            "UNAVAILABLE",
+            f"Yahoo Finance option chain could not be loaded: {exc}",
+        )
+
+    if chain.empty:
+        return OptionChainResult(
+            underlying,
+            symbol,
+            selected_expiry,
+            _spot_price(ticker),
+            chain,
+            expiries,
+            "UNAVAILABLE",
+            "Yahoo Finance returned an empty option chain.",
+        )
+
+    return OptionChainResult(
+        underlying,
+        symbol,
+        selected_expiry,
+        _spot_price(ticker),
+        chain,
+        expiries,
+        "AVAILABLE",
+        "Option chain loaded from Yahoo Finance fallback.",
+    )
 
 
 def _normalize_chain(calls: pd.DataFrame, puts: pd.DataFrame) -> pd.DataFrame:
@@ -208,7 +338,12 @@ def _normalize_chain(calls: pd.DataFrame, puts: pd.DataFrame) -> pd.DataFrame:
         }
     )
 
-    chain = call.merge(put, on="strike", how="outer").sort_values("strike").reset_index(drop=True)
+    chain = call.merge(put, on="strike", how="outer")
+    return _finalize_chain(chain)
+
+
+def _finalize_chain(chain: pd.DataFrame) -> pd.DataFrame:
+    chain = chain.sort_values("strike").reset_index(drop=True)
     call_oi = pd.to_numeric(chain["CE OI"], errors="coerce")
     put_oi = pd.to_numeric(chain["PE OI"], errors="coerce")
     chain["PCR OI"] = put_oi.div(call_oi.where(call_oi.ne(0)))
