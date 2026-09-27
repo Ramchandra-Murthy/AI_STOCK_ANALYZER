@@ -79,7 +79,7 @@ function App() {
   const [tableExchange, setTableExchange] = useState("All");
   const [sortKey, setSortKey] = useState("Symbol");
   const [sortDirection, setSortDirection] = useState("asc");
-  const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
+  const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);\n  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
 
   useEffect(() => {
     fetch("/health")
@@ -336,6 +336,7 @@ function App() {
     }))
     .sort((a, b) => b.breadth - a.breadth || b.stocks - a.stocks);
 
+  const expandedScan = history.find((scan) => scan.job_id === expandedHistoryJob);
   const alerts = [];
   if (health === "offline") alerts.push({ level: "critical", text: "API connection is offline." });
   if (healthStatus === "STALE") alerts.push({ level: "warning", text: "Latest persisted scan is stale." });
@@ -557,15 +558,15 @@ function App() {
         </section>
 
         <section className="panel">
-          <div className="panel-title"><h2>Recent scan history</h2><span>Last 10</span></div>
+          <div className="panel-title"><h2>Recent scan history</h2><span>Last 10 · click a scan to inspect</span></div>
           <div className="table-wrap">
             <table>
               <thead><tr><th>Completed</th><th>Job</th><th>Candidates</th><th>Universe checked</th></tr></thead>
               <tbody>
                 {history.length ? history.map((scan) => (
-                  <tr key={scan.job_id}>
+                  <tr key={scan.job_id} className={expandedHistoryJob === scan.job_id ? "history-row-active" : ""}>
                     <td>{scan.completed_at ?? "—"}</td>
-                    <td>{scan.job_id?.slice(0, 10) ?? "—"}…</td>
+                    <td><button className="stock-link" onClick={() => setExpandedHistoryJob((current) => current === scan.job_id ? null : scan.job_id)}>{scan.job_id?.slice(0, 10) ?? "—"}…</button></td>
                     <td>{scan.count ?? "—"}</td>
                     <td>{scan.scan_stats?.candidate_count ?? "—"}</td>
                   </tr>
@@ -573,6 +574,26 @@ function App() {
               </tbody>
             </table>
           </div>
+          {expandedScan ? (
+            <div className="history-detail">
+              <div className="panel-title">
+                <strong>Saved scan candidates</strong>
+                <span>{expandedScan.completed_at ?? "—"}</span>
+              </div>
+              <div className="history-candidates">
+                {(expandedScan.results ?? []).slice(0, 10).map((row, index) => (
+                  <button
+                    className="history-candidate"
+                    key={`${row.Symbol ?? "row"}-${index}`}
+                    onClick={() => loadStockDetail(row.Symbol, row.Exchange)}
+                  >
+                    <strong>{row.Symbol ?? "—"}</strong>
+                    <span>{row.Exchange ?? "—"} · {row["Change over 5m"] ?? "—"}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
       </main>
     </div>
