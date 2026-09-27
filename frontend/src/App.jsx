@@ -899,7 +899,7 @@ function App() {
           ) : refreshStartedAt ? (
             <span className="refresh-status" role="status" aria-live="polite">
               Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}{refreshAgeLabel ? (
-                <span aria-hidden="true">{` · ${refreshAgeLabel}`}</span>
+                <span aria-hidden="true" title="Time since the latest completed refresh">{` · ${refreshAgeLabel}`}</span>
               ) : null}
             </span>
           ) : (
