@@ -79,6 +79,7 @@ function App() {
   const [tableExchange, setTableExchange] = useState("All");
   const [sortKey, setSortKey] = useState("Symbol");
   const [sortDirection, setSortDirection] = useState("asc");
+  const [tableSearch, setTableSearch] = useState("");
   const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
   const [stockDetailError, setStockDetailError] = useState(null);
   const [stockDetailUpdatedAt, setStockDetailUpdatedAt] = useState(null);\n  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
@@ -288,6 +289,7 @@ function App() {
     const active = view === "price-pulse" ? rows : view === "unusual" ? unusualRows : marketRows;
     const visible = active
       .filter((row) => tableExchange === "All" || row.Exchange === tableExchange)
+      .filter((row) => !tableSearch || String(row.Symbol ?? "").toLowerCase().includes(tableSearch.toLowerCase()))
       .slice()
       .sort((a, b) => {
         const left = a[sortKey] ?? "";
@@ -337,7 +339,7 @@ function App() {
       signalCounts: { pulsePositive, pulseNegative, unusualPositive, unusualNegative, marketBullish, marketBearish },
       sectorSummary: sectors,
     };
-  }, [marketRows, rows, sortDirection, sortKey, tableExchange, unusualRows, view]);
+  }, [marketRows, rows, sortDirection, sortKey, tableExchange, tableSearch, unusualRows, view]);
 
   const expandedScan = useMemo(() => history.find((scan) => scan.job_id === expandedHistoryJob), [expandedHistoryJob, history]);
   const alerts = [];
@@ -495,6 +497,8 @@ function App() {
             </span>
           </div>
           <div className="table-toolbar">
+            <label htmlFor="stock-search">Search symbol</label>
+            <input id="stock-search" type="search" value={tableSearch} onChange={(e) => setTableSearch(e.target.value)} placeholder="e.g. RELIANCE" aria-label="Search visible stocks by symbol" />
             <label htmlFor="table-exchange">Table exchange</label>
             <select id="table-exchange" value={tableExchange} onChange={(e) => setTableExchange(e.target.value)}>
               <option>All</option><option>NSE</option><option>BSE</option>
