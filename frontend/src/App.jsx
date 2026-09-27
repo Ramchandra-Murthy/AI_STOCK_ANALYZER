@@ -563,7 +563,10 @@ function App() {
             <select id="table-exchange" value={tableExchange} onChange={(e) => setTableExchange(e.target.value)}>
               <option>All</option><option>NSE</option><option>BSE</option>
             </select>
-            <span>{visibleRows.length} visible · sorted {sortDirection === "asc" ? "ascending" : "descending"}</span>
+            <span>
+              {visibleRows.length} visible of {activeRows.length} · sorted {sortDirection === "asc" ? "ascending" : "descending"}
+              {tableSearch ? ` · filtered by "${tableSearch}"` : ""}
+            </span>
           </div>
           <div className="table-wrap">
             {view === "price-pulse" ? (
