@@ -854,7 +854,7 @@ function App() {
             disabled={signalRefreshing}
             aria-busy={signalRefreshing}
           >
-            {signalRefreshing ? "Refreshing…" : "Refresh all signals"}
+            {signalRefreshing ? "Refreshing…" : refreshError ? "Retry refresh" : "Refresh all signals"}
           </button>
           {signalRefreshing ? (
             <span className="refresh-status" role="status" aria-live="polite" aria-busy="true">
