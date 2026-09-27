@@ -232,6 +232,37 @@ function App() {
   const marketBullish = marketRows.filter((row) => /bull|up|positive|strong/i.test(String(row.Trend ?? ""))).length;
   const marketBearish = marketRows.filter((row) => /bear|down|negative|weak/i.test(String(row.Trend ?? ""))).length;
 
+  const sectorSummary = Object.values(
+    marketRows.reduce((groups, row) => {
+      const sector = row.Sector ?? "Unclassified";
+      const current = groups[sector] ?? {
+        sector,
+        stocks: 0,
+        bullish: 0,
+        bearish: 0,
+        scoreTotal: 0,
+        scoreCount: 0,
+      };
+      const trend = String(row.Trend ?? "");
+      const score = Number.parseFloat(row["AI Score"]);
+      current.stocks += 1;
+      if (/bull|up|positive|strong/i.test(trend)) current.bullish += 1;
+      if (/bear|down|negative|weak/i.test(trend)) current.bearish += 1;
+      if (!Number.isNaN(score)) {
+        current.scoreTotal += score;
+        current.scoreCount += 1;
+      }
+      groups[sector] = current;
+      return groups;
+    }, {}),
+  )
+    .map((item) => ({
+      ...item,
+      breadth: item.bullish - item.bearish,
+      averageScore: item.scoreCount ? item.scoreTotal / item.scoreCount : null,
+    }))
+    .sort((a, b) => b.breadth - a.breadth || b.stocks - a.stocks);
+
   const alerts = [];
   if (health === "offline") alerts.push({ level: "critical", text: "API connection is offline." });
   if (healthStatus === "STALE") alerts.push({ level: "warning", text: "Latest persisted scan is stale." });
@@ -291,6 +322,36 @@ function App() {
           <div><span>Activity negative</span><strong>{unusualNegative}</strong><small>of {unusualCount}</small></div>
           <div><span>Market bullish</span><strong>{marketBullish}</strong><small>of {marketCount}</small></div>
           <div><span>Market bearish</span><strong>{marketBearish}</strong><small>of {marketCount}</small></div>
+        </section>
+
+        <section className="panel sector-overview">
+          <div className="panel-title">
+            <h2>Sector overview</h2>
+            <span>Derived from current market scanner results</span>
+          </div>
+          {sectorSummary.length ? (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Sector</th><th>Stocks</th><th>Bullish</th><th>Bearish</th><th>Breadth</th><th>Avg AI score</th></tr>
+                </thead>
+                <tbody>
+                  {sectorSummary.map((item) => (
+                    <tr key={item.sector}>
+                      <td><strong>{item.sector}</strong></td>
+                      <td>{item.stocks}</td>
+                      <td>{item.bullish}</td>
+                      <td>{item.bearish}</td>
+                      <td>{item.breadth > 0 ? `+${item.breadth}` : item.breadth}</td>
+                      <td>{item.averageScore === null ? "—" : item.averageScore.toFixed(1)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="empty">Refresh the market scanner to populate sector coverage.</p>
+          )}
         </section>
 
         <section className="panel controls">
