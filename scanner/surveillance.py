@@ -189,7 +189,7 @@ def apply_safety_filter(
 def liquidity_warning(
     price: float,
     latest_volume: float,
-    min_candle_value: float = 1_000_000.0,
+    min_candle_value: float = 2_000_000.0,
 ) -> str:
     """Flag a very small latest-candle traded value as a liquidity warning."""
     if price <= 0 or latest_volume < 0:
