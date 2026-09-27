@@ -80,7 +80,8 @@ function App() {
   const [sortKey, setSortKey] = useState("Symbol");
   const [sortDirection, setSortDirection] = useState("asc");
   const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
-  const [stockDetailError, setStockDetailError] = useState(null);\n  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
+  const [stockDetailError, setStockDetailError] = useState(null);
+  const [stockDetailUpdatedAt, setStockDetailUpdatedAt] = useState(null);\n  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
 
   useEffect(() => {
     fetch("/health")
@@ -203,6 +204,7 @@ function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail ?? "Unable to load stock detail");
       setStockDetail(data);
+      setStockDetailUpdatedAt(new Date().toISOString());
       setStatus("Ready");
     } catch (error) {
       setStockDetail(null);
@@ -542,16 +544,28 @@ function App() {
               <h2 id="stock-detail-heading">
                 {selectedStock.symbol} · {selectedStock.exchange} drill-down
               </h2>
-              <button
-                className="secondary"
-                onClick={() => {
-                  setSelectedStock(null);
-                  setStockDetail(null);
-                }}
-                aria-label="Close stock drill-down"
-              >
-                Close
-              </button>
+              <div className="stock-detail-actions">
+                <button
+                  className="secondary"
+                  onClick={() => loadStockDetail(selectedStock.symbol, selectedStock.exchange)}
+                  disabled={stockDetailLoading}
+                  aria-label="Refresh stock drill-down"
+                >
+                  {stockDetailLoading ? "Refreshing…" : "Refresh"}
+                </button>
+                <button
+                  className="secondary"
+                  onClick={() => {
+                    setSelectedStock(null);
+                    setStockDetail(null);
+                    setStockDetailError(null);
+                    setStockDetailUpdatedAt(null);
+                  }}
+                  aria-label="Close stock drill-down"
+                >
+                  Close
+                </button>
+              </div>
             </div>
             {stockDetailLoading ? (
               <p className="empty" role="status" aria-live="polite">Loading stock detail…</p>
@@ -580,6 +594,7 @@ function App() {
                     </div>
                   ))}
                 </div>
+                {stockDetailUpdatedAt ? <p className="stock-detail-updated">Updated {new Date(stockDetailUpdatedAt).toLocaleTimeString()}</p> : null}
                 <p className="stock-observation">
                   {stockDetail.market_observation ?? "No additional market observation."}
                 </p>
