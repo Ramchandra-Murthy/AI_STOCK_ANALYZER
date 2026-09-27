@@ -29,6 +29,7 @@ function App() {
   const [systemHealth, setSystemHealth] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [signalRefreshing, setSignalRefreshing] = useState(false);
 
   useEffect(() => {
     fetch("/health")
@@ -130,6 +131,38 @@ function App() {
       setHistory(data.scans ?? []);
     } catch {
       setHistory([]);
+    }
+  }
+
+  async function refreshSignalBoard() {
+    setSignalRefreshing(true);
+    setStatus("Refreshing signals");
+    try {
+      const activityParams = new URLSearchParams({
+        limit: "20",
+        exchange_category: exchange,
+      });
+      const [activityResponse, marketResponse] = await Promise.all([
+        fetch(`/api/v1/intraday/unusual-activity?${activityParams.toString()}`),
+        fetch("/api/v1/scanner/market?limit=20"),
+      ]);
+      const activityData = await activityResponse.json();
+      const marketData = await marketResponse.json();
+      if (!activityResponse.ok) {
+        throw new Error(activityData.detail ?? "Unable to load activity");
+      }
+      if (!marketResponse.ok) {
+        throw new Error(marketData.detail ?? "Unable to load market scan");
+      }
+      setUnusualRows(activityData.results ?? []);
+      setMarketRows(marketData.results ?? []);
+      await Promise.all([refreshHealth(), refreshHistory()]);
+      setLastUpdated(new Date().toISOString());
+      setStatus("Ready");
+    } catch (error) {
+      setStatus(error.message);
+    } finally {
+      setSignalRefreshing(false);
     }
   }
 
@@ -236,6 +269,9 @@ function App() {
           </button>
           <button className="secondary" onClick={loadMarketScanner}>
             Market scanner
+          </button>
+          <button className="secondary" onClick={refreshSignalBoard} disabled={signalRefreshing}>
+            {signalRefreshing ? "Refreshing…" : "Refresh all signals"}
           </button>
           <button className="secondary" onClick={refreshHistory}>Refresh history</button>
         </section>
