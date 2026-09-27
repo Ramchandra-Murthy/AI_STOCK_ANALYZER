@@ -158,3 +158,6 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
 .progress-track { height: 6px; overflow: hidden; border-radius: 999px; background: #172033; }
 .progress-indeterminate { width: 35%; height: 100%; border-radius: inherit; background: #38bdf8; animation: scan-progress 1.2s ease-in-out infinite; }
 @keyframes scan-progress { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
+
+.table-toolbar input[type="search"] { min-width: 180px; padding: 8px 10px; border: 1px solid #334155; border-radius: 8px; background: #0b1220; color: #e2e8f0; }
+@media (max-width: 560px) { .table-toolbar input[type="search"] { width: 100%; min-width: 0; } }
