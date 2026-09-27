@@ -30,3 +30,11 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
 .table-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:12px; color:#8190a7; font-size:12px; }
 .table-toolbar select { min-width:90px; padding:7px 9px; }
 .table-sort { padding:0; border:0; background:transparent; color:inherit; font-weight:700; cursor:pointer; }
+
+.signal-summary { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; }
+.signal-summary > div { display:flex; flex-direction:column; gap:4px; }
+.signal-summary span { font-size:.78rem; opacity:.72; }
+.signal-summary strong { font-size:1.25rem; }
+.signal-summary small { opacity:.55; }
+@media (max-width: 900px) { .signal-summary { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width: 560px) { .signal-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
