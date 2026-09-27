@@ -378,7 +378,6 @@ function App() {
 
   async function refreshSignalBoard() {
     setSignalRefreshing(true);
-    setRefreshStartedAt(Date.now());
     setStatus("Refreshing signals");
     try {
       const activityParams = new URLSearchParams({
@@ -400,7 +399,9 @@ function App() {
       setUnusualRows(activityData.results ?? []);
       setMarketRows(marketData.results ?? []);
       await Promise.all([refreshHealth(), refreshHistory()]);
-      setLastUpdated(new Date().toISOString());
+      const refreshedAt = Date.now();
+      setLastUpdated(new Date(refreshedAt).toISOString());
+      setRefreshStartedAt(refreshedAt);
       setStatus("Ready");
     } catch (error) {
       setStatus(error.message);
