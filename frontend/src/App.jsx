@@ -511,7 +511,12 @@ function App() {
 
         <section className="panel">
           <div className="panel-title">
-            <h2>{view === "unusual" ? "Unusual activity" : view === "market" ? "Market scanner" : "Latest price pulses"}</h2>
+            <div className="panel-heading">
+              <h2>{view === "unusual" ? "Unusual activity" : view === "market" ? "Market scanner" : "Latest price pulses"}</h2>
+              <span className="view-badge" role="status" aria-live="polite">
+                {view === "unusual" ? "Activity view" : view === "market" ? "Market view" : "Pulse view"}
+              </span>
+            </div>
             <span>
               {view === "unusual" ? unusualRows.length : view === "market" ? marketRows.length : rows.length} results
               {lastUpdated ? ` · updated ${new Date(lastUpdated).toLocaleTimeString()}` : ""}
