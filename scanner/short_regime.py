@@ -117,9 +117,7 @@ def fractal_swings(
     if missing:
         raise ValueError(f"missing required columns: {sorted(missing)}")
 
-    source = df[["High", "Low", "Close"]].apply(pd.to_numeric, errors="coerce").mean(
-        axis=1
-    )
+    source = df[["High", "Low", "Close"]].apply(pd.to_numeric, errors="coerce").mean(axis=1)
     result = pd.DataFrame(index=df.index)
 
     current = source.dropna()
