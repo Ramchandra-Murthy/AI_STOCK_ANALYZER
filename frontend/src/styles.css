@@ -51,7 +51,6 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
 .sector-overview table td:nth-child(5) { font-weight:700; }
 .sector-overview table td:nth-child(6) { font-variant-numeric:tabular-nums; }
 
-
 .stock-link {
   border: 0;
   padding: 0;
@@ -62,41 +61,28 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
   cursor: pointer;
   text-align: left;
 }
-
 .stock-link:hover,
-.stock-link:focus-visible {
-  text-decoration: underline;
-}
+.stock-link:focus-visible { text-decoration: underline; }
 
 .stock-detail-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
-
 .stock-detail-grid > div {
   padding: 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel-soft);
 }
-
 .stock-detail-grid span {
   display: block;
   margin-bottom: 6px;
   color: var(--muted);
   font-size: 12px;
 }
-
-.stock-detail-grid strong {
-  display: block;
-  overflow-wrap: anywhere;
-}
-
-@media (max-width: 800px) {
-  .stock-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
+.stock-detail-grid strong { display: block; overflow-wrap: anywhere; }
+@media (max-width: 800px) { .stock-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .stock-chart { margin-bottom: 16px; padding: 12px; border: 1px solid #1e2d44; border-radius: 10px; background: #0a1424; }
 .chart-legend { display: flex; gap: 16px; margin-bottom: 8px; color: #8190a7; font-size: 12px; }
@@ -108,14 +94,12 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
 .chart-sma50 { stroke: #f59e0b; }
 .chart-axis { display: flex; justify-content: space-between; color: #64748b; font-size: 11px; }
 
-
 .history-row-active td { background: #101f35; }
 .history-detail { margin-top: 14px; padding-top: 14px; border-top: 1px solid #20304a; }
 .history-candidates { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 .history-candidate { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; background: #111e31; color: #e8eef8; border: 1px solid #334155; text-align: left; }
 .history-candidate span { color: #8190a7; font-size: 11px; }
 @media (max-width: 900px) { .history-candidates { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
 
 :focus-visible { outline: 3px solid #7dd3fc; outline-offset: 2px; }
 button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 0 4px #7dd3fc; }
@@ -165,3 +149,14 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
 .empty-state { display: grid; gap: 7px; justify-items: start; padding: 18px; color: #94a3b8; }
 .empty-state strong { color: #e2e8f0; }
 .empty-state button { margin-top: 4px; }
+
+.error-boundary {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(circle at top right, #15284a 0, #07101f 38%);
+}
+.error-boundary .panel {
+  width: min(620px, 100%);
+}
