@@ -97,3 +97,48 @@ def moving_average_regime(
     regime.loc[fast_ma > slow_ma] = "BULLISH"
     regime.loc[fast_ma < slow_ma] = "BEARISH"
     return regime
+
+
+def fractal_swings(
+    df: pd.DataFrame,
+    levels: int = 3,
+) -> pd.DataFrame:
+    """Calculate recursive fractal swing highs and lows.
+
+    The Chapter 4 construction uses the average of High, Low, and Close as
+    the source series. Level 1 identifies local swings from adjacent bars;
+    each higher level identifies swings from the preceding level's swings.
+    The returned columns are sparse swing-price series indexed like the input.
+    """
+    if levels < 1:
+        raise ValueError("levels must be positive")
+    required = {"High", "Low", "Close"}
+    missing = required.difference(df.columns)
+    if missing:
+        raise ValueError(f"missing required columns: {sorted(missing)}")
+
+    source = df[["High", "Low", "Close"]].apply(
+        pd.to_numeric, errors="coerce"
+    ).mean(axis=1)
+    result = pd.DataFrame(index=df.index)
+
+    current = source.dropna()
+    for level in range(1, levels + 1):
+        if len(current) < 3:
+            break
+
+        previous = current.shift(1)
+        following = current.shift(-1)
+        lows = current[(current <= previous) & (current < following)]
+        highs = current[(current >= previous) & (current > following)]
+
+        result[f"Lo{level}"] = lows.reindex(df.index)
+        result[f"Hi{level}"] = highs.reindex(df.index)
+
+        swings = pd.concat(
+            [lows.rename("value"), highs.rename("value")]
+        ).sort_index()
+        swings = swings[~swings.index.duplicated(keep="first")]
+        current = swings
+
+    return result
