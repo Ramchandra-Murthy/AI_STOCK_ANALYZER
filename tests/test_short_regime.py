@@ -3,6 +3,7 @@ import pytest
 
 from scanner.short_regime import (
     fractal_swings,
+    higher_highs_lows,
     moving_average_regime,
     regime_breakdown,
     turtle_regime,
