@@ -229,3 +229,44 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
   color: #94a3b8;
   font-size: 12px;
 }
+
+
+.options-controls { margin-bottom: 14px; }
+.options-meta {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.options-meta > div,
+.options-summary > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #1e2d44;
+  border-radius: 10px;
+  background: #0a1424;
+}
+.options-meta span,
+.options-summary span { color: #8190a7; font-size: 12px; }
+.options-meta strong,
+.options-summary strong { overflow-wrap: anywhere; }
+.options-summary {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.options-table th,
+.options-table td { min-width: 88px; }
+@media (max-width: 900px) {
+  .options-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .options-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .options-meta,
+  .options-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .options-controls { align-items: stretch; }
+  .options-controls > div,
+  .options-controls > button { width: 100%; }
+}
