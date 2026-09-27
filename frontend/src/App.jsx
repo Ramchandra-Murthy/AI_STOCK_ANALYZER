@@ -564,7 +564,7 @@ function App() {
               <option>All</option><option>NSE</option><option>BSE</option>
             </select>
             <span>
-              {visibleRows.length} visible of {activeRows.length} · sorted {sortDirection === "asc" ? "ascending" : "descending"}
+              {visibleRows.length} visible of {activeRows.length} · sorted by {sortKey} ({sortDirection === "asc" ? "ascending" : "descending"})
               {tableSearch ? ` · filtered by "${tableSearch}"` : ""}
             </span>
           </div>
