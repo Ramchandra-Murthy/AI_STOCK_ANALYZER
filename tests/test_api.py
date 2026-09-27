@@ -10,7 +10,7 @@ def test_health():
 
 def test_dashboard_path():
     response = dashboard()
-    assert str(response.path).endswith("api/static/index.html")
+    assert str(response.path).replace("\\", "/").endswith("api/static/index.html")
 
 
 def test_intraday_health_without_scan(monkeypatch):
