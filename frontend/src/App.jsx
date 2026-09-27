@@ -88,6 +88,7 @@ function clearDashboardPreferences() {
       "table-exchange",
       "sort-key",
       "sort-direction",
+      "table-density",
     ].forEach((key) => window.localStorage.removeItem(`eros-dashboard-${key}`));
   } catch {
     // Ignore unavailable browser storage.
@@ -130,6 +131,7 @@ function App() {
   const [tableExchange, setTableExchange] = useState(() => readDashboardPreference("table-exchange", "All"));
   const [sortKey, setSortKey] = useState(() => readDashboardPreference("sort-key", "Symbol"));
   const [sortDirection, setSortDirection] = useState(() => readDashboardPreference("sort-direction", "asc"));
+  const [tableDensity, setTableDensity] = useState(() => readDashboardPreference("table-density", "comfortable"));
   const [tableSearch, setTableSearch] = useState("");
   const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
   const [stockDetailError, setStockDetailError] = useState(null);
@@ -149,7 +151,8 @@ function App() {
     writeDashboardPreference("table-exchange", tableExchange);
     writeDashboardPreference("sort-key", sortKey);
     writeDashboardPreference("sort-direction", sortDirection);
-  }, [exchange, jump, lookback, sortDirection, sortKey, tableExchange, view]);
+    writeDashboardPreference("table-density", tableDensity);
+  }, [exchange, jump, lookback, sortDirection, sortKey, tableDensity, tableExchange, view]);
 
   useEffect(() => {
     fetch("/health")
@@ -408,6 +411,7 @@ function App() {
     setTableExchange("All");
     setSortKey("Symbol");
     setSortDirection("asc");
+    setTableDensity("comfortable");
     setTableSearch("");
     clearDashboardPreferences();
     setStatus("Ready");
@@ -832,14 +836,17 @@ function App() {
             <select id="table-exchange" value={tableExchange} onChange={(e) => setTableExchange(e.target.value)}>
               <option>All</option><option>NSE</option><option>BSE</option>
             </select>
-            <span>
+            <label htmlFor="table-density">Density</label>
+            <select id="table-density" value={tableDensity} onChange={(e) => setTableDensity(e.target.value)}>
+              <option value="comfortable">Comfortable</option><option value="compact">Compact</option>
+            </select>
             <span role="status" aria-live="polite">
               {visibleRows.length} visible of {activeRows.length} · sorted by {sortKey} ({sortDirection === "asc" ? "ascending" : "descending"})
               {tableSearch ? ` · filtered by "${tableSearch}"` : ""}
               {status !== "Ready" ? ` · status: ${status}` : ""}
             </span>
           </div>
-          <div className="table-wrap">
+          <div className={`table-wrap table-density-${tableDensity}`}>
             {view === "price-pulse" ? (
               <table>
                 <thead><tr><SortHeader label="Symbol" column="Symbol" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><th>Exchange</th><SortHeader label="Last price" column="Last price" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="Change" column="Change over 5m" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="Volume" column="Volume vs recent bars" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /></tr></thead>
