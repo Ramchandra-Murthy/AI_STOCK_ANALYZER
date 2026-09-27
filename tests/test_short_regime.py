@@ -7,6 +7,7 @@ from scanner.short_regime import (
     moving_average_regime,
     regime_breakdown,
     turtle_regime,
+    floor_ceiling_regime,
 )
 
 
@@ -201,3 +202,40 @@ def test_higher_highs_lows_rejects_invalid_arguments():
 
     with pytest.raises(ValueError):
         higher_highs_lows(pd.DataFrame({"High": [1], "Low": [1]}))
+
+
+def test_floor_ceiling_regime_tracks_conservative_regime_changes():
+    frame = pd.DataFrame(
+        {
+            "High": [10, 14, 11, 16, 12, 13, 10, 9, 8],
+            "Low": [8, 12, 9, 13, 10, 11, 8, 7, 6],
+            "Close": [9, 13, 10, 15, 11, 12, 9, 8, 7],
+        }
+    )
+
+    result = floor_ceiling_regime(frame, levels=1)
+
+    assert "Floor1" in result.columns
+    assert "Ceiling1" in result.columns
+    assert "HiLo_FC1" in result.columns
+    assert result["Floor1"].notna().any()
+    assert result["Ceiling1"].notna().any()
+    assert set(result["HiLo_FC1"].dropna().unique()).issubset(
+        {"NEUTRAL", "BULLISH", "BEARISH"}
+    )
+
+
+def test_floor_ceiling_regime_rejects_invalid_arguments():
+    frame = pd.DataFrame(
+        {
+            "High": [10, 12, 11],
+            "Low": [8, 10, 9],
+            "Close": [9, 11, 10],
+        }
+    )
+
+    with pytest.raises(ValueError):
+        floor_ceiling_regime(frame, levels=0)
+
+    with pytest.raises(ValueError):
+        floor_ceiling_regime(pd.DataFrame({"High": [1], "Low": [1]}))
