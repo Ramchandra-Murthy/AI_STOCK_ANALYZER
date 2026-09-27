@@ -117,9 +117,9 @@ def fractal_swings(
     if missing:
         raise ValueError(f"missing required columns: {sorted(missing)}")
 
-    source = df[["High", "Low", "Close"]].apply(
-        pd.to_numeric, errors="coerce"
-    ).mean(axis=1)
+    source = df[["High", "Low", "Close"]].apply(pd.to_numeric, errors="coerce").mean(
+        axis=1
+    )
     result = pd.DataFrame(index=df.index)
 
     current = source.dropna()
@@ -135,9 +135,7 @@ def fractal_swings(
         result[f"Lo{level}"] = lows.reindex(df.index)
         result[f"Hi{level}"] = highs.reindex(df.index)
 
-        swings = pd.concat(
-            [lows.rename("value"), highs.rename("value")]
-        ).sort_index()
+        swings = pd.concat([lows.rename("value"), highs.rename("value")]).sort_index()
         swings = swings[~swings.index.duplicated(keep="first")]
         current = swings
 
