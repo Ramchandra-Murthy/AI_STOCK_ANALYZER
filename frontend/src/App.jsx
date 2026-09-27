@@ -248,6 +248,19 @@ function App() {
     }
   }
 
+  function resetDashboardControls() {
+    setExchange("Both");
+    setLookback("5");
+    setJump("1");
+    setAutoRefresh(false);
+    setView("price-pulse");
+    setTableExchange("All");
+    setSortKey("Symbol");
+    setSortDirection("asc");
+    setTableSearch("");
+    setStatus("Ready");
+  }
+
   async function startScan() {
     setRows([]);
     setView("price-pulse");
@@ -486,6 +499,9 @@ function App() {
             {signalRefreshing ? "Refreshing…" : "Refresh all signals"}
           </button>
           <button className="secondary" onClick={refreshHistory} aria-label="Refresh saved scan history">Refresh history</button>
+          <button className="secondary" onClick={resetDashboardControls} aria-label="Reset dashboard filters and controls">
+            Reset controls
+          </button>
         </section>
 
         <section className="panel">
