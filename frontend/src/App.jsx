@@ -853,6 +853,13 @@ function App() {
             onClick={refreshSignalBoard}
             disabled={signalRefreshing}
             aria-busy={signalRefreshing}
+            aria-label={
+              signalRefreshing
+                ? "Refreshing all signals"
+                : refreshError
+                  ? "Retry failed signal refresh"
+                  : "Refresh all signals"
+            }
           >
             {signalRefreshing ? "Refreshing…" : refreshError ? "Retry refresh" : "Refresh all signals"}
           </button>
