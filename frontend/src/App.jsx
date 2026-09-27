@@ -679,6 +679,11 @@ function App() {
                 <p className="stock-observation">
                   {stockDetail.market_observation ?? "No additional market observation."}
                 </p>
+                <div className="stock-detail-meta" aria-label="Stock detail context">
+                  <span>Source: existing analyzer</span>
+                  <span>Exchange: {selectedStock.exchange}</span>
+                  {stockDetailUpdatedAt ? <span>Updated: {new Date(stockDetailUpdatedAt).toLocaleTimeString()}</span> : null}
+                </div>
                 <StockChart points={stockDetail.chart} />
               </>
             ) : (
