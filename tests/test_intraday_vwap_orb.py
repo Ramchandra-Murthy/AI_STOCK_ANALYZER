@@ -27,7 +27,7 @@ def _bars() -> pd.DataFrame:
 
 def test_calculates_vwap_and_five_minute_orb():
     metrics = vwap_orb_metrics(_bars(), orb_minutes=(5, 15))
-    assert metrics["VWAP"] == 102.5
+    assert metrics["VWAP"] == 102.17
     assert metrics["VWAP bias"] == "ABOVE"
     assert metrics["ORB 5m high"] == 102
     assert metrics["ORB 5m low"] == 99

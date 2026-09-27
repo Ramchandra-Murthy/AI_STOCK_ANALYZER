@@ -6,8 +6,8 @@ from services.intraday_setup_regime import regime_statistics, session_phase
 
 
 def test_session_phase_boundaries():
-    assert session_phase(datetime(2026, 9, 20, 9, 30, tzinfo=UTC)) == "Opening (09:15-10:00)"
-    assert session_phase(datetime(2026, 9, 20, 6, 30, tzinfo=UTC)) == "Morning (10:00-12:00)"
+    assert session_phase(datetime(2026, 9, 20, 4, 0, tzinfo=UTC)) == "Opening (09:15-10:00)"
+    assert session_phase(datetime(2026, 9, 20, 4, 30, tzinfo=UTC)) == "Morning (10:00-12:00)"
 
 
 def test_regime_statistics_groups_state_and_phase():

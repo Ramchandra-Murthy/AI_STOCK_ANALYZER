@@ -36,4 +36,5 @@ def test_session_counts_are_stable():
         "Persisting setups": 0,
         "Outcomes": 1,
         "Transitions": 1,
+        "Journal trades": 0,
     }

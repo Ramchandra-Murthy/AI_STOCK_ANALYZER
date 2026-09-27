@@ -47,7 +47,7 @@ def calculate_price_jump(
     relative_volume = volume / baseline if baseline > 0 else float("nan")
     return {
         "price": price,
-        "intraday_pct": intraday_pct,
+        "intraday_pct": round(intraday_pct, 10),
         "volume": volume,
         "relative_volume": relative_volume,
         "qualifies": float(intraday_pct >= jump_percent),

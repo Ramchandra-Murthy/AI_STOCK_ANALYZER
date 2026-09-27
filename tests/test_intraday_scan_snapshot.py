@@ -31,5 +31,7 @@ def test_snapshot_frame_has_stable_columns():
         "Candidates",
         "Average change %",
         "Average volume surge x",
+        "Exchanges",
+        "Market-cap baskets",
         "Top symbols",
     ]

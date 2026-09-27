@@ -141,9 +141,13 @@ function App() {
   const [sortDirection, setSortDirection] = useState(() => readDashboardPreference("sort-direction", "asc"));
   const [tableDensity, setTableDensity] = useState(() => readDashboardPreference("table-density", "comfortable"));
   const [tableSearch, setTableSearch] = useState("");
-  const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
+  const [signalRefreshing, setSignalRefreshing] = useState(false);
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [stockDetail, setStockDetail] = useState(null);
+  const [stockDetailLoading, setStockDetailLoading] = useState(false);
   const [stockDetailError, setStockDetailError] = useState(null);
-  const [stockDetailUpdatedAt, setStockDetailUpdatedAt] = useState(null);\n  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
+  const [stockDetailUpdatedAt, setStockDetailUpdatedAt] = useState(null);
+  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
   const [optionsUnderlying, setOptionsUnderlying] = useState("NIFTY");
   const [optionsExpiry, setOptionsExpiry] = useState("");
   const [optionsData, setOptionsData] = useState(null);
@@ -197,7 +201,10 @@ function App() {
       } else if (event.key.toLowerCase() === "f") {
         event.preventDefault();
         document.getElementById("stock-search")?.focus();
-      } else if (event.key.toLowerCase() === "e") {\n        event.preventDefault();\n        exportVisibleRows();\n      } else if (event.key.toLowerCase() === "r") {
+      } else if (event.key.toLowerCase() === "e") {
+        event.preventDefault();
+        exportVisibleRows();
+      } else if (event.key.toLowerCase() === "r") {
         event.preventDefault();
         refreshSignalBoard();
       } else if (event.key === "Escape" && tableSearch) {
@@ -869,7 +876,10 @@ function App() {
           <button className="secondary" onClick={loadMarketScanner}>
             Market scanner
           </button>
-          <button className="secondary" onClick={exportVisibleRows} disabled={!visibleRows.length} aria-label="Export visible results as CSV">\n            Export CSV\n          </button>\n          <button
+          <button className="secondary" onClick={exportVisibleRows} disabled={!visibleRows.length} aria-label="Export visible results as CSV">
+            Export CSV
+          </button>
+          <button
             className="secondary"
             onClick={refreshSignalBoard}
             disabled={signalRefreshing}
