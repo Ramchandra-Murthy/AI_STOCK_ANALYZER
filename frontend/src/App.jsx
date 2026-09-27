@@ -225,6 +225,13 @@ function App() {
     setSortKey(key);
   };
 
+  const pulsePositive = rows.filter((row) => Number.parseFloat(row["Change over 5m"]) > 0).length;
+  const pulseNegative = rows.filter((row) => Number.parseFloat(row["Change over 5m"]) < 0).length;
+  const unusualPositive = unusualRows.filter((row) => /buy|positive|up|bull/i.test(String(row.Signal ?? row["Activity signal"] ?? ""))).length;
+  const unusualNegative = unusualRows.filter((row) => /sell|negative|down|bear/i.test(String(row.Signal ?? row["Activity signal"] ?? ""))).length;
+  const marketBullish = marketRows.filter((row) => /bull|up|positive|strong/i.test(String(row.Trend ?? ""))).length;
+  const marketBearish = marketRows.filter((row) => /bear|down|negative|weak/i.test(String(row.Trend ?? ""))).length;
+
   return (
     <div className="app">
       <header>
@@ -255,6 +262,15 @@ function App() {
           <div><span>Market signals</span><strong>{marketCount}</strong></div>
           <div><span>Combined signals</span><strong>{signalCount}</strong></div>
           <div><span>System state</span><strong>{healthStatus}</strong></div>
+        </section>
+
+        <section className="panel signal-summary">
+          <div><span>Pulse positive</span><strong>{pulsePositive}</strong><small>of {pulseCount}</small></div>
+          <div><span>Pulse negative</span><strong>{pulseNegative}</strong><small>of {pulseCount}</small></div>
+          <div><span>Activity positive</span><strong>{unusualPositive}</strong><small>of {unusualCount}</small></div>
+          <div><span>Activity negative</span><strong>{unusualNegative}</strong><small>of {unusualCount}</small></div>
+          <div><span>Market bullish</span><strong>{marketBullish}</strong><small>of {marketCount}</small></div>
+          <div><span>Market bearish</span><strong>{marketBearish}</strong><small>of {marketCount}</small></div>
         </section>
 
         <section className="panel controls">
