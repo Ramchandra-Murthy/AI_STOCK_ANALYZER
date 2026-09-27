@@ -83,6 +83,12 @@ function App() {
   const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
   const [stockDetailError, setStockDetailError] = useState(null);
   const [stockDetailUpdatedAt, setStockDetailUpdatedAt] = useState(null);\n  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
+  const [optionsUnderlying, setOptionsUnderlying] = useState("NIFTY");
+  const [optionsExpiry, setOptionsExpiry] = useState("");
+  const [optionsData, setOptionsData] = useState(null);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [optionsError, setOptionsError] = useState(null);
+  const [optionsUpdatedAt, setOptionsUpdatedAt] = useState(null);
 
   useEffect(() => {
     fetch("/health")
@@ -140,6 +146,29 @@ function App() {
       setSystemHealth(data);
     } catch {
       setSystemHealth(null);
+    }
+  }
+
+  async function loadOptionsChain(expiryOverride = optionsExpiry) {
+    setOptionsLoading(true);
+    setOptionsError(null);
+    setStatus("Loading options analytics");
+    try {
+      const params = new URLSearchParams({ underlying: optionsUnderlying });
+      if (expiryOverride) params.set("expiry", expiryOverride);
+      const response = await fetch(`/api/v1/options/chain?${params.toString()}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail ?? "Unable to load options analytics");
+      setOptionsData(data);
+      setOptionsExpiry(data.expiry ?? "");
+      setOptionsUpdatedAt(new Date().toISOString());
+      setStatus("Ready");
+    } catch (error) {
+      setOptionsData(null);
+      setOptionsError(error.message);
+      setStatus(error.message);
+    } finally {
+      setOptionsLoading(false);
     }
   }
 
@@ -457,6 +486,120 @@ function App() {
             </div>
           ) : (
             <p className="empty">Refresh the market scanner to populate sector coverage.</p>
+          )}
+        </section>
+
+        <section className="panel options-analytics" aria-labelledby="options-heading">
+          <div className="panel-title">
+            <div>
+              <h2 id="options-heading">Options Analytics</h2>
+              <span>NSE primary · Yahoo fallback</span>
+            </div>
+            <span>{optionsData?.status ?? "Not loaded"}</span>
+          </div>
+
+          <div className="controls options-controls">
+            <div>
+              <label htmlFor="options-underlying">Underlying</label>
+              <select
+                id="options-underlying"
+                value={optionsUnderlying}
+                onChange={(event) => {
+                  setOptionsUnderlying(event.target.value);
+                  setOptionsExpiry("");
+                  setOptionsData(null);
+                  setOptionsError(null);
+                  setOptionsUpdatedAt(null);
+                }}
+              >
+                <option value="NIFTY">NIFTY</option>
+                <option value="BANKNIFTY">BANKNIFTY</option>
+                <option value="FINNIFTY">FINNIFTY</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="options-expiry">Expiry</label>
+              <select
+                id="options-expiry"
+                value={optionsExpiry}
+                onChange={(event) => setOptionsExpiry(event.target.value)}
+                disabled={!optionsData?.expiries?.length || optionsLoading}
+              >
+                {!optionsData?.expiries?.length ? <option value="">Load chain first</option> : null}
+                {optionsData?.expiries?.map((expiry) => (
+                  <option key={expiry} value={expiry}>{expiry}</option>
+                ))}
+              </select>
+            </div>
+            <button onClick={() => loadOptionsChain()} disabled={optionsLoading}>
+              {optionsLoading ? "Loading…" : "Load option chain"}
+            </button>
+          </div>
+
+          {optionsError ? (
+            <div className="stock-detail-error" role="alert">
+              <strong>Unable to load options analytics</strong>
+              <span>{optionsError}</span>
+              <button className="secondary" onClick={() => loadOptionsChain()} disabled={optionsLoading}>
+                Retry
+              </button>
+            </div>
+          ) : optionsData?.status === "AVAILABLE" ? (
+            <>
+              <div className="options-meta" aria-label="Options analytics status">
+                <div><span>Provider</span><strong>{optionsData.provider ?? "—"}</strong></div>
+                <div><span>Spot</span><strong>{optionsData.spot ?? "—"}</strong></div>
+                <div><span>Expiry</span><strong>{optionsData.expiry ?? "—"}</strong></div>
+                <div><span>Contracts</span><strong>{optionsData.count ?? 0}</strong></div>
+                <div><span>Updated</span><strong>{optionsUpdatedAt ? new Date(optionsUpdatedAt).toLocaleTimeString() : "—"}</strong></div>
+              </div>
+
+              <div className="options-summary">
+                {(optionsData.summary ?? []).map((item) => (
+                  <div key={item.Metric}>
+                    <span>{item.Metric}</span>
+                    <strong>{item.Value ?? "—"}</strong>
+                  </div>
+                ))}
+              </div>
+
+              <div className="table-wrap options-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Strike</th>
+                      <th>CE LTP</th>
+                      <th>CE OI</th>
+                      <th>CE OI Δ</th>
+                      <th>CE IV</th>
+                      <th>PE LTP</th>
+                      <th>PE OI</th>
+                      <th>PE OI Δ</th>
+                      <th>PE IV</th>
+                      <th>PCR OI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(optionsData.chain ?? []).map((row, index) => (
+                      <tr key={`${row.strike ?? "strike"}-${index}`}>
+                        <td><strong>{row.strike ?? "—"}</strong></td>
+                        <td>{row["CE LTP"] ?? "—"}</td>
+                        <td>{row["CE OI"] ?? "—"}</td>
+                        <td>{row["CE OI change"] ?? "—"}</td>
+                        <td>{row["CE IV"] ?? "—"}</td>
+                        <td>{row["PE LTP"] ?? "—"}</td>
+                        <td>{row["PE OI"] ?? "—"}</td>
+                        <td>{row["PE OI change"] ?? "—"}</td>
+                        <td>{row["PE IV"] ?? "—"}</td>
+                        <td>{row["PCR OI"] ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <p className="empty">Select an index and load its current option chain.</p>
           )}
         </section>
 
