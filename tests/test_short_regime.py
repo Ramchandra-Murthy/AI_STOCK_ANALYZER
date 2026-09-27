@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from scanner.short_regime import regime_breakdown
+from scanner.short_regime import regime_breakdown, turtle_regime
 
 
 def test_fresh_high_is_bullish_after_lookback():
@@ -51,3 +51,39 @@ def test_invalid_lookback_and_missing_columns_are_rejected():
 
     with pytest.raises(ValueError):
         regime_breakdown(pd.DataFrame({"Close": [1]}), low_lookback=3)
+
+
+def test_turtle_regime_requires_long_and_short_breakouts_to_agree():
+    frame = pd.DataFrame(
+        {
+            "High": [15, 14, 13, 12, 11, 10],
+            "Low": [10, 9, 8, 7, 6, 5],
+        }
+    )
+
+    result = turtle_regime(frame, entry_lookback=4, exit_lookback=2)
+
+    assert result.iloc[:4].tolist() == ["NEUTRAL"] * 4
+    assert result.iloc[4] == "BEARISH"
+    assert result.iloc[5] == "BEARISH"
+
+
+def test_turtle_regime_stays_neutral_when_fast_regime_disagrees():
+    frame = pd.DataFrame(
+        {
+            "High": [10, 11, 12, 13, 12],
+            "Low": [8, 9, 10, 11, 10],
+        }
+    )
+
+    result = turtle_regime(frame, entry_lookback=3, exit_lookback=2)
+
+    assert result.iloc[3] == "BULLISH"
+    assert result.iloc[4] == "NEUTRAL"
+
+
+def test_turtle_regime_rejects_invalid_lookbacks():
+    frame = pd.DataFrame({"High": [10, 11], "Low": [8, 9]})
+
+    with pytest.raises(ValueError):
+        turtle_regime(frame, entry_lookback=0)
