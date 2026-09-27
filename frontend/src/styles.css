@@ -132,3 +132,14 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
   .stock-chart svg { min-height: 180px; }
   .chart-legend { flex-wrap: wrap; gap: 8px 12px; }
 }
+
+.stock-detail-error {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #7f1d1d;
+  border-radius: 10px;
+  background: #1f1115;
+}
+.stock-detail-error span { color: #fca5a5; }
+.stock-detail-error button { justify-self: start; }

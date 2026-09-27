@@ -79,7 +79,8 @@ function App() {
   const [tableExchange, setTableExchange] = useState("All");
   const [sortKey, setSortKey] = useState("Symbol");
   const [sortDirection, setSortDirection] = useState("asc");
-  const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);\n  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
+  const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
+  const [stockDetailError, setStockDetailError] = useState(null);\n  const [expandedHistoryJob, setExpandedHistoryJob] = useState(null);
 
   useEffect(() => {
     fetch("/health")
@@ -193,6 +194,7 @@ function App() {
     const safeExchange = rowExchange === "BSE" ? "BSE" : "NSE";
     setSelectedStock({ symbol: symbol.toUpperCase(), exchange: safeExchange });
     setStockDetailLoading(true);
+    setStockDetailError(null);
     setStatus("Loading stock detail");
     try {
       const response = await fetch(
@@ -204,6 +206,7 @@ function App() {
       setStatus("Ready");
     } catch (error) {
       setStockDetail(null);
+      setStockDetailError(error.message);
       setStatus(error.message);
     } finally {
       setStockDetailLoading(false);
@@ -552,6 +555,17 @@ function App() {
             </div>
             {stockDetailLoading ? (
               <p className="empty" role="status" aria-live="polite">Loading stock detail…</p>
+            ) : stockDetailError ? (
+              <div className="stock-detail-error" role="alert">
+                <strong>Unable to load stock detail</strong>
+                <span>{stockDetailError}</span>
+                <button
+                  className="secondary"
+                  onClick={() => loadStockDetail(selectedStock.symbol, selectedStock.exchange)}
+                >
+                  Retry
+                </button>
+              </div>
             ) : stockDetail ? (
               <>
                 <div className="stock-detail-grid">
