@@ -878,7 +878,8 @@ function App() {
           </button>
           <button className="secondary" onClick={exportVisibleRows} disabled={!visibleRows.length} aria-label="Export visible results as CSV">
             Export CSV
-          </button>\n          <button
+          </button>
+          <button
             className="secondary"
             onClick={refreshSignalBoard}
             disabled={signalRefreshing}
