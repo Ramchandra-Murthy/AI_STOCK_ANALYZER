@@ -879,7 +879,11 @@ function App() {
             <span className="refresh-status" role="status" aria-live="polite">
               Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}
             </span>
-          ) : null}
+          ) : (
+            <span className="refresh-status" role="status" aria-live="polite">
+              Refresh ready
+            </span>
+          )}
           <button className="secondary" onClick={refreshHistory} aria-label="Refresh saved scan history">Refresh history</button>
           <button className="secondary" onClick={resetDashboardControls} aria-label="Reset dashboard filters and controls">
             Reset controls
