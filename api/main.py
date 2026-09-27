@@ -201,6 +201,16 @@ def stock_detail(
         ):
             if key in last and pd.notna(last[key]):
                 metrics[key] = float(last[key])
+
+        chart = []
+        for index, row in result["df"].tail(60).iterrows():
+            point = {"index": int(index)}
+            for key in ("Close", "SMA_20", "SMA_50"):
+                if key in row and pd.notna(row[key]):
+                    point[key] = float(row[key])
+            if "Close" in point:
+                chart.append(point)
+
         return {
             "symbol": normalized,
             "exchange": exchange,
@@ -211,6 +221,7 @@ def stock_detail(
             "signal": signal,
             "breakout": breakout,
             "market_observation": observation,
+            "chart": chart,
         }
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Stock analysis failed: {exc}") from exc

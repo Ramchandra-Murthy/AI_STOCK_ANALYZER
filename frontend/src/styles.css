@@ -96,3 +96,14 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
 @media (max-width: 800px) {
   .stock-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+
+.stock-chart { margin-bottom: 16px; padding: 12px; border: 1px solid #1e2d44; border-radius: 10px; background: #0a1424; }
+.chart-legend { display: flex; gap: 16px; margin-bottom: 8px; color: #8190a7; font-size: 12px; }
+.stock-chart svg { display: block; width: 100%; height: auto; min-height: 220px; }
+.chart-grid { fill: none; stroke: #20304a; stroke-width: 1; }
+.chart-line { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.chart-close { stroke: #38bdf8; }
+.chart-sma20 { stroke: #4ade80; }
+.chart-sma50 { stroke: #f59e0b; }
+.chart-axis { display: flex; justify-content: space-between; color: #64748b; font-size: 11px; }
