@@ -32,7 +32,7 @@ function App() {
   const [tableExchange, setTableExchange] = useState("All");
   const [sortKey, setSortKey] = useState("Symbol");
   const [sortDirection, setSortDirection] = useState("asc");
-  const [signalRefreshing, setSignalRefreshing] = useState(false);
+  const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
 
   useEffect(() => {
     fetch("/health")
@@ -134,6 +134,32 @@ function App() {
       setHistory(data.scans ?? []);
     } catch {
       setHistory([]);
+    }
+  }
+
+  async function loadStockDetail(symbol, rowExchange = "NSE") {
+    if (typeof symbol !== "string" || !/^[A-Za-z0-9&-]{1,20}$/.test(symbol)) {
+      setStatus("Invalid stock symbol");
+      return;
+    }
+    const safeSymbol = encodeURIComponent(symbol.toUpperCase());
+    const safeExchange = rowExchange === "BSE" ? "BSE" : "NSE";
+    setSelectedStock({ symbol: symbol.toUpperCase(), exchange: safeExchange });
+    setStockDetailLoading(true);
+    setStatus("Loading stock detail");
+    try {
+      const response = await fetch(
+        `/api/v1/scanner/stock?symbol=${safeSymbol}&exchange=${safeExchange}`,
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail ?? "Unable to load stock detail");
+      setStockDetail(data);
+      setStatus("Ready");
+    } catch (error) {
+      setStockDetail(null);
+      setStatus(error.message);
+    } finally {
+      setStockDetailLoading(false);
     }
   }
 
@@ -417,7 +443,7 @@ function App() {
                 <tbody>
                   {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
-                      <td><strong>{row.Symbol ?? "—"}</strong></td>
+                      <td><button className="stock-link" onClick={() => loadStockDetail(row.Symbol, row.Exchange)}>{row.Symbol ?? "—"}</button></td>
                       <td>{row.Exchange ?? "—"}</td>
                       <td>{row["Last price"] ?? "—"}</td>
                       <td>{row["Change over 5m"] ?? "—"}</td>
@@ -432,7 +458,7 @@ function App() {
                 <tbody>
                   {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
-                      <td><strong>{row.Symbol ?? "—"}</strong></td>
+                      <td><button className="stock-link" onClick={() => loadStockDetail(row.Symbol, row.Exchange)}>{row.Symbol ?? "—"}</button></td>
                       <td>{row.Exchange ?? "—"}</td>
                       <td>{row.Signal ?? row["Activity signal"] ?? "—"}</td>
                       <td>{row.Price ?? row["Last price"] ?? "—"}</td>
@@ -447,7 +473,7 @@ function App() {
                 <tbody>
                   {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
-                      <td><strong>{row.Symbol ?? "—"}</strong></td>
+                      <td><button className="stock-link" onClick={() => loadStockDetail(row.Symbol, row.Exchange)}>{row.Symbol ?? "—"}</button></td>
                       <td>{row.Price ?? "—"}</td>
                       <td>{row.Trend ?? "—"}</td>
                       <td>{row.RSI ?? "—"}</td>

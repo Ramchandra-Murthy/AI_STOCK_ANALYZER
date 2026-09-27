@@ -6,6 +6,7 @@ application remains the presentation layer until the new frontend is ready.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,7 @@ from api.scan_manager import ErosScanManager
 from scanner.market_scanner import market_scan
 from scanner.price_jump import scan_price_jumps
 from scanner.unusual_activity import scan_unusual_activity
+from services.analyzer import analyze_stock
 from services.intraday_exchange_summary import exchange_summary
 from services.intraday_health import assess_scan_health
 
@@ -166,6 +168,52 @@ def unusual_activity(
         "results": _records(frame),
         "scan_stats": _stats(frame),
     }
+
+
+@app.get("/api/v1/scanner/stock")
+def stock_detail(
+    symbol: str = Query(..., min_length=1, max_length=30),
+    exchange: str = Query("NSE", pattern="^(NSE|BSE)$"),
+) -> dict[str, Any]:
+    """Return existing analyzer details for one validated stock symbol."""
+    normalized = symbol.strip().upper()
+    if not re.fullmatch(r"[A-Z0-9&-]{1,20}", normalized):
+        raise HTTPException(status_code=400, detail="Invalid stock symbol.")
+    ticker = f"{normalized}.{'NS' if exchange == 'NSE' else 'BO'}"
+    try:
+        result = analyze_stock(ticker)
+        last = result["last"]
+        signal = result["signal"]
+        breakout = result["breakout"]
+        observation = signal.get("MarketObservation", {})
+        metrics = {}
+        for key in (
+            "Close",
+            "SMA_20",
+            "SMA_50",
+            "EMA_20",
+            "RSI_14",
+            "MACD",
+            "MACD_Histogram",
+            "Upper_Band",
+            "Lower_Band",
+            "ATR",
+        ):
+            if key in last and pd.notna(last[key]):
+                metrics[key] = float(last[key])
+        return {
+            "symbol": normalized,
+            "exchange": exchange,
+            "ticker": ticker,
+            "price": metrics.get("Close"),
+            "metrics": metrics,
+            "trend": result["trend"],
+            "signal": signal,
+            "breakout": breakout,
+            "market_observation": observation,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Stock analysis failed: {exc}") from exc
 
 
 @app.get("/api/v1/scanner/market")
