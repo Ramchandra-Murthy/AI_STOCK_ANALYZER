@@ -876,7 +876,9 @@ function App() {
           <button className="secondary" onClick={loadMarketScanner}>
             Market scanner
           </button>
-          <button className="secondary" onClick={exportVisibleRows} disabled={!visibleRows.length} aria-label="Export visible results as CSV">\n            Export CSV\n          </button>\n          <button
+          <button className="secondary" onClick={exportVisibleRows} disabled={!visibleRows.length} aria-label="Export visible results as CSV">
+            Export CSV
+          </button>\n          <button
             className="secondary"
             onClick={refreshSignalBoard}
             disabled={signalRefreshing}
