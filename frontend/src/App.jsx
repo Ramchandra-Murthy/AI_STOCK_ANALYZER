@@ -351,12 +351,12 @@ function App() {
           <h1>Intraday Command Center</h1>
           <p className="subtitle">React frontend over the existing FastAPI scanner.</p>
         </div>
-        <div className={`health ${health}`}>● API {health}</div>
+        <div className={`health ${health}`} role="status" aria-live="polite">● API {health}</div>
       </header>
 
-      <main>
-        <section className="panel alert-panel" aria-label="Dashboard alerts">
-          <div className="panel-title"><h2>System alerts</h2><span>{alerts.length} active</span></div>
+      <main id="main-content" tabIndex="-1">
+        <section className="panel alert-panel" aria-labelledby="alerts-heading">
+          <div className="panel-title"><h2 id="alerts-heading">System alerts</h2><span>{alerts.length} active</span></div>
           <div className="alert-list">
             {alerts.map((alert, index) => (
               <div className={`alert alert-${alert.level}`} key={`${alert.level}-${index}`}>
@@ -379,7 +379,7 @@ function App() {
           <Stat label="Mode" value="NSE + BSE" detail="Existing scanner universe" />
         </div>
 
-        <section className="panel signal-strip">
+        <section className="panel signal-strip" aria-label="Signal counts">
           <div><span>Pulse signals</span><strong>{pulseCount}</strong></div>
           <div><span>Unusual activity</span><strong>{unusualCount}</strong></div>
           <div><span>Market signals</span><strong>{marketCount}</strong></div>
@@ -387,7 +387,7 @@ function App() {
           <div><span>System state</span><strong>{healthStatus}</strong></div>
         </section>
 
-        <section className="panel signal-summary">
+        <section className="panel signal-summary" aria-label="Signal direction summary">
           <div><span>Pulse positive</span><strong>{pulsePositive}</strong><small>of {pulseCount}</small></div>
           <div><span>Pulse negative</span><strong>{pulseNegative}</strong><small>of {pulseCount}</small></div>
           <div><span>Activity positive</span><strong>{unusualPositive}</strong><small>of {unusualCount}</small></div>
@@ -464,7 +464,7 @@ function App() {
           <button className="secondary" onClick={refreshSignalBoard} disabled={signalRefreshing}>
             {signalRefreshing ? "Refreshing…" : "Refresh all signals"}
           </button>
-          <button className="secondary" onClick={refreshHistory}>Refresh history</button>
+          <button className="secondary" onClick={refreshHistory} aria-label="Refresh saved scan history">Refresh history</button>
         </section>
 
         <section className="panel">
