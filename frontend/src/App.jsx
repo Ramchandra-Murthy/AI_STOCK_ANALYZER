@@ -735,7 +735,7 @@ function App() {
           {expandedScan ? (
             <div className="history-detail">
               <div className="panel-title">
-                <strong>Saved scan candidates</strong>
+                <strong>Saved scan candidates · {(expandedScan.results ?? []).length} total</strong>
                 <div className="history-detail-actions">
                   <span>{expandedScan.completed_at ?? "—"}</span>
                   <button
