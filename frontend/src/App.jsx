@@ -129,6 +129,8 @@ function App() {
   const [systemHealth, setSystemHealth] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(() => readDashboardPreference("auto-refresh-interval", "60"));
+  const [nextAutoScanAt, setNextAutoScanAt] = useState(null);
+  const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [tableExchange, setTableExchange] = useState(() => readDashboardPreference("table-exchange", "All"));
   const [sortKey, setSortKey] = useState(() => readDashboardPreference("sort-key", "Symbol"));
@@ -445,13 +447,29 @@ function App() {
   }
 
   useEffect(() => {
-    if (!autoRefresh || jobId) return undefined;
+    if (!autoRefresh || jobId) {
+      setNextAutoScanAt(null);
+      setAutoRefreshCountdown(null);
+      return undefined;
+    }
     const intervalMs = Number.parseInt(autoRefreshInterval, 10) * 1000;
+    const safeIntervalMs = Number.isFinite(intervalMs) && intervalMs >= 30000 ? intervalMs : 60000;
+    const scheduleNext = () => setNextAutoScanAt(Date.now() + safeIntervalMs);
+    scheduleNext();
     const timer = setInterval(() => {
       startScan();
-    }, Number.isFinite(intervalMs) && intervalMs >= 30000 ? intervalMs : 60000);
+      scheduleNext();
+    }, safeIntervalMs);
     return () => clearInterval(timer);
   }, [autoRefresh, autoRefreshInterval, jobId, exchange, lookback, jump]);
+
+  useEffect(() => {
+    if (!nextAutoScanAt) return undefined;
+    const timer = setInterval(() => {
+      setAutoRefreshCountdown(Math.max(0, Math.ceil((nextAutoScanAt - Date.now()) / 1000)));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [nextAutoScanAt]);
 
   const signalCount = rows.length + unusualRows.length + marketRows.length;
   const healthStatus = systemHealth?.status ?? "checking";
@@ -810,6 +828,11 @@ function App() {
               <option value="300">5 min</option>
             </select>
           </div>
+          {autoRefresh && autoRefreshCountdown !== null ? (
+            <span className="refresh-status" role="status" aria-live="polite">
+              Next auto-scan in {autoRefreshCountdown}s
+            </span>
+          ) : null}
           <button className="secondary" onClick={loadUnusualActivity}>
             Unusual activity
           </button>
