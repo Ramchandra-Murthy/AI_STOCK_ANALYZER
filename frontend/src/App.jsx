@@ -863,6 +863,9 @@ function App() {
           ) : refreshError ? (
             <span className="refresh-status" role="alert">
               Last refresh failed: {refreshError}
+              <button className="secondary refresh-retry" onClick={refreshSignalBoard} disabled={signalRefreshing}>
+                Retry refresh
+              </button>
             </span>
           ) : refreshStartedAt ? (
             <span className="refresh-status" role="status" aria-live="polite">
