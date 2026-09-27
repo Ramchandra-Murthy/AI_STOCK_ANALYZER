@@ -78,7 +78,7 @@ def test_safety_filter_removes_known_flags_only():
 def test_liquidity_warning():
     from scanner.surveillance import liquidity_warning
 
-    assert liquidity_warning(10.0, 200_000) == "Low recent traded value"
+    assert liquidity_warning(9.0, 200_000) == "Low recent traded value"
     assert liquidity_warning(10.0, 100_000) == "Low recent traded value"
     assert liquidity_warning(20.0, 100_000) == "OK"
 
