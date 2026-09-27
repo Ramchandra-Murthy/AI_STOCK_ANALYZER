@@ -88,6 +88,7 @@ function App() {
   const [optionsData, setOptionsData] = useState(null);
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [optionsError, setOptionsError] = useState(null);
+  const [optionsUpdatedAt, setOptionsUpdatedAt] = useState(null);
 
   useEffect(() => {
     fetch("/health")
@@ -160,6 +161,7 @@ function App() {
       if (!response.ok) throw new Error(data.detail ?? "Unable to load options analytics");
       setOptionsData(data);
       setOptionsExpiry(data.expiry ?? "");
+      setOptionsUpdatedAt(new Date().toISOString());
       setStatus("Ready");
     } catch (error) {
       setOptionsData(null);
@@ -507,6 +509,7 @@ function App() {
                   setOptionsExpiry("");
                   setOptionsData(null);
                   setOptionsError(null);
+                  setOptionsUpdatedAt(null);
                 }}
               >
                 <option value="NIFTY">NIFTY</option>
@@ -548,7 +551,7 @@ function App() {
                 <div><span>Spot</span><strong>{optionsData.spot ?? "—"}</strong></div>
                 <div><span>Expiry</span><strong>{optionsData.expiry ?? "—"}</strong></div>
                 <div><span>Contracts</span><strong>{optionsData.count ?? 0}</strong></div>
-                <div><span>Updated</span><strong>{new Date().toLocaleTimeString()}</strong></div>
+                <div><span>Updated</span><strong>{optionsUpdatedAt ? new Date(optionsUpdatedAt).toLocaleTimeString() : "—"}</strong></div>
               </div>
 
               <div className="options-summary">
