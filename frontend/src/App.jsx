@@ -533,6 +533,50 @@ function App() {
           </div>
         </section>
 
+        {selectedStock ? (
+          <section className="panel" aria-labelledby="stock-detail-heading">
+            <div className="panel-title">
+              <h2 id="stock-detail-heading">
+                {selectedStock.symbol} · {selectedStock.exchange} drill-down
+              </h2>
+              <button
+                className="secondary"
+                onClick={() => {
+                  setSelectedStock(null);
+                  setStockDetail(null);
+                }}
+                aria-label="Close stock drill-down"
+              >
+                Close
+              </button>
+            </div>
+            {stockDetailLoading ? (
+              <p className="empty" role="status" aria-live="polite">Loading stock detail…</p>
+            ) : stockDetail ? (
+              <>
+                <div className="stock-detail-grid">
+                  <div><span>Price</span><strong>{stockDetail.price ?? "—"}</strong></div>
+                  <div><span>Trend</span><strong>{stockDetail.trend ?? "—"}</strong></div>
+                  <div><span>Signal</span><strong>{stockDetail.signal ?? "—"}</strong></div>
+                  <div><span>Breakout</span><strong>{stockDetail.breakout ?? "—"}</strong></div>
+                  {Object.entries(stockDetail.metrics ?? {}).map(([key, value]) => (
+                    <div key={key}>
+                      <span>{key}</span>
+                      <strong>{value ?? "—"}</strong>
+                    </div>
+                  ))}
+                </div>
+                <p className="stock-observation">
+                  {stockDetail.market_observation ?? "No additional market observation."}
+                </p>
+                <StockChart points={stockDetail.chart} />
+              </>
+            ) : (
+              <p className="empty">Unable to load stock detail.</p>
+            )}
+          </section>
+        ) : null}
+
         <section className="panel">
           <div className="panel-title"><h2>Exchange health</h2><span>{systemHealth?.completed_at ?? "No completed scan"}</span></div>
           <div className="table-wrap">
