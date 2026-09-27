@@ -881,7 +881,7 @@ function App() {
             </span>
           ) : (
             <span className="refresh-status" role="status" aria-live="polite">
-              Refresh ready
+              Refresh ready · no refresh run yet
             </span>
           )}
           <button className="secondary" onClick={refreshHistory} aria-label="Refresh saved scan history">Refresh history</button>
