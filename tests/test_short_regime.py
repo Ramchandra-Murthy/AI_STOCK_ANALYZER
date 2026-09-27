@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from scanner.short_regime import (
+    fractal_swings,
     moving_average_regime,
     regime_breakdown,
     turtle_regime,
@@ -116,3 +117,48 @@ def test_moving_average_regime_rejects_invalid_windows_and_missing_price():
         moving_average_regime(frame, fast_window=4, slow_window=3)
     with pytest.raises(ValueError):
         moving_average_regime(pd.DataFrame({"Open": [1, 2]}))
+
+
+def test_fractal_swings_uses_hlc_average_and_finds_level_one_turns():
+    frame = pd.DataFrame(
+        {
+            "High": [11, 15, 12, 14, 10],
+            "Low": [9, 13, 10, 12, 8],
+            "Close": [10, 14, 11, 13, 9],
+        }
+    )
+
+    result = fractal_swings(frame, levels=1)
+
+    assert result.loc[1, "Hi1"] == 14.0
+    assert result.loc[2, "Lo1"] == 11.0
+    assert result.loc[3, "Hi1"] == 13.0
+    assert pd.isna(result.loc[0, "Hi1"])
+
+
+def test_fractal_swings_builds_higher_levels_from_prior_swings():
+    frame = pd.DataFrame(
+        {
+            "High": [11, 15, 12, 16, 13, 17, 14],
+            "Low": [9, 13, 10, 14, 11, 15, 12],
+            "Close": [10, 14, 11, 15, 12, 16, 13],
+        }
+    )
+
+    result = fractal_swings(frame, levels=2)
+
+    assert "Hi1" in result.columns
+    assert "Lo1" in result.columns
+    assert "Hi2" in result.columns
+    assert "Lo2" in result.columns
+
+
+def test_fractal_swings_rejects_invalid_levels_and_missing_columns():
+    with pytest.raises(ValueError):
+        fractal_swings(
+            pd.DataFrame({"High": [1], "Low": [1], "Close": [1]}),
+            levels=0,
+        )
+
+    with pytest.raises(ValueError):
+        fractal_swings(pd.DataFrame({"High": [1], "Low": [1]}))
