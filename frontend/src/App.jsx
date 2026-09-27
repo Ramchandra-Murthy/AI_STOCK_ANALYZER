@@ -495,6 +495,13 @@ function App() {
   }, [nextAutoScanAt]);
 
   const signalCount = rows.length + unusualRows.length + marketRows.length;
+  const refreshAgeLabel = refreshAgeSeconds === null
+    ? null
+    : refreshAgeSeconds < 60
+      ? `${refreshAgeSeconds}s ago`
+      : refreshAgeSeconds < 3600
+        ? `${Math.floor(refreshAgeSeconds / 60)}m ago`
+        : `${Math.floor(refreshAgeSeconds / 3600)}h ago`;
   const healthStatus = systemHealth?.status ?? "checking";
   const pulseCount = rows.length;
   const unusualCount = unusualRows.length;
@@ -891,8 +898,8 @@ function App() {
             </span>
           ) : refreshStartedAt ? (
             <span className="refresh-status" role="status" aria-live="polite">
-              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}{refreshAgeSeconds !== null ? (
-                <span aria-hidden="true">{` · ${refreshAgeSeconds}s ago`}</span>
+              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}{refreshAgeLabel ? (
+                <span aria-hidden="true">{` · ${refreshAgeLabel}`}</span>
               ) : null}
             </span>
           ) : (
