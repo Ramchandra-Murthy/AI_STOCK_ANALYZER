@@ -143,3 +143,7 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
 }
 .stock-detail-error span { color: #fca5a5; }
 .stock-detail-error button { justify-self: start; }
+
+.stock-detail-actions { display: flex; gap: 8px; align-items: center; }
+.stock-detail-updated { margin: 0 0 8px; color: #94a3b8; font-size: 0.82rem; }
+@media (max-width: 560px) { .stock-detail-actions { width: 100%; justify-content: flex-end; } }
