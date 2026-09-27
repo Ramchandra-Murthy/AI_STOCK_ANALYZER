@@ -89,6 +89,7 @@ function clearDashboardPreferences() {
       "sort-key",
       "sort-direction",
       "table-density",
+      "auto-refresh-interval",
     ].forEach((key) => window.localStorage.removeItem(`eros-dashboard-${key}`));
   } catch {
     // Ignore unavailable browser storage.
