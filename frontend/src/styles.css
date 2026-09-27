@@ -107,3 +107,11 @@ button.secondary { background:#1b2940; color:#dbeafe; } button.active { backgrou
 .chart-sma20 { stroke: #4ade80; }
 .chart-sma50 { stroke: #f59e0b; }
 .chart-axis { display: flex; justify-content: space-between; color: #64748b; font-size: 11px; }
+
+
+.history-row-active td { background: #101f35; }
+.history-detail { margin-top: 14px; padding-top: 14px; border-top: 1px solid #20304a; }
+.history-candidates { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.history-candidate { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; background: #111e31; color: #e8eef8; border: 1px solid #334155; text-align: left; }
+.history-candidate span { color: #8190a7; font-size: 11px; }
+@media (max-width: 900px) { .history-candidates { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
