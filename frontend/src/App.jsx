@@ -134,6 +134,7 @@ function App() {
   const [refreshStartedAt, setRefreshStartedAt] = useState(null);
   const [refreshDurationMs, setRefreshDurationMs] = useState(null);
   const [refreshError, setRefreshError] = useState(null);
+  const [refreshAgeSeconds, setRefreshAgeSeconds] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [tableExchange, setTableExchange] = useState(() => readDashboardPreference("table-exchange", "All"));
   const [sortKey, setSortKey] = useState(() => readDashboardPreference("sort-key", "Symbol"));
@@ -471,6 +472,19 @@ function App() {
     }, safeIntervalMs);
     return () => clearInterval(timer);
   }, [autoRefresh, autoRefreshInterval, jobId, exchange, lookback, jump]);
+
+  useEffect(() => {
+    if (!refreshStartedAt) {
+      setRefreshAgeSeconds(null);
+      return undefined;
+    }
+    const updateAge = () => {
+      setRefreshAgeSeconds(Math.max(0, Math.floor((Date.now() - refreshStartedAt) / 1000)));
+    };
+    updateAge();
+    const timer = setInterval(updateAge, 1000);
+    return () => clearInterval(timer);
+  }, [refreshStartedAt]);
 
   useEffect(() => {
     if (!nextAutoScanAt) return undefined;
@@ -877,7 +891,7 @@ function App() {
             </span>
           ) : refreshStartedAt ? (
             <span className="refresh-status" role="status" aria-live="polite">
-              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}
+              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}{refreshAgeSeconds !== null ? ` · ${refreshAgeSeconds}s ago` : ""}
             </span>
           ) : (
             <span className="refresh-status" role="status" aria-live="polite">
