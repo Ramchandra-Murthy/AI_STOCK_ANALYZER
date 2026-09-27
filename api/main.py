@@ -22,6 +22,7 @@ from scanner.unusual_activity import scan_unusual_activity
 from services.analyzer import analyze_stock
 from services.intraday_exchange_summary import exchange_summary
 from services.intraday_health import assess_scan_health
+from services.options_analytics import fetch_option_chain, summarize_option_chain
 
 app = FastAPI(
     title="EROS Market API",
@@ -167,6 +168,40 @@ def unusual_activity(
         "count": len(frame),
         "results": _records(frame),
         "scan_stats": _stats(frame),
+    }
+
+
+@app.get("/api/v1/options/chain")
+def options_chain(
+    underlying: str = Query("NIFTY", pattern="^(NIFTY|BANKNIFTY|FINNIFTY)$"),
+    expiry: str | None = Query(None, min_length=1, max_length=40),
+) -> dict[str, Any]:
+    """Return normalized index options analytics for the React dashboard."""
+    normalized = underlying.strip().upper()
+    if expiry is not None and not re.fullmatch(r"[A-Za-z0-9-]{1,40}", expiry):
+        raise HTTPException(status_code=400, detail="Invalid option expiry.")
+
+    try:
+        result = fetch_option_chain(normalized, expiry)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Options analytics failed: {exc}") from exc
+
+    if expiry is not None and result.expiries and expiry not in result.expiries:
+        raise HTTPException(status_code=400, detail="Requested expiry is not available.")
+
+    return {
+        "underlying": result.underlying,
+        "provider": result.provider_symbol,
+        "expiry": result.expiry,
+        "spot": result.spot,
+        "expiries": list(result.expiries),
+        "status": result.status,
+        "message": result.message,
+        "count": len(result.chain),
+        "summary": _records(summarize_option_chain(result.chain)),
+        "chain": _records(result.chain),
     }
 
 
