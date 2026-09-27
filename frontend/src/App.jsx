@@ -747,6 +747,9 @@ function App() {
                   </button>
                 </div>
               </div>
+              <div className="history-preview-label">
+                Showing {(expandedScan.results ?? []).slice(0, 10).length} of {(expandedScan.results ?? []).length} candidates
+              </div>
               <div className="history-candidates">
                 {(expandedScan.results ?? []).slice(0, 10).map((row, index) => (
                   <button
