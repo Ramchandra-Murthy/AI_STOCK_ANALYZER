@@ -860,9 +860,9 @@ function App() {
                   ? "Retry failed signal refresh"
                   : "Refresh all signals"
             }
-            title="Refresh activity, market signals, health, and history"
+            title="Refresh activity, market signals, health, and history. Keyboard shortcut: R"
           >
-            {signalRefreshing ? "Refreshing…" : refreshError ? "Retry refresh" : "Refresh all signals"}
+            {signalRefreshing ? "Refreshing…" : refreshError ? "Retry refresh" : "Refresh all signals"}{!signalRefreshing ? " (R)" : ""}
           </button>
           {signalRefreshing ? (
             <span className="refresh-status" role="status" aria-live="polite" aria-busy="true">
