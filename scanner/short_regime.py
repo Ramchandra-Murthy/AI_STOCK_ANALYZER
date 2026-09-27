@@ -35,6 +35,65 @@ def regime_breakdown(
     return regime
 
 
+def higher_highs_lows(
+    df: pd.DataFrame,
+    levels: int = 3,
+    shift: int = 2,
+) -> pd.DataFrame:
+    """Classify higher/lower fractal swings and their regime reference.
+
+    Chapter 4 builds this method from fractal swing highs and lows. A
+    bullish pattern requires a higher high and higher low; a bearish pattern
+    requires a lower low and lower high. The default shift of two swings uses
+    the penultimate swing as the regime reference, giving the definition some
+    wiggle room against noise.
+    """
+    if levels < 1:
+        raise ValueError("levels must be positive")
+    if shift < 1:
+        raise ValueError("shift must be positive")
+    required = {"High", "Low", "Close"}
+    missing = required.difference(df.columns)
+    if missing:
+        raise ValueError(f"missing required columns: {sorted(missing)}")
+
+    result = df.copy()
+    swings = fractal_swings(df, levels=levels)
+
+    for level in range(1, levels + 1):
+        hi_col = f"Hi{level}"
+        lo_col = f"Lo{level}"
+        if hi_col not in swings.columns or lo_col not in swings.columns:
+            break
+
+        highs = pd.to_numeric(swings[hi_col], errors="coerce")
+        lows = pd.to_numeric(swings[lo_col], errors="coerce")
+        previous_high = highs.ffill().shift(1)
+        previous_low = lows.ffill().shift(1)
+
+        hh = highs.where(highs.notna() & (highs > previous_high))
+        lh = highs.where(highs.notna() & (highs < previous_high))
+        hl = lows.where(lows.notna() & (lows > previous_low))
+        ll = lows.where(lows.notna() & (lows < previous_low))
+
+        result[f"HH{level}"] = hh
+        result[f"HL{level}"] = hl
+        result[f"LH{level}"] = lh
+        result[f"LL{level}"] = ll
+
+        bullish_reference = hl.shift(shift).ffill()
+        bearish_reference = lh.shift(shift).ffill()
+        close = pd.to_numeric(df["Close"], errors="coerce")
+        bullish = hh.notna() & bullish_reference.notna() & (close > bullish_reference)
+        bearish = ll.notna() & bearish_reference.notna() & (close < bearish_reference)
+
+        regime = pd.Series("NEUTRAL", index=df.index, dtype="string")
+        regime.loc[bullish] = "BULLISH"
+        regime.loc[bearish] = "BEARISH"
+        result[f"HiLo_HH{level}"] = regime
+
+    return result
+
 def turtle_regime(
     df: pd.DataFrame,
     entry_lookback: int = 50,
