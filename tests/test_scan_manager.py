@@ -1,5 +1,6 @@
 """Tests for the EROS FastAPI scan manager."""
 
+import time
 from threading import Event
 from unittest.mock import patch
 
@@ -108,10 +109,11 @@ def test_queued_price_jump_scan_keeps_matching_job() -> None:
 
         release.set()
 
-        for _ in range(50):
+        for _ in range(100):
             job = manager.get_job(second_job_id)
             if job and job["status"] == "completed":
                 break
+            time.sleep(0.01)
 
         assert job is not None
         assert job["status"] == "completed"
