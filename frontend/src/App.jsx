@@ -891,7 +891,9 @@ function App() {
             </span>
           ) : refreshStartedAt ? (
             <span className="refresh-status" role="status" aria-live="polite">
-              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}{refreshAgeSeconds !== null ? ` · ${refreshAgeSeconds}s ago` : ""}
+              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}{refreshDurationMs !== null ? ` · took ${(refreshDurationMs / 1000).toFixed(1)}s` : ""}{refreshAgeSeconds !== null ? (
+                <span aria-hidden="true">{` · ${refreshAgeSeconds}s ago`}</span>
+              ) : null}
             </span>
           ) : (
             <span className="refresh-status" role="status" aria-live="polite">
