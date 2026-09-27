@@ -582,7 +582,7 @@ function App() {
                       <td>{row["Change over 5m"] ?? "—"}</td>
                       <td>{row["Volume vs recent bars"] ?? "—"}</td>
                     </tr>
-                  )) : <tr><td colSpan="5"><div className="empty-state"><strong>No price-pulse candidates</strong><span>Run a scan to populate live candidates.</span><button className="secondary" onClick={startScan} disabled={Boolean(jobId)}>{jobId ? "Scanning…" : "Start scan"}</button></div></td></tr>}
+                  )) : <tr><td colSpan="5"><div className="empty-state"><strong>No price-pulse candidates</strong><span>{tableSearch ? `No symbols match "${tableSearch}".` : "Run a scan to populate live candidates."}</span><button className="secondary" onClick={startScan} disabled={Boolean(jobId)}>{jobId ? "Scanning…" : "Start scan"}</button></div></td></tr>}
                 </tbody>
               </table>
             ) : view === "unusual" ? (
@@ -597,7 +597,7 @@ function App() {
                       <td>{row.Price ?? row["Last price"] ?? "—"}</td>
                       <td>{row["Volume ratio"] ?? row["Volume vs recent bars"] ?? "—"}</td>
                     </tr>
-                  )) : <tr><td colSpan="5"><div className="empty-state"><strong>No unusual activity</strong><span>Refresh the signal board to check the latest activity.</span><button className="secondary" onClick={loadUnusualActivity}>Refresh activity</button></div></td></tr>}
+                  )) : <tr><td colSpan="5"><div className="empty-state"><strong>No unusual activity</strong><span>{tableSearch ? `No symbols match "${tableSearch}".` : "Refresh the signal board to check the latest activity."}</span><button className="secondary" onClick={loadUnusualActivity}>Refresh activity</button></div></td></tr>}
                 </tbody>
               </table>
             ) : (
@@ -613,7 +613,7 @@ function App() {
                       <td>{row.MACD ?? "—"}</td>
                       <td>{row["AI Score"] ?? row.AI_Score ?? "—"}</td>
                     </tr>
-                  )) : <tr><td colSpan="6"><div className="empty-state"><strong>No market scanner results</strong><span>Load the market scanner to populate the table.</span><button className="secondary" onClick={loadMarketScanner}>Load market scanner</button></div></td></tr>}
+                  )) : <tr><td colSpan="6"><div className="empty-state"><strong>No market scanner results</strong><span>{tableSearch ? `No symbols match "${tableSearch}".` : "Load the market scanner to populate the table."}</span><button className="secondary" onClick={loadMarketScanner}>Load market scanner</button></div></td></tr>}
                 </tbody>
               </table>
             )}
