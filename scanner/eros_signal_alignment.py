@@ -80,7 +80,7 @@ def analyze_eros_signal_alignment(
 
     result["Alignment %"] = (
         result["Aligned Diagnostics"] / result["Directional Diagnostics"].replace(0, pd.NA) * 100
-    ).round(2)
+    ).clip(upper=100).round(2)
 
     result["Alignment"] = "INSUFFICIENT DATA"
     result.loc[result["Directional Diagnostics"] > 0, "Alignment"] = "MIXED"
