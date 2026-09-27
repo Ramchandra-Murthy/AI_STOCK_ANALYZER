@@ -198,3 +198,8 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
   .view-tab-group { display: grid; grid-template-columns: 1fr; }
   .view-tab-group button { width: 100%; }
 }
+
+.clear-search { white-space: nowrap; }
+@media (max-width: 560px) {
+  .clear-search { width: 100%; }
+}
