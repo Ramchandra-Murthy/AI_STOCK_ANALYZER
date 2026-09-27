@@ -845,11 +845,16 @@ function App() {
           <button className="secondary" onClick={loadMarketScanner}>
             Market scanner
           </button>
-          <button className="secondary" onClick={exportVisibleRows} disabled={!visibleRows.length} aria-label="Export visible results as CSV">\n            Export CSV\n          </button>\n          <button className="secondary" onClick={refreshSignalBoard} disabled={signalRefreshing}>
+          <button className="secondary" onClick={exportVisibleRows} disabled={!visibleRows.length} aria-label="Export visible results as CSV">\n            Export CSV\n          </button>\n          <button
+            className="secondary"
+            onClick={refreshSignalBoard}
+            disabled={signalRefreshing}
+            aria-busy={signalRefreshing}
+          >
             {signalRefreshing ? "Refreshing…" : "Refresh all signals"}
           </button>
           {signalRefreshing ? (
-            <span className="refresh-status" role="status" aria-live="polite">
+            <span className="refresh-status" role="status" aria-live="polite" aria-busy="true">
               Updating activity, market signals, health, and history…
             </span>
           ) : refreshStartedAt ? (
