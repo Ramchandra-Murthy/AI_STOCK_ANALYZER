@@ -2,12 +2,12 @@ import pandas as pd
 import pytest
 
 from scanner.short_regime import (
+    floor_ceiling_regime,
     fractal_swings,
     higher_highs_lows,
     moving_average_regime,
     regime_breakdown,
     turtle_regime,
-    floor_ceiling_regime,
 )
 
 
