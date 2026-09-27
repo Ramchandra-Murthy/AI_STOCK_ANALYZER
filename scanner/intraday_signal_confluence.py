@@ -45,9 +45,26 @@ def compute_signal_confluence(board: pd.DataFrame | None) -> pd.DataFrame:
         bins=[-1, 24, 49, 74, 100],
         labels=["LOW", "MODERATE", "HIGH", "VERY HIGH"],
     )
-    result = result.sort_values(
-        ["Confluence Score", "Relative Strength", "3-min change %"],
-        ascending=[False, False, False],
-        na_position="last",
-    ).reset_index(drop=True)
+    sort_strength = pd.to_numeric(
+        result["Relative Strength"]
+        if "Relative Strength" in result.columns
+        else pd.Series(0.0, index=result.index),
+        errors="coerce",
+    ).fillna(0.0)
+    sort_change = pd.to_numeric(
+        result["3-min change %"]
+        if "3-min change %" in result.columns
+        else pd.Series(0.0, index=result.index),
+        errors="coerce",
+    ).fillna(0.0)
+    result = (
+        result.assign(_sort_strength=sort_strength, _sort_change=sort_change)
+        .sort_values(
+            ["Confluence Score", "_sort_strength", "_sort_change"],
+            ascending=[False, False, False],
+            na_position="last",
+        )
+        .drop(columns=["_sort_strength", "_sort_change"])
+        .reset_index(drop=True)
+    )
     return result
