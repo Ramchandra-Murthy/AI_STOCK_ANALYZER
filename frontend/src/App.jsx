@@ -736,7 +736,16 @@ function App() {
             <div className="history-detail">
               <div className="panel-title">
                 <strong>Saved scan candidates</strong>
-                <span>{expandedScan.completed_at ?? "—"}</span>
+                <div className="history-detail-actions">
+                  <span>{expandedScan.completed_at ?? "—"}</span>
+                  <button
+                    className="secondary"
+                    onClick={() => setExpandedHistoryJob(null)}
+                    aria-label="Close saved scan details"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
               <div className="history-candidates">
                 {(expandedScan.results ?? []).slice(0, 10).map((row, index) => (
