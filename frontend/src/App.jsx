@@ -232,6 +232,14 @@ function App() {
   const marketBullish = marketRows.filter((row) => /bull|up|positive|strong/i.test(String(row.Trend ?? ""))).length;
   const marketBearish = marketRows.filter((row) => /bear|down|negative|weak/i.test(String(row.Trend ?? ""))).length;
 
+  const alerts = [];
+  if (health === "offline") alerts.push({ level: "critical", text: "API connection is offline." });
+  if (healthStatus === "STALE") alerts.push({ level: "warning", text: "Latest persisted scan is stale." });
+  if (healthStatus === "NO_SCAN" || healthStatus === "EMPTY") alerts.push({ level: "warning", text: "No usable completed intraday scan is available." });
+  if (status === "failed" || status === "API error") alerts.push({ level: "critical", text: `Scanner status: ${status}.` });
+  if (pulsePositive > 0 && pulseNegative > 0) alerts.push({ level: "info", text: `Mixed price-pulse signals: ${pulsePositive} positive and ${pulseNegative} negative.` });
+  if (!alerts.length) alerts.push({ level: "ok", text: "EROS dashboard systems are operating normally." });
+
   return (
     <div className="app">
       <header>
@@ -244,6 +252,18 @@ function App() {
       </header>
 
       <main>
+        <section className="panel alert-panel" aria-label="Dashboard alerts">
+          <div className="panel-title"><h2>System alerts</h2><span>{alerts.length} active</span></div>
+          <div className="alert-list">
+            {alerts.map((alert, index) => (
+              <div className={`alert alert-${alert.level}`} key={`${alert.level}-${index}`}>
+                <strong>{alert.level.toUpperCase()}</strong>
+                <span>{alert.text}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <div className="stats">
           <Stat label="Scanner" value={status} detail="Background job" />
           <Stat
