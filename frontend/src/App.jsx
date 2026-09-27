@@ -390,6 +390,14 @@ function App() {
           <div><span>API health</span><strong>{health}</strong></div>
         </section>
 
+        {jobId ? (
+          <section className="panel scan-progress" aria-label="Scan progress" role="status" aria-live="polite">
+            <div className="panel-title"><h2>Scan in progress</h2><span>Job {jobId.slice(0, 10)}…</span></div>
+            <div className="progress-track"><div className="progress-indeterminate" /></div>
+            <p>Price-pulse scanner is running. Results will appear automatically when the job completes.</p>
+          </section>
+        ) : null}
+
         <section className="panel signal-strip" aria-label="Signal counts">
           <div><span>Pulse signals</span><strong>{pulseCount}</strong></div>
           <div><span>Unusual activity</span><strong>{unusualCount}</strong></div>
