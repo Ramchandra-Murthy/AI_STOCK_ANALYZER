@@ -89,6 +89,7 @@ function clearDashboardPreferences() {
       "sort-key",
       "sort-direction",
       "table-density",
+      "auto-refresh-interval",
     ].forEach((key) => window.localStorage.removeItem(`eros-dashboard-${key}`));
   } catch {
     // Ignore unavailable browser storage.
@@ -127,6 +128,7 @@ function App() {
   const [unusualRows, setUnusualRows] = useState([]);
   const [systemHealth, setSystemHealth] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState(() => readDashboardPreference("auto-refresh-interval", "60"));
   const [lastUpdated, setLastUpdated] = useState(null);
   const [tableExchange, setTableExchange] = useState(() => readDashboardPreference("table-exchange", "All"));
   const [sortKey, setSortKey] = useState(() => readDashboardPreference("sort-key", "Symbol"));
@@ -152,7 +154,8 @@ function App() {
     writeDashboardPreference("sort-key", sortKey);
     writeDashboardPreference("sort-direction", sortDirection);
     writeDashboardPreference("table-density", tableDensity);
-  }, [exchange, jump, lookback, sortDirection, sortKey, tableDensity, tableExchange, view]);
+    writeDashboardPreference("auto-refresh-interval", autoRefreshInterval);
+  }, [autoRefreshInterval, exchange, jump, lookback, sortDirection, sortKey, tableDensity, tableExchange, view]);
 
   useEffect(() => {
     fetch("/health")
@@ -412,6 +415,7 @@ function App() {
     setSortKey("Symbol");
     setSortDirection("asc");
     setTableDensity("comfortable");
+    setAutoRefreshInterval("60");
     setTableSearch("");
     clearDashboardPreferences();
     setStatus("Ready");
@@ -442,11 +446,12 @@ function App() {
 
   useEffect(() => {
     if (!autoRefresh || jobId) return undefined;
+    const intervalMs = Number.parseInt(autoRefreshInterval, 10) * 1000;
     const timer = setInterval(() => {
       startScan();
-    }, 60000);
+    }, Number.isFinite(intervalMs) && intervalMs >= 30000 ? intervalMs : 60000);
     return () => clearInterval(timer);
-  }, [autoRefresh, jobId, exchange, lookback, jump]);
+  }, [autoRefresh, autoRefreshInterval, jobId, exchange, lookback, jump]);
 
   const signalCount = rows.length + unusualRows.length + marketRows.length;
   const healthStatus = systemHealth?.status ?? "checking";
@@ -791,6 +796,20 @@ function App() {
           >
             {autoRefresh ? "Auto-scan: ON" : "Auto-scan: OFF"}
           </button>
+          <div>
+            <label htmlFor="auto-refresh-interval">Auto-scan interval</label>
+            <select
+              id="auto-refresh-interval"
+              value={autoRefreshInterval}
+              onChange={(e) => setAutoRefreshInterval(e.target.value)}
+              disabled={autoRefresh}
+            >
+              <option value="30">30 sec</option>
+              <option value="60">60 sec</option>
+              <option value="120">2 min</option>
+              <option value="300">5 min</option>
+            </select>
+          </div>
           <button className="secondary" onClick={loadUnusualActivity}>
             Unusual activity
           </button>
