@@ -94,6 +94,24 @@ function clearDashboardPreferences() {
   }
 }
 
+function SortHeader({ label, column, sortKey, sortDirection, onSort }) {
+  const active = sortKey === column;
+  const direction = active ? (sortDirection === "asc" ? "ascending" : "descending") : "none";
+  const indicator = active ? (sortDirection === "asc" ? " ↑" : " ↓") : "";
+
+  return (
+    <th aria-sort={direction}>
+      <button
+        className="table-sort"
+        onClick={() => onSort(column)}
+        aria-label={`Sort by ${label}${active ? `, currently ${direction}` : ""}`}
+      >
+        {label}{indicator}
+      </button>
+    </th>
+  );
+}
+
 function App() {
   const [health, setHealth] = useState("checking");
   const [rows, setRows] = useState([]);
@@ -824,7 +842,7 @@ function App() {
           <div className="table-wrap">
             {view === "price-pulse" ? (
               <table>
-                <thead><tr><th><button className="table-sort" onClick={() => changeSort("Symbol")}>Symbol</button></th><th>Exchange</th><th><button className="table-sort" onClick={() => changeSort("Last price")}>Last price</button></th><th><button className="table-sort" onClick={() => changeSort("Change over 5m")}>Change</button></th><th><button className="table-sort" onClick={() => changeSort("Volume vs recent bars")}>Volume</button></th></tr></thead>
+                <thead><tr><SortHeader label="Symbol" column="Symbol" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><th>Exchange</th><SortHeader label="Last price" column="Last price" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="Change" column="Change over 5m" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="Volume" column="Volume vs recent bars" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /></tr></thead>
                 <tbody>
                   {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
@@ -839,7 +857,7 @@ function App() {
               </table>
             ) : view === "unusual" ? (
               <table>
-                <thead><tr><th><button className="table-sort" onClick={() => changeSort("Symbol")}>Symbol</button></th><th>Exchange</th><th><button className="table-sort" onClick={() => changeSort("Signal")}>Signal</button></th><th><button className="table-sort" onClick={() => changeSort("Price")}>Price</button></th><th><button className="table-sort" onClick={() => changeSort("Volume ratio")}>Volume</button></th></tr></thead>
+                <thead><tr><SortHeader label="Symbol" column="Symbol" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><th>Exchange</th><SortHeader label="Signal" column="Signal" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="Price" column="Price" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="Volume" column="Volume ratio" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /></tr></thead>
                 <tbody>
                   {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
@@ -854,7 +872,7 @@ function App() {
               </table>
             ) : (
               <table>
-                <thead><tr><th><button className="table-sort" onClick={() => changeSort("Symbol")}>Symbol</button></th><th><button className="table-sort" onClick={() => changeSort("Price")}>Price</button></th><th><button className="table-sort" onClick={() => changeSort("Trend")}>Trend</button></th><th><button className="table-sort" onClick={() => changeSort("RSI")}>RSI</button></th><th>MACD</th><th><button className="table-sort" onClick={() => changeSort("AI Score")}>AI score</button></th></tr></thead>
+                <thead><tr><SortHeader label="Symbol" column="Symbol" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="Price" column="Price" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="Trend" column="Trend" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><SortHeader label="RSI" column="RSI" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /><th>MACD</th><SortHeader label="AI score" column="AI Score" sortKey={sortKey} sortDirection={sortDirection} onSort={changeSort} /></tr></thead>
                 <tbody>
                   {visibleRows.length ? visibleRows.map((row, i) => (
                     <tr key={row.Symbol ?? i}>
