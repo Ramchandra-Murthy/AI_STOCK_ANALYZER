@@ -93,8 +93,8 @@ st.info(
 
 st.subheader("📈 Options Analytics")
 st.caption(
-    "Phase 1 options analytics: provider-reported option-chain data, open interest, "
-    "volume, implied volatility and descriptive PCR. This module is analytical only; "
+    "Options analytics uses NSE index option-chain data first, with Yahoo Finance as a "
+    "fallback. It reports open interest, volume, implied volatility and descriptive PCR. "
     "it does not place orders or generate automatic trade instructions."
 )
 
@@ -112,9 +112,9 @@ with options_left:
     )
 with options_right:
     st.info(
-        "The first release uses the existing Yahoo Finance dependency as the provider "
-        "boundary. If an Indian index chain is not exposed by the provider, EROS will "
-        "show UNAVAILABLE rather than inventing option data."
+        "NSE is the primary provider for Indian index option chains. Yahoo Finance is "
+        "used only as a fallback. EROS shows UNAVAILABLE when neither provider supplies "
+        "usable data rather than inventing option values."
     )
 
 if options_load:
@@ -153,7 +153,7 @@ elif options_result.status == "AVAILABLE":
         f"₹{options_result.spot:,.2f}" if options_result.spot else "—",
     )
     metric_mid.metric("Expiry", options_result.expiry or "—")
-    metric_right.metric("Provider", "Yahoo Finance")
+    metric_right.metric("Provider", options_result.provider_symbol.split(":")[0])
 
     option_summary = summarize_option_chain(options_result.chain)
     st.dataframe(option_summary, use_container_width=True, hide_index=True)

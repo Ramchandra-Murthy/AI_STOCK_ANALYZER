@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from services.options_analytics import summarize_option_chain
+from services.options_analytics import fetch_option_chain, summarize_option_chain
 
 
 def test_summarize_option_chain_calculates_pcr_and_oi_levels():
@@ -37,3 +37,72 @@ def test_empty_chain_has_stable_summary_schema():
     summary = summarize_option_chain(pd.DataFrame())
     assert list(summary.columns) == ["Metric", "Value"]
     assert summary.empty
+
+
+def test_fetch_option_chain_prefers_nse(monkeypatch):
+    payload = {
+        "records": {
+            "expiryDates": ["29-Sep-2026", "06-Oct-2026"],
+            "underlyingValue": 23140.5,
+            "data": [
+                {
+                    "strikePrice": 23100,
+                    "expiryDate": "29-Sep-2026",
+                    "CE": {
+                        "lastPrice": 120.0,
+                        "totalTradedVolume": 1000,
+                        "openInterest": 20000,
+                        "changeinOpenInterest": 1500,
+                        "impliedVolatility": 14.2,
+                    },
+                    "PE": {
+                        "lastPrice": 95.0,
+                        "totalTradedVolume": 1200,
+                        "openInterest": 22000,
+                        "changeinOpenInterest": 1700,
+                        "impliedVolatility": 15.1,
+                    },
+                }
+            ],
+        }
+    }
+
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_nse_option_chain",
+        lambda underlying: payload,
+    )
+
+    result = fetch_option_chain("NIFTY")
+    assert result.status == "AVAILABLE"
+    assert result.provider_symbol == "NSE:NIFTY"
+    assert result.expiry == "29-Sep-2026"
+    assert result.spot == 23140.5
+    assert result.chain.loc[0, "CE OI"] == 20000
+    assert result.chain.loc[0, "PE OI"] == 22000
+
+
+def test_fetch_option_chain_can_reload_requested_nse_expiry(monkeypatch):
+    payload = {
+        "records": {
+            "expiryDates": ["29-Sep-2026", "06-Oct-2026"],
+            "underlyingValue": 23140.5,
+            "data": [
+                {
+                    "strikePrice": 23200,
+                    "expiryDate": "06-Oct-2026",
+                    "CE": {"lastPrice": 80.0, "openInterest": 30000},
+                    "PE": {"lastPrice": 110.0, "openInterest": 25000},
+                }
+            ],
+        }
+    }
+
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_nse_option_chain",
+        lambda underlying: payload,
+    )
+
+    result = fetch_option_chain("NIFTY", "06-Oct-2026")
+    assert result.status == "AVAILABLE"
+    assert result.expiry == "06-Oct-2026"
+    assert result.chain.loc[0, "strike"] == 23200
