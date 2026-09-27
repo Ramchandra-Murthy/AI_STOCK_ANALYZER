@@ -14,6 +14,53 @@ function isSafeJobId(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
 }
 
+function StockChart({ points }) {
+  const validPoints = (points ?? []).filter((point) => Number.isFinite(point.Close));
+  if (!validPoints.length) {
+    return <p className="empty">No chart history available for this stock.</p>;
+  }
+
+  const width = 760;
+  const height = 260;
+  const padding = 28;
+  const values = validPoints.flatMap((point) =>
+    ["Close", "SMA_20", "SMA_50"]
+      .map((key) => point[key])
+      .filter(Number.isFinite),
+  );
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const x = (index) =>
+    padding + (index * (width - padding * 2)) / Math.max(validPoints.length - 1, 1);
+  const y = (value) =>
+    height - padding - ((value - min) * (height - padding * 2)) / range;
+  const pathFor = (key) =>
+    validPoints
+      .filter((point) => Number.isFinite(point[key]))
+      .map((point, index, series) => {
+        const originalIndex = validPoints.indexOf(point);
+        return `${index === 0 ? "M" : "L"} ${x(originalIndex).toFixed(1)} ${y(point[key]).toFixed(1)}`;
+      })
+      .join(" ");
+
+  return (
+    <div className="stock-chart">
+      <div className="chart-legend">
+        <span>● Close</span><span>● SMA 20</span><span>● SMA 50</span>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Stock price and moving average chart">
+        <path className="chart-grid" d={`M ${padding} ${padding} H ${width - padding} M ${padding} ${height / 2} H ${width - padding} M ${padding} ${height - padding} H ${width - padding}`} />
+        <path className="chart-line chart-close" d={pathFor("Close")} />
+        <path className="chart-line chart-sma20" d={pathFor("SMA_20")} />
+        <path className="chart-line chart-sma50" d={pathFor("SMA_50")} />
+      </svg>
+      <div className="chart-axis"><span>Older</span><span>Latest</span></div>
+    </div>
+  );
+}
+
+
 function App() {
   const [health, setHealth] = useState("checking");
   const [rows, setRows] = useState([]);
