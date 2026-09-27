@@ -190,3 +190,11 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
 @media (max-width: 560px) {
   .panel-heading { flex-wrap: wrap; }
 }
+
+.view-tabs { padding: 10px; }
+.view-tab-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.view-tab-group button { min-width: 150px; }
+@media (max-width: 560px) {
+  .view-tab-group { display: grid; grid-template-columns: 1fr; }
+  .view-tab-group button { width: 100%; }
+}
