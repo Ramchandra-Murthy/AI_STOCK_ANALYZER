@@ -7,9 +7,8 @@ Provider availability and timestamps are surfaced rather than inferred.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
-from urllib.error import HTTPError, URLError
+from dataclasses import dataclass
 from urllib.request import Request, urlopen
 
 import pandas as pd
