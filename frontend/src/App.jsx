@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 function Stat({ label, value, detail }) {
   return (
@@ -279,64 +279,62 @@ function App() {
   const unusualCount = unusualRows.length;
   const marketCount = marketRows.length;
 
-  const activeRows = view === "price-pulse" ? rows : view === "unusual" ? unusualRows : marketRows;
-  const visibleRows = activeRows
-    .filter((row) => tableExchange === "All" || row.Exchange === tableExchange)
-    .slice()
-    .sort((a, b) => {
-      const left = a[sortKey] ?? "";
-      const right = b[sortKey] ?? "";
-      const numericLeft = Number.parseFloat(left);
-      const numericRight = Number.parseFloat(right);
-      const comparison = Number.isNaN(numericLeft) || Number.isNaN(numericRight)
-        ? String(left).localeCompare(String(right))
-        : numericLeft - numericRight;
-      return sortDirection === "asc" ? comparison : -comparison;
-    });
-  const changeSort = (key) => {
-    setSortDirection(sortKey === key && sortDirection === "asc" ? "desc" : "asc");
-    setSortKey(key);
-  };
+  const { activeRows, visibleRows, signalCounts, sectorSummary } = useMemo(() => {
+    const active = view === "price-pulse" ? rows : view === "unusual" ? unusualRows : marketRows;
+    const visible = active
+      .filter((row) => tableExchange === "All" || row.Exchange === tableExchange)
+      .slice()
+      .sort((a, b) => {
+        const left = a[sortKey] ?? "";
+        const right = b[sortKey] ?? "";
+        const numericLeft = Number.parseFloat(left);
+        const numericRight = Number.parseFloat(right);
+        const comparison = Number.isNaN(numericLeft) || Number.isNaN(numericRight)
+          ? String(left).localeCompare(String(right))
+          : numericLeft - numericRight;
+        return sortDirection === "asc" ? comparison : -comparison;
+      });
 
-  const pulsePositive = rows.filter((row) => Number.parseFloat(row["Change over 5m"]) > 0).length;
-  const pulseNegative = rows.filter((row) => Number.parseFloat(row["Change over 5m"]) < 0).length;
-  const unusualPositive = unusualRows.filter((row) => /buy|positive|up|bull/i.test(String(row.Signal ?? row["Activity signal"] ?? ""))).length;
-  const unusualNegative = unusualRows.filter((row) => /sell|negative|down|bear/i.test(String(row.Signal ?? row["Activity signal"] ?? ""))).length;
-  const marketBullish = marketRows.filter((row) => /bull|up|positive|strong/i.test(String(row.Trend ?? ""))).length;
-  const marketBearish = marketRows.filter((row) => /bear|down|negative|weak/i.test(String(row.Trend ?? ""))).length;
+    const pulsePositive = signalCounts.pulsePositive;
+    const pulseNegative = signalCounts.pulseNegative;
+    const unusualPositive = signalCounts.unusualPositive;
+    const unusualNegative = signalCounts.unusualNegative;
+    const marketBullish = signalCounts.marketBullish;
+    const marketBearish = signalCounts.marketBearish;
 
-  const sectorSummary = Object.values(
-    marketRows.reduce((groups, row) => {
-      const sector = row.Sector ?? "Unclassified";
-      const current = groups[sector] ?? {
-        sector,
-        stocks: 0,
-        bullish: 0,
-        bearish: 0,
-        scoreTotal: 0,
-        scoreCount: 0,
-      };
-      const trend = String(row.Trend ?? "");
-      const score = Number.parseFloat(row["AI Score"]);
-      current.stocks += 1;
-      if (/bull|up|positive|strong/i.test(trend)) current.bullish += 1;
-      if (/bear|down|negative|weak/i.test(trend)) current.bearish += 1;
-      if (!Number.isNaN(score)) {
-        current.scoreTotal += score;
-        current.scoreCount += 1;
-      }
-      groups[sector] = current;
-      return groups;
-    }, {}),
-  )
-    .map((item) => ({
-      ...item,
-      breadth: item.bullish - item.bearish,
-      averageScore: item.scoreCount ? item.scoreTotal / item.scoreCount : null,
-    }))
-    .sort((a, b) => b.breadth - a.breadth || b.stocks - a.stocks);
+    const sectors = Object.values(
+      marketRows.reduce((groups, row) => {
+        const sector = row.Sector ?? "Unclassified";
+        const current = groups[sector] ?? { sector, stocks: 0, bullish: 0, bearish: 0, scoreTotal: 0, scoreCount: 0 };
+        const trend = String(row.Trend ?? "");
+        const score = Number.parseFloat(row["AI Score"]);
+        current.stocks += 1;
+        if (/bull|up|positive|strong/i.test(trend)) current.bullish += 1;
+        if (/bear|down|negative|weak/i.test(trend)) current.bearish += 1;
+        if (!Number.isNaN(score)) {
+          current.scoreTotal += score;
+          current.scoreCount += 1;
+        }
+        groups[sector] = current;
+        return groups;
+      }, {}),
+    )
+      .map((item) => ({
+        ...item,
+        breadth: item.bullish - item.bearish,
+        averageScore: item.scoreCount ? item.scoreTotal / item.scoreCount : null,
+      }))
+      .sort((a, b) => b.breadth - a.breadth || b.stocks - a.stocks);
 
-  const expandedScan = history.find((scan) => scan.job_id === expandedHistoryJob);
+    return {
+      activeRows: active,
+      visibleRows: visible,
+      signalCounts: { pulsePositive, pulseNegative, unusualPositive, unusualNegative, marketBullish, marketBearish },
+      sectorSummary: sectors,
+    };
+  }, [marketRows, rows, sortDirection, sortKey, tableExchange, unusualRows, view]);
+
+  const expandedScan = useMemo(() => history.find((scan) => scan.job_id === expandedHistoryJob), [expandedHistoryJob, history]);
   const alerts = [];
   if (health === "offline") alerts.push({ level: "critical", text: "API connection is offline." });
   if (healthStatus === "STALE") alerts.push({ level: "warning", text: "Latest persisted scan is stale." });
