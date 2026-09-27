@@ -61,24 +61,57 @@ function StockChart({ points }) {
 }
 
 
+function readDashboardPreference(key, fallback) {
+  try {
+    const value = window.localStorage.getItem(`eros-dashboard-${key}`);
+    return value ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeDashboardPreference(key, value) {
+  try {
+    window.localStorage.setItem(`eros-dashboard-${key}`, value);
+  } catch {
+    // Ignore unavailable browser storage.
+  }
+}
+
+function clearDashboardPreferences() {
+  try {
+    [
+      "view",
+      "exchange",
+      "lookback",
+      "jump",
+      "table-exchange",
+      "sort-key",
+      "sort-direction",
+    ].forEach((key) => window.localStorage.removeItem(`eros-dashboard-${key}`));
+  } catch {
+    // Ignore unavailable browser storage.
+  }
+}
+
 function App() {
   const [health, setHealth] = useState("checking");
   const [rows, setRows] = useState([]);
   const [history, setHistory] = useState([]);
   const [status, setStatus] = useState("Ready");
   const [jobId, setJobId] = useState(null);
-  const [exchange, setExchange] = useState("Both");
-  const [lookback, setLookback] = useState("5");
-  const [jump, setJump] = useState("1");
-  const [view, setView] = useState("price-pulse");
+  const [exchange, setExchange] = useState(() => readDashboardPreference("exchange", "Both"));
+  const [lookback, setLookback] = useState(() => readDashboardPreference("lookback", "5"));
+  const [jump, setJump] = useState(() => readDashboardPreference("jump", "1"));
+  const [view, setView] = useState(() => readDashboardPreference("view", "price-pulse"));
   const [marketRows, setMarketRows] = useState([]);
   const [unusualRows, setUnusualRows] = useState([]);
   const [systemHealth, setSystemHealth] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [tableExchange, setTableExchange] = useState("All");
-  const [sortKey, setSortKey] = useState("Symbol");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [tableExchange, setTableExchange] = useState(() => readDashboardPreference("table-exchange", "All"));
+  const [sortKey, setSortKey] = useState(() => readDashboardPreference("sort-key", "Symbol"));
+  const [sortDirection, setSortDirection] = useState(() => readDashboardPreference("sort-direction", "asc"));
   const [tableSearch, setTableSearch] = useState("");
   const [signalRefreshing, setSignalRefreshing] = useState(false);\n  const [selectedStock, setSelectedStock] = useState(null);\n  const [stockDetail, setStockDetail] = useState(null);\n  const [stockDetailLoading, setStockDetailLoading] = useState(false);
   const [stockDetailError, setStockDetailError] = useState(null);
@@ -89,6 +122,16 @@ function App() {
   const [optionsLoading, setOptionsLoading] = useState(false);
   const [optionsError, setOptionsError] = useState(null);
   const [optionsUpdatedAt, setOptionsUpdatedAt] = useState(null);
+
+  useEffect(() => {
+    writeDashboardPreference("view", view);
+    writeDashboardPreference("exchange", exchange);
+    writeDashboardPreference("lookback", lookback);
+    writeDashboardPreference("jump", jump);
+    writeDashboardPreference("table-exchange", tableExchange);
+    writeDashboardPreference("sort-key", sortKey);
+    writeDashboardPreference("sort-direction", sortDirection);
+  }, [exchange, jump, lookback, sortDirection, sortKey, tableExchange, view]);
 
   useEffect(() => {
     fetch("/health")
@@ -319,6 +362,7 @@ function App() {
     setSortKey("Symbol");
     setSortDirection("asc");
     setTableSearch("");
+    clearDashboardPreferences();
     setStatus("Ready");
   }
 
