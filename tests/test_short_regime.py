@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from scanner.short_regime import regime_breakdown, turtle_regime
+from scanner.short_regime import regime_breakdown, moving_average_regime, turtle_regime
 
 
 def test_fresh_high_is_bullish_after_lookback():
@@ -87,3 +87,28 @@ def test_turtle_regime_rejects_invalid_lookbacks():
 
     with pytest.raises(ValueError):
         turtle_regime(frame, entry_lookback=0)
+
+
+def test_moving_average_regime_classifies_fast_above_and_below_slow():
+    frame = pd.DataFrame({"Close": [1, 2, 3, 4, 3, 2]})
+    result = moving_average_regime(frame, fast_window=2, slow_window=3)
+    assert result.iloc[:2].tolist() == ["NEUTRAL", "NEUTRAL"]
+    assert result.iloc[2] == "BULLISH"
+    assert result.iloc[5] == "BEARISH"
+
+
+def test_moving_average_regime_does_not_use_current_bar_in_its_window():
+    frame = pd.DataFrame({"Close": [10, 10, 10, 20]})
+    result = moving_average_regime(frame, fast_window=2, slow_window=3)
+    assert result.iloc[2] == "NEUTRAL"
+    assert result.iloc[3] == "BULLISH"
+
+
+def test_moving_average_regime_rejects_invalid_windows_and_missing_price():
+    frame = pd.DataFrame({"Close": [1, 2, 3]})
+    with pytest.raises(ValueError):
+        moving_average_regime(frame, fast_window=3, slow_window=3)
+    with pytest.raises(ValueError):
+        moving_average_regime(frame, fast_window=4, slow_window=3)
+    with pytest.raises(ValueError):
+        moving_average_regime(pd.DataFrame({"Open": [1, 2]}))
