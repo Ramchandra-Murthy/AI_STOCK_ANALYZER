@@ -860,6 +860,7 @@ function App() {
                   ? "Retry failed signal refresh"
                   : "Refresh all signals"
             }
+            title="Refresh activity, market signals, health, and history"
           >
             {signalRefreshing ? "Refreshing…" : refreshError ? "Retry refresh" : "Refresh all signals"}
           </button>
