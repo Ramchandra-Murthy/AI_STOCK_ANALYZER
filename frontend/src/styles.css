@@ -203,3 +203,12 @@ button:focus-visible, select:focus-visible { box-shadow: 0 0 0 2px #07101f, 0 0 
 @media (max-width: 560px) {
   .clear-search { width: 100%; }
 }
+
+.stock-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 11px;
+}
