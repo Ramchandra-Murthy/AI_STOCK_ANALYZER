@@ -498,6 +498,11 @@ function App() {
           <button className="secondary" onClick={refreshSignalBoard} disabled={signalRefreshing}>
             {signalRefreshing ? "Refreshing…" : "Refresh all signals"}
           </button>
+          {signalRefreshing ? (
+            <span className="refresh-status" role="status" aria-live="polite">
+              Updating activity, market signals, health, and history…
+            </span>
+          ) : null}
           <button className="secondary" onClick={refreshHistory} aria-label="Refresh saved scan history">Refresh history</button>
           <button className="secondary" onClick={resetDashboardControls} aria-label="Reset dashboard filters and controls">
             Reset controls
