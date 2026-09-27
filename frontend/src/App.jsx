@@ -131,6 +131,7 @@ function App() {
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(() => readDashboardPreference("auto-refresh-interval", "60"));
   const [nextAutoScanAt, setNextAutoScanAt] = useState(null);
   const [autoRefreshCountdown, setAutoRefreshCountdown] = useState(null);
+  const [refreshStartedAt, setRefreshStartedAt] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [tableExchange, setTableExchange] = useState(() => readDashboardPreference("table-exchange", "All"));
   const [sortKey, setSortKey] = useState(() => readDashboardPreference("sort-key", "Symbol"));
@@ -398,7 +399,9 @@ function App() {
       setUnusualRows(activityData.results ?? []);
       setMarketRows(marketData.results ?? []);
       await Promise.all([refreshHealth(), refreshHistory()]);
-      setLastUpdated(new Date().toISOString());
+      const refreshedAt = Date.now();
+      setLastUpdated(new Date(refreshedAt).toISOString());
+      setRefreshStartedAt(refreshedAt);
       setStatus("Ready");
     } catch (error) {
       setStatus(error.message);
@@ -845,6 +848,10 @@ function App() {
           {signalRefreshing ? (
             <span className="refresh-status" role="status" aria-live="polite">
               Updating activity, market signals, health, and history…
+            </span>
+          ) : refreshStartedAt ? (
+            <span className="refresh-status" role="status" aria-live="polite">
+              Last refresh completed at {new Date(refreshStartedAt).toLocaleTimeString()}
             </span>
           ) : null}
           <button className="secondary" onClick={refreshHistory} aria-label="Refresh saved scan history">Refresh history</button>
