@@ -554,6 +554,11 @@ function App() {
           <div className="table-toolbar">
             <label htmlFor="stock-search">Search symbol</label>
             <input id="stock-search" type="search" value={tableSearch} onChange={(e) => setTableSearch(e.target.value)} placeholder="e.g. RELIANCE" aria-label="Search visible stocks by symbol" />
+            {tableSearch ? (
+              <button className="secondary clear-search" onClick={() => setTableSearch("")} aria-label="Clear stock search">
+                Clear
+              </button>
+            ) : null}
             <label htmlFor="table-exchange">Table exchange</label>
             <select id="table-exchange" value={tableExchange} onChange={(e) => setTableExchange(e.target.value)}>
               <option>All</option><option>NSE</option><option>BSE</option>
