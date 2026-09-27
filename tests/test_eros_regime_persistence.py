@@ -42,7 +42,7 @@ def test_summarizes_regime_persistence():
     assert rising["Maximum_Duration_Minutes"] == 10.0
     assert not rising["Current Run"]
 
-    assert balanced["Overall Continuation %"] == 80.0
+    assert balanced["Overall Continuation %"] == 60.0
 
 
 def test_invalid_input_returns_empty():

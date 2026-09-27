@@ -56,7 +56,7 @@ def analyze_eros_regime_transitions(history: pd.DataFrame | None) -> pd.DataFram
 
     previous_regime = frame["Regime"].shift(1)
     previous_direction = frame["Direction"].shift(1)
-    changed = frame["Regime"].ne(previous_regime)
+    changed = previous_regime.notna() & frame["Regime"].ne(previous_regime)
 
     transitions = frame.loc[changed].copy()
     if transitions.empty:

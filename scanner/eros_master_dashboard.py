@@ -82,11 +82,17 @@ def build_eros_master_dashboard(
                     "Transition Type",
                 }
             ]
-            signal = signal.merge(
-                frame[columns],
-                on=["Symbol", "Exchange"],
-                how="left",
-            )
+            columns = [
+                column
+                for column in columns
+                if column not in {"Symbol", "Exchange"} and column not in signal.columns
+            ]
+            if columns:
+                signal = signal.merge(
+                    frame[["Symbol", "Exchange", *columns]],
+                    on=["Symbol", "Exchange"],
+                    how="left",
+                )
 
     summary_values: dict[str, object] = {
         "Signals": len(signal),

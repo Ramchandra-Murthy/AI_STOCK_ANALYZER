@@ -45,6 +45,7 @@ from services.intraday_signal_validation import (
     build_signal_validation_frame,
     validation_summary,
 )
+from services.options_analytics import fetch_option_chain, summarize_option_chain
 from services.intraday_state_history import (
     record_setup_state_transitions,
     transitions_frame,
@@ -89,6 +90,83 @@ st.info(
     "There is no universal formal definition of a penny stock. "
     "The current candidate universe is limited to the symbols maintained by this app."
 )
+
+st.subheader("📈 Options Analytics")
+st.caption(
+    "Phase 1 options analytics: provider-reported option-chain data, open interest, "
+    "volume, implied volatility and descriptive PCR. This module is analytical only; "
+    "it does not place orders or generate automatic trade instructions."
+)
+
+options_left, options_right = st.columns([1, 3])
+with options_left:
+    options_underlying = st.selectbox(
+        "Options underlying",
+        ["NIFTY", "BANKNIFTY", "FINNIFTY"],
+        key="options_underlying",
+    )
+    options_load = st.button(
+        "Load option chain",
+        type="primary",
+        key="load_option_chain",
+    )
+with options_right:
+    st.info(
+        "The first release uses the existing Yahoo Finance dependency as the provider "
+        "boundary. If an Indian index chain is not exposed by the provider, EROS will "
+        "show UNAVAILABLE rather than inventing option data."
+    )
+
+if options_load:
+    with st.spinner(f"Loading {options_underlying} option chain…"):
+        st.session_state["options_chain_result"] = fetch_option_chain(options_underlying)
+
+options_result = st.session_state.get("options_chain_result")
+if options_result is None:
+    st.caption("Select an underlying and load its option chain to begin.")
+elif options_result.status == "AVAILABLE":
+    expiry_options = list(options_result.expiries)
+    expiry = st.selectbox(
+        "Expiry",
+        expiry_options,
+        index=(
+            expiry_options.index(options_result.expiry)
+            if options_result.expiry in expiry_options
+            else 0
+        ),
+        key="options_expiry",
+    )
+    if expiry != options_result.expiry and st.button(
+        "Reload selected expiry",
+        key="reload_option_expiry",
+    ):
+        with st.spinner(f"Loading {options_underlying} · {expiry}…"):
+            st.session_state["options_chain_result"] = fetch_option_chain(
+                options_underlying,
+                expiry,
+            )
+        st.rerun()
+
+    metric_left, metric_mid, metric_right = st.columns(3)
+    metric_left.metric(
+        "Underlying spot",
+        f"₹{options_result.spot:,.2f}" if options_result.spot else "—",
+    )
+    metric_mid.metric("Expiry", options_result.expiry or "—")
+    metric_right.metric("Provider", "Yahoo Finance")
+
+    option_summary = summarize_option_chain(options_result.chain)
+    st.dataframe(option_summary, use_container_width=True, hide_index=True)
+    st.dataframe(options_result.chain, use_container_width=True, hide_index=True)
+    st.download_button(
+        "Download option chain CSV",
+        options_result.chain.to_csv(index=False).encode("utf-8"),
+        file_name=f"{options_underlying.lower()}_option_chain.csv",
+        mime="text/csv",
+        key="download_option_chain",
+    )
+else:
+    st.warning(f"Options data: {options_result.status} · {options_result.message}")
 
 left, middle, right = st.columns(3)
 with left:

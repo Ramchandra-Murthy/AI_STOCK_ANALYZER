@@ -30,9 +30,9 @@ def test_compares_recorded_regime_with_breadth_implied_regime():
     assert rising["Consistent_Snapshots"] == 1
     assert rising["Consistency %"] == 50.0
     assert balanced["Snapshots"] == 2
-    assert balanced["Consistent_Snapshots"] == 2
-    assert balanced["Consistency %"] == 100.0
-    assert result["Overall Consistency %"].iloc[0] == 80.0
+    assert balanced["Consistent_Snapshots"] == 1
+    assert balanced["Consistency %"] == 50.0
+    assert result["Overall Consistency %"].iloc[0] == 60.0
 
 
 def test_invalid_input_returns_empty():
