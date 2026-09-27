@@ -384,6 +384,12 @@ function App() {
           <Stat label="Mode" value="NSE + BSE" detail="Existing scanner universe" />
         </div>
 
+        <section className="panel freshness-bar" aria-label="Dashboard data freshness">
+          <div><span>Dashboard data</span><strong>{lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : "Not refreshed yet"}</strong></div>
+          <div><span>Auto-scan</span><strong>{autoRefresh ? "ON · 60s" : "OFF"}</strong></div>
+          <div><span>API health</span><strong>{health}</strong></div>
+        </section>
+
         <section className="panel signal-strip" aria-label="Signal counts">
           <div><span>Pulse signals</span><strong>{pulseCount}</strong></div>
           <div><span>Unusual activity</span><strong>{unusualCount}</strong></div>
