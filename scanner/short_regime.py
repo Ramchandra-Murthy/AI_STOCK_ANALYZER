@@ -95,6 +95,71 @@ def higher_highs_lows(
     return result
 
 
+def floor_ceiling_regime(
+    df: pd.DataFrame,
+    levels: int = 3,
+) -> pd.DataFrame:
+    """Classify a two-state regime from fractal floors and ceilings.
+
+    Chapter 4 describes floor and ceiling as a variation of higher
+    highs/higher lows. A higher swing low establishes a floor and a lower
+    swing high establishes a ceiling. In the conservative form, a bearish
+    regime turns bullish when price crosses the ceiling; a bullish regime
+    turns bearish when price crosses the floor. Sideways movement is therefore
+    treated as a pause inside the current bull/bear context.
+    """
+    if levels < 1:
+        raise ValueError("levels must be positive")
+    required = {"High", "Low", "Close"}
+    missing = required.difference(df.columns)
+    if missing:
+        raise ValueError(f"missing required columns: {sorted(missing)}")
+
+    result = df.copy()
+    swings = fractal_swings(df, levels=levels)
+    close = pd.to_numeric(df["Close"], errors="coerce")
+
+    for level in range(1, levels + 1):
+        hi_col = f"Hi{level}"
+        lo_col = f"Lo{level}"
+        if hi_col not in swings.columns or lo_col not in swings.columns:
+            break
+
+        highs = pd.to_numeric(swings[hi_col], errors="coerce")
+        lows = pd.to_numeric(swings[lo_col], errors="coerce")
+        previous_high = highs.ffill().shift(1)
+        previous_low = lows.ffill().shift(1)
+
+        floor = lows.where(lows.notna() & (lows > previous_low)).ffill()
+        ceiling = highs.where(highs.notna() & (highs < previous_high)).ffill()
+
+        regime = pd.Series("NEUTRAL", index=df.index, dtype="string")
+        state = "NEUTRAL"
+        for idx in df.index:
+            price = close.loc[idx]
+            floor_value = floor.loc[idx]
+            ceiling_value = ceiling.loc[idx]
+            if pd.isna(price):
+                regime.loc[idx] = state
+                continue
+            if state == "BEARISH" and pd.notna(ceiling_value) and price > ceiling_value:
+                state = "BULLISH"
+            elif state == "BULLISH" and pd.notna(floor_value) and price < floor_value:
+                state = "BEARISH"
+            elif state == "NEUTRAL":
+                if pd.notna(ceiling_value) and price > ceiling_value:
+                    state = "BULLISH"
+                elif pd.notna(floor_value) and price < floor_value:
+                    state = "BEARISH"
+            regime.loc[idx] = state
+
+        result[f"Floor{level}"] = floor
+        result[f"Ceiling{level}"] = ceiling
+        result[f"HiLo_FC{level}"] = regime
+
+    return result
+
+
 def turtle_regime(
     df: pd.DataFrame,
     entry_lookback: int = 50,
