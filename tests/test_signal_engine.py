@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 
 from algorithmic_trading.edge_engine import calculate_edge
@@ -5,7 +6,7 @@ from algorithmic_trading.signal_engine import compose_signal
 
 
 def test_bullish_signal_uses_all_components() -> None:
-    edge = calculate_edge(__import__("pandas").Series([2.0, 3.0, -1.0]))
+    edge = calculate_edge(pd.Series([2.0, 3.0, -1.0]))
     signal = compose_signal("BULLISH", 4, 8.0, edge, min_expectancy=0.5)
     assert signal.direction == "LONG"
     assert signal.edge_qualified is True
