@@ -71,9 +71,7 @@ def reconcile_orders(
     Matching is by symbol and signed quantity. An execution with no
     corresponding order is an override; an order with no execution is missed.
     """
-    execution_by_key = {
-        (item.symbol, item.quantity): item for item in executions
-    }
+    execution_by_key = {(item.symbol, item.quantity): item for item in executions}
     matched_execution_ids: set[str] = set()
     records: list[ReconciliationRecord] = []
 
