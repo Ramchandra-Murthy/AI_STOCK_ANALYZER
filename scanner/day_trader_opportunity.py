@@ -176,7 +176,11 @@ def scan_day_trader_opportunities(
     universe = select_day_trader_universe(cap_category, exchange_category)
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
 
-    candle_minutes = 1 if lookback_minutes in (2, 3) else 5
+    # Use 1-minute candles for the full supported lookback range. Using 5-minute
+    # candles for the 5-minute mode left the scanner with fewer than six bars
+    # early in the session, so every symbol was incorrectly classified as having
+    # no usable intraday data (for example, a scan around 09:27 IST).
+    candle_minutes = 1
     interval = f"{candle_minutes}m"
     bars = max(1, int(round(lookback_minutes / candle_minutes)))
     rows: list[dict[str, Any]] = []
