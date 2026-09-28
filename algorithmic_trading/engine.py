@@ -7,8 +7,8 @@ from dataclasses import dataclass
 import pandas as pd
 
 from algorithmic_trading.market import MarketSymbol
-from algorithmic_trading.relative_strength import relative_return
 from algorithmic_trading.regime_engine import classify_regime, regime_score
+from algorithmic_trading.relative_strength import relative_return
 
 
 @dataclass(frozen=True)
