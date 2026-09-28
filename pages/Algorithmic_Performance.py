@@ -110,4 +110,3 @@ if run:
             "Completed-trade feedback will populate after realized trade records "
             "are connected to the paper-trading ledger."
         )
-"
