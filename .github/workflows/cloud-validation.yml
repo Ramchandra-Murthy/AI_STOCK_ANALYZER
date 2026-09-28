@@ -25,7 +25,7 @@ jobs:
           version: "0.12.1"
 
       - name: Install locked Python dependencies
-        run: uv sync --no-build
+        run: uv sync --no-build --no-install-project
 
       - name: Run Python tests
         run: uv run pytest -q
