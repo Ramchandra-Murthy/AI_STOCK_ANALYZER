@@ -26,7 +26,7 @@ def test_volatility_size() -> None:
 
 
 def test_fractional_kelly_is_non_negative() -> None:
-    assert fractional_kelly_fraction(0.60, 1.5, 0.25) == pytest.approx(0.0166666667)
+    assert fractional_kelly_fraction(0.60, 1.5, 0.25) == pytest.approx(0.0833333333)
     assert fractional_kelly_fraction(0.40, 1.0, 0.25) == 0.0
 
 
