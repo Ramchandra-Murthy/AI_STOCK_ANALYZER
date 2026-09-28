@@ -160,7 +160,6 @@ def floor_ceiling_regime(
     return result
 
 
-
 def turtle_regime(
     df: pd.DataFrame,
     entry_lookback: int = 50,
