@@ -17,7 +17,9 @@ def relative_series(prices: pd.Series, benchmark: pd.Series) -> pd.Series:
 
 
 def relative_return(
-    prices: pd.Series, benchmark: pd.Series, periods: int = 20
+    prices: pd.Series,
+    benchmark: pd.Series,
+    periods: int = 20,
 ) -> float | None:
     rs = relative_series(prices, benchmark)
     if len(rs) <= periods:
