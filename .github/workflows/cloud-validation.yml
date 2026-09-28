@@ -28,7 +28,7 @@ jobs:
         run: uv sync --locked --no-build --no-install-project
 
       - name: Run Python tests
-        run: python -m pytest -q
+        run: uv run pytest -q
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
