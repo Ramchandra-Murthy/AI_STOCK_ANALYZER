@@ -93,7 +93,9 @@ def run_backtest(
     trade_returns = _trade_returns(data)
     wins = trade_returns[trade_returns > 0]
     losses = trade_returns[trade_returns < 0]
-    total_return = float(data["strategy_equity"].iloc[-1] / initial_capital - 1.0)
+    total_return = float(
+        data["strategy_equity"].iloc[-1] / initial_capital - 1.0
+    )
 
     elapsed_days = (data.index[-1] - data.index[0]).days
     final_equity = float(data["strategy_equity"].iloc[-1])
@@ -112,9 +114,15 @@ def run_backtest(
         total_return=total_return,
         cagr=cagr,
         max_drawdown=float(data["drawdown"].min()),
-        buy_hold_return=float(data["buy_hold_equity"].iloc[-1] / initial_capital - 1.0),
+        buy_hold_return=float(
+            data["buy_hold_equity"].iloc[-1] / initial_capital - 1.0
+        ),
         trade_count=int(data["turnover"].gt(0).sum()),
-        win_rate=float(len(wins) / len(trade_returns)) if len(trade_returns) else 0.0,
+        win_rate=(
+            float(len(wins) / len(trade_returns))
+            if len(trade_returns)
+            else 0.0
+        ),
         profit_factor=profit_factor,
     )
     return data, metrics
