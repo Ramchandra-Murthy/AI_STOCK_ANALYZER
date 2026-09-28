@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 
@@ -78,15 +79,22 @@ def volatility_size(
     return PositionSize(quantity, risk_budget, risk_per_share, "volatility")
 
 
+def _valid_probability(value: float) -> bool:
+    """Return whether a value is a finite probability strictly inside (0, 1)."""
+    return math.isfinite(value) and 0.0 < value < 1.0
+
+
 def fractional_kelly_fraction(
     win_probability: float,
     win_loss_ratio: float,
     fraction: float = 0.25,
 ) -> float:
     """Return a fractional Kelly allocation from measured trade statistics."""
-    if win_probability <= 0 or win_probability >= 1:
+    if not _valid_probability(win_probability):
         return 0.0
-    if win_loss_ratio <= 0 or fraction <= 0 or fraction > 1:
+    if not math.isfinite(win_loss_ratio) or win_loss_ratio <= 0:
+        return 0.0
+    if not math.isfinite(fraction) or fraction <= 0 or fraction > 1:
         return 0.0
 
     loss_probability = 1.0 - win_probability
