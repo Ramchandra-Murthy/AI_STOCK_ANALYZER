@@ -76,10 +76,7 @@ if st.button("Calculate portfolio allocation", type="primary"):
             capital=100_000.0,
             period="1y",
         )
-        tickers = [
-            f"{symbol}.NS" if exchange == "NSE" else f"{symbol}.BO"
-            for symbol in symbols
-        ]
+        tickers = [f"{symbol}.NS" if exchange == "NSE" else f"{symbol}.BO" for symbol in symbols]
         history = yf.download(
             tickers=tickers,
             period="1y",
