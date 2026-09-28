@@ -77,7 +77,9 @@ st.set_page_config(
 )
 
 st.title("📊 NSE/BSE Algorithmic Performance")
-st.caption("Historical signal performance only. Open paper positions are not treated " "as realized P&L.")
+st.caption(
+    "Historical signal performance only. Open paper positions are not treated " "as realized P&L."
+)
 
 left, right = st.columns(2)
 with left:
