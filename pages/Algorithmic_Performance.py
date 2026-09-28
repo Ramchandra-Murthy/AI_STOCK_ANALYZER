@@ -32,7 +32,8 @@ def _show_results(data: pd.DataFrame, metrics) -> None:
     cols = st.columns(6)
     cols[0].metric("Total return", f"{metrics.total_return:.2%}")
     cols[1].metric(
-        "CAGR", f"{metrics.cagr:.2%}" if metrics.cagr is not None else "—"
+        "CAGR",
+        f"{metrics.cagr:.2%}" if metrics.cagr is not None else "—",
     )
     cols[2].metric("Max drawdown", f"{metrics.max_drawdown:.2%}")
     cols[3].metric("Buy & hold", f"{metrics.buy_hold_return:.2%}")
