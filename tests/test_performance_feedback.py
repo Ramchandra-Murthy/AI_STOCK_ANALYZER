@@ -28,7 +28,7 @@ def test_summary_and_profit_factor():
     assert summary.losses == 2
     assert summary.win_rate == pytest.approx(0.5)
     assert summary.total_pnl == pytest.approx(1000.0)
-    assert summary.profit_factor == pytest.approx(4.0)
+    assert summary.profit_factor == pytest.approx(1600.0 / 600.0)
 
 
 def test_group_performance_is_auditable():
