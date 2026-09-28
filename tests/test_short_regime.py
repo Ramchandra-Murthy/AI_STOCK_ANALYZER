@@ -220,9 +220,7 @@ def test_floor_ceiling_regime_tracks_conservative_regime_changes():
     assert "HiLo_FC1" in result.columns
     assert result["Floor1"].notna().any()
     assert result["Ceiling1"].notna().any()
-    assert set(result["HiLo_FC1"].dropna().unique()).issubset(
-        {"NEUTRAL", "BULLISH", "BEARISH"}
-    )
+    assert set(result["HiLo_FC1"].dropna().unique()).issubset({"NEUTRAL", "BULLISH", "BEARISH"})
 
 
 def test_floor_ceiling_regime_rejects_invalid_arguments():
