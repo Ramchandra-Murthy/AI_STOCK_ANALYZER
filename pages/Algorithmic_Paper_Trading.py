@@ -77,9 +77,7 @@ if scan is not None and not scan.empty:
         st.session_state.paper_rebalance = result
         st.success(f"Applied {len(result.fills)} simulated fills.")
 
-    prices = {
-        str(row["symbol"]): float(row["price"]) for _, row in scan.iterrows()
-    }
+    prices = {str(row["symbol"]): float(row["price"]) for _, row in scan.iterrows()}
     equity = portfolio.mark_to_market(prices)
 
     cols = st.columns(3)
