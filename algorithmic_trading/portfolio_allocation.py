@@ -62,9 +62,7 @@ def allocate_scan(
         raise ValueError("unsupported allocation method")
 
     candidates = scan.loc[scan["signal"].isin(["LONG", "SHORT"])].copy()
-    candidates = candidates.sort_values("signal_score", ascending=False).head(
-        limits.max_positions
-    )
+    candidates = candidates.sort_values("signal_score", ascending=False).head(limits.max_positions)
     if candidates.empty:
         return candidates.assign(target_weight=pd.Series(dtype=float))
 
