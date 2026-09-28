@@ -25,6 +25,21 @@ class BacktestMetrics:
     profit_factor: float | None
 
 
+def _trade_returns(data: pd.DataFrame) -> pd.Series:
+    """Return realized return for each contiguous non-zero position."""
+    active = data["position"].ne(0)
+    starts = active & ~active.shift(1, fill_value=False)
+    trade_id = starts.cumsum()
+    active_returns = data.loc[active, "strategy_return"]
+
+    if active_returns.empty:
+        return pd.Series(dtype=float)
+
+    return active_returns.groupby(trade_id.loc[active]).apply(
+        lambda values: (1.0 + values).prod() - 1.0
+    )
+
+
 def run_backtest(
     prices: pd.Series,
     signals: pd.Series,
@@ -75,10 +90,7 @@ def run_backtest(
     peak = data["strategy_equity"].cummax()
     data["drawdown"] = data["strategy_equity"].div(peak).sub(1.0)
 
-    trade_returns = data.loc[
-        data["position"].ne(0) & data["position"].ne(data["position"].shift(1)),
-        "strategy_return",
-    ]
+    trade_returns = _trade_returns(data)
     wins = trade_returns[trade_returns > 0]
     losses = trade_returns[trade_returns < 0]
     total_return = float(data["strategy_equity"].iloc[-1] / initial_capital - 1.0)
