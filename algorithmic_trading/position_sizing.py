@@ -84,14 +84,14 @@ def fractional_kelly_fraction(
     fraction: float = 0.25,
 ) -> float:
     """Return a fractional Kelly allocation from measured trade statistics."""
-    if not 0 < win_probability < 1:
+    if win_probability <= 0 or win_probability >= 1:
         return 0.0
-    if win_loss_ratio <= 0 or fraction <= 0:
+    if win_loss_ratio <= 0 or fraction <= 0 or fraction > 1:
         return 0.0
 
     loss_probability = 1.0 - win_probability
     full_kelly = win_probability - loss_probability / win_loss_ratio
-    return max(0.0, full_kelly * min(fraction, 1.0))
+    return max(0.0, full_kelly * fraction)
 
 
 def capped_quantity(quantity: int, maximum: int | None = None) -> int:
