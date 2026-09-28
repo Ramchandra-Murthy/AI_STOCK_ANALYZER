@@ -46,7 +46,7 @@ def scan_universe(
     benchmark_close = _close_series(benchmark)
     rows: list[dict[str, object]] = []
 
-    for symbol, ticker in zip(symbols, tickers):
+    for symbol, ticker in zip(symbols, tickers, strict=True):
         frame = _symbol_frame(market, ticker)
         if frame.empty or "Close" not in frame.columns:
             continue
