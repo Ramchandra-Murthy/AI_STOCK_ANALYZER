@@ -48,7 +48,7 @@ def scan_universe(
 
     for symbol, ticker in zip(symbols, tickers):
         frame = _symbol_frame(market, ticker)
-        if frame.empty or "Close" not in frame:
+        if frame.empty or "Close" not in frame.columns:
             continue
         try:
             result = analyze_symbol(
@@ -88,7 +88,7 @@ def _close_series(frame: pd.DataFrame) -> pd.Series:
     if isinstance(frame.columns, pd.MultiIndex):
         frame = frame.copy()
         frame.columns = frame.columns.get_level_values(0)
-    if "Close" not in frame:
+    if "Close" not in frame.columns:
         return pd.Series(dtype=float)
     return pd.to_numeric(frame["Close"], errors="coerce").dropna()
 
