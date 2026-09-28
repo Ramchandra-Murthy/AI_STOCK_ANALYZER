@@ -87,9 +87,7 @@ def composite_regime_score(*signals: pd.Series) -> pd.Series:
     if not signals:
         raise ValueError("At least one regime signal is required")
     frame = pd.concat(signals, axis=1)
-    return frame.apply(pd.to_numeric, errors="coerce").fillna(0).sum(axis=1).rename(
-        "regime_score"
-    )
+    return frame.apply(pd.to_numeric, errors="coerce").fillna(0).sum(axis=1).rename("regime_score")
 
 
 def _validate_periods(short_period: int, long_period: int) -> None:
