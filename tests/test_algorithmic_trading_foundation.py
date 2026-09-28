@@ -2,8 +2,8 @@ import pandas as pd
 
 from algorithmic_trading.market import make_market_symbol
 from algorithmic_trading.position_sizing import atr_position_size
-from algorithmic_trading.relative_strength import relative_return
 from algorithmic_trading.regime_engine import classify_regime, regime_score
+from algorithmic_trading.relative_strength import relative_return
 
 
 def sample_frame(rows: int = 80) -> pd.DataFrame:
