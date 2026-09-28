@@ -11,9 +11,7 @@ from engine.regime_engine import (
 
 
 def test_breakout_sets_and_carries_regime() -> None:
-    frame = pd.DataFrame(
-        {"High": [10, 11, 12, 11, 10], "Low": [9, 8, 7, 8, 6]}
-    )
+    frame = pd.DataFrame({"High": [10, 11, 12, 11, 10], "Low": [9, 8, 7, 8, 6]})
     result = regime_breakout(frame, periods=3)
 
     assert result.iloc[2] == 1
@@ -39,9 +37,7 @@ def test_ema_regime_uses_short_minus_long() -> None:
 
 
 def test_turtle_returns_only_directional_or_neutral_states() -> None:
-    frame = pd.DataFrame(
-        {"High": [10, 11, 12, 11, 10, 9], "Low": [9, 8, 7, 8, 9, 6]}
-    )
+    frame = pd.DataFrame({"High": [10, 11, 12, 11, 10, 9], "Low": [9, 8, 7, 8, 9, 6]})
     result = turtle_trader(frame, entry_period=4, exit_period=2)
 
     assert set(result.unique()).issubset({-1, 0, 1})
