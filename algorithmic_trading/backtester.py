@@ -71,21 +71,14 @@ def run_backtest(
     data["signal"] = data["signal"].clip(-1, 1)
     data["position"] = data["signal"].shift(1).fillna(0.0)
     data["market_return"] = data["price"].pct_change().fillna(0.0)
-    data["turnover"] = data["position"].diff().abs().fillna(
-        data["position"].abs()
-    )
+    data["turnover"] = data["position"].diff().abs().fillna(data["position"].abs())
 
     transaction_cost = cost_bps / 10_000.0
     data["strategy_return"] = (
-        data["position"] * data["market_return"]
-        - data["turnover"] * transaction_cost
+        data["position"] * data["market_return"] - data["turnover"] * transaction_cost
     )
-    data["strategy_equity"] = initial_capital * (
-        1.0 + data["strategy_return"]
-    ).cumprod()
-    data["buy_hold_equity"] = initial_capital * (
-        1.0 + data["market_return"]
-    ).cumprod()
+    data["strategy_equity"] = initial_capital * (1.0 + data["strategy_return"]).cumprod()
+    data["buy_hold_equity"] = initial_capital * (1.0 + data["market_return"]).cumprod()
 
     peak = data["strategy_equity"].cummax()
     data["drawdown"] = data["strategy_equity"].div(peak).sub(1.0)
@@ -93,16 +86,12 @@ def run_backtest(
     trade_returns = _trade_returns(data)
     wins = trade_returns[trade_returns > 0]
     losses = trade_returns[trade_returns < 0]
-    total_return = float(
-        data["strategy_equity"].iloc[-1] / initial_capital - 1.0
-    )
+    total_return = float(data["strategy_equity"].iloc[-1] / initial_capital - 1.0)
 
     elapsed_days = (data.index[-1] - data.index[0]).days
     final_equity = float(data["strategy_equity"].iloc[-1])
     if elapsed_days > 0 and final_equity > 0:
-        cagr = float(
-            (final_equity / initial_capital) ** (365.25 / elapsed_days) - 1.0
-        )
+        cagr = float((final_equity / initial_capital) ** (365.25 / elapsed_days) - 1.0)
     else:
         cagr = None
 
@@ -114,15 +103,9 @@ def run_backtest(
         total_return=total_return,
         cagr=cagr,
         max_drawdown=float(data["drawdown"].min()),
-        buy_hold_return=float(
-            data["buy_hold_equity"].iloc[-1] / initial_capital - 1.0
-        ),
+        buy_hold_return=float(data["buy_hold_equity"].iloc[-1] / initial_capital - 1.0),
         trade_count=int(data["turnover"].gt(0).sum()),
-        win_rate=(
-            float(len(wins) / len(trade_returns))
-            if len(trade_returns)
-            else 0.0
-        ),
+        win_rate=(float(len(wins) / len(trade_returns)) if len(trade_returns) else 0.0),
         profit_factor=profit_factor,
     )
     return data, metrics
