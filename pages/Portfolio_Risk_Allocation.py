@@ -68,7 +68,6 @@ with right:
 
 if st.button("Calculate portfolio allocation", type="primary"):
     symbols = universe[:count]
-    benchmark = "^NSEI" if exchange == "NSE" else "^BSESN"
 
     with st.spinner(f"Scanning {count} {exchange} symbols..."):
         scan = scan_universe(
@@ -126,7 +125,10 @@ if st.button("Calculate portfolio allocation", type="primary"):
     cols[0].metric("Positions", len(allocation))
     cols[1].metric("Gross exposure", f"{gross:.1%}")
     cols[2].metric("Net exposure", f"{net:.1%}")
-    cols[3].metric("Largest position", f"{allocation['target_weight'].abs().max():.1%}")
+    cols[3].metric(
+        "Largest position",
+        f"{allocation['target_weight'].abs().max():.1%}",
+    )
 
     st.subheader("Portfolio allocation")
     st.dataframe(
