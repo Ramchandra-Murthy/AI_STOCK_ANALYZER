@@ -25,10 +25,10 @@ jobs:
           version: "0.12.1"
 
       - name: Install locked Python dependencies
-        run: uv sync --locked --no-install-project
+        run: uv sync --locked --no-build --no-install-project
 
       - name: Run Python tests
-        run: uv run --locked --no-sync pytest -q
+        run: uv run --locked --no-sync --no-build pytest -q
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
