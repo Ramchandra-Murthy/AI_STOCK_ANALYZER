@@ -34,7 +34,10 @@ def test_allocate_scan_respects_position_cap() -> None:
 
 def test_snapshot_rejects_excess_gross_exposure() -> None:
     index = pd.date_range("2026-01-01", periods=2)
-    values = pd.DataFrame(\n        {"A": [100.0, 150.0], "B": [100.0, 150.0]}, index=index\n    )
+    values = pd.DataFrame(
+        {"A": [100.0, 150.0], "B": [100.0, 150.0]},
+        index=index,
+    )
     nav = pd.Series([200.0, 200.0], index=index)
     beta = pd.Series({"A": 1.0, "B": 1.0})
 
