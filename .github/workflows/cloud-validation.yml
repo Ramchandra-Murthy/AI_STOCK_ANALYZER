@@ -24,9 +24,6 @@ jobs:
         with:
           version: "0.12.1"
 
-      - name: Lock Python dependencies
-        run: uv lock
-
       - name: Install locked Python dependencies
         run: uv sync --locked --no-install-project
 
