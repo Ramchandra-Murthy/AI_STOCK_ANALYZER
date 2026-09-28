@@ -28,7 +28,7 @@ jobs:
         run: uv lock
 
       - name: Install locked Python dependencies
-        run: uv sync --locked --no-build --no-install-project
+        run: uv sync --locked --no-install-project
 
       - name: Run Python tests
         run: uv run --locked --no-sync pytest -q
