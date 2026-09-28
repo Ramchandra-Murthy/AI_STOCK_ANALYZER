@@ -74,7 +74,7 @@ class RealizedTradeLedger:
 
         while signed_quantity and lots and self._same_position_side(lots[0], signed_quantity):
             lot = lots[0]
-            matched = min(abs(signed_quantity), lot.quantity)
+            matched = min(abs(signed_quantity), abs(lot.quantity))
             exit_price = fill.price
             pnl_per_share = (
                 exit_price - lot.entry_price if lot.quantity > 0 else lot.entry_price - exit_price
