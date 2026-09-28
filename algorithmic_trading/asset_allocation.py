@@ -31,7 +31,20 @@ def inverse_volatility_weight(
         raise ValueError("annualization must be greater than zero")
 
     volatility = returns.std(ddof=1) * np.sqrt(annualization)
-    inverse = volatility.replace([np.inf, -np.inf], np.nan).rdiv(1.0)
+    volatility = volatility.replace([np.inf, -np.inf], np.nan)
+
+    # A zero-volatility series should receive the strongest inverse-volatility
+    # weight, not be discarded as a missing value.
+    zero_volatility = volatility.eq(0)
+    if zero_volatility.any():
+        count = int(zero_volatility.sum())
+        return pd.Series(
+            np.where(zero_volatility, 1.0 / count, 0.0),
+            index=returns.columns,
+            dtype=float,
+        )
+
+    inverse = volatility.rdiv(1.0)
     inverse = inverse.replace([np.inf, -np.inf], np.nan).fillna(0.0)
     total = float(inverse.sum())
     if total <= 0:
