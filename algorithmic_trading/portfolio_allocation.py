@@ -61,9 +61,7 @@ def allocate_scan(
     if method not in {"equal", "inverse_volatility"}:
         raise ValueError("unsupported allocation method")
 
-    candidates = scan.loc[
-        scan["signal"].isin(["LONG", "SHORT"])
-    ].copy()
+    candidates = scan.loc[scan["signal"].isin(["LONG", "SHORT"])].copy()
     candidates = candidates.sort_values("signal_score", ascending=False).head(
         limits.max_positions
     )
@@ -72,11 +70,7 @@ def allocate_scan(
 
     symbols = candidates["symbol"].astype(str).tolist()
     available = returns.reindex(columns=symbols)
-    weights = (
-        equal_weight(available)
-        if method == "equal"
-        else inverse_volatility_weight(available)
-    )
+    weights = equal_weight(available) if method == "equal" else inverse_volatility_weight(available)
     weights = apply_weight_cap(weights, limits.max_position_weight)
 
     directions = candidates.set_index("symbol")["signal"].map(
