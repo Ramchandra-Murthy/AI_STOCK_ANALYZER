@@ -25,15 +25,17 @@ jobs:
       uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       with:
         version: "0.12.1"
+    - name: Lock Python dependencies
+      run: uv lock
     - name: Install locked dependencies
-      run: uv sync --locked --no-build --no-install-project
+      run: uv sync --locked --no-install-project
     - name: Lint with Ruff
-      run: uv run --locked --no-sync --no-build ruff check .
+      run: uv run --locked --no-sync ruff check .
     - name: Check formatting with Black
-      run: uv run --locked --no-sync --no-build black --check --diff --force-exclude '(^|/)(\\.venv|venv|archive|backup_before_v2)/' .
+      run: uv run --locked --no-sync black --check --diff --force-exclude '(^|/)(\\.venv|venv|archive|backup_before_v2)/' .
     - name: Type check supported runtime surface
       run: >-
-        uv run --locked --no-sync --no-build mypy
+        uv run --locked --no-sync mypy
         services/ai_service.py
         services/fundamental_score_service.py
         services/recommendation_service.py
@@ -46,7 +48,7 @@ jobs:
       env:
         PYTHONPATH: ${{ github.workspace }}
       run: >-
-        uv run --locked --no-sync --no-build python -m pytest --import-mode=importlib -q
+        uv run --locked --no-sync python -m pytest --import-mode=importlib -q
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
         tests/forecast
