@@ -454,6 +454,40 @@ else:
         if column in pulse_results.columns
     ]
     st.dataframe(pulse_results[pulse_columns], use_container_width=True, hide_index=True)
+
+    st.subheader("⭐ Top 10 Price-Jump Watchlist")
+    st.caption(
+        "The watchlist keeps the 10 largest observed short-window price jumps from the "
+        "latest pulse, ranked by percentage change and then relative volume. "
+        "It is a monitoring list, not a trade recommendation."
+    )
+    watchlist = pulse_results.head(10).copy()
+    watchlist.insert(0, "Rank", range(1, len(watchlist) + 1))
+    watchlist_columns = [
+        column
+        for column in [
+            "Rank",
+            "Symbol",
+            "Exchange",
+            "Last price",
+            f"Change over {st.session_state.get('price_jump_scan_window', st.session_state.get('pulse_window', 5))} min %",
+            "Volume vs recent bars",
+            "Latest candle (provider time)",
+        ]
+        if column in watchlist.columns
+    ]
+    st.dataframe(
+        watchlist[watchlist_columns],
+        use_container_width=True,
+        hide_index=True,
+    )
+    st.download_button(
+        "Download top-10 watchlist CSV",
+        watchlist[watchlist_columns].to_csv(index=False).encode("utf-8"),
+        file_name="top10_price_jump_watchlist.csv",
+        mime="text/csv",
+        key="download_top10_price_jump_watchlist",
+    )
     st.download_button(
         "Download price-jump pulse CSV",
         pulse_results.to_csv(index=False).encode("utf-8"),
