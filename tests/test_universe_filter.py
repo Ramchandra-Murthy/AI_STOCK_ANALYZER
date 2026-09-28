@@ -1,5 +1,4 @@
 import pandas as pd
-
 import pytest
 
 from algorithmic_trading.universe_filter import (
