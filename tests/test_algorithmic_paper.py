@@ -8,7 +8,14 @@ from algorithmic_trading.paper_trading import PaperPortfolio
 def test_rebalance_applies_long_target() -> None:
     portfolio = PaperPortfolio(cash=10_000.0)
     scan = pd.DataFrame(
-        [{"symbol": "RELIANCE", "price": 100.0, "signal": "LONG", "quantity": 20}]
+        [
+            {
+                "symbol": "RELIANCE",
+                "price": 100.0,
+                "signal": "LONG",
+                "quantity": 20,
+            }
+        ]
     )
 
     result = rebalance_from_scan(portfolio, scan)
@@ -22,7 +29,14 @@ def test_rebalance_can_move_to_short_target() -> None:
     portfolio = PaperPortfolio(cash=10_000.0)
     portfolio.positions["TCS"] = 10
     scan = pd.DataFrame(
-        [{"symbol": "TCS", "price": 200.0, "signal": "SHORT", "quantity": 10}]
+        [
+            {
+                "symbol": "TCS",
+                "price": 200.0,
+                "signal": "SHORT",
+                "quantity": 10,
+            }
+        ]
     )
 
     result = rebalance_from_scan(portfolio, scan)
