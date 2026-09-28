@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -24,7 +25,7 @@ def returns() -> pd.DataFrame:
 def test_equal_weight(returns: pd.DataFrame) -> None:
     weights = equal_weight(returns)
     assert weights.sum() == pytest.approx(1.0)
-    assert (weights == pytest.approx(1 / 3)).all()
+    assert np.allclose(weights.to_numpy(), 1 / 3)
 
 
 def test_inverse_volatility_weight(returns: pd.DataFrame) -> None:
