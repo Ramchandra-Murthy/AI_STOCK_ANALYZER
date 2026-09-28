@@ -73,9 +73,7 @@ def allocate_scan(
     weights = equal_weight(available) if method == "equal" else inverse_volatility_weight(available)
     weights = apply_weight_cap(weights, limits.max_position_weight)
 
-    directions = candidates.set_index("symbol")["signal"].map(
-        {"LONG": 1.0, "SHORT": -1.0}
-    )
+    directions = candidates.set_index("symbol")["signal"].map({"LONG": 1.0, "SHORT": -1.0})
     signed = weights.reindex(symbols).fillna(0.0) * directions.reindex(symbols)
     gross = float(signed.abs().sum())
     if gross > limits.max_gross_exposure and gross > 0:
