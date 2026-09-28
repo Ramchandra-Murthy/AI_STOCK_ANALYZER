@@ -77,9 +77,7 @@ class RealizedTradeLedger:
             matched = min(abs(signed_quantity), lot.quantity)
             exit_price = fill.price
             pnl_per_share = (
-                exit_price - lot.entry_price
-                if lot.quantity > 0
-                else lot.entry_price - exit_price
+                exit_price - lot.entry_price if lot.quantity > 0 else lot.entry_price - exit_price
             )
             trade_side = "LONG" if lot.quantity > 0 else "SHORT"
             trade = RealizedTrade(
