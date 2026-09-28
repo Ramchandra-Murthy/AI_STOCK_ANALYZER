@@ -13,9 +13,7 @@ def _download_market_data(ticker: str, benchmark_ticker: str, period: str):
     """Download and normalize one symbol and its benchmark."""
     with st.spinner(f"Loading {ticker} and {benchmark_ticker}..."):
         frame = yf.download(ticker, period=period, auto_adjust=False, progress=False)
-        benchmark = yf.download(
-            benchmark_ticker, period=period, auto_adjust=False, progress=False
-        )
+        benchmark = yf.download(benchmark_ticker, period=period, auto_adjust=False, progress=False)
 
     for data in (frame, benchmark):
         if isinstance(data.columns, pd.MultiIndex):
@@ -29,9 +27,7 @@ def _show_results(data: pd.DataFrame, metrics) -> None:
     st.subheader("Historical backtest")
     cols = st.columns(6)
     cols[0].metric("Total return", f"{metrics.total_return:.2%}")
-    cols[1].metric(
-        "CAGR", f"{metrics.cagr:.2%}" if metrics.cagr is not None else "—"
-    )
+    cols[1].metric("CAGR", f"{metrics.cagr:.2%}" if metrics.cagr is not None else "—")
     cols[2].metric("Max drawdown", f"{metrics.max_drawdown:.2%}")
     cols[3].metric("Buy & hold", f"{metrics.buy_hold_return:.2%}")
     cols[4].metric("Trades", metrics.trade_count)
