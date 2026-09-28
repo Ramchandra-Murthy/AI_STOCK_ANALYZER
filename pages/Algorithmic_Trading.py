@@ -87,11 +87,7 @@ if run:
     metric_cols[2].metric("Regime score", result.regime_score)
     metric_cols[3].metric(
         "Relative return",
-        (
-            f"{result.relative_return_pct:.2f}%"
-            if result.relative_return_pct is not None
-            else "—"
-        ),
+        (f"{result.relative_return_pct:.2f}%" if result.relative_return_pct is not None else "—"),
     )
     metric_cols[4].metric("Signal", result.signal.direction)
 
