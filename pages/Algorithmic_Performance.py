@@ -1,4 +1,4 @@
-""""Streamlit dashboard for algorithmic trading performance research."""
+"""Streamlit dashboard for algorithmic trading performance research."""
 
 from __future__ import annotations
 
