@@ -23,6 +23,7 @@ def test_calculate_price_jump_uses_same_session_bars():
 
     assert result is not None
     assert result["intraday_pct"] == 1.5
+    assert result["day_pct"] == 1.5
     assert result["qualifies"] == 1.0
     assert result["volume"] == 1800.0
 
@@ -83,6 +84,7 @@ def test_calculate_price_jump_supports_one_minute_window():
 
     assert result is not None
     assert result["intraday_pct"] == 1.0
+    assert result["day_pct"] == 1.0
     assert result["qualifies"] == 1.0
 
 

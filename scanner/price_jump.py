@@ -18,7 +18,7 @@ def calculate_price_jump(
     lookback_bars: int = 1,
     jump_percent: float = 1.0,
 ) -> dict[str, float | None] | None:
-    """Calculate the latest same-session price jump and relative volume."""
+    """Calculate the latest same-session price jump, day change and relative volume."""
     if frame is None or frame.empty or lookback_bars < 1:
         return None
     required = {"Close", "Volume"}
@@ -38,16 +38,19 @@ def calculate_price_jump(
 
     price = float(current.iloc[-1]["Close"])
     prior_price = float(current.iloc[-1 - lookback_bars]["Close"])
-    if price <= 0 or prior_price <= 0:
+    session_open = float(current.iloc[0]["Close"])
+    if price <= 0 or prior_price <= 0 or session_open <= 0:
         return None
 
     intraday_pct = (price / prior_price - 1.0) * 100.0
+    day_pct = (price / session_open - 1.0) * 100.0
     baseline = float(current["Volume"].iloc[-min(13, len(current) - 1) : -1].mean())
     volume = float(current.iloc[-1]["Volume"])
     relative_volume = volume / baseline if baseline > 0 else float("nan")
     return {
         "price": price,
         "intraday_pct": round(intraday_pct, 10),
+        "day_pct": round(day_pct, 10),
         "volume": volume,
         "relative_volume": relative_volume,
         "qualifies": float(intraday_pct >= jump_percent),
@@ -153,8 +156,9 @@ def scan_price_jumps(
                             f"Change over {lookback_minutes} min %": round(
                                 float(metrics["intraday_pct"]), 2
                             ),
+                            "Day %": round(float(metrics["day_pct"]), 2),
                             "Latest bar volume": int(metrics["volume"]),
-                            "Volume vs recent bars": (
+                            "RVOL": (
                                 round(float(metrics["relative_volume"]), 2)
                                 if pd.notna(metrics["relative_volume"])
                                 else None
@@ -175,7 +179,7 @@ def scan_price_jumps(
             .sort_values(
                 [
                     f"Change over {lookback_minutes} min %",
-                    "Volume vs recent bars",
+                    "RVOL",
                 ],
                 ascending=[False, False],
                 na_position="last",
