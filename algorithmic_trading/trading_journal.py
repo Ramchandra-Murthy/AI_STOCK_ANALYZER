@@ -361,4 +361,3 @@ def journal_ai_prompts() -> dict[str, str]:
             "friction-reduction change."
         ),
     }
-}
