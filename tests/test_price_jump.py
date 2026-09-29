@@ -1,6 +1,6 @@
 import pandas as pd
 
-from scanner.price_jump import calculate_price_jump
+from scanner.price_jump import _candle_settings, calculate_price_jump
 
 
 def test_calculate_price_jump_uses_same_session_bars():
@@ -84,3 +84,14 @@ def test_calculate_price_jump_supports_one_minute_window():
     assert result is not None
     assert result["intraday_pct"] == 1.0
     assert result["qualifies"] == 1.0
+
+
+def test_candle_settings_use_one_minute_for_short_windows():
+    assert _candle_settings(1) == ("1m", 1)
+    assert _candle_settings(2) == ("1m", 2)
+    assert _candle_settings(3) == ("1m", 3)
+
+
+def test_candle_settings_use_five_minute_for_longer_windows():
+    assert _candle_settings(5) == ("5m", 1)
+    assert _candle_settings(10) == ("5m", 2)
