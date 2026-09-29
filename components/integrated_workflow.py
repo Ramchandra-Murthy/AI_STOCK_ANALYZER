@@ -26,3 +26,19 @@ def show_integrated_workflow(frame: pd.DataFrame) -> None:
     display["close"] = display["close"].round(2)
     display["regime_score"] = display["regime_score"].round(2)
     st.dataframe(display, use_container_width=True)
+
+
+def show_live_integrated_scanner(frame: pd.DataFrame) -> None:
+    """Render the latest multi-symbol integrated scanner output."""
+    st.subheader("Live Integrated Trading Scanner")
+
+    if frame.empty:
+        st.info("No integrated scanner data is available.")
+        return
+
+    display = frame.copy()
+    display["Close"] = display["Close"].round(2)
+    display["Regime Score"] = display["Regime Score"].round(2)
+    display["Edge Signal"] = display["Edge Signal"].round(2)
+
+    st.dataframe(display, use_container_width=True, hide_index=True)
