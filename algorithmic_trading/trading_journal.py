@@ -303,7 +303,7 @@ def drawdown_stats(pnl) -> dict[str, float | int]:
             "freq": 0,
         }
 
-    depths = [float(drawdown.iloc[start:end + 1].min()) for start, end in periods]
+    depths = [float(drawdown.iloc[start : end + 1].min()) for start, end in periods]
     durations = [end - start + 1 for start, end in periods]
     return {
         "max_dd": round(min(depths), 4),
