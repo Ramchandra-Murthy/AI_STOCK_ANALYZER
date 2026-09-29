@@ -17,8 +17,12 @@ def compare_watchlists(
     previous = _normalise(previous)
     current = _normalise(current)
 
-    previous_ranks = {\n        row["Symbol"]: int(row["Rank"]) for row in previous.to_dict("records") if row["Symbol"]\n    }
-    current_ranks = {\n        row["Symbol"]: int(row["Rank"]) for row in current.to_dict("records") if row["Symbol"]\n    }
+    previous_ranks = {
+        row["Symbol"]: int(row["Rank"]) for row in previous.to_dict("records") if row["Symbol"]
+    }
+    current_ranks = {
+        row["Symbol"]: int(row["Rank"]) for row in current.to_dict("records") if row["Symbol"]
+    }
 
     rows: list[dict[str, Any]] = []
     for row in current.to_dict("records"):
@@ -88,7 +92,10 @@ def _normalise(frame: pd.DataFrame | None) -> pd.DataFrame:
 
     result["Symbol"] = result.get("Symbol", "").fillna("").astype(str)
     result["Exchange"] = result.get("Exchange", "—").fillna("—").astype(str)
-    change_columns = [column for column in result.columns if column.startswith("Change over ")]\n    result["Change %"] = (\n        pd.to_numeric(result[change_columns[0]], errors="coerce") if change_columns else pd.NA\n    )
+    change_columns = [column for column in result.columns if column.startswith("Change over ")]
+    result["Change %"] = (
+        pd.to_numeric(result[change_columns[0]], errors="coerce") if change_columns else pd.NA
+    )
     for column in ["Day %", "RVOL"]:
         if column not in result.columns:
             result[column] = pd.NA
