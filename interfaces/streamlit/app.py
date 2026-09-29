@@ -1,4 +1,4 @@
-﻿"""AI Stock Analyzer V6 - Streamlit interface."""
+"""AI Stock Analyzer V6 - Streamlit interface."""
 
 import pandas as pd
 import streamlit as st
@@ -41,8 +41,7 @@ if st.sidebar.button("Run Research Pipeline"):
             show_integrated_workflow(workflow)
             st.success(f"Analysis complete for {ticker}.")
 
-st.markdown(
-    """
+st.markdown("""
 ### Chapter 4-10 Integrated Workflow
 
 The dashboard now exposes the shared analytics pipeline:
@@ -50,5 +49,4 @@ The dashboard now exposes the shared analytics pipeline:
 **Price → Regime → Edge → Risk-ready workflow output**
 
 The panel is analytics-only and does not place trades.
-"""
-)
+""")
