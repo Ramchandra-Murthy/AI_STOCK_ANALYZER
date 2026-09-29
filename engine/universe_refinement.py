@@ -21,13 +21,10 @@ def calculate_value_traded(
 ) -> pd.Series:
     """Calculate average daily dollar value traded, preferring 10-day volume."""
     volume = (
-        average_daily_volume_10_day
-        if average_daily_volume_10_day is not None
-        else average_volume
+        average_daily_volume_10_day if average_daily_volume_10_day is not None else average_volume
     )
     return (
-        pd.to_numeric(volume, errors="coerce")
-        * pd.to_numeric(current_price, errors="coerce")
+        pd.to_numeric(volume, errors="coerce") * pd.to_numeric(current_price, errors="coerce")
     ).rename("value_traded")
 
 
@@ -73,9 +70,7 @@ def sector_average_returns(
     valid_columns = [column for column in frame.columns if column in sector_map.index]
     if not valid_columns:
         return pd.Series(dtype=float, name="average_return")
-    grouped = frame[valid_columns].mean(axis=0).groupby(
-        sector_map.loc[valid_columns]
-    ).mean()
+    grouped = frame[valid_columns].mean(axis=0).groupby(sector_map.loc[valid_columns]).mean()
     return grouped.rename("average_return").sort_values(ascending=False)
 
 
@@ -119,23 +114,17 @@ def refine_short_universe(
         result = result[~result["buyback"].fillna(False).astype(bool)]
 
     if max_forward_pe is not None and "forward_pe" in result:
-        result = result[
-            result["forward_pe"].isna() | result["forward_pe"].le(max_forward_pe)
-        ]
+        result = result[result["forward_pe"].isna() | result["forward_pe"].le(max_forward_pe)]
 
     if max_trailing_pe is not None and "trailing_pe" in result:
-        result = result[
-            result["trailing_pe"].isna() | result["trailing_pe"].le(max_trailing_pe)
-        ]
+        result = result[result["trailing_pe"].isna() | result["trailing_pe"].le(max_trailing_pe)]
 
     if max_beta is not None and "beta" in result:
         result = result[result["beta"].isna() | result["beta"].le(max_beta)]
 
     if require_fundamental_deterioration:
         if "fundamental_deterioration" not in result:
-            raise ValueError(
-                "fundamental_deterioration is required when its filter is enabled"
-            )
+            raise ValueError("fundamental_deterioration is required when its filter is enabled")
         result = result[result["fundamental_deterioration"].fillna(False).astype(bool)]
 
     return result.copy()
