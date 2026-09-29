@@ -99,7 +99,9 @@ def integrated_trade_frame(
         raise ValueError("prices does not contain enough bars for the edge signal")
 
     regime = chapter4_regime(prices, regime_threshold=regime_threshold)
-    edge = trend_following_signal(prices["Close"], fast_period=fast_period, slow_period=slow_period)
+    edge = trend_following_signal(
+        prices["Close"], fast_period=fast_period, slow_period=slow_period
+    )
     return pd.DataFrame(
         {
             "close": pd.to_numeric(prices["Close"], errors="coerce"),
