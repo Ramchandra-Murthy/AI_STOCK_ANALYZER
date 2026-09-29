@@ -81,7 +81,9 @@ def kelly_position_size(
     return float(capital * fraction / price)
 
 
-def rolling_volatility(returns: pd.Series, window: int = 20, annualize: bool = True) -> pd.Series:
+def rolling_volatility(
+    returns: pd.Series, window: int = 20, annualize: bool = True
+) -> pd.Series:
     """Calculate rolling standard deviation of returns."""
     if window < 2:
         raise ValueError("window must be at least 2")
@@ -130,9 +132,7 @@ def position_sizing_report(
         "fixed_dollar": fixed_dollar_size(capital, risk_fraction, price),
         "fixed_risk": fixed_risk_size(capital, risk_fraction, price, stop_price),
         "atr": atr_position_size(capital, risk_fraction, atr),
-        "volatility": volatility_size(
-            capital, risk_fraction, asset_volatility, price
-        ),
+        "volatility": volatility_size(capital, risk_fraction, asset_volatility, price),
         "kelly": kelly_position_size(capital, kelly_fraction, price),
     }
 

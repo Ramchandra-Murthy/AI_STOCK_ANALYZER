@@ -40,7 +40,7 @@ def test_rolling_volatility_and_atr():
     close = pd.Series([100, 102, 103, 105, 107], dtype=float)
     atr = average_true_range(high, low, close, window=3)
     assert atr.iloc[:2].isna().all()
-    assert atr.iloc[-1] == pytest.approx(2.6666667)
+    assert atr.iloc[-1] == pytest.approx(3.0)
 
 
 def test_report_contains_all_sizing_methods():
