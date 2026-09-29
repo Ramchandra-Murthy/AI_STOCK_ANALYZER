@@ -46,10 +46,8 @@ def test_gross_net_and_beta_exposure():
     beta = pd.Series({"A": 1.0, "B": 2.0, "C": 0.5, "D": 1.5})
 
     assert gross_exposure(values, nav).tolist() == pytest.approx([4.0, 2.2])
-    assert net_exposure(values, nav).tolist() == pytest.approx([1.5, 0.2])
-    assert net_beta_exposure(values, beta, nav).tolist() == pytest.approx(
-        [-0.5, -0.7]
-    )
+    assert net_exposure(values, nav).tolist() == pytest.approx([1.0, 0.2])
+    assert net_beta_exposure(values, beta, nav).tolist() == pytest.approx([-0.5, -0.7])
 
 
 def test_risk_appetite_scales_and_respects_bounds():
@@ -86,9 +84,7 @@ def test_exchange_and_sector_exposure():
     assert exchange.loc[0, "NSE"] == pytest.approx(1.0)
     assert exchange.loc[0, "BSE"] == pytest.approx(0.0)
 
-    sectors = pd.Series(
-        {"A": "Tech", "B": "Finance", "C": "Tech", "D": "Finance"}
-    )
+    sectors = pd.Series({"A": "Tech", "B": "Finance", "C": "Tech", "D": "Finance"})
     sector = sector_exposure(values, sectors, nav)
     assert sector.loc[0, "Tech"] == pytest.approx(2.5)
     assert sector.loc[0, "Finance"] == pytest.approx(-1.5)
