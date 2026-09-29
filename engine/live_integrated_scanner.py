@@ -116,9 +116,7 @@ def scan_integrated_tickers(
                     "Regime": str(latest["regime"]),
                     "Regime Score": round(float(latest["regime_score"]), 2),
                     "Edge Signal": round(edge, 2),
-                    "Direction": (
-                        "LONG" if edge > 0 else "SHORT" if edge < 0 else "FLAT"
-                    ),
+                    "Direction": ("LONG" if edge > 0 else "SHORT" if edge < 0 else "FLAT"),
                 }
             )
         except (KeyError, ValueError, TypeError, IndexError):
