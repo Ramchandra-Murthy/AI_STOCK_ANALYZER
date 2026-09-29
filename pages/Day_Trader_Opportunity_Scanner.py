@@ -465,7 +465,8 @@ def _price_jump_watchlist():
                 "Market-cap basket",
                 "Last price",
                 f"Change over {st.session_state.get('price_jump_scan_window', jump_window)} min %",
-                "Volume vs recent bars",
+                "Day %",
+                "RVOL",
                 "Latest candle (provider time)",
             ]
             if column in pulse_results.columns
@@ -496,7 +497,8 @@ def _price_jump_watchlist():
                 "Exchange",
                 "Last price",
                 f"Change over {st.session_state.get('price_jump_scan_window', jump_window)} min %",
-                "Volume vs recent bars",
+                "Day %",
+                "RVOL",
                 "Latest candle (provider time)",
             ]
             if column in watchlist.columns
