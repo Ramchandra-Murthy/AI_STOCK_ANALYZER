@@ -81,9 +81,7 @@ def kelly_position_size(
     return float(capital * fraction / price)
 
 
-def rolling_volatility(
-    returns: pd.Series, window: int = 20, annualize: bool = True
-) -> pd.Series:
+def rolling_volatility(returns: pd.Series, window: int = 20, annualize: bool = True) -> pd.Series:
     """Calculate rolling standard deviation of returns."""
     if window < 2:
         raise ValueError("window must be at least 2")
