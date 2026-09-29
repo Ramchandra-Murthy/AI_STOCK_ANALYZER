@@ -1,3 +1,4 @@
+import numpy as np
 from algorithmic_trading.trading_journal import (
     ReconciliationStatus,
     add_journal_streaks,
