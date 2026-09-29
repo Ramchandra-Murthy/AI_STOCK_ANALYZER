@@ -6,6 +6,8 @@ The functions are pure so they can be reused by the NSE/BSE scanner.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 
@@ -102,12 +104,8 @@ def regime_fractal(
     highs = pd.to_numeric(df[high_column], errors="coerce")
     lows = pd.to_numeric(df[low_column], errors="coerce")
     width = 2 * window + 1
-    high_pivot = highs.eq(
-        highs.rolling(width, center=True, min_periods=width).max()
-    )
-    low_pivot = lows.eq(
-        lows.rolling(width, center=True, min_periods=width).min()
-    )
+    high_pivot = highs.eq(highs.rolling(width, center=True, min_periods=width).max())
+    low_pivot = lows.eq(lows.rolling(width, center=True, min_periods=width).min())
     confirmed_bear = high_pivot.shift(window, fill_value=False)
     confirmed_bull = low_pivot.shift(window, fill_value=False)
     signal = pd.Series(
@@ -283,7 +281,10 @@ def multi_timeframe_regime(
     scores = pd.to_numeric(result["Composite score"], errors="coerce")
     valid = scores.notna() & result["Weight"].gt(0)
     result.attrs["weighted_composite_score"] = (
-        float((scores[valid] * result.loc[valid, "Weight"]).sum() / result.loc[valid, "Weight"].sum())
+        float(
+            (scores[valid] * result.loc[valid, "Weight"]).sum()
+            / result.loc[valid, "Weight"].sum()
+        )
         if valid.any()
         else None
     )
@@ -306,7 +307,6 @@ def relative_regime(
         index=df.index,
     ).dropna()
     return chapter4_regime(synthetic, **kwargs)
-
 
 
 def _validate_periods(short_period: int, long_period: int) -> None:
