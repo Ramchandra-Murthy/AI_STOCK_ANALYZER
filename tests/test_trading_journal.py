@@ -1,6 +1,9 @@
 import numpy as np
 from algorithmic_trading.trading_journal import (
     ReconciliationStatus,
+    TradeExecution,
+    TradeOrder,
+    add_journal_entry,
     add_journal_streaks,
     bulls_eye,
     consecutive_losses,
@@ -9,13 +12,9 @@ from algorithmic_trading.trading_journal import (
     journal_score,
     mae,
     merge_journal_sessions,
-    TradeExecution,
-    TradeOrder,
-    add_journal_entry,
     reconcile_orders,
     reconciliation_summary,
 )
-
 
 def test_reconcile_matched_missed_and_override() -> None:
     orders = [
