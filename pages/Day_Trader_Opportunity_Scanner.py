@@ -9,6 +9,7 @@ from scanner.day_trader_opportunity import scan_day_trader_opportunities
 from scanner.price_jump import scan_price_jumps
 from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.price_jump_history_analytics import summarize_price_jump_history
+from services.price_jump_watchlist_delta import compare_watchlists
 from services.intraday_alert_engine import (
     alert_history_frame,
     append_alert_history,
@@ -430,6 +431,14 @@ def _price_jump_watchlist():
                     jump_percent=jump_threshold,
                 )
                 pulse_at = pd.Timestamp.now(tz="Asia/Kolkata")
+                previous_watchlist = st.session_state.get("price_jump_top10_watchlist")
+                current_watchlist = pulse_results.head(10).copy()
+                current_watchlist.insert(0, "Rank", range(1, len(current_watchlist) + 1))
+                st.session_state["price_jump_watchlist_delta"] = compare_watchlists(
+                    previous_watchlist,
+                    current_watchlist,
+                )
+                st.session_state["price_jump_top10_watchlist"] = current_watchlist
                 st.session_state["price_jump_results"] = pulse_results
                 st.session_state["price_jump_scan_time"] = pulse_at.strftime(
                     "%d %b %Y, %H:%M:%S IST"
@@ -515,6 +524,21 @@ def _price_jump_watchlist():
             mime="text/csv",
             key="download_top10_price_jump_watchlist",
         )
+
+        watchlist_delta = st.session_state.get("price_jump_watchlist_delta")
+        if watchlist_delta is not None and not watchlist_delta.empty:
+            st.subheader("🔄 Watchlist changes since previous refresh")
+            st.caption(
+                "Descriptive changes versus the immediately previous Top-10 pulse: "
+                "NEW entrants, UP/DOWN rank movements, unchanged names and DROPPED names."
+            )
+            st.dataframe(
+                watchlist_delta,
+                use_container_width=True,
+                hide_index=True,
+            )
+        elif st.session_state.get("price_jump_top10_watchlist") is not None:
+            st.caption("Watchlist change tracking starts after the next completed pulse.")
 
     pulse_stats = st.session_state.get("price_jump_scan_stats", {})
     if pulse_stats:
