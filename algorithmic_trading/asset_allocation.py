@@ -11,6 +11,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from algorithmic_trading.portfolio_risk import dynamic_risk_appetite
+
 
 def equal_weight(returns: pd.DataFrame) -> pd.Series:
     """Allocate equally across assets with available return history."""
@@ -145,35 +147,17 @@ def risk_appetite(
     curve_shape: str = "linear",
     drawdown_window: int = 0,
 ) -> pd.Series:
-    """Scale exposure between risk bounds using the equity drawdown state."""
-    if max_drawdown_tolerance >= 0:
-        raise ValueError("max_drawdown_tolerance must be negative")
-    if min_risk < 0 or max_risk <= 0 or min_risk > max_risk:
-        raise ValueError("risk bounds are invalid")
-    if smoothing_span < 1 or drawdown_window < 0:
-        raise ValueError("smoothing_span must be positive and window non-negative")
-    if curve_shape not in {"linear", "aggressive", "conservative"}:
-        raise ValueError("curve_shape is invalid")
-
-    equity = pd.Series(equity_curve, dtype=float)
-    if equity.empty:
-        return pd.Series(dtype=float, index=equity.index, name="risk_appetite")
-
-    if drawdown_window > 0:
-        running_max = equity.rolling(drawdown_window, min_periods=1).max()
-    else:
-        running_max = equity.expanding().max()
-
-    drawdown = equity / running_max - 1
-    normalized = 1 - np.minimum(drawdown / max_drawdown_tolerance, 1)
-    smoothed = normalized.ewm(span=smoothing_span).mean()
-    powers = {
-        "aggressive": min_risk / max_risk if max_risk else 1.0,
-        "conservative": max_risk / min_risk if min_risk else 1.0,
-        "linear": 1.0,
-    }
-    result = min_risk + (max_risk - min_risk) * smoothed ** powers[curve_shape]
-    return result.clip(lower=min_risk, upper=max_risk).rename("risk_appetite")
+    """Expose the shared drawdown-based risk appetite for Chapter 9."""
+    appetite = dynamic_risk_appetite(
+        pd.Series(equity_curve, dtype=float),
+        max_drawdown_tolerance=max_drawdown_tolerance,
+        min_risk=min_risk,
+        max_risk=max_risk,
+        smoothing_span=smoothing_span,
+        curve_shape=curve_shape,
+        drawdown_window=drawdown_window,
+    )
+    return appetite.clip(lower=min_risk, upper=max_risk).rename("risk_appetite")
 
 
 def temporary_boost(
