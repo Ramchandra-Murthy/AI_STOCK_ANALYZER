@@ -188,7 +188,7 @@ def journal_score(row: dict) -> int:
     return score + {0: 0, 1: 6, 2: 12, 3: 20}[gratitude]
 
 
-def add_journal_streaks(journal: "pd.DataFrame") -> "pd.DataFrame":
+def add_journal_streaks(journal: pd.DataFrame) -> pd.DataFrame:
     """Add completion streak and multiplier, forgiving one missed weekday."""
     import pandas as pd
 
@@ -218,9 +218,9 @@ def add_journal_streaks(journal: "pd.DataFrame") -> "pd.DataFrame":
 
 
 def merge_journal_sessions(
-    pre: "pd.DataFrame",
-    post: "pd.DataFrame",
-) -> "pd.DataFrame":
+    pre: pd.DataFrame,
+    post: pd.DataFrame,
+) -> pd.DataFrame:
     """Outer-merge morning and evening journal rows and compute metrics."""
     import pandas as pd
 
@@ -246,7 +246,7 @@ def merge_journal_sessions(
     return merged
 
 
-def mae(trades: "pd.DataFrame", prices: "pd.Series") -> "pd.Series":
+def mae(trades: pd.DataFrame, prices: pd.Series) -> pd.Series:
     """Calculate maximum adverse excursion in percentage points."""
     import pandas as pd
 
