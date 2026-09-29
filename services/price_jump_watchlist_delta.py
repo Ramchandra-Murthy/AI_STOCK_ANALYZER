@@ -14,6 +14,9 @@ def compare_watchlists(
     current: pd.DataFrame | None,
 ) -> pd.DataFrame:
     """Describe new, dropped, promoted and demoted watchlist symbols."""
+    if previous is None:
+        return pd.DataFrame(columns=STATUS_COLUMNS)
+
     previous = _normalise(previous)
     current = _normalise(current)
 
