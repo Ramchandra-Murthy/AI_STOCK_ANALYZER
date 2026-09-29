@@ -15,7 +15,7 @@ from engine.trading_edge import (
 
 
 def test_expectancy_formulas_match_chapter5_definitions():
-    assert arithmetic_expectancy(0.4, 0.08, -0.03) == pytest.approx(0.018)
+    assert arithmetic_expectancy(0.4, 0.08, -0.03) == pytest.approx(0.014)
     assert geometric_expectancy(0.4, 0.08, -0.03) == pytest.approx((1.08**0.4) * (0.97**0.6) - 1)
     assert kelly_fraction(0.4, 0.08, -0.03) == pytest.approx(0.4 / 0.03 - 0.6 / 0.08)
 
