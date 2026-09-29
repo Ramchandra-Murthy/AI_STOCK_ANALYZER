@@ -65,8 +65,8 @@ def scan_price_jumps(
 
     The broad candidate universe is rescanned on every run, so the returned
     symbols can change as current market conditions change. Yahoo Finance
-    uses 1-minute candles for 2- and 3-minute lookbacks and 5-minute candles
-    for 5-minute and longer lookbacks.
+    uses 1-minute candles for 1-, 2- and 3-minute lookbacks and 5-minute
+    candles for 5-minute and longer lookbacks.
     """
     if lookback_minutes < 1 or jump_percent < 0:
         return pd.DataFrame()
@@ -99,7 +99,7 @@ def scan_price_jumps(
         "interval": "1m" if lookback_minutes in (2, 3) else "5m",
     }
 
-    candle_minutes = 1 if lookback_minutes in (2, 3) else 5
+    candle_minutes = 1 if lookback_minutes in (1, 2, 3) else 5
     interval = f"{candle_minutes}m"
     bars = max(1, int(round(lookback_minutes / candle_minutes)))
 
