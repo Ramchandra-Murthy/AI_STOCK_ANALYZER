@@ -109,8 +109,8 @@ def regime_fractal(
     confirmed_bear = high_pivot.shift(window, fill_value=False)
     confirmed_bull = low_pivot.shift(window, fill_value=False)
     signal = pd.Series(np.nan, index=df.index, dtype=float, name="fractal_regime")
+    signal.loc[confirmed_bear] = -1.0
     signal.loc[confirmed_bull & ~confirmed_bear] = 1.0
-    signal.loc[confirmed_bear & ~confirmed_bull] = -1.0
     return signal.ffill()
 
 
