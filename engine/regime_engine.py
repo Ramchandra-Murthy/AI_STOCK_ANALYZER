@@ -108,15 +108,9 @@ def regime_fractal(
     low_pivot = lows.eq(lows.rolling(width, center=True, min_periods=width).min())
     confirmed_bear = high_pivot.shift(window, fill_value=False)
     confirmed_bull = low_pivot.shift(window, fill_value=False)
-    signal = pd.Series(
-        np.where(
-            confirmed_bull & ~confirmed_bear,
-            1.0,
-            np.where(confirmed_bear & ~confirmed_bull, -1.0, np.nan),
-        ),
-        index=df.index,
-        name="fractal_regime",
-    )
+    signal = pd.Series(np.nan, index=df.index, dtype=float, name="fractal_regime")
+    signal.loc[confirmed_bull & ~confirmed_bear] = 1.0
+    signal.loc[confirmed_bear & ~confirmed_bull] = -1.0
     return signal.ffill()
 
 
@@ -282,8 +276,7 @@ def multi_timeframe_regime(
     valid = scores.notna() & result["Weight"].gt(0)
     result.attrs["weighted_composite_score"] = (
         float(
-            (scores[valid] * result.loc[valid, "Weight"]).sum()
-            / result.loc[valid, "Weight"].sum()
+            (scores[valid] * result.loc[valid, "Weight"]).sum() / result.loc[valid, "Weight"].sum()
         )
         if valid.any()
         else None
