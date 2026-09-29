@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 
 from engine.live_integrated_scanner import scan_integrated_tickers
-from scanner.market_scanner import _batch_change_screen
 from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
+from scanner.market_scanner import _batch_change_screen
 
 
 def scan_top10_integrated(
@@ -28,6 +28,6 @@ def scan_top10_integrated(
 
     result["Change %"] = result["Ticker"].map(changes)
     result["Change %"] = result["Change %"].round(2)
-    return result.sort_values("Change %", key=lambda values: values.abs(), ascending=False).reset_index(
-        drop=True
-    )
+    return result.sort_values(
+        "Change %", key=lambda values: values.abs(), ascending=False
+    ).reset_index(drop=True)
