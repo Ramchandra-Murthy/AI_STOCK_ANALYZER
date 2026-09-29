@@ -17,6 +17,7 @@ from algorithmic_trading.trading_journal import (
     reconciliation_summary,
 )
 
+
 def test_reconcile_matched_missed_and_override() -> None:
     orders = [
         TradeOrder("O1", "RELIANCE", 100),
@@ -53,6 +54,7 @@ def test_blank_journal_entry_is_rejected() -> None:
         pass
     else:
         raise AssertionError("expected ValueError")
+
 
 def test_bulls_eye_directional_accuracy() -> None:
     assert bulls_eye(2.0, 1.0) == 1
