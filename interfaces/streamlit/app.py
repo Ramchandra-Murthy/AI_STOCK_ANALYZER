@@ -4,18 +4,18 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from components.integrated_workflow import show_integrated_workflow
+from components.integrated_workflow import (\n    show_integrated_workflow,\n    show_live_integrated_scanner,\n)\nfrom engine.live_integrated_scanner import DEFAULT_TICKERS, scan_integrated_tickers
 from engine.trading_pipeline import integrated_trade_frame
 
 st.set_page_config(page_title="AI Stock Analyzer V6", page_icon="📈", layout="wide")
 
 st.title("📈 AI Stock Analyzer — Institutional Equity Research Platform")
-st.markdown("---")
+st.markdown("---")\n\nif st.sidebar.button("Run Integrated Scanner"):\n    tickers = [symbol.strip() for symbol in scanner_tickers.split(",") if symbol.strip()]\n    with st.spinner("Refreshing integrated scanner data..."):\n        scanner = scan_integrated_tickers(tickers, period=period, interval=interval)\n    show_live_integrated_scanner(scanner)\n
 
 st.sidebar.header("Configuration")
 ticker = st.sidebar.text_input("Stock Ticker", value="RELIANCE.NS")
 period = st.sidebar.selectbox("History", ["3mo", "6mo", "1y", "2y"], index=1)
-interval = st.sidebar.selectbox("Interval", ["1d"], index=0)
+interval = st.sidebar.selectbox("Interval", ["1d"], index=0)\nscanner_tickers = st.sidebar.text_area(\n    "Scanner Tickers",\n    value=", ".join(DEFAULT_TICKERS),\n    help="Comma-separated NSE/BSE Yahoo Finance tickers.",\n)
 
 if st.sidebar.button("Run Research Pipeline"):
     with st.spinner(f"Loading {ticker} market data..."):
