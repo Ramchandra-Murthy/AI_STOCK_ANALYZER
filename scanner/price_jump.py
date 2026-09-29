@@ -96,7 +96,7 @@ def scan_price_jumps(
         "processing_errors": 0,
         "matches_before_limit": 0,
         "displayed_count": 0,
-        "interval": "1m" if lookback_minutes in (2, 3) else "5m",
+        "interval": "1m" if lookback_minutes in (1, 2, 3) else "5m",
     }
 
     candle_minutes = 1 if lookback_minutes in (1, 2, 3) else 5
