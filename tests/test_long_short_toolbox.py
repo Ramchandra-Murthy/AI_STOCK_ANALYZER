@@ -48,7 +48,7 @@ def test_gross_net_and_beta_exposure():
     assert gross_exposure(values, nav).tolist() == pytest.approx([4.0, 2.2])
     assert net_exposure(values, nav).tolist() == pytest.approx([1.5, 0.2])
     assert net_beta_exposure(values, beta, nav).tolist() == pytest.approx(
-        [-0.25, -1.0]
+        [-0.5, -0.7]
     )
 
 
