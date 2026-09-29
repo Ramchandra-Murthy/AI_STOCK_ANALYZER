@@ -11,9 +11,9 @@ from typing import Any
 
 import pandas as pd
 
-from algorithmic_trading.long_short_toolbox import risk_appetite
+from engine.long_short_toolbox import risk_appetite
 from engine.position_sizing import fixed_risk_size
-from engine.regime_engine import latest_regime
+from engine.regime_engine import chapter4_regime, latest_regime
 from engine.trading_edge import trend_following_signal
 
 
@@ -100,9 +100,7 @@ def integrated_trade_frame(
     if len(prices) < slow_period:
         raise ValueError("prices does not contain enough bars for the edge signal")
 
-    regime = __import__("engine.regime_engine", fromlist=["chapter4_regime"]).chapter4_regime(
-        prices, regime_threshold=regime_threshold
-    )
+    regime = chapter4_regime(prices, regime_threshold=regime_threshold)
     edge = trend_following_signal(
         prices["Close"], fast_period=fast_period, slow_period=slow_period
     )
