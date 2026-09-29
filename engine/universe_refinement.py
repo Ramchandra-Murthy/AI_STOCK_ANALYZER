@@ -8,9 +8,7 @@ plug in their own market-data provider.
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
-
 
 DEFAULT_MIN_DAILY_VALUE_TRADED = 1_000_000.0
 DEFAULT_MAX_SHORT_PCT_FLOAT = 0.50
@@ -27,9 +25,10 @@ def calculate_value_traded(
         if average_daily_volume_10_day is not None
         else average_volume
     )
-    return (pd.to_numeric(volume, errors="coerce") * pd.to_numeric(
-        current_price, errors="coerce"
-    )).rename("value_traded")
+    return (
+        pd.to_numeric(volume, errors="coerce")
+        * pd.to_numeric(current_price, errors="coerce")
+    ).rename("value_traded")
 
 
 def calculate_short_pct_float(
