@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+
 from algorithmic_trading.trading_journal import (
     ReconciliationStatus,
     TradeExecution,
