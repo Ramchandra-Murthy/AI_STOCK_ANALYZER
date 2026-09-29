@@ -88,21 +88,15 @@ def test_journal_score_reaches_120_for_complete_entry() -> None:
 
 
 def test_journal_streak_forgives_one_missed_weekday() -> None:
-    journal = pd.DataFrame(
-        {"date": ["2026-09-21", "2026-09-22", "2026-09-24", "2026-09-25"]}
-    )
+    journal = pd.DataFrame({"date": ["2026-09-21", "2026-09-22", "2026-09-24", "2026-09-25"]})
     result = add_journal_streaks(journal)
     assert result["streak"].tolist() == [1, 2, 3, 4]
     assert result["multiplier"].tolist() == [1.05, 1.10, 1.15, 1.20]
 
 
 def test_merge_journal_sessions_computes_metrics() -> None:
-    pre = pd.DataFrame(
-        [{"_id": "p1", "date": "2026-09-28", "perf_forecast": 2.0}]
-    )
-    post = pd.DataFrame(
-        [{"_id": "p2", "date": "2026-09-28", "perf_actual": -1.0}]
-    )
+    pre = pd.DataFrame([{"_id": "p1", "date": "2026-09-28", "perf_forecast": 2.0}])
+    post = pd.DataFrame([{"_id": "p2", "date": "2026-09-28", "perf_actual": -1.0}])
     result = merge_journal_sessions(pre, post)
     assert result.loc[0, "bulls_eye"] == -1
     assert result.loc[0, "final_score"] >= 0
