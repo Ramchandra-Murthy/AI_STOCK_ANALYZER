@@ -54,6 +54,14 @@ def calculate_price_jump(
     }
 
 
+def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
+    """Return the Yahoo interval and bar count for a minute lookback."""
+    candle_minutes = 1 if lookback_minutes in (1, 2, 3) else 5
+    interval = f"{candle_minutes}m"
+    bars = max(1, int(round(lookback_minutes / candle_minutes)))
+    return interval, bars
+
+
 def scan_price_jumps(
     limit: int = 20,
     cap_category: str = "All caps",
@@ -86,6 +94,7 @@ def scan_price_jumps(
     unique_universe = list(dict.fromkeys(selected_universe))
     duplicate_count = len(selected_universe) - len(unique_universe)
     selected_universe = unique_universe
+    interval, bars = _candle_settings(lookback_minutes)
     stats = {
         "candidate_count": len(selected_universe),
         "duplicate_candidates_removed": duplicate_count,
@@ -96,12 +105,8 @@ def scan_price_jumps(
         "processing_errors": 0,
         "matches_before_limit": 0,
         "displayed_count": 0,
-        "interval": "1m" if lookback_minutes in (2, 3) else "5m",
+        "interval": interval,
     }
-
-    candle_minutes = 1 if lookback_minutes in (1, 2, 3) else 5
-    interval = f"{candle_minutes}m"
-    bars = max(1, int(round(lookback_minutes / candle_minutes)))
 
     for exchange in exchanges:
         tickers = [
