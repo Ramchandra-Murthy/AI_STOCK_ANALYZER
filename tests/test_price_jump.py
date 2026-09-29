@@ -67,3 +67,19 @@ def test_calculate_price_jump_supports_short_window_bar_count():
     assert result is not None
     assert round(result["intraday_pct"], 2) == 1.5
     assert result["qualifies"] == 1.0
+
+def test_calculate_price_jump_supports_one_minute_window():
+    index = pd.date_range("2026-09-18 09:15", periods=2, freq="1min")
+    frame = pd.DataFrame(
+        {
+            "Close": [100.0, 101.0],
+            "Volume": [1000, 1800],
+        },
+        index=index,
+    )
+
+    result = calculate_price_jump(frame, lookback_bars=1, jump_percent=0.5)
+
+    assert result is not None
+    assert result["intraday_pct"] == 1.0
+    assert result["qualifies"] == 1.0
