@@ -393,8 +393,8 @@ def _price_jump_watchlist():
     with jump_right:
         jump_window = st.selectbox(
             "Pulse window",
-            [2, 3, 5, 10],
-            index=2,
+            [1, 2, 3, 5, 10],
+            index=0,
             format_func=lambda value: f"{value} minutes",
             key="pulse_window",
         )
@@ -410,7 +410,7 @@ def _price_jump_watchlist():
     if auto_refresh:
         st.caption(
             "🟢 Live Price-Jump Watchlist: refreshes every 1 minute during NSE market hours. "
-            "The existing Auto-refresh setting controls live updates."
+            "The selected price-jump window is evaluated on each refresh."
         )
 
     pulse_scan = st.button("Run Price-Jump Pulse", type="primary", key="run_price_jump_pulse")
@@ -473,11 +473,19 @@ def _price_jump_watchlist():
         st.dataframe(pulse_results[pulse_columns], use_container_width=True, hide_index=True)
 
         st.subheader("⭐ Top 10 Price-Jump Watchlist")
-        st.caption(
-            "The watchlist keeps the 10 largest observed short-window price jumps from the "
-            "latest pulse, ranked by percentage change and then relative volume. "
-            "It is a monitoring list, not a trade recommendation."
-        )
+        if st.session_state.get("price_jump_scan_window") == 1:
+            st.caption(
+                "The watchlist shows the 10 largest observed 1-minute price jumps from the "
+                "latest pulse, ranked by percentage change and then relative volume. "
+                "With Live Market Mode enabled, it refreshes every 60 seconds during NSE "
+                "market hours. It is a monitoring list, not a trade recommendation."
+            )
+        else:
+            st.caption(
+                "The watchlist keeps the 10 largest observed short-window price jumps from the "
+                "latest pulse, ranked by percentage change and then relative volume. "
+                "It is a monitoring list, not a trade recommendation."
+            )
         watchlist = pulse_results.head(10).copy()
         watchlist.insert(0, "Rank", range(1, len(watchlist) + 1))
         watchlist_columns = [
