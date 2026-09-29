@@ -10,18 +10,12 @@ from components.integrated_workflow import (
 )
 from engine.live_integrated_scanner import DEFAULT_TICKERS, scan_integrated_tickers
 from engine.trading_pipeline import integrated_trade_frame
+from scanner.top10_integrated import scan_top10_integrated
 
 st.set_page_config(page_title="AI Stock Analyzer V6", page_icon="📈", layout="wide")
 
 st.title("📈 AI Stock Analyzer — Institutional Equity Research Platform")
 st.markdown("---")
-
-if st.sidebar.button("Run Integrated Scanner"):
-    tickers = [symbol.strip() for symbol in scanner_tickers.split(",") if symbol.strip()]
-    with st.spinner("Refreshing integrated scanner data..."):
-        scanner = scan_integrated_tickers(tickers, period=period, interval=interval)
-    show_live_integrated_scanner(scanner)
-
 
 st.sidebar.header("Configuration")
 ticker = st.sidebar.text_input("Stock Ticker", value="RELIANCE.NS")
@@ -32,6 +26,17 @@ scanner_tickers = st.sidebar.text_area(
     value=", ".join(DEFAULT_TICKERS),
     help="Comma-separated NSE/BSE Yahoo Finance tickers.",
 )
+
+if st.sidebar.button("Run Integrated Scanner"):
+    tickers = [symbol.strip() for symbol in scanner_tickers.split(",") if symbol.strip()]
+    with st.spinner("Refreshing integrated scanner data..."):
+        scanner = scan_integrated_tickers(tickers, period=period, interval=interval)
+    show_live_integrated_scanner(scanner)
+
+if st.sidebar.button("Run Top-10 Market Scanner"):
+    with st.spinner("Scanning the current NSE/BSE market movers..."):
+        top10 = scan_top10_integrated(period=period, interval=interval)
+    show_live_integrated_scanner(top10)
 
 if st.sidebar.button("Run Research Pipeline"):
     with st.spinner(f"Loading {ticker} market data..."):
@@ -64,5 +69,7 @@ The dashboard now exposes the shared analytics pipeline:
 
 **Price → Regime → Edge → Risk-ready workflow output**
 
-The panel is analytics-only and does not place trades.
+The market scanner ranks liquid NSE/BSE daily movers before applying the integrated workflow.
+
+The panels are analytics-only and do not place trades.
 """)
