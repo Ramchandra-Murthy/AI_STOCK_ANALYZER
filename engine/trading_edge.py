@@ -37,11 +37,7 @@ def geometric_expectancy(
     _validate_probability(win_rate)
     if average_win <= -1 or average_loss <= -1:
         raise ValueError("returns must be greater than -100%")
-    return float(
-        (1.0 + average_win) ** win_rate
-        * (1.0 + average_loss) ** (1.0 - win_rate)
-        - 1.0
-    )
+    return float((1.0 + average_win) ** win_rate * (1.0 + average_loss) ** (1.0 - win_rate) - 1.0)
 
 
 def kelly_fraction(
@@ -83,9 +79,7 @@ def trade_statistics(returns: pd.Series) -> dict[str, float]:
         "win_rate": win_rate,
         "average_win": average_win,
         "average_loss": average_loss,
-        "arithmetic_expectancy": arithmetic_expectancy(
-            win_rate, average_win, average_loss
-        ),
+        "arithmetic_expectancy": arithmetic_expectancy(win_rate, average_win, average_loss),
         "geometric_expectancy": (
             geometric_expectancy(win_rate, average_win, average_loss)
             if average_win > -1 and average_loss > -1
