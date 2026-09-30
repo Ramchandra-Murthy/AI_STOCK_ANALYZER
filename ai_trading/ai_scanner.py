@@ -9,9 +9,7 @@ from ai_trading.features import build_features
 from ai_trading.signal_engine import score_features
 
 
-def scan_universe(
-    symbols: list[str], exchange: str = "NSE", period: str = "1y"
-) -> pd.DataFrame:
+def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y") -> pd.DataFrame:
     """Scan a universe and return the latest AI trading intelligence signals."""
     exchange = exchange.upper()
     if exchange not in {"NSE", "BSE"}:
@@ -67,9 +65,7 @@ def scan_universe(
                 "signal": str(latest["signal"]),
                 "return_5_pct": round(float(features["return_5"].iloc[-1]) * 100, 2),
                 "return_20_pct": round(float(features["return_20"].iloc[-1]) * 100, 2),
-                "volatility_pct": round(
-                    float(features["volatility_20"].iloc[-1]) * 100, 2
-                ),
+                "volatility_pct": round(float(features["volatility_20"].iloc[-1]) * 100, 2),
                 "volume_ratio": round(float(features["volume_ratio"].iloc[-1]), 2),
             }
         )
