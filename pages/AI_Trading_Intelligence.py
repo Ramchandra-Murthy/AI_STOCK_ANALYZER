@@ -8,6 +8,7 @@ import yfinance as yf
 
 from ai_trading.ai_scanner import scan_universe
 from ai_trading.ml_model import predict_latest, train_model
+from ai_trading.ml_scanner import scan_universe as scan_ml_universe
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 st.set_page_config(page_title="AI Trading Intelligence", page_icon="🧠", layout="wide")
@@ -46,6 +47,66 @@ if st.button("Run AI Trading Scan", type="primary"):
         "trains a separate leakage-safe model using a chronological holdout; it does not "
         "place broker orders."
     )
+
+st.divider()
+st.subheader("🔎 Multi-Stock ML Scanner")
+st.caption(
+    "Trains a separate leakage-safe model for each selected symbol and ranks "
+    "the resulting historical validation and latest probability metrics."
+)
+
+scan_left, scan_mid, scan_right = st.columns(3)
+with scan_left:
+    ml_count = st.slider(
+        "ML symbols",
+        5,
+        min(30, len(universe)),
+        min(10, len(universe)),
+        5,
+        key="ml_scan_count",
+    )
+with scan_mid:
+    scan_horizon = st.slider(
+        "ML horizon (days)",
+        1,
+        20,
+        5,
+        key="ml_scan_horizon",
+    )
+with scan_right:
+    scan_threshold = st.slider(
+        "ML threshold (%)",
+        0.0,
+        5.0,
+        1.0,
+        0.5,
+        key="ml_scan_threshold",
+    )
+
+if st.button("Run Multi-Stock ML Scan", type="primary"):
+    with st.spinner(f"Training {ml_count} {exchange} models..."):
+        ml_result = scan_ml_universe(
+            universe[:ml_count],
+            exchange=exchange,
+            period="5y",
+            horizon=scan_horizon,
+            threshold=scan_threshold / 100.0,
+        )
+
+    if ml_result.empty:
+        st.warning("No symbols produced a valid ML result.")
+    else:
+        st.success(f"Validated {len(ml_result)} stock models.")
+        st.dataframe(
+            ml_result.head(10),
+            use_container_width=True,
+            hide_index=True,
+        )
+        st.caption(
+            "Ranking is based on model confidence, historical ROC-AUC, and latest "
+            "probability. These are historical model measurements, not forecasts "
+            "of guaranteed returns."
+        )
 
 st.divider()
 st.subheader("🤖 ML Model Validation")
