@@ -11,6 +11,7 @@ from ai_trading.walk_forward import walk_forward_backtest
 from ai_trading.ai_scanner import scan_universe
 from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.ml_scanner import scan_universe as scan_ml_universe
+from ai_trading.walk_forward import walk_forward_backtest
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 st.set_page_config(page_title="AI Trading Intelligence", page_icon="🧠", layout="wide")
