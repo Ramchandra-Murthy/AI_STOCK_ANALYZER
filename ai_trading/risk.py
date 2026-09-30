@@ -48,9 +48,9 @@ class RiskLimits:
             per_candidate = 0.0
         else:
             per_candidate = min(
-            equity * self.max_position_pct / 100.0,
-            total_available,
-        )
+                equity * self.max_position_pct / 100.0,
+                total_available,
+            )
 
         return {
             "total_available": total_available,
