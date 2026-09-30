@@ -82,6 +82,11 @@ pages = {
             title="AI Paper Trading",
             icon="🧪",
         ),
+        st.Page(
+            "pages/AI_Paper_Performance.py",
+            title="AI Paper Performance",
+            icon="📊",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️"),
