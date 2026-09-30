@@ -12,9 +12,7 @@ from components.top10_live import show_live_top10_scanner
 from engine.live_integrated_scanner import DEFAULT_TICKERS, scan_integrated_tickers
 from engine.trading_pipeline import integrated_trade_frame
 
-st.set_page_config(
-    page_title="AI Stock Analyzer V6", page_icon="📈", layout="wide"
-)
+st.set_page_config(page_title="AI Stock Analyzer V6", page_icon="📈", layout="wide")
 
 st.title("📈 AI Stock Analyzer — Institutional Equity Research Platform")
 st.markdown("---")
