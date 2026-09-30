@@ -180,9 +180,7 @@ def apply_ml_signals(
         quantity = int(allocation // price)
         signal_row = rows[rows["symbol"] == symbol].iloc[0]
         confidence = (
-            float(signal_row["confidence_pct"])
-            if "confidence_pct" in signal_row.index
-            else None
+            float(signal_row["confidence_pct"]) if "confidence_pct" in signal_row.index else None
         )
         fill = portfolio.execute(
             symbol,
