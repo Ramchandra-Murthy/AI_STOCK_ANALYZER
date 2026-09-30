@@ -17,9 +17,9 @@ def build_features(frame: pd.DataFrame) -> pd.DataFrame:
     features["return_1"] = close.pct_change()
     features["return_5"] = close.pct_change(5)
     features["return_20"] = close.pct_change(20)
-    features["ema_gap"] = close.ewm(span=20, adjust=False).mean() / close.ewm(
-        span=50, adjust=False
-    ).mean() - 1.0
+    features["ema_gap"] = (
+        close.ewm(span=20, adjust=False).mean() / close.ewm(span=50, adjust=False).mean() - 1.0
+    )
     features["volatility_20"] = close.pct_change().rolling(20).std()
 
     if "Volume" in frame.columns:
