@@ -30,9 +30,6 @@ st.set_page_config(
 
 load_css()
 
-# The old pages/ auto-navigation placed the algorithmic pages in a separate
-# column and made the navigation look scattered. Explicit navigation keeps
-# everything in one sidebar and groups the algorithmic tools together.
 pages = {
     "📊 Core": [
         st.Page(dashboard, title="Dashboard", icon="🏠", default=True),
@@ -51,16 +48,8 @@ pages = {
         st.Page(backtesting, title="Backtesting", icon="📉"),
     ],
     "🤖 Algorithmic Trading": [
-        st.Page(
-            "pages/Algorithmic_Scanner.py",
-            title="Algorithmic Scanner",
-            icon="📊",
-        ),
-        st.Page(
-            "pages/Algorithmic_Backtest.py",
-            title="Algorithmic Backtest",
-            icon="📈",
-        ),
+        st.Page("pages/Algorithmic_Scanner.py", title="Algorithmic Scanner", icon="📊"),
+        st.Page("pages/Algorithmic_Backtest.py", title="Algorithmic Backtest", icon="📈"),
         st.Page(
             "pages/Algorithmic_Paper_Trading.py",
             title="Algorithmic Paper Trading",
@@ -82,6 +71,13 @@ pages = {
             icon="⚡",
         ),
     ],
+    "🧠 AI Trading Intelligence": [
+        st.Page(
+            "pages/AI_Trading_Intelligence.py",
+            title="AI Trading Scanner",
+            icon="🧠",
+        ),
+    ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️"),
     ],
@@ -93,8 +89,8 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 📈 AI Stock Analyzer Pro")
 st.sidebar.caption("Professional Investment Platform")
 st.sidebar.success(f"Current: {pg.title}")
-st.sidebar.metric("Modules", 11)
-st.sidebar.metric("Version", "3.6")
+st.sidebar.metric("Modules", 12)
+st.sidebar.metric("Version", "3.7")
 st.sidebar.caption("© 2026 AI Stock Analyzer Pro")
 
 pg.run()
