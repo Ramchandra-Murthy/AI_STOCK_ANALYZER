@@ -76,7 +76,7 @@ if st.button("Run AI Paper Trading Cycle", type="primary"):
     prices: dict[str, float] = {}
     if isinstance(prices_data.columns, pd.MultiIndex):
         close_data = prices_data["Close"]
-        for symbol, ticker in zip(result["symbol"], tickers):
+        for symbol, ticker in zip(result["symbol"], tickers, strict=True):
             if ticker in close_data:
                 series = pd.to_numeric(close_data[ticker], errors="coerce").dropna()
                 if not series.empty:
