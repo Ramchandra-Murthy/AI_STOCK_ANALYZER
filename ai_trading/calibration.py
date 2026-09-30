@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pandas as pd
-from sklearn.metrics import accuracy_score, brier_score_loss
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, brier_score_loss
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
