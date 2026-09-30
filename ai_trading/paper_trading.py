@@ -43,9 +43,7 @@ class PaperPortfolio:
         )
         return float(self.cash + market_value)
 
-    def execute(
-        self, symbol: str, side: str, quantity: int, price: float
-    ) -> PaperTrade | None:
+    def execute(self, symbol: str, side: str, quantity: int, price: float) -> PaperTrade | None:
         """Execute a simulated market fill."""
         symbol = str(symbol).upper()
         side = str(side).upper()
@@ -106,9 +104,7 @@ def apply_ml_signals(
     trades: list[PaperTrade] = []
     for symbol in list(portfolio.positions):
         if symbol not in long_symbols and symbol in prices:
-            fill = portfolio.execute(
-                symbol, "SELL", portfolio.positions[symbol], prices[symbol]
-            )
+            fill = portfolio.execute(symbol, "SELL", portfolio.positions[symbol], prices[symbol])
             if fill:
                 trades.append(fill)
 
