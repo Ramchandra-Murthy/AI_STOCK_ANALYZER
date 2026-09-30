@@ -1,11 +1,9 @@
+"""AI Stock Analyzer Pro - organized Streamlit application entrypoint."""
+
 import streamlit as st
 
 from components.top10_live import show_live_top10_scanner
 from modules.backtesting import show as backtesting
-
-# ==========================================================
-# IMPORT MODULES
-# ==========================================================
 from modules.dashboard import show as dashboard
 from modules.fundamentals import show as fundamentals
 from modules.intraday import show as intraday
@@ -17,17 +15,11 @@ from modules.scanner import show as scanner
 from modules.settings import show as settings
 
 
-def load_css():
-    with open("assets/styles.css") as f:
-        st.markdown(
-            f"<style>{f.read()}</style>",
-            unsafe_allow_html=True,
-        )
+def load_css() -> None:
+    """Load the shared application theme."""
+    with open("assets/styles.css", encoding="utf-8") as css_file:
+        st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
-
-# ==========================================================
-# PAGE CONFIGURATION
-# ==========================================================
 
 st.set_page_config(
     page_title="AI Stock Analyzer Pro",
@@ -38,59 +30,71 @@ st.set_page_config(
 
 load_css()
 
-
-# ==========================================================
-# PAGE REGISTRY
-# ==========================================================
-
-PAGES = {
-    "🏠 Dashboard": dashboard,
-    "📈 Market": market,
-    "💼 Portfolio": portfolio,
-    "🔍 Scanner": scanner,
-    "📡 Live Top-10 Scanner": show_live_top10_scanner,
-    "⏱️ Intraday Trading": intraday,
-    "🔍 Stock Research": research,
-    "📊 Fundamentals": fundamentals,
-    "📉 Backtesting": backtesting,
-    "🤖 AI Prediction": prediction,
-    "⚙️ Settings": settings,
+# The old pages/ auto-navigation placed the algorithmic pages in a separate
+# column and made the navigation look scattered. Explicit navigation keeps
+# everything in one sidebar and groups the algorithmic tools together.
+pages = {
+    "📊 Core": [
+        st.Page(dashboard, title="Dashboard", icon="🏠", default=True),
+        st.Page(market, title="Market", icon="📈"),
+        st.Page(portfolio, title="Portfolio", icon="💼"),
+        st.Page(scanner, title="Scanner", icon="🔍"),
+    ],
+    "🔴 Live Market": [
+        st.Page(show_live_top10_scanner, title="Live Top-10 Scanner", icon="📡"),
+        st.Page(intraday, title="Intraday Trading", icon="⏱️"),
+    ],
+    "🔎 Research": [
+        st.Page(research, title="Stock Research", icon="🔍"),
+        st.Page(fundamentals, title="Fundamentals", icon="📊"),
+        st.Page(prediction, title="AI Prediction", icon="🤖"),
+        st.Page(backtesting, title="Backtesting", icon="📉"),
+    ],
+    "🤖 Algorithmic Trading": [
+        st.Page(
+            "pages/Algorithmic_Scanner.py",
+            title="Algorithmic Scanner",
+            icon="📊",
+        ),
+        st.Page(
+            "pages/Algorithmic_Backtest.py",
+            title="Algorithmic Backtest",
+            icon="📈",
+        ),
+        st.Page(
+            "pages/Algorithmic_Paper_Trading.py",
+            title="Algorithmic Paper Trading",
+            icon="🧪",
+        ),
+        st.Page(
+            "pages/Algorithmic_Performance.py",
+            title="Algorithmic Performance",
+            icon="📊",
+        ),
+        st.Page(
+            "pages/Portfolio_Risk_Allocation.py",
+            title="Portfolio Risk & Allocation",
+            icon="🛡️",
+        ),
+        st.Page(
+            "pages/Day_Trader_Opportunity_Scanner.py",
+            title="Day Trader Opportunity Scanner",
+            icon="⚡",
+        ),
+    ],
+    "⚙️ System": [
+        st.Page(settings, title="Settings", icon="⚙️"),
+    ],
 }
 
-# ==========================================================
-# SIDEBAR
-# ==========================================================
+pg = st.navigation(pages, position="sidebar", expanded=True)
 
-st.sidebar.title("📈 AI Stock Analyzer Pro")
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📈 AI Stock Analyzer Pro")
 st.sidebar.caption("Professional Investment Platform")
-
-selected_page = st.sidebar.radio(
-    "📂 Navigation",
-    list(PAGES.keys()),
-)
-
-st.sidebar.success(f"Current: {selected_page}")
-
-st.sidebar.divider()
-
-st.sidebar.markdown("### 📊 Application")
-
-st.sidebar.metric(
-    "Modules",
-    len(PAGES),
-)
-
-st.sidebar.metric(
-    "Version",
-    "3.5",
-)
-
-st.sidebar.divider()
-
+st.sidebar.success(f"Current: {pg.title}")
+st.sidebar.metric("Modules", 11)
+st.sidebar.metric("Version", "3.6")
 st.sidebar.caption("© 2026 AI Stock Analyzer Pro")
 
-# ==========================================================
-# PAGE ROUTER
-# ==========================================================
-
-PAGES[selected_page]()
+pg.run()
