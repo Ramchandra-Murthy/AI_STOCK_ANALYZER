@@ -36,15 +36,11 @@ def scan_frames(
             {
                 "symbol": str(symbol).upper(),
                 "exchange": exchange,
-                "probability_up_pct": round(
-                    float(prediction["probability_up"]) * 100, 1
-                ),
+                "probability_up_pct": round(float(prediction["probability_up"]) * 100, 1),
                 "confidence_pct": round(float(prediction["confidence"]) * 100, 1),
                 "signal": str(prediction["signal"]),
                 "accuracy_pct": round(validation.accuracy * 100, 1),
-                "roc_auc": round(validation.roc_auc, 3)
-                if validation.roc_auc is not None
-                else None,
+                "roc_auc": round(validation.roc_auc, 3) if validation.roc_auc is not None else None,
                 "train_samples": validation.train_samples,
                 "test_samples": validation.test_samples,
             }
@@ -88,12 +84,13 @@ def scan_universe(
         raise ValueError("exchange must be NSE or BSE")
     if not symbols:
         return pd.DataFrame()
-
     suffix = ".NS" if exchange == "NSE" else ".BO"
     tickers = [
-        str(symbol).strip().upper()
-        if str(symbol).upper().endswith(suffix)
-        else f"{str(symbol).strip().upper()}{suffix}"
+        (
+            str(symbol).strip().upper()
+            if str(symbol).upper().endswith(suffix)
+            else f"{str(symbol).strip().upper()}{suffix}"
+        )
         for symbol in symbols
     ]
     data = yf.download(
