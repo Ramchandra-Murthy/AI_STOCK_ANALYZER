@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 import pandas as pd
 
@@ -19,6 +20,10 @@ class PaperTrade:
     price: float
     value: float
     cash_after: float
+    signal: str | None = None
+    confidence_pct: float | None = None
+    reason: str = "manual"
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
@@ -45,7 +50,17 @@ class PaperPortfolio:
         )
         return float(self.cash + market_value)
 
-    def execute(self, symbol: str, side: str, quantity: int, price: float) -> PaperTrade | None:
+    def execute(
+        self,
+        symbol: str,
+        side: str,
+        quantity: int,
+        price: float,
+        *,
+        signal: str | None = None,
+        confidence_pct: float | None = None,
+        reason: str = "manual",
+    ) -> PaperTrade | None:
         """Execute a simulated market fill."""
         symbol = str(symbol).upper()
         side = str(side).upper()
@@ -75,7 +90,17 @@ class PaperPortfolio:
             else:
                 self.positions.pop(symbol, None)
 
-        trade = PaperTrade(symbol, side, quantity, price, value, self.cash)
+        trade = PaperTrade(
+            symbol,
+            side,
+            quantity,
+            price,
+            value,
+            self.cash,
+            signal,
+            confidence_pct,
+            reason,
+        )
         self.trades.append(trade)
         return trade
 
@@ -107,7 +132,13 @@ def apply_ml_signals(
     trades: list[PaperTrade] = []
     for symbol in list(portfolio.positions):
         if symbol not in long_symbols and symbol in prices:
-            fill = portfolio.execute(symbol, "SELL", portfolio.positions[symbol], prices[symbol])
+            fill = portfolio.execute(
+                symbol,
+                "SELL",
+                portfolio.positions[symbol],
+                prices[symbol],
+                reason="ML signal exit",
+            )
             if fill:
                 trades.append(fill)
 
@@ -147,7 +178,21 @@ def apply_ml_signals(
     for symbol in target_symbols:
         price = float(prices[symbol])
         quantity = int(allocation // price)
-        fill = portfolio.execute(symbol, "BUY", quantity, price)
+        signal_row = rows[rows["symbol"] == symbol].iloc[0]
+        confidence = (
+            float(signal_row["confidence_pct"])
+            if "confidence_pct" in signal_row.index
+            else None
+        )
+        fill = portfolio.execute(
+            symbol,
+            "BUY",
+            quantity,
+            price,
+            signal=str(signal_row["signal"]),
+            confidence_pct=confidence,
+            reason="ML signal entry",
+        )
         if fill:
             trades.append(fill)
 
