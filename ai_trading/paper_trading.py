@@ -1,0 +1,133 @@
+"""Paper portfolio engine for AI trading signals."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+import pandas as pd
+
+
+@dataclass(frozen=True)
+class PaperTrade:
+    """A simulated paper-trading execution."""
+
+    symbol: str
+    side: str
+    quantity: int
+    price: float
+    value: float
+    cash_after: float
+
+
+@dataclass
+class PaperPortfolio:
+    """In-memory long-only paper portfolio."""
+
+    initial_cash: float = 100_000.0
+    cash: float = 100_000.0
+    positions: dict[str, int] = field(default_factory=dict)
+    trades: list[PaperTrade] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if self.initial_cash <= 0:
+            raise ValueError("initial_cash must be positive")
+        if self.cash <= 0:
+            self.cash = self.initial_cash
+
+    def equity(self, prices: dict[str, float]) -> float:
+        """Mark current positions to supplied latest prices."""
+        market_value = sum(
+            quantity * float(prices[symbol])
+            for symbol, quantity in self.positions.items()
+            if symbol in prices
+        )
+        return float(self.cash + market_value)
+
+    def execute(self, symbol: str, side: str, quantity: int, price: float) -> PaperTrade | None:
+        """Execute a simulated market fill."""
+        symbol = str(symbol).upper()
+        side = str(side).upper()
+        price = float(price)
+
+        if quantity <= 0 or price <= 0:
+            raise ValueError("quantity and price must be positive")
+        if side not in {"BUY", "SELL"}:
+            raise ValueError("side must be BUY or SELL")
+
+        current = self.positions.get(symbol, 0)
+        if side == "BUY":
+            value = quantity * price
+            if value > self.cash:
+                return None
+            self.cash -= value
+            self.positions[symbol] = current + quantity
+        else:
+            quantity = min(quantity, current)
+            if quantity <= 0:
+                return None
+            value = quantity * price
+            self.cash += value
+            remaining = current - quantity
+            if remaining:
+                self.positions[symbol] = remaining
+            else:
+                self.positions.pop(symbol, None)
+
+        trade = PaperTrade(symbol, side, quantity, price, value, self.cash)
+        self.trades.append(trade)
+        return trade
+
+
+def apply_ml_signals(
+    portfolio: PaperPortfolio,
+    signals: pd.DataFrame,
+    prices: dict[str, float],
+    *,
+    capital_fraction: float = 0.20,
+    max_positions: int = 5,
+) -> list[PaperTrade]:
+    """Apply LONG/SHORT/FLAT ML signals to a long-only paper portfolio."""
+    if not 0.0 < capital_fraction <= 1.0:
+        raise ValueError("capital_fraction must be between 0 and 1")
+    if max_positions < 1:
+        raise ValueError("max_positions must be at least 1")
+
+    required = {"symbol", "signal"}
+    missing = required.difference(signals.columns)
+    if missing:
+        raise ValueError(f"signals missing columns: {sorted(missing)}")
+
+    rows = signals.copy()
+    rows["symbol"] = rows["symbol"].astype(str).str.upper()
+    long_symbols = {row.symbol for row in rows.itertuples() if row.signal == "LONG"}
+
+    trades: list[PaperTrade] = []
+    for symbol in list(portfolio.positions):
+        if symbol not in long_symbols and symbol in prices:
+            fill = portfolio.execute(symbol, "SELL", portfolio.positions[symbol], prices[symbol])
+            if fill:
+                trades.append(fill)
+
+    available_slots = max_positions - len(portfolio.positions)
+    if available_slots <= 0:
+        return trades
+
+    candidates = rows[(rows["signal"] == "LONG") & rows["symbol"].isin(prices)].copy()
+    if "confidence_pct" in candidates.columns:
+        candidates = candidates.sort_values("confidence_pct", ascending=False)
+
+    target_symbols = [
+        symbol for symbol in candidates["symbol"].tolist() if symbol not in portfolio.positions
+    ][:available_slots]
+    if not target_symbols:
+        return trades
+
+    allocation = portfolio.cash * capital_fraction / len(target_symbols)
+    for symbol in target_symbols:
+        price = float(prices[symbol])
+        quantity = int(allocation // price)
+        fill = portfolio.execute(symbol, "BUY", quantity, price)
+        if fill:
+            trades.append(fill)
+
+    return trades

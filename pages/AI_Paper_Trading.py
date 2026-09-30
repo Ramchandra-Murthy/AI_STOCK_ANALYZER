@@ -1,0 +1,156 @@
+"""Streamlit page for AI paper trading."""
+
+from __future__ import annotations
+
+import pandas as pd
+import streamlit as st
+import yfinance as yf
+
+from ai_trading.ml_scanner import scan_universe
+from ai_trading.paper_trading import PaperPortfolio, apply_ml_signals
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+
+st.set_page_config(
+    page_title="AI Paper Trading",
+    page_icon="🧪",
+    layout="wide",
+)
+
+st.title("🧪 AI Paper Trading")
+st.caption(
+    "Simulation only. ML signals are converted into paper fills and portfolio "
+    "positions; no broker orders are submitted."
+)
+
+if "ai_paper_portfolio" not in st.session_state:
+    st.session_state.ai_paper_portfolio = PaperPortfolio(initial_cash=100_000.0)
+
+portfolio = st.session_state.ai_paper_portfolio
+
+left, mid, right = st.columns(3)
+with left:
+    exchange = st.selectbox("Exchange", ["NSE", "BSE"])
+    universe = NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES
+    count = st.slider(
+        "ML symbols",
+        5,
+        min(30, len(universe)),
+        min(10, len(universe)),
+        5,
+    )
+with mid:
+    horizon = st.slider("ML horizon (days)", 1, 20, 5)
+    threshold = st.slider("ML threshold (%)", 0.0, 5.0, 1.0, 0.5)
+with right:
+    capital_fraction = st.slider("Capital per cycle", 0.05, 1.0, 0.20, 0.05)
+    max_positions = st.slider("Max positions", 1, 10, 5)
+
+if st.button("Run AI Paper Trading Cycle", type="primary"):
+    with st.spinner(f"Training {count} {exchange} ML models..."):
+        result = scan_universe(
+            universe[:count],
+            exchange=exchange,
+            period="5y",
+            horizon=horizon,
+            threshold=threshold / 100.0,
+        )
+
+    if result.empty:
+        st.warning("No valid ML signals were produced.")
+        st.stop()
+
+    tickers = [
+        (
+            f"{str(symbol).strip().upper()}.NS"
+            if exchange == "NSE"
+            else f"{str(symbol).strip().upper()}.BO"
+        )
+        for symbol in result["symbol"]
+    ]
+    prices_data = yf.download(
+        tickers,
+        period="5d",
+        auto_adjust=False,
+        progress=False,
+        threads=False,
+    )
+
+    prices: dict[str, float] = {}
+    if isinstance(prices_data.columns, pd.MultiIndex):
+        close_data = prices_data["Close"]
+        for symbol, ticker in zip(result["symbol"], tickers, strict=True):
+            if ticker in close_data:
+                series = pd.to_numeric(close_data[ticker], errors="coerce").dropna()
+                if not series.empty:
+                    prices[str(symbol).upper()] = float(series.iloc[-1])
+    elif "Close" in prices_data:
+        series = pd.to_numeric(prices_data["Close"], errors="coerce").dropna()
+        if not series.empty and len(result) == 1:
+            prices[str(result.iloc[0]["symbol"]).upper()] = float(series.iloc[-1])
+
+    fills = apply_ml_signals(
+        portfolio,
+        result,
+        prices,
+        capital_fraction=capital_fraction,
+        max_positions=max_positions,
+    )
+    st.session_state.ai_paper_scan = result
+    st.session_state.ai_paper_prices = prices
+
+    st.success(f"Completed paper cycle: {len(fills)} simulated fills.")
+
+scan = st.session_state.get("ai_paper_scan")
+prices = st.session_state.get("ai_paper_prices", {})
+
+if scan is not None and not scan.empty:
+    st.subheader("Latest ML signals")
+    st.dataframe(scan.head(10), use_container_width=True, hide_index=True)
+
+equity = portfolio.equity(prices)
+metric1, metric2, metric3, metric4 = st.columns(4)
+metric1.metric("Paper equity", f"₹{equity:,.2f}")
+metric2.metric("Cash", f"₹{portfolio.cash:,.2f}")
+metric3.metric("Open positions", len(portfolio.positions))
+metric4.metric("Simulated fills", len(portfolio.trades))
+
+st.subheader("Open positions")
+if portfolio.positions:
+    position_rows = [
+        {
+            "symbol": symbol,
+            "quantity": quantity,
+            "price": prices.get(symbol),
+            "market_value": quantity * prices[symbol] if symbol in prices else None,
+        }
+        for symbol, quantity in portfolio.positions.items()
+    ]
+    st.dataframe(position_rows, use_container_width=True, hide_index=True)
+else:
+    st.info("No open paper positions.")
+
+st.subheader("Paper trade journal")
+if portfolio.trades:
+    st.dataframe(
+        [
+            {
+                "symbol": trade.symbol,
+                "side": trade.side,
+                "quantity": trade.quantity,
+                "price": trade.price,
+                "value": trade.value,
+                "cash_after": trade.cash_after,
+            }
+            for trade in portfolio.trades
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
+else:
+    st.info("No simulated fills yet.")
+
+if st.button("Reset AI Paper Portfolio"):
+    st.session_state.ai_paper_portfolio = PaperPortfolio(initial_cash=100_000.0)
+    st.session_state.pop("ai_paper_scan", None)
+    st.session_state.pop("ai_paper_prices", None)
+    st.rerun()
