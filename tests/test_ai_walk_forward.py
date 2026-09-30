@@ -34,9 +34,7 @@ def test_walk_forward_backtest_has_non_overlapping_trades() -> None:
     entries = pd.to_datetime(trades["entry_index"])
     exits = pd.to_datetime(trades["exit_index"])
     if len(entries) > 1:
-        assert all(
-            entries.iloc[i] >= exits.iloc[i - 1] for i in range(1, len(entries))
-        )
+        assert all(entries.iloc[i] >= exits.iloc[i - 1] for i in range(1, len(entries)))
 
 
 def test_backtest_respects_transaction_costs() -> None:
