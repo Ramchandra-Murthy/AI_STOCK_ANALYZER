@@ -23,6 +23,8 @@ if portfolio is None:
     st.info("Run the AI Paper Trading page first to create a paper portfolio.")
     st.stop()
 
+assert portfolio is not None
+
 equity = portfolio.equity(prices)
 entry_prices: dict[str, float] = {}
 for trade in portfolio.trades:
