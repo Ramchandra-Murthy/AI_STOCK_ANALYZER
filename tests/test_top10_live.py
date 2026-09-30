@@ -1,4 +1,4 @@
-from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from components.top10_live import (
     TOP10_REFRESH_SECONDS,
@@ -14,4 +14,4 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
 
 def test_top10_live_uses_india_timezone() -> None:
     assert TOP10_TIMEZONE == "Asia/Kolkata"
-    assert datetime.now().astimezone().utcoffset() is not None
+    assert ZoneInfo(TOP10_TIMEZONE).key == "Asia/Kolkata"
