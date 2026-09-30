@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from ai_trading.paper_trading import PaperPortfolio
 from ai_trading.performance import build_performance_report
 
 st.set_page_config(
@@ -19,11 +20,9 @@ st.caption("Analytics for the current in-memory AI paper-trading session.")
 portfolio = st.session_state.get("ai_paper_portfolio")
 prices = st.session_state.get("ai_paper_prices", {})
 
-if portfolio is None:
+if not isinstance(portfolio, PaperPortfolio):
     st.info("Run the AI Paper Trading page first to create a paper portfolio.")
     st.stop()
-
-assert portfolio is not None
 
 equity = portfolio.equity(prices)
 entry_prices: dict[str, float] = {}
