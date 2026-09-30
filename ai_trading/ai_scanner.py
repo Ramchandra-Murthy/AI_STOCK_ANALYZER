@@ -9,7 +9,9 @@ from ai_trading.features import build_features
 from ai_trading.signal_engine import score_features
 
 
-def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y") -> pd.DataFrame:
+def scan_universe(
+    symbols: list[str], exchange: str = "NSE", period: str = "1y"
+) -> pd.DataFrame:
     """Scan a universe and return the latest AI trading intelligence signals."""
     exchange = exchange.upper()
     if exchange not in {"NSE", "BSE"}:
@@ -18,7 +20,10 @@ def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y")
         return pd.DataFrame()
 
     suffix = ".NS" if exchange == "NSE" else ".BO"
-    tickers = [s if str(s).upper().endswith(suffix) else f"{str(s).strip().upper()}{suffix}" for s in symbols]
+    tickers = [
+        s if str(s).upper().endswith(suffix) else f"{str(s).strip().upper()}{suffix}"
+        for s in symbols
+    ]
     data = yf.download(
         tickers=tickers,
         period=period,
@@ -62,17 +67,29 @@ def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y")
                 "signal": str(latest["signal"]),
                 "return_5_pct": round(float(features["return_5"].iloc[-1]) * 100, 2),
                 "return_20_pct": round(float(features["return_20"].iloc[-1]) * 100, 2),
-                "volatility_pct": round(float(features["volatility_20"].iloc[-1]) * 100, 2),
+                "volatility_pct": round(
+                    float(features["volatility_20"].iloc[-1]) * 100, 2
+                ),
                 "volume_ratio": round(float(features["volume_ratio"].iloc[-1]), 2),
             }
         )
 
     columns = [
-        "symbol", "exchange", "price", "ai_score", "confidence_pct", "signal",
-        "return_5_pct", "return_20_pct", "volatility_pct", "volume_ratio",
+        "symbol",
+        "exchange",
+        "price",
+        "ai_score",
+        "confidence_pct",
+        "signal",
+        "return_5_pct",
+        "return_20_pct",
+        "volatility_pct",
+        "volume_ratio",
     ]
     if not rows:
         return pd.DataFrame(columns=columns)
-    return pd.DataFrame(rows, columns=columns).sort_values(
-        ["confidence_pct", "ai_score"], ascending=False
-    ).reset_index(drop=True)
+    return (
+        pd.DataFrame(rows, columns=columns)
+        .sort_values(["confidence_pct", "ai_score"], ascending=False)
+        .reset_index(drop=True)
+    )
