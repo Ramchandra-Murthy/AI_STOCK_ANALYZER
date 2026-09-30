@@ -1,4 +1,4 @@
-"""Fast live Top-10 market-mover scanner with one-minute refresh."""
+""""Fast live Top-10 market-mover scanner with one-minute refresh."""
 
 from __future__ import annotations
 
@@ -93,11 +93,7 @@ def _load_live_top10() -> tuple[pd.DataFrame, float]:
                     continue
 
                 change_1m = (latest / previous - 1.0) * 100
-                change_5m = (
-                    (latest / float(close.iloc[-6]) - 1.0) * 100
-                    if len(close) >= 6
-                    else None
-                )
+                change_5m = (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
                 symbol = ticker.rsplit(".", 1)[0]
 
                 rows.append(
