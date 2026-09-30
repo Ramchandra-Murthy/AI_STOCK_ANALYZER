@@ -1,5 +1,6 @@
 import streamlit as st
 
+from components.top10_live import show_live_top10_scanner
 from modules.backtesting import show as backtesting
 
 # ==========================================================
@@ -47,6 +48,7 @@ PAGES = {
     "📈 Market": market,
     "💼 Portfolio": portfolio,
     "🔍 Scanner": scanner,
+    "📡 Live Top-10 Scanner": show_live_top10_scanner,
     "⏱️ Intraday Trading": intraday,
     "🔍 Stock Research": research,
     "📊 Fundamentals": fundamentals,
