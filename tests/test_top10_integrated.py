@@ -5,12 +5,12 @@ from scanner.top10_integrated import scan_top10_integrated
 
 def test_scan_top10_integrated_returns_ranked_movers(monkeypatch) -> None:
     monkeypatch.setattr(
-        "scanner.top10_integrated.merge_nse_universe",
-        lambda: ["RELIANCE"],
+        "scanner.top10_integrated.NSE_CANDIDATES",
+        ["RELIANCE"],
     )
     monkeypatch.setattr(
-        "scanner.top10_integrated.merge_bse_universe",
-        lambda: [],
+        "scanner.top10_integrated.BSE_CANDIDATES",
+        [],
     )
     monkeypatch.setattr(
         "scanner.top10_integrated._batch_change_screen",
