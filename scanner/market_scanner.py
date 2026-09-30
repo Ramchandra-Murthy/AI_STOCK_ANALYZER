@@ -15,7 +15,7 @@ from services.sector_mapping import sector_for_symbol
 # the exchange's current equity list before each cache window.
 TOP_CANDIDATES_TO_ANALYZE = 30
 DISPLAY_COUNT = 10
-DOWNLOAD_CHUNK_SIZE = 40
+DOWNLOAD_CHUNK_SIZE = 80
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -41,7 +41,7 @@ def _batch_change_screen(
                     auto_adjust=True,
                     progress=False,
                     group_by="ticker",
-                    threads=False,
+                    threads=True,
                 )
             except Exception:
                 continue
