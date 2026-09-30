@@ -43,7 +43,9 @@ class PaperPortfolio:
         )
         return float(self.cash + market_value)
 
-    def execute(self, symbol: str, side: str, quantity: int, price: float) -> PaperTrade | None:
+    def execute(
+        self, symbol: str, side: str, quantity: int, price: float
+    ) -> PaperTrade | None:
         """Execute a simulated market fill."""
         symbol = str(symbol).upper()
         side = str(side).upper()
@@ -99,14 +101,14 @@ def apply_ml_signals(
 
     rows = signals.copy()
     rows["symbol"] = rows["symbol"].astype(str).str.upper()
-    long_symbols = {
-        row.symbol for row in rows.itertuples() if row.signal == "LONG"
-    }
+    long_symbols = {row.symbol for row in rows.itertuples() if row.signal == "LONG"}
 
     trades: list[PaperTrade] = []
     for symbol in list(portfolio.positions):
         if symbol not in long_symbols and symbol in prices:
-            fill = portfolio.execute(symbol, "SELL", portfolio.positions[symbol], prices[symbol])
+            fill = portfolio.execute(
+                symbol, "SELL", portfolio.positions[symbol], prices[symbol]
+            )
             if fill:
                 trades.append(fill)
 
@@ -114,15 +116,12 @@ def apply_ml_signals(
     if available_slots <= 0:
         return trades
 
-    candidates = rows[
-        (rows["signal"] == "LONG") & rows["symbol"].isin(prices)
-    ].copy()
+    candidates = rows[(rows["signal"] == "LONG") & rows["symbol"].isin(prices)].copy()
     if "confidence_pct" in candidates.columns:
         candidates = candidates.sort_values("confidence_pct", ascending=False)
 
     target_symbols = [
-        symbol for symbol in candidates["symbol"].tolist()
-        if symbol not in portfolio.positions
+        symbol for symbol in candidates["symbol"].tolist() if symbol not in portfolio.positions
     ][:available_slots]
     if not target_symbols:
         return trades
