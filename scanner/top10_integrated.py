@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 
 from engine.live_integrated_scanner import scan_integrated_tickers
-from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.market_scanner import _batch_change_screen
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 
 def scan_top10_integrated(
@@ -15,7 +15,12 @@ def scan_top10_integrated(
     interval: str = "1d",
 ) -> pd.DataFrame:
     """Return the ten largest liquid NSE/BSE daily movers with workflow signals."""
-    candidates = {"NSE": merge_nse_universe(), "BSE": merge_bse_universe()}
+    # Keep the live Top-10 page fast by using the curated liquid universe.
+    # The general scanner can still use the dynamically refreshed exchange lists.
+    candidates = {
+        "NSE": NSE_CANDIDATES,
+        "BSE": BSE_CANDIDATES,
+    }
     movers = _batch_change_screen(candidates)[:10]
     if not movers:
         return pd.DataFrame()
