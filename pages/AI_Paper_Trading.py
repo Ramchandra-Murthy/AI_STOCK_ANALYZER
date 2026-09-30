@@ -8,6 +8,7 @@ import yfinance as yf
 
 from ai_trading.ml_scanner import scan_universe
 from ai_trading.paper_trading import PaperPortfolio, apply_ml_signals
+from ai_trading.risk import RiskLimits, risk_warnings
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 st.set_page_config(
@@ -44,6 +45,21 @@ with mid:
 with right:
     capital_fraction = st.slider("Capital per cycle", 0.05, 1.0, 0.20, 0.05)
     max_positions = st.slider("Max positions", 1, 10, 5)
+
+st.subheader("Risk controls")
+risk1, risk2, risk3 = st.columns(3)
+with risk1:
+    max_exposure_pct = st.slider("Max portfolio exposure", 20.0, 100.0, 80.0, 5.0)
+with risk2:
+    max_position_pct = st.slider("Max position size", 5.0, 50.0, 20.0, 5.0)
+with risk3:
+    cash_reserve_pct = st.slider("Minimum cash reserve", 0.0, 50.0, 10.0, 5.0)
+
+risk_limits = RiskLimits(
+    max_exposure_pct=max_exposure_pct,
+    max_position_pct=max_position_pct,
+    cash_reserve_pct=cash_reserve_pct,
+)
 
 if st.button("Run AI Paper Trading Cycle", type="primary"):
     with st.spinner(f"Training {count} {exchange} ML models..."):
@@ -94,6 +110,7 @@ if st.button("Run AI Paper Trading Cycle", type="primary"):
         prices,
         capital_fraction=capital_fraction,
         max_positions=max_positions,
+        risk_limits=risk_limits,
     )
     st.session_state.ai_paper_scan = result
     st.session_state.ai_paper_prices = prices
@@ -108,6 +125,23 @@ if scan is not None and not scan.empty:
     st.dataframe(scan.head(10), use_container_width=True, hide_index=True)
 
 equity = portfolio.equity(prices)
+market_value = sum(
+    quantity * float(prices[symbol])
+    for symbol, quantity in portfolio.positions.items()
+    if symbol in prices
+)
+warnings = risk_warnings(equity, portfolio.cash, market_value, risk_limits)
+for warning in warnings:
+    st.warning(warning)
+
+risk_metrics = st.columns(3)
+risk_metrics[0].metric(
+    "Exposure",
+    f"{market_value / equity * 100.0:.1f}%" if equity > 0 else "0.0%",
+)
+risk_metrics[1].metric("Cash reserve", f"₹{portfolio.cash:,.2f}")
+risk_metrics[2].metric("Risk cap", f"{risk_limits.max_exposure_pct:.0f}%")
+
 metric1, metric2, metric3, metric4 = st.columns(4)
 metric1.metric("Paper equity", f"₹{equity:,.2f}")
 metric2.metric("Cash", f"₹{portfolio.cash:,.2f}")

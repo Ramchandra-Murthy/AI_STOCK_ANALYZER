@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from ai_trading.paper_trading import PaperPortfolio, apply_ml_signals
+from ai_trading.risk import RiskLimits
 
 
 def test_apply_long_signal_buys_and_marks_equity() -> None:
@@ -56,3 +57,28 @@ def test_position_limit_is_respected() -> None:
     )
 
     assert set(portfolio.positions) == {"A", "B"}
+
+
+def test_risk_limits_cap_new_position_allocation() -> None:
+    portfolio = PaperPortfolio(initial_cash=100_000.0)
+    signals = pd.DataFrame(
+        [
+            {"symbol": "A", "signal": "LONG", "confidence_pct": 90.0},
+            {"symbol": "B", "signal": "LONG", "confidence_pct": 80.0},
+        ]
+    )
+
+    apply_ml_signals(
+        portfolio,
+        signals,
+        {"A": 1_000.0, "B": 1_000.0},
+        capital_fraction=1.0,
+        max_positions=2,
+        risk_limits=RiskLimits(
+            max_exposure_pct=50.0,
+            max_position_pct=20.0,
+            cash_reserve_pct=10.0,
+        ),
+    )
+
+    assert portfolio.positions == {"A": 20, "B": 20}
