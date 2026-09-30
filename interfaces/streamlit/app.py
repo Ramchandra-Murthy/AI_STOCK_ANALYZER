@@ -8,10 +8,9 @@ from components.integrated_workflow import (
     show_integrated_workflow,
     show_live_integrated_scanner,
 )
+from components.top10_live import show_live_top10_scanner
 from engine.live_integrated_scanner import DEFAULT_TICKERS, scan_integrated_tickers
 from engine.trading_pipeline import integrated_trade_frame
-from scanner.top10_integrated import scan_top10_integrated
-
 st.set_page_config(page_title="AI Stock Analyzer V6", page_icon="📈", layout="wide")
 
 st.title("📈 AI Stock Analyzer — Institutional Equity Research Platform")
@@ -33,10 +32,13 @@ if st.sidebar.button("Run Integrated Scanner"):
         scanner = scan_integrated_tickers(tickers, period=period, interval=interval)
     show_live_integrated_scanner(scanner)
 
-if st.sidebar.button("Run Top-10 Market Scanner"):
-    with st.spinner("Scanning the current NSE/BSE market movers..."):
-        top10 = scan_top10_integrated(period=period, interval=interval)
-    show_live_integrated_scanner(top10)
+live_top10 = st.sidebar.checkbox(
+    "Enable Live Top-10 Scanner",
+    help="Refresh the Top-10 NSE/BSE market movers automatically every minute.",
+)
+
+if live_top10:
+    show_live_top10_scanner(period=period, interval=interval)
 
 if st.sidebar.button("Run Research Pipeline"):
     with st.spinner(f"Loading {ticker} market data..."):
