@@ -172,11 +172,11 @@ function App() {
       .then((r) => r.ok ? r.json() : Promise.reject(new Error("API unavailable")))
       .then(() => setHealth("online"))
       .catch(() => setHealth("offline"));
-    refreshHistory();
-    refreshHealth();
+    void refreshHistory();
+    void refreshHealth();
     const healthTimer = setInterval(() => {
-      refreshHealth();
-      refreshHistory();
+      void refreshHealth();
+      void refreshHistory();
     }, 15000);
     return () => clearInterval(healthTimer);
   }, []);
@@ -206,7 +206,7 @@ function App() {
         exportVisibleRows();
       } else if (event.key.toLowerCase() === "r") {
         event.preventDefault();
-        refreshSignalBoard();
+        void refreshSignalBoard();
       } else if (event.key === "Escape" && tableSearch) {
         setTableSearch("");
       }
@@ -233,8 +233,8 @@ function App() {
           setRows(job.results ?? []);
           setJobId(null);
           setLastUpdated(new Date().toISOString());
-          refreshHistory();
-          refreshHealth();
+          void refreshHistory();
+          void refreshHealth();
           clearInterval(timer);
         }
         if (job.status === "failed") {
@@ -474,7 +474,7 @@ function App() {
     const scheduleNext = () => setNextAutoScanAt(Date.now() + safeIntervalMs);
     scheduleNext();
     const timer = setInterval(() => {
-      startScan();
+      void startScan();
       scheduleNext();
     }, safeIntervalMs);
     return () => clearInterval(timer);
