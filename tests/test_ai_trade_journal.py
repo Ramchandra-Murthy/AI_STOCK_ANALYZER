@@ -1,6 +1,6 @@
 """Tests for AI paper trade journal analytics."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -9,7 +9,7 @@ from ai_trading.trade_journal import build_trade_journal, summarize_journal
 
 
 def test_trade_journal_matches_fifo_round_trip() -> None:
-    entry_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    entry_time = datetime(2026, 1, 1, tzinfo=UTC)
     exit_time = datetime(2026, 1, 1, 1, tzinfo=timezone.utc)
     trades = [
         PaperTrade(
@@ -57,25 +57,27 @@ def test_journal_summary_groups_symbols() -> None:
 
     summary = summarize_journal(build_trade_journal(trades))
 
-    assert summary == [
+    expected = [
         {
             "symbol": "A",
             "trades": 1,
             "wins": 1,
             "losses": 0,
-            "win_rate_pct": 100.0,
-            "total_pnl": 100.0,
-            "avg_pnl": 100.0,
-            "avg_return_pct": 10.0,
+            "win_rate_pct": pytest.approx(100.0),
+            "total_pnl": pytest.approx(100.0),
+            "avg_pnl": pytest.approx(100.0),
+            "avg_return_pct": pytest.approx(10.0),
         },
         {
             "symbol": "B",
             "trades": 1,
             "wins": 0,
             "losses": 1,
-            "win_rate_pct": 0.0,
-            "total_pnl": -50.0,
-            "avg_pnl": -50.0,
-            "avg_return_pct": -5.0,
+            "win_rate_pct": pytest.approx(0.0),
+            "total_pnl": pytest.approx(-50.0),
+            "avg_pnl": pytest.approx(-50.0),
+            "avg_return_pct": pytest.approx(-5.0),
         },
     ]
+
+    assert summary == expected
