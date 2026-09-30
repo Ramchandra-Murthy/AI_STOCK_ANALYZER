@@ -6,8 +6,6 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from ai_trading.walk_forward import walk_forward_backtest
-
 from ai_trading.ai_scanner import scan_universe
 from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.ml_scanner import scan_universe as scan_ml_universe
