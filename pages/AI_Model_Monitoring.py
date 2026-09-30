@@ -70,9 +70,7 @@ if st.button("Run Model Monitoring", type="primary"):
     st.dataframe(calibration, use_container_width=True, hide_index=True)
 
     if not calibration.empty:
-        chart = calibration.set_index("predicted_probability")[
-            ["actual_rate"]
-        ]
+        chart = calibration.set_index("predicted_probability")[["actual_rate"]]
         st.line_chart(chart)
 
     st.subheader("Prediction distribution")
