@@ -60,9 +60,11 @@ if st.button("Run AI Paper Trading Cycle", type="primary"):
         st.stop()
 
     tickers = [
-        f"{str(symbol).strip().upper()}.NS"
-        if exchange == "NSE"
-        else f"{str(symbol).strip().upper()}.BO"
+        (
+            f"{str(symbol).strip().upper()}.NS"
+            if exchange == "NSE"
+            else f"{str(symbol).strip().upper()}.BO"
+        )
         for symbol in result["symbol"]
     ]
     prices_data = yf.download(
@@ -119,9 +121,7 @@ if portfolio.positions:
             "symbol": symbol,
             "quantity": quantity,
             "price": prices.get(symbol),
-            "market_value": (
-                quantity * prices[symbol] if symbol in prices else None
-            ),
+            "market_value": quantity * prices[symbol] if symbol in prices else None,
         }
         for symbol, quantity in portfolio.positions.items()
     ]
