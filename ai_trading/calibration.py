@@ -6,9 +6,9 @@ from dataclasses import dataclass
 
 import pandas as pd
 from sklearn.metrics import accuracy_score, brier_score_loss
+from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
 
 from ai_trading.ml_model import FEATURE_COLUMNS, make_training_dataset
 
