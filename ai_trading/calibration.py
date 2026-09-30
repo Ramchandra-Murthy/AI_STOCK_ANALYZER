@@ -66,9 +66,7 @@ def evaluate_calibration(
 
     probabilities = model.predict_proba(x_test[FEATURE_COLUMNS])[:, 1]
     predictions = (probabilities >= 0.5).astype(int)
-    calibration_gap = float(
-        abs(float(probabilities.mean()) - float(y_test.mean()))
-    )
+    calibration_gap = float(abs(float(probabilities.mean()) - float(y_test.mean())))
     metrics = CalibrationMetrics(
         accuracy=float(accuracy_score(y_test, predictions)),
         brier_score=float(brier_score_loss(y_test, probabilities)),
@@ -102,7 +100,5 @@ def evaluate_calibration(
         )
         .reset_index()
     )
-    summary["calibration_gap"] = (
-        summary["predicted_probability"] - summary["actual_rate"]
-    ).abs()
+    summary["calibration_gap"] = (summary["predicted_probability"] - summary["actual_rate"]).abs()
     return metrics, summary
