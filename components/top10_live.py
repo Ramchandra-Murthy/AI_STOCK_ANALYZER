@@ -1,4 +1,4 @@
-""""Fast live Top-10 market-mover scanner with one-minute refresh."""
+"""Fast live Top-10 market-mover scanner with one-minute refresh."""
 
 from __future__ import annotations
 
@@ -58,8 +58,14 @@ def _load_live_top10() -> tuple[pd.DataFrame, float]:
     rows: list[dict[str, object]] = []
 
     candidates = [
-        *(("NSE", symbol) for symbol in NSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]),
-        *(("BSE", symbol) for symbol in BSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]),
+        *(
+            ("NSE", symbol)
+            for symbol in NSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]
+        ),
+        *(
+            ("BSE", symbol)
+            for symbol in BSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]
+        ),
     ]
 
     for exchange in ("NSE", "BSE"):
@@ -93,7 +99,11 @@ def _load_live_top10() -> tuple[pd.DataFrame, float]:
                     continue
 
                 change_1m = (latest / previous - 1.0) * 100
-                change_5m = (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
+                change_5m = (
+                    (latest / float(close.iloc[-6]) - 1.0) * 100
+                    if len(close) >= 6
+                    else None
+                )
                 symbol = ticker.rsplit(".", 1)[0]
 
                 rows.append(
@@ -103,7 +113,9 @@ def _load_live_top10() -> tuple[pd.DataFrame, float]:
                         "Exchange": exchange,
                         "Price": round(latest, 2),
                         "1-min %": round(change_1m, 2),
-                        "5-min %": round(change_5m, 2) if change_5m is not None else None,
+                        "5-min %": round(change_5m, 2)
+                        if change_5m is not None
+                        else None,
                         "Last candle": str(close.index[-1]),
                     }
                 )
