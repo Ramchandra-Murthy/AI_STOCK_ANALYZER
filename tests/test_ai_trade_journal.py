@@ -10,7 +10,7 @@ from ai_trading.trade_journal import build_trade_journal, summarize_journal
 
 def test_trade_journal_matches_fifo_round_trip() -> None:
     entry_time = datetime(2026, 1, 1, tzinfo=UTC)
-    exit_time = datetime(2026, 1, 1, 1, tzinfo=timezone.utc)
+    exit_time = datetime(2026, 1, 1, 1, tzinfo=UTC)
     trades = [
         PaperTrade(
             "RELIANCE",
