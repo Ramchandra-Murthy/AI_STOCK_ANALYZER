@@ -268,9 +268,7 @@ if st.button("Run Walk-Forward Backtest", type="primary"):
         metric4.metric("Win rate", f"{backtest.win_rate:.1%}")
         metric5.metric(
             "Profit factor",
-            f"{backtest.profit_factor:.2f}"
-            if backtest.profit_factor is not None
-            else "N/A",
+            f"{backtest.profit_factor:.2f}" if backtest.profit_factor is not None else "N/A",
         )
 
         chart = trades.set_index("exit_index")[["equity"]]
