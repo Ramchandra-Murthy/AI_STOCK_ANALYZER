@@ -23,6 +23,55 @@ def _ticker(symbol: str, exchange: str) -> str:
     return f"{symbol}.{suffix}"
 
 
+def _extract_series(history: pd.DataFrame, ticker: str, field: str) -> pd.Series:
+    """Extract a field from either yfinance MultiIndex column orientation."""
+    if not isinstance(history.columns, pd.MultiIndex):
+        return pd.to_numeric(history[field], errors="coerce").dropna()
+
+    levels = history.columns
+    for level in range(levels.nlevels):
+        if ticker in levels.get_level_values(level):
+            frame = history.xs(ticker, axis=1, level=level)
+            if field in frame.columns:
+                return pd.to_numeric(frame[field], errors="coerce").dropna()
+
+    return pd.Series(dtype="float64")
+
+
+def _download_chunk(chunk: list[str]) -> pd.DataFrame:
+    """Download a mover-screen chunk, retrying once without threading."""
+    try:
+        history = yf.download(
+            tickers=chunk,
+            period="5d",
+            interval="1d",
+            auto_adjust=True,
+            progress=False,
+            group_by="ticker",
+            threads=True,
+            timeout=10,
+        )
+        if history is not None and not history.empty:
+            return history
+    except Exception:
+        pass
+
+    try:
+        history = yf.download(
+            tickers=chunk,
+            period="5d",
+            interval="1d",
+            auto_adjust=True,
+            progress=False,
+            group_by="ticker",
+            threads=False,
+            timeout=15,
+        )
+    except Exception:
+        return pd.DataFrame()
+    return history if history is not None else pd.DataFrame()
+
+
 def _batch_change_screen(
     candidates: dict[str, list[str]],
 ) -> list[tuple[str, str, float]]:
@@ -33,41 +82,20 @@ def _batch_change_screen(
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
         for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
             chunk = tickers[start : start + DOWNLOAD_CHUNK_SIZE]
-            try:
-                history = yf.download(
-                    tickers=chunk,
-                    period="5d",
-                    interval="1d",
-                    auto_adjust=True,
-                    progress=False,
-                    group_by="ticker",
-                    threads=True,
-                    timeout=10,
-                )
-            except Exception:
-                continue
-
-            if history is None or history.empty:
+            history = _download_chunk(chunk)
+            if history.empty:
                 continue
 
             for ticker in chunk:
                 try:
-                    if isinstance(history.columns, pd.MultiIndex):
-                        if ticker not in history.columns.get_level_values(0):
-                            continue
-                        close = pd.to_numeric(history[ticker]["Close"], errors="coerce").dropna()
-                        volume = pd.to_numeric(history[ticker]["Volume"], errors="coerce").dropna()
-                    else:
-                        close = pd.to_numeric(history["Close"], errors="coerce").dropna()
-                        volume = pd.to_numeric(history["Volume"], errors="coerce").dropna()
-
+                    close = _extract_series(history, ticker, "Close")
+                    volume = _extract_series(history, ticker, "Volume")
                     if len(close) < 2 or volume.empty:
                         continue
 
                     latest = float(close.iloc[-1])
                     previous = float(close.iloc[-2])
                     average_volume = float(volume.tail(5).mean())
-
                     if previous == 0 or not passes_liquidity_filter(latest, average_volume):
                         continue
 
@@ -103,7 +131,6 @@ def _analyze_candidate(ticker: str) -> dict[str, Any] | None:
             "Recommendation": signal["Recommendation"],
         }
     except Exception:
-        # Unavailable symbols should not stop the rest of the scan.
         return None
 
 
