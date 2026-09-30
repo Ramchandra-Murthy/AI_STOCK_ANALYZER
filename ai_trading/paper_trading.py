@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
+from .risk import RiskLimits
+
 
 @dataclass(frozen=True)
 class PaperTrade:
@@ -85,6 +87,7 @@ def apply_ml_signals(
     *,
     capital_fraction: float = 0.20,
     max_positions: int = 5,
+    risk_limits: RiskLimits | None = None,
 ) -> list[PaperTrade]:
     """Apply LONG/SHORT/FLAT ML signals to a long-only paper portfolio."""
     if not 0.0 < capital_fraction <= 1.0:
@@ -122,7 +125,25 @@ def apply_ml_signals(
     if not target_symbols:
         return trades
 
-    allocation = portfolio.cash * capital_fraction / len(target_symbols)
+    if risk_limits is None:
+        allocation = portfolio.cash * capital_fraction / len(target_symbols)
+    else:
+        current_market_value = sum(
+            quantity * float(prices[symbol])
+            for symbol, quantity in portfolio.positions.items()
+            if symbol in prices
+        )
+        risk_allocation = risk_limits.allocation(
+            portfolio.equity(prices),
+            portfolio.cash,
+            current_market_value,
+            len(target_symbols),
+        )
+        allocation = min(
+            portfolio.cash * capital_fraction / len(target_symbols),
+            risk_allocation["per_candidate"],
+        )
+
     for symbol in target_symbols:
         price = float(prices[symbol])
         quantity = int(allocation // price)
