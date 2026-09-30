@@ -8,9 +8,7 @@ from ai_trading.paper_trading import PaperPortfolio, apply_ml_signals
 
 def test_apply_long_signal_buys_and_marks_equity() -> None:
     portfolio = PaperPortfolio(initial_cash=100_000.0)
-    signals = pd.DataFrame(
-        [{"symbol": "RELIANCE", "signal": "LONG", "confidence_pct": 80.0}]
-    )
+    signals = pd.DataFrame([{"symbol": "RELIANCE", "signal": "LONG", "confidence_pct": 80.0}])
 
     trades = apply_ml_signals(
         portfolio,
