@@ -79,9 +79,7 @@ def walk_forward_backtest(
 
         entry = float(close.iloc[prediction_index])
         exit_price = float(close.iloc[prediction_index + horizon])
-        gross_return = (
-            direction * (exit_price / entry - 1.0) if direction else 0.0
-        )
+        gross_return = direction * (exit_price / entry - 1.0) if direction else 0.0
         cost = (2.0 * transaction_cost_bps) / 10000.0 if direction else 0.0
         net_return = gross_return - cost
 
@@ -117,9 +115,7 @@ def walk_forward_backtest(
         max_drawdown=float(trades["drawdown"].min()),
         trades=len(active),
         win_rate=float(len(winners) / len(active)) if not active.empty else 0.0,
-        profit_factor=(
-            gross_profit / gross_loss if gross_loss > 0.0 else None
-        ),
+        profit_factor=(gross_profit / gross_loss if gross_loss > 0.0 else None),
         final_equity=float(trades["equity"].iloc[-1]),
     )
     return trades, result
