@@ -37,7 +37,8 @@ def _download(
         auto_adjust=False,
         progress=False,
         group_by="ticker",
-        threads=False,
+        threads=True,
+        timeout=10,
     )
 
 

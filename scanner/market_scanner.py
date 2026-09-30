@@ -41,7 +41,8 @@ def _batch_change_screen(
                     auto_adjust=True,
                     progress=False,
                     group_by="ticker",
-                    threads=False,
+                    threads=True,
+                    timeout=10,
                 )
             except Exception:
                 continue
