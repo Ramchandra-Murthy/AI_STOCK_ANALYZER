@@ -87,8 +87,10 @@ def build_performance_report(
     total_pnl = current_equity - initial_cash
     total_return_pct = total_pnl / initial_cash * 100.0
     win_rate_pct = wins / (wins + losses) * 100.0 if wins + losses else 0.0
-    profit_factor = gross_profit / gross_loss if gross_loss else (
-        float("inf") if gross_profit else None
+    profit_factor = (
+        gross_profit / gross_loss
+        if gross_loss
+        else (float("inf") if gross_profit else None)
     )
 
     peak = realized_equity[0]
@@ -103,9 +105,7 @@ def build_performance_report(
         for symbol, quantity in positions.items()
         if symbol in prices
     )
-    gross_exposure_pct = (
-        market_value / current_equity * 100.0 if current_equity > 0 else 0.0
-    )
+    gross_exposure_pct = market_value / current_equity * 100.0 if current_equity > 0 else 0.0
 
     return PerformanceReport(
         initial_cash=float(initial_cash),
