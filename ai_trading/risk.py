@@ -48,9 +48,9 @@ class RiskLimits:
             per_candidate = 0.0
         else:
             per_candidate = min(
-                equity * self.max_position_pct / 100.0,
-                total_available / candidate_count,
-            )
+            equity * self.max_position_pct / 100.0,
+            total_available,
+        )
 
         return {
             "total_available": total_available,
@@ -76,8 +76,7 @@ def risk_warnings(
 
     if exposure_pct > limits.max_exposure_pct:
         warnings.append(
-            f"Exposure is {exposure_pct:.1f}%, above the "
-            f"{limits.max_exposure_pct:.1f}% limit."
+            f"Exposure is {exposure_pct:.1f}%, above the " f"{limits.max_exposure_pct:.1f}% limit."
         )
     if cash_pct < limits.cash_reserve_pct:
         warnings.append(
