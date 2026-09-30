@@ -48,9 +48,7 @@ m5, m6, m7, m8 = st.columns(4)
 m5.metric("Realized P&L", f"₹{report.realized_pnl:,.2f}")
 m6.metric("Unrealized P&L", f"₹{report.unrealized_pnl:,.2f}")
 m7.metric("Win rate", f"{report.win_rate_pct:.1f}%")
-profit_factor = (
-    f"{report.profit_factor:.2f}" if report.profit_factor is not None else "N/A"
-)
+profit_factor = f"{report.profit_factor:.2f}" if report.profit_factor is not None else "N/A"
 m8.metric("Profit factor", profit_factor)
 
 m9, m10 = st.columns(2)
