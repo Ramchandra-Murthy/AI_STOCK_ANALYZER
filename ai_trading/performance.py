@@ -103,9 +103,7 @@ def build_performance_report(
         for symbol, quantity in positions.items()
         if symbol in prices
     )
-    gross_exposure_pct = (
-        market_value / current_equity * 100.0 if current_equity > 0 else 0.0
-    )
+    gross_exposure_pct = market_value / current_equity * 100.0 if current_equity > 0 else 0.0
 
     return PerformanceReport(
         initial_cash=float(initial_cash),
