@@ -92,6 +92,11 @@ pages = {
             title="AI Paper Risk",
             icon="🛡️",
         ),
+        st.Page(
+            "pages/AI_Paper_Trade_Journal.py",
+            title="AI Paper Trade Journal",
+            icon="📒",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️"),
