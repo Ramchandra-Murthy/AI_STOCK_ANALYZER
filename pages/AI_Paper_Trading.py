@@ -174,6 +174,10 @@ if portfolio.trades:
                 "price": trade.price,
                 "value": trade.value,
                 "cash_after": trade.cash_after,
+                "signal": trade.signal,
+                "confidence_pct": trade.confidence_pct,
+                "reason": trade.reason,
+                "timestamp": trade.timestamp.isoformat(),
             }
             for trade in portfolio.trades
         ],
