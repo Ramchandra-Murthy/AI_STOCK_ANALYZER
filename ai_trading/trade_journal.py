@@ -93,9 +93,7 @@ def summarize_journal(
                 "trades": len(symbol_rows),
                 "wins": len(wins),
                 "losses": len(losses),
-                "win_rate_pct": (
-                    len(wins) / len(symbol_rows) * 100.0 if symbol_rows else 0.0
-                ),
+                "win_rate_pct": (len(wins) / len(symbol_rows) * 100.0 if symbol_rows else 0.0),
                 "total_pnl": total_pnl,
                 "avg_pnl": total_pnl / len(symbol_rows) if symbol_rows else 0.0,
                 "avg_return_pct": (
