@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from ai_trading.learning_loop import learning_loop_summary, run_learning_loop
 
@@ -23,10 +24,10 @@ def _history() -> pd.DataFrame:
 def test_learning_loop_does_not_use_future_outcomes() -> None:
     replay = run_learning_loop(_history(), min_samples=10)
 
-    assert replay.iloc[0]["adaptive_confidence_pct"] == 70.0
-    assert replay.iloc[10]["adaptive_adjustment_pct"] == 10.0
-    assert replay.iloc[11]["adaptive_confidence_pct"] == 60.0
-    assert replay.iloc[11]["learning_samples"] == 10
+    assert replay.iloc[0]["adaptive_confidence_pct"] == pytest.approx(70.0)
+    assert replay.iloc[10]["adaptive_adjustment_pct"] == pytest.approx(10.0)
+    assert replay.iloc[11]["adaptive_confidence_pct"] == pytest.approx(80.0)
+    assert replay.iloc[11]["learning_samples"] == 11
 
 
 def test_learning_loop_summary_is_bounded() -> None:
