@@ -143,9 +143,7 @@ if isinstance(ml_result, pd.DataFrame):
         )
         metric4.metric(
             "Average regime strength",
-            f"{filtered['regime_strength_pct'].mean():.1f}%"
-            if not filtered.empty
-            else "N/A",
+            f"{filtered['regime_strength_pct'].mean():.1f}%" if not filtered.empty else "N/A",
         )
 
         display_columns = [
