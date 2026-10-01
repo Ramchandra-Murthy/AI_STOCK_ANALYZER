@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from ai_trading.calibration import evaluate_calibration
+from ai_trading.calibration import evaluate_calibration, monitor_calibration_frames
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 st.set_page_config(
@@ -85,3 +85,59 @@ if st.button("Run Model Monitoring", type="primary"):
         "the chronological holdout. These are historical measurements, not "
         "guarantees of future performance."
     )
+
+
+st.divider()
+st.subheader("Multi-stock calibration monitor")
+st.caption(
+    "Compare out-of-sample probability calibration across a selected stock universe. "
+    "Lower Brier score and calibration gap indicate smaller historical probability error; "
+    "these are not guarantees of future performance."
+)
+
+universe_count = st.slider("Universe symbols", 5, min(20, len(universe)), min(10, len(universe)), 5)
+if st.button("Run Universe Monitoring"):
+    selected = [str(symbol).strip().upper() for symbol in universe[:universe_count]]
+    suffix = ".NS" if exchange == "NSE" else ".BO"
+    tickers = [f"{symbol}{suffix}" for symbol in selected]
+    with st.spinner(f"Evaluating {len(tickers)} {exchange} models..."):
+        data = yf.download(
+            tickers=tickers,
+            period="5y",
+            auto_adjust=False,
+            progress=False,
+            group_by="ticker",
+            threads=False,
+        )
+
+    frames: dict[str, pd.DataFrame] = {}
+    for symbol, ticker in zip(selected, tickers, strict=True):
+        if isinstance(data.columns, pd.MultiIndex):
+            if ticker not in data.columns.get_level_values(0):
+                continue
+            frame = data[ticker].copy()
+        else:
+            frame = data.copy()
+        if not frame.empty and "Close" in frame.columns:
+            frames[symbol] = frame.dropna(how="all")
+
+    if not frames:
+        st.warning("No usable historical data was returned for the selected universe.")
+    else:
+        monitor = monitor_calibration_frames(
+            frames,
+            exchange=exchange,
+            horizon=horizon,
+            threshold=threshold / 100.0,
+            bins=bins,
+        )
+        if monitor.empty:
+            st.warning("No symbols produced valid calibration metrics.")
+        else:
+            st.dataframe(monitor, use_container_width=True, hide_index=True)
+            st.download_button(
+                "Download calibration report",
+                monitor.to_csv(index=False),
+                file_name=f"{exchange.lower()}_ai_calibration_report.csv",
+                mime="text/csv",
+            )
