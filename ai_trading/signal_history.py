@@ -84,9 +84,7 @@ def attach_outcomes(
     for record in records:
         outcome = prices.get(record.symbol)
         completed = outcome is not None
-        updated = SignalRecord(
-            **{**record.__dict__, "outcome_price": outcome}
-        )
+        updated = SignalRecord(**{**record.__dict__, "outcome_price": outcome})
         rows.append(
             {
                 "timestamp": updated.timestamp,
