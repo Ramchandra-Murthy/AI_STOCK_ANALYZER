@@ -11,9 +11,7 @@ from ai_trading.feature_factory import build_ai_feature_frame
 
 st.set_page_config(page_title="AI Feature Factory", page_icon="🧩", layout="wide")
 st.title("🧩 AI Feature Factory")
-st.caption(
-    "Standardized research feature layer combining market, fundamental, and news inputs."
-)
+st.caption("Standardized research feature layer combining market, fundamental, and news inputs.")
 
 st.subheader("Market Data")
 close_values = st.text_area(
