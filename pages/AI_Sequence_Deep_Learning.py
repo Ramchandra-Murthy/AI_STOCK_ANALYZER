@@ -1,5 +1,7 @@
 """AI sequence/deep-learning research dashboard."""
 
+# ruff: noqa: I001
+
 from __future__ import annotations
 
 import pandas as pd
