@@ -176,6 +176,12 @@ pages = {
             icon="🧩",
             url_path="ai-feature-factory",
         ),
+        st.Page(
+            "pages/AI_Ensemble_ML.py",
+            title="AI Ensemble ML",
+            icon="🤖",
+            url_path="ai-ensemble-ml",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
