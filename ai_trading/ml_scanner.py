@@ -29,7 +29,11 @@ def scan_frames(
     if exchange not in {"NSE", "BSE"}:
         raise ValueError("exchange must be NSE or BSE")
 
-    adjustments = build_adaptive_adjustments(adaptive_history) if adaptive_history is not None else pd.DataFrame()
+    adjustments = (
+        build_adaptive_adjustments(adaptive_history)
+        if adaptive_history is not None
+        else pd.DataFrame()
+    )
     rows: list[dict[str, object]] = []
     for symbol, frame in frames.items():
         try:
