@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
-
 from ai_trading.signal_history import summarize_outcomes
 
 
