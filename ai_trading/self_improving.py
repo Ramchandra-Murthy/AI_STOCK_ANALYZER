@@ -53,4 +53,11 @@ def evaluate_retraining_need(
     gap = avg_confidence - win_rate
     should = win_rate < min_win_rate_pct or gap > max_confidence_gap_pct
     reason = "RETRAIN DUE" if should else "MODEL STABLE"
-    return RetrainingDecision(should, reason, len(completed), round(win_rate, 2), round(avg_return, 2), round(avg_confidence, 2))
+    return RetrainingDecision(
+        should,
+        reason,
+        len(completed),
+        round(win_rate, 2),
+        round(avg_return, 2),
+        round(avg_confidence, 2),
+    )
