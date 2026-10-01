@@ -5,10 +5,10 @@ from __future__ import annotations
 import pandas as pd
 import yfinance as yf
 
-from ai_trading.decision_engine import build_signal_decision
 from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.regime_context import build_regime_context
+from ai_trading.regime_decision import build_regime_aware_decision
 
 
 def scan_frames(
@@ -36,13 +36,15 @@ def scan_frames(
             return_score = max(-1.0, min(1.0, float(latest_features["return_5"]) * 4.0))
             ema_score = max(-1.0, min(1.0, float(latest_features["ema_gap"]) * 5.0))
             trend_score = (return_score + ema_score) / 2.0
-            decision = build_signal_decision(
+            regime = build_regime_context(frame)
+            decision = build_regime_aware_decision(
                 probability_up=float(prediction["probability_up"]),
                 accuracy=validation.accuracy,
                 roc_auc=validation.roc_auc,
                 trend_score=trend_score,
+                regime=str(regime["regime"]),
+                regime_strength=float(regime["regime_strength_pct"]) / 100.0,
             )
-            regime = build_regime_context(frame)
         except (TypeError, ValueError, KeyError):
             continue
 

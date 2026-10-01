@@ -36,7 +36,9 @@ def test_scan_frames_returns_ranked_ml_results() -> None:
         "regime",
         "regime_score",
         "regime_strength_pct",
+        "decision_reason",
     }.issubset(result.columns)
     assert result["confidence_pct"].between(0, 100).all()
     assert result["probability_up_pct"].between(0, 100).all()
     assert result["regime_strength_pct"].between(0, 100).all()
+    assert result["decision_reason"].str.contains("regime ").all()
