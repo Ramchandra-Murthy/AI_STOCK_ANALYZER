@@ -87,7 +87,5 @@ def evaluate_calibration(
         )
         .reset_index()
     )
-    summary["calibration_gap"] = (
-        summary["predicted_probability"] - summary["actual_rate"]
-    ).abs()
+    summary["calibration_gap"] = (summary["predicted_probability"] - summary["actual_rate"]).abs()
     return metrics, summary
