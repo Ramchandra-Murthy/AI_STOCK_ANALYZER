@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import streamlit as st
-
 from ai_trading.signal_history import summarize_outcomes
+import streamlit as st
 
 
 st.set_page_config(page_title="AI Signal History", page_icon="🗂️", layout="wide")
