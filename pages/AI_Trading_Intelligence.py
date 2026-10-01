@@ -137,8 +137,16 @@ if isinstance(ml_result, pd.DataFrame):
         metric1, metric2, metric3, metric4 = st.columns(4)
         metric1.metric("Models validated", len(ml_result))
         metric2.metric("Displayed", len(filtered))
-        metric3.metric("Average confidence", f"{filtered['confidence_pct'].mean():.1f}%" if not filtered.empty else "N/A")
-        metric4.metric("Average regime strength", f"{filtered['regime_strength_pct'].mean():.1f}%" if not filtered.empty else "N/A")
+        metric3.metric(
+            "Average confidence",
+            f"{filtered['confidence_pct'].mean():.1f}%" if not filtered.empty else "N/A",
+        )
+        metric4.metric(
+            "Average regime strength",
+            f"{filtered['regime_strength_pct'].mean():.1f}%"
+            if not filtered.empty
+            else "N/A",
+        )
 
         display_columns = [
             "symbol",
