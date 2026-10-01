@@ -15,7 +15,7 @@ from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 TOP10_REFRESH_SECONDS = 60
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
-TOP10_CHUNK_SIZE = 40
+TOP10_CHUNK_SIZE = 10
 TOP10_MAX_CANDIDATES_PER_EXCHANGE = 80
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
@@ -71,13 +71,13 @@ def _load_live_top10() -> tuple[pd.DataFrame, float]:
             try:
                 history = yf.download(
                     tickers=chunk,
-                    period="1d",
+                    period="5d",
                     interval="1m",
                     auto_adjust=False,
                     progress=False,
                     group_by="ticker",
-                    threads=True,
-                    timeout=10,
+                    threads=False,
+                    timeout=15,
                 )
             except Exception:
                 continue

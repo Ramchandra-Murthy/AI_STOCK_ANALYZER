@@ -12,7 +12,7 @@ from components.top10_live import (
 def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_REFRESH_SECONDS == 60
     assert TOP10_CACHE_SECONDS < TOP10_REFRESH_SECONDS
-    assert TOP10_CHUNK_SIZE == 40
+    assert TOP10_CHUNK_SIZE == 10
     assert callable(show_live_top10_scanner)
 
 
