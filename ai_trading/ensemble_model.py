@@ -72,17 +72,12 @@ def train_ensemble(
         model.fit(train_x[FEATURE_COLUMNS], train_y)
 
     probabilities = [
-        model.predict_proba(test_x[FEATURE_COLUMNS])[:, 1]
-        for model in models.values()
+        model.predict_proba(test_x[FEATURE_COLUMNS])[:, 1] for model in models.values()
     ]
     ensemble_probability = sum(probabilities) / len(probabilities)
     predictions = (ensemble_probability >= 0.5).astype(int)
     accuracy = float(accuracy_score(test_y, predictions))
-    roc_auc = (
-        float(roc_auc_score(test_y, ensemble_probability))
-        if test_y.nunique() > 1
-        else None
-    )
+    roc_auc = float(roc_auc_score(test_y, ensemble_probability)) if test_y.nunique() > 1 else None
     validation = EnsembleValidation(
         accuracy=accuracy,
         roc_auc=roc_auc,
