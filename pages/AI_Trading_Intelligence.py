@@ -139,9 +139,7 @@ if isinstance(ml_result, pd.DataFrame):
         metric2.metric("Displayed", len(filtered))
         metric3.metric(
             "Average confidence",
-            f"{filtered['confidence_pct'].mean():.1f}%"
-            if not filtered.empty
-            else "N/A",
+            f"{filtered['confidence_pct'].mean():.1f}%" if not filtered.empty else "N/A",
         )
         metric4.metric(
             "Average regime strength",
@@ -294,7 +292,7 @@ if st.button("Generate AI Signal Explanation", type="secondary"):
         st.dataframe(detail, use_container_width=True, hide_index=True)
         st.info(f"Decision reason: {decision.reason}")
         st.caption(
-            "The explanation reuses the same unified decision engine as the multi-stock ML scanner. "
+            "The explanation reuses the same unified decision engine as the multi-stock scanner. "
             "It is a research/paper-trading signal and does not place broker orders."
         )
 
