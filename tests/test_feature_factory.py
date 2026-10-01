@@ -17,9 +17,7 @@ def _frame() -> pd.DataFrame:
 
 
 def test_feature_factory_combines_market_fundamental_and_news_features() -> None:
-    fundamentals = normalize_fundamentals(
-        {"revenue_growth_pct": 10, "debt_to_equity": 0.5}
-    )
+    fundamentals = normalize_fundamentals({"revenue_growth_pct": 10, "debt_to_equity": 0.5})
     features = build_ai_feature_frame(
         _frame(),
         fundamentals=fundamentals,
