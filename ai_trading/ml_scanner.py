@@ -8,6 +8,7 @@ import yfinance as yf
 from ai_trading.decision_engine import build_signal_decision
 from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
+from ai_trading.regime_context import build_regime_context
 
 
 def scan_frames(
@@ -41,6 +42,7 @@ def scan_frames(
                 roc_auc=validation.roc_auc,
                 trend_score=trend_score,
             )
+            regime = build_regime_context(frame)
         except (TypeError, ValueError, KeyError):
             continue
 
@@ -55,6 +57,9 @@ def scan_frames(
                 "model_confidence_pct": decision.model_confidence_pct,
                 "validation_pct": decision.validation_pct,
                 "trend_pct": decision.trend_pct,
+                "regime": regime["regime"],
+                "regime_score": regime["regime_score"],
+                "regime_strength_pct": regime["regime_strength_pct"],
                 "decision_reason": decision.reason,
                 "accuracy_pct": round(validation.accuracy * 100, 1),
                 "roc_auc": round(validation.roc_auc, 3) if validation.roc_auc is not None else None,
@@ -73,6 +78,9 @@ def scan_frames(
         "model_confidence_pct",
         "validation_pct",
         "trend_pct",
+        "regime",
+        "regime_score",
+        "regime_strength_pct",
         "decision_reason",
         "accuracy_pct",
         "roc_auc",
