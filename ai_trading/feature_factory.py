@@ -15,6 +15,9 @@ def build_ai_feature_frame(
     sentiment_score: float | None = None,
 ) -> pd.DataFrame:
     """Build one standardized feature frame from market and research inputs."""
+    if frame.empty:
+        return pd.DataFrame()
+
     features = build_features(frame).copy()
 
     if fundamentals is not None:
@@ -28,7 +31,7 @@ def build_ai_feature_frame(
     features["news_sentiment_score"] = (
         float(sentiment_score) if sentiment_score is not None else 0.0
     )
-    return features.replace([float("inf"), float("-inf")], pd.NA).dropna()
+    return features.replace([float("inf"), float("-inf")], pd.NA)
 
 
 def latest_ai_features(
