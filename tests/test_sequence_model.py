@@ -10,10 +10,7 @@ from ai_trading.sequence_model import (
 
 def _frame() -> pd.DataFrame:
     index = pd.date_range("2020-01-01", periods=220, freq="D")
-    close = [
-        100.0 + (i % 40) * 2 if i % 80 < 40 else 100.0 - (i % 40) * 2
-        for i in range(220)
-    ]
+    close = [100.0 + (i % 40) * 2 if i % 80 < 40 else 100.0 - (i % 40) * 2 for i in range(220)]
     volume = [1000.0 + i * 10 for i in range(220)]
     return pd.DataFrame({"Close": close, "Volume": volume}, index=index)
 
