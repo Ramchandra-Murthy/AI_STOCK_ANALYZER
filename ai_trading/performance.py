@@ -140,7 +140,5 @@ def build_equity_curve(
     initial = float(curve.iloc[0]["equity"])
     curve["return_pct"] = (curve["equity"] / initial - 1.0) * 100.0
     curve["peak_equity"] = curve["equity"].cummax()
-    curve["drawdown_pct"] = (
-        (curve["peak_equity"] - curve["equity"]) / curve["peak_equity"] * 100.0
-    )
+    curve["drawdown_pct"] = (curve["peak_equity"] - curve["equity"]) / curve["peak_equity"] * 100.0
     return curve.drop(columns=["peak_equity"])
