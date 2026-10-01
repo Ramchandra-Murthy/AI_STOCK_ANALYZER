@@ -1,6 +1,6 @@
 """Outcome-learning analytics for historical AI trading signals."""
 
-import pandas as pd
+import pandas as pd  # noqa: I001
 
 
 LEARNING_COLUMNS = [
