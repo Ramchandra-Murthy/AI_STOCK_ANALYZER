@@ -32,10 +32,9 @@ def scan_frames(
             )
             prediction = predict_latest(model, frame)
             latest_features = build_features(frame).iloc[-1]
-            trend_score = float(
-                (latest_features["return_5"] * 4.0).clip(-1.0, 1.0)
-                + (latest_features["ema_gap"] * 5.0).clip(-1.0, 1.0)
-            ) / 2.0
+            return_score = max(-1.0, min(1.0, float(latest_features["return_5"]) * 4.0))
+            ema_score = max(-1.0, min(1.0, float(latest_features["ema_gap"]) * 5.0))
+            trend_score = (return_score + ema_score) / 2.0
             decision = build_signal_decision(
                 probability_up=float(prediction["probability_up"]),
                 accuracy=validation.accuracy,
