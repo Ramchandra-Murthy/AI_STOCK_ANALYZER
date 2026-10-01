@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import streamlit as st
 
-from ai_trading.signal_history import summarize_outcomes
 
 
 st.set_page_config(page_title="AI Signal History", page_icon="🗂️", layout="wide")
@@ -30,6 +29,8 @@ summary = summarize_outcomes(history)
 if summary.empty:
     st.info("No completed signal outcomes are available yet.")
     st.stop()
+
+from ai_trading.signal_history import summarize_outcomes
 
 st.subheader("Outcome Summary")
 st.dataframe(summary, use_container_width=True, hide_index=True)
