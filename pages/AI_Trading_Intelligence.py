@@ -11,7 +11,7 @@ from ai_trading.decision_engine import build_signal_decision
 from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.ml_scanner import scan_universe as scan_ml_universe
-from ai_trading.signal_history import record_signal
+from ai_trading.signal_history import attach_outcomes, record_signal
 from ai_trading.walk_forward import walk_forward_backtest
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
@@ -128,10 +128,7 @@ if st.button("Run Multi-Stock ML Scan", type="primary"):
                         horizon_days=scan_horizon,
                     )
                 )
-            st.session_state["ai_signal_history"] = (
-                __import__("ai_trading.signal_history", fromlist=["attach_outcomes"])
-                .attach_outcomes(records, {})
-            )
+            st.session_state["ai_signal_history"] = attach_outcomes(records, {})
             st.success(f"Recorded {len(ml_result)} current AI signals.")
 
 st.divider()
