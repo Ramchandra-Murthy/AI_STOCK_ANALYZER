@@ -10,9 +10,7 @@ from ai_trading.signal_history import summarize_outcomes
 st.set_page_config(page_title="AI Signal History", page_icon="🗂️", layout="wide")
 
 st.title("🗂️ AI Signal History")
-st.caption(
-    "Historical AI signal outcome analytics. No broker orders are submitted."
-)
+st.caption("Historical AI signal outcome analytics. No broker orders are submitted.")
 
 history = st.session_state.get("ai_signal_history")
 
