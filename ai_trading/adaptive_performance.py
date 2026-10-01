@@ -8,7 +8,6 @@ import pandas as pd
 
 from ai_trading.outcome_learning import confidence_bucket
 
-
 PERFORMANCE_COLUMNS = [
     "group",
     "signals",
@@ -38,15 +37,11 @@ def adaptive_performance_summary(
 
     completed = history[history["completed"]].copy()
     completed["return_pct"] = pd.to_numeric(completed["return_pct"], errors="coerce")
-    completed["confidence_pct"] = pd.to_numeric(
-        completed["confidence_pct"], errors="coerce"
-    )
+    completed["confidence_pct"] = pd.to_numeric(completed["confidence_pct"], errors="coerce")
     completed["adaptive_confidence_pct"] = pd.to_numeric(
         completed["adaptive_confidence_pct"], errors="coerce"
     )
-    completed = completed.dropna(
-        subset=["return_pct", "confidence_pct", "adaptive_confidence_pct"]
-    )
+    completed = completed.dropna(subset=["return_pct", "confidence_pct", "adaptive_confidence_pct"])
     if completed.empty:
         return pd.DataFrame(columns=PERFORMANCE_COLUMNS)
 
@@ -66,9 +61,7 @@ def adaptive_performance_summary(
         )
         .rename(columns={group_by: "group"})
     )
-    summary["confidence_gap_pct"] = (
-        summary["avg_confidence_pct"] - summary["win_rate_pct"]
-    )
+    summary["confidence_gap_pct"] = summary["avg_confidence_pct"] - summary["win_rate_pct"]
     numeric = [
         "win_rate_pct",
         "avg_return_pct",
@@ -77,11 +70,7 @@ def adaptive_performance_summary(
         "avg_adaptive_adjustment_pct",
     ]
     summary[numeric] = summary[numeric].round(2)
-    return (
-        summary[PERFORMANCE_COLUMNS]
-        .sort_values("group")
-        .reset_index(drop=True)
-    )
+    return summary[PERFORMANCE_COLUMNS].sort_values("group").reset_index(drop=True)
 
 
 def adaptive_confidence_bucket_summary(history: pd.DataFrame) -> pd.DataFrame:
@@ -144,9 +133,7 @@ def adaptive_effect_summary(history: pd.DataFrame) -> dict[str, float]:
         "completed": float(len(valid)),
         "average_raw_confidence_pct": round(float(valid["raw"].mean()), 2),
         "average_adaptive_confidence_pct": round(float(valid["adaptive"].mean()), 2),
-        "average_adjustment_pct": round(
-            float((valid["adaptive"] - valid["raw"]).mean()), 2
-        ),
+        "average_adjustment_pct": round(float((valid["adaptive"] - valid["raw"]).mean()), 2),
         "win_rate_pct": round(float((valid["return"] > 0.0).mean() * 100.0), 2),
         "average_return_pct": round(float(valid["return"].mean()), 2),
     }
