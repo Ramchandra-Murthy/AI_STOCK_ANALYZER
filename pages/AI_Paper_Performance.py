@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from ai_trading.paper_trading import PaperPortfolio
-from ai_trading.performance import build_performance_report
+from ai_trading.performance import build_equity_curve, build_performance_report
 
 st.set_page_config(
     page_title="AI Paper Performance",
@@ -55,6 +55,20 @@ m8.metric("Profit factor", profit_factor)
 m9, m10 = st.columns(2)
 m9.metric("Open exposure", f"{report.gross_exposure_pct:.1f}%")
 m10.metric("Closed trade outcomes", report.winning_trades + report.losing_trades)
+
+st.subheader("Equity curve")
+curve = build_equity_curve(portfolio.equity_history)
+if curve.empty:
+    st.info("Run at least one AI paper-trading cycle to build the equity curve.")
+else:
+    chart = curve.set_index("timestamp")[["equity"]]
+    st.line_chart(chart)
+    latest_return = float(curve.iloc[-1]["return_pct"])
+    latest_drawdown = float(curve.iloc[-1]["drawdown_pct"])
+    c1, c2 = st.columns(2)
+    c1.metric("Latest cycle return", f"{latest_return:.2f}%")
+    c2.metric("Current drawdown", f"{latest_drawdown:.2f}%")
+    st.dataframe(curve, use_container_width=True, hide_index=True)
 
 st.subheader("Performance breakdown")
 breakdown = pd.DataFrame(
