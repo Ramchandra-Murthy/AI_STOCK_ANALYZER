@@ -158,6 +158,12 @@ pages = {
             icon="🧠",
             url_path="ai-self-improving-model",
         ),
+        st.Page(
+            "pages/AI_News_Sentiment.py",
+            title="AI News & Sentiment",
+            icon="📰",
+            url_path="ai-news-sentiment",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
