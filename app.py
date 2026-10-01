@@ -146,6 +146,12 @@ pages = {
             icon="📊",
             url_path="ai-adaptive-performance",
         ),
+        st.Page(
+            "pages/AI_Adaptive_Learning.py",
+            title="AI Adaptive Learning",
+            icon="🔄",
+            url_path="ai-adaptive-learning",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
