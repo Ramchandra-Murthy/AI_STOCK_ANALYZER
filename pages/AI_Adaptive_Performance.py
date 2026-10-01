@@ -15,8 +15,7 @@ st.set_page_config(page_title="AI Adaptive Performance", page_icon="📊", layou
 
 st.title("📊 AI Adaptive Signal Performance")
 st.caption(
-    "Historical monitoring of the adaptive AI confidence layer. "
-    "No broker orders are submitted."
+    "Historical monitoring of the adaptive AI confidence layer. " "No broker orders are submitted."
 )
 
 history = st.session_state.get("ai_signal_history")
@@ -85,9 +84,7 @@ with chart_left:
 with chart_right:
     st.subheader("Adaptive adjustment by signal")
     if not signal_summary.empty:
-        st.bar_chart(
-            signal_summary.set_index("group")["avg_adaptive_adjustment_pct"]
-        )
+        st.bar_chart(signal_summary.set_index("group")["avg_adaptive_adjustment_pct"])
 
 st.subheader("Adaptive signal records")
 display_columns = [
