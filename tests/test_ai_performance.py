@@ -1,9 +1,11 @@
 """Tests for AI paper-trading performance analytics."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
-from ai_trading.paper_trading import PaperPortfolio
-from ai_trading.performance import build_performance_report
+from ai_trading.paper_trading import EquitySnapshot, PaperPortfolio
+from ai_trading.performance import build_equity_curve, build_performance_report
 
 
 def test_performance_report_tracks_realized_and_unrealized_pnl() -> None:
@@ -50,3 +52,23 @@ def test_performance_report_calculates_drawdown_and_profit_factor() -> None:
     assert report.win_rate_pct == pytest.approx(50.0)
     assert report.profit_factor == pytest.approx(2.0)
     assert report.max_drawdown_pct > 0
+
+
+def test_equity_curve_tracks_returns_and_drawdown() -> None:
+    start = datetime(2026, 10, 1, tzinfo=UTC)
+    curve = build_equity_curve(
+        [
+            EquitySnapshot(start, 100_000.0),
+            EquitySnapshot(start + timedelta(minutes=1), 102_000.0),
+            EquitySnapshot(start + timedelta(minutes=2), 99_000.0),
+        ]
+    )
+
+    assert curve["return_pct"].iloc[-1] == pytest.approx(-1.0)
+    assert curve["drawdown_pct"].iloc[-1] == pytest.approx(2.941176, rel=1e-5)
+
+
+def test_equity_curve_is_empty_without_snapshots() -> None:
+    curve = build_equity_curve([])
+    assert curve.empty
+    assert list(curve.columns) == ["timestamp", "equity", "return_pct", "drawdown_pct"]

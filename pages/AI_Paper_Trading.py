@@ -114,6 +114,7 @@ if st.button("Run AI Paper Trading Cycle", type="primary"):
     )
     st.session_state.ai_paper_scan = result
     st.session_state.ai_paper_prices = prices
+    portfolio.record_equity(prices)
 
     st.success(f"Completed paper cycle: {len(fills)} simulated fills.")
 

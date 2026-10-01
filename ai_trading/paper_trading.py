@@ -11,6 +11,14 @@ from .risk import RiskLimits
 
 
 @dataclass(frozen=True)
+class EquitySnapshot:
+    """A timestamped paper-portfolio equity observation."""
+
+    timestamp: datetime
+    equity: float
+
+
+@dataclass(frozen=True)
 class PaperTrade:
     """A simulated paper-trading execution."""
 
@@ -34,6 +42,7 @@ class PaperPortfolio:
     cash: float = 100_000.0
     positions: dict[str, int] = field(default_factory=dict)
     trades: list[PaperTrade] = field(default_factory=list)
+    equity_history: list[EquitySnapshot] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if self.initial_cash <= 0:
@@ -49,6 +58,12 @@ class PaperPortfolio:
             if symbol in prices
         )
         return float(self.cash + market_value)
+
+    def record_equity(self, prices: dict[str, float]) -> EquitySnapshot:
+        """Record a timestamped mark-to-market equity observation."""
+        snapshot = EquitySnapshot(datetime.now(UTC), self.equity(prices))
+        self.equity_history.append(snapshot)
+        return snapshot
 
     def execute(
         self,
