@@ -149,9 +149,7 @@ if isinstance(ml_result, pd.DataFrame):
         )
         metric4.metric(
             "Average adaptive adjustment",
-            f"{filtered['adaptive_adjustment_pct'].mean():+.1f}%"
-            if not filtered.empty
-            else "N/A",
+            f"{filtered['adaptive_adjustment_pct'].mean():+.1f}%" if not filtered.empty else "N/A",
         )
 
         display_columns = [
