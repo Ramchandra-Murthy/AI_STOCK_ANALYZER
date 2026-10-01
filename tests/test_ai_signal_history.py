@@ -25,7 +25,7 @@ def test_record_signal_and_signed_outcome():
     )
     history = attach_outcomes([record], {"RELIANCE": 110.0})
 
-    assert history.loc[0, "completed"] is True
+    assert bool(history.loc[0, "completed"]) is True
     assert history.loc[0, "return_pct"] == pytest.approx(10.0)
 
 
