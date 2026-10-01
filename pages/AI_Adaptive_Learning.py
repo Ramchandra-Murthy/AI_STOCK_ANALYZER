@@ -9,7 +9,6 @@ import streamlit as st
 
 from ai_trading.learning_loop import learning_loop_summary, run_learning_loop
 
-
 st.set_page_config(page_title="AI Adaptive Learning", page_icon="🔄", layout="wide")
 st.title("🔄 AI Adaptive Learning Loop")
 st.caption(
@@ -44,15 +43,11 @@ st.dataframe(replay, use_container_width=True)
 
 if not replay.empty:
     st.subheader("Adaptive Confidence")
-    chart = replay.set_index("timestamp")[
-        ["raw_confidence_pct", "adaptive_confidence_pct"]
-    ]
+    chart = replay.set_index("timestamp")[["raw_confidence_pct", "adaptive_confidence_pct"]]
     st.line_chart(chart)
 
     st.subheader("Learning Adjustments")
-    st.bar_chart(
-        replay.set_index("timestamp")["adaptive_adjustment_pct"]
-    )
+    st.bar_chart(replay.set_index("timestamp")["adaptive_adjustment_pct"])
 
 st.download_button(
     "Download Learning Replay CSV",
