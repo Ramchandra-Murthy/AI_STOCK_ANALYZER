@@ -86,14 +86,10 @@ def record_signal(
             round(raw_confidence_pct, 1) if raw_confidence_pct is not None else None
         ),
         adaptive_confidence_pct=(
-            round(adaptive_confidence_pct, 1)
-            if adaptive_confidence_pct is not None
-            else None
+            round(adaptive_confidence_pct, 1) if adaptive_confidence_pct is not None else None
         ),
         adaptive_adjustment_pct=(
-            round(adaptive_adjustment_pct, 1)
-            if adaptive_adjustment_pct is not None
-            else None
+            round(adaptive_adjustment_pct, 1) if adaptive_adjustment_pct is not None else None
         ),
         adaptive_samples=adaptive_samples,
     )
