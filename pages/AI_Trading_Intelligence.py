@@ -55,8 +55,8 @@ if st.button("Run AI Trading Scan", type="primary"):
 st.divider()
 st.subheader("🔎 Multi-Stock ML Scanner")
 st.caption(
-    "Trains a separate leakage-safe model for each selected symbol and ranks "
-    "the resulting historical validation and latest probability metrics."
+    "Trains a separate leakage-safe model for each selected symbol and combines ML probability, "
+    "validation quality, trend and market-regime context into the final AI decision."
 )
 
 scan_left, scan_mid, scan_right = st.columns(3)
@@ -96,25 +96,97 @@ if st.button("Run Multi-Stock ML Scan", type="primary"):
             horizon=scan_horizon,
             threshold=scan_threshold / 100.0,
         )
+    st.session_state["ai_ml_result"] = ml_result
+    st.session_state["ai_ml_exchange"] = exchange
+    st.session_state["ai_ml_horizon"] = scan_horizon
 
+ml_result = st.session_state.get("ai_ml_result")
+if isinstance(ml_result, pd.DataFrame):
     if ml_result.empty:
         st.warning("No symbols produced a valid ML result.")
     else:
         st.success(f"Validated {len(ml_result)} stock models.")
+
+        signal_filter = st.multiselect(
+            "Signals to display",
+            ["LONG", "SHORT", "NEUTRAL"],
+            default=["LONG", "SHORT", "NEUTRAL"],
+            key="ml_signal_filter",
+        )
+        regime_filter = st.multiselect(
+            "Market regimes to display",
+            ["BULLISH", "BEARISH", "RANGE / MIXED", "INSUFFICIENT DATA"],
+            default=["BULLISH", "BEARISH", "RANGE / MIXED", "INSUFFICIENT DATA"],
+            key="ml_regime_filter",
+        )
+        min_confidence = st.slider(
+            "Minimum AI confidence (%)",
+            0.0,
+            100.0,
+            0.0,
+            5.0,
+            key="ml_min_confidence",
+        )
+
+        filtered = ml_result[
+            ml_result["signal"].isin(signal_filter)
+            & ml_result["regime"].isin(regime_filter)
+            & (ml_result["confidence_pct"] >= min_confidence)
+        ].copy()
+
+        metric1, metric2, metric3, metric4 = st.columns(4)
+        metric1.metric("Models validated", len(ml_result))
+        metric2.metric("Displayed", len(filtered))
+        metric3.metric("Average confidence", f"{filtered['confidence_pct'].mean():.1f}%" if not filtered.empty else "N/A")
+        metric4.metric("Average regime strength", f"{filtered['regime_strength_pct'].mean():.1f}%" if not filtered.empty else "N/A")
+
+        display_columns = [
+            "symbol",
+            "latest_price",
+            "signal",
+            "confidence_pct",
+            "probability_up_pct",
+            "validation_pct",
+            "trend_pct",
+            "regime",
+            "regime_strength_pct",
+            "decision_reason",
+        ]
         st.dataframe(
-            ml_result.head(10),
+            filtered[display_columns].head(20),
             use_container_width=True,
             hide_index=True,
         )
+
+        chart_left, chart_right = st.columns(2)
+        with chart_left:
+            st.subheader("AI signal distribution")
+            st.bar_chart(filtered["signal"].value_counts())
+        with chart_right:
+            st.subheader("Market-regime distribution")
+            st.bar_chart(filtered["regime"].value_counts())
+
+        st.subheader("AI confidence by symbol")
+        if not filtered.empty:
+            st.bar_chart(filtered.set_index("symbol")["confidence_pct"].head(20))
+
+        st.download_button(
+            "Download regime-aware AI scan CSV",
+            filtered.to_csv(index=False).encode("utf-8"),
+            "ai_regime_aware_scan.csv",
+            "text/csv",
+            key="download_ai_regime_scan",
+        )
+
         st.caption(
-            "Ranking is based on model confidence, historical ROC-AUC, and latest "
-            "probability. These are historical model measurements, not forecasts "
-            "of guaranteed returns."
+            "Ranking is based on the regime-aware decision engine's confidence and the "
+            "scanner's historical validation metrics. These measurements are not guarantees "
+            "of future returns."
         )
 
         if st.button("Record Current ML Signals", key="record_ml_signals"):
             records = st.session_state.setdefault("ai_signal_records", [])
-            for row in ml_result.to_dict("records"):
+            for row in filtered.to_dict("records"):
                 records.append(
                     record_signal(
                         symbol=str(row["symbol"]),
@@ -125,11 +197,11 @@ if st.button("Run Multi-Stock ML Scan", type="primary"):
                         validation_pct=float(row["validation_pct"]),
                         trend_pct=float(row["trend_pct"]),
                         entry_price=float(row["latest_price"]),
-                        horizon_days=scan_horizon,
+                        horizon_days=int(st.session_state.get("ai_ml_horizon", scan_horizon)),
                     )
                 )
             st.session_state["ai_signal_history"] = attach_outcomes(records, {})
-            st.success(f"Recorded {len(ml_result)} current AI signals.")
+            st.success(f"Recorded {len(filtered)} displayed AI signals.")
 
 st.divider()
 st.subheader("🧩 Unified AI Signal Explainability")
