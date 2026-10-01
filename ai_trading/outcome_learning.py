@@ -2,7 +2,6 @@
 
 import pandas as pd  # noqa: I001
 
-
 LEARNING_COLUMNS = [
     "group",
     "signals",
@@ -38,9 +37,7 @@ def outcome_learning_summary(
 
     completed = history[history["completed"]].copy()
     completed["return_pct"] = pd.to_numeric(completed["return_pct"], errors="coerce")
-    completed["confidence_pct"] = pd.to_numeric(
-        completed["confidence_pct"], errors="coerce"
-    )
+    completed["confidence_pct"] = pd.to_numeric(completed["confidence_pct"], errors="coerce")
     completed = completed.dropna(subset=["return_pct", "confidence_pct"])
     if completed.empty:
         return pd.DataFrame(columns=LEARNING_COLUMNS)
@@ -58,9 +55,7 @@ def outcome_learning_summary(
         )
         .rename(columns={group_by: "group"})
     )
-    summary["confidence_gap_pct"] = (
-        summary["avg_confidence_pct"] - summary["win_rate_pct"]
-    )
+    summary["confidence_gap_pct"] = summary["avg_confidence_pct"] - summary["win_rate_pct"]
     numeric = [
         "win_rate_pct",
         "avg_return_pct",
