@@ -164,6 +164,12 @@ pages = {
             icon="📰",
             url_path="ai-news-sentiment",
         ),
+        st.Page(
+            "pages/AI_Fundamental_Intelligence.py",
+            title="AI Fundamental Intelligence",
+            icon="📊",
+            url_path="ai-fundamental-intelligence",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
