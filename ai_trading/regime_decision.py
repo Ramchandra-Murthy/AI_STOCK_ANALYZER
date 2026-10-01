@@ -7,7 +7,6 @@ from ai_trading.decision_engine import (
     build_signal_decision,
 )
 
-
 REGIME_ADJUSTMENTS = {
     "BULLISH": 1.0,
     "BEARISH": -1.0,
