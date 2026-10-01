@@ -43,18 +43,10 @@ def build_signal_decision(
         validation *= max(0.0, 1.0 - calibration_gap)
 
     trend = (trend_score + 1.0) / 2.0
-    confidence = (
-        0.50 * model_confidence
-        + 0.30 * validation
-        + 0.20 * abs(trend_score)
-    )
+    confidence = 0.50 * model_confidence + 0.30 * validation + 0.20 * abs(trend_score)
     confidence_pct = round(max(0.0, min(1.0, confidence)) * 100.0, 1)
 
-    directional_score = (
-        0.65 * (2.0 * probability_up - 1.0)
-        + 0.20 * trend_score
-        + 0.15 * (2.0 * validation - 1.0)
-    )
+    directional_score = 0.65 * (2.0 * probability_up - 1.0) + 0.20 * trend_score + 0.15 * (2.0 * validation - 1.0)
     if confidence_pct < 55.0:
         signal = "NEUTRAL"
     elif directional_score >= 0.15:
