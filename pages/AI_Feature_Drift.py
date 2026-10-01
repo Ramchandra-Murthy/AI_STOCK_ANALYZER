@@ -1,12 +1,13 @@
 """AI feature drift monitoring dashboard."""
 
+# ruff: noqa: I001
+
 from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
 
 from ai_trading.feature_drift import build_feature_drift_report
-
 
 st.title("AI Feature Drift")
 st.caption("Research monitor for changes between baseline and recent feature distributions.")
