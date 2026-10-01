@@ -182,6 +182,12 @@ pages = {
             icon="🤖",
             url_path="ai-ensemble-ml",
         ),
+        st.Page(
+            "pages/AI_Sequence_Deep_Learning.py",
+            title="AI Sequence / Deep Learning",
+            icon="🧠",
+            url_path="ai-sequence-deep-learning",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
