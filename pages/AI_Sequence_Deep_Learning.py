@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 
 from ai_trading.sequence_model import predict_sequence, train_sequence_model
@@ -23,7 +24,7 @@ if st.button("Run Sequence Validation"):
         volume = [float(value.strip()) for value in volume_text.split(",") if value.strip()]
         if len(close) != len(volume):
             raise ValueError("Close and volume lengths must match")
-        frame = __import__("pandas").DataFrame({"Close": close, "Volume": volume})
+        frame = pd.DataFrame({"Close": close, "Volume": volume})
         trained, validation = train_sequence_model(
             frame,
             sequence_length=sequence_length,
@@ -39,7 +40,10 @@ if st.button("Run Sequence Validation"):
         st.metric("Probability Up", f"{prediction['probability_up']:.1%}")
         st.metric("Confidence", f"{prediction['confidence']:.1%}")
         st.metric("Validation Accuracy", f"{validation.accuracy:.1%}")
-        st.metric("ROC-AUC", "N/A" if validation.roc_auc is None else f"{validation.roc_auc:.3f}")
+        st.metric(
+            "ROC-AUC",
+            "N/A" if validation.roc_auc is None else f"{validation.roc_auc:.3f}",
+        )
         st.caption(
             f"Chronological train/test samples: {validation.train_samples} / "
             f"{validation.test_samples}"
