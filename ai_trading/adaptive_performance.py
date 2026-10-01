@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from ai_trading.outcome_learning import (
-    confidence_bucket,
-    outcome_learning_summary,
-)
+from ai_trading.outcome_learning import confidence_bucket
 
 
 PERFORMANCE_COLUMNS = [
