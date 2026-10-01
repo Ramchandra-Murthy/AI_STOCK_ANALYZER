@@ -7,6 +7,8 @@ import streamlit as st
 import yfinance as yf
 
 from ai_trading.ai_scanner import scan_universe
+from ai_trading.decision_engine import build_signal_decision
+from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.ml_scanner import scan_universe as scan_ml_universe
 from ai_trading.walk_forward import walk_forward_backtest
@@ -159,9 +161,6 @@ if st.button("Generate AI Signal Explanation", type="secondary"):
     except (TypeError, ValueError, KeyError) as exc:
         st.error(f"AI signal explanation could not run: {exc}")
     else:
-        from ai_trading.decision_engine import build_signal_decision
-        from ai_trading.features import build_features
-
         explain_features = build_features(explain_history).iloc[-1]
         return_score = max(-1.0, min(1.0, float(explain_features["return_5"]) * 4.0))
         ema_score = max(-1.0, min(1.0, float(explain_features["ema_gap"]) * 5.0))
