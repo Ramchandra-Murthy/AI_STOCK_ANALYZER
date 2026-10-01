@@ -9,7 +9,6 @@ import streamlit as st
 
 from ai_trading.sequence_model import predict_sequence, train_sequence_model
 
-
 st.title("AI Sequence / Deep Learning")
 st.caption("Research-only sequence model with chronological validation; no live orders.")
 
