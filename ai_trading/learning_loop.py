@@ -122,7 +122,7 @@ def learning_loop_summary(replay: pd.DataFrame) -> dict[str, float]:
         replay["adaptive_adjustment_pct"],
         errors="coerce",
     ).fillna(0.0)
-    learned = adjustment != 0.0
+    learned = adjustment.abs() > 1e-9
     return {
         "signals": float(len(replay)),
         "completed": float(replay["completed"].sum()),
