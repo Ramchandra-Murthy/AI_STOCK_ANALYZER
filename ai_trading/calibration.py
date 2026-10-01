@@ -5,12 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, brier_score_loss
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 
-from ai_trading.ml_model import FEATURE_COLUMNS, make_training_dataset
+from ai_trading.ml_model import make_training_dataset, train_model
 
 
 @dataclass(frozen=True)
@@ -41,40 +38,30 @@ def evaluate_calibration(
     if bins < 2 or bins > 10:
         raise ValueError("bins must be between 2 and 10")
 
-    x, y = make_training_dataset(frame, horizon=horizon, threshold=threshold)
-    if len(x) < 30:
-        raise ValueError("at least 30 labelled samples are required")
-    if y.nunique() < 2:
-        raise ValueError("training data must contain both target classes")
-
-    split = int(len(x) * (1.0 - test_fraction))
-    if split < 20 or len(x) - split < 5:
-        raise ValueError("training and test windows are too small")
-
-    x_train, x_test = x.iloc[:split], x.iloc[split:]
-    y_train, y_test = y.iloc[:split], y.iloc[split:]
-    if y_train.nunique() < 2 or y_test.nunique() < 2:
-        raise ValueError("both chronological windows must contain both target classes")
-
-    model = Pipeline(
-        [
-            ("scaler", StandardScaler()),
-            ("classifier", LogisticRegression(max_iter=1000, random_state=42)),
-        ]
+    model, validation = train_model(
+        frame,
+        horizon=horizon,
+        threshold=threshold,
+        test_fraction=test_fraction,
     )
-    model.fit(x_train[FEATURE_COLUMNS], y_train)
+    x, y = make_training_dataset(frame, horizon=horizon, threshold=threshold)
+    test_samples = validation.test_samples
+    x_test = x.iloc[-test_samples:]
+    y_test = y.iloc[-test_samples:]
 
-    probabilities = model.predict_proba(x_test[FEATURE_COLUMNS])[:, 1]
+    probabilities = model.predict_proba(x_test)[:, 1]
     predictions = (probabilities >= 0.5).astype(int)
-    calibration_gap = float(abs(float(probabilities.mean()) - float(y_test.mean())))
+    average_probability = float(probabilities.mean())
+    actual_positive_rate = float(y_test.mean())
+    calibration_gap = abs(average_probability - actual_positive_rate)
     metrics = CalibrationMetrics(
         accuracy=float(accuracy_score(y_test, predictions)),
         brier_score=float(brier_score_loss(y_test, probabilities)),
-        average_probability=float(probabilities.mean()),
-        actual_positive_rate=float(y_test.mean()),
+        average_probability=average_probability,
+        actual_positive_rate=actual_positive_rate,
         calibration_gap=calibration_gap,
-        train_samples=len(x_train),
-        test_samples=len(x_test),
+        train_samples=validation.train_samples,
+        test_samples=test_samples,
     )
 
     edges = [i / bins for i in range(bins + 1)]
@@ -100,5 +87,7 @@ def evaluate_calibration(
         )
         .reset_index()
     )
-    summary["calibration_gap"] = (summary["predicted_probability"] - summary["actual_rate"]).abs()
+    summary["calibration_gap"] = (
+        summary["predicted_probability"] - summary["actual_rate"]
+    ).abs()
     return metrics, summary
