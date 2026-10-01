@@ -18,7 +18,9 @@ st.set_page_config(
     layout="wide",
 )
 st.title("📊 AI Fundamental Intelligence")
-st.caption("Research analytics: normalize company fundamentals and inspect a transparent quality score.")
+st.caption(
+    "Research analytics: normalize company fundamentals and inspect a transparent quality score."
+)
 
 st.subheader("Fundamental Input")
 col1, col2, col3 = st.columns(3)
