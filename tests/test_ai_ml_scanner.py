@@ -33,6 +33,10 @@ def test_scan_frames_returns_ranked_ml_results() -> None:
         "accuracy_pct",
         "roc_auc",
         "signal",
+        "regime",
+        "regime_score",
+        "regime_strength_pct",
     }.issubset(result.columns)
     assert result["confidence_pct"].between(0, 100).all()
     assert result["probability_up_pct"].between(0, 100).all()
+    assert result["regime_strength_pct"].between(0, 100).all()
