@@ -2,13 +2,33 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 
 import pandas as pd
 
-POSITIVE = {"beat", "growth", "profit", "surge", "strong", "upgrade", "positive", "record", "bullish"}
-NEGATIVE = {"miss", "loss", "fall", "drop", "weak", "downgrade", "negative", "fraud", "bearish"}
+POSITIVE = {
+    "beat",
+    "growth",
+    "profit",
+    "surge",
+    "strong",
+    "upgrade",
+    "positive",
+    "record",
+    "bullish",
+}
+NEGATIVE = {
+    "miss",
+    "loss",
+    "fall",
+    "drop",
+    "weak",
+    "downgrade",
+    "negative",
+    "fraud",
+    "bearish",
+}
 
 
 @dataclass(frozen=True)
@@ -40,13 +60,15 @@ def summarize_news(news: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for headline in news["headline"].fillna(""):
         result = score_headline(str(headline))
-        rows.append({
-            "headline": str(headline),
-            "score": result.score,
-            "label": result.label,
-            "positive_terms": result.positive_terms,
-            "negative_terms": result.negative_terms,
-        })
+        rows.append(
+            {
+                "headline": str(headline),
+                "score": result.score,
+                "label": result.label,
+                "positive_terms": result.positive_terms,
+                "negative_terms": result.negative_terms,
+            }
+        )
     return pd.DataFrame(rows, columns=columns)
 
 
@@ -57,4 +79,8 @@ def aggregate_sentiment(news: pd.DataFrame) -> dict[str, float | str]:
         return {"sentiment_score": 0.0, "label": "NEUTRAL", "headlines": 0.0}
     score = float(scored["score"].mean())
     label = "POSITIVE" if score > 0.0 else "NEGATIVE" if score < 0.0 else "NEUTRAL"
-    return {"sentiment_score": round(score, 3), "label": label, "headlines": float(len(scored))}
+    return {
+        "sentiment_score": round(score, 3),
+        "label": label,
+        "headlines": float(len(scored)),
+    }
