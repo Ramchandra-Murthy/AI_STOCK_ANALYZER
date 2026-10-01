@@ -15,7 +15,12 @@ def _history() -> pd.DataFrame:
 
 
 def test_retraining_is_due_when_recent_results_degrade() -> None:
-    decision = evaluate_retraining_need(\n        _history(),\n        min_samples=20,\n        lookback=30,\n        min_win_rate_pct=70.0,\n    )
+    decision = evaluate_retraining_need(
+        _history(),
+        min_samples=20,
+        lookback=30,
+        min_win_rate_pct=70.0,
+    )
     assert decision.should_retrain is True
     assert decision.reason == "RETRAIN DUE"
     assert decision.recent_win_rate_pct == pytest.approx(66.67, abs=0.01)
