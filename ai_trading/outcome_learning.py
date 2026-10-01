@@ -1,7 +1,5 @@
 """Outcome-learning analytics for historical AI trading signals."""
 
-from __future__ import annotations
-
 import pandas as pd
 
 
