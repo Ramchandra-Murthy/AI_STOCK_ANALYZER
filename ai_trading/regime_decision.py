@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from ai_trading.decision_engine import (
-    SignalDecision,
     build_signal_decision,
+    SignalDecision,
 )
 
 
