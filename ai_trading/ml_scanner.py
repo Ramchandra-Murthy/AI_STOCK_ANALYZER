@@ -68,7 +68,6 @@ def scan_frames(
         "probability_up_pct",
         "confidence_pct",
         "signal",
-        "confidence_pct",
         "model_confidence_pct",
         "validation_pct",
         "trend_pct",
