@@ -18,7 +18,7 @@ from modules.settings import show as settings
 def load_css() -> None:
     """Load the shared application theme."""
     with open("assets/styles.css", encoding="utf-8") as css_file:
-        st.markdown(f"<style>{css_file.read()}", unsafe_allow_html=True)
+        st.markdown(f"<style>{css_file.read()}</style>", unsafe_allow_html=True)
 
 
 st.set_page_config(
