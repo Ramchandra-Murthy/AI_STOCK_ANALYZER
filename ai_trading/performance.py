@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .paper_trading import PaperTrade
+import pandas as pd
+
+from .paper_trading import EquitySnapshot, PaperTrade
 
 
 @dataclass(frozen=True)
@@ -120,3 +122,25 @@ def build_performance_report(
         gross_exposure_pct=float(gross_exposure_pct),
         trade_count=len(trades),
     )
+
+
+def build_equity_curve(
+    snapshots: list[EquitySnapshot],
+) -> pd.DataFrame:
+    """Build return and drawdown analytics from recorded equity snapshots."""
+    if not snapshots:
+        return pd.DataFrame(columns=["timestamp", "equity", "return_pct", "drawdown_pct"])
+
+    curve = pd.DataFrame(
+        {
+            "timestamp": [snapshot.timestamp for snapshot in snapshots],
+            "equity": [snapshot.equity for snapshot in snapshots],
+        }
+    )
+    initial = float(curve.iloc[0]["equity"])
+    curve["return_pct"] = (curve["equity"] / initial - 1.0) * 100.0
+    curve["peak_equity"] = curve["equity"].cummax()
+    curve["drawdown_pct"] = (
+        (curve["peak_equity"] - curve["equity"]) / curve["peak_equity"] * 100.0
+    )
+    return curve.drop(columns=["peak_equity"])
