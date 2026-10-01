@@ -101,6 +101,7 @@ pages = {
             "pages/AI_Model_Monitoring.py",
             title="AI Model Monitoring",
             icon="🎯",
+            url_path="ai-model-monitoring-calibration",
         ),
     ],
     "⚙️ System": [
