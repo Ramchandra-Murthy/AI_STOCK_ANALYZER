@@ -72,14 +72,8 @@ def run_learning_loop(
         )
         matches = adjustments[
             (adjustments["signal"] == signal)
-            & (
-                (adjustments["regime"] == regime)
-                | (adjustments["regime"] == "ALL")
-            )
-            & (
-                adjustments["confidence_bucket"]
-                == confidence_bucket(raw_confidence)
-            )
+            & ((adjustments["regime"] == regime) | (adjustments["regime"] == "ALL"))
+            & (adjustments["confidence_bucket"] == confidence_bucket(raw_confidence))
         ]
         samples = int(matches.iloc[0]["samples"]) if not matches.empty else 0
         rows.append(
@@ -90,9 +84,7 @@ def run_learning_loop(
                 "regime": regime,
                 "raw_confidence_pct": raw_confidence,
                 "adaptive_confidence_pct": adaptive_confidence,
-                "adaptive_adjustment_pct": round(
-                    adaptive_confidence - raw_confidence, 1
-                ),
+                "adaptive_adjustment_pct": round(adaptive_confidence - raw_confidence, 1),
                 "learning_samples": samples,
                 "completed": bool(row["completed"]),
                 "return_pct": row["return_pct"],
@@ -118,10 +110,7 @@ def learning_loop_summary(replay: pd.DataFrame) -> dict[str, float]:
             "maximum_adjustment_pct": 0.0,
         }
 
-    adjustment = pd.to_numeric(
-        replay["adaptive_adjustment_pct"],
-        errors="coerce",
-    ).fillna(0.0)
+    adjustment = pd.to_numeric(replay["adaptive_adjustment_pct"], errors="coerce").fillna(0.0)
     learned = adjustment.abs() > 1e-9
     return {
         "signals": float(len(replay)),
