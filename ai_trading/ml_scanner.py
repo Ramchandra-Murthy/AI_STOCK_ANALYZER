@@ -5,6 +5,10 @@ from __future__ import annotations
 import pandas as pd
 import yfinance as yf
 
+from ai_trading.adaptive_engine import (
+    apply_adaptive_confidence,
+    build_adaptive_adjustments,
+)
 from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.regime_context import build_regime_context
@@ -17,12 +21,14 @@ def scan_frames(
     exchange: str = "NSE",
     horizon: int = 5,
     threshold: float = 0.01,
+    adaptive_history: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Train and validate one ML model per symbol and return ranked results."""
     exchange = exchange.upper()
     if exchange not in {"NSE", "BSE"}:
         raise ValueError("exchange must be NSE or BSE")
 
+    adjustments = build_adaptive_adjustments(adaptive_history) if adaptive_history is not None else pd.DataFrame()
     rows: list[dict[str, object]] = []
     for symbol, frame in frames.items():
         try:
@@ -48,6 +54,13 @@ def scan_frames(
         except (TypeError, ValueError, KeyError):
             continue
 
+        raw_confidence = decision.confidence_pct
+        adaptive_confidence = apply_adaptive_confidence(
+            raw_confidence,
+            signal=decision.signal,
+            regime=str(regime["regime"]),
+            adjustments=adjustments,
+        )
         rows.append(
             {
                 "symbol": str(symbol).upper(),
@@ -55,7 +68,15 @@ def scan_frames(
                 "latest_price": round(float(frame["Close"].dropna().iloc[-1]), 2),
                 "probability_up_pct": round(float(prediction["probability_up"]) * 100, 1),
                 "signal": decision.signal,
-                "confidence_pct": decision.confidence_pct,
+                "confidence_pct": adaptive_confidence,
+                "raw_confidence_pct": raw_confidence,
+                "adaptive_adjustment_pct": round(adaptive_confidence - raw_confidence, 1),
+                "adaptive_samples": _adaptive_samples(
+                    adjustments,
+                    signal=decision.signal,
+                    regime=str(regime["regime"]),
+                    confidence_pct=raw_confidence,
+                ),
                 "model_confidence_pct": decision.model_confidence_pct,
                 "validation_pct": decision.validation_pct,
                 "trend_pct": decision.trend_pct,
@@ -76,6 +97,9 @@ def scan_frames(
         "latest_price",
         "probability_up_pct",
         "confidence_pct",
+        "raw_confidence_pct",
+        "adaptive_adjustment_pct",
+        "adaptive_samples",
         "signal",
         "model_confidence_pct",
         "validation_pct",
@@ -102,6 +126,33 @@ def scan_frames(
     )
 
 
+def _adaptive_samples(
+    adjustments: pd.DataFrame,
+    *,
+    signal: str,
+    regime: str,
+    confidence_pct: float,
+) -> int:
+    """Return the sample count supporting the applied adaptive adjustment."""
+    if adjustments.empty:
+        return 0
+    bucket = __import__("ai_trading.outcome_learning", fromlist=["confidence_bucket"]).confidence_bucket(
+        confidence_pct
+    )
+    exact = adjustments[
+        (adjustments["signal"] == signal)
+        & (adjustments["regime"] == regime)
+        & (adjustments["confidence_bucket"] == bucket)
+    ]
+    fallback = adjustments[
+        (adjustments["signal"] == signal)
+        & (adjustments["regime"] == "ALL")
+        & (adjustments["confidence_bucket"] == bucket)
+    ]
+    matches = exact if not exact.empty else fallback
+    return int(matches.iloc[0]["samples"]) if not matches.empty else 0
+
+
 def scan_universe(
     symbols: list[str],
     *,
@@ -109,6 +160,7 @@ def scan_universe(
     period: str = "5y",
     horizon: int = 5,
     threshold: float = 0.01,
+    adaptive_history: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Download market history and run the ML model across a stock universe."""
     exchange = exchange.upper()
@@ -156,4 +208,5 @@ def scan_universe(
         exchange=exchange,
         horizon=horizon,
         threshold=threshold,
+        adaptive_history=adaptive_history,
     )
