@@ -30,6 +30,9 @@ def test_scan_frames_returns_ranked_ml_results() -> None:
         "symbol",
         "probability_up_pct",
         "confidence_pct",
+        "raw_confidence_pct",
+        "adaptive_adjustment_pct",
+        "adaptive_samples",
         "accuracy_pct",
         "roc_auc",
         "signal",
@@ -42,3 +45,18 @@ def test_scan_frames_returns_ranked_ml_results() -> None:
     assert result["probability_up_pct"].between(0, 100).all()
     assert result["regime_strength_pct"].between(0, 100).all()
     assert result["decision_reason"].str.contains("regime ").all()
+
+
+def test_scan_frames_without_history_preserves_raw_confidence() -> None:
+    result = scan_frames(
+        {"RELIANCE": _frame(3)},
+        exchange="NSE",
+        horizon=5,
+        threshold=0.0,
+    )
+
+    assert len(result) == 1
+    row = result.iloc[0]
+    assert row["confidence_pct"] == row["raw_confidence_pct"]
+    assert row["adaptive_adjustment_pct"] == 0.0
+    assert row["adaptive_samples"] == 0
