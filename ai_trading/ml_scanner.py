@@ -11,6 +11,7 @@ from ai_trading.adaptive_engine import (
 )
 from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
+from ai_trading.outcome_learning import confidence_bucket
 from ai_trading.regime_context import build_regime_context
 from ai_trading.regime_decision import build_regime_aware_decision
 
@@ -136,9 +137,7 @@ def _adaptive_samples(
     """Return the sample count supporting the applied adaptive adjustment."""
     if adjustments.empty:
         return 0
-    bucket = __import__("ai_trading.outcome_learning", fromlist=["confidence_bucket"]).confidence_bucket(
-        confidence_pct
-    )
+    bucket = confidence_bucket(confidence_pct)
     exact = adjustments[
         (adjustments["signal"] == signal)
         & (adjustments["regime"] == regime)
