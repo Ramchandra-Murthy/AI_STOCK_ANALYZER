@@ -5,6 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import yfinance as yf
 
+from ai_trading.decision_engine import build_signal_decision
+from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
 
 
@@ -29,6 +31,16 @@ def scan_frames(
                 threshold=threshold,
             )
             prediction = predict_latest(model, frame)
+            latest_features = build_features(frame).iloc[-1]
+            return_score = max(-1.0, min(1.0, float(latest_features["return_5"]) * 4.0))
+            ema_score = max(-1.0, min(1.0, float(latest_features["ema_gap"]) * 5.0))
+            trend_score = (return_score + ema_score) / 2.0
+            decision = build_signal_decision(
+                probability_up=float(prediction["probability_up"]),
+                accuracy=validation.accuracy,
+                roc_auc=validation.roc_auc,
+                trend_score=trend_score,
+            )
         except (TypeError, ValueError, KeyError):
             continue
 
@@ -37,8 +49,12 @@ def scan_frames(
                 "symbol": str(symbol).upper(),
                 "exchange": exchange,
                 "probability_up_pct": round(float(prediction["probability_up"]) * 100, 1),
-                "confidence_pct": round(float(prediction["confidence"]) * 100, 1),
-                "signal": str(prediction["signal"]),
+                "signal": decision.signal,
+                "confidence_pct": decision.confidence_pct,
+                "model_confidence_pct": decision.model_confidence_pct,
+                "validation_pct": decision.validation_pct,
+                "trend_pct": decision.trend_pct,
+                "decision_reason": decision.reason,
                 "accuracy_pct": round(validation.accuracy * 100, 1),
                 "roc_auc": round(validation.roc_auc, 3) if validation.roc_auc is not None else None,
                 "train_samples": validation.train_samples,
@@ -52,6 +68,10 @@ def scan_frames(
         "probability_up_pct",
         "confidence_pct",
         "signal",
+        "model_confidence_pct",
+        "validation_pct",
+        "trend_pct",
+        "decision_reason",
         "accuracy_pct",
         "roc_auc",
         "train_samples",
