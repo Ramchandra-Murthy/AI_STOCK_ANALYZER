@@ -23,9 +23,11 @@ class FeatureDrift:
 
 
 def _numeric(frame: pd.DataFrame, feature: str) -> pd.Series:
-    return pd.to_numeric(frame[feature], errors="coerce").replace(
-        [np.inf, -np.inf], np.nan
-    ).dropna()
+    return (
+        pd.to_numeric(frame[feature], errors="coerce")
+        .replace([np.inf, -np.inf], np.nan)
+        .dropna()
+    )
 
 
 def compare_feature_drift(
@@ -51,7 +53,9 @@ def compare_feature_drift(
         current_mean = float(recent.mean())
         scale = max(baseline_std, 1e-9)
         mean_shift_pct = (
-            abs(current_mean - baseline_mean) / max(abs(baseline_mean), 1e-9) * 100.0
+            abs(current_mean - baseline_mean)
+            / max(abs(baseline_mean), 1e-9)
+            * 100.0
         )
         drift_score = abs(current_mean - baseline_mean) / scale
         rows.append(
