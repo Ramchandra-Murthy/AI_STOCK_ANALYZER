@@ -32,19 +32,50 @@ load_css()
 
 pages = {
     "📊 Core": [
-        st.Page(dashboard, title="Dashboard", icon="🏠", default=True, url_path="dashboard"),
+        st.Page(
+            dashboard,
+            title="Dashboard",
+            icon="🏠",
+            default=True,
+            url_path="dashboard",
+        ),
         st.Page(market, title="Market", icon="📈", url_path="market"),
         st.Page(portfolio, title="Portfolio", icon="💼", url_path="portfolio"),
         st.Page(scanner, title="Scanner", icon="🔍", url_path="scanner"),
     ],
     "🔴 Live Market": [
-        st.Page(show_live_top10_scanner, title="Live Top-10 Scanner", icon="📡", url_path="live-top-10-scanner"),
-        st.Page(intraday, title="Intraday Trading", icon="⏱️", url_path="intraday-trading"),
+        st.Page(
+            show_live_top10_scanner,
+            title="Live Top-10 Scanner",
+            icon="📡",
+            url_path="live-top-10-scanner",
+        ),
+        st.Page(
+            intraday,
+            title="Intraday Trading",
+            icon="⏱️",
+            url_path="intraday-trading",
+        ),
     ],
     "🔎 Research": [
-        st.Page(research, title="Stock Research", icon="🔍", url_path="stock-research"),
-        st.Page(fundamentals, title="Fundamentals", icon="📊", url_path="fundamentals"),
-        st.Page(prediction, title="AI Prediction", icon="🤖", url_path="ai-prediction"),
+        st.Page(
+            research,
+            title="Stock Research",
+            icon="🔍",
+            url_path="stock-research",
+        ),
+        st.Page(
+            fundamentals,
+            title="Fundamentals",
+            icon="📊",
+            url_path="fundamentals",
+        ),
+        st.Page(
+            prediction,
+            title="AI Prediction",
+            icon="🤖",
+            url_path="ai-prediction",
+        ),
         st.Page(backtesting, title="Backtesting", icon="📉", url_path="backtesting"),
     ],
     "🤖 Algorithmic Trading": [
