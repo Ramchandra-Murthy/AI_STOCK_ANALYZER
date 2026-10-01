@@ -53,9 +53,7 @@ def build_adaptive_adjustments(
 
     completed = history[history["completed"]].copy()
     completed["return_pct"] = pd.to_numeric(completed["return_pct"], errors="coerce")
-    completed["confidence_pct"] = pd.to_numeric(
-        completed["confidence_pct"], errors="coerce"
-    )
+    completed["confidence_pct"] = pd.to_numeric(completed["confidence_pct"], errors="coerce")
     completed = completed.dropna(subset=["return_pct", "confidence_pct", "signal"])
     if completed.empty:
         return pd.DataFrame(columns=columns)
@@ -68,16 +66,13 @@ def build_adaptive_adjustments(
     )
     completed["win"] = completed["return_pct"] > 0.0
 
-    summary = (
-        completed.groupby(
-            ["signal", "regime", "confidence_bucket"],
-            as_index=False,
-        )
-        .agg(
-            samples=("win", "size"),
-            observed_win_rate_pct=("win", "mean"),
-            average_confidence_pct=("confidence_pct", "mean"),
-        )
+    summary = completed.groupby(
+        ["signal", "regime", "confidence_bucket"],
+        as_index=False,
+    ).agg(
+        samples=("win", "size"),
+        observed_win_rate_pct=("win", "mean"),
+        average_confidence_pct=("confidence_pct", "mean"),
     )
     summary = summary[summary["samples"] >= min_samples].copy()
     if summary.empty:
@@ -93,9 +88,11 @@ def build_adaptive_adjustments(
         "adjustment_pct",
     ]
     summary[numeric] = summary[numeric].round(2)
-    return summary[columns].sort_values(
-        ["signal", "regime", "confidence_bucket"]
-    ).reset_index(drop=True)
+    return (
+        summary[columns]
+        .sort_values(["signal", "regime", "confidence_bucket"])
+        .reset_index(drop=True)
+    )
 
 
 def apply_adaptive_confidence(
