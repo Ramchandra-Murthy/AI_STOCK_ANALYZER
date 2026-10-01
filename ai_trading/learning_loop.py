@@ -8,6 +8,7 @@ from ai_trading.adaptive_engine import (
     apply_adaptive_confidence,
     build_adaptive_adjustments,
 )
+from ai_trading.outcome_learning import confidence_bucket
 
 
 def run_learning_loop(
@@ -77,10 +78,7 @@ def run_learning_loop(
             )
             & (
                 adjustments["confidence_bucket"]
-                == __import__(
-                    "ai_trading.outcome_learning",
-                    fromlist=["confidence_bucket"],
-                ).confidence_bucket(raw_confidence)
+                == confidence_bucket(raw_confidence)
             )
         ]
         samples = int(matches.iloc[0]["samples"]) if not matches.empty else 0
