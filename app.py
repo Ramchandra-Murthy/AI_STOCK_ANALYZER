@@ -188,6 +188,12 @@ pages = {
             icon="🧠",
             url_path="ai-sequence-deep-learning",
         ),
+        st.Page(
+            "pages/AI_Feature_Drift.py",
+            title="AI Feature Drift",
+            icon="📐",
+            url_path="ai-feature-drift",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
