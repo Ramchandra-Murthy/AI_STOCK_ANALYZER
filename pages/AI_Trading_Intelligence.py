@@ -139,7 +139,9 @@ if isinstance(ml_result, pd.DataFrame):
         metric2.metric("Displayed", len(filtered))
         metric3.metric(
             "Average confidence",
-            f"{filtered['confidence_pct'].mean():.1f}%" if not filtered.empty else "N/A",
+            f"{filtered['confidence_pct'].mean():.1f}%"
+            if not filtered.empty
+            else "N/A",
         )
         metric4.metric(
             "Average regime strength",
