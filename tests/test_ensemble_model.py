@@ -5,9 +5,12 @@ from ai_trading.ensemble_model import predict_ensemble, train_ensemble
 
 
 def _frame() -> pd.DataFrame:
-    index = pd.date_range("2020-01-01", periods=120, freq="D")
-    close = [100.0 + i + (i % 7) * 0.5 for i in range(120)]
-    volume = [1000.0 + i * 10 for i in range(120)]
+    index = pd.date_range("2020-01-01", periods=200, freq="D")
+    close = [
+        100.0 + (i % 40) * 2 if i % 80 < 40 else 100.0 - (i % 40) * 2
+        for i in range(200)
+    ]
+    volume = [1000.0 + i * 10 for i in range(200)]
     return pd.DataFrame({"Close": close, "Volume": volume}, index=index)
 
 
