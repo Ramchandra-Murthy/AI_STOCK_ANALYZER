@@ -56,7 +56,9 @@ st.divider()
 st.subheader("🔎 Multi-Stock ML Scanner")
 st.caption(
     "Trains a separate leakage-safe model for each selected symbol and combines ML probability, "
-    "validation quality, trend and market-regime context into the final AI decision."
+    "validation quality, trend and market-regime context into the final AI decision. "
+    "When enough completed signal history exists, learned outcome data also adjusts confidence "
+    "within a bounded range without changing the signal direction."
 )
 
 scan_left, scan_mid, scan_right = st.columns(3)
@@ -89,12 +91,16 @@ with scan_right:
 
 if st.button("Run Multi-Stock ML Scan", type="primary"):
     with st.spinner(f"Training {ml_count} {exchange} models..."):
+        adaptive_history = st.session_state.get("ai_signal_history")
+        if not isinstance(adaptive_history, pd.DataFrame):
+            adaptive_history = None
         ml_result = scan_ml_universe(
             universe[:ml_count],
             exchange=exchange,
             period="5y",
             horizon=scan_horizon,
             threshold=scan_threshold / 100.0,
+            adaptive_history=adaptive_history,
         )
     st.session_state["ai_ml_result"] = ml_result
     st.session_state["ai_ml_exchange"] = exchange
@@ -142,8 +148,8 @@ if isinstance(ml_result, pd.DataFrame):
             f"{filtered['confidence_pct'].mean():.1f}%" if not filtered.empty else "N/A",
         )
         metric4.metric(
-            "Average regime strength",
-            f"{filtered['regime_strength_pct'].mean():.1f}%" if not filtered.empty else "N/A",
+            "Average adaptive adjustment",
+            f"{filtered['adaptive_adjustment_pct'].mean():+.1f}%" if not filtered.empty else "N/A",
         )
 
         display_columns = [
@@ -151,6 +157,9 @@ if isinstance(ml_result, pd.DataFrame):
             "latest_price",
             "signal",
             "confidence_pct",
+            "raw_confidence_pct",
+            "adaptive_adjustment_pct",
+            "adaptive_samples",
             "probability_up_pct",
             "validation_pct",
             "trend_pct",
@@ -174,12 +183,14 @@ if isinstance(ml_result, pd.DataFrame):
 
         st.subheader("AI confidence by symbol")
         if not filtered.empty:
-            st.bar_chart(filtered.set_index("symbol")["confidence_pct"].head(20))
+            st.bar_chart(
+                filtered.set_index("symbol")[["raw_confidence_pct", "confidence_pct"]].head(20)
+            )
 
         st.download_button(
-            "Download regime-aware AI scan CSV",
+            "Download adaptive AI scan CSV",
             filtered.to_csv(index=False).encode("utf-8"),
-            "ai_regime_aware_scan.csv",
+            "ai_adaptive_ai_scan.csv",
             "text/csv",
             key="download_ai_regime_scan",
         )
