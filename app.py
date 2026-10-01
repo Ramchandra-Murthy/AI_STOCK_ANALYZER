@@ -170,6 +170,12 @@ pages = {
             icon="📊",
             url_path="ai-fundamental-intelligence",
         ),
+        st.Page(
+            "pages/AI_Feature_Factory.py",
+            title="AI Feature Factory",
+            icon="🧩",
+            url_path="ai-feature-factory",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
