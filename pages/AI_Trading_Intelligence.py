@@ -7,6 +7,8 @@ import streamlit as st
 import yfinance as yf
 
 from ai_trading.ai_scanner import scan_universe
+from ai_trading.decision_engine import build_signal_decision
+from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.ml_scanner import scan_universe as scan_ml_universe
 from ai_trading.walk_forward import walk_forward_backtest
@@ -107,6 +109,91 @@ if st.button("Run Multi-Stock ML Scan", type="primary"):
             "Ranking is based on model confidence, historical ROC-AUC, and latest "
             "probability. These are historical model measurements, not forecasts "
             "of guaranteed returns."
+        )
+
+st.divider()
+st.subheader("🧩 Unified AI Signal Explainability")
+st.caption(
+    "Breaks the unified ML decision into model probability, validation quality, trend contribution, "
+    "confidence and the final signal reason. Historical model measurements only."
+)
+
+explain_left, explain_right = st.columns(2)
+with explain_left:
+    explain_symbol = st.selectbox(
+        "Explain signal for",
+        universe[: min(30, len(universe))],
+        key="explain_symbol",
+    )
+with explain_right:
+    explain_horizon = st.slider(
+        "Explainability horizon (days)",
+        1,
+        20,
+        5,
+        key="explain_horizon",
+    )
+
+if st.button("Generate AI Signal Explanation", type="secondary"):
+    ticker = (
+        f"{str(explain_symbol).strip().upper()}.NS"
+        if exchange == "NSE"
+        else f"{str(explain_symbol).strip().upper()}.BO"
+    )
+    with st.spinner(f"Explaining {ticker}..."):
+        explain_history = yf.download(
+            ticker,
+            period="5y",
+            auto_adjust=False,
+            progress=False,
+            threads=False,
+        )
+        if isinstance(explain_history.columns, pd.MultiIndex):
+            explain_history = explain_history.droplevel(1, axis=1)
+
+    try:
+        explain_model, explain_validation = train_model(
+            explain_history,
+            horizon=explain_horizon,
+            threshold=0.01,
+        )
+        explain_prediction = predict_latest(explain_model, explain_history)
+    except (TypeError, ValueError, KeyError) as exc:
+        st.error(f"AI signal explanation could not run: {exc}")
+    else:
+        explain_features = build_features(explain_history).iloc[-1]
+        return_score = max(-1.0, min(1.0, float(explain_features["return_5"]) * 4.0))
+        ema_score = max(-1.0, min(1.0, float(explain_features["ema_gap"]) * 5.0))
+        trend_score = (return_score + ema_score) / 2.0
+        decision = build_signal_decision(
+            probability_up=float(explain_prediction["probability_up"]),
+            accuracy=explain_validation.accuracy,
+            roc_auc=explain_validation.roc_auc,
+            trend_score=trend_score,
+        )
+
+        metric1, metric2, metric3, metric4 = st.columns(4)
+        metric1.metric("Final signal", decision.signal)
+        metric2.metric("Unified confidence", f"{decision.confidence_pct:.1f}%")
+        metric3.metric("Model confidence", f"{decision.model_confidence_pct:.1f}%")
+        metric4.metric("Validation quality", f"{decision.validation_pct:.1f}%")
+
+        detail = pd.DataFrame(
+            {
+                "Component": ["ML probability", "Validation", "Trend", "Unified confidence"],
+                "Value": [
+                    f"{float(explain_prediction['probability_up']):.1%}",
+                    f"{decision.validation_pct:.1f}%",
+                    f"{decision.trend_pct:.1f}%",
+                    f"{decision.confidence_pct:.1f}%",
+                ],
+            }
+        )
+        st.dataframe(detail, use_container_width=True, hide_index=True)
+        st.info(f"Decision reason: {decision.reason}")
+        st.caption(
+            "The explanation reuses the same unified decision engine as the multi-stock ML scanner. "
+            "It is a research/paper-trading signal and does not place broker orders."
         )
 
 st.divider()
