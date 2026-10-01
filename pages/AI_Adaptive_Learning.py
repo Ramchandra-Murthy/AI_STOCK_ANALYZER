@@ -1,5 +1,7 @@
 """Streamlit dashboard for the chronological adaptive-learning loop."""
 
+# ruff: noqa: I001
+
 from __future__ import annotations
 
 import pandas as pd
