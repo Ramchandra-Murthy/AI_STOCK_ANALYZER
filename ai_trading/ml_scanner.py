@@ -48,6 +48,7 @@ def scan_frames(
             {
                 "symbol": str(symbol).upper(),
                 "exchange": exchange,
+                "latest_price": round(float(frame["Close"].dropna().iloc[-1]), 2),
                 "probability_up_pct": round(float(prediction["probability_up"]) * 100, 1),
                 "signal": decision.signal,
                 "confidence_pct": decision.confidence_pct,
@@ -65,6 +66,7 @@ def scan_frames(
     columns = [
         "symbol",
         "exchange",
+        "latest_price",
         "probability_up_pct",
         "confidence_pct",
         "signal",

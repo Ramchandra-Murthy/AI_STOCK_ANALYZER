@@ -134,6 +134,12 @@ pages = {
             icon="🎯",
             url_path="ai-model-monitoring-calibration",
         ),
+        st.Page(
+            "pages/AI_Signal_History.py",
+            title="AI Signal History",
+            icon="🗂️",
+            url_path="ai-signal-history",
+        ),
     ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
