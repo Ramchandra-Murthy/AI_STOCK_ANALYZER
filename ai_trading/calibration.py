@@ -89,3 +89,66 @@ def evaluate_calibration(
     )
     summary["calibration_gap"] = (summary["predicted_probability"] - summary["actual_rate"]).abs()
     return metrics, summary
+
+
+def monitor_calibration_frames(
+    frames: dict[str, pd.DataFrame],
+    *,
+    exchange: str = "NSE",
+    horizon: int = 5,
+    threshold: float = 0.01,
+    test_fraction: float = 0.2,
+    bins: int = 5,
+) -> pd.DataFrame:
+    """Evaluate calibration across multiple symbols without changing model logic."""
+    exchange = exchange.upper()
+    if exchange not in {"NSE", "BSE"}:
+        raise ValueError("exchange must be NSE or BSE")
+
+    rows: list[dict[str, object]] = []
+    for symbol, frame in frames.items():
+        try:
+            metrics, _ = evaluate_calibration(
+                frame,
+                horizon=horizon,
+                threshold=threshold,
+                test_fraction=test_fraction,
+                bins=bins,
+            )
+        except (KeyError, TypeError, ValueError):
+            continue
+        rows.append(
+            {
+                "symbol": str(symbol).upper(),
+                "exchange": exchange,
+                "accuracy_pct": round(metrics.accuracy * 100, 1),
+                "brier_score": round(metrics.brier_score, 4),
+                "average_probability_pct": round(metrics.average_probability * 100, 1),
+                "actual_positive_rate_pct": round(metrics.actual_positive_rate * 100, 1),
+                "calibration_gap_pct": round(metrics.calibration_gap * 100, 1),
+                "train_samples": metrics.train_samples,
+                "test_samples": metrics.test_samples,
+            }
+        )
+
+    columns = [
+        "symbol",
+        "exchange",
+        "accuracy_pct",
+        "brier_score",
+        "average_probability_pct",
+        "actual_positive_rate_pct",
+        "calibration_gap_pct",
+        "train_samples",
+        "test_samples",
+    ]
+    if not rows:
+        return pd.DataFrame(columns=columns)
+    return (
+        pd.DataFrame(rows)
+        .sort_values(
+            ["calibration_gap_pct", "brier_score"],
+            ascending=[True, True],
+        )
+        .reset_index(drop=True)
+    )
