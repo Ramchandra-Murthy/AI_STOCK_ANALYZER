@@ -46,8 +46,5 @@ def build_regime_aware_decision(
         model_confidence_pct=decision.model_confidence_pct,
         validation_pct=decision.validation_pct,
         trend_pct=decision.trend_pct,
-        reason=(
-            f"{decision.reason}; regime {regime} "
-            f"(strength {regime_strength:.1%})"
-        ),
+        reason=(f"{decision.reason}; regime {regime} " f"(strength {regime_strength:.1%})"),
     )
