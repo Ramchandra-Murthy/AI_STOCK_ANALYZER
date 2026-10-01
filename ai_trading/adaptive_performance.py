@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from .outcome_learning import confidence_bucket
+from ai_trading.outcome_learning import confidence_bucket  # noqa: I001
 
 
 PERFORMANCE_COLUMNS = [
