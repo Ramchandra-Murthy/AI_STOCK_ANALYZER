@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 from ai_trading.signal_history import summarize_outcomes
 
@@ -15,7 +16,7 @@ st.caption(
 
 history = st.session_state.get("ai_signal_history")
 
-if history is None:
+if not isinstance(history, pd.DataFrame):
     st.info(
         "No signal history has been recorded yet. Run the AI Trading Scanner "
         "and use its signal records to populate this research ledger."
