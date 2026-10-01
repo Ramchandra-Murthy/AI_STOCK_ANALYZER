@@ -11,6 +11,7 @@ from ai_trading.decision_engine import build_signal_decision
 from ai_trading.features import build_features
 from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.ml_scanner import scan_universe as scan_ml_universe
+from ai_trading.signal_history import record_signal
 from ai_trading.walk_forward import walk_forward_backtest
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
@@ -110,6 +111,28 @@ if st.button("Run Multi-Stock ML Scan", type="primary"):
             "probability. These are historical model measurements, not forecasts "
             "of guaranteed returns."
         )
+
+        if st.button("Record Current ML Signals", key="record_ml_signals"):
+            records = st.session_state.setdefault("ai_signal_records", [])
+            for row in ml_result.to_dict("records"):
+                records.append(
+                    record_signal(
+                        symbol=str(row["symbol"]),
+                        exchange=exchange,
+                        signal=str(row["signal"]),
+                        probability_up=float(row["probability_up_pct"]) / 100.0,
+                        confidence_pct=float(row["confidence_pct"]),
+                        validation_pct=float(row["validation_pct"]),
+                        trend_pct=float(row["trend_pct"]),
+                        entry_price=float(row["latest_price"]),
+                        horizon_days=scan_horizon,
+                    )
+                )
+            st.session_state["ai_signal_history"] = (
+                __import__("ai_trading.signal_history", fromlist=["attach_outcomes"])
+                .attach_outcomes(records, {})
+            )
+            st.success(f"Recorded {len(ml_result)} current AI signals.")
 
 st.divider()
 st.subheader("🧩 Unified AI Signal Explainability")
