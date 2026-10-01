@@ -23,6 +23,10 @@ class SignalRecord:
     entry_price: float
     horizon_days: int
     outcome_price: float | None = None
+    raw_confidence_pct: float | None = None
+    adaptive_confidence_pct: float | None = None
+    adaptive_adjustment_pct: float | None = None
+    adaptive_samples: int = 0
 
     @property
     def return_pct(self) -> float | None:
@@ -49,6 +53,10 @@ def record_signal(
     entry_price: float,
     horizon_days: int,
     timestamp: datetime | None = None,
+    raw_confidence_pct: float | None = None,
+    adaptive_confidence_pct: float | None = None,
+    adaptive_adjustment_pct: float | None = None,
+    adaptive_samples: int = 0,
 ) -> SignalRecord:
     """Create a validated signal record."""
     if signal not in {"LONG", "SHORT", "NEUTRAL"}:
@@ -59,6 +67,8 @@ def record_signal(
         raise ValueError("signal percentages must be non-negative")
     if entry_price <= 0.0:
         raise ValueError("entry_price must be positive")
+    if adaptive_samples < 0:
+        raise ValueError("adaptive_samples must be non-negative")
     if horizon_days < 1:
         raise ValueError("horizon_days must be at least 1")
     return SignalRecord(
@@ -72,6 +82,20 @@ def record_signal(
         trend_pct=round(trend_pct, 1),
         entry_price=float(entry_price),
         horizon_days=horizon_days,
+        raw_confidence_pct=(
+            round(raw_confidence_pct, 1) if raw_confidence_pct is not None else None
+        ),
+        adaptive_confidence_pct=(
+            round(adaptive_confidence_pct, 1)
+            if adaptive_confidence_pct is not None
+            else None
+        ),
+        adaptive_adjustment_pct=(
+            round(adaptive_adjustment_pct, 1)
+            if adaptive_adjustment_pct is not None
+            else None
+        ),
+        adaptive_samples=adaptive_samples,
     )
 
 
@@ -93,6 +117,10 @@ def attach_outcomes(
                 "signal": updated.signal,
                 "probability_up_pct": updated.probability_up_pct,
                 "confidence_pct": updated.confidence_pct,
+                "raw_confidence_pct": updated.raw_confidence_pct,
+                "adaptive_confidence_pct": updated.adaptive_confidence_pct,
+                "adaptive_adjustment_pct": updated.adaptive_adjustment_pct,
+                "adaptive_samples": updated.adaptive_samples,
                 "validation_pct": updated.validation_pct,
                 "trend_pct": updated.trend_pct,
                 "entry_price": updated.entry_price,
