@@ -144,7 +144,11 @@ def monitor_calibration_frames(
     ]
     if not rows:
         return pd.DataFrame(columns=columns)
-    return pd.DataFrame(rows).sort_values(
-        ["calibration_gap_pct", "brier_score"],
-        ascending=[True, True],
-    ).reset_index(drop=True)
+    return (
+        pd.DataFrame(rows)
+        .sort_values(
+            ["calibration_gap_pct", "brier_score"],
+            ascending=[True, True],
+        )
+        .reset_index(drop=True)
+    )
