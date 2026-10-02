@@ -28,12 +28,13 @@ TOP10_MARKET_CLOSE_HOUR = 15
 TOP10_MARKET_CLOSE_MINUTE = 30
 TOP10_SESSION_STATUS_KEY = "top10_market_status"
 TOP10_PARTIAL_FAILURES_KEY = "top10_partial_failures"
+TOP10_COVERAGE_KEY = "top10_quote_coverage"
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
 _SCAN_LOCK = Lock()
-_SCAN_FUTURE: Future[tuple[pd.DataFrame, float, int]] | None = None
-_SCAN_RESULT: tuple[pd.DataFrame, float, int] | None = None
+_SCAN_FUTURE: Future[tuple[pd.DataFrame, float, int, int]] | None = None
+_SCAN_RESULT: tuple[pd.DataFrame, float, int, int] | None = None
 _SCAN_FAILURES = 0
 
 
@@ -93,7 +94,7 @@ def _format_candle_time(timestamp: object) -> str:
         return str(timestamp)
 
 
-def _scan_live_top10() -> tuple[pd.DataFrame, float, int]:
+def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
     failures = 0
@@ -157,8 +158,9 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int]:
     if frame.empty and failures:
         raise RuntimeError("Live quote provider failed for all scan chunks")
     if frame.empty:
-        return frame, round(perf_counter() - started, 2), failures
+        return frame, round(perf_counter() - started, 2), failures, 0
 
+    valid_quotes = len(frame)
     frame = (
         frame.assign(_abs_change=frame["1-min %"].abs())
         .sort_values("_abs_change", ascending=False)
@@ -167,11 +169,11 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int]:
         .reset_index(drop=True)
     )
     frame["Rank"] = range(1, len(frame) + 1)
-    return frame, round(perf_counter() - started, 2), failures
+    return frame, round(perf_counter() - started, 2), failures, valid_quotes
 
 
 @st.cache_data(ttl=TOP10_CACHE_SECONDS, show_spinner=False)
-def _load_live_top10() -> tuple[pd.DataFrame, float, int]:
+def _load_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Cached fallback for the live Top-10 scan."""
     return _scan_live_top10()
 
@@ -221,10 +223,11 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         st.session_state["top10_live_result"] = background_result
         st.session_state["top10_live_completed_at"] = datetime.now(_IST)
         st.session_state[TOP10_PARTIAL_FAILURES_KEY] = background_result[2]
+        st.session_state[TOP10_COVERAGE_KEY] = background_result[3]
 
-    top10, scan_seconds, partial_failures = st.session_state.get(
+    top10, scan_seconds, partial_failures, valid_quotes = st.session_state.get(
         "top10_live_result",
-        (pd.DataFrame(), 0.0, 0),
+        (pd.DataFrame(), 0.0, 0, 0),
     )
     completed_at = st.session_state.get("top10_live_completed_at")
     scan_running = _SCAN_FUTURE is not None and not _SCAN_FUTURE.done()
@@ -293,7 +296,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         f"{status} · Last update {last_update} IST · "
         f"Next refresh {next_refresh:%H:%M:%S} IST · "
         f"Data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · "
-        f"Provider failures {partial_failures} · Refresh every 60s"
+        f"Provider failures {partial_failures} · Quotes {valid_quotes}/40 · Refresh every 60s"
     )
 
     st.dataframe(
