@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import pandas as pd
@@ -39,7 +40,7 @@ def make_training_dataset(
     horizon: int = 5,
     threshold: float = 0.01,
 ) -> tuple[pd.DataFrame, pd.Series]:
-    """Build features and a future-return direction label without leakage."""
+    """Build explicit two-sided future-return direction labels without leakage."""
     if horizon < 1:
         raise ValueError("horizon must be at least 1")
     if threshold < 0:
@@ -48,7 +49,14 @@ def make_training_dataset(
     features = build_features(frame)[FEATURE_COLUMNS].copy()
     close = pd.to_numeric(frame["Close"], errors="coerce")
     future_return = close.shift(-horizon) / close - 1.0
-    labels = (future_return >= threshold).astype("float")
+
+    if math.isclose(threshold, 0.0, abs_tol=1e-12):
+        labels = (future_return > 0.0).astype("float")
+    else:
+        labels = pd.Series(pd.NA, index=frame.index, dtype="Float64")
+        labels[future_return >= threshold] = 1.0
+        labels[future_return <= -threshold] = 0.0
+
     labels[future_return.isna()] = pd.NA
 
     dataset = features.join(labels.rename("target"), how="inner").dropna()
