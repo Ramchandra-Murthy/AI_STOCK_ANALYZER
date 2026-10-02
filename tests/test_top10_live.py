@@ -11,6 +11,7 @@ from components.top10_live import (
     TOP10_MAX_CONSECUTIVE_FAILURES,
     TOP10_REFRESH_SECONDS,
     TOP10_SCAN_WARNING_SECONDS,
+    TOP10_SESSION_STATUS_KEY,
     TOP10_TIMEZONE,
     _scan_live_top10,
     _start_background_scan,
@@ -47,3 +48,7 @@ def test_top10_live_refresh_starts_when_interval_is_due() -> None:
 def test_top10_market_session_hours() -> None:
     assert (TOP10_MARKET_OPEN_HOUR, TOP10_MARKET_OPEN_MINUTE) == (9, 15)
     assert (TOP10_MARKET_CLOSE_HOUR, TOP10_MARKET_CLOSE_MINUTE) == (15, 30)
+
+
+def test_top10_live_session_status_key() -> None:
+    assert TOP10_SESSION_STATUS_KEY == "top10_market_status"

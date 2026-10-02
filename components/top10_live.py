@@ -25,6 +25,7 @@ TOP10_MARKET_OPEN_HOUR = 9
 TOP10_MARKET_OPEN_MINUTE = 15
 TOP10_MARKET_CLOSE_HOUR = 15
 TOP10_MARKET_CLOSE_MINUTE = 30
+TOP10_SESSION_STATUS_KEY = "top10_market_status"
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -231,6 +232,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     if not market_open:
         st.info("⚪ MARKET CLOSED · Live scanning resumes during the next regular NSE/BSE session.")
+    elif scan_running:
+        st.info("🟡 LIVE REFRESH · Updating the Top-10 in the background.")
 
     if top10.empty:
         if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
