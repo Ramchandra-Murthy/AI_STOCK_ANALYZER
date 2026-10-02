@@ -2,6 +2,7 @@ from zoneinfo import ZoneInfo
 
 from components.top10_live import (
     TOP10_CACHE_SECONDS,
+    TOP10_COVERAGE_KEY,
     TOP10_CHUNK_SIZE,
     TOP10_MARKET_CLOSE_HOUR,
     TOP10_MARKET_CLOSE_MINUTE,
@@ -77,3 +78,10 @@ def test_top10_live_exposes_partial_provider_failures() -> None:
     assert "partial_failures" in source
     assert "PARTIAL PROVIDER ISSUE" in source
     assert "Provider failures" in source
+
+
+def test_top10_live_exposes_quote_coverage() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert TOP10_COVERAGE_KEY == "top10_quote_coverage"
+    assert "valid_quotes" in source
+    assert "Quotes {valid_quotes}/40" in source
