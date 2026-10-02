@@ -123,8 +123,10 @@ def _is_equity_market_holiday(day: date) -> bool:
 
 
 def _market_session_is_open(now: datetime) -> bool:
-    return now.weekday() < 5 and not _is_equity_market_holiday(now.date()) and (
-        (now.hour, now.minute) >= (9, 15) and (now.hour, now.minute) < (15, 30)
+    return (
+        now.weekday() < 5
+        and not _is_equity_market_holiday(now.date())
+        and ((now.hour, now.minute) >= (9, 15) and (now.hour, now.minute) < (15, 30))
     )
 
 
