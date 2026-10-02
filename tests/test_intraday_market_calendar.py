@@ -1,9 +1,9 @@
 from datetime import date, datetime
+from importlib import import_module
 from zoneinfo import ZoneInfo
 
-import modules.intraday as intraday
 
-
+intraday = import_module("modules.intraday")
 IST = ZoneInfo("Asia/Kolkata")
 
 
