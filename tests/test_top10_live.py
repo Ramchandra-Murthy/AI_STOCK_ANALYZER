@@ -1,12 +1,15 @@
 from zoneinfo import ZoneInfo
 
 from components.top10_live import (
+    _coverage_status,
+    _scan_live_top10,
+    _start_background_scan,
+    show_live_top10_scanner,
     TOP10_CACHE_SECONDS,
     TOP10_CHUNK_SIZE,
     TOP10_COVERAGE_KEY,
     TOP10_EXPECTED_QUOTES,
     TOP10_GOOD_COVERAGE_QUOTES,
-    TOP10_REDUCED_COVERAGE_QUOTES,
     TOP10_MARKET_CLOSE_HOUR,
     TOP10_MARKET_CLOSE_MINUTE,
     TOP10_MARKET_OPEN_HOUR,
@@ -14,15 +17,12 @@ from components.top10_live import (
     TOP10_MAX_CANDIDATES_PER_EXCHANGE,
     TOP10_MAX_CONSECUTIVE_FAILURES,
     TOP10_PARTIAL_FAILURES_KEY,
+    TOP10_REDUCED_COVERAGE_QUOTES,
     TOP10_REFRESH_SECONDS,
     TOP10_SCAN_WARNING_SECONDS,
     TOP10_SESSION_STATUS_KEY,
     TOP10_STALE_DATA_SECONDS,
     TOP10_TIMEZONE,
-    _coverage_status,
-    _scan_live_top10,
-    _start_background_scan,
-    show_live_top10_scanner,
 )
 
 
