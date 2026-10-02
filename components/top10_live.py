@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import datetime, timedelta
+from threading import Lock
 from time import perf_counter
 from zoneinfo import ZoneInfo
 
@@ -18,6 +20,11 @@ TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 10
 TOP10_MAX_CANDIDATES_PER_EXCHANGE = 20
 _IST = ZoneInfo(TOP10_TIMEZONE)
+
+_SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
+_SCAN_LOCK = Lock()
+_SCAN_FUTURE: Future[tuple[pd.DataFrame, float]] | None = None
+_SCAN_RESULT: tuple[pd.DataFrame, float] | None = None
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -46,14 +53,8 @@ def _extract_close(history: pd.DataFrame, ticker: str) -> pd.Series:
     return pd.Series(dtype="float64")
 
 
-@st.cache_data(ttl=TOP10_CACHE_SECONDS, show_spinner=False)
-def _load_live_top10() -> tuple[pd.DataFrame, float]:
-    """Scan a small curated candidate set with one-minute candles only.
-
-    The live board intentionally limits each exchange to 20 curated candidates.
-    This keeps refresh latency bounded while preserving the existing one-minute
-    refresh and cache behavior.
-    """
+def _scan_live_top10() -> tuple[pd.DataFrame, float]:
+    """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
     rows: list[dict[str, object]] = []
 
@@ -125,9 +126,36 @@ def _load_live_top10() -> tuple[pd.DataFrame, float]:
     return frame, round(perf_counter() - started, 2)
 
 
+@st.cache_data(ttl=TOP10_CACHE_SECONDS, show_spinner=False)
+def _load_live_top10() -> tuple[pd.DataFrame, float]:
+    """Cached fallback for the live Top-10 scan."""
+    return _scan_live_top10()
+
+
+def _start_background_scan() -> None:
+    """Start one shared scan without blocking the Streamlit fragment."""
+    global _SCAN_FUTURE
+    with _SCAN_LOCK:
+        if _SCAN_FUTURE is None or _SCAN_FUTURE.done():
+            _SCAN_FUTURE = _SCAN_EXECUTOR.submit(_scan_live_top10)
+
+
+def _consume_background_scan() -> tuple[pd.DataFrame, float] | None:
+    """Return a completed background scan and keep the UI non-blocking."""
+    global _SCAN_FUTURE, _SCAN_RESULT
+    with _SCAN_LOCK:
+        if _SCAN_FUTURE is not None and _SCAN_FUTURE.done():
+            try:
+                _SCAN_RESULT = _SCAN_FUTURE.result()
+            except Exception:
+                _SCAN_RESULT = None
+            _SCAN_FUTURE = None
+        return _SCAN_RESULT
+
+
 @st.fragment(run_every=f"{TOP10_REFRESH_SECONDS}s")
 def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> None:
-    """Render a fast live Top-10 scanner refreshed every minute."""
+    """Render a live Top-10 scanner while refresh work runs in the background."""
     del period, interval
 
     st.subheader("🔴 Live Top-10 Market Scanner")
@@ -138,9 +166,21 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     if st.button("↻ Refresh Top-10 now", key="top10_manual_refresh"):
         _load_live_top10.clear()
+        with _SCAN_LOCK:
+            global _SCAN_RESULT
+            _SCAN_RESULT = None
+        _start_background_scan()
         st.rerun(scope="fragment")
 
-    top10, scan_seconds = _load_live_top10()
+    background_result = _consume_background_scan()
+    if background_result is not None:
+        st.session_state["top10_live_result"] = background_result
+
+    top10, scan_seconds = st.session_state.get(
+        "top10_live_result",
+        (pd.DataFrame(), 0.0),
+    )
+    _start_background_scan()
 
     completed_at = datetime.now(_IST)
     next_refresh = completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS)
@@ -151,10 +191,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     )
 
     if top10.empty:
-        st.warning(
-            "No live 1-minute quotes were returned. This can occur outside "
-            "market hours or when the provider does not supply an intraday quote."
-        )
+        st.info("Fetching the first live Top-10 scan in the background…")
         return
 
     st.dataframe(
