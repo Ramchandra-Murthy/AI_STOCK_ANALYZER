@@ -21,6 +21,10 @@ TOP10_CHUNK_SIZE = 10
 TOP10_MAX_CANDIDATES_PER_EXCHANGE = 20
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
+TOP10_MARKET_OPEN_HOUR = 9
+TOP10_MARKET_OPEN_MINUTE = 15
+TOP10_MARKET_CLOSE_HOUR = 15
+TOP10_MARKET_CLOSE_MINUTE = 30
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -28,6 +32,25 @@ _SCAN_LOCK = Lock()
 _SCAN_FUTURE: Future[tuple[pd.DataFrame, float]] | None = None
 _SCAN_RESULT: tuple[pd.DataFrame, float] | None = None
 _SCAN_FAILURES = 0
+
+
+def _market_is_open(now: datetime) -> bool:
+    """Return whether the NSE/BSE regular session is open in India."""
+    if now.weekday() >= 5:
+        return False
+    market_open = now.replace(
+        hour=TOP10_MARKET_OPEN_HOUR,
+        minute=TOP10_MARKET_OPEN_MINUTE,
+        second=0,
+        microsecond=0,
+    )
+    market_close = now.replace(
+        hour=TOP10_MARKET_CLOSE_HOUR,
+        minute=TOP10_MARKET_CLOSE_MINUTE,
+        second=0,
+        microsecond=0,
+    )
+    return market_open <= now <= market_close
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -192,8 +215,14 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     scan_running = _SCAN_FUTURE is not None and not _SCAN_FUTURE.done()
 
     now = datetime.now(_IST)
+    market_open = _market_is_open(now)
 
-    refresh_due = completed_at is None or now >= completed_at + timedelta(
+    refresh_due = (
+        market_open
+        and (completed_at is None or now >= completed_at + timedelta(
+            seconds=TOP10_REFRESH_SECONDS
+        ))
+    )
         seconds=TOP10_REFRESH_SECONDS
     )
     if not scan_running and refresh_due:
@@ -204,6 +233,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         if completed_at is not None
         else now + timedelta(seconds=TOP10_REFRESH_SECONDS)
     )
+
+    if not market_open:
+        st.info("⚪ MARKET CLOSED · Live scanning resumes during the next regular NSE/BSE session.")
 
     if top10.empty:
         if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
