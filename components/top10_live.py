@@ -1,4 +1,4 @@
-"""Fast live Top-10 market-mover scanner with one-minute refresh."""
+""""Fast live Top-10 market-mover scanner with one-minute refresh."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ TOP10_REFRESH_SECONDS = 60
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 10
-TOP10_MAX_CANDIDATES_PER_EXCHANGE = 80
+TOP10_MAX_CANDIDATES_PER_EXCHANGE = 20
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 
@@ -48,11 +48,11 @@ def _extract_close(history: pd.DataFrame, ticker: str) -> pd.Series:
 
 @st.cache_data(ttl=TOP10_CACHE_SECONDS, show_spinner=False)
 def _load_live_top10() -> tuple[pd.DataFrame, float]:
-    """Scan the candidate universe with one-minute candles only.
+    """Scan a small curated candidate set with one-minute candles only.
 
-    This intentionally avoids the slower historical signal pipeline. The
-    live board needs only recent price movement, so it can refresh quickly
-    without blocking on 3-6 month analytics for each candidate.
+    The live board intentionally limits each exchange to 20 curated candidates.
+    This keeps refresh latency bounded while preserving the existing one-minute
+    refresh and cache behavior.
     """
     started = perf_counter()
     rows: list[dict[str, object]] = []
