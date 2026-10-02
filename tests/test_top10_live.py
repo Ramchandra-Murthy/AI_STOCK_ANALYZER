@@ -5,6 +5,10 @@ from components.top10_live import (
     TOP10_CHUNK_SIZE,
     TOP10_MAX_CANDIDATES_PER_EXCHANGE,
     TOP10_MAX_CONSECUTIVE_FAILURES,
+    TOP10_MARKET_CLOSE_HOUR,
+    TOP10_MARKET_CLOSE_MINUTE,
+    TOP10_MARKET_OPEN_HOUR,
+    TOP10_MARKET_OPEN_MINUTE,
     TOP10_REFRESH_SECONDS,
     TOP10_SCAN_WARNING_SECONDS,
     TOP10_TIMEZONE,
@@ -38,3 +42,8 @@ def test_top10_live_refresh_starts_when_interval_is_due() -> None:
     assert "refresh_due" in source
     assert "now >= completed_at + timedelta" in source
     assert "seconds=TOP10_REFRESH_SECONDS" in source
+
+
+def test_top10_market_session_hours() -> None:
+    assert (TOP10_MARKET_OPEN_HOUR, TOP10_MARKET_OPEN_MINUTE) == (9, 15)
+    assert (TOP10_MARKET_CLOSE_HOUR, TOP10_MARKET_CLOSE_MINUTE) == (15, 30)
