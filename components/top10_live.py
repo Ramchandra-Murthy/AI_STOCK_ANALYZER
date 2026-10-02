@@ -175,24 +175,43 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     background_result = _consume_background_scan()
     if background_result is not None:
         st.session_state["top10_live_result"] = background_result
+        st.session_state["top10_live_completed_at"] = datetime.now(_IST)
 
     top10, scan_seconds = st.session_state.get(
         "top10_live_result",
         (pd.DataFrame(), 0.0),
     )
-    _start_background_scan()
+    completed_at = st.session_state.get("top10_live_completed_at")
+    scan_running = _SCAN_FUTURE is not None and not _SCAN_FUTURE.done()
 
-    completed_at = datetime.now(_IST)
-    next_refresh = completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS)
-    st.caption(
-        f"🟢 LIVE · Last update {completed_at:%H:%M:%S} IST · "
-        f"Next update {next_refresh:%H:%M:%S} IST · "
-        f"Scan {scan_seconds:.1f}s · Refresh every 60s"
+    if not scan_running and completed_at is None:
+        _start_background_scan()
+        scan_running = True
+
+    now = datetime.now(_IST)
+    next_refresh = (
+        (completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS))
+        if completed_at is not None
+        else now + timedelta(seconds=TOP10_REFRESH_SECONDS)
     )
 
     if top10.empty:
-        st.info("Fetching the first live Top-10 scan in the background…")
+        st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
         return
+
+    if scan_running:
+        status = "🟡 REFRESHING · showing previous data"
+    elif completed_at is not None:
+        status = "🟢 FRESH · latest completed scan"
+    else:
+        status = "⚪ PREVIOUS DATA"
+
+    last_update = completed_at.strftime("%H:%M:%S") if completed_at is not None else "—"
+    st.caption(
+        f"{status} · Last update {last_update} IST · "
+        f"Next refresh {next_refresh:%H:%M:%S} IST · "
+        f"Scan {scan_seconds:.1f}s · Refresh every 60s"
+    )
 
     st.dataframe(
         top10,
