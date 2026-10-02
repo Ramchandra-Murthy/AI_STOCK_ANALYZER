@@ -1,5 +1,7 @@
 """Tests for the leakage-safe AI trading ML engine."""
 
+from unittest.mock import patch
+
 import numpy as np
 import pandas as pd
 
@@ -24,6 +26,32 @@ def test_training_dataset_uses_future_label_without_feature_leakage() -> None:
     assert len(features) == len(labels)
     assert len(features) < len(frame)
     assert "target" not in features.columns
+
+
+def test_directional_threshold_excludes_neutral_returns() -> None:
+    frame = pd.DataFrame(
+        {
+            "Close": [100.0, 100.0, 100.0, 100.0, 100.0, 102.0, 100.0, 98.0, 98.0, 98.0],
+            "Volume": [1_000_000] * 10,
+        }
+    )
+    feature_frame = pd.DataFrame(
+        1.0,
+        index=frame.index,
+        columns=[
+            "return_1",
+            "return_5",
+            "return_20",
+            "ema_gap",
+            "volatility_20",
+            "volume_ratio",
+        ],
+    )
+
+    with patch("ai_trading.ml_model.build_features", return_value=feature_frame):
+        _, labels = make_training_dataset(frame, horizon=5, threshold=0.01)
+
+    assert labels.tolist() == [1, 0, 0, 0]
 
 
 def test_model_trains_with_chronological_validation() -> None:
