@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
-from modules.intraday import _is_equity_market_holiday, _market_session_is_open
+from modules.intraday import _is_equity_market_holiday, _market_session_is_open  # noqa: I001
 
 
 IST = ZoneInfo("Asia/Kolkata")
