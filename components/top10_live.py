@@ -29,6 +29,9 @@ TOP10_MARKET_CLOSE_MINUTE = 30
 TOP10_SESSION_STATUS_KEY = "top10_market_status"
 TOP10_PARTIAL_FAILURES_KEY = "top10_partial_failures"
 TOP10_COVERAGE_KEY = "top10_quote_coverage"
+TOP10_EXPECTED_QUOTES = 40
+TOP10_GOOD_COVERAGE_QUOTES = 36
+TOP10_REDUCED_COVERAGE_QUOTES = 20
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -92,6 +95,15 @@ def _format_candle_time(timestamp: object) -> str:
         return value.tz_convert(_IST).strftime("%Y-%m-%d %H:%M:%S IST")
     except (TypeError, ValueError):
         return str(timestamp)
+
+
+def _coverage_status(valid_quotes: int) -> str:
+    """Classify quote coverage without changing ranking or scan selection."""
+    if valid_quotes >= TOP10_GOOD_COVERAGE_QUOTES:
+        return "GOOD"
+    if valid_quotes >= TOP10_REDUCED_COVERAGE_QUOTES:
+        return "REDUCED"
+    return "CRITICAL"
 
 
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
@@ -186,7 +198,7 @@ def _start_background_scan() -> None:
             _SCAN_FUTURE = _SCAN_EXECUTOR.submit(_scan_live_top10)
 
 
-def _consume_background_scan() -> tuple[pd.DataFrame, float] | None:
+def _consume_background_scan() -> tuple[pd.DataFrame, float, int, int] | None:
     """Return a completed background scan and keep the UI non-blocking."""
     global _SCAN_FUTURE, _SCAN_RESULT, _SCAN_FAILURES
     with _SCAN_LOCK:
@@ -292,12 +304,25 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         status = "⚪ PREVIOUS DATA"
 
     last_update = completed_at.strftime("%H:%M:%S") if completed_at is not None else "—"
+    coverage_status = _coverage_status(valid_quotes)
     st.caption(
         f"{status} · Last update {last_update} IST · "
         f"Next refresh {next_refresh:%H:%M:%S} IST · "
         f"Data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · "
-        f"Provider failures {partial_failures} · Quotes {valid_quotes}/40 · Refresh every 60s"
+        f"Provider failures {partial_failures} · Quotes {valid_quotes}/{TOP10_EXPECTED_QUOTES} · "
+        f"Coverage {coverage_status} · Refresh every 60s"
     )
+
+    if coverage_status == "CRITICAL":
+        st.error(
+            f"🔴 CRITICAL QUOTE COVERAGE · Only {valid_quotes}/{TOP10_EXPECTED_QUOTES} quotes are valid. "
+            "Displayed Top-10 data may be materially incomplete; automatic retry is active."
+        )
+    elif coverage_status == "REDUCED":
+        st.warning(
+            f"🟠 REDUCED QUOTE COVERAGE · {valid_quotes}/{TOP10_EXPECTED_QUOTES} quotes are valid. "
+            "Displayed results may be incomplete; automatic retry is active."
+        )
 
     st.dataframe(
         top10,
