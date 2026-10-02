@@ -122,6 +122,12 @@ def _is_equity_market_holiday(day: date) -> bool:
     return day in NSE_BSE_EQUITY_HOLIDAYS_2026
 
 
+def _market_session_is_open(now: datetime) -> bool:
+    return now.weekday() < 5 and not _is_equity_market_holiday(now.date()) and (
+        (now.hour, now.minute) >= (9, 15) and (now.hour, now.minute) < (15, 30)
+    )
+
+
 # Dynamic market board settings.
 LIVE_BOARD_REFRESH_SECONDS = 120
 LIVE_BOARD_CHUNK_SIZE = 10
@@ -520,9 +526,7 @@ def _show_live_20_panel() -> None:
         st.session_state["live_sector_summary"] = sector_summary.copy()
 
         now = datetime.now(IST)
-        market_open = now.weekday() < 5 and not _is_equity_market_holiday(now.date()) and (
-            (now.hour, now.minute) >= (9, 15) and (now.hour, now.minute) < (15, 30)
-        )
+        market_open = _market_session_is_open(now)
         latest_candle = pd.to_datetime(board["Last update"], errors="coerce").max()
         freshness_text = (
             f"Latest Yahoo candle: {latest_candle:%d %b %Y, %H:%M:%S %Z}"
