@@ -4,6 +4,7 @@ from components.top10_live import (
     TOP10_CACHE_SECONDS,
     TOP10_CHUNK_SIZE,
     TOP10_MAX_CANDIDATES_PER_EXCHANGE,
+    TOP10_MAX_CONSECUTIVE_FAILURES,
     TOP10_REFRESH_SECONDS,
     TOP10_TIMEZONE,
     _scan_live_top10,
@@ -17,6 +18,7 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_CACHE_SECONDS < TOP10_REFRESH_SECONDS
     assert TOP10_CHUNK_SIZE == 10
     assert TOP10_MAX_CANDIDATES_PER_EXCHANGE == 20
+    assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert callable(show_live_top10_scanner)
     assert callable(_scan_live_top10)
     assert callable(_start_background_scan)
