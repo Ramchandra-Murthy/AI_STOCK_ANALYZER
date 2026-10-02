@@ -81,6 +81,17 @@ def _extract_close(history: pd.DataFrame, ticker: str) -> pd.Series:
     return pd.Series(dtype="float64")
 
 
+def _format_candle_time(timestamp: object) -> str:
+    """Format a provider candle timestamp in India time for the live table."""
+    try:
+        value = pd.Timestamp(timestamp)
+        if value.tzinfo is None:
+            value = value.tz_localize("UTC")
+        return value.tz_convert(_IST).strftime("%Y-%m-%d %H:%M:%S IST")
+    except (TypeError, ValueError):
+        return str(timestamp)
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
@@ -137,7 +148,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float]:
                         "Price": round(latest, 2),
                         "1-min %": round(change_1m, 2),
                         "5-min %": round(change_5m, 2) if change_5m is not None else None,
-                        "Last candle": str(close.index[-1]),
+                        "Last candle": _format_candle_time(close.index[-1]),
                     }
                 )
 
