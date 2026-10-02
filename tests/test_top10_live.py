@@ -20,6 +20,8 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert callable(show_live_top10_scanner)
     assert callable(_scan_live_top10)
     assert callable(_start_background_scan)
+    assert "REFRESHING" in open("components/top10_live.py", encoding="utf-8").read()
+    assert "FRESH" in open("components/top10_live.py", encoding="utf-8").read()
 
 
 def test_top10_live_uses_india_timezone() -> None:
