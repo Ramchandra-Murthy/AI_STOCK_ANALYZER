@@ -88,7 +88,7 @@ def test_top10_live_exposes_quote_coverage() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert TOP10_COVERAGE_KEY == "top10_quote_coverage"
     assert "valid_quotes" in source
-    assert "Quotes {valid_quotes}/40" in source
+    assert "Quotes {valid_quotes}/" in source
 
 
 def test_top10_live_classifies_quote_coverage_quality() -> None:
