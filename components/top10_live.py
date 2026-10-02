@@ -19,12 +19,14 @@ TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 10
 TOP10_MAX_CANDIDATES_PER_EXCHANGE = 20
+TOP10_MAX_CONSECUTIVE_FAILURES = 2
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
 _SCAN_LOCK = Lock()
 _SCAN_FUTURE: Future[tuple[pd.DataFrame, float]] | None = None
 _SCAN_RESULT: tuple[pd.DataFrame, float] | None = None
+_SCAN_FAILURES = 0
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -56,6 +58,7 @@ def _extract_close(history: pd.DataFrame, ticker: str) -> pd.Series:
 def _scan_live_top10() -> tuple[pd.DataFrame, float]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
+    failures = 0
     rows: list[dict[str, object]] = []
 
     candidates = [
@@ -81,6 +84,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float]:
                     timeout=15,
                 )
             except Exception:
+                failures += 1
                 continue
 
             for ticker in chunk:
@@ -112,6 +116,8 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float]:
                 )
 
     frame = pd.DataFrame(rows)
+    if frame.empty and failures:
+        raise RuntimeError("Live quote provider failed for all scan chunks")
     if frame.empty:
         return frame, round(perf_counter() - started, 2)
 
@@ -142,13 +148,16 @@ def _start_background_scan() -> None:
 
 def _consume_background_scan() -> tuple[pd.DataFrame, float] | None:
     """Return a completed background scan and keep the UI non-blocking."""
-    global _SCAN_FUTURE, _SCAN_RESULT
+    global _SCAN_FUTURE, _SCAN_RESULT, _SCAN_FAILURES
     with _SCAN_LOCK:
         if _SCAN_FUTURE is not None and _SCAN_FUTURE.done():
             try:
                 _SCAN_RESULT = _SCAN_FUTURE.result()
             except Exception:
                 _SCAN_RESULT = None
+                _SCAN_FAILURES += 1
+            else:
+                _SCAN_FAILURES = 0
             _SCAN_FUTURE = None
         return _SCAN_RESULT
 
@@ -196,8 +205,14 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     )
 
     if top10.empty:
-        st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
+        if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
+            st.error("🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. Retrying automatically.")
+        else:
+            st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
         return
+
+    if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
+        st.warning("🟠 PROVIDER ISSUE · Showing the last successful Top-10. Automatic retry is active.")
 
     if scan_running:
         status = "🟡 REFRESHING · showing previous data"
