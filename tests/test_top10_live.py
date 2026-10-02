@@ -4,6 +4,9 @@ from components.top10_live import (
     TOP10_CACHE_SECONDS,
     TOP10_CHUNK_SIZE,
     TOP10_COVERAGE_KEY,
+    TOP10_EXPECTED_QUOTES,
+    TOP10_GOOD_COVERAGE_QUOTES,
+    TOP10_REDUCED_COVERAGE_QUOTES,
     TOP10_MARKET_CLOSE_HOUR,
     TOP10_MARKET_CLOSE_MINUTE,
     TOP10_MARKET_OPEN_HOUR,
@@ -16,6 +19,7 @@ from components.top10_live import (
     TOP10_SESSION_STATUS_KEY,
     TOP10_STALE_DATA_SECONDS,
     TOP10_TIMEZONE,
+    _coverage_status,
     _scan_live_top10,
     _start_background_scan,
     show_live_top10_scanner,
@@ -85,3 +89,23 @@ def test_top10_live_exposes_quote_coverage() -> None:
     assert TOP10_COVERAGE_KEY == "top10_quote_coverage"
     assert "valid_quotes" in source
     assert "Quotes {valid_quotes}/40" in source
+
+
+def test_top10_live_classifies_quote_coverage_quality() -> None:
+    assert TOP10_COVERAGE_KEY == "top10_quote_coverage"
+    assert TOP10_EXPECTED_QUOTES == 40
+    assert TOP10_GOOD_COVERAGE_QUOTES == 36
+    assert TOP10_REDUCED_COVERAGE_QUOTES == 20
+    assert _coverage_status(40) == "GOOD"
+    assert _coverage_status(36) == "GOOD"
+    assert _coverage_status(35) == "REDUCED"
+    assert _coverage_status(20) == "REDUCED"
+    assert _coverage_status(19) == "CRITICAL"
+    assert _coverage_status(0) == "CRITICAL"
+
+
+def test_top10_live_displays_coverage_quality() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "Coverage {coverage_status}" in source
+    assert "CRITICAL QUOTE COVERAGE" in source
+    assert "REDUCED QUOTE COVERAGE" in source
