@@ -61,3 +61,10 @@ def test_top10_live_tracks_data_freshness() -> None:
     assert "data_age_seconds" in source
     assert "STALE DATA" in source
     assert "st.session_state[TOP10_SESSION_STATUS_KEY]" in source
+
+
+def test_top10_live_formats_candle_times_in_ist() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "def _format_candle_time" in source
+    assert "tz_convert(_IST)" in source
+    assert "Last candle" in source
