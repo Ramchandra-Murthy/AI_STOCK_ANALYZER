@@ -175,9 +175,6 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     if st.button("↻ Refresh Top-10 now", key="top10_manual_refresh"):
         _load_live_top10.clear()
-        with _SCAN_LOCK:
-            global _SCAN_RESULT
-            _SCAN_RESULT = None
         _start_background_scan()
         st.rerun(scope="fragment")
 
@@ -193,11 +190,14 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     completed_at = st.session_state.get("top10_live_completed_at")
     scan_running = _SCAN_FUTURE is not None and not _SCAN_FUTURE.done()
 
-    if not scan_running and completed_at is None:
+    now = datetime.now(_IST)
+
+    refresh_due = completed_at is None or now >= completed_at + timedelta(
+        seconds=TOP10_REFRESH_SECONDS
+    )
+    if not scan_running and refresh_due:
         _start_background_scan()
         scan_running = True
-
-    now = datetime.now(_IST)
     next_refresh = (
         (completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS))
         if completed_at is not None
