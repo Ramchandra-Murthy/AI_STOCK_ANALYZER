@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from time import perf_counter
 from zoneinfo import ZoneInfo
 
@@ -93,6 +93,33 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
         session
     ).cumsum().replace(0, float("nan"))
     return data
+
+
+# NSE/BSE equity-market holidays for 2026 from the official exchange calendar.
+# The set prevents a prior-session Yahoo candle from being classified as stale on holidays.
+NSE_BSE_EQUITY_HOLIDAYS_2026 = frozenset(
+    {
+        date(2026, 1, 26),
+        date(2026, 3, 3),
+        date(2026, 3, 26),
+        date(2026, 3, 31),
+        date(2026, 4, 3),
+        date(2026, 4, 14),
+        date(2026, 5, 1),
+        date(2026, 5, 28),
+        date(2026, 6, 26),
+        date(2026, 9, 14),
+        date(2026, 10, 2),
+        date(2026, 10, 20),
+        date(2026, 11, 10),
+        date(2026, 11, 24),
+        date(2026, 12, 25),
+    }
+)
+
+
+def _is_equity_market_holiday(day: date) -> bool:
+    return day in NSE_BSE_EQUITY_HOLIDAYS_2026
 
 
 # Dynamic market board settings.
@@ -493,7 +520,7 @@ def _show_live_20_panel() -> None:
         st.session_state["live_sector_summary"] = sector_summary.copy()
 
         now = datetime.now(IST)
-        market_open = now.weekday() < 5 and (
+        market_open = now.weekday() < 5 and not _is_equity_market_holiday(now.date()) and (
             (now.hour, now.minute) >= (9, 15) and (now.hour, now.minute) < (15, 30)
         )
         latest_candle = pd.to_datetime(board["Last update"], errors="coerce").max()
