@@ -8,6 +8,7 @@ from engine.live_integrated_scanner import scan_integrated_tickers
 from scanner.market_scanner import _batch_change_screen
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
+LIVE_TOP10_CANDIDATE_COUNT = 20
 TOP10_ANALYSIS_PERIOD = "3mo"
 
 
@@ -16,11 +17,13 @@ def scan_top10_integrated(
     period: str = "6mo",
     interval: str = "1d",
 ) -> pd.DataFrame:
-    """Return the ten largest liquid daily movers with workflow signals."""
+    """Return the ten largest liquid NSE/BSE daily movers with workflow signals."""
+    # Keep the live page responsive by screening the first 20 curated NSE and
+    # first 20 curated BSE candidates. The general scanner remains unchanged.
     del period, interval
     candidates = {
-        "NSE": NSE_CANDIDATES,
-        "BSE": BSE_CANDIDATES,
+        "NSE": NSE_CANDIDATES[:LIVE_TOP10_CANDIDATE_COUNT],
+        "BSE": BSE_CANDIDATES[:LIVE_TOP10_CANDIDATE_COUNT],
     }
     movers = _batch_change_screen(candidates)[:10]
     if not movers:
