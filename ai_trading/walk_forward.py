@@ -54,7 +54,10 @@ def walk_forward_backtest(
     rows: list[dict[str, object]] = []
 
     for prediction_index in range(initial_train, len(frame) - horizon, horizon):
+        # Keep the prediction row out of training, but include it in the
+        # feature frame so predict_latest() scores the actual entry timestamp.
         train_frame = frame.iloc[:prediction_index].copy()
+        prediction_frame = frame.iloc[: prediction_index + 1].copy()
         try:
             model, _ = train_model(
                 train_frame,
@@ -62,7 +65,7 @@ def walk_forward_backtest(
                 threshold=threshold,
                 test_fraction=0.2,
             )
-            prediction = predict_latest(model, train_frame)
+            prediction = predict_latest(model, prediction_frame)
         except (TypeError, ValueError, KeyError):
             continue
 
