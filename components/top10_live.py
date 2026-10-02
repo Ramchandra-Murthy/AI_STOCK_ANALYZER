@@ -192,9 +192,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     now = datetime.now(_IST)
 
-    refresh_due = (
-        completed_at is None
-        or now >= completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS)
+    refresh_due = completed_at is None or now >= completed_at + timedelta(
+        seconds=TOP10_REFRESH_SECONDS
     )
     if not scan_running and refresh_due:
         _start_background_scan()
