@@ -94,14 +94,18 @@ if st.button("Run Multi-Stock ML Scan", type="primary"):
         adaptive_history = st.session_state.get("ai_signal_history")
         if not isinstance(adaptive_history, pd.DataFrame):
             adaptive_history = None
-        ml_result = scan_ml_universe(
-            universe[:ml_count],
-            exchange=exchange,
-            period="5y",
-            horizon=scan_horizon,
-            threshold=scan_threshold / 100.0,
-            adaptive_history=adaptive_history,
-        )
+        try:
+            ml_result = scan_ml_universe(
+                universe[:ml_count],
+                exchange=exchange,
+                period="5y",
+                horizon=scan_horizon,
+                threshold=scan_threshold / 100.0,
+                adaptive_history=adaptive_history,
+            )
+        except (TypeError, ValueError, KeyError) as exc:
+            st.error(f"Multi-Stock ML Scanner failed: {exc}")
+            ml_result = pd.DataFrame()
     st.session_state["ai_ml_result"] = ml_result
     st.session_state["ai_ml_exchange"] = exchange
     st.session_state["ai_ml_horizon"] = scan_horizon
