@@ -9,6 +9,7 @@ from components.top10_live import (
     TOP10_MARKET_OPEN_MINUTE,
     TOP10_MAX_CANDIDATES_PER_EXCHANGE,
     TOP10_MAX_CONSECUTIVE_FAILURES,
+    TOP10_PARTIAL_FAILURES_KEY,
     TOP10_REFRESH_SECONDS,
     TOP10_SCAN_WARNING_SECONDS,
     TOP10_SESSION_STATUS_KEY,
@@ -68,3 +69,11 @@ def test_top10_live_formats_candle_times_in_ist() -> None:
     assert "def _format_candle_time" in source
     assert "tz_convert(_IST)" in source
     assert "Last candle" in source
+
+
+def test_top10_live_exposes_partial_provider_failures() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert TOP10_PARTIAL_FAILURES_KEY == "top10_partial_failures"
+    assert "partial_failures" in source
+    assert "PARTIAL PROVIDER ISSUE" in source
+    assert "Provider failures" in source

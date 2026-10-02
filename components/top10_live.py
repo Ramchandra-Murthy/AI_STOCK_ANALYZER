@@ -27,12 +27,13 @@ TOP10_MARKET_OPEN_MINUTE = 15
 TOP10_MARKET_CLOSE_HOUR = 15
 TOP10_MARKET_CLOSE_MINUTE = 30
 TOP10_SESSION_STATUS_KEY = "top10_market_status"
+TOP10_PARTIAL_FAILURES_KEY = "top10_partial_failures"
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
 _SCAN_LOCK = Lock()
-_SCAN_FUTURE: Future[tuple[pd.DataFrame, float]] | None = None
-_SCAN_RESULT: tuple[pd.DataFrame, float] | None = None
+_SCAN_FUTURE: Future[tuple[pd.DataFrame, float, int]] | None = None
+_SCAN_RESULT: tuple[pd.DataFrame, float, int] | None = None
 _SCAN_FAILURES = 0
 
 
@@ -92,7 +93,7 @@ def _format_candle_time(timestamp: object) -> str:
         return str(timestamp)
 
 
-def _scan_live_top10() -> tuple[pd.DataFrame, float]:
+def _scan_live_top10() -> tuple[pd.DataFrame, float, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
     failures = 0
@@ -156,7 +157,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float]:
     if frame.empty and failures:
         raise RuntimeError("Live quote provider failed for all scan chunks")
     if frame.empty:
-        return frame, round(perf_counter() - started, 2)
+        return frame, round(perf_counter() - started, 2), failures
 
     frame = (
         frame.assign(_abs_change=frame["1-min %"].abs())
@@ -166,11 +167,11 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float]:
         .reset_index(drop=True)
     )
     frame["Rank"] = range(1, len(frame) + 1)
-    return frame, round(perf_counter() - started, 2)
+    return frame, round(perf_counter() - started, 2), failures
 
 
 @st.cache_data(ttl=TOP10_CACHE_SECONDS, show_spinner=False)
-def _load_live_top10() -> tuple[pd.DataFrame, float]:
+def _load_live_top10() -> tuple[pd.DataFrame, float, int]:
     """Cached fallback for the live Top-10 scan."""
     return _scan_live_top10()
 
@@ -219,10 +220,11 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     if background_result is not None:
         st.session_state["top10_live_result"] = background_result
         st.session_state["top10_live_completed_at"] = datetime.now(_IST)
+        st.session_state[TOP10_PARTIAL_FAILURES_KEY] = background_result[2]
 
-    top10, scan_seconds = st.session_state.get(
+    top10, scan_seconds, partial_failures = st.session_state.get(
         "top10_live_result",
-        (pd.DataFrame(), 0.0),
+        (pd.DataFrame(), 0.0, 0),
     )
     completed_at = st.session_state.get("top10_live_completed_at")
     scan_running = _SCAN_FUTURE is not None and not _SCAN_FUTURE.done()
@@ -266,6 +268,11 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         st.warning(
             "🟠 PROVIDER ISSUE · Showing the last successful Top-10. Automatic retry is active."
         )
+    elif partial_failures:
+        st.warning(
+            f"🟠 PARTIAL PROVIDER ISSUE · {partial_failures} quote chunk(s) failed. "
+            "Displayed results may be incomplete; automatic retry is active."
+        )
 
     data_age_seconds = (
         max(0.0, (now - completed_at).total_seconds()) if completed_at is not None else None
@@ -285,7 +292,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.caption(
         f"{status} · Last update {last_update} IST · "
         f"Next refresh {next_refresh:%H:%M:%S} IST · "
-        f"Data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · Refresh every 60s"
+        f"Data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · "
+        f"Provider failures {partial_failures} · Refresh every 60s"
     )
 
     st.dataframe(
