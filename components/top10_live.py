@@ -21,6 +21,7 @@ TOP10_CHUNK_SIZE = 10
 TOP10_MAX_CANDIDATES_PER_EXCHANGE = 20
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
+TOP10_STALE_DATA_SECONDS = 180
 TOP10_MARKET_OPEN_HOUR = 9
 TOP10_MARKET_OPEN_MINUTE = 15
 TOP10_MARKET_CLOSE_HOUR = 15
@@ -231,9 +232,15 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     )
 
     if not market_open:
+        session_status = "MARKET_CLOSED"
         st.info("⚪ MARKET CLOSED · Live scanning resumes during the next regular NSE/BSE session.")
     elif scan_running:
+        session_status = "REFRESHING"
         st.info("🟡 LIVE REFRESH · Updating the Top-10 in the background.")
+    else:
+        session_status = "READY"
+
+    st.session_state[TOP10_SESSION_STATUS_KEY] = session_status
 
     if top10.empty:
         if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
@@ -249,8 +256,13 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "🟠 PROVIDER ISSUE · Showing the last successful Top-10. Automatic retry is active."
         )
 
+    data_age_seconds = (
+        max(0.0, (now - completed_at).total_seconds()) if completed_at is not None else None
+    )
     if scan_running:
         status = "🟡 REFRESHING · showing previous data"
+    elif data_age_seconds is not None and data_age_seconds >= TOP10_STALE_DATA_SECONDS:
+        status = "🔴 STALE DATA · latest completed data"
     elif completed_at is not None and scan_seconds >= TOP10_SCAN_WARNING_SECONDS:
         status = "🟠 SLOW SCAN · latest completed data"
     elif completed_at is not None:
@@ -262,7 +274,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.caption(
         f"{status} · Last update {last_update} IST · "
         f"Next refresh {next_refresh:%H:%M:%S} IST · "
-        f"Scan {scan_seconds:.1f}s · Refresh every 60s"
+        f"Data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · Refresh every 60s"
     )
 
     st.dataframe(
