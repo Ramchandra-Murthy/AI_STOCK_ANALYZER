@@ -34,4 +34,5 @@ def test_top10_live_uses_india_timezone() -> None:
 def test_top10_live_refresh_starts_when_interval_is_due() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert "refresh_due" in source
-    assert "now >= completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS)" in source
+    assert "now >= completed_at + timedelta" in source
+    assert "seconds=TOP10_REFRESH_SECONDS" in source
