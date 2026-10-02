@@ -20,6 +20,7 @@ TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 10
 TOP10_MAX_CANDIDATES_PER_EXCHANGE = 20
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
+TOP10_SCAN_WARNING_SECONDS = 20
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -220,6 +221,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     if scan_running:
         status = "🟡 REFRESHING · showing previous data"
+    elif completed_at is not None and scan_seconds >= TOP10_SCAN_WARNING_SECONDS:
+        status = "🟠 SLOW SCAN · latest completed data"
     elif completed_at is not None:
         status = "🟢 FRESH · latest completed scan"
     else:
