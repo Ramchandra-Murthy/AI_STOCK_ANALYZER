@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import pandas as pd
@@ -49,7 +50,7 @@ def make_training_dataset(
     close = pd.to_numeric(frame["Close"], errors="coerce")
     future_return = close.shift(-horizon) / close - 1.0
 
-    if threshold == 0.0:
+    if math.isclose(threshold, 0.0, abs_tol=1e-12):
         labels = (future_return > 0.0).astype("float")
     else:
         labels = pd.Series(pd.NA, index=frame.index, dtype="Float64")
