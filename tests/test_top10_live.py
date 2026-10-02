@@ -2,8 +2,8 @@ from zoneinfo import ZoneInfo
 
 from components.top10_live import (
     TOP10_CACHE_SECONDS,
-    TOP10_COVERAGE_KEY,
     TOP10_CHUNK_SIZE,
+    TOP10_COVERAGE_KEY,
     TOP10_MARKET_CLOSE_HOUR,
     TOP10_MARKET_CLOSE_MINUTE,
     TOP10_MARKET_OPEN_HOUR,
