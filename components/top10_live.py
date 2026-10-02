@@ -206,13 +206,13 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     if top10.empty:
         if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
-            st.error("🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. Retrying automatically.")
+            st.error(\n                "🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. Retrying automatically."\n            )
         else:
             st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
         return
 
     if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
-        st.warning("🟠 PROVIDER ISSUE · Showing the last successful Top-10. Automatic retry is active.")
+        st.warning(\n            "🟠 PROVIDER ISSUE · Showing the last successful Top-10. Automatic retry is active."\n        )
 
     if scan_running:
         status = "🟡 REFRESHING · showing previous data"
