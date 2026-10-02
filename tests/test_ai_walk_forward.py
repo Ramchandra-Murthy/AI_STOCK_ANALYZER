@@ -74,7 +74,9 @@ def test_prediction_is_aligned_to_entry_timestamp_without_training_leakage() -> 
         training_lengths.append(len(train_frame))
         return object(), None
 
-    def fake_predict_latest(model: object, prediction_frame: pd.DataFrame) -> dict[str, float | str]:
+    def fake_predict_latest(
+        model: object, prediction_frame: pd.DataFrame
+    ) -> dict[str, float | str]:
         prediction_frames.append(prediction_frame.copy())
         return {"probability_up": 0.6, "confidence": 0.2, "signal": "LONG"}
 
