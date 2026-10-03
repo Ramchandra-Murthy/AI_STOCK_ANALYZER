@@ -26,6 +26,8 @@ from components.top10_live import (
     _scan_live_top10,
     _start_background_scan,
     _watchlist_change_alerts,
+    _add_signal_strength,
+    _calculate_signal_strength,
     show_live_top10_scanner,
 )
 
@@ -206,3 +208,53 @@ def test_top10_live_alerts_ignore_small_changes() -> None:
     )
 
     assert _watchlist_change_alerts(annotated) == []
+
+
+def test_top10_live_calculates_signal_strength() -> None:
+    score, direction = _calculate_signal_strength(
+        {
+            "Status": "NEW",
+            "Rank change": 2,
+            "1-min %": 1.5,
+            "5-min %": 3.0,
+        }
+    )
+
+    assert score == 50
+    assert direction == "UP"
+
+
+def test_top10_live_signal_direction_handles_mixed_moves() -> None:
+    score, direction = _calculate_signal_strength(
+        {
+            "Status": "UNCHANGED",
+            "Rank change": 0,
+            "1-min %": 1.0,
+            "5-min %": -1.0,
+        }
+    )
+
+    assert score == 14
+    assert direction == "MIXED"
+
+
+def test_top10_live_adds_signal_columns() -> None:
+    annotated = pd.DataFrame(
+        [
+            {
+                "Rank": 1,
+                "Symbol": "AAA",
+                "Exchange": "NSE",
+                "Status": "NEW",
+                "Rank change": None,
+                "1-min %": 1.0,
+                "5-min %": 2.0,
+            }
+        ]
+    )
+
+    enriched = _add_signal_strength(annotated)
+
+    assert enriched[["Momentum score", "Direction"]].to_dict("records") == [
+        {"Momentum score": 22, "Direction": "UP"}
+    ]
