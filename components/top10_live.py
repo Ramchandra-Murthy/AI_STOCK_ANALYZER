@@ -429,6 +429,37 @@ def _persistence_alerts(annotated: pd.DataFrame) -> list[str]:
     return alerts
 
 
+def _signal_confirmation(row: dict[str, object]) -> str:
+    """Classify Top-10 signal confirmation from momentum and persistence context."""
+    score = int(row.get("Momentum score", 0) or 0)
+    persistence = int(row.get("Persistence", 0) or 0)
+    direction = str(row.get("Persistent direction", "MIXED"))
+    signal_trend = str(row.get("Signal trend", "NEW"))
+
+    if (
+        score >= 60
+        and persistence >= 3
+        and direction in {"UP", "DOWN"}
+        and signal_trend in {"STRENGTHENING", "STABLE"}
+    ):
+        return "CONFIRMED"
+    if score >= 40 and persistence >= 2 and direction in {"UP", "DOWN"}:
+        return "DEVELOPING"
+    return "WEAK"
+
+
+def _add_signal_confirmation(annotated: pd.DataFrame) -> pd.DataFrame:
+    """Add a transparent confirmation state to the current Top-10 watchlist."""
+    if annotated.empty:
+        return annotated.copy()
+
+    enriched = annotated.copy()
+    enriched["Signal confirmation"] = [
+        _signal_confirmation(row) for row in enriched.to_dict("records")
+    ]
+    return enriched
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
@@ -637,6 +668,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     signal_history = st.session_state.get(TOP10_SIGNAL_HISTORY_KEY, [])
     annotated_top10 = _add_signal_history(annotated_top10, signal_history)
     annotated_top10 = _add_signal_persistence(annotated_top10, signal_history)
+    annotated_top10 = _add_signal_confirmation(annotated_top10)
     change_alerts = _watchlist_change_alerts(annotated_top10)
     persistence_alerts = _persistence_alerts(annotated_top10)
     if completed_at != st.session_state.get(TOP10_SIGNAL_HISTORY_UPDATED_KEY):
@@ -685,6 +717,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Persistence": st.column_config.NumberColumn("Persistence", width="small"),
             "Persistent direction": st.column_config.TextColumn(
                 "Persistent direction", width="small"
+            ),
+            "Signal confirmation": st.column_config.TextColumn(
+                "Signal confirmation", width="small"
             ),
             "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
             "1-min %": st.column_config.NumberColumn("1-min %", format="%.2f"),
