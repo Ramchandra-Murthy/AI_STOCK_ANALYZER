@@ -21,13 +21,13 @@ from components.top10_live import (
     TOP10_SESSION_STATUS_KEY,
     TOP10_STALE_DATA_SECONDS,
     TOP10_TIMEZONE,
+    _add_signal_strength,
     _annotate_watchlist_changes,
+    _calculate_signal_strength,
     _coverage_status,
     _scan_live_top10,
     _start_background_scan,
     _watchlist_change_alerts,
-    _add_signal_strength,
-    _calculate_signal_strength,
     show_live_top10_scanner,
 )
 
