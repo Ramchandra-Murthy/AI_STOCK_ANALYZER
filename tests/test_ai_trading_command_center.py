@@ -8,9 +8,8 @@ import pandas as pd
 import yfinance as yf
 from streamlit.testing.v1 import AppTest
 
-from ai_trading import ml_scanner
-
 import modules.intraday as intraday
+from ai_trading import ml_scanner
 
 
 PAGE = pathlib.Path(__file__).resolve().parents[1] / "pages" / "AI_Trading_Command_Center.py"
