@@ -106,6 +106,56 @@ def _coverage_status(valid_quotes: int) -> str:
     return "CRITICAL"
 
 
+def _annotate_watchlist_changes(
+    current: pd.DataFrame,
+    previous: pd.DataFrame | None,
+) -> tuple[pd.DataFrame, list[str]]:
+    """Add one-minute watchlist membership/rank changes to the current Top-10."""
+    if current.empty:
+        return current.copy(), []
+
+    annotated = current.copy()
+    previous = previous if previous is not None else pd.DataFrame()
+    previous_keys = (
+        set(zip(previous["Exchange"], previous["Symbol"], strict=True))
+        if {"Exchange", "Symbol"}.issubset(previous.columns)
+        else set()
+    )
+    previous_ranks = (
+        {
+            (row["Exchange"], row["Symbol"]): int(row["Rank"])
+            for row in previous.to_dict("records")
+        }
+        if {"Exchange", "Symbol", "Rank"}.issubset(previous.columns)
+        else {}
+    )
+
+    statuses: list[str] = []
+    rank_changes: list[int | None] = []
+    current_keys = set()
+
+    for row in annotated.to_dict("records"):
+        key = (row["Exchange"], row["Symbol"])
+        current_keys.add(key)
+        if key not in previous_keys:
+            statuses.append("NEW")
+            rank_changes.append(None)
+            continue
+        rank_change = previous_ranks[key] - int(row["Rank"])
+        rank_changes.append(rank_change)
+        statuses.append(
+            "UP" if rank_change > 0 else "DOWN" if rank_change < 0 else "UNCHANGED"
+        )
+
+    annotated.insert(0, "Status", statuses)
+    annotated.insert(1, "Rank change", rank_changes)
+    dropped = [
+        f"{exchange}:{symbol}"
+        for exchange, symbol in sorted(previous_keys - current_keys)
+    ]
+    return annotated, dropped
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
@@ -305,6 +355,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     last_update = completed_at.strftime("%H:%M:%S") if completed_at is not None else "—"
     coverage_status = _coverage_status(valid_quotes)
+    previous_top10 = st.session_state.get("top10_live_previous_result")
+    annotated_top10, dropped_symbols = _annotate_watchlist_changes(top10, previous_top10)
+    st.session_state["top10_live_previous_result"] = top10.copy()
     st.caption(
         f"{status} · Last update {last_update} IST · "
         f"Next refresh {next_refresh:%H:%M:%S} IST · "
@@ -312,6 +365,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         f"Provider failures {partial_failures} · Quotes {valid_quotes}/{TOP10_EXPECTED_QUOTES} · "
         f"Coverage {coverage_status} · Refresh every 60s"
     )
+    if dropped_symbols:
+        st.caption(f"🔵 DROPPED SINCE LAST SCAN · {', '.join(dropped_symbols)}")
 
     if coverage_status == "CRITICAL":
         st.error(
@@ -329,7 +384,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         use_container_width=True,
         hide_index=True,
         column_config={
+            "Status": st.column_config.TextColumn("Status", width="small"),
             "Rank": st.column_config.NumberColumn("Rank", width="small"),
+            "Rank change": st.column_config.NumberColumn("Rank change", width="small"),
             "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
             "1-min %": st.column_config.NumberColumn("1-min %", format="%.2f"),
             "5-min %": st.column_config.NumberColumn("5-min %", format="%.2f"),
