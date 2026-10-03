@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+import pathlib
 
 import pandas as pd
 import yfinance as yf
@@ -12,7 +12,7 @@ import modules.intraday as intraday
 from ai_trading import ml_scanner
 
 
-PAGE = Path(__file__).resolve().parents[1] / "pages" / "AI_Trading_Command_Center.py"
+PAGE = pathlib.Path(__file__).resolve().parents[1] / "pages" / "AI_Trading_Command_Center.py"
 
 
 def _live_board() -> pd.DataFrame:
