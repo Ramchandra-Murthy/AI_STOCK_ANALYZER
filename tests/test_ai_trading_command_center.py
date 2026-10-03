@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import pandas as pd
+import yfinance as yf
 from streamlit.testing.v1 import AppTest
+
+import modules.intraday as intraday
+from ai_trading import ml_scanner
 
 
 PAGE = "pages/AI_Trading_Command_Center.py"
@@ -49,8 +53,6 @@ def _ml_result() -> pd.DataFrame:
 
 
 def test_command_center_renders_when_market_is_closed(monkeypatch) -> None:
-    import modules.intraday as intraday
-
     monkeypatch.setattr(intraday, "_market_session_is_open", lambda now: False)
 
     app = AppTest.from_file(PAGE).run()
@@ -60,10 +62,6 @@ def test_command_center_renders_when_market_is_closed(monkeypatch) -> None:
 
 
 def test_command_center_cycle_updates_paper_portfolio(monkeypatch) -> None:
-    import modules.intraday as intraday
-    import yfinance as yf
-    from ai_trading import ml_scanner
-
     monkeypatch.setattr(intraday, "_market_session_is_open", lambda now: True)
     monkeypatch.setattr(
         intraday,
