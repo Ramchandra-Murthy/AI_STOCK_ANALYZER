@@ -503,6 +503,4 @@ def test_top10_live_persistence_alerts_ignore_short_or_mixed_persistence() -> No
         ]
     )
 
-    assert _persistence_alerts(annotated) == [
-        "🔁 PERSISTENT · BSE:BBB · 4 scans · score 55"
-    ]
+    assert _persistence_alerts(annotated) == ["🔁 PERSISTENT · BSE:BBB · 4 scans · score 55"]
