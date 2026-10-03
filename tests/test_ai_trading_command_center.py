@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pandas as pd
 import yfinance as yf
 from streamlit.testing.v1 import AppTest
@@ -10,7 +12,7 @@ import modules.intraday as intraday
 from ai_trading import ml_scanner
 
 
-PAGE = "pages/AI_Trading_Command_Center.py"
+PAGE = Path(__file__).resolve().parents[1] / "pages" / "AI_Trading_Command_Center.py"
 
 
 def _live_board() -> pd.DataFrame:
