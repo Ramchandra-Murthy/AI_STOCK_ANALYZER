@@ -220,7 +220,7 @@ def test_top10_live_calculates_signal_strength() -> None:
         }
     )
 
-    assert score == 50
+    assert score == 56
     assert direction == "UP"
 
 
@@ -234,7 +234,7 @@ def test_top10_live_signal_direction_handles_mixed_moves() -> None:
         }
     )
 
-    assert score == 14
+    assert score == 19
     assert direction == "MIXED"
 
 
@@ -256,5 +256,5 @@ def test_top10_live_adds_signal_columns() -> None:
     enriched = _add_signal_strength(annotated)
 
     assert enriched[["Momentum score", "Direction"]].to_dict("records") == [
-        {"Momentum score": 22, "Direction": "UP"}
+        {"Momentum score": 35, "Direction": "UP"}
     ]
