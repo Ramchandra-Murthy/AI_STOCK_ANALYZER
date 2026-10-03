@@ -460,6 +460,61 @@ def _add_signal_confirmation(annotated: pd.DataFrame) -> pd.DataFrame:
     return enriched
 
 
+def _signal_quality_metrics(
+    history: list[pd.DataFrame] | None,
+) -> dict[str, float]:
+    """Summarize descriptive quality metrics from completed Top-10 scans."""
+    if not history:
+        return {
+            "Confirmation rate": 0.0,
+            "Persistence rate": 0.0,
+            "Direction consistency": 0.0,
+            "Momentum consistency": 0.0,
+        }
+
+    rows = [row for snapshot in history for row in snapshot.to_dict("records")]
+    if not rows:
+        return {
+            "Confirmation rate": 0.0,
+            "Persistence rate": 0.0,
+            "Direction consistency": 0.0,
+            "Momentum consistency": 0.0,
+        }
+
+    total = len(rows)
+    confirmed = sum(str(row.get("Signal confirmation", "")) == "CONFIRMED" for row in rows)
+    persistent = sum(
+        int(row.get("Persistence", 0) or 0) >= TOP10_PERSISTENCE_MIN_SCANS for row in rows
+    )
+    directional = sum(
+        str(row.get("Persistent direction", "MIXED")) in {"UP", "DOWN"} for row in rows
+    )
+    strengthening = sum(
+        str(row.get("Signal trend", "")) in {"STRENGTHENING", "STABLE"} for row in rows
+    )
+    return {
+        "Confirmation rate": round(confirmed / total * 100, 1),
+        "Persistence rate": round(persistent / total * 100, 1),
+        "Direction consistency": round(directional / total * 100, 1),
+        "Momentum consistency": round(strengthening / total * 100, 1),
+    }
+
+
+def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
+    """Render descriptive signal-quality metrics for completed scans."""
+    metrics = _signal_quality_metrics(history)
+    st.caption("Descriptive statistics from completed Top-10 scans; not trade-performance results.")
+    columns = st.columns(4)
+    labels = (
+        "Confirmation rate",
+        "Persistence rate",
+        "Direction consistency",
+        "Momentum consistency",
+    )
+    for column, label in zip(columns, labels, strict=True):
+        column.metric(label, f"{metrics[label]:.1f}%")
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
@@ -688,6 +743,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         st.warning(" · ".join(change_alerts[:5]))
     if persistence_alerts:
         st.info(" · ".join(persistence_alerts[:5]))
+    _render_signal_quality_metrics(signal_history)
 
     if coverage_status == "CRITICAL":
         st.error(

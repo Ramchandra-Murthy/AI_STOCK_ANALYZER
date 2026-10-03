@@ -38,6 +38,7 @@ from components.top10_live import (
     _signal_history_table,
     _signal_history_trend,
     _signal_persistence,
+    _signal_quality_metrics,
     _start_background_scan,
     _update_signal_history,
     _watchlist_change_alerts,
@@ -551,3 +552,56 @@ def test_top10_live_adds_signal_confirmation_column() -> None:
     enriched = _add_signal_confirmation(annotated)
 
     assert enriched["Signal confirmation"].tolist() == ["CONFIRMED"]
+
+
+def test_top10_live_signal_quality_metrics_summarize_scan_history() -> None:
+    history = [
+        pd.DataFrame(
+            [
+                {
+                    "Signal confirmation": "CONFIRMED",
+                    "Persistence": 3,
+                    "Persistent direction": "UP",
+                    "Signal trend": "STRENGTHENING",
+                },
+                {
+                    "Signal confirmation": "DEVELOPING",
+                    "Persistence": 2,
+                    "Persistent direction": "DOWN",
+                    "Signal trend": "STABLE",
+                },
+            ]
+        ),
+        pd.DataFrame(
+            [
+                {
+                    "Signal confirmation": "WEAK",
+                    "Persistence": 1,
+                    "Persistent direction": "MIXED",
+                    "Signal trend": "NEW",
+                },
+                {
+                    "Signal confirmation": "CONFIRMED",
+                    "Persistence": 4,
+                    "Persistent direction": "UP",
+                    "Signal trend": "WEAKENING",
+                },
+            ]
+        ),
+    ]
+
+    assert _signal_quality_metrics(history) == {
+        "Confirmation rate": 50.0,
+        "Persistence rate": 75.0,
+        "Direction consistency": 75.0,
+        "Momentum consistency": 50.0,
+    }
+
+
+def test_top10_live_signal_quality_metrics_handle_empty_history() -> None:
+    assert _signal_quality_metrics([]) == {
+        "Confirmation rate": 0.0,
+        "Persistence rate": 0.0,
+        "Direction consistency": 0.0,
+        "Momentum consistency": 0.0,
+    }
