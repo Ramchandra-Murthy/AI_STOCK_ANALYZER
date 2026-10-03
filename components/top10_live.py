@@ -41,6 +41,7 @@ TOP10_SIGNAL_HISTORY_LIMIT = 10
 TOP10_SIGNAL_HISTORY_KEY = "top10_signal_history"
 TOP10_SIGNAL_HISTORY_UPDATED_KEY = "top10_signal_history_updated_at"
 TOP10_PERSISTENCE_MIN_SCANS = 2
+TOP10_PERSISTENCE_ALERT_MIN_SCANS = 3
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -407,6 +408,29 @@ def _add_signal_persistence(
     return enriched
 
 
+def _persistence_alerts(annotated: pd.DataFrame) -> list[str]:
+    """Build alerts for symbols that persist in the Top-10 across scans."""
+    if annotated.empty or "Persistence" not in annotated.columns:
+        return []
+
+    alerts: list[str] = []
+    for row in annotated.to_dict("records"):
+        persistence = int(row.get("Persistence", 0) or 0)
+        if persistence < TOP10_PERSISTENCE_ALERT_MIN_SCANS:
+            continue
+        symbol = f"{row['Exchange']}:{row['Symbol']}"
+        direction = str(row.get("Persistent direction", "MIXED"))
+        score = row.get("Momentum score")
+        score_text = f" · score {int(score)}" if score is not None else ""
+        if direction in {"UP", "DOWN"}:
+            alerts.append(
+                f"🔁 PERSISTENT {direction} · {symbol} · {persistence} scans{score_text}"
+            )
+        else:
+            alerts.append(f"🔁 PERSISTENT · {symbol} · {persistence} scans{score_text}")
+    return alerts
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
@@ -616,6 +640,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     annotated_top10 = _add_signal_history(annotated_top10, signal_history)
     annotated_top10 = _add_signal_persistence(annotated_top10, signal_history)
     change_alerts = _watchlist_change_alerts(annotated_top10)
+    persistence_alerts = _persistence_alerts(annotated_top10)
     if completed_at != st.session_state.get(TOP10_SIGNAL_HISTORY_UPDATED_KEY):
         signal_history = _update_signal_history(signal_history, annotated_top10, completed_at)
         st.session_state[TOP10_SIGNAL_HISTORY_KEY] = signal_history
@@ -631,6 +656,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         st.caption(f"🔵 DROPPED SINCE LAST SCAN · {', '.join(dropped_symbols)}")
     if change_alerts:
         st.warning(" · ".join(change_alerts[:5]))
+    if persistence_alerts:
+        st.info(" · ".join(persistence_alerts[:5]))
 
     if coverage_status == "CRITICAL":
         st.error(
