@@ -122,10 +122,7 @@ def _annotate_watchlist_changes(
         else set()
     )
     previous_ranks = (
-        {
-            (row["Exchange"], row["Symbol"]): int(row["Rank"])
-            for row in previous.to_dict("records")
-        }
+        {(row["Exchange"], row["Symbol"]): int(row["Rank"]) for row in previous.to_dict("records")}
         if {"Exchange", "Symbol", "Rank"}.issubset(previous.columns)
         else {}
     )
@@ -143,16 +140,11 @@ def _annotate_watchlist_changes(
             continue
         rank_change = previous_ranks[key] - int(row["Rank"])
         rank_changes.append(rank_change)
-        statuses.append(
-            "UP" if rank_change > 0 else "DOWN" if rank_change < 0 else "UNCHANGED"
-        )
+        statuses.append("UP" if rank_change > 0 else "DOWN" if rank_change < 0 else "UNCHANGED")
 
     annotated.insert(0, "Status", statuses)
     annotated.insert(1, "Rank change", rank_changes)
-    dropped = [
-        f"{exchange}:{symbol}"
-        for exchange, symbol in sorted(previous_keys - current_keys)
-    ]
+    dropped = [f"{exchange}:{symbol}" for exchange, symbol in sorted(previous_keys - current_keys)]
     return annotated, dropped
 
 
@@ -380,7 +372,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         )
 
     st.dataframe(
-        top10,
+        annotated_top10,
         use_container_width=True,
         hide_index=True,
         column_config={
