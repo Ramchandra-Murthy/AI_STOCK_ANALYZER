@@ -1,5 +1,7 @@
 from zoneinfo import ZoneInfo
 
+import pandas as pd
+
 from components.top10_live import (
     TOP10_CACHE_SECONDS,
     TOP10_CHUNK_SIZE,
