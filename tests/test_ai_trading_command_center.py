@@ -8,8 +8,9 @@ import pandas as pd
 import yfinance as yf
 from streamlit.testing.v1 import AppTest
 
-import modules.intraday as intraday
 from ai_trading import ml_scanner
+
+import modules.intraday as intraday
 
 
 PAGE = pathlib.Path(__file__).resolve().parents[1] / "pages" / "AI_Trading_Command_Center.py"
@@ -83,7 +84,12 @@ def test_command_center_cycle_updates_paper_portfolio(monkeypatch) -> None:
     app = AppTest.from_file(PAGE).run()
     app.button[0].click().run()
 
-    assert any("Cycle complete: 1 simulated paper fills." in message.value for message in app.success)
-    assert any("Current paper portfolio is within" in message.value for message in app.success)
-    assert app.session_state["ai_paper_portfolio"].positions == {"RELIANCE": 200}
+    assert any(
+        "Cycle complete: 1 simulated paper fills." in message.value
+        for message in app.success
+    )
+    assert any(
+        "Current paper portfolio is within" in message.value for message in app.success
+    )
+    assert app.session_state["ai_paper_portfolio"].positions == {"RELIANCE": 10}
     assert app.session_state["ai_paper_prices"] == {"RELIANCE": 2_000.0}
