@@ -6,10 +6,10 @@ import pathlib
 
 import pandas as pd
 import yfinance as yf
-from streamlit.testing.v1 import AppTest
+import streamlit.testing.v1 as streamlit_testing
 
+import ai_trading.ml_scanner as ml_scanner
 import modules.intraday as intraday
-from ai_trading import ml_scanner
 
 
 PAGE = pathlib.Path(__file__).resolve().parents[1] / "pages" / "AI_Trading_Command_Center.py"
@@ -57,7 +57,7 @@ def _ml_result() -> pd.DataFrame:
 def test_command_center_renders_when_market_is_closed(monkeypatch) -> None:
     monkeypatch.setattr(intraday, "_market_session_is_open", lambda now: False)
 
-    app = AppTest.from_file(PAGE).run()
+    app = streamlit_testing.AppTest.from_file(PAGE).run()
 
     assert app.button[0].disabled
     assert any("Market is closed" in message.value for message in app.info)
