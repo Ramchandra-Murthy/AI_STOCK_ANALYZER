@@ -112,12 +112,7 @@ if run_cycle:
 
     candidates = {"NSE": [], "BSE": []}
     for exchange in ("NSE", "BSE"):
-        names = (
-            board.loc[board["Exchange"].eq(exchange), "Symbol"]
-            .astype(str)
-            .str.upper()
-            .tolist()
-        )
+        names = board.loc[board["Exchange"].eq(exchange), "Symbol"].astype(str).str.upper().tolist()
         candidates[exchange] = names[:ml_per_exchange]
 
     results = []
@@ -143,23 +138,19 @@ if run_cycle:
             if not result.empty:
                 results.append(result)
 
-    ml_result = (
-        pd.concat(results, ignore_index=True)
-        if results
-        else pd.DataFrame()
-    )
+    ml_result = pd.concat(results, ignore_index=True) if results else pd.DataFrame()
     st.session_state["command_center_ml"] = ml_result
 
     if ml_result.empty:
         st.warning("No valid ML results were produced. Paper positions were not changed.")
     else:
         tickers = [
-            f"{str(symbol).strip().upper()}.NS"
-            if exchange == "NSE"
-            else f"{str(symbol).strip().upper()}.BO"
-            for symbol, exchange in zip(
-                ml_result["symbol"], ml_result["exchange"], strict=True
+            (
+                f"{str(symbol).strip().upper()}.NS"
+                if exchange == "NSE"
+                else f"{str(symbol).strip().upper()}.BO"
             )
+            for symbol, exchange in zip(ml_result["symbol"], ml_result["exchange"], strict=True)
         ]
         prices_data = yf.download(
             tickers,
@@ -316,7 +307,10 @@ p1, p2, p3, p4, p5 = st.columns(5)
 p1.metric("Total return", f"{report.total_return_pct:.2f}%")
 p2.metric("Total P&L", f"₹{report.total_pnl:,.2f}")
 p3.metric("Win rate", f"{report.win_rate_pct:.1f}%")
-p4.metric("Profit factor", f"{report.profit_factor:.2f}" if report.profit_factor is not None else "N/A")
+p4.metric(
+    "Profit factor",
+    f"{report.profit_factor:.2f}" if report.profit_factor is not None else "N/A",
+)
 p5.metric("Max drawdown", f"{report.max_drawdown_pct:.2f}%")
 
 st.caption(
