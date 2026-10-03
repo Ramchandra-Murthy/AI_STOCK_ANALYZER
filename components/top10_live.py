@@ -268,8 +268,16 @@ def _add_signal_history(
         else:
             direction_changes.append(f"{previous_direction}→{row['Direction']}")
 
-    enriched.insert(4, "Previous score", previous_values)
-    enriched.insert(5, "Score change", score_changes)
+    enriched.insert(
+        4,
+        "Previous score",
+        pd.Series(previous_values, index=enriched.index, dtype=object),
+    )
+    enriched.insert(
+        5,
+        "Score change",
+        pd.Series(score_changes, index=enriched.index, dtype=object),
+    )
     enriched.insert(6, "Signal trend", score_trends)
     enriched.insert(7, "Direction change", direction_changes)
     return enriched
