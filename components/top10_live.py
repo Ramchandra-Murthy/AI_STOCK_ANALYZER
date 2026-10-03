@@ -357,8 +357,7 @@ def _signal_persistence(
         return {}
 
     latest_keys = {
-        (str(row["Exchange"]), str(row["Symbol"]))
-        for row in history[-1].to_dict("records")
+        (str(row["Exchange"]), str(row["Symbol"])) for row in history[-1].to_dict("records")
     }
     persistence: dict[tuple[str, str], tuple[int, str]] = {}
     for key in latest_keys:
