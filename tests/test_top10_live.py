@@ -19,6 +19,7 @@ from components.top10_live import (
     TOP10_SESSION_STATUS_KEY,
     TOP10_STALE_DATA_SECONDS,
     TOP10_TIMEZONE,
+    _annotate_watchlist_changes,
     _coverage_status,
     _scan_live_top10,
     _start_background_scan,
@@ -109,3 +110,41 @@ def test_top10_live_displays_coverage_quality() -> None:
     assert "Coverage {coverage_status}" in source
     assert "CRITICAL QUOTE COVERAGE" in source
     assert "REDUCED QUOTE COVERAGE" in source
+
+
+def test_top10_live_tracks_membership_and_rank_changes() -> None:
+    previous = pd.DataFrame(
+        [
+            {"Rank": 1, "Symbol": "AAA", "Exchange": "NSE"},
+            {"Rank": 2, "Symbol": "BBB", "Exchange": "NSE"},
+        ]
+    )
+    current = pd.DataFrame(
+        [
+            {"Rank": 1, "Symbol": "BBB", "Exchange": "NSE"},
+            {"Rank": 2, "Symbol": "CCC", "Exchange": "NSE"},
+        ]
+    )
+
+    annotated, dropped = _annotate_watchlist_changes(current, previous)
+
+    assert annotated[["Symbol", "Status", "Rank change"]].to_dict("records") == [
+        {"Symbol": "BBB", "Status": "UP", "Rank change": 1},
+        {"Symbol": "CCC", "Status": "NEW", "Rank change": None},
+    ]
+    assert dropped == ["NSE:AAA"]
+
+
+def test_top10_live_first_scan_marks_all_symbols_new() -> None:
+    current = pd.DataFrame(
+        [
+            {"Rank": 1, "Symbol": "AAA", "Exchange": "NSE"},
+            {"Rank": 2, "Symbol": "BBB", "Exchange": "BSE"},
+        ]
+    )
+
+    annotated, dropped = _annotate_watchlist_changes(current, None)
+
+    assert annotated["Status"].tolist() == ["NEW", "NEW"]
+    assert annotated["Rank change"].tolist() == [None, None]
+    assert dropped == []
