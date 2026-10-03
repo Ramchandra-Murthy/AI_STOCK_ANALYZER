@@ -143,7 +143,11 @@ def _annotate_watchlist_changes(
         statuses.append("UP" if rank_change > 0 else "DOWN" if rank_change < 0 else "UNCHANGED")
 
     annotated.insert(0, "Status", statuses)
-    annotated.insert(1, "Rank change", rank_changes)
+    annotated.insert(
+        1,
+        "Rank change",
+        pd.Series(rank_changes, index=annotated.index, dtype=object),
+    )
     dropped = [f"{exchange}:{symbol}" for exchange, symbol in sorted(previous_keys - current_keys)]
     return annotated, dropped
 
