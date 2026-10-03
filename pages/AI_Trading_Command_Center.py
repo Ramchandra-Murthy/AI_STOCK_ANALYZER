@@ -79,7 +79,7 @@ status_cols = st.columns(4)
 status_cols[0].metric("Market", "OPEN" if market_open else "CLOSED")
 status_cols[1].metric(
     "Paper equity",
-    f"₹{portfolio.equity(st.session_state.get("ai_paper_prices", {})):,.0f}",
+    f"₹{portfolio.equity(st.session_state.get('ai_paper_prices', {})):,.0f}",
 )
 status_cols[2].metric("Open positions", len(portfolio.positions))
 status_cols[3].metric("Paper fills", len(portfolio.trades))
