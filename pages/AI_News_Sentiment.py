@@ -27,9 +27,7 @@ elif "ai_news_headlines" not in st.session_state:
     st.session_state["ai_news_headlines"] = ""
 
 headlines = [
-    line.strip()
-    for line in st.session_state["ai_news_headlines"].splitlines()
-    if line.strip()
+    line.strip() for line in st.session_state["ai_news_headlines"].splitlines() if line.strip()
 ]
 news = pd.DataFrame({"headline": headlines})
 summary = summarize_news(news)
