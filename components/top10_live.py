@@ -37,6 +37,9 @@ TOP10_ALERT_MIN_ABS_MOVE_PCT = 1.0
 TOP10_SCORE_MAX_1M_PCT = 3.0
 TOP10_SCORE_MAX_5M_PCT = 5.0
 TOP10_SCORE_MAX_RANK_JUMP = 5
+TOP10_SIGNAL_HISTORY_LIMIT = 10
+TOP10_SIGNAL_HISTORY_KEY = "top10_signal_history"
+TOP10_SIGNAL_HISTORY_UPDATED_KEY = "top10_signal_history_updated_at"
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -218,6 +221,88 @@ def _add_signal_strength(annotated: pd.DataFrame) -> pd.DataFrame:
     enriched.insert(2, "Momentum score", [score for score, _ in signals])
     enriched.insert(3, "Direction", [direction for _, direction in signals])
     return enriched
+
+
+def _add_signal_history(
+    annotated: pd.DataFrame,
+    history: list[pd.DataFrame] | None,
+) -> pd.DataFrame:
+    """Add previous-score, score-change, and signal-trend context from scan history."""
+    if annotated.empty:
+        return annotated.copy()
+
+    enriched = annotated.copy()
+    previous_scores: dict[tuple[str, str], int] = {}
+    previous_directions: dict[tuple[str, str], str] = {}
+    if history:
+        previous = history[-1]
+        if {"Exchange", "Symbol", "Momentum score", "Direction"}.issubset(previous.columns):
+            for row in previous.to_dict("records"):
+                key = (str(row["Exchange"]), str(row["Symbol"]))
+                previous_scores[key] = int(row["Momentum score"])
+                previous_directions[key] = str(row["Direction"])
+
+    score_changes: list[int | None] = []
+    score_trends: list[str] = []
+    previous_values: list[int | None] = []
+    direction_changes: list[str] = []
+    for row in enriched.to_dict("records"):
+        key = (str(row["Exchange"]), str(row["Symbol"]))
+        score = int(row["Momentum score"])
+        previous_score = previous_scores.get(key)
+        previous_direction = previous_directions.get(key)
+        previous_values.append(previous_score)
+        if previous_score is None:
+            score_changes.append(None)
+            score_trends.append("NEW")
+        else:
+            change = score - previous_score
+            score_changes.append(change)
+            score_trends.append(
+                "STRENGTHENING" if change > 0 else "WEAKENING" if change < 0 else "STABLE"
+            )
+        if previous_direction is None:
+            direction_changes.append("NEW")
+        elif previous_direction == row["Direction"]:
+            direction_changes.append("UNCHANGED")
+        else:
+            direction_changes.append(f"{previous_direction}→{row['Direction']}")
+
+    enriched.insert(
+        4,
+        "Previous score",
+        pd.Series(previous_values, index=enriched.index, dtype=object),
+    )
+    enriched.insert(
+        5,
+        "Score change",
+        pd.Series(score_changes, index=enriched.index, dtype=object),
+    )
+    enriched.insert(6, "Signal trend", score_trends)
+    enriched.insert(7, "Direction change", direction_changes)
+    return enriched
+
+
+def _update_signal_history(
+    history: list[pd.DataFrame] | None,
+    annotated: pd.DataFrame,
+) -> list[pd.DataFrame]:
+    """Append one completed scan to the rolling in-session signal history."""
+    if annotated.empty:
+        return list(history or [])
+
+    snapshot_columns = [
+        "Symbol",
+        "Exchange",
+        "Momentum score",
+        "Direction",
+    ]
+    snapshot = annotated[
+        [column for column in snapshot_columns if column in annotated.columns]
+    ].copy()
+    updated = list(history or [])
+    updated.append(snapshot.reset_index(drop=True))
+    return updated[-TOP10_SIGNAL_HISTORY_LIMIT:]
 
 
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
@@ -422,8 +507,13 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     previous_top10 = st.session_state.get("top10_live_previous_result")
     annotated_top10, dropped_symbols = _annotate_watchlist_changes(top10, previous_top10)
     annotated_top10 = _add_signal_strength(annotated_top10)
+    signal_history = st.session_state.get(TOP10_SIGNAL_HISTORY_KEY, [])
+    annotated_top10 = _add_signal_history(annotated_top10, signal_history)
     change_alerts = _watchlist_change_alerts(annotated_top10)
-    st.session_state["top10_live_previous_result"] = top10.copy()
+    if completed_at != st.session_state.get(TOP10_SIGNAL_HISTORY_UPDATED_KEY):
+        signal_history = _update_signal_history(signal_history, annotated_top10)
+        st.session_state[TOP10_SIGNAL_HISTORY_KEY] = signal_history
+        st.session_state[TOP10_SIGNAL_HISTORY_UPDATED_KEY] = completed_at
     st.caption(
         f"{status} · Last update {last_update} IST · "
         f"Next refresh {next_refresh:%H:%M:%S} IST · "
@@ -457,6 +547,10 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Rank change": st.column_config.NumberColumn("Rank change", width="small"),
             "Momentum score": st.column_config.NumberColumn("Momentum score", width="small"),
             "Direction": st.column_config.TextColumn("Direction", width="small"),
+            "Previous score": st.column_config.NumberColumn("Previous score", width="small"),
+            "Score change": st.column_config.NumberColumn("Score change", width="small"),
+            "Signal trend": st.column_config.TextColumn("Signal trend", width="small"),
+            "Direction change": st.column_config.TextColumn("Direction change", width="small"),
             "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
             "1-min %": st.column_config.NumberColumn("1-min %", format="%.2f"),
             "5-min %": st.column_config.NumberColumn("5-min %", format="%.2f"),

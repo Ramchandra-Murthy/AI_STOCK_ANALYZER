@@ -19,8 +19,11 @@ from components.top10_live import (
     TOP10_REFRESH_SECONDS,
     TOP10_SCAN_WARNING_SECONDS,
     TOP10_SESSION_STATUS_KEY,
+    TOP10_SIGNAL_HISTORY_KEY,
+    TOP10_SIGNAL_HISTORY_LIMIT,
     TOP10_STALE_DATA_SECONDS,
     TOP10_TIMEZONE,
+    _add_signal_history,
     _add_signal_strength,
     _annotate_watchlist_changes,
     _calculate_signal_strength,
@@ -236,6 +239,82 @@ def test_top10_live_signal_direction_handles_mixed_moves() -> None:
 
     assert score == 19
     assert direction == "MIXED"
+
+
+def test_top10_live_signal_history_tracks_score_and_direction_changes() -> None:
+    previous = pd.DataFrame(
+        [
+            {
+                "Symbol": "AAA",
+                "Exchange": "NSE",
+                "Momentum score": 40,
+                "Direction": "UP",
+            },
+            {
+                "Symbol": "BBB",
+                "Exchange": "BSE",
+                "Momentum score": 70,
+                "Direction": "DOWN",
+            },
+        ]
+    )
+    current = pd.DataFrame(
+        [
+            {
+                "Symbol": "AAA",
+                "Exchange": "NSE",
+                "Momentum score": 55,
+                "Direction": "UP",
+            },
+            {
+                "Symbol": "BBB",
+                "Exchange": "BSE",
+                "Momentum score": 60,
+                "Direction": "UP",
+            },
+            {
+                "Symbol": "CCC",
+                "Exchange": "NSE",
+                "Momentum score": 30,
+                "Direction": "MIXED",
+            },
+        ]
+    )
+
+    enriched = _add_signal_history(current, [previous])
+
+    assert enriched[
+        ["Symbol", "Previous score", "Score change", "Signal trend", "Direction change"]
+    ].to_dict("records") == [
+        {
+            "Symbol": "AAA",
+            "Previous score": 40,
+            "Score change": 15,
+            "Signal trend": "STRENGTHENING",
+            "Direction change": "UNCHANGED",
+        },
+        {
+            "Symbol": "BBB",
+            "Previous score": 70,
+            "Score change": -10,
+            "Signal trend": "WEAKENING",
+            "Direction change": "DOWN→UP",
+        },
+        {
+            "Symbol": "CCC",
+            "Previous score": None,
+            "Score change": None,
+            "Signal trend": "NEW",
+            "Direction change": "NEW",
+        },
+    ]
+
+
+def test_top10_live_signal_history_is_limited_to_ten_scans() -> None:
+    assert TOP10_SIGNAL_HISTORY_LIMIT == 10
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert TOP10_SIGNAL_HISTORY_KEY == "top10_signal_history"
+    assert "[-TOP10_SIGNAL_HISTORY_LIMIT:]" in source
 
 
 def test_top10_live_adds_signal_columns() -> None:
