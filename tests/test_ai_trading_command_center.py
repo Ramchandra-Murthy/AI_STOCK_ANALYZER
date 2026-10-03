@@ -5,8 +5,8 @@ from __future__ import annotations
 import pathlib
 
 import pandas as pd
-import yfinance as yf
 import streamlit.testing.v1 as streamlit_testing
+import yfinance as yf
 
 import ai_trading.ml_scanner as ml_scanner
 import modules.intraday as intraday
