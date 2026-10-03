@@ -161,7 +161,7 @@ def _watchlist_change_alerts(annotated: pd.DataFrame) -> list[str]:
 
     alerts: list[str] = []
     for row in annotated.to_dict("records"):
-        symbol = f"{row["Exchange"]}:{row["Symbol"]}"
+        symbol = f"{row['Exchange']}:{row['Symbol']}"
         status = str(row["Status"])
         rank_change = row.get("Rank change")
         move = float(row.get("1-min %", 0.0) or 0.0)
