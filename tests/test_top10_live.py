@@ -423,9 +423,9 @@ def test_top10_live_signal_persistence_breaks_after_missing_scan() -> None:
 
 
 def test_top10_live_adds_signal_persistence_columns() -> None:
-    annotated = pd.DataFrame(\n        [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 60, "Direction": "UP"}]\n    )
-    history = [
-        pd.DataFrame([{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 30, "Direction": "UP"}]),
+    annotated = pd.DataFrame(
+        [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 60, "Direction": "UP"}]
+    )
         pd.DataFrame([{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 45, "Direction": "UP"}]),
     ]
 
