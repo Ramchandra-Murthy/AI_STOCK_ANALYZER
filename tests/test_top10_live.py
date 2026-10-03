@@ -283,10 +283,30 @@ def test_top10_live_signal_history_tracks_score_and_direction_changes() -> None:
 
     enriched = _add_signal_history(current, [previous])
 
-    assert enriched[["Symbol", "Previous score", "Score change", "Signal trend", "Direction change"]].to_dict("records") == [
-        {"Symbol": "AAA", "Previous score": 40, "Score change": 15, "Signal trend": "STRENGTHENING", "Direction change": "UNCHANGED"},
-        {"Symbol": "BBB", "Previous score": 70, "Score change": -10, "Signal trend": "WEAKENING", "Direction change": "DOWN→UP"},
-        {"Symbol": "CCC", "Previous score": None, "Score change": None, "Signal trend": "NEW", "Direction change": "NEW"},
+    assert enriched[
+        ["Symbol", "Previous score", "Score change", "Signal trend", "Direction change"]
+    ].to_dict("records") == [
+        {
+            "Symbol": "AAA",
+            "Previous score": 40,
+            "Score change": 15,
+            "Signal trend": "STRENGTHENING",
+            "Direction change": "UNCHANGED",
+        },
+        {
+            "Symbol": "BBB",
+            "Previous score": 70,
+            "Score change": -10,
+            "Signal trend": "WEAKENING",
+            "Direction change": "DOWN→UP",
+        },
+        {
+            "Symbol": "CCC",
+            "Previous score": None,
+            "Score change": None,
+            "Signal trend": "NEW",
+            "Direction change": "NEW",
+        },
     ]
 
 
