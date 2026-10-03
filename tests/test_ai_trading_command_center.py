@@ -1,5 +1,9 @@
 """Integration tests for the AI Trading Command Center page."""
 
+# Ruff cannot reliably classify the Streamlit testing import with this module alias.
+# Keep the import explicit and scope the isort suppression to this test file.
+# ruff: noqa: I001
+
 from __future__ import annotations
 
 import pathlib
