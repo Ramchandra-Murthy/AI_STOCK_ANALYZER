@@ -399,8 +399,8 @@ def _add_signal_persistence(
         directions.append(direction if count >= TOP10_PERSISTENCE_MIN_SCANS else "MIXED")
 
     enriched = annotated.copy()
-    enriched.insert(8, "Persistence", counts)
-    enriched.insert(9, "Persistent direction", directions)
+    enriched["Persistence"] = counts
+    enriched["Persistent direction"] = directions
     return enriched
 
 
