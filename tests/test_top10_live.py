@@ -404,9 +404,15 @@ def test_top10_live_signal_history_table_and_trend() -> None:
 
 def test_top10_live_signal_persistence_counts_consecutive_presence_and_direction() -> None:
     history = [
-        pd.DataFrame([{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 30, "Direction": "UP"}]),
-        pd.DataFrame([{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 45, "Direction": "UP"}]),
-        pd.DataFrame([{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 55, "Direction": "UP"}]),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 30, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 45, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 55, "Direction": "UP"}]
+        ),
     ]
 
     assert _signal_persistence(history)[("NSE", "AAA")] == (3, "UP")
@@ -414,9 +420,15 @@ def test_top10_live_signal_persistence_counts_consecutive_presence_and_direction
 
 def test_top10_live_signal_persistence_breaks_after_missing_scan() -> None:
     history = [
-        pd.DataFrame([{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 30, "Direction": "UP"}]),
-        pd.DataFrame([{"Symbol": "BBB", "Exchange": "NSE", "Momentum score": 45, "Direction": "UP"}]),
-        pd.DataFrame([{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 55, "Direction": "UP"}]),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 30, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "BBB", "Exchange": "NSE", "Momentum score": 45, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 55, "Direction": "UP"}]
+        ),
     ]
 
     assert _signal_persistence(history)[("NSE", "AAA")] == (1, "UP")
