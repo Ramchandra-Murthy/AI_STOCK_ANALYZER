@@ -423,9 +423,7 @@ def _persistence_alerts(annotated: pd.DataFrame) -> list[str]:
         score = row.get("Momentum score")
         score_text = f" · score {int(score)}" if score is not None else ""
         if direction in {"UP", "DOWN"}:
-            alerts.append(
-                f"🔁 PERSISTENT {direction} · {symbol} · {persistence} scans{score_text}"
-            )
+            alerts.append(f"🔁 PERSISTENT {direction} · {symbol} · {persistence} scans{score_text}")
         else:
             alerts.append(f"🔁 PERSISTENT · {symbol} · {persistence} scans{score_text}")
     return alerts
