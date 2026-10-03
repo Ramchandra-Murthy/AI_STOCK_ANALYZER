@@ -16,6 +16,7 @@ from components.top10_live import (
     TOP10_MAX_CANDIDATES_PER_EXCHANGE,
     TOP10_MAX_CONSECUTIVE_FAILURES,
     TOP10_PARTIAL_FAILURES_KEY,
+    TOP10_PERSISTENCE_MIN_SCANS,
     TOP10_REDUCED_COVERAGE_QUOTES,
     TOP10_REFRESH_SECONDS,
     TOP10_SCAN_WARNING_SECONDS,
@@ -25,6 +26,7 @@ from components.top10_live import (
     TOP10_STALE_DATA_SECONDS,
     TOP10_TIMEZONE,
     _add_signal_history,
+    _add_signal_persistence,
     _add_signal_strength,
     _annotate_watchlist_changes,
     _calculate_signal_strength,
@@ -32,6 +34,7 @@ from components.top10_live import (
     _scan_live_top10,
     _signal_history_table,
     _signal_history_trend,
+    _signal_persistence,
     _start_background_scan,
     _update_signal_history,
     _watchlist_change_alerts,
@@ -397,3 +400,56 @@ def test_top10_live_signal_history_table_and_trend() -> None:
     assert table["Momentum score"].tolist() == [40, 65]
     assert list(trend.columns) == ["NSE:AAA"]
     assert trend["NSE:AAA"].tolist() == [40, 65]
+
+
+def test_top10_live_signal_persistence_counts_consecutive_presence_and_direction() -> None:
+    history = [
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 30, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 45, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 55, "Direction": "UP"}]
+        ),
+    ]
+
+    assert _signal_persistence(history)[("NSE", "AAA")] == (3, "UP")
+
+
+def test_top10_live_signal_persistence_breaks_after_missing_scan() -> None:
+    history = [
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 30, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "BBB", "Exchange": "NSE", "Momentum score": 45, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 55, "Direction": "UP"}]
+        ),
+    ]
+
+    assert _signal_persistence(history)[("NSE", "AAA")] == (1, "UP")
+
+
+def test_top10_live_adds_signal_persistence_columns() -> None:
+    annotated = pd.DataFrame(
+        [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 60, "Direction": "UP"}]
+    )
+    history = [
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 45, "Direction": "UP"}]
+        ),
+        pd.DataFrame(
+            [{"Symbol": "AAA", "Exchange": "NSE", "Momentum score": 60, "Direction": "UP"}]
+        ),
+    ]
+
+    enriched = _add_signal_persistence(annotated, history)
+
+    assert TOP10_PERSISTENCE_MIN_SCANS == 2
+    assert enriched[["Persistence", "Persistent direction"]].to_dict("records") == [
+        {"Persistence": 2, "Persistent direction": "UP"}
+    ]

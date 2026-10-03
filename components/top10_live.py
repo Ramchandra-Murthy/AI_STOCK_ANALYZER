@@ -40,6 +40,7 @@ TOP10_SCORE_MAX_RANK_JUMP = 5
 TOP10_SIGNAL_HISTORY_LIMIT = 10
 TOP10_SIGNAL_HISTORY_KEY = "top10_signal_history"
 TOP10_SIGNAL_HISTORY_UPDATED_KEY = "top10_signal_history_updated_at"
+TOP10_PERSISTENCE_MIN_SCANS = 2
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -348,6 +349,64 @@ def _signal_history_trend(history: list[pd.DataFrame] | None) -> pd.DataFrame:
     return trend.tail(TOP10_SIGNAL_HISTORY_LIMIT)
 
 
+def _signal_persistence(
+    history: list[pd.DataFrame] | None,
+) -> dict[tuple[str, str], tuple[int, str]]:
+    """Calculate consecutive Top-10 presence and direction counts from history."""
+    if not history:
+        return {}
+
+    latest_keys = {
+        (str(row["Exchange"]), str(row["Symbol"])) for row in history[-1].to_dict("records")
+    }
+    persistence: dict[tuple[str, str], tuple[int, str]] = {}
+    for key in latest_keys:
+        count = 0
+        direction_count = 0
+        previous_direction: str | None = None
+        for snapshot in reversed(history):
+            rows = snapshot[
+                (snapshot["Exchange"].astype(str) == key[0])
+                & (snapshot["Symbol"].astype(str) == key[1])
+            ]
+            if rows.empty:
+                break
+            count += 1
+            direction = str(rows.iloc[-1]["Direction"])
+            if direction in {"UP", "DOWN"} and (
+                previous_direction is None or direction == previous_direction
+            ):
+                direction_count += 1
+                previous_direction = direction
+            else:
+                break
+        persistence[key] = (count, previous_direction or "MIXED")
+    return persistence
+
+
+def _add_signal_persistence(
+    annotated: pd.DataFrame,
+    history: list[pd.DataFrame] | None,
+) -> pd.DataFrame:
+    """Add consecutive Top-10 scan persistence to the current watchlist."""
+    if annotated.empty:
+        return annotated.copy()
+
+    persistence = _signal_persistence(history)
+    counts: list[int] = []
+    directions: list[str] = []
+    for row in annotated.to_dict("records"):
+        key = (str(row["Exchange"]), str(row["Symbol"]))
+        count, direction = persistence.get(key, (0, "MIXED"))
+        counts.append(count)
+        directions.append(direction if count >= TOP10_PERSISTENCE_MIN_SCANS else "MIXED")
+
+    enriched = annotated.copy()
+    enriched["Persistence"] = counts
+    enriched["Persistent direction"] = directions
+    return enriched
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
@@ -555,6 +614,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     annotated_top10 = _add_signal_strength(annotated_top10)
     signal_history = st.session_state.get(TOP10_SIGNAL_HISTORY_KEY, [])
     annotated_top10 = _add_signal_history(annotated_top10, signal_history)
+    annotated_top10 = _add_signal_persistence(annotated_top10, signal_history)
     change_alerts = _watchlist_change_alerts(annotated_top10)
     if completed_at != st.session_state.get(TOP10_SIGNAL_HISTORY_UPDATED_KEY):
         signal_history = _update_signal_history(signal_history, annotated_top10, completed_at)
@@ -597,6 +657,10 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Score change": st.column_config.NumberColumn("Score change", width="small"),
             "Signal trend": st.column_config.TextColumn("Signal trend", width="small"),
             "Direction change": st.column_config.TextColumn("Direction change", width="small"),
+            "Persistence": st.column_config.NumberColumn("Persistence", width="small"),
+            "Persistent direction": st.column_config.TextColumn(
+                "Persistent direction", width="small"
+            ),
             "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
             "1-min %": st.column_config.NumberColumn("1-min %", format="%.2f"),
             "5-min %": st.column_config.NumberColumn("5-min %", format="%.2f"),
