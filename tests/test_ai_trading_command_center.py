@@ -80,7 +80,7 @@ def test_command_center_cycle_updates_paper_portfolio(monkeypatch) -> None:
 
     monkeypatch.setattr(yf, "download", lambda *args, **kwargs: prices)
 
-    app = streamlit_testing.AppTest.from_file(PAGE).run()
+    app = AppTest.from_file(PAGE).run()
     app.button[0].click().run()
 
     assert any(
