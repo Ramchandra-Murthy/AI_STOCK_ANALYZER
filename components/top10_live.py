@@ -32,6 +32,8 @@ TOP10_COVERAGE_KEY = "top10_quote_coverage"
 TOP10_EXPECTED_QUOTES = 40
 TOP10_GOOD_COVERAGE_QUOTES = 36
 TOP10_REDUCED_COVERAGE_QUOTES = 20
+TOP10_ALERT_MIN_RANK_JUMP = 2
+TOP10_ALERT_MIN_ABS_MOVE_PCT = 1.0
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -150,6 +152,32 @@ def _annotate_watchlist_changes(
     )
     dropped = [f"{exchange}:{symbol}" for exchange, symbol in sorted(previous_keys - current_keys)]
     return annotated, dropped
+
+
+def _watchlist_change_alerts(annotated: pd.DataFrame) -> list[str]:
+    """Build concise alerts for material Top-10 membership, rank, or move changes."""
+    if annotated.empty:
+        return []
+
+    alerts: list[str] = []
+    for row in annotated.to_dict("records"):
+        symbol = f"{row["Exchange"]}:{row["Symbol"]}"
+        status = str(row["Status"])
+        rank_change = row.get("Rank change")
+        move = float(row.get("1-min %", 0.0) or 0.0)
+
+        if status == "NEW":
+            alerts.append(f"🆕 NEW · {symbol} entered Top-10 · 1-min {move:+.2f}%")
+        elif rank_change is not None and abs(int(rank_change)) >= TOP10_ALERT_MIN_RANK_JUMP:
+            direction = "up" if int(rank_change) > 0 else "down"
+            alerts.append(
+                f"🔔 RANK {direction.upper()} · {symbol} · {abs(int(rank_change))} places · "
+                f"1-min {move:+.2f}%"
+            )
+        elif abs(move) >= TOP10_ALERT_MIN_ABS_MOVE_PCT:
+            alerts.append(f"⚡ MOVE · {symbol} · 1-min {move:+.2f}%")
+
+    return alerts
 
 
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
@@ -353,6 +381,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     coverage_status = _coverage_status(valid_quotes)
     previous_top10 = st.session_state.get("top10_live_previous_result")
     annotated_top10, dropped_symbols = _annotate_watchlist_changes(top10, previous_top10)
+    change_alerts = _watchlist_change_alerts(annotated_top10)
     st.session_state["top10_live_previous_result"] = top10.copy()
     st.caption(
         f"{status} · Last update {last_update} IST · "
@@ -363,6 +392,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     )
     if dropped_symbols:
         st.caption(f"🔵 DROPPED SINCE LAST SCAN · {', '.join(dropped_symbols)}")
+    if change_alerts:
+        st.warning(" · ".join(change_alerts[:5]))
 
     if coverage_status == "CRITICAL":
         st.error(
