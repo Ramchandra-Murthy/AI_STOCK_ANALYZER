@@ -22,10 +22,10 @@ from components.top10_live import (
     TOP10_STALE_DATA_SECONDS,
     TOP10_TIMEZONE,
     _annotate_watchlist_changes,
-    _watchlist_change_alerts,
     _coverage_status,
     _scan_live_top10,
     _start_background_scan,
+    _watchlist_change_alerts,
     show_live_top10_scanner,
 )
 
