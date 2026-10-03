@@ -16,6 +16,7 @@ from components.top10_live import (
     TOP10_MAX_CANDIDATES_PER_EXCHANGE,
     TOP10_MAX_CONSECUTIVE_FAILURES,
     TOP10_PARTIAL_FAILURES_KEY,
+    TOP10_PERSISTENCE_ALERT_MIN_SCANS,
     TOP10_PERSISTENCE_MIN_SCANS,
     TOP10_REDUCED_COVERAGE_QUOTES,
     TOP10_REFRESH_SECONDS,
@@ -34,6 +35,7 @@ from components.top10_live import (
     _scan_live_top10,
     _signal_history_table,
     _signal_history_trend,
+    _persistence_alerts,
     _signal_persistence,
     _start_background_scan,
     _update_signal_history,
@@ -452,4 +454,55 @@ def test_top10_live_adds_signal_persistence_columns() -> None:
     assert TOP10_PERSISTENCE_MIN_SCANS == 2
     assert enriched[["Persistence", "Persistent direction"]].to_dict("records") == [
         {"Persistence": 2, "Persistent direction": "UP"}
+    ]
+
+
+def test_top10_live_persistence_alerts_surface_consecutive_scans() -> None:
+    annotated = pd.DataFrame(
+        [
+            {
+                "Symbol": "AAA",
+                "Exchange": "NSE",
+                "Momentum score": 72,
+                "Persistence": 3,
+                "Persistent direction": "UP",
+            },
+            {
+                "Symbol": "BBB",
+                "Exchange": "BSE",
+                "Momentum score": 61,
+                "Persistence": 2,
+                "Persistent direction": "DOWN",
+            },
+        ]
+    )
+
+    alerts = _persistence_alerts(annotated)
+
+    assert TOP10_PERSISTENCE_ALERT_MIN_SCANS == 3
+    assert alerts == ["🔁 PERSISTENT UP · NSE:AAA · 3 scans · score 72"]
+
+
+def test_top10_live_persistence_alerts_ignore_short_or_mixed_persistence() -> None:
+    annotated = pd.DataFrame(
+        [
+            {
+                "Symbol": "AAA",
+                "Exchange": "NSE",
+                "Momentum score": 50,
+                "Persistence": 2,
+                "Persistent direction": "UP",
+            },
+            {
+                "Symbol": "BBB",
+                "Exchange": "BSE",
+                "Momentum score": 55,
+                "Persistence": 4,
+                "Persistent direction": "MIXED",
+            },
+        ]
+    )
+
+    assert _persistence_alerts(annotated) == [
+        "🔁 PERSISTENT · BSE:BBB · 4 scans · score 55"
     ]
