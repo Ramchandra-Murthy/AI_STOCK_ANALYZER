@@ -34,6 +34,9 @@ TOP10_GOOD_COVERAGE_QUOTES = 36
 TOP10_REDUCED_COVERAGE_QUOTES = 20
 TOP10_ALERT_MIN_RANK_JUMP = 2
 TOP10_ALERT_MIN_ABS_MOVE_PCT = 1.0
+TOP10_SCORE_MAX_1M_PCT = 3.0
+TOP10_SCORE_MAX_5M_PCT = 5.0
+TOP10_SCORE_MAX_RANK_JUMP = 5
 _IST = ZoneInfo(TOP10_TIMEZONE)
 
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
@@ -178,6 +181,43 @@ def _watchlist_change_alerts(annotated: pd.DataFrame) -> list[str]:
             alerts.append(f"⚡ MOVE · {symbol} · 1-min {move:+.2f}%")
 
     return alerts
+
+
+def _calculate_signal_strength(row: dict[str, object]) -> tuple[int, str]:
+    """Calculate a transparent 0-100 momentum score and price-move direction."""
+    move_1m = float(row.get("1-min %", 0.0) or 0.0)
+    move_5m = float(row.get("5-min %", 0.0) or 0.0)
+    rank_change = row.get("Rank change")
+    rank_jump = abs(int(rank_change)) if rank_change is not None else 0
+    status = str(row.get("Status", ""))
+
+    move_1m_score = min(abs(move_1m) / TOP10_SCORE_MAX_1M_PCT, 1.0) * 40
+    move_5m_score = min(abs(move_5m) / TOP10_SCORE_MAX_5M_PCT, 1.0) * 30
+    rank_score = min(rank_jump / TOP10_SCORE_MAX_RANK_JUMP, 1.0) * 20
+    new_score = 10 if status == "NEW" else 0
+    score = int(round(move_1m_score + move_5m_score + rank_score + new_score))
+
+    if move_1m > 0 and move_5m > 0:
+        direction = "UP"
+    elif move_1m < 0 and move_5m < 0:
+        direction = "DOWN"
+    elif move_1m == 0 and move_5m == 0:
+        direction = "NEUTRAL"
+    else:
+        direction = "MIXED"
+    return min(score, 100), direction
+
+
+def _add_signal_strength(annotated: pd.DataFrame) -> pd.DataFrame:
+    """Add the transparent momentum score and direction to the live watchlist."""
+    if annotated.empty:
+        return annotated.copy()
+
+    enriched = annotated.copy()
+    signals = [_calculate_signal_strength(row) for row in enriched.to_dict("records")]
+    enriched.insert(2, "Momentum score", [score for score, _ in signals])
+    enriched.insert(3, "Direction", [direction for _, direction in signals])
+    return enriched
 
 
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
@@ -381,6 +421,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     coverage_status = _coverage_status(valid_quotes)
     previous_top10 = st.session_state.get("top10_live_previous_result")
     annotated_top10, dropped_symbols = _annotate_watchlist_changes(top10, previous_top10)
+    annotated_top10 = _add_signal_strength(annotated_top10)
     change_alerts = _watchlist_change_alerts(annotated_top10)
     st.session_state["top10_live_previous_result"] = top10.copy()
     st.caption(
@@ -414,6 +455,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Status": st.column_config.TextColumn("Status", width="small"),
             "Rank": st.column_config.NumberColumn("Rank", width="small"),
             "Rank change": st.column_config.NumberColumn("Rank change", width="small"),
+            "Momentum score": st.column_config.NumberColumn("Momentum score", width="small"),
+            "Direction": st.column_config.TextColumn("Direction", width="small"),
             "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
             "1-min %": st.column_config.NumberColumn("1-min %", format="%.2f"),
             "5-min %": st.column_config.NumberColumn("5-min %", format="%.2f"),
