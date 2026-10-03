@@ -349,7 +349,7 @@ def _signal_history_trend(history: list[pd.DataFrame] | None) -> pd.DataFrame:
     return trend.tail(TOP10_SIGNAL_HISTORY_LIMIT)
 
 
-def _signal_persistence(history: list[pd.DataFrame] | None) -> dict[tuple[str, str], tuple[int, str]]:
+def _signal_persistence(\n    history: list[pd.DataFrame] | None,\n) -> dict[tuple[str, str], tuple[int, str]]:
     """Calculate consecutive Top-10 presence and direction counts from history."""
     if not history:
         return {}
@@ -372,7 +372,7 @@ def _signal_persistence(history: list[pd.DataFrame] | None) -> dict[tuple[str, s
                 break
             count += 1
             direction = str(rows.iloc[-1]["Direction"])
-            if direction in {"UP", "DOWN"} and (previous_direction is None or direction == previous_direction):
+            if direction in {"UP", "DOWN"} and (\n                previous_direction is None or direction == previous_direction\n            ):
                 direction_count += 1
                 previous_direction = direction
             else:
@@ -655,7 +655,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Signal trend": st.column_config.TextColumn("Signal trend", width="small"),
             "Direction change": st.column_config.TextColumn("Direction change", width="small"),
             "Persistence": st.column_config.NumberColumn("Persistence", width="small"),
-            "Persistent direction": st.column_config.TextColumn("Persistent direction", width="small"),
+            "Persistent direction": st.column_config.TextColumn(\n                "Persistent direction", width="small"\n            ),
             "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
             "1-min %": st.column_config.NumberColumn("1-min %", format="%.2f"),
             "5-min %": st.column_config.NumberColumn("5-min %", format="%.2f"),
