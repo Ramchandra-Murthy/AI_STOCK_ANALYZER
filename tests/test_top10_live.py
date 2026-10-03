@@ -1,3 +1,4 @@
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -29,7 +30,10 @@ from components.top10_live import (
     _calculate_signal_strength,
     _coverage_status,
     _scan_live_top10,
+    _signal_history_table,
+    _signal_history_trend,
     _start_background_scan,
+    _update_signal_history,
     _watchlist_change_alerts,
     show_live_top10_scanner,
 )
@@ -337,3 +341,59 @@ def test_top10_live_adds_signal_columns() -> None:
     assert enriched[["Momentum score", "Direction"]].to_dict("records") == [
         {"Momentum score": 35, "Direction": "UP"}
     ]
+
+
+def test_top10_live_signal_history_records_scan_time() -> None:
+    annotated = pd.DataFrame(
+        [
+            {
+                "Symbol": "AAA",
+                "Exchange": "NSE",
+                "Momentum score": 55,
+                "Direction": "UP",
+            }
+        ]
+    )
+    completed_at = datetime(2026, 10, 3, 10, 30, tzinfo=ZoneInfo(TOP10_TIMEZONE))
+
+    history = _update_signal_history([], annotated, completed_at)
+
+    assert history[0]["Scan time"].iloc[0] == completed_at
+    assert history[0]["Symbol"].tolist() == ["AAA"]
+
+
+def test_top10_live_signal_history_table_and_trend() -> None:
+    first_time = datetime(2026, 10, 3, 10, 30, tzinfo=ZoneInfo(TOP10_TIMEZONE))
+    second_time = datetime(2026, 10, 3, 10, 31, tzinfo=ZoneInfo(TOP10_TIMEZONE))
+    history = [
+        pd.DataFrame(
+            [
+                {
+                    "Scan time": first_time,
+                    "Symbol": "AAA",
+                    "Exchange": "NSE",
+                    "Momentum score": 40,
+                    "Direction": "UP",
+                }
+            ]
+        ),
+        pd.DataFrame(
+            [
+                {
+                    "Scan time": second_time,
+                    "Symbol": "AAA",
+                    "Exchange": "NSE",
+                    "Momentum score": 65,
+                    "Direction": "UP",
+                }
+            ]
+        ),
+    ]
+
+    table = _signal_history_table(history)
+    trend = _signal_history_trend(history)
+
+    assert table.shape[0] == 2
+    assert table["Momentum score"].tolist() == [40, 65]
+    assert list(trend.columns) == ["NSE:AAA"]
+    assert trend["NSE:AAA"].tolist() == [40, 65]

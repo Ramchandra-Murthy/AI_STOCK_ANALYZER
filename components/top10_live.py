@@ -286,6 +286,7 @@ def _add_signal_history(
 def _update_signal_history(
     history: list[pd.DataFrame] | None,
     annotated: pd.DataFrame,
+    completed_at: datetime | None = None,
 ) -> list[pd.DataFrame]:
     """Append one completed scan to the rolling in-session signal history."""
     if annotated.empty:
@@ -300,9 +301,51 @@ def _update_signal_history(
     snapshot = annotated[
         [column for column in snapshot_columns if column in annotated.columns]
     ].copy()
+    snapshot.insert(0, "Scan time", completed_at or datetime.now(_IST))
     updated = list(history or [])
     updated.append(snapshot.reset_index(drop=True))
     return updated[-TOP10_SIGNAL_HISTORY_LIMIT:]
+
+
+def _signal_history_table(history: list[pd.DataFrame] | None) -> pd.DataFrame:
+    """Flatten rolling signal snapshots into a compact analysis table."""
+    if not history:
+        return pd.DataFrame()
+
+    rows: list[dict[str, object]] = []
+    for snapshot in history:
+        for row in snapshot.to_dict("records"):
+            rows.append(
+                {
+                    "Scan time": row.get("Scan time"),
+                    "Symbol": row.get("Symbol"),
+                    "Exchange": row.get("Exchange"),
+                    "Momentum score": row.get("Momentum score"),
+                    "Direction": row.get("Direction"),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def _signal_history_trend(history: list[pd.DataFrame] | None) -> pd.DataFrame:
+    """Return a timestamp-indexed score matrix for symbols seen in history."""
+    table = _signal_history_table(history)
+    if table.empty:
+        return pd.DataFrame()
+
+    table["Scan time"] = pd.to_datetime(table["Scan time"], errors="coerce")
+    table = table.dropna(subset=["Scan time"])
+    if table.empty:
+        return pd.DataFrame()
+
+    table["Label"] = table["Exchange"].astype(str) + ":" + table["Symbol"].astype(str)
+    trend = table.pivot_table(
+        index="Scan time",
+        columns="Label",
+        values="Momentum score",
+        aggfunc="last",
+    ).sort_index()
+    return trend.tail(TOP10_SIGNAL_HISTORY_LIMIT)
 
 
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
@@ -431,6 +474,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     background_result = _consume_background_scan()
     if background_result is not None:
+        st.session_state["top10_live_previous_result"] = st.session_state.get(
+            "top10_live_result", (pd.DataFrame(), 0.0, 0, 0)
+        )[0]
         st.session_state["top10_live_result"] = background_result
         st.session_state["top10_live_completed_at"] = datetime.now(_IST)
         st.session_state[TOP10_PARTIAL_FAILURES_KEY] = background_result[2]
@@ -511,7 +557,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     annotated_top10 = _add_signal_history(annotated_top10, signal_history)
     change_alerts = _watchlist_change_alerts(annotated_top10)
     if completed_at != st.session_state.get(TOP10_SIGNAL_HISTORY_UPDATED_KEY):
-        signal_history = _update_signal_history(signal_history, annotated_top10)
+        signal_history = _update_signal_history(signal_history, annotated_top10, completed_at)
         st.session_state[TOP10_SIGNAL_HISTORY_KEY] = signal_history
         st.session_state[TOP10_SIGNAL_HISTORY_UPDATED_KEY] = completed_at
     st.caption(
@@ -556,3 +602,30 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "5-min %": st.column_config.NumberColumn("5-min %", format="%.2f"),
         },
     )
+
+    history_table = _signal_history_table(signal_history)
+    history_trend = _signal_history_trend(signal_history)
+    if not history_table.empty:
+        with st.expander("📈 Top-10 Signal History", expanded=False):
+            st.caption(
+                f"Rolling history of the last {len(signal_history)} completed scans. "
+                "Scores are scanner signals, not trade recommendations."
+            )
+            st.dataframe(
+                history_table.sort_values("Scan time", ascending=False),
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Scan time": st.column_config.DatetimeColumn(
+                        "Scan time",
+                        format="HH:mm:ss",
+                    ),
+                    "Momentum score": st.column_config.NumberColumn(
+                        "Momentum score",
+                        min_value=0,
+                        max_value=100,
+                    ),
+                },
+            )
+            if not history_trend.empty:
+                st.line_chart(history_trend, y_min=0, y_max=100)
