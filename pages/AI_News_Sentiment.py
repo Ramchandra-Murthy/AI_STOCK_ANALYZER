@@ -17,8 +17,20 @@ text = st.text_area(
     "Paste headlines (one per line)",
     placeholder="Company reports strong profit growth\nCompany faces weak demand",
     height=180,
+    key="ai_news_headlines_input",
 )
-headlines = [line.strip() for line in text.splitlines() if line.strip()]
+analyze = st.button("Analyze Headlines", type="primary")
+
+if analyze:
+    st.session_state["ai_news_headlines"] = text
+elif "ai_news_headlines" not in st.session_state:
+    st.session_state["ai_news_headlines"] = ""
+
+headlines = [
+    line.strip()
+    for line in st.session_state["ai_news_headlines"].splitlines()
+    if line.strip()
+]
 news = pd.DataFrame({"headline": headlines})
 summary = summarize_news(news)
 metrics = aggregate_sentiment(news)
