@@ -214,10 +214,7 @@ def _add_signal_strength(annotated: pd.DataFrame) -> pd.DataFrame:
         return annotated.copy()
 
     enriched = annotated.copy()
-    signals = [
-        _calculate_signal_strength(row)
-        for row in enriched.to_dict("records")
-    ]
+    signals = [_calculate_signal_strength(row) for row in enriched.to_dict("records")]
     enriched.insert(2, "Momentum score", [score for score, _ in signals])
     enriched.insert(3, "Direction", [direction for _, direction in signals])
     return enriched
