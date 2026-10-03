@@ -483,7 +483,9 @@ def _signal_quality_metrics(
 
     total = len(rows)
     confirmed = sum(str(row.get("Signal confirmation", "")) == "CONFIRMED" for row in rows)
-    persistent = sum(int(row.get("Persistence", 0) or 0) >= TOP10_PERSISTENCE_MIN_SCANS for row in rows)
+    persistent = sum(
+        int(row.get("Persistence", 0) or 0) >= TOP10_PERSISTENCE_MIN_SCANS for row in rows
+    )
     directional = sum(
         str(row.get("Persistent direction", "MIXED")) in {"UP", "DOWN"} for row in rows
     )
