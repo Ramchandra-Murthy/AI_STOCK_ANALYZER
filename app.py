@@ -104,6 +104,12 @@ pages = {
     ],
     "🧠 AI Trading Intelligence": [
         st.Page(
+            "pages/AI_Trading_Command_Center.py",
+            title="AI Trading Command Center",
+            icon="🎯",
+            url_path="ai-trading-command-center",
+        ),
+        st.Page(
             "pages/AI_Trading_Intelligence.py",
             title="AI Trading Scanner",
             icon="🧠",
