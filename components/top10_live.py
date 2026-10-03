@@ -289,7 +289,9 @@ def _update_signal_history(
         "Momentum score",
         "Direction",
     ]
-    snapshot = annotated[[column for column in snapshot_columns if column in annotated.columns]].copy()
+    snapshot = annotated[
+        [column for column in snapshot_columns if column in annotated.columns]
+    ].copy()
     updated = list(history or [])
     updated.append(snapshot.reset_index(drop=True))
     return updated[-TOP10_SIGNAL_HISTORY_LIMIT:]
