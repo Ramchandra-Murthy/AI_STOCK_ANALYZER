@@ -15,7 +15,6 @@ import yfinance as yf
 import ai_trading.ml_scanner as ml_scanner
 import modules.intraday as intraday
 
-
 PAGE = pathlib.Path(__file__).resolve().parents[1] / "pages" / "AI_Trading_Command_Center.py"
 
 
@@ -84,15 +83,12 @@ def test_command_center_cycle_updates_paper_portfolio(monkeypatch) -> None:
 
     monkeypatch.setattr(yf, "download", lambda *args, **kwargs: prices)
 
-    app = AppTest.from_file(PAGE).run()
+    app = streamlit_testing.AppTest.from_file(PAGE).run()
     app.button[0].click().run()
 
     assert any(
-        "Cycle complete: 1 simulated paper fills." in message.value
-        for message in app.success
+        "Cycle complete: 1 simulated paper fills." in message.value for message in app.success
     )
-    assert any(
-        "Current paper portfolio is within" in message.value for message in app.success
-    )
+    assert any("Current paper portfolio is within" in message.value for message in app.success)
     assert app.session_state["ai_paper_portfolio"].positions == {"RELIANCE": 10}
     assert app.session_state["ai_paper_prices"] == {"RELIANCE": 2_000.0}
