@@ -33,6 +33,7 @@ from components.top10_live import (
     _calculate_signal_strength,
     _coverage_status,
     _persistence_alerts,
+    _signal_confirmation,
     _scan_live_top10,
     _signal_history_table,
     _signal_history_trend,
@@ -504,3 +505,49 @@ def test_top10_live_persistence_alerts_ignore_short_or_mixed_persistence() -> No
     )
 
     assert _persistence_alerts(annotated) == ["🔁 PERSISTENT · BSE:BBB · 4 scans · score 55"]
+
+
+def test_top10_live_signal_confirmation_uses_score_persistence_and_trend() -> None:
+    confirmed = {
+        "Momentum score": 65,
+        "Persistence": 3,
+        "Persistent direction": "UP",
+        "Signal trend": "STRENGTHENING",
+    }
+    developing = {
+        "Momentum score": 45,
+        "Persistence": 2,
+        "Persistent direction": "DOWN",
+        "Signal trend": "STABLE",
+    }
+    weak = {
+        "Momentum score": 35,
+        "Persistence": 1,
+        "Persistent direction": "MIXED",
+        "Signal trend": "NEW",
+    }
+
+    assert _signal_confirmation(confirmed) == "CONFIRMED"
+    assert _signal_confirmation(developing) == "DEVELOPING"
+    assert _signal_confirmation(weak) == "WEAK"
+
+
+def test_top10_live_adds_signal_confirmation_column() -> None:
+    annotated = pd.DataFrame(
+        [
+            {
+                "Symbol": "AAA",
+                "Exchange": "NSE",
+                "Momentum score": 65,
+                "Persistence": 3,
+                "Persistent direction": "UP",
+                "Signal trend": "STRENGTHENING",
+            }
+        ]
+    )
+
+    from components.top10_live import _add_signal_confirmation
+
+    enriched = _add_signal_confirmation(annotated)
+
+    assert enriched["Signal confirmation"].tolist() == ["CONFIRMED"]
