@@ -7,7 +7,7 @@ from typing import Any
 
 import pandas as pd
 
-from strategy.book_v1 import BookV1Strategy
+from strategy.book_v1 import BookV1Strategy  # noqa: I001
 
 
 REQUIRED_COLUMNS = (
