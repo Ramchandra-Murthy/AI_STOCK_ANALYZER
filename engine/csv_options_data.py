@@ -26,9 +26,7 @@ class CsvHistoricalOptionsData:
         self._frame["observed_date"] = pd.to_datetime(
             self._frame["observed_date"], errors="raise"
         ).dt.date
-        self._frame["expiry"] = pd.to_datetime(
-            self._frame["expiry"], errors="raise"
-        ).dt.date
+        self._frame["expiry"] = pd.to_datetime(self._frame["expiry"], errors="raise").dt.date
 
     def get_observation(
         self, *, expiry: date, strike: float, observed_date: date
