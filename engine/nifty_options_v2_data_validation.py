@@ -31,9 +31,7 @@ def validate_options_frame(frame: pd.DataFrame) -> pd.DataFrame:
     if result["observed_date"].gt(result["expiry"]).any():
         raise ValueError("observed_date cannot be after expiry")
 
-    duplicate_keys = result.duplicated(
-        subset=["observed_date", "expiry", "strike"], keep=False
-    )
+    duplicate_keys = result.duplicated(subset=["observed_date", "expiry", "strike"], keep=False)
     if duplicate_keys.any():
         raise ValueError("duplicate option observations are not allowed")
 
