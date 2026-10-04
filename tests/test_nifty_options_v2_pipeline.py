@@ -16,7 +16,13 @@ class FakeData:
     }
 
     def get_observation(self, *, expiry, strike, observed_date):
-        return self.rows[observed_date]
+        observation = self.rows[observed_date]
+        return NiftyCallObservation(
+            NiftyCallContract(observation.contract.expiry, strike),
+            observation.observed_date,
+            observation.spot,
+            observation.ltp,
+        )
 
 
 def test_pipeline_selects_strike_runs_trade_and_reports() -> None:
@@ -44,8 +50,12 @@ def test_pipeline_rejects_when_no_itm_strike_exists() -> None:
         pipeline.run(
             [
                 V2SeriesInput(
-                    "2021-06", date(2021, 6, 24), date(2021, 5, 27), date(2021, 6, 24),
-                    15300, [15300, 15500],
+                    "2021-06",
+                    date(2021, 6, 24),
+                    date(2021, 5, 27),
+                    date(2021, 6, 24),
+                    15300,
+                    [15300, 15500],
                 )
             ]
         )
