@@ -1,3 +1,5 @@
+# ruff: noqa: I001
+
 """Backtest execution engine for prepared NIFTY option observations."""
 
 from __future__ import annotations
@@ -7,7 +9,7 @@ from typing import Any
 
 import pandas as pd
 
-from strategy.book_v1 import BookV1Strategy  # noqa: I001
+from strategy.book_v1 import BookV1Strategy
 
 
 REQUIRED_COLUMNS = (
