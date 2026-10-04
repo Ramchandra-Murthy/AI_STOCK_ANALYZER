@@ -5,9 +5,9 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
-from strategy.book_v1 import BookV1Strategy
-
 import pandas as pd
+
+from strategy.book_v1 import BookV1Strategy
 
 
 REQUIRED_COLUMNS = (
