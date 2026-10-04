@@ -49,15 +49,15 @@ class BacktestEngine:
             )
             results.append(
                 {
-                "entry_date": trade.entry_date,
-                "exit_date": trade.exit_date,
-                "spot_entry": trade.spot_entry,
-                "spot_exit": trade.spot_exit,
-                "strike": trade.strike,
-                "entry_ltp": trade.entry_ltp,
-                "exit_ltp": trade.exit_ltp,
-                "lot_size": trade.lot_size,
-                "points_pnl": trade.points_pnl,
+                    "entry_date": trade.entry_date,
+                    "exit_date": trade.exit_date,
+                    "spot_entry": trade.spot_entry,
+                    "spot_exit": trade.spot_exit,
+                    "strike": trade.strike,
+                    "entry_ltp": trade.entry_ltp,
+                    "exit_ltp": trade.exit_ltp,
+                    "lot_size": trade.lot_size,
+                    "points_pnl": trade.points_pnl,
                     "gross_pnl": trade.gross_pnl,
                 }
             )
