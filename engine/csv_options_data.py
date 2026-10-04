@@ -7,19 +7,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from strategy.nifty_options_v2 import NiftyCallObservation
+from strategy.nifty_options_v2 import NiftyCallContract, NiftyCallObservation
 
 
 class CsvHistoricalOptionsData:
-    """Load verified NIFTY CALL observations from a user-supplied CSV file.
+    """Load verified NIFTY CALL observations from a user-supplied CSV file."""
 
-    The provider deliberately contains no market data. The CSV must contain
-    observed_date, expiry, strike, spot, and ltp columns.
-    """
-
-    REQUIRED_COLUMNS = frozenset(
-        {"observed_date", "expiry", "strike", "spot", "ltp"}
-    )
+    REQUIRED_COLUMNS = frozenset({"observed_date", "expiry", "strike", "spot", "ltp"})
 
     def __init__(self, csv_path: str | Path) -> None:
         self.csv_path = Path(csv_path)
@@ -37,11 +31,7 @@ class CsvHistoricalOptionsData:
         ).dt.date
 
     def get_observation(
-        self,
-        *,
-        expiry: date,
-        strike: float,
-        observed_date: date,
+        self, *, expiry: date, strike: float, observed_date: date
     ) -> NiftyCallObservation:
         """Return the exact historical observation requested."""
         matches = self._frame.loc[
@@ -50,17 +40,12 @@ class CsvHistoricalOptionsData:
             & (self._frame["observed_date"] == observed_date)
         ]
         if matches.empty:
-            raise KeyError(
-                "No historical observation for the requested expiry, strike, "
-                "and observed date"
-            )
+            raise KeyError("No historical observation for the requested contract and date")
         if len(matches) > 1:
             raise ValueError("Multiple historical observations match the request")
         row = matches.iloc[0]
         return NiftyCallObservation(
-            contract=__import__("strategy.nifty_options_v2", fromlist=["NiftyCallContract"]).NiftyCallContract(
-                expiry=expiry, strike=float(row["strike"])
-            ),
+            contract=NiftyCallContract(expiry=expiry, strike=float(row["strike"])),
             observed_date=observed_date,
             spot=float(row["spot"]),
             ltp=float(row["ltp"]),
