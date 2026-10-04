@@ -11,7 +11,6 @@ import pandas as pd
 
 from strategy.book_v1 import BookV1Strategy
 
-
 REQUIRED_COLUMNS = (
     "entry_date",
     "exit_date",
@@ -48,7 +47,8 @@ class BacktestEngine:
                 exit_ltp=float(row.exit_ltp),
                 lot_size=int(row.lot_size),
             )
-            results.append({
+            results.append(
+                {
                 "entry_date": trade.entry_date,
                 "exit_date": trade.exit_date,
                 "spot_entry": trade.spot_entry,
@@ -58,8 +58,9 @@ class BacktestEngine:
                 "exit_ltp": trade.exit_ltp,
                 "lot_size": trade.lot_size,
                 "points_pnl": trade.points_pnl,
-                "gross_pnl": trade.gross_pnl,
-            })
+                    "gross_pnl": trade.gross_pnl,
+                }
+            )
 
         return pd.DataFrame(results)
 
