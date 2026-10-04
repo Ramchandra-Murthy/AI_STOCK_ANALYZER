@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from engine.backtest_engine import BacktestEngine
-from strategy.book_v1 import BookV1Strategy
+from engine.backtest_engine import BacktestEngine  # noqa: I001
+from strategy.book_v1 import BookV1Strategy  # noqa: I001
 
 
 BOOK_2017 = [
