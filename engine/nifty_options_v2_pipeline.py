@@ -29,7 +29,9 @@ class NiftyOptionsV2Pipeline:
     def __init__(self, backtest: NiftyOptionsV2Backtest) -> None:
         self.backtest = backtest
 
-    def run(self, series_inputs: list[V2SeriesInput]) -> tuple[list[MonthlyV2Trade], V2BacktestReport]:
+    def run(
+        self, series_inputs: list[V2SeriesInput]
+    ) -> tuple[list[MonthlyV2Trade], V2BacktestReport]:
         """Run explicit series inputs and return trades plus aggregate report."""
         specifications = []
         for item in series_inputs:
