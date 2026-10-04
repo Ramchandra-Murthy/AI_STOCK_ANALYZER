@@ -1,3 +1,5 @@
+# ruff: noqa: I001
+
 """Golden-reference tests for the book published 2017 NIFTY CALL table."""
 
 from __future__ import annotations
@@ -5,8 +7,8 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from engine.backtest_engine import BacktestEngine  # noqa: I001
-from strategy.book_v1 import BookV1Strategy  # noqa: I001
+from engine.backtest_engine import BacktestEngine
+from strategy.book_v1 import BookV1Strategy
 
 
 BOOK_2017 = [
