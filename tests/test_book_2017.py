@@ -29,16 +29,16 @@ BOOK_2017 = [
 def _book_2017_dataframe() -> pd.DataFrame:
     return pd.DataFrame(
         [
-        {
-            "entry_date": pd.Timestamp(f"{month}-01"),
-            "exit_date": pd.Timestamp(f"{month}-28"),
-            "spot_entry": spot_entry,
-            "spot_exit": spot_exit,
-            "strike": strike,
-            "entry_ltp": entry_ltp,
-            "exit_ltp": exit_ltp,
-            "lot_size": 75,
-        }
+            {
+                "entry_date": pd.Timestamp(f"{month}-01"),
+                "exit_date": pd.Timestamp(f"{month}-28"),
+                "spot_entry": spot_entry,
+                "spot_exit": spot_exit,
+                "strike": strike,
+                "entry_ltp": entry_ltp,
+                "exit_ltp": exit_ltp,
+                "lot_size": 75,
+            }
             for month, spot_entry, spot_exit, strike, entry_ltp, exit_ltp in BOOK_2017
         ]
     )
