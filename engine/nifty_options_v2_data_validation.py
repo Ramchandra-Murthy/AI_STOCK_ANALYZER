@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 
-import pandas as pd
+import pandas as pd  # ruff: noqa: I001
 
 
 REQUIRED_COLUMNS = ("observed_date", "expiry", "strike", "spot", "ltp")
