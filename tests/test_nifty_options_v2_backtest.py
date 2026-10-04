@@ -44,14 +44,18 @@ def test_v2_backtest_rejects_non_itm_entry() -> None:
 
     with pytest.raises(ValueError, match="ITM CALL"):
         NiftyOptionsV2Backtest(NonItm()).run_trade(
-            expiry=date(2021, 6, 24), strike=16000,
-            entry_date=date(2021, 5, 27), exit_date=date(2021, 6, 24)
+            expiry=date(2021, 6, 24),
+            strike=16000,
+            entry_date=date(2021, 5, 27),
+            exit_date=date(2021, 6, 24),
         )
 
 
 def test_v2_backtest_rejects_reverse_dates() -> None:
     with pytest.raises(ValueError, match="exit_date"):
         NiftyOptionsV2Backtest(FakeHistoricalData()).run_trade(
-            expiry=date(2021, 6, 24), strike=15000,
-            entry_date=date(2021, 6, 24), exit_date=date(2021, 5, 27)
+            expiry=date(2021, 6, 24),
+            strike=15000,
+            entry_date=date(2021, 6, 24),
+            exit_date=date(2021, 5, 27),
         )
