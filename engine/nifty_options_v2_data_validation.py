@@ -1,10 +1,12 @@
 """Validation helpers for NIFTY Options Book V2 historical data."""
 
+# ruff: noqa: I001
+
 from __future__ import annotations
 
 from datetime import date
 
-import pandas as pd  # ruff: noqa: I001
+import pandas as pd
 
 
 REQUIRED_COLUMNS = ("observed_date", "expiry", "strike", "spot", "ltp")
