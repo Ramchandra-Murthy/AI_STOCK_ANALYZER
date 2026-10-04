@@ -41,9 +41,7 @@ class NiftyOptionsV2Backtest:
         """Enter on entry_date and exit on exit_date without adjustment."""
         if exit_date < entry_date:
             raise ValueError("exit_date must not precede entry_date")
-        entry = self.data.get_observation(
-            expiry=expiry, strike=strike, observed_date=entry_date
-        )
+        entry = self.data.get_observation(expiry=expiry, strike=strike, observed_date=entry_date)
         exit_observation = self.data.get_observation(
             expiry=expiry, strike=strike, observed_date=exit_date
         )
