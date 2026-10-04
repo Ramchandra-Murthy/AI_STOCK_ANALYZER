@@ -10,7 +10,6 @@ import pytest
 from engine.backtest_engine import BacktestEngine
 from strategy.book_v1 import BookV1Strategy
 
-
 BOOK_2017 = [
     ("2017-01", 8103, 8602, 7500, 623, 1092),
     ("2017-02", 8602, 8939, 8000, 616, 940),
@@ -28,7 +27,8 @@ BOOK_2017 = [
 
 
 def _book_2017_dataframe() -> pd.DataFrame:
-    return pd.DataFrame([
+    return pd.DataFrame(
+        [
         {
             "entry_date": pd.Timestamp(f"{month}-01"),
             "exit_date": pd.Timestamp(f"{month}-28"),
@@ -39,8 +39,9 @@ def _book_2017_dataframe() -> pd.DataFrame:
             "exit_ltp": exit_ltp,
             "lot_size": 75,
         }
-        for month, spot_entry, spot_exit, strike, entry_ltp, exit_ltp in BOOK_2017
-    ])
+            for month, spot_entry, spot_exit, strike, entry_ltp, exit_ltp in BOOK_2017
+        ]
+    )
 
 
 def test_2017_matches_book_totals() -> None:
