@@ -8,7 +8,6 @@ from datetime import date
 
 import pandas as pd
 
-
 REQUIRED_COLUMNS = ("observed_date", "expiry", "strike", "spot", "ltp")
 
 
