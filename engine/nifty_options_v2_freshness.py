@@ -1,4 +1,5 @@
 """Freshness checks for NIFTY Options V2 paper market data."""
+
 # ruff: noqa: I001
 
 from __future__ import annotations
