@@ -5,7 +5,7 @@ import pandas as pd
 from engine.nifty_options_v2_auto import NiftyOptionsV2AutoPaper, PaperAction
 from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
 from engine.nifty_options_v2_live import LivePaperObservation
-from engine.nifty_options_v2_market_data import NiftyV2MarketObservation
+from engine.nifty_options_v2_market_data import NiftyV2MarketObservation, select_deepest_itm_call
 from strategy.nifty_options_v2 import NiftyCallContract
 
 
@@ -112,7 +112,7 @@ def test_end_to_end_selects_deepest_itm_and_enters_next_series() -> None:
             "CE LTP": [700, 1000, 1200, 1500],
         }
     )
-    observation = __import__("engine.nifty_options_v2_market_data", fromlist=["select_deepest_itm_call"]).select_deepest_itm_call(
+    observation = select_deepest_itm_call(
         chain,
         spot=25000,
         expiry=date(2026, 11, 26),
