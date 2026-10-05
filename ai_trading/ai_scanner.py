@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pandas as pd
-import yfinance as yf
 
 from ai_trading.features import build_features
 from ai_trading.signal_engine import score_features
+from services.resilient_market_data import download_symbol_frames
 
 
 def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y") -> pd.DataFrame:
@@ -22,25 +22,35 @@ def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y")
         s if str(s).upper().endswith(suffix) else f"{str(s).strip().upper()}{suffix}"
         for s in symbols
     ]
-    data = yf.download(
-        tickers=tickers,
+    frames, diagnostics = download_symbol_frames(
+        tickers,
         period=period,
+        interval="1d",
         auto_adjust=False,
-        progress=False,
-        group_by="ticker",
-        threads=True,
+        batch_size=10,
+        timeout=15,
     )
-    if data.empty:
-        return pd.DataFrame()
+    if not frames:
+        empty = pd.DataFrame(
+            columns=[
+                "symbol",
+                "exchange",
+                "price",
+                "ai_score",
+                "confidence_pct",
+                "signal",
+                "return_5_pct",
+                "return_20_pct",
+                "volatility_pct",
+                "volume_ratio",
+            ]
+        )
+        empty.attrs["scan_diagnostics"] = diagnostics
+        return empty
 
     rows: list[dict[str, object]] = []
     for symbol, ticker in zip(symbols, tickers, strict=True):
-        if isinstance(data.columns, pd.MultiIndex):
-            if ticker not in data.columns.get_level_values(0):
-                continue
-            frame = data[ticker].copy()
-        else:
-            frame = data.copy()
+        frame = frames.get(ticker, pd.DataFrame()).copy()
         frame = frame.dropna(how="all")
         if frame.empty or "Close" not in frame.columns:
             continue
@@ -83,9 +93,13 @@ def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y")
         "volume_ratio",
     ]
     if not rows:
-        return pd.DataFrame(columns=columns)
-    return (
+        empty = pd.DataFrame(columns=columns)
+        empty.attrs["scan_diagnostics"] = diagnostics
+        return empty
+    result = (
         pd.DataFrame(rows, columns=columns)
         .sort_values(["confidence_pct", "ai_score"], ascending=False)
         .reset_index(drop=True)
     )
+    result.attrs["scan_diagnostics"] = diagnostics
+    return result

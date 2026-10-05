@@ -15,6 +15,7 @@ from components.top10_live import (
     TOP10_MARKET_OPEN_MINUTE,
     TOP10_MAX_CANDIDATES_PER_EXCHANGE,
     TOP10_MAX_CONSECUTIVE_FAILURES,
+    TOP10_MIN_TRUSTED_COVERAGE_QUOTES,
     TOP10_PARTIAL_FAILURES_KEY,
     TOP10_PERSISTENCE_ALERT_MIN_SCANS,
     TOP10_PERSISTENCE_MIN_SCANS,
@@ -33,7 +34,9 @@ from components.top10_live import (
     _calculate_signal_strength,
     _coverage_status,
     _persistence_alerts,
+    _provider_age_seconds,
     _scan_live_top10,
+    _should_record_signal_history,
     _signal_confirmation,
     _signal_history_table,
     _signal_history_trend,
@@ -605,3 +608,17 @@ def test_top10_live_signal_quality_metrics_handle_empty_history() -> None:
         "Direction consistency": 0.0,
         "Momentum consistency": 0.0,
     }
+
+
+def test_top10_live_only_records_history_from_trusted_complete_scans() -> None:
+    assert TOP10_MIN_TRUSTED_COVERAGE_QUOTES == TOP10_GOOD_COVERAGE_QUOTES
+    assert _should_record_signal_history(40, 0) is True
+    assert _should_record_signal_history(36, 0) is True
+    assert _should_record_signal_history(35, 0) is False
+    assert _should_record_signal_history(40, 1) is False
+
+
+def test_top10_live_uses_provider_candle_age() -> None:
+    now = datetime(2026, 10, 5, 10, 0, tzinfo=ZoneInfo(TOP10_TIMEZONE))
+    assert _provider_age_seconds("2026-10-05T09:59:00+05:30", now) == 60.0
+    assert _provider_age_seconds("not-a-timestamp", now) is None

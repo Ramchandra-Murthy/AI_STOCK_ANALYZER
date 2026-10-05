@@ -15,13 +15,12 @@ def test_clean_close_series_handles_multiindex_close():
 
 
 def test_last_observation_prefers_intraday(monkeypatch):
-    class FakeTicker:
-        def history(self, **kwargs):
-            if kwargs["interval"] == "1m":
-                return pd.DataFrame({"Close": [100.0, 105.0]})
-            return pd.DataFrame({"Close": [99.0, 100.0]})
+    def fake_download(tickers, *, interval, **kwargs):
+        if interval == "1m":
+            return {"TEST": pd.DataFrame({"Close": [100.0, 105.0]})}, []
+        return {"TEST": pd.DataFrame({"Close": [99.0, 100.0]})}, []
 
-    monkeypatch.setattr(market_service.yf, "Ticker", lambda _: FakeTicker())
+    monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
 
     value, change, previous_close, observed_at, frequency, is_intraday = (
         market_service._get_last_observation("TEST")
@@ -34,13 +33,12 @@ def test_last_observation_prefers_intraday(monkeypatch):
 
 
 def test_last_observation_falls_back_to_daily(monkeypatch):
-    class FakeTicker:
-        def history(self, **kwargs):
-            if kwargs["interval"] == "1m":
-                return pd.DataFrame()
-            return pd.DataFrame({"Close": [100.0, 105.0]})
+    def fake_download(tickers, *, interval, **kwargs):
+        if interval == "1m":
+            return {}, ["TEST"]
+        return {"TEST": pd.DataFrame({"Close": [100.0, 105.0]})}, []
 
-    monkeypatch.setattr(market_service.yf, "Ticker", lambda _: FakeTicker())
+    monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
 
     value, change, previous_close, observed_at, frequency, is_intraday = (
         market_service._get_last_observation("TEST")
@@ -53,11 +51,10 @@ def test_last_observation_falls_back_to_daily(monkeypatch):
 
 
 def test_last_observation_rejects_empty_provider_data(monkeypatch):
-    class FakeTicker:
-        def history(self, **kwargs):
-            return pd.DataFrame()
+    def fake_download(tickers, *, interval, **kwargs):
+        return {}, ["TEST"]
 
-    monkeypatch.setattr(market_service.yf, "Ticker", lambda _: FakeTicker())
+    monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
 
     assert market_service._get_last_observation("TEST") == (
         None,
