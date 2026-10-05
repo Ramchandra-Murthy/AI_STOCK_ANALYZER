@@ -13,7 +13,7 @@ from engine.nifty_options_v2_live import (
     LivePaperObservation,
     NiftyOptionsV2LivePaperSession,
 )
-from engine.nifty_options_v2_market_data import NiftyV2MarketObservation
+from engine.nifty_options_v2_market_data import (\n    NiftyV2MarketObservation,\n    select_deepest_itm_call,\n)
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
 
@@ -74,13 +74,30 @@ if st.button("Run Automatic Book V2 Cycle", type="primary"):
         if cycle is None:
             st.warning("Automatic cycle unavailable: two monthly expiries are required.")
         else:
-            market_observation = NiftyV2MarketObservation(
-                contract=NiftyCallContract(
+            if auto_strike:
+                next_provider = fetch_option_chain("NIFTY", cycle.next_expiry.isoformat())
+                if next_provider.status != "AVAILABLE" or next_provider.spot is None:
+                    raise ValueError(
+                        f"Next-series option chain unavailable: {next_provider.message}"
+                    )
+                market_observation = select_deepest_itm_call(
+                    next_provider.chain,
+                    spot=next_provider.spot,
                     expiry=cycle.next_expiry,
-                    strike=strike,
-                ),
-                observation=observation,
-            )
+                    observed_date=observed_date,
+                )
+                st.info(
+                    f"Auto-selected deepest ITM CALL: {market_observation.contract.strike:.0f} "
+                    f"@ LTP {market_observation.observation.ltp:.2f}"
+                )
+            else:
+                market_observation = NiftyV2MarketObservation(
+                    contract=NiftyCallContract(
+                        expiry=cycle.next_expiry,
+                        strike=strike,
+                    ),
+                    observation=observation,
+                )
             result = auto_cycle.process(
                 expiries=provider.expiries,
                 observed_date=observed_date,
