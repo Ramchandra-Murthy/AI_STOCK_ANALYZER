@@ -76,7 +76,7 @@ observation = LivePaperObservation(
 if st.button("Refresh Live Paper Observation"):
     st.rerun()
 
-if st.button("Run Automatic Book V2 Cycle", type="primary"):\n    st.rerun()\n\nif st.button("Run Automatic Book V2 Cycle", type="primary"):
+if st.button("Run Automatic Book V2 Cycle", type="primary"):
     try:
         if cycle is None:
             st.warning("Automatic cycle unavailable: two monthly expiries are required.")
