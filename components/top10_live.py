@@ -578,9 +578,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
                 continue
 
             change_1m = (latest / previous - 1.0) * 100
-            change_5m = (
-                (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
-            )
+            change_5m = (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
             latest_candles.append(pd.Timestamp(close.index[-1]))
             symbol = ticker.rsplit(".", 1)[0]
 
@@ -760,10 +758,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     annotated_top10 = _add_signal_confirmation(annotated_top10)
     change_alerts = _watchlist_change_alerts(annotated_top10)
     persistence_alerts = _persistence_alerts(annotated_top10)
-    if (
-        completed_at != st.session_state.get(TOP10_SIGNAL_HISTORY_UPDATED_KEY)
-        and _should_record_signal_history(valid_quotes, partial_failures)
-    ):
+    if completed_at != st.session_state.get(
+        TOP10_SIGNAL_HISTORY_UPDATED_KEY
+    ) and _should_record_signal_history(valid_quotes, partial_failures):
         signal_history = _update_signal_history(signal_history, annotated_top10, completed_at)
         st.session_state[TOP10_SIGNAL_HISTORY_KEY] = signal_history
         st.session_state[TOP10_SIGNAL_HISTORY_UPDATED_KEY] = completed_at
