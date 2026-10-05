@@ -44,10 +44,7 @@ if cycle is not None:
     cycle_right.metric("Strategy Action", cycle.action.value.upper())
     st.caption(cycle.reason)
 else:
-    st.info(
-        "Monthly cycle status is unavailable until two provider-reported monthly "
-        "expiries exist."
-    )
+    st.info("Monthly cycle status is unavailable until two provider-reported monthly expiries exist.")
 
 left, right = st.columns(2)
 
