@@ -12,6 +12,7 @@ import streamlit as st
 from engine.nifty_options_v2_auto import NiftyOptionsV2AutoPaper
 from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
 from engine.nifty_options_v2_cycle_status import cycle_status
+from engine.nifty_options_v2_freshness import market_data_is_fresh
 from engine.nifty_options_v2_live import (
     LivePaperObservation,
     NiftyOptionsV2LivePaperSession,
@@ -21,7 +22,6 @@ from engine.nifty_options_v2_market_data import (
     select_deepest_itm_call,
 )
 from engine.nifty_options_v2_market_session import market_session_ready
-from engine.nifty_options_v2_freshness import market_data_is_fresh
 from engine.nifty_options_v2_provider_guard import provider_data_ready
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
