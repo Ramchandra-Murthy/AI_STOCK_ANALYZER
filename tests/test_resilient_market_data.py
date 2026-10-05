@@ -21,10 +21,14 @@ def _frame() -> pd.DataFrame:
 
 def test_download_symbol_frames_recovers_missing_symbols(monkeypatch) -> None:
     def fake_batch(tickers, **_kwargs):
-        return pd.concat(
-            {"AAA.NS": _frame()},
-            axis=1,
-        ) if "AAA.NS" in tickers else pd.DataFrame()
+        return (
+            pd.concat(
+                {"AAA.NS": _frame()},
+                axis=1,
+            )
+            if "AAA.NS" in tickers
+            else pd.DataFrame()
+        )
 
     monkeypatch.setattr(market_data, "_download_batch", fake_batch)
     monkeypatch.setattr(market_data, "_download_single", lambda ticker, **_: _frame())

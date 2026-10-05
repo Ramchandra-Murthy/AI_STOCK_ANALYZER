@@ -36,12 +36,9 @@ if st.button("Run AI Trading Scan", type="primary"):
     if result.empty:
         missing = diagnostics.get("missing", [])
         detail = f" Missing/unresolved: {len(missing)} symbols." if missing else ""
-        st.error(
-            "AI scan returned no usable market data after bounded retries." + detail
-        )
+        st.error("AI scan returned no usable market data after bounded retries." + detail)
         st.caption(
-            "No signal was generated from missing or synthetic data; "
-            "retry during market hours."
+            "No signal was generated from missing or synthetic data; " "retry during market hours."
         )
         st.stop()
 
