@@ -263,6 +263,7 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
 
 def get_market_indices() -> dict[str, dict[str, Any]]:
     """Return market indices concurrently so slow provider calls do not serialize startup."""
+
     def fetch(item: tuple[str, str]) -> tuple[str, dict[str, Any]]:
         name, ticker = item
         value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
