@@ -17,6 +17,7 @@ from engine.nifty_options_v2_market_data import (
     NiftyV2MarketObservation,
     select_deepest_itm_call,
 )
+from engine.nifty_options_v2_provider_guard import provider_data_ready
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
 
@@ -30,6 +31,8 @@ st.caption(
 
 if "nifty_v2_paper_session" not in st.session_state:
     st.session_state.nifty_v2_paper_session = NiftyOptionsV2LivePaperSession()
+if "nifty_v2_decision_history" not in st.session_state:
+    st.session_state.nifty_v2_decision_history = []
 
 session: NiftyOptionsV2LivePaperSession = st.session_state.nifty_v2_paper_session
 
@@ -85,7 +88,7 @@ observation = LivePaperObservation(
 if st.button("Refresh Live Paper Observation"):
     st.rerun()
 
-automatic_data_ready = provider.status == "AVAILABLE" and not provider.chain.empty
+automatic_data_ready = provider_data_ready(provider)
 
 if st.button(
     "Run Automatic Book V2 Cycle",
@@ -129,8 +132,38 @@ if st.button(
                 st.warning("Automatic cycle could not be evaluated.")
             else:
                 st.success(f"Book V2 action: {result.action.value.upper()} — {result.reason}")
+                st.caption(
+                    f"Observation: {result.observed_date.isoformat()} | "
+                    f"Strike {result.strike:.0f} | Spot {result.spot:.2f} | "
+                    f"LTP {result.ltp:.2f}"
+                )
+                st.session_state.nifty_v2_decision_history.append(
+                    {
+                        "Observed": result.observed_date,
+                        "Current Expiry": result.current_expiry,
+                        "Next Expiry": result.next_expiry,
+                        "Strike": result.strike,
+                        "Spot": result.spot,
+                        "LTP": result.ltp,
+                        "Action": result.action.value.upper(),
+                        "Reason": result.reason,
+                    }
+                )
+                st.session_state.nifty_v2_decision_history = (
+                    st.session_state.nifty_v2_decision_history[-100:]
+                )
     except ValueError as exc:
         st.error(str(exc))
+
+if st.session_state.nifty_v2_decision_history:
+    st.subheader("Automatic Decision History")
+    st.dataframe(
+        st.session_state.nifty_v2_decision_history,
+        use_container_width=True,
+    )
+    if st.button("Clear Decision History"):
+        st.session_state.nifty_v2_decision_history = []
+        st.rerun()
 
 if st.button("Start Paper Trade", type="secondary"):
     try:

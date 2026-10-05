@@ -18,6 +18,10 @@ class AutoCycleResult:
     reason: str
     current_expiry: date
     next_expiry: date
+    observed_date: date
+    strike: float
+    spot: float
+    ltp: float
 
 
 class NiftyOptionsV2AutoCycle:
@@ -53,4 +57,8 @@ class NiftyOptionsV2AutoCycle:
             reason=decision.reason,
             current_expiry=status.current_expiry,
             next_expiry=status.next_expiry,
+            observed_date=observation.observation.observed_date,
+            strike=observation.contract.strike,
+            spot=observation.observation.spot,
+            ltp=observation.observation.ltp,
         )
