@@ -404,6 +404,9 @@ def test_top10_live_signal_history_table_and_trend() -> None:
     assert table["Momentum score"].tolist() == [40, 65]
     assert list(trend.columns) == ["NSE:AAA"]
     assert trend["NSE:AAA"].tolist() == [40, 65]
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "st.line_chart(history_trend)" in source
+    assert "st.line_chart(history_trend, y_min=0, y_max=100)" not in source
 
 
 def test_top10_live_signal_persistence_counts_consecutive_presence_and_direction() -> None:
