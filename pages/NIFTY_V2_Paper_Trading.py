@@ -251,6 +251,16 @@ if active is not None:
             st.error(str(exc))
 
 if session.trader.completed_trades:
+    st.subheader("Paper Session Summary")
+    total_points = sum(trade.points_pnl or 0.0 for trade in session.trader.completed_trades)
+    summary_left, summary_mid, summary_right = st.columns(3)
+    summary_left.metric("Completed Trades", len(session.trader.completed_trades))
+    summary_mid.metric("Total Points P&L", f"{total_points:.2f}")
+    summary_right.metric(
+        "Session Status",
+        "ACTIVE" if session.trader.active_trade is not None else "FLAT",
+    )
+
     st.subheader("Completed Paper Trades")
     st.dataframe(
         [
