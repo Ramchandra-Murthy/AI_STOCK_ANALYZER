@@ -6,10 +6,12 @@ from datetime import date
 
 import streamlit as st
 
+from engine.nifty_options_v2_cycle_status import cycle_status
 from engine.nifty_options_v2_live import (
     LivePaperObservation,
     NiftyOptionsV2LivePaperSession,
 )
+from services.options_analytics import fetch_option_chain
 
 st.set_page_config(page_title="NIFTY V2 Paper Trading", page_icon="📈", layout="wide")
 
@@ -23,6 +25,26 @@ if "nifty_v2_paper_session" not in st.session_state:
     st.session_state.nifty_v2_paper_session = NiftyOptionsV2LivePaperSession()
 
 session: NiftyOptionsV2LivePaperSession = st.session_state.nifty_v2_paper_session
+
+provider = fetch_option_chain("NIFTY")
+active = session.trader.active_trade
+active_expiry = active.contract.expiry if active is not None else None
+
+cycle = cycle_status(
+    expiries=provider.expiries,
+    observed_date=date.today(),
+    active_contract_expiry=active_expiry,
+)
+
+if cycle is not None:
+    st.subheader("Book V2 Monthly Cycle")
+    cycle_left, cycle_mid, cycle_right = st.columns(3)
+    cycle_left.metric("Current Monthly Expiry", cycle.current_expiry.isoformat())
+    cycle_mid.metric("Next Monthly Expiry", cycle.next_expiry.isoformat())
+    cycle_right.metric("Strategy Action", cycle.action.value.upper())
+    st.caption(cycle.reason)
+else:
+    st.info("Monthly cycle status is unavailable until two provider-reported monthly expiries exist.")
 
 left, right = st.columns(2)
 
