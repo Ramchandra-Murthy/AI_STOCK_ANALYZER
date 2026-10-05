@@ -13,7 +13,10 @@ from engine.nifty_options_v2_live import (
     LivePaperObservation,
     NiftyOptionsV2LivePaperSession,
 )
-from engine.nifty_options_v2_market_data import (\n    NiftyV2MarketObservation,\n    select_deepest_itm_call,\n)
+from engine.nifty_options_v2_market_data import (
+    NiftyV2MarketObservation,
+    select_deepest_itm_call,
+)
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
 
