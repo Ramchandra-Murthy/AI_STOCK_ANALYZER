@@ -37,6 +37,10 @@ if "nifty_v2_decision_history" not in st.session_state:
 
 session: NiftyOptionsV2LivePaperSession = st.session_state.nifty_v2_paper_session
 
+if st.button("Reset Paper Session"):
+    st.session_state.nifty_v2_paper_session = NiftyOptionsV2LivePaperSession()
+    st.rerun()
+
 provider_fetched_at = datetime.now(UTC)
 provider = fetch_option_chain("NIFTY")
 
