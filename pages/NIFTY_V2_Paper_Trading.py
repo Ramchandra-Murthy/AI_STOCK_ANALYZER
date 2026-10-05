@@ -113,6 +113,27 @@ observation = LivePaperObservation(
 if st.button("Refresh Live Paper Observation"):
     st.rerun()
 
+if st.button("Preview Automatic CALL"):
+    if cycle is None:
+        st.warning("Automatic cycle unavailable: two monthly expiries are required.")
+    else:
+        preview_provider = fetch_option_chain("NIFTY", cycle.next_expiry.isoformat())
+        if preview_provider.status != "AVAILABLE" or preview_provider.spot is None:
+            st.warning(f"Next-series option chain unavailable: {preview_provider.message}")
+        else:
+            preview = select_deepest_itm_call(
+                preview_provider.chain,
+                spot=preview_provider.spot,
+                expiry=cycle.next_expiry,
+                observed_date=observed_date,
+            )
+            st.subheader("Automatic CALL Preview")
+            preview_left, preview_mid, preview_right = st.columns(3)
+            preview_left.metric("Expiry", preview.contract.expiry.isoformat())
+            preview_mid.metric("Strike", f"{preview.contract.strike:.0f}")
+            preview_right.metric("CALL LTP", f"{preview.observation.ltp:.2f}")
+            st.caption(f"NIFTY spot: {preview.observation.spot:.2f}")
+
 automatic_data_ready = provider_data_ready(provider)
 
 if st.button(
