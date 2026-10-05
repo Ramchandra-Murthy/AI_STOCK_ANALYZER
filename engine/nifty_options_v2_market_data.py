@@ -42,6 +42,11 @@ def select_deepest_itm_call(
         & (pd.to_numeric(chain["strike"], errors="coerce") < spot)
         & (pd.to_numeric(chain["CE LTP"], errors="coerce") >= 0)
     ].copy()
+    candidates["strike"] = pd.to_numeric(candidates["strike"], errors="coerce")
+    candidates["CE LTP"] = pd.to_numeric(candidates["CE LTP"], errors="coerce")
+    candidates = candidates.dropna(subset=["strike", "CE LTP"])
+    if candidates.empty:
+        raise ValueError("no valid ITM CALL quote is available")
     if candidates.empty:
         raise ValueError("no ITM CALL is available")
 
