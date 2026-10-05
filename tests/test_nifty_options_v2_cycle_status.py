@@ -1,3 +1,7 @@
+"""Tests for the NIFTY Options V2 monthly cycle status."""
+
+# ruff: noqa: I001
+
 from datetime import date
 
 from engine.nifty_options_v2_auto import PaperAction
