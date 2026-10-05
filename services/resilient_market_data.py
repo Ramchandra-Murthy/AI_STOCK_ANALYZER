@@ -18,7 +18,6 @@ import yfinance as yf
 DEFAULT_RETRIES = 2
 DEFAULT_TIMEOUT = 12.0
 RETRY_BACKOFF_SECONDS = 1.0
-REQUIRED_OHLCV = {"Open", "High", "Low", "Close", "Volume"}
 
 
 def _configure_yfinance() -> None:
