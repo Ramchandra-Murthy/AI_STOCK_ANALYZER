@@ -40,6 +40,25 @@ class NiftyOptionsV2AutoCycle:
         """Process one supplied observation without submitting broker orders."""
         active_trade = self.auto_paper.session.trader.active_trade
         active_expiry = active_trade.contract.expiry if active_trade is not None else None
+
+        if active_expiry is not None and observed_date >= active_expiry:
+            decision = self.auto_paper.process(
+                observation=observation,
+                current_series_expiry=active_expiry,
+            )
+            if decision.action is not PaperAction.EXIT_EXPIRY:
+                return None
+            return AutoCycleResult(
+                action=decision.action,
+                reason=decision.reason,
+                current_expiry=active_expiry,
+                next_expiry=active_expiry,
+                observed_date=observation.observation.observed_date,
+                strike=observation.contract.strike,
+                spot=observation.observation.spot,
+                ltp=observation.observation.ltp,
+            )
+
         status = cycle_status(
             expiries=expiries,
             observed_date=observed_date,
