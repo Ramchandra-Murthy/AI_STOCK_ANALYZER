@@ -781,8 +781,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     if coverage_status == "CRITICAL":
         st.error(
             f"🔴 CRITICAL QUOTE COVERAGE · Only {valid_quotes}/{TOP10_EXPECTED_QUOTES} "
-            \"quotes are valid. Displayed Top-10 data may be materially incomplete; "
-            \"automatic retry is active."
+            "quotes are valid. Displayed Top-10 data may be materially incomplete; "
+            "automatic retry is active."
         )
     elif coverage_status == "REDUCED":
         st.warning(
