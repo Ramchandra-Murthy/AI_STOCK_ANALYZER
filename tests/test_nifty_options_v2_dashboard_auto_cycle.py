@@ -29,7 +29,4 @@ def test_dashboard_cycle_uses_next_month_contract_for_entry() -> None:
     assert result.action is PaperAction.ENTER_NEXT_SERIES
     assert result.next_expiry == date(2026, 11, 26)
     assert coordinator.auto_paper.session.trader.active_trade is not None
-    assert (
-        coordinator.auto_paper.session.trader.active_trade.contract.expiry
-        == date(2026, 11, 26)
-    )
+    assert coordinator.auto_paper.session.trader.active_trade.contract.expiry == date(2026, 11, 26)
