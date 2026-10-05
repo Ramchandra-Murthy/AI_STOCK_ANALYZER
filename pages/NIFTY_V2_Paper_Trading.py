@@ -71,11 +71,7 @@ auto_strike = st.checkbox("Automatically select deepest ITM CALL from option cha
 
 st.subheader("Automatic Cycle Readiness")
 readiness_left, readiness_right = st.columns(2)
-cycle_ready = (
-    provider.status == "AVAILABLE"
-    and not provider.chain.empty
-    and cycle is not None
-)
+cycle_ready = provider.status == "AVAILABLE" and not provider.chain.empty and cycle is not None
 readiness_left.metric("Ready", "YES" if cycle_ready else "NO")
 if cycle_ready:
     readiness_right.success("Provider data and monthly cycle are available.")
