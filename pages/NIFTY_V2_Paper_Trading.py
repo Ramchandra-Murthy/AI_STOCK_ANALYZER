@@ -130,6 +130,11 @@ if st.button(
                 st.warning("Automatic cycle could not be evaluated.")
             else:
                 st.success(f"Book V2 action: {result.action.value.upper()} — {result.reason}")
+                st.caption(
+                    f"Observation: {result.observed_date.isoformat()} | "
+                    f"Strike {result.strike:.0f} | Spot {result.spot:.2f} | "
+                    f"LTP {result.ltp:.2f}"
+                )
     except ValueError as exc:
         st.error(str(exc))
 
