@@ -64,7 +64,8 @@ class NiftyOptionsV2AutoPaper:
         current_series_expiry: date,
     ) -> V2TimingDecision:
         """Process one supplied observation without sending any broker order."""
-        active_expiry = self.session.trader.active_trade.contract.expiry
+        active_trade = self.session.trader.active_trade
+        active_expiry = active_trade.contract.expiry if active_trade is not None else None
         decision = decide_timing(
             observed_date=observation.observation.observed_date,
             current_series_expiry=current_series_expiry,
