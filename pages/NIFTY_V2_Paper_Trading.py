@@ -20,6 +20,7 @@ from engine.nifty_options_v2_market_data import (
     NiftyV2MarketObservation,
     select_deepest_itm_call,
 )
+from engine.nifty_options_v2_market_session import market_session_ready
 from engine.nifty_options_v2_provider_guard import provider_data_ready
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
@@ -151,7 +152,7 @@ if st.button("Preview Automatic CALL"):
             preview_right.metric("CALL LTP", f"{preview.observation.ltp:.2f}")
             st.caption(f"NIFTY spot: {preview.observation.spot:.2f}")
 
-automatic_data_ready = provider_data_ready(provider)
+automatic_data_ready = provider_data_ready(provider) and market_session_ready(datetime.now(UTC))
 
 if st.button(
     "Run Automatic Book V2 Cycle",
