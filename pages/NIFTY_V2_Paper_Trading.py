@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 from io import StringIO
 
 import streamlit as st
@@ -37,6 +37,7 @@ if "nifty_v2_decision_history" not in st.session_state:
 
 session: NiftyOptionsV2LivePaperSession = st.session_state.nifty_v2_paper_session
 
+provider_fetched_at = datetime.now(UTC)
 provider = fetch_option_chain("NIFTY")
 
 st.subheader("Market Data Status")
@@ -45,6 +46,7 @@ status_left.metric("Provider", provider.provider_symbol)
 status_mid.metric("Data Status", provider.status)
 status_right.metric("Spot", f"{provider.spot:.2f}" if provider.spot is not None else "Unavailable")
 st.caption(provider.message)
+st.caption(f"Fetched at (UTC): {provider_fetched_at.isoformat(timespec='seconds')}")
 if provider.expiry is not None:
     st.caption(f"Provider-selected expiry: {provider.expiry}")
 active = session.trader.active_trade
@@ -163,12 +165,10 @@ if st.session_state.nifty_v2_decision_history:
         use_container_width=True,
     )
     history_csv = StringIO()
-    history_columns = list(st.session_state.nifty_v2_decision_history[0])
-    history_csv.write(",".join(history_columns) + "\n")
-    for row in st.session_state.nifty_v2_decision_history:
-        history_csv.write(
-            ",".join(str(row[column]).replace(",", " ") for column in history_columns) + "\n"
-        )
+    history = st.session_state.nifty_v2_decision_history
+    writer = csv.DictWriter(history_csv, fieldnames=history[0].keys())
+    writer.writeheader()
+    writer.writerows(history)
     st.download_button(
         "Download Decision History CSV",
         data=history_csv.getvalue(),
