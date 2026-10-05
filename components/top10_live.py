@@ -538,6 +538,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     started = perf_counter()
     failures = 0
     rows: list[dict[str, object]] = []
+    latest_candles: list[pd.Timestamp] = []
 
     candidates = [
         *(("NSE", symbol) for symbol in NSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]),
@@ -578,6 +579,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
             change_5m = (
                 (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
             )
+            latest_candles.append(pd.Timestamp(close.index[-1]))
             symbol = ticker.rsplit(".", 1)[0]
 
             rows.append(
@@ -601,6 +603,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     valid_quotes = len(frame)
     frame.attrs["expected_quotes"] = len(all_tickers)
     frame.attrs["coverage_complete"] = valid_quotes == len(all_tickers)
+    frame.attrs["latest_candle_at"] = max(latest_candles) if latest_candles else None
     frame = (
         frame.assign(_abs_change=frame["1-min %"].abs())
         .sort_values("_abs_change", ascending=False)
