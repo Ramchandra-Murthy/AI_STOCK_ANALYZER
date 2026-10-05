@@ -87,7 +87,11 @@ if st.button("Refresh Live Paper Observation"):
 
 automatic_data_ready = provider.status == "AVAILABLE" and not provider.chain.empty
 
-if st.button(\n    "Run Automatic Book V2 Cycle",\n    type="primary",\n    disabled=not automatic_data_ready,\n):
+if st.button(
+    "Run Automatic Book V2 Cycle",
+    type="primary",
+    disabled=not automatic_data_ready,
+):
     try:
         if cycle is None:
             st.warning("Automatic cycle unavailable: two monthly expiries are required.")
