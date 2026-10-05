@@ -34,6 +34,4 @@ def test_compare_series_rejects_missing_series() -> None:
 
 
 def test_total_points() -> None:
-    assert total_points(
-        [BookSeriesResult("2017-01", 469), BookSeriesResult("2017-02", 324)]
-    ) == 793
+    assert total_points([BookSeriesResult("2017-01", 469), BookSeriesResult("2017-02", 324)]) == 793
