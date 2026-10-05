@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, time
 from functools import lru_cache
 from typing import Any
@@ -42,6 +43,7 @@ EXCHANGE_SUFFIXES = {
 INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
 MARKET_OPEN = time(9, 15)
 MARKET_CLOSE = time(15, 30)
+MARKET_INDEX_WORKERS = 6
 
 
 def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
@@ -260,12 +262,13 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
 
 
 def get_market_indices() -> dict[str, dict[str, Any]]:
-    result: dict[str, dict[str, Any]] = {}
-    for name, ticker in MARKET_INDICES.items():
-        value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
-            ticker
+    """Return market indices concurrently so slow provider calls do not serialize startup."""
+    def fetch(item: tuple[str, str]) -> tuple[str, dict[str, Any]]:
+        name, ticker = item
+        value, change, _previous_close, observed_at, frequency, is_intraday = (
+            _get_last_observation(ticker)
         )
-        result[name] = {
+        return name, {
             "value": value,
             "change": change,
             "observed_at": observed_at,
@@ -274,7 +277,9 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
             "is_tick_live": False,
             "is_intraday": is_intraday,
         }
-    return result
+
+    with ThreadPoolExecutor(max_workers=MARKET_INDEX_WORKERS) as executor:
+        return dict(executor.map(fetch, MARKET_INDICES.items()))
 
 
 def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
