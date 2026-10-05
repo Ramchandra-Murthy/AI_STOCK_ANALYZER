@@ -727,8 +727,12 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Do not use these rows for trading decisions."
         )
 
-    data_age_seconds = (
+    scan_age_seconds = (
         max(0.0, (now - completed_at).total_seconds()) if completed_at is not None else None
+    )
+    provider_age_seconds = _provider_age_seconds(top10.attrs.get("latest_candle_at"), now)
+    data_age_seconds = (
+        provider_age_seconds if provider_age_seconds is not None else scan_age_seconds
     )
     if scan_running:
         status = "🟡 REFRESHING · showing previous data"
@@ -762,7 +766,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.caption(
         f"{status} · Last update {last_update} IST · "
         f"Next refresh {next_refresh:%H:%M:%S} IST · "
-        f"Data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · "
+        f"Provider data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · "
         f"Provider failures {partial_failures} · Quotes {valid_quotes}/{TOP10_EXPECTED_QUOTES} · "
         f"Coverage {coverage_status} · Refresh every 60s"
     )
