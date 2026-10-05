@@ -25,9 +25,7 @@ def test_current_and_next_monthly_expiry_requires_two_months() -> None:
 
 
 def test_current_and_next_monthly_expiry_returns_first_two_months() -> None:
-    assert current_and_next_monthly_expiry(
-        ("2026-10-08", "2026-10-29", "2026-11-26")
-    ) == (
+    assert current_and_next_monthly_expiry(("2026-10-08", "2026-10-29", "2026-11-26")) == (
         date(2026, 10, 29),
         date(2026, 11, 26),
     )
