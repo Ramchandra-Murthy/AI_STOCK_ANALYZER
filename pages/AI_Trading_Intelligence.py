@@ -39,7 +39,10 @@ if st.button("Run AI Trading Scan", type="primary"):
         st.error(
             "AI scan returned no usable market data after bounded retries." + detail
         )
-        st.caption("No signal was generated from missing or synthetic data; retry during market hours.")
+        st.caption(
+            "No signal was generated from missing or synthetic data; "
+            "retry during market hours."
+        )
         st.stop()
 
     usable = diagnostics.get("usable", len(result))
@@ -245,7 +248,8 @@ if isinstance(ml_result, pd.DataFrame):
 st.divider()
 st.subheader("🧩 Unified AI Signal Explainability")
 st.caption(
-    "Breaks the unified ML decision into model probability, validation quality, trend contribution, "
+    "Breaks the unified ML decision into model probability, validation quality, "
+    "trend contribution, "
     "confidence and the final signal reason. Historical model measurements only."
 )
 
@@ -272,7 +276,7 @@ if st.button("Generate AI Signal Explanation", type="secondary"):
         else f"{str(explain_symbol).strip().upper()}.BO"
     )
     with st.spinner(f"Explaining {ticker}..."):
-        explain_frames, explain_diagnostics = download_symbol_frames(
+        explain_frames, _explain_diagnostics = download_symbol_frames(
             [ticker],
             period="5y",
             interval="1d",
@@ -355,7 +359,7 @@ if st.button("Train & Validate ML Model", type="secondary"):
         else f"{str(ml_symbol).strip().upper()}.BO"
     )
     with st.spinner(f"Training on {ticker}..."):
-        history_frames, history_diagnostics = download_symbol_frames(
+        history_frames, _history_diagnostics = download_symbol_frames(
             [ticker],
             period="5y",
             interval="1d",
