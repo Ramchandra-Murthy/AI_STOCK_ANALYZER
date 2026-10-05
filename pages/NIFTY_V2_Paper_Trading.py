@@ -252,9 +252,7 @@ if active is not None:
 
 if session.trader.completed_trades:
     st.subheader("Paper Session Summary")
-    total_points = sum(
-        trade.points_pnl or 0.0 for trade in session.trader.completed_trades
-    )
+    total_points = sum(trade.points_pnl or 0.0 for trade in session.trader.completed_trades)
     summary_left, summary_mid, summary_right = st.columns(3)
     summary_left.metric("Completed Trades", len(session.trader.completed_trades))
     summary_mid.metric("Total Points P&L", f"{total_points:.2f}")
