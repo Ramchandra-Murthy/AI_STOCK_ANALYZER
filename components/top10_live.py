@@ -309,6 +309,11 @@ def _update_signal_history(
     return updated[-TOP10_SIGNAL_HISTORY_LIMIT:]
 
 
+def _should_record_signal_history(valid_quotes: int, partial_failures: int) -> bool:
+    """Allow history updates only from complete, trusted provider scans."""
+    return valid_quotes >= TOP10_MIN_TRUSTED_COVERAGE_QUOTES and partial_failures == 0
+
+
 def _signal_history_table(history: list[pd.DataFrame] | None) -> pd.DataFrame:
     """Flatten rolling signal snapshots into a compact analysis table."""
     if not history:
@@ -728,8 +733,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     persistence_alerts = _persistence_alerts(annotated_top10)
     if (
         completed_at != st.session_state.get(TOP10_SIGNAL_HISTORY_UPDATED_KEY)
-        and valid_quotes >= TOP10_MIN_TRUSTED_COVERAGE_QUOTES
-        and partial_failures == 0
+        and _should_record_signal_history(valid_quotes, partial_failures)
     ):
         signal_history = _update_signal_history(signal_history, annotated_top10, completed_at)
         st.session_state[TOP10_SIGNAL_HISTORY_KEY] = signal_history
