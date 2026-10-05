@@ -545,7 +545,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         batch_size=TOP10_CHUNK_SIZE,
         timeout=15,
     )
-    failures = len(diagnostics)
+    failures = 1 if diagnostics else 0
 
     for exchange, tickers in tickers_by_exchange.items():
         for ticker in tickers:
@@ -700,8 +700,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "🟠 PROVIDER ISSUE · Showing the last successful Top-10. Automatic retry is active."
         )
     elif partial_failures:
+        unresolved = max(0, TOP10_EXPECTED_QUOTES - valid_quotes)
         st.warning(
-            f"🟠 PARTIAL PROVIDER ISSUE · {partial_failures} quote chunk(s) failed. "
+            f"🟠 PARTIAL PROVIDER ISSUE · {unresolved} quote(s) remain unresolved after retries. "
             "Displayed results may be incomplete; automatic retry is active. "
             "Do not use these rows for trading decisions."
         )
