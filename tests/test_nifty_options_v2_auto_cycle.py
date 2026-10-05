@@ -1,6 +1,7 @@
 from datetime import date
 
 from engine.nifty_options_v2_auto import NiftyOptionsV2AutoPaper, PaperAction
+from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
 from engine.nifty_options_v2_live import LivePaperObservation
 from engine.nifty_options_v2_market_data import NiftyV2MarketObservation
 from strategy.nifty_options_v2 import NiftyCallContract
@@ -22,9 +23,6 @@ def test_auto_paper_handles_no_active_trade() -> None:
     )
 
     assert decision.action is PaperAction.HOLD
-
-
-from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
 
 
 EXPIRIES = ("2026-10-29", "2026-11-26")
