@@ -47,7 +47,9 @@ status_left.metric("Provider", provider.provider_symbol)
 status_mid.metric("Data Status", provider.status)
 status_right.metric("Spot", f"{provider.spot:.2f}" if provider.spot is not None else "Unavailable")
 st.caption(provider.message)
-st.caption(f"Fetched at (UTC): {provider_fetched_at.isoformat(timespec=\"seconds\")}")
+st.caption(
+    f"Fetched at (UTC): {provider_fetched_at.isoformat(timespec='seconds')}"
+)
 if provider.expiry is not None:
     st.caption(f"Provider-selected expiry: {provider.expiry}")
 active = session.trader.active_trade
