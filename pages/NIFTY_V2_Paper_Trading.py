@@ -167,8 +167,7 @@ if st.session_state.nifty_v2_decision_history:
     history_csv.write(",".join(history_columns) + "\n")
     for row in st.session_state.nifty_v2_decision_history:
         history_csv.write(
-            ",".join(str(row[column]).replace(",", " ") for column in history_columns)
-            + "\n"
+            ",".join(str(row[column]).replace(",", " ") for column in history_columns) + "\n"
         )
     st.download_button(
         "Download Decision History CSV",
