@@ -13,4 +13,4 @@ MARKET_CLOSE = time(15, 30)
 def market_session_ready(now: datetime) -> bool:
     """Return whether automatic paper processing is allowed in regular NSE hours."""
     current = now.astimezone(IST)
-    return current.weekday() < 5 and MARKET_OPEN <= current.time() <= MARKET_CLOSE
+    return current.weekday() < 5 and MARKET_OPEN <= current.time() < MARKET_CLOSE
