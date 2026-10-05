@@ -43,6 +43,7 @@ cycle = cycle_status(
     active_contract_expiry=active_expiry,
 )
 auto_cycle = NiftyOptionsV2AutoCycle(auto_paper=NiftyOptionsV2AutoPaper(session=session))
+auto_strike = st.checkbox("Automatically select deepest ITM CALL from option chain", value=True)
 
 if cycle is not None:
     st.subheader("Book V2 Monthly Cycle")
@@ -71,6 +72,9 @@ observation = LivePaperObservation(
     spot=spot,
     ltp=ltp,
 )
+
+if st.button("Refresh Live Paper Observation"):
+    st.rerun()
 
 if st.button("Run Automatic Book V2 Cycle", type="primary"):
     try:
