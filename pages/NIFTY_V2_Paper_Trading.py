@@ -154,6 +154,12 @@ if st.button("Preview Automatic CALL"):
 
 automatic_data_ready = provider_data_ready(provider) and market_session_ready(datetime.now(UTC))
 
+if not automatic_data_ready:
+    st.caption(
+        "Automatic Book V2 cycle is blocked when provider data is unavailable "
+        "or the regular NSE market session is closed."
+    )
+
 if st.button(
     "Run Automatic Book V2 Cycle",
     type="primary",
