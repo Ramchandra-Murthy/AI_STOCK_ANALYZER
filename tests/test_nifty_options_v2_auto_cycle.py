@@ -84,3 +84,20 @@ def test_coordinator_returns_none_without_two_expiries() -> None:
     )
 
     assert result is None
+
+
+def test_coordinator_result_records_market_observation() -> None:
+    result = NiftyOptionsV2AutoCycle().process(
+        expiries=EXPIRIES,
+        observed_date=date(2026, 10, 29),
+        observation=_observation(
+            observed_date=date(2026, 10, 29),
+            expiry=date(2026, 11, 26),
+        ),
+    )
+
+    assert result is not None
+    assert result.observed_date == date(2026, 10, 29)
+    assert result.strike == 24000
+    assert result.spot == 25000
+    assert result.ltp == 1000
