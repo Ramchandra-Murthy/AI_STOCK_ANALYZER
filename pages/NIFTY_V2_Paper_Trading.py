@@ -275,3 +275,23 @@ if session.trader.completed_trades:
         ],
         use_container_width=True,
     )
+    report_rows = [
+        {
+            "Expiry": trade.contract.expiry.isoformat(),
+            "Strike": trade.contract.strike,
+            "Entry": trade.entry_ltp,
+            "Exit": trade.exit_ltp,
+            "Points P&L": trade.points_pnl,
+        }
+        for trade in session.trader.completed_trades
+    ]
+    report_buffer = StringIO()
+    report_writer = csv.DictWriter(report_buffer, fieldnames=report_rows[0].keys())
+    report_writer.writeheader()
+    report_writer.writerows(report_rows)
+    st.download_button(
+        "Download Paper Session Report CSV",
+        data=report_buffer.getvalue(),
+        file_name="nifty_v2_paper_session_report.csv",
+        mime="text/csv",
+    )
