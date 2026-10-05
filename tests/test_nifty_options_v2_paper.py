@@ -1,5 +1,5 @@
-from datetime import date
 import math
+from datetime import date
 
 import pytest
 
