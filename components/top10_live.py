@@ -549,7 +549,10 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
 
     for exchange, tickers in tickers_by_exchange.items():
         for ticker in tickers:
-            close = pd.to_numeric(frames.get(ticker, pd.DataFrame()).get("Close"), errors="coerce").dropna()
+            close = pd.to_numeric(
+                frames.get(ticker, pd.DataFrame()).get("Close"),
+                errors="coerce",
+            ).dropna()
             if len(close) < 2:
                 continue
 
@@ -689,7 +692,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     if top10.empty:
         if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
             st.error(
-                "🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. Retrying automatically."
+                "🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. "
+                "Retrying automatically."
             )
         else:
             st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
@@ -756,8 +760,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     if coverage_status == "CRITICAL":
         st.error(
-            f"🔴 CRITICAL QUOTE COVERAGE · Only {valid_quotes}/{TOP10_EXPECTED_QUOTES} quotes are valid. "
-            "Displayed Top-10 data may be materially incomplete; automatic retry is active."
+            f"🔴 CRITICAL QUOTE COVERAGE · Only {valid_quotes}/{TOP10_EXPECTED_QUOTES} "
+            \"quotes are valid. Displayed Top-10 data may be materially incomplete; "
+            \"automatic retry is active."
         )
     elif coverage_status == "REDUCED":
         st.warning(
