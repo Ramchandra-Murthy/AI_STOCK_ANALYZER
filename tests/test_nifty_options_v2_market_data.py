@@ -24,7 +24,7 @@ def test_select_deepest_itm_call_uses_lowest_available_strike() -> None:
 
 
 def test_select_deepest_itm_call_rejects_missing_itm_data() -> None:
-    with pytest.raises(ValueError, match="no ITM CALL"):
+    with pytest.raises(ValueError, match="no valid ITM CALL quote is available"):
         select_deepest_itm_call(
             pd.DataFrame({"strike": [25000, 25100], "CE LTP": [100, 50]}),
             spot=25000,

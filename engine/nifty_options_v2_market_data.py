@@ -46,7 +46,7 @@ def select_deepest_itm_call(
     candidates["CE LTP"] = pd.to_numeric(candidates["CE LTP"], errors="coerce")
     candidates = candidates.dropna(subset=["strike", "CE LTP"])
     if candidates.empty:
-        raise ValueError("no ITM CALL is available")
+        raise ValueError("no valid ITM CALL quote is available")
 
     row = candidates.sort_values("strike", ascending=True).iloc[0]
     contract = NiftyCallContract(expiry=expiry, strike=float(row["strike"]))

@@ -12,6 +12,7 @@ import streamlit as st
 from engine.nifty_options_v2_auto import NiftyOptionsV2AutoPaper
 from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
 from engine.nifty_options_v2_cycle_status import cycle_status
+from engine.nifty_options_v2_freshness import market_data_is_fresh
 from engine.nifty_options_v2_live import (
     LivePaperObservation,
     NiftyOptionsV2LivePaperSession,
@@ -152,7 +153,11 @@ if st.button("Preview Automatic CALL"):
             preview_right.metric("CALL LTP", f"{preview.observation.ltp:.2f}")
             st.caption(f"NIFTY spot: {preview.observation.spot:.2f}")
 
-automatic_data_ready = provider_data_ready(provider) and market_session_ready(datetime.now(UTC))
+automatic_data_ready = (
+    provider_data_ready(provider)
+    and market_session_ready(datetime.now(UTC))
+    and market_data_is_fresh(provider_fetched_at, now=datetime.now(UTC))
+)
 
 if not automatic_data_ready:
     st.caption(
