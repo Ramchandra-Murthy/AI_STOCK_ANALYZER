@@ -7,7 +7,6 @@ from datetime import date
 from engine.nifty_options_v2_auto import PaperAction
 from engine.nifty_options_v2_cycle_status import cycle_status
 
-
 EXPIRIES = ("2026-10-29", "2026-11-26")
 
 
