@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import csv
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time
 from io import StringIO
+from zoneinfo import ZoneInfo
 
 import streamlit as st
 
@@ -46,6 +47,21 @@ session: NiftyOptionsV2LivePaperSession = st.session_state.nifty_v2_paper_sessio
 if st.button("Reset Paper Session"):
     st.session_state.nifty_v2_paper_session = NiftyOptionsV2LivePaperSession()
     st.rerun()
+
+provider_fetched_at = datetime.now(UTC)
+provider = fetch_option_chain("NIFTY")
+india_now = datetime.now(ZoneInfo("Asia/Kolkata"))
+market_open = india_now.weekday() < 5 and time(9, 15) <= india_now.time() <= time(15, 30)
+
+st.subheader("NSE Market Session")
+if market_open:
+    st.success(f"MARKET SESSION OPEN — {india_now.strftime('%H:%M:%S')} IST")
+else:
+    st.info(f"MARKET SESSION CLOSED — {india_now.strftime('%H:%M:%S')} IST")
+st.caption(
+    "Session check uses weekday and 09:15–15:30 IST only; "
+    "exchange holidays are not inferred here."
+)
 
 provider_fetched_at = datetime.now(UTC)
 provider = fetch_option_chain("NIFTY")
