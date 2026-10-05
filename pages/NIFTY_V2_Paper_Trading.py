@@ -34,6 +34,15 @@ if "nifty_v2_paper_session" not in st.session_state:
 session: NiftyOptionsV2LivePaperSession = st.session_state.nifty_v2_paper_session
 
 provider = fetch_option_chain("NIFTY")
+
+st.subheader("Market Data Status")
+status_left, status_mid, status_right = st.columns(3)
+status_left.metric("Provider", provider.provider_symbol)
+status_mid.metric("Data Status", provider.status)
+status_right.metric("Spot", f"{provider.spot:.2f}" if provider.spot is not None else "Unavailable")
+st.caption(provider.message)
+if provider.expiry is not None:
+    st.caption(f"Provider-selected expiry: {provider.expiry}")
 active = session.trader.active_trade
 active_expiry = active.contract.expiry if active is not None else None
 
