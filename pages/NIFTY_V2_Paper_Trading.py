@@ -89,9 +89,7 @@ if st.button("Run Automatic Book V2 Cycle", type="primary"):
             if result is None:
                 st.warning("Automatic cycle could not be evaluated.")
             else:
-                st.success(
-                    f"Book V2 action: {result.action.value.upper()} — {result.reason}"
-                )
+                st.success(f"Book V2 action: {result.action.value.upper()} — {result.reason}")
     except ValueError as exc:
         st.error(str(exc))
 
