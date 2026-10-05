@@ -9,13 +9,13 @@ import streamlit as st
 from engine.nifty_options_v2_auto import NiftyOptionsV2AutoPaper
 from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
 from engine.nifty_options_v2_cycle_status import cycle_status
-from engine.nifty_options_v2_market_data import NiftyV2MarketObservation
-from strategy.nifty_options_v2 import NiftyCallContract
 from engine.nifty_options_v2_live import (
     LivePaperObservation,
     NiftyOptionsV2LivePaperSession,
 )
+from engine.nifty_options_v2_market_data import NiftyV2MarketObservation
 from services.options_analytics import fetch_option_chain
+from strategy.nifty_options_v2 import NiftyCallContract
 
 st.set_page_config(page_title="NIFTY V2 Paper Trading", page_icon="📈", layout="wide")
 
