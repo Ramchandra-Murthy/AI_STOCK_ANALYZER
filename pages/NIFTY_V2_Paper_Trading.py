@@ -6,12 +6,16 @@ from datetime import date
 
 import streamlit as st
 
+from engine.nifty_options_v2_auto import NiftyOptionsV2AutoPaper
+from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
 from engine.nifty_options_v2_cycle_status import cycle_status
 from engine.nifty_options_v2_live import (
     LivePaperObservation,
     NiftyOptionsV2LivePaperSession,
 )
+from engine.nifty_options_v2_market_data import NiftyV2MarketObservation
 from services.options_analytics import fetch_option_chain
+from strategy.nifty_options_v2 import NiftyCallContract
 
 st.set_page_config(page_title="NIFTY V2 Paper Trading", page_icon="📈", layout="wide")
 
@@ -35,6 +39,7 @@ cycle = cycle_status(
     observed_date=date.today(),
     active_contract_expiry=active_expiry,
 )
+auto_cycle = NiftyOptionsV2AutoCycle(auto_paper=NiftyOptionsV2AutoPaper(session=session))
 
 if cycle is not None:
     st.subheader("Book V2 Monthly Cycle")
@@ -64,7 +69,31 @@ observation = LivePaperObservation(
     ltp=ltp,
 )
 
-if st.button("Start Paper Trade", type="primary"):
+if st.button("Run Automatic Book V2 Cycle", type="primary"):
+    try:
+        if cycle is None:
+            st.warning("Automatic cycle unavailable: two monthly expiries are required.")
+        else:
+            market_observation = NiftyV2MarketObservation(
+                contract=NiftyCallContract(
+                    expiry=cycle.next_expiry,
+                    strike=strike,
+                ),
+                observation=observation,
+            )
+            result = auto_cycle.process(
+                expiries=provider.expiries,
+                observed_date=observed_date,
+                observation=market_observation,
+            )
+            if result is None:
+                st.warning("Automatic cycle could not be evaluated.")
+            else:
+                st.success(f"Book V2 action: {result.action.value.upper()} — {result.reason}")
+    except ValueError as exc:
+        st.error(str(exc))
+
+if st.button("Start Paper Trade", type="secondary"):
     try:
         session.start(expiry=expiry, strike=strike, observation=observation)
         st.success("Paper trade started. No broker order was submitted.")
