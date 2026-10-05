@@ -9,7 +9,6 @@ from engine.nifty_options_v2_refresh import (
     refresh_seconds,
 )
 
-
 IST = ZoneInfo("Asia/Kolkata")
 
 
