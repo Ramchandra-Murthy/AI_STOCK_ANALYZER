@@ -42,7 +42,8 @@ cycle = cycle_status(
     observed_date=date.today(),
     active_contract_expiry=active_expiry,
 )
-auto_cycle = NiftyOptionsV2AutoCycle(auto_paper=NiftyOptionsV2AutoPaper(session=session))\nauto_strike = st.checkbox("Automatically select deepest ITM CALL from option chain", value=True)
+auto_cycle = NiftyOptionsV2AutoCycle(auto_paper=NiftyOptionsV2AutoPaper(session=session))
+auto_strike = st.checkbox("Automatically select deepest ITM CALL from option chain", value=True)
 
 if cycle is not None:
     st.subheader("Book V2 Monthly Cycle")
@@ -72,7 +73,10 @@ observation = LivePaperObservation(
     ltp=ltp,
 )
 
-if st.button("Refresh Live Paper Observation"):\n    st.rerun()\n\nif st.button("Run Automatic Book V2 Cycle", type="primary"):
+if st.button("Refresh Live Paper Observation"):
+    st.rerun()
+
+if st.button("Run Automatic Book V2 Cycle", type="primary"):\n    st.rerun()\n\nif st.button("Run Automatic Book V2 Cycle", type="primary"):
     try:
         if cycle is None:
             st.warning("Automatic cycle unavailable: two monthly expiries are required.")
