@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import pandas as pd
-import yfinance as yf
-
 from ai_trading.adaptive_engine import (
     apply_adaptive_confidence,
     build_adaptive_adjustments,
@@ -14,6 +12,7 @@ from ai_trading.ml_model import predict_latest, train_model
 from ai_trading.outcome_learning import confidence_bucket
 from ai_trading.regime_context import build_regime_context
 from ai_trading.regime_decision import build_regime_aware_decision
+from services.resilient_market_data import download_symbol_frames
 
 
 def scan_frames(
@@ -180,36 +179,35 @@ def scan_universe(
         )
         for symbol in symbols
     ]
-    data = yf.download(
-        tickers=tickers,
+    frames_by_ticker, diagnostics = download_symbol_frames(
+        tickers,
         period=period,
+        interval="1d",
         auto_adjust=False,
-        progress=False,
-        group_by="ticker",
-        threads=True,
+        batch_size=10,
+        timeout=15,
     )
-    if data.empty:
-        return pd.DataFrame()
-
     frames: dict[str, pd.DataFrame] = {}
     for symbol, ticker in zip(symbols, tickers, strict=True):
         try:
-            if isinstance(data.columns, pd.MultiIndex):
-                if ticker not in data.columns.get_level_values(0):
-                    continue
-                frame = data[ticker].copy()
-            else:
-                frame = data.copy()
+            frame = frames_by_ticker.get(ticker, pd.DataFrame()).copy()
             frame = frame.dropna(how="all")
             if not frame.empty and "Close" in frame.columns:
                 frames[str(symbol).upper().removesuffix(suffix)] = frame
         except (KeyError, TypeError):
             continue
 
-    return scan_frames(
+    if not frames:
+        empty = pd.DataFrame()
+        empty.attrs["scan_diagnostics"] = diagnostics
+        return empty
+
+    result = scan_frames(
         frames,
         exchange=exchange,
         horizon=horizon,
         threshold=threshold,
         adaptive_history=adaptive_history,
     )
+    result.attrs["scan_diagnostics"] = diagnostics
+    return result
