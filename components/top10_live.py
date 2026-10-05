@@ -1,5 +1,7 @@
 """Fast live Top-10 market-mover scanner with one-minute refresh."""
 
+# The wider candidate pool improves provider quote coverage without lowering the trust gate.
+
 from __future__ import annotations
 
 from concurrent.futures import Future, ThreadPoolExecutor
