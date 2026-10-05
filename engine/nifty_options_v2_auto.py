@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from enum import Enum
+from enum import StrEnum
 
 from engine.nifty_options_v2_live import LivePaperObservation, NiftyOptionsV2LivePaperSession
 from engine.nifty_options_v2_market_data import NiftyV2MarketObservation
 
 
-class PaperAction(str, Enum):
+class PaperAction(StrEnum):
     """Action requested by the Book V2 monthly state machine."""
 
     HOLD = "hold"
