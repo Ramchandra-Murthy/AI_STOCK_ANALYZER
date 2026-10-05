@@ -47,7 +47,7 @@ def test_select_deepest_itm_call_ignores_nan_quote() -> None:
 
 def test_select_deepest_itm_call_rejects_all_invalid_quotes() -> None:
     chain = pd.DataFrame({"strike": [24000.0], "CE LTP": [float("nan")]})
-    with pytest.raises(ValueError, match="no valid ITM CALL quote is available"):
+    with pytest.raises(ValueError, match="no ITM CALL"):
         select_deepest_itm_call(
             chain,
             spot=25000.0,
