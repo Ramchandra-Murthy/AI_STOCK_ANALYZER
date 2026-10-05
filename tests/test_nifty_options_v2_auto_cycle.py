@@ -1,5 +1,7 @@
 from datetime import date
 
+import pandas as pd
+
 from engine.nifty_options_v2_auto import NiftyOptionsV2AutoPaper, PaperAction
 from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
 from engine.nifty_options_v2_live import LivePaperObservation
@@ -101,3 +103,36 @@ def test_coordinator_result_records_market_observation() -> None:
     assert result.strike == 24000
     assert result.spot == 25000
     assert result.ltp == 1000
+
+
+def test_end_to_end_selects_deepest_itm_and_enters_next_series() -> None:
+    chain = pd.DataFrame(
+        {
+            "strike": [25200, 24500, 24000, 23500],
+            "CE LTP": [700, 1000, 1200, 1500],
+        }
+    )
+    observation = __import__("engine.nifty_options_v2_market_data", fromlist=["select_deepest_itm_call"]).select_deepest_itm_call(
+        chain,
+        spot=25000,
+        expiry=date(2026, 11, 26),
+        observed_date=date(2026, 10, 29),
+    )
+
+    coordinator = NiftyOptionsV2AutoCycle()
+    result = coordinator.process(
+        expiries=EXPIRIES,
+        observed_date=date(2026, 10, 29),
+        observation=observation,
+    )
+
+    assert result is not None
+    assert result.action is PaperAction.ENTER_NEXT_SERIES
+    assert result.strike == 23500
+    assert result.next_expiry == date(2026, 11, 26)
+
+    active_trade = coordinator.auto_paper.session.trader.active_trade
+    assert active_trade is not None
+    assert active_trade.contract.expiry == date(2026, 11, 26)
+    assert active_trade.contract.strike == 23500
+    assert active_trade.entry_ltp == 1500
