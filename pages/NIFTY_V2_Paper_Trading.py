@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from io import StringIO
+import csv
 
 import streamlit as st
 
@@ -164,14 +166,10 @@ if st.session_state.nifty_v2_decision_history:
         use_container_width=True,
     )
     history_csv = StringIO()
-    history_columns = list(st.session_state.nifty_v2_decision_history[0])
-    history_csv.write(",".join(history_columns) + "
-")
-    for row in st.session_state.nifty_v2_decision_history:
-        history_csv.write(
-            ",".join(str(row[column]).replace(",", " ") for column in history_columns) + "
-"
-        )
+    history = st.session_state.nifty_v2_decision_history
+    writer = csv.DictWriter(history_csv, fieldnames=history[0].keys())
+    writer.writeheader()
+    writer.writerows(history)
     st.download_button(
         "Download Decision History CSV",
         data=history_csv.getvalue(),
