@@ -69,6 +69,19 @@ cycle = cycle_status(
 auto_cycle = NiftyOptionsV2AutoCycle(auto_paper=NiftyOptionsV2AutoPaper(session=session))
 auto_strike = st.checkbox("Automatically select deepest ITM CALL from option chain", value=True)
 
+st.subheader("Automatic Cycle Readiness")
+readiness_left, readiness_right = st.columns(2)
+cycle_ready = provider.status == "AVAILABLE" and not provider.chain.empty and cycle is not None
+readiness_left.metric("Ready", "YES" if cycle_ready else "NO")
+if cycle_ready:
+    readiness_right.success("Provider data and monthly cycle are available.")
+elif provider.status != "AVAILABLE":
+    readiness_right.warning("Not ready: provider market data is unavailable.")
+elif provider.chain.empty:
+    readiness_right.warning("Not ready: provider option chain is empty.")
+else:
+    readiness_right.warning("Not ready: two monthly expiries are required.")
+
 if cycle is not None:
     st.subheader("Book V2 Monthly Cycle")
     cycle_left, cycle_mid, cycle_right = st.columns(3)
