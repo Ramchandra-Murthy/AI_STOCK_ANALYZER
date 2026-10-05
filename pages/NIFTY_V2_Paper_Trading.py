@@ -152,7 +152,7 @@ if st.button("Preview Automatic CALL"):
             preview_right.metric("CALL LTP", f"{preview.observation.ltp:.2f}")
             st.caption(f"NIFTY spot: {preview.observation.spot:.2f}")
 
-automatic_data_ready = provider_data_ready(provider) and market_session_ready(provider_fetched_at)
+automatic_data_ready = provider_data_ready(provider) and market_session_ready(datetime.now(UTC))
 
 if st.button(
     "Run Automatic Book V2 Cycle",
