@@ -18,7 +18,8 @@ TOP10_REFRESH_SECONDS = 60
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 10
-TOP10_MAX_CANDIDATES_PER_EXCHANGE = 20
+TOP10_MAX_NSE_CANDIDATES = 40
+TOP10_MAX_BSE_CANDIDATES = 10
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
 TOP10_STALE_DATA_SECONDS = 180
@@ -542,8 +543,8 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     latest_candles: list[pd.Timestamp] = []
 
     candidates = [
-        *(("NSE", symbol) for symbol in NSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]),
-        *(("BSE", symbol) for symbol in BSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]),
+        *(("NSE", symbol) for symbol in NSE_CANDIDATES[:TOP10_MAX_NSE_CANDIDATES]),
+        *(("BSE", symbol) for symbol in BSE_CANDIDATES[:TOP10_MAX_BSE_CANDIDATES]),
     ]
 
     tickers_by_exchange = {
@@ -552,7 +553,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         for symbols in [[symbol for venue, symbol in candidates if venue == exchange]]
     }
     all_tickers = [ticker for tickers in tickers_by_exchange.values() for ticker in tickers]
-    frames, diagnostics = download_symbol_frames(
+    frames, _missing = download_symbol_frames(
         all_tickers,
         period="5d",
         interval="1m",
@@ -560,7 +561,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         batch_size=TOP10_CHUNK_SIZE,
         timeout=15,
     )
-    failures = 1 if diagnostics else 0
+    failures = 1 if not frames else 0
 
     for exchange, tickers in tickers_by_exchange.items():
         for ticker in tickers:
@@ -602,8 +603,10 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         return frame, round(perf_counter() - started, 2), failures, 0
 
     valid_quotes = len(frame)
-    frame.attrs["expected_quotes"] = len(all_tickers)
-    frame.attrs["coverage_complete"] = valid_quotes == len(all_tickers)
+    trusted_quotes = min(valid_quotes, TOP10_EXPECTED_QUOTES)
+    frame.attrs["expected_quotes"] = TOP10_EXPECTED_QUOTES
+    frame.attrs["candidate_pool_size"] = len(all_tickers)
+    frame.attrs["coverage_complete"] = trusted_quotes >= TOP10_EXPECTED_QUOTES
     frame.attrs["latest_candle_at"] = max(latest_candles) if latest_candles else None
     frame = (
         frame.assign(_abs_change=frame["1-min %"].abs())
@@ -613,7 +616,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         .reset_index(drop=True)
     )
     frame["Rank"] = range(1, len(frame) + 1)
-    return frame, round(perf_counter() - started, 2), failures, valid_quotes
+    return frame, round(perf_counter() - started, 2), failures, trusted_quotes
 
 
 @st.cache_data(ttl=TOP10_CACHE_SECONDS, show_spinner=False)
