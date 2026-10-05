@@ -19,6 +19,7 @@ from components.top10_live import (
     TOP10_PERSISTENCE_ALERT_MIN_SCANS,
     TOP10_PERSISTENCE_MIN_SCANS,
     TOP10_REDUCED_COVERAGE_QUOTES,
+    TOP10_MIN_TRUSTED_COVERAGE_QUOTES,
     TOP10_REFRESH_SECONDS,
     TOP10_SCAN_WARNING_SECONDS,
     TOP10_SESSION_STATUS_KEY,
@@ -34,6 +35,7 @@ from components.top10_live import (
     _coverage_status,
     _persistence_alerts,
     _scan_live_top10,
+    _should_record_signal_history,
     _signal_confirmation,
     _signal_history_table,
     _signal_history_trend,
@@ -605,3 +607,11 @@ def test_top10_live_signal_quality_metrics_handle_empty_history() -> None:
         "Direction consistency": 0.0,
         "Momentum consistency": 0.0,
     }
+
+
+def test_top10_live_only_records_history_from_trusted_complete_scans() -> None:
+    assert TOP10_MIN_TRUSTED_COVERAGE_QUOTES == TOP10_GOOD_COVERAGE_QUOTES
+    assert _should_record_signal_history(40, 0) is True
+    assert _should_record_signal_history(36, 0) is True
+    assert _should_record_signal_history(35, 0) is False
+    assert _should_record_signal_history(40, 1) is False
