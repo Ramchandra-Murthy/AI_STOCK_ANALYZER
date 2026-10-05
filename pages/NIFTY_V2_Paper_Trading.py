@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from io import StringIO
-import csv
 
 import streamlit as st
 
@@ -38,7 +37,7 @@ if "nifty_v2_decision_history" not in st.session_state:
 
 session: NiftyOptionsV2LivePaperSession = st.session_state.nifty_v2_paper_session
 
-provider_fetched_at = datetime.now(timezone.utc)
+provider_fetched_at = datetime.now(UTC)
 provider = fetch_option_chain("NIFTY")
 
 st.subheader("Market Data Status")
