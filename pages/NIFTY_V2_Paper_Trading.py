@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from io import StringIO
 
 import streamlit as st
 
@@ -160,6 +161,20 @@ if st.session_state.nifty_v2_decision_history:
     st.dataframe(
         st.session_state.nifty_v2_decision_history,
         use_container_width=True,
+    )
+    history_csv = StringIO()
+    history_columns = list(st.session_state.nifty_v2_decision_history[0])
+    history_csv.write(",".join(history_columns) + "\n")
+    for row in st.session_state.nifty_v2_decision_history:
+        history_csv.write(
+            ",".join(str(row[column]).replace(",", " ") for column in history_columns)
+            + "\n"
+        )
+    st.download_button(
+        "Download Decision History CSV",
+        data=history_csv.getvalue(),
+        file_name="nifty_v2_decision_history.csv",
+        mime="text/csv",
     )
     if st.button("Clear Decision History"):
         st.session_state.nifty_v2_decision_history = []
