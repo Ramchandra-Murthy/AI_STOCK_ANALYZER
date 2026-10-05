@@ -37,6 +37,7 @@ from components.top10_live import (
     _scan_live_top10,
     _should_record_signal_history,
     _signal_confirmation,
+    _provider_age_seconds,
     _signal_history_table,
     _signal_history_trend,
     _signal_persistence,
@@ -615,3 +616,9 @@ def test_top10_live_only_records_history_from_trusted_complete_scans() -> None:
     assert _should_record_signal_history(36, 0) is True
     assert _should_record_signal_history(35, 0) is False
     assert _should_record_signal_history(40, 1) is False
+
+
+def test_top10_live_uses_provider_candle_age() -> None:
+    now = datetime(2026, 10, 5, 10, 0, tzinfo=ZoneInfo(TOP10_TIMEZONE))
+    assert _provider_age_seconds("2026-10-05T09:59:00+05:30", now) == 60.0
+    assert _provider_age_seconds("not-a-timestamp", now) is None
