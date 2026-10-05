@@ -25,6 +25,11 @@ from strategy.nifty_options_v2 import NiftyCallContract
 st.set_page_config(page_title="NIFTY V2 Paper Trading", page_icon="📈", layout="wide")
 
 st.title("NIFTY Options V2 — Paper Trading")
+
+st.warning(
+    "PAPER TRADING ONLY — no broker orders are submitted. "
+    "Verify market data before acting on any paper decision."
+)
 st.caption(
     "Simulation only. Enter current market observations manually. "
     "This page never submits broker orders."
