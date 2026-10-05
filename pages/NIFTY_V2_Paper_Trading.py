@@ -17,6 +17,7 @@ from engine.nifty_options_v2_market_data import (
     NiftyV2MarketObservation,
     select_deepest_itm_call,
 )
+from engine.nifty_options_v2_provider_guard import provider_data_ready
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
 
@@ -85,7 +86,13 @@ observation = LivePaperObservation(
 if st.button("Refresh Live Paper Observation"):
     st.rerun()
 
-if st.button("Run Automatic Book V2 Cycle", type="primary"):
+automatic_data_ready = provider_data_ready(provider)
+
+if st.button(
+    "Run Automatic Book V2 Cycle",
+    type="primary",
+    disabled=not automatic_data_ready,
+):
     try:
         if cycle is None:
             st.warning("Automatic cycle unavailable: two monthly expiries are required.")
