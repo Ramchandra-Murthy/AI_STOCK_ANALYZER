@@ -21,6 +21,7 @@ from engine.nifty_options_v2_market_data import (
     select_deepest_itm_call,
 )
 from engine.nifty_options_v2_market_session import market_session_ready
+from engine.nifty_options_v2_freshness import market_data_is_fresh
 from engine.nifty_options_v2_provider_guard import provider_data_ready
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
@@ -152,7 +153,11 @@ if st.button("Preview Automatic CALL"):
             preview_right.metric("CALL LTP", f"{preview.observation.ltp:.2f}")
             st.caption(f"NIFTY spot: {preview.observation.spot:.2f}")
 
-automatic_data_ready = provider_data_ready(provider) and market_session_ready(datetime.now(UTC))
+automatic_data_ready = (
+    provider_data_ready(provider)
+    and market_session_ready(datetime.now(UTC))
+    and market_data_is_fresh(provider_fetched_at, now=datetime.now(UTC))
+)
 
 if not automatic_data_ready:
     st.caption(
