@@ -2,10 +2,10 @@ from datetime import date
 
 from engine.nifty_options_v2_auto import NiftyOptionsV2AutoPaper, PaperAction
 from engine.nifty_options_v2_auto_cycle import NiftyOptionsV2AutoCycle
+from engine.nifty_options_v2_live import LivePaperObservation
 from engine.nifty_options_v2_market_data import NiftyV2MarketObservation
 from engine.nifty_options_v2_paper_report import build_paper_session_report
 from engine.nifty_options_v2_readiness import automatic_cycle_ready
-from engine.nifty_options_v2_live import LivePaperObservation
 from strategy.nifty_options_v2 import NiftyCallContract
 
 
