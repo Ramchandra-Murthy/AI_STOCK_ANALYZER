@@ -96,6 +96,19 @@ def _extract_close(history: pd.DataFrame, ticker: str) -> pd.Series:
     return pd.Series(dtype="float64")
 
 
+def _provider_age_seconds(timestamp: object, now: datetime) -> float | None:
+    """Return provider-candle age in seconds, or None when invalid."""
+    try:
+        value = pd.Timestamp(timestamp)
+        if value.tzinfo is None:
+            value = value.tz_localize(_IST)
+        else:
+            value = value.tz_convert(_IST)
+        return max(0.0, (now - value.to_pydatetime()).total_seconds())
+    except (TypeError, ValueError):
+        return None
+
+
 def _format_candle_time(timestamp: object) -> str:
     """Format a provider candle timestamp in India time for the live table."""
     try:
