@@ -36,8 +36,11 @@ def test_cycle_status_reports_next_series_entry_on_current_expiry() -> None:
 
 
 def test_cycle_status_requires_two_monthly_expiries() -> None:
-    assert cycle_status(
-        expiries=("2026-10-29",),
-        observed_date=date(2026, 10, 20),
-        active_contract_expiry=None,
-    ) is None
+    assert (
+        cycle_status(
+            expiries=("2026-10-29",),
+            observed_date=date(2026, 10, 20),
+            active_contract_expiry=None,
+        )
+        is None
+    )
