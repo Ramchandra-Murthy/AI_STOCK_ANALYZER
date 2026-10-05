@@ -1,5 +1,7 @@
 """Refresh scheduling helpers for NIFTY Options V2 paper trading."""
 
+# ruff: noqa: I001
+
 from __future__ import annotations
 
 from dataclasses import dataclass
