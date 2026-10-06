@@ -186,7 +186,7 @@ def _fetch_nse_option_chain(underlying: str) -> dict:
         _prime_nse_session()
         with _NSE_OPENER.open(request, timeout=12) as response:
             if response.status != 200:
-                raise RuntimeError(f"NSE returned HTTP {response.status}.")
+                raise RuntimeError(f"NSE returned HTTP {response.status}.") from exc
             return json.loads(response.read().decode("utf-8"))
 
 
