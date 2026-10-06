@@ -8,8 +8,11 @@ Provider availability and timestamps are surfaced rather than inferred.
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
-from urllib.request import Request, urlopen
+from http.cookiejar import CookieJar
+from urllib.error import HTTPError
+from urllib.request import HTTPCookieProcessor, Request, build_opener
 
 import pandas as pd
 import yfinance as yf
@@ -20,6 +23,7 @@ OPTIONS_UNDERLYINGS = {
     "FINNIFTY": "NIFTY_FIN_SERVICE.NS",
 }
 
+NSE_HOME_URL = "https://www.nseindia.com/"
 NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-indices"
 NSE_HEADERS = {
     "Accept": "application/json,text/plain,*/*",
@@ -29,9 +33,7 @@ NSE_HEADERS = {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0 Safari/537.36"
     ),
-}
-
-CHAIN_COLUMNS = [
+}\nNSE_RETRY_DELAY_SECONDS = 1.0\n_NSE_OPENER = build_opener(HTTPCookieProcessor(CookieJar()))\n\nCHAIN_COLUMNS = [
     "strike",
     "CE LTP",
     "CE volume",
@@ -161,16 +163,46 @@ def summarize_option_chain(chain: pd.DataFrame) -> pd.DataFrame:
 
 
 def _fetch_nse_option_chain(underlying: str) -> dict:
-    """Fetch the public NSE index option-chain JSON with browser-like headers."""
+    """Fetch NSE option-chain JSON using a primed browser-like session."""
+    _prime_nse_session()
     request = Request(
         f"{NSE_OPTION_CHAIN_URL}?symbol={underlying}",
         headers=NSE_HEADERS,
         method="GET",
     )
-    with urlopen(request, timeout=12) as response:
-        if response.status != 200:
-            raise RuntimeError(f"NSE returned HTTP {response.status}.")
-        return json.loads(response.read().decode("utf-8"))
+    try:
+        with _NSE_OPENER.open(request, timeout=12) as response:
+            if response.status != 200:
+                raise RuntimeError(f"NSE returned HTTP {response.status}.")
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        if exc.code not in (403, 429):
+            raise
+        time.sleep(NSE_RETRY_DELAY_SECONDS)
+        _prime_nse_session()
+        with _NSE_OPENER.open(request, timeout=12) as response:
+            if response.status != 200:
+                raise RuntimeError(f"NSE returned HTTP {response.status}.")
+            return json.loads(response.read().decode("utf-8"))
+
+
+def _prime_nse_session() -> None:
+    """Prime NSE cookies before requesting the protected option-chain endpoint."""
+    request = Request(
+        NSE_HOME_URL,
+        headers={
+            **NSE_HEADERS,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+        method="GET",
+    )
+    try:
+        with _NSE_OPENER.open(request, timeout=10):
+            pass
+    except Exception:
+        # The API request below remains the source of truth; some environments
+        # block the NSE homepage while allowing the API endpoint.
+        pass
 
 
 def _nse_expiries(payload: dict) -> tuple[str, ...]:
