@@ -6,7 +6,7 @@ import pandas as pd
 
 from ai_trading.features import build_features
 from ai_trading.signal_engine import score_features
-from services.resilient_market_data import download_symbol_frames
+from services.resilient_market_data import download_market_frames
 
 
 def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y") -> pd.DataFrame:
@@ -22,7 +22,7 @@ def scan_universe(symbols: list[str], exchange: str = "NSE", period: str = "1y")
         s if str(s).upper().endswith(suffix) else f"{str(s).strip().upper()}{suffix}"
         for s in symbols
     ]
-    frames, diagnostics = download_symbol_frames(
+    frames, diagnostics = download_market_frames(
         tickers,
         period=period,
         interval="1d",
