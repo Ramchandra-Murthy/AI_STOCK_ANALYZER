@@ -201,6 +201,14 @@ pages = {
             url_path="ai-feature-drift",
         ),
     ],
+    "📈 Options Trading": [
+        st.Page(
+            "pages/NIFTY_V2_Paper_Trading.py",
+            title="NIFTY Options V2 Paper Trading",
+            icon="📈",
+            url_path="nifty-v2-paper-trading",
+        ),
+    ],
     "⚙️ System": [
         st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
     ],
