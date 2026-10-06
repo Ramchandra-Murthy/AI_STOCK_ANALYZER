@@ -33,7 +33,11 @@ NSE_HEADERS = {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0 Safari/537.36"
     ),
-}\nNSE_RETRY_DELAY_SECONDS = 1.0\n_NSE_OPENER = build_opener(HTTPCookieProcessor(CookieJar()))\n\nCHAIN_COLUMNS = [
+}
+NSE_RETRY_DELAY_SECONDS = 1.0
+_NSE_OPENER = build_opener(HTTPCookieProcessor(CookieJar()))
+
+CHAIN_COLUMNS = [
     "strike",
     "CE LTP",
     "CE volume",
