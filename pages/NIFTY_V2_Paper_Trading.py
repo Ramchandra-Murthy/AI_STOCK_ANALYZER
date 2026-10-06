@@ -115,7 +115,10 @@ else:
 left, right = st.columns(2)
 
 with left:
-    expiry = st.date_input("Option expiry", value=date.today())
+    expiry = st.date_input(
+        "Option expiry",
+        value=cycle.next_expiry if cycle is not None else date.today(),
+    )
     strike = st.number_input("CALL strike", min_value=1.0, value=25000.0, step=50.0)
 
 with right:
