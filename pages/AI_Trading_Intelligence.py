@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
+import yfinance as yf
 
 from ai_trading.ai_scanner import scan_universe
 from ai_trading.decision_engine import build_signal_decision
