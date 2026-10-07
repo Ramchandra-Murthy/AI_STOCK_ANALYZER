@@ -35,6 +35,15 @@ def get_price_history(symbol, period="1y"):
 
     df = df[["Open", "High", "Low", "Close", "Volume"]].copy()
 
+    # Exclude non-trading rows returned with zero volume (for example,
+    # exchange holidays) before calculating technical indicators. Including
+    # such rows distorts EMAs, RSI, Bollinger Bands, ATR, and forecast inputs.
+    volume = pd.to_numeric(df["Volume"], errors="coerce")
+    df = df.loc[volume.gt(0)].copy()
+
+    if df.empty:
+        return None
+
     # Preserve provenance for downstream data-quality checks without
     # changing the DataFrame schema consumed by technical scoring.
     df.attrs["data_source"] = "yfinance.download"
