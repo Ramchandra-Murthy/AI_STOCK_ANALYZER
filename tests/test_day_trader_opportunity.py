@@ -1,6 +1,7 @@
 import pandas as pd
 
 from scanner.day_trader_opportunity import (
+    _candle_settings,
     score_opportunity_rows,
     select_day_trader_universe,
     summarize_day_trading_setup,
@@ -98,6 +99,15 @@ def test_universe_filters_exchange_and_cap_basket():
 
 def test_universe_rejects_unknown_filters():
     assert select_day_trader_universe("Unknown cap", "Both") == []
+
+
+def test_candle_settings_use_five_minute_for_default_scan():
+    assert _candle_settings(5) == ("5m", 1)
+
+
+def test_candle_settings_keep_fine_windows_on_one_minute_data():
+    assert _candle_settings(2) == ("1m", 2)
+    assert _candle_settings(3) == ("1m", 3)
 
 
 def test_all_caps_uses_bounded_fast_universe():
