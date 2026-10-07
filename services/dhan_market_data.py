@@ -111,6 +111,26 @@ class DhanMarketData:
             expiry,
         )
 
+    def intraday_minute_data(
+        self,
+        security_id: int | str,
+        exchange_segment: str,
+        instrument_type: str,
+        from_date: str,
+        to_date: str,
+        interval: int = 1,
+    ) -> dict[str, Any]:
+        """Return read-only intraday OHLCV candles from Dhan."""
+        return self._client.intraday_minute_data(
+            security_id,
+            exchange_segment,
+            instrument_type,
+            from_date,
+            to_date,
+            interval=interval,
+            oi=False,
+        )
+
     def nifty_ltp(self) -> dict[str, Any]:
         """Return the NIFTY 50 LTP response using Dhan's index instrument."""
         return self.ticker_data({NIFTY_INDEX_SEGMENT: [NIFTY_50_SECURITY_ID]})

@@ -14,6 +14,7 @@ import pandas as pd
 import streamlit as st
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.dhan_live_provider import dhan_provider_enabled, download_dhan_symbol_frames
 from services.resilient_market_data import download_symbol_frames
 
 TOP10_REFRESH_SECONDS = 60
@@ -539,6 +540,39 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
         column.metric(label, f"{metrics[label]:.1f}%")
 
 
+def _download_top10_frames(
+    tickers: list[str],
+) -> tuple[dict[str, pd.DataFrame], list[str], str]:
+    """Prefer Dhan candles when configured, with Yahoo fallback for gaps."""
+    if dhan_provider_enabled():
+        dhan_frames, dhan_missing = download_dhan_symbol_frames(tickers, interval=1)
+        if not dhan_missing:
+            return dhan_frames, [], "Dhan"
+        yahoo_frames, yahoo_missing = download_symbol_frames(
+            dhan_missing,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            batch_size=TOP10_CHUNK_SIZE,
+            timeout=TOP10_PROVIDER_TIMEOUT,
+            retries=TOP10_PROVIDER_RETRIES,
+            recover_missing=False,
+        )
+        merged = {**dhan_frames, **yahoo_frames}
+        return merged, yahoo_missing, "Dhan + Yahoo fallback"
+    frames, missing = download_symbol_frames(
+        tickers,
+        period="1d",
+        interval="1m",
+        auto_adjust=False,
+        batch_size=TOP10_CHUNK_SIZE,
+        timeout=TOP10_PROVIDER_TIMEOUT,
+        retries=TOP10_PROVIDER_RETRIES,
+        recover_missing=False,
+    )
+    return frames, missing, "Yahoo"
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
@@ -557,16 +591,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         for symbols in [[symbol for venue, symbol in candidates if venue == exchange]]
     }
     all_tickers = [ticker for tickers in tickers_by_exchange.values() for ticker in tickers]
-    frames, _missing = download_symbol_frames(
-        all_tickers,
-        period="1d",
-        interval="1m",
-        auto_adjust=False,
-        batch_size=TOP10_CHUNK_SIZE,
-        timeout=TOP10_PROVIDER_TIMEOUT,
-        retries=TOP10_PROVIDER_RETRIES,
-        recover_missing=False,
-    )
+    frames, _missing, provider_name = _download_top10_frames(all_tickers)
     failures = len(_missing) if _missing else 0
 
     for exchange, tickers in tickers_by_exchange.items():
@@ -608,6 +633,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
 
     valid_quotes = len(frame)
     trusted_quotes = min(valid_quotes, TOP10_EXPECTED_QUOTES)
+    frame.attrs["provider"] = provider_name
     frame.attrs["expected_quotes"] = TOP10_EXPECTED_QUOTES
     frame.attrs["candidate_pool_size"] = len(all_tickers)
     frame.attrs["coverage_complete"] = trusted_quotes >= TOP10_EXPECTED_QUOTES
@@ -661,7 +687,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.subheader("🔴 Live Top-10 Market Scanner")
     st.caption(
         "Ranks the largest absolute 1-minute price moves from the configured "
-        "NSE/BSE candidate universe. Yahoo Finance data is provider-sourced and may be delayed. The fast path uses liquid NSE symbols only. "
+        "NSE/BSE candidate universe. Dhan is preferred when configured; Yahoo Finance is the fallback. The fast path uses liquid NSE symbols only. "
         "Degraded coverage is never promoted into signal history."
     )
 
