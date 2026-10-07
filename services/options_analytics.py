@@ -249,9 +249,14 @@ def _normalize_dhan_chain(
             except (TypeError, ValueError):
                 return None
 
+        try:
+            strike_price = float(strike_text)
+        except (TypeError, ValueError):
+            continue
+
         rows.append(
             {
-                "strike": strike_text,
+                "strike": strike_price,
                 "CE LTP": call.get("last_price"),
                 "CE volume": call.get("volume"),
                 "CE OI": call.get("oi"),
