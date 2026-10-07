@@ -16,13 +16,13 @@ from indicators.trend import detect_trend
 from scanner.dynamic_universe import (
     merge_bse_universe,
     merge_nse_universe,
-    passes_liquidity_filter,
 )
 from services.sector_mapping import sector_for_symbol
 
 TOP_CANDIDATES_TO_ANALYZE = 20
-DISPLAY_COUNT = 10
+DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 40
+MAX_CANDIDATES_PER_EXCHANGE = 10
 ANALYSIS_PERIOD = "1y"
 
 
@@ -139,9 +139,9 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
 
 def _batch_change_screen(
     candidates: dict[str, list[str]],
-) -> list[tuple[str, str, float]]:
+) -> list[tuple[str, str, float, float]]:
     """Find liquid movers across the current NSE universe and BSE fallback list."""
-    ranked: list[tuple[str, str, float]] = []
+    ranked: list[tuple[str, str, float, float]] = []
 
     for exchange, symbols in candidates.items():
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
@@ -161,11 +161,12 @@ def _batch_change_screen(
                     latest = float(close.iloc[-1])
                     previous = float(close.iloc[-2])
                     average_volume = float(volume.tail(5).mean())
-                    if previous == 0 or not passes_liquidity_filter(latest, average_volume):
+                    if previous == 0:
                         continue
 
                     change_pct = ((latest - previous) / previous) * 100
-                    ranked.append((ticker, exchange, change_pct))
+                    average_turnover = latest * average_volume
+                    ranked.append((ticker, exchange, change_pct, average_turnover))
                 except (KeyError, TypeError, ValueError, IndexError):
                     continue
 
@@ -231,10 +232,13 @@ def market_scan() -> pd.DataFrame:
 
     analysis_tickers: list[str] = []
     seen: set[str] = set()
-    for ticker, _exchange, _change in movers:
-        if ticker not in seen:
-            analysis_tickers.append(ticker)
-            seen.add(ticker)
+    exchange_counts = {"NSE": 0, "BSE": 0}
+    for ticker, exchange, _change, _turnover in movers:
+        if ticker in seen or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE:
+            continue
+        analysis_tickers.append(ticker)
+        seen.add(ticker)
+        exchange_counts[exchange] += 1
         if len(analysis_tickers) >= TOP_CANDIDATES_TO_ANALYZE:
             break
 
