@@ -5,12 +5,12 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
-from scanner.universe import NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES, _frame_for, _ticker
 
-CHUNK_SIZE = 25
+CHUNK_SIZE = 100
 INTRADAY_PERIOD = "1d"
+MAX_FAST_UNIVERSE = 200
 
 
 def calculate_price_jump(
@@ -86,8 +86,12 @@ def scan_price_jumps(
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
 
     if cap_category == "All caps":
-        universe = [(symbol, "NSE") for symbol in merge_nse_universe()] + [
-            (symbol, "BSE") for symbol in merge_bse_universe()
+        # Keep the interactive price-pulse scan bounded. Exchange-wide dynamic
+        # lists can contain thousands of symbols and turn a one-minute refresh
+        # into a long blocking download. The maintained universe is still broad
+        # enough for the interactive screen and is shared with the other scanners.
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
+            (symbol, "BSE") for symbol in BSE_CANDIDATES
         ]
     else:
         selected = CAP_UNIVERSES.get(cap_category, set())
@@ -96,7 +100,7 @@ def scan_price_jumps(
     selected_universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
     unique_universe = list(dict.fromkeys(selected_universe))
     duplicate_count = len(selected_universe) - len(unique_universe)
-    selected_universe = unique_universe
+    selected_universe = unique_universe[:MAX_FAST_UNIVERSE]
     interval, bars = _candle_settings(lookback_minutes)
     stats = {
         "candidate_count": len(selected_universe),
@@ -126,8 +130,8 @@ def scan_price_jumps(
                     progress=False,
                     auto_adjust=False,
                     group_by="ticker",
-                    threads=False,
-                    timeout=15,
+                    threads=True,
+                    timeout=10,
                 )
             except Exception:
                 stats["download_failed_chunks"] += 1
