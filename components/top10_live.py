@@ -692,9 +692,15 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     )
 
     if st.button("↻ Refresh Top-10 now", key="top10_manual_refresh"):
-        _load_live_top10.clear()
-        _start_background_scan()
-        st.rerun(scope="fragment")
+        if _market_is_open(datetime.now(_IST)):
+            _load_live_top10.clear()
+            _start_background_scan()
+            st.rerun(scope="fragment")
+        else:
+            st.info(
+                "⚪ MARKET CLOSED · Live Top-10 refresh is available during the next "
+                "regular NSE/BSE session."
+            )
 
     background_result = _consume_background_scan()
     if background_result is not None:
@@ -740,7 +746,12 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.session_state[TOP10_SESSION_STATUS_KEY] = session_status
 
     if top10.empty:
-        if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
+        if not market_open:
+            st.info(
+                "⚪ MARKET CLOSED · No live Top-10 scan is available outside market hours. "
+                "Live scanning will begin during the next regular NSE/BSE session."
+            )
+        elif _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
             st.error(
                 "🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. "
                 "Retrying automatically."
