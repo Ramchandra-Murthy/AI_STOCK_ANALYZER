@@ -12,6 +12,9 @@ def test_market_scanner_preserves_signal_confidence() -> None:
             "Low": [99.0] * 50,
             "Close": [100.0] * 50,
             "Volume": [1_000_000] * 50,
+            "RSI_14": [50.0] * 50,
+            "MACD": [1.0] * 50,
+            "ATR": [2.0] * 50,
         }
     )
     signal = {
