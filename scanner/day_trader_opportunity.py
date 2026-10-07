@@ -22,7 +22,7 @@ from scanner.surveillance import (
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
-from scanner.universe import NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
