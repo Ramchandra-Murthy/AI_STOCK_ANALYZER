@@ -1,5 +1,6 @@
-import pandas as pd
 from unittest.mock import patch
+
+import pandas as pd
 
 from scanner.market_scanner import _analyze_history
 
