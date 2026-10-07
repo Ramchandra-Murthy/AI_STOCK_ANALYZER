@@ -198,7 +198,9 @@ def test_dhan_option_chain_converts_display_expiry_to_iso(monkeypatch):
         lambda credentials: FakeClient(),
     )
 
-    result = __import__("services.options_analytics", fromlist=["_fetch_dhan_option_chain"])._fetch_dhan_option_chain(
+    result = __import__(
+        "services.options_analytics", fromlist=["_fetch_dhan_option_chain"]
+    )._fetch_dhan_option_chain(
         "NIFTY",
         "08-Oct-2026",
     )
