@@ -1,5 +1,3 @@
-import pandas as pd
-
 from services import news_service
 
 
