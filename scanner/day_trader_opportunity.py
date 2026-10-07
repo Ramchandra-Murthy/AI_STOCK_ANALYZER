@@ -96,13 +96,16 @@ def select_day_trader_universe(
     return filtered[:MAX_FAST_UNIVERSE]
 
 
-def _ticker(symbol: str, exchange: str) -> str:
 def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     """Use the smallest candle interval that supports the requested lookback."""
-    candle_minutes = 1 if lookback_minutes in (2, 3) else 5
+    if lookback_minutes in (2, 3):
+        candle_minutes = 1
+    else:
+        candle_minutes = 5
     interval = f"{candle_minutes}m"
     bars = max(1, int(round(lookback_minutes / candle_minutes)))
     return interval, bars
+
 
 def _ticker(symbol: str, exchange: str) -> str:
     cleaned = str(symbol).strip().upper()
