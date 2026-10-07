@@ -3,12 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
-import yfinance as yf
-
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
-from scanner.unusual_activity import CAP_UNIVERSES, _frame_for, _ticker
+from scanner.unusual_activity import CAP_UNIVERSES, _ticker
+from services.resilient_market_data import download_market_frames
 
-CHUNK_SIZE = 100
 INTRADAY_PERIOD = "1d"
 MAX_FAST_UNIVERSE = 200
 
@@ -119,60 +117,49 @@ def scan_price_jumps(
         tickers = [
             _ticker(symbol, exchange) for symbol, venue in selected_universe if venue == exchange
         ]
-        for start in range(0, len(tickers), CHUNK_SIZE):
-            chunk = tickers[start : start + CHUNK_SIZE]
-            stats["attempted_count"] += len(chunk)
+        stats["attempted_count"] += len(tickers)
+        frames, diagnostics = download_market_frames(
+            tickers,
+            period=INTRADAY_PERIOD,
+            interval=interval,
+            batch_size=100,
+            timeout=10,
+        )
+        stats["download_failed_chunks"] += int(bool(diagnostics["missing"]))
+        stats["empty_chunks"] += int(not frames and tickers)
+
+        for ticker in tickers:
             try:
-                history = yf.download(
-                    tickers=chunk,
-                    period=INTRADAY_PERIOD,
-                    interval=interval,
-                    progress=False,
-                    auto_adjust=False,
-                    group_by="ticker",
-                    threads=True,
-                    timeout=10,
-                )
-            except Exception:
-                stats["download_failed_chunks"] += 1
-                continue
-
-            if history is None or history.empty:
-                stats["empty_chunks"] += 1
-                continue
-
-            for ticker in chunk:
-                try:
-                    frame = _frame_for(history, ticker)
-                    metrics = calculate_price_jump(frame, bars, jump_percent)
-                    if metrics is None:
-                        continue
-                    stats["usable_count"] += 1
-                    if not bool(metrics["qualifies"]):
-                        continue
-
-                    rows.append(
-                        {
-                            "Symbol": ticker.rsplit(".", 1)[0],
-                            "Exchange": exchange,
-                            "Market-cap basket": cap_category,
-                            "Last price": round(float(metrics["price"]), 2),
-                            f"Change over {lookback_minutes} min %": round(
-                                float(metrics["intraday_pct"]), 2
-                            ),
-                            "Day %": round(float(metrics["day_pct"]), 2),
-                            "Latest bar volume": int(metrics["volume"]),
-                            "RVOL": (
-                                round(float(metrics["relative_volume"]), 2)
-                                if pd.notna(metrics["relative_volume"])
-                                else None
-                            ),
-                            "Latest candle (provider time)": str(frame.index[-1]),
-                        }
-                    )
-                except (KeyError, TypeError, ValueError, IndexError):
-                    stats["processing_errors"] += 1
+                frame = frames.get(ticker, pd.DataFrame())
+                metrics = calculate_price_jump(frame, bars, jump_percent)
+                if metrics is None:
                     continue
+                stats["usable_count"] += 1
+                if not bool(metrics["qualifies"]):
+                    continue
+
+                rows.append(
+                    {
+                        "Symbol": ticker.rsplit(".", 1)[0],
+                        "Exchange": exchange,
+                        "Market-cap basket": cap_category,
+                        "Last price": round(float(metrics["price"]), 2),
+                        f"Change over {lookback_minutes} min %": round(
+                            float(metrics["intraday_pct"]), 2
+                        ),
+                        "Day %": round(float(metrics["day_pct"]), 2),
+                        "Latest bar volume": int(metrics["volume"]),
+                        "RVOL": (
+                            round(float(metrics["relative_volume"]), 2)
+                            if pd.notna(metrics["relative_volume"])
+                            else None
+                        ),
+                        "Latest candle (provider time)": str(frame.index[-1]),
+                    }
+                )
+            except (KeyError, TypeError, ValueError, IndexError):
+                stats["processing_errors"] += 1
+                continue
 
     stats["matches_before_limit"] = len(rows)
     if not rows:
