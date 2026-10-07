@@ -62,12 +62,14 @@ def _download_batch(
     interval: str,
     auto_adjust: bool,
     timeout: float,
+    retries: int = DEFAULT_RETRIES,
 ) -> pd.DataFrame:
     """Download one batch with bounded retries and no hidden synthetic data."""
     _configure_yfinance()
     last_error: Exception | None = None
 
-    for attempt in range(DEFAULT_RETRIES + 1):
+    retry_count = max(0, int(retries))
+    for attempt in range(retry_count + 1):
         try:
             result = yf.download(
                 tickers=tickers,
@@ -85,7 +87,7 @@ def _download_batch(
         except Exception as exc:
             last_error = exc
 
-        if attempt < DEFAULT_RETRIES:
+        if attempt < retry_count:
             sleep(RETRY_BACKOFF_SECONDS * (2**attempt))
 
     if last_error is not None:
@@ -131,6 +133,8 @@ def download_symbol_frames(
     auto_adjust: bool = False,
     batch_size: int = 10,
     timeout: float = DEFAULT_TIMEOUT,
+    retries: int = DEFAULT_RETRIES,
+    recover_missing: bool = True,
 ) -> tuple[dict[str, pd.DataFrame], list[str]]:
     """Return usable ticker frames plus an explicit list of unresolved tickers."""
     symbols = list(dict.fromkeys(str(t).strip().upper() for t in tickers if str(t).strip()))
@@ -146,6 +150,7 @@ def download_symbol_frames(
             interval=interval,
             auto_adjust=auto_adjust,
             timeout=timeout,
+            retries=retries,
         )
         for ticker in chunk:
             frame = _ticker_frame(history, ticker)
@@ -153,16 +158,17 @@ def download_symbol_frames(
                 frames[ticker] = frame
 
     missing = [ticker for ticker in symbols if ticker not in frames]
-    for ticker in missing:
-        frame = _download_single(
-            ticker,
-            period=period,
-            interval=interval,
-            auto_adjust=auto_adjust,
-            timeout=timeout,
-        )
-        if not frame.empty:
-            frames[ticker] = frame
+    if recover_missing:
+        for ticker in missing:
+            frame = _download_single(
+                ticker,
+                period=period,
+                interval=interval,
+                auto_adjust=auto_adjust,
+                timeout=timeout,
+            )
+            if not frame.empty:
+                frames[ticker] = frame
 
     return frames, [ticker for ticker in symbols if ticker not in frames]
 
