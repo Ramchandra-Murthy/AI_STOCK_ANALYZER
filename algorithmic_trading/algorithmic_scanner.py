@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import pandas as pd
-import yfinance as yf
 
 from algorithmic_trading.pipeline import AlgorithmicAnalysis, analyze_symbol
+from services.resilient_market_data import download_market_frames
 
 
 def scan_universe(
@@ -25,29 +25,26 @@ def scan_universe(
 
     tickers = [_ticker(symbol, exchange) for symbol in symbols]
     benchmark_ticker = "^NSEI" if exchange == "NSE" else "^BSESN"
-    market = yf.download(
-        tickers=tickers,
+    frames, _ = download_market_frames(
+        [*tickers, benchmark_ticker],
         period=period,
+        interval="1d",
         auto_adjust=False,
-        progress=False,
-        group_by="ticker",
-        threads=True,
-    )
-    benchmark = yf.download(
-        tickers=benchmark_ticker,
-        period=period,
-        auto_adjust=False,
-        progress=False,
+        batch_size=50,
+        timeout=5.0,
+        retries=0,
+        recover_missing=False,
     )
 
-    if market.empty or benchmark.empty:
+    benchmark = frames.get(benchmark_ticker)
+    if benchmark is None or benchmark.empty:
         return pd.DataFrame()
 
     benchmark_close = _close_series(benchmark)
     rows: list[dict[str, object]] = []
 
     for symbol, ticker in zip(symbols, tickers, strict=True):
-        frame = _symbol_frame(market, ticker)
+        frame = frames.get(ticker, pd.DataFrame())
         if frame.empty or "Close" not in frame.columns:
             continue
         try:
