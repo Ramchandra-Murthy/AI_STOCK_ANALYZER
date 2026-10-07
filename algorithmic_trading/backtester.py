@@ -26,9 +26,13 @@ class BacktestMetrics:
 
 
 def _trade_returns(data: pd.DataFrame) -> pd.Series:
-    """Return realized return for each contiguous non-zero position."""
-    active = data["position"].ne(0)
-    starts = active & ~active.shift(1, fill_value=False)
+    """Return realized return for each directional non-zero position segment."""
+    position = data["position"]
+    active = position.ne(0)
+    starts = active & (
+        ~active.shift(1, fill_value=False)
+        | position.ne(position.shift(1))
+    )
     trade_id = starts.cumsum()
     active_returns = data.loc[active, "strategy_return"]
 
@@ -104,7 +108,7 @@ def run_backtest(
         cagr=cagr,
         max_drawdown=float(data["drawdown"].min()),
         buy_hold_return=float(data["buy_hold_equity"].iloc[-1] / initial_capital - 1.0),
-        trade_count=int(data["turnover"].gt(0).sum()),
+        trade_count=int(len(trade_returns)),
         win_rate=(float(len(wins) / len(trade_returns)) if len(trade_returns) else 0.0),
         profit_factor=profit_factor,
     )
