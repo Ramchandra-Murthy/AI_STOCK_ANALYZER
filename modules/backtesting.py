@@ -60,6 +60,15 @@ def _run_backtest(history, initial_capital, cost_bps):
         "trade_count": int((data["position"].diff().fillna(data["position"]) > 0).sum()),
     }
 
+    equity_columns = ["strategy_equity", "buy_hold_equity"]
+    equity = data[equity_columns].apply(pd.to_numeric, errors="coerce")
+    if equity.empty or not equity.index.is_monotonic_increasing:
+        raise ValueError("Backtest equity series is invalid.")
+    if not equity.index.is_unique:
+        raise ValueError("Backtest dates contain duplicates.")
+    if not equity.notna().any(axis=None):
+        raise ValueError("Backtest equity series contains no valid values.")
+
     return data, metrics
 
 
