@@ -7,8 +7,9 @@ from the environment and are never logged or persisted by this module.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 NIFTY_50_SECURITY_ID = 13
 NIFTY_INDEX_SEGMENT = "IDX_I"
@@ -26,7 +27,7 @@ class DhanCredentials:
     access_token: str
 
     @classmethod
-    def from_env(cls, environ: Mapping[str, str] | None = None) -> "DhanCredentials":
+    def from_env(cls, environ: Mapping[str, str] | None = None) -> DhanCredentials:
         values = os.environ if environ is None else environ
         client_id = values.get("DHAN_CLIENT_ID", "").strip()
         access_token = values.get("DHAN_ACCESS_TOKEN", "").strip()
