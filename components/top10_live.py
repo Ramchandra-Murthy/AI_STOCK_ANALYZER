@@ -1,6 +1,6 @@
 """Fast live Top-10 market-mover scanner with one-minute refresh."""
 
-# The wider candidate pool improves provider quote coverage without lowering the trust gate.
+# The fast path favors a small liquid NSE pool to keep live refresh latency bounded.
 
 from __future__ import annotations
 
@@ -20,9 +20,10 @@ TOP10_REFRESH_SECONDS = 60
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 20
-TOP10_MAX_NSE_CANDIDATES = 30
-TOP10_MAX_BSE_CANDIDATES = 10
+TOP10_MAX_NSE_CANDIDATES = 20
+TOP10_MAX_BSE_CANDIDATES = 0
 TOP10_PROVIDER_RETRIES = 0
+TOP10_PROVIDER_TIMEOUT = 5
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
 TOP10_STALE_DATA_SECONDS = 180
@@ -33,10 +34,10 @@ TOP10_MARKET_CLOSE_MINUTE = 30
 TOP10_SESSION_STATUS_KEY = "top10_market_status"
 TOP10_PARTIAL_FAILURES_KEY = "top10_partial_failures"
 TOP10_COVERAGE_KEY = "top10_quote_coverage"
-TOP10_EXPECTED_QUOTES = 40
-TOP10_GOOD_COVERAGE_QUOTES = 36
-TOP10_REDUCED_COVERAGE_QUOTES = 20
-TOP10_MIN_TRUSTED_COVERAGE_QUOTES = 36
+TOP10_EXPECTED_QUOTES = 20
+TOP10_GOOD_COVERAGE_QUOTES = 18
+TOP10_REDUCED_COVERAGE_QUOTES = 10
+TOP10_MIN_TRUSTED_COVERAGE_QUOTES = 18
 TOP10_ALERT_MIN_RANK_JUMP = 2
 TOP10_ALERT_MIN_ABS_MOVE_PCT = 1.0
 TOP10_SCORE_MAX_1M_PCT = 3.0
@@ -562,7 +563,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         interval="1m",
         auto_adjust=False,
         batch_size=TOP10_CHUNK_SIZE,
-        timeout=10,
+        timeout=TOP10_PROVIDER_TIMEOUT,
         retries=TOP10_PROVIDER_RETRIES,
         recover_missing=False,
     )
@@ -660,7 +661,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.subheader("🔴 Live Top-10 Market Scanner")
     st.caption(
         "Ranks the largest absolute 1-minute price moves from the configured "
-        "NSE/BSE candidate universe. Yahoo Finance data is provider-sourced and may be delayed. "
+        "NSE/BSE candidate universe. Yahoo Finance data is provider-sourced and may be delayed. The fast path uses liquid NSE symbols only. "
         "Degraded coverage is never promoted into signal history."
     )
 
