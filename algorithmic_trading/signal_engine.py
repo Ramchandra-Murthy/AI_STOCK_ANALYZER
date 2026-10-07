@@ -63,9 +63,9 @@ def compose_signal(
             reasons.append("measured edge below threshold")
 
     score = max(-100.0, min(100.0, score))
-    if score >= 30.0:
+    if regime == "BULLISH" and score >= 30.0:
         direction = "LONG"
-    elif score <= -30.0:
+    elif regime == "BEARISH" and score <= -30.0:
         direction = "SHORT"
     else:
         direction = "FLAT"
