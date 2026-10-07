@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pandas as pd
+
 from algorithmic_trading.pipeline import AlgorithmicAnalysis, analyze_symbol
 from services.resilient_market_data import download_market_frames
 
