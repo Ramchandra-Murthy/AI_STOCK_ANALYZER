@@ -28,6 +28,7 @@ from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
 CHUNK_SIZE = 100
+MAX_FAST_UNIVERSE = 200
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
@@ -81,15 +82,19 @@ def select_day_trader_universe(
         return []
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     if cap_category == "All caps":
-        # Use the live NSE/BSE exchange lists for the full-universe scan.
-        # Curated symbols are merged in by dynamic_universe as a fallback.
-        universe = [(symbol, "NSE") for symbol in merge_nse_universe()] + [
-            (symbol, "BSE") for symbol in merge_bse_universe()
+        # The live exchange lists can contain thousands of symbols. Downloading
+        # 1-minute candles for that entire universe makes the interactive scanner
+        # too slow. Use the maintained curated universe for the fast broad scan;
+        # the detailed setup engine still evaluates every symbol that passes the
+        # cheap first-stage filters.
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
+            (symbol, "BSE") for symbol in BSE_CANDIDATES
         ]
     else:
         selected = CAP_UNIVERSES[cap_category]
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
-    return [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    filtered = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    return filtered[:MAX_FAST_UNIVERSE]
 
 
 def _ticker(symbol: str, exchange: str) -> str:
