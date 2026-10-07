@@ -81,9 +81,9 @@ def analyze_eros_signal_alignment(
         "Aligned Diagnostics",
     ] += 1
 
-    directional = pd.to_numeric(
-        result["Directional Diagnostics"], errors="coerce"
-    ).astype("Float64")
+    directional = pd.to_numeric(result["Directional Diagnostics"], errors="coerce").astype(
+        "Float64"
+    )
     aligned = pd.to_numeric(result["Aligned Diagnostics"], errors="coerce").astype("Float64")
     denominator = directional.mask(directional.eq(0))
 
