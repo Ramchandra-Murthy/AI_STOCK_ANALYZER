@@ -211,7 +211,9 @@ def _analyze_history(
             "Exchange": exchange,
             "Sector": sector_for_symbol(symbol),
             "Price": round(float(last["Close"]), 2),
-            "Avg Turnover (₹)": round(average_turnover, 0) if average_turnover is not None else None,
+            "Avg Turnover (₹)": (
+                round(average_turnover, 0) if average_turnover is not None else None
+            ),
             "Trend": trend["Trend"],
             "RSI": round(float(last["RSI_14"]), 2),
             "MACD": round(float(last["MACD"]), 2),
