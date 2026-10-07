@@ -53,8 +53,8 @@ from components.top10_live import (
 def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_REFRESH_SECONDS == 60
     assert TOP10_CACHE_SECONDS < TOP10_REFRESH_SECONDS
-    assert TOP10_CHUNK_SIZE == 10
-    assert TOP10_MAX_NSE_CANDIDATES == 40
+    assert TOP10_CHUNK_SIZE == 20
+    assert TOP10_MAX_NSE_CANDIDATES == 30
     assert TOP10_MAX_BSE_CANDIDATES == 10
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert 0 < TOP10_SCAN_WARNING_SECONDS < TOP10_STALE_DATA_SECONDS
@@ -66,8 +66,8 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert "FRESH" in open("components/top10_live.py", encoding="utf-8").read()
 
 
-def test_top10_live_prioritizes_a_larger_nse_pool_for_quote_coverage() -> None:
-    assert TOP10_MAX_NSE_CANDIDATES == 40
+def test_top10_live_uses_a_bounded_nse_pool_for_faster_quote_refresh() -> None:
+    assert TOP10_MAX_NSE_CANDIDATES == 30
     assert TOP10_MAX_BSE_CANDIDATES == 10
     assert TOP10_EXPECTED_QUOTES == 40
 
