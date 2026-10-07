@@ -168,7 +168,9 @@ def scan_price_jumps(
             period=INTRADAY_PERIOD,
             interval=interval,
             batch_size=100,
-            timeout=10,
+            timeout=5,
+            retries=0,
+            recover_missing=False,
         )
         stats["download_failed_chunks"] = int(stats["download_failed_chunks"]) + int(
             bool(diagnostics["missing"])
