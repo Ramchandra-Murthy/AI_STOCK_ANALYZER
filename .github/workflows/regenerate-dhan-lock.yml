@@ -18,8 +18,10 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
         with:
           version: "0.12.1"
-      - name: Regenerate lockfile
-        run: uv lock
+      - name: Regenerate lockfile from pyproject
+        run: |
+          rm -f uv.lock
+          uv lock
       - name: Validate locked install
         run: uv sync --locked --no-build --no-install-project
       - name: Commit generated lockfile
