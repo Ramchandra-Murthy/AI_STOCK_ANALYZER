@@ -174,7 +174,11 @@ def _batch_change_screen(
     return ranked
 
 
-def _analyze_history(\n    ticker: str, history: pd.DataFrame, average_turnover: float | None = None\n) -> dict[str, Any] | None:
+def _analyze_history(
+    ticker: str,
+    history: pd.DataFrame,
+    average_turnover: float | None = None,
+) -> dict[str, Any] | None:
     """Run the scanner's technical analysis locally on already-downloaded data."""
     df = _extract_history_frame(history, ticker)
     if len(df) < 50:
