@@ -1,9 +1,9 @@
 from services.dhan_market_data import (
+    NIFTY_50_SECURITY_ID,
+    NIFTY_INDEX_SEGMENT,
     DhanConfigurationError,
     DhanCredentials,
     DhanMarketData,
-    NIFTY_50_SECURITY_ID,
-    NIFTY_INDEX_SEGMENT,
 )
 
 
