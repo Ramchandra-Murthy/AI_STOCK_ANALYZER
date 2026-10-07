@@ -17,10 +17,18 @@ from urllib.request import HTTPCookieProcessor, Request, build_opener
 import pandas as pd
 import yfinance as yf
 
+from services.dhan_market_data import DhanCredentials, DhanMarketData
+
 OPTIONS_UNDERLYINGS = {
     "NIFTY": "^NSEI",
     "BANKNIFTY": "^NSEBANK",
     "FINNIFTY": "NIFTY_FIN_SERVICE.NS",
+}
+
+DHAN_OPTION_UNDERLYINGS = {
+    "NIFTY": (13, "IDX_I"),
+    "BANKNIFTY": (25, "IDX_I"),
+    "FINNIFTY": (27, "IDX_I"),
 }
 
 NSE_HOME_URL = "https://www.nseindia.com/"
@@ -73,6 +81,13 @@ def available_expiries(underlying: str) -> tuple[str, ...]:
         raise ValueError(f"Unsupported underlying: {underlying}")
 
     try:
+        dhan_expiries = _fetch_dhan_expiries(underlying)
+        if dhan_expiries:
+            return dhan_expiries
+    except Exception:
+        pass
+
+    try:
         payload = _fetch_nse_option_chain(underlying)
         expiries = _nse_expiries(payload)
         if expiries:
@@ -96,6 +111,14 @@ def fetch_option_chain(
         raise ValueError(f"Unsupported underlying: {underlying}")
 
     try:
+        dhan_result = _fetch_dhan_option_chain(underlying, expiry)
+        if dhan_result.status == "AVAILABLE":
+            return dhan_result
+        dhan_error = dhan_result.message
+    except Exception as exc:
+        dhan_error = str(exc)
+
+    try:
         payload = _fetch_nse_option_chain(underlying)
         expiries = _nse_expiries(payload)
         if expiries:
@@ -111,7 +134,7 @@ def fetch_option_chain(
                     chain,
                     expiries,
                     "AVAILABLE",
-                    "Option chain loaded from NSE.",
+                    "Option chain loaded from NSE fallback.",
                 )
     except Exception as exc:
         nse_error = str(exc)
@@ -123,7 +146,8 @@ def fetch_option_chain(
         return yahoo_result
 
     message = (
-        f"NSE option-chain data was unavailable ({nse_error}); "
+        f"Dhan option-chain data was unavailable ({dhan_error}); "
+        f"NSE fallback was unavailable ({nse_error}); "
         f"Yahoo Finance fallback was also unavailable ({yahoo_result.message})."
     )
     return OptionChainResult(
@@ -164,6 +188,134 @@ def summarize_option_chain(chain: pd.DataFrame) -> pd.DataFrame:
         ("Highest Put OI strike", max_put),
     ]
     return pd.DataFrame(rows, columns=["Metric", "Value"])
+
+
+def _dhan_expiry(value: str) -> str:
+    """Convert the legacy NSE display expiry to Dhan's YYYY-MM-DD format."""
+    try:
+        return pd.Timestamp(value).strftime("%Y-%m-%d")
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def _fetch_dhan_expiries(underlying: str) -> tuple[str, ...]:
+    """Return Dhan-reported expiries when Dhan credentials are configured."""
+    if underlying not in DHAN_OPTION_UNDERLYINGS:
+        return ()
+    credentials = DhanCredentials.from_env()
+    client = DhanMarketData(credentials=credentials)
+    security_id, segment = DHAN_OPTION_UNDERLYINGS[underlying]
+    response = client.expiry_list(security_id, segment)
+    if not isinstance(response, dict) or response.get("status") != "success":
+        remarks = response.get("remarks", response) if isinstance(response, dict) else response
+        raise RuntimeError(f"Dhan expiry list failed: {remarks}")
+    values = response.get("data", [])
+    if not isinstance(values, list):
+        raise RuntimeError("Dhan expiry list returned an invalid data payload.")
+    return tuple(str(value) for value in values if value)
+
+
+def _normalize_dhan_chain(
+    payload: dict,
+    underlying: str,
+    expiry: str,
+    expiries: tuple[str, ...],
+) -> OptionChainResult:
+    data = payload.get("data", {})
+    if not isinstance(data, dict):
+        raise RuntimeError("Dhan option-chain response has no data object.")
+    raw_chain = data.get("oc", {})
+    if not isinstance(raw_chain, dict):
+        raise RuntimeError("Dhan option-chain response has no strike map.")
+
+    rows = []
+    for strike_text, strike_data in raw_chain.items():
+        if not isinstance(strike_data, dict):
+            continue
+        call = strike_data.get("ce") or {}
+        put = strike_data.get("pe") or {}
+        if not isinstance(call, dict):
+            call = {}
+        if not isinstance(put, dict):
+            put = {}
+
+        def oi_change(option: dict) -> float | None:
+            oi = option.get("oi")
+            previous_oi = option.get("previous_oi")
+            try:
+                if oi is None or previous_oi is None:
+                    return None
+                return float(oi) - float(previous_oi)
+            except (TypeError, ValueError):
+                return None
+
+        rows.append(
+            {
+                "strike": strike_text,
+                "CE LTP": call.get("last_price"),
+                "CE volume": call.get("volume"),
+                "CE OI": call.get("oi"),
+                "CE OI change": oi_change(call),
+                "CE IV": call.get("implied_volatility"),
+                "PE LTP": put.get("last_price"),
+                "PE volume": put.get("volume"),
+                "PE OI": put.get("oi"),
+                "PE OI change": oi_change(put),
+                "PE IV": put.get("implied_volatility"),
+            }
+        )
+
+    chain = (
+        _finalize_chain(pd.DataFrame(rows))
+        if rows
+        else pd.DataFrame(columns=CHAIN_COLUMNS)
+    )
+    spot = data.get("last_price")
+    try:
+        spot_value = float(spot) if spot is not None else None
+    except (TypeError, ValueError):
+        spot_value = None
+
+    if chain.empty:
+        raise RuntimeError("Dhan returned an empty option chain.")
+
+    return OptionChainResult(
+        underlying,
+        f"Dhan:{underlying}",
+        expiry,
+        spot_value,
+        chain,
+        expiries,
+        "AVAILABLE",
+        "Option chain loaded from Dhan.",
+    )
+
+
+def _fetch_dhan_option_chain(
+    underlying: str,
+    expiry: str | None = None,
+) -> OptionChainResult:
+    """Fetch an index option chain from Dhan when credentials are configured."""
+    if underlying not in DHAN_OPTION_UNDERLYINGS:
+        raise ValueError(f"Unsupported underlying: {underlying}")
+
+    credentials = DhanCredentials.from_env()
+    client = DhanMarketData(credentials=credentials)
+    security_id, segment = DHAN_OPTION_UNDERLYINGS[underlying]
+
+    expiry_values = _fetch_dhan_expiries(underlying)
+    if not expiry_values:
+        raise RuntimeError("Dhan returned no active option expiries.")
+
+    requested = _dhan_expiry(expiry) if expiry else None
+    selected = requested if requested in expiry_values else expiry_values[0]
+    response = client.option_chain(security_id, segment, selected)
+
+    if not isinstance(response, dict) or response.get("status") != "success":
+        remarks = response.get("remarks", response) if isinstance(response, dict) else response
+        raise RuntimeError(f"Dhan option chain failed: {remarks}")
+
+    return _normalize_dhan_chain(response, underlying, selected, expiry_values)
 
 
 def _fetch_nse_option_chain(underlying: str) -> dict:
