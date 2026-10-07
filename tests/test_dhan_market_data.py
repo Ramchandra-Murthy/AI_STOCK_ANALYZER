@@ -109,7 +109,8 @@ def test_option_apis_retry_with_direct_dhan_rest(monkeypatch):
     calls = []
 
     def fake_urlopen(request, timeout):
-        calls.append((request.full_url, request.get_header("client-id"), timeout))
+        headers = {key.lower(): value for key, value in request.header_items()}
+        calls.append((request.full_url, headers.get("client-id"), timeout))
         if request.full_url.endswith("/expirylist"):
             raise AssertionError("unexpected URL")
         return FakeHttpResponse(
@@ -117,7 +118,8 @@ def test_option_apis_retry_with_direct_dhan_rest(monkeypatch):
         )
 
     def fake_option_urlopen(request, timeout):
-        calls.append((request.full_url, request.get_header("client-id"), timeout))
+        headers = {key.lower(): value for key, value in request.header_items()}
+        calls.append((request.full_url, headers.get("client-id"), timeout))
         return FakeHttpResponse({"status": "success", "data": ["direct"]})
 
     monkeypatch.setattr(module, "urlopen", fake_option_urlopen)
