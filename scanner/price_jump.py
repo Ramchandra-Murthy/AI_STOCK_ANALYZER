@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
+
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES, _ticker
 from services.resilient_market_data import download_market_frames
