@@ -1,7 +1,7 @@
 """Options analytics providers for the Streamlit scanner.
 
-NSE is the primary provider for Indian index option chains. Yahoo Finance remains
-an explicit fallback because it is already part of the application dependency set.
+Dhan is the primary provider for Indian index option chains. NSE and Yahoo Finance
+remain fallbacks for environments where Dhan is not configured or unavailable.
 Provider availability and timestamps are surfaced rather than inferred.
 """
 
@@ -265,11 +265,7 @@ def _normalize_dhan_chain(
             }
         )
 
-    chain = (
-        _finalize_chain(pd.DataFrame(rows))
-        if rows
-        else pd.DataFrame(columns=CHAIN_COLUMNS)
-    )
+    chain = _finalize_chain(pd.DataFrame(rows)) if rows else pd.DataFrame(columns=CHAIN_COLUMNS)
     spot = data.get("last_price")
     try:
         spot_value = float(spot) if spot is not None else None
