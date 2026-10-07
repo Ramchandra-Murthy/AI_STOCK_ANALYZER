@@ -33,6 +33,17 @@ def test_transaction_cost_reduces_returns() -> None:
     assert charged.total_return < free.total_return
 
 
+def test_reversal_starts_a_new_directional_trade() -> None:
+    index = pd.date_range("2026-01-01", periods=4, freq="D")
+    prices = pd.Series([100.0, 110.0, 99.0, 99.0], index=index)
+    signals = pd.Series([1.0, -1.0, 0.0, 0.0], index=index)
+
+    _, metrics = run_backtest(prices, signals, cost_bps=0)
+
+    assert metrics.trade_count == 2
+    assert metrics.win_rate == pytest.approx(1.0)
+
+
 def test_invalid_inputs_fail() -> None:
     index = pd.date_range("2026-01-01", periods=2, freq="D")
     prices = pd.Series([100.0, 101.0], index=index)
