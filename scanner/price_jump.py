@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
-from scanner.unusual_activity import CAP_UNIVERSES, _ticker
+from scanner.unusual_activity import CAP_UNIVERSES, _ticker, finalize_scan_result
 from services.resilient_market_data import download_market_frames
 
 INTRADAY_PERIOD = "1d"
@@ -162,24 +162,9 @@ def scan_price_jumps(
                 stats["processing_errors"] += 1
                 continue
 
-    stats["matches_before_limit"] = len(rows)
-    if not rows:
-        result = pd.DataFrame()
-    else:
-        result = (
-            pd.DataFrame(rows)
-            .sort_values(
-                [
-                    f"Change over {lookback_minutes} min %",
-                    "RVOL",
-                ],
-                ascending=[False, False],
-                na_position="last",
-            )
-            .head(max(1, min(int(limit), 100)))
-            .reset_index(drop=True)
-        )
-
-    stats["displayed_count"] = len(result)
-    result.attrs["scan_stats"] = stats
-    return result
+    return finalize_scan_result(
+        rows,
+        limit,
+        [f"Change over {lookback_minutes} min %", "RVOL"],
+        stats,
+    )
