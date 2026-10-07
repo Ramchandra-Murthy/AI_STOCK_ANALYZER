@@ -19,8 +19,8 @@ from services.resilient_market_data import download_symbol_frames
 TOP10_REFRESH_SECONDS = 60
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
-TOP10_CHUNK_SIZE = 10
-TOP10_MAX_NSE_CANDIDATES = 40
+TOP10_CHUNK_SIZE = 20
+TOP10_MAX_NSE_CANDIDATES = 30
 TOP10_MAX_BSE_CANDIDATES = 10
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
@@ -557,13 +557,13 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     all_tickers = [ticker for tickers in tickers_by_exchange.values() for ticker in tickers]
     frames, _missing = download_symbol_frames(
         all_tickers,
-        period="5d",
+        period="1d",
         interval="1m",
         auto_adjust=False,
         batch_size=TOP10_CHUNK_SIZE,
-        timeout=15,
+        timeout=10,
     )
-    failures = 1 if not frames else 0
+    failures = len(_missing) if _missing else 0
 
     for exchange, tickers in tickers_by_exchange.items():
         for ticker in tickers:
@@ -597,8 +597,8 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
             )
 
     frame = pd.DataFrame(rows)
-    if frame.empty and failures:
-        raise RuntimeError("Live quote provider failed for all scan chunks")
+    if frame.empty:
+        raise RuntimeError("Live quote provider returned no usable 1-minute quotes")
     if frame.empty:
         return frame, round(perf_counter() - started, 2), failures, 0
 
