@@ -19,6 +19,12 @@ def test_bearish_signal_can_be_offset_by_positive_relative_strength() -> None:
     assert signal.score == pytest.approx(-15.0)
 
 
+def test_inconclusive_regime_cannot_create_directional_signal() -> None:
+    signal = compose_signal("INCONCLUSIVE", 2, 30.0)
+    assert signal.direction == "FLAT"
+    assert signal.score == pytest.approx(60.0)
+
+
 def test_missing_edge_does_not_claim_edge_qualification() -> None:
     signal = compose_signal("BULLISH", 3)
     assert signal.edge_qualified is False
