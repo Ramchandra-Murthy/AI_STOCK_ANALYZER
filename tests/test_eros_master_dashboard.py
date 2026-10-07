@@ -1,5 +1,6 @@
 import pandas as pd
 
+from scanner import eros_master_dashboard as master_dashboard
 from scanner.eros_master_dashboard import build_eros_master_dashboard
 
 
@@ -63,4 +64,20 @@ def test_master_dashboard_empty_history():
 def test_master_dashboard_accepts_history_without_regime_history():
     summary, signals = build_eros_master_dashboard(_history())
     assert summary.loc[0, "Signals"] == 1
+    assert not signals.empty
+
+
+def test_master_dashboard_handles_all_null_alignment_percent(monkeypatch):
+    alignment = pd.DataFrame(
+        {
+            "Symbol": ["AAA"],
+            "Exchange": ["NSE"],
+            "Alignment %": pd.Series([pd.NA], dtype="Float64"),
+        }
+    )
+    monkeypatch.setattr(master_dashboard, "analyze_eros_signal_alignment", lambda *_args: alignment)
+
+    summary, signals = build_eros_master_dashboard(_history())
+
+    assert summary.loc[0, "Average Signal Alignment %"] is None
     assert not signals.empty
