@@ -219,7 +219,7 @@ def _analyze_history(
             "MACD": round(float(last["MACD"]), 2),
             "ATR": round(float(last["ATR"]), 2),
             "AI Score": signal["Score"],
-            "Confidence": abs(signal["Score"]),
+            "Confidence": signal["Confidence"],
             "Risk": signal.get("Risk", "Medium"),
             "Recommendation": signal["Recommendation"],
         }
