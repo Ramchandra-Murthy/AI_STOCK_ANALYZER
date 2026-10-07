@@ -875,4 +875,4 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
                 },
             )
             if not history_trend.empty:
-                st.line_chart(history_trend, y_min=0, y_max=100)
+                st.line_chart(history_trend)

@@ -421,6 +421,12 @@ def test_top10_live_signal_history_table_and_trend() -> None:
     assert trend["NSE:AAA"].tolist() == [40, 65]
 
 
+def test_top10_live_history_chart_uses_supported_streamlit_api() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "st.line_chart(history_trend)" in source
+    assert "st.line_chart(history_trend, y_min=" not in source
+
+
 def test_top10_live_signal_persistence_counts_consecutive_presence_and_direction() -> None:
     history = [
         pd.DataFrame(
