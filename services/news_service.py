@@ -26,6 +26,15 @@ def get_company_news(symbol):
 
         raw_news = ticker.news or []
 
+        # Yahoo's ticker-news endpoint can occasionally return no articles
+        # even when Yahoo Finance search has current news for the symbol.
+        if not raw_news:
+            try:
+                search = yf.Search(symbol, max_results=10, news_count=10)
+                raw_news = search.news or []
+            except Exception:
+                raw_news = []
+
         normalized_news = []
 
         for article in raw_news:
