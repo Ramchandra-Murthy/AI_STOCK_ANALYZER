@@ -6,8 +6,11 @@ from the environment and are never logged or persisted by this module.
 
 from __future__ import annotations
 
+import json
 import os
 from collections.abc import Mapping
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 from dataclasses import dataclass
 from typing import Any
 
@@ -59,6 +62,23 @@ def _build_dhan_client(credentials: DhanCredentials) -> Any:
     return dhanhq(DhanContext(credentials.client_id, credentials.access_token))
 
 
+DHAN_API_BASE_URL = "https://api.dhan.co/v2"
+
+
+def _response_remarks(response: Any) -> str:
+    """Format Dhan failure details without leaking credentials."""
+    if not isinstance(response, dict):
+        return str(response)
+    remarks = response.get("remarks")
+    if remarks in (None, "", {}):
+        error_code = response.get("error_code")
+        error_type = response.get("error_type")
+        error_message = response.get("error_message")
+        details = [value for value in (error_code, error_type, error_message) if value]
+        return ", ".join(str(value) for value in details) or "Dhan returned no failure details."
+    return str(remarks)
+
+
 class DhanMarketData:
     """Read-only wrapper around DhanHQ market-data APIs."""
 
@@ -68,12 +88,11 @@ class DhanMarketData:
         credentials: DhanCredentials | None = None,
         client: Any | None = None,
     ) -> None:
+        self._credentials = credentials if credentials is not None else DhanCredentials.from_env()
         if client is not None:
             self._client = client
             return
-        self._client = _build_dhan_client(
-            credentials if credentials is not None else DhanCredentials.from_env()
-        )
+        self._client = _build_dhan_client(self._credentials)
 
     def ticker_data(self, securities: Mapping[str, list[int]]) -> dict[str, Any]:
         """Return LTP data for the requested Dhan security IDs."""
@@ -92,10 +111,20 @@ class DhanMarketData:
         under_security_id: int,
         under_exchange_segment: str,
     ) -> dict[str, Any]:
-        """Return active option expiries for an underlying."""
-        return self._client.expiry_list(
+        """Return active option expiries, with a raw REST fallback for SDK failures."""
+        response = self._client.expiry_list(
             under_security_id,
             under_exchange_segment,
+        )
+        if isinstance(response, dict) and response.get("status") == "success":
+            return response
+        return self._direct_option_api(
+            "/optionchain/expirylist",
+            {
+                "UnderlyingScrip": under_security_id,
+                "UnderlyingSeg": under_exchange_segment,
+            },
+            response,
         )
 
     def option_chain(
@@ -104,12 +133,68 @@ class DhanMarketData:
         under_exchange_segment: str,
         expiry: str,
     ) -> dict[str, Any]:
-        """Return the complete option chain for one underlying and expiry."""
-        return self._client.option_chain(
+        """Return an option chain, with a raw REST fallback for SDK failures."""
+        response = self._client.option_chain(
             under_security_id,
             under_exchange_segment,
             expiry,
         )
+        if isinstance(response, dict) and response.get("status") == "success":
+            return response
+        return self._direct_option_api(
+            "/optionchain",
+            {
+                "UnderlyingScrip": under_security_id,
+                "UnderlyingSeg": under_exchange_segment,
+                "Expiry": expiry,
+            },
+            response,
+        )
+
+    def _direct_option_api(
+        self,
+        endpoint: str,
+        payload: dict[str, Any],
+        sdk_response: Any,
+    ) -> dict[str, Any]:
+        """Retry option APIs directly when the SDK cannot decode a response."""
+        credentials = self._credentials
+        request = Request(
+            f"{DHAN_API_BASE_URL}{endpoint}",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "client-id": credentials.client_id,
+                "access-token": credentials.access_token,
+            },
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=15) as response:
+                raw = response.read().decode("utf-8")
+            parsed = json.loads(raw)
+        except HTTPError as exc:
+            raise DhanConfigurationError(
+                f"Dhan {endpoint} HTTP {exc.code}; SDK response: "
+                f"{_response_remarks(sdk_response)}"
+            ) from exc
+        except (URLError, TimeoutError, json.JSONDecodeError) as exc:
+            raise DhanConfigurationError(
+                f"Dhan {endpoint} direct request failed: {exc}; "
+                f"SDK response: {_response_remarks(sdk_response)}"
+            ) from exc
+        if not isinstance(parsed, dict):
+            raise DhanConfigurationError(
+                f"Dhan {endpoint} returned an invalid response; "
+                f"SDK response: {_response_remarks(sdk_response)}"
+            )
+        if parsed.get("status") != "success":
+            raise DhanConfigurationError(
+                f"Dhan {endpoint} failed: {_response_remarks(parsed)}; "
+                f"SDK response: {_response_remarks(sdk_response)}"
+            )
+        return parsed
 
     def intraday_minute_data(
         self,
