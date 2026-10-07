@@ -52,7 +52,10 @@ def analyze_eros_signal_alignment(
     result["Directional Diagnostics"] = 0
     result["Aligned Diagnostics"] = 0
 
-    result.loc[result["Direction"].isin(["RISING", "FALLING"]), "Directional Diagnostics"] += 1
+    result.loc[
+        result["Direction"].isin(["RISING", "FALLING"]),
+        "Directional Diagnostics",
+    ] += 1
     result.loc[
         result["Trend"].isin(["RISING", "FALLING"]),
         "Directional Diagnostics",
@@ -66,7 +69,8 @@ def analyze_eros_signal_alignment(
     )
 
     result.loc[
-        result["Trend Direction"].notna() & result["Direction"].eq(result["Trend Direction"]),
+        result["Trend Direction"].notna()
+        & result["Direction"].eq(result["Trend Direction"]),
         "Aligned Diagnostics",
     ] += 1
     result.loc[
@@ -78,15 +82,15 @@ def analyze_eros_signal_alignment(
         "Aligned Diagnostics",
     ] += 1
 
-    directional = pd.to_numeric(result["Directional Diagnostics"], errors="coerce").astype(
-        "Float64"
-    )
-    aligned = pd.to_numeric(result["Aligned Diagnostics"], errors="coerce").astype("Float64")
+    directional = pd.to_numeric(
+        result["Directional Diagnostics"], errors="coerce"
+    ).astype("Float64")
+    aligned = pd.to_numeric(
+        result["Aligned Diagnostics"], errors="coerce"
+    ).astype("Float64")
     denominator = directional.mask(directional.eq(0))
 
-    result["Alignment %"] = (
-        aligned.div(denominator).mul(100).clip(upper=100).round(2)
-    )
+    result["Alignment %"] = aligned.div(denominator).mul(100).clip(upper=100).round(2)
 
     result["Alignment"] = "INSUFFICIENT DATA"
     result.loc[result["Directional Diagnostics"] > 0, "Alignment"] = "MIXED"
