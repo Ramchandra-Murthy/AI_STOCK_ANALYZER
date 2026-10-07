@@ -88,10 +88,11 @@ class DhanMarketData:
         credentials: DhanCredentials | None = None,
         client: Any | None = None,
     ) -> None:
-        self._credentials = credentials if credentials is not None else DhanCredentials.from_env()
         if client is not None:
+            self._credentials = credentials
             self._client = client
             return
+        self._credentials = credentials if credentials is not None else DhanCredentials.from_env()
         self._client = _build_dhan_client(self._credentials)
 
     def ticker_data(self, securities: Mapping[str, list[int]]) -> dict[str, Any]:
@@ -159,6 +160,10 @@ class DhanMarketData:
     ) -> dict[str, Any]:
         """Retry option APIs directly when the SDK cannot decode a response."""
         credentials = self._credentials
+        if credentials is None:
+            raise DhanConfigurationError(
+                "Dhan credentials are required for the direct option API fallback."
+            )
         request = Request(
             f"{DHAN_API_BASE_URL}{endpoint}",
             data=json.dumps(payload).encode("utf-8"),
