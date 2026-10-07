@@ -17,7 +17,6 @@ from scanner.day_trading_strategy import (
     calculate_day_trade_plan,
     classify_day_trade_plan_state,
 )
-from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.surveillance import (
     apply_safety_filter,
     fetch_nse_safety_snapshot,
