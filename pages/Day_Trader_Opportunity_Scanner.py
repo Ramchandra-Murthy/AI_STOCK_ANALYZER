@@ -7,7 +7,6 @@ import streamlit as st
 
 from api.main import _SCAN_MANAGER
 from scanner.day_trader_opportunity import scan_day_trader_opportunities
-from scanner.price_jump import scan_price_jumps
 from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.price_jump_history_analytics import summarize_price_jump_history
 from services.price_jump_watchlist_delta import compare_watchlists
@@ -430,7 +429,10 @@ def _price_jump_watchlist():
             jump_percent=jump_threshold,
         )
         st.session_state["price_jump_scan_job_id"] = active_job_id
-        st.info("⏳ Price-Jump Pulse started in the background. The page remains responsive while market data loads.")
+        st.info(
+            "⏳ Price-Jump Pulse started in the background. The page remains responsive while "
+            "market data loads."
+        )
         st.rerun()
 
     active_job_id = st.session_state.get("price_jump_scan_job_id")
@@ -440,10 +442,15 @@ def _price_jump_watchlist():
             st.session_state.pop("price_jump_scan_job_id", None)
             st.error("Background price-jump scan was lost. Please run the pulse again.")
         elif job["status"] in {"queued", "running"}:
-            st.info("⏳ Price-Jump Pulse is still running in the background. Results will appear automatically.")
+            st.info(
+                "⏳ Price-Jump Pulse is still running in the background. Results will appear "
+                "automatically."
+            )
         elif job["status"] == "failed":
             st.session_state.pop("price_jump_scan_job_id", None)
-            st.error(f"Price-jump pulse could not complete: {job.get('error') or 'unknown error'}")
+            st.error(
+                f"Price-jump pulse could not complete: {job.get('error') or 'unknown error'}"
+            )
         elif job["status"] == "completed":
             pulse_results = pd.DataFrame(job.get("results", []))
             pulse_results.attrs["scan_stats"] = dict(job.get("scan_stats", {}))
@@ -451,10 +458,15 @@ def _price_jump_watchlist():
             previous_watchlist = st.session_state.get("price_jump_top10_watchlist")
             current_watchlist = pulse_results.head(10).copy()
             current_watchlist.insert(0, "Rank", range(1, len(current_watchlist) + 1))
-            st.session_state["price_jump_watchlist_delta"] = compare_watchlists(previous_watchlist, current_watchlist)
+            st.session_state["price_jump_watchlist_delta"] = compare_watchlists(
+                previous_watchlist,
+                current_watchlist,
+            )
             st.session_state["price_jump_top10_watchlist"] = current_watchlist
             st.session_state["price_jump_results"] = pulse_results
-            st.session_state["price_jump_scan_time"] = pulse_at.tz_convert("Asia/Kolkata").strftime("%d %b %Y, %H:%M:%S IST")
+            st.session_state["price_jump_scan_time"] = pulse_at.tz_convert(
+                "Asia/Kolkata"
+            ).strftime("%d %b %Y, %H:%M:%S IST")
             st.session_state["price_jump_scan_stats"] = dict(job.get("scan_stats", {}))
             st.session_state["price_jump_scan_window"] = jump_window
             st.session_state["price_jump_history"] = append_price_jump_snapshot(
@@ -463,7 +475,9 @@ def _price_jump_watchlist():
                 pulse_results,
             )
             st.session_state.pop("price_jump_scan_job_id", None)
-            st.success(f"✅ Price-Jump Pulse completed · {len(pulse_results)} candidates returned.")
+            st.success(
+                f"✅ Price-Jump Pulse completed · {len(pulse_results)} candidates returned."
+            )
     pulse_results = st.session_state.get("price_jump_results")
     if pulse_results is None:
         st.info(
