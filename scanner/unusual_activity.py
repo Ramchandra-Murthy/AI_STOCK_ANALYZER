@@ -169,6 +169,28 @@ def _frame_for(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     return frame
 
 
+def finalize_scan_result(
+    rows: list[dict[str, Any]],
+    limit: int,
+    sort_columns: list[str],
+    stats: dict[str, Any],
+) -> pd.DataFrame:
+    """Build, rank, and annotate a scanner result consistently."""
+    stats["matches_before_limit"] = len(rows)
+    if not rows:
+        result = pd.DataFrame()
+    else:
+        result = (
+            pd.DataFrame(rows)
+            .sort_values(sort_columns, ascending=[False] * len(sort_columns), na_position="last")
+            .head(max(1, min(int(limit), 100)))
+            .reset_index(drop=True)
+        )
+    stats["displayed_count"] = len(result)
+    result.attrs["scan_stats"] = stats
+    return result
+
+
 def scan_unusual_activity(
     limit: int = 20,
     cap_category: str = "All caps",
@@ -273,16 +295,9 @@ def scan_unusual_activity(
                 except (KeyError, TypeError, ValueError, IndexError):
                     stats["processing_errors"] += 1
                     continue
-    stats["matches_before_limit"] = len(rows)
-    if not rows:
-        result = pd.DataFrame()
-    else:
-        result = (
-            pd.DataFrame(rows)
-            .sort_values(["Relative volume", "Session change %"], ascending=[False, False])
-            .head(max(1, min(int(limit), 100)))
-            .reset_index(drop=True)
-        )
-    stats["displayed_count"] = len(result)
-    result.attrs["scan_stats"] = stats
-    return result
+    return finalize_scan_result(
+        rows,
+        limit,
+        ["Relative volume", "Session change %"],
+        stats,
+    )
