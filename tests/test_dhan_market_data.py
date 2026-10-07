@@ -65,13 +65,26 @@ def test_nifty_helpers_use_dhan_index_contract():
     ]
 
 
-
 class FailingOptionClient(FakeDhanClient):
     def expiry_list(self, security_id, segment):
-        return {"status": "failure", "remarks": {"error_code": None, "error_type": None, "error_message": None}}
+        return {
+            "status": "failure",
+            "remarks": {
+                "error_code": None,
+                "error_type": None,
+                "error_message": None,
+            },
+        }
 
     def option_chain(self, security_id, segment, expiry):
-        return {"status": "failure", "remarks": {"error_code": None, "error_type": None, "error_message": None}}
+        return {
+            "status": "failure",
+            "remarks": {
+                "error_code": None,
+                "error_type": None,
+                "error_message": None,
+            },
+        }
 
 
 class FakeHttpResponse:
@@ -99,7 +112,9 @@ def test_option_apis_retry_with_direct_dhan_rest(monkeypatch):
         calls.append((request.full_url, request.get_header("client-id"), timeout))
         if request.full_url.endswith("/expirylist"):
             raise AssertionError("unexpected URL")
-        return FakeHttpResponse({"status": "success", "data": {"last_price": 25000, "oc": {}}})
+        return FakeHttpResponse(
+            {"status": "success", "data": {"last_price": 25000, "oc": {}}}
+        )
 
     def fake_option_urlopen(request, timeout):
         calls.append((request.full_url, request.get_header("client-id"), timeout))
