@@ -100,6 +100,13 @@ def test_universe_rejects_unknown_filters():
     assert select_day_trader_universe("Unknown cap", "Both") == []
 
 
+def test_all_caps_uses_bounded_fast_universe():
+    universe = select_day_trader_universe("All caps", "Both")
+    assert universe
+    assert len(universe) <= 200
+    assert ("RELIANCE", "NSE") in universe
+
+
 def test_score_combines_opportunity_and_setup_scores():
     rows = pd.DataFrame(
         [
