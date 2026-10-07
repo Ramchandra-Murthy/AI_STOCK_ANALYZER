@@ -9,10 +9,10 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Mapping
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 from dataclasses import dataclass
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 NIFTY_50_SECURITY_ID = 13
 NIFTY_INDEX_SEGMENT = "IDX_I"
