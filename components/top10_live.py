@@ -1,6 +1,6 @@
 """Fast live Top-10 market-mover scanner with one-minute refresh."""
 
-# The wider candidate pool improves provider quote coverage without lowering the trust gate.
+# The fast path favors a small liquid NSE pool to keep live refresh latency bounded.
 
 from __future__ import annotations
 
