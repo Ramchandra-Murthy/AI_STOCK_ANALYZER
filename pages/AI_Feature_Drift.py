@@ -39,7 +39,14 @@ if st.button("Run Feature Drift"):
             threshold=threshold,
         )
         st.metric("Features checked", len(report))
-        st.metric("Drifted features", int(report["drifted"].sum()) if not report.empty else 0)
-        st.dataframe(report, use_container_width=True)
+        drifted_count = int(report["drifted"].sum()) if not report.empty else 0
+        st.metric("Drifted features", drifted_count)
+        if report.empty:
+            st.info(
+                "No feature distributions are available for comparison yet. "
+                "Provide baseline and current Close/Volume data, then run the drift check."
+            )
+        else:
+            st.dataframe(report, use_container_width=True)
     except ValueError as exc:
         st.error(str(exc))
