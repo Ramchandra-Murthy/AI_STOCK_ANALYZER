@@ -96,6 +96,17 @@ def select_day_trader_universe(
     return filtered[:MAX_FAST_UNIVERSE]
 
 
+def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
+    """Use the smallest candle interval that supports the requested lookback."""
+    if lookback_minutes in (2, 3):
+        candle_minutes = 1
+    else:
+        candle_minutes = 5
+    interval = f"{candle_minutes}m"
+    bars = max(1, int(round(lookback_minutes / candle_minutes)))
+    return interval, bars
+
+
 def _ticker(symbol: str, exchange: str) -> str:
     cleaned = str(symbol).strip().upper()
     suffix = ".NS" if exchange == "NSE" else ".BO"
@@ -180,13 +191,11 @@ def scan_day_trader_opportunities(
     universe = select_day_trader_universe(cap_category, exchange_category)
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
 
-    # Use 1-minute candles for the full supported lookback range. Using 5-minute
-    # candles for the 5-minute mode left the scanner with fewer than six bars
-    # early in the session, so every symbol was incorrectly classified as having
-    # no usable intraday data (for example, a scan around 09:27 IST).
-    candle_minutes = 1
-    interval = f"{candle_minutes}m"
-    bars = max(1, int(round(lookback_minutes / candle_minutes)))
+    # Use 5-minute candles for the default 5-minute scan. This cuts the Yahoo
+    # payload substantially while preserving the requested 5-minute signal.
+    # The 2- and 3-minute modes retain 1-minute candles for finer timing.
+    interval, bars = _candle_settings(lookback_minutes)
+    candle_minutes = 1 if interval == "1m" else 5
     rows: list[dict[str, Any]] = []
     scan_stats: dict[str, Any] = {
         "candidate_count": len(universe),
