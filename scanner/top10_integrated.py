@@ -29,8 +29,8 @@ def scan_top10_integrated(
     if not movers:
         return pd.DataFrame()
 
-    tickers = [ticker for ticker, _exchange, _change in movers]
-    changes = {ticker: change for ticker, _exchange, change in movers}
+    tickers = [ticker for ticker, _exchange, _change, _turnover in movers]
+    changes = {ticker: change for ticker, _exchange, change, _turnover in movers}
     result = scan_integrated_tickers(
         tickers,
         period=TOP10_ANALYSIS_PERIOD,
