@@ -29,10 +29,7 @@ def _trade_returns(data: pd.DataFrame) -> pd.Series:
     """Return realized return for each directional non-zero position segment."""
     position = data["position"]
     active = position.ne(0)
-    starts = active & (
-        ~active.shift(1, fill_value=False)
-        | position.ne(position.shift(1))
-    )
+    starts = active & (~active.shift(1, fill_value=False) | position.ne(position.shift(1)))
     trade_id = starts.cumsum()
     active_returns = data.loc[active, "strategy_return"]
 
