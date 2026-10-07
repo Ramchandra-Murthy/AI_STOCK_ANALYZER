@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 import pandas as pd
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
@@ -30,8 +28,7 @@ def calculate_price_jump(
         return None
 
     session_date = clean.index[-1].date()
-    session_mask = clean.index.date == session_date
-    current = clean.loc[session_mask]
+    current = clean.loc[clean.index.date == session_date]
     if len(current) <= lookback_bars:
         return None
 
@@ -64,6 +61,68 @@ def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     return interval, bars
 
 
+def _selected_price_jump_universe(
+    cap_category: str,
+    exchange_category: str,
+) -> list[tuple[str, str]]:
+    """Build the bounded candidate universe used by the interactive price pulse."""
+    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
+    if cap_category == "All caps":
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
+            (symbol, "BSE") for symbol in BSE_CANDIDATES
+        ]
+    else:
+        selected = CAP_UNIVERSES.get(cap_category, set())
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
+    filtered = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    unique = list(dict.fromkeys(filtered))
+    return unique[:MAX_FAST_UNIVERSE]
+
+
+def _append_price_jump_rows(
+    rows: list[dict[str, object]],
+    stats: dict[str, object],
+    tickers: list[str],
+    exchange: str,
+    cap_category: str,
+    lookback_minutes: int,
+    bars: int,
+    jump_percent: float,
+    frames: dict[str, pd.DataFrame],
+) -> None:
+    """Append qualifying price-pulse rows and update scan diagnostics."""
+    for ticker in tickers:
+        try:
+            frame = frames.get(ticker, pd.DataFrame())
+            metrics = calculate_price_jump(frame, bars, jump_percent)
+            if metrics is None:
+                continue
+            stats["usable_count"] = int(stats["usable_count"]) + 1
+            if not bool(metrics["qualifies"]):
+                continue
+            rows.append(
+                {
+                    "Symbol": ticker.rsplit(".", 1)[0],
+                    "Exchange": exchange,
+                    "Market-cap basket": cap_category,
+                    "Last price": round(float(metrics["price"]), 2),
+                    f"Change over {lookback_minutes} min %": round(
+                        float(metrics["intraday_pct"]), 2
+                    ),
+                    "Day %": round(float(metrics["day_pct"]), 2),
+                    "Latest bar volume": int(metrics["volume"]),
+                    "RVOL": (
+                        round(float(metrics["relative_volume"]), 2)
+                        if pd.notna(metrics["relative_volume"])
+                        else None
+                    ),
+                    "Latest candle (provider time)": str(frame.index[-1]),
+                }
+            )
+        except (KeyError, TypeError, ValueError, IndexError):
+            stats["processing_errors"] = int(stats["processing_errors"]) + 1
+
+
 def scan_price_jumps(
     limit: int = 20,
     cap_category: str = "All caps",
@@ -71,37 +130,20 @@ def scan_price_jumps(
     lookback_minutes: int = 5,
     jump_percent: float = 1.0,
 ) -> pd.DataFrame:
-    """Return stocks meeting the selected intraday price-jump threshold.
-
-    The broad candidate universe is rescanned on every run, so the returned
-    symbols can change as current market conditions change. Yahoo Finance
-    uses 1-minute candles for 1-, 2- and 3-minute lookbacks and 5-minute
-    candles for 5-minute and longer lookbacks.
-    """
-    if lookback_minutes < 1 or jump_percent < 0:
+    """Return stocks meeting the selected intraday price-jump threshold."""
+    if (
+        limit < 1
+        or lookback_minutes < 1
+        or jump_percent < 0
+        or exchange_category not in {"NSE", "BSE", "Both"}
+        or cap_category not in {"All caps", *CAP_UNIVERSES}
+    ):
         return pd.DataFrame()
 
-    rows: list[dict[str, Any]] = []
-    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
-
-    if cap_category == "All caps":
-        # Keep the interactive price-pulse scan bounded. Exchange-wide dynamic
-        # lists can contain thousands of symbols and turn a one-minute refresh
-        # into a long blocking download. The maintained universe is still broad
-        # enough for the interactive screen and is shared with the other scanners.
-        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
-            (symbol, "BSE") for symbol in BSE_CANDIDATES
-        ]
-    else:
-        selected = CAP_UNIVERSES.get(cap_category, set())
-        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
-
-    selected_universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
-    unique_universe = list(dict.fromkeys(selected_universe))
-    duplicate_count = len(selected_universe) - len(unique_universe)
-    selected_universe = unique_universe[:MAX_FAST_UNIVERSE]
+    selected_universe = _selected_price_jump_universe(cap_category, exchange_category)
     interval, bars = _candle_settings(lookback_minutes)
-    stats = {
+    duplicate_count = 0
+    stats: dict[str, object] = {
         "candidate_count": len(selected_universe),
         "duplicate_candidates_removed": duplicate_count,
         "attempted_count": 0,
@@ -113,12 +155,14 @@ def scan_price_jumps(
         "displayed_count": 0,
         "interval": interval,
     }
+    rows: list[dict[str, object]] = []
 
+    exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     for exchange in exchanges:
         tickers = [
             _ticker(symbol, exchange) for symbol, venue in selected_universe if venue == exchange
         ]
-        stats["attempted_count"] += len(tickers)
+        stats["attempted_count"] = int(stats["attempted_count"]) + len(tickers)
         frames, diagnostics = download_market_frames(
             tickers,
             period=INTRADAY_PERIOD,
@@ -126,41 +170,21 @@ def scan_price_jumps(
             batch_size=100,
             timeout=10,
         )
-        stats["download_failed_chunks"] += int(bool(diagnostics["missing"]))
-        stats["empty_chunks"] += int(not frames and tickers)
-
-        for ticker in tickers:
-            try:
-                frame = frames.get(ticker, pd.DataFrame())
-                metrics = calculate_price_jump(frame, bars, jump_percent)
-                if metrics is None:
-                    continue
-                stats["usable_count"] += 1
-                if not bool(metrics["qualifies"]):
-                    continue
-
-                rows.append(
-                    {
-                        "Symbol": ticker.rsplit(".", 1)[0],
-                        "Exchange": exchange,
-                        "Market-cap basket": cap_category,
-                        "Last price": round(float(metrics["price"]), 2),
-                        f"Change over {lookback_minutes} min %": round(
-                            float(metrics["intraday_pct"]), 2
-                        ),
-                        "Day %": round(float(metrics["day_pct"]), 2),
-                        "Latest bar volume": int(metrics["volume"]),
-                        "RVOL": (
-                            round(float(metrics["relative_volume"]), 2)
-                            if pd.notna(metrics["relative_volume"])
-                            else None
-                        ),
-                        "Latest candle (provider time)": str(frame.index[-1]),
-                    }
-                )
-            except (KeyError, TypeError, ValueError, IndexError):
-                stats["processing_errors"] += 1
-                continue
+        stats["download_failed_chunks"] = int(stats["download_failed_chunks"]) + int(
+            bool(diagnostics["missing"])
+        )
+        stats["empty_chunks"] = int(stats["empty_chunks"]) + int(not frames and tickers)
+        _append_price_jump_rows(
+            rows,
+            stats,
+            tickers,
+            exchange,
+            cap_category,
+            lookback_minutes,
+            bars,
+            jump_percent,
+            frames,
+        )
 
     return finalize_scan_result(
         rows,
