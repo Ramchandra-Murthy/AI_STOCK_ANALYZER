@@ -63,3 +63,53 @@ def test_nifty_helpers_use_dhan_index_contract():
         NIFTY_INDEX_SEGMENT,
         "2026-10-13",
     ]
+
+
+
+class FailingOptionClient(FakeDhanClient):
+    def expiry_list(self, security_id, segment):
+        return {"status": "failure", "remarks": {"error_code": None, "error_type": None, "error_message": None}}
+
+    def option_chain(self, security_id, segment, expiry):
+        return {"status": "failure", "remarks": {"error_code": None, "error_type": None, "error_message": None}}
+
+
+class FakeHttpResponse:
+    def __init__(self, payload):
+        self._payload = payload
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        return False
+
+    def read(self):
+        import json
+
+        return json.dumps(self._payload).encode("utf-8")
+
+
+def test_option_apis_retry_with_direct_dhan_rest(monkeypatch):
+    import services.dhan_market_data as module
+
+    calls = []
+
+    def fake_urlopen(request, timeout):
+        calls.append((request.full_url, request.get_header("client-id"), timeout))
+        if request.full_url.endswith("/expirylist"):
+            raise AssertionError("unexpected URL")
+        return FakeHttpResponse({"status": "success", "data": {"last_price": 25000, "oc": {}}})
+
+    def fake_option_urlopen(request, timeout):
+        calls.append((request.full_url, request.get_header("client-id"), timeout))
+        return FakeHttpResponse({"status": "success", "data": ["direct"]})
+
+    monkeypatch.setattr(module, "urlopen", fake_option_urlopen)
+    credentials = DhanCredentials("client-123", "secret-token")
+    dhan = DhanMarketData(credentials=credentials, client=FailingOptionClient())
+
+    response = dhan.option_chain(13, "IDX_I", "2026-10-08")
+
+    assert response["status"] == "success"
+    assert calls == [("https://api.dhan.co/v2/optionchain", "client-123", 15)]
