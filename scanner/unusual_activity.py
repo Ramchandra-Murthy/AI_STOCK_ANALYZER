@@ -3,11 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
-import yfinance as yf
-
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.resilient_market_data import download_market_frames
 
-CHUNK_SIZE = 10
+CHUNK_SIZE = 100
 
 # Representative NSE candidate baskets, not exhaustive exchange classifications.
 # Categories are based on widely followed index constituents; market-cap ranks can change.
@@ -229,25 +228,25 @@ def scan_unusual_activity(
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
             stats["attempted_count"] += len(chunk)
-            try:
-                history = yf.download(
-                    tickers=chunk,
-                    period="5d",
-                    interval="5m",
-                    progress=False,
-                    auto_adjust=False,
-                    group_by="ticker",
-                    threads=False,
-                )
-            except Exception:
-                stats["download_failed_chunks"] += 1
+            frames, diagnostics = download_market_frames(
+                chunk,
+                period="5d",
+                interval="5m",
+                batch_size=100,
+                timeout=5,
+                retries=0,
+                recover_missing=False,
+            )
+            stats["download_failed_chunks"] += int(bool(diagnostics["missing"]))
+            if not frames:
+                stats["empty_chunks"] += 1
                 continue
             if history is None or history.empty:
                 stats["empty_chunks"] += 1
                 continue
             for ticker in chunk:
                 try:
-                    frame = _frame_for(history, ticker)
+                    frame = frames.get(ticker, pd.DataFrame())
                     required = {"Open", "High", "Low", "Close", "Volume"}
                     if frame.empty or not required.issubset(frame.columns):
                         continue
