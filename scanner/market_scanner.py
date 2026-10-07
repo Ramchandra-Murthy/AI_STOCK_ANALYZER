@@ -140,7 +140,7 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
 def _batch_change_screen(
     candidates: dict[str, list[str]],
 ) -> list[tuple[str, str, float, float]]:
-    """Find liquid movers across the current NSE universe and BSE fallback list."""
+    """Find price movers across the current NSE and BSE universes without a liquidity exclusion."""
     ranked: list[tuple[str, str, float, float]] = []
 
     for exchange, symbols in candidates.items():
@@ -174,7 +174,7 @@ def _batch_change_screen(
     return ranked
 
 
-def _analyze_history(ticker: str, history: pd.DataFrame) -> dict[str, Any] | None:
+def _analyze_history(\n    ticker: str, history: pd.DataFrame, average_turnover: float | None = None\n) -> dict[str, Any] | None:
     """Run the scanner's technical analysis locally on already-downloaded data."""
     df = _extract_history_frame(history, ticker)
     if len(df) < 50:
@@ -207,6 +207,7 @@ def _analyze_history(ticker: str, history: pd.DataFrame) -> dict[str, Any] | Non
             "Exchange": exchange,
             "Sector": sector_for_symbol(symbol),
             "Price": round(float(last["Close"]), 2),
+            "Avg Turnover (₹)": round(average_turnover, 0) if average_turnover is not None else None,
             "Trend": trend["Trend"],
             "RSI": round(float(last["RSI_14"]), 2),
             "MACD": round(float(last["MACD"]), 2),
@@ -249,9 +250,11 @@ def market_scan() -> pd.DataFrame:
     if history.empty:
         return pd.DataFrame()
 
+    turnover_by_ticker = {ticker: turnover for ticker, _exchange, _change, turnover in movers}
+
     rows: list[dict[str, Any]] = []
     for ticker in analysis_tickers:
-        row = _analyze_history(ticker, history)
+        row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
         if row is not None:
             rows.append(row)
 
