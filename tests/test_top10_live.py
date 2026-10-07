@@ -17,6 +17,7 @@ from components.top10_live import (
     TOP10_MAX_CONSECUTIVE_FAILURES,
     TOP10_MAX_NSE_CANDIDATES,
     TOP10_MIN_TRUSTED_COVERAGE_QUOTES,
+    TOP10_PROVIDER_RETRIES,
     TOP10_PARTIAL_FAILURES_KEY,
     TOP10_PERSISTENCE_ALERT_MIN_SCANS,
     TOP10_PERSISTENCE_MIN_SCANS,
@@ -56,6 +57,7 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_CHUNK_SIZE == 20
     assert TOP10_MAX_NSE_CANDIDATES == 30
     assert TOP10_MAX_BSE_CANDIDATES == 10
+    assert TOP10_PROVIDER_RETRIES == 0
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert 0 < TOP10_SCAN_WARNING_SECONDS < TOP10_STALE_DATA_SECONDS
     assert TOP10_STALE_DATA_SECONDS >= 3 * TOP10_REFRESH_SECONDS
@@ -630,3 +632,9 @@ def test_top10_live_uses_provider_candle_age() -> None:
     now = datetime(2026, 10, 5, 10, 0, tzinfo=ZoneInfo(TOP10_TIMEZONE))
     assert _provider_age_seconds("2026-10-05T09:59:00+05:30", now) == 60.0
     assert _provider_age_seconds("not-a-timestamp", now) is None
+
+
+def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "retries=TOP10_PROVIDER_RETRIES" in source
+    assert "recover_missing=False" in source
