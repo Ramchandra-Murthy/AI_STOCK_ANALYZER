@@ -113,8 +113,8 @@ with options_left:
     )
 with options_right:
     st.info(
-        "NSE is the primary provider for Indian index option chains. Yahoo Finance is "
-        "used only as a fallback. EROS shows UNAVAILABLE when neither provider supplies "
+        "Dhan is the primary provider for Indian index option chains. NSE and Yahoo Finance are "
+        "used only as fallbacks. EROS shows UNAVAILABLE when no provider supplies "
         "usable data rather than inventing option values."
     )
 
