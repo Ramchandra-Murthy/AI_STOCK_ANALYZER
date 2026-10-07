@@ -22,6 +22,7 @@ TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 20
 TOP10_MAX_NSE_CANDIDATES = 30
 TOP10_MAX_BSE_CANDIDATES = 10
+TOP10_PROVIDER_RETRIES = 0
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
 TOP10_STALE_DATA_SECONDS = 180
@@ -562,6 +563,8 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         auto_adjust=False,
         batch_size=TOP10_CHUNK_SIZE,
         timeout=10,
+        retries=TOP10_PROVIDER_RETRIES,
+        recover_missing=False,
     )
     failures = len(_missing) if _missing else 0
 
