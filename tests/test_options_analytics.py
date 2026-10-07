@@ -106,3 +106,103 @@ def test_fetch_option_chain_can_reload_requested_nse_expiry(monkeypatch):
     assert result.status == "AVAILABLE"
     assert result.expiry == "06-Oct-2026"
     assert result.chain.loc[0, "strike"] == 23200
+
+
+def test_fetch_option_chain_prefers_dhan(monkeypatch):
+    payload = {
+        "data": {
+            "last_price": 25123.5,
+            "oc": {
+                "25100.000000": {
+                    "ce": {
+                        "last_price": 125.0,
+                        "volume": 10000,
+                        "oi": 200000,
+                        "previous_oi": 180000,
+                        "implied_volatility": 12.5,
+                    },
+                    "pe": {
+                        "last_price": 110.0,
+                        "volume": 12000,
+                        "oi": 220000,
+                        "previous_oi": 200000,
+                        "implied_volatility": 13.5,
+                    },
+                }
+            },
+        },
+        "status": "success",
+    }
+
+    def fake_dhan(underlying, expiry=None):
+        from services.options_analytics import _normalize_dhan_chain
+
+        return _normalize_dhan_chain(
+            payload,
+            underlying,
+            "2026-10-08",
+            ("2026-10-08", "2026-10-15"),
+        )
+
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_dhan_option_chain",
+        fake_dhan,
+    )
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_nse_option_chain",
+        lambda underlying: (_ for _ in ()).throw(
+            AssertionError("NSE should not be called when Dhan succeeds")
+        ),
+    )
+
+    result = fetch_option_chain("NIFTY")
+    assert result.status == "AVAILABLE"
+    assert result.provider_symbol == "Dhan:NIFTY"
+    assert result.expiry == "2026-10-08"
+    assert result.spot == 25123.5
+    assert result.chain.loc[0, "CE OI"] == 200000
+    assert result.chain.loc[0, "CE OI change"] == 20000
+    assert result.chain.loc[0, "PE OI change"] == 20000
+
+
+def test_dhan_option_chain_converts_display_expiry_to_iso(monkeypatch):
+    calls = []
+
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_dhan_expiries",
+        lambda underlying: ("2026-10-08", "2026-10-15"),
+    )
+
+    class FakeClient:
+        def option_chain(self, security_id, segment, expiry):
+            calls.append((security_id, segment, expiry))
+            return {
+                "status": "success",
+                "data": {
+                    "last_price": 25100.0,
+                    "oc": {
+                        "25100.000000": {
+                            "ce": {"last_price": 100, "oi": 10, "volume": 20},
+                            "pe": {"last_price": 90, "oi": 12, "volume": 30},
+                        }
+                    },
+                },
+            }
+
+    monkeypatch.setattr(
+        "services.options_analytics.DhanCredentials.from_env",
+        lambda: object(),
+    )
+    monkeypatch.setattr(
+        "services.options_analytics.DhanMarketData",
+        lambda credentials: FakeClient(),
+    )
+
+    result = __import__("services.options_analytics", fromlist=["_fetch_dhan_option_chain"])._fetch_dhan_option_chain(
+        "NIFTY",
+        "08-Oct-2026",
+    )
+
+    assert calls == [(13, "IDX_I", "2026-10-08")]
+    assert result.provider_symbol == "Dhan:NIFTY"
+    assert result.chain.loc[0, "strike"] == 25100.0
