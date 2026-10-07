@@ -11,6 +11,7 @@ dependencies = [
     "streamlit==1.63.0",
     "fastapi==0.116.1",
     "yfinance==1.7.0",
+    "dhanhq==2.2.0",
     "pandas==3.0.5",
     "numpy==2.2.6",
     "plotly==7.0.0",
