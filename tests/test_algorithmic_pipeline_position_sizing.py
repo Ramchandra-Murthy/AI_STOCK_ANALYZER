@@ -36,7 +36,15 @@ def test_long_signal_uses_atr_stop_for_nonzero_position_size(monkeypatch):
     assert result.position_size.risk_per_share > 0
 
 
-def test_flat_signal_does_not_create_position():
+def test_flat_signal_does_not_create_position(monkeypatch):
+    monkeypatch.setattr(
+        "algorithmic_trading.pipeline.regime_score",
+        lambda frame: 0,
+    )
+    monkeypatch.setattr(
+        "algorithmic_trading.pipeline.classify_regime",
+        lambda frame: "INCONCLUSIVE",
+    )
     frame = _frame()
     result = analyze_symbol(
         "AAA",
