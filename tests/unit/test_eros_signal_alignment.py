@@ -64,5 +64,6 @@ def test_alignment_percentage_is_numeric_when_directional_diagnostics_are_nullab
 
     result = eros_signal_alignment.analyze_eros_signal_alignment(None)
 
-    assert result["Alignment %"].tolist() == [100.0, None]
+    assert result["Alignment %"].iloc[0] == 100.0
+    assert pd.isna(result["Alignment %"].iloc[1])
     assert str(result["Alignment %"].dtype) == "Float64"
