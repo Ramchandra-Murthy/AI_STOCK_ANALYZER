@@ -12,6 +12,7 @@ name = "ai-stock-analyzer"
 version = "0.6.0"
 source = { editable = "." }
 dependencies = [
+    { name = "dhanhq" },
     { name = "fastapi" },
     { name = "numpy" },
     { name = "openpyxl" },
@@ -48,6 +49,7 @@ requires-dist = [
     { name = "scikit-learn", specifier = "==1.9.1" },
     { name = "streamlit", specifier = "==1.63.0" },
     { name = "yfinance", specifier = "==1.7.0" },
+    { name = "dhanhq", specifier = "==2.2.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -60,6 +62,17 @@ dev = [
     { name = "ruff", specifier = "==0.16.7" },
 ]
 
+
+[[package]]
+name = "dhanhq"
+version = "2.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pandas" },
+    { name = "pyopenssl" },
+    { name = "requests" },
+    { name = "websockets" },
+]
 [[package]]
 name = "altair"
 version = "6.2.2"
