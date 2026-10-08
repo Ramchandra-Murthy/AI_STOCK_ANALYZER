@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 import pytest
 
@@ -12,7 +14,7 @@ def test_sharpe_ratio_haircut_penalizes_multiple_trials():
 
     result = sharpe_ratio_haircut(ratios, trials=3)
 
-    assert result == pytest.approx(1.2 - (2.0 * 3**0.5).__class__(0))
+    assert result == pytest.approx(1.2 - math.sqrt(2.0 * math.log(3)))
 
 
 def test_sharpe_ratio_haircut_returns_best_for_single_trial():
