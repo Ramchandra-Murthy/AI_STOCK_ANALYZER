@@ -99,7 +99,7 @@ def test_fetch_option_chain_can_reload_requested_nse_expiry(monkeypatch):
 
     monkeypatch.setattr(
         "services.options_analytics._fetch_nse_option_chain",
-        lambda underlying: payload,
+        lambda underlying, expiry=None: payload,
     )
 
     result = fetch_option_chain("NIFTY", "06-Oct-2026")
