@@ -48,6 +48,14 @@ def cadf_diagnostic(
     }
 
 
+def _residualize(
+    values: np.ndarray,
+    controls: np.ndarray,
+) -> np.ndarray:
+    coefficients, _, _, _ = np.linalg.lstsq(controls, values, rcond=None)
+    return values - controls @ coefficients
+
+
 def johansen_diagnostic(
     prices: pd.DataFrame,
     *,
@@ -55,9 +63,9 @@ def johansen_diagnostic(
 ) -> dict[str, object]:
     """Estimate Johansen eigenvalues, trace/max statistics and hedge vectors.
 
-    The implementation reports the likelihood-ratio statistics and
-    eigenvectors but intentionally does not attach critical values or infer a
-    cointegration rank without an external critical-value table.
+    The implementation reports likelihood-ratio statistics and eigenvectors
+    but intentionally does not attach critical values or infer a cointegration
+    rank without an external critical-value table.
     """
     if lags < 1:
         raise ValueError("lags must be at least 1")
@@ -71,14 +79,20 @@ def johansen_diagnostic(
     values = frame.to_numpy(dtype=float)
     differences = np.diff(values, axis=0)
     y_lag = values[:-1]
-    if lags > 1:
-        differences = differences[lags - 1 :]
-        y_lag = y_lag[lags - 1 :]
+    start = lags - 1
+    differences = differences[start:]
+    y_lag = y_lag[start:]
+    controls = [np.ones(len(differences))]
+    controls.extend(differences[start - lag : len(differences) - lag] for lag in range(1, lags))
+    control_matrix = np.column_stack(controls)
 
-    n_obs = len(differences)
-    s00 = differences.T @ differences / n_obs
-    s11 = y_lag.T @ y_lag / n_obs
-    s01 = differences.T @ y_lag / n_obs
+    residual_differences = _residualize(differences, control_matrix)
+    residual_levels = _residualize(y_lag, control_matrix)
+    n_obs = len(residual_differences)
+
+    s00 = residual_differences.T @ residual_differences / n_obs
+    s11 = residual_levels.T @ residual_levels / n_obs
+    s01 = residual_differences.T @ residual_levels / n_obs
     s10 = s01.T
 
     inv_s00 = np.linalg.pinv(s00)
@@ -86,7 +100,7 @@ def johansen_diagnostic(
     eigen_matrix = inv_s11 @ s10 @ inv_s00 @ s01
     eigenvalues, eigenvectors = np.linalg.eig(eigen_matrix)
     order = np.argsort(eigenvalues.real)[::-1]
-    eigenvalues = np.clip(eigenvalues.real[order], 0.0, 1.0)
+    eigenvalues = np.clip(eigenvalues.real[order], 0.0, 1.0 - 1e-12)
     eigenvectors = eigenvectors.real[:, order]
 
     for column in range(eigenvectors.shape[1]):
