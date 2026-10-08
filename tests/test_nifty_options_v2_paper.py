@@ -80,3 +80,16 @@ def test_paper_entry_rejects_invalid_observation_values(
             spot=spot,
             ltp=ltp,
         )
+
+def test_paper_entry_requires_future_expiry() -> None:
+    trader = NiftyOptionsV2PaperTrader()
+    contract = NiftyCallContract(expiry=date(2026, 10, 8), strike=24000)
+
+    with pytest.raises(ValueError, match="before contract expiry"):
+        trader.enter(
+            contract=contract,
+            observed_date=date(2026, 10, 8),
+            spot=25000,
+            ltp=1000,
+        )
+
