@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import math
 
 import pandas as pd
@@ -89,7 +90,7 @@ def test_mean_reversion_summary_combines_four_diagnostics(
     ],
 )
 def test_mean_reversion_diagnostics_validate_parameters(
-    function: object,
+    function: Callable[..., object],
     kwargs: dict[str, int],
 ) -> None:
     with pytest.raises(ValueError):
