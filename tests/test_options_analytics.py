@@ -208,3 +208,54 @@ def test_dhan_option_chain_converts_display_expiry_to_iso(monkeypatch):
     assert calls == [(13, "IDX_I", "2026-10-08")]
     assert result.provider_symbol == "Dhan:NIFTY"
     assert result.chain.loc[0, "strike"] == 25100.0
+
+def test_nse_v3_fetch_uses_current_expiry_endpoint(monkeypatch):
+    calls = []
+
+    class FakeResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "records": {
+                    "underlyingValue": 25100.0,
+                    "data": [
+                        {
+                            "strikePrice": 25000,
+                            "expiryDate": "08-Oct-2026",
+                            "CE": {"lastPrice": 150.0, "openInterest": 1000},
+                            "PE": {"lastPrice": 100.0, "openInterest": 1200},
+                        }
+                    ],
+                }
+            }
+
+    class FakeSession:
+        def get(self, url, **kwargs):
+            calls.append((url, kwargs))
+            return FakeResponse()
+
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_nse_expiries",
+        lambda underlying: ("08-Oct-2026", "15-Oct-2026"),
+    )
+    monkeypatch.setattr(
+        "services.options_analytics._nse_session",
+        lambda: FakeSession(),
+    )
+
+    from services.options_analytics import _fetch_nse_option_chain
+
+    payload = _fetch_nse_option_chain("NIFTY", "08-Oct-2026")
+
+    assert calls[0][0].endswith("/api/option-chain-v3")
+    assert calls[0][1]["params"] == {
+        "type": "Indices",
+        "symbol": "NIFTY",
+        "expiry": "08-Oct-2026",
+    }
+    assert payload["records"]["expiryDates"] == ["08-Oct-2026", "15-Oct-2026"]
+
