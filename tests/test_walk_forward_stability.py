@@ -53,9 +53,7 @@ def test_stability_summary_reports_dispersion_across_windows():
 
 
 def test_stability_summary_handles_empty_metrics():
-    metrics = pd.DataFrame(
-        columns=["total_return", "win_rate", "sharpe_ratio", "max_drawdown"]
-    )
+    metrics = pd.DataFrame(columns=["total_return", "win_rate", "sharpe_ratio", "max_drawdown"])
 
     result = stability_summary(metrics)
 
