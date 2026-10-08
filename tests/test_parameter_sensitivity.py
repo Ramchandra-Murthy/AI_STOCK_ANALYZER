@@ -49,9 +49,7 @@ def test_parameter_sensitivity_summary_reports_performance_spread():
 
 
 def test_parameter_sensitivity_summary_handles_empty_report():
-    report = pd.DataFrame(
-        columns=["parameter", "total_return", "sharpe_ratio", "max_drawdown"]
-    )
+    report = pd.DataFrame(columns=["parameter", "total_return", "sharpe_ratio", "max_drawdown"])
 
     result = parameter_sensitivity_summary(report)
 
