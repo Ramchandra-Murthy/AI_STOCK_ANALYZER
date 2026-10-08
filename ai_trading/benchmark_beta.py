@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import pandas as pd
 
 
@@ -16,7 +18,7 @@ def benchmark_beta(
         return None
 
     benchmark_variance = float(frame.iloc[:, 1].var(ddof=1))
-    if benchmark_variance == 0.0:
+    if math.isclose(benchmark_variance, 0.0, abs_tol=1e-12):
         return None
 
     covariance = float(frame.iloc[:, 0].cov(frame.iloc[:, 1]))
