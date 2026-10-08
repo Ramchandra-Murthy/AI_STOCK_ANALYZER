@@ -33,7 +33,4 @@ def return_autocorrelation_summary(
     if any(lag < 1 for lag in lags):
         raise ValueError("lags must be at least 1")
 
-    return {
-        f"lag_{lag}": return_autocorrelation(returns, lag=lag)
-        for lag in lags
-    }
+    return {f"lag_{lag}": return_autocorrelation(returns, lag=lag) for lag in lags}
