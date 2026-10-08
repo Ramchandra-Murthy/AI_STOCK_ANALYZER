@@ -259,3 +259,57 @@ def test_nse_v3_fetch_uses_current_expiry_endpoint(monkeypatch):
         "expiry": "08-Oct-2026",
     }
     assert payload["records"]["expiryDates"] == ["08-Oct-2026", "15-Oct-2026"]
+
+def test_nse_v3_can_discover_expiry_when_contract_info_fails(monkeypatch):
+    calls = []
+
+    class FakeResponse:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "records": {
+                    "underlyingValue": 25100.0,
+                    "expiryDates": ["08-Oct-2026", "15-Oct-2026"],
+                    "data": [
+                        {
+                            "strikePrice": 25000,
+                            "expiryDate": "08-Oct-2026",
+                            "CE": {"lastPrice": 150.0, "openInterest": 1000},
+                            "PE": {"lastPrice": 100.0, "openInterest": 1200},
+                        }
+                    ],
+                }
+            }
+
+    class FakeSession:
+        def get(self, url, **kwargs):
+            calls.append((url, kwargs))
+            return FakeResponse()
+
+    def fail_contract_info(underlying):
+        raise RuntimeError("contract-info unavailable")
+
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_nse_expiries",
+        fail_contract_info,
+    )
+    monkeypatch.setattr(
+        "services.options_analytics._nse_session",
+        lambda: FakeSession(),
+    )
+
+    from services.options_analytics import _fetch_nse_option_chain
+
+    payload = _fetch_nse_option_chain("NIFTY")
+
+    assert calls[0][0].endswith("/api/option-chain-v3")
+    assert calls[0][1]["params"] == {
+        "type": "Indices",
+        "symbol": "NIFTY",
+    }
+    assert payload["records"]["expiryDates"] == ["08-Oct-2026", "15-Oct-2026"]
+\n
