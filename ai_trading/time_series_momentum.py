@@ -66,7 +66,8 @@ def time_series_momentum_diagnostics(
 
             return_correlation = (
                 float(np.corrcoef(past, future)[0, 1])
-                if len(past) > 1 and not math.isclose(float(np.std(past)), 0.0, abs_tol=1e-12)
+                if len(past) > 1
+                and not math.isclose(float(np.std(past)), 0.0, abs_tol=1e-12)
                 and not math.isclose(float(np.std(future)), 0.0, abs_tol=1e-12)
                 else None
             )
