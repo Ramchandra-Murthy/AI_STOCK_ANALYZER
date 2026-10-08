@@ -261,7 +261,9 @@ if not manual_entry_ready:
         "observation date. Select a future expiry before starting a paper trade."
     )
 
-if st.button("Start Paper Trade", type="secondary", disabled=not manual_entry_ready):
+if st.button(
+    "Start Paper Trade", type="secondary", disabled=not manual_entry_ready
+):
     try:
         session.start(expiry=expiry, strike=strike, observation=observation)
         st.success("Paper trade started. No broker order was submitted.")
