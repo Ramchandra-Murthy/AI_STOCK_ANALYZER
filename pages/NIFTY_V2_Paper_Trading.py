@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import csv
-from datetime import UTC, date, datetime, time
+from datetime import UTC, datetime, time
 from io import StringIO
 from zoneinfo import ZoneInfo
 
