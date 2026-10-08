@@ -10,7 +10,9 @@ def information_coefficient(
     forward_returns: pd.Series,
 ) -> float:
     """Return Spearman rank correlation between factor and forward returns."""
-    data = pd.concat([factor, forward_returns], axis=1).apply(pd.to_numeric, errors="coerce").dropna()
+    data = (
+        pd.concat([factor, forward_returns], axis=1).apply(pd.to_numeric, errors="coerce").dropna()
+    )
     if len(data) < 2:
         return 0.0
     if data.iloc[:, 0].nunique() < 2 or data.iloc[:, 1].nunique() < 2:
