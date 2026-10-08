@@ -7,7 +7,6 @@ Provider availability and timestamps are surfaced rather than inferred.
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 
 import pandas as pd
