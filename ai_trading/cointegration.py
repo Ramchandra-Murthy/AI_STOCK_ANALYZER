@@ -85,8 +85,7 @@ def johansen_diagnostic(
 
     controls = [np.ones(len(differences))]
     controls.extend(
-        all_differences[start - lag : len(all_differences) - lag]
-        for lag in range(1, lags)
+        all_differences[start - lag : len(all_differences) - lag] for lag in range(1, lags)
     )
     control_matrix = np.column_stack(controls)
 
@@ -113,8 +112,7 @@ def johansen_diagnostic(
             eigenvectors[:, column] /= norm
 
     trace_statistics = [
-        float(-n_obs * np.sum(np.log1p(-eigenvalues[index:])))
-        for index in range(len(eigenvalues))
+        float(-n_obs * np.sum(np.log1p(-eigenvalues[index:]))) for index in range(len(eigenvalues))
     ]
     max_statistics = [
         float(-n_obs * math.log1p(-eigenvalues[index]))
