@@ -26,7 +26,7 @@ def test_max_drawdown_matches_equity_path() -> None:
 
 
 def test_omega_ratio_uses_positive_and_negative_excess_returns() -> None:
-    returns = pd.Series([0.02, -0.01, 0.03, -0.02])
+    returns = pd.Series([0.02, -0.02, 0.03, -0.03])
     assert omega_ratio(returns) == pytest.approx(1.0)
 
 
