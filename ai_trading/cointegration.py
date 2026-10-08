@@ -112,11 +112,11 @@ def johansen_diagnostic(
             eigenvectors[:, column] /= norm
 
     trace_statistics = [
-        float(-n_obs * np.sum(np.log1p(-eigenvalues[index:]))) for index in range(len(eigenvalues))
+        float(-n_obs * np.sum(np.log1p(-eigenvalues[index:])))
+        for index in range(len(eigenvalues))
     ]
     max_statistics = [
-        float(-n_obs * math.log1p(-eigenvalues[index]))
-        for index in range(len(eigenvalues))
+        float(-n_obs * math.log1p(-eigenvalues[index])) for index in range(len(eigenvalues))
     ]
 
     return {
