@@ -36,6 +36,7 @@ def test_paper_entry_requires_itm_call() -> None:
             ltp=1000,
         )
 
+
 def test_paper_trader_allows_only_one_active_trade() -> None:
     trader = NiftyOptionsV2PaperTrader()
     contract = NiftyCallContract(expiry=date(2026, 10, 29), strike=24000)
