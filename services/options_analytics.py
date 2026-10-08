@@ -322,17 +322,23 @@ def _fetch_dhan_option_chain(
 
 def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
     """Fetch the current NSE v3 option-chain response for one expiry."""
-    expiry_values = _fetch_nse_expiries(underlying)
-    if not expiry_values:
-        raise RuntimeError("NSE returned no option-chain expiries.")
+    try:
+        expiry_values = _fetch_nse_expiries(underlying)
+    except Exception:
+        expiry_values = ()
 
-    selected_expiry = expiry if expiry in expiry_values else expiry_values[0]
+    selected_expiry = expiry if expiry in expiry_values else None
+    if selected_expiry is None and expiry_values:
+        selected_expiry = expiry_values[0]
+
     session = _nse_session()
     params = {
         "type": "Indices",
         "symbol": underlying,
-        "expiry": selected_expiry,
     }
+    if selected_expiry is not None:
+        params["expiry"] = selected_expiry
+
     try:
         response = session.get(
             NSE_OPTION_CHAIN_URL,
@@ -355,6 +361,14 @@ def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
 
     if not isinstance(payload, dict):
         raise RuntimeError("NSE v3 returned an invalid option-chain payload.")
+
+    payload_expiries = _nse_expiries(payload)
+    if not expiry_values:
+        expiry_values = payload_expiries or _nse_data_expiries(payload)
+    if not expiry_values:
+        raise RuntimeError("NSE returned no usable option-chain expiries.")
+
+    selected_expiry = expiry if expiry in expiry_values else expiry_values[0]
     payload.setdefault("records", {})
     if isinstance(payload["records"], dict):
         payload["records"]["expiryDates"] = list(expiry_values)
@@ -458,6 +472,16 @@ def _nse_expiries(payload: dict) -> tuple[str, ...]:
     records = payload.get("records", {})
     values = records.get("expiryDates", [])
     return tuple(str(value) for value in values if value)
+
+
+def _nse_data_expiries(payload: dict) -> tuple[str, ...]:
+    """Extract unique expiry dates directly from NSE option-chain rows."""
+    values = {
+        str(item.get("expiryDate"))
+        for item in payload.get("records", {}).get("data", [])
+        if isinstance(item, dict) and item.get("expiryDate")
+    }
+    return tuple(sorted(values))
 
 
 def _nse_spot(payload: dict) -> float | None:
