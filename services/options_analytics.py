@@ -28,11 +28,14 @@ DHAN_OPTION_UNDERLYINGS = {
 }
 
 NSE_HOME_URL = "https://www.nseindia.com/"
+NSE_OPTION_CHAIN_PAGE_URL = "https://www.nseindia.com/option-chain"
+NSE_ALL_INDICES_URL = "https://www.nseindia.com/api/allIndices"
 NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-v3"
 NSE_OPTION_CHAIN_CONTRACT_INFO_URL = "https://www.nseindia.com/api/option-chain-contract-info"
 NSE_HEADERS = {
     "Accept": "application/json,text/plain,*/*",
     "Accept-Language": "en-US,en;q=0.9",
+    "Origin": "https://www.nseindia.com",
     "Referer": "https://www.nseindia.com/option-chain",
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -401,6 +404,7 @@ def _nse_session() -> curl_requests.Session:
             "Upgrade-Insecure-Requests": "1",
             "Sec-Fetch-Site": "same-origin",
             "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Dest": "empty",
         }
     )
     try:
@@ -419,8 +423,28 @@ def _nse_session() -> curl_requests.Session:
             timeout=10,
         )
         session.get(
-            "https://www.nseindia.com/option-chain",
-            headers=NSE_HEADERS,
+            NSE_OPTION_CHAIN_PAGE_URL,
+            headers={
+                **NSE_HEADERS,
+                "Accept": (
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                    "image/avif,image/webp,image/apng,*/*;q=0.8"
+                ),
+                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Dest": "document",
+            },
+            timeout=10,
+        )
+        session.get(
+            NSE_ALL_INDICES_URL,
+            headers={
+                **NSE_HEADERS,
+                "Accept": "application/json,text/plain,*/*",
+                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Dest": "empty",
+            },
             timeout=10,
         )
     except Exception:
