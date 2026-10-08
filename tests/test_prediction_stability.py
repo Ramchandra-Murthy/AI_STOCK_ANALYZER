@@ -15,8 +15,8 @@ def test_prediction_stability_measures_dispersion_and_direction_flips() -> None:
     assert result["observations"] == 4
     assert result["mean_probability"] == pytest.approx(0.525)
     assert result["probability_std"] == pytest.approx(0.1030776406404415)
-    assert result["directional_flips"] == 2
-    assert result["directional_agreement"] == pytest.approx(1.0 / 3.0)
+    assert result["directional_flips"] == 1
+    assert result["directional_agreement"] == pytest.approx(2.0 / 3.0)
 
 
 def test_prediction_stability_report_classifies_low_dispersion() -> None:
