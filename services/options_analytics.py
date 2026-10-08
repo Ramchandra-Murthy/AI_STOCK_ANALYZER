@@ -7,15 +7,11 @@ Provider availability and timestamps are surfaced rather than inferred.
 
 from __future__ import annotations
 
-import json
-import time
 from dataclasses import dataclass
-from http.cookiejar import CookieJar
-from urllib.error import HTTPError
-from urllib.request import HTTPCookieProcessor, Request, build_opener
 
 import pandas as pd
 import yfinance as yf
+from curl_cffi import requests as curl_requests
 
 from services.dhan_market_data import DhanCredentials, DhanMarketData
 
@@ -32,7 +28,8 @@ DHAN_OPTION_UNDERLYINGS = {
 }
 
 NSE_HOME_URL = "https://www.nseindia.com/"
-NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-indices"
+NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-v3"
+NSE_OPTION_CHAIN_CONTRACT_INFO_URL = "https://www.nseindia.com/api/option-chain-contract-info"
 NSE_HEADERS = {
     "Accept": "application/json,text/plain,*/*",
     "Accept-Language": "en-US,en;q=0.9",
@@ -42,8 +39,6 @@ NSE_HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0 Safari/537.36"
     ),
 }
-NSE_RETRY_DELAY_SECONDS = 1.0
-_NSE_OPENER = build_opener(HTTPCookieProcessor(CookieJar()))
 
 CHAIN_COLUMNS = [
     "strike",
@@ -119,7 +114,10 @@ def fetch_option_chain(
         dhan_error = str(exc)
 
     try:
-        payload = _fetch_nse_option_chain(underlying)
+        if expiry is None:
+            payload = _fetch_nse_option_chain(underlying)
+        else:
+            payload = _fetch_nse_option_chain(underlying, expiry)
         expiries = _nse_expiries(payload)
         if expiries:
             selected_expiry = expiry if expiry in expiries else expiries[0]
@@ -319,47 +317,117 @@ def _fetch_dhan_option_chain(
     return _normalize_dhan_chain(response, underlying, selected, expiry_values)
 
 
-def _fetch_nse_option_chain(underlying: str) -> dict:
-    """Fetch NSE option-chain JSON using a primed browser-like session."""
-    _prime_nse_session()
-    request = Request(
-        f"{NSE_OPTION_CHAIN_URL}?symbol={underlying}",
-        headers=NSE_HEADERS,
-        method="GET",
-    )
+def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
+    """Fetch the current NSE v3 option-chain response for one expiry."""
+    expiry_values = _fetch_nse_expiries(underlying)
+    if not expiry_values:
+        raise RuntimeError("NSE returned no option-chain expiries.")
+
+    selected_expiry = expiry if expiry in expiry_values else expiry_values[0]
+    session = _nse_session()
+    params = {
+        "type": "Indices",
+        "symbol": underlying,
+        "expiry": selected_expiry,
+    }
     try:
-        with _NSE_OPENER.open(request, timeout=12) as response:
-            if response.status != 200:
-                raise RuntimeError(f"NSE returned HTTP {response.status}.")
-            return json.loads(response.read().decode("utf-8"))
-    except HTTPError as exc:
-        if exc.code not in (403, 429):
-            raise
-        time.sleep(NSE_RETRY_DELAY_SECONDS)
-        _prime_nse_session()
-        with _NSE_OPENER.open(request, timeout=12) as response:
-            if response.status != 200:
-                raise RuntimeError(f"NSE returned HTTP {response.status}.") from exc
-            return json.loads(response.read().decode("utf-8"))
+        response = session.get(
+            NSE_OPTION_CHAIN_URL,
+            params=params,
+            headers=NSE_HEADERS,
+            timeout=12,
+        )
+        if response.status_code in (401, 403, 429):
+            session = _nse_session()
+            response = session.get(
+                NSE_OPTION_CHAIN_URL,
+                params=params,
+                headers=NSE_HEADERS,
+                timeout=12,
+            )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception as exc:
+        raise RuntimeError(f"NSE v3 option-chain request failed: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise RuntimeError("NSE v3 returned an invalid option-chain payload.")
+    payload.setdefault("records", {})
+    if isinstance(payload["records"], dict):
+        payload["records"]["expiryDates"] = list(expiry_values)
+    return payload
 
 
-def _prime_nse_session() -> None:
-    """Prime NSE cookies before requesting the protected option-chain endpoint."""
-    request = Request(
-        NSE_HOME_URL,
-        headers={
+def _fetch_nse_expiries(underlying: str) -> tuple[str, ...]:
+    """Fetch current option expiries from NSE's contract-info endpoint."""
+    session = _nse_session()
+    try:
+        response = session.get(
+            NSE_OPTION_CHAIN_CONTRACT_INFO_URL,
+            params={"symbol": underlying},
+            headers=NSE_HEADERS,
+            timeout=12,
+        )
+        if response.status_code in (401, 403, 429):
+            session = _nse_session()
+            response = session.get(
+                NSE_OPTION_CHAIN_CONTRACT_INFO_URL,
+                params={"symbol": underlying},
+                headers=NSE_HEADERS,
+                timeout=12,
+            )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception as exc:
+        raise RuntimeError(f"NSE expiry request failed: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise RuntimeError("NSE expiry endpoint returned an invalid payload.")
+    values = payload.get("expiryDates")
+    if not isinstance(values, list):
+        values = payload.get("records", {}).get("expiryDates", [])
+    return tuple(str(value) for value in values if value)
+
+
+def _nse_session() -> curl_requests.Session:
+    """Create a browser-impersonating NSE session with fresh cookies."""
+    session = curl_requests.Session(impersonate="chrome")
+    session.headers.update(
+        {
             **NSE_HEADERS,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        },
-        method="GET",
+            "Connection": "keep-alive",
+            "Cache-Control": "max-age=0",
+            "DNT": "1",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-Mode": "cors",
+        }
     )
     try:
-        with _NSE_OPENER.open(request, timeout=10):
-            pass
+        session.get(
+            NSE_HOME_URL,
+            headers={
+                **NSE_HEADERS,
+                "Accept": (
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                    "image/avif,image/webp,image/apng,*/*;q=0.8"
+                ),
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-User": "?1",
+            },
+            timeout=10,
+        )
+        session.get(
+            "https://www.nseindia.com/option-chain",
+            headers=NSE_HEADERS,
+            timeout=10,
+        )
     except Exception:
-        # The API request below remains the source of truth; some environments
-        # block the NSE homepage while allowing the API endpoint.
+        # The API request remains the source of truth; some environments
+        # block the NSE web pages while allowing the API endpoint.
         pass
+    return session
 
 
 def _nse_expiries(payload: dict) -> tuple[str, ...]:

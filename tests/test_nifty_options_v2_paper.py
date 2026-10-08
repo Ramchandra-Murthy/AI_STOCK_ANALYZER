@@ -93,4 +93,3 @@ def test_paper_entry_requires_future_expiry() -> None:
             spot=25000,
             ltp=1000,
         )
-
