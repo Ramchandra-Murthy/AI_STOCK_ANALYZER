@@ -86,9 +86,7 @@ def run_backtest(
         data["transaction_cost"] = cost_model.cost_fraction(
             data["buy_turnover"], data["sell_turnover"]
         )
-    data["strategy_return"] = (
-        data["position"] * data["market_return"] - data["transaction_cost"]
-    )
+    data["strategy_return"] = data["position"] * data["market_return"] - data["transaction_cost"]
     data["strategy_equity"] = initial_capital * (1.0 + data["strategy_return"]).cumprod()
     data["buy_hold_equity"] = initial_capital * (1.0 + data["market_return"]).cumprod()
 
