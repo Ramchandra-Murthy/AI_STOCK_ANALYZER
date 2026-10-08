@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
 
 from ai_trading.ml_model import make_training_dataset, predict_latest, train_model
 
@@ -64,3 +65,20 @@ def test_model_trains_with_chronological_validation() -> None:
     assert prediction["signal"] in {"LONG", "SHORT"}
     assert 0.0 <= float(prediction["probability_up"]) <= 1.0
     assert 0.0 <= float(prediction["confidence"]) <= 1.0
+
+
+def test_refit_full_uses_all_labelled_observations_after_validation() -> None:
+    frame = _market_frame()
+    features, _ = make_training_dataset(frame, horizon=5, threshold=0.0)
+    fit_sizes: list[int] = []
+    original_fit = LogisticRegression.fit
+
+    def spy_fit(self, x: object, y: object, sample_weight: object = None):
+        fit_sizes.append(len(x))
+        return original_fit(self, x, y, sample_weight=sample_weight)
+
+    with patch.object(LogisticRegression, "fit", spy_fit):
+        train_model(frame, horizon=5, threshold=0.0, refit_full=True)
+
+    assert fit_sizes[0] < len(features)
+    assert fit_sizes[-1] == len(features)
