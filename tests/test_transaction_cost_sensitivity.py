@@ -12,11 +12,15 @@ from ai_trading.transaction_cost_sensitivity import (
 def test_transaction_cost_sensitivity_applies_turnover_cost() -> None:
     returns = pd.Series([0.10, -0.05])
     turnover = pd.Series([1.0, 2.0])
-    result = transaction_cost_sensitivity(returns, turnover=turnover, cost_bps=(0.0, 10.0))
+    result = transaction_cost_sensitivity(
+        returns,
+        turnover=turnover,
+        cost_bps=(0.0, 10.0),
+    )
     assert result["cost_bps"].tolist() == [0.0, 10.0]
     assert result.loc[0, "gross_return"] == pytest.approx(0.045)
-    assert result.loc[1, "net_return"] == pytest.approx(0.041964)
-    assert result.loc[1, "cost_drag"] == pytest.approx(0.003036)
+    assert result.loc[1, "net_return"] == pytest.approx(0.041852)
+    assert result.loc[1, "cost_drag"] == pytest.approx(0.003148)
 
 
 def test_transaction_cost_sensitivity_defaults_turnover_from_activity() -> None:
