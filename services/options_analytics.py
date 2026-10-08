@@ -29,9 +29,7 @@ DHAN_OPTION_UNDERLYINGS = {
 
 NSE_HOME_URL = "https://www.nseindia.com/"
 NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-v3"
-NSE_OPTION_CHAIN_CONTRACT_INFO_URL = (
-    "https://www.nseindia.com/api/option-chain-contract-info"
-)
+NSE_OPTION_CHAIN_CONTRACT_INFO_URL = "https://www.nseindia.com/api/option-chain-contract-info"
 NSE_HEADERS = {
     "Accept": "application/json,text/plain,*/*",
     "Accept-Language": "en-US,en;q=0.9",
