@@ -95,17 +95,13 @@ def risk_performance_summary(
 ) -> dict[str, float | None]:
     """Return a composite risk/performance view for a return series."""
     return {
-        "annualized_volatility": annualized_volatility(
-            returns, periods_per_year=periods_per_year
-        ),
+        "annualized_volatility": annualized_volatility(returns, periods_per_year=periods_per_year),
         "sharpe_ratio": sharpe_ratio(
             returns,
             risk_free_rate=risk_free_rate,
             periods_per_year=periods_per_year,
         ),
         "omega_ratio": omega_ratio(returns),
-        "conditional_value_at_risk": conditional_value_at_risk(
-            returns, confidence=cvar_confidence
-        ),
+        "conditional_value_at_risk": conditional_value_at_risk(returns, confidence=cvar_confidence),
         "max_drawdown": max_drawdown(returns),
     }
