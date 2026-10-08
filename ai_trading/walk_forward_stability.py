@@ -24,9 +24,7 @@ def walk_forward_window_metrics(
         raise ValueError("not enough observations for the requested window size")
 
     rows: list[dict[str, float | int]] = []
-    for window_number, start in enumerate(
-        range(0, len(clean) - window_size + 1, window_size), 1
-    ):
+    for window_number, start in enumerate(range(0, len(clean) - window_size + 1, window_size), 1):
         window = clean.iloc[start : start + window_size]
         wins = int((window > 0.0).sum())
         rows.append(
