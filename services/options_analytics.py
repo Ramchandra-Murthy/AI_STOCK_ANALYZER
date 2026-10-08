@@ -117,7 +117,10 @@ def fetch_option_chain(
         dhan_error = str(exc)
 
     try:
-        payload = _fetch_nse_option_chain(underlying, expiry)
+        if expiry is None:
+            payload = _fetch_nse_option_chain(underlying)
+        else:
+            payload = _fetch_nse_option_chain(underlying, expiry)
         expiries = _nse_expiries(payload)
         if expiries:
             selected_expiry = expiry if expiry in expiries else expiries[0]
