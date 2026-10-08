@@ -8,11 +8,7 @@ Provider availability and timestamps are surfaced rather than inferred.
 from __future__ import annotations
 
 import json
-import time
 from dataclasses import dataclass
-from http.cookiejar import CookieJar
-from urllib.error import HTTPError
-from urllib.request import HTTPCookieProcessor, Request, build_opener
 
 import pandas as pd
 import yfinance as yf
@@ -46,8 +42,6 @@ NSE_HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0 Safari/537.36"
     ),
 }
-NSE_RETRY_DELAY_SECONDS = 1.0
-_NSE_OPENER = build_opener(HTTPCookieProcessor(CookieJar()))
 
 CHAIN_COLUMNS = [
     "strike",
