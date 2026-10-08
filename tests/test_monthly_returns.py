@@ -5,9 +5,7 @@ from ai_trading.monthly_returns import monthly_return_diagnostics
 
 
 def test_monthly_return_diagnostics_compounds_calendar_months() -> None:
-    index = pd.to_datetime(
-        ["2026-01-30", "2026-01-31", "2026-02-02", "2026-02-03"]
-    )
+    index = pd.to_datetime(["2026-01-30", "2026-01-31", "2026-02-02", "2026-02-03"])
     returns = pd.Series([0.10, -0.05, 0.20, -0.10], index=index)
 
     report = monthly_return_diagnostics(returns)
