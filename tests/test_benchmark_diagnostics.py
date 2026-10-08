@@ -13,9 +13,7 @@ def test_benchmark_relative_diagnostics_measures_active_return_and_tracking_erro
     result = benchmark_relative_diagnostics(strategy, benchmark, periods_per_year=252)
 
     assert result["observations"] == 3
-    assert result["active_return"] == pytest.approx(
-        (1.02 * 0.99 * 1.03) - (1.01 * 1.00 * 1.02)
-    )
+    assert result["active_return"] == pytest.approx((1.02 * 0.99 * 1.03) - (1.01 * 1.00 * 1.02))
     assert result["tracking_error"] == pytest.approx(
         pd.Series([0.01, -0.01, 0.01]).std(ddof=1) * 252**0.5
     )
