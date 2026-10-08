@@ -52,7 +52,6 @@ def test_snapshot_rejects_excess_gross_exposure() -> None:
     assert not result.allowed
 
 
-
 def test_allocate_scan_hard_caps_four_short_positions_and_leaves_cash() -> None:
     scan = pd.DataFrame(
         [
@@ -60,12 +59,7 @@ def test_allocate_scan_hard_caps_four_short_positions_and_leaves_cash() -> None:
             for index, symbol in enumerate(["A", "B", "C", "D"])
         ]
     )
-    returns = pd.DataFrame(
-        {
-            symbol: [0.01, -0.01, 0.02]
-            for symbol in ["A", "B", "C", "D"]
-        }
-    )
+    returns = pd.DataFrame({symbol: [0.01, -0.01, 0.02] for symbol in ["A", "B", "C", "D"]})
 
     result = allocate_scan(
         scan,
