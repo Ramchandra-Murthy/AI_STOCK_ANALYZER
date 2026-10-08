@@ -11,8 +11,12 @@ def test_benchmark_capture_reports_upside_and_downside_participation() -> None:
     report = benchmark_capture(strategy, benchmark)
 
     assert report["observations"] == 4
-    assert report["upside_capture"] == pytest.approx(0.5)
-    assert report["downside_capture"] == pytest.approx(0.5)
+    assert report["upside_capture"] == pytest.approx(
+        ((1.05 * 1.025) - 1.0) / ((1.10 * 1.05) - 1.0)
+    )
+    assert report["downside_capture"] == pytest.approx(
+        ((0.95 * 0.975) - 1.0) / ((0.90 * 0.95) - 1.0)
+    )
 
 
 def test_benchmark_capture_handles_empty_aligned_returns() -> None:
