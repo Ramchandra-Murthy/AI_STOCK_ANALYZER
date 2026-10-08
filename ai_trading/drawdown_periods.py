@@ -37,9 +37,7 @@ def drawdown_periods(
         peak_position = max(start_position - 1, 0)
         end_position = clean_returns.index.get_loc(period.index[-1]) + 1
         recovery = (
-            clean_returns.index[end_position]
-            if end_position < len(clean_returns.index)
-            else None
+            clean_returns.index[end_position] if end_position < len(clean_returns.index) else None
         )
         rows.append(
             {
