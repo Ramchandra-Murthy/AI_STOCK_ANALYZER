@@ -209,6 +209,7 @@ def test_dhan_option_chain_converts_display_expiry_to_iso(monkeypatch):
     assert result.provider_symbol == "Dhan:NIFTY"
     assert result.chain.loc[0, "strike"] == 25100.0
 
+
 def test_nse_v3_fetch_uses_current_expiry_endpoint(monkeypatch):
     calls = []
 
@@ -258,4 +259,3 @@ def test_nse_v3_fetch_uses_current_expiry_endpoint(monkeypatch):
         "expiry": "08-Oct-2026",
     }
     assert payload["records"]["expiryDates"] == ["08-Oct-2026", "15-Oct-2026"]
-
