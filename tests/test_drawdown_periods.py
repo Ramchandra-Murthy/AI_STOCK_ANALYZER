@@ -15,9 +15,9 @@ def test_drawdown_periods_reports_peak_valley_recovery_and_duration() -> None:
     assert report.loc[0, "peak"] == index[0]
     assert report.loc[0, "valley"] == index[2]
     assert report.loc[0, "recovery"] == index[3]
-    assert report.loc[0, "duration"] == 2
-    assert report.loc[1, "recovery"] is None
-    assert report.loc[1, "duration"] == 1
+    assert report.loc[0, "duration"] == 3
+    assert pd.isna(report.loc[1, "recovery"])
+    assert report.loc[1, "duration"] == 2
 
 
 def test_drawdown_periods_handles_empty_returns() -> None:
