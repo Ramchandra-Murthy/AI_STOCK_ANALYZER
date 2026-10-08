@@ -50,3 +50,29 @@ def test_snapshot_rejects_excess_gross_exposure() -> None:
 
     assert result.gross == 1.5
     assert not result.allowed
+
+
+
+def test_allocate_scan_hard_caps_four_short_positions_and_leaves_cash() -> None:
+    scan = pd.DataFrame(
+        [
+            {"symbol": symbol, "signal": "SHORT", "signal_score": 90.0 - index}
+            for index, symbol in enumerate(["A", "B", "C", "D"])
+        ]
+    )
+    returns = pd.DataFrame(
+        {
+            symbol: [0.01, -0.01, 0.02]
+            for symbol in ["A", "B", "C", "D"]
+        }
+    )
+
+    result = allocate_scan(
+        scan,
+        returns,
+        PortfolioLimits(max_position_weight=0.20, max_gross_exposure=1.0),
+    )
+
+    assert result["target_weight"].abs().max() <= 0.20 + 1e-12
+    assert result["target_weight"].sum() == -0.80
+    assert result["target_weight"].abs().sum() == 0.80
