@@ -6,7 +6,7 @@ from ai_trading.drawdown_periods import drawdown_periods
 
 def test_drawdown_periods_reports_peak_valley_recovery_and_duration() -> None:
     index = pd.date_range("2026-01-01", periods=6, freq="D")
-    returns = pd.Series([0.10, -0.05, -0.10, 0.20, -0.02, 0.03], index=index)
+    returns = pd.Series([0.10, -0.05, -0.10, 0.20, -0.02, -0.03], index=index)
 
     report = drawdown_periods(returns, top=2)
 
