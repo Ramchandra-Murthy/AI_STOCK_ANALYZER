@@ -24,7 +24,9 @@ def walk_forward_window_metrics(
         raise ValueError("not enough observations for the requested window size")
 
     rows: list[dict[str, float | int]] = []
-    for window_number, start in enumerate(range(0, len(clean) - window_size + 1, window_size), 1):
+    for window_number, start in enumerate(
+        range(0, len(clean) - window_size + 1, window_size), 1
+    ):
         window = clean.iloc[start : start + window_size]
         wins = int((window > 0.0).sum())
         rows.append(
@@ -61,9 +63,9 @@ def stability_summary(window_metrics: pd.DataFrame) -> dict[str, float | None]:
     return {
         "windows": float(len(window_metrics)),
         "return_mean": float(window_metrics["total_return"].mean()),
-        "return_std": float(window_metrics["total_return"].std(ddof=1))
-        if len(window_metrics) > 1
-        else 0.0,
+        "return_std": (
+            float(window_metrics["total_return"].std(ddof=1)) if len(window_metrics) > 1 else 0.0
+        ),
         "win_rate_mean": float(window_metrics["win_rate"].mean()),
         "sharpe_mean": float(window_metrics["sharpe_ratio"].mean()),
         "max_drawdown_worst": float(window_metrics["max_drawdown"].max()),
