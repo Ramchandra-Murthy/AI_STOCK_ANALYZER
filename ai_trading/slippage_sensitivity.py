@@ -21,7 +21,11 @@ def slippage_sensitivity(
     if turnover is None:
         clean_turnover = clean_returns.ne(0.0).astype(float)
     else:
-        clean_turnover = pd.to_numeric(turnover, errors="coerce").reindex(clean_returns.index).fillna(0.0)
+        clean_turnover = (
+            pd.to_numeric(turnover, errors="coerce")
+            .reindex(clean_returns.index)
+            .fillna(0.0)
+        )
         if (clean_turnover < 0.0).any():
             raise ValueError("turnover values must be non-negative")
 
