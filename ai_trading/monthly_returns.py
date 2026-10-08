@@ -12,7 +12,7 @@ def monthly_return_diagnostics(returns: pd.Series) -> pd.DataFrame:
     if clean.empty:
         return pd.DataFrame(columns=columns)
 
-    index = pd.to_datetime(clean.index)
+    index = pd.to_datetime(clean.index, errors="coerce")
     if index.isna().any():
         raise ValueError("returns index must contain valid timestamps")
 
