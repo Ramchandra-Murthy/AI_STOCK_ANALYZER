@@ -33,8 +33,8 @@ def drawdown_periods(
 
     rows: list[dict[str, object]] = []
     for _, period in underwater[in_drawdown].groupby(groups[in_drawdown]):
-        start = period.index[0]
-        valley = period.idxmin()
+        start_position = clean_returns.index.get_loc(period.index[0])
+        peak_position = max(start_position - 1, 0)
         end_position = clean_returns.index.get_loc(period.index[-1]) + 1
         recovery = (
             clean_returns.index[end_position]
@@ -44,10 +44,13 @@ def drawdown_periods(
         rows.append(
             {
                 "drawdown": float(period.min()),
-                "peak": start,
-                "valley": valley,
+                "peak": clean_returns.index[peak_position],
+                "valley": period.idxmin(),
                 "recovery": recovery,
-                "duration": int(len(period)),
+                "duration": int(
+                    (end_position if recovery is not None else len(clean_returns.index))
+                    - peak_position
+                ),
             }
         )
 
