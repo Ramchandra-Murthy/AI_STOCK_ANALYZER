@@ -27,11 +27,11 @@ def benchmark_relative_diagnostics(
         }
     active = frame.iloc[:, 0] - frame.iloc[:, 1]
     active_return = float((1.0 + frame.iloc[:, 0]).prod() - (1.0 + frame.iloc[:, 1]).prod())
-    tracking_error = float(active.std(ddof=1) * math.sqrt(periods_per_year)) if len(active) > 1 else 0.0
+    tracking_error = (
+        float(active.std(ddof=1) * math.sqrt(periods_per_year)) if len(active) > 1 else 0.0
+    )
     information_ratio = (
-        float(active.mean() * periods_per_year / tracking_error)
-        if tracking_error > 0.0
-        else None
+        float(active.mean() * periods_per_year / tracking_error) if tracking_error > 0.0 else None
     )
     return {
         "observations": int(len(frame)),
