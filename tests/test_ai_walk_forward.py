@@ -62,6 +62,7 @@ def test_backtest_respects_transaction_costs() -> None:
 def test_prediction_is_aligned_to_entry_timestamp_without_training_leakage() -> None:
     frame = _market_frame()
     training_lengths: list[int] = []
+    refit_flags: list[bool] = []
     prediction_frames: list[pd.DataFrame] = []
 
     def fake_train_model(
@@ -70,8 +71,10 @@ def test_prediction_is_aligned_to_entry_timestamp_without_training_leakage() -> 
         horizon: int,
         threshold: float,
         test_fraction: float,
+        refit_full: bool,
     ) -> tuple[object, None]:
         training_lengths.append(len(train_frame))
+        refit_flags.append(refit_full)
         return object(), None
 
     def fake_predict_latest(
@@ -97,6 +100,7 @@ def test_prediction_is_aligned_to_entry_timestamp_without_training_leakage() -> 
 
     assert training_lengths
     assert prediction_frames
+    assert refit_flags and all(refit_flags)
     assert training_lengths[0] == 100
     assert len(prediction_frames[0]) == 101
     assert prediction_frames[0].index[-1] == frame.index[100]

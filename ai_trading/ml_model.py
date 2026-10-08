@@ -72,8 +72,15 @@ def train_model(
     horizon: int = 5,
     threshold: float = 0.01,
     test_fraction: float = 0.2,
+    refit_full: bool = False,
 ) -> tuple[Pipeline, ModelValidation]:
-    """Train a logistic model using a chronological, non-random split."""
+    """Train a logistic model using a chronological, non-random split.
+
+    When refit_full is true, the returned model is refit on all labelled
+    observations after the chronological holdout has been scored. This keeps
+    validation strictly out of sample while allowing a walk-forward prediction
+    to use every observation that was available before its decision timestamp.
+    """
     if not 0.1 <= test_fraction <= 0.5:
         raise ValueError("test_fraction must be between 0.1 and 0.5")
 
@@ -110,6 +117,10 @@ def train_model(
         test_samples=len(x_test),
         positive_rate=float(y.mean()),
     )
+
+    if refit_full:
+        model.fit(x, y)
+
     return model, validation
 
 
