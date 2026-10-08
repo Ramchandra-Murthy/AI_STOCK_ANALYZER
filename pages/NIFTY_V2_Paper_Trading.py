@@ -82,7 +82,7 @@ active_expiry = active.contract.expiry if active is not None else None
 
 cycle = cycle_status(
     expiries=provider.expiries,
-    observed_date=date.today(),
+    observed_date=india_now.date(),
     active_contract_expiry=active_expiry,
 )
 auto_cycle = NiftyOptionsV2AutoCycle(auto_paper=NiftyOptionsV2AutoPaper(session=session))
@@ -115,11 +115,14 @@ else:
 left, right = st.columns(2)
 
 with left:
-    expiry = st.date_input("Option expiry", value=date.today())
+    expiry = st.date_input(
+        "Option expiry",
+        value=cycle.next_expiry if cycle is not None else india_now.date(),
+    )
     strike = st.number_input("CALL strike", min_value=1.0, value=25000.0, step=50.0)
 
 with right:
-    observed_date = st.date_input("Observation date", value=date.today())
+    observed_date = st.date_input("Observation date", value=india_now.date())
     spot = st.number_input("NIFTY spot", min_value=0.01, value=25000.0, step=1.0)
     ltp = st.number_input("CALL LTP", min_value=0.0, value=500.0, step=0.05)
 
@@ -251,7 +254,14 @@ if st.session_state.nifty_v2_decision_history:
         st.session_state.nifty_v2_decision_history = []
         st.rerun()
 
-if st.button("Start Paper Trade", type="secondary"):
+manual_entry_ready = observed_date < expiry
+if not manual_entry_ready:
+    st.warning(
+        "Paper entry is blocked because the option expiry must be after the "
+        "observation date. Select a future expiry before starting a paper trade."
+    )
+
+if st.button("Start Paper Trade", type="secondary", disabled=not manual_entry_ready):
     try:
         session.start(expiry=expiry, strike=strike, observation=observation)
         st.success("Paper trade started. No broker order was submitted.")
