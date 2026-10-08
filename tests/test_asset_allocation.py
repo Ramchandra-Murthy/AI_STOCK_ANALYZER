@@ -158,3 +158,20 @@ def test_exposure_allocation_rejects_mismatched_inputs():
 
     with pytest.raises(ValueError):
         upper_band_limit(0.0, 0.4, 0.1, 0.3, 0.1, 0.05)
+
+
+def test_weight_cap_leaves_cash_when_full_investment_would_break_cap() -> None:
+    weights = pd.Series([0.25, 0.25, 0.25, 0.25], index=list("ABCD"))
+    capped = apply_weight_cap(weights, 0.20)
+
+    assert capped.max() == pytest.approx(0.20)
+    assert capped.sum() == pytest.approx(0.80)
+
+
+def test_weight_cap_redistributes_when_full_investment_is_feasible() -> None:
+    weights = pd.Series([0.80, 0.10, 0.10], index=list("ABC"))
+    capped = apply_weight_cap(weights, 0.50)
+
+    assert capped.max() <= 0.50 + 1e-12
+    assert capped.sum() == pytest.approx(1.0)
+    assert capped.tolist() == pytest.approx([0.50, 0.25, 0.25])
