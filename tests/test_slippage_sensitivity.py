@@ -21,9 +21,7 @@ def test_slippage_sensitivity_measures_execution_drag() -> None:
 
     assert report["slippage_bps"].tolist() == [0.0, 10.0]
     assert report["total_turnover"].tolist() == [4.0, 4.0]
-    assert report.loc[0, "net_return"] == pytest.approx(
-        (1.02 * 0.99 * 1.03) - 1.0
-    )
+    assert report.loc[0, "net_return"] == pytest.approx((1.02 * 0.99 * 1.03) - 1.0)
     assert report.loc[1, "slippage_drag"] > 0.0
     assert report.loc[1, "net_return"] < report.loc[0, "net_return"]
 
