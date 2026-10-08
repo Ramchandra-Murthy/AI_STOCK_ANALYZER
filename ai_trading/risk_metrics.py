@@ -36,7 +36,7 @@ def sharpe_ratio(
     period_rf = (1.0 + risk_free_rate) ** (1.0 / periods_per_year) - 1.0
     excess = clean - period_rf
     volatility = excess.std(ddof=1)
-    if volatility == 0.0:
+    if math.isclose(volatility, 0.0, abs_tol=1e-12):
         return 0.0
     return float(excess.mean() / volatility * math.sqrt(periods_per_year))
 
@@ -53,7 +53,7 @@ def omega_ratio(
     excess = clean - threshold
     gains = float(excess[excess > 0.0].sum())
     losses = float(-excess[excess < 0.0].sum())
-    if losses == 0.0:
+    if math.isclose(losses, 0.0, abs_tol=1e-12):
         return float("inf") if gains > 0.0 else None
     return gains / losses
 
