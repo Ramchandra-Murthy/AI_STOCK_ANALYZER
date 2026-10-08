@@ -68,7 +68,7 @@ def johansen_diagnostic(
     rank without an external critical-value table.
     """
     if lags < 1:
-        raise ValueError("lags must be at least 1")
+        raise ValueError("lags must be non-negative")
 
     frame = prices.apply(pd.to_numeric, errors="coerce").dropna()
     if frame.shape[0] <= lags + 2:
@@ -112,8 +112,7 @@ def johansen_diagnostic(
             eigenvectors[:, column] /= norm
 
     trace_statistics = [
-        float(-n_obs * np.sum(np.log1p(-eigenvalues[index:])))
-        for index in range(len(eigenvalues))
+        float(-n_obs * np.sum(np.log1p(-eigenvalues[index:]))) for index in range(len(eigenvalues))
     ]
     max_statistics = [
         float(-n_obs * math.log1p(-eigenvalues[index])) for index in range(len(eigenvalues))
