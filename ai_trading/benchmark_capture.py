@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import pandas as pd
 
 
@@ -36,12 +38,16 @@ def benchmark_capture(
 
     upside = (
         strategy_up / benchmark_up
-        if benchmark_up is not None and benchmark_up != 0.0 and strategy_up is not None
+        if benchmark_up is not None
+        and not math.isclose(benchmark_up, 0.0, abs_tol=1e-12)
+        and strategy_up is not None
         else None
     )
     downside = (
         strategy_down / benchmark_down
-        if benchmark_down is not None and benchmark_down != 0.0 and strategy_down is not None
+        if benchmark_down is not None
+        and not math.isclose(benchmark_down, 0.0, abs_tol=1e-12)
+        and strategy_down is not None
         else None
     )
 
