@@ -77,13 +77,17 @@ def johansen_diagnostic(
         raise ValueError("at least two price series are required")
 
     values = frame.to_numpy(dtype=float)
-    differences = np.diff(values, axis=0)
-    y_lag = values[:-1]
+    all_differences = np.diff(values, axis=0)
+    all_lagged_levels = values[:-1]
     start = lags - 1
-    differences = differences[start:]
-    y_lag = y_lag[start:]
+    differences = all_differences[start:]
+    y_lag = all_lagged_levels[start:]
+
     controls = [np.ones(len(differences))]
-    controls.extend(differences[start - lag : len(differences) - lag] for lag in range(1, lags))
+    controls.extend(
+        all_differences[start - lag : len(all_differences) - lag]
+        for lag in range(1, lags)
+    )
     control_matrix = np.column_stack(controls)
 
     residual_differences = _residualize(differences, control_matrix)
