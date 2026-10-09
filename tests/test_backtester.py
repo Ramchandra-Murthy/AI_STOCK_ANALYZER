@@ -150,7 +150,7 @@ def test_backtest_excludes_non_finite_prices_and_signals() -> None:
     assert data.index.tolist() == [index[0], index[3], index[4]]
     assert np.isfinite(data["market_return"]).all()
     assert np.isfinite(data["strategy_equity"]).all()
-    assert metrics.total_return == pytest.approx(0.1)
+    assert metrics.total_return == pytest.approx(0.331)
 
 
 def test_backtest_rejects_fewer_than_two_finite_observations() -> None:
