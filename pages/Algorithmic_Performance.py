@@ -57,6 +57,12 @@ def _show_results(data: pd.DataFrame, metrics) -> None:
 
     st.subheader("Backtest observations")
     st.dataframe(data.tail(250), use_container_width=True)
+    st.download_button(
+        "Download backtest observations (CSV)",
+        data=data.to_csv(index=True).encode("utf-8"),
+        file_name="algorithmic_backtest_observations.csv",
+        mime="text/csv",
+    )
 
 
 def _run_backtest(
@@ -204,6 +210,12 @@ if run:
                 n_splits=int(n_splits),
             )
             st.dataframe(folds, use_container_width=True)
+            st.download_button(
+                "Download walk-forward results (CSV)",
+                data=folds.to_csv(index=False).encode("utf-8"),
+                file_name="walk_forward_validation_results.csv",
+                mime="text/csv",
+            )
             summary_cols = st.columns(3)
             summary_cols[0].metric("Test windows", len(folds))
             summary_cols[1].metric(
