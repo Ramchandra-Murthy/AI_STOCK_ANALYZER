@@ -72,9 +72,7 @@ def walk_forward_evaluate(
                 "trade_count": metrics.trade_count,
                 "win_rate": metrics.win_rate,
                 "profit_factor": (
-                    metrics.profit_factor
-                    if metrics.profit_factor is not None
-                    else float("nan")
+                    metrics.profit_factor if metrics.profit_factor is not None else float("nan")
                 ),
             }
         )
