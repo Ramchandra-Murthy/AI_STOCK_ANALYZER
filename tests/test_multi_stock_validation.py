@@ -62,3 +62,20 @@ def test_universe_validation_excludes_nonpositive_and_infinite_prices() -> None:
 
     assert result["status"].eq("ok").all()
     assert len(result) == 2
+
+
+def test_universe_validation_sanitizes_invalid_ohlc_rows_before_signals() -> None:
+    frame = _frame(80)
+    frame.loc[frame.index[5], "High"] = float("inf")
+    frame.loc[frame.index[6], "Low"] = 0.0
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        _frame(80)["Close"],
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+        cost_bps=0.0,
+    )
+
+    assert result["status"].eq("ok").all()
+    assert len(result) == 2
