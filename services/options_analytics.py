@@ -146,8 +146,16 @@ def fetch_option_chain(
     if yahoo_result.status == "AVAILABLE":
         return yahoo_result
 
+    dhan_diagnostic = f"Dhan option-chain data was unavailable ({dhan_error})"
+    if "HTTP 401" in dhan_error:
+        dhan_diagnostic += (
+            " Dhan rejected the API credentials (HTTP 401 Unauthorized). "
+            "Verify DHAN_CLIENT_ID and DHAN_ACCESS_TOKEN in the deployment secrets; "
+            "if the token has expired, generate a fresh Dhan access token and update "
+            "the secret before restarting the app. Never paste credentials into logs or chat."
+        )
     message = (
-        f"Dhan option-chain data was unavailable ({dhan_error}); "
+        f"{dhan_diagnostic}; "
         f"NSE fallback was unavailable ({nse_error}); "
         f"Yahoo Finance fallback was also unavailable ({yahoo_result.message})."
     )
