@@ -45,3 +45,20 @@ def test_universe_validation_reports_missing_columns_without_aborting() -> None:
     assert result.iloc[0]["symbol"] == "BAD"
     assert result.iloc[0]["status"] == "skipped"
     assert "missing required columns" in result.iloc[0]["reason"]
+
+
+def test_universe_validation_excludes_nonpositive_and_infinite_prices() -> None:
+    frame = _frame(80)
+    frame.loc[frame.index[5], "Close"] = 0.0
+    frame.loc[frame.index[6], "Close"] = float("inf")
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        _frame(80)["Close"],
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+        cost_bps=0.0,
+    )
+
+    assert result["status"].eq("ok").all()
+    assert len(result) == 2
