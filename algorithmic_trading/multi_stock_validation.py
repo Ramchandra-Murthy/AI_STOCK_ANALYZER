@@ -45,6 +45,12 @@ def evaluate_symbol_universe(
             required = required[(required > 0).all(axis=1)]
             valid_ohlc = (
                 (required["High"] >= required["Low"])
+                & (required["Open"] <= required["High"])
+                & (required["Open"] >= required["Low"])
+                & (required["Close"] >= required["Low"])
+                & (required["Close"] <= required["High"])
+            ) if "Open" in frame.columns else (
+                (required["High"] >= required["Low"])
                 & (required["Close"] >= required["Low"])
                 & (required["Close"] <= required["High"])
             )
