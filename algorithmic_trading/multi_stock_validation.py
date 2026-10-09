@@ -39,9 +39,7 @@ def evaluate_symbol_universe(
             missing_columns = {"High", "Low", "Close"} - set(frame.columns)
             if missing_columns:
                 raise ValueError(f"missing required columns: {sorted(missing_columns)}")
-            required = frame[["High", "Low", "Close"]].apply(
-                pd.to_numeric, errors="coerce"
-            )
+            required = frame[["High", "Low", "Close"]].apply(pd.to_numeric, errors="coerce")
             required = required.replace([float("inf"), float("-inf")], float("nan"))
             required = required.dropna()
             required = required[(required > 0).all(axis=1)]
