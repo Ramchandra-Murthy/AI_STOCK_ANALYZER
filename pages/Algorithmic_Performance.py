@@ -342,6 +342,10 @@ if run_universe:
                             median_test_return=("total_return", "median"),
                             median_max_drawdown=("max_drawdown", "median"),
                             median_buy_hold_return=("buy_hold_return", "median"),
+                            median_annualized_volatility=("annualized_volatility", "median"),
+                            median_sharpe_ratio=("sharpe_ratio", "median"),
+                            median_sortino_ratio=("sortino_ratio", "median"),
+                            median_calmar_ratio=("calmar_ratio", "median"),
                         )
                         summary_frame["positive_window_rate"] = (
                             summary_frame["positive_windows"] / summary_frame["test_windows"]
