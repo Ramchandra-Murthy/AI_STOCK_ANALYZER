@@ -358,7 +358,9 @@ if run_universe:
                             "Download multi-stock symbol summary (CSV)",
                             data=summary_frame.sort_values(
                                 "median_test_return", ascending=False
-                            ).to_csv(index=True).encode("utf-8"),
+                            )
+                            .to_csv(index=True)
+                            .encode("utf-8"),
                             file_name="multi_stock_symbol_summary.csv",
                             mime="text/csv",
                         )
