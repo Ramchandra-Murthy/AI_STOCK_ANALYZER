@@ -231,9 +231,7 @@ run_universe = st.button("Run multi-stock validation", type="primary")
 
 if run_universe:
     symbols = list(
-        dict.fromkeys(
-            item.strip().upper() for item in universe_text.split(",") if item.strip()
-        )
+        dict.fromkeys(item.strip().upper() for item in universe_text.split(",") if item.strip())
     )
     if not symbols:
         st.error("Enter at least one symbol.")
