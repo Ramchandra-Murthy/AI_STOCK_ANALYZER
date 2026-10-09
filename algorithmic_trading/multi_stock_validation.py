@@ -43,6 +43,12 @@ def evaluate_symbol_universe(
             required = required.replace([float("inf"), float("-inf")], float("nan"))
             required = required.dropna()
             required = required[(required > 0).all(axis=1)]
+            valid_ohlc = (
+                (required["High"] >= required["Low"])
+                & (required["Close"] >= required["Low"])
+                & (required["Close"] <= required["High"])
+            )
+            required = required[valid_ohlc]
             clean_frame = frame.loc[required.index].copy()
             clean_frame[["High", "Low", "Close"]] = required
             if clean_frame.empty:
