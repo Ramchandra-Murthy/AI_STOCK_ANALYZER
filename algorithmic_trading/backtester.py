@@ -119,12 +119,8 @@ def run_backtest(
     mean_daily = float(daily_returns.mean()) if len(daily_returns) else 0.0
     downside = daily_returns[daily_returns < 0]
     downside_std = float((downside.pow(2).mean()) ** 0.5) if not downside.empty else 0.0
-    sharpe_ratio = (
-        float(mean_daily / daily_std * (252.0**0.5)) if daily_std > 0 else None
-    )
-    sortino_ratio = (
-        float(mean_daily / downside_std * (252.0**0.5)) if downside_std > 0 else None
-    )
+    sharpe_ratio = float(mean_daily / daily_std * (252.0**0.5)) if daily_std > 0 else None
+    sortino_ratio = float(mean_daily / downside_std * (252.0**0.5)) if downside_std > 0 else None
     calmar_ratio = (
         float(cagr / abs(float(data["drawdown"].min())))
         if cagr is not None and float(data["drawdown"].min()) < 0
