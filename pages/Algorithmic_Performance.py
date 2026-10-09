@@ -380,9 +380,9 @@ if run_universe:
                             sort_column, ascending=False, na_position="last"
                         )
                         st.dataframe(sorted_summary, use_container_width=True)
-                        summary_csv = sorted_summary.to_csv(
-                            index=True, float_format="%.6g"
-                        ).encode("utf-8")
+                        summary_csv = sorted_summary.to_csv(index=True, float_format="%.6g").encode(
+                            "utf-8"
+                        )
                         st.download_button(
                             "Download multi-stock symbol summary (CSV)",
                             data=summary_csv,
