@@ -313,3 +313,40 @@ def test_nse_v3_can_discover_expiry_when_contract_info_fails(monkeypatch):
         "symbol": "NIFTY",
     }
     assert payload["records"]["expiryDates"] == ["08-Oct-2026", "15-Oct-2026"]
+
+
+
+def test_fetch_option_chain_explains_dhan_http_401(monkeypatch):
+    from services.options_analytics import OptionChainResult
+
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_dhan_option_chain",
+        lambda underlying, expiry=None: (_ for _ in ()).throw(
+            RuntimeError("Dhan /optionchain/expirylist HTTP 401; SDK response unavailable")
+        ),
+    )
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_nse_option_chain",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("NSE unavailable")),
+    )
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_yahoo_option_chain",
+        lambda underlying, expiry: OptionChainResult(
+            underlying=underlying,
+            provider_symbol="^NSEI",
+            expiry=expiry,
+            spot=None,
+            chain=pd.DataFrame(),
+            expiries=(),
+            status="UNAVAILABLE",
+            message="Yahoo option chain unavailable",
+        ),
+    )
+
+    result = fetch_option_chain("NIFTY")
+
+    assert result.status == "UNAVAILABLE"
+    assert "HTTP 401 Unauthorized" in result.message
+    assert "DHAN_CLIENT_ID" in result.message
+    assert "DHAN_ACCESS_TOKEN" in result.message
+    assert "Never paste credentials" in result.message
