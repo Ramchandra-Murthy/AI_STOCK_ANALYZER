@@ -79,3 +79,29 @@ def test_cost_model_charges_buy_and_sell_turnover_separately() -> None:
 def test_india_equity_cost_model_rejects_negative_rates() -> None:
     with pytest.raises(ValueError, match="non-negative"):
         IndiaEquityCostModel(brokerage_bps=-1.0)
+
+
+def test_risk_metrics_are_populated_for_variable_returns() -> None:
+    index = pd.date_range("2026-01-01", periods=5, freq="D")
+    prices = pd.Series([100.0, 102.0, 101.0, 104.0, 103.0], index=index)
+    signals = pd.Series([1.0, 1.0, 1.0, 1.0, 0.0], index=index)
+
+    _, metrics = run_backtest(prices, signals, cost_bps=0)
+
+    assert metrics.volatility > 0
+    assert metrics.sharpe_ratio is not None
+    assert metrics.sortino_ratio is not None
+    assert metrics.calmar_ratio is not None
+
+
+def test_risk_ratios_are_none_when_returns_have_no_variation_or_downside() -> None:
+    index = pd.date_range("2026-01-01", periods=4, freq="D")
+    prices = pd.Series([100.0, 100.0, 100.0, 100.0], index=index)
+    signals = pd.Series([0.0, 0.0, 0.0, 0.0], index=index)
+
+    _, metrics = run_backtest(prices, signals, cost_bps=0)
+
+    assert metrics.volatility == pytest.approx(0.0)
+    assert metrics.sharpe_ratio is None
+    assert metrics.sortino_ratio is None
+    assert metrics.calmar_ratio is None
