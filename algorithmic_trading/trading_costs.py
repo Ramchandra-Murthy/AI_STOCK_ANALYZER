@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 
 
@@ -35,10 +36,10 @@ class IndiaEquityCostModel:
             self.stamp_duty_buy_bps,
             self.slippage_bps,
         )
-        if any(rate < 0 for rate in rates):
-            raise ValueError("cost rates must be non-negative")
-        if not 0 <= self.gst_rate <= 1:
-            raise ValueError("gst_rate must be between zero and one")
+        if any(not np.isfinite(rate) or rate < 0 for rate in rates):
+            raise ValueError("cost rates must be finite and non-negative")
+        if not np.isfinite(self.gst_rate) or not 0 <= self.gst_rate <= 1:
+            raise ValueError("gst_rate must be finite and between zero and one")
 
     def cost_fraction(
         self,

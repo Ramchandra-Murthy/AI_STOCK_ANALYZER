@@ -90,6 +90,16 @@ def test_india_equity_cost_model_rejects_negative_rates() -> None:
         IndiaEquityCostModel(brokerage_bps=-1.0)
 
 
+def test_india_equity_cost_model_rejects_non_finite_rates() -> None:
+    for invalid_rate in (float("nan"), float("inf")):
+        with pytest.raises(ValueError, match="finite"):
+            IndiaEquityCostModel(brokerage_bps=invalid_rate)
+
+    for invalid_rate in (float("nan"), float("inf")):
+        with pytest.raises(ValueError, match="gst_rate"):
+            IndiaEquityCostModel(gst_rate=invalid_rate)
+
+
 def test_risk_metrics_are_populated_for_variable_returns() -> None:
     index = pd.date_range("2026-01-01", periods=5, freq="D")
     prices = pd.Series([100.0, 102.0, 101.0, 104.0, 103.0], index=index)
