@@ -60,5 +60,7 @@ class IndiaEquityCostModel:
             + self.stamp_duty_buy_bps / 10_000.0
             + slippage
         )
-        sell_rate = brokerage + exchange + regulatory + gst + self.stt_sell_bps / 10_000.0 + slippage
+        sell_rate = (
+            brokerage + exchange + regulatory + gst + self.stt_sell_bps / 10_000.0 + slippage
+        )
         return buy_turnover * buy_rate + sell_turnover * sell_rate
