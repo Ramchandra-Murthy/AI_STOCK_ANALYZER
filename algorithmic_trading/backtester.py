@@ -80,11 +80,7 @@ def run_backtest(
         .dropna()
     )
 
-    valid_rows = (
-        data["price"].gt(0)
-        & np.isfinite(data["price"])
-        & np.isfinite(data["signal"])
-    )
+    valid_rows = data["price"].gt(0) & np.isfinite(data["price"]) & np.isfinite(data["signal"])
     data = data.loc[valid_rows].copy()
     if len(data) < 2:
         raise ValueError("at least two valid price observations are required")
