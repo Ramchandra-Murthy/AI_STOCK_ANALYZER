@@ -18,6 +18,13 @@ def _download_ticker_data(ticker: str, period: str) -> pd.DataFrame:
     return yf.download(ticker, period=period, auto_adjust=False, progress=False)
 
 
+def _render_market_data_refresh() -> None:
+    """Offer a manual cache invalidation when the user wants a fresh download."""
+    if st.button("Refresh cached market data"):
+        _download_ticker_data.clear()
+        st.success("Cached market data cleared. Run the analysis again to download fresh data.")
+
+
 def _download_market_data(ticker: str, benchmark_ticker: str, period: str):
     """Download and normalize one symbol and its benchmark."""
     with st.spinner(f"Loading {ticker} and {benchmark_ticker}..."):
@@ -88,6 +95,7 @@ st.set_page_config(
 )
 
 st.title("📊 NSE/BSE Algorithmic Performance")
+_render_market_data_refresh()
 st.caption(
     "Historical signal performance only. Open paper positions are not treated " "as realized P&L."
 )
