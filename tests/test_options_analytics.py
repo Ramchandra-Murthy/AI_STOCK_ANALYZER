@@ -315,7 +315,6 @@ def test_nse_v3_can_discover_expiry_when_contract_info_fails(monkeypatch):
     assert payload["records"]["expiryDates"] == ["08-Oct-2026", "15-Oct-2026"]
 
 
-
 def test_fetch_option_chain_explains_dhan_http_401(monkeypatch):
     from services.options_analytics import OptionChainResult
 
