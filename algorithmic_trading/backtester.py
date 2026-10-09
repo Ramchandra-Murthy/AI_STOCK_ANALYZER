@@ -11,6 +11,8 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from algorithmic_trading.trading_costs import IndiaEquityCostModel
+
 
 @dataclass(frozen=True)
 class BacktestMetrics:
@@ -46,6 +48,7 @@ def run_backtest(
     signals: pd.Series,
     initial_capital: float = 100_000.0,
     cost_bps: float = 10.0,
+    cost_model: IndiaEquityCostModel | None = None,
 ) -> tuple[pd.DataFrame, BacktestMetrics]:
     """Backtest target positions using signals from the preceding bar.
 
@@ -72,12 +75,18 @@ def run_backtest(
     data["signal"] = data["signal"].clip(-1, 1)
     data["position"] = data["signal"].shift(1).fillna(0.0)
     data["market_return"] = data["price"].pct_change().fillna(0.0)
-    data["turnover"] = data["position"].diff().abs().fillna(data["position"].abs())
+    position_change = data["position"].diff().fillna(data["position"])
+    data["turnover"] = position_change.abs()
+    data["buy_turnover"] = position_change.clip(lower=0.0)
+    data["sell_turnover"] = -position_change.clip(upper=0.0)
 
-    transaction_cost = cost_bps / 10_000.0
-    data["strategy_return"] = (
-        data["position"] * data["market_return"] - data["turnover"] * transaction_cost
-    )
+    if cost_model is None:
+        data["transaction_cost"] = data["turnover"] * (cost_bps / 10_000.0)
+    else:
+        data["transaction_cost"] = cost_model.cost_fraction(
+            data["buy_turnover"], data["sell_turnover"]
+        )
+    data["strategy_return"] = data["position"] * data["market_return"] - data["transaction_cost"]
     data["strategy_equity"] = initial_capital * (1.0 + data["strategy_return"]).cumprod()
     data["buy_hold_equity"] = initial_capital * (1.0 + data["market_return"]).cumprod()
 

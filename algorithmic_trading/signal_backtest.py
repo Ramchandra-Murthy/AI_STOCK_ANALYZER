@@ -8,6 +8,7 @@ from algorithmic_trading.backtester import BacktestMetrics, run_backtest
 from algorithmic_trading.regime_engine import classify_regime, regime_score
 from algorithmic_trading.relative_strength import relative_return
 from algorithmic_trading.signal_engine import compose_signal
+from algorithmic_trading.trading_costs import IndiaEquityCostModel
 
 
 def generate_pipeline_signals(
@@ -62,6 +63,7 @@ def backtest_pipeline(
     initial_capital: float = 100_000.0,
     cost_bps: float = 10.0,
     relative_periods: int = 20,
+    cost_model: IndiaEquityCostModel | None = None,
 ) -> tuple[pd.DataFrame, BacktestMetrics]:
     """Backtest the same regime/relative-strength signal used by the scanner."""
     signals = generate_pipeline_signals(
@@ -75,4 +77,5 @@ def backtest_pipeline(
         signals=signals,
         initial_capital=initial_capital,
         cost_bps=cost_bps,
+        cost_model=cost_model,
     )

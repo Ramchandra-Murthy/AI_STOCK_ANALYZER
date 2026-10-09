@@ -7,6 +7,7 @@ import streamlit as st
 import yfinance as yf
 
 from algorithmic_trading.signal_backtest import backtest_pipeline
+from algorithmic_trading.trading_costs import IndiaEquityCostModel
 
 
 def _download_market_data(ticker: str, benchmark_ticker: str, period: str):
@@ -48,6 +49,7 @@ def _run_backtest(
     benchmark: pd.DataFrame,
     capital: float,
     cost_bps: float,
+    cost_model: IndiaEquityCostModel | None = None,
 ):
     """Validate data and run the existing point-in-time backtest."""
     if frame.empty or benchmark.empty:
@@ -64,6 +66,7 @@ def _run_backtest(
             benchmark=benchmark["Close"],
             initial_capital=capital,
             cost_bps=cost_bps,
+            cost_model=cost_model,
         )
     except ValueError as exc:
         st.error(str(exc))
@@ -97,13 +100,57 @@ with right:
         value=10.0,
         step=1.0,
     )
+    cost_mode = st.radio(
+        "Cost model",
+        ["Flat cost (bps)", "Itemized India equity"],
+        horizontal=True,
+    )
     run = st.button("Run performance analysis", type="primary")
+
+cost_model = None
+if cost_mode == "Itemized India equity":
+    st.caption(
+        "Enter rates from your broker/exchange tariff for the product and dates "
+        "being tested. Values are basis points of traded notional; zero defaults "
+        "are placeholders, not estimates of actual charges."
+    )
+    cost_cols = st.columns(4)
+    with cost_cols[0]:
+        brokerage_bps = st.number_input("Brokerage (bps)", min_value=0.0, value=0.0, step=0.1)
+        exchange_bps = st.number_input(
+            "Exchange transaction charges (bps)", min_value=0.0, value=0.0, step=0.1
+        )
+    with cost_cols[1]:
+        regulatory_bps = st.number_input(
+            "Regulatory charges (bps)", min_value=0.0, value=0.0, step=0.01
+        )
+        slippage_bps = st.number_input("Slippage (bps)", min_value=0.0, value=0.0, step=0.1)
+    with cost_cols[2]:
+        stt_buy_bps = st.number_input("STT buy (bps)", min_value=0.0, value=0.0, step=0.1)
+        stt_sell_bps = st.number_input("STT sell (bps)", min_value=0.0, value=0.0, step=0.1)
+    with cost_cols[3]:
+        stamp_duty_buy_bps = st.number_input(
+            "Stamp duty buy (bps)", min_value=0.0, value=0.0, step=0.1
+        )
+        gst_rate_pct = st.number_input(
+            "GST rate (%)", min_value=0.0, max_value=100.0, value=18.0, step=1.0
+        )
+    cost_model = IndiaEquityCostModel(
+        brokerage_bps=brokerage_bps,
+        exchange_transaction_bps=exchange_bps,
+        regulatory_bps=regulatory_bps,
+        stt_buy_bps=stt_buy_bps,
+        stt_sell_bps=stt_sell_bps,
+        stamp_duty_buy_bps=stamp_duty_buy_bps,
+        slippage_bps=slippage_bps,
+        gst_rate=gst_rate_pct / 100.0,
+    )
 
 if run:
     ticker = f"{symbol}.NS" if exchange == "NSE" else f"{symbol}.BO"
     benchmark_ticker = "^NSEI" if exchange == "NSE" else "^BSESN"
     frame, benchmark = _download_market_data(ticker, benchmark_ticker, period)
-    result = _run_backtest(frame, benchmark, capital, cost_bps)
+    result = _run_backtest(frame, benchmark, capital, cost_bps, cost_model)
 
     if result is not None:
         data, metrics = result
