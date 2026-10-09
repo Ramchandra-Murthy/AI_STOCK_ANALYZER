@@ -1,5 +1,7 @@
 """Fast live Top-10 market-mover scanner with one-minute refresh."""
 
+# The fast path favors a small liquid NSE pool to keep live refresh latency bounded.
+
 from __future__ import annotations
 
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -10,15 +12,19 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
-import yfinance as yf
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.dhan_live_provider import dhan_provider_enabled, download_dhan_symbol_frames
+from services.resilient_market_data import download_symbol_frames
 
 TOP10_REFRESH_SECONDS = 60
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
-TOP10_CHUNK_SIZE = 10
-TOP10_MAX_CANDIDATES_PER_EXCHANGE = 20
+TOP10_CHUNK_SIZE = 20
+TOP10_MAX_NSE_CANDIDATES = 20
+TOP10_MAX_BSE_CANDIDATES = 0
+TOP10_PROVIDER_RETRIES = 0
+TOP10_PROVIDER_TIMEOUT = 5
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
 TOP10_STALE_DATA_SECONDS = 180
@@ -29,9 +35,10 @@ TOP10_MARKET_CLOSE_MINUTE = 30
 TOP10_SESSION_STATUS_KEY = "top10_market_status"
 TOP10_PARTIAL_FAILURES_KEY = "top10_partial_failures"
 TOP10_COVERAGE_KEY = "top10_quote_coverage"
-TOP10_EXPECTED_QUOTES = 40
-TOP10_GOOD_COVERAGE_QUOTES = 36
-TOP10_REDUCED_COVERAGE_QUOTES = 20
+TOP10_EXPECTED_QUOTES = 20
+TOP10_GOOD_COVERAGE_QUOTES = 18
+TOP10_REDUCED_COVERAGE_QUOTES = 10
+TOP10_MIN_TRUSTED_COVERAGE_QUOTES = 18
 TOP10_ALERT_MIN_RANK_JUMP = 2
 TOP10_ALERT_MIN_ABS_MOVE_PCT = 1.0
 TOP10_SCORE_MAX_1M_PCT = 3.0
@@ -94,6 +101,19 @@ def _extract_close(history: pd.DataFrame, ticker: str) -> pd.Series:
                 return pd.to_numeric(frame["Close"], errors="coerce").dropna()
 
     return pd.Series(dtype="float64")
+
+
+def _provider_age_seconds(timestamp: object, now: datetime) -> float | None:
+    """Return provider-candle age in seconds, or None when invalid."""
+    try:
+        value = pd.Timestamp(timestamp)
+        if value.tzinfo is None:
+            value = value.tz_localize(_IST)
+        else:
+            value = value.tz_convert(_IST)
+        return max(0.0, (now - value.to_pydatetime()).total_seconds())
+    except (TypeError, ValueError):
+        return None
 
 
 def _format_candle_time(timestamp: object) -> str:
@@ -309,6 +329,11 @@ def _update_signal_history(
     return updated[-TOP10_SIGNAL_HISTORY_LIMIT:]
 
 
+def _should_record_signal_history(valid_quotes: int, partial_failures: int) -> bool:
+    """Allow history updates only from complete, trusted provider scans."""
+    return valid_quotes >= TOP10_MIN_TRUSTED_COVERAGE_QUOTES and partial_failures == 0
+
+
 def _signal_history_table(history: list[pd.DataFrame] | None) -> pd.DataFrame:
     """Flatten rolling signal snapshots into a compact analysis table."""
     if not history:
@@ -515,73 +540,104 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
         column.metric(label, f"{metrics[label]:.1f}%")
 
 
+def _download_top10_frames(
+    tickers: list[str],
+) -> tuple[dict[str, pd.DataFrame], list[str], str]:
+    """Prefer Dhan candles when configured, with Yahoo fallback for gaps."""
+    if dhan_provider_enabled():
+        dhan_frames, dhan_missing = download_dhan_symbol_frames(tickers, interval=1)
+        if not dhan_missing:
+            return dhan_frames, [], "Dhan"
+        yahoo_frames, yahoo_missing = download_symbol_frames(
+            dhan_missing,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            batch_size=TOP10_CHUNK_SIZE,
+            timeout=TOP10_PROVIDER_TIMEOUT,
+            retries=TOP10_PROVIDER_RETRIES,
+            recover_missing=False,
+        )
+        merged = {**dhan_frames, **yahoo_frames}
+        return merged, yahoo_missing, "Dhan + Yahoo fallback"
+    frames, missing = download_symbol_frames(
+        tickers,
+        period="1d",
+        interval="1m",
+        auto_adjust=False,
+        batch_size=TOP10_CHUNK_SIZE,
+        timeout=TOP10_PROVIDER_TIMEOUT,
+        retries=TOP10_PROVIDER_RETRIES,
+        recover_missing=False,
+    )
+    return frames, missing, "Yahoo"
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
     failures = 0
     rows: list[dict[str, object]] = []
+    latest_candles: list[pd.Timestamp] = []
 
     candidates = [
-        *(("NSE", symbol) for symbol in NSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]),
-        *(("BSE", symbol) for symbol in BSE_CANDIDATES[:TOP10_MAX_CANDIDATES_PER_EXCHANGE]),
+        *(("NSE", symbol) for symbol in NSE_CANDIDATES[:TOP10_MAX_NSE_CANDIDATES]),
+        *(("BSE", symbol) for symbol in BSE_CANDIDATES[:TOP10_MAX_BSE_CANDIDATES]),
     ]
 
-    for exchange in ("NSE", "BSE"):
-        symbols = [symbol for venue, symbol in candidates if venue == exchange]
-        tickers = [_ticker(symbol, exchange) for symbol in symbols]
+    tickers_by_exchange = {
+        exchange: [_ticker(symbol, exchange) for symbol in symbols]
+        for exchange in ("NSE", "BSE")
+        for symbols in [[symbol for venue, symbol in candidates if venue == exchange]]
+    }
+    all_tickers = [ticker for tickers in tickers_by_exchange.values() for ticker in tickers]
+    frames, _missing, provider_name = _download_top10_frames(all_tickers)
+    failures = len(_missing) if _missing else 0
 
-        for start in range(0, len(tickers), TOP10_CHUNK_SIZE):
-            chunk = tickers[start : start + TOP10_CHUNK_SIZE]
-            try:
-                history = yf.download(
-                    tickers=chunk,
-                    period="5d",
-                    interval="1m",
-                    auto_adjust=False,
-                    progress=False,
-                    group_by="ticker",
-                    threads=False,
-                    timeout=15,
-                )
-            except Exception:
-                failures += 1
+    for exchange, tickers in tickers_by_exchange.items():
+        for ticker in tickers:
+            close = pd.to_numeric(
+                frames.get(ticker, pd.DataFrame()).get("Close"),
+                errors="coerce",
+            ).dropna()
+            if len(close) < 2:
                 continue
 
-            for ticker in chunk:
-                close = _extract_close(history, ticker)
-                if len(close) < 2:
-                    continue
+            latest = float(close.iloc[-1])
+            previous = float(close.iloc[-2])
+            if latest <= 0 or previous <= 0:
+                continue
 
-                latest = float(close.iloc[-1])
-                previous = float(close.iloc[-2])
-                if latest <= 0 or previous <= 0:
-                    continue
+            change_1m = (latest / previous - 1.0) * 100
+            change_5m = (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
+            latest_candles.append(pd.Timestamp(close.index[-1]))
+            symbol = ticker.rsplit(".", 1)[0]
 
-                change_1m = (latest / previous - 1.0) * 100
-                change_5m = (
-                    (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
-                )
-                symbol = ticker.rsplit(".", 1)[0]
-
-                rows.append(
-                    {
-                        "Rank": 0,
-                        "Symbol": symbol,
-                        "Exchange": exchange,
-                        "Price": round(latest, 2),
-                        "1-min %": round(change_1m, 2),
-                        "5-min %": round(change_5m, 2) if change_5m is not None else None,
-                        "Last candle": _format_candle_time(close.index[-1]),
-                    }
-                )
+            rows.append(
+                {
+                    "Rank": 0,
+                    "Symbol": symbol,
+                    "Exchange": exchange,
+                    "Price": round(latest, 2),
+                    "1-min %": round(change_1m, 2),
+                    "5-min %": round(change_5m, 2) if change_5m is not None else None,
+                    "Last candle": _format_candle_time(close.index[-1]),
+                }
+            )
 
     frame = pd.DataFrame(rows)
-    if frame.empty and failures:
-        raise RuntimeError("Live quote provider failed for all scan chunks")
+    if frame.empty:
+        raise RuntimeError("Live quote provider returned no usable 1-minute quotes")
     if frame.empty:
         return frame, round(perf_counter() - started, 2), failures, 0
 
     valid_quotes = len(frame)
+    trusted_quotes = min(valid_quotes, TOP10_EXPECTED_QUOTES)
+    frame.attrs["provider"] = provider_name
+    frame.attrs["expected_quotes"] = TOP10_EXPECTED_QUOTES
+    frame.attrs["candidate_pool_size"] = len(all_tickers)
+    frame.attrs["coverage_complete"] = trusted_quotes >= TOP10_EXPECTED_QUOTES
+    frame.attrs["latest_candle_at"] = max(latest_candles) if latest_candles else None
     frame = (
         frame.assign(_abs_change=frame["1-min %"].abs())
         .sort_values("_abs_change", ascending=False)
@@ -590,7 +646,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         .reset_index(drop=True)
     )
     frame["Rank"] = range(1, len(frame) + 1)
-    return frame, round(perf_counter() - started, 2), failures, valid_quotes
+    return frame, round(perf_counter() - started, 2), failures, trusted_quotes
 
 
 @st.cache_data(ttl=TOP10_CACHE_SECONDS, show_spinner=False)
@@ -631,13 +687,20 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.subheader("🔴 Live Top-10 Market Scanner")
     st.caption(
         "Ranks the largest absolute 1-minute price moves from the configured "
-        "NSE/BSE candidate universe. Data is provider-sourced and may be delayed."
+        "NSE/BSE candidate universe. Dhan is preferred when configured; Yahoo Finance is the fallback. The fast path uses liquid NSE symbols only. "
+        "Degraded coverage is never promoted into signal history."
     )
 
     if st.button("↻ Refresh Top-10 now", key="top10_manual_refresh"):
-        _load_live_top10.clear()
-        _start_background_scan()
-        st.rerun(scope="fragment")
+        if _market_is_open(datetime.now(_IST)):
+            _load_live_top10.clear()
+            _start_background_scan()
+            st.rerun(scope="fragment")
+        else:
+            st.info(
+                "⚪ MARKET CLOSED · Live Top-10 refresh is available during the next "
+                "regular NSE/BSE session."
+            )
 
     background_result = _consume_background_scan()
     if background_result is not None:
@@ -683,9 +746,15 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.session_state[TOP10_SESSION_STATUS_KEY] = session_status
 
     if top10.empty:
-        if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
+        if not market_open:
+            st.info(
+                "⚪ MARKET CLOSED · No live Top-10 scan is available outside market hours. "
+                "Live scanning will begin during the next regular NSE/BSE session."
+            )
+        elif _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
             st.error(
-                "🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. Retrying automatically."
+                "🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. "
+                "Retrying automatically."
             )
         else:
             st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
@@ -696,13 +765,19 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "🟠 PROVIDER ISSUE · Showing the last successful Top-10. Automatic retry is active."
         )
     elif partial_failures:
+        unresolved = max(0, TOP10_EXPECTED_QUOTES - valid_quotes)
         st.warning(
-            f"🟠 PARTIAL PROVIDER ISSUE · {partial_failures} quote chunk(s) failed. "
-            "Displayed results may be incomplete; automatic retry is active."
+            f"🟠 PARTIAL PROVIDER ISSUE · {unresolved} quote(s) remain unresolved after retries. "
+            "Displayed results may be incomplete; automatic retry is active. "
+            "Do not use these rows for trading decisions."
         )
 
-    data_age_seconds = (
+    scan_age_seconds = (
         max(0.0, (now - completed_at).total_seconds()) if completed_at is not None else None
+    )
+    provider_age_seconds = _provider_age_seconds(top10.attrs.get("latest_candle_at"), now)
+    data_age_seconds = (
+        provider_age_seconds if provider_age_seconds is not None else scan_age_seconds
     )
     if scan_running:
         status = "🟡 REFRESHING · showing previous data"
@@ -726,14 +801,16 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     annotated_top10 = _add_signal_confirmation(annotated_top10)
     change_alerts = _watchlist_change_alerts(annotated_top10)
     persistence_alerts = _persistence_alerts(annotated_top10)
-    if completed_at != st.session_state.get(TOP10_SIGNAL_HISTORY_UPDATED_KEY):
+    if completed_at != st.session_state.get(
+        TOP10_SIGNAL_HISTORY_UPDATED_KEY
+    ) and _should_record_signal_history(valid_quotes, partial_failures):
         signal_history = _update_signal_history(signal_history, annotated_top10, completed_at)
         st.session_state[TOP10_SIGNAL_HISTORY_KEY] = signal_history
         st.session_state[TOP10_SIGNAL_HISTORY_UPDATED_KEY] = completed_at
     st.caption(
         f"{status} · Last update {last_update} IST · "
         f"Next refresh {next_refresh:%H:%M:%S} IST · "
-        f"Data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · "
+        f"Provider data age {data_age_seconds:.0f}s · Scan {scan_seconds:.1f}s · "
         f"Provider failures {partial_failures} · Quotes {valid_quotes}/{TOP10_EXPECTED_QUOTES} · "
         f"Coverage {coverage_status} · Refresh every 60s"
     )
@@ -747,8 +824,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     if coverage_status == "CRITICAL":
         st.error(
-            f"🔴 CRITICAL QUOTE COVERAGE · Only {valid_quotes}/{TOP10_EXPECTED_QUOTES} quotes are valid. "
-            "Displayed Top-10 data may be materially incomplete; automatic retry is active."
+            f"🔴 CRITICAL QUOTE COVERAGE · Only {valid_quotes}/{TOP10_EXPECTED_QUOTES} "
+            "quotes are valid. Displayed Top-10 data may be materially incomplete; "
+            "automatic retry is active."
         )
     elif coverage_status == "REDUCED":
         st.warning(
@@ -808,4 +886,4 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
                 },
             )
             if not history_trend.empty:
-                st.line_chart(history_trend, y_min=0, y_max=100)
+                st.line_chart(history_trend)

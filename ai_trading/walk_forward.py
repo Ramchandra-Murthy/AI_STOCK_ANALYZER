@@ -35,7 +35,9 @@ def walk_forward_backtest(
 
     Each model is trained only on observations whose future labels are already
     known before the prediction date. Each prediction holds for horizon bars,
-    avoiding overlapping test trades.
+    avoiding overlapping test trades. The chronological validation holdout is
+    scored first, then the model is refit on all labelled observations that
+    were available before the decision timestamp.
     """
     if horizon < 1:
         raise ValueError("horizon must be at least 1")
@@ -64,6 +66,7 @@ def walk_forward_backtest(
                 horizon=horizon,
                 threshold=threshold,
                 test_fraction=0.2,
+                refit_full=True,
             )
             prediction = predict_latest(model, prediction_frame)
         except (TypeError, ValueError, KeyError):

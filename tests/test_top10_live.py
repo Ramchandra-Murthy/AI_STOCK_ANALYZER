@@ -13,11 +13,15 @@ from components.top10_live import (
     TOP10_MARKET_CLOSE_MINUTE,
     TOP10_MARKET_OPEN_HOUR,
     TOP10_MARKET_OPEN_MINUTE,
-    TOP10_MAX_CANDIDATES_PER_EXCHANGE,
+    TOP10_MAX_BSE_CANDIDATES,
     TOP10_MAX_CONSECUTIVE_FAILURES,
+    TOP10_MAX_NSE_CANDIDATES,
+    TOP10_MIN_TRUSTED_COVERAGE_QUOTES,
     TOP10_PARTIAL_FAILURES_KEY,
     TOP10_PERSISTENCE_ALERT_MIN_SCANS,
     TOP10_PERSISTENCE_MIN_SCANS,
+    TOP10_PROVIDER_RETRIES,
+    TOP10_PROVIDER_TIMEOUT,
     TOP10_REDUCED_COVERAGE_QUOTES,
     TOP10_REFRESH_SECONDS,
     TOP10_SCAN_WARNING_SECONDS,
@@ -33,7 +37,9 @@ from components.top10_live import (
     _calculate_signal_strength,
     _coverage_status,
     _persistence_alerts,
+    _provider_age_seconds,
     _scan_live_top10,
+    _should_record_signal_history,
     _signal_confirmation,
     _signal_history_table,
     _signal_history_trend,
@@ -49,8 +55,11 @@ from components.top10_live import (
 def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_REFRESH_SECONDS == 60
     assert TOP10_CACHE_SECONDS < TOP10_REFRESH_SECONDS
-    assert TOP10_CHUNK_SIZE == 10
-    assert TOP10_MAX_CANDIDATES_PER_EXCHANGE == 20
+    assert TOP10_CHUNK_SIZE == 20
+    assert TOP10_MAX_NSE_CANDIDATES == 20
+    assert TOP10_MAX_BSE_CANDIDATES == 0
+    assert TOP10_PROVIDER_RETRIES == 0
+    assert TOP10_PROVIDER_TIMEOUT == 5
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert 0 < TOP10_SCAN_WARNING_SECONDS < TOP10_STALE_DATA_SECONDS
     assert TOP10_STALE_DATA_SECONDS >= 3 * TOP10_REFRESH_SECONDS
@@ -59,6 +68,12 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert callable(_start_background_scan)
     assert "REFRESHING" in open("components/top10_live.py", encoding="utf-8").read()
     assert "FRESH" in open("components/top10_live.py", encoding="utf-8").read()
+
+
+def test_top10_live_uses_a_bounded_nse_pool_for_faster_quote_refresh() -> None:
+    assert TOP10_MAX_NSE_CANDIDATES == 20
+    assert TOP10_MAX_BSE_CANDIDATES == 0
+    assert TOP10_EXPECTED_QUOTES == 20
 
 
 def test_top10_live_uses_india_timezone() -> None:
@@ -113,14 +128,14 @@ def test_top10_live_exposes_quote_coverage() -> None:
 
 def test_top10_live_classifies_quote_coverage_quality() -> None:
     assert TOP10_COVERAGE_KEY == "top10_quote_coverage"
-    assert TOP10_EXPECTED_QUOTES == 40
-    assert TOP10_GOOD_COVERAGE_QUOTES == 36
-    assert TOP10_REDUCED_COVERAGE_QUOTES == 20
-    assert _coverage_status(40) == "GOOD"
-    assert _coverage_status(36) == "GOOD"
-    assert _coverage_status(35) == "REDUCED"
-    assert _coverage_status(20) == "REDUCED"
-    assert _coverage_status(19) == "CRITICAL"
+    assert TOP10_EXPECTED_QUOTES == 20
+    assert TOP10_GOOD_COVERAGE_QUOTES == 18
+    assert TOP10_REDUCED_COVERAGE_QUOTES == 10
+    assert _coverage_status(20) == "GOOD"
+    assert _coverage_status(18) == "GOOD"
+    assert _coverage_status(17) == "REDUCED"
+    assert _coverage_status(10) == "REDUCED"
+    assert _coverage_status(9) == "CRITICAL"
     assert _coverage_status(0) == "CRITICAL"
 
 
@@ -406,6 +421,12 @@ def test_top10_live_signal_history_table_and_trend() -> None:
     assert trend["NSE:AAA"].tolist() == [40, 65]
 
 
+def test_top10_live_history_chart_uses_supported_streamlit_api() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "st.line_chart(history_trend)" in source
+    assert "st.line_chart(history_trend, y_min=" not in source
+
+
 def test_top10_live_signal_persistence_counts_consecutive_presence_and_direction() -> None:
     history = [
         pd.DataFrame(
@@ -605,3 +626,23 @@ def test_top10_live_signal_quality_metrics_handle_empty_history() -> None:
         "Direction consistency": 0.0,
         "Momentum consistency": 0.0,
     }
+
+
+def test_top10_live_only_records_history_from_trusted_complete_scans() -> None:
+    assert TOP10_MIN_TRUSTED_COVERAGE_QUOTES == TOP10_GOOD_COVERAGE_QUOTES
+    assert _should_record_signal_history(20, 0) is True
+    assert _should_record_signal_history(18, 0) is True
+    assert _should_record_signal_history(17, 0) is False
+    assert _should_record_signal_history(20, 1) is False
+
+
+def test_top10_live_uses_provider_candle_age() -> None:
+    now = datetime(2026, 10, 5, 10, 0, tzinfo=ZoneInfo(TOP10_TIMEZONE))
+    assert _provider_age_seconds("2026-10-05T09:59:00+05:30", now) == 60.0
+    assert _provider_age_seconds("not-a-timestamp", now) is None
+
+
+def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "retries=TOP10_PROVIDER_RETRIES" in source
+    assert "recover_missing=False" in source

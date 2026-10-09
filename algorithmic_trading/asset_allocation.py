@@ -83,26 +83,39 @@ def minimum_variance_weight(
 
 
 def apply_weight_cap(weights: pd.Series, maximum: float) -> pd.Series:
-    """Cap individual weights and renormalize the remaining allocation."""
+    """Apply a hard per-asset cap, leaving any unallocatable amount in cash.
+
+    When the cap permits full investment, excess weight from capped assets is
+    redistributed proportionally across uncapped assets. If the cap makes full
+    investment impossible (for example, four assets capped at 20%), the result
+    deliberately sums to less than one rather than violating the cap.
+    """
     if maximum <= 0 or maximum > 1:
         raise ValueError("maximum must be between 0 and 1")
 
-    clipped = weights.clip(lower=0.0, upper=maximum)
-    if clipped.sum() <= 0:
-        return clipped
+    positive = weights.clip(lower=0.0).fillna(0.0)
+    total = float(positive.sum())
+    if total <= 0 or positive.empty:
+        return positive
 
-    for _ in range(len(clipped) + 1):
-        excess = float(clipped.sum() - 1.0)
-        if excess <= 1e-12:
-            break
-        free = clipped < maximum - 1e-12
-        if not free.any():
-            break
-        clipped.loc[free] += excess / int(free.sum())
-        clipped = clipped.clip(upper=maximum)
+    base = positive / total
+    result = pd.Series(0.0, index=weights.index, dtype=float)
+    active = base[base > 0].copy()
+    remaining = 1.0
 
-    total = float(clipped.sum())
-    return clipped / total if total > 0 else clipped
+    while not active.empty and remaining > 1e-12:
+        proposed = active / float(active.sum()) * remaining
+        capped = proposed[proposed > maximum + 1e-12]
+        if capped.empty:
+            result.loc[proposed.index] = proposed
+            break
+
+        capped_symbols = capped.index
+        result.loc[capped_symbols] = maximum
+        remaining -= maximum * len(capped_symbols)
+        active = active.drop(index=capped_symbols)
+
+    return result.clip(lower=0.0, upper=maximum)
 
 
 def allocation_summary(weights: pd.Series) -> pd.DataFrame:

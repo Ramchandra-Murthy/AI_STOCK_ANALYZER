@@ -101,6 +101,12 @@ def show():
         )
 
     scan_mode = st.radio("Scan", ["Personal Watchlist", "Broad Market"], horizontal=True)
+    exchange_filter = st.selectbox(
+        "Exchange",
+        ["NSE + BSE", "NSE", "BSE"],
+        help="NSE + BSE keeps opportunities from both exchanges in the candidate pool. "
+        "Low-liquidity stocks are not removed; use the Risk and turnover information for judgment.",
+    )
     if st.button("Scan", use_container_width=True):
         with st.spinner("Scanning stocks..."):
             df = scan_watchlist(watchlist) if scan_mode == "Personal Watchlist" else market_scan()
@@ -111,8 +117,8 @@ def show():
 
         _show_data_quality(df)
 
-        if selected_exchange in ("NSE", "BSE") and "Exchange" in df.columns:
-            df = df.loc[df["Exchange"] == selected_exchange]
+        if exchange_filter in ("NSE", "BSE") and "Exchange" in df.columns:
+            df = df.loc[df["Exchange"] == exchange_filter]
         if "Price" in df.columns:
             df = df.loc[df["Price"] >= max(min_price, settings_min_price)]
             if max_price > 0:

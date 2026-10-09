@@ -75,14 +75,32 @@ def analyze_symbol(
     )
 
     effective_stop = stop_price
-    if effective_stop is None:
-        effective_stop = current_price
+    if effective_stop is None and signal.direction in {"LONG", "SHORT"}:
+        high = pd.to_numeric(frame["High"], errors="coerce")
+        low = pd.to_numeric(frame["Low"], errors="coerce")
+        close = pd.to_numeric(frame["Close"], errors="coerce")
+        true_range = pd.concat(
+            [
+                high - low,
+                (high - close.shift()).abs(),
+                (low - close.shift()).abs(),
+            ],
+            axis=1,
+        ).max(axis=1)
+        atr = true_range.rolling(window=14, min_periods=14).mean().iloc[-1]
+        if pd.notna(atr) and float(atr) > 0:
+            stop_distance = float(atr) * 1.5
+            effective_stop = (
+                current_price - stop_distance
+                if signal.direction == "LONG"
+                else current_price + stop_distance
+            )
 
     position_size = fixed_risk_size(
         capital=capital,
         risk_fraction=risk_fraction,
         entry_price=current_price,
-        stop_price=effective_stop,
+        stop_price=effective_stop if effective_stop is not None else current_price,
     )
 
     return AlgorithmicAnalysis(

@@ -14,6 +14,7 @@ from ai_trading.ml_scanner import scan_universe as scan_ml_universe
 from ai_trading.signal_history import attach_outcomes, record_signal
 from ai_trading.walk_forward import walk_forward_backtest
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.resilient_market_data import download_symbol_frames
 
 st.set_page_config(page_title="AI Trading Intelligence", page_icon="🧠", layout="wide")
 
@@ -32,11 +33,25 @@ if st.button("Run AI Trading Scan", type="primary"):
     with st.spinner(f"Analyzing {count} {exchange} symbols..."):
         result = scan_universe(universe[:count], exchange=exchange, period=period)
 
+    diagnostics = result.attrs.get("scan_diagnostics", {})
     if result.empty:
-        st.warning("No usable market data was returned.")
+        missing = diagnostics.get("missing", [])
+        detail = f" Missing/unresolved: {len(missing)} symbols." if missing else ""
+        st.error("AI scan returned no usable market data after bounded retries." + detail)
+        st.caption(
+            "No signal was generated from missing or synthetic data; " "retry during market hours."
+        )
         st.stop()
 
-    st.success(f"Analyzed {len(result)} symbols.")
+    usable = diagnostics.get("usable", len(result))
+    requested = diagnostics.get("requested", count)
+    if usable < requested:
+        st.warning(
+            f"Partial market-data coverage: {usable}/{requested} symbols. "
+            "Results are research-only until coverage is complete."
+        )
+    else:
+        st.success(f"Analyzed {len(result)} symbols with complete market-data coverage.")
     st.subheader("AI Trading Opportunities")
     st.dataframe(result.head(10), use_container_width=True, hide_index=True)
 
@@ -231,7 +246,8 @@ if isinstance(ml_result, pd.DataFrame):
 st.divider()
 st.subheader("🧩 Unified AI Signal Explainability")
 st.caption(
-    "Breaks the unified ML decision into model probability, validation quality, trend contribution, "
+    "Breaks the unified ML decision into model probability, validation quality, "
+    "trend contribution, "
     "confidence and the final signal reason. Historical model measurements only."
 )
 
@@ -258,15 +274,21 @@ if st.button("Generate AI Signal Explanation", type="secondary"):
         else f"{str(explain_symbol).strip().upper()}.BO"
     )
     with st.spinner(f"Explaining {ticker}..."):
-        explain_history = yf.download(
-            ticker,
+        explain_frames, _explain_diagnostics = download_symbol_frames(
+            [ticker],
             period="5y",
+            interval="1d",
             auto_adjust=False,
-            progress=False,
-            threads=False,
+            batch_size=1,
+            timeout=15,
         )
-        if isinstance(explain_history.columns, pd.MultiIndex):
-            explain_history = explain_history.droplevel(1, axis=1)
+        explain_history = explain_frames.get(ticker, pd.DataFrame())
+        if explain_history.empty:
+            st.error(
+                "AI signal explanation could not obtain market data after bounded retries. "
+                "No fallback or synthetic prices are used."
+            )
+            st.stop()
 
     try:
         explain_model, explain_validation = train_model(
@@ -335,15 +357,21 @@ if st.button("Train & Validate ML Model", type="secondary"):
         else f"{str(ml_symbol).strip().upper()}.BO"
     )
     with st.spinner(f"Training on {ticker}..."):
-        history = yf.download(
-            ticker,
+        history_frames, _history_diagnostics = download_symbol_frames(
+            [ticker],
             period="5y",
+            interval="1d",
             auto_adjust=False,
-            progress=False,
-            threads=False,
+            batch_size=1,
+            timeout=15,
         )
-        if isinstance(history.columns, pd.MultiIndex):
-            history = history.droplevel(1, axis=1)
+        history = history_frames.get(ticker, pd.DataFrame())
+        if history.empty:
+            st.error(
+                "ML training could not obtain market data after bounded retries. "
+                "No fallback or synthetic prices are used."
+            )
+            st.stop()
 
     try:
         model, validation = train_model(

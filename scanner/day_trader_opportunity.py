@@ -17,17 +17,17 @@ from scanner.day_trading_strategy import (
     calculate_day_trade_plan,
     classify_day_trade_plan_state,
 )
-from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.surveillance import (
     apply_safety_filter,
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
-from scanner.universe import NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
 CHUNK_SIZE = 100
+MAX_FAST_UNIVERSE = 200
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
@@ -81,15 +81,30 @@ def select_day_trader_universe(
         return []
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     if cap_category == "All caps":
-        # Use the live NSE/BSE exchange lists for the full-universe scan.
-        # Curated symbols are merged in by dynamic_universe as a fallback.
-        universe = [(symbol, "NSE") for symbol in merge_nse_universe()] + [
-            (symbol, "BSE") for symbol in merge_bse_universe()
+        # The live exchange lists can contain thousands of symbols. Downloading
+        # 1-minute candles for that entire universe makes the interactive scanner
+        # too slow. Use the maintained curated universe for the fast broad scan;
+        # the detailed setup engine still evaluates every symbol that passes the
+        # cheap first-stage filters.
+        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
+            (symbol, "BSE") for symbol in BSE_CANDIDATES
         ]
     else:
         selected = CAP_UNIVERSES[cap_category]
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
-    return [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    filtered = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
+    return filtered[:MAX_FAST_UNIVERSE]
+
+
+def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
+    """Use the smallest candle interval that supports the requested lookback."""
+    if lookback_minutes in (2, 3):
+        candle_minutes = 1
+    else:
+        candle_minutes = 5
+    interval = f"{candle_minutes}m"
+    bars = max(1, int(round(lookback_minutes / candle_minutes)))
+    return interval, bars
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -176,13 +191,11 @@ def scan_day_trader_opportunities(
     universe = select_day_trader_universe(cap_category, exchange_category)
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
 
-    # Use 1-minute candles for the full supported lookback range. Using 5-minute
-    # candles for the 5-minute mode left the scanner with fewer than six bars
-    # early in the session, so every symbol was incorrectly classified as having
-    # no usable intraday data (for example, a scan around 09:27 IST).
-    candle_minutes = 1
-    interval = f"{candle_minutes}m"
-    bars = max(1, int(round(lookback_minutes / candle_minutes)))
+    # Use 5-minute candles for the default 5-minute scan. This cuts the Yahoo
+    # payload substantially while preserving the requested 5-minute signal.
+    # The 2- and 3-minute modes retain 1-minute candles for finer timing.
+    interval, bars = _candle_settings(lookback_minutes)
+    candle_minutes = 1 if interval == "1m" else 5
     rows: list[dict[str, Any]] = []
     scan_stats: dict[str, Any] = {
         "candidate_count": len(universe),

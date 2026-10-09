@@ -40,7 +40,7 @@ def scan_watchlist(symbols: list[str]) -> pd.DataFrame:
                     "MACD": round(float(last["MACD"]), 2),
                     "ATR": round(float(last["ATR"]), 2),
                     "AI Score": signal["Score"],
-                    "Confidence": abs(signal["Score"]),
+                    "Confidence": signal["Confidence"],
                     "Risk": "Medium",
                     "Recommendation": signal["Recommendation"],
                 }

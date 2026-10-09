@@ -26,6 +26,12 @@ def test_predict_ensemble_returns_bounded_probability() -> None:
     assert prediction["signal"] in {"LONG", "SHORT"}
 
 
+def test_one_class_training_window_is_rejected() -> None:
+    frame = _frame().assign(Close=lambda data: 100.0 + pd.RangeIndex(len(data)))
+    with pytest.raises(ValueError, match="both target classes"):
+        train_ensemble(frame, horizon=5)
+
+
 def test_invalid_inputs_are_rejected() -> None:
     with pytest.raises(ValueError):
         train_ensemble(_frame(), test_fraction=0.05)

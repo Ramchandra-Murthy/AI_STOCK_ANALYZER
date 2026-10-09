@@ -18,10 +18,11 @@ def test_background_price_jump_scan_completes() -> None:
     with patch("api.scan_manager.scan_price_jumps", return_value=frame):
         job_id = manager.start_price_jump_scan(limit=1)
 
-        for _ in range(50):
+        for _ in range(100):
             job = manager.get_job(job_id)
             if job and job["status"] == "completed":
                 break
+            time.sleep(0.01)
 
         assert job is not None
         assert job["status"] == "completed"

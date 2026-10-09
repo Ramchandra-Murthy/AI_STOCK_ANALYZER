@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
-import yfinance as yf
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.resilient_market_data import download_market_frames
 
-CHUNK_SIZE = 10
+CHUNK_SIZE = 100
 
 # Representative NSE candidate baskets, not exhaustive exchange classifications.
 # Categories are based on widely followed index constituents; market-cap ranks can change.
@@ -169,6 +169,28 @@ def _frame_for(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     return frame
 
 
+def finalize_scan_result(
+    rows: list[dict[str, Any]],
+    limit: int,
+    sort_columns: list[str],
+    stats: dict[str, Any],
+) -> pd.DataFrame:
+    """Build, rank, and annotate a scanner result consistently."""
+    stats["matches_before_limit"] = len(rows)
+    if not rows:
+        result = pd.DataFrame()
+    else:
+        result = (
+            pd.DataFrame(rows)
+            .sort_values(sort_columns, ascending=[False] * len(sort_columns), na_position="last")
+            .head(max(1, min(int(limit), 100)))
+            .reset_index(drop=True)
+        )
+    stats["displayed_count"] = len(result)
+    result.attrs["scan_stats"] = stats
+    return result
+
+
 def scan_unusual_activity(
     limit: int = 20,
     cap_category: str = "All caps",
@@ -207,25 +229,25 @@ def scan_unusual_activity(
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
             stats["attempted_count"] += len(chunk)
-            try:
-                history = yf.download(
-                    tickers=chunk,
-                    period="5d",
-                    interval="5m",
-                    progress=False,
-                    auto_adjust=False,
-                    group_by="ticker",
-                    threads=False,
-                )
-            except Exception:
-                stats["download_failed_chunks"] += 1
+            frames, diagnostics = download_market_frames(
+                chunk,
+                period="5d",
+                interval="5m",
+                batch_size=100,
+                timeout=5,
+                retries=0,
+                recover_missing=False,
+            )
+            stats["download_failed_chunks"] += int(bool(diagnostics["missing"]))
+            if not frames:
+                stats["empty_chunks"] += 1
                 continue
             if history is None or history.empty:
                 stats["empty_chunks"] += 1
                 continue
             for ticker in chunk:
                 try:
-                    frame = _frame_for(history, ticker)
+                    frame = frames.get(ticker, pd.DataFrame())
                     required = {"Open", "High", "Low", "Close", "Volume"}
                     if frame.empty or not required.issubset(frame.columns):
                         continue
@@ -273,16 +295,9 @@ def scan_unusual_activity(
                 except (KeyError, TypeError, ValueError, IndexError):
                     stats["processing_errors"] += 1
                     continue
-    stats["matches_before_limit"] = len(rows)
-    if not rows:
-        result = pd.DataFrame()
-    else:
-        result = (
-            pd.DataFrame(rows)
-            .sort_values(["Relative volume", "Session change %"], ascending=[False, False])
-            .head(max(1, min(int(limit), 100)))
-            .reset_index(drop=True)
-        )
-    stats["displayed_count"] = len(result)
-    result.attrs["scan_stats"] = stats
-    return result
+    return finalize_scan_result(
+        rows,
+        limit,
+        ["Relative volume", "Session change %"],
+        stats,
+    )

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from math import isfinite
 
 from strategy.nifty_options_v2 import NiftyCallContract
 
@@ -46,10 +47,12 @@ class NiftyOptionsV2PaperTrader:
             raise ValueError("a paper trade is already active")
         if observed_date >= contract.expiry:
             raise ValueError("entry must occur before contract expiry")
+        if not isfinite(spot) or spot <= 0:
+            raise ValueError("spot must be finite and positive")
         if spot <= contract.strike:
             raise ValueError("paper entry requires an ITM CALL")
-        if ltp < 0:
-            raise ValueError("ltp must be non-negative")
+        if not isfinite(ltp) or ltp < 0:
+            raise ValueError("ltp must be finite and non-negative")
 
         trade = PaperTrade(
             contract=contract,
@@ -72,8 +75,8 @@ class NiftyOptionsV2PaperTrader:
             raise ValueError("exit cannot precede entry")
         if observed_date > self.active_trade.contract.expiry:
             raise ValueError("exit cannot follow contract expiry")
-        if ltp < 0:
-            raise ValueError("ltp must be non-negative")
+        if not isfinite(ltp) or ltp < 0:
+            raise ValueError("ltp must be finite and non-negative")
 
         closed = PaperTrade(
             contract=self.active_trade.contract,

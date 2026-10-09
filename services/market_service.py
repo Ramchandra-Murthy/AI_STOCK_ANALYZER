@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, time
 from functools import lru_cache
 from typing import Any
@@ -9,6 +10,8 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yfinance as yf
+
+from services.resilient_market_data import download_symbol_frames
 
 MARKET_INDICES = {
     "NIFTY 50": "^NSEI",
@@ -40,6 +43,7 @@ EXCHANGE_SUFFIXES = {
 INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
 MARKET_OPEN = time(9, 15)
 MARKET_CLOSE = time(15, 30)
+MARKET_INDEX_WORKERS = 6
 
 
 def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
@@ -168,21 +172,31 @@ def _get_last_observation(
 ) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
     """Return price, change, previous close, time, frequency and intraday flag."""
     try:
-        symbol = yf.Ticker(ticker)
-        intraday = symbol.history(period="1d", interval="1m", auto_adjust=True)
-        close = _clean_close_series(intraday)
+        intraday_frames, _intraday_diagnostics = download_symbol_frames(
+            [ticker],
+            period="1d",
+            interval="1m",
+            auto_adjust=True,
+            batch_size=1,
+            timeout=15,
+        )
+        close = _clean_close_series(intraday_frames.get(ticker, pd.DataFrame()))
         if not close.empty:
             latest = float(close.iloc[-1])
             previous = None
-            try:
-                daily = symbol.history(period="5d", interval="1d", auto_adjust=True)
-                daily_close = _clean_close_series(daily)
-                if len(daily_close) >= 2:
-                    previous = float(daily_close.iloc[-2])
-                elif len(daily_close) == 1:
-                    previous = float(daily_close.iloc[-1])
-            except Exception:
-                previous = None
+            daily_frames, _daily_diagnostics = download_symbol_frames(
+                [ticker],
+                period="5d",
+                interval="1d",
+                auto_adjust=True,
+                batch_size=1,
+                timeout=15,
+            )
+            daily_close = _clean_close_series(daily_frames.get(ticker, pd.DataFrame()))
+            if len(daily_close) >= 2:
+                previous = float(daily_close.iloc[-2])
+            elif len(daily_close) == 1:
+                previous = float(daily_close.iloc[-1])
             if previous is None and len(close) > 1:
                 previous = float(close.iloc[-2])
             change = ((latest - previous) / previous) * 100 if previous else None
@@ -199,8 +213,15 @@ def _get_last_observation(
                 True,
             )
 
-        daily = symbol.history(period="5d", interval="1d", auto_adjust=True)
-        close = _clean_close_series(daily)
+        daily_frames, _daily_diagnostics = download_symbol_frames(
+            [ticker],
+            period="5d",
+            interval="1d",
+            auto_adjust=True,
+            batch_size=1,
+            timeout=15,
+        )
+        close = _clean_close_series(daily_frames.get(ticker, pd.DataFrame()))
         if close.empty:
             return None, None, None, None, "unavailable", False
         latest = float(close.iloc[-1])
@@ -241,12 +262,14 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
 
 
 def get_market_indices() -> dict[str, dict[str, Any]]:
-    result: dict[str, dict[str, Any]] = {}
-    for name, ticker in MARKET_INDICES.items():
+    """Return market indices concurrently so slow provider calls do not serialize startup."""
+
+    def fetch(item: tuple[str, str]) -> tuple[str, dict[str, Any]]:
+        name, ticker = item
         value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
             ticker
         )
-        result[name] = {
+        return name, {
             "value": value,
             "change": change,
             "observed_at": observed_at,
@@ -255,7 +278,9 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
             "is_tick_live": False,
             "is_intraday": is_intraday,
         }
-    return result
+
+    with ThreadPoolExecutor(max_workers=MARKET_INDEX_WORKERS) as executor:
+        return dict(executor.map(fetch, MARKET_INDICES.items()))
 
 
 def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:

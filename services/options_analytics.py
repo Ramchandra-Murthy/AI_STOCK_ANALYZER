@@ -1,18 +1,19 @@
 """Options analytics providers for the Streamlit scanner.
 
-NSE is the primary provider for Indian index option chains. Yahoo Finance remains
-an explicit fallback because it is already part of the application dependency set.
+Dhan is the primary provider for Indian index option chains. NSE and Yahoo Finance
+remain fallbacks for environments where Dhan is not configured or unavailable.
 Provider availability and timestamps are surfaced rather than inferred.
 """
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
-from urllib.request import Request, urlopen
 
 import pandas as pd
 import yfinance as yf
+from curl_cffi import requests as curl_requests
+
+from services.dhan_market_data import DhanCredentials, DhanMarketData
 
 OPTIONS_UNDERLYINGS = {
     "NIFTY": "^NSEI",
@@ -20,10 +21,21 @@ OPTIONS_UNDERLYINGS = {
     "FINNIFTY": "NIFTY_FIN_SERVICE.NS",
 }
 
-NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-indices"
+DHAN_OPTION_UNDERLYINGS = {
+    "NIFTY": (13, "IDX_I"),
+    "BANKNIFTY": (25, "IDX_I"),
+    "FINNIFTY": (27, "IDX_I"),
+}
+
+NSE_HOME_URL = "https://www.nseindia.com/"
+NSE_OPTION_CHAIN_PAGE_URL = "https://www.nseindia.com/option-chain"
+NSE_ALL_INDICES_URL = "https://www.nseindia.com/api/allIndices"
+NSE_OPTION_CHAIN_URL = "https://www.nseindia.com/api/option-chain-v3"
+NSE_OPTION_CHAIN_CONTRACT_INFO_URL = "https://www.nseindia.com/api/option-chain-contract-info"
 NSE_HEADERS = {
     "Accept": "application/json,text/plain,*/*",
     "Accept-Language": "en-US,en;q=0.9",
+    "Origin": "https://www.nseindia.com",
     "Referer": "https://www.nseindia.com/option-chain",
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -67,6 +79,13 @@ def available_expiries(underlying: str) -> tuple[str, ...]:
         raise ValueError(f"Unsupported underlying: {underlying}")
 
     try:
+        dhan_expiries = _fetch_dhan_expiries(underlying)
+        if dhan_expiries:
+            return dhan_expiries
+    except Exception:
+        pass
+
+    try:
         payload = _fetch_nse_option_chain(underlying)
         expiries = _nse_expiries(payload)
         if expiries:
@@ -90,7 +109,18 @@ def fetch_option_chain(
         raise ValueError(f"Unsupported underlying: {underlying}")
 
     try:
-        payload = _fetch_nse_option_chain(underlying)
+        dhan_result = _fetch_dhan_option_chain(underlying, expiry)
+        if dhan_result.status == "AVAILABLE":
+            return dhan_result
+        dhan_error = dhan_result.message
+    except Exception as exc:
+        dhan_error = str(exc)
+
+    try:
+        if expiry is None:
+            payload = _fetch_nse_option_chain(underlying)
+        else:
+            payload = _fetch_nse_option_chain(underlying, expiry)
         expiries = _nse_expiries(payload)
         if expiries:
             selected_expiry = expiry if expiry in expiries else expiries[0]
@@ -105,7 +135,7 @@ def fetch_option_chain(
                     chain,
                     expiries,
                     "AVAILABLE",
-                    "Option chain loaded from NSE.",
+                    "Option chain loaded from NSE fallback.",
                 )
     except Exception as exc:
         nse_error = str(exc)
@@ -116,8 +146,17 @@ def fetch_option_chain(
     if yahoo_result.status == "AVAILABLE":
         return yahoo_result
 
+    dhan_diagnostic = f"Dhan option-chain data was unavailable ({dhan_error})"
+    if "HTTP 401" in dhan_error:
+        dhan_diagnostic += (
+            " Dhan rejected the API credentials (HTTP 401 Unauthorized). "
+            "Verify DHAN_CLIENT_ID and DHAN_ACCESS_TOKEN in the deployment secrets; "
+            "if the token has expired, generate a fresh Dhan access token and update "
+            "the secret before restarting the app. Never paste credentials into logs or chat."
+        )
     message = (
-        f"NSE option-chain data was unavailable ({nse_error}); "
+        f"{dhan_diagnostic}; "
+        f"NSE fallback was unavailable ({nse_error}); "
         f"Yahoo Finance fallback was also unavailable ({yahoo_result.message})."
     )
     return OptionChainResult(
@@ -160,23 +199,297 @@ def summarize_option_chain(chain: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["Metric", "Value"])
 
 
-def _fetch_nse_option_chain(underlying: str) -> dict:
-    """Fetch the public NSE index option-chain JSON with browser-like headers."""
-    request = Request(
-        f"{NSE_OPTION_CHAIN_URL}?symbol={underlying}",
-        headers=NSE_HEADERS,
-        method="GET",
+def _dhan_expiry(value: str) -> str:
+    """Convert the legacy NSE display expiry to Dhan's YYYY-MM-DD format."""
+    try:
+        return pd.Timestamp(value).strftime("%Y-%m-%d")
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def _fetch_dhan_expiries(underlying: str) -> tuple[str, ...]:
+    """Return Dhan-reported expiries when Dhan credentials are configured."""
+    if underlying not in DHAN_OPTION_UNDERLYINGS:
+        return ()
+    credentials = DhanCredentials.from_env()
+    client = DhanMarketData(credentials=credentials)
+    security_id, segment = DHAN_OPTION_UNDERLYINGS[underlying]
+    response = client.expiry_list(security_id, segment)
+    if not isinstance(response, dict) or response.get("status") != "success":
+        remarks = response.get("remarks", response) if isinstance(response, dict) else response
+        raise RuntimeError(f"Dhan expiry list failed: {remarks}")
+    values = response.get("data", [])
+    if not isinstance(values, list):
+        raise RuntimeError("Dhan expiry list returned an invalid data payload.")
+    return tuple(str(value) for value in values if value)
+
+
+def _normalize_dhan_chain(
+    payload: dict,
+    underlying: str,
+    expiry: str,
+    expiries: tuple[str, ...],
+) -> OptionChainResult:
+    data = payload.get("data", {})
+    if not isinstance(data, dict):
+        raise RuntimeError("Dhan option-chain response has no data object.")
+    raw_chain = data.get("oc", {})
+    if not isinstance(raw_chain, dict):
+        raise RuntimeError("Dhan option-chain response has no strike map.")
+
+    rows = []
+    for strike_text, strike_data in raw_chain.items():
+        if not isinstance(strike_data, dict):
+            continue
+        call = strike_data.get("ce") or {}
+        put = strike_data.get("pe") or {}
+        if not isinstance(call, dict):
+            call = {}
+        if not isinstance(put, dict):
+            put = {}
+
+        def oi_change(option: dict) -> float | None:
+            oi = option.get("oi")
+            previous_oi = option.get("previous_oi")
+            try:
+                if oi is None or previous_oi is None:
+                    return None
+                return float(oi) - float(previous_oi)
+            except (TypeError, ValueError):
+                return None
+
+        try:
+            strike_price = float(strike_text)
+        except (TypeError, ValueError):
+            continue
+
+        rows.append(
+            {
+                "strike": strike_price,
+                "CE LTP": call.get("last_price"),
+                "CE volume": call.get("volume"),
+                "CE OI": call.get("oi"),
+                "CE OI change": oi_change(call),
+                "CE IV": call.get("implied_volatility"),
+                "PE LTP": put.get("last_price"),
+                "PE volume": put.get("volume"),
+                "PE OI": put.get("oi"),
+                "PE OI change": oi_change(put),
+                "PE IV": put.get("implied_volatility"),
+            }
+        )
+
+    chain = _finalize_chain(pd.DataFrame(rows)) if rows else pd.DataFrame(columns=CHAIN_COLUMNS)
+    spot = data.get("last_price")
+    try:
+        spot_value = float(spot) if spot is not None else None
+    except (TypeError, ValueError):
+        spot_value = None
+
+    if chain.empty:
+        raise RuntimeError("Dhan returned an empty option chain.")
+
+    return OptionChainResult(
+        underlying,
+        f"Dhan:{underlying}",
+        expiry,
+        spot_value,
+        chain,
+        expiries,
+        "AVAILABLE",
+        "Option chain loaded from Dhan.",
     )
-    with urlopen(request, timeout=12) as response:
-        if response.status != 200:
-            raise RuntimeError(f"NSE returned HTTP {response.status}.")
-        return json.loads(response.read().decode("utf-8"))
+
+
+def _fetch_dhan_option_chain(
+    underlying: str,
+    expiry: str | None = None,
+) -> OptionChainResult:
+    """Fetch an index option chain from Dhan when credentials are configured."""
+    if underlying not in DHAN_OPTION_UNDERLYINGS:
+        raise ValueError(f"Unsupported underlying: {underlying}")
+
+    credentials = DhanCredentials.from_env()
+    client = DhanMarketData(credentials=credentials)
+    security_id, segment = DHAN_OPTION_UNDERLYINGS[underlying]
+
+    expiry_values = _fetch_dhan_expiries(underlying)
+    if not expiry_values:
+        raise RuntimeError("Dhan returned no active option expiries.")
+
+    requested = _dhan_expiry(expiry) if expiry else None
+    selected = requested if requested in expiry_values else expiry_values[0]
+    response = client.option_chain(security_id, segment, selected)
+
+    if not isinstance(response, dict) or response.get("status") != "success":
+        remarks = response.get("remarks", response) if isinstance(response, dict) else response
+        raise RuntimeError(f"Dhan option chain failed: {remarks}")
+
+    return _normalize_dhan_chain(response, underlying, selected, expiry_values)
+
+
+def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
+    """Fetch the current NSE v3 option-chain response for one expiry."""
+    try:
+        expiry_values = _fetch_nse_expiries(underlying)
+    except Exception:
+        expiry_values = ()
+
+    selected_expiry = expiry if expiry in expiry_values else None
+    if selected_expiry is None and expiry_values:
+        selected_expiry = expiry_values[0]
+
+    session = _nse_session()
+    params = {
+        "type": "Indices",
+        "symbol": underlying,
+    }
+    if selected_expiry is not None:
+        params["expiry"] = selected_expiry
+
+    try:
+        response = session.get(
+            NSE_OPTION_CHAIN_URL,
+            params=params,
+            headers=NSE_HEADERS,
+            timeout=12,
+        )
+        if response.status_code in (401, 403, 429):
+            session = _nse_session()
+            response = session.get(
+                NSE_OPTION_CHAIN_URL,
+                params=params,
+                headers=NSE_HEADERS,
+                timeout=12,
+            )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception as exc:
+        raise RuntimeError(f"NSE v3 option-chain request failed: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise RuntimeError("NSE v3 returned an invalid option-chain payload.")
+
+    payload_expiries = _nse_expiries(payload)
+    if not expiry_values:
+        expiry_values = payload_expiries or _nse_data_expiries(payload)
+    if not expiry_values:
+        raise RuntimeError("NSE returned no usable option-chain expiries.")
+
+    selected_expiry = expiry if expiry in expiry_values else expiry_values[0]
+    payload.setdefault("records", {})
+    if isinstance(payload["records"], dict):
+        payload["records"]["expiryDates"] = list(expiry_values)
+    return payload
+
+
+def _fetch_nse_expiries(underlying: str) -> tuple[str, ...]:
+    """Fetch current option expiries from NSE's contract-info endpoint."""
+    session = _nse_session()
+    try:
+        response = session.get(
+            NSE_OPTION_CHAIN_CONTRACT_INFO_URL,
+            params={"symbol": underlying},
+            headers=NSE_HEADERS,
+            timeout=12,
+        )
+        if response.status_code in (401, 403, 429):
+            session = _nse_session()
+            response = session.get(
+                NSE_OPTION_CHAIN_CONTRACT_INFO_URL,
+                params={"symbol": underlying},
+                headers=NSE_HEADERS,
+                timeout=12,
+            )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception as exc:
+        raise RuntimeError(f"NSE expiry request failed: {exc}") from exc
+
+    if not isinstance(payload, dict):
+        raise RuntimeError("NSE expiry endpoint returned an invalid payload.")
+    values = payload.get("expiryDates")
+    if not isinstance(values, list):
+        values = payload.get("records", {}).get("expiryDates", [])
+    return tuple(str(value) for value in values if value)
+
+
+def _nse_session() -> curl_requests.Session:
+    """Create a browser-impersonating NSE session with fresh cookies."""
+    session = curl_requests.Session(impersonate="chrome")
+    session.headers.update(
+        {
+            **NSE_HEADERS,
+            "Connection": "keep-alive",
+            "Cache-Control": "max-age=0",
+            "DNT": "1",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Dest": "empty",
+        }
+    )
+    try:
+        session.get(
+            NSE_HOME_URL,
+            headers={
+                **NSE_HEADERS,
+                "Accept": (
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                    "image/avif,image/webp,image/apng,*/*;q=0.8"
+                ),
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-User": "?1",
+            },
+            timeout=10,
+        )
+        session.get(
+            NSE_OPTION_CHAIN_PAGE_URL,
+            headers={
+                **NSE_HEADERS,
+                "Accept": (
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                    "image/avif,image/webp,image/apng,*/*;q=0.8"
+                ),
+                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Dest": "document",
+            },
+            timeout=10,
+        )
+        session.get(
+            NSE_ALL_INDICES_URL,
+            headers={
+                **NSE_HEADERS,
+                "Accept": "application/json,text/plain,*/*",
+                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Dest": "empty",
+            },
+            timeout=10,
+        )
+    except Exception:
+        # The API request remains the source of truth; some environments
+        # block the NSE web pages while allowing the API endpoint.
+        pass
+    return session
 
 
 def _nse_expiries(payload: dict) -> tuple[str, ...]:
     records = payload.get("records", {})
     values = records.get("expiryDates", [])
     return tuple(str(value) for value in values if value)
+
+
+def _nse_data_expiries(payload: dict) -> tuple[str, ...]:
+    """Extract unique expiry dates directly from NSE option-chain rows."""
+    values = {
+        str(item.get("expiryDate"))
+        for item in payload.get("records", {}).get("data", [])
+        if isinstance(item, dict) and item.get("expiryDate")
+    }
+    return tuple(sorted(values))
 
 
 def _nse_spot(payload: dict) -> float | None:

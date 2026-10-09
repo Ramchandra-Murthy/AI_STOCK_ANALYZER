@@ -67,6 +67,9 @@ def train_ensemble(
 
     train_x, test_x = x.iloc[:split], x.iloc[split:]
     train_y, test_y = y.iloc[:split], y.iloc[split:]
+    if train_y.nunique() < 2:
+        raise ValueError("ensemble training requires both target classes in the training window")
+
     models = _models(random_state)
     for model in models.values():
         model.fit(train_x[FEATURE_COLUMNS], train_y)
