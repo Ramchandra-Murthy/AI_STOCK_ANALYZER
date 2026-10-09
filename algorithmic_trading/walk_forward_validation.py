@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 from algorithmic_trading.backtester import run_backtest
+from algorithmic_trading.trading_costs import IndiaEquityCostModel
 
 
 def walk_forward_evaluate(
@@ -13,6 +14,7 @@ def walk_forward_evaluate(
     *,
     initial_capital: float = 100_000.0,
     cost_bps: float = 10.0,
+    cost_model: IndiaEquityCostModel | None = None,
     min_train_size: int = 252,
     n_splits: int = 5,
 ) -> pd.DataFrame:
@@ -55,6 +57,7 @@ def walk_forward_evaluate(
             signals=test["signal"],
             initial_capital=initial_capital,
             cost_bps=cost_bps,
+            cost_model=cost_model,
         )
         rows.append(
             {
