@@ -60,10 +60,10 @@ def run_backtest(
     Signals should be -1, 0 or 1. A signal observed on day *t* is applied to
     the return on day *t+1*, avoiding same-bar look-ahead.
     """
-    if initial_capital <= 0:
-        raise ValueError("initial_capital must be greater than zero")
-    if cost_bps < 0:
-        raise ValueError("cost_bps must be non-negative")
+    if not np.isfinite(initial_capital) or initial_capital <= 0:
+        raise ValueError("initial_capital must be finite and greater than zero")
+    if not np.isfinite(cost_bps) or cost_bps < 0:
+        raise ValueError("cost_bps must be finite and non-negative")
 
     if not prices.index.is_unique or not signals.index.is_unique:
         raise ValueError("prices and signals must not contain duplicate timestamps")
