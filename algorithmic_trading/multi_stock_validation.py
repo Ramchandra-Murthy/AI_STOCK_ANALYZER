@@ -36,11 +36,20 @@ def evaluate_symbol_universe(
         try:
             if frame.empty:
                 raise ValueError("empty price frame")
-            signals = generate_pipeline_signals(frame, benchmark)
-            prices = pd.to_numeric(frame["Close"], errors="coerce").reindex(signals.index)
+            required = frame[["High", "Low", "Close"]].apply(
+                pd.to_numeric, errors="coerce"
+            )
+            required = required.replace([float("inf"), float("-inf")], float("nan"))
+            required = required.dropna()
+            required = required[(required > 0).all(axis=1)]
+            clean_frame = frame.loc[required.index].copy()
+            clean_frame[["High", "Low", "Close"]] = required
+            if clean_frame.empty:
+                raise ValueError("no valid positive OHLC observations")
+            signals = generate_pipeline_signals(clean_frame, benchmark)
+            prices = required["Close"].reindex(signals.index)
             valid = pd.concat([prices.rename("price"), signals.rename("signal")], axis=1)
             valid = valid.replace([float("inf"), float("-inf")], float("nan")).dropna()
-            valid = valid[valid["price"] > 0]
             if len(valid) < minimum_observations:
                 raise ValueError(
                     f"insufficient observations: {len(valid)} < {minimum_observations}"
