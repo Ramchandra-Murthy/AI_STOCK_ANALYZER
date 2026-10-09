@@ -113,4 +113,3 @@ def test_universe_validation_excludes_inconsistent_ohlc_rows() -> None:
 
     assert result["status"].eq("ok").all()
     assert len(result) == 2
-
