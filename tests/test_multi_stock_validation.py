@@ -130,3 +130,34 @@ def test_universe_validation_excludes_open_outside_ohlc_range() -> None:
 
     assert result["status"].eq("ok").all()
     assert len(result) == 2
+
+
+def test_universe_validation_skips_duplicate_price_timestamps() -> None:
+    frame = _frame(80)
+    frame = pd.concat([frame, frame.iloc[[10]]])
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        _frame(80)["Close"],
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+    )
+
+    assert result.iloc[0]["symbol"] == "AAA"
+    assert result.iloc[0]["status"] == "skipped"
+    assert "duplicate price timestamps" in result.iloc[0]["reason"]
+
+
+def test_universe_validation_sorts_unordered_price_timestamps() -> None:
+    frame = _frame(80).sample(frac=1.0, random_state=7)
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        _frame(80)["Close"],
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+        cost_bps=0.0,
+    )
+
+    assert result["status"].eq("ok").all()
+    assert len(result) == 2
