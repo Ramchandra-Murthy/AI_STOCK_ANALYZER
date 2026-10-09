@@ -12,11 +12,17 @@ from algorithmic_trading.trading_costs import IndiaEquityCostModel
 from algorithmic_trading.walk_forward_validation import walk_forward_evaluate
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _download_ticker_data(ticker: str, period: str) -> pd.DataFrame:
+    """Cache historical market data briefly to reduce repeated provider requests."""
+    return yf.download(ticker, period=period, auto_adjust=False, progress=False)
+
+
 def _download_market_data(ticker: str, benchmark_ticker: str, period: str):
     """Download and normalize one symbol and its benchmark."""
     with st.spinner(f"Loading {ticker} and {benchmark_ticker}..."):
-        frame = yf.download(ticker, period=period, auto_adjust=False, progress=False)
-        benchmark = yf.download(benchmark_ticker, period=period, auto_adjust=False, progress=False)
+        frame = _download_ticker_data(ticker, period)
+        benchmark = _download_ticker_data(benchmark_ticker, period)
 
     for data in (frame, benchmark):
         if isinstance(data.columns, pd.MultiIndex):
@@ -242,18 +248,14 @@ if run_universe:
         suffix = ".NS" if exchange == "NSE" else ".BO"
         try:
             with st.spinner(f"Downloading benchmark and {len(symbols)} symbols..."):
-                benchmark = yf.download(
-                    benchmark_ticker, period=period, auto_adjust=False, progress=False
-                )
+                benchmark = _download_ticker_data(benchmark_ticker, period)
                 if isinstance(benchmark.columns, pd.MultiIndex):
                     benchmark.columns = benchmark.columns.get_level_values(0)
                 frames = {}
                 download_errors = {}
                 for item in symbols:
                     try:
-                        frame = yf.download(
-                            f"{item}{suffix}", period=period, auto_adjust=False, progress=False
-                        )
+                        frame = _download_ticker_data(f"{item}{suffix}", period)
                         if isinstance(frame.columns, pd.MultiIndex):
                             frame.columns = frame.columns.get_level_values(0)
                         frames[item] = frame
