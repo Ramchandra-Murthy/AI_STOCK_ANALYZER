@@ -157,23 +157,27 @@ def test_backtest_rejects_duplicate_signal_timestamps() -> None:
         run_backtest(prices, signals, cost_bps=0)
 
 
-def test_backtest_excludes_non_finite_prices_and_signals() -> None:
+def test_backtest_rejects_non_finite_price_instead_of_bridging_gap() -> None:
     index = pd.date_range("2026-01-01", periods=5, freq="D")
     prices = pd.Series([100.0, float("inf"), 110.0, 121.0, 133.1], index=index)
-    signals = pd.Series([1.0, 1.0, float("nan"), 1.0, 1.0], index=index)
-
-    data, metrics = run_backtest(prices, signals, cost_bps=0)
-
-    assert data.index.tolist() == [index[0], index[3], index[4]]
-    assert np.isfinite(data["market_return"]).all()
-    assert np.isfinite(data["strategy_equity"]).all()
-    assert metrics.total_return == pytest.approx(0.331)
-
-
-def test_backtest_rejects_fewer_than_two_finite_observations() -> None:
-    index = pd.date_range("2026-01-01", periods=3, freq="D")
-    prices = pd.Series([100.0, float("inf"), float("nan")], index=index)
     signals = pd.Series(1.0, index=index)
 
-    with pytest.raises(ValueError, match="at least two valid price observations"):
+    with pytest.raises(ValueError, match="prices must be finite"):
+        run_backtest(prices, signals, cost_bps=0)
+
+
+def test_backtest_rejects_non_finite_signal_instead_of_bridging_gap() -> None:
+    index = pd.date_range("2026-01-01", periods=5, freq="D")
+    prices = pd.Series([100.0, 101.0, 102.0, 103.0, 104.0], index=index)
+    signals = pd.Series([1.0, 1.0, float("nan"), 1.0, 1.0], index=index)
+
+    with pytest.raises(ValueError, match="signals must be finite"):
+        run_backtest(prices, signals, cost_bps=0)
+
+
+def test_backtest_requires_two_aligned_observations() -> None:
+    prices = pd.Series([100.0], index=pd.to_datetime(["2026-01-01"]))
+    signals = pd.Series([1.0], index=prices.index)
+
+    with pytest.raises(ValueError, match="at least two aligned price observations"):
         run_backtest(prices, signals, cost_bps=0)
