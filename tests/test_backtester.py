@@ -139,7 +139,6 @@ def test_backtest_rejects_duplicate_signal_timestamps() -> None:
         run_backtest(prices, signals, cost_bps=0)
 
 
-
 def test_backtest_excludes_non_finite_prices_and_signals() -> None:
     index = pd.date_range("2026-01-01", periods=5, freq="D")
     prices = pd.Series([100.0, float("inf"), 110.0, 121.0, 133.1], index=index)
