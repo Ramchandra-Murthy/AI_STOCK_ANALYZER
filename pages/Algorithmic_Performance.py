@@ -49,6 +49,27 @@ def _show_results(data: pd.DataFrame, metrics) -> None:
     cols[4].metric("Trades", metrics.trade_count)
     cols[5].metric("Win rate", f"{metrics.win_rate:.2%}")
 
+    st.subheader("Risk-adjusted diagnostics")
+    st.caption(
+        "Annualized from daily strategy returns using 252 trading days. "
+        "Sharpe is not adjusted for a risk-free rate; these are historical diagnostics, "
+        "not forecasts or guarantees."
+    )
+    risk_cols = st.columns(4)
+    risk_cols[0].metric("Annualized volatility", f"{metrics.volatility:.2%}")
+    risk_cols[1].metric(
+        "Sharpe ratio",
+        f"{metrics.sharpe_ratio:.2f}" if metrics.sharpe_ratio is not None else "—",
+    )
+    risk_cols[2].metric(
+        "Sortino ratio",
+        f"{metrics.sortino_ratio:.2f}" if metrics.sortino_ratio is not None else "—",
+    )
+    risk_cols[3].metric(
+        "Calmar ratio",
+        f"{metrics.calmar_ratio:.2f}" if metrics.calmar_ratio is not None else "—",
+    )
+
     st.subheader("Equity curve")
     st.line_chart(data[["strategy_equity", "buy_hold_equity"]])
 
