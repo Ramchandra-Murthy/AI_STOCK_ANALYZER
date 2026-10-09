@@ -50,8 +50,6 @@ if st.button("Reset Paper Session"):
     st.session_state.nifty_v2_paper_session = NiftyOptionsV2LivePaperSession()
     st.rerun()
 
-provider_fetched_at = datetime.now(UTC)
-provider = fetch_option_chain("NIFTY")
 india_now = datetime.now(ZoneInfo("Asia/Kolkata"))
 market_open = india_now.weekday() < 5 and time(9, 15) <= india_now.time() <= time(15, 30)
 
@@ -65,8 +63,8 @@ st.caption(
     "exchange holidays are not inferred here."
 )
 
-provider_fetched_at = datetime.now(UTC)
 provider = fetch_option_chain("NIFTY")
+provider_fetched_at = datetime.now(UTC)
 
 st.subheader("Market Data Status")
 status_left, status_mid, status_right = st.columns(3)
