@@ -30,6 +30,13 @@ def evaluate_symbol_universe(
         raise ValueError("frames must contain at least one symbol")
     if minimum_observations < 2:
         raise ValueError("minimum_observations must be at least 2")
+    if not benchmark.index.is_unique:
+        raise ValueError("benchmark contains duplicate timestamps")
+    if not benchmark.index.is_monotonic_increasing:
+        benchmark = benchmark.sort_index()
+    benchmark = pd.to_numeric(benchmark, errors="coerce")
+    benchmark = benchmark.replace([float("inf"), float("-inf")], float("nan"))
+    benchmark = benchmark.where(benchmark > 0)
 
     rows: list[dict[str, float | int | str]] = []
     for symbol, frame in sorted(frames.items()):
