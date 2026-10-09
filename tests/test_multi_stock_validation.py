@@ -95,3 +95,20 @@ def test_universe_validation_skips_when_benchmark_dates_do_not_align() -> None:
     assert result.iloc[0]["symbol"] == "AAA"
     assert result.iloc[0]["status"] == "skipped"
     assert "benchmark has no observations aligned" in result.iloc[0]["reason"]
+
+
+def test_universe_validation_excludes_inconsistent_ohlc_rows() -> None:
+    frame = _frame(80)
+    frame.loc[frame.index[5], "High"] = frame.loc[frame.index[5], "Close"] - 1.0
+    frame.loc[frame.index[6], "Low"] = frame.loc[frame.index[6], "Close"] + 1.0
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        _frame(80)["Close"],
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+        cost_bps=0.0,
+    )
+
+    assert result["status"].eq("ok").all()
+    assert len(result) == 2
