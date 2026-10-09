@@ -351,6 +351,9 @@ if run_universe:
                             median_sharpe_ratio=("sharpe_ratio", "median"),
                             median_sortino_ratio=("sortino_ratio", "median"),
                             median_calmar_ratio=("calmar_ratio", "median"),
+                            sharpe_defined_windows=("sharpe_ratio", "count"),
+                            sortino_defined_windows=("sortino_ratio", "count"),
+                            calmar_defined_windows=("calmar_ratio", "count"),
                         )
                         summary_frame["positive_window_rate"] = (
                             summary_frame["positive_windows"] / summary_frame["test_windows"]
