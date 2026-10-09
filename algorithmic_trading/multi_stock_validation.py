@@ -28,17 +28,30 @@ def evaluate_symbol_universe(
     """
     if not frames:
         raise ValueError("frames must contain at least one symbol")
+    if not isinstance(benchmark, pd.Series) or benchmark.empty:
+        raise ValueError("benchmark must be a non-empty price series")
+    if initial_capital <= 0:
+        raise ValueError("initial_capital must be positive")
+    if cost_bps < 0:
+        raise ValueError("cost_bps must be non-negative")
+    if min_train_size < 2:
+        raise ValueError("min_train_size must be at least 2")
+    if n_splits < 1:
+        raise ValueError("n_splits must be at least 1")
     if minimum_observations < 2:
         raise ValueError("minimum_observations must be at least 2")
 
     rows: list[dict[str, float | int | str]] = []
     for symbol, frame in sorted(frames.items()):
         try:
+            if not isinstance(frame, pd.DataFrame):
+                raise ValueError("invalid price frame: expected a pandas DataFrame")
             if frame.empty:
                 raise ValueError("empty price frame")
             signals = generate_pipeline_signals(frame, benchmark)
             prices = pd.to_numeric(frame["Close"], errors="coerce").reindex(signals.index)
             valid = pd.concat([prices.rename("price"), signals.rename("signal")], axis=1).dropna()
+            valid = valid[valid["price"] > 0]
             if len(valid) < minimum_observations:
                 raise ValueError(
                     f"insufficient observations: {len(valid)} < {minimum_observations}"
