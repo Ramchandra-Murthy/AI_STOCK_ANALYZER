@@ -9,6 +9,30 @@ from algorithmic_trading.trading_costs import IndiaEquityCostModel
 from algorithmic_trading.walk_forward_validation import walk_forward_evaluate
 
 
+def _skip_category(reason: str) -> str:
+    """Map a validation failure to a stable, machine-readable category."""
+    message = reason.lower()
+    if "benchmark" in message:
+        return "benchmark_data"
+    if "insufficient observations" in message:
+        return "insufficient_history"
+    if "missing required columns" in message or "empty price frame" in message:
+        return "missing_market_data"
+    if any(
+        term in message
+        for term in (
+            "price timestamps",
+            "valid positive ohlc",
+            "high",
+            "close",
+            "open",
+            "low",
+        )
+    ):
+        return "invalid_price_data"
+    return "validation_error"
+
+
 def evaluate_symbol_universe(
     frames: dict[str, pd.DataFrame],
     benchmark: pd.Series,
@@ -98,6 +122,7 @@ def evaluate_symbol_universe(
                 {
                     "symbol": symbol,
                     "status": "skipped",
+                    "skip_category": _skip_category(str(exc)),
                     "reason": str(exc),
                 }
             )
