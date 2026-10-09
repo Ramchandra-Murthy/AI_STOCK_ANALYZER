@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -135,4 +136,27 @@ def test_backtest_rejects_duplicate_signal_timestamps() -> None:
     signals = pd.concat([signals, signals.iloc[[1]]])
 
     with pytest.raises(ValueError, match="duplicate timestamps"):
+        run_backtest(prices, signals, cost_bps=0)
+
+
+
+def test_backtest_excludes_non_finite_prices_and_signals() -> None:
+    index = pd.date_range("2026-01-01", periods=5, freq="D")
+    prices = pd.Series([100.0, float("inf"), 110.0, 121.0, 133.1], index=index)
+    signals = pd.Series([1.0, 1.0, float("nan"), 1.0, 1.0], index=index)
+
+    data, metrics = run_backtest(prices, signals, cost_bps=0)
+
+    assert data.index.tolist() == [index[0], index[3], index[4]]
+    assert np.isfinite(data["market_return"]).all()
+    assert np.isfinite(data["strategy_equity"]).all()
+    assert metrics.total_return == pytest.approx(0.1)
+
+
+def test_backtest_rejects_fewer_than_two_finite_observations() -> None:
+    index = pd.date_range("2026-01-01", periods=3, freq="D")
+    prices = pd.Series([100.0, float("inf"), float("nan")], index=index)
+    signals = pd.Series(1.0, index=index)
+
+    with pytest.raises(ValueError, match="at least two valid price observations"):
         run_backtest(prices, signals, cost_bps=0)
