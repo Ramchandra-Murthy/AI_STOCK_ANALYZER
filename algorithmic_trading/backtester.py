@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 
 from algorithmic_trading.trading_costs import IndiaEquityCostModel
@@ -79,7 +80,12 @@ def run_backtest(
         .dropna()
     )
 
-    data = data[data["price"] > 0].copy()
+    valid_rows = (
+        data["price"].gt(0)
+        & np.isfinite(data["price"])
+        & np.isfinite(data["signal"])
+    )
+    data = data.loc[valid_rows].copy()
     if len(data) < 2:
         raise ValueError("at least two valid price observations are required")
 
