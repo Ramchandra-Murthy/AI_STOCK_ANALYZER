@@ -64,7 +64,6 @@ def test_universe_validation_excludes_nonpositive_and_infinite_prices() -> None:
     assert len(result) == 2
 
 
-
 def test_universe_validation_sanitizes_invalid_ohlc_rows_before_signals() -> None:
     frame = _frame(80)
     frame.loc[frame.index[5], "High"] = float("inf")
