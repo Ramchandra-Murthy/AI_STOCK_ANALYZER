@@ -47,7 +47,10 @@ def evaluate_symbol_universe(
             clean_frame[["High", "Low", "Close"]] = required
             if clean_frame.empty:
                 raise ValueError("no valid positive OHLC observations")
-            signals = generate_pipeline_signals(clean_frame, benchmark)
+            aligned_benchmark = benchmark.reindex(clean_frame.index)
+            if aligned_benchmark.isna().all():
+                raise ValueError("benchmark has no observations aligned to valid price dates")
+            signals = generate_pipeline_signals(clean_frame, aligned_benchmark)
             prices = required["Close"].reindex(signals.index)
             valid = pd.concat([prices.rename("price"), signals.rename("signal")], axis=1)
             valid = valid.replace([float("inf"), float("-inf")], float("nan")).dropna()
