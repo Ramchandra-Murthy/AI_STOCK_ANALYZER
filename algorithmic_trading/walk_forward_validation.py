@@ -74,6 +74,22 @@ def walk_forward_evaluate(
                 "profit_factor": (
                     metrics.profit_factor if metrics.profit_factor is not None else float("nan")
                 ),
+                "annualized_volatility": metrics.volatility,
+                "sharpe_ratio": (
+                    metrics.sharpe_ratio
+                    if metrics.sharpe_ratio is not None
+                    else float("nan")
+                ),
+                "sortino_ratio": (
+                    metrics.sortino_ratio
+                    if metrics.sortino_ratio is not None
+                    else float("nan")
+                ),
+                "calmar_ratio": (
+                    metrics.calmar_ratio
+                    if metrics.calmar_ratio is not None
+                    else float("nan")
+                ),
             }
         )
     return pd.DataFrame(rows)
