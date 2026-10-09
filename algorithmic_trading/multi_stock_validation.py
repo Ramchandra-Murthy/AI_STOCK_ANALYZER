@@ -36,6 +36,10 @@ def evaluate_symbol_universe(
         try:
             if frame.empty:
                 raise ValueError("empty price frame")
+            if not frame.index.is_unique:
+                raise ValueError("duplicate price timestamps")
+            if not frame.index.is_monotonic_increasing:
+                frame = frame.sort_index()
             missing_columns = {"High", "Low", "Close"} - set(frame.columns)
             if missing_columns:
                 raise ValueError(f"missing required columns: {sorted(missing_columns)}")
