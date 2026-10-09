@@ -25,6 +25,10 @@ class BacktestMetrics:
     trade_count: int
     win_rate: float
     profit_factor: float | None
+    volatility: float
+    sharpe_ratio: float | None
+    sortino_ratio: float | None
+    calmar_ratio: float | None
 
 
 def _trade_returns(data: pd.DataFrame) -> pd.Series:
@@ -109,6 +113,20 @@ def run_backtest(
     gross_loss = float(abs(losses.sum()))
     profit_factor = gross_profit / gross_loss if gross_loss > 0 else None
 
+    daily_returns = data["strategy_return"].astype(float)
+    volatility = float(daily_returns.std(ddof=1) * (252.0**0.5)) if len(daily_returns) > 1 else 0.0
+    daily_std = float(daily_returns.std(ddof=1)) if len(daily_returns) > 1 else 0.0
+    mean_daily = float(daily_returns.mean()) if len(daily_returns) else 0.0
+    downside = daily_returns[daily_returns < 0]
+    downside_std = float((downside.pow(2).mean()) ** 0.5) if not downside.empty else 0.0
+    sharpe_ratio = float(mean_daily / daily_std * (252.0**0.5)) if daily_std > 0 else None
+    sortino_ratio = float(mean_daily / downside_std * (252.0**0.5)) if downside_std > 0 else None
+    calmar_ratio = (
+        float(cagr / abs(float(data["drawdown"].min())))
+        if cagr is not None and float(data["drawdown"].min()) < 0
+        else None
+    )
+
     metrics = BacktestMetrics(
         total_return=total_return,
         cagr=cagr,
@@ -117,5 +135,9 @@ def run_backtest(
         trade_count=int(len(trade_returns)),
         win_rate=(float(len(wins) / len(trade_returns)) if len(trade_returns) else 0.0),
         profit_factor=profit_factor,
+        volatility=volatility,
+        sharpe_ratio=sharpe_ratio,
+        sortino_ratio=sortino_ratio,
+        calmar_ratio=calmar_ratio,
     )
     return data, metrics
