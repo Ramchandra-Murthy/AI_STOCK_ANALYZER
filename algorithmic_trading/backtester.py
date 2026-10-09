@@ -68,22 +68,23 @@ def run_backtest(
     if not prices.index.is_unique or not signals.index.is_unique:
         raise ValueError("prices and signals must not contain duplicate timestamps")
 
-    data = (
-        pd.concat(
-            [
-                pd.to_numeric(prices, errors="coerce").rename("price"),
-                pd.to_numeric(signals, errors="coerce").rename("signal"),
-            ],
-            axis=1,
-        )
-        .sort_index()
-        .dropna()
+    common_index = prices.index.intersection(signals.index).sort_values()
+    data = pd.DataFrame(
+        {
+            "price": pd.to_numeric(prices.reindex(common_index), errors="coerce"),
+            "signal": pd.to_numeric(signals.reindex(common_index), errors="coerce"),
+        },
+        index=common_index,
     )
 
-    valid_rows = data["price"].gt(0) & np.isfinite(data["price"]) & np.isfinite(data["signal"])
-    data = data.loc[valid_rows].copy()
+    valid_prices = data["price"].gt(0) & np.isfinite(data["price"])
+    valid_signals = np.isfinite(data["signal"])
+    if not valid_prices.all():
+        raise ValueError("prices must be finite and greater than zero at aligned timestamps")
+    if not valid_signals.all():
+        raise ValueError("signals must be finite at aligned timestamps")
     if len(data) < 2:
-        raise ValueError("at least two valid price observations are required")
+        raise ValueError("at least two aligned price observations are required")
 
     data["signal"] = data["signal"].clip(-1, 1)
     data["position"] = data["signal"].shift(1).fillna(0.0)
