@@ -71,9 +71,11 @@ def walk_forward_evaluate(
                 "buy_hold_return": metrics.buy_hold_return,
                 "trade_count": metrics.trade_count,
                 "win_rate": metrics.win_rate,
-                "profit_factor": metrics.profit_factor
-                if metrics.profit_factor is not None
-                else float("nan"),
+                "profit_factor": (
+                    metrics.profit_factor
+                    if metrics.profit_factor is not None
+                    else float("nan")
+                ),
             }
         )
     return pd.DataFrame(rows)
