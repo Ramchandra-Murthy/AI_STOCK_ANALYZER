@@ -31,6 +31,7 @@ def test_universe_validation_returns_fold_rows_and_skips_short_history() -> None
     assert valid["fold"].tolist() == [1, 2]
     assert skipped["status"].tolist() == ["skipped"]
     assert "insufficient observations" in skipped.iloc[0]["reason"]
+    assert skipped.iloc[0]["skip_category"] == "insufficient_history"
 
 
 def test_universe_validation_reports_missing_columns_without_aborting() -> None:
@@ -45,6 +46,7 @@ def test_universe_validation_reports_missing_columns_without_aborting() -> None:
     assert result.iloc[0]["symbol"] == "BAD"
     assert result.iloc[0]["status"] == "skipped"
     assert "missing required columns" in result.iloc[0]["reason"]
+    assert result.iloc[0]["skip_category"] == "missing_market_data"
 
 
 def test_universe_validation_excludes_nonpositive_and_infinite_prices() -> None:
@@ -95,6 +97,7 @@ def test_universe_validation_skips_when_benchmark_dates_do_not_align() -> None:
     assert result.iloc[0]["symbol"] == "AAA"
     assert result.iloc[0]["status"] == "skipped"
     assert "benchmark has no observations aligned" in result.iloc[0]["reason"]
+    assert result.iloc[0]["skip_category"] == "benchmark_data"
 
 
 def test_universe_validation_excludes_inconsistent_ohlc_rows() -> None:
@@ -194,3 +197,18 @@ def test_universe_validation_sorts_benchmark_timestamps() -> None:
 
     assert result["status"].eq("ok").all()
     assert len(result) == 2
+
+
+def test_universe_validation_categorizes_invalid_price_timestamps() -> None:
+    frame = _frame(80)
+    frame = pd.concat([frame, frame.iloc[[10]]])
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        _frame(80)["Close"],
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+    )
+
+    assert result.iloc[0]["status"] == "skipped"
+    assert result.iloc[0]["skip_category"] == "invalid_price_data"
