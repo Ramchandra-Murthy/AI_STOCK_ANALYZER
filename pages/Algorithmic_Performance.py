@@ -184,6 +184,7 @@ if run:
                 signals,
                 initial_capital=capital,
                 cost_bps=cost_bps,
+                cost_model=cost_model,
                 min_train_size=int(min_train_size),
                 n_splits=int(n_splits),
             )
