@@ -79,3 +79,19 @@ def test_universe_validation_sanitizes_invalid_ohlc_rows_before_signals() -> Non
 
     assert result["status"].eq("ok").all()
     assert len(result) == 2
+
+
+def test_universe_validation_skips_when_benchmark_dates_do_not_align() -> None:
+    frame = _frame(80)
+    benchmark = pd.Series([100.0, 101.0], index=pd.date_range("2020-01-01", periods=2, freq="D"))
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        benchmark,
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+    )
+
+    assert result.iloc[0]["symbol"] == "AAA"
+    assert result.iloc[0]["status"] == "skipped"
+    assert "benchmark has no observations aligned" in result.iloc[0]["reason"]
