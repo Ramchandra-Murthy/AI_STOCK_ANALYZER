@@ -45,3 +45,39 @@ def test_universe_validation_reports_missing_columns_without_aborting() -> None:
     assert result.iloc[0]["symbol"] == "BAD"
     assert result.iloc[0]["status"] == "skipped"
     assert "missing required columns" in result.iloc[0]["reason"]
+
+
+def test_universe_validation_rejects_empty_benchmark() -> None:
+    try:
+        evaluate_symbol_universe({"AAA": _frame()}, pd.Series(dtype=float))
+    except ValueError as exc:
+        assert "benchmark must be a non-empty price series" in str(exc)
+    else:
+        raise AssertionError("expected an empty benchmark to be rejected")
+
+
+def test_universe_validation_skips_non_dataframe_symbol_without_aborting() -> None:
+    result = evaluate_symbol_universe(
+        {"BAD": None},  # type: ignore[dict-item]
+        pd.Series([100.0, 101.0]),
+        min_train_size=2,
+        n_splits=1,
+        minimum_observations=2,
+    )
+
+    assert result.iloc[0]["symbol"] == "BAD"
+    assert result.iloc[0]["status"] == "skipped"
+    assert "expected a pandas DataFrame" in result.iloc[0]["reason"]
+
+
+def test_universe_validation_rejects_invalid_run_parameters() -> None:
+    try:
+        evaluate_symbol_universe(
+            {"AAA": _frame()},
+            _frame()["Close"],
+            initial_capital=0,
+        )
+    except ValueError as exc:
+        assert "initial_capital must be positive" in str(exc)
+    else:
+        raise AssertionError("expected invalid capital to be rejected")
