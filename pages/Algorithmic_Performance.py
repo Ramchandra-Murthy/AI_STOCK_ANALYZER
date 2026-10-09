@@ -329,6 +329,11 @@ if run_universe:
                     summary[0].metric("Symbols requested", len(symbols))
                     summary[1].metric("Symbols evaluated", successful["symbol"].nunique())
                     summary[2].metric("Symbols skipped", skipped["symbol"].nunique())
+                    if not skipped.empty:
+                        st.caption(
+                            "Some symbols were excluded from performance ranking because "
+                            "their data or validation history was insufficient."
+                        )
                     if not successful.empty:
                         st.subheader("Per-symbol / per-fold results")
                         st.dataframe(successful, use_container_width=True)
