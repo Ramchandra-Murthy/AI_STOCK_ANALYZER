@@ -38,7 +38,9 @@ def evaluate_symbol_universe(
                 raise ValueError("empty price frame")
             signals = generate_pipeline_signals(frame, benchmark)
             prices = pd.to_numeric(frame["Close"], errors="coerce").reindex(signals.index)
-            valid = pd.concat([prices.rename("price"), signals.rename("signal")], axis=1).dropna()
+            valid = pd.concat([prices.rename("price"), signals.rename("signal")], axis=1)
+            valid = valid.replace([float("inf"), float("-inf")], pd.NA).dropna()
+            valid = valid[valid["price"] > 0]
             if len(valid) < minimum_observations:
                 raise ValueError(
                     f"insufficient observations: {len(valid)} < {minimum_observations}"
