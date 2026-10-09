@@ -105,3 +105,34 @@ def test_risk_ratios_are_none_when_returns_have_no_variation_or_downside() -> No
     assert metrics.sharpe_ratio is None
     assert metrics.sortino_ratio is None
     assert metrics.calmar_ratio is None
+
+
+def test_backtest_sorts_unordered_timestamps_before_returns() -> None:
+    index = pd.date_range("2026-01-01", periods=4, freq="D")
+    prices = pd.Series([100.0, 110.0, 121.0, 133.1], index=index).iloc[[2, 0, 3, 1]]
+    signals = pd.Series(1.0, index=index).iloc[[2, 0, 3, 1]]
+
+    data, metrics = run_backtest(prices, signals, cost_bps=0)
+
+    assert data.index.is_monotonic_increasing
+    assert metrics.total_return == pytest.approx(0.21)
+
+
+def test_backtest_rejects_duplicate_price_timestamps() -> None:
+    index = pd.date_range("2026-01-01", periods=3, freq="D")
+    prices = pd.Series([100.0, 101.0, 102.0], index=index)
+    prices = pd.concat([prices, prices.iloc[[1]]])
+    signals = pd.Series(1.0, index=prices.index)
+
+    with pytest.raises(ValueError, match="duplicate timestamps"):
+        run_backtest(prices, signals, cost_bps=0)
+
+
+def test_backtest_rejects_duplicate_signal_timestamps() -> None:
+    index = pd.date_range("2026-01-01", periods=3, freq="D")
+    prices = pd.Series([100.0, 101.0, 102.0], index=index)
+    signals = pd.Series(1.0, index=index)
+    signals = pd.concat([signals, signals.iloc[[1]]])
+
+    with pytest.raises(ValueError, match="duplicate timestamps"):
+        run_backtest(prices, signals, cost_bps=0)
