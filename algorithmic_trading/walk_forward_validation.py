@@ -76,19 +76,13 @@ def walk_forward_evaluate(
                 ),
                 "annualized_volatility": metrics.volatility,
                 "sharpe_ratio": (
-                    metrics.sharpe_ratio
-                    if metrics.sharpe_ratio is not None
-                    else float("nan")
+                    metrics.sharpe_ratio if metrics.sharpe_ratio is not None else float("nan")
                 ),
                 "sortino_ratio": (
-                    metrics.sortino_ratio
-                    if metrics.sortino_ratio is not None
-                    else float("nan")
+                    metrics.sortino_ratio if metrics.sortino_ratio is not None else float("nan")
                 ),
                 "calmar_ratio": (
-                    metrics.calmar_ratio
-                    if metrics.calmar_ratio is not None
-                    else float("nan")
+                    metrics.calmar_ratio if metrics.calmar_ratio is not None else float("nan")
                 ),
             }
         )
