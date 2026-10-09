@@ -62,4 +62,3 @@ def test_universe_validation_excludes_nonpositive_and_infinite_prices() -> None:
 
     assert result["status"].eq("ok").all()
     assert len(result) == 2
-
