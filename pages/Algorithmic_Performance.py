@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from algorithmic_trading.multi_stock_validation import evaluate_symbol_universe
 from algorithmic_trading.signal_backtest import backtest_pipeline, generate_pipeline_signals
 from algorithmic_trading.walk_forward_validation import walk_forward_evaluate
 from algorithmic_trading.trading_costs import IndiaEquityCostModel
@@ -205,3 +206,103 @@ if run:
             "Completed-trade feedback will populate after realized trade records "
             "are connected to the paper-trading ledger."
         )
+
+
+st.divider()
+st.subheader("Multi-stock walk-forward report")
+st.caption(
+    "Evaluate each symbol independently across sequential out-of-sample windows. "
+    "This is not a combined portfolio simulation or a recommendation to buy or sell."
+)
+universe_text = st.text_input(
+    "Symbols (comma-separated)",
+    "RELIANCE,TCS,INFY,HDFCBANK,ICICIBANK",
+    key="multi_stock_symbols",
+)
+minimum_observations = st.number_input(
+    "Minimum usable observations per symbol",
+    min_value=100,
+    max_value=3000,
+    value=300,
+    step=50,
+    key="multi_stock_minimum_observations",
+)
+run_universe = st.button("Run multi-stock validation", type="primary")
+
+if run_universe:
+    symbols = list(dict.fromkeys(
+        item.strip().upper() for item in universe_text.split(",") if item.strip()
+    ))
+    if not symbols:
+        st.error("Enter at least one symbol.")
+    elif len(symbols) > 30:
+        st.error("Please limit each run to 30 symbols to avoid excessive data requests.")
+    else:
+        benchmark_ticker = "^NSEI" if exchange == "NSE" else "^BSESN"
+        suffix = ".NS" if exchange == "NSE" else ".BO"
+        try:
+            with st.spinner(f"Downloading benchmark and {len(symbols)} symbols..."):
+                benchmark = yf.download(
+                    benchmark_ticker, period=period, auto_adjust=False, progress=False
+                )
+                if isinstance(benchmark.columns, pd.MultiIndex):
+                    benchmark.columns = benchmark.columns.get_level_values(0)
+                frames = {}
+                for item in symbols:
+                    frame = yf.download(
+                        f"{item}{suffix}", period=period, auto_adjust=False, progress=False
+                    )
+                    if isinstance(frame.columns, pd.MultiIndex):
+                        frame.columns = frame.columns.get_level_values(0)
+                    frames[item] = frame
+            if benchmark.empty or "Close" not in benchmark.columns:
+                st.error("Benchmark data is unavailable; multi-stock validation was not run.")
+            else:
+                report = evaluate_symbol_universe(
+                    frames,
+                    benchmark["Close"],
+                    initial_capital=capital,
+                    cost_bps=cost_bps,
+                    cost_model=cost_model,
+                    min_train_size=int(min_train_size),
+                    n_splits=int(n_splits),
+                    minimum_observations=int(minimum_observations),
+                )
+                if report.empty:
+                    st.warning("No validation rows were produced.")
+                else:
+                    successful = report[report["status"] == "ok"].copy()
+                    skipped = report[report["status"] == "skipped"].copy()
+                    summary = st.columns(3)
+                    summary[0].metric("Symbols requested", len(symbols))
+                    summary[1].metric("Symbols evaluated", successful["symbol"].nunique())
+                    summary[2].metric("Symbols skipped", skipped["symbol"].nunique())
+                    if not successful.empty:
+                        st.subheader("Per-symbol / per-fold results")
+                        st.dataframe(successful, use_container_width=True)
+                        st.subheader("Symbol summary")
+                        summary_frame = successful.groupby("symbol").agg(
+                            test_windows=("fold", "count"),
+                            positive_windows=("total_return", lambda values: int((values > 0).sum())),
+                            median_test_return=("total_return", "median"),
+                            median_max_drawdown=("max_drawdown", "median"),
+                            median_buy_hold_return=("buy_hold_return", "median"),
+                        )
+                        summary_frame["positive_window_rate"] = (
+                            summary_frame["positive_windows"] / summary_frame["test_windows"]
+                        )
+                        st.dataframe(
+                            summary_frame.sort_values("median_test_return", ascending=False),
+                            use_container_width=True,
+                        )
+                    if not skipped.empty:
+                        st.subheader("Skipped symbols and reasons")
+                        st.dataframe(skipped, use_container_width=True)
+                    st.download_button(
+                        "Download multi-stock report (CSV)",
+                        data=report.to_csv(index=False).encode("utf-8"),
+                        file_name="multi_stock_walk_forward_report.csv",
+                        mime="text/csv",
+                    )
+        except (KeyError, TypeError, ValueError) as exc:
+            st.error(f"Multi-stock validation could not run: {exc}")
