@@ -25,6 +25,31 @@ def test_walk_forward_evaluates_sequential_non_overlapping_folds() -> None:
         str(index[18]),
     ]
     assert (result["total_return"] > 0).all()
+    assert {
+        "annualized_volatility",
+        "sharpe_ratio",
+        "sortino_ratio",
+        "calmar_ratio",
+    }.issubset(result.columns)
+    assert (result["annualized_volatility"] >= 0).all()
+
+
+def test_walk_forward_risk_ratios_are_nan_when_undefined() -> None:
+    index = pd.date_range("2020-01-01", periods=14, freq="D")
+    prices = pd.Series(100.0, index=index)
+    signals = pd.Series(0.0, index=index)
+
+    result = walk_forward_evaluate(
+        prices,
+        signals,
+        min_train_size=8,
+        n_splits=3,
+        cost_bps=0,
+    )
+
+    assert result["sharpe_ratio"].isna().all()
+    assert result["sortino_ratio"].isna().all()
+    assert result["calmar_ratio"].isna().all()
 
 
 def test_walk_forward_rejects_too_short_history() -> None:
