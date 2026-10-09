@@ -67,13 +67,17 @@ def run_backtest(
     if not prices.index.is_unique or not signals.index.is_unique:
         raise ValueError("prices and signals must not contain duplicate timestamps")
 
-    data = pd.concat(
-        [
-            pd.to_numeric(prices, errors="coerce").rename("price"),
-            pd.to_numeric(signals, errors="coerce").rename("signal"),
-        ],
-        axis=1,
-    ).sort_index().dropna()
+    data = (
+        pd.concat(
+            [
+                pd.to_numeric(prices, errors="coerce").rename("price"),
+                pd.to_numeric(signals, errors="coerce").rename("signal"),
+            ],
+            axis=1,
+        )
+        .sort_index()
+        .dropna()
+    )
 
     data = data[data["price"] > 0].copy()
     if len(data) < 2:
