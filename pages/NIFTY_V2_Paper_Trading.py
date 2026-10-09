@@ -2,16 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
-
-import streamlit as st
-
-from engine.nifty_options_v2_live import LivePaperObservation, NiftyOptionsV2LivePaperSession
-from engine.nifty_options_v2_market_data import select_deepest_itm_call
-from engine.nifty_options_v2_refresh import is_market_hours, refresh_seconds
-from services.options_analytics import fetch_option_chain
 import csv
-from datetime import UTC, datetime, time
+from datetime import UTC, date, datetime, time
 from io import StringIO
 from zoneinfo import ZoneInfo
 
@@ -31,6 +23,7 @@ from engine.nifty_options_v2_market_data import (
 )
 from engine.nifty_options_v2_market_session import market_session_ready
 from engine.nifty_options_v2_provider_guard import provider_data_ready
+from engine.nifty_options_v2_refresh import is_market_hours, refresh_seconds
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
 
