@@ -39,7 +39,7 @@ def evaluate_symbol_universe(
             signals = generate_pipeline_signals(frame, benchmark)
             prices = pd.to_numeric(frame["Close"], errors="coerce").reindex(signals.index)
             valid = pd.concat([prices.rename("price"), signals.rename("signal")], axis=1)
-            valid = valid.replace([float("inf"), float("-inf")], pd.NA).dropna()
+            valid = valid.replace([float("inf"), float("-inf")], float("nan")).dropna()
             valid = valid[valid["price"] > 0]
             if len(valid) < minimum_observations:
                 raise ValueError(
