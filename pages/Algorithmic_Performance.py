@@ -6,7 +6,8 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from algorithmic_trading.signal_backtest import backtest_pipeline
+from algorithmic_trading.signal_backtest import backtest_pipeline, generate_pipeline_signals
+from algorithmic_trading.walk_forward_validation import walk_forward_evaluate
 from algorithmic_trading.trading_costs import IndiaEquityCostModel
 
 
@@ -105,6 +106,20 @@ with right:
         ["Flat cost (bps)", "Itemized India equity"],
         horizontal=True,
     )
+    min_train_size = st.number_input(
+        "Walk-forward warm-up observations",
+        min_value=50,
+        max_value=2000,
+        value=252,
+        step=25,
+    )
+    n_splits = st.number_input(
+        "Walk-forward test windows",
+        min_value=2,
+        max_value=10,
+        value=5,
+        step=1,
+    )
     run = st.button("Run performance analysis", type="primary")
 
 cost_model = None
@@ -155,6 +170,36 @@ if run:
     if result is not None:
         data, metrics = result
         _show_results(data, metrics)
+        st.subheader("Walk-forward validation")
+        st.caption(
+            "Sequential test windows evaluate point-in-time signals on later data. "
+            "The warm-up is not used for reported fold results. This does not tune "
+            "parameters and is not a guarantee of future performance."
+        )
+        try:
+            signals = generate_pipeline_signals(frame, benchmark["Close"])
+            prices = pd.to_numeric(frame["Close"], errors="coerce").reindex(signals.index)
+            folds = walk_forward_evaluate(
+                prices,
+                signals,
+                initial_capital=capital,
+                cost_bps=cost_bps,
+                min_train_size=int(min_train_size),
+                n_splits=int(n_splits),
+            )
+            st.dataframe(folds, use_container_width=True)
+            summary_cols = st.columns(3)
+            summary_cols[0].metric("Test windows", len(folds))
+            summary_cols[1].metric(
+                "Positive-return windows",
+                f"{int((folds['total_return'] > 0).sum())}/{len(folds)}",
+            )
+            summary_cols[2].metric(
+                "Median test return",
+                f"{folds['total_return'].median():.2%}",
+            )
+        except ValueError as exc:
+            st.warning(f"Walk-forward validation could not run: {exc}")
         st.info(
             "Completed-trade feedback will populate after realized trade records "
             "are connected to the paper-trading ledger."
