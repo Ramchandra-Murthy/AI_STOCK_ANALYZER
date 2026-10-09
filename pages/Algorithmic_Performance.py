@@ -354,6 +354,14 @@ if run_universe:
                             summary_frame.sort_values("median_test_return", ascending=False),
                             use_container_width=True,
                         )
+                        st.download_button(
+                            "Download multi-stock symbol summary (CSV)",
+                            data=summary_frame.sort_values(
+                                "median_test_return", ascending=False
+                            ).to_csv(index=True).encode("utf-8"),
+                            file_name="multi_stock_symbol_summary.csv",
+                            mime="text/csv",
+                        )
                     if not skipped.empty:
                         st.subheader("Skipped symbols and reasons")
                         st.dataframe(skipped, use_container_width=True)
