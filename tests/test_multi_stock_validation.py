@@ -112,3 +112,21 @@ def test_universe_validation_excludes_inconsistent_ohlc_rows() -> None:
 
     assert result["status"].eq("ok").all()
     assert len(result) == 2
+
+
+def test_universe_validation_excludes_open_outside_ohlc_range() -> None:
+    frame = _frame(80)
+    frame["Open"] = frame["Close"]
+    frame.loc[frame.index[5], "Open"] = frame.loc[frame.index[5], "High"] + 1.0
+    frame.loc[frame.index[6], "Open"] = frame.loc[frame.index[6], "Low"] - 1.0
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        _frame(80)["Close"],
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+        cost_bps=0.0,
+    )
+
+    assert result["status"].eq("ok").all()
+    assert len(result) == 2
