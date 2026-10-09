@@ -46,6 +46,7 @@ def test_universe_validation_reports_missing_columns_without_aborting() -> None:
     assert result.iloc[0]["status"] == "skipped"
     assert "missing required columns" in result.iloc[0]["reason"]
 
+
 def test_universe_validation_excludes_nonpositive_and_infinite_prices() -> None:
     frame = _frame(80)
     frame.loc[frame.index[5], "Close"] = 0.0
