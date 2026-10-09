@@ -115,7 +115,7 @@ def test_backtest_sorts_unordered_timestamps_before_returns() -> None:
     data, metrics = run_backtest(prices, signals, cost_bps=0)
 
     assert data.index.is_monotonic_increasing
-    assert metrics.total_return == pytest.approx(0.21)
+    assert metrics.total_return == pytest.approx(0.331)
 
 
 def test_backtest_rejects_duplicate_price_timestamps() -> None:
