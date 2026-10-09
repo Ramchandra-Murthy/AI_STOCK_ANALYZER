@@ -358,6 +358,11 @@ if run_universe:
                         summary_frame["positive_window_rate"] = (
                             summary_frame["positive_windows"] / summary_frame["test_windows"]
                         )
+                        for metric in ("sharpe", "sortino", "calmar"):
+                            summary_frame[f"{metric}_coverage_rate"] = (
+                                summary_frame[f"{metric}_defined_windows"]
+                                / summary_frame["test_windows"]
+                            )
                         sort_options = {
                             "Median test return": "median_test_return",
                             "Median Sharpe ratio": "median_sharpe_ratio",
