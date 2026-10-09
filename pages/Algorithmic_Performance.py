@@ -382,6 +382,12 @@ if run_universe:
                     if not skipped.empty:
                         st.subheader("Skipped symbols and reasons")
                         st.dataframe(skipped, use_container_width=True)
+                        st.download_button(
+                            "Download skipped-symbol diagnostics (CSV)",
+                            data=skipped.to_csv(index=False).encode("utf-8"),
+                            file_name="multi_stock_skipped_symbols.csv",
+                            mime="text/csv",
+                        )
                     st.download_button(
                         "Download multi-stock report (CSV)",
                         data=report.to_csv(index=False).encode("utf-8"),
