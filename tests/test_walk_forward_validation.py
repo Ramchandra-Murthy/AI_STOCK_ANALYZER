@@ -68,3 +68,37 @@ def test_walk_forward_rejects_folds_that_are_too_short() -> None:
 
     with pytest.raises(ValueError, match="each test fold"):
         walk_forward_evaluate(prices, signals, min_train_size=4, n_splits=3)
+
+
+def test_walk_forward_drops_invalid_prices_and_unaligned_observations() -> None:
+    index = pd.date_range("2024-01-01", periods=18, freq="D")
+    prices = pd.Series([100.0 + i for i in range(18)], index=index)
+    prices.iloc[2] = 0.0
+    prices.iloc[3] = float("inf")
+    prices.iloc[4] = float("nan")
+    signals = pd.Series(1.0, index=index.delete([5]))
+
+    result = walk_forward_evaluate(
+        prices,
+        signals,
+        min_train_size=6,
+        n_splits=2,
+        cost_bps=0,
+    )
+
+    assert result["fold"].tolist() == [1, 2]
+    assert (result["observations"] >= 2).all()
+    assert result["test_start"].notna().all()
+    assert result["test_end"].notna().all()
+
+
+def test_walk_forward_rejects_invalid_fold_configuration() -> None:
+    index = pd.date_range("2024-01-01", periods=12, freq="D")
+    prices = pd.Series([100.0 + i for i in range(12)], index=index)
+    signals = pd.Series(1.0, index=index)
+
+    with pytest.raises(ValueError, match="min_train_size"):
+        walk_forward_evaluate(prices, signals, min_train_size=1)
+
+    with pytest.raises(ValueError, match="n_splits"):
+        walk_forward_evaluate(prices, signals, min_train_size=4, n_splits=0)
