@@ -350,13 +350,23 @@ if run_universe:
                         summary_frame["positive_window_rate"] = (
                             summary_frame["positive_windows"] / summary_frame["test_windows"]
                         )
-                        st.dataframe(
-                            summary_frame.sort_values("median_test_return", ascending=False),
-                            use_container_width=True,
+                        sort_options = {
+                            "Median test return": "median_test_return",
+                            "Median Sharpe ratio": "median_sharpe_ratio",
+                            "Median Sortino ratio": "median_sortino_ratio",
+                            "Median Calmar ratio": "median_calmar_ratio",
+                            "Positive-window rate": "positive_window_rate",
+                        }
+                        sort_label = st.selectbox(
+                            "Rank symbols by",
+                            list(sort_options),
+                            key="multi_stock_summary_sort",
                         )
+                        sort_column = sort_options[sort_label]
                         sorted_summary = summary_frame.sort_values(
-                            "median_test_return", ascending=False
+                            sort_column, ascending=False, na_position="last"
                         )
+                        st.dataframe(sorted_summary, use_container_width=True)
                         summary_csv = sorted_summary.to_csv(index=True).encode("utf-8")
                         st.download_button(
                             "Download multi-stock symbol summary (CSV)",
