@@ -230,9 +230,11 @@ minimum_observations = st.number_input(
 run_universe = st.button("Run multi-stock validation", type="primary")
 
 if run_universe:
-    symbols = list(dict.fromkeys(
-        item.strip().upper() for item in universe_text.split(",") if item.strip()
-    ))
+    symbols = list(
+        dict.fromkeys(
+            item.strip().upper() for item in universe_text.split(",") if item.strip()
+        )
+    )
     if not symbols:
         st.error("Enter at least one symbol.")
     elif len(symbols) > 30:
@@ -292,7 +294,10 @@ if run_universe:
                         st.subheader("Symbol summary")
                         summary_frame = successful.groupby("symbol").agg(
                             test_windows=("fold", "count"),
-                            positive_windows=("total_return", lambda values: int((values > 0).sum())),
+                            positive_windows=(
+                                "total_return",
+                                lambda values: int((values > 0).sum()),
+                            ),
                             median_test_return=("total_return", "median"),
                             median_max_drawdown=("max_drawdown", "median"),
                             median_buy_hold_return=("buy_hold_return", "median"),
