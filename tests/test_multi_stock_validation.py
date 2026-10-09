@@ -1,0 +1,47 @@
+import pandas as pd
+
+from algorithmic_trading.multi_stock_validation import evaluate_symbol_universe
+
+
+def _frame(length: int = 80) -> pd.DataFrame:
+    index = pd.date_range("2024-01-01", periods=length, freq="B")
+    close = pd.Series([100.0 + i * 0.2 for i in range(length)], index=index)
+    return pd.DataFrame(
+        {"High": close + 1.0, "Low": close - 1.0, "Close": close},
+        index=index,
+    )
+
+
+def test_universe_validation_returns_fold_rows_and_skips_short_history() -> None:
+    frame = _frame()
+    benchmark = frame["Close"]
+    result = evaluate_symbol_universe(
+        {"AAA": frame, "SHORT": _frame(20)},
+        benchmark,
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+        cost_bps=0.0,
+    )
+
+    valid = result[result["symbol"] == "AAA"]
+    skipped = result[result["symbol"] == "SHORT"]
+
+    assert valid["status"].eq("ok").all()
+    assert valid["fold"].tolist() == [1, 2]
+    assert skipped["status"].tolist() == ["skipped"]
+    assert "insufficient observations" in skipped.iloc[0]["reason"]
+
+
+def test_universe_validation_reports_missing_columns_without_aborting() -> None:
+    result = evaluate_symbol_universe(
+        {"BAD": pd.DataFrame({"Close": [100.0, 101.0]})},
+        pd.Series([100.0, 101.0]),
+        min_train_size=2,
+        n_splits=1,
+        minimum_observations=2,
+    )
+
+    assert result.iloc[0]["symbol"] == "BAD"
+    assert result.iloc[0]["status"] == "skipped"
+    assert "missing required columns" in result.iloc[0]["reason"]
