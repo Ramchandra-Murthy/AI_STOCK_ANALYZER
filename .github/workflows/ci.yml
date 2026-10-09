@@ -49,6 +49,8 @@ jobs:
         uv run --locked --no-sync --no-build python -m pytest --import-mode=importlib -q
         tests/test_repaired_contracts.py
         tests/test_market_data_boundary.py
+        tests/test_backtester.py
+        tests/test_walk_forward_validation.py
         tests/forecast
     - name: Build production Docker image
       run: docker build --pull -t ai-stock-analyzer:ci .
