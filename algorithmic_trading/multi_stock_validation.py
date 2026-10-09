@@ -36,6 +36,9 @@ def evaluate_symbol_universe(
         try:
             if frame.empty:
                 raise ValueError("empty price frame")
+            missing_columns = {"High", "Low", "Close"} - set(frame.columns)
+            if missing_columns:
+                raise ValueError(f"missing required columns: {sorted(missing_columns)}")
             required = frame[["High", "Low", "Close"]].apply(
                 pd.to_numeric, errors="coerce"
             )
