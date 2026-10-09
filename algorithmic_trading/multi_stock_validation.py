@@ -45,15 +45,16 @@ def evaluate_symbol_universe(
             required = required[(required > 0).all(axis=1)]
             valid_ohlc = (
                 (required["High"] >= required["Low"])
-                & (required["Open"] <= required["High"])
-                & (required["Open"] >= required["Low"])
-                & (required["Close"] >= required["Low"])
-                & (required["Close"] <= required["High"])
-            ) if "Open" in frame.columns else (
-                (required["High"] >= required["Low"])
                 & (required["Close"] >= required["Low"])
                 & (required["Close"] <= required["High"])
             )
+            if "Open" in frame.columns:
+                open_prices = pd.to_numeric(frame.loc[required.index, "Open"], errors="coerce")
+                valid_ohlc &= (
+                    open_prices.notna()
+                    & (open_prices >= required["Low"])
+                    & (open_prices <= required["High"])
+                )
             required = required[valid_ohlc]
             clean_frame = frame.loc[required.index].copy()
             clean_frame[["High", "Low", "Close"]] = required
