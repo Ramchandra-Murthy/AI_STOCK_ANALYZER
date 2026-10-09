@@ -248,13 +248,19 @@ if run_universe:
                 if isinstance(benchmark.columns, pd.MultiIndex):
                     benchmark.columns = benchmark.columns.get_level_values(0)
                 frames = {}
+                download_errors = {}
                 for item in symbols:
-                    frame = yf.download(
-                        f"{item}{suffix}", period=period, auto_adjust=False, progress=False
-                    )
-                    if isinstance(frame.columns, pd.MultiIndex):
-                        frame.columns = frame.columns.get_level_values(0)
-                    frames[item] = frame
+                    try:
+                        frame = yf.download(
+                            f"{item}{suffix}", period=period, auto_adjust=False, progress=False
+                        )
+                        if isinstance(frame.columns, pd.MultiIndex):
+                            frame.columns = frame.columns.get_level_values(0)
+                        frames[item] = frame
+                    except Exception as exc:
+                        # A single provider failure should not discard other symbols.
+                        frames[item] = pd.DataFrame()
+                        download_errors[item] = str(exc) or type(exc).__name__
             if benchmark.empty or "Close" not in benchmark.columns:
                 st.error("Benchmark data is unavailable; multi-stock validation was not run.")
             else:
@@ -268,6 +274,9 @@ if run_universe:
                     n_splits=int(n_splits),
                     minimum_observations=int(minimum_observations),
                 )
+                for item, reason in download_errors.items():
+                    mask = report["symbol"].eq(item) & report["status"].eq("skipped")
+                    report.loc[mask, "reason"] = f"Market-data download failed: {reason}"
                 if report.empty:
                     st.warning("No validation rows were produced.")
                 else:
