@@ -161,3 +161,36 @@ def test_universe_validation_sorts_unordered_price_timestamps() -> None:
 
     assert result["status"].eq("ok").all()
     assert len(result) == 2
+
+
+def test_universe_validation_rejects_duplicate_benchmark_timestamps() -> None:
+    frame = _frame(80)
+    benchmark = pd.concat([frame["Close"], frame["Close"].iloc[[10]]])
+    try:
+        evaluate_symbol_universe(
+            {"AAA": frame},
+            benchmark,
+            min_train_size=10,
+            n_splits=2,
+            minimum_observations=30,
+        )
+    except ValueError as exc:
+        assert "benchmark contains duplicate timestamps" in str(exc)
+    else:
+        raise AssertionError("expected duplicate benchmark timestamps to be rejected")
+
+
+def test_universe_validation_sorts_benchmark_timestamps() -> None:
+    frame = _frame(80)
+    benchmark = frame["Close"].sample(frac=1.0, random_state=11)
+    result = evaluate_symbol_universe(
+        {"AAA": frame},
+        benchmark,
+        min_train_size=10,
+        n_splits=2,
+        minimum_observations=30,
+        cost_bps=0.0,
+    )
+
+    assert result["status"].eq("ok").all()
+    assert len(result) == 2
