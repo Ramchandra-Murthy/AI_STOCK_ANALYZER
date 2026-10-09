@@ -54,6 +54,14 @@ def test_invalid_inputs_fail() -> None:
     with pytest.raises(ValueError, match="initial_capital"):
         run_backtest(prices, signals, initial_capital=0)
 
+    for invalid_capital in (float("nan"), float("inf")):
+        with pytest.raises(ValueError, match="initial_capital"):
+            run_backtest(prices, signals, initial_capital=invalid_capital)
+
+    for invalid_cost in (float("nan"), float("inf")):
+        with pytest.raises(ValueError, match="cost_bps"):
+            run_backtest(prices, signals, cost_bps=invalid_cost)
+
 
 def test_cost_model_charges_buy_and_sell_turnover_separately() -> None:
     index = pd.date_range("2026-01-01", periods=4, freq="D")
