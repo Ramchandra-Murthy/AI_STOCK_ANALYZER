@@ -210,3 +210,19 @@ def test_predict_latest_rejects_invalid_latest_close(invalid_close: float) -> No
 
     with pytest.raises(ValueError, match="latest close price must be finite and positive"):
         predict_latest(LogisticRegression(), frame)
+
+@pytest.mark.parametrize(
+    ("index", "message"),
+    [
+        ([1, 0, 2], "market history must be ordered chronologically by index"),
+        ([0, 1, 1], "market history index must be unique"),
+    ],
+)
+def test_predict_latest_rejects_non_chronological_or_duplicate_index(
+    index: list[int], message: str
+) -> None:
+    frame = _market_frame(3)
+    frame.index = index
+
+    with pytest.raises(ValueError, match=message):
+        predict_latest(LogisticRegression(), frame)
