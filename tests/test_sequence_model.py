@@ -38,6 +38,7 @@ def test_predict_sequence_returns_bounded_probability() -> None:
     assert 0.0 <= prediction["confidence"] <= 1.0
     assert prediction["signal"] in {"LONG", "SHORT"}
 
+
 def test_sequence_scaler_is_fit_only_on_purged_training_sequences() -> None:
     from ai_trading.sequence_model import _make_raw_sequences
 
