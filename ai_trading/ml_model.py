@@ -45,6 +45,10 @@ def make_training_dataset(
         raise ValueError("horizon must be at least 1")
     if not math.isfinite(threshold) or threshold < 0:
         raise ValueError("threshold must be finite and non-negative")
+    if not frame.index.is_unique:
+        raise ValueError("market data index must be unique")
+    if not frame.index.is_monotonic_increasing:
+        raise ValueError("market data must be ordered chronologically by index")
 
     features = build_features(frame)[FEATURE_COLUMNS].copy()
     close = pd.to_numeric(frame["Close"], errors="coerce")
