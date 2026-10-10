@@ -29,6 +29,7 @@ def test_training_dataset_uses_future_label_without_feature_leakage() -> None:
     assert len(features) < len(frame)
     assert "target" not in features.columns
 
+
 @pytest.mark.parametrize(
     ("index", "message"),
     [
@@ -209,6 +210,7 @@ def test_predict_latest_rejects_invalid_latest_close(invalid_close: float) -> No
 
     with pytest.raises(ValueError, match="latest close price must be finite and positive"):
         predict_latest(LogisticRegression(), frame)
+
 
 @pytest.mark.parametrize(
     ("index", "message"),
