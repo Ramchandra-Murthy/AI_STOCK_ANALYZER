@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.linear_model import LogisticRegression
 
 from ai_trading.ml_model import make_training_dataset, predict_latest, train_model
@@ -27,6 +28,12 @@ def test_training_dataset_uses_future_label_without_feature_leakage() -> None:
     assert len(features) == len(labels)
     assert len(features) < len(frame)
     assert "target" not in features.columns
+
+
+@pytest.mark.parametrize("threshold", [float("nan"), float("inf"), float("-inf"), -0.01])
+def test_training_dataset_rejects_invalid_thresholds(threshold: float) -> None:
+    with pytest.raises(ValueError, match="threshold must be finite and non-negative"):
+        make_training_dataset(_market_frame(), threshold=threshold)
 
 
 def test_directional_threshold_excludes_neutral_returns() -> None:
