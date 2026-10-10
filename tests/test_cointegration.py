@@ -70,3 +70,33 @@ def test_cointegration_diagnostics_validate_lags(
             function(pd.Series([1.0, 2.0, 3.0, 4.0]), pd.Series([1.0, 2.0, 3.0, 4.0]), **kwargs)
         else:
             function(pd.DataFrame({"x": [1.0, 2.0, 3.0, 4.0], "y": [1.0, 2.0, 3.0, 4.0]}), **kwargs)
+
+
+@pytest.mark.parametrize("bad_value", [float("inf"), float("-inf")])
+def test_cadf_ignores_non_finite_aligned_observations(
+    cointegrated_prices: pd.DataFrame,
+    bad_value: float,
+) -> None:
+    dependent = cointegrated_prices["y"].copy()
+    independent = cointegrated_prices["x"].copy()
+    dependent.iloc[10] = bad_value
+
+    report = cadf_diagnostic(dependent, independent)
+
+    assert report["observations"] == 119
+    assert np.isfinite(report["hedge_ratio"])
+
+
+@pytest.mark.parametrize("bad_value", [float("inf"), float("-inf")])
+def test_johansen_ignores_rows_with_non_finite_prices(
+    cointegrated_prices: pd.DataFrame,
+    bad_value: float,
+) -> None:
+    contaminated = cointegrated_prices.copy()
+    contaminated.iloc[10, 1] = bad_value
+
+    report = johansen_diagnostic(contaminated, lags=1)
+
+    assert report["observations"] == 118
+    assert np.all(np.isfinite(np.asarray(report["eigenvalues"], dtype=float)))
+    assert np.all(np.isfinite(np.asarray(report["eigenvectors"], dtype=float)))
