@@ -180,3 +180,31 @@ def test_backtest_requires_two_aligned_observations() -> None:
 
     with pytest.raises(ValueError, match="at least two aligned price observations"):
         run_backtest(prices, signals, cost_bps=0)
+
+
+def test_compare_timeframe_backtests_uses_shared_cost_assumptions() -> None:
+    from algorithmic_trading.backtester import compare_timeframe_backtests
+
+    index = pd.date_range("2026-01-01", periods=4, freq="D")
+    prices = pd.Series([100.0, 102.0, 101.0, 104.0], index=index)
+    signals = pd.Series([1.0, 1.0, 1.0, 0.0], index=index)
+
+    comparison = compare_timeframe_backtests(
+        {"5min": (prices, signals), "15min": (prices, signals)},
+        cost_bps=0,
+    )
+
+    assert comparison.index.tolist() == ["5min", "15min"]
+    assert comparison.loc["5min", "total_return"] == pytest.approx(
+        comparison.loc["15min", "total_return"]
+    )
+    assert comparison.loc["5min", "trade_count"] == comparison.loc["15min", "trade_count"]
+    assert "max_drawdown" in comparison.columns
+    assert "sharpe_ratio" in comparison.columns
+
+
+def test_compare_timeframe_backtests_rejects_empty_input() -> None:
+    from algorithmic_trading.backtester import compare_timeframe_backtests
+
+    with pytest.raises(ValueError, match="at least one timeframe"):
+        compare_timeframe_backtests({})
