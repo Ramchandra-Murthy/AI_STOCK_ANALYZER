@@ -13,8 +13,10 @@ def _market_frame(rows: int = 240) -> pd.DataFrame:
     rng = np.random.default_rng(123)
     returns = rng.normal(0.0008, 0.015, rows)
     close = 100.0 * np.exp(np.cumsum(returns))
+    open_prices = close * (1.0 + rng.normal(0.0, 0.002, rows))
     return pd.DataFrame(
         {
+            "Open": open_prices,
             "Close": close,
             "Volume": rng.integers(900_000, 1_100_000, rows),
         }
@@ -59,7 +61,7 @@ def test_backtest_respects_transaction_costs() -> None:
     assert costly_result.final_equity <= free_result.final_equity
 
 
-def test_prediction_is_aligned_to_entry_timestamp_without_training_leakage() -> None:
+def test_prediction_uses_next_bar_open_for_execution_without_training_leakage() -> None:
     frame = _market_frame()
     training_lengths: list[int] = []
     refit_flags: list[bool] = []
@@ -105,4 +107,24 @@ def test_prediction_is_aligned_to_entry_timestamp_without_training_leakage() -> 
     assert len(prediction_frames[0]) == 101
     assert prediction_frames[0].index[-1] == frame.index[100]
     assert prediction_frames[0].index[-1] not in frame.iloc[:100].index
-    assert trades.iloc[0]["entry_index"] == frame.index[100]
+    first_trade = trades.iloc[0]
+    assert first_trade["decision_index"] == frame.index[100]
+    assert first_trade["entry_index"] == frame.index[101]
+    assert first_trade["entry_price"] == frame["Open"].iloc[101]
+    assert first_trade["exit_index"] == frame.index[105]
+    assert first_trade["exit_price"] == frame["Close"].iloc[105]
+
+
+def test_close_only_backtest_delays_entry_until_next_bar() -> None:
+    frame = _market_frame().drop(columns=["Open"])
+    trades, _ = walk_forward_backtest(
+        frame,
+        horizon=5,
+        threshold=0.0,
+        initial_train=100,
+    )
+    first_trade = trades.iloc[0]
+    assert first_trade["decision_index"] == frame.index[100]
+    assert first_trade["entry_index"] == frame.index[101]
+    assert first_trade["entry_price"] == frame["Close"].iloc[101]
+    assert first_trade["exit_index"] == frame.index[106]
