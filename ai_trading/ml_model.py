@@ -57,6 +57,7 @@ def make_training_dataset(
     close = pd.to_numeric(frame["Close"], errors="coerce")
     valid_close = close.where(close.gt(0.0) & close.map(math.isfinite))
     future_return = valid_close.shift(-horizon) / valid_close - 1.0
+    future_return = future_return.where(np.isfinite(future_return))
 
     if math.isclose(threshold, 0.0, abs_tol=1e-12):
         labels = (future_return > 0.0).astype("float")
