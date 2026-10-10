@@ -32,7 +32,10 @@ def time_series_momentum_diagnostics(
     _validate_periods(lookbacks, "lookbacks")
     _validate_periods(holding_periods, "holding_periods")
 
-    clean = pd.to_numeric(returns, errors="coerce").dropna().astype(float)
+    numeric = pd.to_numeric(returns, errors="coerce")
+    clean = numeric[np.isfinite(numeric.to_numpy(dtype=float))].astype(float)
+    if (clean <= -1.0).any():
+        raise ValueError("returns must be greater than -1.0")
     rows: list[dict[str, float | int | None]] = []
     for lookback in lookbacks:
         for holding in holding_periods:
@@ -63,6 +66,9 @@ def time_series_momentum_diagnostics(
                     for index in range(start, stop)
                 ]
             )
+            finite_windows = np.isfinite(past) & np.isfinite(future)
+            past = past[finite_windows]
+            future = future[finite_windows]
 
             return_correlation = (
                 float(np.corrcoef(past, future)[0, 1])
