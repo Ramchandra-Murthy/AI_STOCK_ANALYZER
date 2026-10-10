@@ -138,7 +138,11 @@ def predict_latest(model: Pipeline, frame: pd.DataFrame) -> dict[str, float | st
     if features.empty:
         raise ValueError("not enough market history for a prediction")
 
-    probability = float(model.predict_proba(features.iloc[[-1]])[0, 1])
+    latest = features.iloc[[-1]]
+    if not all(math.isfinite(float(value)) for value in latest.to_numpy().ravel()):
+        raise ValueError("latest feature row must contain only finite values")
+
+    probability = float(model.predict_proba(latest)[0, 1])
     signal = "LONG" if probability >= 0.5 else "SHORT"
     confidence = abs(probability - 0.5) * 2.0
     return {

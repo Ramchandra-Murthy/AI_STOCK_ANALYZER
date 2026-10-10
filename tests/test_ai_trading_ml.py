@@ -89,6 +89,29 @@ def test_directional_threshold_excludes_neutral_returns() -> None:
     assert labels.tolist() == [1, 0, 0, 0]
 
 
+@pytest.mark.parametrize("invalid_value", [float("nan"), float("inf"), float("-inf")])
+def test_predict_latest_rejects_non_finite_features(invalid_value: float) -> None:
+    frame = _market_frame()
+    feature_frame = pd.DataFrame(
+        1.0,
+        index=frame.index,
+        columns=[
+            "return_1",
+            "return_5",
+            "return_20",
+            "ema_gap",
+            "volatility_20",
+            "volume_ratio",
+        ],
+    )
+    feature_frame.iloc[-1, 0] = invalid_value
+    model = LogisticRegression()
+
+    with patch("ai_trading.ml_model.build_features", return_value=feature_frame):
+        with pytest.raises(ValueError, match="latest feature row must contain only finite values"):
+            predict_latest(model, frame)
+
+
 def test_model_trains_with_chronological_validation() -> None:
     frame = _market_frame()
     model, validation = train_model(frame, horizon=5, threshold=0.0)
