@@ -20,7 +20,10 @@ def validate_trade_plan(
 ) -> dict[str, object]:
     """Validate target/stop orientation and compute reward-to-risk metrics."""
     values = (current_price, target_price, stop_loss, min_reward_risk)
-    if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
+    if any(
+        isinstance(value, bool) or not isinstance(value, (int, float))
+        for value in values
+    ):
         raise ValueError("prices and min_reward_risk must be numeric")
     if any(not isfinite(float(value)) for value in values):
         raise ValueError("prices and min_reward_risk must be finite")
@@ -108,11 +111,16 @@ def reconcile_recommendations(
         issues.append("confidence is missing")
     elif confidence < minimum_confidence:
         issues.append("confidence is below the configured minimum")
-    if not isinstance(risk_level, str) or not risk_level.strip() or risk_level.strip().upper() in {
-        "UNKNOWN",
-        "N/A",
-        "NONE",
-    }:
+    if (
+        not isinstance(risk_level, str)
+        or not risk_level.strip()
+        or risk_level.strip().upper()
+        in {
+            "UNKNOWN",
+            "N/A",
+            "NONE",
+        }
+    ):
         issues.append("risk level is missing or unknown")
     if trade_plan is not None and trade_plan.get("valid") is False:
         issues.append("trade plan failed risk validation")
