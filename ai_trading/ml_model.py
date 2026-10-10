@@ -143,6 +143,10 @@ def predict_latest(model: Pipeline, frame: pd.DataFrame) -> dict[str, float | st
     """Return the latest model probability and directional classification."""
     if frame.empty:
         raise ValueError("market history must not be empty")
+    if not frame.index.is_unique:
+        raise ValueError("market history index must be unique")
+    if not frame.index.is_monotonic_increasing:
+        raise ValueError("market history must be ordered chronologically by index")
     latest_close = pd.to_numeric(frame["Close"].iloc[-1], errors="coerce")
     if not math.isfinite(float(latest_close)) or latest_close <= 0.0:
         raise ValueError("latest close price must be finite and positive")
