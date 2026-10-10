@@ -52,8 +52,8 @@ def walk_forward_backtest(
         raise ValueError("short_probability must be below long_probability")
     if initial_train < 30:
         raise ValueError("initial_train must be at least 30")
-    if transaction_cost_bps < 0:
-        raise ValueError("transaction_cost_bps must be non-negative")
+    if not math.isfinite(transaction_cost_bps) or transaction_cost_bps < 0:
+        raise ValueError("transaction_cost_bps must be finite and non-negative")
 
     close = pd.to_numeric(frame["Close"], errors="coerce")
     has_open = "Open" in frame.columns
