@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
@@ -14,16 +15,18 @@ def transaction_cost_sensitivity(
     """Estimate strategy returns under alternative transaction-cost assumptions."""
     if not cost_bps:
         raise ValueError("cost_bps must contain at least one value")
-    if any(float(value) < 0.0 for value in cost_bps):
-        raise ValueError("cost_bps values must be non-negative")
+    if any(not np.isfinite(float(value)) or float(value) < 0.0 for value in cost_bps):
+        raise ValueError("cost_bps values must be finite and non-negative")
 
     clean_returns = pd.to_numeric(returns, errors="coerce").fillna(0.0)
     if turnover is None:
         clean_turnover = clean_returns.ne(0.0).astype(float)
     else:
-        clean_turnover = pd.to_numeric(turnover, errors="coerce").fillna(0.0)
+        clean_turnover = pd.to_numeric(turnover, errors="coerce")
         if not clean_turnover.index.equals(clean_returns.index):
-            clean_turnover = clean_turnover.reindex(clean_returns.index).fillna(0.0)
+            clean_turnover = clean_turnover.reindex(clean_returns.index)
+        if clean_turnover.isna().any() or not np.isfinite(clean_turnover).all():
+            raise ValueError("turnover values must be finite and present for every return")
         if (clean_turnover < 0.0).any():
             raise ValueError("turnover values must be non-negative")
 

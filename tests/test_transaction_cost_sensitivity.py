@@ -33,6 +33,28 @@ def test_transaction_cost_sensitivity_rejects_invalid_costs() -> None:
     with pytest.raises(ValueError, match="non-negative"):
         transaction_cost_sensitivity(pd.Series([0.01]), cost_bps=(-1.0,))
 
+    for invalid_cost in (float("nan"), float("inf")):
+        with pytest.raises(ValueError, match="finite and non-negative"):
+            transaction_cost_sensitivity(pd.Series([0.01]), cost_bps=(invalid_cost,))
+
+
+def test_transaction_cost_sensitivity_rejects_invalid_turnover() -> None:
+    returns = pd.Series([0.01, 0.02])
+
+    for invalid_turnover in (
+        pd.Series([1.0, float("nan")]),
+        pd.Series([1.0, float("inf")]),
+        pd.Series([1.0, -1.0]),
+    ):
+        with pytest.raises(ValueError, match="turnover"):
+            transaction_cost_sensitivity(returns, turnover=invalid_turnover)
+
+    with pytest.raises(ValueError, match="finite and present"):
+        transaction_cost_sensitivity(
+            returns,
+            turnover=pd.Series([1.0], index=[0]),
+        )
+
 
 def test_transaction_cost_summary_reports_worst_case() -> None:
     returns = pd.Series([0.01, 0.02])
