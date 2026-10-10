@@ -91,11 +91,18 @@ def train_model(
         raise ValueError("training data must contain both target classes")
 
     split = int(len(x) * (1.0 - test_fraction))
-    if split < 20 or len(x) - split < 5:
+    if split >= len(x):
         raise ValueError("training and test windows are too small")
 
-    x_train, x_test = x.iloc[:split], x.iloc[split:]
-    y_train, y_test = y.iloc[:split], y.iloc[split:]
+    # Purge training rows whose future-label window reaches validation.
+    positions = frame.index.get_indexer(x.index)
+    validation_start = positions[split]
+    train_mask = positions[:split] + horizon < validation_start
+    x_train = x.iloc[:split].iloc[train_mask]
+    y_train = y.iloc[:split].iloc[train_mask]
+    x_test, y_test = x.iloc[split:], y.iloc[split:]
+    if len(x_train) < 20 or len(x_test) < 5:
+        raise ValueError("training and test windows are too small after purging overlapping labels")
     if y_train.nunique() < 2 or y_test.nunique() < 2:
         raise ValueError("both chronological windows must contain both target classes")
 
