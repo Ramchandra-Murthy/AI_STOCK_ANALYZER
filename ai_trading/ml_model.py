@@ -1,4 +1,4 @@
-"""Leakage-safe machine-learning model for AI trading intelligence."""
+""""Leakage-safe machine-learning model for AI trading intelligence."""
 
 from __future__ import annotations
 
@@ -43,8 +43,8 @@ def make_training_dataset(
     """Build explicit two-sided future-return direction labels without leakage."""
     if horizon < 1:
         raise ValueError("horizon must be at least 1")
-    if threshold < 0:
-        raise ValueError("threshold must be non-negative")
+    if not math.isfinite(threshold) or threshold < 0:
+        raise ValueError("threshold must be finite and non-negative")
 
     features = build_features(frame)[FEATURE_COLUMNS].copy()
     close = pd.to_numeric(frame["Close"], errors="coerce")
