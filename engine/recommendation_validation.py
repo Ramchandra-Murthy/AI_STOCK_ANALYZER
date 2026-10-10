@@ -20,10 +20,7 @@ def validate_trade_plan(
 ) -> dict[str, object]:
     """Validate target/stop orientation and compute reward-to-risk metrics."""
     values = (current_price, target_price, stop_loss, min_reward_risk)
-    if any(
-        isinstance(value, bool) or not isinstance(value, (int, float))
-        for value in values
-    ):
+    if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
         raise ValueError("prices and min_reward_risk must be numeric")
     if any(not isfinite(float(value)) for value in values):
         raise ValueError("prices and min_reward_risk must be finite")
