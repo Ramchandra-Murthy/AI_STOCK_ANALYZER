@@ -47,7 +47,6 @@ def test_training_dataset_rejects_non_chronological_or_duplicate_index(
         make_training_dataset(frame, horizon=1, threshold=0.0)
 
 
-
 def test_training_dataset_excludes_non_finite_feature_rows() -> None:
     frame = pd.DataFrame(
         {
