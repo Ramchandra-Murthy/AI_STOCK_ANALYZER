@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score
@@ -51,6 +52,8 @@ def make_training_dataset(
         raise ValueError("market data must be ordered chronologically by index")
 
     features = build_features(frame)[FEATURE_COLUMNS].copy()
+    features = features.apply(pd.to_numeric, errors="coerce")
+    features = features.where(np.isfinite(features))
     close = pd.to_numeric(frame["Close"], errors="coerce")
     valid_close = close.where(close.gt(0.0) & close.map(math.isfinite))
     future_return = valid_close.shift(-horizon) / valid_close - 1.0
