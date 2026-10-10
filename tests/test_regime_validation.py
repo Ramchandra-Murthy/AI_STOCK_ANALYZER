@@ -7,7 +7,7 @@ from engine.regime_validation import validate_market_regimes
 
 def test_validation_summarizes_forward_returns_by_regime_and_horizon():
     index = pd.RangeIndex(8)
-    close = pd.Series([100, 101, 102, 101, 99, 98, 100, 103], index=index)
+    close = pd.Series([100, 101, 102, 101, 99, 100, 100, 103], index=index)
     regimes = pd.Series(
         [
             "BULLISH",
