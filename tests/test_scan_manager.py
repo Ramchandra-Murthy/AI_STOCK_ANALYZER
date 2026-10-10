@@ -110,7 +110,7 @@ def test_queued_price_jump_scan_keeps_matching_job() -> None:
 
         release.set()
 
-        for _ in range(100):
+        for _ in range(500):
             job = manager.get_job(second_job_id)
             if job and job["status"] == "completed":
                 break

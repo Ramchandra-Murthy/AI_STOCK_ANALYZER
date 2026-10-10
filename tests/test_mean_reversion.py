@@ -95,3 +95,26 @@ def test_mean_reversion_diagnostics_validate_parameters(
 ) -> None:
     with pytest.raises(ValueError):
         function(pd.Series([100.0, 101.0, 102.0]), **kwargs)
+
+
+@pytest.mark.parametrize("bad_value", [float("inf"), float("-inf")])
+def test_mean_reversion_diagnostics_ignore_non_finite_observations(
+    mean_reverting_series: pd.Series,
+    bad_value: float,
+) -> None:
+    contaminated = pd.concat([mean_reverting_series, pd.Series([bad_value])], ignore_index=True)
+
+    assert math.isfinite(hurst_exponent(contaminated))
+    assert math.isfinite(variance_ratio(contaminated, lag=2))
+
+
+@pytest.mark.parametrize("function", [hurst_exponent, variance_ratio])
+@pytest.mark.parametrize("bad_value", [0.0, -1.0])
+def test_log_price_diagnostics_reject_non_positive_observations(
+    function: Callable[..., object],
+    bad_value: float,
+) -> None:
+    values = pd.Series([100.0, 101.0, bad_value, 102.0, 103.0, 104.0])
+
+    with pytest.raises(ValueError, match="strictly positive"):
+        function(values)
