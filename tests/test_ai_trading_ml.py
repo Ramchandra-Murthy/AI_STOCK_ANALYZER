@@ -29,7 +29,6 @@ def test_training_dataset_uses_future_label_without_feature_leakage() -> None:
     assert len(features) < len(frame)
     assert "target" not in features.columns
 
-
 @pytest.mark.parametrize(
     ("index", "message"),
     [
