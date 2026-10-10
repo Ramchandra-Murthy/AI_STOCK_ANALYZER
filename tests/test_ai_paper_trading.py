@@ -82,3 +82,20 @@ def test_risk_limits_cap_new_position_allocation() -> None:
     )
 
     assert portfolio.positions == {"A": 20, "B": 20}
+
+
+@pytest.mark.parametrize("price", [float("nan"), float("inf"), float("-inf"), 0.0, -1.0])
+def test_execute_rejects_non_finite_or_non_positive_prices(price: float) -> None:
+    portfolio = PaperPortfolio(initial_cash=100_000.0)
+
+    with pytest.raises(ValueError, match="price must be finite and positive"):
+        portfolio.execute("RELIANCE", "BUY", 1, price)
+
+
+@pytest.mark.parametrize("price", [float("nan"), float("inf"), float("-inf"), 0.0, -1.0])
+def test_equity_rejects_non_finite_or_non_positive_mark_prices(price: float) -> None:
+    portfolio = PaperPortfolio(initial_cash=100_000.0)
+    portfolio.execute("RELIANCE", "BUY", 1, 100.0)
+
+    with pytest.raises(ValueError, match="price for RELIANCE must be finite and positive"):
+        portfolio.equity({"RELIANCE": price})

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from math import isfinite
 
 import pandas as pd
 
@@ -52,11 +53,14 @@ class PaperPortfolio:
 
     def equity(self, prices: dict[str, float]) -> float:
         """Mark current positions to supplied latest prices."""
-        market_value = sum(
-            quantity * float(prices[symbol])
-            for symbol, quantity in self.positions.items()
-            if symbol in prices
-        )
+        market_value = 0.0
+        for symbol, quantity in self.positions.items():
+            if symbol not in prices:
+                continue
+            price = float(prices[symbol])
+            if not isfinite(price) or price <= 0:
+                raise ValueError(f"price for {symbol} must be finite and positive")
+            market_value += quantity * price
         return float(self.cash + market_value)
 
     def record_equity(self, prices: dict[str, float]) -> EquitySnapshot:
@@ -81,8 +85,8 @@ class PaperPortfolio:
         side = str(side).upper()
         price = float(price)
 
-        if quantity <= 0 or price <= 0:
-            raise ValueError("quantity and price must be positive")
+        if quantity <= 0 or not isfinite(price) or price <= 0:
+            raise ValueError("quantity must be positive and price must be finite and positive")
         if side not in {"BUY", "SELL"}:
             raise ValueError("side must be BUY or SELL")
 
