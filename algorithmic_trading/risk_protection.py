@@ -47,6 +47,10 @@ def apply_close_stop(
 
     aligned_signals = aligned_signals.clip(-1.0, 1.0)
     output = aligned_signals.copy()
+
+    def is_flat(position: float) -> bool:
+        """Treat numerical noise around zero as a flat target position."""
+        return bool(np.isclose(position, 0.0, rtol=0.0, atol=1e-12))
     active_position = 0.0
     entry_price: float | None = None
     stopped = False
@@ -57,7 +61,7 @@ def apply_close_stop(
 
         if stopped:
             output.loc[timestamp] = 0.0
-            if desired == 0.0:
+            if is_flat(desired):
                 stopped = False
             continue
 
@@ -66,11 +70,15 @@ def apply_close_stop(
         if i > 0:
             previous_timestamp = index[i - 1]
             executed = float(output.loc[previous_timestamp])
-            if executed != active_position:
+            if not np.isclose(executed, active_position, rtol=0.0, atol=1e-12):
                 active_position = executed
-                entry_price = float(aligned_prices.loc[previous_timestamp]) if executed else None
+                entry_price = (
+                    float(aligned_prices.loc[previous_timestamp])
+                    if not is_flat(executed)
+                    else None
+                )
 
-        if active_position == 0.0 or entry_price is None:
+        if is_flat(active_position) or entry_price is None:
             continue
 
         trade_return = active_position * (price / entry_price - 1.0)
