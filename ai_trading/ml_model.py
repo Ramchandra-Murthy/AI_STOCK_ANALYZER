@@ -139,7 +139,7 @@ def predict_latest(model: Pipeline, frame: pd.DataFrame) -> dict[str, float | st
         raise ValueError("not enough market history for a prediction")
 
     latest = features.iloc[[-1]]
-    if not latest.map(math.isfinite).all(axis=None):
+    if not all(math.isfinite(float(value)) for value in latest.to_numpy().ravel()):
         raise ValueError("latest feature row must contain only finite values")
 
     probability = float(model.predict_proba(latest)[0, 1])
