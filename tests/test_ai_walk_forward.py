@@ -128,3 +128,27 @@ def test_close_only_backtest_delays_entry_until_next_bar() -> None:
     assert first_trade["entry_index"] == frame.index[101]
     assert first_trade["entry_price"] == frame["Close"].iloc[101]
     assert first_trade["exit_index"] == frame.index[106]
+
+def test_backtest_rejects_infinite_execution_prices() -> None:
+    frame = _market_frame()
+    frame.loc[:, "Open"] = float("inf")
+    frame.loc[:, "Close"] = float("inf")
+
+    with (
+        patch.object(walk_forward_module, "train_model", return_value=(object(), None)),
+        patch.object(
+            walk_forward_module,
+            "predict_latest",
+            return_value={"probability_up": 0.6, "confidence": 0.2, "signal": "LONG"},
+        ),
+    ):
+        import pytest
+
+        with pytest.raises(ValueError, match="no valid walk-forward trades"):
+            walk_forward_backtest(
+                frame,
+                horizon=5,
+                threshold=0.0,
+                initial_train=100,
+            )
+
