@@ -58,7 +58,6 @@ def test_close_stop_rejects_invalid_inputs() -> None:
         )
 
 
-
 def test_close_stop_treats_near_zero_signal_as_flat() -> None:
     index = pd.date_range("2026-01-01", periods=6, freq="D")
     prices = pd.Series([100.0, 100.0, 94.0, 95.0, 96.0, 97.0], index=index)
