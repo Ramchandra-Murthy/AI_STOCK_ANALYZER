@@ -151,3 +151,51 @@ def run_backtest(
         calmar_ratio=calmar_ratio,
     )
     return data, metrics
+
+
+def compare_timeframe_backtests(
+    timeframe_data: dict[str, tuple[pd.Series, pd.Series]],
+    initial_capital: float = 100_000.0,
+    cost_bps: float = 10.0,
+    cost_model: IndiaEquityCostModel | None = None,
+) -> pd.DataFrame:
+    """Compare precomputed price/signal pairs across bar sizes.
+
+    Each mapping value contains the prices and target-position signals for one
+    timeframe. Every candidate uses the same capital and transaction-cost
+    assumptions. This function does not resample data or generate signals;
+    callers must supply signals calculated without future information.
+    """
+    if not timeframe_data:
+        raise ValueError("timeframe_data must contain at least one timeframe")
+
+    rows: list[dict[str, float | int | None]] = []
+    labels: list[str] = []
+    for timeframe, (prices, signals) in timeframe_data.items():
+        if not isinstance(timeframe, str) or not timeframe.strip():
+            raise ValueError("timeframe labels must be non-empty strings")
+        _, metrics = run_backtest(
+            prices,
+            signals,
+            initial_capital=initial_capital,
+            cost_bps=cost_bps,
+            cost_model=cost_model,
+        )
+        labels.append(timeframe)
+        rows.append(
+            {
+                "total_return": metrics.total_return,
+                "cagr": metrics.cagr,
+                "max_drawdown": metrics.max_drawdown,
+                "buy_hold_return": metrics.buy_hold_return,
+                "trade_count": metrics.trade_count,
+                "win_rate": metrics.win_rate,
+                "profit_factor": metrics.profit_factor,
+                "volatility": metrics.volatility,
+                "sharpe_ratio": metrics.sharpe_ratio,
+                "sortino_ratio": metrics.sortino_ratio,
+                "calmar_ratio": metrics.calmar_ratio,
+            }
+        )
+
+    return pd.DataFrame(rows, index=pd.Index(labels, name="timeframe"))
