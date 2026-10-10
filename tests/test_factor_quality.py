@@ -12,7 +12,7 @@ def test_factor_quality_summarizes_daily_spearman_ic_by_horizon():
         columns=list("ABCD"),
     )
     returns = pd.DataFrame(
-        [[0.01, 0.02, 0.03, 0.04], [0.04, 0.03, 0.02, 0.01], [0.01, 0.02, 0.03, 0.04]],
+        [[0.01, 0.02, 0.03, 0.04], [0.01, 0.02, 0.03, 0.04], [0.01, 0.02, 0.03, 0.04]],
         index=[1, 2, 3],
         columns=list("ABCD"),
     )
