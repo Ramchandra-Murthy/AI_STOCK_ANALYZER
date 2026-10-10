@@ -68,5 +68,5 @@ def test_close_stop_treats_near_zero_signal_as_flat() -> None:
 
     assert protected.iloc[2] == 0.0
     assert protected.iloc[3] == 0.0
-    assert protected.iloc[4] == pytest.approx(1e-15)
+    assert protected.iloc[4] == 0.0
     assert protected.iloc[5] == 1.0
