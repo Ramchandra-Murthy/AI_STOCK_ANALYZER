@@ -201,3 +201,12 @@ def test_refit_full_uses_all_labelled_observations_after_validation() -> None:
 
     assert fit_sizes[0] < len(features)
     assert fit_sizes[-1] == len(features)
+
+
+@pytest.mark.parametrize("invalid_close", [0.0, -1.0, float("nan"), float("inf"), float("-inf")])
+def test_predict_latest_rejects_invalid_latest_close(invalid_close: float) -> None:
+    frame = _market_frame()
+    frame.loc[frame.index[-1], "Close"] = invalid_close
+
+    with pytest.raises(ValueError, match="latest close price must be finite and positive"):
+        predict_latest(LogisticRegression(), frame)
