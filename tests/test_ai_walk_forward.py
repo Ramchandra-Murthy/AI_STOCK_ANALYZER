@@ -130,6 +130,7 @@ def test_close_only_backtest_delays_entry_until_next_bar() -> None:
     assert first_trade["entry_price"] == frame["Close"].iloc[101]
     assert first_trade["exit_index"] == frame.index[106]
 
+
 def test_backtest_rejects_infinite_execution_prices() -> None:
     frame = _market_frame()
     frame.loc[:, "Open"] = float("inf")
@@ -150,4 +151,3 @@ def test_backtest_rejects_infinite_execution_prices() -> None:
                 threshold=0.0,
                 initial_train=100,
             )
-
