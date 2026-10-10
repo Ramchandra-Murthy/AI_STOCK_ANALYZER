@@ -34,10 +34,12 @@ def walk_forward_backtest(
     """Run an expanding-window, non-overlapping ML backtest.
 
     Each model is trained only on observations whose future labels are already
-    known before the prediction date. Each prediction holds for horizon bars,
-    avoiding overlapping test trades. The chronological validation holdout is
-    scored first, then the model is refit on all labelled observations that
-    were available before the decision timestamp.
+    known before the prediction date. Predictions use data available through
+    the decision bar's close, then enter on the next bar (at its open when
+    available). Each trade holds for the configured horizon without overlap.
+    The chronological validation holdout is scored first, then the model is
+    refit on all labelled observations that were available before the decision
+    timestamp.
     """
     if horizon < 1:
         raise ValueError("horizon must be at least 1")
@@ -53,11 +55,16 @@ def walk_forward_backtest(
         raise ValueError("transaction_cost_bps must be non-negative")
 
     close = pd.to_numeric(frame["Close"], errors="coerce")
+    has_open = "Open" in frame.columns
+    open_prices = pd.to_numeric(frame["Open"], errors="coerce") if has_open else close
+    # With OHLC data, enter at the next bar's open and exit at the close
+    # horizon bars after the decision bar. For close-only data, delay entry
+    # until the next close and extend the exit by one bar to preserve holding
+    # duration without pretending the decision-bar close was executable.
+    exit_offset = horizon if has_open else horizon + 1
     rows: list[dict[str, object]] = []
 
-    for prediction_index in range(initial_train, len(frame) - horizon, horizon):
-        # Keep the prediction row out of training, but include it in the
-        # feature frame so predict_latest() scores the actual entry timestamp.
+    for prediction_index in range(initial_train, len(frame) - exit_offset, horizon):
         train_frame = frame.iloc[:prediction_index].copy()
         prediction_frame = frame.iloc[: prediction_index + 1].copy()
         try:
@@ -83,16 +90,27 @@ def walk_forward_backtest(
             signal = "FLAT"
             direction = 0.0
 
-        entry = float(close.iloc[prediction_index])
-        exit_price = float(close.iloc[prediction_index + horizon])
+        entry_index = prediction_index + 1
+        exit_index = prediction_index + exit_offset
+        entry = float(open_prices.iloc[entry_index] if has_open else close.iloc[entry_index])
+        exit_price = float(close.iloc[exit_index])
+        if (
+            pd.isna(entry)
+            or pd.isna(exit_price)
+            or entry <= 0.0
+            or exit_price <= 0.0
+        ):
+            continue
+
         gross_return = direction * (exit_price / entry - 1.0) if direction else 0.0
         cost = (2.0 * transaction_cost_bps) / 10000.0 if direction else 0.0
         net_return = gross_return - cost
 
         rows.append(
             {
-                "entry_index": frame.index[prediction_index],
-                "exit_index": frame.index[prediction_index + horizon],
+                "decision_index": frame.index[prediction_index],
+                "entry_index": frame.index[entry_index],
+                "exit_index": frame.index[exit_index],
                 "signal": signal,
                 "probability_up": probability,
                 "entry_price": entry,
