@@ -16,6 +16,8 @@ def _clean_pair(
 ) -> tuple[pd.Series, pd.Series]:
     frame = pd.concat([dependent, independent], axis=1)
     frame = frame.apply(pd.to_numeric, errors="coerce").dropna()
+    finite_rows = np.isfinite(frame.to_numpy(dtype=float)).all(axis=1)
+    frame = frame.loc[finite_rows]
     if len(frame) < 4:
         raise ValueError("at least 4 aligned observations are required")
     return frame.iloc[:, 0].astype(float), frame.iloc[:, 1].astype(float)
@@ -71,6 +73,8 @@ def johansen_diagnostic(
         raise ValueError("lags must be non-negative")
 
     frame = prices.apply(pd.to_numeric, errors="coerce").dropna()
+    finite_rows = np.isfinite(frame.to_numpy(dtype=float)).all(axis=1)
+    frame = frame.loc[finite_rows]
     if frame.shape[0] <= lags + 2:
         raise ValueError("not enough observations for the requested lags")
     if frame.shape[1] < 2:
