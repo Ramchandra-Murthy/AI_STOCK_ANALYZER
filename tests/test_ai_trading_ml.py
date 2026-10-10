@@ -30,6 +30,23 @@ def test_training_dataset_uses_future_label_without_feature_leakage() -> None:
     assert "target" not in features.columns
 
 
+@pytest.mark.parametrize(
+    ("index", "message"),
+    [
+        ([1, 0, 2], "market data must be ordered chronologically by index"),
+        ([0, 1, 1], "market data index must be unique"),
+    ],
+)
+def test_training_dataset_rejects_non_chronological_or_duplicate_index(
+    index: list[int], message: str
+) -> None:
+    frame = _market_frame(3)
+    frame.index = index
+
+    with pytest.raises(ValueError, match=message):
+        make_training_dataset(frame, horizon=1, threshold=0.0)
+
+
 def test_training_dataset_excludes_invalid_close_prices() -> None:
     frame = pd.DataFrame(
         {
