@@ -70,3 +70,34 @@ def test_time_series_momentum_validates_periods(
             lookbacks=lookbacks,
             holding_periods=holding_periods,
         )
+
+
+@pytest.mark.parametrize("bad_value", [float("inf"), float("-inf"), float("nan")])
+def test_time_series_momentum_excludes_non_finite_returns(
+    momentum_returns: pd.Series,
+    bad_value: float,
+) -> None:
+    contaminated = pd.concat([momentum_returns, pd.Series([bad_value])], ignore_index=True)
+    clean_report = time_series_momentum_diagnostics(
+        momentum_returns,
+        lookbacks=(5,),
+        holding_periods=(1,),
+    )
+    contaminated_report = time_series_momentum_diagnostics(
+        contaminated,
+        lookbacks=(5,),
+        holding_periods=(1,),
+    )
+
+    pd.testing.assert_frame_equal(contaminated_report, clean_report)
+
+
+@pytest.mark.parametrize("bad_value", [-1.0, -1.1])
+def test_time_series_momentum_rejects_returns_at_or_below_minus_one(
+    momentum_returns: pd.Series,
+    bad_value: float,
+) -> None:
+    contaminated = pd.concat([momentum_returns, pd.Series([bad_value])], ignore_index=True)
+
+    with pytest.raises(ValueError, match="greater than -1.0"):
+        time_series_momentum_diagnostics(contaminated, lookbacks=(5,), holding_periods=(1,))
