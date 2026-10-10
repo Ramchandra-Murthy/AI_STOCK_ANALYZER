@@ -43,10 +43,7 @@ def _make_raw_sequences(
 
     values = features[FEATURE_COLUMNS].to_numpy(dtype=float)
     x = np.asarray(
-        [
-            values[i - sequence_length + 1 : i + 1]
-            for i in range(sequence_length - 1, len(values))
-        ],
+        [values[i - sequence_length + 1 : i + 1] for i in range(sequence_length - 1, len(values))],
         dtype=float,
     )
     positions = frame.index.get_indexer(features.index)
