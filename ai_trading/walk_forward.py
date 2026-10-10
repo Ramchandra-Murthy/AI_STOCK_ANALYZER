@@ -95,7 +95,7 @@ def walk_forward_backtest(
         exit_index = prediction_index + exit_offset
         entry = float(open_prices.iloc[entry_index] if has_open else close.iloc[entry_index])
         exit_price = float(close.iloc[exit_index])
-        if not math.isfinite(entry) or not math.isfinite(exit_price) or entry <= 0.0 or exit_price <= 0.0:
+        if not all(math.isfinite(price) and price > 0.0 for price in (entry, exit_price)):
             continue
 
         gross_return = direction * (exit_price / entry - 1.0) if direction else 0.0
