@@ -228,6 +228,7 @@ def test_predict_latest_rejects_non_chronological_or_duplicate_index(
     with pytest.raises(ValueError, match=message):
         predict_latest(LogisticRegression(), frame)
 
+
 def test_training_dataset_excludes_non_finite_future_returns() -> None:
     frame = pd.DataFrame(
         {
