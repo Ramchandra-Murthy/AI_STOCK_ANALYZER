@@ -67,6 +67,22 @@ def test_model_trains_with_chronological_validation() -> None:
     assert 0.0 <= float(prediction["confidence"]) <= 1.0
 
 
+def test_validation_purges_training_labels_that_overlap_holdout() -> None:
+    frame = _market_frame()
+    horizon = 5
+    features, _ = make_training_dataset(frame, horizon=horizon, threshold=0.01)
+    split = int(len(features) * 0.8)
+    positions = frame.index.get_indexer(features.index)
+    validation_start = positions[split]
+    expected_train_samples = int((positions[:split] + horizon < validation_start).sum())
+
+    _, validation = train_model(frame, horizon=horizon, threshold=0.01)
+
+    assert validation.train_samples == expected_train_samples
+    assert validation.test_samples == len(features) - split
+    assert validation.train_samples < split
+
+
 def test_refit_full_uses_all_labelled_observations_after_validation() -> None:
     frame = _market_frame()
     features, _ = make_training_dataset(frame, horizon=5, threshold=0.0)
