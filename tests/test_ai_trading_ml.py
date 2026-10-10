@@ -47,6 +47,35 @@ def test_training_dataset_rejects_non_chronological_or_duplicate_index(
         make_training_dataset(frame, horizon=1, threshold=0.0)
 
 
+def test_training_dataset_excludes_non_finite_feature_rows() -> None:
+    frame = pd.DataFrame(
+        {
+            "Close": [100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0],
+            "Volume": [1_000_000] * 7,
+        }
+    )
+    feature_frame = pd.DataFrame(
+        1.0,
+        index=frame.index,
+        columns=[
+            "return_1",
+            "return_5",
+            "return_20",
+            "ema_gap",
+            "volatility_20",
+            "volume_ratio",
+        ],
+    )
+    feature_frame.iloc[2, 0] = float("inf")
+    feature_frame.iloc[4, 1] = float("-inf")
+
+    with patch("ai_trading.ml_model.build_features", return_value=feature_frame):
+        features, labels = make_training_dataset(frame, horizon=1, threshold=0.0)
+
+    assert features.index.tolist() == [0, 1, 3, 5]
+    assert labels.index.tolist() == [0, 1, 3, 5]
+
+
 def test_training_dataset_excludes_invalid_close_prices() -> None:
     frame = pd.DataFrame(
         {
