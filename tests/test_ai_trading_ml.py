@@ -30,6 +30,33 @@ def test_training_dataset_uses_future_label_without_feature_leakage() -> None:
     assert "target" not in features.columns
 
 
+def test_training_dataset_excludes_invalid_close_prices() -> None:
+    frame = pd.DataFrame(
+        {
+            "Close": [100.0, 101.0, 0.0, 103.0, float("inf"), 105.0, 106.0],
+            "Volume": [1_000_000] * 7,
+        }
+    )
+    feature_frame = pd.DataFrame(
+        1.0,
+        index=frame.index,
+        columns=[
+            "return_1",
+            "return_5",
+            "return_20",
+            "ema_gap",
+            "volatility_20",
+            "volume_ratio",
+        ],
+    )
+
+    with patch("ai_trading.ml_model.build_features", return_value=feature_frame):
+        features, labels = make_training_dataset(frame, horizon=1, threshold=0.0)
+
+    assert features.index.tolist() == [0, 5]
+    assert labels.index.tolist() == [0, 5]
+
+
 @pytest.mark.parametrize("threshold", [float("nan"), float("inf"), float("-inf"), -0.01])
 def test_training_dataset_rejects_invalid_thresholds(threshold: float) -> None:
     with pytest.raises(ValueError, match="threshold must be finite and non-negative"):
