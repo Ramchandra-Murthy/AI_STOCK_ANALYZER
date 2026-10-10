@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
+import pytest
 
 import ai_trading.walk_forward as walk_forward_module
 from ai_trading.walk_forward import walk_forward_backtest
@@ -142,8 +143,6 @@ def test_backtest_rejects_infinite_execution_prices() -> None:
             return_value={"probability_up": 0.6, "confidence": 0.2, "signal": "LONG"},
         ),
     ):
-        import pytest
-
         with pytest.raises(ValueError, match="no valid walk-forward trades"):
             walk_forward_backtest(
                 frame,
