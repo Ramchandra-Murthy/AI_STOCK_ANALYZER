@@ -28,9 +28,7 @@ def test_trade_plan_calculates_reward_risk_ratio():
         ("SHORT", 90.0, 105.0, 2.0),
     ],
 )
-def test_trade_plan_supports_long_and_short(
-    direction, target, stop, expected_ratio
-):
+def test_trade_plan_supports_long_and_short(direction, target, stop, expected_ratio):
     result = validate_trade_plan(
         current_price=100.0,
         target_price=target,
@@ -60,7 +58,11 @@ def test_trade_plan_rejects_wrong_orientation_for_long(target, stop):
 
 @pytest.mark.parametrize(
     ("price", "target", "stop"),
-    [(0.0, 110.0, 95.0), (100.0, float("nan"), 95.0), (100.0, 110.0, float("inf"))],
+    [
+        (0.0, 110.0, 95.0),
+        (100.0, float("nan"), 95.0),
+        (100.0, 110.0, float("inf")),
+    ],
 )
 def test_trade_plan_rejects_invalid_prices(price, target, stop):
     with pytest.raises(ValueError):
