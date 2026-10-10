@@ -10,6 +10,7 @@ import pandas as pd
 
 def _clean_series(values: pd.Series) -> pd.Series:
     clean = pd.to_numeric(values, errors="coerce").dropna()
+    clean = clean[np.isfinite(clean.to_numpy(dtype=float))]
     if len(clean) < 3:
         raise ValueError("at least 3 observations are required")
     return clean.astype(float)
@@ -76,6 +77,8 @@ def hurst_exponent(
         raise ValueError("min_lag must be at least 2")
 
     clean = _clean_series(values)
+    if (clean <= 0.0).any():
+        raise ValueError("values must be strictly positive for log-price scaling")
     log_values = np.log(clean.to_numpy())
     available_max = max(min(len(log_values) // 2, 100), min_lag)
     selected_max = available_max if max_lag is None else min(max_lag, available_max)
@@ -110,6 +113,8 @@ def variance_ratio(
         raise ValueError("lag must be at least 2")
 
     clean = _clean_series(values)
+    if (clean <= 0.0).any():
+        raise ValueError("values must be strictly positive for log returns")
     log_values = np.log(clean.to_numpy())
     one_step = np.diff(log_values)
     lagged = log_values[lag:] - log_values[:-lag]
