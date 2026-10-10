@@ -141,6 +141,12 @@ def train_model(
 
 def predict_latest(model: Pipeline, frame: pd.DataFrame) -> dict[str, float | str]:
     """Return the latest model probability and directional classification."""
+    if frame.empty:
+        raise ValueError("market history must not be empty")
+    latest_close = pd.to_numeric(frame["Close"].iloc[-1], errors="coerce")
+    if not math.isfinite(float(latest_close)) or latest_close <= 0.0:
+        raise ValueError("latest close price must be finite and positive")
+
     features = build_features(frame)[FEATURE_COLUMNS]
     if features.empty:
         raise ValueError("not enough market history for a prediction")
