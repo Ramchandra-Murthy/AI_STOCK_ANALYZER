@@ -62,6 +62,18 @@ def test_backtest_respects_transaction_costs() -> None:
     assert costly_result.final_equity <= free_result.final_equity
 
 
+@pytest.mark.parametrize("cost_bps", [float("nan"), float("inf"), float("-inf")])
+def test_backtest_rejects_non_finite_transaction_costs(cost_bps: float) -> None:
+    with pytest.raises(ValueError, match="transaction_cost_bps must be finite"):
+        walk_forward_backtest(
+            _market_frame(),
+            horizon=5,
+            threshold=0.0,
+            initial_train=100,
+            transaction_cost_bps=cost_bps,
+        )
+
+
 def test_prediction_uses_next_bar_open_for_execution_without_training_leakage() -> None:
     frame = _market_frame()
     training_lengths: list[int] = []
