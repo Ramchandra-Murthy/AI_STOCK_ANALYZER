@@ -1,4 +1,4 @@
-""""Leakage-safe machine-learning model for AI trading intelligence."""
+"""Leakage-safe machine-learning model for AI trading intelligence."""
 
 from __future__ import annotations
 
