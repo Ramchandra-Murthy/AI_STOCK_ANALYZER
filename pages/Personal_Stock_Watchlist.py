@@ -64,11 +64,27 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
             else:
                 price_display = f"→ ₹{last:,.2f}"
                 trend = "Flat/unknown"
+
+            target = float(record.get("target_price") or 0)
+            stop_loss = float(record.get("stop_loss") or 0)
+            entry = float(record.get("entry_price") or 0)
+            if target > 0 and last >= target:
+                alert = f"🎯 TARGET ACHIEVED — ₹{last:,.2f} reached target ₹{target:,.2f}"
+            elif stop_loss > 0 and last <= stop_loss:
+                alert = f"🚨 STOP-LOSS BREACHED — ₹{last:,.2f} is at/below ₹{stop_loss:,.2f}"
+            elif entry > 0 and last < entry:
+                alert = f"⚠️ LOSING — ₹{last:,.2f} is below entry ₹{entry:,.2f}"
+            elif trend == "Down":
+                alert = "⚠️ PRICE FALLING today"
+            else:
+                alert = "No target/loss alert"
+
             rows.append(
                 {
                     "Symbol": symbol,
                     "Current price": price_display,
                     "Price trend": trend,
+                    "Alert": alert,
                     "Change today (₹)": round(change, 2) if change is not None else None,
                     "Change today (%)": round(change_pct, 2) if change_pct is not None else None,
                     "Volume": int(volume.iloc[-1]) if len(volume) else None,
@@ -79,7 +95,9 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
             rows.append(
                 {
                     "Symbol": symbol,
-                    "Latest price (₹)": None,
+                    "Current price": "Unavailable",
+                    "Price trend": "Unknown",
+                    "Alert": "Price unavailable — cannot check target or loss",
                     "Change today (₹)": None,
                     "Change today (%)": None,
                     "Volume": None,
