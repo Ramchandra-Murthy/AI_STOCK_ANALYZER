@@ -7,7 +7,9 @@ alter table public.stock_watchlist
     add column if not exists investment_type text not null default 'Other',
     add column if not exists purchase_date date,
     add column if not exists status text not null default 'Watching',
-    add column if not exists position integer not null default 0;
+    add column if not exists position integer not null default 0,
+    add column if not exists asset_category text not null default 'Stocks / F&O',
+    add column if not exists asset_details jsonb not null default '{}'::jsonb;
 
 -- One shared list: each symbol can appear only once.
 create unique index if not exists stock_watchlist_symbol_unique
