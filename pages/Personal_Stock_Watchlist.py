@@ -378,35 +378,90 @@ def show() -> None:
             st.error(f"Could not load saved watchlist: {exc}")
             return
 
-        # Show saved investment details directly on the page; the edit form below is supplementary.
-        st.subheader("Portfolio summary")
-        summary_cols = st.columns(4)
-        invested_total = sum(
-            float(item.get("entry_price") or 0) * int(item.get("quantity") or 0)
-            for item in records
+        # Join saved diary entries with available provider quotes so the key
+        # portfolio figures are visible without opening the edit expander.
+        quote_frame = _quote_table(records, "NSE") if records else pd.DataFrame()
+        quote_by_symbol = (
+            {str(row["Symbol"]): row for _, row in quote_frame.iterrows()}
+            if not quote_frame.empty and "Symbol" in quote_frame
+            else {}
         )
-        summary_cols[0].metric("Saved positions", len(records))
-        summary_cols[1].metric("Invested amount", f"₹{invested_total:,.2f}")
-        summary_cols[2].metric("Targets set", sum(float(item.get("target_price") or 0) > 0 for item in records))
-        summary_cols[3].metric("Stop-losses set", sum(float(item.get("stop_loss") or 0) > 0 for item in records))
 
-        st.subheader("Saved investment diary")
+        def numeric_quote(value: Any) -> float | None:
+            if value is None or pd.isna(value):
+                return None
+            match = __import__("re").search(r"[-+]?\\d[\\d,]*(?:\\.\\d+)?", str(value))
+            if not match:
+                return None
+            try:
+                return float(match.group(0).replace(",", ""))
+            except ValueError:
+                return None
+
         diary_rows = []
+        invested_total = 0.0
+        current_value_total = 0.0
+        known_value_positions = 0
+        unrealized_pnl_total = 0.0
         for item in records:
+            symbol = str(item.get("symbol", "—"))
             entry_value = float(item.get("entry_price") or 0)
             quantity_value = int(item.get("quantity") or 0)
+            invested = entry_value * quantity_value if entry_value and quantity_value else None
+            quote = quote_by_symbol.get(symbol, {})
+            current_price = numeric_quote(quote.get("Current price"))
+            current_value = current_price * quantity_value if current_price is not None and quantity_value else None
+            pnl = current_value - invested if current_value is not None and invested is not None else None
+            pnl_pct = (pnl / invested * 100) if pnl is not None and invested else None
+            invested_total += invested or 0.0
+            if current_value is not None:
+                current_value_total += current_value
+                known_value_positions += 1
+            if pnl is not None:
+                unrealized_pnl_total += pnl
             diary_rows.append({
-                "Symbol": item.get("symbol", "—"),
+                "Symbol": symbol,
                 "Investment type": item.get("investment_type") or "Other",
                 "Status": item.get("status") or "Watching",
                 "Purchase date": str(item.get("purchase_date") or "—"),
                 "Quantity": quantity_value,
                 "Entry (₹)": entry_value if entry_value else None,
+                "Current price": f"₹{current_price:,.2f}" if current_price is not None else "Unavailable",
                 "Target (₹)": float(item.get("target_price") or 0) or None,
                 "Stop-loss (₹)": float(item.get("stop_loss") or 0) or None,
-                "Invested (₹)": entry_value * quantity_value if entry_value and quantity_value else None,
+                "Invested (₹)": invested,
+                "Current value (₹)": current_value,
+                "P/L (₹)": pnl,
+                "P/L (%)": pnl_pct,
+                "Price data": quote.get("Data", "Unavailable"),
+                "Alert": quote.get("Alert", "Price unavailable — cannot check target or loss"),
                 "Notes": item.get("notes") or "—",
             })
+
+        st.subheader("Portfolio summary")
+        summary_cols = st.columns(4)
+        summary_cols[0].metric("Saved positions", len(records))
+        summary_cols[1].metric("Invested amount", f"₹{invested_total:,.2f}")
+        summary_cols[2].metric(
+            "Current value",
+            f"₹{current_value_total:,.2f}" if known_value_positions else "Unavailable",
+            help=f"Provider prices available for {known_value_positions} of {len(records)} positions.",
+        )
+        summary_cols[3].metric(
+            "Unrealized P/L",
+            f"₹{unrealized_pnl_total:,.2f}" if known_value_positions else "Unavailable",
+            help="Calculated only for positions with both entry price, quantity, and an available quote.",
+        )
+        target_cols = st.columns(3)
+        target_cols[0].metric("Targets set", sum(float(item.get("target_price") or 0) > 0 for item in records))
+        target_cols[1].metric("Stop-losses set", sum(float(item.get("stop_loss") or 0) > 0 for item in records))
+        target_cols[2].metric("Positions with unavailable quotes", len(records) - known_value_positions)
+
+        st.subheader("Saved investment diary — full details")
+        st.caption(
+            "Current values and P/L are estimates from available Yahoo Finance observations, "
+            "which may be delayed. Unavailable quotes are never treated as zero."
+        )
         st.dataframe(pd.DataFrame(diary_rows), use_container_width=True, hide_index=True)
 
         filter_mode = st.radio("Filter", ["All", "Gainers", "Losers"], horizontal=True)
