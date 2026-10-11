@@ -10,6 +10,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.watchlist_service import (
     OWNER_ID,
     WatchlistError,
@@ -18,7 +19,6 @@ from services.watchlist_service import (
     remove_symbol,
     update_stock_details,
 )
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.watchlist_ui import get_or_create_default_watchlist
 
 EXCHANGES = {"NSE": ".NS", "BSE": ".BO"}
