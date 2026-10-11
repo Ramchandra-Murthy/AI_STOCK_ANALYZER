@@ -1,9 +1,6 @@
 import pandas as pd
 import streamlit as st
 
-from services.watchlist_service import WatchlistError, add_symbol, remove_symbol
-from services.watchlist_ui import get_or_create_default_watchlist
-
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_service import (
     WATCHLIST,
@@ -12,6 +9,8 @@ from services.market_service import (
     get_market_indices,
     scan_market_universe,
 )
+from services.watchlist_service import WatchlistError, add_symbol, remove_symbol
+from services.watchlist_ui import get_or_create_default_watchlist
 
 SECTOR_STOCKS = {
     "Financials": ["HDFCBANK", "ICICIBANK", "SBIN"],
