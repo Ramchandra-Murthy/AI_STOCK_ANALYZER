@@ -98,7 +98,7 @@ def _connect() -> sqlite3.Connection:
         "purchase_date": "TEXT",
         "notes": "TEXT NOT NULL DEFAULT ''",
         "status": "TEXT NOT NULL DEFAULT 'Watching'",
-        "updated_at": "TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP",
+        "updated_at": "TEXT",
     }
     for name, definition in migrations.items():
         if name not in columns:
