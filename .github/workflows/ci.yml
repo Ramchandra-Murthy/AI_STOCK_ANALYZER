@@ -51,9 +51,7 @@ jobs:
         tests/test_market_data_boundary.py
         tests/test_backtester.py
         tests/test_walk_forward_validation.py
-        tests/test_watchlist_service.py
-        tests/test_watchlist_identity.py
-        tests/test_watchlist_ui.py
+        tests/test_watchlist_*.py
         tests/forecast
     - name: Build production Docker image
       run: docker build --pull -t ai-stock-analyzer:ci .
