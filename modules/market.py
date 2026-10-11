@@ -236,10 +236,8 @@ def show():
 
     live = get_personal_watchlist([record["symbol"] for record in records])
     saved = pd.DataFrame(records)
-    combined = saved.merge(live, on="Symbol", how="left") if "Symbol" in saved.columns else live
-    if "symbol" in saved.columns:
-        saved = saved.rename(columns={"symbol": "Symbol"})
-        combined = saved.merge(live, on="Symbol", how="left", suffixes=("_saved", "_market"))
+    saved = saved.rename(columns={"symbol": "Symbol"})
+    combined = saved.merge(live, on="Symbol", how="left", suffixes=("_saved", "_market"))
     display_columns = [
         "Symbol", "Name", "Exchange", "Price", "Change %", "entry_price",
         "stop_loss", "target_price", "quantity", "investment_type", "purchase_date",
