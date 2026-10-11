@@ -9,6 +9,7 @@ from services.market_service import (
     get_market_indices,
     scan_market_universe,
 )
+from services.watchlist_auth_ui import render_watchlist_sign_in
 from services.watchlist_service import WatchlistError, add_symbol, remove_symbol
 from services.watchlist_ui import get_or_create_default_watchlist
 
@@ -177,7 +178,10 @@ def show():
             st.user, DEFAULT_WATCHLIST.copy()
         )
     except (AttributeError, WatchlistError, PermissionError) as exc:
-        st.warning(str(exc) or "Sign in to access your personal watchlist.")
+        render_watchlist_sign_in(
+            str(exc) or "Sign in to access your personal watchlist.",
+            key="market_watchlist_sign_in",
+        )
         return
 
     with st.form("add_personal_watchlist_symbol"):
