@@ -436,12 +436,6 @@ def show() -> None:
             horizontal=True,
             key="personal_watchlist_instrument",
         )
-        if selected_type != "Stock":
-            st.info(
-                f"{selected_type} entries need contract-specific fields (expiry, strike and lot size). "
-                "For safety, add only cash-equity symbols here until that support is implemented."
-            )
-
         with st.expander("ADD", expanded=True):
             # Keep the symbol input outside the form so Streamlit updates its
             # session state immediately while the user types. Form widgets do not
@@ -465,6 +459,26 @@ def show() -> None:
                 col7, col8 = st.columns(2)
                 quantity = col7.number_input("Quantity", min_value=0, value=0, step=1)
                 purchase_date = col8.date_input("Purchase date", value=date.today())
+                contract_details: dict[str, Any] = {"instrument_type": selected_type}
+                if selected_type in {"Futures", "Options"}:
+                    contract_col1, contract_col2 = st.columns(2)
+                    contract_details["expiry_date"] = contract_col1.date_input(
+                        "Contract expiry", value=date.today(), key="fno_expiry"
+                    ).isoformat()
+                    contract_details["lot_size"] = contract_col2.number_input(
+                        "Lot size", min_value=1, value=1, step=1, key="fno_lot_size"
+                    )
+                    if selected_type == "Options":
+                        contract_col3, contract_col4 = st.columns(2)
+                        contract_details["strike_price"] = contract_col3.number_input(
+                            "Strike price", min_value=0.0, value=0.0, key="fno_strike"
+                        )
+                        contract_details["option_type"] = contract_col4.selectbox(
+                            "Option type", ["CE", "PE"], key="fno_option_type"
+                        )
+                    contract_details["current_price_manual"] = st.number_input(
+                        "Contract premium / price (manual ₹)", min_value=0.0, value=0.0, key="fno_current_price"
+                    )
                 notes = st.text_input("Notes")
                 submitted = st.form_submit_button("＋ Add to watchlist", use_container_width=True)
 
@@ -479,6 +493,17 @@ def show() -> None:
                 else:
                     if not normalized.endswith((".NS", ".BO")):
                         normalized += EXCHANGES[exchange]
+                    if selected_type in {"Futures", "Options"}:
+                        expiry_key = str(contract_details.get("expiry_date", "")).replace("-", "")
+                        underlying = normalized.removesuffix(".NS").removesuffix(".BO")
+                        if selected_type == "Futures":
+                            normalized = f"FUT-{underlying}-{expiry_key}"
+                        else:
+                            strike = float(contract_details.get("strike_price") or 0)
+                            if strike <= 0:
+                                st.error("Enter a valid strike price for an option contract.")
+                                st.stop()
+                            normalized = f"OPT-{underlying}-{expiry_key}-{int(strike)}-{contract_details.get('option_type', 'CE')}"
                     details = {
                         "investment_type": investment_type,
                         "entry_price": entry_price or None,
@@ -488,6 +513,8 @@ def show() -> None:
                         "purchase_date": purchase_date.isoformat(),
                         "notes": notes.strip(),
                         "status": "Watching",
+                        "asset_category": "Stocks / F&O",
+                        "asset_details": contract_details,
                     }
                     try:
                         added = add_symbol(OWNER_ID, watchlist_id, normalized, details)
