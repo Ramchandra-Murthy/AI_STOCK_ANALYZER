@@ -266,6 +266,132 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     ].reset_index(drop=True)
 
 
+def _render_manual_asset_category(category_name: str, prefix: str) -> None:
+    """Track mutual funds, commodities and currencies with transparent manual quotes."""
+    try:
+        _, watchlist_id, _ = get_or_create_default_watchlist()
+        all_records = list_stock_records(OWNER_ID, watchlist_id)
+    except WatchlistError as exc:
+        st.error(f"Investment storage unavailable: {exc}")
+        return
+    records = [r for r in all_records if r.get("asset_category") == category_name]
+    st.subheader(f"{category_name} portfolio")
+    with st.expander("Add investment", expanded=True):
+        with st.form(f"add_asset_{prefix}", clear_on_submit=True):
+            name = st.text_input("Instrument / fund / currency pair", key=f"{prefix}_name")
+            c1, c2, c3 = st.columns(3)
+            entry = c1.number_input("Entry price / NAV / rate (₹)", min_value=0.0, value=0.0, key=f"{prefix}_entry")
+            current = c2.number_input("Current price / NAV / rate (₹)", min_value=0.0, value=0.0, key=f"{prefix}_current")
+            quantity = c3.number_input("Units / quantity", min_value=0.0, value=0.0, key=f"{prefix}_quantity")
+            c4, c5, c6 = st.columns(3)
+            target = c4.number_input("Target (₹)", min_value=0.0, value=0.0, key=f"{prefix}_target")
+            stop = c5.number_input("Stop-loss (₹)", min_value=0.0, value=0.0, key=f"{prefix}_stop")
+            bought = c6.date_input("Purchase date", value=date.today(), key=f"{prefix}_date")
+            extra: dict[str, Any] = {}
+            if prefix == "MF":
+                extra["scheme_details"] = st.text_input("Scheme / plan", key="mf_scheme_details")
+            elif prefix == "CMD":
+                cc1, cc2 = st.columns(2)
+                extra["exchange"] = cc1.selectbox("Exchange", ["MCX", "NCDEX", "Other"], key="cmd_exchange")
+                extra["expiry"] = cc2.date_input("Contract expiry", value=date.today(), key="cmd_expiry").isoformat()
+                extra["contract_size"] = st.text_input("Contract / lot size", key="cmd_contract_size")
+            else:
+                cc1, cc2 = st.columns(2)
+                extra["currency_pair"] = cc1.text_input("Currency pair", key="fx_pair")
+                extra["exchange"] = cc2.selectbox("Market", ["NSE", "BSE", "Other"], key="fx_exchange")
+            notes = st.text_area("Notes", key=f"{prefix}_notes")
+            submit = st.form_submit_button("Save investment", use_container_width=True)
+        if submit:
+            clean_name = name.strip()
+            if not clean_name:
+                st.error("Enter the instrument name.")
+            elif quantity <= 0:
+                st.error("Units / quantity must be greater than zero.")
+            else:
+                slug = re.sub(r"[^A-Z0-9]+", "-", clean_name.upper()).strip("-")[:24]
+                symbol = f"{prefix}-{slug}"
+                try:
+                    added = add_symbol(OWNER_ID, watchlist_id, symbol, {
+                        "entry_price": entry or None, "target_price": target or None,
+                        "stop_loss": stop or None, "quantity": max(1, int(quantity)),
+                        "investment_type": "Investment", "purchase_date": bought.isoformat(),
+                        "notes": notes.strip(), "status": "Bought", "asset_category": category_name,
+                        "asset_details": {"instrument_name": clean_name, "current_price_manual": current or None,
+                                          "units_quantity": quantity, **extra},
+                    })
+                    st.success(f"Saved {clean_name}.") if added else st.warning("That instrument is already saved.")
+                    st.rerun()
+                except WatchlistError as exc:
+                    st.error(f"Could not save investment: {exc}")
+    if not records:
+        st.info(f"No {category_name.lower()} saved yet.")
+        return
+    rows = []
+    for record in records:
+        details = record.get("asset_details") or {}
+        units = float(details.get("units_quantity") or record.get("quantity") or 0)
+        entry_price = float(record.get("entry_price") or 0)
+        current_price = details.get("current_price_manual")
+        current_price = float(current_price) if current_price not in (None, "") else None
+        invested = entry_price * units if entry_price and units else None
+        current_value = current_price * units if current_price is not None and units else None
+        rows.append({
+            "Instrument": details.get("instrument_name") or record.get("symbol"),
+            "Purchase date": record.get("purchase_date") or "—", "Units / quantity": units,
+            "Entry (₹)": entry_price or None,
+            "Current price / NAV / rate (manual)": current_price,
+            "Invested (₹)": invested, "Current value (₹)": current_value,
+            "P/L (₹)": current_value - invested if current_value is not None and invested is not None else None,
+            "Target (₹)": record.get("target_price"), "Stop-loss (₹)": record.get("stop_loss"),
+            "Status": record.get("status"), "Notes": record.get("notes") or "—",
+            "Contract / scheme details": ", ".join(f"{k}: {v}" for k, v in details.items()
+                if k not in {"instrument_name", "current_price_manual", "units_quantity"}),
+        })
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    st.caption("Current NAV/rate/price is manually entered, not live market data. P/L is an estimate.")
+    with st.expander("Edit or delete saved investment"):
+        selected = st.selectbox("Select instrument", [r["symbol"] for r in records], key=f"{prefix}_selected")
+        record = next(r for r in records if r["symbol"] == selected)
+        details = record.get("asset_details") or {}
+        with st.form(f"{prefix}_edit"):
+            edit_entry = st.number_input("Entry price / NAV / rate", min_value=0.0, value=float(record.get("entry_price") or 0), key=f"{prefix}_edit_entry")
+            edit_current = st.number_input("Current price / NAV / rate", min_value=0.0, value=float(details.get("current_price_manual") or 0), key=f"{prefix}_edit_current")
+            edit_units = st.number_input("Units / quantity", min_value=0.0, value=float(details.get("units_quantity") or record.get("quantity") or 0), key=f"{prefix}_edit_units")
+            edit_target = st.number_input("Target", min_value=0.0, value=float(record.get("target_price") or 0), key=f"{prefix}_edit_target")
+            edit_stop = st.number_input("Stop-loss", min_value=0.0, value=float(record.get("stop_loss") or 0), key=f"{prefix}_edit_stop")
+            edit_notes = st.text_area("Notes", value=str(record.get("notes") or ""), key=f"{prefix}_edit_notes")
+            save = st.form_submit_button("Save changes")
+        if save:
+            try:
+                update_stock_details(OWNER_ID, watchlist_id, selected, {
+                    "entry_price": edit_entry or None, "target_price": edit_target or None,
+                    "stop_loss": edit_stop or None, "quantity": max(1, int(edit_units)),
+                    "investment_type": record.get("investment_type") or "Investment",
+                    "purchase_date": record.get("purchase_date"), "notes": edit_notes,
+                    "status": record.get("status") or "Bought", "asset_category": category_name,
+                    "asset_details": {**details, "current_price_manual": edit_current or None, "units_quantity": edit_units},
+                })
+                st.success("Investment updated.")
+                st.rerun()
+            except WatchlistError as exc:
+                st.error(f"Could not update investment: {exc}")
+        if st.button("Request delete", key=f"{prefix}_delete"):
+            st.session_state[f"{prefix}_pending_delete"] = selected
+        if st.session_state.get(f"{prefix}_pending_delete") == selected:
+            st.warning("Confirm deletion? This cannot be undone.")
+            a, b = st.columns(2)
+            if a.button("Confirm delete", key=f"{prefix}_confirm"):
+                try:
+                    remove_symbol(OWNER_ID, watchlist_id, selected)
+                    st.session_state.pop(f"{prefix}_pending_delete", None)
+                    st.rerun()
+                except WatchlistError as exc:
+                    st.error(f"Could not delete: {exc}")
+            if b.button("Cancel", key=f"{prefix}_cancel"):
+                st.session_state.pop(f"{prefix}_pending_delete", None)
+                st.rerun()
+
+
 def show() -> None:
     st.markdown(
         """
@@ -285,11 +411,11 @@ def show() -> None:
 
     category = st.tabs(["Stocks / F&O", "Mutual Funds", "Commodity", "Currency"])
     with category[1]:
-        st.info("Mutual-fund tracking is not connected to this stock-symbol table yet.")
+        _render_manual_asset_category("Mutual Funds", "MF")
     with category[2]:
-        st.info("Commodity tracking is not connected to this stock-symbol table yet.")
+        _render_manual_asset_category("Commodity", "CMD")
     with category[3]:
-        st.info("Currency tracking is not connected to this stock-symbol table yet.")
+        _render_manual_asset_category("Currency", "FX")
 
     with category[0]:
         try:
@@ -374,7 +500,10 @@ def show() -> None:
                         st.error(str(exc))
 
         try:
-            records = list_stock_records(OWNER_ID, watchlist_id)
+            records = [
+                record for record in list_stock_records(OWNER_ID, watchlist_id)
+                if record.get("asset_category", "Stocks / F&O") == "Stocks / F&O"
+            ]
         except WatchlistError as exc:
             st.error(f"Could not load saved watchlist: {exc}")
             return
