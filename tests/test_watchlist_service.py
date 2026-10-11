@@ -76,7 +76,7 @@ def test_duplicate_symbols_and_invalid_values_are_rejected(database_path):
     assert not watchlists.add_symbol("other", watchlist_id, "tcs")
     with pytest.raises(watchlists.WatchlistError, match="valid stock symbol"):
         watchlists.add_symbol("owner", watchlist_id, "BAD SYMBOL")
-    with pytest.raises(watchlists.WatchlistError, match="Stop-loss"):
+    with pytest.raises(watchlists.WatchlistError, match="negative"):
         watchlists.add_symbol("owner", watchlist_id, "INFY", {"stop_loss": -1})
     with pytest.raises(watchlists.WatchlistError, match="Quantity"):
         watchlists.add_symbol("owner", watchlist_id, "INFY", {"quantity": 0})
