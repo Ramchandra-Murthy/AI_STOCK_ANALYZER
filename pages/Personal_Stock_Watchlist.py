@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, time
+from zoneinfo import ZoneInfo
 from typing import Any
 
 import pandas as pd
@@ -24,39 +25,53 @@ STATUSES = ["Watching", "Bought", "Sold", "Avoid"]
 INVESTMENT_TYPES = ["Delivery", "Swing", "Intraday", "Investment", "Options", "Other"]
 
 
+def _market_session_open() -> bool:
+    """Approximate NSE/BSE cash session; exchange holidays are not inferred."""
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    return now.weekday() < 5 and time(9, 15) <= now.time() <= time(15, 30)
+
+
 def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
-    """Fetch recent daily Yahoo Finance observations; never label them as real-time."""
+    """Fetch recent intraday Yahoo observations; provider data may be delayed/unavailable."""
     rows: list[dict[str, Any]] = []
     for record in records:
         symbol = str(record["symbol"])
         ticker = symbol if symbol.endswith((".NS", ".BO")) else symbol + EXCHANGES[exchange]
         try:
-            history = yf.Ticker(ticker).history(period="5d", interval="1d", auto_adjust=False)
-            if history.empty or "Close" not in history:
-                raise ValueError("No recent daily observations")
-            close = pd.to_numeric(history["Close"], errors="coerce").dropna()
-            volume = pd.to_numeric(history["Volume"], errors="coerce").dropna()
+            stock = yf.Ticker(ticker)
+            intraday = stock.history(period="1d", interval="1m", auto_adjust=False)
+            daily = stock.history(period="5d", interval="1d", auto_adjust=False)
+            source = intraday if not intraday.empty and "Close" in intraday else daily
+            if source.empty or "Close" not in source:
+                raise ValueError("No recent price observations")
+            close = pd.to_numeric(source["Close"], errors="coerce").dropna()
+            volume = pd.to_numeric(source["Volume"], errors="coerce").dropna()
             last = float(close.iloc[-1])
-            previous = float(close.iloc[-2]) if len(close) > 1 else None
+            daily_close = (
+                pd.to_numeric(daily["Close"], errors="coerce").dropna()
+                if not daily.empty and "Close" in daily
+                else pd.Series(dtype=float)
+            )
+            previous = float(daily_close.iloc[-2]) if len(daily_close) > 1 else None
             change = last - previous if previous is not None else None
             change_pct = (change / previous * 100) if previous else None
             rows.append(
                 {
                     "Symbol": symbol,
-                    "Latest daily close (₹)": round(last, 2),
-                    "Change (₹)": round(change, 2) if change is not None else None,
-                    "Change (%)": round(change_pct, 2) if change_pct is not None else None,
+                    "Latest price (₹)": round(last, 2),
+                    "Change today (₹)": round(change, 2) if change is not None else None,
+                    "Change today (%)": round(change_pct, 2) if change_pct is not None else None,
                     "Volume": int(volume.iloc[-1]) if len(volume) else None,
-                    "Data": "Daily close",
+                    "Data": "Intraday (provider may delay)" if source is intraday else "Daily close (fallback)",
                 }
             )
         except Exception:
             rows.append(
                 {
                     "Symbol": symbol,
-                    "Latest daily close (₹)": None,
-                    "Change (₹)": None,
-                    "Change (%)": None,
+                    "Latest price (₹)": None,
+                    "Change today (₹)": None,
+                    "Change today (%)": None,
                     "Volume": None,
                     "Data": "Unavailable",
                 }
@@ -177,28 +192,32 @@ def show() -> None:
             st.error(f"Could not load saved watchlist: {exc}")
             return
 
-        left, right = st.columns([3, 1])
-        with left:
-            filter_mode = st.radio("Filter", ["All", "Gainers", "Losers"], horizontal=True)
-        with right:
-            refresh = st.button("↻ Refresh daily data", use_container_width=True)
+        filter_mode = st.radio("Filter", ["All", "Gainers", "Losers"], horizontal=True)
 
         if not records:
             st.info("Your watchlist is empty. Add your first stock above.")
         else:
-            cache_key = "personal_watchlist_quotes"
-            if refresh or cache_key not in st.session_state:
-                st.session_state[cache_key] = _quote_table(records, "NSE")
-            quotes = st.session_state[cache_key]
-            if filter_mode == "Gainers" and "Change (%)" in quotes:
-                quotes = quotes.loc[quotes["Change (%)"] > 0]
-            elif filter_mode == "Losers" and "Change (%)" in quotes:
-                quotes = quotes.loc[quotes["Change (%)"] < 0]
-
             st.caption(
-                "Quote source: Yahoo Finance daily observations; these are not guaranteed real-time prices."
+                "Prices refresh automatically about every 60 seconds during the weekday "
+                "09:15–15:30 IST session. Yahoo Finance data can be delayed or unavailable; "
+                "exchange holidays are not inferred and this is not a guaranteed real-time feed."
             )
-            st.dataframe(quotes, use_container_width=True, hide_index=True)
+
+            @st.fragment(run_every="60s" if _market_session_open() else None)
+            def render_live_quotes() -> None:
+                try:
+                    quotes = _quote_table(records, "NSE")
+                    if filter_mode == "Gainers" and "Change today (%)" in quotes:
+                        quotes = quotes.loc[quotes["Change today (%)"] > 0]
+                    elif filter_mode == "Losers" and "Change today (%)" in quotes:
+                        quotes = quotes.loc[quotes["Change today (%)"] < 0]
+                    st.dataframe(quotes, use_container_width=True, hide_index=True)
+                    now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%H:%M:%S IST")
+                    st.caption(f"Last quote check: {now}")
+                except Exception as exc:
+                    st.warning(f"Price refresh failed; the rest of your watchlist remains available. {exc}")
+
+            render_live_quotes()
 
             with st.expander("Investment diary — edit saved details"):
                 symbols = [str(record["symbol"]) for record in records]
