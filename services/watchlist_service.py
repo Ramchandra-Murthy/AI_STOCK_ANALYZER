@@ -15,6 +15,7 @@ import sqlite3
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -381,7 +382,6 @@ def _sqlite_remove_symbol(user_id: str, watchlist_id: int, symbol: str) -> bool:
 # Supabase REST backend. No third-party SDK is required; this keeps the
 # application's dependency lockfile unchanged. Credentials are read only from
 # server-side Streamlit secrets or environment variables.
-from datetime import datetime, timezone
 
 
 _SUPABASE_WATCHLIST_ID = 1
@@ -602,7 +602,7 @@ def update_stock_details(
         "purchase_date": fields["purchase_date"] or None,
         "notes": fields["notes"],
         "status": fields["status"],
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(UTC).isoformat(),
     }
     query = urllib.parse.urlencode(
         {"symbol": f"eq.{normalized_symbol}", "select": "id"},
