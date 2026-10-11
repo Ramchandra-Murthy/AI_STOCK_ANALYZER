@@ -7,7 +7,9 @@ def test_adapter_creates_seeded_default_list_for_authenticated_user(tmp_path, mo
     monkeypatch.setenv("WATCHLIST_DATABASE_PATH", str(tmp_path / "watchlists.sqlite3"))
     user = {"is_logged_in": True, "iss": "https://identity.example", "sub": "user-1"}
 
-    user_id, watchlist_id, symbols = get_or_create_default_watchlist(user, ["RELIANCE.NS", "TCS.NS"])
+    user_id, watchlist_id, symbols = get_or_create_default_watchlist(
+        user, ["RELIANCE.NS", "TCS.NS"]
+    )
 
     assert user_id == "oidc:https://identity.example:user-1"
     assert symbols == ["RELIANCE.NS", "TCS.NS"]
