@@ -12,6 +12,7 @@ import streamlit as st
 import yfinance as yf
 
 from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 IST = ZoneInfo("Asia/Kolkata")
 BATCH_SIZE = 40
@@ -79,6 +80,7 @@ def _scan_batches(candidates: list[tuple[str, str]], limit_per_exchange: int) ->
     for exchange in ("NSE", "BSE"):
         exchange_items = [item for item in selected if item[1] == exchange]
         tickers = [_ticker(symbol, exchange) for symbol, _ in exchange_items]
+        symbol_by_ticker = {_ticker(symbol, exchange): symbol for symbol, _ in exchange_items}
         for start in range(0, len(tickers), BATCH_SIZE):
             chunk = tickers[start : start + BATCH_SIZE]
             batches += 1
@@ -104,10 +106,7 @@ def _scan_batches(candidates: list[tuple[str, str]], limit_per_exchange: int) ->
                 volume = pd.to_numeric(frame["Volume"], errors="coerce").fillna(0)
                 if len(close) < 7 or float(close.iloc[-1]) <= 0:
                     continue
-                symbol, _ = next(
-                    (candidate for candidate in exchange_items if _ticker(candidate[0], exchange) == ticker),
-                    (ticker.rsplit(".", 1)[0], exchange),
-                )
+                symbol = symbol_by_ticker.get(ticker, ticker.rsplit(".", 1)[0])
                 latest_time = frame.index[-1]
                 try:
                     observed = pd.Timestamp(latest_time)
@@ -193,7 +192,9 @@ def _classify_market_caps(frame: pd.DataFrame) -> pd.DataFrame:
 def _cached_scan(limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int | float | str]]:
     nse = merge_nse_universe()
     bse = merge_bse_universe()
-    candidates = [(symbol, "NSE") for symbol in nse] + [(symbol, "BSE") for symbol in bse]
+    nse_ordered = list(dict.fromkeys(NSE_CANDIDATES + nse))
+    bse_ordered = list(dict.fromkeys(BSE_CANDIDATES + bse))
+    candidates = [(symbol, "NSE") for symbol in nse_ordered] + [(symbol, "BSE") for symbol in bse_ordered]
     frame, stats = _scan_batches(candidates, limit_per_exchange)
     frame = _classify_market_caps(frame)
     stats["market_cap_lookups"] = min(300, len(frame))
@@ -249,16 +250,13 @@ def show() -> None:
         _cached_scan.clear()
         st.rerun()
 
-    if "market_movers_result" not in st.session_state or st.button("Load latest scan", use_container_width=True):
-        with st.spinner("Loading dynamic NSE/BSE universe and scanning intraday candles. Full scans may take several minutes…"):
-            frame, stats = _cached_scan(limit)
-        st.session_state["market_movers_result"] = (frame, stats)
-    else:
-        frame, stats = st.session_state["market_movers_result"]
-        if stats.get("candidate_count") != (0 if limit == 0 else limit * 2):
-            with st.spinner("Applying selected scan coverage…"):
-                frame, stats = _cached_scan(limit)
-            st.session_state["market_movers_result"] = (frame, stats)
+    if "market_movers_result" not in st.session_state:
+        st.info("Choose scan coverage, then click **Scan / refresh market movers** to fetch the latest available candles.")
+        return
+    frame, stats = st.session_state["market_movers_result"]
+    expected_candidates = stats.get("nse_candidates", 0) + stats.get("bse_candidates", 0)
+    if expected_candidates != (0 if limit == 0 else limit * 2):
+        st.info("The selected scan coverage differs from the last result. Click **Scan / refresh market movers** to rescan.")
 
     if frame.empty:
         st.error("No usable intraday quotes were returned. Try again during market hours or reduce scan size.")
