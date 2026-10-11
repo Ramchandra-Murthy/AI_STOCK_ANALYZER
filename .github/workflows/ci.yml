@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'feat/**' ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'feat/**' ]
   workflow_dispatch:
 
 # EROS: canonical CI gate for the supported repaired runtime surface.
@@ -51,6 +51,9 @@ jobs:
         tests/test_market_data_boundary.py
         tests/test_backtester.py
         tests/test_walk_forward_validation.py
+        tests/test_watchlist_service.py
+        tests/test_watchlist_identity.py
+        tests/test_watchlist_ui.py
         tests/forecast
     - name: Build production Docker image
       run: docker build --pull -t ai-stock-analyzer:ci .
