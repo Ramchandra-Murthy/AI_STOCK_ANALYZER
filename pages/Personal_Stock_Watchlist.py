@@ -378,6 +378,37 @@ def show() -> None:
             st.error(f"Could not load saved watchlist: {exc}")
             return
 
+        # Show saved investment details directly on the page; the edit form below is supplementary.
+        st.subheader("Portfolio summary")
+        summary_cols = st.columns(4)
+        invested_total = sum(
+            float(item.get("entry_price") or 0) * int(item.get("quantity") or 0)
+            for item in records
+        )
+        summary_cols[0].metric("Saved positions", len(records))
+        summary_cols[1].metric("Invested amount", f"₹{invested_total:,.2f}")
+        summary_cols[2].metric("Targets set", sum(float(item.get("target_price") or 0) > 0 for item in records))
+        summary_cols[3].metric("Stop-losses set", sum(float(item.get("stop_loss") or 0) > 0 for item in records))
+
+        st.subheader("Saved investment diary")
+        diary_rows = []
+        for item in records:
+            entry_value = float(item.get("entry_price") or 0)
+            quantity_value = int(item.get("quantity") or 0)
+            diary_rows.append({
+                "Symbol": item.get("symbol", "—"),
+                "Investment type": item.get("investment_type") or "Other",
+                "Status": item.get("status") or "Watching",
+                "Purchase date": str(item.get("purchase_date") or "—"),
+                "Quantity": quantity_value,
+                "Entry (₹)": entry_value if entry_value else None,
+                "Target (₹)": float(item.get("target_price") or 0) or None,
+                "Stop-loss (₹)": float(item.get("stop_loss") or 0) or None,
+                "Invested (₹)": entry_value * quantity_value if entry_value and quantity_value else None,
+                "Notes": item.get("notes") or "—",
+            })
+        st.dataframe(pd.DataFrame(diary_rows), use_container_width=True, hide_index=True)
+
         filter_mode = st.radio("Filter", ["All", "Gainers", "Losers"], horizontal=True)
 
         with st.expander("📈 Intraday Market Gainers — large, mid and small caps", expanded=True):
@@ -527,6 +558,10 @@ def show() -> None:
                         value=float(record.get("stop_loss") or 0.0),
                         key=f"edit_stop_{selected}",
                     )
+                    purchase_date_value = date.fromisoformat(str(record["purchase_date"])[:10]) if record.get("purchase_date") else date.today()
+                    edited_purchase_date = st.date_input(
+                        "Purchase date", value=purchase_date_value, key=f"edit_purchase_date_{selected}"
+                    )
                     cols2 = st.columns(3)
                     qty = cols2[0].number_input(
                         "Quantity",
@@ -571,7 +606,7 @@ def show() -> None:
                                     "stop_loss": stop or None,
                                     "quantity": qty or None,
                                     "investment_type": kind,
-                                    "purchase_date": record.get("purchase_date"),
+                                    "purchase_date": edited_purchase_date.isoformat(),
                                     "notes": note,
                                     "status": status,
                                 },
@@ -607,7 +642,6 @@ def show() -> None:
                                 removed = remove_symbol(OWNER_ID, watchlist_id, selected)
                                 st.session_state.pop(pending_delete_key, None)
                                 if removed:
-                                    st.session_state.pop(cache_key, None)
                                     st.success(f"Removed {selected}.")
                                     st.rerun()
                                 else:
