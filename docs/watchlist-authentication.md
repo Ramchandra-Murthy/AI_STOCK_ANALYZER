@@ -10,7 +10,8 @@ put the same TOML configuration in that host's protected Streamlit secrets store
 Do not commit real credentials to this repository.
 
 Example using Google OpenID Connect (replace every placeholder with values from
-your OAuth client):
+your OAuth client). A copyable, non-secret template is also available at
+`.streamlit/secrets.toml.example`:
 
 ```toml
 [auth]
@@ -24,6 +25,10 @@ server_metadata_url = "https://accounts.google.com/.well-known/openid-configurat
 Register the exact `redirect_uri` with the identity provider's authorized redirect
 URIs. For local development, use a separate OAuth client and
 `http://localhost:8501/oauth2callback`. Never reuse or publish production secrets.
+
+For local development, copy `.streamlit/secrets.toml.example` to
+`.streamlit/secrets.toml` and replace the placeholders. The real `secrets.toml`
+file must stay untracked; only the `.example` template belongs in Git.
 
 ## 2. Configure durable watchlist storage
 
