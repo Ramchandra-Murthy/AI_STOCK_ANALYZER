@@ -409,6 +409,47 @@ def show() -> None:
         unsafe_allow_html=True,
     )
 
+    try:
+        _, summary_watchlist_id, _ = get_or_create_default_watchlist()
+        summary_records = list_stock_records(OWNER_ID, summary_watchlist_id)
+        category_names = ["Stocks / F&O", "Mutual Funds", "Commodity", "Currency"]
+        category_totals = {name: {"count": 0, "invested": 0.0, "manual_current": 0.0, "manual_count": 0} for name in category_names}
+        for summary_record in summary_records:
+            category_name = summary_record.get("asset_category", "Stocks / F&O")
+            if category_name not in category_totals:
+                category_name = "Stocks / F&O"
+            qty = float((summary_record.get("asset_details") or {}).get("units_quantity") or summary_record.get("quantity") or 0)
+            entry = float(summary_record.get("entry_price") or 0)
+            summary = category_totals[category_name]
+            summary["count"] += 1
+            summary["invested"] += entry * qty
+            manual_price = (summary_record.get("asset_details") or {}).get("current_price_manual")
+            if manual_price not in (None, ""):
+                summary["manual_current"] += float(manual_price) * qty
+                summary["manual_count"] += 1
+        st.subheader("Portfolio overview — all categories")
+        overview = st.columns(4)
+        overview[0].metric("Total saved instruments", len(summary_records))
+        overview[1].metric("Total invested", f"₹{sum(v['invested'] for v in category_totals.values()):,.2f}")
+        overview[2].metric("Manual-value positions", sum(v["manual_count"] for v in category_totals.values()))
+        overview[3].metric("Categories in use", sum(v["count"] > 0 for v in category_totals.values()))
+        st.dataframe(
+            pd.DataFrame([
+                {
+                    "Category": name,
+                    "Saved positions": values["count"],
+                    "Invested (₹)": values["invested"],
+                    "Current value from manual prices (₹)": values["manual_current"] if values["manual_count"] else None,
+                    "Manual prices available": values["manual_count"],
+                }
+                for name, values in category_totals.items()
+            ]),
+            use_container_width=True,
+            hide_index=True,
+        )
+    except WatchlistError as exc:
+        st.warning(f"Portfolio overview unavailable: {exc}")
+
     category = st.tabs(["Stocks / F&O", "Mutual Funds", "Commodity", "Currency"])
     with category[1]:
         _render_manual_asset_category("Mutual Funds", "MF")
