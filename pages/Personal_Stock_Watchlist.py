@@ -205,12 +205,12 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     # Classify the strongest gainers only where Yahoo supplies market cap.
     for row in rows[:30]:
         try:
-            market_cap_usd = yf.Ticker(row["Ticker"]).fast_info.get("market_cap")
-            if market_cap_usd:
-                # Yahoo market cap is denominated in the listing currency for these tickers.
-                market_cap_inr = float(market_cap_usd)
+            market_cap_value = yf.Ticker(row["Ticker"]).fast_info.get("market_cap")
+            if market_cap_value:
+                # Yahoo market cap is expected in the listing currency; keep labels unverified otherwise.
+                market_cap_inr = float(market_cap_value)
                 row["Market cap (₹)"] = market_cap_inr
-                if market_cap_inr >= 1_000_000_000_000:
+                if market_cap_inr >= 200_000_000_000:
                     row["Cap segment"] = "Large-cap"
                 elif market_cap_inr >= 50_000_000_000:
                     row["Cap segment"] = "Mid-cap"
