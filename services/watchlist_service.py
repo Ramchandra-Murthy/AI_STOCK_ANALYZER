@@ -331,9 +331,16 @@ def _validate_details(details: dict[str, Any]) -> None:
     quantity = details.get("quantity")
     if quantity is not None and quantity != "" and int(quantity) < 1:
         raise WatchlistError("Quantity must be at least 1.")
-    if details.get("asset_category") and details["asset_category"] not in {"Stocks / F&O", "Mutual Funds", "Commodity", "Currency"}:
+    if details.get("asset_category") and details["asset_category"] not in {
+        "Stocks / F&O",
+        "Mutual Funds",
+        "Commodity",
+        "Currency",
+    }:
         raise WatchlistError("Select a valid investment category.")
-    if details.get("asset_details") is not None and not isinstance(details.get("asset_details"), dict):
+    if details.get("asset_details") is not None and not isinstance(
+        details.get("asset_details"), dict
+    ):
         raise WatchlistError("Instrument details must be a structured object.")
     investment_type = details.get("investment_type")
     if investment_type and investment_type not in ALLOWED_TYPES:
