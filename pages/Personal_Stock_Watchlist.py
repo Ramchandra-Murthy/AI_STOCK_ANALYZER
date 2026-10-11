@@ -261,3 +261,6 @@ def show() -> None:
                         st.rerun()
                     else:
                         st.warning("Stock was not found.")
+
+
+show()
