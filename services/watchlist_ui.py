@@ -1,4 +1,4 @@
-'''Small adapter joining trusted Streamlit identity to the watchlist service.'''
+"""Small adapter joining trusted Streamlit identity to the watchlist service."""
 
 from __future__ import annotations
 
