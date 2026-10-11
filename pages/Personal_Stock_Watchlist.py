@@ -107,7 +107,11 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
                     "Change today (₹)": round(change, 2) if change is not None else None,
                     "Change today (%)": round(change_pct, 2) if change_pct is not None else None,
                     "Volume": volume_display,
-                    "Data": "Intraday (provider may delay)" if source is intraday else "Daily close (fallback)",
+                    "Data": (
+                        "Intraday (provider may delay)"
+                        if source is intraday
+                        else "Daily close (fallback)"
+                    ),
                 }
             )
         except Exception:
@@ -182,21 +186,27 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
             daily_volume = series_from(daily, "Volume")
             if daily_close.empty or len(daily_close) < 2:
                 continue
-            last = float(intraday_close.iloc[-1]) if not intraday_close.empty else float(daily_close.iloc[-1])
+            last = (
+                float(intraday_close.iloc[-1])
+                if not intraday_close.empty
+                else float(daily_close.iloc[-1])
+            )
             previous = float(daily_close.iloc[-2])
             if previous <= 0:
                 continue
             change_pct = (last / previous - 1) * 100
             # Market-cap data is fetched only for positive movers to limit requests.
-            rows.append({
-                "Symbol": ticker.removesuffix(suffix),
-                "Ticker": ticker,
-                "Price": last,
-                "Change (%)": change_pct,
-                "Volume": int(daily_volume.iloc[-1]) if not daily_volume.empty else None,
-                "Market cap (₹)": None,
-                "Cap segment": "Unverified",
-            })
+            rows.append(
+                {
+                    "Symbol": ticker.removesuffix(suffix),
+                    "Ticker": ticker,
+                    "Price": last,
+                    "Change (%)": change_pct,
+                    "Volume": int(daily_volume.iloc[-1]) if not daily_volume.empty else None,
+                    "Market cap (₹)": None,
+                    "Cap segment": "Unverified",
+                }
+            )
         except (KeyError, TypeError, ValueError, IndexError):
             continue
 
@@ -230,18 +240,30 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     frame["Price"] = frame["Price"].map(lambda value: f"₹{value:,.2f}")
     frame["Change (%)"] = frame["Change (%)"].map(lambda value: f"+{value:.2f}%")
     frame["Volume"] = frame["Volume"].map(
-        lambda value: "—" if pd.isna(value) else (
-            f"{value / 1_000_000:.1f}M" if value >= 1_000_000 else
-            f"{value / 1_000:.1f}K" if value >= 1_000 else f"{int(value):,}"
+        lambda value: (
+            "—"
+            if pd.isna(value)
+            else (
+                f"{value / 1_000_000:.1f}M"
+                if value >= 1_000_000
+                else f"{value / 1_000:.1f}K" if value >= 1_000 else f"{int(value):,}"
+            )
         )
     )
     frame["Market cap"] = frame["Market cap (₹)"].map(
-        lambda value: "Unverified" if pd.isna(value) else (
-            f"₹{value / 1_000_000_000_000:.2f}T" if value >= 1_000_000_000_000 else
-            f"₹{value / 1_000_000_000:.1f}B"
+        lambda value: (
+            "Unverified"
+            if pd.isna(value)
+            else (
+                f"₹{value / 1_000_000_000_000:.2f}T"
+                if value >= 1_000_000_000_000
+                else f"₹{value / 1_000_000_000:.1f}B"
+            )
         )
     )
-    return frame[["Symbol", "Price", "Change (%)", "Volume", "Cap segment", "Market cap"]].reset_index(drop=True)
+    return frame[
+        ["Symbol", "Price", "Change (%)", "Volume", "Cap segment", "Market cap"]
+    ].reset_index(drop=True)
 
 
 def show() -> None:
@@ -365,12 +387,17 @@ def show() -> None:
                 "the data provider supplies a value; quotes may be delayed and are not exchange-certified."
             )
             gain_cols = st.columns([1, 1, 1])
-            gain_exchange = gain_cols[0].selectbox("Exchange", ["NSE", "BSE"], key="gainers_exchange")
+            gain_exchange = gain_cols[0].selectbox(
+                "Exchange", ["NSE", "BSE"], key="gainers_exchange"
+            )
             gain_segment = gain_cols[1].selectbox(
-                "Market cap", ["All", "Large-cap", "Mid-cap", "Small-cap", "Unverified"],
+                "Market cap",
+                ["All", "Large-cap", "Mid-cap", "Small-cap", "Unverified"],
                 key="gainers_cap_segment",
             )
-            gain_count = gain_cols[2].selectbox("Show", [10, 20, 30], index=0, key="gainers_count")
+            gain_count = gain_cols[2].selectbox(
+                "Show", [10, 20, 30], index=0, key="gainers_count"
+            )
             if st.button("Scan market gainers", key="scan_market_gainers", type="primary"):
                 with st.spinner("Scanning available market data…"):
                     st.session_state["personal_market_gainers_result"] = _market_gainers(
@@ -411,7 +438,9 @@ def show() -> None:
                         else:
                             try:
                                 add_symbol(
-                                    OWNER_ID, watchlist_id, selected_ticker,
+                                    OWNER_ID,
+                                    watchlist_id,
+                                    selected_ticker,
                                     {
                                         "investment_type": "Intraday",
                                         "entry_price": add_entry or None,
@@ -447,16 +476,20 @@ def show() -> None:
                         trend = row.get("Price trend")
                         if trend == "Up":
                             return [
-                                "color: #15803d; font-weight: 700" if col == "Current price"
-                                else "color: #15803d" if col == "Price trend"
-                                else ""
+                                (
+                                    "color: #15803d; font-weight: 700"
+                                    if col == "Current price"
+                                    else "color: #15803d" if col == "Price trend" else ""
+                                )
                                 for col in row.index
                             ]
                         if trend == "Down":
                             return [
-                                "color: #dc2626; font-weight: 700" if col == "Current price"
-                                else "color: #dc2626" if col == "Price trend"
-                                else ""
+                                (
+                                    "color: #dc2626; font-weight: 700"
+                                    if col == "Current price"
+                                    else "color: #dc2626" if col == "Price trend" else ""
+                                )
                                 for col in row.index
                             ]
                         return ["" for _ in row.index]
@@ -466,7 +499,9 @@ def show() -> None:
                     now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%H:%M:%S IST")
                     st.caption(f"Last quote check: {now}")
                 except Exception as exc:
-                    st.warning(f"Price refresh failed; the rest of your watchlist remains available. {exc}")
+                    st.warning(
+                        f"Price refresh failed; the rest of your watchlist remains available. {exc}"
+                    )
 
             render_live_quotes()
 
