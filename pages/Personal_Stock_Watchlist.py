@@ -169,7 +169,9 @@ def show() -> None:
             elif filter_mode == "Losers" and "Change (%)" in quotes:
                 quotes = quotes.loc[quotes["Change (%)"] < 0]
 
-            st.caption("Quote source: Yahoo Finance daily observations; these are not guaranteed real-time prices.")
+            st.caption(
+                "Quote source: Yahoo Finance daily observations; these are not guaranteed real-time prices."
+            )
             st.dataframe(quotes, use_container_width=True, hide_index=True)
 
             with st.expander("Investment diary — edit saved details"):
@@ -178,14 +180,55 @@ def show() -> None:
                 record = next(item for item in records if item["symbol"] == selected)
                 with st.form("personal_watchlist_edit"):
                     cols = st.columns(3)
-                    entry = cols[0].number_input("Entry price (₹)", min_value=0.0, value=float(record.get("entry_price") or 0.0), key="edit_entry")
-                    target = cols[1].number_input("Target (₹)", min_value=0.0, value=float(record.get("target_price") or 0.0), key="edit_target")
-                    stop = cols[2].number_input("Stop-loss (₹)", min_value=0.0, value=float(record.get("stop_loss") or 0.0), key="edit_stop")
+                    entry = cols[0].number_input(
+                        "Entry price (₹)",
+                        min_value=0.0,
+                        value=float(record.get("entry_price") or 0.0),
+                        key="edit_entry",
+                    )
+                    target = cols[1].number_input(
+                        "Target (₹)",
+                        min_value=0.0,
+                        value=float(record.get("target_price") or 0.0),
+                        key="edit_target",
+                    )
+                    stop = cols[2].number_input(
+                        "Stop-loss (₹)",
+                        min_value=0.0,
+                        value=float(record.get("stop_loss") or 0.0),
+                        key="edit_stop",
+                    )
                     cols2 = st.columns(3)
-                    qty = cols2[0].number_input("Quantity", min_value=0, value=int(record.get("quantity") or 0), step=1, key="edit_qty")
-                    kind = cols2[1].selectbox("Investment type", INVESTMENT_TYPES, index=INVESTMENT_TYPES.index(record.get("investment_type") or "Other") if record.get("investment_type") in INVESTMENT_TYPES else INVESTMENT_TYPES.index("Other"), key="edit_type")
-                    status = cols2[2].selectbox("Status", STATUSES, index=STATUSES.index(record.get("status") or "Watching") if record.get("status") in STATUSES else 0, key="edit_status")
-                    note = st.text_area("Notes", value=str(record.get("notes") or ""), key="edit_notes")
+                    qty = cols2[0].number_input(
+                        "Quantity",
+                        min_value=0,
+                        value=int(record.get("quantity") or 0),
+                        step=1,
+                        key="edit_qty",
+                    )
+                    kind = cols2[1].selectbox(
+                        "Investment type",
+                        INVESTMENT_TYPES,
+                        index=(
+                            INVESTMENT_TYPES.index(record.get("investment_type") or "Other")
+                            if record.get("investment_type") in INVESTMENT_TYPES
+                            else INVESTMENT_TYPES.index("Other")
+                        ),
+                        key="edit_type",
+                    )
+                    status = cols2[2].selectbox(
+                        "Status",
+                        STATUSES,
+                        index=(
+                            STATUSES.index(record.get("status") or "Watching")
+                            if record.get("status") in STATUSES
+                            else 0
+                        ),
+                        key="edit_status",
+                    )
+                    note = st.text_area(
+                        "Notes", value=str(record.get("notes") or ""), key="edit_notes"
+                    )
                     save = st.form_submit_button("Save investment details")
                     if save:
                         try:
