@@ -191,14 +191,21 @@ def show():
         symbol_input = st.text_input(f"Add a {selected_exchange} symbol", placeholder=placeholder)
         detail_col1, detail_col2, detail_col3 = st.columns(3)
         with detail_col1:
-            entry_price = st.number_input("Entry price (₹; 0 = unset)", min_value=0.0, value=0.0, step=1.0)
-            stop_loss = st.number_input("Stop-loss (₹; 0 = unset)", min_value=0.0, value=0.0, step=1.0)
+            entry_price = st.number_input(
+                "Entry price (₹; 0 = unset)", min_value=0.0, value=0.0, step=1.0
+            )
+            stop_loss = st.number_input(
+                "Stop-loss (₹; 0 = unset)", min_value=0.0, value=0.0, step=1.0
+            )
         with detail_col2:
-            target_price = st.number_input("Target price (₹; 0 = unset)", min_value=0.0, value=0.0, step=1.0)
+            target_price = st.number_input(
+                "Target price (₹; 0 = unset)", min_value=0.0, value=0.0, step=1.0
+            )
             quantity = st.number_input("Quantity (0 = unset)", min_value=0, value=0, step=1)
         with detail_col3:
             investment_type = st.selectbox(
-                "Investment type", ["Other", "Delivery", "Swing", "Intraday", "Investment", "Options"]
+                "Investment type",
+                ["Other", "Delivery", "Swing", "Intraday", "Investment", "Options"],
             )
             status = st.selectbox("Status", ["Watching", "Bought", "Sold", "Avoid"])
         purchase_date = st.date_input("Purchase / planned entry date", value=None)
@@ -237,11 +244,24 @@ def show():
     live = get_personal_watchlist([record["symbol"] for record in records])
     saved = pd.DataFrame(records)
     saved = saved.rename(columns={"symbol": "Symbol"})
-    combined = saved.merge(live, on="Symbol", how="left", suffixes=("_saved", "_market"))
+    combined = saved.merge(
+        live, on="Symbol", how="left", suffixes=("_saved", "_market")
+    )
     display_columns = [
-        "Symbol", "Name", "Exchange", "Price", "Change %", "entry_price",
-        "stop_loss", "target_price", "quantity", "investment_type", "purchase_date",
-        "status", "notes", "Observed",
+        "Symbol",
+        "Name",
+        "Exchange",
+        "Price",
+        "Change %",
+        "entry_price",
+        "stop_loss",
+        "target_price",
+        "quantity",
+        "investment_type",
+        "purchase_date",
+        "status",
+        "notes",
+        "Observed",
     ]
     st.dataframe(
         combined[[column for column in display_columns if column in combined.columns]],
@@ -257,41 +277,65 @@ def show():
         edit_col1, edit_col2, edit_col3 = st.columns(3)
         with edit_col1:
             edit_entry = st.number_input(
-                "Entry price (₹; 0 = unset)", min_value=0.0,
-                value=float(selected_record["entry_price"] or 0.0), step=1.0, key="edit_entry_price"
+                "Entry price (₹; 0 = unset)",
+                min_value=0.0,
+                value=float(selected_record["entry_price"] or 0.0),
+                step=1.0,
+                key="edit_entry_price",
             )
             edit_stop = st.number_input(
-                "Stop-loss (₹; 0 = unset)", min_value=0.0,
-                value=float(selected_record["stop_loss"] or 0.0), step=1.0, key="edit_stop_loss"
+                "Stop-loss (₹; 0 = unset)",
+                min_value=0.0,
+                value=float(selected_record["stop_loss"] or 0.0),
+                step=1.0,
+                key="edit_stop_loss",
             )
         with edit_col2:
             edit_target = st.number_input(
-                "Target price (₹; 0 = unset)", min_value=0.0,
-                value=float(selected_record["target_price"] or 0.0), step=1.0, key="edit_target_price"
+                "Target price (₹; 0 = unset)",
+                min_value=0.0,
+                value=float(selected_record["target_price"] or 0.0),
+                step=1.0,
+                key="edit_target_price",
             )
             edit_quantity = st.number_input(
-                "Quantity (0 = unset)", min_value=0,
-                value=int(selected_record["quantity"] or 0), step=1, key="edit_quantity"
+                "Quantity (0 = unset)",
+                min_value=0,
+                value=int(selected_record["quantity"] or 0),
+                step=1,
+                key="edit_quantity",
             )
         with edit_col3:
             types = ["Other", "Delivery", "Swing", "Intraday", "Investment", "Options"]
             edit_type = st.selectbox(
-                "Investment type", types,
-                index=types.index(selected_record["investment_type"])
-                if selected_record["investment_type"] in types else 0,
-                key="edit_investment_type"
+                "Investment type",
+                types,
+                index=(
+                    types.index(selected_record["investment_type"])
+                    if selected_record["investment_type"] in types
+                    else 0
+                ),
+                key="edit_investment_type",
             )
             statuses = ["Watching", "Bought", "Sold", "Avoid"]
             edit_status = st.selectbox(
-                "Status", statuses,
-                index=statuses.index(selected_record["status"])
-                if selected_record["status"] in statuses else 0,
-                key="edit_status"
+                "Status",
+                statuses,
+                index=(
+                    statuses.index(selected_record["status"])
+                    if selected_record["status"] in statuses
+                    else 0
+                ),
+                key="edit_status",
             )
         existing_date = selected_record["purchase_date"]
         parsed_date = pd.to_datetime(existing_date).date() if existing_date else None
-        edit_date = st.date_input("Purchase / planned entry date", value=parsed_date, key="edit_purchase_date")
-        edit_notes = st.text_area("Investment notes / rationale", value=selected_record["notes"] or "", key="edit_notes")
+        edit_date = st.date_input(
+            "Purchase / planned entry date", value=parsed_date, key="edit_purchase_date"
+        )
+        edit_notes = st.text_area(
+            "Investment notes / rationale", value=selected_record["notes"] or "", key="edit_notes"
+        )
         save_details = st.form_submit_button("Update saved details")
 
     if save_details:
