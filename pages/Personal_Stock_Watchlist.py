@@ -510,16 +510,19 @@ def show() -> None:
             category_name = summary_record.get("asset_category", "Stocks / F&O")
             if category_name not in category_totals:
                 category_name = "Stocks / F&O"
+            asset_details = summary_record.get("asset_details") or {}
             qty = float(
-                (summary_record.get("asset_details") or {}).get("units_quantity")
+                asset_details.get("units_quantity")
                 or summary_record.get("quantity")
                 or 0
             )
+            if asset_details.get("instrument_type") in {"Futures", "Options"}:
+                qty *= int(asset_details.get("lot_size") or 1)
             entry = float(summary_record.get("entry_price") or 0)
             summary = category_totals[category_name]
             summary["count"] += 1
             summary["invested"] += entry * qty
-            manual_price = (summary_record.get("asset_details") or {}).get("current_price_manual")
+            manual_price = asset_details.get("current_price_manual")
             if manual_price not in (None, ""):
                 summary["manual_current"] += float(manual_price) * qty
                 summary["manual_count"] += 1
