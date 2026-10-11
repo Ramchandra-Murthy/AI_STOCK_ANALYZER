@@ -1,6 +1,9 @@
 import pandas as pd
 import streamlit as st
 
+from services.watchlist_service import WatchlistError, add_symbol, remove_symbol
+from services.watchlist_ui import get_or_create_default_watchlist
+
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_service import (
     WATCHLIST,
@@ -167,11 +170,16 @@ def show():
     st.divider()
     st.subheader("⭐ Personal Watchlist")
     st.caption(
-        "Your list is kept in this Streamlit browser session. "
-        "It is not permanently saved across sessions."
+        "Your watchlist is saved to persistent storage and isolated by your authenticated identity. "
+        "Sign in to manage your personal symbols."
     )
-    if "personal_watchlist" not in st.session_state:
-        st.session_state.personal_watchlist = DEFAULT_WATCHLIST.copy()
+    try:
+        user_id, watchlist_id, saved_symbols = get_or_create_default_watchlist(
+            st.user, DEFAULT_WATCHLIST.copy()
+        )
+    except (AttributeError, WatchlistError, PermissionError) as exc:
+        st.warning(str(exc) or "Sign in to access your personal watchlist.")
+        return
 
     with st.form("add_personal_watchlist_symbol"):
         placeholder = (
@@ -186,13 +194,16 @@ def show():
         symbol = normalize_symbol(symbol_input, selected_exchange)
         if not symbol:
             st.warning("Enter a stock symbol first.")
-        elif symbol in st.session_state.personal_watchlist:
-            st.info(f"{symbol} is already in your watchlist.")
         else:
-            st.session_state.personal_watchlist.append(symbol)
+            try:
+                if add_symbol(user_id, watchlist_id, symbol):
+                    st.success(f"Added {symbol}.")
+                else:
+                    st.info(f"{symbol} is already in your watchlist.")
+            except WatchlistError as exc:
+                st.warning(str(exc))
             st.rerun()
 
-    saved_symbols = st.session_state.personal_watchlist
     if not saved_symbols:
         st.info("Your personal watchlist is empty. Add a symbol above.")
         return
@@ -202,11 +213,14 @@ def show():
         hide_index=True,
         use_container_width=True,
     )
-    remove_symbol = st.selectbox(
+    symbol_to_remove = st.selectbox(
         "Remove a saved symbol",
         options=[""] + saved_symbols,
         format_func=lambda value: "Select a symbol" if value == "" else value,
     )
-    if st.button("Remove selected symbol", disabled=not remove_symbol):
-        st.session_state.personal_watchlist.remove(remove_symbol)
+    if st.button("Remove selected symbol", disabled=not symbol_to_remove):
+        try:
+            remove_symbol(user_id, watchlist_id, symbol_to_remove)
+        except WatchlistError as exc:
+            st.warning(str(exc))
         st.rerun()
