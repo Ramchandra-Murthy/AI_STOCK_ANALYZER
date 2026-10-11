@@ -101,11 +101,36 @@ def _connect() -> sqlite3.Connection:
             connection.execute(
                 f"ALTER TABLE watchlist_symbols ADD COLUMN {name} {definition}"
             )
-    # Convert existing per-user lists into one list without dropping any symbols.
-    connection.execute(
-        "UPDATE watchlists SET user_id = ? WHERE user_id != ?",
-        (OWNER_ID, OWNER_ID),
-    )
+    # Consolidate any pre-existing per-user lists into one list, preserving
+    # symbols and their saved details. Existing duplicate symbols keep the first row.
+    existing_lists = connection.execute(
+        "SELECT id FROM watchlists ORDER BY created_at, id"
+    ).fetchall()
+    if existing_lists:
+        target_id = int(existing_lists[0]["id"])
+        for old_list in existing_lists[1:]:
+            old_id = int(old_list["id"])
+            connection.execute(
+                """
+                INSERT OR IGNORE INTO watchlist_symbols (
+                    watchlist_id, symbol, position, created_at, entry_price, stop_loss,
+                    target_price, quantity, investment_type, purchase_date, notes, status,
+                    updated_at
+                )
+                SELECT ?, symbol, position, created_at, entry_price, stop_loss,
+                       target_price, quantity, investment_type, purchase_date, notes, status,
+                       updated_at
+                FROM watchlist_symbols WHERE watchlist_id = ?
+                """,
+                (target_id, old_id),
+            )
+        connection.execute(
+            "DELETE FROM watchlists WHERE id != ?", (target_id,)
+        )
+        connection.execute(
+            "UPDATE watchlists SET user_id = ?, name = ? WHERE id = ?",
+            (OWNER_ID, "My Watchlist", target_id),
+        )
     connection.commit()
     return connection
 
