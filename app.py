@@ -8,6 +8,7 @@ from modules.dashboard import show as dashboard
 from modules.fundamentals import show as fundamentals
 from modules.intraday import show as intraday
 from modules.market import show as market
+from modules.market_movers import show as market_movers
 from modules.portfolio import show as portfolio
 from modules.prediction import show as prediction
 from modules.research import show as research
