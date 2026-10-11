@@ -79,6 +79,10 @@ def _connect() -> sqlite3.Connection:
             PRIMARY KEY (watchlist_id, symbol)
         );
         CREATE INDEX IF NOT EXISTS idx_watchlists_user_id ON watchlists(user_id);
+        CREATE TABLE IF NOT EXISTS watchlist_meta (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
         """
     )
     # Upgrade databases created by earlier versions without losing saved symbols.
@@ -103,9 +107,14 @@ def _connect() -> sqlite3.Connection:
             )
     # Consolidate any pre-existing per-user lists into one list, preserving
     # symbols and their saved details. Existing duplicate symbols keep the first row.
-    existing_lists = connection.execute(
-        "SELECT id FROM watchlists ORDER BY created_at, id"
-    ).fetchall()
+    migrated = connection.execute(
+        "SELECT 1 FROM watchlist_meta WHERE key = 'single_owner_v1'"
+    ).fetchone()
+    existing_lists = (
+        connection.execute("SELECT id FROM watchlists ORDER BY created_at, id").fetchall()
+        if migrated is None
+        else []
+    )
     if existing_lists:
         target_id = int(existing_lists[0]["id"])
         for old_list in existing_lists[1:]:
@@ -130,6 +139,10 @@ def _connect() -> sqlite3.Connection:
         connection.execute(
             "UPDATE watchlists SET user_id = ?, name = ? WHERE id = ?",
             (OWNER_ID, "My Watchlist", target_id),
+        )
+    if migrated is None:
+        connection.execute(
+            "INSERT INTO watchlist_meta (key, value) VALUES ('single_owner_v1', 'done')"
         )
     connection.commit()
     return connection
