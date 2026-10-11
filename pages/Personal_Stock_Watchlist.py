@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
-from zoneinfo import ZoneInfo
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
@@ -18,8 +18,8 @@ from services.watchlist_service import (
     remove_symbol,
     update_stock_details,
 )
-from services.watchlist_ui import get_or_create_default_watchlist
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.watchlist_ui import get_or_create_default_watchlist
 
 EXCHANGES = {"NSE": ".NS", "BSE": ".BO"}
 STATUSES = ["Watching", "Bought", "Sold", "Avoid"]
@@ -161,13 +161,15 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     rows: list[dict[str, Any]] = []
     for ticker in tickers:
         try:
-            def series_from(frame: pd.DataFrame, field: str) -> pd.Series:
+            def series_from(
+                frame: pd.DataFrame, field: str, symbol: str = ticker
+            ) -> pd.Series:
                 if frame.empty:
                     return pd.Series(dtype=float)
                 if isinstance(frame.columns, pd.MultiIndex):
                     for level in range(frame.columns.nlevels):
-                        if ticker in frame.columns.get_level_values(level):
-                            selected = frame.xs(ticker, axis=1, level=level)
+                        if symbol in frame.columns.get_level_values(level):
+                            selected = frame.xs(symbol, axis=1, level=level)
                             if field in selected.columns:
                                 return pd.to_numeric(selected[field], errors="coerce").dropna()
                     return pd.Series(dtype=float)
