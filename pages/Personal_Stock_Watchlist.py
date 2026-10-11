@@ -266,6 +266,24 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     ].reset_index(drop=True)
 
 
+def _risk_metrics(
+    entry: float, current: float | None, target: float, stop_loss: float
+) -> tuple[float | None, float | None, float | None]:
+    """Return current-price distance to target/stop and entry-based reward-to-risk."""
+    target_distance = (
+        (target - current) / current * 100 if current and target > 0 else None
+    )
+    stop_distance = (
+        (current - stop_loss) / current * 100
+        if current and stop_loss > 0
+        else None
+    )
+    risk = entry - stop_loss if entry > stop_loss > 0 else None
+    reward = target - entry if target > entry > 0 else None
+    reward_risk = reward / risk if reward is not None and risk else None
+    return target_distance, stop_distance, reward_risk
+
+
 def _render_manual_asset_category(category_name: str, prefix: str) -> None:
     """Track mutual funds, commodities and currencies with transparent manual quotes."""
     try:
@@ -367,6 +385,12 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
         current_price = float(current_price) if current_price not in (None, "") else None
         invested = entry_price * units if entry_price and units else None
         current_value = current_price * units if current_price is not None and units else None
+        target_distance, stop_distance, reward_risk = _risk_metrics(
+            entry_price,
+            current_price,
+            float(record.get("target_price") or 0),
+            float(record.get("stop_loss") or 0),
+        )
         rows.append(
             {
                 "Instrument": details.get("instrument_name") or record.get("symbol"),
@@ -381,6 +405,9 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
                     if current_value is not None and invested is not None
                     else None
                 ),
+                "Target distance (%)": target_distance,
+                "Stop distance (%)": stop_distance,
+                "Reward / risk": reward_risk,
                 "Target (₹)": record.get("target_price"),
                 "Stop-loss (₹)": record.get("stop_loss"),
                 "Status": record.get("status"),
@@ -753,6 +780,12 @@ def show() -> None:
                 else None
             )
             pnl_pct = (pnl / invested * 100) if pnl is not None and invested else None
+            target_distance, stop_distance, reward_risk = _risk_metrics(
+                entry_value,
+                current_price,
+                float(item.get("target_price") or 0),
+                float(item.get("stop_loss") or 0),
+            )
             invested_total += invested or 0.0
             if current_value is not None:
                 current_value_total += current_value
@@ -783,6 +816,9 @@ def show() -> None:
                     "Current value (₹)": current_value,
                     "P/L (₹)": pnl,
                     "P/L (%)": pnl_pct,
+                    "Target distance (%)": target_distance,
+                    "Stop distance (%)": stop_distance,
+                    "Reward / risk": reward_risk,
                     "Price data": (
                         "Manual contract price"
                         if asset_details.get("instrument_type") in {"Futures", "Options"}
