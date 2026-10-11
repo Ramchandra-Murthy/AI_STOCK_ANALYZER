@@ -134,9 +134,18 @@ def show() -> None:
                 notes = st.text_input("Notes")
                 submitted = st.form_submit_button("＋ Add to watchlist", use_container_width=True)
                 if submitted:
-                    normalized = symbol.strip().upper()
+                    # Read the submitted widget value from session state as well as
+                    # the local return value. This avoids validating a stale local
+                    # value after a form submission/rerun.
+                    submitted_symbol = st.session_state.get(
+                        "personal_watchlist_add_symbol", symbol
+                    )
+                    normalized = str(submitted_symbol or "").strip().upper()
                     if not normalized:
-                        st.error("Enter a stock symbol.")
+                        st.error(
+                            "Enter a stock symbol in the Stock symbol field, then "
+                            "click ＋ Add to watchlist."
+                        )
                     else:
                         if not normalized.endswith((".NS", ".BO")):
                             normalized += EXCHANGES[exchange]
