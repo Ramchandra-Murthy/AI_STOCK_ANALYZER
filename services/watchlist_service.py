@@ -461,7 +461,9 @@ def _supabase_request(
             + (detail if exc.code < 500 else "The database service is temporarily unavailable.")
         ) from exc
     except (urllib.error.URLError, TimeoutError) as exc:
-        raise WatchlistError("Could not reach Supabase. Check the project URL and network.") from exc
+        raise WatchlistError(
+            "Could not reach Supabase. Check the project URL and network."
+        ) from exc
     except (ValueError, UnicodeDecodeError) as exc:
         raise WatchlistError("Supabase returned an unreadable response.") from exc
 
