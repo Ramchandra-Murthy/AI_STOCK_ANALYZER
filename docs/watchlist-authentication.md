@@ -1,52 +1,33 @@
-# Authenticated watchlists: deployment setup
+# Open single-owner watchlist
 
-The Market and Scanner personal watchlists use the authenticated identity exposed by
-Streamlit as `st.user`. A logged-out session must not access personal watchlists.
+The Market and Scanner modules use one shared watchlist without Google sign-in,
+email identity, or OAuth configuration. This is intended for a personal app where
+the operator accepts that anyone who can access the deployed URL can view or edit
+the watchlist. Do not use this unauthenticated mode for confidential information.
 
-## 1. Configure an OIDC provider
+## Saved stock details
 
-For Streamlit Community Cloud, open **App settings → Secrets**. For another host,
-put the same TOML configuration in that host's protected Streamlit secrets store.
-Do not commit real credentials to this repository.
+Each symbol can store entry price, stop-loss, target price, quantity, investment
+type, purchase/planned-entry date, notes, status, and created/updated timestamps.
+Market data quotes are fetched separately; manually entered investment levels are
+not represented as verified live prices. Market and Scanner share the same symbols.
 
-Example using Google OpenID Connect (replace every placeholder with values from
-your OAuth client). A copyable, non-secret template is also available at
-`.streamlit/secrets.toml.example`:
-
-```toml
-[auth]
-redirect_uri = "https://YOUR-DEPLOYED-APP-URL/oauth2callback"
-cookie_secret = "REPLACE_WITH_A_LONG_RANDOM_SECRET"
-client_id = "YOUR_OAUTH_CLIENT_ID"
-client_secret = "YOUR_OAUTH_CLIENT_SECRET"
-server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration"
-```
-
-Register the exact `redirect_uri` with the identity provider's authorized redirect
-URIs. For local development, use a separate OAuth client and
-`http://localhost:8501/oauth2callback`. Never reuse or publish production secrets.
-
-For local development, copy `.streamlit/secrets.toml.example` to
-`.streamlit/secrets.toml` and replace the placeholders. The real `secrets.toml`
-file must stay untracked; only the `.example` template belongs in Git.
-
-## 2. Configure durable watchlist storage
+## Durable storage
 
 Set `WATCHLIST_DATABASE_PATH` to a writable path on durable storage supported by
-your hosting platform. The default local SQLite file can be lost when an ephemeral
-container restarts or redeploys. Back up the database according to your hosting
-platform's storage guarantees.
+your hosting platform. The default local SQLite file may be lost when an ephemeral
+container restarts or redeploys. Back up the database according to the host's
+storage guarantees.
 
-## 3. Deploy and verify
+The database upgrade consolidates legacy per-identity watchlists into one list,
+retaining symbols and the first saved record for duplicate symbols. Make a backup
+of an existing database before deploying the migration.
 
-1. Save the protected secrets and restart/redeploy the app.
-2. Open Market and click **Sign in**.
-3. Complete the provider login and return to Market.
-4. Add a test symbol, refresh the page, and confirm it remains.
-5. Open Scanner and choose **Personal Watchlist**; confirm it reads the same symbols.
-6. Sign out or use a separate test account and confirm another identity cannot see the
-   first account's saved symbols.
+## Verify after deployment
 
-The application deliberately does not infer identity from form inputs, query
-parameters, or a username typed by the visitor. If OIDC is not configured, the
-personal watchlist stays unavailable; broad-market scanning remains available.
+1. Open Market without signing in.
+2. Add a test symbol and save entry price, stop-loss, target, quantity, date, notes,
+   investment type, and status.
+3. Refresh and verify the saved details remain.
+4. Open Scanner and confirm the same symbols are available in Personal Watchlist.
+5. Restart/redeploy and verify persistence after durable storage is configured.

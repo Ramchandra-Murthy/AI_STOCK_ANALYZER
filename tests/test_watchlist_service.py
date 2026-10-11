@@ -1,4 +1,4 @@
-"""Tests for persistent user-isolated watchlists."""
+"""Tests for persistent single-owner watchlist and saved investment details."""
 
 import pytest
 
@@ -12,46 +12,76 @@ def database_path(tmp_path, monkeypatch):
     return path
 
 
-def test_watchlists_persist_and_are_isolated(database_path):
-    first_id = watchlists.create_watchlist("user-a", "Long-term")
-    watchlists.add_symbol("user-a", first_id, "reliance.ns")
-
-    assert watchlists.list_symbols("user-a", first_id) == ["RELIANCE.NS"]
-    assert watchlists.list_watchlists("user-a")[0]["name"] == "Long-term"
-    assert watchlists.list_watchlists("user-b") == []
-    with pytest.raises(watchlists.WatchlistError, match="not found"):
-        watchlists.list_symbols("user-b", first_id)
-
-
-def test_create_rename_delete_and_duplicate_symbols(database_path):
-    watchlist_id = watchlists.create_watchlist("user-a", "Watchlist 01")
-    watchlists.rename_watchlist("user-a", watchlist_id, "Swing")
-    assert watchlists.list_watchlists("user-a")[0]["name"] == "Swing"
-
-    assert watchlists.add_symbol("user-a", watchlist_id, "TCS")
-    assert not watchlists.add_symbol("user-a", watchlist_id, "tcs")
-    assert watchlists.list_symbols("user-a", watchlist_id) == ["TCS"]
-    assert watchlists.remove_symbol("user-a", watchlist_id, "TCS")
-    assert not watchlists.remove_symbol("user-a", watchlist_id, "TCS")
-
-    watchlists.delete_watchlist("user-a", watchlist_id)
-    assert watchlists.list_watchlists("user-a") == []
-
-
-def test_users_cannot_rename_or_delete_other_users_watchlists(database_path):
-    watchlist_id = watchlists.create_watchlist("user-a", "Private")
-    with pytest.raises(watchlists.WatchlistError, match="not found"):
-        watchlists.rename_watchlist("user-b", watchlist_id, "Hijacked")
-    with pytest.raises(watchlists.WatchlistError, match="not found"):
-        watchlists.delete_watchlist("user-b", watchlist_id)
-    assert watchlists.list_watchlists("user-a")[0]["name"] == "Private"
+def test_symbols_and_details_persist(database_path):
+    watchlist_id = watchlists.create_watchlist("anything", "My Watchlist")
+    details = {
+        "entry_price": 1250.5,
+        "stop_loss": 1200,
+        "target_price": 1400,
+        "quantity": 10,
+        "investment_type": "Swing",
+        "purchase_date": "2026-10-11",
+        "notes": "Breakout setup",
+        "status": "Watching",
+    }
+    assert watchlists.add_symbol("anything", watchlist_id, "reliance.ns", details)
+    assert watchlists.list_symbols("any-session", watchlist_id) == ["RELIANCE.NS"]
+    record = watchlists.list_stock_records("any-session", watchlist_id)[0]
+    assert record["entry_price"] == 1250.5
+    assert record["stop_loss"] == 1200
+    assert record["target_price"] == 1400
+    assert record["quantity"] == 10
+    assert record["investment_type"] == "Swing"
+    assert record["purchase_date"] == "2026-10-11"
+    assert record["notes"] == "Breakout setup"
+    assert record["status"] == "Watching"
 
 
-def test_invalid_identity_name_and_symbol_are_rejected(database_path):
-    with pytest.raises(watchlists.WatchlistError, match="authenticated user ID"):
-        watchlists.create_watchlist("", "Watchlist")
-    with pytest.raises(watchlists.WatchlistError, match="Watchlist name"):
-        watchlists.create_watchlist("user-a", " ")
-    watchlist_id = watchlists.create_watchlist("user-a", "Valid")
+def test_all_sessions_share_one_watchlist(database_path):
+    first_id = watchlists.create_watchlist("session-a", "My Watchlist")
+    watchlists.add_symbol("session-a", first_id, "TCS")
+    assert watchlists.list_symbols("session-b", first_id) == ["TCS"]
+    assert watchlists.list_watchlists("session-b")[0]["name"] == "My Watchlist"
+
+
+def test_update_details_and_remove_symbol(database_path):
+    watchlist_id = watchlists.create_watchlist("owner", "My Watchlist")
+    watchlists.add_symbol("owner", watchlist_id, "INFY")
+    watchlists.update_stock_details(
+        "owner",
+        watchlist_id,
+        "INFY",
+        {
+            "entry_price": 1800,
+            "stop_loss": 1750,
+            "target_price": 1950,
+            "quantity": 5,
+            "investment_type": "Delivery",
+            "purchase_date": "2026-10-01",
+            "notes": "Long-term idea",
+            "status": "Bought",
+        },
+    )
+    record = watchlists.list_stock_records("owner", watchlist_id)[0]
+    assert record["entry_price"] == 1800
+    assert record["status"] == "Bought"
+    assert record["notes"] == "Long-term idea"
+    assert watchlists.remove_symbol("owner", watchlist_id, "INFY")
+    assert watchlists.list_stock_records("owner", watchlist_id) == []
+
+
+def test_duplicate_symbols_and_invalid_values_are_rejected(database_path):
+    watchlist_id = watchlists.create_watchlist("owner", "My Watchlist")
+    assert watchlists.add_symbol("owner", watchlist_id, "TCS")
+    assert not watchlists.add_symbol("other", watchlist_id, "tcs")
     with pytest.raises(watchlists.WatchlistError, match="valid stock symbol"):
-        watchlists.add_symbol("user-a", watchlist_id, "BAD SYMBOL")
+        watchlists.add_symbol("owner", watchlist_id, "BAD SYMBOL")
+    with pytest.raises(watchlists.WatchlistError, match="negative"):
+        watchlists.add_symbol("owner", watchlist_id, "INFY", {"stop_loss": -1})
+    with pytest.raises(watchlists.WatchlistError, match="Quantity"):
+        watchlists.add_symbol("owner", watchlist_id, "INFY", {"quantity": 0})
+
+
+def test_watchlist_operations_reject_blank_owner(database_path):
+    with pytest.raises(watchlists.WatchlistError, match="owner"):
+        watchlists.create_watchlist("", "My Watchlist")
