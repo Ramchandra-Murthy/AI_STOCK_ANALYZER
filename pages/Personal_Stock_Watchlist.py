@@ -210,19 +210,19 @@ def show() -> None:
                         "Entry price (₹)",
                         min_value=0.0,
                         value=float(record.get("entry_price") or 0.0),
-                        key="edit_entry",
+                        key=f"edit_entry_{selected}",
                     )
                     target = cols[1].number_input(
                         "Target (₹)",
                         min_value=0.0,
                         value=float(record.get("target_price") or 0.0),
-                        key="edit_target",
+                        key=f"edit_target_{selected}",
                     )
                     stop = cols[2].number_input(
                         "Stop-loss (₹)",
                         min_value=0.0,
                         value=float(record.get("stop_loss") or 0.0),
-                        key="edit_stop",
+                        key=f"edit_stop_{selected}",
                     )
                     cols2 = st.columns(3)
                     qty = cols2[0].number_input(
@@ -230,7 +230,7 @@ def show() -> None:
                         min_value=0,
                         value=int(record.get("quantity") or 0),
                         step=1,
-                        key="edit_qty",
+                        key=f"edit_qty_{selected}",
                     )
                     kind = cols2[1].selectbox(
                         "Investment type",
@@ -240,7 +240,7 @@ def show() -> None:
                             if record.get("investment_type") in INVESTMENT_TYPES
                             else INVESTMENT_TYPES.index("Other")
                         ),
-                        key="edit_type",
+                        key=f"edit_type_{selected}",
                     )
                     status = cols2[2].selectbox(
                         "Status",
@@ -250,7 +250,7 @@ def show() -> None:
                             if record.get("status") in STATUSES
                             else 0
                         ),
-                        key="edit_status",
+                        key=f"edit_status_{selected}",
                     )
                     note = st.text_area(
                         "Notes", value=str(record.get("notes") or ""), key="edit_notes"
