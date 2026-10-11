@@ -115,9 +115,11 @@ def show() -> None:
             )
 
         with st.expander("ADD", expanded=True):
-            with st.form("personal_watchlist_add", clear_on_submit=True):
+            with st.form("personal_watchlist_add", clear_on_submit=False):
                 col1, col2, col3 = st.columns([3, 1, 1])
-                symbol = col1.text_input("Stock symbol", placeholder="e.g. RELIANCE")
+                symbol = col1.text_input(
+                    "Stock symbol", placeholder="e.g. RELIANCE", key="personal_watchlist_add_symbol"
+                )
                 exchange = col2.selectbox("Exchange", ["NSE", "BSE"])
                 investment_type = col3.selectbox("Type", INVESTMENT_TYPES)
                 col4, col5, col6 = st.columns(3)
