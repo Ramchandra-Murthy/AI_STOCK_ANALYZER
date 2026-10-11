@@ -19,6 +19,7 @@ from services.watchlist_service import (
     update_stock_details,
 )
 from services.watchlist_ui import get_or_create_default_watchlist
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 EXCHANGES = {"NSE": ".NS", "BSE": ".BO"}
 STATUSES = ["Watching", "Bought", "Sold", "Avoid"]
@@ -123,6 +124,122 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
                 }
             )
     return pd.DataFrame(rows)
+
+
+def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.DataFrame:
+    """Rank a bounded candidate universe by today's move and label cap only from provider data."""
+    candidates = NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES
+    suffix = EXCHANGES[exchange]
+    tickers = [f"{symbol}{suffix}" for symbol in candidates[:100]]
+    if not tickers:
+        return pd.DataFrame()
+
+    try:
+        intraday = yf.download(
+            tickers=tickers,
+            period="1d",
+            interval="5m",
+            group_by="ticker",
+            auto_adjust=False,
+            progress=False,
+            threads=True,
+            timeout=20,
+        )
+        daily = yf.download(
+            tickers=tickers,
+            period="5d",
+            interval="1d",
+            group_by="ticker",
+            auto_adjust=False,
+            progress=False,
+            threads=True,
+            timeout=20,
+        )
+    except Exception:
+        return pd.DataFrame()
+
+    rows: list[dict[str, Any]] = []
+    for ticker in tickers:
+        try:
+            def series_from(frame: pd.DataFrame, field: str) -> pd.Series:
+                if frame.empty:
+                    return pd.Series(dtype=float)
+                if isinstance(frame.columns, pd.MultiIndex):
+                    for level in range(frame.columns.nlevels):
+                        if ticker in frame.columns.get_level_values(level):
+                            selected = frame.xs(ticker, axis=1, level=level)
+                            if field in selected.columns:
+                                return pd.to_numeric(selected[field], errors="coerce").dropna()
+                    return pd.Series(dtype=float)
+                if field in frame.columns:
+                    return pd.to_numeric(frame[field], errors="coerce").dropna()
+                return pd.Series(dtype=float)
+
+            intraday_close = series_from(intraday, "Close")
+            daily_close = series_from(daily, "Close")
+            daily_volume = series_from(daily, "Volume")
+            if daily_close.empty or len(daily_close) < 2:
+                continue
+            last = float(intraday_close.iloc[-1]) if not intraday_close.empty else float(daily_close.iloc[-1])
+            previous = float(daily_close.iloc[-2])
+            if previous <= 0:
+                continue
+            change_pct = (last / previous - 1) * 100
+            # Market-cap data is fetched only for positive movers to limit requests.
+            rows.append({
+                "Symbol": ticker.removesuffix(suffix),
+                "Ticker": ticker,
+                "Price": last,
+                "Change (%)": change_pct,
+                "Volume": int(daily_volume.iloc[-1]) if not daily_volume.empty else None,
+                "Market cap (₹)": None,
+                "Cap segment": "Unverified",
+            })
+        except (KeyError, TypeError, ValueError, IndexError):
+            continue
+
+    if not rows:
+        return pd.DataFrame()
+    rows.sort(key=lambda row: row["Change (%)"], reverse=True)
+
+    # Classify the strongest gainers only where Yahoo supplies market cap.
+    for row in rows[:30]:
+        try:
+            market_cap_usd = yf.Ticker(row["Ticker"]).fast_info.get("market_cap")
+            if market_cap_usd:
+                # Yahoo market cap is denominated in the listing currency for these tickers.
+                market_cap_inr = float(market_cap_usd)
+                row["Market cap (₹)"] = market_cap_inr
+                if market_cap_inr >= 1_000_000_000_000:
+                    row["Cap segment"] = "Large-cap"
+                elif market_cap_inr >= 50_000_000_000:
+                    row["Cap segment"] = "Mid-cap"
+                else:
+                    row["Cap segment"] = "Small-cap"
+        except Exception:
+            continue
+
+    frame = pd.DataFrame(rows)
+    if cap_segment != "All":
+        frame = frame.loc[frame["Cap segment"] == cap_segment]
+    frame = frame.loc[frame["Change (%)"] > 0].head(limit).copy()
+    if frame.empty:
+        return frame
+    frame["Price"] = frame["Price"].map(lambda value: f"₹{value:,.2f}")
+    frame["Change (%)"] = frame["Change (%)"].map(lambda value: f"+{value:.2f}%")
+    frame["Volume"] = frame["Volume"].map(
+        lambda value: "—" if pd.isna(value) else (
+            f"{value / 1_000_000:.1f}M" if value >= 1_000_000 else
+            f"{value / 1_000:.1f}K" if value >= 1_000 else f"{int(value):,}"
+        )
+    )
+    frame["Market cap"] = frame["Market cap (₹)"].map(
+        lambda value: "Unverified" if pd.isna(value) else (
+            f"₹{value / 1_000_000_000_000:.2f}T" if value >= 1_000_000_000_000 else
+            f"₹{value / 1_000_000_000:.1f}B"
+        )
+    )
+    return frame[["Symbol", "Price", "Change (%)", "Volume", "Cap segment", "Market cap"]].reset_index(drop=True)
 
 
 def show() -> None:
@@ -239,6 +356,73 @@ def show() -> None:
             return
 
         filter_mode = st.radio("Filter", ["All", "Gainers", "Losers"], horizontal=True)
+
+        with st.expander("📈 Intraday Market Gainers — large, mid and small caps", expanded=True):
+            st.caption(
+                "Screens a bounded list of NSE/BSE candidates. Market-cap labels are shown only when "
+                "the data provider supplies a value; quotes may be delayed and are not exchange-certified."
+            )
+            gain_cols = st.columns([1, 1, 1])
+            gain_exchange = gain_cols[0].selectbox("Exchange", ["NSE", "BSE"], key="gainers_exchange")
+            gain_segment = gain_cols[1].selectbox(
+                "Market cap", ["All", "Large-cap", "Mid-cap", "Small-cap", "Unverified"],
+                key="gainers_cap_segment",
+            )
+            gain_count = gain_cols[2].selectbox("Show", [10, 20, 30], index=0, key="gainers_count")
+            if st.button("Scan market gainers", key="scan_market_gainers", type="primary"):
+                with st.spinner("Scanning available market data…"):
+                    st.session_state["personal_market_gainers_result"] = _market_gainers(
+                        gain_exchange, gain_segment, int(gain_count)
+                    )
+                    st.session_state["personal_market_gainers_exchange"] = gain_exchange
+            gainers = st.session_state.get("personal_market_gainers_result")
+            if isinstance(gainers, pd.DataFrame):
+                if gainers.empty:
+                    st.warning(
+                        "No gainers could be verified for this selection. Try another cap segment or "
+                        "scan again when the market is open."
+                    )
+                else:
+                    st.dataframe(gainers, use_container_width=True, hide_index=True)
+                    choices = gainers["Symbol"].astype(str).tolist()
+                    selected_gainer = st.selectbox(
+                        "Choose a gainer to add", choices, key="personal_gainer_to_add"
+                    )
+                    add_col, entry_col, target_col, stop_col = st.columns(4)
+                    add_entry = entry_col.number_input(
+                        "Entry (₹)", min_value=0.0, value=0.0, step=1.0, key="gainer_entry"
+                    )
+                    add_target = target_col.number_input(
+                        "Target (₹)", min_value=0.0, value=0.0, step=1.0, key="gainer_target"
+                    )
+                    add_stop = stop_col.number_input(
+                        "Stop-loss (₹)", min_value=0.0, value=0.0, step=1.0, key="gainer_stop"
+                    )
+                    if add_col.button("＋ Add to my watchlist", key="add_selected_gainer"):
+                        suffix = EXCHANGES.get(
+                            st.session_state.get("personal_market_gainers_exchange", "NSE"), ".NS"
+                        )
+                        selected_ticker = selected_gainer + suffix
+                        existing_symbols = {str(item.get("symbol", "")).upper() for item in records}
+                        if selected_ticker.upper() in existing_symbols:
+                            st.info(f"{selected_ticker} is already in your watchlist.")
+                        else:
+                            try:
+                                add_symbol(
+                                    OWNER_ID, watchlist_id, selected_ticker,
+                                    {
+                                        "investment_type": "Intraday",
+                                        "entry_price": add_entry or None,
+                                        "target_price": add_target or None,
+                                        "stop_loss": add_stop or None,
+                                        "status": "Watching",
+                                        "notes": "Added from Intraday Market Gainers panel",
+                                    },
+                                )
+                                st.success(f"Added {selected_ticker} to your watchlist.")
+                                st.rerun()
+                            except WatchlistError as exc:
+                                st.error(f"Could not add {selected_ticker}: {exc}")
 
         if not records:
             st.info("Your watchlist is empty. Add your first stock above.")
