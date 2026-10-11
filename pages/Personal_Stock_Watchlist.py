@@ -768,7 +768,7 @@ def show() -> None:
                     "Status": item.get("status") or "Watching",
                     "Purchase date": str(item.get("purchase_date") or "—"),
                     "Quantity / lots": quantity_value,
-                    "Lot size": lot_size,
+                    "Effective lot size": lot_size,
                     "Effective units": effective_quantity,
                     "Entry (₹)": entry_value if entry_value else None,
                     "Current price": (
