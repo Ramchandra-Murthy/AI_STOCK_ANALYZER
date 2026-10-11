@@ -79,6 +79,24 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
             else:
                 alert = "No target/loss alert"
 
+            # Show total session volume when intraday bars are available.
+            # Abbreviate large values so the watchlist is easy to scan (e.g. 12500 -> 12.5K).
+            if source is intraday and len(volume):
+                volume_value = int(volume.sum())
+            else:
+                volume_value = int(volume.iloc[-1]) if len(volume) else None
+
+            if volume_value is None:
+                volume_display = "—"
+            elif volume_value >= 1_000_000_000:
+                volume_display = f"{volume_value / 1_000_000_000:.1f}B"
+            elif volume_value >= 1_000_000:
+                volume_display = f"{volume_value / 1_000_000:.1f}M"
+            elif volume_value >= 1_000:
+                volume_display = f"{volume_value / 1_000:.1f}K"
+            else:
+                volume_display = f"{volume_value:,}"
+
             rows.append(
                 {
                     "Symbol": symbol,
@@ -87,7 +105,7 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
                     "Alert": alert,
                     "Change today (₹)": round(change, 2) if change is not None else None,
                     "Change today (%)": round(change_pct, 2) if change_pct is not None else None,
-                    "Volume": int(volume.iloc[-1]) if len(volume) else None,
+                    "Volume": volume_display,
                     "Data": "Intraday (provider may delay)" if source is intraday else "Daily close (fallback)",
                 }
             )
