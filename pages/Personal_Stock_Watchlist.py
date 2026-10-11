@@ -115,11 +115,17 @@ def show() -> None:
             )
 
         with st.expander("ADD", expanded=True):
+            # Keep the symbol input outside the form so Streamlit updates its
+            # session state immediately while the user types. Form widgets do not
+            # trigger a rerun until submit, which caused empty/stale symbols on
+            # some client sessions.
+            col1, col2, col3 = st.columns([3, 1, 1])
+            col1.text_input(
+                "Stock symbol",
+                placeholder="e.g. RELIANCE",
+                key="personal_watchlist_add_symbol",
+            )
             with st.form("personal_watchlist_add", clear_on_submit=False):
-                col1, col2, col3 = st.columns([3, 1, 1])
-                symbol = col1.text_input(
-                    "Stock symbol", placeholder="e.g. RELIANCE", key="personal_watchlist_add_symbol"
-                )
                 exchange = col2.selectbox("Exchange", ["NSE", "BSE"])
                 investment_type = col3.selectbox("Type", INVESTMENT_TYPES)
                 col4, col5, col6 = st.columns(3)
@@ -133,41 +139,37 @@ def show() -> None:
                 purchase_date = col8.date_input("Purchase date", value=date.today())
                 notes = st.text_input("Notes")
                 submitted = st.form_submit_button("＋ Add to watchlist", use_container_width=True)
-                if submitted:
-                    # Read the submitted widget value from session state as well as
-                    # the local return value. This avoids validating a stale local
-                    # value after a form submission/rerun.
-                    submitted_symbol = st.session_state.get(
-                        "personal_watchlist_add_symbol", symbol
+
+            if submitted:
+                submitted_symbol = st.session_state.get("personal_watchlist_add_symbol", "")
+                normalized = str(submitted_symbol or "").strip().upper()
+                if not normalized:
+                    st.error(
+                        "Enter a stock symbol in the Stock symbol field, then "
+                        "click ＋ Add to watchlist."
                     )
-                    normalized = str(submitted_symbol or "").strip().upper()
-                    if not normalized:
-                        st.error(
-                            "Enter a stock symbol in the Stock symbol field, then "
-                            "click ＋ Add to watchlist."
-                        )
-                    else:
-                        if not normalized.endswith((".NS", ".BO")):
-                            normalized += EXCHANGES[exchange]
-                        details = {
-                            "investment_type": investment_type,
-                            "entry_price": entry_price or None,
-                            "target_price": target_price or None,
-                            "stop_loss": stop_loss or None,
-                            "quantity": quantity or None,
-                            "purchase_date": purchase_date.isoformat(),
-                            "notes": notes.strip(),
-                            "status": "Watching",
-                        }
-                        try:
-                            added = add_symbol(OWNER_ID, watchlist_id, normalized, details)
-                            if added:
-                                st.success(f"Added {normalized}.")
-                            else:
-                                st.warning(f"{normalized} is already in this watchlist.")
-                            st.rerun()
-                        except WatchlistError as exc:
-                            st.error(str(exc))
+                else:
+                    if not normalized.endswith((".NS", ".BO")):
+                        normalized += EXCHANGES[exchange]
+                    details = {
+                        "investment_type": investment_type,
+                        "entry_price": entry_price or None,
+                        "target_price": target_price or None,
+                        "stop_loss": stop_loss or None,
+                        "quantity": quantity or None,
+                        "purchase_date": purchase_date.isoformat(),
+                        "notes": notes.strip(),
+                        "status": "Watching",
+                    }
+                    try:
+                        added = add_symbol(OWNER_ID, watchlist_id, normalized, details)
+                        if added:
+                            st.success(f"Added {normalized}.")
+                        else:
+                            st.warning(f"{normalized} is already in this watchlist.")
+                        st.rerun()
+                    except WatchlistError as exc:
+                        st.error(str(exc))
 
         try:
             records = list_stock_records(OWNER_ID, watchlist_id)
