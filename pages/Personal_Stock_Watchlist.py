@@ -586,6 +586,11 @@ def show() -> None:
                 unrealized_pnl_total += pnl
             diary_rows.append({
                 "Symbol": symbol,
+                "Instrument": asset_details.get("instrument_type", "Stock"),
+                "Contract expiry": asset_details.get("expiry_date", "—"),
+                "Strike price": asset_details.get("strike_price", "—"),
+                "Option type": asset_details.get("option_type", "—"),
+                "Lot size": asset_details.get("lot_size", "—"),
                 "Investment type": item.get("investment_type") or "Other",
                 "Status": item.get("status") or "Watching",
                 "Purchase date": str(item.get("purchase_date") or "—"),
@@ -598,7 +603,10 @@ def show() -> None:
                 "Current value (₹)": current_value,
                 "P/L (₹)": pnl,
                 "P/L (%)": pnl_pct,
-                "Price data": quote.get("Data", "Unavailable"),
+                "Price data": (
+                    "Manual contract price" if asset_details.get("instrument_type") in {"Futures", "Options"}
+                    else quote.get("Data", "Unavailable")
+                ),
                 "Alert": (
                     "Price unavailable — cannot check target or loss"
                     if current_price is None
