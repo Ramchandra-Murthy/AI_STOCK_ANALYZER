@@ -165,9 +165,7 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     rows: list[dict[str, Any]] = []
     for ticker in tickers:
         try:
-            def series_from(
-                frame: pd.DataFrame, field: str, symbol: str = ticker
-            ) -> pd.Series:
+            def series_from(frame: pd.DataFrame, field: str, symbol: str = ticker) -> pd.Series:
                 if frame.empty:
                     return pd.Series(dtype=float)
                 if isinstance(frame.columns, pd.MultiIndex):
