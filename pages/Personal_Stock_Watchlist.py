@@ -55,10 +55,20 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
             previous = float(daily_close.iloc[-2]) if len(daily_close) > 1 else None
             change = last - previous if previous is not None else None
             change_pct = (change / previous * 100) if previous else None
+            if change is not None and change > 0:
+                price_display = f"▲ ₹{last:,.2f}"
+                trend = "Up"
+            elif change is not None and change < 0:
+                price_display = f"▼ ₹{last:,.2f}"
+                trend = "Down"
+            else:
+                price_display = f"→ ₹{last:,.2f}"
+                trend = "Flat/unknown"
             rows.append(
                 {
                     "Symbol": symbol,
-                    "Latest price (₹)": round(last, 2),
+                    "Current price": price_display,
+                    "Price trend": trend,
                     "Change today (₹)": round(change, 2) if change is not None else None,
                     "Change today (%)": round(change_pct, 2) if change_pct is not None else None,
                     "Volume": int(volume.iloc[-1]) if len(volume) else None,
@@ -211,7 +221,26 @@ def show() -> None:
                         quotes = quotes.loc[quotes["Change today (%)"] > 0]
                     elif filter_mode == "Losers" and "Change today (%)" in quotes:
                         quotes = quotes.loc[quotes["Change today (%)"] < 0]
-                    st.dataframe(quotes, use_container_width=True, hide_index=True)
+                    def color_price_direction(row: pd.Series) -> list[str]:
+                        trend = row.get("Price trend")
+                        if trend == "Up":
+                            return [
+                                "color: #15803d; font-weight: 700" if col == "Current price"
+                                else "color: #15803d" if col == "Price trend"
+                                else ""
+                                for col in row.index
+                            ]
+                        if trend == "Down":
+                            return [
+                                "color: #dc2626; font-weight: 700" if col == "Current price"
+                                else "color: #dc2626" if col == "Price trend"
+                                else ""
+                                for col in row.index
+                            ]
+                        return ["" for _ in row.index]
+
+                    styled_quotes = quotes.style.apply(color_price_direction, axis=1)
+                    st.dataframe(styled_quotes, use_container_width=True, hide_index=True)
                     now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%H:%M:%S IST")
                     st.caption(f"Last quote check: {now}")
                 except Exception as exc:
