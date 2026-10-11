@@ -8,9 +8,13 @@ Set WATCHLIST_DATABASE_PATH to a durable writable path in deployed environments.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sqlite3
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -377,10 +381,6 @@ def _sqlite_remove_symbol(user_id: str, watchlist_id: int, symbol: str) -> bool:
 # Supabase REST backend. No third-party SDK is required; this keeps the
 # application's dependency lockfile unchanged. Credentials are read only from
 # server-side Streamlit secrets or environment variables.
-import json
-import urllib.error
-import urllib.parse
-import urllib.request
 from datetime import datetime, timezone
 
 
@@ -466,10 +466,6 @@ def _supabase_request(
         raise WatchlistError("Supabase returned an unreadable response.") from exc
 
 
-def _supabase_filter_symbol(symbol: str) -> str:
-    return urllib.parse.quote(f"eq.{symbol}", safe=".-_")
-
-
 def _supabase_records() -> list[dict[str, Any]]:
     query = urllib.parse.urlencode(
         {"select": "*", "order": "position.asc,symbol.asc"},
@@ -488,12 +484,14 @@ def list_watchlists(user_id: str) -> list[dict[str, Any]]:
     if not _supabase_enabled():
         return _sqlite_list_watchlists(user_id)
     records = _supabase_records()
-    return [{
-        "id": _SUPABASE_WATCHLIST_ID,
-        "name": "My Watchlist",
-        "created_at": records[0].get("created_at") if records else None,
-        "symbol_count": len(records),
-    }]
+    return [
+        {
+            "id": _SUPABASE_WATCHLIST_ID,
+            "name": "My Watchlist",
+            "created_at": records[0].get("created_at") if records else None,
+            "symbol_count": len(records),
+        }
+    ]
 
 
 def create_watchlist(user_id: str, name: str) -> int:
