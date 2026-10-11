@@ -110,7 +110,9 @@ def show() -> None:
                 exchange = col2.selectbox("Exchange", ["NSE", "BSE"])
                 investment_type = col3.selectbox("Type", INVESTMENT_TYPES)
                 col4, col5, col6 = st.columns(3)
-                entry_price = col4.number_input("Entry price (₹)", min_value=0.0, value=0.0, step=1.0)
+                entry_price = col4.number_input(
+                    "Entry price (₹)", min_value=0.0, value=0.0, step=1.0
+                )
                 target_price = col5.number_input("Target (₹)", min_value=0.0, value=0.0, step=1.0)
                 stop_loss = col6.number_input("Stop-loss (₹)", min_value=0.0, value=0.0, step=1.0)
                 col7, col8 = st.columns(2)
