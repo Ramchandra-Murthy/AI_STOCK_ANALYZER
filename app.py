@@ -1,4 +1,4 @@
-"""AI Stock Analyzer Pro - organized Streamlit application entrypoint."""
+""""AI Stock Analyzer Pro - organized Streamlit application entrypoint."""
 
 import streamlit as st
 
@@ -56,6 +56,12 @@ pages = {
             title="Intraday Trading",
             icon="⏱️",
             url_path="intraday-trading",
+        ),
+        st.Page(
+            market_movers,
+            title="Intraday Market Movers",
+            icon="⚡",
+            url_path="intraday-market-movers",
         ),
     ],
     "🔎 Research": [
