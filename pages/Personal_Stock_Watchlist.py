@@ -723,10 +723,16 @@ def show() -> None:
             symbol = str(item.get("symbol", "—"))
             entry_value = float(item.get("entry_price") or 0)
             quantity_value = int(item.get("quantity") or 0)
-            invested = entry_value * quantity_value if entry_value and quantity_value else None
+            asset_details = item.get("asset_details") or {}
+            lot_size = (
+                int(asset_details.get("lot_size") or 1)
+                if asset_details.get("instrument_type") in {"Futures", "Options"}
+                else 1
+            )
+            effective_quantity = quantity_value * lot_size
+            invested = entry_value * effective_quantity if entry_value and effective_quantity else None
             quote = quote_by_symbol.get(symbol, {})
             current_price = numeric_quote(quote.get("Current price"))
-            asset_details = item.get("asset_details") or {}
             if current_price is None and asset_details.get("instrument_type") in {
                 "Futures",
                 "Options",
@@ -734,8 +740,8 @@ def show() -> None:
                 manual_price = asset_details.get("current_price_manual")
                 current_price = float(manual_price) if manual_price not in (None, "") else None
             current_value = (
-                current_price * quantity_value
-                if current_price is not None and quantity_value
+                current_price * effective_quantity
+                if current_price is not None and effective_quantity
                 else None
             )
             pnl = (
@@ -761,7 +767,9 @@ def show() -> None:
                     "Investment type": item.get("investment_type") or "Other",
                     "Status": item.get("status") or "Watching",
                     "Purchase date": str(item.get("purchase_date") or "—"),
-                    "Quantity": quantity_value,
+                    "Quantity / lots": quantity_value,
+                    "Lot size": lot_size,
+                    "Effective units": effective_quantity,
                     "Entry (₹)": entry_value if entry_value else None,
                     "Current price": (
                         f"₹{current_price:,.2f}" if current_price is not None else "Unavailable"
