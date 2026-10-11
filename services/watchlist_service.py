@@ -33,6 +33,8 @@ DETAIL_FIELDS = (
     "purchase_date",
     "notes",
     "status",
+    "asset_category",
+    "asset_details",
 )
 
 
@@ -80,6 +82,8 @@ def _connect() -> sqlite3.Connection:
             notes TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'Watching',
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            asset_category TEXT NOT NULL DEFAULT 'Stocks / F&O',
+            asset_details TEXT NOT NULL DEFAULT '{}',
             PRIMARY KEY (watchlist_id, symbol)
         );
         CREATE INDEX IF NOT EXISTS idx_watchlists_user_id ON watchlists(user_id);
@@ -100,6 +104,8 @@ def _connect() -> sqlite3.Connection:
         "notes": "TEXT NOT NULL DEFAULT ''",
         "status": "TEXT NOT NULL DEFAULT 'Watching'",
         "updated_at": "TEXT",
+        "asset_category": "TEXT NOT NULL DEFAULT 'Stocks / F&O'",
+        "asset_details": "TEXT NOT NULL DEFAULT '{}'",
     }
     for name, definition in migrations.items():
         if name not in columns:
@@ -245,14 +251,22 @@ def _sqlite_list_stock_records(user_id: str, watchlist_id: int) -> list[dict[str
         rows = connection.execute(
             """
             SELECT symbol, entry_price, stop_loss, target_price, quantity,
-                   investment_type, purchase_date, notes, status, created_at, updated_at
+                   investment_type, purchase_date, notes, status, created_at, updated_at,
+                   asset_category, asset_details
             FROM watchlist_symbols
             WHERE watchlist_id = ?
             ORDER BY position, symbol
             """,
             (watchlist_id,),
         ).fetchall()
-    return [dict(row) for row in rows]
+    records = [dict(row) for row in rows]
+    for record in records:
+        try:
+            record["asset_details"] = json.loads(record.get("asset_details") or "{}")
+        except (TypeError, ValueError):
+            record["asset_details"] = {}
+        record.setdefault("asset_category", "Stocks / F&O")
+    return records
 
 
 def _sqlite_add_symbol(
@@ -287,8 +301,8 @@ def _sqlite_add_symbol(
             """
             INSERT INTO watchlist_symbols (
                 watchlist_id, symbol, position, entry_price, stop_loss, target_price,
-                quantity, investment_type, purchase_date, notes, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                quantity, investment_type, purchase_date, notes, status, asset_category, asset_details
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 watchlist_id,
@@ -302,6 +316,8 @@ def _sqlite_add_symbol(
                 fields["purchase_date"],
                 fields["notes"],
                 fields["status"],
+                fields.get("asset_category") or "Stocks / F&O",
+                json.dumps(fields.get("asset_details") or {}, default=str),
             ),
         )
     return True
@@ -315,6 +331,10 @@ def _validate_details(details: dict[str, Any]) -> None:
     quantity = details.get("quantity")
     if quantity is not None and quantity != "" and int(quantity) < 1:
         raise WatchlistError("Quantity must be at least 1.")
+    if details.get("asset_category") and details["asset_category"] not in {"Stocks / F&O", "Mutual Funds", "Commodity", "Currency"}:
+        raise WatchlistError("Select a valid investment category.")
+    if details.get("asset_details") is not None and not isinstance(details.get("asset_details"), dict):
+        raise WatchlistError("Instrument details must be a structured object.")
     investment_type = details.get("investment_type")
     if investment_type and investment_type not in ALLOWED_TYPES:
         raise WatchlistError("Select a valid investment type.")
@@ -339,7 +359,7 @@ def _sqlite_update_stock_details(
             UPDATE watchlist_symbols
             SET entry_price = ?, stop_loss = ?, target_price = ?, quantity = ?,
                 investment_type = ?, purchase_date = ?, notes = ?, status = ?,
-                updated_at = CURRENT_TIMESTAMP
+                asset_category = ?, asset_details = ?, updated_at = CURRENT_TIMESTAMP
             WHERE watchlist_id = ? AND symbol = ?
               AND EXISTS (SELECT 1 FROM watchlists WHERE id = ? AND user_id = ?)
             """,
@@ -352,6 +372,8 @@ def _sqlite_update_stock_details(
                 fields["purchase_date"],
                 fields["notes"],
                 fields["status"],
+                fields.get("asset_category") or "Stocks / F&O",
+                json.dumps(fields.get("asset_details") or {}, default=str),
                 watchlist_id,
                 normalized_symbol,
                 watchlist_id,
@@ -540,6 +562,12 @@ def list_stock_records(user_id: str, watchlist_id: int) -> list[dict[str, Any]]:
         record.setdefault("investment_type", "Other")
         record.setdefault("status", "Watching")
         record.setdefault("notes", "")
+        record.setdefault("asset_category", "Stocks / F&O")
+        if not isinstance(record.get("asset_details"), dict):
+            try:
+                record["asset_details"] = json.loads(record.get("asset_details") or "{}")
+            except (TypeError, ValueError):
+                record["asset_details"] = {}
     return records
 
 
@@ -577,6 +605,8 @@ def add_symbol(
         "notes": fields["notes"],
         "status": fields["status"],
         "position": position,
+        "asset_category": fields.get("asset_category") or "Stocks / F&O",
+        "asset_details": fields.get("asset_details") or {},
     }
     _supabase_request("POST", "select=id", [payload], prefer="return=representation")
     return True
@@ -604,6 +634,8 @@ def update_stock_details(
         "purchase_date": fields["purchase_date"] or None,
         "notes": fields["notes"],
         "status": fields["status"],
+        "asset_category": fields.get("asset_category") or "Stocks / F&O",
+        "asset_details": fields.get("asset_details") or {},
         "updated_at": datetime.now(UTC).isoformat(),
     }
     query = urllib.parse.urlencode(
