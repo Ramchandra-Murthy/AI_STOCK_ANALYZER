@@ -9,6 +9,7 @@ from scanner.market_scanner import DISPLAY_COUNT, market_scan
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
 from services.market_service import WATCHLIST
+from services.watchlist_auth_ui import render_watchlist_sign_in
 from services.watchlist_service import WatchlistError
 from services.watchlist_ui import get_or_create_default_watchlist
 
@@ -102,7 +103,10 @@ def show():
             st.user, [f"{symbol}.NS" for symbol in WATCHLIST]
         )
     except (AttributeError, WatchlistError, PermissionError) as exc:
-        st.warning(str(exc) or "Sign in to scan your personal watchlist.")
+        render_watchlist_sign_in(
+            str(exc) or "Sign in to scan your personal watchlist.",
+            key="scanner_watchlist_sign_in",
+        )
         watchlist = []
 
     if not watchlist:
