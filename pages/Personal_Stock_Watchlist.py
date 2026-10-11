@@ -537,7 +537,11 @@ def show() -> None:
 
         # Join saved diary entries with available provider quotes so the key
         # portfolio figures are visible without opening the edit expander.
-        quote_frame = _quote_table(records, "NSE") if records else pd.DataFrame()
+        quoteable_records = [
+            record for record in records
+            if (record.get("asset_details") or {}).get("instrument_type") not in {"Futures", "Options"}
+        ]
+        quote_frame = _quote_table(quoteable_records, "NSE") if quoteable_records else pd.DataFrame()
         quote_by_symbol = (
             {str(row["Symbol"]): row for _, row in quote_frame.iterrows()}
             if not quote_frame.empty and "Symbol" in quote_frame
@@ -567,6 +571,10 @@ def show() -> None:
             invested = entry_value * quantity_value if entry_value and quantity_value else None
             quote = quote_by_symbol.get(symbol, {})
             current_price = numeric_quote(quote.get("Current price"))
+            asset_details = item.get("asset_details") or {}
+            if current_price is None and asset_details.get("instrument_type") in {"Futures", "Options"}:
+                manual_price = asset_details.get("current_price_manual")
+                current_price = float(manual_price) if manual_price not in (None, "") else None
             current_value = current_price * quantity_value if current_price is not None and quantity_value else None
             pnl = current_value - invested if current_value is not None and invested is not None else None
             pnl_pct = (pnl / invested * 100) if pnl is not None and invested else None
@@ -591,7 +599,17 @@ def show() -> None:
                 "P/L (₹)": pnl,
                 "P/L (%)": pnl_pct,
                 "Price data": quote.get("Data", "Unavailable"),
-                "Alert": quote.get("Alert", "Price unavailable — cannot check target or loss"),
+                "Alert": (
+                    "Price unavailable — cannot check target or loss"
+                    if current_price is None
+                    else (
+                        "🎯 TARGET ACHIEVED"
+                        if float(item.get("target_price") or 0) > 0 and current_price >= float(item.get("target_price") or 0)
+                        else "🚨 STOP-LOSS BREACHED"
+                        if float(item.get("stop_loss") or 0) > 0 and current_price <= float(item.get("stop_loss") or 0)
+                        else quote.get("Alert", "Manual contract price; verify before acting")
+                    )
+                ),
                 "Notes": item.get("notes") or "—",
             })
 
@@ -707,7 +725,13 @@ def show() -> None:
             @st.fragment(run_every="60s" if _market_session_open() else None)
             def render_live_quotes() -> None:
                 try:
-                    quotes = _quote_table(records, "NSE")
+                    quotes = _quote_table(
+                        [
+                            record for record in records
+                            if (record.get("asset_details") or {}).get("instrument_type") not in {"Futures", "Options"}
+                        ],
+                        "NSE",
+                    )
                     if filter_mode == "Gainers" and "Change today (%)" in quotes:
                         quotes = quotes.loc[quotes["Change today (%)"] > 0]
                     elif filter_mode == "Losers" and "Change today (%)" in quotes:
