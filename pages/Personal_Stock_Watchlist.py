@@ -278,13 +278,38 @@ def show() -> None:
                         except WatchlistError as exc:
                             st.error(str(exc))
 
-                if st.button("Remove selected stock", type="secondary"):
-                    if remove_symbol(OWNER_ID, watchlist_id, selected):
-                        st.success(f"Removed {selected}.")
-                        st.session_state.pop(cache_key, None)
-                        st.rerun()
-                    else:
-                        st.warning("Stock was not found.")
+                confirm_key = f"confirm_remove_{selected}"
+                if st.button("Remove selected stock", type="secondary", key=f"remove_stock_{selected}"):
+                    st.session_state[confirm_key] = True
+                    st.rerun()
+
+                if st.session_state.get(confirm_key, False):
+                    st.warning(
+                        f"Are you sure you want to delete {selected} from your watchlist? "
+                        "This cannot be undone."
+                    )
+                    confirm_col, cancel_col = st.columns(2)
+                    with confirm_col:
+                        if st.button(
+                            f"Yes, delete {selected}",
+                            type="primary",
+                            key=f"confirm_delete_{selected}",
+                        ):
+                            try:
+                                removed = remove_symbol(OWNER_ID, watchlist_id, selected)
+                                st.session_state[confirm_key] = False
+                                if removed:
+                                    st.success(f"Removed {selected}.")
+                                    st.session_state.pop(cache_key, None)
+                                    st.rerun()
+                                else:
+                                    st.warning("Stock was not found.")
+                            except WatchlistError as exc:
+                                st.error(f"Could not remove {selected}: {exc}")
+                    with cancel_col:
+                        if st.button("Cancel", key=f"cancel_delete_{selected}"):
+                            st.session_state[confirm_key] = False
+                            st.rerun()
 
 
 show()
