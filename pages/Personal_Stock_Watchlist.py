@@ -497,13 +497,13 @@ def show() -> None:
                         expiry_key = str(contract_details.get("expiry_date", "")).replace("-", "")
                         underlying = normalized.removesuffix(".NS").removesuffix(".BO")
                         if selected_type == "Futures":
-                            normalized = f"FUT-{underlying}-{expiry_key}"
+                            normalized = f"F-{underlying[:12]}-{expiry_key}"
                         else:
                             strike = float(contract_details.get("strike_price") or 0)
                             if strike <= 0:
                                 st.error("Enter a valid strike price for an option contract.")
                                 st.stop()
-                            normalized = f"OPT-{underlying}-{expiry_key}-{int(strike)}-{contract_details.get('option_type', 'CE')}"
+                            normalized = f"O-{underlying[:10]}-{expiry_key}-{int(strike)}-{contract_details.get('option_type', 'CE')}"
                     details = {
                         "investment_type": investment_type,
                         "entry_price": entry_price or None,
