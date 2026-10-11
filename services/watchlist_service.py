@@ -381,7 +381,7 @@ import json
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import date
+from datetime import datetime, timezone
 
 
 _SUPABASE_WATCHLIST_ID = 1
@@ -604,7 +604,7 @@ def update_stock_details(
         "purchase_date": fields["purchase_date"] or None,
         "notes": fields["notes"],
         "status": fields["status"],
-        "updated_at": "now()",
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     query = urllib.parse.urlencode(
         {"symbol": f"eq.{normalized_symbol}", "select": "id"},
