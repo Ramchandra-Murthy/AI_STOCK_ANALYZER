@@ -270,14 +270,8 @@ def _risk_metrics(
     entry: float, current: float | None, target: float, stop_loss: float
 ) -> tuple[float | None, float | None, float | None]:
     """Return current-price distance to target/stop and entry-based reward-to-risk."""
-    target_distance = (
-        (target - current) / current * 100 if current and target > 0 else None
-    )
-    stop_distance = (
-        (current - stop_loss) / current * 100
-        if current and stop_loss > 0
-        else None
-    )
+    target_distance = (target - current) / current * 100 if current and target > 0 else None
+    stop_distance = (current - stop_loss) / current * 100 if current and stop_loss > 0 else None
     risk = entry - stop_loss if entry > stop_loss > 0 else None
     reward = target - entry if target > entry > 0 else None
     reward_risk = reward / risk if reward is not None and risk else None
@@ -538,11 +532,7 @@ def show() -> None:
             if category_name not in category_totals:
                 category_name = "Stocks / F&O"
             asset_details = summary_record.get("asset_details") or {}
-            qty = float(
-                asset_details.get("units_quantity")
-                or summary_record.get("quantity")
-                or 0
-            )
+            qty = float(asset_details.get("units_quantity") or summary_record.get("quantity") or 0)
             if asset_details.get("instrument_type") in {"Futures", "Options"}:
                 qty *= int(asset_details.get("lot_size") or 1)
             entry = float(summary_record.get("entry_price") or 0)
@@ -760,7 +750,9 @@ def show() -> None:
                 else 1
             )
             effective_quantity = quantity_value * lot_size
-            invested = entry_value * effective_quantity if entry_value and effective_quantity else None
+            invested = (
+                entry_value * effective_quantity if entry_value and effective_quantity else None
+            )
             quote = quote_by_symbol.get(symbol, {})
             current_price = numeric_quote(quote.get("Current price"))
             if current_price is None and asset_details.get("instrument_type") in {
