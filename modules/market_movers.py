@@ -148,6 +148,7 @@ def _scan_batches(candidates: list[tuple[str, str]], limit_per_exchange: int) ->
         frame = frame.drop_duplicates(subset=["Ticker"], keep="last").reset_index(drop=True)
     stats: dict[str, int | float | str] = {
         "candidate_count": len(selected),
+        "limit_per_exchange": limit_per_exchange,
         "usable_quotes": len(frame),
         "failed_batches": failed_batches,
         "batches": batches,
@@ -248,14 +249,14 @@ def show() -> None:
 
     if st.button("Scan / refresh market movers", type="primary", use_container_width=True):
         _cached_scan.clear()
-        st.rerun()
+        with st.spinner("Loading dynamic NSE/BSE universe and scanning intraday candles. Full scans may take several minutes…"):
+            st.session_state["market_movers_result"] = _cached_scan(limit)
 
     if "market_movers_result" not in st.session_state:
         st.info("Choose scan coverage, then click **Scan / refresh market movers** to fetch the latest available candles.")
         return
     frame, stats = st.session_state["market_movers_result"]
-    expected_candidates = stats.get("nse_candidates", 0) + stats.get("bse_candidates", 0)
-    if expected_candidates != (0 if limit == 0 else limit * 2):
+    if stats.get("limit_per_exchange") != limit:
         st.info("The selected scan coverage differs from the last result. Click **Scan / refresh market movers** to rescan.")
 
     if frame.empty:
