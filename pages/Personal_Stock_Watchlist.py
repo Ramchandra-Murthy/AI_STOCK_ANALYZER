@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
+import re
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -390,7 +391,7 @@ def show() -> None:
         def numeric_quote(value: Any) -> float | None:
             if value is None or pd.isna(value):
                 return None
-            match = __import__("re").search(r"[-+]?\\d[\\d,]*(?:\\.\\d+)?", str(value))
+            match = re.search(r"[-+]?\d[\d,]*(?:\.\d+)?", str(value))
             if not match:
                 return None
             try:
