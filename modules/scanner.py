@@ -8,6 +8,9 @@ import streamlit as st
 from scanner.market_scanner import DISPLAY_COUNT, market_scan
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
+from services.market_service import WATCHLIST
+from services.watchlist_service import WatchlistError
+from services.watchlist_ui import get_or_create_default_watchlist
 
 
 def _show_data_quality(df: pd.DataFrame) -> None:
@@ -94,11 +97,16 @@ def show():
         )
         trend_filter = st.selectbox("Trend", ["All", "Bullish", "Bearish", "Sideways"])
 
-    watchlist = st.session_state.get("personal_watchlist", [])
-    if not watchlist:
-        st.info(
-            "Your Personal Watchlist is empty. Add stocks in the Indian Market Dashboard, then return here."
+    try:
+        _, _, watchlist = get_or_create_default_watchlist(
+            st.user, [f"{symbol}.NS" for symbol in WATCHLIST]
         )
+    except (AttributeError, WatchlistError, PermissionError) as exc:
+        st.warning(str(exc) or "Sign in to scan your personal watchlist.")
+        watchlist = []
+
+    if not watchlist:
+        st.info("Your Personal Watchlist is empty. Add stocks in the Market page first.")
 
     scan_mode = st.radio("Scan", ["Personal Watchlist", "Broad Market"], horizontal=True)
     exchange_filter = st.selectbox(
