@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, time
 import re
+from datetime import date, datetime, time
 from typing import Any
 from zoneinfo import ZoneInfo
 
