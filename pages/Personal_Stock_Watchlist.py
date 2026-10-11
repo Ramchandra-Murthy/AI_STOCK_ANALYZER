@@ -90,7 +90,18 @@ def show() -> None:
         st.info("Currency tracking is not connected to this stock-symbol table yet.")
 
     with category[0]:
-        _, watchlist_id, _ = get_or_create_default_watchlist()
+        try:
+            _, watchlist_id, _ = get_or_create_default_watchlist()
+        except WatchlistError as exc:
+            st.error("Personal watchlist storage is unavailable.")
+            st.warning(str(exc))
+            st.info(
+                "Check the SUPABASE_URL in Streamlit Secrets and confirm that the "
+                "project URL is copied exactly from the Supabase dashboard. "
+                "The rest of the app should remain available."
+            )
+            return
+
         selected_type = st.radio(
             "Instrument",
             ["Stock", "Futures", "Options"],
