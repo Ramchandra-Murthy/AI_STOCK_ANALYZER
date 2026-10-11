@@ -280,9 +280,15 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
         with st.form(f"add_asset_{prefix}", clear_on_submit=True):
             name = st.text_input("Instrument / fund / currency pair", key=f"{prefix}_name")
             c1, c2, c3 = st.columns(3)
-            entry = c1.number_input("Entry price / NAV / rate (₹)", min_value=0.0, value=0.0, key=f"{prefix}_entry")
-            current = c2.number_input("Current price / NAV / rate (₹)", min_value=0.0, value=0.0, key=f"{prefix}_current")
-            quantity = c3.number_input("Units / quantity", min_value=0.0, value=0.0, key=f"{prefix}_quantity")
+            entry = c1.number_input(
+                "Entry price / NAV / rate (₹)", min_value=0.0, value=0.0, key=f"{prefix}_entry"
+            )
+            current = c2.number_input(
+                "Current price / NAV / rate (₹)", min_value=0.0, value=0.0, key=f"{prefix}_current"
+            )
+            quantity = c3.number_input(
+                "Units / quantity", min_value=0.0, value=0.0, key=f"{prefix}_quantity"
+            )
             c4, c5, c6 = st.columns(3)
             target = c4.number_input("Target (₹)", min_value=0.0, value=0.0, key=f"{prefix}_target")
             stop = c5.number_input("Stop-loss (₹)", min_value=0.0, value=0.0, key=f"{prefix}_stop")
@@ -292,13 +298,21 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
                 extra["scheme_details"] = st.text_input("Scheme / plan", key="mf_scheme_details")
             elif prefix == "CMD":
                 cc1, cc2 = st.columns(2)
-                extra["exchange"] = cc1.selectbox("Exchange", ["MCX", "NCDEX", "Other"], key="cmd_exchange")
-                extra["expiry"] = cc2.date_input("Contract expiry", value=date.today(), key="cmd_expiry").isoformat()
-                extra["contract_size"] = st.text_input("Contract / lot size", key="cmd_contract_size")
+                extra["exchange"] = cc1.selectbox(
+                    "Exchange", ["MCX", "NCDEX", "Other"], key="cmd_exchange"
+                )
+                extra["expiry"] = cc2.date_input(
+                    "Contract expiry", value=date.today(), key="cmd_expiry"
+                ).isoformat()
+                extra["contract_size"] = st.text_input(
+                    "Contract / lot size", key="cmd_contract_size"
+                )
             else:
                 cc1, cc2 = st.columns(2)
                 extra["currency_pair"] = cc1.text_input("Currency pair", key="fx_pair")
-                extra["exchange"] = cc2.selectbox("Market", ["NSE", "BSE", "Other"], key="fx_exchange")
+                extra["exchange"] = cc2.selectbox(
+                    "Market", ["NSE", "BSE", "Other"], key="fx_exchange"
+                )
             notes = st.text_area("Notes", key=f"{prefix}_notes")
             submit = st.form_submit_button("Save investment", use_container_width=True)
         if submit:
@@ -311,15 +325,33 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
                 slug = re.sub(r"[^A-Z0-9]+", "-", clean_name.upper()).strip("-")[:24]
                 symbol = f"{prefix}-{slug}"
                 try:
-                    added = add_symbol(OWNER_ID, watchlist_id, symbol, {
-                        "entry_price": entry or None, "target_price": target or None,
-                        "stop_loss": stop or None, "quantity": max(1, int(quantity)),
-                        "investment_type": "Investment", "purchase_date": bought.isoformat(),
-                        "notes": notes.strip(), "status": "Bought", "asset_category": category_name,
-                        "asset_details": {"instrument_name": clean_name, "current_price_manual": current or None,
-                                          "units_quantity": quantity, **extra},
-                    })
-                    st.success(f"Saved {clean_name}.") if added else st.warning("That instrument is already saved.")
+                    added = add_symbol(
+                        OWNER_ID,
+                        watchlist_id,
+                        symbol,
+                        {
+                            "entry_price": entry or None,
+                            "target_price": target or None,
+                            "stop_loss": stop or None,
+                            "quantity": max(1, int(quantity)),
+                            "investment_type": "Investment",
+                            "purchase_date": bought.isoformat(),
+                            "notes": notes.strip(),
+                            "status": "Bought",
+                            "asset_category": category_name,
+                            "asset_details": {
+                                "instrument_name": clean_name,
+                                "current_price_manual": current or None,
+                                "units_quantity": quantity,
+                                **extra,
+                            },
+                        },
+                    )
+                    (
+                        st.success(f"Saved {clean_name}.")
+                        if added
+                        else st.warning("That instrument is already saved.")
+                    )
                     st.rerun()
                 except WatchlistError as exc:
                     st.error(f"Could not save investment: {exc}")
@@ -335,42 +367,99 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
         current_price = float(current_price) if current_price not in (None, "") else None
         invested = entry_price * units if entry_price and units else None
         current_value = current_price * units if current_price is not None and units else None
-        rows.append({
-            "Instrument": details.get("instrument_name") or record.get("symbol"),
-            "Purchase date": record.get("purchase_date") or "—", "Units / quantity": units,
-            "Entry (₹)": entry_price or None,
-            "Current price / NAV / rate (manual)": current_price,
-            "Invested (₹)": invested, "Current value (₹)": current_value,
-            "P/L (₹)": current_value - invested if current_value is not None and invested is not None else None,
-            "Target (₹)": record.get("target_price"), "Stop-loss (₹)": record.get("stop_loss"),
-            "Status": record.get("status"), "Notes": record.get("notes") or "—",
-            "Contract / scheme details": ", ".join(f"{k}: {v}" for k, v in details.items()
-                if k not in {"instrument_name", "current_price_manual", "units_quantity"}),
-        })
+        rows.append(
+            {
+                "Instrument": details.get("instrument_name") or record.get("symbol"),
+                "Purchase date": record.get("purchase_date") or "—",
+                "Units / quantity": units,
+                "Entry (₹)": entry_price or None,
+                "Current price / NAV / rate (manual)": current_price,
+                "Invested (₹)": invested,
+                "Current value (₹)": current_value,
+                "P/L (₹)": (
+                    current_value - invested
+                    if current_value is not None and invested is not None
+                    else None
+                ),
+                "Target (₹)": record.get("target_price"),
+                "Stop-loss (₹)": record.get("stop_loss"),
+                "Status": record.get("status"),
+                "Notes": record.get("notes") or "—",
+                "Contract / scheme details": ", ".join(
+                    f"{k}: {v}"
+                    for k, v in details.items()
+                    if k not in {"instrument_name", "current_price_manual", "units_quantity"}
+                ),
+            }
+        )
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-    st.caption("Current NAV/rate/price is manually entered, not live market data. P/L is an estimate.")
+    st.caption(
+        "Current NAV/rate/price is manually entered, not live market data. P/L is an estimate."
+    )
     with st.expander("Edit or delete saved investment"):
-        selected = st.selectbox("Select instrument", [r["symbol"] for r in records], key=f"{prefix}_selected")
+        selected = st.selectbox(
+            "Select instrument", [r["symbol"] for r in records], key=f"{prefix}_selected"
+        )
         record = next(r for r in records if r["symbol"] == selected)
         details = record.get("asset_details") or {}
         with st.form(f"{prefix}_edit"):
-            edit_entry = st.number_input("Entry price / NAV / rate", min_value=0.0, value=float(record.get("entry_price") or 0), key=f"{prefix}_edit_entry")
-            edit_current = st.number_input("Current price / NAV / rate", min_value=0.0, value=float(details.get("current_price_manual") or 0), key=f"{prefix}_edit_current")
-            edit_units = st.number_input("Units / quantity", min_value=0.0, value=float(details.get("units_quantity") or record.get("quantity") or 0), key=f"{prefix}_edit_units")
-            edit_target = st.number_input("Target", min_value=0.0, value=float(record.get("target_price") or 0), key=f"{prefix}_edit_target")
-            edit_stop = st.number_input("Stop-loss", min_value=0.0, value=float(record.get("stop_loss") or 0), key=f"{prefix}_edit_stop")
-            edit_notes = st.text_area("Notes", value=str(record.get("notes") or ""), key=f"{prefix}_edit_notes")
+            edit_entry = st.number_input(
+                "Entry price / NAV / rate",
+                min_value=0.0,
+                value=float(record.get("entry_price") or 0),
+                key=f"{prefix}_edit_entry",
+            )
+            edit_current = st.number_input(
+                "Current price / NAV / rate",
+                min_value=0.0,
+                value=float(details.get("current_price_manual") or 0),
+                key=f"{prefix}_edit_current",
+            )
+            edit_units = st.number_input(
+                "Units / quantity",
+                min_value=0.0,
+                value=float(details.get("units_quantity") or record.get("quantity") or 0),
+                key=f"{prefix}_edit_units",
+            )
+            edit_target = st.number_input(
+                "Target",
+                min_value=0.0,
+                value=float(record.get("target_price") or 0),
+                key=f"{prefix}_edit_target",
+            )
+            edit_stop = st.number_input(
+                "Stop-loss",
+                min_value=0.0,
+                value=float(record.get("stop_loss") or 0),
+                key=f"{prefix}_edit_stop",
+            )
+            edit_notes = st.text_area(
+                "Notes", value=str(record.get("notes") or ""), key=f"{prefix}_edit_notes"
+            )
             save = st.form_submit_button("Save changes")
         if save:
             try:
-                update_stock_details(OWNER_ID, watchlist_id, selected, {
-                    "entry_price": edit_entry or None, "target_price": edit_target or None,
-                    "stop_loss": edit_stop or None, "quantity": max(1, int(edit_units)),
-                    "investment_type": record.get("investment_type") or "Investment",
-                    "purchase_date": record.get("purchase_date"), "notes": edit_notes,
-                    "status": record.get("status") or "Bought", "asset_category": category_name,
-                    "asset_details": {**details, "current_price_manual": edit_current or None, "units_quantity": edit_units},
-                })
+                update_stock_details(
+                    OWNER_ID,
+                    watchlist_id,
+                    selected,
+                    {
+                        "entry_price": edit_entry or None,
+                        "target_price": edit_target or None,
+                        "stop_loss": edit_stop or None,
+                        "quantity": max(1, int(edit_units)),
+                        "investment_type": record.get("investment_type") or "Investment",
+                        "purchase_date": record.get("purchase_date"),
+                        "notes": edit_notes,
+                        "status": record.get("status") or "Bought",
+                        "asset_category": category_name,
+                        "asset_details": {
+                            **details,
+                            "current_price_manual": edit_current or None,
+                            "units_quantity": edit_units,
+                        },
+                    },
+                )
                 st.success("Investment updated.")
                 st.rerun()
             except WatchlistError as exc:
@@ -413,12 +502,19 @@ def show() -> None:
         _, summary_watchlist_id, _ = get_or_create_default_watchlist()
         summary_records = list_stock_records(OWNER_ID, summary_watchlist_id)
         category_names = ["Stocks / F&O", "Mutual Funds", "Commodity", "Currency"]
-        category_totals = {name: {"count": 0, "invested": 0.0, "manual_current": 0.0, "manual_count": 0} for name in category_names}
+        category_totals = {
+            name: {"count": 0, "invested": 0.0, "manual_current": 0.0, "manual_count": 0}
+            for name in category_names
+        }
         for summary_record in summary_records:
             category_name = summary_record.get("asset_category", "Stocks / F&O")
             if category_name not in category_totals:
                 category_name = "Stocks / F&O"
-            qty = float((summary_record.get("asset_details") or {}).get("units_quantity") or summary_record.get("quantity") or 0)
+            qty = float(
+                (summary_record.get("asset_details") or {}).get("units_quantity")
+                or summary_record.get("quantity")
+                or 0
+            )
             entry = float(summary_record.get("entry_price") or 0)
             summary = category_totals[category_name]
             summary["count"] += 1
@@ -430,20 +526,30 @@ def show() -> None:
         st.subheader("Portfolio overview — all categories")
         overview = st.columns(4)
         overview[0].metric("Total saved instruments", len(summary_records))
-        overview[1].metric("Total invested", f"₹{sum(v['invested'] for v in category_totals.values()):,.2f}")
-        overview[2].metric("Manual-value positions", sum(v["manual_count"] for v in category_totals.values()))
-        overview[3].metric("Categories in use", sum(v["count"] > 0 for v in category_totals.values()))
+        overview[1].metric(
+            "Total invested", f"₹{sum(v['invested'] for v in category_totals.values()):,.2f}"
+        )
+        overview[2].metric(
+            "Manual-value positions", sum(v["manual_count"] for v in category_totals.values())
+        )
+        overview[3].metric(
+            "Categories in use", sum(v["count"] > 0 for v in category_totals.values())
+        )
         st.dataframe(
-            pd.DataFrame([
-                {
-                    "Category": name,
-                    "Saved positions": values["count"],
-                    "Invested (₹)": values["invested"],
-                    "Current value from manual prices (₹)": values["manual_current"] if values["manual_count"] else None,
-                    "Manual prices available": values["manual_count"],
-                }
-                for name, values in category_totals.items()
-            ]),
+            pd.DataFrame(
+                [
+                    {
+                        "Category": name,
+                        "Saved positions": values["count"],
+                        "Invested (₹)": values["invested"],
+                        "Current value from manual prices (₹)": (
+                            values["manual_current"] if values["manual_count"] else None
+                        ),
+                        "Manual prices available": values["manual_count"],
+                    }
+                    for name, values in category_totals.items()
+                ]
+            ),
             use_container_width=True,
             hide_index=True,
         )
@@ -518,7 +624,10 @@ def show() -> None:
                             "Option type", ["CE", "PE"], key="fno_option_type"
                         )
                     contract_details["current_price_manual"] = st.number_input(
-                        "Contract premium / price (manual ₹)", min_value=0.0, value=0.0, key="fno_current_price"
+                        "Contract premium / price (manual ₹)",
+                        min_value=0.0,
+                        value=0.0,
+                        key="fno_current_price",
                     )
                 notes = st.text_input("Notes")
                 submitted = st.form_submit_button("＋ Add to watchlist", use_container_width=True)
@@ -569,7 +678,8 @@ def show() -> None:
 
         try:
             records = [
-                record for record in list_stock_records(OWNER_ID, watchlist_id)
+                record
+                for record in list_stock_records(OWNER_ID, watchlist_id)
                 if record.get("asset_category", "Stocks / F&O") == "Stocks / F&O"
             ]
         except WatchlistError as exc:
@@ -579,10 +689,14 @@ def show() -> None:
         # Join saved diary entries with available provider quotes so the key
         # portfolio figures are visible without opening the edit expander.
         quoteable_records = [
-            record for record in records
-            if (record.get("asset_details") or {}).get("instrument_type") not in {"Futures", "Options"}
+            record
+            for record in records
+            if (record.get("asset_details") or {}).get("instrument_type")
+            not in {"Futures", "Options"}
         ]
-        quote_frame = _quote_table(quoteable_records, "NSE") if quoteable_records else pd.DataFrame()
+        quote_frame = (
+            _quote_table(quoteable_records, "NSE") if quoteable_records else pd.DataFrame()
+        )
         quote_by_symbol = (
             {str(row["Symbol"]): row for _, row in quote_frame.iterrows()}
             if not quote_frame.empty and "Symbol" in quote_frame
@@ -613,11 +727,22 @@ def show() -> None:
             quote = quote_by_symbol.get(symbol, {})
             current_price = numeric_quote(quote.get("Current price"))
             asset_details = item.get("asset_details") or {}
-            if current_price is None and asset_details.get("instrument_type") in {"Futures", "Options"}:
+            if current_price is None and asset_details.get("instrument_type") in {
+                "Futures",
+                "Options",
+            }:
                 manual_price = asset_details.get("current_price_manual")
                 current_price = float(manual_price) if manual_price not in (None, "") else None
-            current_value = current_price * quantity_value if current_price is not None and quantity_value else None
-            pnl = current_value - invested if current_value is not None and invested is not None else None
+            current_value = (
+                current_price * quantity_value
+                if current_price is not None and quantity_value
+                else None
+            )
+            pnl = (
+                current_value - invested
+                if current_value is not None and invested is not None
+                else None
+            )
             pnl_pct = (pnl / invested * 100) if pnl is not None and invested else None
             invested_total += invested or 0.0
             if current_value is not None:
@@ -625,42 +750,53 @@ def show() -> None:
                 known_value_positions += 1
             if pnl is not None:
                 unrealized_pnl_total += pnl
-            diary_rows.append({
-                "Symbol": symbol,
-                "Instrument": asset_details.get("instrument_type", "Stock"),
-                "Contract expiry": asset_details.get("expiry_date", "—"),
-                "Strike price": asset_details.get("strike_price", "—"),
-                "Option type": asset_details.get("option_type", "—"),
-                "Lot size": asset_details.get("lot_size", "—"),
-                "Investment type": item.get("investment_type") or "Other",
-                "Status": item.get("status") or "Watching",
-                "Purchase date": str(item.get("purchase_date") or "—"),
-                "Quantity": quantity_value,
-                "Entry (₹)": entry_value if entry_value else None,
-                "Current price": f"₹{current_price:,.2f}" if current_price is not None else "Unavailable",
-                "Target (₹)": float(item.get("target_price") or 0) or None,
-                "Stop-loss (₹)": float(item.get("stop_loss") or 0) or None,
-                "Invested (₹)": invested,
-                "Current value (₹)": current_value,
-                "P/L (₹)": pnl,
-                "P/L (%)": pnl_pct,
-                "Price data": (
-                    "Manual contract price" if asset_details.get("instrument_type") in {"Futures", "Options"}
-                    else quote.get("Data", "Unavailable")
-                ),
-                "Alert": (
-                    "Price unavailable — cannot check target or loss"
-                    if current_price is None
-                    else (
-                        "🎯 TARGET ACHIEVED"
-                        if float(item.get("target_price") or 0) > 0 and current_price >= float(item.get("target_price") or 0)
-                        else "🚨 STOP-LOSS BREACHED"
-                        if float(item.get("stop_loss") or 0) > 0 and current_price <= float(item.get("stop_loss") or 0)
-                        else quote.get("Alert", "Manual contract price; verify before acting")
-                    )
-                ),
-                "Notes": item.get("notes") or "—",
-            })
+            diary_rows.append(
+                {
+                    "Symbol": symbol,
+                    "Instrument": asset_details.get("instrument_type", "Stock"),
+                    "Contract expiry": asset_details.get("expiry_date", "—"),
+                    "Strike price": asset_details.get("strike_price", "—"),
+                    "Option type": asset_details.get("option_type", "—"),
+                    "Lot size": asset_details.get("lot_size", "—"),
+                    "Investment type": item.get("investment_type") or "Other",
+                    "Status": item.get("status") or "Watching",
+                    "Purchase date": str(item.get("purchase_date") or "—"),
+                    "Quantity": quantity_value,
+                    "Entry (₹)": entry_value if entry_value else None,
+                    "Current price": (
+                        f"₹{current_price:,.2f}" if current_price is not None else "Unavailable"
+                    ),
+                    "Target (₹)": float(item.get("target_price") or 0) or None,
+                    "Stop-loss (₹)": float(item.get("stop_loss") or 0) or None,
+                    "Invested (₹)": invested,
+                    "Current value (₹)": current_value,
+                    "P/L (₹)": pnl,
+                    "P/L (%)": pnl_pct,
+                    "Price data": (
+                        "Manual contract price"
+                        if asset_details.get("instrument_type") in {"Futures", "Options"}
+                        else quote.get("Data", "Unavailable")
+                    ),
+                    "Alert": (
+                        "Price unavailable — cannot check target or loss"
+                        if current_price is None
+                        else (
+                            "🎯 TARGET ACHIEVED"
+                            if float(item.get("target_price") or 0) > 0
+                            and current_price >= float(item.get("target_price") or 0)
+                            else (
+                                "🚨 STOP-LOSS BREACHED"
+                                if float(item.get("stop_loss") or 0) > 0
+                                and current_price <= float(item.get("stop_loss") or 0)
+                                else quote.get(
+                                    "Alert", "Manual contract price; verify before acting"
+                                )
+                            )
+                        )
+                    ),
+                    "Notes": item.get("notes") or "—",
+                }
+            )
 
         st.subheader("Portfolio summary")
         summary_cols = st.columns(4)
@@ -677,9 +813,15 @@ def show() -> None:
             help="Calculated only for positions with both entry price, quantity, and an available quote.",
         )
         target_cols = st.columns(3)
-        target_cols[0].metric("Targets set", sum(float(item.get("target_price") or 0) > 0 for item in records))
-        target_cols[1].metric("Stop-losses set", sum(float(item.get("stop_loss") or 0) > 0 for item in records))
-        target_cols[2].metric("Positions with unavailable quotes", len(records) - known_value_positions)
+        target_cols[0].metric(
+            "Targets set", sum(float(item.get("target_price") or 0) > 0 for item in records)
+        )
+        target_cols[1].metric(
+            "Stop-losses set", sum(float(item.get("stop_loss") or 0) > 0 for item in records)
+        )
+        target_cols[2].metric(
+            "Positions with unavailable quotes", len(records) - known_value_positions
+        )
 
         st.subheader("Saved investment diary — full details")
         st.caption(
@@ -776,8 +918,10 @@ def show() -> None:
                 try:
                     quotes = _quote_table(
                         [
-                            record for record in records
-                            if (record.get("asset_details") or {}).get("instrument_type") not in {"Futures", "Options"}
+                            record
+                            for record in records
+                            if (record.get("asset_details") or {}).get("instrument_type")
+                            not in {"Futures", "Options"}
                         ],
                         "NSE",
                     )
@@ -843,9 +987,15 @@ def show() -> None:
                         value=float(record.get("stop_loss") or 0.0),
                         key=f"edit_stop_{selected}",
                     )
-                    purchase_date_value = date.fromisoformat(str(record["purchase_date"])[:10]) if record.get("purchase_date") else date.today()
+                    purchase_date_value = (
+                        date.fromisoformat(str(record["purchase_date"])[:10])
+                        if record.get("purchase_date")
+                        else date.today()
+                    )
                     edited_purchase_date = st.date_input(
-                        "Purchase date", value=purchase_date_value, key=f"edit_purchase_date_{selected}"
+                        "Purchase date",
+                        value=purchase_date_value,
+                        key=f"edit_purchase_date_{selected}",
                     )
                     cols2 = st.columns(3)
                     qty = cols2[0].number_input(
