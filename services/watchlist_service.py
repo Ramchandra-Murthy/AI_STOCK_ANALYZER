@@ -53,8 +53,7 @@ def _connect() -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA busy_timeout = 10000")
-    connection.executescript(
-        """
+    connection.executescript("""
         CREATE TABLE IF NOT EXISTS watchlists (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT NOT NULL,
@@ -83,12 +82,9 @@ def _connect() -> sqlite3.Connection:
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
         );
-        """
-    )
+    """)
     # Upgrade databases created by earlier versions without losing saved symbols.
-    columns = {
-        row["name"] for row in connection.execute("PRAGMA table_info(watchlist_symbols)")
-    }
+    columns = {row["name"] for row in connection.execute("PRAGMA table_info(watchlist_symbols)")}
     migrations = {
         "entry_price": "REAL",
         "stop_loss": "REAL",
@@ -102,9 +98,7 @@ def _connect() -> sqlite3.Connection:
     }
     for name, definition in migrations.items():
         if name not in columns:
-            connection.execute(
-                f"ALTER TABLE watchlist_symbols ADD COLUMN {name} {definition}"
-            )
+            connection.execute(f"ALTER TABLE watchlist_symbols ADD COLUMN {name} {definition}")
     # Consolidate any pre-existing per-user lists into one list, preserving
     # symbols and their saved details. Existing duplicate symbols keep the first row.
     migrated = connection.execute(
@@ -133,9 +127,7 @@ def _connect() -> sqlite3.Connection:
                 """,
                 (target_id, old_id),
             )
-        connection.execute(
-            "DELETE FROM watchlists WHERE id != ?", (target_id,)
-        )
+        connection.execute("DELETE FROM watchlists WHERE id != ?", (target_id,))
         connection.execute(
             "UPDATE watchlists SET user_id = ?, name = ? WHERE id = ?",
             (OWNER_ID, "My Watchlist", target_id),
@@ -347,10 +339,18 @@ def update_stock_details(
               AND EXISTS (SELECT 1 FROM watchlists WHERE id = ? AND user_id = ?)
             """,
             (
-                fields["entry_price"], fields["stop_loss"], fields["target_price"],
-                fields["quantity"], fields["investment_type"], fields["purchase_date"],
-                fields["notes"], fields["status"], watchlist_id, normalized_symbol,
-                watchlist_id, owner,
+                fields["entry_price"],
+                fields["stop_loss"],
+                fields["target_price"],
+                fields["quantity"],
+                fields["investment_type"],
+                fields["purchase_date"],
+                fields["notes"],
+                fields["status"],
+                watchlist_id,
+                normalized_symbol,
+                watchlist_id,
+                owner,
             ),
         )
         if cursor.rowcount == 0:
