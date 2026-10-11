@@ -393,9 +393,7 @@ def show() -> None:
                 ["All", "Large-cap", "Mid-cap", "Small-cap", "Unverified"],
                 key="gainers_cap_segment",
             )
-            gain_count = gain_cols[2].selectbox(
-                "Show", [10, 20, 30], index=0, key="gainers_count"
-            )
+            gain_count = gain_cols[2].selectbox("Show", [10, 20, 30], index=0, key="gainers_count")
             if st.button("Scan market gainers", key="scan_market_gainers", type="primary"):
                 with st.spinner("Scanning available market data…"):
                     st.session_state["personal_market_gainers_result"] = _market_gainers(
