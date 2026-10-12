@@ -12,6 +12,7 @@ import streamlit as st
 import yfinance as yf
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.portfolio_calculations import is_actual_holding, position_valuation
 from services.watchlist_service import (
     OWNER_ID,
     WatchlistError,
@@ -538,11 +539,12 @@ def show() -> None:
             entry = float(summary_record.get("entry_price") or 0)
             summary = category_totals[category_name]
             summary["count"] += 1
-            summary["invested"] += entry * qty
-            manual_price = asset_details.get("current_price_manual")
-            if manual_price not in (None, ""):
-                summary["manual_current"] += float(manual_price) * qty
-                summary["manual_count"] += 1
+            if is_actual_holding(summary_record):
+                summary["invested"] += entry * qty
+                manual_price = asset_details.get("current_price_manual")
+                if manual_price not in (None, ""):
+                    summary["manual_current"] += float(manual_price) * qty
+                    summary["manual_count"] += 1
         st.subheader("Portfolio overview — all categories")
         overview = st.columns(4)
         overview[0].metric("Total saved instruments", len(summary_records))
@@ -738,6 +740,7 @@ def show() -> None:
         invested_total = 0.0
         current_value_total = 0.0
         known_value_positions = 0
+        holding_positions = 0
         unrealized_pnl_total = 0.0
         for item in records:
             symbol = str(item.get("symbol", "—"))
@@ -750,9 +753,6 @@ def show() -> None:
                 else 1
             )
             effective_quantity = quantity_value * lot_size
-            invested = (
-                entry_value * effective_quantity if entry_value and effective_quantity else None
-            )
             quote = quote_by_symbol.get(symbol, {})
             current_price = numeric_quote(quote.get("Current price"))
             if current_price is None and asset_details.get("instrument_type") in {
@@ -761,30 +761,26 @@ def show() -> None:
             }:
                 manual_price = asset_details.get("current_price_manual")
                 current_price = float(manual_price) if manual_price not in (None, "") else None
-            current_value = (
-                current_price * effective_quantity
-                if current_price is not None and effective_quantity
-                else None
-            )
-            pnl = (
-                current_value - invested
-                if current_value is not None and invested is not None
-                else None
-            )
-            pnl_pct = (pnl / invested * 100) if pnl is not None and invested else None
+            valuation = position_valuation(item, current_price)
+            invested = valuation["invested"]
+            current_value = valuation["current_value"]
+            pnl = valuation["pnl"]
+            pnl_pct = valuation["pnl_pct"]
+            if valuation["is_holding"]:
+                holding_positions += 1
+                invested_total += float(invested or 0.0)
+                if current_value is not None:
+                    current_value_total += float(current_value)
+                    known_value_positions += 1
+                if pnl is not None:
+                    unrealized_pnl_total += float(pnl)
             target_distance, stop_distance, reward_risk = _risk_metrics(
                 entry_value,
                 current_price,
                 float(item.get("target_price") or 0),
                 float(item.get("stop_loss") or 0),
             )
-            invested_total += invested or 0.0
-            if current_value is not None:
-                current_value_total += current_value
-                known_value_positions += 1
-            if pnl is not None:
-                unrealized_pnl_total += pnl
-            diary_rows.append(
+remove duplicate accumulation            diary_rows.append(
                 {
                     "Symbol": symbol,
                     "Instrument": asset_details.get("instrument_type", "Stock"),
@@ -839,17 +835,29 @@ def show() -> None:
 
         st.subheader("Portfolio summary")
         summary_cols = st.columns(4)
-        summary_cols[0].metric("Saved positions", len(records))
-        summary_cols[1].metric("Invested amount", f"₹{invested_total:,.2f}")
+        summary_cols[0].metric("Saved instruments", len(records))
+        summary_cols[1].metric(
+            "Invested amount (Bought only)", f"₹{invested_total:,.2f}"
+        )
         summary_cols[2].metric(
-            "Current value",
+            "Current value (Bought only)",
             f"₹{current_value_total:,.2f}" if known_value_positions else "Unavailable",
-            help=f"Provider prices available for {known_value_positions} of {len(records)} positions.",
+            help=(
+                f"Quotes available for {known_value_positions} of {holding_positions} bought "
+                "positions. Watching records are excluded."
+            ),
         )
         summary_cols[3].metric(
-            "Unrealized P/L",
+            "Unrealized P/L (Bought only)",
             f"₹{unrealized_pnl_total:,.2f}" if known_value_positions else "Unavailable",
-            help="Calculated only for positions with both entry price, quantity, and an available quote.",
+            help=(
+                "Includes only records with status Bought, positive entry price and quantity, "
+                "and an available quote. Watching/Sold/Avoid and incomplete records are excluded."
+            ),
+        )
+        st.caption(
+            "Only complete records marked Bought count as holdings. Watching records remain "
+            "available for price/target alerts but are excluded from invested value and P/L."
         )
         target_cols = st.columns(3)
         target_cols[0].metric(
@@ -859,7 +867,7 @@ def show() -> None:
             "Stop-losses set", sum(float(item.get("stop_loss") or 0) > 0 for item in records)
         )
         target_cols[2].metric(
-            "Positions with unavailable quotes", len(records) - known_value_positions
+            "Bought positions with unavailable quotes", holding_positions - known_value_positions
         )
 
         st.subheader("Saved investment diary — full details")
