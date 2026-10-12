@@ -128,3 +128,50 @@ def test_option_apis_retry_with_direct_dhan_rest(monkeypatch):
 
     assert response["status"] == "success"
     assert calls == [("https://api.dhan.co/v2/optionchain", "client-123", 15)]
+
+def test_dhan_credentials_load_from_streamlit_secrets_when_environment_is_missing(monkeypatch):
+    import sys
+    from types import SimpleNamespace
+
+    monkeypatch.setitem(
+        sys.modules,
+        "streamlit",
+        SimpleNamespace(
+            secrets={
+                "DHAN_CLIENT_ID": "streamlit-client",
+                "DHAN_ACCESS_TOKEN": "streamlit-token",
+            }
+        ),
+    )
+
+    credentials = DhanCredentials.from_env({})
+
+    assert credentials.client_id == "streamlit-client"
+    assert credentials.access_token == "streamlit-token"
+
+
+def test_dhan_environment_credentials_take_precedence_over_streamlit_secrets(monkeypatch):
+    import sys
+    from types import SimpleNamespace
+
+    monkeypatch.setitem(
+        sys.modules,
+        "streamlit",
+        SimpleNamespace(
+            secrets={
+                "DHAN_CLIENT_ID": "streamlit-client",
+                "DHAN_ACCESS_TOKEN": "streamlit-token",
+            }
+        ),
+    )
+
+    credentials = DhanCredentials.from_env(
+        {
+            "DHAN_CLIENT_ID": "environment-client",
+            "DHAN_ACCESS_TOKEN": "environment-token",
+        }
+    )
+
+    assert credentials.client_id == "environment-client"
+    assert credentials.access_token == "environment-token"
+
