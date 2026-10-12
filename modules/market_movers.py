@@ -74,9 +74,7 @@ def _scan_batches(
     for exchange in ("NSE", "BSE"):
         exchange_candidates = [item for item in candidates if item[1] == exchange]
         selected.extend(
-            exchange_candidates[:limit_per_exchange]
-            if limit_per_exchange
-            else exchange_candidates
+            exchange_candidates[:limit_per_exchange] if limit_per_exchange else exchange_candidates
         )
 
     rows: list[dict[str, object]] = []
@@ -122,8 +120,10 @@ def _scan_batches(
                 except (TypeError, ValueError):
                     observed_at = str(latest_time)
                 last_volume = float(volume.iloc[-1]) if len(volume) else 0.0
-                baseline = float(volume.iloc[-21:-1].median()) if len(volume) >= 21 else (
-                    float(volume.iloc[:-1].median()) if len(volume) > 1 else 0.0
+                baseline = (
+                    float(volume.iloc[-21:-1].median())
+                    if len(volume) >= 21
+                    else (float(volume.iloc[:-1].median()) if len(volume) > 1 else 0.0)
                 )
                 volume_ratio = round(last_volume / baseline, 2) if baseline > 0 else None
                 high_window = pd.to_numeric(frame["High"], errors="coerce").dropna().tail(13)
