@@ -1,7 +1,11 @@
 import pandas as pd
 
 from services import research_service, technical_service
-from services.market_service import normalize_market_symbol, scan_market_universe
+from services.market_service import (
+    get_latest_available_price,
+    normalize_market_symbol,
+    scan_market_universe,
+)
 
 
 def test_normalize_nse_symbol():
@@ -15,6 +19,40 @@ def test_normalize_bse_symbol():
 def test_explicit_exchange_suffix_is_preserved():
     assert normalize_market_symbol("TCS.NS", "BSE") == "TCS.NS"
     assert normalize_market_symbol("500570.BO", "NSE") == "500570.BO"
+
+
+def test_bse_quote_uses_verified_nse_alias_when_bse_ticker_unavailable(monkeypatch):
+    calls = []
+
+    def fake_observation(ticker):
+        calls.append(ticker)
+        if ticker == "544282.BO":
+            return None, None, None, None, "unavailable", False
+        return 43.5, -0.5, 43.72, "2026-10-12T10:00:00+05:30", "intraday_1m", True
+
+    monkeypatch.setattr("services.market_service._get_last_observation", fake_observation)
+
+    result = get_latest_available_price("544282", "BSE")
+
+    assert calls == ["544282.BO", "SAGILITY.NS"]
+    assert result["symbol"] == "544282.BO"
+    assert result["provider_symbol"] == "SAGILITY.NS"
+    assert result["exchange"] == "BSE"
+    assert result["price"] == 43.5
+    assert result["source"] == "Yahoo Finance via alternate ticker SAGILITY.NS"
+
+
+def test_bse_quote_remains_unavailable_when_primary_and_alias_fail(monkeypatch):
+    monkeypatch.setattr(
+        "services.market_service._get_last_observation",
+        lambda ticker: (None, None, None, None, "unavailable", False),
+    )
+
+    result = get_latest_available_price("544282.BO", "BSE")
+
+    assert result["price"] is None
+    assert result["provider_symbol"] == "SAGILITY.NS"
+    assert result["frequency"] == "unavailable"
 
 
 def test_scanner_accepts_both_exchanges(monkeypatch):
