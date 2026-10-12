@@ -21,7 +21,6 @@ def test_explicit_exchange_suffix_is_preserved():
     assert normalize_market_symbol("500570.BO", "NSE") == "500570.BO"
 
 
-
 def test_bse_quote_uses_verified_nse_alias_when_bse_ticker_unavailable(monkeypatch):
     calls = []
 
