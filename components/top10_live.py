@@ -1,6 +1,6 @@
 """Fast live Top-10 market-mover scanner with one-minute refresh."""
 
-# The fast path favors a small liquid NSE pool to keep live refresh latency bounded.
+# The fast path scans a balanced, bounded NSE/BSE pool to keep live refresh latency bounded.
 
 from __future__ import annotations
 
@@ -21,8 +21,8 @@ TOP10_REFRESH_SECONDS = 60
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 20
-TOP10_MAX_NSE_CANDIDATES = 20
-TOP10_MAX_BSE_CANDIDATES = 0
+TOP10_MAX_NSE_CANDIDATES = 10
+TOP10_MAX_BSE_CANDIDATES = 10
 TOP10_PROVIDER_RETRIES = 0
 TOP10_PROVIDER_TIMEOUT = 5
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
@@ -687,7 +687,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.subheader("🔴 Live Top-10 Market Scanner")
     st.caption(
         "Ranks the largest absolute 1-minute price moves from the configured "
-        "NSE/BSE candidate universe. Dhan is preferred when configured; Yahoo Finance is the fallback. The fast path uses liquid NSE symbols only. "
+        "NSE/BSE candidate universe. Dhan is preferred when configured; Yahoo Finance is the fallback. The fast path scans a balanced sample of NSE and BSE symbols. "
         "Degraded coverage is never promoted into signal history."
     )
 
