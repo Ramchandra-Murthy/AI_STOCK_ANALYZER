@@ -35,88 +35,20 @@ def _market_session_open() -> bool:
 
 
 def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
-    """Fetch recent intraday Yahoo observations; provider data may be delayed/unavailable."""
+    """Fetch watchlist quotes through the canonical market-data boundary."""
+    from services.market_service import get_latest_available_price
+
     rows: list[dict[str, Any]] = []
     for record in records:
-        symbol = str(record["symbol"])
-        ticker = symbol if symbol.endswith((".NS", ".BO")) else symbol + EXCHANGES[exchange]
-        try:
-            stock = yf.Ticker(ticker)
-            intraday = stock.history(period="1d", interval="1m", auto_adjust=False)
-            daily = stock.history(period="5d", interval="1d", auto_adjust=False)
-            source = intraday if not intraday.empty and "Close" in intraday else daily
-            if source.empty or "Close" not in source:
-                raise ValueError("No recent price observations")
-            close = pd.to_numeric(source["Close"], errors="coerce").dropna()
-            volume = pd.to_numeric(source["Volume"], errors="coerce").dropna()
-            last = float(close.iloc[-1])
-            daily_close = (
-                pd.to_numeric(daily["Close"], errors="coerce").dropna()
-                if not daily.empty and "Close" in daily
-                else pd.Series(dtype=float)
-            )
-            previous = float(daily_close.iloc[-2]) if len(daily_close) > 1 else None
-            change = last - previous if previous is not None else None
-            change_pct = (change / previous * 100) if previous else None
-            if change is not None and change > 0:
-                price_display = f"▲ ₹{last:,.2f}"
-                trend = "Up"
-            elif change is not None and change < 0:
-                price_display = f"▼ ₹{last:,.2f}"
-                trend = "Down"
-            else:
-                price_display = f"→ ₹{last:,.2f}"
-                trend = "Flat/unknown"
-
-            target = float(record.get("target_price") or 0)
-            stop_loss = float(record.get("stop_loss") or 0)
-            entry = float(record.get("entry_price") or 0)
-            if target > 0 and last >= target:
-                alert = f"🎯 TARGET ACHIEVED — ₹{last:,.2f} reached target ₹{target:,.2f}"
-            elif stop_loss > 0 and last <= stop_loss:
-                alert = f"🚨 STOP-LOSS BREACHED — ₹{last:,.2f} is at/below ₹{stop_loss:,.2f}"
-            elif entry > 0 and last < entry:
-                alert = f"⚠️ LOSING — ₹{last:,.2f} is below entry ₹{entry:,.2f}"
-            elif trend == "Down":
-                alert = "⚠️ PRICE FALLING today"
-            else:
-                alert = "No target/loss alert"
-
-            # Show total session volume when intraday bars are available.
-            # Abbreviate large values so the watchlist is easy to scan (e.g. 12500 -> 12.5K).
-            if source is intraday and len(volume):
-                volume_value = int(volume.sum())
-            else:
-                volume_value = int(volume.iloc[-1]) if len(volume) else None
-
-            if volume_value is None:
-                volume_display = "—"
-            elif volume_value >= 1_000_000_000:
-                volume_display = f"{volume_value / 1_000_000_000:.1f}B"
-            elif volume_value >= 1_000_000:
-                volume_display = f"{volume_value / 1_000_000:.1f}M"
-            elif volume_value >= 1_000:
-                volume_display = f"{volume_value / 1_000:.1f}K"
-            else:
-                volume_display = f"{volume_value:,}"
-
-            rows.append(
-                {
-                    "Symbol": symbol,
-                    "Current price": price_display,
-                    "Price trend": trend,
-                    "Alert": alert,
-                    "Change today (₹)": round(change, 2) if change is not None else None,
-                    "Change today (%)": round(change_pct, 2) if change_pct is not None else None,
-                    "Volume": volume_display,
-                    "Data": (
-                        "Intraday (provider may delay)"
-                        if source is intraday
-                        else "Daily close (fallback)"
-                    ),
-                }
-            )
-        except Exception:
+        symbol = str(record["symbol"]).strip().upper()
+        record_exchange = (
+            "BSE" if symbol.endswith(".BO") else ("NSE" if symbol.endswith(".NS") else exchange)
+        )
+        ticker = symbol if symbol.endswith((".NS", ".BO")) else symbol + EXCHANGES[record_exchange]
+        quote = get_latest_available_price(ticker, record_exchange)
+        last = quote.get("price")
+        previous = quote.get("previous_close")
+        if last is None:
             rows.append(
                 {
                     "Symbol": symbol,
@@ -129,6 +61,48 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
                     "Data": "Unavailable",
                 }
             )
+            continue
+
+        change = float(last) - float(previous) if previous is not None else None
+        change_pct = quote.get("change_pct")
+        if change is not None and change > 0:
+            price_display = f"▲ ₹{float(last):,.2f}"
+            trend = "Up"
+        elif change is not None and change < 0:
+            price_display = f"▼ ₹{float(last):,.2f}"
+            trend = "Down"
+        else:
+            price_display = f"→ ₹{float(last):,.2f}"
+            trend = "Flat/unknown"
+
+        target = float(record.get("target_price") or 0)
+        stop_loss = float(record.get("stop_loss") or 0)
+        entry = float(record.get("entry_price") or 0)
+        if target > 0 and float(last) >= target:
+            alert = f"🎯 TARGET ACHIEVED — ₹{float(last):,.2f} reached target ₹{target:,.2f}"
+        elif stop_loss > 0 and float(last) <= stop_loss:
+            alert = f"🚨 STOP-LOSS BREACHED — ₹{float(last):,.2f} is at/below ₹{stop_loss:,.2f}"
+        elif entry > 0 and float(last) < entry:
+            alert = f"⚠️ LOSING — ₹{float(last):,.2f} is below entry ₹{entry:,.2f}"
+        elif trend == "Down":
+            alert = "⚠️ PRICE FALLING today"
+        else:
+            alert = "No target/loss alert"
+
+        rows.append(
+            {
+                "Symbol": symbol,
+                "Current price": price_display,
+                "Price trend": trend,
+                "Alert": alert,
+                "Change today (₹)": round(change, 2) if change is not None else None,
+                "Change today (%)": round(float(change_pct), 2) if change_pct is not None else None,
+                "Volume": "—",
+                "Data": (
+                    f"{quote.get('frequency', 'unknown')} via {quote.get('source', 'market provider')}"
+                ),
+            }
+        )
     return pd.DataFrame(rows)
 
 
