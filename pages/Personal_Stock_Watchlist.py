@@ -795,7 +795,7 @@ def show() -> None:
                 float(item.get("target_price") or 0),
                 float(item.get("stop_loss") or 0),
             )
-remove duplicate accumulation            diary_rows.append(
+            diary_rows.append(
                 {
                     "Symbol": symbol,
                     "Instrument": asset_details.get("instrument_type", "Stock"),
