@@ -148,12 +148,16 @@ def test_history_boundary_records_provenance(monkeypatch):
         index=index,
     )
 
-    monkeypatch.setattr(technical_service.yf, "download", lambda *args, **kwargs: frame)
+    monkeypatch.setattr(
+        technical_service,
+        "download_symbol_frames",
+        lambda *args, **kwargs: ({"TEST.NS": frame}, []),
+    )
 
     result = technical_service.get_price_history("TEST", period="1y")
 
     assert result is not None
-    assert result.attrs["data_source"] == "yfinance.download"
+    assert result.attrs["data_source"] == "yfinance.resilient_market_data"
     assert result.attrs["requested_period"] == "1y"
     assert result.attrs["last_bar_timestamp"] == index[-1].isoformat()
 
@@ -162,6 +166,10 @@ def test_history_download_failure_returns_none(monkeypatch):
     def fail(*args, **kwargs):
         raise RuntimeError("network failure")
 
-    monkeypatch.setattr(technical_service.yf, "download", fail)
+    monkeypatch.setattr(
+        technical_service,
+        "download_symbol_frames",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("network failure")),
+    )
 
     assert technical_service.get_price_history("TEST") is None
