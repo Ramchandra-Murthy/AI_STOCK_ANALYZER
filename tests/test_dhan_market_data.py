@@ -129,6 +129,7 @@ def test_option_apis_retry_with_direct_dhan_rest(monkeypatch):
     assert response["status"] == "success"
     assert calls == [("https://api.dhan.co/v2/optionchain", "client-123", 15)]
 
+
 def test_dhan_credentials_load_from_streamlit_secrets_when_environment_is_missing(monkeypatch):
     import sys
     from types import SimpleNamespace
