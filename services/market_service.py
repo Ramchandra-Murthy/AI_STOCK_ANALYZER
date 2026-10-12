@@ -256,8 +256,8 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
     used_alternate = False
     if value is None and normalized in BSE_ALTERNATE_TICKERS:
         provider_symbol = BSE_ALTERNATE_TICKERS[normalized]
-        value, change, previous_close, observed_at, frequency, is_intraday = (
-            _get_last_observation(provider_symbol)
+        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+            provider_symbol
         )
         used_alternate = value is not None
     resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
