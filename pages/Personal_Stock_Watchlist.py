@@ -41,8 +41,8 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for record in records:
         symbol = str(record["symbol"]).strip().upper()
-        record_exchange = "BSE" if symbol.endswith(".BO") else (
-            "NSE" if symbol.endswith(".NS") else exchange
+        record_exchange = (
+            "BSE" if symbol.endswith(".BO") else ("NSE" if symbol.endswith(".NS") else exchange)
         )
         ticker = symbol if symbol.endswith((".NS", ".BO")) else symbol + EXCHANGES[record_exchange]
         quote = get_latest_available_price(ticker, record_exchange)
@@ -96,9 +96,7 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
                 "Price trend": trend,
                 "Alert": alert,
                 "Change today (₹)": round(change, 2) if change is not None else None,
-                "Change today (%)": round(float(change_pct), 2)
-                if change_pct is not None
-                else None,
+                "Change today (%)": round(float(change_pct), 2) if change_pct is not None else None,
                 "Volume": "—",
                 "Data": (
                     f"{quote.get('frequency', 'unknown')} via {quote.get('source', 'market provider')}"
@@ -106,6 +104,7 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
 
 def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.DataFrame:
     """Rank a bounded candidate universe by today's move and label cap only from provider data."""
