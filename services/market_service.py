@@ -5,6 +5,7 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, time
 from functools import lru_cache
+import logging
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -248,6 +249,7 @@ def _get_last_observation(
 
 
 def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, Any]:
+    """Fetch a quote and log the outcome of the explicitly configured BSE fallback."""
     normalized = normalize_market_symbol(symbol, exchange)
     provider_symbol = normalized
     value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
@@ -255,11 +257,32 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
     )
     used_alternate = False
     if value is None and normalized in BSE_ALTERNATE_TICKERS:
-        provider_symbol = BSE_ALTERNATE_TICKERS[normalized]
+        alternate = BSE_ALTERNATE_TICKERS[normalized]
+        logging.warning(
+            "Market quote unavailable for %s; attempting configured alternate ticker %s",
+            normalized,
+            alternate,
+        )
+        provider_symbol = alternate
         value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
             provider_symbol
         )
         used_alternate = value is not None
+        if used_alternate:
+            logging.info(
+                "Market quote fallback succeeded: requested=%s provider=%s frequency=%s observed_at=%s",
+                normalized,
+                provider_symbol,
+                frequency,
+                observed_at,
+            )
+        else:
+            logging.warning(
+                "Market quote fallback unavailable: requested=%s provider=%s frequency=%s",
+                normalized,
+                provider_symbol,
+                frequency,
+            )
     resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
     return {
         "symbol": normalized,
