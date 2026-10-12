@@ -378,8 +378,13 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
         entry_price = float(record.get("entry_price") or 0)
         current_price = details.get("current_price_manual")
         current_price = float(current_price) if current_price not in (None, "") else None
-        invested = entry_price * units if entry_price and units else None
-        current_value = current_price * units if current_price is not None and units else None
+        holding = is_actual_holding(record)
+        invested = entry_price * units if holding and entry_price > 0 and units > 0 else None
+        current_value = (
+            current_price * units
+            if holding and current_price is not None and units > 0
+            else None
+        )
         target_distance, stop_distance, reward_risk = _risk_metrics(
             entry_price,
             current_price,
@@ -455,6 +460,16 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
                 value=float(record.get("stop_loss") or 0),
                 key=f"{prefix}_edit_stop",
             )
+            edit_status = st.selectbox(
+                "Status",
+                STATUSES,
+                index=(
+                    STATUSES.index(record.get("status") or "Watching")
+                    if record.get("status") in STATUSES
+                    else 0
+                ),
+                key=f"{prefix}_edit_status",
+            )
             edit_notes = st.text_area(
                 "Notes", value=str(record.get("notes") or ""), key=f"{prefix}_edit_notes"
             )
@@ -473,7 +488,7 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
                         "investment_type": record.get("investment_type") or "Investment",
                         "purchase_date": record.get("purchase_date"),
                         "notes": edit_notes,
-                        "status": record.get("status") or "Bought",
+                        "status": edit_status,
                         "asset_category": category_name,
                         "asset_details": {
                             **details,
