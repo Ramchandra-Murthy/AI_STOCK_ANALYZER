@@ -66,12 +66,18 @@ def _market_cap(ticker: str) -> float | None:
         return None
 
 
-def _scan_batches(candidates: list[tuple[str, str]], limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int | float | str]]:
+def _scan_batches(
+    candidates: list[tuple[str, str]], limit_per_exchange: int
+) -> tuple[pd.DataFrame, dict[str, int | float | str]]:
     """Scan 5-minute candles in batches and return coverage diagnostics."""
     selected: list[tuple[str, str]] = []
     for exchange in ("NSE", "BSE"):
         exchange_candidates = [item for item in candidates if item[1] == exchange]
-        selected.extend(exchange_candidates[:limit_per_exchange] if limit_per_exchange else exchange_candidates)
+        selected.extend(
+            exchange_candidates[:limit_per_exchange]
+            if limit_per_exchange
+            else exchange_candidates
+        )
 
     rows: list[dict[str, object]] = []
     failed_batches = 0
@@ -165,7 +171,9 @@ def _classify_market_caps(frame: pd.DataFrame) -> pd.DataFrame:
     result = frame.copy()
     if result.empty:
         return result
-    candidates = result.sort_values("Change 30m %", key=lambda values: values.abs(), ascending=False)
+    candidates = result.sort_values(
+        "Change 30m %", key=lambda values: values.abs(), ascending=False
+    )
     # Metadata lookups are limited to the strongest 300 observed movers to bound latency.
     tickers = candidates["Ticker"].head(300).dropna().astype(str).unique().tolist()
     cap_by_ticker: dict[str, float | None] = {}
@@ -195,11 +203,15 @@ def _cached_scan(limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int |
     bse = merge_bse_universe()
     nse_ordered = list(dict.fromkeys(NSE_CANDIDATES + nse))
     bse_ordered = list(dict.fromkeys(BSE_CANDIDATES + bse))
-    candidates = [(symbol, "NSE") for symbol in nse_ordered] + [(symbol, "BSE") for symbol in bse_ordered]
+    candidates = [(symbol, "NSE") for symbol in nse_ordered] + [
+        (symbol, "BSE") for symbol in bse_ordered
+    ]
     frame, stats = _scan_batches(candidates, limit_per_exchange)
     frame = _classify_market_caps(frame)
     stats["market_cap_lookups"] = min(300, len(frame))
-    stats["market_cap_verified"] = int(frame["Market cap (₹)"].notna().sum()) if not frame.empty else 0
+    stats["market_cap_verified"] = (
+        int(frame["Market cap (₹)"].notna().sum()) if not frame.empty else 0
+    )
     stats["nse_universe_available"] = len(nse)
     stats["bse_universe_available"] = len(bse)
     stats["coverage_note"] = (
@@ -216,7 +228,11 @@ def _top_table(frame: pd.DataFrame, change_column: str, positive: bool, count: i
         return pd.DataFrame()
     values = pd.to_numeric(frame[change_column], errors="coerce")
     filtered = frame.loc[values > 0] if positive else frame.loc[values < 0]
-    return filtered.sort_values(change_column, ascending=not positive).head(count).reset_index(drop=True)
+    return (
+        filtered.sort_values(change_column, ascending=not positive)
+        .head(count)
+        .reset_index(drop=True)
+    )
 
 
 def show() -> None:
@@ -242,25 +258,45 @@ def show() -> None:
         exchange_filter = st.selectbox("Exchange", ["NSE + BSE", "NSE", "BSE"])
         cap_filter = st.selectbox(
             "Market-cap class",
-            ["All", "Large-cap (estimated rank)", "Mid-cap (estimated rank)", "Small-cap (estimated rank)", "Unverified"],
+            [
+                "All",
+                "Large-cap (estimated rank)",
+                "Mid-cap (estimated rank)",
+                "Small-cap (estimated rank)",
+                "Unverified",
+            ],
         )
-        mover_window = st.selectbox("Rank by movement", ["Change 5m %", "Change 15m %", "Change 30m %"])
+        mover_window = st.selectbox(
+            "Rank by movement", ["Change 5m %", "Change 15m %", "Change 30m %"]
+        )
         count = st.selectbox("Rows per leaderboard", [10, 20, 50], index=0)
 
     if st.button("Scan / refresh market movers", type="primary", use_container_width=True):
         _cached_scan.clear()
-        with st.spinner("Loading dynamic NSE/BSE universe and scanning intraday candles. Full scans may take several minutes…"):
+        with st.spinner(
+            "Loading dynamic NSE/BSE universe and scanning intraday candles. "
+            "Full scans may take several minutes…"
+        ):
             st.session_state["market_movers_result"] = _cached_scan(limit)
 
     if "market_movers_result" not in st.session_state:
-        st.info("Choose scan coverage, then click **Scan / refresh market movers** to fetch the latest available candles.")
+        st.info(
+            "Choose scan coverage, then click **Scan / refresh market movers** "
+            "to fetch the latest available candles."
+        )
         return
     frame, stats = st.session_state["market_movers_result"]
     if stats.get("limit_per_exchange") != limit:
-        st.info("The selected scan coverage differs from the last result. Click **Scan / refresh market movers** to rescan.")
+        st.info(
+            "The selected scan coverage differs from the last result. "
+            "Click **Scan / refresh market movers** to rescan."
+        )
 
     if frame.empty:
-        st.error("No usable intraday quotes were returned. Try again during market hours or reduce scan size.")
+        st.error(
+            "No usable intraday quotes were returned. "
+            "Try again during market hours or reduce scan size."
+        )
         st.json(stats)
         return
 
@@ -276,15 +312,24 @@ def show() -> None:
     c4.metric("Failed batches", int(stats["failed_batches"]))
     st.caption(
         f"Scan completed {stats['scan_completed_at']} · {stats['elapsed_seconds']} s · "
-        f"Dynamic universe: NSE {stats['nse_universe_available']}, BSE {stats['bse_universe_available']}. "
+        f"Dynamic universe: NSE {stats['nse_universe_available']}, "
+        f"BSE {stats['bse_universe_available']}. "
         f"Scanned NSE {stats['nse_candidates']} and BSE {stats['bse_candidates']} symbols."
     )
     st.info(str(stats["coverage_note"]))
 
     st.subheader(f"Top gainers — {mover_window}")
-    st.dataframe(_top_table(frame, mover_window, True, count), hide_index=True, use_container_width=True)
+    st.dataframe(
+        _top_table(frame, mover_window, True, count),
+        hide_index=True,
+        use_container_width=True,
+    )
     st.subheader(f"Top losers — {mover_window}")
-    st.dataframe(_top_table(frame, mover_window, False, count), hide_index=True, use_container_width=True)
+    st.dataframe(
+        _top_table(frame, mover_window, False, count),
+        hide_index=True,
+        use_container_width=True,
+    )
 
     st.subheader("Top movers by market-cap class")
     class_col1, class_col2, class_col3 = st.columns(3)
