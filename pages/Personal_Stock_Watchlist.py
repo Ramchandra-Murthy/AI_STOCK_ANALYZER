@@ -152,6 +152,26 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
                 errors="coerce",
             ).dropna()
             if daily_close.empty or len(daily_close) < 2:
+                # Reuse the canonical quote boundary for explicitly configured
+                # BSE alternates (for example, 544282.BO -> SAGILITY.NS).
+                # Do not infer aliases for other numeric BSE scrip codes.
+                from services.market_service import get_latest_available_price
+
+                quote = get_latest_available_price(ticker, exchange)
+                quote_price = quote.get("price")
+                quote_change = quote.get("change_pct")
+                if quote_price is not None and quote_change is not None:
+                    rows.append(
+                        {
+                            "Symbol": ticker.removesuffix(suffix),
+                            "Ticker": ticker,
+                            "Price": float(quote_price),
+                            "Change (%)": float(quote_change),
+                            "Volume": None,
+                            "Market cap (₹)": None,
+                            "Cap segment": "Unverified",
+                        }
+                    )
                 continue
             last = (
                 float(intraday_close.iloc[-1])
