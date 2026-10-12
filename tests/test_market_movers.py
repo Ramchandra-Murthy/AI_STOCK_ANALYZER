@@ -38,7 +38,5 @@ def test_extract_frame_handles_plain_ohlcv_data():
         }
     )
     result = _extract_frame(frame, "TEST.NS")
-    assert list(result.columns) == ["Close", "Volume", "High", "Low", "Open"] or set(result.columns) == {
-        "Open", "High", "Low", "Close", "Volume"
-    }
+    assert set(result.columns) == {"Open", "High", "Low", "Close", "Volume"}
     assert result["Close"].tolist() == [11.0, 11.5]
