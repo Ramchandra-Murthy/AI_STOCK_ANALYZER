@@ -900,9 +900,24 @@ def show() -> None:
             gainers = st.session_state.get("personal_market_gainers_result")
             if isinstance(gainers, pd.DataFrame):
                 if gainers.empty:
+                    scanned_exchange = st.session_state.get(
+                        "personal_market_gainers_exchange", gain_exchange
+                    )
                     st.warning(
-                        "No gainers could be verified for this selection. Try another cap segment or "
-                        "scan again when the market is open."
+                        f"No verified positive movers were returned for {scanned_exchange}. "
+                        "This does not mean the market had no gainers: Yahoo Finance may have "
+                        "returned insufficient history for the candidate symbols, or the selected "
+                        "market-cap filter may have excluded unverified results."
+                    )
+                    if gain_segment != "All":
+                        st.info(
+                            "Set Market cap to All and scan again to include symbols whose market "
+                            "capitalization could not be verified."
+                        )
+                    st.caption(
+                        "Only provider-backed prices are displayed. Missing or stale data is not "
+                        "replaced with estimated prices. NSE/BSE exchange selection is applied to "
+                        "the candidate universe; a result is not guaranteed when provider data is absent."
                     )
                 else:
                     st.dataframe(gainers, use_container_width=True, hide_index=True)
