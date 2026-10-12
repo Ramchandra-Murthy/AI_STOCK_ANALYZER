@@ -1,7 +1,5 @@
 import pandas as pd
 
-
-
 _REQUIRED_COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
 
 
