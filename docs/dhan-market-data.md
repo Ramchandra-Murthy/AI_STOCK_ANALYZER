@@ -9,7 +9,14 @@ Set these environment variables outside source control:
 - `DHAN_CLIENT_ID`
 - `DHAN_ACCESS_TOKEN`
 
-Never commit or log the access token.
+For Streamlit Community Cloud, the same names can be configured in the app's
+**Settings → Secrets**. The adapter reads environment variables first and uses
+Streamlit secrets only when a value is missing from the environment.
+
+Never commit or log the access token. A successful configuration check does not
+prove the token is valid; Dhan HTTP 401 responses must still be treated as an
+authentication failure, and option-chain decisions remain blocked when provider
+data is unavailable.
 
 ## Official client
 
