@@ -381,9 +381,7 @@ def _render_manual_asset_category(category_name: str, prefix: str) -> None:
         holding = is_actual_holding(record)
         invested = entry_price * units if holding and entry_price > 0 and units > 0 else None
         current_value = (
-            current_price * units
-            if holding and current_price is not None and units > 0
-            else None
+            current_price * units if holding and current_price is not None and units > 0 else None
         )
         target_distance, stop_distance, reward_risk = _risk_metrics(
             entry_price,
@@ -851,9 +849,7 @@ def show() -> None:
         st.subheader("Portfolio summary")
         summary_cols = st.columns(4)
         summary_cols[0].metric("Saved instruments", len(records))
-        summary_cols[1].metric(
-            "Invested amount (Bought only)", f"₹{invested_total:,.2f}"
-        )
+        summary_cols[1].metric("Invested amount (Bought only)", f"₹{invested_total:,.2f}")
         summary_cols[2].metric(
             "Current value (Bought only)",
             f"₹{current_value_total:,.2f}" if known_value_positions else "Unavailable",
