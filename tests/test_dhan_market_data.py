@@ -175,4 +175,3 @@ def test_dhan_environment_credentials_take_precedence_over_streamlit_secrets(mon
 
     assert credentials.client_id == "environment-client"
     assert credentials.access_token == "environment-token"
-
