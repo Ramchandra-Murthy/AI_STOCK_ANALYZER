@@ -1,4 +1,4 @@
-""""AI Stock Analyzer Pro - organized Streamlit application entrypoint."""
+"""AI Stock Analyzer Pro - organized Streamlit application entrypoint."""
 
 import streamlit as st
 
