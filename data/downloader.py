@@ -1,6 +1,5 @@
 import pandas as pd
 
-from services.resilient_market_data import download_symbol_frames
 
 
 _REQUIRED_COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
@@ -18,6 +17,8 @@ def download_stock(symbol, period="1y", interval="1d"):
         return pd.DataFrame(columns=_REQUIRED_COLUMNS)
     if "." not in ticker:
         ticker += ".NS"
+
+    from services.resilient_market_data import download_symbol_frames
 
     try:
         frames, _missing = download_symbol_frames(
