@@ -114,51 +114,43 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     if not tickers:
         return pd.DataFrame()
 
-    try:
-        intraday = yf.download(
-            tickers=tickers,
-            period="1d",
-            interval="5m",
-            group_by="ticker",
-            auto_adjust=False,
-            progress=False,
-            threads=True,
-            timeout=20,
-        )
-        daily = yf.download(
-            tickers=tickers,
-            period="5d",
-            interval="1d",
-            group_by="ticker",
-            auto_adjust=False,
-            progress=False,
-            threads=True,
-            timeout=20,
-        )
-    except Exception:
-        return pd.DataFrame()
+    # Use the same retry + per-symbol recovery path as the rest of the app.
+    # A single missing BSE scrip must not make the entire multi-symbol scan empty.
+    from services.resilient_market_data import download_symbol_frames
+
+    intraday_frames, _intraday_missing = download_symbol_frames(
+        tickers,
+        period="1d",
+        interval="5m",
+        auto_adjust=False,
+        batch_size=10,
+        timeout=20,
+    )
+    daily_frames, _daily_missing = download_symbol_frames(
+        tickers,
+        period="5d",
+        interval="1d",
+        auto_adjust=False,
+        batch_size=10,
+        timeout=20,
+    )
 
     rows: list[dict[str, Any]] = []
     for ticker in tickers:
         try:
 
-            def series_from(frame: pd.DataFrame, field: str, symbol: str = ticker) -> pd.Series:
-                if frame.empty:
-                    return pd.Series(dtype=float)
-                if isinstance(frame.columns, pd.MultiIndex):
-                    for level in range(frame.columns.nlevels):
-                        if symbol in frame.columns.get_level_values(level):
-                            selected = frame.xs(symbol, axis=1, level=level)
-                            if field in selected.columns:
-                                return pd.to_numeric(selected[field], errors="coerce").dropna()
-                    return pd.Series(dtype=float)
-                if field in frame.columns:
-                    return pd.to_numeric(frame[field], errors="coerce").dropna()
-                return pd.Series(dtype=float)
-
-            intraday_close = series_from(intraday, "Close")
-            daily_close = series_from(daily, "Close")
-            daily_volume = series_from(daily, "Volume")
+            intraday_close = pd.to_numeric(
+                intraday_frames.get(ticker, pd.DataFrame()).get("Close", pd.Series(dtype=float)),
+                errors="coerce",
+            ).dropna()
+            daily_close = pd.to_numeric(
+                daily_frames.get(ticker, pd.DataFrame()).get("Close", pd.Series(dtype=float)),
+                errors="coerce",
+            ).dropna()
+            daily_volume = pd.to_numeric(
+                daily_frames.get(ticker, pd.DataFrame()).get("Volume", pd.Series(dtype=float)),
+                errors="coerce",
+            ).dropna()
             if daily_close.empty or len(daily_close) < 2:
                 continue
             last = (
