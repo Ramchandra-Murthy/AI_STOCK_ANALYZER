@@ -1,5 +1,4 @@
 import pandas as pd
-
 from services.resilient_market_data import download_symbol_frames
 
 
