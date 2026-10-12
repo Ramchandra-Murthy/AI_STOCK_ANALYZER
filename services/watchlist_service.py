@@ -8,9 +8,14 @@ Set WATCHLIST_DATABASE_PATH to a durable writable path in deployed environments.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sqlite3
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +33,8 @@ DETAIL_FIELDS = (
     "purchase_date",
     "notes",
     "status",
+    "asset_category",
+    "asset_details",
 )
 
 
@@ -75,6 +82,8 @@ def _connect() -> sqlite3.Connection:
             notes TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'Watching',
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            asset_category TEXT NOT NULL DEFAULT 'Stocks / F&O',
+            asset_details TEXT NOT NULL DEFAULT '{}',
             PRIMARY KEY (watchlist_id, symbol)
         );
         CREATE INDEX IF NOT EXISTS idx_watchlists_user_id ON watchlists(user_id);
@@ -95,6 +104,8 @@ def _connect() -> sqlite3.Connection:
         "notes": "TEXT NOT NULL DEFAULT ''",
         "status": "TEXT NOT NULL DEFAULT 'Watching'",
         "updated_at": "TEXT",
+        "asset_category": "TEXT NOT NULL DEFAULT 'Stocks / F&O'",
+        "asset_details": "TEXT NOT NULL DEFAULT '{}'",
     }
     for name, definition in migrations.items():
         if name not in columns:
@@ -154,7 +165,7 @@ def _require_symbol(symbol: str) -> str:
     return normalized
 
 
-def list_watchlists(user_id: str) -> list[dict[str, Any]]:
+def _sqlite_list_watchlists(user_id: str) -> list[dict[str, Any]]:
     owner = _require_user_id(user_id)
     with _connect() as connection:
         rows = connection.execute(
@@ -171,7 +182,7 @@ def list_watchlists(user_id: str) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
-def create_watchlist(user_id: str, name: str) -> int:
+def _sqlite_create_watchlist(user_id: str, name: str) -> int:
     owner = _require_user_id(user_id)
     normalized_name = _require_name(name)
     try:
@@ -185,7 +196,7 @@ def create_watchlist(user_id: str, name: str) -> int:
         raise WatchlistError("A watchlist with that name already exists.") from exc
 
 
-def rename_watchlist(user_id: str, watchlist_id: int, name: str) -> None:
+def _sqlite_rename_watchlist(user_id: str, watchlist_id: int, name: str) -> None:
     owner = _require_user_id(user_id)
     normalized_name = _require_name(name)
     try:
@@ -200,7 +211,7 @@ def rename_watchlist(user_id: str, watchlist_id: int, name: str) -> None:
         raise WatchlistError("A watchlist with that name already exists.") from exc
 
 
-def delete_watchlist(user_id: str, watchlist_id: int) -> None:
+def _sqlite_delete_watchlist(user_id: str, watchlist_id: int) -> None:
     owner = _require_user_id(user_id)
     with _connect() as connection:
         cursor = connection.execute(
@@ -211,7 +222,7 @@ def delete_watchlist(user_id: str, watchlist_id: int) -> None:
             raise WatchlistError("Watchlist not found.")
 
 
-def list_symbols(user_id: str, watchlist_id: int) -> list[str]:
+def _sqlite_list_symbols(user_id: str, watchlist_id: int) -> list[str]:
     owner = _require_user_id(user_id)
     with _connect() as connection:
         watchlist = connection.execute(
@@ -227,7 +238,7 @@ def list_symbols(user_id: str, watchlist_id: int) -> list[str]:
     return [str(row["symbol"]) for row in rows]
 
 
-def list_stock_records(user_id: str, watchlist_id: int) -> list[dict[str, Any]]:
+def _sqlite_list_stock_records(user_id: str, watchlist_id: int) -> list[dict[str, Any]]:
     """Return saved symbols and all manually entered investment diary details."""
     owner = _require_user_id(user_id)
     with _connect() as connection:
@@ -240,17 +251,25 @@ def list_stock_records(user_id: str, watchlist_id: int) -> list[dict[str, Any]]:
         rows = connection.execute(
             """
             SELECT symbol, entry_price, stop_loss, target_price, quantity,
-                   investment_type, purchase_date, notes, status, created_at, updated_at
+                   investment_type, purchase_date, notes, status, created_at, updated_at,
+                   asset_category, asset_details
             FROM watchlist_symbols
             WHERE watchlist_id = ?
             ORDER BY position, symbol
             """,
             (watchlist_id,),
         ).fetchall()
-    return [dict(row) for row in rows]
+    records = [dict(row) for row in rows]
+    for record in records:
+        try:
+            record["asset_details"] = json.loads(record.get("asset_details") or "{}")
+        except (TypeError, ValueError):
+            record["asset_details"] = {}
+        record.setdefault("asset_category", "Stocks / F&O")
+    return records
 
 
-def add_symbol(
+def _sqlite_add_symbol(
     user_id: str, watchlist_id: int, symbol: str, details: dict[str, Any] | None = None
 ) -> bool:
     owner = _require_user_id(user_id)
@@ -282,8 +301,8 @@ def add_symbol(
             """
             INSERT INTO watchlist_symbols (
                 watchlist_id, symbol, position, entry_price, stop_loss, target_price,
-                quantity, investment_type, purchase_date, notes, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                quantity, investment_type, purchase_date, notes, status, asset_category, asset_details
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 watchlist_id,
@@ -297,6 +316,8 @@ def add_symbol(
                 fields["purchase_date"],
                 fields["notes"],
                 fields["status"],
+                fields.get("asset_category") or "Stocks / F&O",
+                json.dumps(fields.get("asset_details") or {}, default=str),
             ),
         )
     return True
@@ -310,6 +331,17 @@ def _validate_details(details: dict[str, Any]) -> None:
     quantity = details.get("quantity")
     if quantity is not None and quantity != "" and int(quantity) < 1:
         raise WatchlistError("Quantity must be at least 1.")
+    if details.get("asset_category") and details["asset_category"] not in {
+        "Stocks / F&O",
+        "Mutual Funds",
+        "Commodity",
+        "Currency",
+    }:
+        raise WatchlistError("Select a valid investment category.")
+    if details.get("asset_details") is not None and not isinstance(
+        details.get("asset_details"), dict
+    ):
+        raise WatchlistError("Instrument details must be a structured object.")
     investment_type = details.get("investment_type")
     if investment_type and investment_type not in ALLOWED_TYPES:
         raise WatchlistError("Select a valid investment type.")
@@ -318,7 +350,7 @@ def _validate_details(details: dict[str, Any]) -> None:
         raise WatchlistError("Select a valid stock status.")
 
 
-def update_stock_details(
+def _sqlite_update_stock_details(
     user_id: str, watchlist_id: int, symbol: str, details: dict[str, Any]
 ) -> None:
     owner = _require_user_id(user_id)
@@ -334,7 +366,7 @@ def update_stock_details(
             UPDATE watchlist_symbols
             SET entry_price = ?, stop_loss = ?, target_price = ?, quantity = ?,
                 investment_type = ?, purchase_date = ?, notes = ?, status = ?,
-                updated_at = CURRENT_TIMESTAMP
+                asset_category = ?, asset_details = ?, updated_at = CURRENT_TIMESTAMP
             WHERE watchlist_id = ? AND symbol = ?
               AND EXISTS (SELECT 1 FROM watchlists WHERE id = ? AND user_id = ?)
             """,
@@ -347,6 +379,8 @@ def update_stock_details(
                 fields["purchase_date"],
                 fields["notes"],
                 fields["status"],
+                fields.get("asset_category") or "Stocks / F&O",
+                json.dumps(fields.get("asset_details") or {}, default=str),
                 watchlist_id,
                 normalized_symbol,
                 watchlist_id,
@@ -357,7 +391,7 @@ def update_stock_details(
             raise WatchlistError("Stock not found in this watchlist.")
 
 
-def remove_symbol(user_id: str, watchlist_id: int, symbol: str) -> bool:
+def _sqlite_remove_symbol(user_id: str, watchlist_id: int, symbol: str) -> bool:
     owner = _require_user_id(user_id)
     normalized_symbol = _require_symbol(symbol)
     with _connect() as connection:
@@ -372,3 +406,263 @@ def remove_symbol(user_id: str, watchlist_id: int, symbol: str) -> bool:
             (watchlist_id, normalized_symbol),
         )
         return cursor.rowcount > 0
+
+
+# Supabase REST backend. No third-party SDK is required; this keeps the
+# application's dependency lockfile unchanged. Credentials are read only from
+# server-side Streamlit secrets or environment variables.
+
+
+_SUPABASE_WATCHLIST_ID = 1
+_SUPABASE_TABLE = "stock_watchlist"
+
+
+def _supabase_credentials() -> tuple[str, str] | None:
+    url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+    key = (
+        os.environ.get("SUPABASE_SECRET_KEY", "").strip()
+        or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    )
+    try:
+        import streamlit as st
+
+        secrets = st.secrets
+        if not url:
+            url = str(secrets.get("SUPABASE_URL", "")).strip().rstrip("/")
+        if not key:
+            key = str(
+                secrets.get("SUPABASE_SECRET_KEY", "")
+                or secrets.get("SUPABASE_SERVICE_ROLE_KEY", "")
+            ).strip()
+    except Exception:
+        # Streamlit may not be installed in service-only tests or CLI scripts.
+        pass
+    if url and key:
+        return url, key
+    return None
+
+
+def _supabase_enabled() -> bool:
+    return _supabase_credentials() is not None
+
+
+def _supabase_request(
+    method: str,
+    query: str = "",
+    payload: dict[str, Any] | list[dict[str, Any]] | None = None,
+    *,
+    prefer: str | None = None,
+) -> list[dict[str, Any]]:
+    credentials = _supabase_credentials()
+    if credentials is None:
+        raise WatchlistError(
+            "Supabase is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY "
+            "in Streamlit secrets or environment variables."
+        )
+    base_url, secret_key = credentials
+    url = f"{base_url}/rest/v1/{_SUPABASE_TABLE}"
+    if query:
+        url = f"{url}?{query}"
+    body = None if payload is None else json.dumps(payload, default=str).encode("utf-8")
+    headers = {
+        "apikey": secret_key,
+        "Authorization": f"Bearer {secret_key}",
+        "Accept": "application/json",
+    }
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+    if prefer:
+        headers["Prefer"] = prefer
+    request = urllib.request.Request(url, data=body, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(request, timeout=12) as response:
+            content = response.read().decode("utf-8")
+            if not content:
+                return []
+            decoded = json.loads(content)
+            return decoded if isinstance(decoded, list) else []
+    except urllib.error.HTTPError as exc:
+        # Do not include request headers or secrets in any error surfaced to UI.
+        detail = exc.read().decode("utf-8", errors="replace")[:500]
+        raise WatchlistError(
+            f"Supabase request failed (HTTP {exc.code}). Check the table schema, "
+            "secret key, and database migration. "
+            + (detail if exc.code < 500 else "The database service is temporarily unavailable.")
+        ) from exc
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise WatchlistError(
+            "Could not reach Supabase. Check the project URL and network."
+        ) from exc
+    except (ValueError, UnicodeDecodeError) as exc:
+        raise WatchlistError("Supabase returned an unreadable response.") from exc
+
+
+def _supabase_records() -> list[dict[str, Any]]:
+    query = urllib.parse.urlencode(
+        {"select": "*", "order": "position.asc,symbol.asc"},
+        safe="*,().:_",
+    )
+    return _supabase_request("GET", query)
+
+
+def _supabase_watchlist_exists(watchlist_id: int) -> None:
+    if int(watchlist_id) != _SUPABASE_WATCHLIST_ID:
+        raise WatchlistError("Watchlist not found.")
+
+
+def list_watchlists(user_id: str) -> list[dict[str, Any]]:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_list_watchlists(user_id)
+    records = _supabase_records()
+    return [
+        {
+            "id": _SUPABASE_WATCHLIST_ID,
+            "name": "My Watchlist",
+            "created_at": records[0].get("created_at") if records else None,
+            "symbol_count": len(records),
+        }
+    ]
+
+
+def create_watchlist(user_id: str, name: str) -> int:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_create_watchlist(user_id, name)
+    if _require_name(name) != "My Watchlist":
+        raise WatchlistError("Supabase mode supports one personal watchlist named 'My Watchlist'.")
+    return _SUPABASE_WATCHLIST_ID
+
+
+def rename_watchlist(user_id: str, watchlist_id: int, name: str) -> None:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_rename_watchlist(user_id, watchlist_id, name)
+    _supabase_watchlist_exists(watchlist_id)
+    if _require_name(name) != "My Watchlist":
+        raise WatchlistError("The personal Supabase watchlist name is fixed as 'My Watchlist'.")
+
+
+def delete_watchlist(user_id: str, watchlist_id: int) -> None:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_delete_watchlist(user_id, watchlist_id)
+    _supabase_watchlist_exists(watchlist_id)
+    raise WatchlistError("The single personal Supabase watchlist cannot be deleted.")
+
+
+def list_symbols(user_id: str, watchlist_id: int) -> list[str]:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_list_symbols(user_id, watchlist_id)
+    _supabase_watchlist_exists(watchlist_id)
+    return [str(row.get("symbol", "")) for row in _supabase_records()]
+
+
+def list_stock_records(user_id: str, watchlist_id: int) -> list[dict[str, Any]]:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_list_stock_records(user_id, watchlist_id)
+    _supabase_watchlist_exists(watchlist_id)
+    records = _supabase_records()
+    for record in records:
+        record.setdefault("investment_type", "Other")
+        record.setdefault("status", "Watching")
+        record.setdefault("notes", "")
+        record.setdefault("asset_category", "Stocks / F&O")
+        if not isinstance(record.get("asset_details"), dict):
+            try:
+                record["asset_details"] = json.loads(record.get("asset_details") or "{}")
+            except (TypeError, ValueError):
+                record["asset_details"] = {}
+    return records
+
+
+def add_symbol(
+    user_id: str, watchlist_id: int, symbol: str, details: dict[str, Any] | None = None
+) -> bool:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_add_symbol(user_id, watchlist_id, symbol, details)
+    _supabase_watchlist_exists(watchlist_id)
+    normalized_symbol = _require_symbol(symbol)
+    details = details or {}
+    _validate_details(details)
+    query = urllib.parse.urlencode(
+        {"select": "id", "symbol": f"eq.{normalized_symbol}"},
+        safe="*,().:_",
+    )
+    if _supabase_request("GET", query):
+        return False
+    fields = {field: details.get(field) for field in DETAIL_FIELDS}
+    fields["investment_type"] = fields["investment_type"] or "Other"
+    fields["status"] = fields["status"] or "Watching"
+    fields["notes"] = fields["notes"] or ""
+    existing = _supabase_records()
+    position = max((int(row.get("position") or 0) for row in existing), default=-1) + 1
+    payload = {
+        "symbol": normalized_symbol,
+        "company_name": normalized_symbol,
+        "entry_price": fields["entry_price"] or None,
+        "stop_loss": fields["stop_loss"] or None,
+        "target_price": fields["target_price"] or None,
+        "quantity": fields["quantity"] or None,
+        "investment_type": fields["investment_type"],
+        "purchase_date": fields["purchase_date"] or None,
+        "notes": fields["notes"],
+        "status": fields["status"],
+        "position": position,
+        "asset_category": fields.get("asset_category") or "Stocks / F&O",
+        "asset_details": fields.get("asset_details") or {},
+    }
+    _supabase_request("POST", "select=id", [payload], prefer="return=representation")
+    return True
+
+
+def update_stock_details(
+    user_id: str, watchlist_id: int, symbol: str, details: dict[str, Any]
+) -> None:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_update_stock_details(user_id, watchlist_id, symbol, details)
+    _supabase_watchlist_exists(watchlist_id)
+    normalized_symbol = _require_symbol(symbol)
+    _validate_details(details)
+    fields = {field: details.get(field) for field in DETAIL_FIELDS}
+    fields["investment_type"] = fields["investment_type"] or "Other"
+    fields["status"] = fields["status"] or "Watching"
+    fields["notes"] = fields["notes"] or ""
+    payload = {
+        "entry_price": fields["entry_price"] or None,
+        "stop_loss": fields["stop_loss"] or None,
+        "target_price": fields["target_price"] or None,
+        "quantity": fields["quantity"] or None,
+        "investment_type": fields["investment_type"],
+        "purchase_date": fields["purchase_date"] or None,
+        "notes": fields["notes"],
+        "status": fields["status"],
+        "asset_category": fields.get("asset_category") or "Stocks / F&O",
+        "asset_details": fields.get("asset_details") or {},
+        "updated_at": datetime.now(UTC).isoformat(),
+    }
+    query = urllib.parse.urlencode(
+        {"symbol": f"eq.{normalized_symbol}", "select": "id"},
+        safe="*,().:_",
+    )
+    result = _supabase_request("PATCH", query, payload, prefer="return=representation")
+    if not result:
+        raise WatchlistError("Stock not found in this watchlist.")
+
+
+def remove_symbol(user_id: str, watchlist_id: int, symbol: str) -> bool:
+    _require_user_id(user_id)
+    if not _supabase_enabled():
+        return _sqlite_remove_symbol(user_id, watchlist_id, symbol)
+    _supabase_watchlist_exists(watchlist_id)
+    normalized_symbol = _require_symbol(symbol)
+    query = urllib.parse.urlencode(
+        {"symbol": f"eq.{normalized_symbol}", "select": "id"},
+        safe="*,().:_",
+    )
+    result = _supabase_request("DELETE", query, prefer="return=representation")
+    return bool(result)

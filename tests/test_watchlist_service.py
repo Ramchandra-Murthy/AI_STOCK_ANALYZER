@@ -85,3 +85,35 @@ def test_duplicate_symbols_and_invalid_values_are_rejected(database_path):
 def test_watchlist_operations_reject_blank_owner(database_path):
     with pytest.raises(watchlists.WatchlistError, match="owner"):
         watchlists.create_watchlist("", "My Watchlist")
+
+
+def test_multi_asset_category_and_details_persist(database_path):
+    watchlist_id = watchlists.create_watchlist("owner", "My Watchlist")
+    details = {
+        "entry_price": 125.0,
+        "target_price": 150.0,
+        "stop_loss": 110.0,
+        "quantity": 8,
+        "investment_type": "Investment",
+        "purchase_date": "2026-10-11",
+        "notes": "Manual NAV tracking",
+        "status": "Bought",
+        "asset_category": "Mutual Funds",
+        "asset_details": {
+            "instrument_name": "Example Flexi Cap Fund",
+            "current_price_manual": 130.0,
+            "units_quantity": 8.25,
+            "scheme_details": "Direct Growth",
+        },
+    }
+    assert watchlists.add_symbol("owner", watchlist_id, "MF-EXAMPLE-FLEXI-CAP", details)
+    record = watchlists.list_stock_records("owner", watchlist_id)[0]
+    assert record["asset_category"] == "Mutual Funds"
+    assert record["asset_details"]["instrument_name"] == "Example Flexi Cap Fund"
+    assert record["asset_details"]["current_price_manual"] == 130.0
+    assert record["asset_details"]["units_quantity"] == 8.25
+
+    details["asset_details"]["current_price_manual"] = 132.5
+    watchlists.update_stock_details("owner", watchlist_id, "MF-EXAMPLE-FLEXI-CAP", details)
+    updated = watchlists.list_stock_records("owner", watchlist_id)[0]
+    assert updated["asset_details"]["current_price_manual"] == 132.5

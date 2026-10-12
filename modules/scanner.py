@@ -9,6 +9,7 @@ from scanner.market_scanner import DISPLAY_COUNT, market_scan
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
 from services.market_service import WATCHLIST
+from services.watchlist_service import WatchlistError
 from services.watchlist_ui import get_or_create_default_watchlist
 
 
@@ -96,9 +97,17 @@ def show():
         )
         trend_filter = st.selectbox("Trend", ["All", "Bullish", "Bearish", "Sideways"])
 
-    _, _, watchlist = get_or_create_default_watchlist(
-        None, [f"{symbol}.NS" for symbol in WATCHLIST]
-    )
+    try:
+        _, _, watchlist = get_or_create_default_watchlist(
+            None, [f"{symbol}.NS" for symbol in WATCHLIST]
+        )
+    except WatchlistError as exc:
+        # A failed personal-watchlist backend must not crash the broad-market scanner.
+        watchlist = [f"{symbol}.NS" for symbol in WATCHLIST]
+        st.warning(
+            "Personal watchlist storage is unavailable; using the built-in scanner "
+            f"watchlist for this session. Details: {exc}"
+        )
 
     if not watchlist:
         st.info("Your Personal Watchlist is empty. Add stocks in the Market page first.")

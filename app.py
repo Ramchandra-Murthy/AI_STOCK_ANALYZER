@@ -42,6 +42,12 @@ pages = {
         st.Page(market, title="Market", icon="📈", url_path="market"),
         st.Page(portfolio, title="Portfolio", icon="💼", url_path="portfolio"),
         st.Page(scanner, title="Scanner", icon="🔍", url_path="scanner"),
+        st.Page(
+            "pages/Personal_Stock_Watchlist.py",
+            title="Stocks Watchlist",
+            icon="📋",
+            url_path="stocks-watchlist",
+        ),
     ],
     "🔴 Live Market": [
         st.Page(
