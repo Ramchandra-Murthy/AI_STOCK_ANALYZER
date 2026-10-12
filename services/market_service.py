@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, time
 from functools import lru_cache
-import logging
 from typing import Any
 from zoneinfo import ZoneInfo
 
