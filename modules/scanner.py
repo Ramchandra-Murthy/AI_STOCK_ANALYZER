@@ -121,13 +121,15 @@ def show():
     )
     if st.button("Scan", use_container_width=True):
         with st.spinner("Scanning stocks..."):
-            df = scan_watchlist(watchlist) if scan_mode == "Personal Watchlist" else market_scan()
+            df = (
+                scan_watchlist(watchlist)
+                if scan_mode == "Personal Watchlist"
+                else market_scan(exchange_filter)
+            )
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
             return
-
-        _show_data_quality(df)
 
         if exchange_filter in ("NSE", "BSE") and "Exchange" in df.columns:
             df = df.loc[df["Exchange"] == exchange_filter]
@@ -148,6 +150,7 @@ def show():
             )
             return
 
+        _show_data_quality(df)
         st.success(f"{len(df)} matching stocks displayed")
         st.dataframe(
             df.head(DISPLAY_COUNT) if scan_mode == "Broad Market" else df,
