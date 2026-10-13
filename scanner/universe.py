@@ -165,3 +165,16 @@ BSE_CANDIDATES = [
     "540777",
     "543526",
 ]
+
+
+def bse_candidates_for_nse_symbols(symbols: set[str]) -> list[str]:
+    """Return paired BSE scrip codes for selected curated NSE company symbols.
+
+    The two curated lists are maintained in matching company order. Returned values
+    remain BSE scrip codes and must be quoted through the BSE provider ticker.
+    """
+    return [
+        bse_symbol
+        for nse_symbol, bse_symbol in zip(NSE_CANDIDATES, BSE_CANDIDATES, strict=True)
+        if nse_symbol in symbols
+    ]
