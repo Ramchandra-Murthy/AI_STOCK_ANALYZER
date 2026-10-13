@@ -22,7 +22,7 @@ from scanner.surveillance import (
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
@@ -92,6 +92,7 @@ def select_day_trader_universe(
     else:
         selected = CAP_UNIVERSES[cap_category]
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
+        universe.extend((symbol, "BSE") for symbol in bse_candidates_for_nse_symbols(selected))
     filtered = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
     return filtered[:MAX_FAST_UNIVERSE]
 
