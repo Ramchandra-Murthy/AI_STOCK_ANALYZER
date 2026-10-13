@@ -113,7 +113,7 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     candidates = NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES
     suffix = EXCHANGES[exchange]
     # Keep the scan deliberately small: this page must remain useful even when Yahoo is slow.
-    tickers = [f"{symbol}{suffix}" for symbol in candidates[:30]]
+    tickers = [f"{symbol}{suffix}" for symbol in candidates[:15]]
     if not tickers:
         return pd.DataFrame()
 
@@ -127,7 +127,7 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
         interval="5m",
         auto_adjust=False,
         batch_size=10,
-        timeout=8,
+        timeout=6,
     )
     daily_frames, _daily_missing = download_symbol_frames(
         tickers,
@@ -155,26 +155,8 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
                 errors="coerce",
             ).dropna()
             if daily_close.empty or len(daily_close) < 2:
-                # Reuse the canonical quote boundary for explicitly configured
-                # BSE alternates (for example, 544282.BO -> SAGILITY.NS).
-                # Do not infer aliases for other numeric BSE scrip codes.
-                from services.market_service import get_latest_available_price
-
-                quote = get_latest_available_price(ticker, exchange)
-                quote_price = quote.get("price")
-                quote_change = quote.get("change_pct")
-                if quote_price is not None and quote_change is not None:
-                    rows.append(
-                        {
-                            "Symbol": ticker.removesuffix(suffix),
-                            "Ticker": ticker,
-                            "Price": float(quote_price),
-                            "Change (%)": float(quote_change),
-                            "Volume": None,
-                            "Market cap (₹)": None,
-                            "Cap segment": "Unverified",
-                        }
-                    )
+                # Skip symbols without enough history instead of making extra
+                # per-symbol quote requests that can stall the whole scan.
                 continue
             last = (
                 float(intraday_close.iloc[-1])
@@ -205,7 +187,7 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     rows.sort(key=lambda row: row["Change (%)"], reverse=True)
 
     # Classify the strongest gainers only where Yahoo supplies market cap.
-    for row in rows[:10]:
+    for row in rows[:3]:
         try:
             market_cap_value = yf.Ticker(row["Ticker"]).fast_info.get("market_cap")
             if market_cap_value:
