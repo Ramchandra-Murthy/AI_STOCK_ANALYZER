@@ -999,12 +999,8 @@ def show() -> None:
                         type="primary",
                     ):
                         try:
-                            removed = remove_symbol(
-                                OWNER_ID, watchlist_id, pending_quick_delete
-                            )
-                            st.session_state.pop(
-                                "personal_watchlist_quick_delete_pending", None
-                            )
+                            removed = remove_symbol(OWNER_ID, watchlist_id, pending_quick_delete)
+                            st.session_state.pop("personal_watchlist_quick_delete_pending", None)
                             if removed:
                                 st.success(f"Removed {pending_quick_delete}.")
                                 st.rerun()
@@ -1016,9 +1012,7 @@ def show() -> None:
                         "Cancel — keep stock",
                         key="quick_cancel_delete_stock",
                     ):
-                        st.session_state.pop(
-                            "personal_watchlist_quick_delete_pending", None
-                        )
+                        st.session_state.pop("personal_watchlist_quick_delete_pending", None)
                         st.rerun()
 
         if not records:
