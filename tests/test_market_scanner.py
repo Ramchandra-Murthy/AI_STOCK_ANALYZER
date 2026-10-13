@@ -71,7 +71,6 @@ def test_day_trader_cap_filter_includes_bse_candidates() -> None:
     assert all(exchange == "BSE" for _symbol, exchange in selected)
 
 
-
 def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -> None:
     from scanner import market_scanner
 
