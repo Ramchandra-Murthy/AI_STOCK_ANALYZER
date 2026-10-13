@@ -716,7 +716,9 @@ def show() -> None:
             if (record.get("asset_details") or {}).get("instrument_type")
             not in {"Futures", "Options"}
         ]
-        quote_signature = tuple(sorted(str(record.get("symbol", "")) for record in quoteable_records))
+        quote_signature = tuple(
+            sorted(str(record.get("symbol", "")) for record in quoteable_records)
+        )
         quote_frame_key = "personal_watchlist_quote_frame"
         quote_signature_key = "personal_watchlist_quote_signature"
         if st.session_state.get(quote_signature_key) != quote_signature:
@@ -738,9 +740,9 @@ def show() -> None:
                             else pd.DataFrame()
                         )
                         st.session_state[quote_frame_key] = loaded_quotes
-                        st.session_state["personal_watchlist_quotes_checked_at"] = (
-                            datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%H:%M:%S IST")
-                        )
+                        st.session_state["personal_watchlist_quotes_checked_at"] = datetime.now(
+                            ZoneInfo("Asia/Kolkata")
+                        ).strftime("%H:%M:%S IST")
                         st.success("Market-price check completed.")
                     except Exception as exc:
                         st.warning(f"Could not load market prices: {exc}")
