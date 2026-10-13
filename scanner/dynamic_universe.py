@@ -74,9 +74,7 @@ def _download_bse_equity_list() -> list[str]:
         payload = json.loads(response.read().decode("utf-8"))
 
     if not isinstance(payload, list):
-        raise ValueError(
-            f"BSE securities response must be a list, got {type(payload).__name__}"
-        )
+        raise ValueError(f"BSE securities response must be a list, got {type(payload).__name__}")
 
     valid_rows = [
         row
@@ -85,13 +83,8 @@ def _download_bse_equity_list() -> list[str]:
         and str(row.get("Status", "")).strip().lower() == "active"
         and str(row.get("Segment", "")).strip().lower() == "equity"
     ]
-    symbols = {
-        str(row.get("scrip_id", "")).strip().upper()
-        for row in valid_rows
-    }
-    parsed = sorted(
-        symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol)
-    )
+    symbols = {str(row.get("scrip_id", "")).strip().upper() for row in valid_rows}
+    parsed = sorted(symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol))
     logging.info(
         "BSE universe source=live raw_rows=%d active_equity_rows=%d parsed_symbols=%d",
         len(payload),
@@ -100,10 +93,7 @@ def _download_bse_equity_list() -> list[str]:
     )
     if not parsed:
         sample_keys = sorted(
-            str(key)
-            for row in payload[:3]
-            if isinstance(row, dict)
-            for key in row.keys()
+            str(key) for row in payload[:3] if isinstance(row, dict) for key in row.keys()
         )
         raise ValueError(
             "BSE response contained no parseable active equity symbols; "
