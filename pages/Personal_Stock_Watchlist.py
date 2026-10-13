@@ -107,11 +107,13 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+@st.cache_data(ttl=300, show_spinner=False)
 def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.DataFrame:
-    """Rank a bounded candidate universe by today's move and label cap only from provider data."""
+    """Cache a bounded market-gainers scan to avoid repeating slow provider requests."""
     candidates = NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES
     suffix = EXCHANGES[exchange]
-    tickers = [f"{symbol}{suffix}" for symbol in candidates[:100]]
+    # Keep the scan deliberately small: this page must remain useful even when Yahoo is slow.
+    tickers = [f"{symbol}{suffix}" for symbol in candidates[:30]]
     if not tickers:
         return pd.DataFrame()
 
@@ -125,7 +127,7 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
         interval="5m",
         auto_adjust=False,
         batch_size=10,
-        timeout=20,
+        timeout=8,
     )
     daily_frames, _daily_missing = download_symbol_frames(
         tickers,
@@ -133,7 +135,7 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
         interval="1d",
         auto_adjust=False,
         batch_size=10,
-        timeout=20,
+        timeout=8,
     )
 
     rows: list[dict[str, Any]] = []
@@ -203,7 +205,7 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     rows.sort(key=lambda row: row["Change (%)"], reverse=True)
 
     # Classify the strongest gainers only where Yahoo supplies market cap.
-    for row in rows[:30]:
+    for row in rows[:10]:
         try:
             market_cap_value = yf.Ticker(row["Ticker"]).fast_info.get("market_cap")
             if market_cap_value:
