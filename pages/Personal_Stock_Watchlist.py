@@ -112,8 +112,10 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
     """Cache a bounded market-gainers scan to avoid repeating slow provider requests."""
     candidates = NSE_CANDIDATES if exchange == "NSE" else BSE_CANDIDATES
     suffix = EXCHANGES[exchange]
-    # Keep the scan deliberately small: this page must remain useful even when Yahoo is slow.
-    tickers = [f"{symbol}{suffix}" for symbol in candidates[:15]]
+    # BSE .BO history is less consistently available from Yahoo than NSE .NS.
+    # Use a smaller BSE universe and shorter provider timeouts to avoid a long wait.
+    candidate_limit = 8 if exchange == "BSE" else 15
+    tickers = [f"{symbol}{suffix}" for symbol in candidates[:candidate_limit]]
     if not tickers:
         return pd.DataFrame()
 
@@ -126,16 +128,16 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
         period="1d",
         interval="5m",
         auto_adjust=False,
-        batch_size=10,
-        timeout=6,
+        batch_size=8 if exchange == "BSE" else 10,
+        timeout=4 if exchange == "BSE" else 6,
     )
     daily_frames, _daily_missing = download_symbol_frames(
         tickers,
         period="5d",
         interval="1d",
         auto_adjust=False,
-        batch_size=10,
-        timeout=8,
+        batch_size=8 if exchange == "BSE" else 10,
+        timeout=4 if exchange == "BSE" else 8,
     )
 
     rows: list[dict[str, Any]] = []
@@ -186,8 +188,9 @@ def _market_gainers(exchange: str, cap_segment: str, limit: int = 10) -> pd.Data
         return pd.DataFrame()
     rows.sort(key=lambda row: row["Change (%)"], reverse=True)
 
-    # Classify the strongest gainers only where Yahoo supplies market cap.
-    for row in rows[:3]:
+    # BSE cap lookups are especially slow; enrich only one BSE mover (three for NSE).
+    cap_lookup_limit = 1 if exchange == "BSE" else 3
+    for row in rows[:cap_lookup_limit]:
         try:
             market_cap_value = yf.Ticker(row["Ticker"]).fast_info.get("market_cap")
             if market_cap_value:
