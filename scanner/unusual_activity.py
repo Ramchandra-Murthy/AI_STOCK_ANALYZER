@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
 from services.resilient_market_data import download_market_frames
 
 CHUNK_SIZE = 100
@@ -211,6 +211,7 @@ def scan_unusual_activity(
     else:
         selected = CAP_UNIVERSES.get(cap_category, set())
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
+        universe.extend((symbol, "BSE") for symbol in bse_candidates_for_nse_symbols(selected))
 
     selected_universe = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
     stats = {
