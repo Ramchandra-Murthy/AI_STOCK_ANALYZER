@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
 from scanner.unusual_activity import CAP_UNIVERSES, _ticker, finalize_scan_result
 from services.resilient_market_data import download_market_frames
 
@@ -74,6 +74,7 @@ def _selected_price_jump_universe(
     else:
         selected = CAP_UNIVERSES.get(cap_category, set())
         universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
+        universe.extend((symbol, "BSE") for symbol in bse_candidates_for_nse_symbols(selected))
     filtered = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
     unique = list(dict.fromkeys(filtered))
     return unique[:MAX_FAST_UNIVERSE]
