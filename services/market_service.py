@@ -262,6 +262,7 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
         "is_intraday": is_intraday,
     }
 
+
 def get_market_indices() -> dict[str, dict[str, Any]]:
     """Return market indices concurrently so slow provider calls do not serialize startup."""
 
