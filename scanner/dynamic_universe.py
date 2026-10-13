@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import logging
 import re
 import time
 from urllib.parse import urlencode
@@ -73,16 +74,42 @@ def _download_bse_equity_list() -> list[str]:
         payload = json.loads(response.read().decode("utf-8"))
 
     if not isinstance(payload, list):
-        raise ValueError("BSE securities response is not a list")
+        raise ValueError(
+            f"BSE securities response must be a list, got {type(payload).__name__}"
+        )
 
-    symbols = {
-        str(row.get("scrip_id", "")).strip().upper()
+    valid_rows = [
+        row
         for row in payload
         if isinstance(row, dict)
         and str(row.get("Status", "")).strip().lower() == "active"
         and str(row.get("Segment", "")).strip().lower() == "equity"
+    ]
+    symbols = {
+        str(row.get("scrip_id", "")).strip().upper()
+        for row in valid_rows
     }
-    return sorted(symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol))
+    parsed = sorted(
+        symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol)
+    )
+    logging.info(
+        "BSE universe source=live raw_rows=%d active_equity_rows=%d parsed_symbols=%d",
+        len(payload),
+        len(valid_rows),
+        len(parsed),
+    )
+    if not parsed:
+        sample_keys = sorted(
+            str(key)
+            for row in payload[:3]
+            if isinstance(row, dict)
+            for key in row.keys()
+        )
+        raise ValueError(
+            "BSE response contained no parseable active equity symbols; "
+            f"sample field names={sample_keys}"
+        )
+    return parsed
 
 
 def dynamic_nse_symbols() -> list[str]:
@@ -105,22 +132,38 @@ def dynamic_nse_symbols() -> list[str]:
 
 
 def dynamic_bse_symbols() -> list[str]:
-    """Return the current active BSE equity universe, with curated fallback."""
+    """Return active BSE equities, logging live-source coverage and fallback reason."""
     global _cached_bse_symbols
 
     now = time.time()
     if _cached_bse_symbols and now - _cached_bse_symbols[0] < CACHE_TTL_SECONDS:
+        logging.debug(
+            "BSE universe source=cache symbols=%d",
+            len(_cached_bse_symbols[1]),
+        )
         return _cached_bse_symbols[1]
 
     try:
         symbols = _download_bse_equity_list()
         if symbols:
             _cached_bse_symbols = (now, symbols)
+            logging.info(
+                "BSE universe source=live symbols=%d curated_fallback_symbols=%d",
+                len(symbols),
+                len(BSE_CANDIDATES),
+            )
             return symbols
-    except Exception:
-        pass
+        fallback_reason = "live source returned an empty symbol list"
+    except Exception as exc:
+        fallback_reason = f"{type(exc).__name__}: {exc}"
 
-    return list(BSE_CANDIDATES)
+    fallback = list(BSE_CANDIDATES)
+    logging.warning(
+        "BSE universe fallback=curated reason=%s fallback_symbols=%d",
+        fallback_reason,
+        len(fallback),
+    )
+    return fallback
 
 
 def merge_nse_universe(extra_symbols: list[str] | None = None) -> list[str]:
