@@ -227,12 +227,16 @@ def _analyze_history(
         return None
 
 
-def market_scan() -> pd.DataFrame:
-    """Scan a refreshed universe using batched market data and local analysis."""
-    candidates = {
-        "NSE": merge_nse_universe(),
-        "BSE": merge_bse_universe(),
-    }
+def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
+    """Scan the selected exchange universe using batched market data and local analysis."""
+    selected = exchange_filter.strip().upper()
+    candidates = {}
+    if selected in ("NSE", "NSE + BSE", "BOTH"):
+        candidates["NSE"] = merge_nse_universe()
+    if selected in ("BSE", "NSE + BSE", "BOTH"):
+        candidates["BSE"] = merge_bse_universe()
+    if not candidates:
+        raise ValueError(f"Unsupported exchange filter: {exchange_filter}")
     movers = _batch_change_screen(candidates)
     if not movers:
         return pd.DataFrame()
