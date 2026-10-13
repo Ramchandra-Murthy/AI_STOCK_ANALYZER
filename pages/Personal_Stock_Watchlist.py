@@ -34,8 +34,9 @@ def _market_session_open() -> bool:
     return now.weekday() < 5 and time(9, 15) <= now.time() <= time(15, 30)
 
 
+@st.cache_data(ttl=45, show_spinner=False)
 def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
-    """Fetch watchlist quotes through the canonical market-data boundary."""
+    """Cache watchlist quotes briefly so ordinary widget reruns do not refetch every symbol."""
     from services.market_service import get_latest_available_price
 
     rows: list[dict[str, Any]] = []
