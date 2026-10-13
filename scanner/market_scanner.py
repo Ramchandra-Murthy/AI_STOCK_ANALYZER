@@ -237,9 +237,34 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         candidates["BSE"] = merge_bse_universe()
     if not candidates:
         raise ValueError(f"Unsupported exchange filter: {exchange_filter}")
+    coverage = {
+        exchange: {
+            "candidates": len(symbols),
+            "tickers_requested": len(symbols),
+            "histories_returned": 0,
+            "histories_rejected": 0,
+            "analyses_completed": 0,
+            "final_rows": 0,
+        }
+        for exchange, symbols in candidates.items()
+    }
+    coverage_by_ticker = {
+        _ticker(symbol, exchange): exchange
+        for exchange, symbols in candidates.items()
+        for symbol in symbols
+    }
     movers = _batch_change_screen(candidates)
+    for _ticker_value, exchange, _change, _turnover in movers:
+        if exchange in coverage:
+            coverage[exchange]["histories_returned"] += 1
+    for exchange in coverage:
+        coverage[exchange]["histories_rejected"] = max(
+            0, coverage[exchange]["candidates"] - coverage[exchange]["histories_returned"]
+        )
     if not movers:
-        return pd.DataFrame()
+        empty = pd.DataFrame()
+        empty.attrs["scanner_coverage"] = coverage
+        return empty
 
     analysis_tickers: list[str] = []
     seen: set[str] = set()
@@ -253,27 +278,45 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         if len(analysis_tickers) >= TOP_CANDIDATES_TO_ANALYZE:
             break
 
+    for ticker in analysis_tickers:
+        exchange = coverage_by_ticker.get(ticker)
+        if exchange in coverage:
+            coverage[exchange]["analysis_requested"] = (
+                coverage[exchange].get("analysis_requested", 0) + 1
+            )
     if not analysis_tickers:
-        return pd.DataFrame()
+        empty = pd.DataFrame()
+        empty.attrs["scanner_coverage"] = coverage
+        return empty
 
     history = _download_analysis_chunk(analysis_tickers)
     if history.empty:
-        return pd.DataFrame()
+        empty = pd.DataFrame()
+        empty.attrs["scanner_coverage"] = coverage
+        return empty
 
     turnover_by_ticker = {ticker: turnover for ticker, _exchange, _change, turnover in movers}
 
     rows: list[dict[str, Any]] = []
     for ticker in analysis_tickers:
         row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
+        exchange = coverage_by_ticker.get(ticker)
         if row is not None:
             rows.append(row)
+            if exchange in coverage:
+                coverage[exchange]["analyses_completed"] += 1
 
     df = pd.DataFrame(rows)
     if df.empty:
+        df.attrs["scanner_coverage"] = coverage
         return df
 
-    return (
+    result = (
         df.sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
         .head(DISPLAY_COUNT)
         .reset_index(drop=True)
     )
+    for exchange in coverage:
+        coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
+    result.attrs["scanner_coverage"] = coverage
+    return result
