@@ -34,8 +34,9 @@ def _market_session_open() -> bool:
     return now.weekday() < 5 and time(9, 15) <= now.time() <= time(15, 30)
 
 
+@st.cache_data(ttl=45, show_spinner=False)
 def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
-    """Fetch watchlist quotes through the canonical market-data boundary."""
+    """Cache watchlist quotes briefly so ordinary widget reruns do not refetch every symbol."""
     from services.market_service import get_latest_available_price
 
     rows: list[dict[str, Any]] = []
@@ -707,16 +708,51 @@ def show() -> None:
             st.error(f"Could not load saved watchlist: {exc}")
             return
 
-        # Join saved diary entries with available provider quotes so the key
-        # portfolio figures are visible without opening the edit expander.
+        # Keep market-data requests out of ordinary Streamlit reruns.
+        # Quotes are fetched only after the user explicitly asks for them.
         quoteable_records = [
             record
             for record in records
             if (record.get("asset_details") or {}).get("instrument_type")
             not in {"Futures", "Options"}
         ]
+        quote_signature = tuple(
+            sorted(str(record.get("symbol", "")) for record in quoteable_records)
+        )
+        quote_frame_key = "personal_watchlist_quote_frame"
+        quote_signature_key = "personal_watchlist_quote_signature"
+        if st.session_state.get(quote_signature_key) != quote_signature:
+            st.session_state.pop(quote_frame_key, None)
+            st.session_state[quote_signature_key] = quote_signature
+
+        with st.expander("Market prices (optional — load only when needed)", expanded=False):
+            st.caption(
+                "Loading prices can take time when the provider is slow. Your saved diary and "
+                "edit/remove controls remain available without loading market data."
+            )
+            if st.button("Load / refresh market prices", key="load_watchlist_market_prices"):
+                with st.spinner("Loading market prices…"):
+                    try:
+                        _quote_table.clear()
+                        loaded_quotes = (
+                            _quote_table(quoteable_records, "NSE")
+                            if quoteable_records
+                            else pd.DataFrame()
+                        )
+                        st.session_state[quote_frame_key] = loaded_quotes
+                        st.session_state["personal_watchlist_quotes_checked_at"] = datetime.now(
+                            ZoneInfo("Asia/Kolkata")
+                        ).strftime("%H:%M:%S IST")
+                        st.success("Market-price check completed.")
+                    except Exception as exc:
+                        st.warning(f"Could not load market prices: {exc}")
+
+        saved_quote_frame = st.session_state.get(quote_frame_key)
         quote_frame = (
-            _quote_table(quoteable_records, "NSE") if quoteable_records else pd.DataFrame()
+            saved_quote_frame.copy()
+            if isinstance(saved_quote_frame, pd.DataFrame)
+            and st.session_state.get(quote_signature_key) == quote_signature
+            else pd.DataFrame()
         )
         quote_by_symbol = (
             {str(row["Symbol"]): row for _, row in quote_frame.iterrows()}
@@ -967,60 +1003,21 @@ def show() -> None:
             st.info("Your watchlist is empty. Add your first stock above.")
         else:
             st.caption(
-                "Prices refresh automatically about every 60 seconds during the weekday "
-                "09:15–15:30 IST session. Yahoo Finance data can be delayed or unavailable; "
-                "exchange holidays are not inferred and this is not a guaranteed real-time feed."
+                "Market prices are loaded on demand, not automatically. Provider data may be "
+                "delayed or unavailable; verify prices independently before trading."
             )
-
-            @st.fragment(run_every="60s" if _market_session_open() else None)
-            def render_live_quotes() -> None:
-                try:
-                    quotes = _quote_table(
-                        [
-                            record
-                            for record in records
-                            if (record.get("asset_details") or {}).get("instrument_type")
-                            not in {"Futures", "Options"}
-                        ],
-                        "NSE",
-                    )
-                    if filter_mode == "Gainers" and "Change today (%)" in quotes:
-                        quotes = quotes.loc[quotes["Change today (%)"] > 0]
-                    elif filter_mode == "Losers" and "Change today (%)" in quotes:
-                        quotes = quotes.loc[quotes["Change today (%)"] < 0]
-
-                    def color_price_direction(row: pd.Series) -> list[str]:
-                        trend = row.get("Price trend")
-                        if trend == "Up":
-                            return [
-                                (
-                                    "color: #15803d; font-weight: 700"
-                                    if col == "Current price"
-                                    else "color: #15803d" if col == "Price trend" else ""
-                                )
-                                for col in row.index
-                            ]
-                        if trend == "Down":
-                            return [
-                                (
-                                    "color: #dc2626; font-weight: 700"
-                                    if col == "Current price"
-                                    else "color: #dc2626" if col == "Price trend" else ""
-                                )
-                                for col in row.index
-                            ]
-                        return ["" for _ in row.index]
-
-                    styled_quotes = quotes.style.apply(color_price_direction, axis=1)
-                    st.dataframe(styled_quotes, use_container_width=True, hide_index=True)
-                    now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%H:%M:%S IST")
-                    st.caption(f"Last quote check: {now}")
-                except Exception as exc:
-                    st.warning(
-                        f"Price refresh failed; the rest of your watchlist remains available. {exc}"
-                    )
-
-            render_live_quotes()
+            if quote_frame.empty:
+                st.info("Market prices have not been loaded for this watchlist in this session.")
+            else:
+                visible_quotes = quote_frame.copy()
+                if filter_mode == "Gainers" and "Change today (%)" in visible_quotes:
+                    visible_quotes = visible_quotes.loc[visible_quotes["Change today (%)"] > 0]
+                elif filter_mode == "Losers" and "Change today (%)" in visible_quotes:
+                    visible_quotes = visible_quotes.loc[visible_quotes["Change today (%)"] < 0]
+                st.dataframe(visible_quotes, use_container_width=True, hide_index=True)
+                checked_at = st.session_state.get("personal_watchlist_quotes_checked_at")
+                if checked_at:
+                    st.caption(f"Last quote check: {checked_at}")
 
             with st.expander("Investment diary — edit saved details"):
                 symbols = [str(record["symbol"]) for record in records]
