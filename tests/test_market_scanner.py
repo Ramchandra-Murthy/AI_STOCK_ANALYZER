@@ -51,3 +51,21 @@ def test_market_scan_includes_both_exchanges_by_default(monkeypatch) -> None:
 
     assert result.empty
     assert calls == [{"NSE": ["RELIANCE"], "BSE": ["500325"]}]
+
+
+def test_bse_candidates_follow_selected_nse_cap_basket() -> None:
+    from scanner.universe import bse_candidates_for_nse_symbols
+
+    selected = {"RELIANCE", "TCS", "NOT_IN_CURATED_UNIVERSE"}
+
+    assert bse_candidates_for_nse_symbols(selected) == ["500325", "532540"]
+
+
+def test_day_trader_cap_filter_includes_bse_candidates() -> None:
+    from scanner.day_trader_opportunity import select_day_trader_universe
+
+    selected = select_day_trader_universe("Large cap", "BSE")
+
+    assert ("500325", "BSE") in selected
+    assert ("532540", "BSE") in selected
+    assert all(exchange == "BSE" for _symbol, exchange in selected)
