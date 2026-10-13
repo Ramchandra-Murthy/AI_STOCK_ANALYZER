@@ -69,3 +69,26 @@ def test_day_trader_cap_filter_includes_bse_candidates() -> None:
     assert ("500325", "BSE") in selected
     assert ("532540", "BSE") in selected
     assert all(exchange == "BSE" for _symbol, exchange in selected)
+
+
+
+def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    monkeypatch.setattr(market_scanner, "merge_nse_universe", lambda: ["RELIANCE"])
+    monkeypatch.setattr(market_scanner, "merge_bse_universe", lambda: ["500325"])
+    monkeypatch.setattr(market_scanner, "_batch_change_screen", lambda candidates: [])
+
+    result = market_scanner.market_scan("BSE")
+
+    assert result.empty
+    assert result.attrs["scanner_coverage"] == {
+        "BSE": {
+            "candidates": 1,
+            "tickers_requested": 1,
+            "histories_returned": 0,
+            "histories_rejected": 1,
+            "analyses_completed": 0,
+            "final_rows": 0,
+        }
+    }
