@@ -126,6 +126,19 @@ def show():
                 if scan_mode == "Personal Watchlist"
                 else market_scan(exchange_filter)
             )
+        scanner_coverage = df.attrs.get("scanner_coverage", {})
+
+        if scan_mode == "Broad Market" and scanner_coverage:
+            with st.expander("Scan coverage diagnostics", expanded=True):
+                st.caption(
+                    "Coverage counts describe the broad-market scan pipeline. "
+                    "History rejections include symbols without usable two-candle price/volume history."
+                )
+                coverage_rows = [
+                    {"Exchange": exchange, **counts}
+                    for exchange, counts in scanner_coverage.items()
+                ]
+                st.dataframe(coverage_rows, use_container_width=True, hide_index=True)
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
