@@ -95,11 +95,27 @@ def show():
 
     st.divider()
 
-    show_market_movers()
+    # Market-wide scans make multiple external requests. Run them on demand so the
+    # portfolio dashboard can render without waiting for every quote provider.
+    with st.expander("🔥 Market Movers (load on demand)", expanded=False):
+        if st.button("Load market movers", key="load_dashboard_market_movers"):
+            st.session_state["dashboard_market_movers_requested"] = True
+        if st.session_state.get("dashboard_market_movers_requested", False):
+            with st.spinner("Loading market movers from available data providers…"):
+                show_market_movers()
+        else:
+            st.caption("Select Load market movers to fetch the latest available quotes.")
 
     st.divider()
 
-    show_ai_market_summary()
+    with st.expander("🤖 Market Signal Summary (load on demand)", expanded=False):
+        if st.button("Load market signal summary", key="load_dashboard_market_summary"):
+            st.session_state["dashboard_market_summary_requested"] = True
+        if st.session_state.get("dashboard_market_summary_requested", False):
+            with st.spinner("Loading market observations…"):
+                show_ai_market_summary()
+        else:
+            st.caption("Market signal data is fetched only when requested.")
 
     st.divider()
 
