@@ -89,9 +89,11 @@ def show_live_observation() -> None:
 show_live_observation()
 
 with st.expander("Manual paper controls"):
-    expiry = st.date_input("Option expiry", value=date.today())
+    expiry = st.date_input("Option expiry", value=date.today(), key="nifty_v2_manual_expiry")
     strike = st.number_input("CALL strike", min_value=1.0, value=25000.0, step=50.0)
-    observed_date = st.date_input("Observation date", value=date.today())
+    observed_date = st.date_input(
+        "Observation date", value=date.today(), key="nifty_v2_manual_observation_date"
+    )
 if st.button("Reset Paper Session"):
     st.session_state.nifty_v2_paper_session = NiftyOptionsV2LivePaperSession()
     st.rerun()
@@ -162,11 +164,14 @@ with left:
     expiry = st.date_input(
         "Option expiry",
         value=cycle.next_expiry if cycle is not None else india_now.date(),
+        key="nifty_v2_trade_expiry",
     )
     strike = st.number_input("CALL strike", min_value=1.0, value=25000.0, step=50.0)
 
 with right:
-    observed_date = st.date_input("Observation date", value=india_now.date())
+    observed_date = st.date_input(
+        "Observation date", value=india_now.date(), key="nifty_v2_trade_observation_date"
+    )
     spot = st.number_input("NIFTY spot", min_value=0.01, value=25000.0, step=1.0)
     ltp = st.number_input("CALL LTP", min_value=0.0, value=500.0, step=0.05)
 

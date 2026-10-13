@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, time
 from functools import lru_cache
@@ -39,12 +38,6 @@ WATCHLIST = {
 EXCHANGE_SUFFIXES = {
     "NSE": ".NS",
     "BSE": ".BO",
-}
-
-# Verified NSE equivalents for BSE numeric scrip codes when Yahoo has no BSE quote.
-# Keep this list explicit: never guess a company symbol from a numeric code.
-BSE_ALTERNATE_TICKERS = {
-    "544282.BO": "SAGILITY.NS",
 }
 
 INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
@@ -249,54 +242,21 @@ def _get_last_observation(
 
 
 def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, Any]:
-    """Fetch a quote and log the outcome of the explicitly configured BSE fallback."""
+    """Fetch a quote only from the requested exchange; never substitute another listing."""
     normalized = normalize_market_symbol(symbol, exchange)
-    provider_symbol = normalized
     value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
-        provider_symbol
+        normalized
     )
-    used_alternate = False
-    if value is None and normalized in BSE_ALTERNATE_TICKERS:
-        alternate = BSE_ALTERNATE_TICKERS[normalized]
-        logging.warning(
-            "Market quote unavailable for %s; attempting configured alternate ticker %s",
-            normalized,
-            alternate,
-        )
-        provider_symbol = alternate
-        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
-            provider_symbol
-        )
-        used_alternate = value is not None
-        if used_alternate:
-            logging.info(
-                "Market quote fallback succeeded: requested=%s provider=%s frequency=%s observed_at=%s",
-                normalized,
-                provider_symbol,
-                frequency,
-                observed_at,
-            )
-        else:
-            logging.warning(
-                "Market quote fallback unavailable: requested=%s provider=%s frequency=%s",
-                normalized,
-                provider_symbol,
-                frequency,
-            )
     resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
     return {
         "symbol": normalized,
-        "provider_symbol": provider_symbol,
+        "provider_symbol": normalized,
         "exchange": resolved_exchange,
         "price": value,
         "previous_close": previous_close,
         "change_pct": change,
         "observed_at": observed_at,
-        "source": (
-            f"Yahoo Finance via alternate ticker {provider_symbol}"
-            if used_alternate
-            else "Yahoo Finance"
-        ),
+        "source": "Yahoo Finance",
         "frequency": frequency,
         "is_tick_live": False,
         "is_intraday": is_intraday,

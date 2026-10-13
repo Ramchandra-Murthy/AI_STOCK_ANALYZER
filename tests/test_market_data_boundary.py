@@ -21,37 +21,37 @@ def test_explicit_exchange_suffix_is_preserved():
     assert normalize_market_symbol("500570.BO", "NSE") == "500570.BO"
 
 
-def test_bse_quote_uses_verified_nse_alias_when_bse_ticker_unavailable(monkeypatch):
+def test_bse_quote_does_not_fall_back_to_another_exchange(monkeypatch):
     calls = []
 
     def fake_observation(ticker):
         calls.append(ticker)
-        if ticker == "544282.BO":
-            return None, None, None, None, "unavailable", False
-        return 43.5, -0.5, 43.72, "2026-10-12T10:00:00+05:30", "intraday_1m", True
+        return None, None, None, None, "unavailable", False
 
     monkeypatch.setattr("services.market_service._get_last_observation", fake_observation)
 
     result = get_latest_available_price("544282", "BSE")
 
-    assert calls == ["544282.BO", "SAGILITY.NS"]
+    assert calls == ["544282.BO"]
     assert result["symbol"] == "544282.BO"
-    assert result["provider_symbol"] == "SAGILITY.NS"
+    assert result["provider_symbol"] == "544282.BO"
     assert result["exchange"] == "BSE"
-    assert result["price"] == 43.5
-    assert result["source"] == "Yahoo Finance via alternate ticker SAGILITY.NS"
+    assert result["price"] is None
+    assert result["source"] == "Yahoo Finance"
 
 
-def test_bse_quote_remains_unavailable_when_primary_and_alias_fail(monkeypatch):
+def test_bse_quote_remains_unavailable_without_cross_exchange_substitution(monkeypatch):
+    calls = []
     monkeypatch.setattr(
         "services.market_service._get_last_observation",
-        lambda ticker: (None, None, None, None, "unavailable", False),
+        lambda ticker: calls.append(ticker) or (None, None, None, None, "unavailable", False),
     )
 
     result = get_latest_available_price("544282.BO", "BSE")
 
+    assert calls == ["544282.BO"]
     assert result["price"] is None
-    assert result["provider_symbol"] == "SAGILITY.NS"
+    assert result["provider_symbol"] == "544282.BO"
     assert result["frequency"] == "unavailable"
 
 
