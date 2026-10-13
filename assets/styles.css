@@ -59,3 +59,20 @@ div.st-key-floating_settings_button button {
     padding: 0.55rem 1rem;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
 }
+
+/* On phones, keep Settings in normal document flow so Streamlit's floating
+   status/deploy controls cannot cover it. Sidebar navigation remains available. */
+@media (max-width: 768px) {
+    div.st-key-floating_settings_button {
+        position: static;
+        width: 100%;
+        margin: 0 0 0.75rem 0;
+        z-index: auto;
+    }
+
+    div.st-key-floating_settings_button button {
+        width: 100%;
+        min-height: 2.75rem;
+        border-radius: 10px;
+    }
+}
