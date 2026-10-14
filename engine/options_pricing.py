@@ -5,6 +5,7 @@ prices, create trading signals, or submit broker orders. Rates and volatility
 are annualized decimals; time to expiry is measured in years. Vega and rho are
 sensitivities to a 1.00 change in volatility and rate; theta is per year.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
