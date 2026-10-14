@@ -50,9 +50,7 @@ def test_implied_volatility_returns_zero_at_lower_bound() -> None:
         (110.0, "market_price is above the no-arbitrage upper bound"),
     ],
 )
-def test_implied_volatility_rejects_infeasible_prices(
-    market_price: float, message: str
-) -> None:
+def test_implied_volatility_rejects_infeasible_prices(market_price: float, message: str) -> None:
     with pytest.raises(ValueError, match=message):
         implied_volatility(
             spot=100,
