@@ -986,6 +986,58 @@ def show() -> None:
                             except WatchlistError as exc:
                                 st.error(f"Could not add {selected_ticker}: {exc}")
 
+        # Keep deletion controls above the live quote panel so a slow market-data
+        # request never hides the basic watchlist management action.
+        if records:
+            with st.expander("🗑️ Remove a stock", expanded=False):
+                quick_remove_symbol = st.selectbox(
+                    "Choose stock to remove",
+                    [str(item["symbol"]) for item in records],
+                    key="quick_remove_symbol",
+                )
+                st.caption(
+                    "This removes the selected symbol and its saved investment diary "
+                    "from the personal watchlist."
+                )
+                if st.button(
+                    "Remove selected stock",
+                    key="quick_remove_stock",
+                    type="secondary",
+                ):
+                    st.session_state["personal_watchlist_quick_delete_pending"] = (
+                        quick_remove_symbol
+                    )
+                pending_quick_delete = st.session_state.get(
+                    "personal_watchlist_quick_delete_pending"
+                )
+                if pending_quick_delete in {str(item["symbol"]) for item in records}:
+                    st.warning(
+                        f"Delete {pending_quick_delete} and its saved details? "
+                        "This cannot be undone."
+                    )
+                    quick_yes, quick_no = st.columns(2)
+                    if quick_yes.button(
+                        "Yes, delete stock",
+                        key="quick_confirm_delete_stock",
+                        type="primary",
+                    ):
+                        try:
+                            removed = remove_symbol(OWNER_ID, watchlist_id, pending_quick_delete)
+                            st.session_state.pop("personal_watchlist_quick_delete_pending", None)
+                            if removed:
+                                st.success(f"Removed {pending_quick_delete}.")
+                                st.rerun()
+                            else:
+                                st.warning("Stock was not found; nothing was deleted.")
+                        except WatchlistError as exc:
+                            st.error(f"Could not remove {pending_quick_delete}: {exc}")
+                    if quick_no.button(
+                        "Cancel — keep stock",
+                        key="quick_cancel_delete_stock",
+                    ):
+                        st.session_state.pop("personal_watchlist_quick_delete_pending", None)
+                        st.rerun()
+
         if not records:
             st.info("Your watchlist is empty. Add your first stock above.")
         else:
