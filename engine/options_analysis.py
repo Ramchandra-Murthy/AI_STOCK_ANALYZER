@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from itertools import product
 from math import exp, isfinite
-from typing import Sequence
 
 from engine.options_pricing import OptionPricingResult, black_scholes_price_and_greeks
 
@@ -64,7 +64,11 @@ def implied_volatility(
         raise ValueError("market_price must be non-negative")
     if tolerance <= 0:
         raise ValueError("tolerance must be positive")
-    if isinstance(max_iterations, bool) or not isinstance(max_iterations, int) or max_iterations < 1:
+    if (
+        isinstance(max_iterations, bool)
+        or not isinstance(max_iterations, int)
+        or max_iterations < 1
+    ):
         raise ValueError("max_iterations must be a positive integer")
     if max_volatility <= 0:
         raise ValueError("max_volatility must be positive")
