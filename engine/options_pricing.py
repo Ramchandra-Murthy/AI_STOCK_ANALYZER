@@ -110,9 +110,7 @@ def black_scholes_price_and_greeks(
     d2 = d1 - volatility * sqrt_time
     pdf_d1 = _normal_pdf(d1)
 
-    gamma = exp(-dividend_yield * time_to_expiry) * pdf_d1 / (
-        spot * volatility * sqrt_time
-    )
+    gamma = exp(-dividend_yield * time_to_expiry) * pdf_d1 / (spot * volatility * sqrt_time)
     vega = discounted_spot * pdf_d1 * sqrt_time
 
     if normalized_type == "call":
@@ -123,12 +121,7 @@ def black_scholes_price_and_greeks(
             - risk_free_rate * discounted_strike * _normal_cdf(d2)
             + dividend_yield * discounted_spot * _normal_cdf(d1)
         )
-        rho = (
-            strike
-            * time_to_expiry
-            * exp(-risk_free_rate * time_to_expiry)
-            * _normal_cdf(d2)
-        )
+        rho = strike * time_to_expiry * exp(-risk_free_rate * time_to_expiry) * _normal_cdf(d2)
     else:
         price = discounted_strike * _normal_cdf(-d2) - discounted_spot * _normal_cdf(-d1)
         delta = exp(-dividend_yield * time_to_expiry) * (_normal_cdf(d1) - 1.0)
@@ -137,12 +130,7 @@ def black_scholes_price_and_greeks(
             + risk_free_rate * discounted_strike * _normal_cdf(-d2)
             - dividend_yield * discounted_spot * _normal_cdf(-d1)
         )
-        rho = (
-            -strike
-            * time_to_expiry
-            * exp(-risk_free_rate * time_to_expiry)
-            * _normal_cdf(-d2)
-        )
+        rho = -strike * time_to_expiry * exp(-risk_free_rate * time_to_expiry) * _normal_cdf(-d2)
 
     return OptionPricingResult(
         option_type=normalized_type,
