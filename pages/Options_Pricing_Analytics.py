@@ -71,9 +71,7 @@ if "strike" not in provider.chain.columns:
     st.warning("The normalized provider chain has no strike column.")
     st.stop()
 
-strike_values = (
-    pd.to_numeric(provider.chain["strike"], errors="coerce").dropna().unique().tolist()
-)
+strike_values = pd.to_numeric(provider.chain["strike"], errors="coerce").dropna().unique().tolist()
 strike_values = sorted(float(value) for value in strike_values if float(value) > 0)
 if not strike_values:
     st.warning("No valid strike values are available from the provider.")
@@ -120,7 +118,9 @@ expiry_date = date.fromisoformat(selected_expiry)
 today_ist = datetime.now(ZoneInfo("Asia/Kolkata")).date()
 days_to_expiry = (expiry_date - today_ist).days
 if days_to_expiry <= 0:
-    st.warning("Implied volatility is unavailable for an expired or same-day expiry in this date-based model.")
+    st.warning(
+        "Implied volatility is unavailable for an expired or same-day expiry in this date-based model."
+    )
     st.stop()
 
 time_to_expiry = days_to_expiry / 365.0
