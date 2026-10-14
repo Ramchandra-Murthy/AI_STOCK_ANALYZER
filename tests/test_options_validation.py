@@ -23,9 +23,7 @@ def observation(observed: float, theoretical: float, **kwargs: str) -> PricingOb
 
 
 def test_validation_metrics_calculate_mae_rmse_and_bias() -> None:
-    result = calculate_pricing_validation_metrics(
-        [observation(10, 12), observation(20, 17)]
-    )
+    result = calculate_pricing_validation_metrics([observation(10, 12), observation(20, 17)])
 
     assert result.observation_count == 2
     assert result.mean_absolute_error == pytest.approx(2.5)
@@ -51,9 +49,7 @@ def test_perfect_prices_have_zero_error() -> None:
         (observation(1, 2, expiry=""), "expiry must be non-empty"),
     ],
 )
-def test_invalid_observations_are_rejected(
-    record: PricingObservation, message: str
-) -> None:
+def test_invalid_observations_are_rejected(record: PricingObservation, message: str) -> None:
     with pytest.raises(ValueError, match=message):
         calculate_pricing_validation_metrics([record])
 
