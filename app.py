@@ -214,9 +214,6 @@ pages = {
 
 pg = st.navigation(pages, position="sidebar", expanded=True)
 
-# Keep the user's original quick-access Settings control available on desktop and mobile.
-if st.button("⚙ Settings", key="floating_settings_button", help="Open application settings"):
-    st.switch_page(settings_page)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📈 AI Stock Analyzer Pro")
