@@ -23,11 +23,13 @@ def observation(observed: float, theoretical: float, **kwargs: str) -> PricingOb
 
 
 def test_validation_metrics_calculate_mae_rmse_and_bias() -> None:
-    result = calculate_pricing_validation_metrics([observation(10, 12), observation(20, 17)])
+    result = calculate_pricing_validation_metrics(
+        [observation(10, 12), observation(20, 17)]
+    )
 
     assert result.observation_count == 2
     assert result.mean_absolute_error == pytest.approx(2.5)
-    assert result.root_mean_squared_error == pytest.approx(math.sqrt(12.5))
+    assert result.root_mean_squared_error == pytest.approx(math.sqrt(6.5))
     assert result.mean_error_bias == pytest.approx(-0.5)
 
 
