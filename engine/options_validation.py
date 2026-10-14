@@ -6,9 +6,9 @@ create trading signals, or submit broker orders.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from math import isfinite, sqrt
-from collections.abc import Sequence
 
 
 @dataclass(frozen=True)
@@ -19,6 +19,7 @@ class PricingObservation:
     theoretical_price: float
     option_type: str
     expiry: str
+    contract_id: str = ""
     moneyness: str = "unspecified"
     timestamp: str = ""
 
@@ -39,14 +40,14 @@ def calculate_pricing_validation_metrics(
     """Calculate MAE, RMSE and signed bias from validated price pairs.
 
     Prices must be finite and non-negative. Empty inputs are rejected rather
-    than returning misleading zero-error metrics. Duplicate observation keys
-    are rejected when timestamp, expiry, option type and moneyness all match.
+    than returning misleading zero-error metrics. Duplicate rows are checked
+    only when timestamp and contract_id are supplied.
     """
     if not observations:
         raise ValueError("observations must contain at least one record")
 
     errors: list[float] = []
-    seen: set[tuple[str, str, str, str]] = set()
+    seen: set[tuple[str, str]] = set()
 
     for index, observation in enumerate(observations):
         for field_name in ("observed_price", "theoretical_price"):
@@ -62,15 +63,10 @@ def calculate_pricing_validation_metrics(
         if not observation.expiry.strip():
             raise ValueError(f"observation {index}: expiry must be non-empty")
 
-        key = (
-            observation.timestamp,
-            observation.expiry,
-            option_type,
-            observation.moneyness,
-        )
-        if observation.timestamp and key in seen:
-            raise ValueError(f"observation {index}: duplicate observation key")
-        if observation.timestamp:
+        if observation.timestamp and observation.contract_id:
+            key = (observation.timestamp, observation.contract_id)
+            if key in seen:
+                raise ValueError(f"observation {index}: duplicate observation key")
             seen.add(key)
 
         errors.append(observation.theoretical_price - observation.observed_price)
