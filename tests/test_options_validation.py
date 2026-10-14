@@ -16,6 +16,7 @@ def observation(observed: float, theoretical: float, **kwargs: str) -> PricingOb
         theoretical_price=theoretical,
         option_type=kwargs.get("option_type", "call"),
         expiry=kwargs.get("expiry", "2026-11-26"),
+        contract_id=kwargs.get("contract_id", ""),
         moneyness=kwargs.get("moneyness", "ATM"),
         timestamp=kwargs.get("timestamp", ""),
     )
@@ -62,16 +63,16 @@ def test_empty_observations_are_rejected() -> None:
         calculate_pricing_validation_metrics([])
 
 
-def test_duplicate_timestamp_contract_group_is_rejected() -> None:
-    first = observation(10, 11, timestamp="2026-10-14T10:00:00+05:30")
-    second = observation(10.5, 11.5, timestamp="2026-10-14T10:00:00+05:30")
+def test_duplicate_timestamp_and_contract_is_rejected() -> None:
+    timestamp = "2026-10-14T10:00:00+05:30"
+    first = observation(10, 11, timestamp=timestamp, contract_id="NIFTY-26000-CE")
+    second = observation(10.5, 11.5, timestamp=timestamp, contract_id="NIFTY-26000-CE")
     with pytest.raises(ValueError, match="duplicate observation key"):
         calculate_pricing_validation_metrics([first, second])
 
 
-def test_same_timestamp_different_expiry_is_allowed() -> None:
-    first = observation(10, 11, timestamp="2026-10-14T10:00:00+05:30")
-    second = observation(
-        10, 11, timestamp="2026-10-14T10:00:00+05:30", expiry="2026-12-31"
-    )
+def test_different_contracts_at_same_timestamp_are_allowed() -> None:
+    timestamp = "2026-10-14T10:00:00+05:30"
+    first = observation(10, 11, timestamp=timestamp, contract_id="NIFTY-26000-CE")
+    second = observation(10, 11, timestamp=timestamp, contract_id="NIFTY-26100-CE")
     assert calculate_pricing_validation_metrics([first, second]).observation_count == 2
