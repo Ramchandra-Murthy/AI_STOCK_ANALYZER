@@ -25,12 +25,20 @@ def test_at_the_money_call_matches_known_reference_value() -> None:
 
 def test_put_call_parity_holds_without_dividend_yield() -> None:
     call = black_scholes_price_and_greeks(
-        spot=100, strike=105, time_to_expiry=0.75, risk_free_rate=0.06,
-        volatility=0.25, option_type="call",
+        spot=100,
+        strike=105,
+        time_to_expiry=0.75,
+        risk_free_rate=0.06,
+        volatility=0.25,
+        option_type="call",
     )
     put = black_scholes_price_and_greeks(
-        spot=100, strike=105, time_to_expiry=0.75, risk_free_rate=0.06,
-        volatility=0.25, option_type="put",
+        spot=100,
+        strike=105,
+        time_to_expiry=0.75,
+        risk_free_rate=0.06,
+        volatility=0.25,
+        option_type="put",
     )
     parity = 100 - 105 * math.exp(-0.06 * 0.75)
     assert call.price - put.price == pytest.approx(parity, abs=1e-10)
@@ -38,12 +46,22 @@ def test_put_call_parity_holds_without_dividend_yield() -> None:
 
 def test_dividend_yield_put_call_parity() -> None:
     call = black_scholes_price_and_greeks(
-        spot=100, strike=98, time_to_expiry=0.5, risk_free_rate=0.04,
-        volatility=0.3, dividend_yield=0.015, option_type="call",
+        spot=100,
+        strike=98,
+        time_to_expiry=0.5,
+        risk_free_rate=0.04,
+        volatility=0.3,
+        dividend_yield=0.015,
+        option_type="call",
     )
     put = black_scholes_price_and_greeks(
-        spot=100, strike=98, time_to_expiry=0.5, risk_free_rate=0.04,
-        volatility=0.3, dividend_yield=0.015, option_type="put",
+        spot=100,
+        strike=98,
+        time_to_expiry=0.5,
+        risk_free_rate=0.04,
+        volatility=0.3,
+        dividend_yield=0.015,
+        option_type="put",
     )
     parity = 100 * math.exp(-0.015 * 0.5) - 98 * math.exp(-0.04 * 0.5)
     assert call.price - put.price == pytest.approx(parity, abs=1e-10)
@@ -57,8 +75,12 @@ def test_expired_option_intrinsic_value_and_greeks(
     option_type: str, expected_price: float, expected_delta: float
 ) -> None:
     result = black_scholes_price_and_greeks(
-        spot=120, strike=100, time_to_expiry=0, risk_free_rate=0.05,
-        volatility=0.2, option_type=option_type,
+        spot=120,
+        strike=100,
+        time_to_expiry=0,
+        risk_free_rate=0.05,
+        volatility=0.2,
+        option_type=option_type,
     )
     assert result.price == expected_price
     assert result.delta == expected_delta
@@ -81,8 +103,11 @@ def test_expired_option_intrinsic_value_and_greeks(
 )
 def test_invalid_inputs_are_rejected(kwargs: dict, message: str) -> None:
     inputs = {
-        "spot": 100, "strike": 100, "time_to_expiry": 1,
-        "risk_free_rate": 0.05, "volatility": 0.2,
+        "spot": 100,
+        "strike": 100,
+        "time_to_expiry": 1,
+        "risk_free_rate": 0.05,
+        "volatility": 0.2,
     }
     inputs.update(kwargs)
     with pytest.raises(ValueError, match=message):
@@ -91,8 +116,12 @@ def test_invalid_inputs_are_rejected(kwargs: dict, message: str) -> None:
 
 def test_option_type_is_case_insensitive() -> None:
     result = black_scholes_price_and_greeks(
-        spot=100, strike=100, time_to_expiry=1, risk_free_rate=0.05,
-        volatility=0.2, option_type="PUT",
+        spot=100,
+        strike=100,
+        time_to_expiry=1,
+        risk_free_rate=0.05,
+        volatility=0.2,
+        option_type="PUT",
     )
     assert result.option_type == "put"
     assert result.price == pytest.approx(5.5735260223, abs=1e-8)
@@ -100,12 +129,20 @@ def test_option_type_is_case_insensitive() -> None:
 
 def test_greeks_have_expected_signs_for_standard_case() -> None:
     call = black_scholes_price_and_greeks(
-        spot=100, strike=100, time_to_expiry=1, risk_free_rate=0.05,
-        volatility=0.2, option_type="call",
+        spot=100,
+        strike=100,
+        time_to_expiry=1,
+        risk_free_rate=0.05,
+        volatility=0.2,
+        option_type="call",
     )
     put = black_scholes_price_and_greeks(
-        spot=100, strike=100, time_to_expiry=1, risk_free_rate=0.05,
-        volatility=0.2, option_type="put",
+        spot=100,
+        strike=100,
+        time_to_expiry=1,
+        risk_free_rate=0.05,
+        volatility=0.2,
+        option_type="put",
     )
     assert call.delta > 0
     assert put.delta < 0
