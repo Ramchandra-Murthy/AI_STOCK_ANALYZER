@@ -56,13 +56,8 @@ def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
     if requested_exchange not in EXCHANGE_SUFFIXES:
         raise ValueError("exchange must be NSE or BSE")
 
-    if normalized.endswith(".NS"):
-        if requested_exchange != "NSE":
-            raise ValueError("ticker suffix does not match requested exchange")
-        return normalized
-    if normalized.endswith(".BO"):
-        if requested_exchange != "BSE":
-            raise ValueError("ticker suffix does not match requested exchange")
+    # An explicit Yahoo Finance suffix is authoritative and must be preserved.
+    if normalized.endswith((".NS", ".BO")):
         return normalized
 
     return f"{normalized}{EXCHANGE_SUFFIXES[requested_exchange]}"
