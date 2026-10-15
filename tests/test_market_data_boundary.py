@@ -205,18 +205,20 @@ def test_quote_exposes_market_session_status(monkeypatch):
     assert result["is_market_open"] is True
 
 
-
 def test_watchlist_movers_preserve_market_session_metadata(monkeypatch):
-    monkeypatch.setattr(
-        "services.market_service._get_last_observation",
-        lambda ticker: (
+    def fake_observation(ticker):
+        return (
             250.0,
             1.5,
             246.31,
             "2026-10-15T11:59:00+05:30",
             "intraday_1m",
             True,
-        ),
+        )
+
+    monkeypatch.setattr(
+        "services.market_service._get_last_observation",
+        fake_observation,
     )
     monkeypatch.setattr("services.market_service.get_company_name", lambda ticker: "Test Company")
     monkeypatch.setattr(
