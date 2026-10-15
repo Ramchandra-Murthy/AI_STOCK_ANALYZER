@@ -335,6 +335,7 @@ def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
         if value is None or change is None:
             continue
         exchange = "BSE" if ticker.endswith(".BO") else "NSE"
+        session = market_session_status(observed_at, frequency)
         rows.append(
             {
                 "Symbol": name,
@@ -346,6 +347,10 @@ def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
                 "Observed": observed_at,
                 "Frequency": frequency,
                 "Intraday": is_intraday,
+                "Session Status": session["status"],
+                "Session Detail": session["detail"],
+                "Current Session": session["is_current_session"],
+                "Market Open": session["is_market_open"],
             }
         )
     return pd.DataFrame(
@@ -360,6 +365,10 @@ def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
             "Observed",
             "Frequency",
             "Intraday",
+            "Session Status",
+            "Session Detail",
+            "Current Session",
+            "Market Open",
         ],
     )
 
@@ -400,6 +409,10 @@ def scan_market_universe(
                     "Observed": quote["observed_at"],
                     "Frequency": quote["frequency"],
                     "Intraday": quote["is_intraday"],
+                    "Session Status": quote.get("session_status", "UNKNOWN"),
+                    "Session Detail": quote.get("session_detail", ""),
+                    "Current Session": quote.get("is_current_session", False),
+                    "Market Open": quote.get("is_market_open", False),
                 }
             )
     frame = pd.DataFrame(rows)
