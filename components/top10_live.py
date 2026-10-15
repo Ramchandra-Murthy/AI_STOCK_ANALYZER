@@ -129,7 +129,7 @@ def _format_candle_time(timestamp: object) -> str:
     try:
         value = pd.Timestamp(timestamp)
         if value.tzinfo is None:
-            value = value.tz_localize("UTC")
+            value = value.tz_localize(_IST)
         return value.tz_convert(_IST).strftime("%Y-%m-%d %H:%M:%S IST")
     except (TypeError, ValueError):
         return str(timestamp)
