@@ -102,6 +102,13 @@ def market_session_status(
         status = "MARKET CLOSED · LAST SESSION"
         detail = f"Last session data: {observed_dt.strftime('%d %b %Y %H:%M IST')}"
         current_session = False
+    elif market_open and intraday and (current - observed_dt).total_seconds() > 15 * 60:
+        status = "STALE INTRADAY DATA"
+        detail = (
+            "Latest candle is more than 15 minutes old; do not treat this quote as current. "
+            f"Last observation: {observed_dt.strftime('%d %b %Y %H:%M:%S IST')}"
+        )
+        current_session = False
     elif market_open and intraday:
         status = "INTRADAY DATA · TODAY"
         detail = (

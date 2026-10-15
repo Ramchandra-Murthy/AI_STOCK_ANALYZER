@@ -38,3 +38,20 @@ def test_market_status_marks_after_close_today_data():
     assert status["status"] == "MARKET CLOSED · TODAY'S DATA"
     assert status["is_current_session"] is True
     assert status["is_market_open"] is False
+
+
+def test_market_status_flags_stale_intraday_data_during_open_session():
+    now = datetime(2026, 9, 18, 12, 0, tzinfo=IST)
+    status = market_session_status("2026-09-18T11:40:00+05:30", "intraday_1m", now)
+
+    assert status["status"] == "STALE INTRADAY DATA"
+    assert status["is_current_session"] is False
+    assert "more than 15 minutes old" in status["detail"]
+
+
+def test_market_status_keeps_recent_intraday_data_current():
+    now = datetime(2026, 9, 18, 12, 0, tzinfo=IST)
+    status = market_session_status("2026-09-18T11:59:00+05:30", "intraday_1m", now)
+
+    assert status["status"] == "INTRADAY DATA · TODAY"
+    assert status["is_current_session"] is True
