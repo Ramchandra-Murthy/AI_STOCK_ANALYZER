@@ -243,7 +243,6 @@ def test_watchlist_movers_preserve_market_session_metadata(monkeypatch):
     assert losers.loc[0, "Session Status"] == "STALE INTRADAY DATA"
 
 
-
 @pytest.mark.parametrize("top_n", [0, -1, -10])
 def test_market_universe_rejects_nonpositive_top_n(top_n):
     with pytest.raises(ValueError, match="top_n must be at least 1"):
