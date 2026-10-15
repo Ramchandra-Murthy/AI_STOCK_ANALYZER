@@ -29,6 +29,15 @@ def walk_forward_evaluate(
         raise ValueError("min_train_size must be at least 2")
     if n_splits < 1:
         raise ValueError("n_splits must be at least 1")
+    if not prices.index.is_unique:
+        raise ValueError("prices contains duplicate timestamps")
+    if not signals.index.is_unique:
+        raise ValueError("signals contains duplicate timestamps")
+
+    if not prices.index.is_monotonic_increasing:
+        prices = prices.sort_index()
+    if not signals.index.is_monotonic_increasing:
+        signals = signals.sort_index()
 
     aligned = pd.concat(
         [
