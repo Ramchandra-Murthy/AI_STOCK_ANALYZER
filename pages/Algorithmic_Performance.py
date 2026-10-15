@@ -48,7 +48,11 @@ def _render_market_data_refresh() -> None:
     """Offer a manual cache invalidation when the user wants a fresh download."""
     if st.button("Refresh cached market data"):
         _download_ticker_data.clear()
-        st.success("Cached market data cleared. Run the analysis again to download fresh data.")
+        _download_ticker_frames.clear()
+        st.success(
+            "Cached single-symbol and multi-stock market data cleared. "
+            "Run the analysis again to download fresh data."
+        )
 
 
 def _download_market_data(ticker: str, benchmark_ticker: str, period: str):
