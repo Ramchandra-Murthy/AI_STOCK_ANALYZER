@@ -69,6 +69,7 @@ def test_download_market_frames_reports_unresolved_symbols(monkeypatch) -> None:
     assert diagnostics["complete"] is False
     assert diagnostics["missing"] == ["AAA.NS", "BBB.NS"]
 
+
 def test_download_symbol_frames_splits_universe_into_bounded_batches(monkeypatch) -> None:
     batch_calls: list[list[str]] = []
 
@@ -99,7 +100,9 @@ def test_download_symbol_frames_splits_universe_into_bounded_batches(monkeypatch
     assert missing == []
 
 
-def test_download_symbol_frames_can_report_missing_without_single_recovery(monkeypatch) -> None:
+def test_download_symbol_frames_can_report_missing_without_single_recovery(
+    monkeypatch,
+) -> None:
     monkeypatch.setattr(
         market_data,
         "_download_batch",
