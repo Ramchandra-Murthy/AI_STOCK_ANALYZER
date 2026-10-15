@@ -329,9 +329,18 @@ def _update_signal_history(
     return updated[-TOP10_SIGNAL_HISTORY_LIMIT:]
 
 
-def _should_record_signal_history(valid_quotes: int, partial_failures: int) -> bool:
-    """Allow history updates only from complete, trusted provider scans."""
-    return valid_quotes >= TOP10_MIN_TRUSTED_COVERAGE_QUOTES and partial_failures == 0
+def _should_record_signal_history(
+    valid_quotes: int,
+    partial_failures: int,
+    data_age_seconds: float | None = None,
+) -> bool:
+    """Allow history updates only from complete, trusted, fresh provider scans."""
+    return (
+        valid_quotes >= TOP10_MIN_TRUSTED_COVERAGE_QUOTES
+        and partial_failures == 0
+        and data_age_seconds is not None
+        and 0 <= data_age_seconds < TOP10_STALE_DATA_SECONDS
+    )
 
 
 def _signal_history_table(history: list[pd.DataFrame] | None) -> pd.DataFrame:
@@ -799,11 +808,19 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     annotated_top10 = _add_signal_history(annotated_top10, signal_history)
     annotated_top10 = _add_signal_persistence(annotated_top10, signal_history)
     annotated_top10 = _add_signal_confirmation(annotated_top10)
-    change_alerts = _watchlist_change_alerts(annotated_top10)
-    persistence_alerts = _persistence_alerts(annotated_top10)
+    data_is_fresh = (
+        data_age_seconds is not None and 0 <= data_age_seconds < TOP10_STALE_DATA_SECONDS
+    )
+    change_alerts = _watchlist_change_alerts(annotated_top10) if data_is_fresh else []
+    persistence_alerts = _persistence_alerts(annotated_top10) if data_is_fresh else []
+    if not data_is_fresh:
+        st.warning(
+            "Signals are informational only: provider data is stale or its age cannot be verified. "
+            "Refresh data before considering any decision."
+        )
     if completed_at != st.session_state.get(
         TOP10_SIGNAL_HISTORY_UPDATED_KEY
-    ) and _should_record_signal_history(valid_quotes, partial_failures):
+    ) and _should_record_signal_history(valid_quotes, partial_failures, data_age_seconds):
         signal_history = _update_signal_history(signal_history, annotated_top10, completed_at)
         st.session_state[TOP10_SIGNAL_HISTORY_KEY] = signal_history
         st.session_state[TOP10_SIGNAL_HISTORY_UPDATED_KEY] = completed_at
