@@ -36,6 +36,7 @@ from components.top10_live import (
     _annotate_watchlist_changes,
     _calculate_signal_strength,
     _coverage_status,
+    _is_fresh_provider_timestamp,
     _persistence_alerts,
     _provider_age_seconds,
     _scan_live_top10,
@@ -102,6 +103,14 @@ def test_top10_live_tracks_data_freshness() -> None:
     assert "data_age_seconds" in source
     assert "STALE DATA" in source
     assert "st.session_state[TOP10_SESSION_STATUS_KEY]" in source
+
+
+def test_top10_live_rejects_stale_and_unknown_candle_timestamps() -> None:
+    now = datetime(2026, 10, 5, 10, 0, tzinfo=ZoneInfo(TOP10_TIMEZONE))
+
+    assert _is_fresh_provider_timestamp("2026-10-05T09:59:00+05:30", now)
+    assert not _is_fresh_provider_timestamp("2026-10-05T09:55:00+05:30", now)
+    assert not _is_fresh_provider_timestamp("not-a-timestamp", now)
 
 
 def test_top10_live_formats_candle_times_in_ist() -> None:
