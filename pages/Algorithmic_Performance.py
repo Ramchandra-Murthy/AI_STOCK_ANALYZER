@@ -27,8 +27,11 @@ def _download_ticker_data(ticker: str, period: str) -> pd.DataFrame:
         return pd.DataFrame()
     return frames[ticker].copy()
 
+
 @st.cache_data(ttl=300, show_spinner=False)
-def _download_ticker_frames(tickers: tuple[str, ...], period: str) -> tuple[dict[str, pd.DataFrame], list[str]]:
+def _download_ticker_frames(
+    tickers: tuple[str, ...], period: str
+) -> tuple[dict[str, pd.DataFrame], list[str]]:
     """Download a bounded universe in batches and cache the resulting frames."""
     frames, missing = download_symbol_frames(
         tickers,
