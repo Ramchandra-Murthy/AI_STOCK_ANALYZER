@@ -57,23 +57,27 @@ def build_performance_report(
             continue
 
         remaining = trade.quantity
+        sell_order_pnl = 0.0
         while remaining > 0 and lots.get(symbol):
             quantity, entry = lots[symbol][0]
             matched = min(remaining, quantity)
             pnl = matched * (trade.price - entry)
             realized_pnl += pnl
-            if pnl > 0:
-                wins += 1
-                gross_profit += pnl
-            elif pnl < 0:
-                losses += 1
-                gross_loss += -pnl
+            sell_order_pnl += pnl
             remaining -= matched
             if matched == quantity:
                 lots[symbol].pop(0)
             else:
                 lots[symbol][0] = (quantity - matched, entry)
-            realized_equity.append(initial_cash + realized_pnl)
+
+        # Count each sell order once, using its aggregate P&L across matched lots.
+        if sell_order_pnl > 0:
+            wins += 1
+            gross_profit += sell_order_pnl
+        elif sell_order_pnl < 0:
+            losses += 1
+            gross_loss += -sell_order_pnl
+        realized_equity.append(initial_cash + realized_pnl)
 
     unrealized_pnl = 0.0
     for symbol, quantity in positions.items():

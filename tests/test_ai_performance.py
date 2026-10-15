@@ -72,3 +72,28 @@ def test_equity_curve_is_empty_without_snapshots() -> None:
     curve = build_equity_curve([])
     assert curve.empty
     assert list(curve.columns) == ["timestamp", "equity", "return_pct", "drawdown_pct"]
+
+
+def test_partial_sell_counts_one_trade_using_aggregate_realized_pnl() -> None:
+    portfolio = PaperPortfolio(initial_cash=10_000.0)
+    portfolio.execute("A", "BUY", 5, 100.0)
+    portfolio.execute("A", "BUY", 5, 200.0)
+    portfolio.execute("A", "SELL", 10, 160.0)
+
+    report = build_performance_report(
+        portfolio.initial_cash,
+        portfolio.trades,
+        portfolio.positions,
+        {},
+        {},
+        portfolio.equity({}),
+    )
+
+    # The sell order gains 300 on the first lot and loses 200 on the second:
+    # aggregate realized P&L is +100, so this is one winning exit, not one win
+    # and one loss.
+    assert report.realized_pnl == pytest.approx(100.0)
+    assert report.winning_trades == 1
+    assert report.losing_trades == 0
+    assert report.win_rate_pct == pytest.approx(100.0)
+    assert report.profit_factor == pytest.approx(float("inf"))
