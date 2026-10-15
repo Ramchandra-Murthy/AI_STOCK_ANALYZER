@@ -51,10 +51,16 @@ def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
     normalized = symbol.strip().upper()
     if not normalized:
         return ""
+
+    requested_exchange = exchange.strip().upper()
+    if requested_exchange not in EXCHANGE_SUFFIXES:
+        raise ValueError("exchange must be NSE or BSE")
+
+    # An explicit Yahoo Finance suffix is authoritative and must be preserved.
     if normalized.endswith((".NS", ".BO")):
         return normalized
-    suffix = EXCHANGE_SUFFIXES.get(exchange.strip().upper(), ".NS")
-    return f"{normalized}{suffix}"
+
+    return f"{normalized}{EXCHANGE_SUFFIXES[requested_exchange]}"
 
 
 @lru_cache(maxsize=512)

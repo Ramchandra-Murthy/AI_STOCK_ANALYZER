@@ -77,3 +77,15 @@ def test_indices_keep_all_expected_keys(monkeypatch):
     assert set(data) == set(market_service.MARKET_INDICES)
     assert all(item["frequency"] == "intraday_1m" for item in data.values())
     assert all(item["is_intraday"] is True for item in data.values())
+
+
+def test_normalize_market_symbol_rejects_unknown_exchange():
+    import pytest
+
+    with pytest.raises(ValueError, match="exchange must be NSE or BSE"):
+        market_service.normalize_market_symbol("RELIANCE", "NYSE")
+
+
+def test_normalize_market_symbol_preserves_explicit_exchange_suffix():
+    assert market_service.normalize_market_symbol("RELIANCE.NS", "BSE") == "RELIANCE.NS"
+    assert market_service.normalize_market_symbol("500325.BO", "NSE") == "500325.BO"
