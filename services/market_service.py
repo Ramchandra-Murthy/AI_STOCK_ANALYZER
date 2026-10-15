@@ -89,6 +89,19 @@ def market_session_status(
             "is_market_open": False,
         }
 
+    if (observed_dt - current).total_seconds() > 5 * 60:
+        return {
+            "status": "FUTURE-DATED MARKET DATA",
+            "detail": (
+                "The observation timestamp is more than 5 minutes ahead of the current time; "
+                "do not treat this quote as current. "
+                f"Reported observation: {observed_dt.strftime('%d %b %Y %H:%M:%S IST')}"
+            ),
+            "is_current_session": False,
+            "is_market_open": MARKET_OPEN <= current.time() < MARKET_CLOSE
+            and current.weekday() < 5,
+        }
+
     same_day = observed_dt.date() == current.date()
     weekend = current.weekday() >= 5
     market_open = MARKET_OPEN <= current.time() < MARKET_CLOSE
