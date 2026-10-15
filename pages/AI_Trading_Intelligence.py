@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
-import yfinance as yf
 
 from ai_trading.ai_scanner import scan_universe
 from ai_trading.decision_engine import build_signal_decision
@@ -470,15 +469,27 @@ if st.button("Run Walk-Forward Backtest", type="primary"):
         else f"{str(ml_symbol).strip().upper()}.BO"
     )
     with st.spinner(f"Backtesting {ticker}..."):
-        history = yf.download(
-            ticker,
+        history_frames, history_diagnostics = download_symbol_frames(
+            [ticker],
             period="5y",
+            interval="1d",
             auto_adjust=False,
-            progress=False,
-            threads=False,
+            batch_size=1,
+            timeout=15,
         )
-        if isinstance(history.columns, pd.MultiIndex):
-            history = history.droplevel(1, axis=1)
+        history = history_frames.get(ticker, pd.DataFrame())
+
+    if history.empty:
+        st.error(
+            "Walk-forward backtest could not obtain historical market data after bounded retries. "
+            "No fallback or synthetic prices are used."
+        )
+        st.stop()
+
+    if not history_diagnostics.get("usable", 0):
+        st.warning(
+            "Market-data diagnostics did not confirm usable coverage; treat results cautiously."
+        )
 
     try:
         trades, backtest = walk_forward_backtest(
