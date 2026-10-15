@@ -27,6 +27,19 @@ def _download_ticker_data(ticker: str, period: str) -> pd.DataFrame:
         return pd.DataFrame()
     return frames[ticker].copy()
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _download_ticker_frames(tickers: tuple[str, ...], period: str) -> tuple[dict[str, pd.DataFrame], list[str]]:
+    """Download a bounded universe in batches and cache the resulting frames."""
+    frames, missing = download_symbol_frames(
+        tickers,
+        period=period,
+        interval="1d",
+        auto_adjust=False,
+        batch_size=10,
+        timeout=15,
+    )
+    return {ticker: frame.copy() for ticker, frame in frames.items()}, missing
+
 
 def _render_market_data_refresh() -> None:
     """Offer a manual cache invalidation when the user wants a fresh download."""
@@ -302,18 +315,20 @@ if run_universe:
                 benchmark = _download_ticker_data(benchmark_ticker, period)
                 if isinstance(benchmark.columns, pd.MultiIndex):
                     benchmark.columns = benchmark.columns.get_level_values(0)
-                frames = {}
-                download_errors = {}
-                for item in symbols:
-                    try:
-                        frame = _download_ticker_data(f"{item}{suffix}", period)
-                        if isinstance(frame.columns, pd.MultiIndex):
-                            frame.columns = frame.columns.get_level_values(0)
-                        frames[item] = frame
-                    except Exception as exc:
-                        # A single provider failure should not discard other symbols.
-                        frames[item] = pd.DataFrame()
-                        download_errors[item] = str(exc) or type(exc).__name__
+                ticker_map = {item: f"{item}{suffix}" for item in symbols}
+                downloaded, missing_tickers = _download_ticker_frames(
+                    tuple(ticker_map.values()), period
+                )
+                frames = {
+                    item: downloaded.get(ticker, pd.DataFrame())
+                    for item, ticker in ticker_map.items()
+                }
+                missing_set = set(missing_tickers)
+                download_errors = {
+                    item: f"no usable historical data returned for {ticker}"
+                    for item, ticker in ticker_map.items()
+                    if ticker in missing_set
+                }
             if benchmark.empty or "Close" not in benchmark.columns:
                 st.error("Benchmark data is unavailable; multi-stock validation was not run.")
             else:
