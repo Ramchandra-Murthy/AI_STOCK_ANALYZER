@@ -4,18 +4,28 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
-import yfinance as yf
 
 from algorithmic_trading.multi_stock_validation import evaluate_symbol_universe
 from algorithmic_trading.signal_backtest import backtest_pipeline, generate_pipeline_signals
 from algorithmic_trading.trading_costs import IndiaEquityCostModel
 from algorithmic_trading.walk_forward_validation import walk_forward_evaluate
+from services.resilient_market_data import download_symbol_frames
 
 
 @st.cache_data(ttl=300, show_spinner=False)
 def _download_ticker_data(ticker: str, period: str) -> pd.DataFrame:
-    """Cache historical market data briefly to reduce repeated provider requests."""
-    return yf.download(ticker, period=period, auto_adjust=False, progress=False)
+    """Cache bounded-retry historical downloads without inventing fallback prices."""
+    frames, missing = download_symbol_frames(
+        [ticker],
+        period=period,
+        interval="1d",
+        auto_adjust=False,
+        batch_size=1,
+        timeout=15,
+    )
+    if missing or ticker not in frames:
+        return pd.DataFrame()
+    return frames[ticker].copy()
 
 
 def _render_market_data_refresh() -> None:
