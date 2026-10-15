@@ -311,7 +311,7 @@ p4.metric(
     "Profit factor",
     f"{report.profit_factor:.2f}" if report.profit_factor is not None else "N/A",
 )
-p5.metric("Max drawdown", f"{report.max_drawdown_pct:.2f}%")
+p5.metric("Realized-trade drawdown", f"{report.max_drawdown_pct:.2f}%")
 
 st.caption(
     "Recommended workflow: run cycles in paper mode, collect a meaningful trade sample, "
