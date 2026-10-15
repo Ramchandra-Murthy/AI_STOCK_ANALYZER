@@ -4,6 +4,7 @@ import pytest
 from services import research_service, technical_service
 from services.market_service import (
     get_latest_available_price,
+    get_market_indices,
     normalize_market_symbol,
     scan_market_universe,
 )
@@ -247,3 +248,35 @@ def test_watchlist_movers_preserve_market_session_metadata(monkeypatch):
 def test_market_universe_rejects_nonpositive_top_n(top_n):
     with pytest.raises(ValueError, match="top_n must be at least 1"):
         scan_market_universe({}, top_n=top_n)
+
+
+def test_market_indices_expose_session_detail(monkeypatch):
+    monkeypatch.setattr(
+        "services.market_service._get_last_observation",
+        lambda ticker: (
+            25000.0,
+            0.5,
+            24875.0,
+            "2026-10-15T11:59:00+05:30",
+            "intraday_1m",
+            True,
+        ),
+    )
+    monkeypatch.setattr(
+        "services.market_service.market_session_status",
+        lambda observed_at, frequency: {
+            "status": "DAILY DATA ONLY · INTRADAY UNAVAILABLE",
+            "detail": "Latest daily observation is not an intraday quote.",
+            "is_current_session": False,
+            "is_market_open": True,
+        },
+    )
+
+    result = get_market_indices()
+
+    assert result
+    for index in result.values():
+        assert index["session_status"] == "DAILY DATA ONLY · INTRADAY UNAVAILABLE"
+        assert index["session_detail"] == "Latest daily observation is not an intraday quote."
+        assert index["is_current_session"] is False
+        assert index["is_market_open"] is True
