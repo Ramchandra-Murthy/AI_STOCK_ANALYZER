@@ -102,3 +102,46 @@ def test_walk_forward_rejects_invalid_fold_configuration() -> None:
 
     with pytest.raises(ValueError, match="n_splits"):
         walk_forward_evaluate(prices, signals, min_train_size=4, n_splits=0)
+
+def test_walk_forward_rejects_duplicate_price_timestamps() -> None:
+    index = pd.date_range("2024-01-01", periods=12, freq="D")
+    prices = pd.Series([100.0 + i for i in range(12)], index=index)
+    prices = pd.concat([prices, prices.iloc[[3]]])
+    signals = pd.Series(1.0, index=index)
+
+    with pytest.raises(ValueError, match="prices contains duplicate timestamps"):
+        walk_forward_evaluate(prices, signals, min_train_size=4, n_splits=2)
+
+
+def test_walk_forward_rejects_duplicate_signal_timestamps() -> None:
+    index = pd.date_range("2024-01-01", periods=12, freq="D")
+    prices = pd.Series([100.0 + i for i in range(12)], index=index)
+    signals = pd.Series(1.0, index=index)
+    signals = pd.concat([signals, signals.iloc[[3]]])
+
+    with pytest.raises(ValueError, match="signals contains duplicate timestamps"):
+        walk_forward_evaluate(prices, signals, min_train_size=4, n_splits=2)
+
+
+def test_walk_forward_sorts_unordered_price_and_signal_indexes() -> None:
+    index = pd.date_range("2024-01-01", periods=22, freq="D")
+    prices = pd.Series([100.0 + i for i in range(22)], index=index).sample(
+        frac=1.0, random_state=7
+    )
+    signals = pd.Series(1.0, index=index).sample(frac=1.0, random_state=11)
+
+    result = walk_forward_evaluate(
+        prices,
+        signals,
+        min_train_size=10,
+        n_splits=3,
+        cost_bps=0,
+    )
+
+    assert result["fold"].tolist() == [1, 2, 3]
+    assert result["test_start"].tolist() == [
+        str(index[10]),
+        str(index[14]),
+        str(index[18]),
+    ]
+
