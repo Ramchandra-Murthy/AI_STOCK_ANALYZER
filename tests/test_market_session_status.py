@@ -72,3 +72,17 @@ def test_market_status_allows_small_future_timestamp_skew():
 
     assert status["status"] == "INTRADAY DATA · TODAY"
     assert status["is_current_session"] is True
+
+
+def test_market_status_recalculates_when_current_time_changes():
+    observed_at = "2026-09-18T11:59:00+05:30"
+    during_session = datetime(2026, 9, 18, 12, 0, tzinfo=IST)
+    after_close = datetime(2026, 9, 18, 16, 0, tzinfo=IST)
+
+    open_status = market_session_status(observed_at, "intraday_1m", during_session)
+    closed_status = market_session_status(observed_at, "intraday_1m", after_close)
+
+    assert open_status["status"] == "INTRADAY DATA · TODAY"
+    assert open_status["is_market_open"] is True
+    assert closed_status["status"] == "MARKET CLOSED · TODAY'S DATA"
+    assert closed_status["is_market_open"] is False
