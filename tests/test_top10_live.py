@@ -646,6 +646,7 @@ def test_top10_live_uses_provider_candle_age() -> None:
     now = datetime(2026, 10, 5, 10, 0, tzinfo=ZoneInfo(TOP10_TIMEZONE))
     assert _provider_age_seconds("2026-10-05T09:59:00+05:30", now) == 60.0
     assert _provider_age_seconds("not-a-timestamp", now) is None
+    assert _provider_age_seconds("2026-10-05T10:01:01+05:30", now) is None
 
 
 def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
