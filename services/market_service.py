@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, time
-from functools import lru_cache
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -63,7 +62,6 @@ def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
     return f"{normalized}{EXCHANGE_SUFFIXES[requested_exchange]}"
 
 
-@lru_cache(maxsize=512)
 def market_session_status(
     observed_at: str | None,
     frequency: str = "unknown",
