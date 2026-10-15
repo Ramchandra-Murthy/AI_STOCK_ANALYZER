@@ -391,6 +391,9 @@ def scan_market_universe(
     top_n: int = 10,
 ) -> pd.DataFrame:
     """Scan an explicit NSE/BSE universe and return the largest movers."""
+    if top_n < 1:
+        raise ValueError("top_n must be at least 1")
+
     rows: list[dict[str, Any]] = []
     for exchange, symbols in symbols_by_exchange.items():
         for symbol in symbols:

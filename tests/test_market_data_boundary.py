@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from services import research_service, technical_service
 from services.market_service import (
@@ -240,3 +241,9 @@ def test_watchlist_movers_preserve_market_session_metadata(monkeypatch):
     assert not gainers.loc[0, "Current Session"]
     assert bool(gainers.loc[0, "Market Open"])
     assert losers.loc[0, "Session Status"] == "STALE INTRADAY DATA"
+
+
+@pytest.mark.parametrize("top_n", [0, -1, -10])
+def test_market_universe_rejects_nonpositive_top_n(top_n):
+    with pytest.raises(ValueError, match="top_n must be at least 1"):
+        scan_market_universe({}, top_n=top_n)
