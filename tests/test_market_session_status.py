@@ -56,6 +56,7 @@ def test_market_status_keeps_recent_intraday_data_current():
     assert status["status"] == "INTRADAY DATA · TODAY"
     assert status["is_current_session"] is True
 
+
 def test_market_status_rejects_future_dated_observation():
     now = datetime(2026, 9, 18, 12, 0, tzinfo=IST)
     status = market_session_status("2026-09-18T12:10:00+05:30", "intraday_1m", now)
