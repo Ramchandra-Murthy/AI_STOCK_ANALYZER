@@ -250,7 +250,6 @@ def test_market_universe_rejects_nonpositive_top_n(top_n):
         scan_market_universe({}, top_n=top_n)
 
 
-
 def test_market_indices_expose_session_detail(monkeypatch):
     monkeypatch.setattr(
         "services.market_service._get_last_observation",
@@ -278,6 +277,8 @@ def test_market_indices_expose_session_detail(monkeypatch):
     assert result
     for index in result.values():
         assert index["session_status"] == "DAILY DATA ONLY · INTRADAY UNAVAILABLE"
-        assert index["session_detail"] == "Latest daily observation is not an intraday quote."
+        assert index["session_detail"] == (
+            "Latest daily observation is not an intraday quote."
+        )
         assert index["is_current_session"] is False
         assert index["is_market_open"] is True
