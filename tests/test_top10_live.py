@@ -631,12 +631,15 @@ def test_top10_live_signal_quality_metrics_handle_empty_history() -> None:
     }
 
 
-def test_top10_live_only_records_history_from_trusted_complete_scans() -> None:
+def test_top10_live_only_records_history_from_trusted_complete_fresh_scans() -> None:
     assert TOP10_MIN_TRUSTED_COVERAGE_QUOTES == TOP10_GOOD_COVERAGE_QUOTES
-    assert _should_record_signal_history(20, 0) is True
-    assert _should_record_signal_history(18, 0) is True
-    assert _should_record_signal_history(17, 0) is False
-    assert _should_record_signal_history(20, 1) is False
+    assert _should_record_signal_history(20, 0, 60.0) is True
+    assert _should_record_signal_history(18, 0, 60.0) is True
+    assert _should_record_signal_history(17, 0, 60.0) is False
+    assert _should_record_signal_history(20, 1, 60.0) is False
+    assert _should_record_signal_history(20, 0, TOP10_STALE_DATA_SECONDS) is False
+    assert _should_record_signal_history(20, 0, None) is False
+    assert _should_record_signal_history(20, 0, -1.0) is False
 
 
 def test_top10_live_uses_provider_candle_age() -> None:
