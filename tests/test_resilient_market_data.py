@@ -125,4 +125,3 @@ def test_download_symbol_frames_can_report_missing_without_single_recovery(
 
     assert frames == {}
     assert missing == ["AAA.NS", "BBB.NS"]
-
