@@ -51,10 +51,21 @@ def normalize_market_symbol(symbol: str, exchange: str = "NSE") -> str:
     normalized = symbol.strip().upper()
     if not normalized:
         return ""
-    if normalized.endswith((".NS", ".BO")):
+
+    requested_exchange = exchange.strip().upper()
+    if requested_exchange not in EXCHANGE_SUFFIXES:
+        raise ValueError("exchange must be NSE or BSE")
+
+    if normalized.endswith(".NS"):
+        if requested_exchange != "NSE":
+            raise ValueError("ticker suffix does not match requested exchange")
         return normalized
-    suffix = EXCHANGE_SUFFIXES.get(exchange.strip().upper(), ".NS")
-    return f"{normalized}{suffix}"
+    if normalized.endswith(".BO"):
+        if requested_exchange != "BSE":
+            raise ValueError("ticker suffix does not match requested exchange")
+        return normalized
+
+    return f"{normalized}{EXCHANGE_SUFFIXES[requested_exchange]}"
 
 
 @lru_cache(maxsize=512)
