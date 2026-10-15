@@ -133,6 +133,14 @@ def market_session_status(
             f"Latest candle: {observed_dt.strftime('%H:%M:%S IST')}"
         )
         current_session = True
+    elif market_open and not intraday:
+        status = "DAILY DATA ONLY · INTRADAY UNAVAILABLE"
+        detail = (
+            "Only daily-frequency data is available during market hours; "
+            "it must not be presented as a current intraday quote. "
+            f"Latest daily observation: {observed_dt.strftime('%d %b %Y %H:%M IST')}"
+        )
+        current_session = False
     elif current.time() < MARKET_OPEN:
         status = "PRE-MARKET"
         detail = f"Latest available data: {observed_dt.strftime('%d %b %Y %H:%M IST')}"
