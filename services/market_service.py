@@ -297,6 +297,7 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
         value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
             ticker
         )
+        session = market_session_status(observed_at, frequency)
         return name, {
             "value": value,
             "change": change,
@@ -305,6 +306,9 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
             "frequency": frequency,
             "is_tick_live": False,
             "is_intraday": is_intraday,
+            "session_status": session["status"],
+            "is_current_session": session["is_current_session"],
+            "is_market_open": session["is_market_open"],
         }
 
     with ThreadPoolExecutor(max_workers=MARKET_INDEX_WORKERS) as executor:
