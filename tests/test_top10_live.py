@@ -4,7 +4,6 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 import components.top10_live as top10_live
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from components.top10_live import (
     TOP10_CACHE_SECONDS,
     TOP10_CHUNK_SIZE,
@@ -666,6 +665,8 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert "retries=TOP10_PROVIDER_RETRIES" in source
     assert "recover_missing=False" in source
+
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 
 def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> None:
