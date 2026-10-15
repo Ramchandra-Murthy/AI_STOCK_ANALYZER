@@ -111,7 +111,9 @@ def _provider_age_seconds(timestamp: object, now: datetime) -> float | None:
             value = value.tz_localize(_IST)
         else:
             value = value.tz_convert(_IST)
-        return max(0.0, (now - value.to_pydatetime()).total_seconds())
+        age_seconds = (now - value.to_pydatetime()).total_seconds()
+        # A future-dated candle is not fresh data; reject clock/provider anomalies.
+        return age_seconds if age_seconds >= 0 else None
     except (TypeError, ValueError):
         return None
 
