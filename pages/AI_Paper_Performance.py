@@ -43,7 +43,7 @@ m1, m2, m3, m4 = st.columns(4)
 m1.metric("Paper equity", f"₹{report.current_equity:,.2f}")
 m2.metric("Total return", f"{report.total_return_pct:.2f}%")
 m3.metric("Total P&L", f"₹{report.total_pnl:,.2f}")
-m4.metric("Max drawdown", f"{report.max_drawdown_pct:.2f}%")
+m4.metric("Realized-trade drawdown", f"{report.max_drawdown_pct:.2f}%")
 
 m5, m6, m7, m8 = st.columns(4)
 m5.metric("Realized P&L", f"₹{report.realized_pnl:,.2f}")
@@ -67,7 +67,9 @@ else:
     latest_drawdown = float(curve.iloc[-1]["drawdown_pct"])
     c1, c2 = st.columns(2)
     c1.metric("Latest cycle return", f"{latest_return:.2f}%")
-    c2.metric("Current drawdown", f"{latest_drawdown:.2f}%")
+    c2.metric("Current recorded drawdown", f"{latest_drawdown:.2f}%")
+    max_recorded_drawdown = float(curve["drawdown_pct"].max())
+    st.metric("Maximum recorded mark-to-market drawdown", f"{max_recorded_drawdown:.2f}%")
     st.dataframe(curve, use_container_width=True, hide_index=True)
 
 st.subheader("Performance breakdown")
@@ -79,7 +81,7 @@ breakdown = pd.DataFrame(
         {"metric": "Unrealized P&L", "value": report.unrealized_pnl},
         {"metric": "Total P&L", "value": report.total_pnl},
         {"metric": "Gross exposure %", "value": report.gross_exposure_pct},
-        {"metric": "Max drawdown %", "value": report.max_drawdown_pct},
+        {"metric": "Realized-trade drawdown %", "value": report.max_drawdown_pct},
         {"metric": "Trade count", "value": report.trade_count},
     ]
 )

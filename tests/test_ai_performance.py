@@ -66,6 +66,7 @@ def test_equity_curve_tracks_returns_and_drawdown() -> None:
 
     assert curve["return_pct"].iloc[-1] == pytest.approx(-1.0)
     assert curve["drawdown_pct"].iloc[-1] == pytest.approx(2.941176, rel=1e-5)
+    assert curve["drawdown_pct"].max() == pytest.approx(2.941176, rel=1e-5)
 
 
 def test_equity_curve_is_empty_without_snapshots() -> None:
