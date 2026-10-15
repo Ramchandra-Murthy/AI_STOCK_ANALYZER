@@ -668,14 +668,19 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     assert "recover_missing=False" in source
 
 
-
 def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> None:
     now = pd.Timestamp.now(tz=TOP10_TIMEZONE)
     fresh_timestamp = now - pd.Timedelta(seconds=30)
     stale_timestamp = now - pd.Timedelta(minutes=10)
     tickers = [
-        *(top10_live._ticker(symbol, "NSE") for symbol in NSE_CANDIDATES[:TOP10_MAX_NSE_CANDIDATES]),
-        *(top10_live._ticker(symbol, "BSE") for symbol in BSE_CANDIDATES[:TOP10_MAX_BSE_CANDIDATES]),
+        *(
+            top10_live._ticker(symbol, "NSE")
+            for symbol in NSE_CANDIDATES[:TOP10_MAX_NSE_CANDIDATES]
+        ),
+        *(
+            top10_live._ticker(symbol, "BSE")
+            for symbol in BSE_CANDIDATES[:TOP10_MAX_BSE_CANDIDATES]
+        ),
     ]
     frames = {}
     for ticker in tickers:
@@ -696,6 +701,4 @@ def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> N
     assert failures == 0
     assert valid_quotes == 1
     assert result["Symbol"].tolist() == [tickers[0].rsplit(".", 1)[0]]
-    assert result["Last candle"].tolist() == [
-        top10_live._format_candle_time(fresh_timestamp)
-    ]
+    assert result["Last candle"].tolist() == [top10_live._format_candle_time(fresh_timestamp)]
