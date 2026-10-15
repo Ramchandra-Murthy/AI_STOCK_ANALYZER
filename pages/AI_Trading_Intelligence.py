@@ -514,6 +514,8 @@ if st.button("Run Walk-Forward Backtest", type="primary"):
                     "probability_up",
                     "entry_price",
                     "exit_price",
+                    "gross_return",
+                    "transaction_cost",
                     "net_return",
                     "equity",
                     "drawdown",
