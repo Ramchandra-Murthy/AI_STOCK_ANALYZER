@@ -2,18 +2,6 @@
 
 import streamlit as st
 
-from components.top10_live import show_live_top10_scanner
-from modules.backtesting import show as backtesting
-from modules.dashboard import show as dashboard
-from modules.fundamentals import show as fundamentals
-from modules.intraday import show as intraday
-from modules.market import show as market
-from modules.market_movers import show as market_movers
-from modules.portfolio import show as portfolio
-from modules.prediction import show as prediction
-from modules.research import show as research
-from modules.scanner import show as scanner
-from modules.settings import show as settings
 
 def show_dashboard() -> None:
     """Import the dashboard only when the user opens it."""
@@ -48,6 +36,13 @@ def show_live_top10_scanner() -> None:
 
 def show_intraday() -> None:
     from modules.intraday import show
+
+    show()
+
+
+def show_market_movers() -> None:
+    """Load the intraday market movers scanner only when opened."""
+    from modules.market_movers import show
 
     show()
 
@@ -120,13 +115,7 @@ pages = {
             url_path="live-top-10-scanner",
         ),
         st.Page(
-            intraday,
-            title="Intraday Trading",
-            icon="⏱️",
-            url_path="intraday-trading",
-        ),
-        st.Page(
-            market_movers,
+            show_market_movers,
             title="Intraday Market Movers",
             icon="⚡",
             url_path="intraday-market-movers",
