@@ -118,6 +118,12 @@ def _provider_age_seconds(timestamp: object, now: datetime) -> float | None:
         return None
 
 
+def _is_fresh_provider_timestamp(timestamp: object, now: datetime) -> bool:
+    """Return whether a candle timestamp is known and within the scanner freshness limit."""
+    age_seconds = _provider_age_seconds(timestamp, now)
+    return age_seconds is not None and age_seconds < TOP10_STALE_DATA_SECONDS
+
+
 def _format_candle_time(timestamp: object) -> str:
     """Format a provider candle timestamp in India time for the live table."""
     try:
@@ -614,6 +620,10 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
             if len(close) < 2:
                 continue
 
+            candle_timestamp = close.index[-1]
+            if not _is_fresh_provider_timestamp(candle_timestamp, datetime.now(_IST)):
+                continue
+
             latest = float(close.iloc[-1])
             previous = float(close.iloc[-2])
             if latest <= 0 or previous <= 0:
@@ -621,7 +631,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
 
             change_1m = (latest / previous - 1.0) * 100
             change_5m = (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
-            latest_candles.append(pd.Timestamp(close.index[-1]))
+            latest_candles.append(pd.Timestamp(candle_timestamp))
             symbol = ticker.rsplit(".", 1)[0]
 
             rows.append(
