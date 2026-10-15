@@ -53,6 +53,7 @@ from components.top10_live import (
     _watchlist_change_alerts,
     show_live_top10_scanner,
 )
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 
 def test_top10_live_scanner_refreshes_every_minute() -> None:
@@ -666,7 +667,6 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     assert "retries=TOP10_PROVIDER_RETRIES" in source
     assert "recover_missing=False" in source
 
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 
 
 def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> None:
