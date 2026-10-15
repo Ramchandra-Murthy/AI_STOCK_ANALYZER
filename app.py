@@ -40,6 +40,13 @@ def show_intraday() -> None:
     show()
 
 
+def show_market_movers() -> None:
+    """Load the intraday market movers scanner only when opened."""
+    from modules.market_movers import show
+
+    show()
+
+
 def show_research() -> None:
     from modules.research import show
 
@@ -106,6 +113,12 @@ pages = {
             title="Live Top-10 Scanner",
             icon="📡",
             url_path="live-top-10-scanner",
+        ),
+        st.Page(
+            show_market_movers,
+            title="Intraday Market Movers",
+            icon="⚡",
+            url_path="intraday-market-movers",
         ),
         st.Page(show_intraday, title="Intraday Trading", icon="⏱️", url_path="intraday-trading"),
     ],
