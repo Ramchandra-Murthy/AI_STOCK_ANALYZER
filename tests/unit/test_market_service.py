@@ -71,12 +71,25 @@ def test_indices_keep_all_expected_keys(monkeypatch):
         return (100.0, 1.0, 99.0, "2026-09-08T10:00:00", "intraday_1m", True)
 
     monkeypatch.setattr(market_service, "_get_last_observation", fake_observation)
+    monkeypatch.setattr(
+        market_service,
+        "market_session_status",
+        lambda observed_at, frequency: {
+            "status": "INTRADAY DATA · TODAY",
+            "is_current_session": True,
+            "is_market_open": True,
+            "detail": "test",
+        },
+    )
 
     data = market_service.get_market_indices()
 
     assert set(data) == set(market_service.MARKET_INDICES)
     assert all(item["frequency"] == "intraday_1m" for item in data.values())
     assert all(item["is_intraday"] is True for item in data.values())
+    assert all(item["session_status"] == "INTRADAY DATA · TODAY" for item in data.values())
+    assert all(item["is_current_session"] is True for item in data.values())
+    assert all(item["is_market_open"] is True for item in data.values())
 
 
 def test_normalize_market_symbol_rejects_unknown_exchange():
