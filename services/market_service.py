@@ -318,6 +318,7 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
             "is_tick_live": False,
             "is_intraday": is_intraday,
             "session_status": session["status"],
+            "session_detail": session["detail"],
             "is_current_session": session["is_current_session"],
             "is_market_open": session["is_market_open"],
         }
