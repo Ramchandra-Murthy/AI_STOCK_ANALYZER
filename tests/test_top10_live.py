@@ -36,6 +36,7 @@ from components.top10_live import (
     _annotate_watchlist_changes,
     _calculate_signal_strength,
     _coverage_status,
+    _format_candle_time,
     _is_fresh_provider_timestamp,
     _persistence_alerts,
     _provider_age_seconds,
@@ -114,8 +115,9 @@ def test_top10_live_rejects_stale_and_unknown_candle_timestamps() -> None:
 
 
 def test_top10_live_formats_candle_times_in_ist() -> None:
+    assert _format_candle_time("2026-10-05 09:59:00") == "2026-10-05 09:59:00 IST"
+    assert _format_candle_time("2026-10-05T09:59:00+00:00") == "2026-10-05 15:29:00 IST"
     source = open("components/top10_live.py", encoding="utf-8").read()
-    assert "def _format_candle_time" in source
     assert "tz_convert(_IST)" in source
     assert "Last candle" in source
 
