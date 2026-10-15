@@ -173,3 +173,33 @@ def test_history_download_failure_returns_none(monkeypatch):
     )
 
     assert technical_service.get_price_history("TEST") is None
+
+
+def test_quote_exposes_market_session_status(monkeypatch):
+    monkeypatch.setattr(
+        "services.market_service._get_last_observation",
+        lambda ticker: (
+            250.0,
+            1.5,
+            246.31,
+            "2026-09-18T11:59:00+05:30",
+            "intraday_1m",
+            True,
+        ),
+    )
+    monkeypatch.setattr(
+        "services.market_service.market_session_status",
+        lambda observed_at, frequency: {
+            "status": "INTRADAY DATA · TODAY",
+            "detail": "Latest candle is recent.",
+            "is_current_session": True,
+            "is_market_open": True,
+        },
+    )
+
+    result = get_latest_available_price("RELIANCE", "NSE")
+
+    assert result["session_status"] == "INTRADAY DATA · TODAY"
+    assert result["session_detail"] == "Latest candle is recent."
+    assert result["is_current_session"] is True
+    assert result["is_market_open"] is True

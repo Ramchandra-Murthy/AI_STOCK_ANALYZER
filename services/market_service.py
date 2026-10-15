@@ -280,6 +280,7 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
         normalized
     )
     resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
+    session = market_session_status(observed_at, frequency)
     return {
         "symbol": normalized,
         "provider_symbol": normalized,
@@ -292,6 +293,10 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
         "frequency": frequency,
         "is_tick_live": False,
         "is_intraday": is_intraday,
+        "session_status": session["status"],
+        "session_detail": session["detail"],
+        "is_current_session": session["is_current_session"],
+        "is_market_open": session["is_market_open"],
     }
 
 
