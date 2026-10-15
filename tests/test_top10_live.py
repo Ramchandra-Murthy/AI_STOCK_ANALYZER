@@ -56,8 +56,8 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_REFRESH_SECONDS == 60
     assert TOP10_CACHE_SECONDS < TOP10_REFRESH_SECONDS
     assert TOP10_CHUNK_SIZE == 20
-    assert TOP10_MAX_NSE_CANDIDATES == 20
-    assert TOP10_MAX_BSE_CANDIDATES == 0
+    assert TOP10_MAX_NSE_CANDIDATES == 10
+    assert TOP10_MAX_BSE_CANDIDATES == 10
     assert TOP10_PROVIDER_RETRIES == 0
     assert TOP10_PROVIDER_TIMEOUT == 5
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
@@ -71,8 +71,8 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
 
 
 def test_top10_live_uses_a_bounded_nse_pool_for_faster_quote_refresh() -> None:
-    assert TOP10_MAX_NSE_CANDIDATES == 20
-    assert TOP10_MAX_BSE_CANDIDATES == 0
+    assert TOP10_MAX_NSE_CANDIDATES == 10
+    assert TOP10_MAX_BSE_CANDIDATES == 10
     assert TOP10_EXPECTED_QUOTES == 20
 
 

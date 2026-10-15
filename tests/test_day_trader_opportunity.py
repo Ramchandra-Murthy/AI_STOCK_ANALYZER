@@ -93,8 +93,8 @@ def test_universe_filters_exchange_and_cap_basket():
 
     mid_both = select_day_trader_universe("Mid cap", "Both")
     assert mid_both
-    assert all(exchange == "NSE" for _, exchange in mid_both)
-    assert "IRFC" in {symbol for symbol, _ in mid_both}
+    assert {exchange for _, exchange in mid_both} == {"NSE", "BSE"}
+    assert "IRFC" in {symbol for symbol, exchange in mid_both if exchange == "NSE"}
 
 
 def test_universe_rejects_unknown_filters():

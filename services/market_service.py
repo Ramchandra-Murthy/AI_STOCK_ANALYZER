@@ -242,6 +242,7 @@ def _get_last_observation(
 
 
 def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, Any]:
+    """Fetch a quote only from the requested exchange; never substitute another listing."""
     normalized = normalize_market_symbol(symbol, exchange)
     value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
         normalized
@@ -249,6 +250,7 @@ def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, 
     resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
     return {
         "symbol": normalized,
+        "provider_symbol": normalized,
         "exchange": resolved_exchange,
         "price": value,
         "previous_close": previous_close,

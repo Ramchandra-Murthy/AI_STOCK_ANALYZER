@@ -1,4 +1,4 @@
-"""AI Stock Analyzer Pro - organized Streamlit application entrypoint."""
+"""AI Stock Analyzer Pro - lazy-loaded Streamlit application entrypoint."""
 
 import streamlit as st
 
@@ -14,6 +14,72 @@ from modules.prediction import show as prediction
 from modules.research import show as research
 from modules.scanner import show as scanner
 from modules.settings import show as settings
+
+def show_dashboard() -> None:
+    """Import the dashboard only when the user opens it."""
+    from modules.dashboard import show
+
+    show()
+
+
+def show_market() -> None:
+    from modules.market import show
+
+    show()
+
+
+def show_portfolio() -> None:
+    from modules.portfolio import show
+
+    show()
+
+
+def show_scanner() -> None:
+    from modules.scanner import show
+
+    show()
+
+
+def show_live_top10_scanner() -> None:
+    from components.top10_live import show_live_top10_scanner
+
+    show_live_top10_scanner()
+
+
+def show_intraday() -> None:
+    from modules.intraday import show
+
+    show()
+
+
+def show_research() -> None:
+    from modules.research import show
+
+    show()
+
+
+def show_fundamentals() -> None:
+    from modules.fundamentals import show
+
+    show()
+
+
+def show_prediction() -> None:
+    from modules.prediction import show
+
+    show()
+
+
+def show_backtesting() -> None:
+    from modules.backtesting import show
+
+    show()
+
+
+def show_settings() -> None:
+    from modules.settings import show
+
+    show()
 
 
 def load_css() -> None:
@@ -31,18 +97,20 @@ st.set_page_config(
 
 load_css()
 
+settings_page = st.Page(show_settings, title="Settings", icon="⚙️", url_path="settings")
+
 pages = {
     "📊 Core": [
+        st.Page(show_dashboard, title="Dashboard", icon="🏠", default=True, url_path="dashboard"),
+        st.Page(show_market, title="Market", icon="📈", url_path="market"),
+        st.Page(show_portfolio, title="Portfolio", icon="💼", url_path="portfolio"),
+        st.Page(show_scanner, title="Scanner", icon="🔍", url_path="scanner"),
         st.Page(
-            dashboard,
-            title="Dashboard",
-            icon="🏠",
-            default=True,
-            url_path="dashboard",
+            "pages/Personal_Stock_Watchlist.py",
+            title="Stocks Watchlist",
+            icon="📋",
+            url_path="stocks-watchlist",
         ),
-        st.Page(market, title="Market", icon="📈", url_path="market"),
-        st.Page(portfolio, title="Portfolio", icon="💼", url_path="portfolio"),
-        st.Page(scanner, title="Scanner", icon="🔍", url_path="scanner"),
     ],
     "🔴 Live Market": [
         st.Page(
@@ -63,27 +131,13 @@ pages = {
             icon="⚡",
             url_path="intraday-market-movers",
         ),
+        st.Page(show_intraday, title="Intraday Trading", icon="⏱️", url_path="intraday-trading"),
     ],
     "🔎 Research": [
-        st.Page(
-            research,
-            title="Stock Research",
-            icon="🔍",
-            url_path="stock-research",
-        ),
-        st.Page(
-            fundamentals,
-            title="Fundamentals",
-            icon="📊",
-            url_path="fundamentals",
-        ),
-        st.Page(
-            prediction,
-            title="AI Prediction",
-            icon="🤖",
-            url_path="ai-prediction",
-        ),
-        st.Page(backtesting, title="Backtesting", icon="📉", url_path="backtesting"),
+        st.Page(show_research, title="Stock Research", icon="🔍", url_path="stock-research"),
+        st.Page(show_fundamentals, title="Fundamentals", icon="📊", url_path="fundamentals"),
+        st.Page(show_prediction, title="AI Prediction", icon="🤖", url_path="ai-prediction"),
+        st.Page(show_backtesting, title="Backtesting", icon="📉", url_path="backtesting"),
     ],
     "🤖 Algorithmic Trading": [
         st.Page("pages/Algorithmic_Scanner.py", title="Algorithmic Scanner", icon="📊"),
@@ -121,26 +175,10 @@ pages = {
             title="AI Trading Scanner",
             icon="🧠",
         ),
-        st.Page(
-            "pages/AI_Paper_Trading.py",
-            title="AI Paper Trading",
-            icon="🧪",
-        ),
-        st.Page(
-            "pages/AI_Paper_Performance.py",
-            title="AI Paper Performance",
-            icon="📊",
-        ),
-        st.Page(
-            "pages/AI_Paper_Risk.py",
-            title="AI Paper Risk",
-            icon="🛡️",
-        ),
-        st.Page(
-            "pages/AI_Paper_Trade_Journal.py",
-            title="AI Paper Trade Journal",
-            icon="📒",
-        ),
+        st.Page("pages/AI_Paper_Trading.py", title="AI Paper Trading", icon="🧪"),
+        st.Page("pages/AI_Paper_Performance.py", title="AI Paper Performance", icon="📊"),
+        st.Page("pages/AI_Paper_Risk.py", title="AI Paper Risk", icon="🛡️"),
+        st.Page("pages/AI_Paper_Trade_Journal.py", title="AI Paper Trade Journal", icon="📒"),
         st.Page(
             "pages/AI_Model_Monitoring.py",
             title="AI Model Monitoring",
@@ -171,42 +209,21 @@ pages = {
             icon="🧠",
             url_path="ai-self-improving-model",
         ),
-        st.Page(
-            "pages/AI_News_Sentiment.py",
-            title="AI News & Sentiment",
-            icon="📰",
-            url_path="ai-news-sentiment",
-        ),
+        st.Page("pages/AI_News_Sentiment.py", title="AI News & Sentiment", icon="📰"),
         st.Page(
             "pages/AI_Fundamental_Intelligence.py",
             title="AI Fundamental Intelligence",
             icon="📊",
             url_path="ai-fundamental-intelligence",
         ),
-        st.Page(
-            "pages/AI_Feature_Factory.py",
-            title="AI Feature Factory",
-            icon="🧩",
-            url_path="ai-feature-factory",
-        ),
-        st.Page(
-            "pages/AI_Ensemble_ML.py",
-            title="AI Ensemble ML",
-            icon="🤖",
-            url_path="ai-ensemble-ml",
-        ),
+        st.Page("pages/AI_Feature_Factory.py", title="AI Feature Factory", icon="🧩"),
+        st.Page("pages/AI_Ensemble_ML.py", title="AI Ensemble ML", icon="🤖"),
         st.Page(
             "pages/AI_Sequence_Deep_Learning.py",
             title="AI Sequence / Deep Learning",
             icon="🧠",
-            url_path="ai-sequence-deep-learning",
         ),
-        st.Page(
-            "pages/AI_Feature_Drift.py",
-            title="AI Feature Drift",
-            icon="📐",
-            url_path="ai-feature-drift",
-        ),
+        st.Page("pages/AI_Feature_Drift.py", title="AI Feature Drift", icon="📐"),
     ],
     "📈 Options Trading": [
         st.Page(
@@ -216,12 +233,11 @@ pages = {
             url_path="nifty-v2-paper-trading",
         ),
     ],
-    "⚙️ System": [
-        st.Page(settings, title="Settings", icon="⚙️", url_path="settings"),
-    ],
+    "⚙️ System": [settings_page],
 }
 
 pg = st.navigation(pages, position="sidebar", expanded=True)
+
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📈 AI Stock Analyzer Pro")

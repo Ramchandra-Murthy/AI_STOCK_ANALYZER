@@ -31,9 +31,29 @@ class DhanCredentials:
 
     @classmethod
     def from_env(cls, environ: Mapping[str, str] | None = None) -> DhanCredentials:
+        """Load credentials from environment variables or Streamlit secrets.
+
+        Explicit environment values take precedence. Streamlit secrets are
+        consulted only for values missing from the environment, and secrets
+        are never copied into logs or error messages.
+        """
         values = os.environ if environ is None else environ
-        client_id = values.get("DHAN_CLIENT_ID", "").strip()
-        access_token = values.get("DHAN_ACCESS_TOKEN", "").strip()
+        client_id = str(values.get("DHAN_CLIENT_ID", "")).strip()
+        access_token = str(values.get("DHAN_ACCESS_TOKEN", "")).strip()
+
+        if not client_id or not access_token:
+            try:
+                import streamlit as st
+
+                secrets = st.secrets
+                if not client_id:
+                    client_id = str(secrets.get("DHAN_CLIENT_ID", "")).strip()
+                if not access_token:
+                    access_token = str(secrets.get("DHAN_ACCESS_TOKEN", "")).strip()
+            except Exception:
+                # Streamlit may be absent or secrets may be unavailable in CLI/tests.
+                pass
+
         missing = [
             name
             for name, value in (

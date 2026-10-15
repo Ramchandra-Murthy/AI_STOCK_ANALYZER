@@ -9,6 +9,7 @@ from scanner.market_scanner import DISPLAY_COUNT, market_scan
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
 from services.market_service import WATCHLIST
+from services.watchlist_service import WatchlistError
 from services.watchlist_ui import get_or_create_default_watchlist
 
 
@@ -96,9 +97,17 @@ def show():
         )
         trend_filter = st.selectbox("Trend", ["All", "Bullish", "Bearish", "Sideways"])
 
-    _, _, watchlist = get_or_create_default_watchlist(
-        None, [f"{symbol}.NS" for symbol in WATCHLIST]
-    )
+    try:
+        _, _, watchlist = get_or_create_default_watchlist(
+            None, [f"{symbol}.NS" for symbol in WATCHLIST]
+        )
+    except WatchlistError as exc:
+        # A failed personal-watchlist backend must not crash the broad-market scanner.
+        watchlist = [f"{symbol}.NS" for symbol in WATCHLIST]
+        st.warning(
+            "Personal watchlist storage is unavailable; using the built-in scanner "
+            f"watchlist for this session. Details: {exc}"
+        )
 
     if not watchlist:
         st.info("Your Personal Watchlist is empty. Add stocks in the Market page first.")
@@ -112,13 +121,28 @@ def show():
     )
     if st.button("Scan", use_container_width=True):
         with st.spinner("Scanning stocks..."):
-            df = scan_watchlist(watchlist) if scan_mode == "Personal Watchlist" else market_scan()
+            df = (
+                scan_watchlist(watchlist)
+                if scan_mode == "Personal Watchlist"
+                else market_scan(exchange_filter)
+            )
+        scanner_coverage = df.attrs.get("scanner_coverage", {})
+
+        if scan_mode == "Broad Market" and scanner_coverage:
+            with st.expander("Scan coverage diagnostics", expanded=True):
+                st.caption(
+                    "Coverage counts describe the broad-market scan pipeline. "
+                    "History rejections include symbols without usable two-candle price/volume history."
+                )
+                coverage_rows = [
+                    {"Exchange": exchange, **counts}
+                    for exchange, counts in scanner_coverage.items()
+                ]
+                st.dataframe(coverage_rows, use_container_width=True, hide_index=True)
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
             return
-
-        _show_data_quality(df)
 
         if exchange_filter in ("NSE", "BSE") and "Exchange" in df.columns:
             df = df.loc[df["Exchange"] == exchange_filter]
@@ -139,6 +163,7 @@ def show():
             )
             return
 
+        _show_data_quality(df)
         st.success(f"{len(df)} matching stocks displayed")
         st.dataframe(
             df.head(DISPLAY_COUNT) if scan_mode == "Broad Market" else df,
