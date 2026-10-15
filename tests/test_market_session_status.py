@@ -86,3 +86,13 @@ def test_market_status_recalculates_when_current_time_changes():
     assert open_status["is_market_open"] is True
     assert closed_status["status"] == "MARKET CLOSED · TODAY'S DATA"
     assert closed_status["is_market_open"] is False
+
+
+def test_market_status_does_not_present_daily_fallback_as_current_intraday_data():
+    now = datetime(2026, 9, 18, 12, 0, tzinfo=IST)
+    status = market_session_status("2026-09-18T09:15:00+05:30", "daily", now)
+
+    assert status["status"] == "DAILY DATA ONLY · INTRADAY UNAVAILABLE"
+    assert status["is_current_session"] is False
+    assert status["is_market_open"] is True
+    assert "must not be presented as a current intraday quote" in status["detail"]
