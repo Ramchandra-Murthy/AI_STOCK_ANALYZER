@@ -3,6 +3,8 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
+import components.top10_live as top10_live
+from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from components.top10_live import (
     TOP10_CACHE_SECONDS,
     TOP10_CHUNK_SIZE,
@@ -664,3 +666,35 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert "retries=TOP10_PROVIDER_RETRIES" in source
     assert "recover_missing=False" in source
+
+
+def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> None:
+    now = pd.Timestamp.now(tz=TOP10_TIMEZONE)
+    fresh_timestamp = now - pd.Timedelta(seconds=30)
+    stale_timestamp = now - pd.Timedelta(minutes=10)
+    tickers = [
+        *(top10_live._ticker(symbol, "NSE") for symbol in NSE_CANDIDATES[:TOP10_MAX_NSE_CANDIDATES]),
+        *(top10_live._ticker(symbol, "BSE") for symbol in BSE_CANDIDATES[:TOP10_MAX_BSE_CANDIDATES]),
+    ]
+    frames = {}
+    for ticker in tickers:
+        timestamp = fresh_timestamp if ticker == tickers[0] else stale_timestamp
+        frames[ticker] = pd.DataFrame(
+            {"Close": [100.0, 101.0]},
+            index=[timestamp - pd.Timedelta(minutes=1), timestamp],
+        )
+
+    monkeypatch.setattr(
+        top10_live,
+        "_download_top10_frames",
+        lambda requested_tickers: (frames, [], "Test provider"),
+    )
+
+    result, _elapsed, failures, valid_quotes = _scan_live_top10()
+
+    assert failures == 0
+    assert valid_quotes == 1
+    assert result["Symbol"].tolist() == [tickers[0].rsplit(".", 1)[0]]
+    assert result["Last candle"].tolist() == [
+        top10_live._format_candle_time(fresh_timestamp)
+    ]
