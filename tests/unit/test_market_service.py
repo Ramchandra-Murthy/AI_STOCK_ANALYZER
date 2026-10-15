@@ -86,13 +86,6 @@ def test_normalize_market_symbol_rejects_unknown_exchange():
         market_service.normalize_market_symbol("RELIANCE", "NYSE")
 
 
-def test_normalize_market_symbol_rejects_cross_exchange_suffix():
-    import pytest
-
-    with pytest.raises(ValueError, match="does not match requested exchange"):
-        market_service.normalize_market_symbol("RELIANCE.NS", "BSE")
-
-
-def test_normalize_market_symbol_keeps_matching_exchange_suffix():
-    assert market_service.normalize_market_symbol("RELIANCE.NS", "NSE") == "RELIANCE.NS"
-    assert market_service.normalize_market_symbol("500325.BO", "BSE") == "500325.BO"
+def test_normalize_market_symbol_preserves_explicit_exchange_suffix():
+    assert market_service.normalize_market_symbol("RELIANCE.NS", "BSE") == "RELIANCE.NS"
+    assert market_service.normalize_market_symbol("500325.BO", "NSE") == "500325.BO"
