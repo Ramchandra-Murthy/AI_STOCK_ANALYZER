@@ -65,10 +65,19 @@ def scan_universe(
 
 def _ticker(symbol: str, exchange: str) -> str:
     clean = str(symbol).strip().upper()
+    normalized_exchange = str(exchange).strip().upper()
     if not clean:
         raise ValueError("symbols must not contain empty values")
-    suffix = ".NS" if exchange == "NSE" else ".BO"
-    return clean if clean.endswith(suffix) else f"{clean}{suffix}"
+    if normalized_exchange not in {"NSE", "BSE"}:
+        raise ValueError("exchange must be NSE or BSE")
+
+    expected_suffix = ".NS" if normalized_exchange == "NSE" else ".BO"
+    other_suffix = ".BO" if normalized_exchange == "NSE" else ".NS"
+    if clean.endswith(other_suffix):
+        raise ValueError(
+            f"ticker {clean!r} belongs to a different exchange than {normalized_exchange}"
+        )
+    return clean if clean.endswith(expected_suffix) else f"{clean}{expected_suffix}"
 
 
 def _symbol_frame(market: pd.DataFrame, ticker: str) -> pd.DataFrame:
