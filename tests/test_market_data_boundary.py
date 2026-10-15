@@ -235,6 +235,6 @@ def test_watchlist_movers_preserve_market_session_metadata(monkeypatch):
 
     assert gainers.loc[0, "Session Status"] == "STALE INTRADAY DATA"
     assert gainers.loc[0, "Session Detail"] == "Latest candle is too old."
-    assert gainers.loc[0, "Current Session"] is False
-    assert gainers.loc[0, "Market Open"] is True
+    assert not gainers.loc[0, "Current Session"]
+    assert bool(gainers.loc[0, "Market Open"])
     assert losers.loc[0, "Session Status"] == "STALE INTRADAY DATA"
