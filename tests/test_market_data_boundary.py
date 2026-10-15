@@ -203,3 +203,38 @@ def test_quote_exposes_market_session_status(monkeypatch):
     assert result["session_detail"] == "Latest candle is recent."
     assert result["is_current_session"] is True
     assert result["is_market_open"] is True
+
+
+
+def test_watchlist_movers_preserve_market_session_metadata(monkeypatch):
+    monkeypatch.setattr(
+        "services.market_service._get_last_observation",
+        lambda ticker: (
+            250.0,
+            1.5,
+            246.31,
+            "2026-10-15T11:59:00+05:30",
+            "intraday_1m",
+            True,
+        ),
+    )
+    monkeypatch.setattr("services.market_service.get_company_name", lambda ticker: "Test Company")
+    monkeypatch.setattr(
+        "services.market_service.market_session_status",
+        lambda observed_at, frequency: {
+            "status": "STALE INTRADAY DATA",
+            "detail": "Latest candle is too old.",
+            "is_current_session": False,
+            "is_market_open": True,
+        },
+    )
+
+    from services.market_service import get_top_movers
+
+    gainers, losers = get_top_movers({"TEST": "TEST.NS"})
+
+    assert gainers.loc[0, "Session Status"] == "STALE INTRADAY DATA"
+    assert gainers.loc[0, "Session Detail"] == "Latest candle is too old."
+    assert gainers.loc[0, "Current Session"] is False
+    assert gainers.loc[0, "Market Open"] is True
+    assert losers.loc[0, "Session Status"] == "STALE INTRADAY DATA"
