@@ -58,3 +58,27 @@ def test_decimal_inputs_are_preserved() -> None:
     assert result.estimated_loss == Decimal("4.5")
     assert result.estimated_loss <= result.risk_limit
     assert result.quantity == 9
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid_value"),
+    [
+        (field, value)
+        for field in ("entry_price", "stop_price", "capital", "max_loss", "cost_per_unit")
+        for value in ("NaN", "Infinity", "invalid", True, None)
+    ],
+)
+def test_all_position_sizing_inputs_reject_malformed_values(
+    field: str, invalid_value: object
+) -> None:
+    kwargs: dict[str, object] = {
+        "entry_price": 100,
+        "stop_price": 95,
+        "capital": 1000,
+        "max_loss": 100,
+        "cost_per_unit": 0,
+    }
+    kwargs[field] = invalid_value
+
+    with pytest.raises(ValueError):
+        calculate_position_size(**kwargs)  # type: ignore[arg-type]
