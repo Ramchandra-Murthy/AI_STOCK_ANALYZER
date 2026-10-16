@@ -5,9 +5,8 @@ They intentionally do not retrieve market data, detect pivots, or place orders.
 """
 
 from decimal import Decimal
-from typing import TypeAlias
 
-Price: TypeAlias = Decimal | int | str
+type Price = Decimal | int | str
 
 FIBONACCI_RETRACEMENT_RATIOS = (
     Decimal("0.236"),
