@@ -51,14 +51,17 @@ def test_levels_outside_tolerance_are_not_combined() -> None:
     )
 
 
-@pytest.mark.parametrize("tolerance", [-1, "-0.1", "NaN", "Infinity"])
-def test_invalid_tolerance_is_rejected(tolerance: int | str) -> None:
+@pytest.mark.parametrize("tolerance", [-1, "-0.1", "NaN", "Infinity", True, None, "invalid"])
+def test_invalid_tolerance_is_rejected(tolerance: object) -> None:
     with pytest.raises(ValueError):
-        find_confluence_zones(800, 1000, tolerance=tolerance)
+        find_confluence_zones(800, 1000, tolerance=tolerance)  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize(("low", "high"), [(0, 100), (100, 100), (200, 100)])
-def test_invalid_swing_is_rejected(low: int, high: int) -> None:
+@pytest.mark.parametrize(
+    ("low", "high"),
+    [(0, 100), (100, 100), (200, 100), ("NaN", 100), (100, "Infinity")],
+)
+def test_invalid_swing_is_rejected(low: int | str, high: int | str) -> None:
     with pytest.raises(ValueError):
         find_confluence_zones(low, high)
 
