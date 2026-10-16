@@ -103,6 +103,7 @@ def test_walk_forward_rejects_invalid_fold_configuration() -> None:
     with pytest.raises(ValueError, match="n_splits"):
         walk_forward_evaluate(prices, signals, min_train_size=4, n_splits=0)
 
+
 def test_walk_forward_rejects_duplicate_price_timestamps() -> None:
     index = pd.date_range("2024-01-01", periods=12, freq="D")
     prices = pd.Series([100.0 + i for i in range(12)], index=index)
