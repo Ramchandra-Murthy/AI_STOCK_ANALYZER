@@ -1,5 +1,5 @@
 """Tests for strict, confirmed swing-point detection."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -8,7 +8,7 @@ from modules.fibonacci_gann.swings import detect_confirmed_swings
 
 
 def make_bars(highs: list[int], lows: list[int]) -> list[OHLCBar]:
-    start = datetime(2026, 10, 16, 10, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 10, 16, 10, 0, tzinfo=UTC)
     return [
         OHLCBar(start + timedelta(minutes=i), 10, high, low, 10)
         for i, (high, low) in enumerate(zip(highs, lows, strict=True))
@@ -39,4 +39,6 @@ def test_equal_highs_are_not_strict_pivots() -> None:
 @pytest.mark.parametrize("left,right", [(0, 2), (2, 0), (-1, 1)])
 def test_window_sizes_must_be_positive(left: int, right: int) -> None:
     with pytest.raises(ValueError):
-        detect_confirmed_swings(make_bars([10, 12, 15], [8, 7, 6]), left_bars=left, right_bars=right)
+        detect_confirmed_swings(
+            make_bars([10, 12, 15], [8, 7, 6]), left_bars=left, right_bars=right
+        )
