@@ -92,7 +92,9 @@ def validate_candles(candles: Sequence[Candle]) -> None:
                 if parsed_timestamp <= previous_timestamp:
                     raise ValueError("candle timestamps must be strictly increasing")
             except TypeError as exc:
-                raise ValueError("candle timestamps must use a consistent timezone convention") from exc
+                raise ValueError(
+                    "candle timestamps must use a consistent timezone convention"
+                ) from exc
         values = (candle.open, candle.high, candle.low, candle.close)
         if not all(isfinite(value) and value > 0 for value in values):
             raise ValueError("OHLC values must be finite and greater than zero")
