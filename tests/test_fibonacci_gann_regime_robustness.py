@@ -34,7 +34,9 @@ def test_rejects_empty_regime_mapping() -> None:
 def test_rejects_overlapping_windows() -> None:
     with pytest.raises(ValueError, match="must not overlap"):
         evaluate_regime_robustness(
-            sample_candles(), [False] * 8, BacktestConfig(),
+            sample_candles(),
+            [False] * 8,
+            BacktestConfig(),
             regimes={"trending": (0, 5), "volatile": (4, 8)},
         )
 
