@@ -43,7 +43,8 @@ def test_levels_outside_tolerance_are_not_combined() -> None:
 
     assert all(zone.distance <= Decimal("0.01") for zone in zones)
     assert not any(
-        level.family == "fibonacci_retracement" and level.label == "38.2%"
+        level.family == "fibonacci_retracement"
+        and level.label == "38.2%"
         and any(item.family == "gann_eighth" and item.label == "5/8" for item in zone.levels)
         for zone in zones
         for level in zone.levels
