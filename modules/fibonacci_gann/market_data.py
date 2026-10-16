@@ -1,4 +1,5 @@
 """OHLC validation and freshness checks for the isolated Fibonacci/Gann lab."""
+
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
