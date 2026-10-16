@@ -60,9 +60,7 @@ def test_signal_callback_never_receives_future_candles(candles):
 )
 def test_rejects_invalid_window_sizes(candles, kwargs, message):
     with pytest.raises(ValueError, match=message):
-        evaluate_walk_forward(
-            candles, lambda history, config: False, BacktestConfig(), **kwargs
-        )
+        evaluate_walk_forward(candles, lambda history, config: False, BacktestConfig(), **kwargs)
 
 
 def test_rejects_non_boolean_signals(candles):
