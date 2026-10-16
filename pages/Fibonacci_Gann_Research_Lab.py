@@ -154,9 +154,22 @@ except (TypeError, ValueError, AttributeError) as exc:
     st.stop()
 
 signals = tuple(bool(value) for value in frame["signal"].tolist())
+signal_count = sum(signals)
 st.caption(
-    f"Loaded {len(candles):,} candles. Verify timestamps, signal generation, and data source."
+    f"Loaded {len(candles):,} candles. Entry signals: {signal_count:,}; "
+    f"non-signals: {len(signals) - signal_count:,}. Verify timestamps, signal generation, and data source."
 )
+if signal_count == 0:
+    st.warning(
+        "No entry signals are present in this CSV. A backtest with zero trades is expected; "
+        "returns and drawdown do not evaluate a strategy. Downloaded CSVs use placeholder "
+        "false signals until you add a documented strategy signal."
+    )
+else:
+    st.info(
+        f"{signal_count:,} signal bar(s) detected. Signals are assumed known after each bar closes, "
+        "and entries occur no earlier than the next bar's open."
+    )
 st.dataframe(frame.head(10), use_container_width=True, hide_index=True)
 
 st.subheader("Backtest assumptions")
@@ -213,6 +226,16 @@ if st.button("Run research analysis", type="primary"):
         st.stop()
 
     st.subheader("Baseline result")
+    if signal_count > 0 and not baseline.trades:
+        st.warning(
+            "Signals were present, but the backtester generated no trades. Check signal timing, "
+            "available following candles, and the backtest's entry/position rules before interpreting metrics."
+        )
+    elif signal_count == 0:
+        st.info(
+            "This is a no-signal diagnostic, not a strategy performance result. "
+            "Add valid strategy signals before assessing profitability or risk."
+        )
     metrics = st.columns(5)
     metrics[0].metric("Ending capital", f"₹{baseline.ending_capital:,.2f}")
     metrics[1].metric("Total return", f"{baseline.total_return_pct:.2f}%")
