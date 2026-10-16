@@ -45,8 +45,7 @@ def calculate_levels(swing_low: Price, swing_high: Price) -> tuple[PriceLevel, .
     extensions = fibonacci_extensions(swing_low, swing_high)
     eighths = gann_eighths(swing_low, swing_high)
     levels = [
-        PriceLevel("fibonacci_retracement", label, price)
-        for label, price in retracements.items()
+        PriceLevel("fibonacci_retracement", label, price) for label, price in retracements.items()
     ]
     levels.extend(
         PriceLevel("fibonacci_extension", label, price) for label, price in extensions.items()
