@@ -143,4 +143,3 @@ def test_walk_forward_sorts_unordered_price_and_signal_indexes() -> None:
         str(index[14]),
         str(index[18]),
     ]
-
