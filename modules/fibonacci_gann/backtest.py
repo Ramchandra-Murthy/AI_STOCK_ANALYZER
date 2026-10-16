@@ -5,9 +5,9 @@ This module is a research harness, not a trade recommendation or execution syste
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from math import isfinite
-from typing import Sequence
 
 
 @dataclass(frozen=True)
@@ -88,7 +88,7 @@ def validate_candles(candles: Sequence[Candle]) -> None:
 def run_backtest(
     candles: Sequence[Candle],
     signals: Sequence[bool],
-    config: BacktestConfig = BacktestConfig(),
+    config: BacktestConfig | None = None,
 ) -> BacktestResult:
     """Run a conservative one-position-at-a-time long-only OHLC simulation.
 
@@ -97,6 +97,8 @@ def run_backtest(
     through stops fill at the bar open. Slippage is charged adversely on both
     sides; caller supplies round-trip fees/taxes per unit.
     """
+    if config is None:
+        config = BacktestConfig()
     validate_candles(candles)
     if len(signals) != len(candles):
         raise ValueError("signals length must equal candles length")
