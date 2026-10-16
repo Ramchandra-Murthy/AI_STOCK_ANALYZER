@@ -55,7 +55,9 @@ def test_parameter_sensitivity_returns_one_result_per_case(fixed_candles):
 
 
 def test_rejects_empty_or_duplicate_case_names(fixed_candles):
-    signal = lambda history, config: False
+    def signal(history, config):
+        return False
+
     config = BacktestConfig()
 
     with pytest.raises(ValueError, match="non-empty"):
