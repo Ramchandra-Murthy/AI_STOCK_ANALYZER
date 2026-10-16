@@ -1,8 +1,8 @@
 """Confirmed swing-point detection for the isolated Fibonacci/Gann lab."""
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Sequence
 
 from modules.fibonacci_gann.market_data import OHLCBar, _price
 
