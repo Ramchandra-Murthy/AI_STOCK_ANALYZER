@@ -1,4 +1,5 @@
 """Tests for strict, confirmed swing-point detection."""
+
 from datetime import UTC, datetime, timedelta
 
 import pytest
