@@ -15,15 +15,18 @@ from modules.fibonacci_gann.levels import (
     gann_eighths,
 )
 from modules.fibonacci_gann.market_data import DataQuality, OHLCBar, validate_ohlc_bars
+from modules.fibonacci_gann.risk import PositionSize, calculate_position_size
 from modules.fibonacci_gann.swings import SwingPoint, detect_confirmed_swings
 
 __all__ = [
     "ConfluenceZone",
     "DataQuality",
     "OHLCBar",
+    "PositionSize",
     "PriceLevel",
     "SwingPoint",
     "calculate_levels",
+    "calculate_position_size",
     "detect_confirmed_swings",
     "fibonacci_extensions",
     "fibonacci_retracements",
