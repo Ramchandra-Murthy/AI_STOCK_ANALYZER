@@ -127,6 +127,12 @@ pages = {
         st.Page(show_fundamentals, title="Fundamentals", icon="📊", url_path="fundamentals"),
         st.Page(show_prediction, title="AI Prediction", icon="🤖", url_path="ai-prediction"),
         st.Page(show_backtesting, title="Backtesting", icon="📉", url_path="backtesting"),
+        st.Page(
+            "pages/Fibonacci_Gann_Research_Lab.py",
+            title="Fibonacci-Gann Research Lab",
+            icon="📐",
+            url_path="fibonacci-gann-research-lab",
+        ),
     ],
     "🤖 Algorithmic Trading": [
         st.Page("pages/Algorithmic_Scanner.py", title="Algorithmic Scanner", icon="📊"),
