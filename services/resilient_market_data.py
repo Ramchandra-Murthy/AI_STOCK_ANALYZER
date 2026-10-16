@@ -63,6 +63,7 @@ def _download_batch(
     auto_adjust: bool,
     timeout: float,
     retries: int = DEFAULT_RETRIES,
+    diagnostics: list[str] | None = None,
 ) -> pd.DataFrame:
     """Download one batch with bounded retries and no hidden synthetic data."""
     _configure_yfinance()
@@ -86,6 +87,11 @@ def _download_batch(
                 return result
         except Exception as exc:
             last_error = exc
+            if diagnostics is not None:
+                diagnostics.append(f"batch request raised {type(exc).__name__}")
+        else:
+            if diagnostics is not None and (result is None or result.empty):
+                diagnostics.append("batch request returned no rows")
 
         if attempt < retry_count:
             sleep(RETRY_BACKOFF_SECONDS * (2**attempt))
@@ -102,6 +108,7 @@ def _download_single(
     interval: str,
     auto_adjust: bool,
     timeout: float,
+    diagnostics: list[str] | None = None,
 ) -> pd.DataFrame:
     """Recover one missing ticker through the direct Ticker.history endpoint."""
     _configure_yfinance()
@@ -118,8 +125,9 @@ def _download_single(
             frame = _ticker_frame(result, ticker)
             if not frame.empty:
                 return frame
-        except Exception:
-            pass
+        except Exception as exc:
+            if diagnostics is not None:
+                diagnostics.append(f"single-symbol request raised {type(exc).__name__}")
         if attempt < DEFAULT_RETRIES:
             sleep(RETRY_BACKOFF_SECONDS * (2**attempt))
     return pd.DataFrame()
@@ -135,6 +143,7 @@ def download_symbol_frames(
     timeout: float = DEFAULT_TIMEOUT,
     retries: int = DEFAULT_RETRIES,
     recover_missing: bool = True,
+    diagnostics: list[str] | None = None,
 ) -> tuple[dict[str, pd.DataFrame], list[str]]:
     """Return usable ticker frames plus an explicit list of unresolved tickers."""
     symbols = list(dict.fromkeys(str(t).strip().upper() for t in tickers if str(t).strip()))
@@ -151,6 +160,7 @@ def download_symbol_frames(
             auto_adjust=auto_adjust,
             timeout=timeout,
             retries=retries,
+            diagnostics=diagnostics,
         )
         for ticker in chunk:
             frame = _ticker_frame(history, ticker)
@@ -166,6 +176,7 @@ def download_symbol_frames(
                 interval=interval,
                 auto_adjust=auto_adjust,
                 timeout=timeout,
+                diagnostics=diagnostics,
             )
             if not frame.empty:
                 frames[ticker] = frame
@@ -186,6 +197,7 @@ def download_market_frames(
 ) -> tuple[dict[str, pd.DataFrame], dict[str, Any]]:
     """Download frames with diagnostics suitable for scanner health reporting."""
     symbols = list(dict.fromkeys(str(t).strip().upper() for t in tickers if str(t).strip()))
+    diagnostics: list[str] = []
     frames, missing = download_symbol_frames(
         symbols,
         period=period,
@@ -195,6 +207,7 @@ def download_market_frames(
         timeout=timeout,
         retries=retries,
         recover_missing=recover_missing,
+        diagnostics=diagnostics,
     )
     return frames, {
         "requested": len(symbols),
@@ -202,4 +215,5 @@ def download_market_frames(
         "missing": missing,
         "coverage_pct": round(len(frames) / len(symbols) * 100, 1) if symbols else 100.0,
         "complete": not missing,
+        "failure_diagnostics": list(dict.fromkeys(diagnostics)),
     }
