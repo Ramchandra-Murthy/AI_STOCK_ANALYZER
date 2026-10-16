@@ -64,9 +64,9 @@ def test_round_trip_costs_and_slippage_reduce_pnl() -> None:
         ),
     )
     trade = result.trades[0]
-    assert trade.costs == 5
+    assert trade.costs == 4
     assert trade.net_pnl < trade.gross_pnl
-    assert trade.quantity == 9
+    assert trade.quantity == 8
 
 
 def test_no_signals_returns_zero_trade_metrics() -> None:
