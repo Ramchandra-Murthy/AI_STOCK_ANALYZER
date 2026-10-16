@@ -127,15 +127,40 @@ if len(frame) < 2:
     st.error("The CSV must contain at least two data rows.")
     st.stop()
 
+signal_mode = st.radio(
+    "Entry signal method",
+    ("Use CSV signal column", "Generate daily Fibonacci-Gann signals"),
+    horizontal=True,
+    help="Generated signals use a transparent research rule based only on prior daily candles.",
+)
+lookback = 20
+if signal_mode == "Generate daily Fibonacci-Gann signals":
+    lookback = st.number_input(
+        "Prior candles used for swing range",
+        min_value=5,
+        max_value=120,
+        value=20,
+        step=1,
+        help="The current candle is excluded from the range used to calculate its signal.",
+    )
+    st.info(
+        "Research rule: use the preceding lookback bars to calculate the 38.2%-61.8% "
+        "Fibonacci retracement zone and Gann 5/8 level. A signal occurs when the prior "
+        "close is in the retracement zone and the current close crosses above 5/8. "
+        "The backtester enters no earlier than the next bar open. This is an unvalidated "
+        "hypothesis, not a proven profitable strategy."
+    )
+
 numeric_columns = ["open", "high", "low", "close"]
 for column in numeric_columns:
     frame[column] = pd.to_numeric(frame[column], errors="coerce")
-signal_text = frame["signal"].astype(str).str.strip().str.lower()
-signal_map = {"true": True, "false": False, "1": True, "0": False}
-if not signal_text.isin(signal_map).all():
-    st.error("The signal column must contain only true/false or 1/0 values.")
-    st.stop()
-frame["signal"] = signal_text.map(signal_map)
+if signal_mode == "Use CSV signal column":
+    signal_text = frame["signal"].astype(str).str.strip().str.lower()
+    signal_map = {"true": True, "false": False, "1": True, "0": False}
+    if not signal_text.isin(signal_map).all():
+        st.error("The signal column must contain only true/false or 1/0 values.")
+        st.stop()
+    frame["signal"] = signal_text.map(signal_map)
 frame["timestamp"] = frame["timestamp"].astype(str).str.strip()
 
 try:
@@ -153,7 +178,17 @@ except (TypeError, ValueError, AttributeError) as exc:
     st.error(f"Could not build OHLC candles: {exc}")
     st.stop()
 
-signals = tuple(bool(value) for value in frame["signal"].tolist())
+if signal_mode == "Generate daily Fibonacci-Gann signals":
+    from modules.fibonacci_gann.signals import generate_daily_fibonacci_gann_signals
+
+    try:
+        signals = generate_daily_fibonacci_gann_signals(candles, lookback=int(lookback))
+    except ValueError as exc:
+        st.error(f"Could not generate signals: {exc}")
+        st.stop()
+    frame["signal"] = signals
+else:
+    signals = tuple(bool(value) for value in frame["signal"].tolist())
 signal_count = sum(signals)
 st.caption(
     f"Loaded {len(candles):,} candles. Entry signals: {signal_count:,}; "
