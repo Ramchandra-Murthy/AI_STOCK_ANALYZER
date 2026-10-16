@@ -1,8 +1,8 @@
 """OHLC validation and freshness checks for the isolated Fibonacci/Gann lab."""
+from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from typing import Iterable
 
 
 @dataclass(frozen=True)
@@ -47,7 +47,7 @@ def validate_ohlc_bars(
     if not items:
         return DataQuality(False, ("no OHLC bars supplied",))
 
-    current = now or datetime.now(timezone.utc)
+    current = now or datetime.now(UTC)
     if current.tzinfo is None or current.utcoffset() is None:
         raise ValueError("now must be timezone-aware")
     if max_age < timedelta(0):
