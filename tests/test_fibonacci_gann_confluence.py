@@ -5,6 +5,7 @@ from decimal import Decimal
 import pytest
 
 from modules.fibonacci_gann.confluence import (
+    PriceLevel,
     calculate_levels,
     find_confluence_zones,
 )
@@ -83,3 +84,23 @@ def test_levels_exactly_at_tolerance_boundary_are_grouped() -> None:
     assert boundary_zone.low == Decimal("875.000")
     assert boundary_zone.high == Decimal("876.400")
     assert boundary_zone.distance == Decimal("1.400")
+
+
+def test_confluence_groups_do_not_chain_beyond_total_tolerance(monkeypatch) -> None:
+    levels = (
+        PriceLevel("test", "A", Decimal("100")),
+        PriceLevel("test", "B", Decimal("101")),
+        PriceLevel("test", "C", Decimal("102.1")),
+    )
+    monkeypatch.setattr(
+        "modules.fibonacci_gann.confluence.calculate_levels",
+        lambda _low, _high: levels,
+    )
+
+    zones = find_confluence_zones(1, 2, tolerance="1")
+
+    assert len(zones) == 1
+    assert [level.label for level in zones[0].levels] == ["A", "B"]
+    assert zones[0].low == Decimal("100")
+    assert zones[0].high == Decimal("101")
+    assert zones[0].distance == Decimal("1")
