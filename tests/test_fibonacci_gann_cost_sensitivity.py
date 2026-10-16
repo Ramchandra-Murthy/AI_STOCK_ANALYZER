@@ -40,7 +40,10 @@ def test_cost_sensitivity_runs_all_cost_and_slippage_combinations() -> None:
         ({"round_trip_costs": []}, "round_trip_costs must not be empty"),
         ({"slippage_per_side_values": []}, "slippage_per_side_values must not be empty"),
         ({"round_trip_costs": [-0.1]}, "round_trip_costs values must be finite and non-negative"),
-        ({"slippage_per_side_values": [float("nan")]}, "slippage_per_side_values values must be finite and non-negative"),
+        (
+            {"slippage_per_side_values": [float("nan")]},
+            "slippage_per_side_values values must be finite and non-negative",
+        ),
     ],
 )
 def test_rejects_invalid_sensitivity_values(kwargs: dict, message: str) -> None:
