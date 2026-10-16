@@ -4,6 +4,7 @@ A signal callback receives only the candle history available at that bar's close
 The existing backtester then enters no earlier than the following bar's open.
 This is a deterministic research aid, not evidence of a profitable strategy.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
