@@ -4,6 +4,7 @@ This module does not fetch market data or infer regimes. The caller must label
 historical windows (for example trending, sideways, volatile) using a documented
 rule before evaluation. Each window is backtested independently.
 """
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
