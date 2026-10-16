@@ -35,16 +35,85 @@ with st.expander("CSV format and signal timing", expanded=True):
         "trending, sideways, or volatile markets."
     )
 
-uploaded = st.file_uploader("Upload historical CSV", type=["csv"])
-if uploaded is None:
-    st.info("Upload a CSV to begin. No data is downloaded automatically.")
-    st.stop()
+data_source = st.radio(
+    "Historical data source",
+    ("Download daily history", "Upload CSV"),
+    horizontal=True,
+    help="Downloads use Yahoo Finance through yfinance and are unofficial. Verify prices independently.",
+)
 
-try:
-    frame = pd.read_csv(BytesIO(uploaded.getvalue()))
-except (UnicodeDecodeError, pd.errors.ParserError, ValueError) as exc:
-    st.error(f"Could not read the CSV: {exc}")
-    st.stop()
+if data_source == "Download daily history":
+    from datetime import date, timedelta
+    from tempfile import TemporaryDirectory
+
+    from scripts.make_research_csv import download_research_csv
+
+    st.markdown("#### Download historical OHLC")
+    st.caption(
+        "This downloads daily prices into the Research Lab CSV format. "
+        "It does not generate Fibonacci-Gann signals; every downloaded signal starts as false."
+    )
+    download_left, download_middle, download_right = st.columns(3)
+    with download_left:
+        symbol = st.text_input("Yahoo Finance symbol", value="RELIANCE.NS").strip()
+    with download_middle:
+        start_date = st.date_input("Start date", value=date.today() - timedelta(days=365 * 5))
+    with download_right:
+        end_date = st.date_input("End date (exclusive)", value=date.today())
+
+    if st.button("Download historical CSV", type="primary"):
+        if not symbol:
+            st.error("Enter a Yahoo Finance symbol, such as RELIANCE.NS or ^NSEI.")
+        elif start_date >= end_date:
+            st.error("Start date must be earlier than the end date.")
+        else:
+            try:
+                with TemporaryDirectory() as temp_dir:
+                    output_path = download_research_csv(
+                        symbol=symbol,
+                        start=start_date.isoformat(),
+                        end=end_date.isoformat(),
+                        output=f"{temp_dir}/research.csv",
+                    )
+                    csv_bytes = output_path.read_bytes()
+                st.session_state["fibonacci_gann_download_csv"] = csv_bytes
+                st.session_state["fibonacci_gann_download_name"] = (
+                    f"{symbol.replace('^', '').replace('.', '_')}_research.csv"
+                )
+                st.success(f"Downloaded and validated {len(pd.read_csv(BytesIO(csv_bytes))):,} daily rows.")
+            except Exception as exc:
+                st.error(
+                    "Historical download failed. Check the symbol, dates, and provider availability. "
+                    f"Details: {exc}"
+                )
+
+    csv_bytes = st.session_state.get("fibonacci_gann_download_csv")
+    csv_name = st.session_state.get("fibonacci_gann_download_name", "historical_research.csv")
+    if csv_bytes:
+        st.download_button(
+            "Save downloaded CSV",
+            data=csv_bytes,
+            file_name=csv_name,
+            mime="text/csv",
+        )
+        st.info(
+            "Before running a backtest, replace the placeholder false signals with signals from "
+            "your documented, causal strategy. The downloader does not calculate Fibonacci-Gann signals."
+        )
+        frame = pd.read_csv(BytesIO(csv_bytes))
+    else:
+        st.info("Choose a symbol and date range, then select Download historical CSV.")
+        st.stop()
+else:
+    uploaded = st.file_uploader("Upload historical CSV", type=["csv"])
+    if uploaded is None:
+        st.info("Upload a CSV to begin.")
+        st.stop()
+    try:
+        frame = pd.read_csv(BytesIO(uploaded.getvalue()))
+    except (UnicodeDecodeError, pd.errors.ParserError, ValueError) as exc:
+        st.error(f"Could not read the CSV: {exc}")
+        st.stop()
 
 frame.columns = [str(column).strip().lower() for column in frame.columns]
 required = {"timestamp", "open", "high", "low", "close", "signal"}
