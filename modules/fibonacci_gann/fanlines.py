@@ -62,4 +62,7 @@ def fibonacci_fanline_levels(
 
     move = float(extreme_price) - float(origin_price)
     time_fraction = float(elapsed_bars) / float(move_bars)
-    return {float(ratio): float(origin_price) + (move * (1.0 - float(ratio))) * time_fraction for ratio in ratio_values}
+    return {
+        float(ratio): float(origin_price) + (move * (1.0 - float(ratio))) * time_fraction
+        for ratio in ratio_values
+    }
