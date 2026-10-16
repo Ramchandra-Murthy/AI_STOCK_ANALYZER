@@ -32,9 +32,7 @@ def test_descending_interval_preserves_endpoint_order() -> None:
     ("start_bar", "end_bar"),
     [(3, 3), (float("nan"), 4), (2, float("inf")), (True, 5), (0, "10")],
 )
-def test_invalid_interval_endpoints_raise(
-    start_bar: int | float, end_bar: int | float
-) -> None:
+def test_invalid_interval_endpoints_raise(start_bar: int | float, end_bar: int | float) -> None:
     with pytest.raises(ValueError):
         gann_time_divisions(start_bar, end_bar)
 
