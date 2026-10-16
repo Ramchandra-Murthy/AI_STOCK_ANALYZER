@@ -13,6 +13,7 @@ This remains an isolated analysis-only module. It is not connected to Streamlit 
 - OHLC integrity and freshness checks reject empty, stale, future-dated, unordered, timezone-naive, or internally inconsistent candle data.
 - Confirmed swing detection requires both left- and right-side candles; the latest right-side window is not emitted as confirmed, reducing look-ahead bias. Equal highs/lows are excluded rather than arbitrarily selecting a plateau.
 - The confluence engine groups nearby calculated levels using an explicit absolute price tolerance. It reports the zone's low, high, midpoint, and contributing level family/labels. Single levels are not reported as confluence; exact overlaps can be found with zero tolerance.
+- An integration test validates a recent OHLC series, detects only confirmed pivots, then passes a confirmed low/high pair into confluence analysis. This is a test workflow only; no runtime pipeline or live-data connection is added.
 
 The 50% retracement is a commonly used market convention, not a Fibonacci ratio. Extension conventions differ between charting tools; this module explicitly uses the beyond-high formula documented above. Swing detection expects callers to validate their OHLC bars first. Confluence is descriptive geometry, not statistical evidence that a level will hold.
 
