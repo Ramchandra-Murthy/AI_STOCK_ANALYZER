@@ -29,8 +29,11 @@ def _positive_decimal(value: Price, name: str, *, allow_zero: bool = False) -> D
     except (ArithmeticError, ValueError) as exc:
         qualifier = "non-negative" if allow_zero else "positive"
         raise ValueError(f"{name} must be a finite {qualifier} value") from exc
+    if not result.is_finite():
+        qualifier = "non-negative" if allow_zero else "positive"
+        raise ValueError(f"{name} must be a finite {qualifier} value")
     invalid = result < 0 if allow_zero else result <= 0
-    if not result.is_finite() or invalid:
+    if invalid:
         qualifier = "non-negative" if allow_zero else "positive"
         raise ValueError(f"{name} must be a finite {qualifier} value")
     return result
