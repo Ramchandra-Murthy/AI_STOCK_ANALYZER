@@ -5,14 +5,13 @@ This module does not retrieve data, detect swings, size positions, or place orde
 """
 
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from modules.fibonacci_gann.levels import (
     Price,
     fibonacci_extensions,
     fibonacci_retracements,
     gann_eighths,
-    _decimal,
 )
 
 
@@ -69,9 +68,12 @@ def find_confluence_zones(
     highest member. Single levels are omitted; exact overlaps are included even
     when tolerance is zero. Results are deterministic and sorted by price.
     """
-    allowed_span = _decimal(tolerance, "tolerance") if Decimal(str(tolerance)) != 0 else Decimal(0)
-    if allowed_span < 0:
-        raise ValueError("tolerance must not be negative")
+    try:
+        allowed_span = Decimal(str(tolerance))
+    except (ArithmeticError, ValueError) as exc:
+        raise ValueError("tolerance must be a finite non-negative price distance") from exc
+    if not allowed_span.is_finite() or allowed_span < 0:
+        raise ValueError("tolerance must be a finite non-negative price distance")
 
     levels = calculate_levels(swing_low, swing_high)
     groups: list[list[PriceLevel]] = []
