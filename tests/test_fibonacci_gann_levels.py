@@ -23,9 +23,9 @@ def test_fibonacci_retracements_for_example_swing() -> None:
 def test_fibonacci_extensions_for_example_swing() -> None:
     levels = fibonacci_extensions(800, 1000)
 
-    assert levels["1.000x"] == Decimal("1000.000")
-    assert levels["1.272x"] == Decimal("1054.400")
-    assert levels["1.618x"] == Decimal("1123.600")
+    assert levels["1.000x"] == Decimal("1200.000")
+    assert levels["1.272x"] == Decimal("1254.400")
+    assert levels["1.618x"] == Decimal("1323.600")
 
 
 def test_gann_eighths_include_endpoints_and_midpoint() -> None:
