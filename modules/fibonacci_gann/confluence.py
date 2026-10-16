@@ -5,7 +5,7 @@ This module does not retrieve data, detect swings, size positions, or place orde
 """
 
 from dataclasses import dataclass
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from modules.fibonacci_gann.levels import (
     Price,
