@@ -1,0 +1,108 @@
+from __future__ import annotations
+
+import pytest
+
+from modules.fibonacci_gann.backtest import (
+    BacktestConfig,
+    Candle,
+    run_backtest,
+    validate_candles,
+)
+
+
+def candles_for_target() -> list[Candle]:
+    return [
+        Candle("2026-01-01T09:15", 100, 102, 99, 101),
+        Candle("2026-01-01T09:20", 101, 112, 100, 110),
+        Candle("2026-01-01T09:25", 110, 111, 109, 110),
+    ]
+
+
+def test_signal_enters_at_next_bar_open_and_target_exit() -> None:
+    result = run_backtest(
+        candles_for_target(),
+        [True, False, False],
+        BacktestConfig(capital=10_000, max_loss_per_trade=50, stop_distance=5),
+    )
+    assert len(result.trades) == 1
+    trade = result.trades[0]
+    assert trade.entry_timestamp == "2026-01-01T09:20"
+    assert trade.entry_price == 101
+    assert trade.exit_price == 111
+    assert trade.exit_reason == "target"
+    assert trade.quantity == 10
+    assert trade.net_pnl == 100
+    assert result.win_rate_pct == 100
+    assert result.expectancy_per_trade == 100
+
+
+def test_stop_wins_when_bar_touches_stop_and_target() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 101, 99, 100),
+        Candle("2026-01-01T09:20", 100, 111, 94, 100),
+    ]
+    result = run_backtest(
+        candles,
+        [True, False],
+        BacktestConfig(capital=10_000, max_loss_per_trade=50, stop_distance=5),
+    )
+    assert result.trades[0].exit_reason == "stop"
+    assert result.trades[0].exit_price == 95
+    assert result.trades[0].net_pnl == -50
+
+
+def test_round_trip_costs_and_slippage_reduce_pnl() -> None:
+    result = run_backtest(
+        candles_for_target(),
+        [True, False, False],
+        BacktestConfig(
+            capital=10_000,
+            max_loss_per_trade=50,
+            stop_distance=5,
+            round_trip_cost_per_unit=0.5,
+            slippage_per_unit_per_side=0.25,
+        ),
+    )
+    trade = result.trades[0]
+    assert trade.costs == 4
+    assert trade.net_pnl < trade.gross_pnl
+    assert trade.quantity == 8
+
+
+def test_no_signals_returns_zero_trade_metrics() -> None:
+    result = run_backtest(candles_for_target(), [False, False, False])
+    assert result.trades == ()
+    assert result.ending_capital == result.starting_capital
+    assert result.win_rate_pct == 0
+    assert result.expectancy_per_trade == 0
+    assert result.profit_factor == 0
+
+
+def test_rejects_signal_length_mismatch() -> None:
+    with pytest.raises(ValueError, match="signals length"):
+        run_backtest(candles_for_target(), [True])
+
+
+def test_rejects_unordered_candles() -> None:
+    candles = candles_for_target()
+    candles[1] = Candle("2025-12-31T09:20", 101, 112, 100, 110)
+    with pytest.raises(ValueError, match="strictly increasing"):
+        validate_candles(candles)
+
+
+def test_rejects_invalid_ohlc() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 99, 98, 100),
+        Candle("2026-01-01T09:20", 100, 101, 99, 100),
+    ]
+    with pytest.raises(ValueError, match="high/low"):
+        validate_candles(candles)
+
+
+def test_rejects_invalid_config() -> None:
+    with pytest.raises(ValueError, match="stop_distance"):
+        run_backtest(
+            candles_for_target(),
+            [False, False, False],
+            BacktestConfig(stop_distance=0),
+        )
