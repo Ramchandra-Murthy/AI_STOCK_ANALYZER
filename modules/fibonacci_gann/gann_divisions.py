@@ -23,24 +23,13 @@ def gann_price_divisions(
     preserve the supplied order, so descending ranges are supported too.
     """
     for name, value in (("range_start", range_start), ("range_end", range_end)):
-        if (
-            isinstance(value, bool)
-            or not isinstance(value, (int, float))
-            or not isfinite(value)
-        ):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value):
             raise ValueError(f"{name} must be a finite number")
     if range_start == range_end:
         raise ValueError("range_start and range_end must differ")
-    if (
-        isinstance(divisions, bool)
-        or not isinstance(divisions, int)
-        or divisions < 1
-    ):
+    if isinstance(divisions, bool) or not isinstance(divisions, int) or divisions < 1:
         raise ValueError("divisions must be a positive integer")
 
     start = float(range_start)
     span = float(range_end) - start
-    return {
-        index / divisions: start + span * index / divisions
-        for index in range(divisions + 1)
-    }
+    return {index / divisions: start + span * index / divisions for index in range(divisions + 1)}
