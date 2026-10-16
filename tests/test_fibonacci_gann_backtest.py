@@ -90,6 +90,40 @@ def test_rejects_unordered_candles() -> None:
         validate_candles(candles)
 
 
+def test_rejects_invalid_timestamp_format() -> None:
+    candles = candles_for_target()
+    candles[1] = Candle("not-a-timestamp", 101, 112, 100, 110)
+    with pytest.raises(ValueError, match="valid ISO 8601"):
+        validate_candles(candles)
+
+
+def test_rejects_mixed_timestamp_formats_that_sort_lexically_but_not_chronologically() -> None:
+    candles = [
+        Candle("2026-1-2", 100, 102, 99, 101),
+        Candle("2026-01-10", 101, 112, 100, 110),
+    ]
+    with pytest.raises(ValueError, match="valid ISO 8601"):
+        validate_candles(candles)
+
+
+def test_rejects_chronologically_unordered_iso_timestamps() -> None:
+    candles = [
+        Candle("2026-01-10T09:15:00", 100, 102, 99, 101),
+        Candle("2026-01-02T09:20:00", 101, 112, 100, 110),
+    ]
+    with pytest.raises(ValueError, match="strictly increasing"):
+        validate_candles(candles)
+
+
+def test_rejects_mixed_timezone_conventions() -> None:
+    candles = [
+        Candle("2026-01-01T09:15:00+05:30", 100, 102, 99, 101),
+        Candle("2026-01-01T09:20:00", 101, 112, 100, 110),
+    ]
+    with pytest.raises(ValueError, match="consistent timezone"):
+        validate_candles(candles)
+
+
 def test_rejects_invalid_ohlc() -> None:
     candles = [
         Candle("2026-01-01T09:15", 100, 99, 98, 100),
