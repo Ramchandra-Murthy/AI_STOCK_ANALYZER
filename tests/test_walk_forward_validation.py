@@ -19,7 +19,11 @@ def test_walk_forward_evaluates_sequential_non_overlapping_folds() -> None:
 
     assert result["fold"].tolist() == [1, 2, 3]
     assert result["observations"].tolist() == [4, 4, 4]
-    assert result["test_start"].tolist() == [str(index[10]), str(index[14]), str(index[18])]
+    assert result["test_start"].tolist() == [
+        str(index[10]),
+        str(index[14]),
+        str(index[18]),
+    ]
     assert (result["total_return"] > 0).all()
     assert {
         "annualized_volatility",
