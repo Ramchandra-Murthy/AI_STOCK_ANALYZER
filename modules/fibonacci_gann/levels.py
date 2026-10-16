@@ -1,7 +1,7 @@
 """Pure price-level calculations for Fibonacci and Gann analysis.
 
 The functions in this module are educational calculation helpers, not trade signals.
-They intentionally do not retrieve prices, detect pivots, or place orders.
+They intentionally do not retrieve market data, detect pivots, or place orders.
 """
 
 from decimal import Decimal
@@ -60,14 +60,14 @@ def fibonacci_extensions(
     swing_low: Price,
     swing_high: Price,
 ) -> dict[str, Decimal]:
-    """Return upside extension prices measured from the swing low-to-high range."""
+    """Return upside targets H + ratio * (H - L), using extension beyond the high."""
     low = _decimal(swing_low, "swing_low")
     high = _decimal(swing_high, "swing_high")
     if high <= low:
         raise ValueError("swing_high must be greater than swing_low")
     swing_range = high - low
     return {
-        f"{ratio:.3f}x": high + (ratio - Decimal("1")) * swing_range
+        f"{ratio:.3f}x": high + ratio * swing_range
         for ratio in FIBONACCI_EXTENSION_RATIOS
     }
 
@@ -79,7 +79,4 @@ def gann_eighths(swing_low: Price, swing_high: Price) -> dict[str, Decimal]:
     if high <= low:
         raise ValueError("swing_high must be greater than swing_low")
     step = (high - low) / Decimal("8")
-    return {
-        f"{index}/8": low + step * index
-        for index in range(9)
-    }
+    return {f"{index}/8": low + step * index for index in range(9)}
