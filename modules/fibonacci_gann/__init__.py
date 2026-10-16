@@ -9,6 +9,8 @@ from modules.fibonacci_gann.confluence import (
     calculate_levels,
     find_confluence_zones,
 )
+from modules.fibonacci_gann.gann_divisions import gann_price_divisions
+from modules.fibonacci_gann.gann_time_divisions import gann_time_divisions
 from modules.fibonacci_gann.levels import (
     fibonacci_extensions,
     fibonacci_retracements,
@@ -32,5 +34,7 @@ __all__ = [
     "fibonacci_retracements",
     "find_confluence_zones",
     "gann_eighths",
+    "gann_price_divisions",
+    "gann_time_divisions",
     "validate_ohlc_bars",
 ]
