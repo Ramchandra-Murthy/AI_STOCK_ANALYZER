@@ -1,4 +1,5 @@
 """Tests for the isolated, leakage-resistant Fibonacci/Gann validation harness."""
+
 import pytest
 
 from modules.fibonacci_gann.backtest import BacktestConfig, Candle
@@ -61,9 +62,7 @@ def test_rejects_empty_or_duplicate_case_names(fixed_candles):
     config = BacktestConfig()
 
     with pytest.raises(ValueError, match="non-empty"):
-        evaluate_parameter_sensitivity(
-            fixed_candles, (ValidationCase(" ", config),), signal
-        )
+        evaluate_parameter_sensitivity(fixed_candles, (ValidationCase(" ", config),), signal)
     with pytest.raises(ValueError, match="unique"):
         evaluate_parameter_sensitivity(
             fixed_candles,
