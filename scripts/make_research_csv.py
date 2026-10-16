@@ -9,6 +9,7 @@ This utility downloads prices only. It does not generate Fibonacci-Gann signals.
 The signal column is initialized to False and must be populated using a documented,
 causal strategy before the CSV is used to evaluate a strategy.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -74,9 +75,7 @@ def download_research_csv(
 
     # Placeholder only: no strategy signals are inferred from price data.
     result["signal"] = False
-    output_path = Path(
-        output or f"{symbol.replace('^', '').replace('.', '_')}_research.csv"
-    )
+    output_path = Path(output or f"{symbol.replace('^', '').replace('.', '_')}_research.csv")
     result.to_csv(output_path, index=False)
     return output_path
 
@@ -96,7 +95,9 @@ def main() -> None:
 
     result = pd.read_csv(output)
     print(f"Saved {len(result)} daily rows to {output.resolve()}")
-    print("IMPORTANT: signal is False for every row; add actual strategy signals before backtesting.")
+    print(
+        "IMPORTANT: signal is False for every row; add actual strategy signals before backtesting."
+    )
     print(result.head().to_string(index=False))
 
 
