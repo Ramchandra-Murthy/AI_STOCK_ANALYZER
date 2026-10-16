@@ -3,6 +3,7 @@
 Signals are evaluated at a bar close and can only enter at the next bar's open.
 This module is a research harness, not a trade recommendation or execution system.
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
