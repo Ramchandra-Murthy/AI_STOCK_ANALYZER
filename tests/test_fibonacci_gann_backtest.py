@@ -106,3 +106,28 @@ def test_rejects_invalid_config() -> None:
             [False, False, False],
             BacktestConfig(stop_distance=0),
         )
+
+
+def test_position_sizing_uses_remaining_realized_equity() -> None:
+    candles = [
+        Candle("2026-01-01", 100, 101, 99, 100),
+        Candle("2026-01-02", 100, 101, 94, 95),
+        Candle("2026-01-03", 100, 101, 99, 100),
+        Candle("2026-01-04", 100, 101, 99, 100),
+        Candle("2026-01-05", 100, 101, 99, 100),
+    ]
+    result = run_backtest(
+        candles,
+        [True, False, True, False, False],
+        BacktestConfig(
+            capital=1000,
+            max_loss_per_trade=500,
+            stop_distance=5,
+            reward_risk_ratio=2,
+        ),
+    )
+
+    assert len(result.trades) == 2
+    assert result.trades[0].quantity == 10
+    assert result.trades[0].net_pnl == -50
+    assert result.trades[1].quantity == 9
