@@ -80,7 +80,9 @@ if data_source == "Download daily history":
                 st.session_state["fibonacci_gann_download_name"] = (
                     f"{symbol.replace('^', '').replace('.', '_')}_research.csv"
                 )
-                st.success(f"Downloaded and validated {len(pd.read_csv(BytesIO(csv_bytes))):,} daily rows.")
+                st.success(
+                    f"Downloaded and validated {len(pd.read_csv(BytesIO(csv_bytes))):,} daily rows."
+                )
             except Exception as exc:
                 st.error(
                     "Historical download failed. Check the symbol, dates, and provider availability. "
