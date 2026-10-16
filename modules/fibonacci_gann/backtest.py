@@ -95,8 +95,10 @@ def run_backtest(
 
     Signals are known only after their bar closes; entry is at the next bar open.
     If stop and target are both touched in one bar, stop is assumed first. Gaps
-    through stops fill at the bar open. Slippage is charged adversely on both
-    sides; caller supplies round-trip fees/taxes per unit.
+    through stops fill at the bar open and can exceed the planned loss budget.
+    Slippage is charged adversely on both sides; caller supplies round-trip
+    fees/taxes per unit. Position notional is capped by current realized equity.
+    Drawdown is measured from closed-trade equity, not intratrade mark-to-market.
     """
     if config is None:
         config = BacktestConfig()
@@ -142,8 +144,11 @@ def run_backtest(
             + 2 * config.slippage_per_unit_per_side
             + config.round_trip_cost_per_unit
         )
+        # Never size a new position from the initial deposit after losses.
+        # This caps notional exposure to current realized equity, but cannot
+        # guarantee the stop-loss budget during a gap or extreme slippage.
         quantity_by_risk = int(config.max_loss_per_trade // per_unit_risk)
-        quantity_by_capital = int(config.capital // entry_price)
+        quantity_by_capital = int(max(0.0, equity) // entry_price)
         quantity = min(quantity_by_risk, quantity_by_capital)
         if quantity < 1:
             index = entry_bar_index + 1
