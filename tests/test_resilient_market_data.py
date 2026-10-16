@@ -125,3 +125,27 @@ def test_download_symbol_frames_can_report_missing_without_single_recovery(
 
     assert frames == {}
     assert missing == ["AAA.NS", "BBB.NS"]
+
+
+def test_download_market_frames_reports_safe_failure_diagnostics(monkeypatch) -> None:
+    monkeypatch.setattr(
+        market_data,
+        "_download_batch",
+        lambda *_args, diagnostics=None, **_kwargs: (
+            diagnostics.append("batch request returned no rows") if diagnostics is not None else None
+        ) or pd.DataFrame(),
+    )
+
+    frames, diagnostics = market_data.download_market_frames(
+        ["AAA.NS"],
+        period="1d",
+        interval="1m",
+        recover_missing=False,
+    )
+
+    assert frames == {}
+    assert diagnostics["requested"] == 1
+    assert diagnostics["usable"] == 0
+    assert diagnostics["missing"] == ["AAA.NS"]
+    assert diagnostics["complete"] is False
+    assert diagnostics["failure_diagnostics"] == ["batch request returned no rows"]
