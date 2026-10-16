@@ -46,9 +46,7 @@ def gann_angle_levels(
     if not slope_values:
         raise ValueError("at least one slope is required")
     if any(
-        isinstance(slope, bool)
-        or not isinstance(slope, (int, float))
-        or not isfinite(slope)
+        isinstance(slope, bool) or not isinstance(slope, (int, float)) or not isfinite(slope)
         for slope in slope_values
     ):
         raise ValueError("slopes must be finite numbers")
@@ -56,7 +54,4 @@ def gann_angle_levels(
         raise ValueError("slopes must be unique")
 
     bar_delta = target_bar - anchor_bar
-    return {
-        float(slope): float(anchor_price) + float(slope) * bar_delta
-        for slope in slope_values
-    }
+    return {float(slope): float(anchor_price) + float(slope) * bar_delta for slope in slope_values}
