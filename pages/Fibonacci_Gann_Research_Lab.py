@@ -233,6 +233,19 @@ base_config = BacktestConfig(
     round_trip_cost_per_unit=round_trip_cost,
     slippage_per_unit_per_side=slippage,
 )
+
+if round_trip_cost == 0 or slippage == 0:
+    st.warning(
+        "Cost assumptions are incomplete: "
+        + ("round-trip fees/taxes are set to zero. " if round_trip_cost == 0 else "")
+        + ("slippage is set to zero. " if slippage == 0 else "")
+        + "Use realistic values before interpreting performance."
+    )
+st.caption(
+    "Risk note: the ₹ maximum-loss setting is a planned stop-risk budget, not a guaranteed cap. "
+    "Gaps through stops can cause larger losses. Reported maximum drawdown uses closed-trade equity "
+    "and does not measure intratrade drawdown."
+)
 if st.button("Run research analysis", type="primary"):
     try:
         baseline = run_backtest(candles, signals, base_config)
