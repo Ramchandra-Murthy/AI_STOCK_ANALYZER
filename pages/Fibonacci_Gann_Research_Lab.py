@@ -83,24 +83,28 @@ except (TypeError, ValueError, AttributeError) as exc:
     st.stop()
 
 signals = tuple(bool(value) for value in frame["signal"].tolist())
-st.caption(f"Loaded {len(candles):,} candles. Verify timestamps, signal generation, and data source.")
+st.caption(
+    f"Loaded {len(candles):,} candles. Verify timestamps, signal generation, and data source."
+)
 st.dataframe(frame.head(10), use_container_width=True, hide_index=True)
 
 st.subheader("Backtest assumptions")
 left, middle, right = st.columns(3)
 with left:
     capital = st.number_input("Starting capital (₹)", min_value=1000.0, value=10000.0, step=1000.0)
-    max_loss = st.number_input("Maximum loss budget per trade (₹)", min_value=1.0, value=500.0, step=50.0)
+    max_loss = st.number_input(
+        "Maximum loss budget per trade (₹)", min_value=1.0, value=500.0, step=50.0
+    )
 with middle:
-    stop_distance = st.number_input("Stop distance (price units)", min_value=0.01, value=5.0, step=0.5)
+    stop_distance = st.number_input(
+        "Stop distance (price units)", min_value=0.01, value=5.0, step=0.5
+    )
     reward_risk = st.number_input("Reward/risk ratio", min_value=0.1, value=2.0, step=0.1)
 with right:
     round_trip_cost = st.number_input(
         "Round-trip cost per unit (₹)", min_value=0.0, value=0.0, step=0.1
     )
-    slippage = st.number_input(
-        "Slippage per unit per side (₹)", min_value=0.0, value=0.0, step=0.1
-    )
+    slippage = st.number_input("Slippage per unit per side (₹)", min_value=0.0, value=0.0, step=0.1)
 
 base_config = BacktestConfig(
     capital=capital,
