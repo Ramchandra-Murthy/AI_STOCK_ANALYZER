@@ -126,9 +126,7 @@ def test_walk_forward_rejects_duplicate_signal_timestamps() -> None:
 
 def test_walk_forward_sorts_unordered_price_and_signal_indexes() -> None:
     index = pd.date_range("2024-01-01", periods=22, freq="D")
-    prices = pd.Series([100.0 + i for i in range(22)], index=index).sample(
-        frac=1.0, random_state=7
-    )
+    prices = pd.Series([100.0 + i for i in range(22)], index=index).sample(frac=1.0, random_state=7)
     signals = pd.Series(1.0, index=index).sample(frac=1.0, random_state=11)
 
     result = walk_forward_evaluate(
