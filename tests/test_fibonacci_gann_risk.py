@@ -52,4 +52,6 @@ def test_rejects_trade_when_one_unit_exceeds_risk_limit() -> None:
 
 def test_decimal_inputs_are_preserved() -> None:
     result = calculate_position_size(Decimal("10.5"), Decimal("10"), capital=100, max_loss=5)
-    assert result.estimated_loss == Decimal("5.0")
+    assert result.estimated_loss == Decimal("4.5")
+    assert result.estimated_loss <= result.risk_limit
+    assert result.quantity == 9
