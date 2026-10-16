@@ -1,4 +1,5 @@
 """Tests for conservative Fibonacci/Gann position sizing."""
+
 from decimal import Decimal
 
 import pytest
@@ -7,7 +8,9 @@ from modules.fibonacci_gann.risk import calculate_position_size
 
 
 def test_size_respects_risk_and_capital_limits() -> None:
-    result = calculate_position_size("100", "95", capital="10000", max_loss="500", cost_per_unit="1")
+    result = calculate_position_size(
+        "100", "95", capital="10000", max_loss="500", cost_per_unit="1"
+    )
     assert result.quantity == 83
     assert result.estimated_loss == Decimal("498")
     assert result.capital_required == Decimal("8300")
