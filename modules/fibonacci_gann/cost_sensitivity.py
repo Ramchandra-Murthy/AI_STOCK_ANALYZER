@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from math import isfinite
-from collections.abc import Sequence
 
 from modules.fibonacci_gann.backtest import (
     BacktestConfig,
