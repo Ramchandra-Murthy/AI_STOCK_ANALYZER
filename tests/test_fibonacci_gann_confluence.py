@@ -1,4 +1,4 @@
-""""Tests for deterministic Fibonacci/Gann confluence analysis."""
+"""Tests for deterministic Fibonacci/Gann confluence analysis."""
 
 from decimal import Decimal
 
