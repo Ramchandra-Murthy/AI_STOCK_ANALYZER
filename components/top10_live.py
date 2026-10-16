@@ -18,6 +18,7 @@ from services.dhan_live_provider import dhan_provider_enabled, download_dhan_sym
 from services.resilient_market_data import download_symbol_frames
 
 TOP10_REFRESH_SECONDS = 60
+TOP10_UI_POLL_SECONDS = 2
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 20
@@ -700,7 +701,7 @@ def _consume_background_scan() -> tuple[pd.DataFrame, float, int, int] | None:
         return _SCAN_RESULT
 
 
-@st.fragment(run_every=f"{TOP10_REFRESH_SECONDS}s")
+@st.fragment(run_every=f"{TOP10_UI_POLL_SECONDS}s")
 def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> None:
     """Render a live Top-10 scanner while refresh work runs in the background."""
     del period, interval
