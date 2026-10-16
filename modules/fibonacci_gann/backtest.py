@@ -201,8 +201,8 @@ def run_backtest(
         total_return_pct=(equity / config.capital - 1) * 100,
         win_rate_pct=(len(winners) / len(trades) * 100) if trades else 0.0,
         expectancy_per_trade=(sum(pnls) / len(pnls)) if pnls else 0.0,
-        profit_factor=(gross_wins / gross_losses)
-        if gross_losses
-        else (float("inf") if gross_wins else 0.0),
+        profit_factor=(
+            (gross_wins / gross_losses) if gross_losses else (float("inf") if gross_wins else 0.0)
+        ),
         max_drawdown_pct=max_drawdown * 100,
     )
