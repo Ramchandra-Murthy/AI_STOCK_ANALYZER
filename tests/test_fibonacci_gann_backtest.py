@@ -107,8 +107,6 @@ def test_rejects_invalid_config() -> None:
             BacktestConfig(stop_distance=0),
         )
 
-
-
 def test_position_sizing_uses_remaining_realized_equity() -> None:
     candles = [
         Candle("2026-01-01", 100, 101, 99, 100),
