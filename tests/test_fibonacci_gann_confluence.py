@@ -1,4 +1,4 @@
-""""Tests for deterministic Fibonacci/Gann confluence analysis."""
+"""Tests for deterministic Fibonacci/Gann confluence analysis."""
 
 from decimal import Decimal
 
@@ -57,7 +57,10 @@ def test_invalid_tolerance_is_rejected(tolerance: object) -> None:
         find_confluence_zones(800, 1000, tolerance=tolerance)  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize(("low", "high"), [(0, 100), (100, 100), (200, 100), ("NaN", 100), (100, "Infinity")])
+@pytest.mark.parametrize(
+    ("low", "high"),
+    [(0, 100), (100, 100), (200, 100), ("NaN", 100), (100, "Infinity")],
+)
 def test_invalid_swing_is_rejected(low: int | str, high: int | str) -> None:
     with pytest.raises(ValueError):
         find_confluence_zones(low, high)
