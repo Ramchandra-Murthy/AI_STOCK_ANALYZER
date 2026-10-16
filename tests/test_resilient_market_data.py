@@ -132,8 +132,11 @@ def test_download_market_frames_reports_safe_failure_diagnostics(monkeypatch) ->
         market_data,
         "_download_batch",
         lambda *_args, diagnostics=None, **_kwargs: (
-            diagnostics.append("batch request returned no rows") if diagnostics is not None else None
-        ) or pd.DataFrame(),
+            diagnostics.append("batch request returned no rows")
+            if diagnostics is not None
+            else None
+        )
+        or pd.DataFrame(),
     )
 
     frames, diagnostics = market_data.download_market_frames(
