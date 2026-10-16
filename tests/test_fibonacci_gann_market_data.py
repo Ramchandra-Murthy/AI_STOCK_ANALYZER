@@ -1,4 +1,5 @@
 """Tests for OHLC integrity and freshness validation."""
+
 from datetime import UTC, datetime, timedelta
 
 from modules.fibonacci_gann.market_data import OHLCBar, validate_ohlc_bars
@@ -46,9 +47,7 @@ def test_unordered_timestamps_fail() -> None:
 
 def test_invalid_ohlc_geometry_fails() -> None:
     invalid = OHLCBar(bar(0).timestamp, 10, 10, 9, 11)
-    result = validate_ohlc_bars(
-        [invalid], now=datetime(2026, 10, 16, 10, 1, tzinfo=UTC)
-    )
+    result = validate_ohlc_bars([invalid], now=datetime(2026, 10, 16, 10, 1, tzinfo=UTC))
     assert not result.valid
     assert any("inconsistent OHLC" in reason for reason in result.reasons)
 
