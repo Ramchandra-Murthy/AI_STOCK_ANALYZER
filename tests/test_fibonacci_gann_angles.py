@@ -39,7 +39,10 @@ def test_invalid_bar_indices_raise(bar: object) -> None:
         gann_angle_levels(100.0, bar, 2)  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize("slopes", [(), (1.0, 1.0), (float("inf"),), (float("nan"),), (True,), ("1",)])
+@pytest.mark.parametrize(
+    "slopes",
+    [(), (1.0, 1.0), (float("inf"),), (float("nan"),), (True,), ("1",)],
+)
 def test_invalid_slopes_raise(slopes: tuple[object, ...]) -> None:
     with pytest.raises(ValueError):
         gann_angle_levels(100.0, 0, 1, slopes=slopes)  # type: ignore[arg-type]
