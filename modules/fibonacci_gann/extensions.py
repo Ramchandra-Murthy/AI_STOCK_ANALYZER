@@ -11,8 +11,8 @@ These levels are descriptive research references, not forecasts or trade advice.
 
 from __future__ import annotations
 
-from math import isfinite
 from collections.abc import Iterable
+from math import isfinite
 
 DEFAULT_EXTENSION_RATIOS: tuple[float, ...] = (1.0, 1.318, 1.5, 1.618, 2.0, 2.618)
 
@@ -32,8 +32,13 @@ def fibonacci_extension_levels(
     non-zero. Ratios must be finite, positive, and unique.
     """
     anchors = (impulse_start, impulse_end, pullback_end)
-    if not all(isinstance(value, (int, float)) and not isinstance(value, bool)
-               and isfinite(value) and value > 0 for value in anchors):
+    if not all(
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and isfinite(value)
+        and value > 0
+        for value in anchors
+    ):
         raise ValueError("anchors must be finite, positive prices")
     impulse = float(impulse_end) - float(impulse_start)
     if impulse == 0:
