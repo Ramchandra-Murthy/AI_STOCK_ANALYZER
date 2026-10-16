@@ -4,7 +4,7 @@ Costs are caller-supplied estimates per unit for the complete trade (fees plus
 slippage). This helper is educational and does not submit or recommend orders.
 """
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_FLOOR
+from decimal import ROUND_FLOOR, Decimal
 
 from modules.fibonacci_gann.levels import Price
 
