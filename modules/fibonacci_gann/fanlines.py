@@ -33,9 +33,7 @@ def fibonacci_fanline_levels(
     """
     values = (origin_price, extreme_price, elapsed_bars, move_bars)
     if any(
-        isinstance(value, bool)
-        or not isinstance(value, (int, float))
-        or not isfinite(value)
+        isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value)
         for value in values
     ):
         raise ValueError("prices and bar counts must be finite numbers")
@@ -64,8 +62,4 @@ def fibonacci_fanline_levels(
 
     move = float(extreme_price) - float(origin_price)
     time_fraction = float(elapsed_bars) / float(move_bars)
-    return {
-        float(ratio): float(origin_price)
-        + (move * (1.0 - float(ratio))) * time_fraction
-        for ratio in ratio_values
-    }
+    return {float(ratio): float(origin_price) + (move * (1.0 - float(ratio))) * time_fraction for ratio in ratio_values}
