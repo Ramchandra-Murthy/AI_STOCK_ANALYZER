@@ -61,17 +61,22 @@ def evaluate_regime_robustness(
         windows.append((start, end, name))
 
     ordered = sorted(windows)
-    for previous, current in zip(ordered, ordered[1:]):
+    for previous, current in zip(ordered, ordered[1:], strict=False):
         if current[0] < previous[1]:
             raise ValueError("regime windows must not overlap")
 
     results: list[RegimeResult] = []
     for start, end, name in sorted(windows, key=lambda item: item[0]):
         result = run_backtest(tuple(candles[start:end]), tuple(signals[start:end]), config)
-        if not all(isfinite(value) for value in (
-            result.total_return_pct, result.max_drawdown_pct,
-            result.win_rate_pct, result.expectancy_per_trade,
-        )):
+        if not all(
+            isfinite(value)
+            for value in (
+                result.total_return_pct,
+                result.max_drawdown_pct,
+                result.win_rate_pct,
+                result.expectancy_per_trade,
+            )
+        ):
             raise ValueError(f"regime {name!r} produced non-finite performance metrics")
         results.append(RegimeResult(name, start, end, end - start, result))
     return tuple(results)
