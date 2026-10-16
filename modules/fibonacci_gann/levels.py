@@ -50,8 +50,7 @@ def fibonacci_retracements(
         raise ValueError("swing_high must be greater than swing_low")
     swing_range = high - low
     return {
-        f"{ratio * 100:.1f}%": high - ratio * swing_range
-        for ratio in FIBONACCI_RETRACEMENT_RATIOS
+        f"{ratio * 100:.1f}%": high - ratio * swing_range for ratio in FIBONACCI_RETRACEMENT_RATIOS
     }
 
 
@@ -65,10 +64,7 @@ def fibonacci_extensions(
     if high <= low:
         raise ValueError("swing_high must be greater than swing_low")
     swing_range = high - low
-    return {
-        f"{ratio:.3f}x": high + ratio * swing_range
-        for ratio in FIBONACCI_EXTENSION_RATIOS
-    }
+    return {f"{ratio:.3f}x": high + ratio * swing_range for ratio in FIBONACCI_EXTENSION_RATIOS}
 
 
 def gann_eighths(swing_low: Price, swing_high: Price) -> dict[str, Decimal]:
