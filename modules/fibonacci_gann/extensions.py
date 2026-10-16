@@ -58,7 +58,4 @@ def fibonacci_extension_levels(
     if len(set(ratio_values)) != len(ratio_values):
         raise ValueError("extension ratios must be unique")
 
-    return {
-        float(ratio): float(pullback_end) + impulse * float(ratio)
-        for ratio in ratio_values
-    }
+    return {float(ratio): float(pullback_end) + impulse * float(ratio) for ratio in ratio_values}
