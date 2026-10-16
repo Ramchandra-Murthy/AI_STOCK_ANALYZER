@@ -24,11 +24,7 @@ def gann_time_divisions(
     can be fractional when the interval is not evenly divisible into whole bars.
     """
     for name, value in (("start_bar", start_bar), ("end_bar", end_bar)):
-        if (
-            isinstance(value, bool)
-            or not isinstance(value, (int, float))
-            or not isfinite(value)
-        ):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value):
             raise ValueError(f"{name} must be a finite number")
     if start_bar == end_bar:
         raise ValueError("start_bar and end_bar must differ")
@@ -37,7 +33,4 @@ def gann_time_divisions(
 
     start = float(start_bar)
     span = float(end_bar) - start
-    return {
-        index / divisions: start + span * index / divisions
-        for index in range(divisions + 1)
-    }
+    return {index / divisions: start + span * index / divisions for index in range(divisions + 1)}
