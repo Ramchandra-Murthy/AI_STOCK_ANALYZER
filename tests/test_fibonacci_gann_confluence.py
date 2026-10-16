@@ -1,4 +1,4 @@
-"""Tests for deterministic Fibonacci/Gann confluence analysis."""
+""""Tests for deterministic Fibonacci/Gann confluence analysis."""
 
 from decimal import Decimal
 
@@ -69,3 +69,16 @@ def test_zone_order_and_contents_are_deterministic() -> None:
 
     assert first == second
     assert [zone.low for zone in first] == sorted(zone.low for zone in first)
+
+
+def test_levels_exactly_at_tolerance_boundary_are_grouped() -> None:
+    zones = find_confluence_zones(800, 1000, tolerance="1.4")
+
+    boundary_zone = next(
+        zone
+        for zone in zones
+        if {level.label for level in zone.levels} >= {"61.8%", "3/8"}
+    )
+    assert boundary_zone.low == Decimal("875.000")
+    assert boundary_zone.high == Decimal("876.400")
+    assert boundary_zone.distance == Decimal("1.400")
