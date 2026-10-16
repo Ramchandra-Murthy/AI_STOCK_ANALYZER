@@ -702,3 +702,9 @@ def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> N
     assert valid_quotes == 1
     assert result["Symbol"].tolist() == [tickers[0].rsplit(".", 1)[0]]
     assert result["Last candle"].tolist() == [top10_live._format_candle_time(fresh_timestamp)]
+
+
+def test_top10_background_refresh_is_polled_faster_than_scan_interval() -> None:
+    assert top10_live.TOP10_UI_POLL_SECONDS < top10_live.TOP10_REFRESH_SECONDS
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert '@st.fragment(run_every=f"{TOP10_UI_POLL_SECONDS}s")' in source
