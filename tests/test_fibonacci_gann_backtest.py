@@ -136,7 +136,8 @@ def test_position_sizing_uses_remaining_realized_equity() -> None:
 def test_target_gap_fills_at_open_not_unreachable_target() -> None:
     candles = [
         Candle("2026-01-01T09:15", 100, 101, 99, 100),
-        Candle("2026-01-01T09:20", 100, 120, 115, 118),
+        Candle("2026-01-01T09:20", 100, 102, 99, 101),
+        Candle("2026-01-01T09:25", 115, 120, 114, 118),
     ]
     result = run_backtest(
         candles,
