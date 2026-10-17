@@ -355,8 +355,9 @@ if st.button("Run research analysis", type="primary"):
             window = tuple(history[-(int(lookback) + 1) :])
             if len(window) <= int(lookback):
                 return False
-            return generate_daily_fibonacci_gann_signals(window,
-                lookback=int(lookback))[-1]
+            return generate_daily_fibonacci_gann_signals(
+                window, lookback=int(lookback)
+            )[-1]
 
         try:
             folds = evaluate_walk_forward(
