@@ -192,12 +192,8 @@ def run_backtest(
             liquidation_cost_per_unit = (
                 config.slippage_per_unit_per_side + config.round_trip_cost_per_unit
             )
-            high_equity = equity + (
-                bar.high - entry_price - liquidation_cost_per_unit
-            ) * quantity
-            low_equity = equity + (
-                bar.low - entry_price - liquidation_cost_per_unit
-            ) * quantity
+            high_equity = equity + (bar.high - entry_price - liquidation_cost_per_unit) * quantity
+            low_equity = equity + (bar.low - entry_price - liquidation_cost_per_unit) * quantity
             mark_to_market_peak_equity = max(mark_to_market_peak_equity, high_equity)
             if mark_to_market_peak_equity > 0:
                 max_intratrade_drawdown = max(
