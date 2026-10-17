@@ -568,7 +568,9 @@ def _download_top10_frames(
     if dhan_provider_enabled():
         dhan_frames, dhan_missing = download_dhan_symbol_frames(tickers, interval=1)
         if dhan_missing:
-            _PROVIDER_DIAGNOSTICS.append(f"Dhan returned no usable data for {len(dhan_missing)} symbol(s)")
+            _PROVIDER_DIAGNOSTICS.append(
+                f"Dhan returned no usable data for {len(dhan_missing)} symbol(s)"
+            )
         if not dhan_missing:
             return dhan_frames, [], "Dhan"
         yahoo_frames, yahoo_missing = download_symbol_frames(
