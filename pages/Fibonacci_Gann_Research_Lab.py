@@ -291,7 +291,10 @@ if st.button("Run research analysis", type="primary"):
         if signal_mode == "Generate daily Fibonacci-Gann signals":
             from modules.fibonacci_gann.parameter_sensitivity import build_parameter_grid
             from modules.fibonacci_gann.signals import generate_daily_fibonacci_gann_signals
+            from modules.fibonacci_gann.trend_filter import apply_sma_trend_filter
 
+            sma200_signals = apply_sma_trend_filter(candles, signals, period=200)
+            sma200_result = run_backtest(candles, sma200_signals, base_config)
             grid_cases = build_parameter_grid(base_config)
             sensitivity = []
             for case in grid_cases:
@@ -331,6 +334,34 @@ if st.button("Run research analysis", type="primary"):
     except (ValueError, TypeError, OverflowError) as exc:
         st.error(f"Analysis could not be completed: {exc}")
         st.stop()
+
+    if signal_mode == "Generate daily Fibonacci-Gann signals":
+        st.subheader("200-day SMA trend-filter comparison")
+        st.caption(
+            "Research-only comparison using the same OHLC data, costs, position sizing, and "
+            "backtest settings. The filtered variant retains a signal only when that bar closes "
+            "above its trailing 200-day simple moving average; signals before 200 closes are "
+            "suppressed. Entry remains no earlier than the following bar open. This full-period "
+            "comparison is exploratory/in-sample, not evidence of profitability."
+        )
+        trend_rows = []
+        for label, result in (("Baseline", baseline), ("Close above SMA 200", sma200_result)):
+            trend_rows.append(
+                {
+                    "Variant": label,
+                    "Trades": len(result.trades),
+                    "Ending capital (₹)": round(result.ending_capital, 2),
+                    "Return (%)": round(result.total_return_pct, 2),
+                    "Realized max drawdown (%)": round(result.max_drawdown_pct, 2),
+                    "Max intratrade drawdown (%)": round(result.max_intratrade_drawdown_pct, 2),
+                    "Win rate (%)": round(result.win_rate_pct, 2),
+                    "Expectancy/trade (₹)": round(result.expectancy_per_trade, 2),
+                    "Profit factor": (
+                        round(result.profit_factor, 3) if isfinite(result.profit_factor) else "∞"
+                    ),
+                }
+            )
+        st.dataframe(pd.DataFrame(trend_rows), use_container_width=True, hide_index=True)
 
     st.subheader("Baseline result")
     if signal_count > 0 and not baseline.trades:
