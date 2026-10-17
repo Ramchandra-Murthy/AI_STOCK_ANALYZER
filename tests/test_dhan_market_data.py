@@ -177,8 +177,9 @@ def test_dhan_environment_credentials_take_precedence_over_streamlit_secrets(mon
     assert credentials.access_token == "environment-token"
 
 def test_dhan_network_error_does_not_expose_exception_text(monkeypatch):
-    import services.dhan_market_data as module
     from urllib.error import URLError
+
+    import services.dhan_market_data as module
 
     secret_marker = "secret-token-must-not-appear"
 
