@@ -208,3 +208,21 @@ def test_target_gap_fills_at_open_not_unreachable_target() -> None:
     assert trade.exit_price == 115
     assert trade.exit_reason == "target_gap"
     assert trade.net_pnl == 150
+
+
+def test_intratrade_drawdown_captures_adverse_excursion_before_stop_exit() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 101, 99, 100),
+        # Both target and stop are touched; the simulator conservatively exits at stop.
+        # Intratrade drawdown must still reflect the bar's adverse low after its high.
+        Candle("2026-01-01T09:20", 100, 111, 80, 95),
+    ]
+    result = run_backtest(
+        candles,
+        [True, False],
+        BacktestConfig(capital=1000, max_loss_per_trade=50, stop_distance=5),
+    )
+
+    assert result.max_intratrade_drawdown_pct > result.max_drawdown_pct
+    assert result.max_intratrade_drawdown_pct > 10
+
