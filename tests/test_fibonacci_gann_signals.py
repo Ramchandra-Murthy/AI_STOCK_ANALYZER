@@ -48,3 +48,17 @@ def test_rejects_unordered_timestamps() -> None:
     candles[3] = Candle("2025-12-31", 100, 104, 99, 100)
     with pytest.raises(ValueError, match="strictly increasing"):
         generate_daily_fibonacci_gann_signals(candles, lookback=4)
+
+
+def test_rejects_mixed_timezone_conventions_even_when_lookback_is_too_long() -> None:
+    candles = make_candles()[:3]
+    candles[0] = Candle("2026-01-01T09:15:00+05:30", 100, 105, 95, 100)
+    with pytest.raises(ValueError, match="consistent timezone"):
+        generate_daily_fibonacci_gann_signals(candles, lookback=20)
+
+
+def test_rejects_invalid_ohlc_even_when_lookback_is_too_long() -> None:
+    candles = make_candles()[:3]
+    candles[1] = Candle("2026-01-02", 100, 99, 98, 100)
+    with pytest.raises(ValueError, match="high/low"):
+        generate_daily_fibonacci_gann_signals(candles, lookback=20)
