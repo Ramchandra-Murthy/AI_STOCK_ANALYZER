@@ -1,9 +1,13 @@
 """Strict input validation for historical OHLCV research data."""
+
 from __future__ import annotations
+
 import math
+
 import pandas as pd
 
 _REQUIRED = ("timestamp", "open", "high", "low", "close")
+
 
 def validate_ohlcv(frame: pd.DataFrame) -> pd.DataFrame:
     """Validate chronological candles and return a defensive copy."""
