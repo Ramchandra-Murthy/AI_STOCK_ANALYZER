@@ -355,9 +355,7 @@ if st.button("Run research analysis", type="primary"):
             window = tuple(history[-(int(lookback) + 1) :])
             if len(window) <= int(lookback):
                 return False
-            return generate_daily_fibonacci_gann_signals(
-                window, lookback=int(lookback)
-            )[-1]
+            return generate_daily_fibonacci_gann_signals(window, lookback=int(lookback))[-1]
 
         try:
             folds = evaluate_walk_forward(
@@ -370,7 +368,8 @@ if st.button("Run research analysis", type="primary"):
             fold_rows = []
             for fold in folds:
                 fold_candles = tuple(
-                    candle for candle in candles
+                    candle
+                    for candle in candles
                     if fold.test_start <= candle.timestamp <= fold.test_end
                 )
                 comparison = compare_with_buy_and_hold(fold_candles, fold.result)
@@ -400,7 +399,7 @@ if st.button("Run research analysis", type="primary"):
             if all(row["Trades"] == 0 for row in fold_rows):
                 st.warning(
                     "No trades occurred in any out-of-sample window. "
-                "This does not validate the strategy."
+                    "This does not validate the strategy."
                 )
             elif sum(row["Trades"] for row in fold_rows) < 10:
                 st.warning(
@@ -439,8 +438,7 @@ if st.button("Run research analysis", type="primary"):
             )
         st.caption(
             "Full-period comparison is descriptive and may be in-sample. "
-        "Buy-and-hold excludes "
-            "dividends, fees, taxes, and slippage. Use the separate walk-forward results for "
+            "Buy-and-hold excludes dividends, fees, taxes, and slippage. Use the separate walk-forward results for "
             "a more cautious view of unseen periods."
         )
     except (ValueError, TypeError, OverflowError) as exc:
