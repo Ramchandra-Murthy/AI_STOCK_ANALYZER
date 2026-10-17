@@ -51,7 +51,6 @@ def test_rejects_invalid_variant_values() -> None:
         )
 
 
-
 def test_builds_all_twelve_lookback_reward_risk_combinations() -> None:
     from modules.fibonacci_gann.parameter_sensitivity import build_parameter_grid
 
