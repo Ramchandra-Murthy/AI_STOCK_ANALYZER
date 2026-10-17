@@ -11,6 +11,7 @@ range. Backtests must enter no earlier than the following bar's open.
 from __future__ import annotations
 
 from collections.abc import Sequence
+
 from modules.fibonacci_gann.backtest import Candle, validate_candles
 
 
