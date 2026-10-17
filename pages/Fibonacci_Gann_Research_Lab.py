@@ -287,26 +287,45 @@ else:
 if st.button("Run research analysis", type="primary"):
     try:
         baseline = run_backtest(candles, signals, base_config)
-        variants = {
-            "Baseline": base_config,
-            "Wider stop (1.5×)": BacktestConfig(
-                capital=capital,
-                max_loss_per_trade=max_loss,
-                stop_distance=stop_distance * 1.5,
-                reward_risk_ratio=reward_risk,
-                round_trip_cost_per_unit=round_trip_cost,
-                slippage_per_unit_per_side=slippage,
-            ),
-            "Lower reward/risk (0.75×)": BacktestConfig(
-                capital=capital,
-                max_loss_per_trade=max_loss,
-                stop_distance=stop_distance,
-                reward_risk_ratio=max(0.1, reward_risk * 0.75),
-                round_trip_cost_per_unit=round_trip_cost,
-                slippage_per_unit_per_side=slippage,
-            ),
-        }
-        sensitivity = evaluate_parameter_sensitivity(candles, signals, variants)
+        if signal_mode == "Generate daily Fibonacci-Gann signals":
+            from modules.fibonacci_gann.parameter_sensitivity import build_parameter_grid
+            from modules.fibonacci_gann.signals import generate_daily_fibonacci_gann_signals
+
+            grid_cases = build_parameter_grid(base_config)
+            sensitivity = []
+            for case in grid_cases:
+                case_signals = generate_daily_fibonacci_gann_signals(
+                    candles, lookback=case.lookback
+                )
+                item = evaluate_parameter_sensitivity(
+                    candles,
+                    case_signals,
+                    {f"Lookback {case.lookback} / R:R {case.reward_risk_ratio:g}": case.config},
+                )[0]
+                sensitivity.append((case.lookback, item))
+        else:
+            variants = {
+                "CSV signals / baseline": base_config,
+                "CSV signals / R:R 2.5": BacktestConfig(
+                    capital=capital,
+                    max_loss_per_trade=max_loss,
+                    stop_distance=stop_distance,
+                    reward_risk_ratio=2.5,
+                    round_trip_cost_per_unit=round_trip_cost,
+                    slippage_per_unit_per_side=slippage,
+                ),
+                "CSV signals / R:R 3.0": BacktestConfig(
+                    capital=capital,
+                    max_loss_per_trade=max_loss,
+                    stop_distance=stop_distance,
+                    reward_risk_ratio=3.0,
+                    round_trip_cost_per_unit=round_trip_cost,
+                    slippage_per_unit_per_side=slippage,
+                ),
+            }
+            sensitivity = [(int(lookback), item) for item in evaluate_parameter_sensitivity(
+                candles, signals, variants
+            )]
     except (ValueError, TypeError, OverflowError) as exc:
         st.error(f"Analysis could not be completed: {exc}")
         st.stop()
@@ -334,8 +353,20 @@ if st.button("Run research analysis", type="primary"):
     metrics[4].metric("Trades", len(baseline.trades))
 
     st.subheader("Parameter sensitivity")
+    if signal_mode == "Generate daily Fibonacci-Gann signals":
+        st.caption(
+            "12 full-period combinations are shown for exploratory sensitivity only. "
+            "Each lookback regenerates its own causal signals. These are not out-of-sample "
+            "scores; do not select parameters from this table. Use the walk-forward results below."
+        )
+    else:
+        st.caption(
+            "CSV signals are fixed and cannot be regenerated for different lookbacks. "
+            "This table varies reward/risk only; the selected lookback does not apply to CSV signals."
+        )
     sensitivity_rows = [
         {
+            "Lookback": lookback_value if signal_mode == "Generate daily Fibonacci-Gann signals" else "CSV signals",
             "Variant": item.variant,
             "Stop distance": item.config.stop_distance,
             "Reward/risk": item.config.reward_risk_ratio,
@@ -346,8 +377,9 @@ if st.button("Run research analysis", type="primary"):
             "Max intratrade drawdown (%)": round(item.result.max_intratrade_drawdown_pct, 2),
             "Win rate (%)": round(item.result.win_rate_pct, 2),
             "Expectancy/trade (₹)": round(item.result.expectancy_per_trade, 2),
+            "Profit factor": round(item.result.profit_factor, 3) if isfinite(item.result.profit_factor) else "∞",
         }
-        for item in sensitivity
+        for lookback_value, item in sensitivity
     ]
     st.dataframe(pd.DataFrame(sensitivity_rows), use_container_width=True, hide_index=True)
 
