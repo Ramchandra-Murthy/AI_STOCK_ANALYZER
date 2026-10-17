@@ -787,6 +787,11 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             )
         else:
             st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
+        if _PROVIDER_DIAGNOSTICS:
+            st.caption(
+                "Provider diagnostics (safe summary): "
+                + "; ".join(dict.fromkeys(_PROVIDER_DIAGNOSTICS))
+            )
         return
 
     if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
