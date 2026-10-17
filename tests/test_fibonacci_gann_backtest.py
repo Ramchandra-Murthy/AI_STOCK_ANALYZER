@@ -131,3 +131,21 @@ def test_position_sizing_uses_remaining_realized_equity() -> None:
     assert result.trades[0].quantity == 10
     assert result.trades[0].net_pnl == -50
     assert result.trades[1].quantity == 9
+
+
+def test_target_gap_fills_at_open_not_unreachable_target() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 101, 99, 100),
+        Candle("2026-01-01T09:20", 100, 120, 115, 118),
+    ]
+    result = run_backtest(
+        candles,
+        [True, False],
+        BacktestConfig(capital=10_000, max_loss_per_trade=50, stop_distance=5),
+    )
+
+    trade = result.trades[0]
+    assert trade.entry_price == 100
+    assert trade.exit_price == 115
+    assert trade.exit_reason == "target_gap"
+    assert trade.net_pnl == 150
