@@ -66,9 +66,7 @@ def test_builds_all_twelve_lookback_reward_risk_combinations() -> None:
 
     assert len(cases) == 12
     assert [(case.lookback, case.reward_risk_ratio) for case in cases] == [
-        (lookback, ratio)
-        for lookback in (10, 20, 30, 50)
-        for ratio in (2.0, 2.5, 3.0)
+        (lookback, ratio) for lookback in (10, 20, 30, 50) for ratio in (2.0, 2.5, 3.0)
     ]
     assert all(case.config.capital == 5000 for case in cases)
     assert all(case.config.stop_distance == 4 for case in cases)
