@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from io import BytesIO
+from math import isfinite
 
 import pandas as pd
 import streamlit as st
