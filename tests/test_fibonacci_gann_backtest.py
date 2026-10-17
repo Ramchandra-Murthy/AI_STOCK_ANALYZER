@@ -141,7 +141,7 @@ def test_target_gap_fills_at_open_not_unreachable_target() -> None:
     ]
     result = run_backtest(
         candles,
-        [True, False],
+        [True, False, False],
         BacktestConfig(capital=10_000, max_loss_per_trade=50, stop_distance=5),
     )
 
