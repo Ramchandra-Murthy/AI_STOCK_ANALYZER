@@ -196,9 +196,13 @@ for ratio in ratios:
             y=[float(item["price"]) for item in ratio_rows],
             mode="lines",
             name=f"Gann ratio {ratio:g}",
-            line={"dash": "dash"
-            if not math.isclose(ratio, 1.0, rel_tol=0.0, abs_tol=1e-9)
-            else "solid"},
+            line={
+                "dash": (
+                    "dash"
+                    if not math.isclose(ratio, 1.0, rel_tol=0.0, abs_tol=1e-9)
+                    else "solid"
+                )
+            },
         )
     )
 for zone in time_zones:
