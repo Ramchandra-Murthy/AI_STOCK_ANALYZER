@@ -327,7 +327,10 @@ if st.button("Run research analysis", type="primary"):
     metrics[1].metric("Total return", f"{baseline.total_return_pct:.2f}%")
     metrics[2].metric("Realized max drawdown", f"{baseline.max_drawdown_pct:.2f}%")
     metrics[3].metric("Win rate", f"{baseline.win_rate_pct:.2f}%")
-    st.metric("Max intratrade drawdown (conservative OHLC estimate)", f"{baseline.max_intratrade_drawdown_pct:.2f}%")
+    st.metric(
+        "Max intratrade drawdown (conservative OHLC estimate)",
+        f"{baseline.max_intratrade_drawdown_pct:.2f}%",
+    )
     metrics[4].metric("Trades", len(baseline.trades))
 
     st.subheader("Parameter sensitivity")
@@ -479,7 +482,10 @@ if st.button("Run research analysis", type="primary"):
                     "Candles": item.candle_count,
                     "Trades": len(item.result.trades),
                     "Return (%)": round(item.result.total_return_pct, 2),
-                    "Max drawdown (%)": round(item.result.max_drawdown_pct, 2),
+                    "Realized max drawdown (%)": round(item.result.max_drawdown_pct, 2),
+                    "Max intratrade drawdown (%)": round(
+                        item.result.max_intratrade_drawdown_pct, 2
+                    ),
                     "Win rate (%)": round(item.result.win_rate_pct, 2),
                 }
                 for item in regime_results
