@@ -82,7 +82,9 @@ def build_parameter_grid(
         raise ValueError("base_config must be a BacktestConfig")
     if not lookbacks or not reward_risk_ratios:
         raise ValueError("lookbacks and reward/risk ratios must not be empty")
-    if any(not isinstance(value, int) or isinstance(value, bool) or value < 1 for value in lookbacks):
+    if any(
+        not isinstance(value, int) or isinstance(value, bool) or value < 1 for value in lookbacks
+    ):
         raise ValueError("lookbacks must be positive integers")
     if any(not isfinite(value) or value <= 0 for value in reward_risk_ratios):
         raise ValueError("reward/risk ratios must be finite and greater than zero")
