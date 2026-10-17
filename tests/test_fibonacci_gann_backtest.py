@@ -225,4 +225,3 @@ def test_intratrade_drawdown_captures_adverse_excursion_before_stop_exit() -> No
 
     assert result.max_intratrade_drawdown_pct > result.max_drawdown_pct
     assert result.max_intratrade_drawdown_pct > 10
-
