@@ -66,16 +66,16 @@ left, middle, right = st.columns(3)
 with left:
     left_bars = st.number_input("Pivot left bars", min_value=1, max_value=20, value=3, step=1)
 with middle:
-    right_bars = st.number_input("Pivot confirmation bars", min_value=1, max_value=20, value=3, step=1)
+    right_bars = st.number_input(
+        "Pivot confirmation bars", min_value=1, max_value=20, value=3, step=1
+    )
 with right:
     tolerance_pct = st.number_input(
         "Confluence tolerance (%)", min_value=0.0, max_value=10.0, value=0.5, step=0.1
     )
 
 try:
-    pivots = detect_confirmed_pivots(
-        frame, left_bars=int(left_bars), right_bars=int(right_bars)
-    )
+    pivots = detect_confirmed_pivots(frame, left_bars=int(left_bars), right_bars=int(right_bars))
 except ValueError as exc:
     st.error(f"Could not detect pivots: {exc}")
     st.stop()
@@ -101,7 +101,9 @@ if pivots:
 else:
     st.info("No strict pivots found with these settings. Choose an anchor manually.")
     anchor_index = int(
-        st.number_input("Anchor bar index", min_value=0, max_value=len(frame) - 1, value=len(frame) // 2)
+        st.number_input(
+            "Anchor bar index", min_value=0, max_value=len(frame) - 1, value=len(frame) // 2
+        )
     )
     anchor_price = float(
         st.number_input(
@@ -116,7 +118,10 @@ else:
 controls_left, controls_middle, controls_right = st.columns(3)
 with controls_left:
     direction_label = st.radio(
-        "Projection direction", ("Up", "Down"), index=0 if default_direction == 1 else 1, horizontal=True
+        "Projection direction",
+        ("Up", "Down"),
+        index=0 if default_direction == 1 else 1,
+        horizontal=True,
     )
 with controls_middle:
     price_per_bar = st.number_input(
@@ -147,12 +152,13 @@ projections = project_gann_fan(
 
 observed_prices = {index: float(value) for index, value in enumerate(frame["close"].tolist())}
 historical_zones = [item["bar_index"] for item in time_zones if item["bar_index"] < len(frame)]
-historical_projections = [
-    item for item in projections if int(item["target_index"]) < len(frame)
-]
+historical_projections = [item for item in projections if int(item["target_index"]) < len(frame)]
 try:
     confluence = find_confluence(
-        historical_zones, historical_projections, observed_prices, tolerance_pct=float(tolerance_pct)
+        historical_zones,
+        historical_projections,
+        observed_prices,
+        tolerance_pct=float(tolerance_pct),
     )
 except (KeyError, TypeError, ValueError) as exc:
     st.error(f"Could not calculate historical confluence: {exc}")
@@ -222,7 +228,9 @@ with st.expander("Projected Fibonacci time zones", expanded=True):
                 {
                     "Interval (bars)": item["interval"],
                     "Projected bar index": item["bar_index"],
-                    "Status": "Historical" if item["bar_index"] < len(frame) else "Future projection",
+                    "Status": (
+                        "Historical" if item["bar_index"] < len(frame) else "Future projection"
+                    ),
                 }
                 for item in time_zones
             ]
