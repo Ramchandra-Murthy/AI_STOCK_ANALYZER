@@ -167,6 +167,31 @@ def test_position_sizing_uses_remaining_realized_equity() -> None:
     assert result.trades[1].quantity == 9
 
 
+
+def test_extreme_exit_slippage_never_creates_negative_fill() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 101, 99, 100),
+        Candle("2026-01-01T09:20", 100, 101, 99, 100),
+    ]
+    result = run_backtest(
+        candles,
+        [True, False],
+        BacktestConfig(
+            capital=1000,
+            max_loss_per_trade=500,
+            stop_distance=5,
+            slippage_per_unit_per_side=101,
+        ),
+    )
+
+    assert len(result.trades) == 1
+    trade = result.trades[0]
+    assert trade.entry_price == 201
+    assert trade.exit_price == 0
+    assert trade.net_pnl == -402
+    assert trade.exit_price >= 0
+
+
 def test_target_gap_fills_at_open_not_unreachable_target() -> None:
     candles = [
         Candle("2026-01-01T09:15", 100, 101, 99, 100),
