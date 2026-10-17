@@ -314,9 +314,7 @@ if st.button("Run research analysis", type="primary"):
                     item = evaluate_parameter_sensitivity(
                         candles,
                         case_signals,
-                        {
-                            f"Lookback {grid_lookback} / R:R {grid_reward_risk:g}": case_config
-                        },
+                        {f"Lookback {grid_lookback} / R:R {grid_reward_risk:g}": case_config},
                     )[0]
                     sensitivity.append((grid_lookback, item))
         else:
