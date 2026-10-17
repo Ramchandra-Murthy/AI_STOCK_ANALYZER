@@ -197,7 +197,9 @@ def run_backtest(
             if j == len(candles) - 1:
                 raw_exit, reason = bar.close, "end_of_data"
 
-        exit_price = raw_exit - config.slippage_per_unit_per_side
+        # An execution price cannot fall below zero. Extreme slippage assumptions
+        # must not create an impossible negative exit fill in this long-only model.
+        exit_price = max(0.0, raw_exit - config.slippage_per_unit_per_side)
         gross_pnl = (exit_price - entry_price) * quantity
         costs = config.round_trip_cost_per_unit * quantity
         net_pnl = gross_pnl - costs
