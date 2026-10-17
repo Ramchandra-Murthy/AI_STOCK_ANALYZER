@@ -87,9 +87,9 @@ def test_all_position_sizing_inputs_reject_malformed_values(
 @pytest.mark.parametrize(
     ("entry", "stop", "capital", "max_loss", "cost", "expected_quantity"),
     [
-        (100, 95, 1000, 100, 0, 20),
-        (100, 95, 1000, 99, 0, 19),
-        (100, 95, 1000, 100, 1, 16),
+        (100, 95, 3000, 100, 0, 20),
+        (100, 95, 3000, 99, 0, 19),
+        (100, 95, 3000, 100, 1, 16),
         (100, 95, 199, 100, 0, 1),
         (100, 95, 200, 100, 0, 2),
     ],
