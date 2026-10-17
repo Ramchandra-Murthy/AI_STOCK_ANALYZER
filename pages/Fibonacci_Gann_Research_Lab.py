@@ -437,9 +437,7 @@ if st.button("Run research analysis", type="primary"):
         def _latest_causal_sma200_signal(history, _config):
             # Build signals only from the available prefix; the SMA includes only
             # closes known at the current signal bar's close.
-            history_signals = generate_daily_fibonacci_gann_signals(
-                history, lookback=int(lookback)
-            )
+            history_signals = generate_daily_fibonacci_gann_signals(history, lookback=int(lookback))
             return apply_sma_trend_filter(history, history_signals, period=200)[-1]
 
         try:
