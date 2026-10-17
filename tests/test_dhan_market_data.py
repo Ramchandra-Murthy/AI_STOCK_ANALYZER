@@ -175,3 +175,26 @@ def test_dhan_environment_credentials_take_precedence_over_streamlit_secrets(mon
 
     assert credentials.client_id == "environment-client"
     assert credentials.access_token == "environment-token"
+
+
+def test_dhan_network_error_does_not_expose_exception_text(monkeypatch):
+    from urllib.error import URLError
+
+    import services.dhan_market_data as module
+
+    secret_marker = "secret-token-must-not-appear"
+
+    def fail_urlopen(_request, timeout):
+        raise URLError(f"failed URL includes {secret_marker}")
+
+    monkeypatch.setattr(module, "urlopen", fail_urlopen)
+    credentials = DhanCredentials("client-123", secret_marker)
+    dhan = DhanMarketData(credentials=credentials, client=FailingOptionClient())
+
+    try:
+        dhan.option_chain(13, "IDX_I", "2026-10-08")
+    except DhanConfigurationError as exc:
+        assert "URLError" in str(exc)
+        assert secret_marker not in str(exc)
+    else:
+        raise AssertionError("Expected the Dhan direct request to fail")
