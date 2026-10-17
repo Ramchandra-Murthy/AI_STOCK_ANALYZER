@@ -708,3 +708,10 @@ def test_top10_background_refresh_is_polled_faster_than_scan_interval() -> None:
     assert top10_live.TOP10_UI_POLL_SECONDS < top10_live.TOP10_REFRESH_SECONDS
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert '@st.fragment(run_every=f"{TOP10_UI_POLL_SECONDS}s")' in source
+
+
+def test_top10_scanner_displays_safe_provider_diagnostics() -> None:
+    source = open("components/top10_live.py", encoding="utf-8").read()
+    assert "Provider diagnostics (safe summary)" in source
+    assert "Quote provider:" in source
+    assert "diagnostics=_PROVIDER_DIAGNOSTICS" in source
