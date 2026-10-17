@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from io import BytesIO
 import math
+from io import BytesIO
 
 import pandas as pd
 import plotly.graph_objects as go
