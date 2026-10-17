@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from io import BytesIO
+import math
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -184,14 +185,20 @@ fig.add_trace(
     )
 )
 for ratio in ratios:
-    ratio_rows = [item for item in projections if float(item["ratio"]) == ratio]
+    ratio_rows = [
+        item
+        for item in projections
+        if math.isclose(float(item["ratio"]), ratio, rel_tol=0.0, abs_tol=1e-9)
+    ]
     fig.add_trace(
         go.Scatter(
             x=[int(item["target_index"]) for item in ratio_rows],
             y=[float(item["price"]) for item in ratio_rows],
             mode="lines",
             name=f"Gann ratio {ratio:g}",
-            line={"dash": "dash" if ratio != 1.0 else "solid"},
+            line={"dash": "dash"
+            if not math.isclose(ratio, 1.0, rel_tol=0.0, abs_tol=1e-9)
+            else "solid"},
         )
     )
 for zone in time_zones:
