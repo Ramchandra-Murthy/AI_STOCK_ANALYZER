@@ -1,4 +1,5 @@
 """Unit tests for the research-only Gann/Fibonacci calculation core."""
+
 import pandas as pd
 import pytest
 
@@ -14,10 +15,10 @@ def candles(highs, lows=None):
     return pd.DataFrame(
         {
             "timestamp": pd.date_range("2024-01-01", periods=len(highs), freq="D"),
-            "open": [(high + low) / 2 for high, low in zip(highs, lows)],
+            "open": [(high + low) / 2 for high, low in zip(highs, lows, strict=True)],
             "high": highs,
             "low": lows,
-            "close": [(high + low) / 2 for high, low in zip(highs, lows)],
+            "close": [(high + low) / 2 for high, low in zip(highs, lows, strict=True)],
         }
     )
 
