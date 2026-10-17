@@ -324,9 +324,10 @@ if st.button("Run research analysis", type="primary"):
                     slippage_per_unit_per_side=slippage,
                 ),
             }
-            sensitivity = [(int(lookback), item) for item in evaluate_parameter_sensitivity(
-                candles, signals, variants
-            )]
+            sensitivity = [
+                (int(lookback), item)
+                for item in evaluate_parameter_sensitivity(candles, signals, variants)
+            ]
     except (ValueError, TypeError, OverflowError) as exc:
         st.error(f"Analysis could not be completed: {exc}")
         st.stop()
@@ -367,7 +368,11 @@ if st.button("Run research analysis", type="primary"):
         )
     sensitivity_rows = [
         {
-            "Lookback": lookback_value if signal_mode == "Generate daily Fibonacci-Gann signals" else "CSV signals",
+            "Lookback": (
+                lookback_value
+                if signal_mode == "Generate daily Fibonacci-Gann signals"
+                else "CSV signals"
+            ),
             "Variant": item.variant,
             "Stop distance": item.config.stop_distance,
             "Reward/risk": item.config.reward_risk_ratio,
@@ -378,7 +383,11 @@ if st.button("Run research analysis", type="primary"):
             "Max intratrade drawdown (%)": round(item.result.max_intratrade_drawdown_pct, 2),
             "Win rate (%)": round(item.result.win_rate_pct, 2),
             "Expectancy/trade (₹)": round(item.result.expectancy_per_trade, 2),
-            "Profit factor": round(item.result.profit_factor, 3) if isfinite(item.result.profit_factor) else "∞",
+            "Profit factor": (
+                round(item.result.profit_factor, 3)
+                if isfinite(item.result.profit_factor)
+                else "∞"
+            ),
         }
         for lookback_value, item in sensitivity
     ]
