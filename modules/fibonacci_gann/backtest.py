@@ -163,6 +163,9 @@ def run_backtest(
             if bar.open <= stop_price:
                 raw_exit, reason = bar.open, "stop_gap"
                 break
+            if bar.open >= target_price:
+                raw_exit, reason = bar.open, "target_gap"
+                break
             if bar.low <= stop_price:
                 raw_exit, reason = stop_price, "stop"
                 break
