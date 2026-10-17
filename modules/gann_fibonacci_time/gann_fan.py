@@ -21,9 +21,7 @@ def project_gann_fan(
     if direction not in (-1, 1):
         raise ValueError("direction must be -1 or 1.")
     if not ratios or any(
-        not isinstance(ratio, (int, float))
-        or ratio <= 0
-        or ratio == float("inf")
+        not isinstance(ratio, (int, float)) or ratio <= 0 or ratio == float("inf")
         for ratio in ratios
     ):
         raise ValueError("ratios must be finite positive numbers.")
