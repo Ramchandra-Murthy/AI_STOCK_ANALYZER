@@ -391,9 +391,13 @@ if st.button("Run research analysis", type="primary"):
                 "dividends, fees, taxes, and slippage, so it is an imperfect benchmark."
             )
             if all(row["Trades"] == 0 for row in fold_rows):
-                st.warning("No trades occurred in any out-of-sample window. This does not validate the strategy.")
+                st.warning(
+                    "No trades occurred in any out-of-sample window. This does not validate the strategy."
+                )
             elif sum(row["Trades"] for row in fold_rows) < 10:
-                st.warning("Fewer than 10 out-of-sample trades were generated; results are too sparse for strong conclusions.")
+                st.warning(
+                    "Fewer than 10 out-of-sample trades were generated; results are too sparse for strong conclusions."
+                )
         except (ValueError, TypeError, OverflowError) as exc:
             st.error(f"Out-of-sample validation could not be completed: {exc}")
     else:
