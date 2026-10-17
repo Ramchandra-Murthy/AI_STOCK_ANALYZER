@@ -32,9 +32,8 @@ def validate_ohlcv(frame: pd.DataFrame) -> pd.DataFrame:
             raise ValueError(f"{column} values must be finite and non-null.")
         if (result[column] <= 0).any():
             raise ValueError(f"{column} values must be positive.")
-    invalid = (
-        (result["high"] < result[["open", "close", "low"]].max(axis=1))
-        | (result["low"] > result[["open", "close", "high"]].min(axis=1))
+    invalid = (result["high"] < result[["open", "close", "low"]].max(axis=1)) | (
+        result["low"] > result[["open", "close", "high"]].min(axis=1)
     )
     if invalid.any():
         raise ValueError("OHLC relationships are invalid for one or more candles.")
