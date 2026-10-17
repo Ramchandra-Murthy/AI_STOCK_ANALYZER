@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from math import isfinite
 
 
@@ -68,12 +69,32 @@ def validate_candles(candles: Sequence[Candle]) -> None:
     """Reject malformed, unordered, or duplicate-timestamp OHLC input."""
     if len(candles) < 2:
         raise ValueError("at least two candles are required")
-    previous_timestamp: str | None = None
+    previous_timestamp: datetime | None = None
+    previous_timezone_aware: bool | None = None
     for candle in candles:
-        if not candle.timestamp:
-            raise ValueError("candle timestamps must be non-empty")
-        if previous_timestamp is not None and candle.timestamp <= previous_timestamp:
-            raise ValueError("candle timestamps must be strictly increasing")
+        if not isinstance(candle.timestamp, str) or not candle.timestamp.strip():
+            raise ValueError("candle timestamps must be non-empty strings")
+        try:
+            timestamp_text = candle.timestamp.strip()
+            # fromisoformat parses actual calendar/time values; normalize the
+            # common UTC suffix so ISO timestamps ending in Z are supported.
+            parsed_timestamp = datetime.fromisoformat(
+                timestamp_text[:-1] + "+00:00" if timestamp_text.endswith("Z") else timestamp_text
+            )
+        except (TypeError, ValueError) as exc:
+            raise ValueError("candle timestamps must be valid ISO 8601 date/time strings") from exc
+
+        timezone_aware = parsed_timestamp.utcoffset() is not None
+        if previous_timezone_aware is not None and timezone_aware != previous_timezone_aware:
+            raise ValueError("candle timestamps must use a consistent timezone convention")
+        if previous_timestamp is not None:
+            try:
+                if parsed_timestamp <= previous_timestamp:
+                    raise ValueError("candle timestamps must be strictly increasing")
+            except TypeError as exc:
+                raise ValueError(
+                    "candle timestamps must use a consistent timezone convention"
+                ) from exc
         values = (candle.open, candle.high, candle.low, candle.close)
         if not all(isfinite(value) and value > 0 for value in values):
             raise ValueError("OHLC values must be finite and greater than zero")
@@ -83,7 +104,8 @@ def validate_candles(candles: Sequence[Candle]) -> None:
             raise ValueError("candle high/low do not contain open and close")
         if candle.low > candle.high:
             raise ValueError("candle low cannot exceed high")
-        previous_timestamp = candle.timestamp
+        previous_timestamp = parsed_timestamp
+        previous_timezone_aware = timezone_aware
 
 
 def run_backtest(
