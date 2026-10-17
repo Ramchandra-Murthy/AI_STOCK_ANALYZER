@@ -384,9 +384,7 @@ if st.button("Run research analysis", type="primary"):
             "Win rate (%)": round(item.result.win_rate_pct, 2),
             "Expectancy/trade (₹)": round(item.result.expectancy_per_trade, 2),
             "Profit factor": (
-                round(item.result.profit_factor, 3)
-                if isfinite(item.result.profit_factor)
-                else "∞"
+                round(item.result.profit_factor, 3) if isfinite(item.result.profit_factor) else "∞"
             ),
         }
         for lookback_value, item in sensitivity
