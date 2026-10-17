@@ -57,6 +57,7 @@ _SCAN_LOCK = Lock()
 _SCAN_FUTURE: Future[tuple[pd.DataFrame, float, int, int]] | None = None
 _SCAN_RESULT: tuple[pd.DataFrame, float, int, int] | None = None
 _SCAN_FAILURES = 0
+_PROVIDER_DIAGNOSTICS: list[str] = []
 
 
 def _market_is_open(now: datetime) -> bool:
@@ -562,8 +563,12 @@ def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
     """Prefer Dhan candles when configured, with Yahoo fallback for gaps."""
+    global _PROVIDER_DIAGNOSTICS
+    _PROVIDER_DIAGNOSTICS = []
     if dhan_provider_enabled():
         dhan_frames, dhan_missing = download_dhan_symbol_frames(tickers, interval=1)
+        if dhan_missing:
+            _PROVIDER_DIAGNOSTICS.append(f"Dhan returned no usable data for {len(dhan_missing)} symbol(s)")
         if not dhan_missing:
             return dhan_frames, [], "Dhan"
         yahoo_frames, yahoo_missing = download_symbol_frames(
@@ -575,6 +580,7 @@ def _download_top10_frames(
             timeout=TOP10_PROVIDER_TIMEOUT,
             retries=TOP10_PROVIDER_RETRIES,
             recover_missing=False,
+            diagnostics=_PROVIDER_DIAGNOSTICS,
         )
         merged = {**dhan_frames, **yahoo_frames}
         return merged, yahoo_missing, "Dhan + Yahoo fallback"
@@ -587,6 +593,7 @@ def _download_top10_frames(
         timeout=TOP10_PROVIDER_TIMEOUT,
         retries=TOP10_PROVIDER_RETRIES,
         recover_missing=False,
+        diagnostics=_PROVIDER_DIAGNOSTICS,
     )
     return frames, missing, "Yahoo"
 
@@ -793,6 +800,13 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Displayed results may be incomplete; automatic retry is active. "
             "Do not use these rows for trading decisions."
         )
+
+    if _PROVIDER_DIAGNOSTICS:
+        st.caption(
+            "Provider diagnostics (safe summary): "
+            + "; ".join(dict.fromkeys(_PROVIDER_DIAGNOSTICS))
+        )
+    st.caption(f"Quote provider: {top10.attrs.get('provider', 'unknown')}")
 
     scan_age_seconds = (
         max(0.0, (now - completed_at).total_seconds()) if completed_at is not None else None
