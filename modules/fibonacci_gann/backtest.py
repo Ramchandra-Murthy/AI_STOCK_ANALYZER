@@ -58,6 +58,7 @@ class BacktestResult:
     expectancy_per_trade: float
     profit_factor: float
     max_drawdown_pct: float
+    max_intratrade_drawdown_pct: float
 
 
 def _finite_positive(value: float, name: str) -> None:
@@ -120,7 +121,9 @@ def run_backtest(
     through stops fill at the bar open and can exceed the planned loss budget.
     Slippage is charged adversely on both sides; caller supplies round-trip
     fees/taxes per unit. Position notional is capped by current realized equity.
-    Drawdown is measured from closed-trade equity, not intratrade mark-to-market.
+    max_drawdown_pct uses closed-trade equity. max_intratrade_drawdown_pct also
+    marks open positions to bar highs/lows, conservatively treating each bar's high
+    as occurring before its low because OHLC data cannot reveal intrabar ordering.
     """
     if config is None:
         config = BacktestConfig()
@@ -147,6 +150,8 @@ def run_backtest(
     equity = config.capital
     peak_equity = equity
     max_drawdown = 0.0
+    mark_to_market_peak_equity = equity
+    max_intratrade_drawdown = 0.0
     index = 0
     while index < len(candles) - 1:
         if not signals[index]:
@@ -182,6 +187,23 @@ def run_backtest(
         for j in range(entry_bar_index, len(candles)):
             bar = candles[j]
             exit_index = j
+            # Estimate liquidation equity at both extremes while the position is
+            # open. High-before-low is deliberately conservative for OHLC-only data.
+            liquidation_cost_per_unit = (
+                config.slippage_per_unit_per_side + config.round_trip_cost_per_unit
+            )
+            high_equity = equity + (
+                bar.high - entry_price - liquidation_cost_per_unit
+            ) * quantity
+            low_equity = equity + (
+                bar.low - entry_price - liquidation_cost_per_unit
+            ) * quantity
+            mark_to_market_peak_equity = max(mark_to_market_peak_equity, high_equity)
+            if mark_to_market_peak_equity > 0:
+                max_intratrade_drawdown = max(
+                    max_intratrade_drawdown,
+                    (mark_to_market_peak_equity - low_equity) / mark_to_market_peak_equity,
+                )
             if bar.open <= stop_price:
                 raw_exit, reason = bar.open, "stop_gap"
                 break
@@ -217,6 +239,7 @@ def run_backtest(
             )
         )
         equity += net_pnl
+        mark_to_market_peak_equity = max(mark_to_market_peak_equity, equity)
         peak_equity = max(peak_equity, equity)
         if peak_equity > 0:
             max_drawdown = max(max_drawdown, (peak_equity - equity) / peak_equity)
@@ -238,4 +261,5 @@ def run_backtest(
             (gross_wins / gross_losses) if gross_losses else (float("inf") if gross_wins else 0.0)
         ),
         max_drawdown_pct=max_drawdown * 100,
+        max_intratrade_drawdown_pct=max_intratrade_drawdown * 100,
     )
