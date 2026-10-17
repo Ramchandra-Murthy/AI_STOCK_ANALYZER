@@ -356,7 +356,7 @@ if st.button("Run research analysis", type="primary"):
             if len(window) <= int(lookback):
                 return False
             return generate_daily_fibonacci_gann_signals(window,
-                                                         lookback=int(lookback))[-1]
+                lookback=int(lookback))[-1]
 
         try:
             folds = evaluate_walk_forward(
@@ -444,7 +444,6 @@ if st.button("Run research analysis", type="primary"):
         )
     except (ValueError, TypeError, OverflowError) as exc:
         st.error(f"Benchmark comparison could not be completed: {exc}")
-
 
     st.subheader("Optional caller-labelled regime windows")
     st.markdown(
