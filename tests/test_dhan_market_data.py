@@ -198,3 +198,36 @@ def test_dhan_network_error_does_not_expose_exception_text(monkeypatch):
         assert secret_marker not in str(exc)
     else:
         raise AssertionError("Expected the Dhan direct request to fail")
+
+
+def test_dhan_http_401_has_safe_token_remediation(monkeypatch):
+    from urllib.error import HTTPError
+
+    import services.dhan_market_data as module
+
+    def unauthorized(_request, timeout):
+        raise HTTPError(
+            "https://api.dhan.co/v2/optionchain",
+            401,
+            "Unauthorized",
+            hdrs=None,
+            fp=None,
+        )
+
+    monkeypatch.setattr(module, "urlopen", unauthorized)
+    dhan = DhanMarketData(
+        credentials=DhanCredentials("client-123", "secret-token"),
+        client=FailingOptionClient(),
+    )
+
+    try:
+        dhan.option_chain(13, "IDX_I", "2026-10-08")
+    except DhanConfigurationError as exc:
+        message = str(exc)
+        assert "HTTP 401" in message
+        assert "DHAN_CLIENT_ID" in message
+        assert "DHAN_ACCESS_TOKEN" in message
+        assert "fresh access token" in message
+        assert "secret-token" not in message
+    else:
+        raise AssertionError("Expected Dhan HTTP 401 to fail")

@@ -200,8 +200,15 @@ class DhanMarketData:
                 raw = response.read().decode("utf-8")
             parsed = json.loads(raw)
         except HTTPError as exc:
+            remediation = ""
+            if exc.code in (401, 403):
+                remediation = (
+                    " Verify DHAN_CLIENT_ID and DHAN_ACCESS_TOKEN in deployment secrets; "
+                    "generate a fresh access token if expired, update the secret, "
+                    "and restart the app."
+                )
             raise DhanConfigurationError(
-                f"Dhan {endpoint} HTTP {exc.code}; SDK response: "
+                f"Dhan {endpoint} HTTP {exc.code}.{remediation} SDK response: "
                 f"{_response_remarks(sdk_response)}"
             ) from exc
         except (URLError, TimeoutError, json.JSONDecodeError) as exc:
