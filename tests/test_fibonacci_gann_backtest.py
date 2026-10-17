@@ -167,7 +167,6 @@ def test_position_sizing_uses_remaining_realized_equity() -> None:
     assert result.trades[1].quantity == 9
 
 
-
 def test_extreme_exit_slippage_never_creates_negative_fill() -> None:
     candles = [
         Candle("2026-01-01T09:15", 100, 101, 99, 100),
