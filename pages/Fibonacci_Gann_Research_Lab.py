@@ -279,7 +279,10 @@ if len(candles) >= 3:
 else:
     initial_train_size = 1
     test_size = 2
-    st.info("At least three candles are required for out-of-sample validation; the ordinary backtest remains available.")
+    st.info(
+        "At least three candles are required for out-of-sample validation; "
+        "the ordinary backtest remains available."
+    )
 
 if st.button("Run research analysis", type="primary"):
     try:
@@ -377,7 +380,11 @@ if st.button("Run research analysis", type="primary"):
                         "Test starts": fold.test_start,
                         "Test ends": fold.test_end,
                         "Test candles": fold.test_candle_count,
-                        "Trades": fold.result.trade_count if hasattr(fold.result, "trade_count") else len(fold.result.trades),
+                        "Trades": (
+                            fold.result.trade_count
+                            if hasattr(fold.result, "trade_count")
+                            else len(fold.result.trades)
+                        ),
                         "Strategy return (%)": round(fold.result.total_return_pct, 2),
                         "Buy-and-hold return (%)": round(comparison.benchmark_return_pct, 2),
                         "Excess return (pp)": round(comparison.excess_return_pct, 2),
@@ -392,17 +399,20 @@ if st.button("Run research analysis", type="primary"):
             )
             if all(row["Trades"] == 0 for row in fold_rows):
                 st.warning(
-                    "No trades occurred in any out-of-sample window. This does not validate the strategy."
+                    "No trades occurred in any out-of-sample window. "
+                "This does not validate the strategy."
                 )
             elif sum(row["Trades"] for row in fold_rows) < 10:
                 st.warning(
-                    "Fewer than 10 out-of-sample trades were generated; results are too sparse for strong conclusions."
+                    "Fewer than 10 out-of-sample trades were generated; "
+                    "results are too sparse for strong conclusions."
                 )
         except (ValueError, TypeError, OverflowError) as exc:
             st.error(f"Out-of-sample validation could not be completed: {exc}")
     else:
         st.info(
-            "Walk-forward signal regeneration is available when 'Generate daily Fibonacci-Gann signals' "
+            "Walk-forward signal regeneration is available when "
+            "'Generate daily Fibonacci-Gann signals' "
             "is selected. CSV-supplied signals are not assumed to be reproducible from OHLC history."
         )
 
@@ -428,7 +438,8 @@ if st.button("Run research analysis", type="primary"):
                 "the minimum sample-size flag is active."
             )
         st.caption(
-            "Full-period comparison is descriptive and may be in-sample. Buy-and-hold excludes "
+            "Full-period comparison is descriptive and may be in-sample. "
+        "Buy-and-hold excludes "
             "dividends, fees, taxes, and slippage. Use the separate walk-forward results for "
             "a more cautious view of unseen periods."
         )
