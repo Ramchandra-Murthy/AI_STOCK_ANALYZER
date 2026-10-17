@@ -289,24 +289,36 @@ if st.button("Run research analysis", type="primary"):
     try:
         baseline = run_backtest(candles, signals, base_config)
         if signal_mode == "Generate daily Fibonacci-Gann signals":
-            from modules.fibonacci_gann.parameter_sensitivity import build_parameter_grid
+            # Build the fixed research grid here instead of importing the optional
+            # helper. This keeps the page compatible with deployments where the
+            # parameter_sensitivity module predates build_parameter_grid.
             from modules.fibonacci_gann.signals import generate_daily_fibonacci_gann_signals
             from modules.fibonacci_gann.trend_filter import apply_sma_trend_filter
 
             sma200_signals = apply_sma_trend_filter(candles, signals, period=200)
             sma200_result = run_backtest(candles, sma200_signals, base_config)
-            grid_cases = build_parameter_grid(base_config)
             sensitivity = []
-            for case in grid_cases:
-                case_signals = generate_daily_fibonacci_gann_signals(
-                    candles, lookback=case.lookback
-                )
-                item = evaluate_parameter_sensitivity(
-                    candles,
-                    case_signals,
-                    {f"Lookback {case.lookback} / R:R {case.reward_risk_ratio:g}": case.config},
-                )[0]
-                sensitivity.append((case.lookback, item))
+            for grid_lookback in (10, 20, 30, 50):
+                for grid_reward_risk in (2.0, 2.5, 3.0):
+                    case_config = BacktestConfig(
+                        capital=base_config.capital,
+                        max_loss_per_trade=base_config.max_loss_per_trade,
+                        stop_distance=base_config.stop_distance,
+                        reward_risk_ratio=grid_reward_risk,
+                        round_trip_cost_per_unit=base_config.round_trip_cost_per_unit,
+                        slippage_per_unit_per_side=base_config.slippage_per_unit_per_side,
+                    )
+                    case_signals = generate_daily_fibonacci_gann_signals(
+                        candles, lookback=grid_lookback
+                    )
+                    item = evaluate_parameter_sensitivity(
+                        candles,
+                        case_signals,
+                        {
+                            f"Lookback {grid_lookback} / R:R {grid_reward_risk:g}": case_config
+                        },
+                    )[0]
+                    sensitivity.append((grid_lookback, item))
         else:
             variants = {
                 "CSV signals / baseline": base_config,
