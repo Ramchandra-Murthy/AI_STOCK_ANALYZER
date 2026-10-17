@@ -8,6 +8,8 @@ import pandas as pd
 import streamlit as st
 
 from modules.fibonacci_gann.backtest import BacktestConfig, Candle, run_backtest
+from modules.fibonacci_gann.benchmark import compare_with_buy_and_hold
+from modules.fibonacci_gann.walk_forward import evaluate_walk_forward
 from modules.fibonacci_gann.parameter_sensitivity import evaluate_parameter_sensitivity
 from modules.fibonacci_gann.regime_robustness import evaluate_regime_robustness
 
@@ -246,6 +248,34 @@ st.caption(
     "Gaps through stops can cause larger losses. Reported maximum drawdown uses closed-trade equity "
     "and does not measure intratrade drawdown."
 )
+
+st.subheader("Out-of-sample validation settings")
+default_train_size = min(max(int(len(candles) * 0.6), int(lookback) + 1), len(candles) - 2)
+validation_left, validation_right = st.columns(2)
+with validation_left:
+    initial_train_size = st.number_input(
+        "Initial history candles (not scored)",
+        min_value=1,
+        max_value=len(candles) - 2,
+        value=default_train_size,
+        step=1,
+        help="The earliest candles are used as prior history; test results start after this point.",
+    )
+with validation_right:
+    max_test_size = max(2, len(candles) - int(initial_train_size))
+    test_size = st.number_input(
+        "Candles per test window",
+        min_value=2,
+        max_value=max_test_size,
+        value=min(60, max_test_size),
+        step=1,
+        help="Windows are evaluated chronologically and do not overlap.",
+    )
+st.caption(
+    "Walk-forward results are separate, non-compounded test windows. Do not tune parameters "
+    "by looking at test results. At least two candles must remain in each scored window."
+)
+
 if st.button("Run research analysis", type="primary"):
     try:
         baseline = run_backtest(candles, signals, base_config)
@@ -307,6 +337,95 @@ if st.button("Run research analysis", type="primary"):
         for item in sensitivity
     ]
     st.dataframe(pd.DataFrame(sensitivity_rows), use_container_width=True, hide_index=True)
+
+    st.subheader("Out-of-sample walk-forward validation")
+    if signal_mode == "Generate daily Fibonacci-Gann signals":
+        from modules.fibonacci_gann.signals import generate_daily_fibonacci_gann_signals
+
+        def _latest_causal_signal(history, _config):
+            # The rule only needs the latest bar plus its preceding lookback bars.
+            window = tuple(history[-(int(lookback) + 1) :])
+            if len(window) <= int(lookback):
+                return False
+            return generate_daily_fibonacci_gann_signals(
+                window, lookback=int(lookback)
+            )[-1]
+
+        try:
+            folds = evaluate_walk_forward(
+                candles,
+                _latest_causal_signal,
+                base_config,
+                initial_train_size=int(initial_train_size),
+                test_size=int(test_size),
+            )
+            fold_rows = []
+            for fold in folds:
+                fold_candles = tuple(
+                    candle for candle in candles
+                    if fold.test_start <= candle.timestamp <= fold.test_end
+                )
+                comparison = compare_with_buy_and_hold(fold_candles, fold.result)
+                fold_rows.append(
+                    {
+                        "Training ends": fold.train_end,
+                        "Test starts": fold.test_start,
+                        "Test ends": fold.test_end,
+                        "Test candles": fold.test_candle_count,
+                        "Trades": fold.result.trade_count if hasattr(fold.result, "trade_count") else len(fold.result.trades),
+                        "Strategy return (%)": round(fold.result.total_return_pct, 2),
+                        "Buy-and-hold return (%)": round(comparison.benchmark_return_pct, 2),
+                        "Excess return (pp)": round(comparison.excess_return_pct, 2),
+                        "Strategy max drawdown (%)": round(fold.result.max_drawdown_pct, 2),
+                    }
+                )
+            st.dataframe(pd.DataFrame(fold_rows), use_container_width=True, hide_index=True)
+            st.caption(
+                "Each test window starts from the configured capital and is evaluated independently; "
+                "returns are not compounded. Buy-and-hold uses close-to-close prices and excludes "
+                "dividends, fees, taxes, and slippage, so it is an imperfect benchmark."
+            )
+            if all(row["Trades"] == 0 for row in fold_rows):
+                st.warning("No trades occurred in any out-of-sample window. This does not validate the strategy.")
+            elif sum(row["Trades"] for row in fold_rows) < 10:
+                st.warning("Fewer than 10 out-of-sample trades were generated; results are too sparse for strong conclusions.")
+        except (ValueError, TypeError, OverflowError) as exc:
+            st.error(f"Out-of-sample validation could not be completed: {exc}")
+    else:
+        st.info(
+            "Walk-forward signal regeneration is available when 'Generate daily Fibonacci-Gann signals' "
+            "is selected. CSV-supplied signals are not assumed to be reproducible from OHLC history."
+        )
+
+    st.subheader("Full-period buy-and-hold benchmark")
+    try:
+        full_period_comparison = compare_with_buy_and_hold(candles, baseline)
+        benchmark_columns = st.columns(4)
+        benchmark_columns[0].metric(
+            "Strategy return", f"{full_period_comparison.strategy_return_pct:.2f}%"
+        )
+        benchmark_columns[1].metric(
+            "Buy-and-hold return", f"{full_period_comparison.benchmark_return_pct:.2f}%"
+        )
+        benchmark_columns[2].metric(
+            "Excess return", f"{full_period_comparison.excess_return_pct:.2f} pp"
+        )
+        benchmark_columns[3].metric(
+            "Benchmark max drawdown", f"{full_period_comparison.benchmark_max_drawdown_pct:.2f}%"
+        )
+        if full_period_comparison.insufficient_trades:
+            st.warning(
+                f"Only {full_period_comparison.trade_count} trades were generated; "
+                "the minimum sample-size flag is active."
+            )
+        st.caption(
+            "Full-period comparison is descriptive and may be in-sample. Buy-and-hold excludes "
+            "dividends, fees, taxes, and slippage. Use the separate walk-forward results for "
+            "a more cautious view of unseen periods."
+        )
+    except (ValueError, TypeError, OverflowError) as exc:
+        st.error(f"Benchmark comparison could not be completed: {exc}")
+
 
     st.subheader("Optional caller-labelled regime windows")
     st.markdown(
