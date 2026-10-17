@@ -198,9 +198,7 @@ for ratio in ratios:
             name=f"Gann ratio {ratio:g}",
             line={
                 "dash": (
-                    "dash"
-                    if not math.isclose(ratio, 1.0, rel_tol=0.0, abs_tol=1e-9)
-                    else "solid"
+                    "dash" if not math.isclose(ratio, 1.0, rel_tol=0.0, abs_tol=1e-9) else "solid"
                 )
             },
         )
