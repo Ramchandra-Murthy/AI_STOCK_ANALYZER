@@ -11,9 +11,7 @@ range. Backtests must enter no earlier than the following bar's open.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from math import isfinite
-
-from modules.fibonacci_gann.backtest import Candle
+from modules.fibonacci_gann.backtest import Candle, validate_candles
 
 
 def generate_daily_fibonacci_gann_signals(
@@ -35,21 +33,11 @@ def generate_daily_fibonacci_gann_signals(
     if isinstance(lookback, bool) or not isinstance(lookback, int) or lookback < 2:
         raise ValueError("lookback must be an integer of at least 2")
 
+    validate_candles(candles)
     count = len(candles)
     signals = [False] * count
     if count <= lookback:
         return tuple(signals)
-
-    for index, candle in enumerate(candles):
-        values = (candle.open, candle.high, candle.low, candle.close)
-        if not candle.timestamp or not all(isfinite(value) and value > 0 for value in values):
-            raise ValueError(f"invalid OHLC candle at index {index}")
-        if candle.low > min(candle.open, candle.close) or candle.high < max(
-            candle.open, candle.close
-        ):
-            raise ValueError(f"invalid OHLC range at index {index}")
-        if index and candle.timestamp <= candles[index - 1].timestamp:
-            raise ValueError("candle timestamps must be strictly increasing")
 
     for index in range(lookback, count):
         prior = candles[index - lookback : index]
