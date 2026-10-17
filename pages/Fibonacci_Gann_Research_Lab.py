@@ -250,31 +250,36 @@ st.caption(
 )
 
 st.subheader("Out-of-sample validation settings")
-default_train_size = min(max(int(len(candles) * 0.6), int(lookback) + 1), len(candles) - 2)
-validation_left, validation_right = st.columns(2)
-with validation_left:
-    initial_train_size = st.number_input(
-        "Initial history candles (not scored)",
-        min_value=1,
-        max_value=len(candles) - 2,
-        value=default_train_size,
-        step=1,
-        help="The earliest candles are used as prior history; test results start after this point.",
+if len(candles) >= 3:
+    default_train_size = min(max(int(len(candles) * 0.6), int(lookback) + 1), len(candles) - 2)
+    validation_left, validation_right = st.columns(2)
+    with validation_left:
+        initial_train_size = st.number_input(
+            "Initial history candles (not scored)",
+            min_value=1,
+            max_value=len(candles) - 2,
+            value=default_train_size,
+            step=1,
+            help="The earliest candles are used as prior history; test results start after this point.",
+        )
+    with validation_right:
+        max_test_size = max(2, len(candles) - int(initial_train_size))
+        test_size = st.number_input(
+            "Candles per test window",
+            min_value=2,
+            max_value=max_test_size,
+            value=min(60, max_test_size),
+            step=1,
+            help="Windows are evaluated chronologically and do not overlap.",
+        )
+    st.caption(
+        "Walk-forward results are separate, non-compounded test windows. Do not tune parameters "
+        "by looking at test results. At least two candles must remain in each scored window."
     )
-with validation_right:
-    max_test_size = max(2, len(candles) - int(initial_train_size))
-    test_size = st.number_input(
-        "Candles per test window",
-        min_value=2,
-        max_value=max_test_size,
-        value=min(60, max_test_size),
-        step=1,
-        help="Windows are evaluated chronologically and do not overlap.",
-    )
-st.caption(
-    "Walk-forward results are separate, non-compounded test windows. Do not tune parameters "
-    "by looking at test results. At least two candles must remain in each scored window."
-)
+else:
+    initial_train_size = 1
+    test_size = 2
+    st.info("At least three candles are required for out-of-sample validation; the ordinary backtest remains available.")
 
 if st.button("Run research analysis", type="primary"):
     try:
