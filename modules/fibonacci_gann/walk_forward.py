@@ -36,7 +36,7 @@ def evaluate_walk_forward(
     test_size: int,
     step_size: int | None = None,
 ) -> tuple[WalkForwardFold, ...]:
-    """Evaluate sequential test windows after an initial history period.
+    """Evaluate sequential, non-overlapping test windows after initial history.
 
     The training window expands with time. For each test candle, the signal
     callback receives only the candle prefix ending at that candle's close.
@@ -55,6 +55,8 @@ def evaluate_walk_forward(
         step_size = test_size
     if not isinstance(step_size, int) or isinstance(step_size, bool) or step_size < 1:
         raise ValueError("step_size must be a positive integer")
+    if step_size < test_size:
+        raise ValueError("step_size must be at least test_size to prevent overlapping test windows")
 
     folds: list[WalkForwardFold] = []
     test_start = initial_train_size
