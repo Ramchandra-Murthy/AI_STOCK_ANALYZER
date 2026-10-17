@@ -440,8 +440,8 @@ if st.button("Run research analysis", type="primary"):
             )
         st.caption(
             "Full-period comparison is descriptive and may be in-sample. "
-            "Buy-and-hold excludes dividends, fees, taxes, and slippage. Use the separate walk-forward results for "
-            "a more cautious view of unseen periods."
+            "Buy-and-hold excludes dividends, fees, taxes, and slippage. Use the separate walk-forward results "
+            "for a more cautious view of unseen periods."
         )
     except (ValueError, TypeError, OverflowError) as exc:
         st.error(f"Benchmark comparison could not be completed: {exc}")
