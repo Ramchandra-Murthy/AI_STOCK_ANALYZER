@@ -49,3 +49,35 @@ def test_rejects_invalid_variant_values() -> None:
         evaluate_parameter_sensitivity(
             sample_candles(), [False] * 8, {"bad": "not a config"}  # type: ignore[dict-item]
         )
+
+
+def test_builds_all_twelve_lookback_reward_risk_combinations() -> None:
+    from modules.fibonacci_gann.parameter_sensitivity import build_parameter_grid
+
+    base = BacktestConfig(
+        capital=5000,
+        max_loss_per_trade=250,
+        stop_distance=4,
+        reward_risk_ratio=1.5,
+        round_trip_cost_per_unit=0.2,
+        slippage_per_unit_per_side=0.1,
+    )
+    cases = build_parameter_grid(base)
+
+    assert len(cases) == 12
+    assert [(case.lookback, case.reward_risk_ratio) for case in cases] == [
+        (lookback, ratio) for lookback in (10, 20, 30, 50) for ratio in (2.0, 2.5, 3.0)
+    ]
+    assert all(case.config.capital == 5000 for case in cases)
+    assert all(case.config.stop_distance == 4 for case in cases)
+    assert all(case.config.round_trip_cost_per_unit == 0.2 for case in cases)
+    assert all(case.config.slippage_per_unit_per_side == 0.1 for case in cases)
+
+
+def test_parameter_grid_rejects_invalid_values() -> None:
+    from modules.fibonacci_gann.parameter_sensitivity import build_parameter_grid
+
+    with pytest.raises(ValueError, match="positive integers"):
+        build_parameter_grid(BacktestConfig(), lookbacks=(10, 0))
+    with pytest.raises(ValueError, match="greater than zero"):
+        build_parameter_grid(BacktestConfig(), reward_risk_ratios=(2.0, float("nan")))
