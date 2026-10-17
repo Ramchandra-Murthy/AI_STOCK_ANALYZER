@@ -82,3 +82,33 @@ def test_all_position_sizing_inputs_reject_malformed_values(
 
     with pytest.raises(ValueError):
         calculate_position_size(**kwargs)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("entry", "stop", "capital", "max_loss", "cost", "expected_quantity"),
+    [
+        (100, 95, 3000, 100, 0, 20),
+        (100, 95, 3000, 99, 0, 19),
+        (100, 95, 3000, 100, 1, 16),
+        (100, 95, 199, 100, 0, 1),
+        (100, 95, 200, 100, 0, 2),
+    ],
+)
+def test_position_size_flooring_at_risk_and_capital_boundaries(
+    entry: int,
+    stop: int,
+    capital: int,
+    max_loss: int,
+    cost: int,
+    expected_quantity: int,
+) -> None:
+    result = calculate_position_size(
+        entry, stop, capital=capital, max_loss=max_loss, cost_per_unit=cost
+    )
+
+    assert result.quantity == expected_quantity
+    assert result.estimated_loss <= result.risk_limit
+    assert result.capital_required <= result.capital_limit
+    assert result.estimated_loss + (result.risk_per_unit) > result.risk_limit or (
+        result.capital_required + result.entry_price > result.capital_limit
+    )
