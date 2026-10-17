@@ -9,9 +9,9 @@ import streamlit as st
 
 from modules.fibonacci_gann.backtest import BacktestConfig, Candle, run_backtest
 from modules.fibonacci_gann.benchmark import compare_with_buy_and_hold
-from modules.fibonacci_gann.walk_forward import evaluate_walk_forward
 from modules.fibonacci_gann.parameter_sensitivity import evaluate_parameter_sensitivity
 from modules.fibonacci_gann.regime_robustness import evaluate_regime_robustness
+from modules.fibonacci_gann.walk_forward import evaluate_walk_forward
 
 st.set_page_config(page_title="Fibonacci-Gann Research Lab", page_icon="📐", layout="wide")
 st.title("📐 Fibonacci-Gann Research Lab")
