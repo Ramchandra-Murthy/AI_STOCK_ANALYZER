@@ -133,6 +133,12 @@ pages = {
             icon="📐",
             url_path="fibonacci-gann-research-lab",
         ),
+        st.Page(
+            "pages/Gann_Fibonacci_Time_Price_Lab.py",
+            title="Gann–Fibonacci Time & Price Lab",
+            icon="🧭",
+            url_path="gann-fibonacci-time-price-lab",
+        ),
     ],
     "🤖 Algorithmic Trading": [
         st.Page("pages/Algorithmic_Scanner.py", title="Algorithmic Scanner", icon="📊"),
