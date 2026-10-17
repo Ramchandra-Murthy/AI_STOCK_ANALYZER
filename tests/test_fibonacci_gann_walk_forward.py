@@ -56,6 +56,7 @@ def test_signal_callback_never_receives_future_candles(candles):
         ({"initial_train_size": 0, "test_size": 3}, "initial_train_size"),
         ({"initial_train_size": 4, "test_size": 1}, "test_size"),
         ({"initial_train_size": 4, "test_size": 3, "step_size": 0}, "step_size"),
+        ({"initial_train_size": 4, "test_size": 3, "step_size": 2}, "prevent overlapping"),
     ],
 )
 def test_rejects_invalid_window_sizes(candles, kwargs, message):
