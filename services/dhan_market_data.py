@@ -205,8 +205,9 @@ class DhanMarketData:
                 f"{_response_remarks(sdk_response)}"
             ) from exc
         except (URLError, TimeoutError, json.JSONDecodeError) as exc:
+            failure_kind = type(exc).__name__
             raise DhanConfigurationError(
-                f"Dhan {endpoint} direct request failed: {exc}; "
+                f"Dhan {endpoint} direct request failed ({failure_kind}); "
                 f"SDK response: {_response_remarks(sdk_response)}"
             ) from exc
         if not isinstance(parsed, dict):
