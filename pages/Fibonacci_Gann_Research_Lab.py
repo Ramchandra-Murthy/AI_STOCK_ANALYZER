@@ -425,6 +425,7 @@ if st.button("Run research analysis", type="primary"):
     st.subheader("Out-of-sample walk-forward validation")
     if signal_mode == "Generate daily Fibonacci-Gann signals":
         from modules.fibonacci_gann.signals import generate_daily_fibonacci_gann_signals
+        from modules.fibonacci_gann.trend_filter import apply_sma_trend_filter
 
         def _latest_causal_signal(history, _config):
             # The rule only needs the latest bar plus its preceding lookback bars.
@@ -432,6 +433,12 @@ if st.button("Run research analysis", type="primary"):
             if len(window) <= int(lookback):
                 return False
             return generate_daily_fibonacci_gann_signals(window, lookback=int(lookback))[-1]
+
+        def _latest_causal_sma200_signal(history, _config):
+            # Build signals only from the available prefix; the SMA includes only
+            # closes known at the current signal bar's close.
+            history_signals = generate_daily_fibonacci_gann_signals(history, lookback=int(lookback))
+            return apply_sma_trend_filter(history, history_signals, period=200)[-1]
 
         try:
             folds = evaluate_walk_forward(
@@ -441,8 +448,15 @@ if st.button("Run research analysis", type="primary"):
                 initial_train_size=int(initial_train_size),
                 test_size=int(test_size),
             )
+            sma200_folds = evaluate_walk_forward(
+                candles,
+                _latest_causal_sma200_signal,
+                base_config,
+                initial_train_size=int(initial_train_size),
+                test_size=int(test_size),
+            )
             fold_rows = []
-            for fold in folds:
+            for fold, sma_fold in zip(folds, sma200_folds, strict=True):
                 fold_candles = tuple(
                     candle
                     for candle in candles
@@ -455,31 +469,34 @@ if st.button("Run research analysis", type="primary"):
                         "Test starts": fold.test_start,
                         "Test ends": fold.test_end,
                         "Test candles": fold.test_candle_count,
-                        "Trades": (
-                            fold.result.trade_count
-                            if hasattr(fold.result, "trade_count")
-                            else len(fold.result.trades)
-                        ),
-                        "Strategy return (%)": round(fold.result.total_return_pct, 2),
+                        "Baseline trades": len(fold.result.trades),
+                        "Baseline return (%)": round(fold.result.total_return_pct, 2),
+                        "Baseline drawdown (%)": round(fold.result.max_drawdown_pct, 2),
+                        "SMA200 trades": len(sma_fold.result.trades),
+                        "SMA200 return (%)": round(sma_fold.result.total_return_pct, 2),
+                        "SMA200 drawdown (%)": round(sma_fold.result.max_drawdown_pct, 2),
                         "Buy-and-hold return (%)": round(comparison.benchmark_return_pct, 2),
-                        "Excess return (pp)": round(comparison.excess_return_pct, 2),
-                        "Strategy max drawdown (%)": round(fold.result.max_drawdown_pct, 2),
                     }
                 )
             st.dataframe(pd.DataFrame(fold_rows), use_container_width=True, hide_index=True)
             st.caption(
-                "Each test window starts from the configured capital and is evaluated independently; "
-                "returns are not compounded. Buy-and-hold uses close-to-close prices and excludes "
-                "dividends, fees, taxes, and slippage, so it is an imperfect benchmark."
+                "Baseline and SMA200-filtered signals are evaluated on identical chronological, "
+                "non-overlapping test windows with the same configured costs and position sizing. "
+                "Each fold starts with configured capital; returns are not compounded. The SMA200 "
+                "filter suppresses signals until 200 closes are available. Buy-and-hold uses "
+                "close-to-close prices and excludes dividends, fees, taxes, and slippage. This is "
+                "an exploratory comparison, not proof of profitability."
             )
-            if all(row["Trades"] == 0 for row in fold_rows):
+            baseline_trade_count = sum(row["Baseline trades"] for row in fold_rows)
+            sma200_trade_count = sum(row["SMA200 trades"] for row in fold_rows)
+            if baseline_trade_count == 0 and sma200_trade_count == 0:
                 st.warning(
                     "No trades occurred in any out-of-sample window. "
                     "This does not validate the strategy."
                 )
-            elif sum(row["Trades"] for row in fold_rows) < 10:
+            elif baseline_trade_count < 10 or sma200_trade_count < 10:
                 st.warning(
-                    "Fewer than 10 out-of-sample trades were generated; "
+                    "At least one variant generated fewer than 10 out-of-sample trades; "
                     "results are too sparse for strong conclusions."
                 )
         except (ValueError, TypeError, OverflowError) as exc:
