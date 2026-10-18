@@ -31,7 +31,12 @@ def test_walk_forward_folds_are_chronological_and_disjoint(candles):
     ]
     assert all(fold.train_end < fold.test_start for fold in folds)
     assert all(fold.test_candle_count == 3 for fold in folds)
-    assert seen == [candle.timestamp for candle in candles[4:]]
+    assert seen == [
+        candles[3].timestamp,
+        *(candle.timestamp for candle in candles[4:7]),
+        candles[6].timestamp,
+        *(candle.timestamp for candle in candles[7:]),
+    ]
 
 
 def test_signal_callback_never_receives_future_candles(candles):
@@ -93,3 +98,28 @@ def test_walk_forward_includes_short_final_fold_with_two_candles(candles):
     assert folds[-1].test_start == "2026-01-11"
     assert folds[-1].test_end == "2026-01-12"
     assert all(fold.result.trades == () for fold in folds)
+
+
+
+def test_signal_on_last_training_candle_can_enter_at_first_test_open():
+    candles = (
+        Candle("2026-01-01", 100, 101, 99, 100),
+        Candle("2026-01-02", 101, 102, 100, 101),
+        Candle("2026-01-03", 102, 103, 101, 102),
+        Candle("2026-01-04", 105, 116, 104, 115),
+        Candle("2026-01-05", 115, 116, 114, 115),
+    )
+
+    folds = evaluate_walk_forward(
+        candles,
+        lambda history, config: history[-1].timestamp == "2026-01-03",
+        BacktestConfig(capital=10_000, max_loss_per_trade=50, stop_distance=5),
+        initial_train_size=3,
+        test_size=2,
+    )
+
+    assert len(folds) == 1
+    assert folds[0].test_start == "2026-01-04"
+    assert len(folds[0].result.trades) == 1
+    assert folds[0].result.trades[0].entry_timestamp == "2026-01-04"
+    assert folds[0].result.trades[0].entry_price == 105
