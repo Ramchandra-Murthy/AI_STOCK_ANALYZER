@@ -268,3 +268,21 @@ def test_signal_after_unsized_entry_is_preserved() -> None:
     assert len(result.trades) == 1
     assert result.trades[0].entry_timestamp == "2026-01-01T09:25"
     assert result.trades[0].entry_price == 50
+
+
+def test_gap_exit_drawdown_ignores_prices_after_open_exit() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 101, 99, 100),
+        Candle("2026-01-01T09:20", 100, 101, 99, 100),
+        # The stop is gapped through at 90; the later low of 50 is post-exit.
+        Candle("2026-01-01T09:25", 90, 95, 50, 60),
+    ]
+    result = run_backtest(
+        candles,
+        [True, False, False],
+        BacktestConfig(capital=1000, max_loss_per_trade=50, stop_distance=5),
+    )
+
+    assert result.trades[0].exit_reason == "stop_gap"
+    assert result.trades[0].exit_price == 90
+    assert result.max_intratrade_drawdown_pct < 15
