@@ -21,3 +21,13 @@ def test_market_session_is_not_ready_after_close() -> None:
 def test_market_session_is_not_ready_on_weekend() -> None:
     now = datetime(2026, 10, 4, 6, 0, tzinfo=UTC)
     assert not market_session_ready(now)
+
+
+def test_market_session_is_not_ready_on_exchange_holiday() -> None:
+    now = datetime(2026, 10, 20, 5, 0, tzinfo=UTC)
+    assert not market_session_ready(now)
+
+
+def test_market_session_is_not_ready_without_verified_calendar_year() -> None:
+    now = datetime(2027, 1, 4, 4, 30, tzinfo=UTC)
+    assert not market_session_ready(now)
