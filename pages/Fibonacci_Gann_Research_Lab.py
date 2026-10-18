@@ -157,6 +157,50 @@ if signal_mode == "Generate daily Fibonacci-Gann signals":
 numeric_columns = ["open", "high", "low", "close"]
 for column in numeric_columns:
     frame[column] = pd.to_numeric(frame[column], errors="coerce")
+
+# Validate the input data before generating signals or running a backtest.
+# Silent coercion to NaN can otherwise hide malformed prices and distort indicators.
+invalid_numeric = frame[numeric_columns].isna().any(axis=1)
+if invalid_numeric.any():
+    st.error(
+        f"{int(invalid_numeric.sum())} row(s) contain missing or non-numeric OHLC prices. "
+        "Correct the CSV and upload it again."
+    )
+    st.stop()
+
+if not frame[numeric_columns].apply(lambda column: column.map(isfinite)).all().all():
+    st.error("OHLC prices must be finite numbers; NaN and infinite values are not allowed.")
+    st.stop()
+
+if (frame[numeric_columns] <= 0).any().any():
+    st.error("OHLC prices must all be positive.")
+    st.stop()
+
+invalid_ohlc = (
+    (frame["high"] < frame[["open", "low", "close"]].max(axis=1))
+    | (frame["low"] > frame[["open", "high", "close"]].min(axis=1))
+)
+if invalid_ohlc.any():
+    st.error(
+        f"{int(invalid_ohlc.sum())} row(s) have inconsistent OHLC values: "
+        "high must be at least open, low, and close; low must be at most open, high, and close."
+    )
+    st.stop()
+
+parsed_timestamps = pd.to_datetime(frame["timestamp"], errors="coerce", utc=True)
+if parsed_timestamps.isna().any():
+    st.error(
+        f"{int(parsed_timestamps.isna().sum())} row(s) have invalid timestamps. "
+        "Use a consistent, parseable timestamp format."
+    )
+    st.stop()
+if parsed_timestamps.duplicated().any():
+    st.error("Duplicate timestamps were found. Keep only one OHLC candle per timestamp.")
+    st.stop()
+if not parsed_timestamps.is_monotonic_increasing:
+    st.error("Timestamps must be in chronological ascending order. Sort the CSV and upload it again.")
+    st.stop()
+
 if signal_mode == "Use CSV signal column":
     signal_text = frame["signal"].astype(str).str.strip().str.lower()
     signal_map = {"true": True, "false": False, "1": True, "0": False}
