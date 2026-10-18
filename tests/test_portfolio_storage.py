@@ -1,6 +1,5 @@
 """Regression tests for portfolio SQLite storage initialization."""
 
-import pandas as pd
 
 from portfolio import portfolio
 
