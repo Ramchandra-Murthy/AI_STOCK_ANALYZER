@@ -311,6 +311,7 @@ def test_gap_drawdown_uses_non_negative_exit_fill_under_extreme_slippage() -> No
     # The drawdown mark must match the clamped fill used by the trade ledger.
     assert result.max_intratrade_drawdown_pct == pytest.approx(40.2)
 
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
