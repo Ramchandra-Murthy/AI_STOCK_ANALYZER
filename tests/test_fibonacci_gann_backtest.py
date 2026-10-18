@@ -329,4 +329,3 @@ def test_rejects_boolean_numeric_config_values(field: str, value: bool) -> None:
             [False, False, False],
             BacktestConfig(**{field: value}),
         )
-
