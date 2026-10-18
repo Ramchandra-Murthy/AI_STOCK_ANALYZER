@@ -115,12 +115,12 @@ def test_confluence_rejects_invalid_tolerance():
         find_confluence([], [], {}, tolerance_pct=100)
 
 
-
 def test_historical_confluence_zones_exclude_bars_before_anchor_confirmation():
     zones = [103, 105, 108, 120]
-    assert eligible_time_zone_indices(
-        zones, confirmed_at_index=105, total_bars=110
-    ) == [105, 108]
+    assert eligible_time_zone_indices(zones, confirmed_at_index=105, total_bars=110) == [
+        105,
+        108,
+    ]
 
 
 def test_historical_confluence_zone_filter_handles_manual_anchor_and_invalid_inputs():
