@@ -96,3 +96,30 @@ def test_market_status_does_not_present_daily_fallback_as_current_intraday_data(
     assert status["is_current_session"] is False
     assert status["is_market_open"] is True
     assert "must not be presented as a current intraday quote" in status["detail"]
+
+
+
+def test_market_status_marks_exchange_holiday_as_closed():
+    now = datetime(2026, 10, 20, 12, 0, tzinfo=IST)
+    status = market_session_status("2026-10-20T11:59:00+05:30", "intraday_1m", now)
+
+    assert status["status"] == "MARKET CLOSED · HOLIDAY"
+    assert status["is_current_session"] is False
+    assert status["is_market_open"] is False
+
+
+def test_market_status_fails_closed_when_exchange_calendar_is_unknown():
+    now = datetime(2027, 1, 4, 12, 0, tzinfo=IST)
+    status = market_session_status("2027-01-04T11:59:00+05:30", "intraday_1m", now)
+
+    assert status["status"] == "MARKET CALENDAR UNAVAILABLE"
+    assert status["is_current_session"] is False
+    assert status["is_market_open"] is False
+
+
+def test_missing_quote_does_not_claim_market_open_on_holiday():
+    now = datetime(2026, 10, 20, 12, 0, tzinfo=IST)
+    status = market_session_status(None, "unavailable", now)
+
+    assert status["status"] == "MARKET CLOSED · HOLIDAY"
+    assert status["is_market_open"] is False
