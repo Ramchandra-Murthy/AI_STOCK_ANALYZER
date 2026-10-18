@@ -234,6 +234,43 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
+with st.expander("Numerical Gann price projections", expanded=True):
+    projection_rows = [
+        {
+            "Target bar": int(item["target_index"]),
+            "Bars from anchor": int(item["target_index"]) - anchor_index,
+            "Gann ratio": float(item["ratio"]),
+            "Projected price": round(float(item["price"]), 2),
+            "Price status": (
+                "Positive"
+                if float(item["price"]) > 0
+                else "Non-positive; not a feasible equity price"
+            ),
+            "Direction": item["direction"].title(),
+        }
+        for item in projections
+        if (
+            int(item["target_index"])
+            in {anchor_index + interval for interval in intervals if interval <= int(horizon)}
+            or int(item["target_index"]) == anchor_index + int(horizon)
+        )
+    ]
+    st.dataframe(
+        pd.DataFrame(projection_rows),
+        use_container_width=True,
+        hide_index=True,
+    )
+    if any(float(item["price"]) <= 0 for item in projections):
+        st.warning(
+            "Some linear projections reach zero or negative prices. These are mathematical "
+            "extensions of the selected scale, not feasible equity-price targets; reconsider "
+            "the scale or horizon before interpreting them."
+        )
+    st.caption(
+        "Calculation: anchor price + direction × bars from anchor × price units per bar × Gann ratio. "
+        "Changing Up/Down reverses the sign of the price change; time-zone bars do not change."
+    )
+
 metric_left, metric_middle, metric_right = st.columns(3)
 metric_left.metric("Confirmed pivots", f"{len(pivots):,}")
 metric_middle.metric("Projected time zones", f"{len(time_zones):,}")
