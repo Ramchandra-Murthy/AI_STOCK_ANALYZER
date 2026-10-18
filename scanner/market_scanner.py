@@ -69,6 +69,13 @@ def _extract_history_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     return frame.dropna(subset=required)
 
 
+def _format_last_data_date(index: pd.Index) -> str:
+    """Format the last daily candle date without inventing a date for unknown indexes."""
+    if not isinstance(index, pd.DatetimeIndex) or index.empty:
+        return "UNKNOWN"
+    return index[-1].date().isoformat()
+
+
 def _download_chunk(chunk: list[str]) -> pd.DataFrame:
     """Download a mover-screen chunk, retrying once without threading."""
     try:
@@ -184,6 +191,7 @@ def _analyze_history(
     if len(df) < 50:
         return None
 
+    last_data_date = _format_last_data_date(df.index)
     try:
         df = df.reset_index(drop=True)
         df = calculate_sma(df, 20)
@@ -211,6 +219,9 @@ def _analyze_history(
             "Exchange": exchange,
             "Sector": sector_for_symbol(symbol),
             "Price": round(float(last["Close"]), 2),
+            "Data Frequency": "DAILY",
+            "Last Data Date": last_data_date,
+            "Data Status": "DAILY DATA · NOT INTRADAY",
             "Avg Turnover (₹)": (
                 round(average_turnover, 0) if average_turnover is not None else None
             ),
