@@ -354,3 +354,24 @@ def test_rejects_non_numeric_boolean_or_non_finite_ohlc(field: str, value: objec
         ValueError, match="OHLC values must be numeric, finite, and greater than zero"
     ):
         validate_candles(candles)
+
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("capital", "10000"),
+        ("max_loss_per_trade", None),
+        ("stop_distance", "5"),
+        ("reward_risk_ratio", object()),
+        ("round_trip_cost_per_unit", "0.5"),
+        ("slippage_per_unit_per_side", None),
+    ],
+)
+def test_rejects_non_numeric_config_values(field: str, value: object) -> None:
+    with pytest.raises(ValueError, match=field):
+        run_backtest(
+            candles_for_target(),
+            [False, False, False],
+            BacktestConfig(**{field: value}),
+        )
