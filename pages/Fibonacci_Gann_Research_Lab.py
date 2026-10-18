@@ -208,6 +208,21 @@ else:
         f"{signal_count:,} signal bar(s) detected. Signals are assumed known after each bar closes, "
         "and entries occur no earlier than the next bar's open."
     )
+st.caption(
+    "The uploaded CSV is not modified on disk. The signal column below is the active series "
+    "used by this run: supplied CSV signals in CSV mode, or newly generated signals in "
+    "Fibonacci-Gann mode."
+)
+st.download_button(
+    "Download research CSV with active signals",
+    data=frame.to_csv(index=False).encode("utf-8"),
+    file_name="fibonacci_gann_research_signals.csv",
+    mime="text/csv",
+    help=(
+        "Exports the full OHLC history and the exact active signal column used for this "
+        "research run. Generated signals are included when Fibonacci-Gann mode is selected."
+    ),
+)
 st.dataframe(frame.head(10), use_container_width=True, hide_index=True)
 
 # Estimate a 14-bar Average True Range from the uploaded daily OHLC data.
