@@ -28,6 +28,7 @@ def show_technical_summary(df, allow_recommendation=True, block_reason=None):
     component validates the latest row but does not claim that data is live.
     """
     st.subheader("📊 Technical Summary")
+    st.caption("Diagnostic: technical_summary.py version = mixed-ema-v1")
 
     if df is None or df.empty:
         st.warning("No technical data available.")
