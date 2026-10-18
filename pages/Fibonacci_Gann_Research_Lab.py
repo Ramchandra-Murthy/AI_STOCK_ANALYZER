@@ -416,10 +416,12 @@ if st.button("Run research analysis", type="primary"):
         max_loss_per_trade=base_config.max_loss_per_trade,
         stop_distance=base_config.stop_distance,
         reward_risk_ratio=base_config.reward_risk_ratio,
-        round_trip_cost_per_unit=max(base_config.round_trip_cost_per_unit * 1.5,
-                                     base_config.round_trip_cost_per_unit + 0.3),
-        slippage_per_unit_per_side=max(base_config.slippage_per_unit_per_side * 2,
-                                       base_config.slippage_per_unit_per_side + 0.1),
+        round_trip_cost_per_unit=max(
+            base_config.round_trip_cost_per_unit * 1.5, base_config.round_trip_cost_per_unit + 0.3
+        ),
+        slippage_per_unit_per_side=max(
+            base_config.slippage_per_unit_per_side * 2, base_config.slippage_per_unit_per_side + 0.1
+        ),
     )
     stress_result = run_backtest(candles, signals, stress_config)
     stress_rows = [
@@ -574,9 +576,7 @@ if st.button("Run research analysis", type="primary"):
                     }
                 )
             st.markdown("**Out-of-sample summary (separate, non-compounded folds)**")
-            st.dataframe(
-                pd.DataFrame(oos_summary_rows), use_container_width=True, hide_index=True
-            )
+            st.dataframe(pd.DataFrame(oos_summary_rows), use_container_width=True, hide_index=True)
             st.caption(
                 "Window P&L is summed across independent folds, each starting with the configured "
                 "capital; it is not a compounded account curve. Mean window return gives each fold "
