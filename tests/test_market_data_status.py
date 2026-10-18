@@ -16,6 +16,7 @@ def test_recent_daily_history_reports_source_and_timestamp():
         "status": "RECENT",
         "source": "test-provider",
         "timestamp": "2026-10-16",
+        "is_verified_live": False,
     }
 
 
@@ -40,3 +41,24 @@ def test_empty_history_is_unknown():
     result = describe_daily_history(pd.DataFrame(), today=date(2026, 10, 18))
 
     assert result["status"] == "UNKNOWN"
+
+
+
+def test_recent_daily_data_is_never_labelled_verified_live():
+    history = pd.DataFrame({"Close": [100]}, index=pd.to_datetime(["2026-10-18"]))
+
+    result = describe_daily_history(history, today=date(2026, 10, 18))
+
+    assert result["status"] == "RECENT"
+    assert result["is_verified_live"] is False
+
+
+def test_non_scalar_or_invalid_timestamp_is_unknown():
+    history = pd.DataFrame({"Close": [100]}, index=["not-a-date"])
+    history.attrs["last_bar_timestamp"] = object()
+
+    result = describe_daily_history(history, today=date(2026, 10, 18))
+
+    assert result["status"] == "UNKNOWN"
+    assert result["timestamp"] == "Unknown"
+    assert result["is_verified_live"] is False
