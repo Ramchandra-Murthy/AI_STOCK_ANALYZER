@@ -51,6 +51,11 @@ from scanner.price_jump_confluence import match_price_jumps_to_confluence
 from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.price_jump_history_analytics import summarize_price_jump_history
 from scanner.unusual_activity import scan_unusual_activity
+from services.market_calendar import (
+    EQUITY_HOLIDAYS_BY_YEAR,
+    is_equity_market_holiday,
+    is_regular_equity_session_open,
+)
 
 IST = ZoneInfo("Asia/Kolkata")
 
@@ -95,39 +100,16 @@ def _prepare(intraday: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-# NSE/BSE equity-market holidays for 2026 from the official exchange calendar.
-# The set prevents a prior-session Yahoo candle from being classified as stale on holidays.
-NSE_BSE_EQUITY_HOLIDAYS_2026 = frozenset(
-    {
-        date(2026, 1, 26),
-        date(2026, 3, 3),
-        date(2026, 3, 26),
-        date(2026, 3, 31),
-        date(2026, 4, 3),
-        date(2026, 4, 14),
-        date(2026, 5, 1),
-        date(2026, 5, 28),
-        date(2026, 6, 26),
-        date(2026, 9, 14),
-        date(2026, 10, 2),
-        date(2026, 10, 20),
-        date(2026, 11, 10),
-        date(2026, 11, 24),
-        date(2026, 12, 25),
-    }
-)
+# Backwards-compatible alias; the shared service owns the canonical calendar.
+NSE_BSE_EQUITY_HOLIDAYS_2026 = EQUITY_HOLIDAYS_BY_YEAR[2026]
 
 
 def _is_equity_market_holiday(day: date) -> bool:
-    return day in NSE_BSE_EQUITY_HOLIDAYS_2026
+    return is_equity_market_holiday(day)
 
 
 def _market_session_is_open(now: datetime) -> bool:
-    return (
-        now.weekday() < 5
-        and not _is_equity_market_holiday(now.date())
-        and ((now.hour, now.minute) >= (9, 15) and (now.hour, now.minute) < (15, 30))
-    )
+    return is_regular_equity_session_open(now)
 
 
 # Dynamic market board settings.

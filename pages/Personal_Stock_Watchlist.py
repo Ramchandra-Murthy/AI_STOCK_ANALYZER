@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import date, datetime, time
+from datetime import date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -12,6 +12,7 @@ import streamlit as st
 import yfinance as yf
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.market_calendar import is_regular_equity_session_open
 from services.portfolio_calculations import is_actual_holding, position_valuation
 from services.watchlist_service import (
     OWNER_ID,
@@ -29,9 +30,9 @@ INVESTMENT_TYPES = ["Delivery", "Swing", "Intraday", "Investment", "Options", "O
 
 
 def _market_session_open() -> bool:
-    """Approximate NSE/BSE cash session; exchange holidays are not inferred."""
+    """Return whether the shared exchange calendar confirms a regular cash session."""
     now = datetime.now(ZoneInfo("Asia/Kolkata"))
-    return now.weekday() < 5 and time(9, 15) <= now.time() <= time(15, 30)
+    return is_regular_equity_session_open(now)
 
 
 @st.cache_data(ttl=45, show_spinner=False)

@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime, time
 from zoneinfo import ZoneInfo
 
+from services.market_calendar import equity_market_session_status
+
 IST = ZoneInfo("Asia/Kolkata")
 
 
@@ -31,10 +33,9 @@ def is_market_hours(
     """Return whether a timestamp falls inside the configured weekday session."""
     selected = policy or MarketRefreshPolicy()
     localized = current.astimezone(IST)
-    if localized.weekday() >= 5:
-        return False
-    current_time = localized.time().replace(microsecond=0)
-    return selected.open_time <= current_time <= selected.close_time
+    return (
+        equity_market_session_status(localized, selected.open_time, selected.close_time) == "OPEN"
+    )
 
 
 def refresh_seconds(policy: MarketRefreshPolicy | None = None) -> int:
