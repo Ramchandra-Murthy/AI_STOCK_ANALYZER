@@ -106,3 +106,35 @@ def test_format_last_data_date_does_not_invent_date_for_unknown_index() -> None:
 
     assert _format_last_data_date(pd.RangeIndex(2)) == "UNKNOWN"
     assert _format_last_data_date(pd.DatetimeIndex([])) == "UNKNOWN"
+
+
+def test_watchlist_observation_columns_distinguish_daily_quote_from_tick_live() -> None:
+    from scanner.watchlist_scanner import _observation_columns
+
+    columns = _observation_columns(
+        {
+            "price": 123.45,
+            "observed_at": "2026-10-19T11:59:00+05:30",
+            "frequency": "intraday_1m",
+            "session_status": "INTRADAY DATA · TODAY",
+            "is_tick_live": False,
+        }
+    )
+
+    assert columns["Latest Observation Price"] == 123.45
+    assert columns["Observed At"] == "2026-10-19T11:59:00+05:30"
+    assert columns["Observation Frequency"] == "intraday_1m"
+    assert columns["Observation Status"] == "INTRADAY DATA · TODAY"
+    assert columns["Tick Live"] is False
+
+
+def test_watchlist_observation_columns_fail_closed_when_observation_missing() -> None:
+    from scanner.watchlist_scanner import _observation_columns
+
+    columns = _observation_columns(None)
+
+    assert columns["Latest Observation Price"] is None
+    assert columns["Observed At"] == "UNKNOWN"
+    assert columns["Observation Frequency"] == "unknown"
+    assert columns["Observation Status"] == "MARKET DATA STATUS UNAVAILABLE"
+    assert columns["Tick Live"] is False
