@@ -61,3 +61,16 @@ def test_rejects_signal_length_mismatch_and_non_boolean_signals() -> None:
         evaluate_regime_robustness(
             sample_candles(), [0] * 8, BacktestConfig(), regimes={"sample": (0, 2)}
         )
+
+
+def test_rejects_invalid_timestamp_in_unselected_gap_between_regimes() -> None:
+    candles = sample_candles()
+    candles[4] = Candle("2025-12-31T09:35", 102, 104, 100, 102)
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        evaluate_regime_robustness(
+            candles,
+            [False] * 8,
+            BacktestConfig(),
+            regimes={"early": (0, 2), "late": (6, 8)},
+        )
