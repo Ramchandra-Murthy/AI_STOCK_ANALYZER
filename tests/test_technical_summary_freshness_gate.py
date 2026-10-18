@@ -121,3 +121,47 @@ def test_missing_volume_is_reported_as_unavailable():
         show_technical_summary(history)
 
     assert fake_streamlit.metric.call_args.args == ("Volume", "Unavailable")
+
+
+
+def test_default_withholds_recommendation_without_explicit_freshness_approval():
+    fake_streamlit = MagicMock()
+    fake_streamlit.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
+
+    with patch("components.technical_summary.st", fake_streamlit):
+        show_technical_summary(_history())
+
+    fake_streamlit.warning.assert_called_once()
+    assert "Recommendation withheld" in fake_streamlit.warning.call_args.args[0]
+    fake_streamlit.success.assert_not_called()
+
+
+def test_invalid_support_resistance_are_reported_as_unavailable():
+    fake_streamlit = MagicMock()
+    fake_streamlit.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
+    history = _history()
+    history.loc[history.index[-1], "Support"] = 120.0
+    history.loc[history.index[-1], "Resistance"] = 115.0
+
+    with patch("components.technical_summary.st", fake_streamlit):
+        show_technical_summary(history)
+
+    metric_calls = [
+        call.args
+        for column in fake_streamlit.columns.return_value
+        for call in column.metric.call_args_list
+    ]
+    assert ("Support", "N/A") in metric_calls
+    assert ("Resistance", "N/A") in metric_calls
+
+
+def test_negative_volume_is_reported_as_unavailable():
+    fake_streamlit = MagicMock()
+    fake_streamlit.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
+    history = _history()
+    history.loc[history.index[-1], "Volume"] = -1.0
+
+    with patch("components.technical_summary.st", fake_streamlit):
+        show_technical_summary(history)
+
+    assert fake_streamlit.metric.call_args.args == ("Volume", "Unavailable")
