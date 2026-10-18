@@ -286,3 +286,27 @@ def test_gap_exit_drawdown_ignores_prices_after_open_exit() -> None:
     assert result.trades[0].exit_reason == "stop_gap"
     assert result.trades[0].exit_price == 90
     assert result.max_intratrade_drawdown_pct < 15
+
+
+def test_gap_drawdown_uses_non_negative_exit_fill_under_extreme_slippage() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 101, 99, 100),
+        Candle("2026-01-01T09:20", 100, 101, 99, 100),
+        Candle("2026-01-01T09:25", 50, 55, 40, 45),
+    ]
+    result = run_backtest(
+        candles,
+        [True, False, False],
+        BacktestConfig(
+            capital=1000,
+            max_loss_per_trade=500,
+            stop_distance=5,
+            slippage_per_unit_per_side=101,
+        ),
+    )
+
+    trade = result.trades[0]
+    assert trade.exit_reason == "stop_gap"
+    assert trade.exit_price == 0
+    # The drawdown mark must match the clamped fill used by the trade ledger.
+    assert result.max_intratrade_drawdown_pct == pytest.approx(40.2)
