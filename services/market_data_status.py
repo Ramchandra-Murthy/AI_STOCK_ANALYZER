@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 
+
 def describe_daily_history(history, today=None, stale_after_days=4):
     """Describe provenance and freshness of daily historical candles.
 
