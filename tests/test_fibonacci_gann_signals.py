@@ -62,3 +62,25 @@ def test_rejects_invalid_ohlc_even_when_lookback_is_too_long() -> None:
     candles[1] = Candle("2026-01-02", 100, 99, 98, 100)
     with pytest.raises(ValueError, match="high/low"):
         generate_daily_fibonacci_gann_signals(candles, lookback=20)
+
+def test_future_candle_changes_do_not_rewrite_earlier_signals() -> None:
+    candles = make_candles()
+    original = generate_daily_fibonacci_gann_signals(candles, lookback=4)
+
+    # Change only candles strictly after the point being audited.
+    candles[5] = Candle("2026-01-06", 103, 140, 101, 135)
+    changed = generate_daily_fibonacci_gann_signals(candles, lookback=4)
+
+    assert changed[:5] == original[:5]
+
+
+def test_signal_on_last_available_bar_cannot_create_a_trade_without_next_bar() -> None:
+    from modules.fibonacci_gann.backtest import BacktestConfig, run_backtest
+
+    candles = make_candles()[:4]
+    signals = (False, False, False, True)
+    result = run_backtest(candles, signals, BacktestConfig())
+
+    assert result.trades == ()
+    assert result.ending_capital == result.starting_capital
+
