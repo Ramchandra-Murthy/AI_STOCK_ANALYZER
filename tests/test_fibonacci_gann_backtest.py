@@ -245,4 +245,3 @@ def test_signal_on_exit_bar_can_enter_at_following_bar_open() -> None:
     assert result.trades[0].exit_timestamp == "2026-01-01T09:20"
     assert result.trades[1].entry_timestamp == "2026-01-01T09:25"
     assert result.trades[1].entry_price == 105
-
