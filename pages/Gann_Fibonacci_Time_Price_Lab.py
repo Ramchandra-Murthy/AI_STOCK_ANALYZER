@@ -174,8 +174,10 @@ except (KeyError, TypeError, ValueError) as exc:
     st.error(f"Could not calculate historical confluence: {exc}")
     st.stop()
 
-fig = go.Figure()
-fig.add_trace(
+# Keep the full-history chart separate from the short-horizon projection view.
+# Otherwise future fan lines near an early anchor compress the historical series on mobile.
+history_fig = go.Figure()
+history_fig.add_trace(
     go.Scatter(
         x=list(range(len(frame))),
         y=frame["close"],
@@ -184,7 +186,7 @@ fig.add_trace(
         line={"width": 2},
     )
 )
-fig.add_trace(
+history_fig.add_trace(
     go.Scatter(
         x=[anchor_index],
         y=[anchor_price],
@@ -193,46 +195,52 @@ fig.add_trace(
         marker={"size": 11, "symbol": "diamond"},
     )
 )
+for zone in time_zones:
+    index = int(zone["bar_index"])
+    if index < len(frame):
+        history_fig.add_vline(x=index, line_dash="dot", opacity=0.25)
+history_fig.update_layout(
+    height=420,
+    template="plotly_white",
+    xaxis_title="Bar index (trading rows)",
+    yaxis_title="Price",
+    legend_title="Series",
+    margin={"l": 12, "r": 12, "t": 28, "b": 28},
+)
+st.plotly_chart(history_fig, use_container_width=True)
+
+projection_fig = go.Figure()
+projection_fig.add_hline(
+    y=anchor_price,
+    line_dash="dot",
+    opacity=0.7,
+    annotation_text=f"Anchor {anchor_price:.2f}",
+)
 for ratio in ratios:
     ratio_rows = [
         item
         for item in projections
         if math.isclose(float(item["ratio"]), ratio, rel_tol=0.0, abs_tol=1e-9)
     ]
-    fig.add_trace(
+    projection_fig.add_trace(
         go.Scatter(
             x=[int(item["target_index"]) for item in ratio_rows],
             y=[float(item["price"]) for item in ratio_rows],
-            mode="lines",
+            mode="lines+markers",
             name=f"Gann ratio {ratio:g}",
-            line={
-                "dash": (
-                    "dash" if not math.isclose(ratio, 1.0, rel_tol=0.0, abs_tol=1e-9) else "solid"
-                )
-            },
         )
     )
-for zone in time_zones:
-    index = int(zone["bar_index"])
-    fig.add_vline(x=index, line_dash="dot", opacity=0.35)
-    fig.add_annotation(
-        x=index,
-        y=1,
-        yref="paper",
-        text=str(zone["interval"]),
-        showarrow=False,
-        yshift=8,
-        font={"size": 10},
-    )
-fig.update_layout(
-    height=560,
+projection_fig.update_layout(
+    height=380,
     template="plotly_white",
-    xaxis_title="Bar index (trading rows)",
-    yaxis_title="Price",
-    legend_title="Series",
-    margin={"l": 20, "r": 20, "t": 40, "b": 20},
+    xaxis_title="Target bar index",
+    yaxis_title="Projected price",
+    legend_title="Gann ratio",
+    margin={"l": 12, "r": 12, "t": 28, "b": 28},
+    xaxis={"range": [anchor_index, anchor_index + int(horizon)]},
 )
-st.plotly_chart(fig, use_container_width=True)
+with st.expander("Gann price projection chart (zoomed)", expanded=True):
+    st.plotly_chart(projection_fig, use_container_width=True)
 
 with st.expander("Numerical Gann price projections", expanded=True):
     projection_rows = [
@@ -255,11 +263,22 @@ with st.expander("Numerical Gann price projections", expanded=True):
             or int(item["target_index"]) == anchor_index + int(horizon)
         )
     ]
-    st.dataframe(
-        pd.DataFrame(projection_rows),
-        use_container_width=True,
-        hide_index=True,
-    )
+    projection_frame = pd.DataFrame(projection_rows)
+    if projection_frame.empty:
+        st.info("No projection levels fall within the selected horizon.")
+    else:
+        # Group by target bar so every price can be read without horizontal scrolling.
+        for target_bar, target_rows in projection_frame.groupby("Target bar", sort=True):
+            bars_from_anchor = int(target_rows["Bars from anchor"].iloc[0])
+            st.markdown(f"**Target bar {target_bar}** · {bars_from_anchor} bars from anchor")
+            price_items = [
+                f"{row['Gann ratio']:g}×: {row['Projected price']:.2f}"
+                for _, row in target_rows.sort_values("Gann ratio").iterrows()
+            ]
+            st.write(" · ".join(price_items))
+            statuses = target_rows["Price status"].unique().tolist()
+            if any(status != "Positive" for status in statuses):
+                st.caption("Warning: one or more levels are non-positive and are not feasible equity prices.")
     if any(float(item["price"]) <= 0 for item in projections):
         st.warning(
             "Some linear projections reach zero or negative prices. These are mathematical "
