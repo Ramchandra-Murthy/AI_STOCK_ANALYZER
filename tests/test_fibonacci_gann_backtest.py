@@ -331,6 +331,7 @@ def test_rejects_boolean_numeric_config_values(field: str, value: bool) -> None:
             BacktestConfig(**{field: value}),
         )
 
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [
@@ -349,5 +350,7 @@ def test_rejects_non_numeric_boolean_or_non_finite_ohlc(field: str, value: objec
             for name in ("open", "high", "low", "close")
         },
     )
-    with pytest.raises(ValueError, match="OHLC values must be numeric, finite, and greater than zero"):
+    with pytest.raises(
+        ValueError, match="OHLC values must be numeric, finite, and greater than zero"
+    ):
         validate_candles(candles)
