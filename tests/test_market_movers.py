@@ -59,7 +59,9 @@ def test_quote_freshness_labels_recent_open_session_candle():
     from modules.market_movers import _quote_freshness
 
     now = datetime(2026, 10, 19, 11, 0, tzinfo=ZoneInfo("Asia/Kolkata"))
-    assert _quote_freshness("2026-10-19 10:55:00 IST", now) == "CURRENT-SESSION CANDLE · NOT TICK-LIVE"
+    assert (
+        _quote_freshness("2026-10-19 10:55:00 IST", now) == "CURRENT-SESSION CANDLE · NOT TICK-LIVE"
+    )
 
 
 def test_quote_freshness_labels_weekend_snapshot_as_closed():
