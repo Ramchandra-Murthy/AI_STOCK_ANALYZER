@@ -2,6 +2,7 @@ import streamlit as st
 
 from components.charts.candlestick_chart import plot_candlestick
 from components.technical_summary import show_technical_summary
+from engine.recommendation_validation import validate_trade_plan
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
 from services.investment_thesis_service import generate_investment_thesis
@@ -21,7 +22,6 @@ from services.ui_formatters import (
     format_percent,
     format_price,
     format_ratio,
-    safe_progress,
 )
 from services.valuation_service import generate_valuation_analysis
 from services.valuation_v43_service import generate_valuation_v43
@@ -365,10 +365,12 @@ def show():
         ):
             st.metric(label, f"{value:.0f}/100" if value is not None else "N/A")
 
-        confidence = recommendation_result.get("confidence")
         overall_score = recommendation_result.get("overall_score")
-        st.metric("Confidence", f"{confidence}%" if confidence is not None else "N/A")
-        st.progress(safe_progress(confidence))
+        st.metric("Confidence", "Not calibrated")
+        st.caption(
+            "The recommendation service currently derives its score from component scores; "
+            "it does not provide a separately calibrated probability of success."
+        )
         st.metric("Overall Score", f"{overall_score}/100" if overall_score is not None else "N/A")
 
         st.subheader("Target Price & Trade Plan")
@@ -382,6 +384,43 @@ def show():
                 ("Resistance", trade_plan.get("resistance")),
             ):
                 st.metric(label, format_price(value))
+
+            try:
+                plan_validation = validate_trade_plan(
+                    current_price=float(trade_plan["current_price"]),
+                    target_price=float(trade_plan["target_price"]),
+                    stop_loss=float(trade_plan["stop_loss"]),
+                    direction="LONG",
+                    min_reward_risk=1.0,
+                )
+            except (KeyError, TypeError, ValueError) as error:
+                plan_validation = {
+                    "valid": False,
+                    "issues": [f"Trade-plan validation failed: {error}"],
+                }
+
+            ratio = plan_validation.get("reward_risk_ratio")
+            st.metric("Reward / Risk", f"{ratio:.2f}:1" if ratio is not None else "N/A")
+            if not plan_validation.get("valid", False):
+                st.warning(
+                    "This trade plan does not meet the minimum 1.0:1 reward-to-risk check. "
+                    "Treat the levels as reference estimates, not an actionable entry. "
+                    + "; ".join(plan_validation.get("issues", []))
+                )
+
+            target_price = trade_plan.get("target_price")
+            resistance = trade_plan.get("resistance")
+            current_price = trade_plan.get("current_price")
+            if (
+                target_price is not None
+                and resistance is not None
+                and current_price is not None
+                and current_price < resistance < target_price
+            ):
+                st.info(
+                    "The projected target is above the calculated resistance level. "
+                    "That target assumes a resistance breakout; the breakout is not confirmed."
+                )
         elif not recommendations_verified:
             st.warning(
                 "Trade plan withheld because the historical data freshness is not verified. "
@@ -393,8 +432,11 @@ def show():
         st.subheader("AI Model Analysis")
         ai_score = ai_result.get("score")
         st.metric("AI Score", f"{ai_score}/100" if ai_score is not None else "N/A")
-        st.metric("Risk Level", ai_result.get("risk", "Unknown"))
-        ai_verdict = ai_result.get("recommendation", "INSUFFICIENT DATA")
+        risk_level = ai_result.get("risk")
+        st.metric("Risk Level", risk_level if risk_level else "Not calculated")
+        ai_verdict = ai_result.get("recommendation")
+        if not ai_verdict:
+            ai_verdict = "Score only — no independent verdict"
         if not recommendations_verified:
             ai_verdict = "NOT VERIFIED — DATA STATUS"
         st.metric("AI Verdict", ai_verdict)
