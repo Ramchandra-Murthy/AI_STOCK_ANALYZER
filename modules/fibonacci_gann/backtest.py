@@ -62,8 +62,13 @@ class BacktestResult:
 
 
 def _finite_positive(value: float, name: str) -> None:
-    if isinstance(value, bool) or not isfinite(value) or value <= 0:
-        raise ValueError(f"{name} must be finite and greater than zero")
+    if (
+        not isinstance(value, (int, float))
+        or isinstance(value, bool)
+        or not isfinite(value)
+        or value <= 0
+    ):
+        raise ValueError(f"{name} must be numeric, finite, and greater than zero")
 
 
 def validate_candles(candles: Sequence[Candle]) -> None:
@@ -147,8 +152,13 @@ def run_backtest(
         ("round_trip_cost_per_unit", config.round_trip_cost_per_unit),
         ("slippage_per_unit_per_side", config.slippage_per_unit_per_side),
     ):
-        if isinstance(value, bool) or not isfinite(value) or value < 0:
-            raise ValueError(f"{name} must be finite and non-negative")
+        if (
+            not isinstance(value, (int, float))
+            or isinstance(value, bool)
+            or not isfinite(value)
+            or value < 0
+        ):
+            raise ValueError(f"{name} must be numeric, finite, and non-negative")
     if any(not isinstance(signal, bool) for signal in signals):
         raise ValueError("signals must contain only booleans")
 
