@@ -345,8 +345,16 @@ def show() -> None:
     st.info(str(stats["coverage_note"]))
     if "Quote Status" in frame:
         statuses = frame["Quote Status"].value_counts().to_dict()
-        st.caption("Quote freshness labels: " + " · ".join(f"{name}: {count}" for name, count in statuses.items()))
-        if any("STALE" in str(status) or "FUTURE-DATED" in str(status) or "CALENDAR UNAVAILABLE" in str(status) for status in statuses):
+        st.caption(
+            "Quote freshness labels: "
+            + " · ".join(f"{name}: {count}" for name, count in statuses.items())
+        )
+        if any(
+            "STALE" in str(status)
+            or "FUTURE-DATED" in str(status)
+            or "CALENDAR UNAVAILABLE" in str(status)
+            for status in statuses
+        ):
             st.warning(
                 "Some scanned candles are stale, future-dated, or lack a verified session calendar. "
                 "Treat those rows as historical context, not current trading signals."
