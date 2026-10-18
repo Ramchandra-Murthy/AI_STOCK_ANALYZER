@@ -16,6 +16,19 @@ def _normalize_ticker(symbol: str) -> str:
     return f"{value}.NS" if value else ""
 
 
+def _observation_columns(observation: Any) -> dict[str, Any]:
+    """Expose canonical quote freshness separately from historical analysis values."""
+    if not isinstance(observation, dict):
+        observation = {}
+    return {
+        "Latest Observation Price": observation.get("price"),
+        "Observed At": observation.get("observed_at") or "UNKNOWN",
+        "Observation Frequency": observation.get("frequency") or "unknown",
+        "Observation Status": observation.get("session_status") or "MARKET DATA STATUS UNAVAILABLE",
+        "Tick Live": bool(observation.get("is_tick_live", False)),
+    }
+
+
 def scan_watchlist(symbols: list[str]) -> pd.DataFrame:
     """Analyze each saved symbol directly; do not substitute broad-universe movers."""
     rows: list[dict[str, Any]] = []
@@ -35,6 +48,8 @@ def scan_watchlist(symbols: list[str]) -> pd.DataFrame:
                     "Symbol": ticker.removesuffix(".NS").removesuffix(".BO"),
                     "Exchange": "BSE" if ticker.endswith(".BO") else "NSE",
                     "Price": round(float(last["Close"]), 2),
+                    "Analysis Data Frequency": "DAILY HISTORY",
+                    **_observation_columns(signal.get("MarketObservation")),
                     "Trend": trend["Trend"],
                     "RSI": round(float(last["RSI_14"]), 2),
                     "MACD": round(float(last["MACD"]), 2),
