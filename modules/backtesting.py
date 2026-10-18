@@ -184,10 +184,24 @@ def show():
             name="EMA strategy",
         )
     )
+    # Keep the equity curves visible: forcing a zero baseline compresses
+    # normal portfolio fluctuations and can make the chart appear blank.
+    plotted_values = pd.concat(
+        [results["buy_hold_equity"], results["strategy_equity"]],
+        ignore_index=True,
+    ).dropna()
+    if plotted_values.empty:
+        st.warning("No valid portfolio values are available to plot.")
+        return
+    value_min = float(plotted_values.min())
+    value_max = float(plotted_values.max())
+    value_span = value_max - value_min
+    padding = value_span * 0.08 if value_span > 0 else max(abs(value_max) * 0.01, 1.0)
+
     fig.update_layout(
         xaxis_title="Date",
         yaxis_title="Portfolio value (₹)",
-        yaxis=dict(rangemode="tozero"),
+        yaxis=dict(range=[max(0.0, value_min - padding), value_max + padding]),
         margin=dict(l=10, r=10, t=20, b=10),
     )
     st.plotly_chart(fig, use_container_width=True)
