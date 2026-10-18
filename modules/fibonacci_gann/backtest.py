@@ -189,11 +189,29 @@ def run_backtest(
         for j in range(entry_bar_index, len(candles)):
             bar = candles[j]
             exit_index = j
-            # Estimate liquidation equity at both extremes while the position is
-            # open. High-before-low is deliberately conservative for OHLC-only data.
             liquidation_cost_per_unit = (
                 config.slippage_per_unit_per_side + config.round_trip_cost_per_unit
             )
+            # A gap exit occurs at the open; later highs/lows in that candle
+            # happen after the modeled position is already closed.
+            if bar.open <= stop_price or bar.open >= target_price:
+                open_equity = (
+                    equity + (bar.open - entry_price - liquidation_cost_per_unit) * quantity
+                )
+                mark_to_market_peak_equity = max(mark_to_market_peak_equity, open_equity)
+                if mark_to_market_peak_equity > 0:
+                    max_intratrade_drawdown = max(
+                        max_intratrade_drawdown,
+                        (mark_to_market_peak_equity - open_equity) / mark_to_market_peak_equity,
+                    )
+                if bar.open <= stop_price:
+                    raw_exit, reason = bar.open, "stop_gap"
+                else:
+                    raw_exit, reason = bar.open, "target_gap"
+                break
+
+            # For an intrabar exit, high-before-low is deliberately conservative
+            # because OHLC data cannot reveal the order of the extremes.
             high_equity = equity + (bar.high - entry_price - liquidation_cost_per_unit) * quantity
             low_equity = equity + (bar.low - entry_price - liquidation_cost_per_unit) * quantity
             mark_to_market_peak_equity = max(mark_to_market_peak_equity, high_equity)
@@ -202,12 +220,6 @@ def run_backtest(
                     max_intratrade_drawdown,
                     (mark_to_market_peak_equity - low_equity) / mark_to_market_peak_equity,
                 )
-            if bar.open <= stop_price:
-                raw_exit, reason = bar.open, "stop_gap"
-                break
-            if bar.open >= target_price:
-                raw_exit, reason = bar.open, "target_gap"
-                break
             if bar.low <= stop_price:
                 raw_exit, reason = stop_price, "stop"
                 break
