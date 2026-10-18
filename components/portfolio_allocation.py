@@ -15,9 +15,10 @@ def show_portfolio_allocation(df):
         st.warning("Current Value column not found.")
         return
 
-    chart_df = df.copy()
-
-    chart_df["Current Value"] = chart_df["Current Value"].fillna(0)
+    chart_df = df.dropna(subset=["Current Value"]).copy()
+    if chart_df.empty:
+        st.info("Portfolio allocation is unavailable because no holdings have current prices.")
+        return
 
     fig = px.pie(chart_df, names="symbol", values="Current Value", hole=0.55)
 

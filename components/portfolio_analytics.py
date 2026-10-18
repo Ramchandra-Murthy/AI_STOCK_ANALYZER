@@ -10,8 +10,13 @@ def show_portfolio_analytics(df):
         st.info("No holdings available.")
         return
 
-    best = df.loc[df["Return %"].idxmax()]
-    worst = df.loc[df["Return %"].idxmin()]
+    valued_df = df.dropna(subset=["Return %", "Profit"])
+    if valued_df.empty:
+        st.info("Portfolio analytics are unavailable because no holdings have current prices.")
+        return
+
+    best = valued_df.loc[valued_df["Return %"].idxmax()]
+    worst = valued_df.loc[valued_df["Return %"].idxmin()]
 
     # -----------------------------
     # Best & Worst Performer
@@ -30,7 +35,7 @@ def show_portfolio_analytics(df):
     col1, col2 = st.columns(2)
 
     with col1:
-        st.metric("Average Return", f"{df['Return %'].mean():.2f}%")
+        st.metric("Average Return", f"{valued_df['Return %'].mean():.2f}%")
 
     with col2:
-        st.metric("Total Profit", f"₹{df['Profit'].sum():,.2f}")
+        st.metric("Total Profit", f"₹{valued_df['Profit'].sum():,.2f}")

@@ -11,13 +11,18 @@ def show_investment_chart(df):
         st.info("No holdings available.")
         return
 
-    invested = df["quantity"] * df["buy_price"]
+    chart_df = df.dropna(subset=["Current Value"]).copy()
+    if chart_df.empty:
+        st.info("Investment comparison is unavailable because no holdings have current prices.")
+        return
+
+    invested = chart_df["quantity"] * chart_df["buy_price"]
 
     fig = go.Figure()
 
-    fig.add_bar(name="Investment", x=df["symbol"], y=invested)
+    fig.add_bar(name="Investment", x=chart_df["symbol"], y=invested)
 
-    fig.add_bar(name="Current Value", x=df["symbol"], y=df["Current Value"])
+    fig.add_bar(name="Current Value", x=chart_df["symbol"], y=chart_df["Current Value"])
 
     fig.update_layout(barmode="group", height=500, xaxis_title="Stock", yaxis_title="Amount (₹)")
 

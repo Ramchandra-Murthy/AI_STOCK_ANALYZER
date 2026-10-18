@@ -74,18 +74,27 @@ def show():
     # SUMMARY
     # ======================================================
 
-    total_cost = (df["quantity"] * df["buy_price"]).sum()
-    total_value = df["Current Value"].fillna(0).sum()
+    valued_df = df.dropna(subset=["Current Value"])
+    unpriced_count = len(df) - len(valued_df)
+    if unpriced_count:
+        st.warning(
+            f"Valuation unavailable for {unpriced_count} of {len(df)} holdings. "
+            "Summary totals below include only holdings with available prices; "
+            "unpriced holdings are not treated as losses."
+        )
+
+    total_cost = (valued_df["quantity"] * valued_df["buy_price"]).sum()
+    total_value = valued_df["Current Value"].sum()
     total_profit = total_value - total_cost
 
     total_return = (total_profit / total_cost) * 100 if total_cost > 0 else 0
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("💰 Investment", f"₹{total_cost:,.2f}")
-    c2.metric("📈 Current Value", f"₹{total_value:,.2f}")
-    c3.metric("💵 Profit/Loss", f"₹{total_profit:,.2f}")
-    c4.metric("📊 Return", f"{total_return:.2f}%")
+    c1.metric("💰 Valued Investment", f"₹{total_cost:,.2f}")
+    c2.metric("📈 Valued Current Value", f"₹{total_value:,.2f}")
+    c3.metric("💵 Profit/Loss (valued)", f"₹{total_profit:,.2f}")
+    c4.metric("📊 Return (valued)", f"{total_return:.2f}%")
 
     st.divider()
 

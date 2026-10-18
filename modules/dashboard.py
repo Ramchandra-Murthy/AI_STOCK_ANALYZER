@@ -44,6 +44,13 @@ def show():
     df = get_portfolio()
     summary = get_summary(df)
 
+    if summary["unpriced_holdings"]:
+        st.warning(
+            f"Portfolio valuation is unavailable for {summary['unpriced_holdings']} of "
+            f"{summary['holdings']} holdings. Dashboard totals and returns include only "
+            "holdings with available prices; unpriced holdings are not treated as losses."
+        )
+
     summary["ai_score"] = calculate_ai_score(summary)
 
     # ============================
