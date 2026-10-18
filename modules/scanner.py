@@ -168,6 +168,11 @@ def show():
                 "Broad-market technical signals use daily candles, not tick-live quotes. "
                 "Check each row's Last Data Date and Data Status before acting."
             )
+        elif scan_mode == "Personal Watchlist" and "Observation Status" in df.columns:
+            st.caption(
+                "Price and indicators may come from different observation times. "
+                "Check Observation Status, Observed At, and Tick Live before relying on a signal."
+            )
         _show_data_quality(df)
         st.success(f"{len(df)} matching stocks displayed")
         st.dataframe(
