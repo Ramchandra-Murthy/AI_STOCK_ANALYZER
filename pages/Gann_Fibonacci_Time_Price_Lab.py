@@ -242,7 +242,9 @@ with st.expander("Numerical Gann price projections", expanded=True):
             "Gann ratio": float(item["ratio"]),
             "Projected price": round(float(item["price"]), 2),
             "Price status": (
-                "Positive" if float(item["price"]) > 0 else "Non-positive; not a feasible equity price"
+                "Positive"
+                if float(item["price"]) > 0
+                else "Non-positive; not a feasible equity price"
             ),
             "Direction": item["direction"].title(),
         }
