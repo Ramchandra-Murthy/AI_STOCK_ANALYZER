@@ -286,4 +286,3 @@ def test_gap_exit_drawdown_ignores_prices_after_open_exit() -> None:
     assert result.trades[0].exit_reason == "stop_gap"
     assert result.trades[0].exit_price == 90
     assert result.max_intratrade_drawdown_pct < 15
-
