@@ -42,7 +42,9 @@ with st.expander("CSV format and methodology", expanded=True):
         "The price-per-bar scale is an explicit input; a chart's visual 45° angle is not universal."
     )
 
-uploaded = st.file_uploader("Upload historical OHLC CSV", type=["csv"])
+# Android document providers may report downloaded .csv files with a generic MIME
+# type. Avoid filtering in the native picker and validate the selected file below.
+uploaded = st.file_uploader("Upload historical OHLC CSV", type=None)
 if uploaded is None:
     st.info("Upload a CSV to inspect time zones, confirmed pivots, and Gann Fan projections.")
     st.stop()
