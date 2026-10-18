@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import yfinance as yf
 
+from services.market_calendar import equity_market_session_status
 from services.resilient_market_data import download_symbol_frames
 
 MARKET_INDICES = {
@@ -69,13 +70,33 @@ def market_session_status(
 ) -> dict[str, str | bool | None]:
     """Describe whether the displayed observation is current for India."""
     current = now.astimezone(INDIA_TIMEZONE) if now else datetime.now(INDIA_TIMEZONE)
+    calendar_status = equity_market_session_status(current)
+    market_open = calendar_status == "OPEN"
+
+    if calendar_status == "HOLIDAY":
+        return {
+            "status": "MARKET CLOSED · HOLIDAY",
+            "detail": f"No regular NSE/BSE equity session is scheduled for {current:%d %b %Y}.",
+            "is_current_session": False,
+            "is_market_open": False,
+        }
+    if calendar_status == "CALENDAR_UNAVAILABLE":
+        return {
+            "status": "MARKET CALENDAR UNAVAILABLE",
+            "detail": (
+                f"The exchange calendar for {current.year} is not verified; "
+                "current-session status cannot be confirmed."
+            ),
+            "is_current_session": False,
+            "is_market_open": False,
+        }
 
     if not observed_at:
         return {
             "status": "DATA UNAVAILABLE",
             "detail": "No observation timestamp is available.",
             "is_current_session": False,
-            "is_market_open": MARKET_OPEN <= current.time() < MARKET_CLOSE,
+            "is_market_open": market_open,
         }
 
     try:
@@ -102,13 +123,11 @@ def market_session_status(
                 f"Reported observation: {observed_dt.strftime('%d %b %Y %H:%M:%S IST')}"
             ),
             "is_current_session": False,
-            "is_market_open": MARKET_OPEN <= current.time() < MARKET_CLOSE
-            and current.weekday() < 5,
+            "is_market_open": market_open,
         }
 
     same_day = observed_dt.date() == current.date()
     weekend = current.weekday() >= 5
-    market_open = MARKET_OPEN <= current.time() < MARKET_CLOSE
     intraday = frequency.startswith("intraday")
 
     if weekend:
@@ -154,7 +173,7 @@ def market_session_status(
         "status": status,
         "detail": detail,
         "is_current_session": current_session,
-        "is_market_open": market_open and not weekend,
+        "is_market_open": market_open,
     }
 
 
