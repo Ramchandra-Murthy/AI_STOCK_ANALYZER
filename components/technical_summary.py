@@ -36,8 +36,7 @@ def show_technical_summary(df, allow_recommendation=True, block_reason=None):
     missing = [column for column in _REQUIRED_COLUMNS if column not in df.columns]
     if missing:
         st.warning(
-            "Technical summary unavailable — missing required indicator(s): "
-            + ", ".join(missing)
+            "Technical summary unavailable — missing required indicator(s): " + ", ".join(missing)
         )
         return
 
@@ -88,9 +87,7 @@ def show_technical_summary(df, allow_recommendation=True, block_reason=None):
     macd_text = "🟢 Bullish" if macd > signal else "🔴 Bearish"
 
     volume = _finite_number(latest["Volume"]) if "Volume" in df.columns else None
-    volume_average = (
-        _finite_number(latest["Volume_MA20"]) if "Volume_MA20" in df.columns else None
-    )
+    volume_average = _finite_number(latest["Volume_MA20"]) if "Volume_MA20" in df.columns else None
     if volume is None or volume_average is None or volume < 0 or volume_average < 0:
         volume_text = "Unavailable"
     elif volume > volume_average:
