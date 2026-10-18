@@ -219,14 +219,14 @@ with left:
     )
 with middle:
     stop_distance = st.number_input(
-        "Stop distance (price units)", min_value=0.01, value=5.0, step=0.5
+        "Stop distance (price units)", min_value=0.01, value=2.0, step=0.5
     )
     reward_risk = st.number_input("Reward/risk ratio", min_value=0.1, value=2.0, step=0.1)
 with right:
     round_trip_cost = st.number_input(
-        "Round-trip cost per unit (₹)", min_value=0.0, value=0.0, step=0.1
+        "Round-trip cost per unit (₹)", min_value=0.0, value=0.6, step=0.1
     )
-    slippage = st.number_input("Slippage per unit per side (₹)", min_value=0.0, value=0.0, step=0.1)
+    slippage = st.number_input("Slippage per unit per side (₹)", min_value=0.0, value=0.1, step=0.1)
 
 base_config = BacktestConfig(
     capital=capital,
@@ -239,11 +239,14 @@ base_config = BacktestConfig(
 
 if round_trip_cost == 0 or slippage == 0:
     st.warning(
-        "Cost assumptions are incomplete: "
-        + ("round-trip fees/taxes are set to zero. " if round_trip_cost == 0 else "")
-        + ("slippage is set to zero. " if slippage == 0 else "")
-        + "Use realistic values before interpreting performance."
+        "At least one cost assumption is zero. Confirm that this reflects your intended "
+        "scenario; zero costs can materially overstate backtest performance."
     )
+st.caption(
+    "The defaults (₹0.60 round-trip cost and ₹0.10 slippage per unit per side) are "
+    "illustrative placeholders, not a broker-specific fee quote. Replace them with your "
+    "contract-note costs and realistic fill assumptions."
+)
 st.caption(
     "Risk note: the ₹ maximum-loss setting is a planned stop-risk budget, not a guaranteed cap. "
     "Gaps through stops can cause larger losses. Reported maximum drawdown uses closed-trade equity "
@@ -395,6 +398,62 @@ if st.button("Run research analysis", type="primary"):
     )
     metrics[4].metric("Trades", len(baseline.trades))
 
+    if baseline.total_return_pct <= 0:
+        st.error(
+            "The baseline did not make money under the selected assumptions. "
+            "Do not use this configuration for live trading; investigate signal quality "
+            "and unseen-period performance instead of tuning to this same history."
+        )
+    if len(baseline.trades) < 30:
+        st.warning(
+            f"Only {len(baseline.trades)} baseline trades were generated. Treat the metrics "
+            "as preliminary; small samples can produce unstable win rates and drawdowns."
+        )
+
+    st.subheader("Transaction-cost stress test")
+    stress_config = BacktestConfig(
+        capital=base_config.capital,
+        max_loss_per_trade=base_config.max_loss_per_trade,
+        stop_distance=base_config.stop_distance,
+        reward_risk_ratio=base_config.reward_risk_ratio,
+        round_trip_cost_per_unit=max(
+            base_config.round_trip_cost_per_unit * 1.5, base_config.round_trip_cost_per_unit + 0.3
+        ),
+        slippage_per_unit_per_side=max(
+            base_config.slippage_per_unit_per_side * 2, base_config.slippage_per_unit_per_side + 0.1
+        ),
+    )
+    stress_result = run_backtest(candles, signals, stress_config)
+    stress_rows = [
+        {
+            "Scenario": "Configured costs",
+            "Round-trip cost/unit (₹)": base_config.round_trip_cost_per_unit,
+            "Slippage/side/unit (₹)": base_config.slippage_per_unit_per_side,
+            "Trades": len(baseline.trades),
+            "Return (%)": round(baseline.total_return_pct, 2),
+            "Ending capital (₹)": round(baseline.ending_capital, 2),
+        },
+        {
+            "Scenario": "Higher-cost stress",
+            "Round-trip cost/unit (₹)": stress_config.round_trip_cost_per_unit,
+            "Slippage/side/unit (₹)": stress_config.slippage_per_unit_per_side,
+            "Trades": len(stress_result.trades),
+            "Return (%)": round(stress_result.total_return_pct, 2),
+            "Ending capital (₹)": round(stress_result.ending_capital, 2),
+        },
+    ]
+    st.dataframe(pd.DataFrame(stress_rows), use_container_width=True, hide_index=True)
+    st.caption(
+        "The stress case raises both cost assumptions mechanically; it is a sensitivity "
+        "check, not a claim about actual brokerage charges. Position sizing is recalculated "
+        "under each cost scenario."
+    )
+    if stress_result.total_return_pct < baseline.total_return_pct:
+        st.warning(
+            "Performance deteriorates under higher costs. A strategy that depends on optimistic "
+            "fills or low fees is not robust enough for live use."
+        )
+
     st.subheader("Parameter sensitivity")
     if signal_mode == "Generate daily Fibonacci-Gann signals":
         st.caption(
@@ -489,6 +548,40 @@ if st.button("Run research analysis", type="primary"):
                     }
                 )
             st.dataframe(pd.DataFrame(fold_rows), use_container_width=True, hide_index=True)
+            baseline_oos_pnl = sum(
+                fold.result.ending_capital - base_config.capital for fold in folds
+            )
+            sma200_oos_pnl = sum(
+                fold.result.ending_capital - base_config.capital for fold in sma200_folds
+            )
+            oos_summary_rows = []
+            for label, variant_folds, total_pnl in (
+                ("Baseline", folds, baseline_oos_pnl),
+                ("Close above SMA 200", sma200_folds, sma200_oos_pnl),
+            ):
+                oos_summary_rows.append(
+                    {
+                        "Variant": label,
+                        "Test windows": len(variant_folds),
+                        "Total OOS trades": sum(len(fold.result.trades) for fold in variant_folds),
+                        "Positive-return windows": sum(
+                            fold.result.total_return_pct > 0 for fold in variant_folds
+                        ),
+                        "Mean window return (%)": round(
+                            sum(fold.result.total_return_pct for fold in variant_folds)
+                            / len(variant_folds),
+                            2,
+                        ),
+                        "Sum of window P&L (₹)": round(total_pnl, 2),
+                    }
+                )
+            st.markdown("**Out-of-sample summary (separate, non-compounded folds)**")
+            st.dataframe(pd.DataFrame(oos_summary_rows), use_container_width=True, hide_index=True)
+            st.caption(
+                "Window P&L is summed across independent folds, each starting with the configured "
+                "capital; it is not a compounded account curve. Mean window return gives each fold "
+                "equal weight, including the shorter final fold."
+            )
             st.caption(
                 "Baseline and SMA200-filtered signals are evaluated on identical chronological, "
                 "non-overlapping test windows with the same configured costs and position sizing. "
