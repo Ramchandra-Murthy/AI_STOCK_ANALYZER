@@ -27,3 +27,18 @@ def test_weekend_remains_closed() -> None:
 
     ist = ZoneInfo("Asia/Kolkata")
     assert not _market_session_is_open(datetime(2026, 10, 3, 14, 30, tzinfo=ist))
+
+
+def test_august_26_2026_is_an_equity_market_holiday() -> None:
+    from modules.intraday import _is_equity_market_holiday, _market_session_is_open
+
+    ist = ZoneInfo("Asia/Kolkata")
+    assert _is_equity_market_holiday(date(2026, 8, 26))
+    assert not _market_session_is_open(datetime(2026, 8, 26, 10, 0, tzinfo=ist))
+
+
+def test_market_session_fails_closed_when_calendar_year_is_unknown() -> None:
+    from modules.intraday import _market_session_is_open
+
+    ist = ZoneInfo("Asia/Kolkata")
+    assert not _market_session_is_open(datetime(2027, 1, 4, 10, 0, tzinfo=ist))
