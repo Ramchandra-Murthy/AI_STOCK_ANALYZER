@@ -38,11 +38,12 @@ def evaluate_walk_forward(
 ) -> tuple[WalkForwardFold, ...]:
     """Evaluate sequential, non-overlapping test windows after initial history.
 
-    The training window expands with time. For each test candle, the signal
-    callback receives only the candle prefix ending at that candle's close.
-    The existing backtester executes signals no earlier than the next test
-    candle's open. Each fold is simulated independently from configured capital;
-    results are not a compounded portfolio curve.
+    The training window expands with time. The signal callback receives only
+    the candle prefix ending at each bar's close. Each fold includes the final
+    training candle as an execution boundary so a signal on that candle can enter
+    at the first test candle's open. Only test-window candles are scored as the
+    fold's evaluation period. Each fold is simulated independently from configured
+    capital; results are not a compounded portfolio curve.
     """
     validate_candles(candles)
     if not isinstance(initial_train_size, int) or isinstance(initial_train_size, bool):
@@ -66,15 +67,18 @@ def evaluate_walk_forward(
         if len(test_candles) < 2:
             break
 
+        # Include the final pre-test candle for signal execution alignment. A
+        # signal known at its close must be eligible to enter at test_candles[0].open.
+        execution_candles = tuple(candles[test_start - 1 : test_end])
         signals: list[bool] = []
-        for absolute_index in range(test_start, test_end):
+        for absolute_index in range(test_start - 1, test_end):
             history = tuple(candles[: absolute_index + 1])
             signal = signal_function(history, config)
             if not isinstance(signal, bool):
                 raise ValueError("signal_function must return a bool for each history prefix")
             signals.append(signal)
 
-        result = run_backtest(test_candles, tuple(signals), config)
+        result = run_backtest(execution_candles, tuple(signals), config)
         folds.append(
             WalkForwardFold(
                 train_start=candles[0].timestamp,
