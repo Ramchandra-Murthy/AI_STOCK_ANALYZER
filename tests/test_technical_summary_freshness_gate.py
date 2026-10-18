@@ -107,7 +107,9 @@ def test_mixed_ema_structure_is_not_labelled_sideways():
         show_technical_summary(history)
 
     trend_metrics = fake_streamlit.columns.return_value[0].metric.call_args_list
-    assert ("Trend", "🟢 Bullish Structure") in [call.args for call in trend_metrics]
+    trend_values = [call.args for call in trend_metrics]
+    assert ("Trend", "🟡 Mixed") in trend_values
+    assert all(value != "Sideways" for _, value in trend_values)
 
 
 def test_missing_volume_is_reported_as_unavailable():
