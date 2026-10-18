@@ -16,6 +16,7 @@ import streamlit as st
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.dhan_live_provider import dhan_provider_enabled, download_dhan_symbol_frames
 from services.resilient_market_data import download_symbol_frames
+from services.market_calendar import equity_market_session_status, is_regular_equity_session_open
 
 TOP10_REFRESH_SECONDS = 60
 TOP10_UI_POLL_SECONDS = 2
@@ -61,22 +62,8 @@ _PROVIDER_DIAGNOSTICS: list[str] = []
 
 
 def _market_is_open(now: datetime) -> bool:
-    """Return whether the NSE/BSE regular session is open in India."""
-    if now.weekday() >= 5:
-        return False
-    market_open = now.replace(
-        hour=TOP10_MARKET_OPEN_HOUR,
-        minute=TOP10_MARKET_OPEN_MINUTE,
-        second=0,
-        microsecond=0,
-    )
-    market_close = now.replace(
-        hour=TOP10_MARKET_CLOSE_HOUR,
-        minute=TOP10_MARKET_CLOSE_MINUTE,
-        second=0,
-        microsecond=0,
-    )
-    return market_open <= now <= market_close
+    """Return true only when the shared exchange calendar confirms regular hours."""
+    return is_regular_equity_session_open(now)
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -728,10 +715,17 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             _start_background_scan()
             st.rerun(scope="fragment")
         else:
-            st.info(
-                "⚪ MARKET CLOSED · Live Top-10 refresh is available during the next "
-                "regular NSE/BSE session."
-            )
+            status = equity_market_session_status(datetime.now(_IST))
+            if status == "CALENDAR_UNAVAILABLE":
+                st.warning(
+                    "⚠️ EXCHANGE CALENDAR UNAVAILABLE · Live scanning is paused because "
+                    "this calendar year has no verified exchange holiday schedule configured."
+                )
+            else:
+                st.info(
+                    "⚪ MARKET CLOSED · Live Top-10 refresh is available during the next "
+                    "regular NSE/BSE session."
+                )
 
     background_result = _consume_background_scan()
     if background_result is not None:
@@ -751,7 +745,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     scan_running = _SCAN_FUTURE is not None and not _SCAN_FUTURE.done()
 
     now = datetime.now(_IST)
-    market_open = _market_is_open(now)
+    market_status = equity_market_session_status(now)
+    market_open = market_status == "OPEN"
 
     refresh_due = market_open and (
         completed_at is None or now >= completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS)
@@ -766,8 +761,18 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     )
 
     if not market_open:
-        session_status = "MARKET_CLOSED"
-        st.info("⚪ MARKET CLOSED · Live scanning resumes during the next regular NSE/BSE session.")
+        if market_status == "CALENDAR_UNAVAILABLE":
+            session_status = "CALENDAR_UNAVAILABLE"
+            st.warning(
+                "⚠️ EXCHANGE CALENDAR UNAVAILABLE · Live scanning is paused until a "
+                "verified holiday calendar is configured for this year."
+            )
+        elif market_status == "HOLIDAY":
+            session_status = "MARKET_HOLIDAY"
+            st.info("⚪ MARKET HOLIDAY · The regular NSE/BSE session is closed today.")
+        else:
+            session_status = "MARKET_CLOSED"
+            st.info("⚪ MARKET CLOSED · Live scanning resumes during the next regular NSE/BSE session.")
     elif scan_running:
         session_status = "REFRESHING"
         st.info("🟡 LIVE REFRESH · Updating the Top-10 in the background.")
@@ -777,7 +782,14 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.session_state[TOP10_SESSION_STATUS_KEY] = session_status
 
     if top10.empty:
-        if not market_open:
+        if market_status == "CALENDAR_UNAVAILABLE":
+            st.warning(
+                "⚠️ EXCHANGE CALENDAR UNAVAILABLE · No live scan is shown because this "
+                "year's exchange holiday calendar has not been verified."
+            )
+        elif market_status == "HOLIDAY":
+            st.info("⚪ MARKET HOLIDAY · No live Top-10 scan is available on an exchange holiday.")
+        elif not market_open:
             st.info(
                 "⚪ MARKET CLOSED · No live Top-10 scan is available outside market hours. "
                 "Live scanning will begin during the next regular NSE/BSE session."
