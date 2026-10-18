@@ -34,8 +34,7 @@ def is_market_hours(
     selected = policy or MarketRefreshPolicy()
     localized = current.astimezone(IST)
     return (
-        equity_market_session_status(localized, selected.open_time, selected.close_time)
-        == "OPEN"
+        equity_market_session_status(localized, selected.open_time, selected.close_time) == "OPEN"
     )
 
 
