@@ -268,4 +268,3 @@ def test_signal_after_unsized_entry_is_preserved() -> None:
     assert len(result.trades) == 1
     assert result.trades[0].entry_timestamp == "2026-01-01T09:25"
     assert result.trades[0].entry_price == 50
-
