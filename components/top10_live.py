@@ -775,7 +775,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             st.info("⚪ MARKET HOLIDAY · The regular NSE/BSE session is closed today.")
         else:
             session_status = "MARKET_CLOSED"
-            st.info("⚪ MARKET CLOSED · Live scanning resumes during the next regular NSE/BSE session.")
+            st.info(
+                "⚪ MARKET CLOSED · Live scanning resumes during the next regular NSE/BSE session."
+            )
     elif scan_running:
         session_status = "REFRESHING"
         st.info("🟡 LIVE REFRESH · Updating the Top-10 in the background.")
