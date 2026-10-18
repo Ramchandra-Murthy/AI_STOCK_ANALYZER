@@ -394,7 +394,10 @@ def show():
                     min_reward_risk=1.0,
                 )
             except (KeyError, TypeError, ValueError) as error:
-                plan_validation = {"valid": False, "issues": [f"Trade-plan validation failed: {error}"]}
+                plan_validation = {
+                    "valid": False,
+                    "issues": [f"Trade-plan validation failed: {error}"],
+                }
 
             ratio = plan_validation.get("reward_risk_ratio")
             st.metric("Reward / Risk", f"{ratio:.2f}:1" if ratio is not None else "N/A")
