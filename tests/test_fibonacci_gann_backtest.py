@@ -245,3 +245,27 @@ def test_signal_on_exit_bar_can_enter_at_following_bar_open() -> None:
     assert result.trades[0].exit_timestamp == "2026-01-01T09:20"
     assert result.trades[1].entry_timestamp == "2026-01-01T09:25"
     assert result.trades[1].entry_price == 105
+
+
+def test_signal_after_unsized_entry_is_preserved() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 101, 99, 100),
+        # The first signal cannot afford one share at this open.
+        Candle("2026-01-01T09:20", 200, 201, 199, 200),
+        Candle("2026-01-01T09:25", 50, 51, 49, 50),
+        Candle("2026-01-01T09:30", 50, 51, 49, 50),
+    ]
+    result = run_backtest(
+        candles,
+        [True, True, False, False],
+        BacktestConfig(
+            capital=100,
+            max_loss_per_trade=50,
+            stop_distance=5,
+        ),
+    )
+
+    assert len(result.trades) == 1
+    assert result.trades[0].entry_timestamp == "2026-01-01T09:25"
+    assert result.trades[0].entry_price == 50
+
