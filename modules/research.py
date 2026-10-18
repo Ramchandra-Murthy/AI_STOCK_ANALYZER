@@ -5,6 +5,7 @@ from components.technical_summary import show_technical_summary
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
 from services.investment_thesis_service import generate_investment_thesis
+from services.market_data_status import describe_daily_history
 from services.news_service import get_company_news
 from services.recommendation_service import generate_recommendation
 from services.research_service import get_stock_profile
@@ -293,8 +294,28 @@ def show():
     with tab3:
         st.subheader("Technical Analysis")
         if history is not None and not history.empty:
+            status = describe_daily_history(history)
+            st.caption("Historical daily candles — this is not a verified live quote.")
+            status_col1, status_col2, status_col3 = st.columns([1, 2, 2])
+            status_col1.metric("Data status", status["status"])
+            status_col2.metric("Data source", status["source"])
+            status_col3.metric("Latest candle", status["timestamp"])
+            if status["status"] == "STALE":
+                st.warning(
+                    "The latest available daily candle appears stale. "
+                    "Do not treat this technical summary as a current trading signal."
+                )
+            elif status["status"] == "UNKNOWN":
+                st.warning(
+                    "Data freshness could not be verified. Confirm the source and timestamp "
+                    "before using these indicators."
+                )
             try:
-                st.plotly_chart(plot_candlestick(history), use_container_width=True)
+                st.plotly_chart(
+                    plot_candlestick(history),
+                    use_container_width=True,
+                    key="research_technical_price_chart",
+                )
             except Exception as error:
                 st.error(f"Unable to display price chart: {error}")
             st.divider()

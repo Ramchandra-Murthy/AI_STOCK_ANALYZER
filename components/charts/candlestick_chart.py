@@ -140,10 +140,12 @@ def plot_candlestick(df):
     fig.update_layout(
         title="Technical Price Chart",
         template="plotly_white",
-        height=850,
+        height=700,
+        autosize=True,
         hovermode="x unified",
         xaxis_rangeslider_visible=False,
-        legend=dict(orientation="h", y=1.02, x=0),
+        margin=dict(l=55, r=30, t=105, b=55),
+        legend=dict(orientation="h", y=1.08, x=0, xanchor="left", yanchor="bottom"),
     )
 
     fig.update_yaxes(title_text="Price (₹)", row=1, col=1)
