@@ -1,6 +1,5 @@
 """Regression tests for portfolio SQLite storage initialization."""
 
-
 from portfolio import portfolio
 
 
