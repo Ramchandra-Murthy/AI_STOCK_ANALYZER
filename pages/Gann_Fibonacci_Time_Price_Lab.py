@@ -230,21 +230,48 @@ with st.expander("Gann price projection chart (zoomed)", expanded=True):
         projection_fig.add_trace(
             go.Scatter(
                 x=[int(item["target_index"]) for item in ratio_rows],
-                y=[float(item["price"]) for item in ratio_rows],
+                # Non-positive equity prices are mathematical extensions, not
+                # feasible chart targets. Break the line at those points so they
+                # cannot stretch the mobile chart's price axis below zero.
+                y=[
+                    float(item["price"]) if float(item["price"]) > 0 else None
+                    for item in ratio_rows
+                ],
                 mode="lines+markers",
                 name=f"Gann ratio {ratio:g}",
             )
+        )
+    positive_projection_prices = [
+        float(item["price"]) for item in projections if float(item["price"]) > 0
+    ]
+    if positive_projection_prices:
+        projection_min = min(positive_projection_prices)
+        projection_max = max(positive_projection_prices)
+        projection_padding = max(
+            (projection_max - projection_min) * 0.08,
+            abs(projection_max) * 0.02,
+            0.01,
+        )
+        projection_fig.update_yaxes(
+            range=[max(0.0, projection_min - projection_padding), projection_max + projection_padding]
         )
     projection_fig.update_layout(
         height=380,
         template="plotly_white",
         xaxis_title="Target bar index",
-        yaxis_title="Projected price",
+        yaxis_title="Projected price (positive levels)",
         legend_title="Gann ratio",
         margin={"l": 12, "r": 12, "t": 28, "b": 28},
         xaxis={"range": [anchor_index, anchor_index + int(horizon)]},
     )
     st.plotly_chart(projection_fig, use_container_width=True)
+    non_positive_count = sum(float(item["price"]) <= 0 for item in projections)
+    if non_positive_count:
+        st.caption(
+            f"{non_positive_count} non-positive projection point(s) are omitted from this chart "
+            "because they are not feasible equity prices. Their calculated values remain available "
+            "in the numerical projection section below."
+        )
 
 with st.expander("Numerical Gann price projections", expanded=True):
     projection_rows = [
