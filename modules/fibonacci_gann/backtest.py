@@ -239,7 +239,9 @@ def run_backtest(
         peak_equity = max(peak_equity, equity)
         if peak_equity > 0:
             max_drawdown = max(max_drawdown, (peak_equity - equity) / peak_equity)
-        index = exit_index + 1
+        # The exit bar's close signal is known after the intrabar exit and may
+        # enter a fresh position at the following bar's open.
+        index = exit_index
 
     pnls = [trade.net_pnl for trade in trades]
     winners = [pnl for pnl in pnls if pnl > 0]
