@@ -195,8 +195,13 @@ def run_backtest(
             # A gap exit occurs at the open; later highs/lows in that candle
             # happen after the modeled position is already closed.
             if bar.open <= stop_price or bar.open >= target_price:
+                # Use the same non-negative exit fill as the trade ledger.
+                # Extreme slippage must not create a negative mark-to-market fill.
+                gap_exit_price = max(0.0, bar.open - config.slippage_per_unit_per_side)
                 open_equity = (
-                    equity + (bar.open - entry_price - liquidation_cost_per_unit) * quantity
+                    equity
+                    + (gap_exit_price - entry_price) * quantity
+                    - config.round_trip_cost_per_unit * quantity
                 )
                 mark_to_market_peak_equity = max(mark_to_market_peak_equity, open_equity)
                 if mark_to_market_peak_equity > 0:
