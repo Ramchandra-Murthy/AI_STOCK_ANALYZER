@@ -22,6 +22,7 @@ from services.watchlist_service import (
     update_stock_details,
 )
 from services.watchlist_ui import get_or_create_default_watchlist
+from services.market_calendar import is_regular_equity_session_open
 
 EXCHANGES = {"NSE": ".NS", "BSE": ".BO"}
 STATUSES = ["Watching", "Bought", "Sold", "Avoid"]
@@ -29,9 +30,9 @@ INVESTMENT_TYPES = ["Delivery", "Swing", "Intraday", "Investment", "Options", "O
 
 
 def _market_session_open() -> bool:
-    """Approximate NSE/BSE cash session; exchange holidays are not inferred."""
+    """Return whether the shared exchange calendar confirms a regular cash session."""
     now = datetime.now(ZoneInfo("Asia/Kolkata"))
-    return now.weekday() < 5 and time(9, 15) <= now.time() <= time(15, 30)
+    return is_regular_equity_session_open(now)
 
 
 @st.cache_data(ttl=45, show_spinner=False)
