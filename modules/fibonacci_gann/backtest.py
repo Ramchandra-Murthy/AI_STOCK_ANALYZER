@@ -178,7 +178,9 @@ def run_backtest(
         quantity_by_capital = int(max(0.0, equity) // entry_price)
         quantity = min(quantity_by_risk, quantity_by_capital)
         if quantity < 1:
-            index = entry_bar_index + 1
+            # The entry bar's close signal remains valid even when this entry
+            # cannot be sized; evaluate it for a possible next-bar entry.
+            index = entry_bar_index
             continue
 
         exit_index = entry_bar_index
