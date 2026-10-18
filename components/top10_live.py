@@ -15,8 +15,11 @@ import streamlit as st
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.dhan_live_provider import dhan_provider_enabled, download_dhan_symbol_frames
+from services.market_calendar import (
+    equity_market_session_status,
+    is_regular_equity_session_open,
+)
 from services.resilient_market_data import download_symbol_frames
-from services.market_calendar import equity_market_session_status, is_regular_equity_session_open
 
 TOP10_REFRESH_SECONDS = 60
 TOP10_UI_POLL_SECONDS = 2
