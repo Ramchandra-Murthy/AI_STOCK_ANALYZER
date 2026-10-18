@@ -225,3 +225,24 @@ def test_intratrade_drawdown_captures_adverse_excursion_before_stop_exit() -> No
 
     assert result.max_intratrade_drawdown_pct > result.max_drawdown_pct
     assert result.max_intratrade_drawdown_pct > 10
+
+
+def test_signal_on_exit_bar_can_enter_at_following_bar_open() -> None:
+    candles = [
+        Candle("2026-01-01T09:15", 100, 101, 99, 100),
+        Candle("2026-01-01T09:20", 100, 106, 94, 100),
+        Candle("2026-01-01T09:25", 105, 106, 104, 105),
+        Candle("2026-01-01T09:30", 105, 106, 104, 105),
+    ]
+    result = run_backtest(
+        candles,
+        [True, True, False, False],
+        BacktestConfig(capital=10_000, max_loss_per_trade=50, stop_distance=5),
+    )
+
+    assert len(result.trades) == 2
+    assert result.trades[0].exit_reason == "stop"
+    assert result.trades[0].exit_timestamp == "2026-01-01T09:20"
+    assert result.trades[1].entry_timestamp == "2026-01-01T09:25"
+    assert result.trades[1].entry_price == 105
+
