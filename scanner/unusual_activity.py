@@ -243,9 +243,6 @@ def scan_unusual_activity(
             if not frames:
                 stats["empty_chunks"] += 1
                 continue
-            if history is None or history.empty:
-                stats["empty_chunks"] += 1
-                continue
             for ticker in chunk:
                 try:
                     frame = frames.get(ticker, pd.DataFrame())
