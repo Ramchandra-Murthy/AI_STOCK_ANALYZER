@@ -310,3 +310,23 @@ def test_gap_drawdown_uses_non_negative_exit_fill_under_extreme_slippage() -> No
     assert trade.exit_price == 0
     # The drawdown mark must match the clamped fill used by the trade ledger.
     assert result.max_intratrade_drawdown_pct == pytest.approx(40.2)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("capital", True),
+        ("max_loss_per_trade", True),
+        ("stop_distance", True),
+        ("reward_risk_ratio", True),
+        ("round_trip_cost_per_unit", True),
+        ("slippage_per_unit_per_side", True),
+    ],
+)
+def test_rejects_boolean_numeric_config_values(field: str, value: bool) -> None:
+    with pytest.raises(ValueError, match=field):
+        run_backtest(
+            candles_for_target(),
+            [False, False, False],
+            BacktestConfig(**{field: value}),
+        )
