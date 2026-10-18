@@ -100,7 +100,6 @@ def test_walk_forward_includes_short_final_fold_with_two_candles(candles):
     assert all(fold.result.trades == () for fold in folds)
 
 
-
 def test_signal_on_last_training_candle_can_enter_at_first_test_open():
     candles = (
         Candle("2026-01-01", 100, 101, 99, 100),
