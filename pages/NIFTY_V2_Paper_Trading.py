@@ -116,7 +116,9 @@ elif market_status == "CALENDAR_UNAVAILABLE":
     )
 else:
     st.info(f"MARKET SESSION CLOSED — {india_now.strftime('%H:%M:%S')} IST")
-st.caption("Session status uses the shared NSE/BSE equity calendar and regular 09:15–15:30 IST hours.")
+st.caption(
+    "Session status uses the shared NSE/BSE equity calendar and regular 09:15–15:30 IST hours."
+)
 
 provider = fetch_option_chain("NIFTY")
 provider_fetched_at = datetime.now(UTC)
