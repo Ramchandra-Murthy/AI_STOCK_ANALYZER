@@ -15,13 +15,14 @@ from modules.gann_fibonacci_time import (
     project_time_zones,
     validate_ohlcv,
 )
-from modules.gann_fibonacci_time.confluence import find_confluence
+from modules.gann_fibonacci_time.confluence import eligible_time_zone_indices, find_confluence
 
 st.set_page_config(page_title="Gann–Fibonacci Time & Price Lab", page_icon="🧭", layout="wide")
 st.title("🧭 Gann–Fibonacci Time & Price Research Lab")
 st.caption(
-    "Historical analysis and configurable projections. This page does not submit broker orders "
-    "or provide trade recommendations."
+    "Historical analysis and configurable projections. Historical confluence is evaluated only "
+    "at or after the anchor confirmation bar. This page does not submit broker orders or provide "
+    "trade recommendations."
 )
 st.warning(
     "Gann scales and time-zone intervals are research hypotheses, not proven predictive signals. "
@@ -97,6 +98,7 @@ if pivots:
     )
     anchor = pivots[selected]
     anchor_index = int(anchor["pivot_index"])
+    anchor_confirmation_index = int(anchor["confirmed_at_index"])
     anchor_price = float(anchor["price"])
     default_direction = 1 if anchor["kind"] == "low" else -1
 else:
@@ -114,6 +116,7 @@ else:
             step=0.5,
         )
     )
+    anchor_confirmation_index = anchor_index
     default_direction = 1
 
 controls_left, controls_middle, controls_right = st.columns(3)
@@ -152,7 +155,11 @@ projections = project_gann_fan(
 )
 
 observed_prices = {index: float(value) for index, value in enumerate(frame["close"].tolist())}
-historical_zones = [item["bar_index"] for item in time_zones if item["bar_index"] < len(frame)]
+historical_zones = eligible_time_zone_indices(
+    [item["bar_index"] for item in time_zones],
+    confirmed_at_index=anchor_confirmation_index,
+    total_bars=len(frame),
+)
 historical_projections = [item for item in projections if int(item["target_index"]) < len(frame)]
 try:
     confluence = find_confluence(

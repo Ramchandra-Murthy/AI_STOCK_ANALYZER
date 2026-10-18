@@ -3,6 +3,33 @@
 from __future__ import annotations
 
 
+def eligible_time_zone_indices(
+    time_zone_indices: list[int] | tuple[int, ...],
+    confirmed_at_index: int,
+    total_bars: int,
+) -> list[int]:
+    """Return historical time zones observable at or after anchor confirmation.
+
+    A pivot's historical location may precede the bar on which it becomes known.
+    Confluence must not be evaluated before that confirmation bar has closed.
+    """
+    if isinstance(confirmed_at_index, bool) or not isinstance(confirmed_at_index, int):
+        raise ValueError("confirmed_at_index must be an integer.")
+    if isinstance(total_bars, bool) or not isinstance(total_bars, int) or total_bars < 0:
+        raise ValueError("total_bars must be a non-negative integer.")
+    if confirmed_at_index < 0:
+        raise ValueError("confirmed_at_index must be non-negative.")
+    return sorted(
+        {
+            index
+            for index in time_zone_indices
+            if isinstance(index, int)
+            and not isinstance(index, bool)
+            and confirmed_at_index <= index < total_bars
+        }
+    )
+
+
 def find_confluence(
     time_zone_indices: list[int] | tuple[int, ...],
     price_projections: list[dict[str, int | float | str]],
