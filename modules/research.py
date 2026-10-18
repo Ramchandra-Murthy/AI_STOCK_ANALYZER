@@ -5,6 +5,7 @@ from components.technical_summary import show_technical_summary
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
 from services.investment_thesis_service import generate_investment_thesis
+from services.market_data_status import describe_daily_history
 from services.news_service import get_company_news
 from services.recommendation_service import generate_recommendation
 from services.research_service import get_stock_profile
@@ -12,7 +13,6 @@ from services.scenario_service import generate_scenario_analysis
 from services.score_service import calculate_investment_score
 from services.technical_score_service import calculate_technical_score
 from services.technical_service import get_price_history
-from services.market_data_status import describe_daily_history
 from services.trade_plan_service import generate_trade_plan
 from services.ui_formatters import (
     format_debt_to_equity,
