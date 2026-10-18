@@ -253,7 +253,10 @@ with st.expander("Gann price projection chart (zoomed)", expanded=True):
             0.01,
         )
         projection_fig.update_yaxes(
-            range=[max(0.0, projection_min - projection_padding), projection_max + projection_padding]
+            range=[
+                max(0.0, projection_min - projection_padding),
+                projection_max + projection_padding,
+            ]
         )
     projection_fig.update_layout(
         height=380,
