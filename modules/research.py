@@ -1,8 +1,8 @@
 import streamlit as st
 
 from components.charts.candlestick_chart import plot_candlestick
-from engine.recommendation_validation import validate_trade_plan
 from components.technical_summary import show_technical_summary
+from engine.recommendation_validation import validate_trade_plan
 from services.ai_service import get_ai_recommendation
 from services.fundamental_score_service import calculate_fundamental_score
 from services.investment_thesis_service import generate_investment_thesis
@@ -22,7 +22,6 @@ from services.ui_formatters import (
     format_percent,
     format_price,
     format_ratio,
-    safe_progress,
 )
 from services.valuation_service import generate_valuation_analysis
 from services.valuation_v43_service import generate_valuation_v43
