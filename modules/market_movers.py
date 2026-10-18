@@ -13,6 +13,7 @@ import yfinance as yf
 
 from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.market_calendar import equity_market_session_status
 
 IST = ZoneInfo("Asia/Kolkata")
 BATCH_SIZE = 40
@@ -55,6 +56,30 @@ def _window_change(close: pd.Series, bars: int) -> float | None:
     if len(values) <= bars or float(values.iloc[-bars - 1]) <= 0:
         return None
     return round((float(values.iloc[-1]) / float(values.iloc[-bars - 1]) - 1) * 100, 3)
+
+
+def _quote_freshness(observed_at: str, now: datetime | None = None) -> str:
+    """Label an intraday candle without implying it is exchange-tick live."""
+    current = now.astimezone(IST) if now else datetime.now(IST)
+    try:
+        observed = datetime.strptime(observed_at, "%Y-%m-%d %H:%M:%S IST").replace(tzinfo=IST)
+    except (TypeError, ValueError):
+        return "TIMESTAMP UNAVAILABLE"
+
+    age_seconds = (current - observed).total_seconds()
+    if age_seconds < -300:
+        return "FUTURE-DATED DATA"
+
+    session = equity_market_session_status(current)
+    if session == "OPEN":
+        if observed.date() != current.date() or age_seconds > 15 * 60:
+            return "STALE INTRADAY DATA"
+        return "CURRENT-SESSION CANDLE · NOT TICK-LIVE"
+    if session == "HOLIDAY":
+        return "MARKET HOLIDAY · LAST AVAILABLE DATA"
+    if session == "CALENDAR_UNAVAILABLE":
+        return "CALENDAR UNAVAILABLE · VERIFY SESSION"
+    return "MARKET CLOSED · LAST AVAILABLE DATA"
 
 
 def _market_cap(ticker: str) -> float | None:
@@ -144,6 +169,7 @@ def _scan_batches(
                         "Volume surge x": volume_ratio,
                         "Breakout (65m)": breakout,
                         "Observed (IST)": observed_at,
+                        "Quote Status": _quote_freshness(observed_at),
                         "Market cap (₹)": None,
                         "Market-cap class": "Unverified",
                     }
@@ -317,6 +343,22 @@ def show() -> None:
         f"Scanned NSE {stats['nse_candidates']} and BSE {stats['bse_candidates']} symbols."
     )
     st.info(str(stats["coverage_note"]))
+    if "Quote Status" in frame:
+        statuses = frame["Quote Status"].value_counts().to_dict()
+        st.caption(
+            "Quote freshness labels: "
+            + " · ".join(f"{name}: {count}" for name, count in statuses.items())
+        )
+        if any(
+            "STALE" in str(status)
+            or "FUTURE-DATED" in str(status)
+            or "CALENDAR UNAVAILABLE" in str(status)
+            for status in statuses
+        ):
+            st.warning(
+                "Some scanned candles are stale, future-dated, or lack a verified session calendar. "
+                "Treat those rows as historical context, not current trading signals."
+            )
 
     st.subheader(f"Top gainers — {mover_window}")
     st.dataframe(
