@@ -90,6 +90,21 @@ def show():
         st.error("Unable to fetch stock information.")
         return
 
+    # Use one freshness decision consistently across the Technical and AI tabs.
+    if history is not None and not history.empty:
+        market_data_status = describe_daily_history(history)
+    else:
+        market_data_status = {
+            "status": "UNKNOWN",
+            "source": "Unknown",
+            "timestamp": "Unknown",
+        }
+    recommendations_verified = market_data_status["status"] == "RECENT"
+    recommendation_block_reason = (
+        f"Data status: {market_data_status['status']}; "
+        f"latest candle: {market_data_status['timestamp']}."
+    )
+
     try:
         ai_result = get_ai_recommendation(data, history)
         if not isinstance(ai_result, dict):
@@ -294,7 +309,7 @@ def show():
     with tab3:
         st.subheader("Technical Analysis")
         if history is not None and not history.empty:
-            status = describe_daily_history(history)
+            status = market_data_status
             st.caption("Historical daily candles — this is not a verified live quote.")
             status_col1, status_col2, status_col3 = st.columns([1, 2, 2])
             status_col1.metric("Data status", status["status"])
@@ -320,7 +335,11 @@ def show():
                 st.error(f"Unable to display price chart: {error}")
             st.divider()
             try:
-                show_technical_summary(history)
+                show_technical_summary(
+                    history,
+                    allow_recommendation=recommendations_verified,
+                    block_reason=recommendation_block_reason,
+                )
             except Exception as error:
                 st.error(f"Unable to display technical summary: {error}")
         else:
@@ -329,6 +348,8 @@ def show():
     with tab4:
         st.subheader("AI Investment Analysis")
         recommendation = recommendation_result.get("recommendation", "INSUFFICIENT DATA")
+        if not recommendations_verified:
+            recommendation = "NOT VERIFIED — DATA STATUS"
         st.metric(
             "Overall Investment Score",
             f"{investment_score}/100" if investment_score is not None else "N/A",
@@ -351,7 +372,7 @@ def show():
         st.metric("Overall Score", f"{overall_score}/100" if overall_score is not None else "N/A")
 
         st.subheader("Target Price & Trade Plan")
-        if trade_plan.get("status") == "OK":
+        if trade_plan.get("status") == "OK" and recommendations_verified:
             for label, value in (
                 ("Current Price", trade_plan.get("current_price")),
                 ("Target Price", trade_plan.get("target_price")),
@@ -361,6 +382,11 @@ def show():
                 ("Resistance", trade_plan.get("resistance")),
             ):
                 st.metric(label, format_price(value))
+        elif not recommendations_verified:
+            st.warning(
+                "Trade plan withheld because the historical data freshness is not verified. "
+                + recommendation_block_reason
+            )
         else:
             st.warning(trade_plan.get("message", "Trade planning data unavailable."))
 
@@ -368,7 +394,10 @@ def show():
         ai_score = ai_result.get("score")
         st.metric("AI Score", f"{ai_score}/100" if ai_score is not None else "N/A")
         st.metric("Risk Level", ai_result.get("risk", "Unknown"))
-        st.metric("AI Verdict", ai_result.get("recommendation", "INSUFFICIENT DATA"))
+        ai_verdict = ai_result.get("recommendation", "INSUFFICIENT DATA")
+        if not recommendations_verified:
+            ai_verdict = "NOT VERIFIED — DATA STATUS"
+        st.metric("AI Verdict", ai_verdict)
 
         st.subheader("Technical Reasons")
         for reason in technical_reasons:
