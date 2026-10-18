@@ -53,9 +53,17 @@ def show():
 
     summary["ai_score"] = calculate_ai_score(summary)
 
+    # ============================
+    # KPI CARDS
+    # ============================
+
     show_kpi_cards(summary)
 
     st.divider()
+
+    # ============================
+    # ROW 1
+    # ============================
 
     col1, col2 = st.columns([2, 1])
 
@@ -69,6 +77,10 @@ def show():
 
     st.divider()
 
+    # ============================
+    # ROW 2
+    # ============================
+
     col1, col2 = st.columns(2)
 
     with col1:
@@ -80,6 +92,10 @@ def show():
         show_investment_chart(df)
 
     st.divider()
+
+    # ============================
+    # ROW 3 — FULL-WIDTH SECTIONS
+    # ============================
 
     st.subheader("📋 Top Holdings")
     show_top_holdings(df)
@@ -115,6 +131,10 @@ def show():
 
     st.divider()
 
+    # ============================
+    # QUICK ACTIONS
+    # ============================
+
     st.subheader("⚡ Quick Actions")
 
     c1, c2 = st.columns([1, 1])
@@ -126,6 +146,10 @@ def show():
         export_portfolio(df)
 
     st.divider()
+
+    # ============================
+    # ADD / EDIT HOLDINGS
+    # ============================
 
     with st.expander("➕ Add New Holding", expanded=False):
         show_add_holding_form()
