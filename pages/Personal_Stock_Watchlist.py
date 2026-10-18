@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from datetime import date, datetime, time
+from datetime import date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -12,6 +12,7 @@ import streamlit as st
 import yfinance as yf
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.market_calendar import is_regular_equity_session_open
 from services.portfolio_calculations import is_actual_holding, position_valuation
 from services.watchlist_service import (
     OWNER_ID,
@@ -22,7 +23,6 @@ from services.watchlist_service import (
     update_stock_details,
 )
 from services.watchlist_ui import get_or_create_default_watchlist
-from services.market_calendar import is_regular_equity_session_open
 
 EXCHANGES = {"NSE": ".NS", "BSE": ".BO"}
 STATUSES = ["Watching", "Bought", "Sold", "Avoid"]
