@@ -122,8 +122,6 @@ def test_missing_volume_is_reported_as_unavailable():
 
     assert fake_streamlit.metric.call_args.args == ("Volume", "Unavailable")
 
-
-
 def test_default_withholds_recommendation_without_explicit_freshness_approval():
     fake_streamlit = MagicMock()
     fake_streamlit.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
