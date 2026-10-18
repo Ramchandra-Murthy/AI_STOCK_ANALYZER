@@ -97,7 +97,6 @@ def test_top10_market_session_hours() -> None:
     assert (TOP10_MARKET_CLOSE_HOUR, TOP10_MARKET_CLOSE_MINUTE) == (15, 30)
 
 
-
 def test_top10_live_market_guard_respects_holidays_and_unknown_calendar_years() -> None:
     ist = ZoneInfo(TOP10_TIMEZONE)
     assert not top10_live._market_is_open(datetime(2026, 10, 20, 10, 0, tzinfo=ist))
