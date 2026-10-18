@@ -29,6 +29,17 @@ def plot_candlestick(df):
         raise ValueError(f"Cannot plot chart: missing required columns: {', '.join(missing)}")
 
     chart = df.copy()
+    # Historical market bars must share a clean, chronological date axis.
+    # Invalid, duplicate, or unsorted index values can stretch Plotly's axis
+    # and visually compress otherwise valid candles.
+    dates = pd.to_datetime(chart.index, errors="coerce", utc=True)
+    valid_dates = ~pd.isna(dates)
+    chart = chart.loc[valid_dates].copy()
+    chart.index = dates[valid_dates]
+    chart = chart.loc[~chart.index.duplicated(keep="last")].sort_index()
+    if chart.empty:
+        raise ValueError("No valid dated price rows remain after date validation.")
+
     for column in _PRICE_COLUMNS:
         if column in chart.columns:
             chart[column] = pd.to_numeric(chart[column], errors="coerce")
@@ -133,6 +144,8 @@ def plot_candlestick(df):
     )
     fig.update_yaxes(title_text="Price (₹)", row=1, col=1)
     fig.update_yaxes(title_text="Volume", rangemode="tozero", row=2, col=1)
-    fig.update_xaxes(showgrid=True, row=1, col=1)
-    fig.update_xaxes(showgrid=True, row=2, col=1)
+    # Explicitly constrain both shared axes to the validated candle window.
+    x_range = [chart.index.min(), chart.index.max()]
+    fig.update_xaxes(showgrid=True, range=x_range, row=1, col=1)
+    fig.update_xaxes(showgrid=True, range=x_range, row=2, col=1)
     return fig
