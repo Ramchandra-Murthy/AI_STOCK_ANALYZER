@@ -2,10 +2,10 @@ from datetime import date, datetime
 
 
 def describe_daily_history(history, today=None, stale_after_days=4):
-    """Describe the provenance and age of daily historical candles.
+    """Describe provenance and freshness of daily historical candles.
 
-    This labels the data as historical, never as a live quote. Daily bars
-    older than stale_after_days calendar days are conservatively flagged stale.
+    A recent daily bar is not a verified live quote. This conservative
+    calendar-day threshold is intentionally not an exchange-session calendar.
     """
     if today is None:
         today = date.today()
@@ -33,7 +33,7 @@ def describe_daily_history(history, today=None, stale_after_days=4):
                 parsed_date = datetime.fromisoformat(
                     str(timestamp_value).replace("Z", "+00:00")
                 ).date()
-        except (TypeError, ValueError, OverflowError):
+        except (TypeError, ValueError, OverflowError, AttributeError):
             parsed_date = None
 
     if parsed_date is None or parsed_date > today:
@@ -44,4 +44,9 @@ def describe_daily_history(history, today=None, stale_after_days=4):
         status = "STALE" if age > stale_after_days else "RECENT"
         timestamp = parsed_date.isoformat()
 
-    return {"status": status, "source": source, "timestamp": timestamp}
+    return {
+        "status": status,
+        "source": source,
+        "timestamp": timestamp,
+        "is_verified_live": False,
+    }
