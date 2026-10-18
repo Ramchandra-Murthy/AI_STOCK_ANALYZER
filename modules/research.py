@@ -12,6 +12,7 @@ from services.scenario_service import generate_scenario_analysis
 from services.score_service import calculate_investment_score
 from services.technical_score_service import calculate_technical_score
 from services.technical_service import get_price_history
+from services.market_data_status import describe_daily_history
 from services.trade_plan_service import generate_trade_plan
 from services.ui_formatters import (
     format_debt_to_equity,
@@ -293,8 +294,28 @@ def show():
     with tab3:
         st.subheader("Technical Analysis")
         if history is not None and not history.empty:
+            status = describe_daily_history(history)
+            st.caption("Historical daily candles — this is not a verified live quote.")
+            status_col1, status_col2, status_col3 = st.columns([1, 2, 2])
+            status_col1.metric("Data status", status["status"])
+            status_col2.metric("Data source", status["source"])
+            status_col3.metric("Latest candle", status["timestamp"])
+            if status["status"] == "STALE":
+                st.warning(
+                    "The latest available daily candle appears stale. "
+                    "Do not treat this technical summary as a current trading signal."
+                )
+            elif status["status"] == "UNKNOWN":
+                st.warning(
+                    "Data freshness could not be verified. Confirm the source and timestamp "
+                    "before using these indicators."
+                )
             try:
-                st.plotly_chart(plot_candlestick(history), use_container_width=True)
+                st.plotly_chart(
+                    plot_candlestick(history),
+                    use_container_width=True,
+                    key="research_technical_price_chart",
+                )
             except Exception as error:
                 st.error(f"Unable to display price chart: {error}")
             st.divider()
