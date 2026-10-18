@@ -43,7 +43,6 @@ def test_empty_history_is_unknown():
     assert result["status"] == "UNKNOWN"
 
 
-
 def test_recent_daily_data_is_never_labelled_verified_live():
     history = pd.DataFrame({"Close": [100]}, index=pd.to_datetime(["2026-10-18"]))
 
