@@ -11,6 +11,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pandas is imported lazily in functions that need it
+    import pandas as pd
 
 
 class ReconciliationStatus(StrEnum):
