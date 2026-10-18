@@ -73,3 +73,23 @@ def test_rejects_non_boolean_signals(candles):
             initial_train_size=4,
             test_size=3,
         )
+
+
+def test_walk_forward_includes_short_final_fold_with_two_candles(candles):
+    extended_candles = candles + (
+        Candle("2026-01-11", 111, 113, 110, 112),
+        Candle("2026-01-12", 112, 114, 111, 113),
+    )
+
+    folds = evaluate_walk_forward(
+        extended_candles,
+        lambda history, config: False,
+        BacktestConfig(),
+        initial_train_size=4,
+        test_size=3,
+    )
+
+    assert [fold.test_candle_count for fold in folds] == [3, 3, 2]
+    assert folds[-1].test_start == "2026-01-11"
+    assert folds[-1].test_end == "2026-01-12"
+    assert all(fold.result.trades == () for fold in folds)
