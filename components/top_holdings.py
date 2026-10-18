@@ -12,7 +12,15 @@ def show_top_holdings(df, top_n=5):
         st.info("No holdings available.")
         return
 
-    table = df.sort_values(by="Current Value", ascending=False).head(top_n).copy()
+    valued_df = df.dropna(subset=["Current Value"])
+    unpriced_count = len(df) - len(valued_df)
+    if valued_df.empty:
+        st.info("Top holdings are unavailable because no holdings have current prices.")
+        return
+    if unpriced_count:
+        st.caption(f"Showing valued holdings only; {unpriced_count} holding(s) have unavailable prices.")
+
+    table = valued_df.sort_values(by="Current Value", ascending=False).head(top_n).copy()
 
     # ----------------------------
     # Format numbers
