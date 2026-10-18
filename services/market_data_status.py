@@ -54,24 +54,15 @@ def describe_daily_history(history, today=None, stale_after_days=4):
         if all(is_equity_calendar_year_supported(year) for year in years):
             # A daily equity candle on a weekend or full-day holiday is not
             # accepted as a valid trading-session timestamp.
-            if parsed_date.weekday() < 5 and not is_equity_market_holiday(
-                parsed_date
-            ):
+            if parsed_date.weekday() < 5 and not is_equity_market_holiday(parsed_date):
                 trading_days = 0
                 current = parsed_date + timedelta(days=1)
                 while current <= today:
-                    if (
-                        current.weekday() < 5
-                        and not is_equity_market_holiday(current)
-                    ):
+                    if current.weekday() < 5 and not is_equity_market_holiday(current):
                         trading_days += 1
                     current += timedelta(days=1)
 
-                status = (
-                    "STALE"
-                    if trading_days > stale_after_days
-                    else "RECENT"
-                )
+                status = "STALE" if trading_days > stale_after_days else "RECENT"
 
     return {
         "status": status,
