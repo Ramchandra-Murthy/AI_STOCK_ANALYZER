@@ -210,7 +210,29 @@ else:
     )
 st.dataframe(frame.head(10), use_container_width=True, hide_index=True)
 
+# Estimate a 14-bar Average True Range from the uploaded daily OHLC data.
+# Use it only as a practical starting point for stop-distance sizing, not as a
+# guarantee of risk: gaps and slippage can still exceed a planned stop.
+true_ranges = []
+for index, candle in enumerate(candles):
+    previous_close = candles[index - 1].close if index else candle.close
+    true_ranges.append(
+        max(
+            candle.high - candle.low,
+            abs(candle.high - previous_close),
+            abs(candle.low - previous_close),
+        )
+    )
+atr_14 = sum(true_ranges[-14:]) / min(14, len(true_ranges))
+default_stop_distance = max(0.01, round(atr_14, 2))
+
 st.subheader("Backtest assumptions")
+st.caption(
+    f"Data-derived reference: 14-bar ATR is approximately ₹{atr_14:.2f}. "
+    "The default stop distance uses about one ATR because a fixed ₹2 stop can be "
+    "far smaller than normal daily movement for a high-priced stock. This is a "
+    "research starting point, not a recommended live stop."
+)
 left, middle, right = st.columns(3)
 with left:
     capital = st.number_input("Starting capital (₹)", min_value=1000.0, value=10000.0, step=1000.0)
@@ -219,7 +241,7 @@ with left:
     )
 with middle:
     stop_distance = st.number_input(
-        "Stop distance (price units)", min_value=0.01, value=2.0, step=0.5
+        "Stop distance (price units)", min_value=0.01, value=default_stop_distance, step=0.5
     )
     reward_risk = st.number_input("Reward/risk ratio", min_value=0.1, value=2.0, step=0.1)
 with right:
@@ -227,6 +249,14 @@ with right:
         "Round-trip cost per unit (₹)", min_value=0.0, value=0.6, step=0.1
     )
     slippage = st.number_input("Slippage per unit per side (₹)", min_value=0.0, value=0.1, step=0.1)
+
+if stop_distance < 0.5 * atr_14:
+    st.warning(
+        f"Stop distance ₹{stop_distance:.2f} is less than half the recent 14-bar ATR "
+        f"(₹{atr_14:.2f}). On daily candles this may trigger on ordinary price noise "
+        "and create repeated stop-outs. Review the setting and rerun the research; "
+        "a wider stop does not guarantee profitability."
+    )
 
 base_config = BacktestConfig(
     capital=capital,
