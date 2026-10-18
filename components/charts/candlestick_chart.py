@@ -130,7 +130,7 @@ def plot_candlestick(df):
             "yanchor": "bottom",
         },
     )
-    fig.update_yaxes(title_text="Price (₹)", rangemode="tozero", row=1, col=1)
+    fig.update_yaxes(title_text="Price (₹)", row=1, col=1)
     fig.update_yaxes(title_text="Volume", rangemode="tozero", row=2, col=1)
     fig.update_xaxes(showgrid=True, row=1, col=1)
     fig.update_xaxes(showgrid=True, row=2, col=1)
