@@ -34,6 +34,9 @@ def add_stock(symbol, quantity, buy_price):
 
 
 def load_portfolio():
+    # The dashboard can call this before the Portfolio page has been opened.
+    # Ensure a fresh deployment has the expected table before querying it.
+    create_portfolio_table()
     conn = sqlite3.connect(DATABASE)
 
     df = pd.read_sql("SELECT * FROM portfolio", conn)
