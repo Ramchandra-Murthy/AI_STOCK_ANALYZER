@@ -11,7 +11,13 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from math import isfinite
 
-from modules.fibonacci_gann.backtest import BacktestConfig, BacktestResult, Candle, run_backtest
+from modules.fibonacci_gann.backtest import (
+    BacktestConfig,
+    BacktestResult,
+    Candle,
+    run_backtest,
+    validate_candles,
+)
 
 
 @dataclass(frozen=True)
@@ -41,6 +47,9 @@ def evaluate_regime_robustness(
     """
     if len(candles) != len(signals):
         raise ValueError("signals length must equal candles length")
+    # Validate the full source series, including candles outside labelled windows.
+    # Otherwise malformed chronology in an unselected gap can go unnoticed.
+    validate_candles(candles)
     if not regimes:
         raise ValueError("at least one regime window is required")
     if any(not isinstance(signal, bool) for signal in signals):
