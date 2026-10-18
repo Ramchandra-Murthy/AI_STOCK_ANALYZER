@@ -546,6 +546,42 @@ if st.button("Run research analysis", type="primary"):
                     }
                 )
             st.dataframe(pd.DataFrame(fold_rows), use_container_width=True, hide_index=True)
+            baseline_oos_pnl = sum(
+                fold.result.ending_capital - base_config.capital for fold in folds
+            )
+            sma200_oos_pnl = sum(
+                fold.result.ending_capital - base_config.capital for fold in sma200_folds
+            )
+            oos_summary_rows = []
+            for label, variant_folds, total_pnl in (
+                ("Baseline", folds, baseline_oos_pnl),
+                ("Close above SMA 200", sma200_folds, sma200_oos_pnl),
+            ):
+                oos_summary_rows.append(
+                    {
+                        "Variant": label,
+                        "Test windows": len(variant_folds),
+                        "Total OOS trades": sum(len(fold.result.trades) for fold in variant_folds),
+                        "Positive-return windows": sum(
+                            fold.result.total_return_pct > 0 for fold in variant_folds
+                        ),
+                        "Mean window return (%)": round(
+                            sum(fold.result.total_return_pct for fold in variant_folds)
+                            / len(variant_folds),
+                            2,
+                        ),
+                        "Sum of window P&L (₹)": round(total_pnl, 2),
+                    }
+                )
+            st.markdown("**Out-of-sample summary (separate, non-compounded folds)**")
+            st.dataframe(
+                pd.DataFrame(oos_summary_rows), use_container_width=True, hide_index=True
+            )
+            st.caption(
+                "Window P&L is summed across independent folds, each starting with the configured "
+                "capital; it is not a compounded account curve. Mean window return gives each fold "
+                "equal weight, including the shorter final fold."
+            )
             st.caption(
                 "Baseline and SMA200-filtered signals are evaluated on identical chronological, "
                 "non-overlapping test windows with the same configured costs and position sizing. "
