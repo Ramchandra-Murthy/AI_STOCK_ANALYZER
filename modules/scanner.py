@@ -163,6 +163,11 @@ def show():
             )
             return
 
+        if scan_mode == "Broad Market" and "Data Status" in df.columns:
+            st.caption(
+                "Broad-market technical signals use daily candles, not tick-live quotes. "
+                "Check each row's Last Data Date and Data Status before acting."
+            )
         _show_data_quality(df)
         st.success(f"{len(df)} matching stocks displayed")
         st.dataframe(

@@ -91,3 +91,18 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
             "final_rows": 0,
         }
     }
+
+
+def test_format_last_data_date_returns_iso_date_for_datetime_index() -> None:
+    from scanner.market_scanner import _format_last_data_date
+
+    index = pd.DatetimeIndex(["2026-10-16", "2026-10-19"])
+
+    assert _format_last_data_date(index) == "2026-10-19"
+
+
+def test_format_last_data_date_does_not_invent_date_for_unknown_index() -> None:
+    from scanner.market_scanner import _format_last_data_date
+
+    assert _format_last_data_date(pd.RangeIndex(2)) == "UNKNOWN"
+    assert _format_last_data_date(pd.DatetimeIndex([])) == "UNKNOWN"
