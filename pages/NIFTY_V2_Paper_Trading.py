@@ -24,6 +24,7 @@ from engine.nifty_options_v2_market_data import (
 from engine.nifty_options_v2_market_session import market_session_ready
 from engine.nifty_options_v2_provider_guard import provider_data_ready
 from engine.nifty_options_v2_refresh import is_market_hours, refresh_seconds
+from services.market_calendar import equity_market_session_status
 from services.options_analytics import fetch_option_chain
 from strategy.nifty_options_v2 import NiftyCallContract
 
@@ -90,7 +91,9 @@ show_live_observation()
 
 with st.expander("Manual paper controls"):
     expiry = st.date_input("Option expiry", value=date.today(), key="nifty_v2_manual_expiry")
-    strike = st.number_input("CALL strike", min_value=1.0, value=25000.0, step=50.0)
+    strike = st.number_input(
+        "CALL strike", min_value=1.0, value=25000.0, step=50.0, key="nifty_v2_manual_call_strike"
+    )
     observed_date = st.date_input(
         "Observation date", value=date.today(), key="nifty_v2_manual_observation_date"
     )
@@ -99,17 +102,21 @@ if st.button("Reset Paper Session"):
     st.rerun()
 
 india_now = datetime.now(ZoneInfo("Asia/Kolkata"))
-market_open = india_now.weekday() < 5 and time(9, 15) <= india_now.time() <= time(15, 30)
+market_status = equity_market_session_status(india_now)
 
 st.subheader("NSE Market Session")
-if market_open:
+if market_status == "OPEN":
     st.success(f"MARKET SESSION OPEN — {india_now.strftime('%H:%M:%S')} IST")
+elif market_status == "HOLIDAY":
+    st.info(f"MARKET HOLIDAY — {india_now.strftime('%Y-%m-%d %H:%M:%S')} IST")
+elif market_status == "CALENDAR_UNAVAILABLE":
+    st.warning(
+        f"MARKET SESSION UNKNOWN — verified holiday calendar unavailable for {india_now.year}. "
+        "Paper automation remains blocked."
+    )
 else:
     st.info(f"MARKET SESSION CLOSED — {india_now.strftime('%H:%M:%S')} IST")
-st.caption(
-    "Session check uses weekday and 09:15–15:30 IST only; "
-    "exchange holidays are not inferred here."
-)
+st.caption("Session status uses the shared NSE/BSE equity calendar and regular 09:15–15:30 IST hours.")
 
 provider = fetch_option_chain("NIFTY")
 provider_fetched_at = datetime.now(UTC)
@@ -166,7 +173,9 @@ with left:
         value=cycle.next_expiry if cycle is not None else india_now.date(),
         key="nifty_v2_trade_expiry",
     )
-    strike = st.number_input("CALL strike", min_value=1.0, value=25000.0, step=50.0)
+    strike = st.number_input(
+        "CALL strike", min_value=1.0, value=25000.0, step=50.0, key="nifty_v2_trade_call_strike"
+    )
 
 with right:
     observed_date = st.date_input(
