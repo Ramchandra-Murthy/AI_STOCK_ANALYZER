@@ -97,8 +97,14 @@ def validate_candles(candles: Sequence[Candle]) -> None:
                     "candle timestamps must use a consistent timezone convention"
                 ) from exc
         values = (candle.open, candle.high, candle.low, candle.close)
-        if not all(isfinite(value) and value > 0 for value in values):
-            raise ValueError("OHLC values must be finite and greater than zero")
+        if not all(
+            isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and isfinite(value)
+            and value > 0
+            for value in values
+        ):
+            raise ValueError("OHLC values must be numeric, finite, and greater than zero")
         if candle.low > min(candle.open, candle.close) or candle.high < max(
             candle.open, candle.close
         ):
