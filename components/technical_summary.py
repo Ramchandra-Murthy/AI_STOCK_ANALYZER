@@ -1,9 +1,12 @@
 import streamlit as st
 
 
-def show_technical_summary(df):
+def show_technical_summary(df, allow_recommendation=True, block_reason=None):
     """
-    Displays a technical summary of the latest indicators.
+    Displays technical indicators and optionally withholds recommendation output.
+
+    The caller should disable recommendation display when data freshness cannot
+    be verified. Indicator metrics remain visible for diagnostic purposes.
     """
 
     if df is None or df.empty:
@@ -119,4 +122,13 @@ def show_technical_summary(df):
 
     st.metric("Volume", volume_text)
 
-    st.success(f"Recommendation : {recommendation}")
+    if allow_recommendation:
+        st.success(f"Recommendation : {recommendation}")
+    else:
+        message = (
+            "Recommendation withheld — data freshness is not verified. "
+            "Do not use this summary as a current trading signal."
+        )
+        if block_reason:
+            message = f"{message} {block_reason}"
+        st.warning(message)
