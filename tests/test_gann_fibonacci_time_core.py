@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from modules.gann_fibonacci_time.anchors import detect_confirmed_pivots
-from modules.gann_fibonacci_time.confluence import find_confluence
+from modules.gann_fibonacci_time.confluence import eligible_time_zone_indices, find_confluence
 from modules.gann_fibonacci_time.fibonacci_time_zones import project_time_zones
 from modules.gann_fibonacci_time.gann_fan import project_gann_fan
 from modules.gann_fibonacci_time.validation import validate_ohlcv
@@ -113,3 +113,23 @@ def test_confluence_only_matches_time_bars_within_price_tolerance():
 def test_confluence_rejects_invalid_tolerance():
     with pytest.raises(ValueError, match="tolerance_pct"):
         find_confluence([], [], {}, tolerance_pct=100)
+
+
+
+def test_historical_confluence_zones_exclude_bars_before_anchor_confirmation():
+    zones = [103, 105, 108, 120]
+    assert eligible_time_zone_indices(zones, confirmed_at_index=105, total_bars=110) == [
+        105,
+        108,
+    ]
+
+
+def test_historical_confluence_zone_filter_handles_manual_anchor_and_invalid_inputs():
+    assert eligible_time_zone_indices([3, 5, 8], confirmed_at_index=5, total_bars=9) == [
+        5,
+        8,
+    ]
+    with pytest.raises(ValueError, match="confirmed_at_index"):
+        eligible_time_zone_indices([1, 2], confirmed_at_index=-1, total_bars=3)
+    with pytest.raises(ValueError, match="total_bars"):
+        eligible_time_zone_indices([1, 2], confirmed_at_index=1, total_bars=-1)
