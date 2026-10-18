@@ -41,5 +41,7 @@ htmlcov/
 .idea/
 
 
-# EROS runtime persistence
+# Runtime databases and local persistence (never commit user data)
+*.db
+*.sqlite
 *.sqlite3

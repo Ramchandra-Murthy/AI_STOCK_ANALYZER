@@ -33,3 +33,8 @@ backup_before_v2/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Runtime databases may contain local/user data
+*.db
+*.sqlite
+*.sqlite3
