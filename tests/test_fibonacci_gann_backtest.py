@@ -356,7 +356,6 @@ def test_rejects_non_numeric_boolean_or_non_finite_ohlc(field: str, value: objec
         validate_candles(candles)
 
 
-
 @pytest.mark.parametrize(
     ("field", "value"),
     [
