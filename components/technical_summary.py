@@ -20,7 +20,7 @@ def _format_price(value):
     return f"₹{number:.2f}" if number is not None and number > 0 else "N/A"
 
 
-def show_technical_summary(df, allow_recommendation=True, block_reason=None):
+def show_technical_summary(df, allow_recommendation=False, block_reason=None):
     """
     Display validated technical indicators and optionally withhold recommendations.
 
@@ -100,8 +100,19 @@ def show_technical_summary(df, allow_recommendation=True, block_reason=None):
     support = _finite_number(latest["Support"]) if "Support" in df.columns else None
     resistance = _finite_number(latest["Resistance"]) if "Resistance" in df.columns else None
     atr_text = f"{atr:.2f}" if atr is not None and atr >= 0 else "N/A"
-    support_text = _format_price(support)
-    resistance_text = _format_price(resistance)
+    # Support and resistance must form a valid positive range to be displayed.
+    if (
+        support is None
+        or resistance is None
+        or support <= 0
+        or resistance <= 0
+        or support >= resistance
+    ):
+        support_text = "N/A"
+        resistance_text = "N/A"
+    else:
+        support_text = _format_price(support)
+        resistance_text = _format_price(resistance)
 
     score = sum(
         (
