@@ -63,6 +63,7 @@ def test_rejects_invalid_ohlc_even_when_lookback_is_too_long() -> None:
     with pytest.raises(ValueError, match="high/low"):
         generate_daily_fibonacci_gann_signals(candles, lookback=20)
 
+
 def test_future_candle_changes_do_not_rewrite_earlier_signals() -> None:
     candles = make_candles()
     original = generate_daily_fibonacci_gann_signals(candles, lookback=4)
@@ -83,4 +84,3 @@ def test_signal_on_last_available_bar_cannot_create_a_trade_without_next_bar() -
 
     assert result.trades == ()
     assert result.ending_capital == result.starting_capital
-
