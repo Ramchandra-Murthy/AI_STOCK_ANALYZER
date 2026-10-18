@@ -106,9 +106,10 @@ def test_mixed_ema_structure_is_not_labelled_sideways():
     with patch("components.technical_summary.st", fake_streamlit):
         show_technical_summary(history)
 
-    trend_metric = fake_streamlit.columns.return_value[0].metric
-    assert trend_metric.call_args.args[0] == "Trend"
-    assert trend_metric.call_args.args[1] == "🟢 Bullish Structure"
+    trend_metrics = fake_streamlit.columns.return_value[0].metric.call_args_list
+    assert ("Trend", "🟢 Bullish Structure") in [
+        call.args for call in trend_metrics
+    ]
 
 
 def test_missing_volume_is_reported_as_unavailable():
