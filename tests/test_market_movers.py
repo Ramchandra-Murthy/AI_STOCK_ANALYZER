@@ -42,7 +42,6 @@ def test_extract_frame_handles_plain_ohlcv_data():
     assert result["Close"].tolist() == [11.0, 11.5]
 
 
-
 def test_quote_freshness_marks_old_candle_stale_during_open_session():
     from datetime import datetime
     from zoneinfo import ZoneInfo
@@ -60,10 +59,7 @@ def test_quote_freshness_labels_recent_open_session_candle():
     from modules.market_movers import _quote_freshness
 
     now = datetime(2026, 10, 19, 11, 0, tzinfo=ZoneInfo("Asia/Kolkata"))
-    assert (
-        _quote_freshness("2026-10-19 10:55:00 IST", now)
-        == "CURRENT-SESSION CANDLE · NOT TICK-LIVE"
-    )
+    assert _quote_freshness("2026-10-19 10:55:00 IST", now) == "CURRENT-SESSION CANDLE · NOT TICK-LIVE"
 
 
 def test_quote_freshness_labels_weekend_snapshot_as_closed():
@@ -73,7 +69,4 @@ def test_quote_freshness_labels_weekend_snapshot_as_closed():
     from modules.market_movers import _quote_freshness
 
     now = datetime(2026, 10, 18, 11, 0, tzinfo=ZoneInfo("Asia/Kolkata"))
-    assert (
-        _quote_freshness("2026-10-16 15:25:00 IST", now)
-        == "MARKET CLOSED · LAST AVAILABLE DATA"
-    )
+    assert _quote_freshness("2026-10-16 15:25:00 IST", now) == "MARKET CLOSED · LAST AVAILABLE DATA"
