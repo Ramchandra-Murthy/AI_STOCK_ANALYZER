@@ -80,11 +80,12 @@ def get_summary(df):
 
     if "Current Value" in df.columns:
         valued = df.loc[df["Current Value"].notna()]
+        current_value = valued["Current Value"].sum()
     else:
         valued = df.iloc[0:0]
+        current_value = 0.0
 
     investment = (valued["quantity"] * valued["buy_price"]).sum()
-    current_value = valued["Current Value"].sum()
     profit = current_value - investment
     returns = (profit / investment) * 100 if investment else 0
 
