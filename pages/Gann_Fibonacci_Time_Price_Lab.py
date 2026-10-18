@@ -247,8 +247,11 @@ with st.expander("Numerical Gann price projections", expanded=True):
             "Direction": item["direction"].title(),
         }
         for item in projections
-        if int(item["target_index"]) in {anchor_index + interval for interval in intervals if interval <= int(horizon)}
-        or int(item["target_index"]) == anchor_index + int(horizon)
+        if (
+            int(item["target_index"])
+            in {anchor_index + interval for interval in intervals if interval <= int(horizon)}
+            or int(item["target_index"]) == anchor_index + int(horizon)
+        )
     ]
     st.dataframe(
         pd.DataFrame(projection_rows),
