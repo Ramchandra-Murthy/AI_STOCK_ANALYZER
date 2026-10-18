@@ -53,7 +53,6 @@ from scanner.price_jump_history_analytics import summarize_price_jump_history
 from scanner.unusual_activity import scan_unusual_activity
 from services.market_calendar import (
     EQUITY_HOLIDAYS_BY_YEAR,
-    equity_market_session_status,
     is_equity_market_holiday,
     is_regular_equity_session_open,
 )
