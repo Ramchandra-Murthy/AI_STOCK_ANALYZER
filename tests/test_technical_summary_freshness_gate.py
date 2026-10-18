@@ -96,6 +96,7 @@ def test_invalid_rsi_withholds_recommendation():
 
 def test_mixed_ema_structure_is_not_labelled_sideways():
     fake_streamlit = MagicMock()
+    fake_streamlit.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
     history = _history()
     history.loc[history.index[-1], "EMA20"] = 109.0
     history.loc[history.index[-1], "EMA50"] = 105.0
@@ -112,6 +113,7 @@ def test_mixed_ema_structure_is_not_labelled_sideways():
 
 def test_missing_volume_is_reported_as_unavailable():
     fake_streamlit = MagicMock()
+    fake_streamlit.columns.return_value = [MagicMock(), MagicMock(), MagicMock()]
     history = _history().drop(columns=["Volume_MA20"])
 
     with patch("components.technical_summary.st", fake_streamlit):
