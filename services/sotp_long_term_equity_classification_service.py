@@ -1,5 +1,11 @@
 from dataclasses import dataclass
 
+from services.sotp_long_term_equity_domain_constants import (
+    CLASSIFICATION_OPERATING_INFRASTRUCTURE,
+    CLASSIFICATION_UNRESOLVED,
+    INTERPRETATION_OPERATING_INFRASTRUCTURE,
+)
+
 
 @dataclass(frozen=True)
 class ClassificationRule:
