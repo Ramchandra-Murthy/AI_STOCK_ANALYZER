@@ -26,3 +26,11 @@ def test_refresh_interval_defaults_to_one_minute() -> None:
 def test_refresh_policy_rejects_non_positive_interval() -> None:
     with pytest.raises(ValueError, match="interval_seconds"):
         MarketRefreshPolicy(interval_seconds=0)
+
+
+def test_nifty_refresh_is_paused_on_exchange_holiday() -> None:
+    assert not is_market_hours(datetime(2026, 10, 20, 10, 0, tzinfo=IST))
+
+
+def test_nifty_refresh_fails_closed_without_verified_calendar_year() -> None:
+    assert not is_market_hours(datetime(2027, 1, 4, 10, 0, tzinfo=IST))
