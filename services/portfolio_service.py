@@ -1,6 +1,6 @@
 """Portfolio valuation service.
 
-Portfolio valuation uses the canonical market-data service directly.  It does
+Portfolio valuation uses the canonical market-data service directly. It does
 not run the full technical analyzer for every holding, avoiding database
 writes and avoiding a misleading "live" label for daily market data.
 """
@@ -66,7 +66,7 @@ def get_portfolio():
 
 
 def get_summary(df):
-    """Return portfolio summary using only successfully valued holdings."""
+    """Summarize only holdings with available prices and report unvalued holdings."""
     if df.empty:
         return {
             "investment": 0,
@@ -74,17 +74,26 @@ def get_summary(df):
             "profit": 0,
             "return": 0,
             "holdings": 0,
+            "valued_holdings": 0,
+            "unpriced_holdings": 0,
         }
 
-    investment = (df["quantity"] * df["buy_price"]).sum()
-    current_value = df["Current Value"].fillna(0).sum()
+    if "Current Value" in df.columns:
+        valued = df.loc[df["Current Value"].notna()]
+    else:
+        valued = df.iloc[0:0]
+
+    investment = (valued["quantity"] * valued["buy_price"]).sum()
+    current_value = valued["Current Value"].sum()
     profit = current_value - investment
     returns = (profit / investment) * 100 if investment else 0
 
     return {
-        "investment": round(investment, 2),
-        "current_value": round(current_value, 2),
-        "profit": round(profit, 2),
-        "return": round(returns, 2),
+        "investment": round(float(investment), 2),
+        "current_value": round(float(current_value), 2),
+        "profit": round(float(profit), 2),
+        "return": round(float(returns), 2),
         "holdings": len(df),
+        "valued_holdings": len(valued),
+        "unpriced_holdings": len(df) - len(valued),
     }
