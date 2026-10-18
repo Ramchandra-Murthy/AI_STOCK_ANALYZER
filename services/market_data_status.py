@@ -1,6 +1,5 @@
 from datetime import date, datetime
 
-from pandas.api.types import is_scalar
 
 
 def describe_daily_history(history, today=None, stale_after_days=4):
