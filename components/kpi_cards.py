@@ -1,6 +1,16 @@
 import streamlit as st
 
 
+def _format_currency(value):
+    """Format a currency KPI, showing unavailable values as N/A."""
+    return "N/A" if value is None else f"₹{value:,.2f}"
+
+
+def _format_percent(value):
+    """Format a percentage KPI, showing unavailable values as N/A."""
+    return "N/A" if value is None else f"{value:.2f}%"
+
+
 def format_ai_score(score):
     """Format an AI score without implying a score exists for an empty portfolio."""
     return "N/A" if score is None else f"{score}/100"
@@ -10,16 +20,35 @@ def show_kpi_cards(summary):
     """Display portfolio KPIs in a responsive grid that stays compact on mobile."""
     ai_score = summary.get("ai_score", 80)
     has_unpriced_holdings = summary.get("unpriced_holdings", 0) > 0
-    investment_label = "💰 Valued Investment" if has_unpriced_holdings else "💰 Investment"
+    cost_basis_incomplete = summary.get("cost_basis_incomplete", False)
+    investment_label = (
+        "💰 Known Investment"
+        if cost_basis_incomplete
+        else "💰 Valued Investment"
+        if has_unpriced_holdings
+        else "💰 Investment"
+    )
     value_label = "📈 Valued Current Value" if has_unpriced_holdings else "📈 Current Value"
-    profit_label = "💵 Profit / Loss (valued)" if has_unpriced_holdings else "💵 Profit / Loss"
-    return_label = "📊 Return (valued)" if has_unpriced_holdings else "📊 Return"
+    profit_label = (
+        "💵 Profit / Loss (unavailable)"
+        if cost_basis_incomplete
+        else "💵 Profit / Loss (valued)"
+        if has_unpriced_holdings
+        else "💵 Profit / Loss"
+    )
+    return_label = (
+        "📊 Return (unavailable)"
+        if cost_basis_incomplete
+        else "📊 Return (valued)"
+        if has_unpriced_holdings
+        else "📊 Return"
+    )
 
     cards = [
-        (investment_label, f"₹{summary['investment']:,.2f}"),
-        (value_label, f"₹{summary['current_value']:,.2f}"),
-        (profit_label, f"₹{summary['profit']:,.2f}"),
-        (return_label, f"{summary['return']:.2f}%"),
+        (investment_label, _format_currency(summary["investment"])),
+        (value_label, _format_currency(summary["current_value"])),
+        (profit_label, _format_currency(summary["profit"])),
+        (return_label, _format_percent(summary["return"])),
         ("📁 Holdings", str(summary["holdings"])),
         ("🤖 AI Score", format_ai_score(ai_score)),
     ]
