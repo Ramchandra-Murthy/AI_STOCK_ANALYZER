@@ -324,10 +324,8 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
 
     def fetch(item: tuple[str, str]) -> tuple[str, dict[str, Any]]:
         name, ticker = item
-        value, change, previous_close, observed_at, frequency, is_intraday = (
-            _get_last_observation(
-                ticker
-            )
+        value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
+            ticker
         )
         change_points = (
             round(value - previous_close, 2)
