@@ -26,4 +26,9 @@ def show_portfolio_allocation(df):
 
     fig.update_layout(height=420, margin=dict(l=20, r=20, t=20, b=20), showlegend=True)
 
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False, "responsive": True},
+        key="dashboard_portfolio_allocation_chart",
+    )
