@@ -498,6 +498,16 @@ def show() -> None:
         .watchlist-header {font-size:2.1rem;font-weight:750;letter-spacing:-.04em;margin-bottom:.1rem}
         .watchlist-subtitle {color:#64748b;margin-bottom:1rem}
         div[data-testid="stDataFrame"] {border:1px solid #e2e8f0;border-radius:8px}
+        @media (max-width: 640px) {
+            .watchlist-header {font-size:1.8rem;line-height:1.15}
+            div[data-testid="stTabs"] [data-baseweb="tab-list"] {
+                display:flex; flex-wrap:nowrap; overflow-x:auto; max-width:100%;
+                scrollbar-width:thin; gap:.25rem;
+            }
+            div[data-testid="stTabs"] [data-baseweb="tab"] {
+                flex:0 0 auto; white-space:nowrap; padding-left:.65rem; padding-right:.65rem;
+            }
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -534,35 +544,39 @@ def show() -> None:
                     summary["manual_current"] += float(manual_price) * qty
                     summary["manual_count"] += 1
         st.subheader("Portfolio overview — all categories")
-        overview = st.columns(4)
-        overview[0].metric("Total saved instruments", len(summary_records))
-        overview[1].metric(
+        overview_top = st.columns(2)
+        overview_top[0].metric("Total saved instruments", len(summary_records))
+        overview_top[1].metric(
             "Total invested", f"₹{sum(v['invested'] for v in category_totals.values()):,.2f}"
         )
-        overview[2].metric(
+        overview_bottom = st.columns(2)
+        overview_bottom[0].metric(
             "Manual-value positions", sum(v["manual_count"] for v in category_totals.values())
         )
-        overview[3].metric(
+        overview_bottom[1].metric(
             "Categories in use", sum(v["count"] > 0 for v in category_totals.values())
         )
-        st.dataframe(
-            pd.DataFrame(
-                [
-                    {
-                        "Category": name,
-                        "Saved positions": values["count"],
-                        "Invested (₹)": values["invested"],
-                        "Current value from manual prices (₹)": (
-                            values["manual_current"] if values["manual_count"] else None
-                        ),
-                        "Manual prices available": values["manual_count"],
-                    }
-                    for name, values in category_totals.items()
-                ]
-            ),
-            use_container_width=True,
-            hide_index=True,
+        st.caption(
+            "Invested value includes only complete positions marked Bought with a positive "
+            "entry price and quantity. Watching, Sold, and Avoid records are excluded. "
+            "A current value is shown only when a manual price has been saved."
         )
+        summary_columns = st.columns(2)
+        for index, (name, values) in enumerate(category_totals.items()):
+            with summary_columns[index % 2]:
+                with st.container(border=True):
+                    st.markdown(f"**{name}**")
+                    st.metric("Saved positions", values["count"])
+                    st.metric("Invested", f"₹{values['invested']:,.2f}")
+                    st.metric(
+                        "Current value (manual)",
+                        (
+                            f"₹{values['manual_current']:,.2f}"
+                            if values["manual_count"]
+                            else "Not entered"
+                        ),
+                    )
+                    st.caption(f"Manual prices available: {values['manual_count']}")
     except WatchlistError as exc:
         st.warning(f"Portfolio overview unavailable: {exc}")
 
