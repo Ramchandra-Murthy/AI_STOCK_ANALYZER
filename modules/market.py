@@ -207,17 +207,23 @@ def show():
             st.session_state["market_page_movers_requested"] = True
         if st.session_state.get("market_page_movers_requested", False):
             with st.spinner(f"Scanning {selected_exchange} candidates…"):
-                scanner = scan_market_universe(scanner_universe(selected_exchange), top_n=10)
+                scanner = scan_market_universe(
+                    scanner_universe(selected_exchange), top_n=10
+                )
             if scanner.empty:
                 gainers = pd.DataFrame()
                 losers = pd.DataFrame()
             else:
-                gainers = scanner[scanner["Change %"] >= 0].sort_values(
-                    "Change %", ascending=False
-                ).head(5)
-                losers = scanner[scanner["Change %"] < 0].sort_values(
-                    "Change %", ascending=True
-                ).head(5)
+                gainers = (
+                    scanner[scanner["Change %"] >= 0]
+                    .sort_values("Change %", ascending=False)
+                    .head(5)
+                )
+                losers = (
+                    scanner[scanner["Change %"] < 0]
+                    .sort_values("Change %", ascending=True)
+                    .head(5)
+                )
             display_columns = ["Symbol", "Name", "Exchange", "Price", "Change %"]
             gainers = gainers[[c for c in display_columns if c in gainers.columns]]
             losers = losers[[c for c in display_columns if c in losers.columns]]
@@ -326,11 +332,24 @@ def show():
     if st.session_state.get("market_watchlist_quotes_requested", False):
         with st.spinner("Fetching latest available watchlist quotes…"):
             live = get_personal_watchlist([record["symbol"] for record in records])
-        combined = saved.merge(live, on="Symbol", how="left", suffixes=("_saved", "_market"))
+        combined = saved.merge(
+            live, on="Symbol", how="left", suffixes=("_saved", "_market")
+        )
         display_columns = [
-            "Symbol", "Name", "Exchange", "Price", "Change %", "entry_price",
-            "stop_loss", "target_price", "quantity", "investment_type",
-            "purchase_date", "status", "notes", "Observed",
+            "Symbol",
+            "Name",
+            "Exchange",
+            "Price",
+            "Change %",
+            "entry_price",
+            "stop_loss",
+            "target_price",
+            "quantity",
+            "investment_type",
+            "purchase_date",
+            "status",
+            "notes",
+            "Observed",
         ]
         st.dataframe(
             combined[[column for column in display_columns if column in combined.columns]],
@@ -339,8 +358,15 @@ def show():
         )
     else:
         display_columns = [
-            "Symbol", "entry_price", "stop_loss", "target_price", "quantity",
-            "investment_type", "purchase_date", "status", "notes",
+            "Symbol",
+            "entry_price",
+            "stop_loss",
+            "target_price",
+            "quantity",
+            "investment_type",
+            "purchase_date",
+            "status",
+            "notes",
         ]
         st.dataframe(
             saved[[column for column in display_columns if column in saved.columns]],
@@ -413,7 +439,9 @@ def show():
             "Purchase / planned entry date", value=parsed_date, key="edit_purchase_date"
         )
         edit_notes = st.text_area(
-            "Investment notes / rationale", value=selected_record["notes"] or "", key="edit_notes"
+            "Investment notes / rationale",
+            value=selected_record["notes"] or "",
+            key="edit_notes",
         )
         save_details = st.form_submit_button("Update saved details")
 
