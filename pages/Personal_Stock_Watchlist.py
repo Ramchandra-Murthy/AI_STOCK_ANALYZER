@@ -753,7 +753,46 @@ def show() -> None:
                         st.session_state["personal_watchlist_quotes_checked_at"] = datetime.now(
                             ZoneInfo("Asia/Kolkata")
                         ).strftime("%H:%M:%S IST")
-                        st.success("Market-price check completed.")
+                        total_quotes = len(loaded_quotes)
+                        available_quotes = (
+                            int(
+                                loaded_quotes["Current price"]
+                                .astype(str)
+                                .ne("Unavailable")
+                                .sum()
+                            )
+                            if total_quotes and "Current price" in loaded_quotes
+                            else 0
+                        )
+                        unavailable_symbols = (
+                            loaded_quotes.loc[
+                                loaded_quotes["Current price"].astype(str).eq("Unavailable"),
+                                "Symbol",
+                            ].astype(str).tolist()
+                            if total_quotes and {"Current price", "Symbol"}.issubset(
+                                loaded_quotes.columns
+                            )
+                            else []
+                        )
+                        st.info(
+                            f"Quote refresh finished: {available_quotes}/{total_quotes} "
+                            "symbols returned a price."
+                        )
+                        if unavailable_symbols:
+                            shown_symbols = ", ".join(unavailable_symbols[:10])
+                            remaining = len(unavailable_symbols) - 10
+                            if remaining > 0:
+                                shown_symbols += f", and {remaining} more"
+                            st.warning(
+                                f"No usable price returned for {len(unavailable_symbols)} "
+                                f"symbol(s): {shown_symbols}. Check symbol mapping or provider "
+                                "availability; refresh completion does not mean every quote "
+                                "was available."
+                            )
+                        elif total_quotes:
+                            st.success("All requested symbols returned a price.")
+                        else:
+                            st.warning("No eligible symbols were available to fetch quotes.")
                     except Exception as exc:
                         st.warning(f"Could not load market prices: {exc}")
 
