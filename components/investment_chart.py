@@ -53,7 +53,8 @@ def show_investment_chart(df):
         yaxis_title="Amount (₹)",
         margin=dict(l=12, r=12, t=16, b=36),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
-        autosize=True,\n        xaxis=dict(automargin=True, tickangle=0),
+        autosize=True,
+        xaxis=dict(automargin=True, tickangle=0),
     )
 
     st.plotly_chart(
