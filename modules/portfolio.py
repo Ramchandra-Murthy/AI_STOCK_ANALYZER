@@ -148,7 +148,9 @@ def show():
     with st.expander("View holdings in mobile-friendly cards", expanded=True):
         for _, holding in display_df.iterrows():
             with st.container(border=True):
-                st.markdown(f"**{holding.get('Symbol', 'Unknown symbol')}** · ID {holding.get('ID', '—')}")
+                st.markdown(
+                    f"**{holding.get('Symbol', 'Unknown symbol')}** · ID {holding.get('ID', '—')}"
+                )
                 details_left, details_right = st.columns(2)
                 details_left.metric("Quantity", f"{holding.get('Quantity', '—')}")
                 details_right.metric("Buy price", f"₹{holding.get('Buy Price', 0):,.2f}")
@@ -164,7 +166,9 @@ def show():
     # ======================================================
 
     st.subheader("🥧 Portfolio Allocation")
-    st.caption("Allocation is based on invested cost (quantity × buy price), not current market value.")
+    st.caption(
+        "Allocation is based on invested cost (quantity × buy price), not current market value."
+    )
 
     pie_df = display_df.copy()
 
