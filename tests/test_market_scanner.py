@@ -157,7 +157,13 @@ def test_batch_change_screen_counts_returned_histories_not_only_movers(monkeypat
         columns=columns,
     )
     coverage = {
-        "NSE": {"histories_returned": 0, "screen_chunks_requested": 0, "screen_chunks_empty": 0, "screen_tickers_with_data": 0, "screen_tickers_missing_data": 0}
+        "NSE": {
+            "histories_returned": 0,
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
+            "screen_tickers_with_data": 0,
+            "screen_tickers_missing_data": 0,
+        }
     }
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
@@ -179,7 +185,13 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
         columns=columns,
     )
     coverage = {
-        "BSE": {"histories_returned": 0, "screen_chunks_requested": 0, "screen_chunks_empty": 0}
+        "BSE": {
+            "histories_returned": 0,
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
+            "screen_tickers_with_data": 0,
+            "screen_tickers_missing_data": 0,
+        }
     }
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
