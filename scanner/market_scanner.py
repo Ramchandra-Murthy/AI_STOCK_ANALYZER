@@ -153,21 +153,31 @@ def _batch_change_screen(
 
     for exchange, symbols in candidates.items():
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
-        for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
-            chunk = tickers[start : start + DOWNLOAD_CHUNK_SIZE]
+        pending_chunks = [
+            tickers[start : start + DOWNLOAD_CHUNK_SIZE]
+            for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE)
+        ]
+        while pending_chunks:
+            chunk = pending_chunks.pop(0)
             if coverage is not None:
                 coverage[exchange]["screen_chunks_requested"] += 1
             history = _download_chunk(chunk)
             if history.empty:
                 if coverage is not None:
                     coverage[exchange]["screen_chunks_empty"] += 1
+                # A failed large batch can hide valid tickers. Retry smaller groups
+                # before concluding that every symbol in the batch lacks data.
+                if len(chunk) > 5:
+                    midpoint = len(chunk) // 2
+                    pending_chunks[0:0] = [chunk[:midpoint], chunk[midpoint:]]
+                elif coverage is not None:
+                    coverage[exchange]["screen_tickers_missing_data"] += len(chunk)
                 continue
 
             for ticker in chunk:
                 try:
                     close = _extract_series(history, ticker, "Close")
                     volume = _extract_series(history, ticker, "Volume")
-                    exchange = "BSE" if ticker.endswith(".BO") else "NSE"
                     if coverage is not None:
                         if not close.empty and not volume.empty:
                             coverage[exchange]["histories_returned"] += 1
