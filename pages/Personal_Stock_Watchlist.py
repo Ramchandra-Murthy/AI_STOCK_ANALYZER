@@ -570,9 +570,11 @@ def show() -> None:
                     st.metric("Invested", f"₹{values['invested']:,.2f}")
                     st.metric(
                         "Current value (manual)",
-                        f"₹{values['manual_current']:,.2f}"
-                        if values["manual_count"]
-                        else "Not entered",
+                        (
+                            f"₹{values['manual_current']:,.2f}"
+                            if values["manual_count"]
+                            else "Not entered"
+                        ),
                     )
                     st.caption(f"Manual prices available: {values['manual_count']}")
     except WatchlistError as exc:
