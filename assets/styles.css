@@ -43,3 +43,46 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] * {
     color: white;
 }
+
+ 
+/* Keep dashboard visualizations and wide data tables inside the viewport. */
+div[data-testid="stPlotlyChart"],
+div[data-testid="stDataFrame"],
+div[data-testid="stTable"] {
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+}
+
+div[data-testid="stPlotlyChart"] > div {
+    max-width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .main .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        max-width: 100%;
+    }
+
+    div[data-testid="stPlotlyChart"] {
+        overflow: hidden;
+    }
+
+    div[data-testid="stPlotlyChart"] .js-plotly-plot,
+    div[data-testid="stPlotlyChart"] .plot-container,
+    div[data-testid="stPlotlyChart"] .svg-container {
+        max-width: 100% !important;
+    }
+
+    div[data-testid="stDataFrame"],
+    div[data-testid="stTable"] {
+        overflow-x: auto;
+    }
+
+    .stTabs [role="tab"] {
+        padding: 8px 12px;
+        white-space: nowrap;
+    }
+}
