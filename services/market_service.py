@@ -218,6 +218,16 @@ def _clean_close_series(history: pd.DataFrame) -> pd.Series:
     return pd.to_numeric(close, errors="coerce").dropna()
 
 
+def _market_observation_date(value: Any):
+    """Return an observation date in India time for cross-provider date comparisons."""
+    timestamp = pd.Timestamp(value)
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.tz_localize(INDIA_TIMEZONE)
+    else:
+        timestamp = timestamp.tz_convert(INDIA_TIMEZONE)
+    return timestamp.date()
+
+
 def _get_last_observation(
     ticker: str,
 ) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
@@ -244,12 +254,15 @@ def _get_last_observation(
                 timeout=15,
             )
             daily_close = _clean_close_series(daily_frames.get(ticker, pd.DataFrame()))
-            if len(daily_close) >= 2:
-                previous = float(daily_close.iloc[-2])
-            elif len(daily_close) == 1:
-                previous = float(daily_close.iloc[-1])
-            if previous is None and len(close) > 1:
-                previous = float(close.iloc[-2])
+            intraday_date = _market_observation_date(close.index[-1])
+            prior_session_closes = daily_close[
+                [
+                    _market_observation_date(timestamp) < intraday_date
+                    for timestamp in daily_close.index
+                ]
+            ]
+            if not prior_session_closes.empty:
+                previous = float(prior_session_closes.iloc[-1])
             change = ((latest - previous) / previous) * 100 if previous else None
             timestamp = close.index[-1]
             observed_at = (
