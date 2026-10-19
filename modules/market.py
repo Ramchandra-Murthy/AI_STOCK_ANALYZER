@@ -217,9 +217,11 @@ def show():
                     .sort_values("Change %", ascending=False)
                     .head(5)
                 )
-                losers = scanner[scanner["Change %"] < 0].sort_values(
-                    "Change %", ascending=True
-                ).head(5)
+                losers = (
+                    scanner[scanner["Change %"] < 0]
+                    .sort_values("Change %", ascending=True)
+                    .head(5)
+                )
             display_columns = ["Symbol", "Name", "Exchange", "Price", "Change %"]
             gainers = gainers[[c for c in display_columns if c in gainers.columns]]
             losers = losers[[c for c in display_columns if c in losers.columns]]
@@ -245,9 +247,7 @@ def show():
             st.session_state["market_page_sectors_requested"] = True
         if st.session_state.get("market_page_sectors_requested", False):
             with st.spinner("Calculating sector performance…"):
-                st.dataframe(
-                    get_sector_performance(), hide_index=True, use_container_width=True
-                )
+                st.dataframe(get_sector_performance(), hide_index=True, use_container_width=True)
 
     st.divider()
     st.subheader("⭐ My Personal Watchlist")
