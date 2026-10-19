@@ -17,9 +17,7 @@ def test_clean_close_series_handles_multiindex_close():
 def test_last_observation_prefers_intraday(monkeypatch):
     def fake_download(tickers, *, interval, **kwargs):
         if interval == "1m":
-            index = pd.to_datetime(
-                ["2026-10-19 10:00:00+05:30", "2026-10-19 10:01:00+05:30"]
-            )
+            index = pd.to_datetime(["2026-10-19 10:00:00+05:30", "2026-10-19 10:01:00+05:30"])
             return {"TEST": pd.DataFrame({"Close": [100.0, 105.0]}, index=index)}, []
         index = pd.to_datetime(["2026-10-16 00:00:00+05:30", "2026-10-19 00:00:00+05:30"])
         return {"TEST": pd.DataFrame({"Close": [99.0, 100.0]}, index=index)}, []
@@ -41,9 +39,7 @@ def test_last_observation_does_not_use_same_day_daily_or_previous_minute_as_prev
 ):
     def fake_download(tickers, *, interval, **kwargs):
         if interval == "1m":
-            index = pd.to_datetime(
-                ["2026-10-19 10:00:00+05:30", "2026-10-19 10:01:00+05:30"]
-            )
+            index = pd.to_datetime(["2026-10-19 10:00:00+05:30", "2026-10-19 10:01:00+05:30"])
             return {"TEST": pd.DataFrame({"Close": [100.0, 105.0]}, index=index)}, []
         index = pd.to_datetime(["2026-10-19 00:00:00+05:30"])
         return {"TEST": pd.DataFrame({"Close": [104.0]}, index=index)}, []
