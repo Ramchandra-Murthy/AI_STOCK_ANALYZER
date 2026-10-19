@@ -3,6 +3,11 @@ import streamlit as st
 from components.metric_card import metric_card
 
 
+def format_ai_score(score):
+    """Format an AI score without implying a score exists for an empty portfolio."""
+    return "N/A" if score is None else f"{score}/100"
+
+
 def show_kpi_cards(summary):
     """
     Display portfolio KPI cards.
@@ -37,4 +42,4 @@ def show_kpi_cards(summary):
         metric_card("📁 Holdings", str(summary["holdings"]))
 
     with c6:
-        metric_card("🤖 AI Score", f"{ai_score}/100")
+        metric_card("🤖 AI Score", format_ai_score(ai_score))
