@@ -207,9 +207,7 @@ def show():
             st.session_state["market_page_movers_requested"] = True
         if st.session_state.get("market_page_movers_requested", False):
             with st.spinner(f"Scanning {selected_exchange} candidates…"):
-                scanner = scan_market_universe(
-                    scanner_universe(selected_exchange), top_n=10
-                )
+                scanner = scan_market_universe(scanner_universe(selected_exchange), top_n=10)
             if scanner.empty:
                 gainers = pd.DataFrame()
                 losers = pd.DataFrame()
@@ -219,11 +217,9 @@ def show():
                     .sort_values("Change %", ascending=False)
                     .head(5)
                 )
-                losers = (
-                    scanner[scanner["Change %"] < 0]
-                    .sort_values("Change %", ascending=True)
-                    .head(5)
-                )
+                losers = scanner[scanner["Change %"] < 0].sort_values(
+                    "Change %", ascending=True
+                ).head(5)
             display_columns = ["Symbol", "Name", "Exchange", "Price", "Change %"]
             gainers = gainers[[c for c in display_columns if c in gainers.columns]]
             losers = losers[[c for c in display_columns if c in losers.columns]]
@@ -332,9 +328,7 @@ def show():
     if st.session_state.get("market_watchlist_quotes_requested", False):
         with st.spinner("Fetching latest available watchlist quotes…"):
             live = get_personal_watchlist([record["symbol"] for record in records])
-        combined = saved.merge(
-            live, on="Symbol", how="left", suffixes=("_saved", "_market")
-        )
+        combined = saved.merge(live, on="Symbol", how="left", suffixes=("_saved", "_market"))
         display_columns = [
             "Symbol",
             "Name",
