@@ -155,8 +155,12 @@ def _batch_change_screen(
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
         for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE):
             chunk = tickers[start : start + DOWNLOAD_CHUNK_SIZE]
+            if coverage is not None:
+                coverage[exchange]["screen_chunks_requested"] += 1
             history = _download_chunk(chunk)
             if history.empty:
+                if coverage is not None:
+                    coverage[exchange]["screen_chunks_empty"] += 1
                 continue
 
             for ticker in chunk:
@@ -256,8 +260,11 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         exchange: {
             "candidates": len(symbols),
             "tickers_requested": len(symbols),
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
+            "analysis_download_failed": 0,
             "analyses_completed": 0,
             "final_rows": 0,
         }
@@ -303,6 +310,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
 
     history = _download_analysis_chunk(analysis_tickers)
     if history.empty:
+        for exchange in coverage:
+            if any(coverage_by_ticker.get(ticker) == exchange for ticker in analysis_tickers):
+                coverage[exchange]["analysis_download_failed"] = 1
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
         return empty
