@@ -198,37 +198,54 @@ def show():
         index=0,
     )
 
-    scanner = scan_market_universe(scanner_universe(selected_exchange), top_n=10)
-    if scanner.empty:
-        gainers = pd.DataFrame()
-        losers = pd.DataFrame()
-    else:
-        gainers = scanner[scanner["Change %"] >= 0].sort_values("Change %", ascending=False).head(5)
-        losers = scanner[scanner["Change %"] < 0].sort_values("Change %", ascending=True).head(5)
-
-    display_columns = ["Symbol", "Name", "Exchange", "Price", "Change %"]
-    gainers = gainers[[c for c in display_columns if c in gainers.columns]]
-    losers = losers[[c for c in display_columns if c in losers.columns]]
-
-    left, right = st.columns(2)
-    with left:
-        st.subheader("📈 Top Gainers")
-        st.dataframe(gainers, hide_index=True, use_container_width=True)
-    with right:
-        st.subheader("📉 Top Losers")
-        st.dataframe(losers, hide_index=True, use_container_width=True)
-    st.caption(
-        f"Scanner universe: {selected_exchange}. "
-        "Candidates are re-evaluated from the configured exchange universe on refresh."
-    )
+    with st.expander("📊 Top Gainers and Losers (load on demand)", expanded=False):
+        st.caption(
+            "Fetching quotes across the exchange universe can take time. Load this scanner "
+            "only when you need it; values use the latest available provider observations."
+        )
+        if st.button("Load market movers", key="load_market_page_movers"):
+            st.session_state["market_page_movers_requested"] = True
+        if st.session_state.get("market_page_movers_requested", False):
+            with st.spinner(f"Scanning {selected_exchange} candidates…"):
+                scanner = scan_market_universe(scanner_universe(selected_exchange), top_n=10)
+            if scanner.empty:
+                gainers = pd.DataFrame()
+                losers = pd.DataFrame()
+            else:
+                gainers = (
+                    scanner[scanner["Change %"] >= 0]
+                    .sort_values("Change %", ascending=False)
+                    .head(5)
+                )
+                losers = (
+                    scanner[scanner["Change %"] < 0].sort_values("Change %", ascending=True).head(5)
+                )
+            display_columns = ["Symbol", "Name", "Exchange", "Price", "Change %"]
+            gainers = gainers[[c for c in display_columns if c in gainers.columns]]
+            losers = losers[[c for c in display_columns if c in losers.columns]]
+            left, right = st.columns(2)
+            with left:
+                st.subheader("📈 Top Gainers")
+                st.dataframe(gainers, hide_index=True, use_container_width=True)
+            with right:
+                st.subheader("📉 Top Losers")
+                st.dataframe(losers, hide_index=True, use_container_width=True)
+        st.caption(
+            f"Scanner universe: {selected_exchange}. "
+            "Candidates are re-evaluated from the configured exchange universe on refresh."
+        )
 
     st.divider()
-    st.subheader("🔥 Sector Performance")
-    st.caption(
-        "Average percentage change of the mapped dashboard stocks in each sector. "
-        "This is not official NSE sector-index performance."
-    )
-    st.dataframe(get_sector_performance(), hide_index=True, use_container_width=True)
+    with st.expander("🔥 Sector Performance (load on demand)", expanded=False):
+        st.caption(
+            "Average percentage change of mapped dashboard stocks; this is not official "
+            "NSE/BSE sector-index performance."
+        )
+        if st.button("Load sector performance", key="load_market_page_sectors"):
+            st.session_state["market_page_sectors_requested"] = True
+        if st.session_state.get("market_page_sectors_requested", False):
+            with st.spinner("Calculating sector performance…"):
+                st.dataframe(get_sector_performance(), hide_index=True, use_container_width=True)
 
     st.divider()
     st.subheader("⭐ My Personal Watchlist")
@@ -299,31 +316,55 @@ def show():
         st.info("Your watchlist is empty. Add a symbol above.")
         return
 
-    live = get_personal_watchlist([record["symbol"] for record in records])
-    saved = pd.DataFrame(records)
-    saved = saved.rename(columns={"symbol": "Symbol"})
-    combined = saved.merge(live, on="Symbol", how="left", suffixes=("_saved", "_market"))
-    display_columns = [
-        "Symbol",
-        "Name",
-        "Exchange",
-        "Price",
-        "Change %",
-        "entry_price",
-        "stop_loss",
-        "target_price",
-        "quantity",
-        "investment_type",
-        "purchase_date",
-        "status",
-        "notes",
-        "Observed",
-    ]
-    st.dataframe(
-        combined[[column for column in display_columns if column in combined.columns]],
-        hide_index=True,
-        use_container_width=True,
+    saved = pd.DataFrame(records).rename(columns={"symbol": "Symbol"})
+    st.caption(
+        "Saved investment details are available immediately. Live quotes are fetched only "
+        "when requested so the watchlist does not delay the page's initial load."
     )
+    if st.button("Refresh watchlist market prices", key="refresh_market_watchlist_quotes"):
+        st.session_state["market_watchlist_quotes_requested"] = True
+    if st.session_state.get("market_watchlist_quotes_requested", False):
+        with st.spinner("Fetching latest available watchlist quotes…"):
+            live = get_personal_watchlist([record["symbol"] for record in records])
+        combined = saved.merge(live, on="Symbol", how="left", suffixes=("_saved", "_market"))
+        display_columns = [
+            "Symbol",
+            "Name",
+            "Exchange",
+            "Price",
+            "Change %",
+            "entry_price",
+            "stop_loss",
+            "target_price",
+            "quantity",
+            "investment_type",
+            "purchase_date",
+            "status",
+            "notes",
+            "Observed",
+        ]
+        st.dataframe(
+            combined[[column for column in display_columns if column in combined.columns]],
+            hide_index=True,
+            use_container_width=True,
+        )
+    else:
+        display_columns = [
+            "Symbol",
+            "entry_price",
+            "stop_loss",
+            "target_price",
+            "quantity",
+            "investment_type",
+            "purchase_date",
+            "status",
+            "notes",
+        ]
+        st.dataframe(
+            saved[[column for column in display_columns if column in saved.columns]],
+            hide_index=True,
+            use_container_width=True,
+        )
 
     st.subheader("Edit saved stock details")
     record_by_symbol = {record["symbol"]: record for record in records}
@@ -390,7 +431,9 @@ def show():
             "Purchase / planned entry date", value=parsed_date, key="edit_purchase_date"
         )
         edit_notes = st.text_area(
-            "Investment notes / rationale", value=selected_record["notes"] or "", key="edit_notes"
+            "Investment notes / rationale",
+            value=selected_record["notes"] or "",
+            key="edit_notes",
         )
         save_details = st.form_submit_button("Update saved details")
 
