@@ -35,7 +35,10 @@ def show_kpi_cards(summary):
         profit_label = "💵 Profit / Loss"
         return_label = "📊 Return"
 
-    value_label = "📈 Valued Current Value" if has_unpriced_holdings else "📈 Current Value"
+    if has_unpriced_holdings:
+        value_label = "📈 Valued Current Value"
+    else:
+        value_label = "📈 Current Value"
 
     cards = [
         (investment_label, _format_currency(summary["investment"])),
@@ -52,8 +55,7 @@ def show_kpi_cards(summary):
             <div class="portfolio-kpi-label">{label}</div>
             <div class="portfolio-kpi-value">{value}</div>
         </div>
-        """
-        for label, value in cards
+        """ for label, value in cards
     )
 
     st.markdown(
