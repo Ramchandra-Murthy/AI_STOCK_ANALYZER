@@ -26,7 +26,7 @@ def test_market_scan_uses_only_requested_exchange(monkeypatch) -> None:
     monkeypatch.setattr(
         market_scanner,
         "_batch_change_screen",
-        lambda candidates: calls.append(candidates) or [],
+        lambda candidates, coverage=None: calls.append(candidates) or [],
     )
 
     result = market_scanner.market_scan("BSE")
@@ -76,7 +76,7 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
 
     monkeypatch.setattr(market_scanner, "merge_nse_universe", lambda: ["RELIANCE"])
     monkeypatch.setattr(market_scanner, "merge_bse_universe", lambda: ["500325"])
-    monkeypatch.setattr(market_scanner, "_batch_change_screen", lambda candidates: [])
+    monkeypatch.setattr(market_scanner, "_batch_change_screen", lambda candidates, coverage=None: [])
 
     result = market_scanner.market_scan("BSE")
 
