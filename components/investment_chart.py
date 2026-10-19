@@ -19,12 +19,9 @@ def show_investment_chart(df):
         return
 
     quantity = pd.to_numeric(priced_df["quantity"], errors="coerce")
-    buy_price = __import__("pandas").to_numeric(priced_df["buy_price"], errors="coerce")
+    buy_price = pd.to_numeric(priced_df["buy_price"], errors="coerce")
     valid_cost_basis = (
-        quantity.gt(0)
-        & buy_price.gt(0)
-        & np.isfinite(quantity)
-        & np.isfinite(buy_price)
+        quantity.gt(0) & buy_price.gt(0) & np.isfinite(quantity) & np.isfinite(buy_price)
     )
 
     chart_df = priced_df.loc[valid_cost_basis].copy()
