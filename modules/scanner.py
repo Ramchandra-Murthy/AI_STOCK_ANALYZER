@@ -44,6 +44,34 @@ def _show_data_quality(df: pd.DataFrame) -> None:
     )
 
 
+def _show_price_divergence(df: pd.DataFrame) -> None:
+    """Flag differences between daily analysis close and the latest market observation."""
+    required = ("Price", "Latest Observation Price")
+    if not all(column in df.columns for column in required):
+        return
+
+    daily_close = pd.to_numeric(df["Price"], errors="coerce")
+    observation = pd.to_numeric(df["Latest Observation Price"], errors="coerce")
+    valid = daily_close.gt(0) & observation.gt(0)
+    comparison = df.loc[valid, ["Symbol", "Exchange", "Price", "Latest Observation Price"]].copy()
+    if comparison.empty:
+        return
+
+    comparison["Difference %"] = (
+        (observation.loc[valid] - daily_close.loc[valid]) / daily_close.loc[valid] * 100
+    ).round(2)
+    divergent = comparison.loc[comparison["Difference %"].abs() >= 0.5]
+    if divergent.empty:
+        return
+
+    st.warning(
+        f"{len(divergent)} stock(s) have a latest observation price differing from "
+        "the daily analysis close by at least 0.5%. This can reflect different observation "
+        "times; it is a review flag, not proof that either value is incorrect."
+    )
+    st.dataframe(divergent, use_container_width=True, hide_index=True)
+
+
 def show():
     st.title("📡 AI Market Scanner")
     st.caption("Professional Scanner")
@@ -173,6 +201,7 @@ def show():
                 "Price and indicators may come from different observation times. "
                 "Check Observation Status, Observed At, and Tick Live before relying on a signal."
             )
+        _show_price_divergence(df)
         _show_data_quality(df)
         st.success(f"{len(df)} matching stocks displayed")
         st.dataframe(
