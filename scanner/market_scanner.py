@@ -168,8 +168,12 @@ def _batch_change_screen(
                     close = _extract_series(history, ticker, "Close")
                     volume = _extract_series(history, ticker, "Volume")
                     exchange = "BSE" if ticker.endswith(".BO") else "NSE"
-                    if not close.empty and not volume.empty and coverage is not None:
-                        coverage[exchange]["histories_returned"] += 1
+                    if coverage is not None:
+                        if not close.empty and not volume.empty:
+                            coverage[exchange]["histories_returned"] += 1
+                            coverage[exchange]["screen_tickers_with_data"] += 1
+                        else:
+                            coverage[exchange]["screen_tickers_missing_data"] += 1
                     if len(close) < 2 or volume.empty:
                         continue
 
@@ -262,6 +266,8 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
             "tickers_requested": len(symbols),
             "screen_chunks_requested": 0,
             "screen_chunks_empty": 0,
+            "screen_tickers_with_data": 0,
+            "screen_tickers_missing_data": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
             "analysis_download_failed": 0,
