@@ -55,7 +55,7 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
         quotes = list(executor.map(fetch_quote, records))
 
     rows: list[dict[str, Any]] = []
-    for record, (symbol, quote) in zip(records, quotes):
+    for record, (symbol, quote) in zip(records, quotes, strict=True):
         last = quote.get("price")
         previous = quote.get("previous_close")
         if last is None:
