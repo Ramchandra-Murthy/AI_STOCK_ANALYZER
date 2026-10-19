@@ -110,16 +110,20 @@ def show():
 
     c1.metric("Holdings", len(df))
 
-    if not valid.empty:
-
+    if len(valid) == 1:
+        c2.metric("Best", "—")
+        c3.metric("Worst", "—")
+        c4.metric("Average", f"{valid['Return %'].mean():.2f}%")
+        st.caption("Add another priced holding to compare best and worst performance.")
+    elif len(valid) > 1:
         best = valid.loc[valid["Return %"].idxmax()]
         worst = valid.loc[valid["Return %"].idxmin()]
 
         c2.metric("Best", best["symbol"], f"{best['Return %']:.2f}%")
-
         c3.metric("Worst", worst["symbol"], f"{worst['Return %']:.2f}%")
-
         c4.metric("Average", f"{valid['Return %'].mean():.2f}%")
+    else:
+        st.info("Performance comparisons are unavailable until at least one holding has a price.")
 
     st.divider()
 
@@ -138,7 +142,22 @@ def show():
         }
     )
 
+    # Keep the full table for desktop, and provide readable per-holding details
+    # for narrow mobile screens where wide tables can be clipped.
     st.dataframe(display_df, use_container_width=True, hide_index=True)
+    with st.expander("View holdings in mobile-friendly cards", expanded=True):
+        for _, holding in display_df.iterrows():
+            with st.container(border=True):
+                st.markdown(
+                    f"**{holding.get('Symbol', 'Unknown symbol')}** · ID {holding.get('ID', '—')}"
+                )
+                details_left, details_right = st.columns(2)
+                details_left.metric("Quantity", f"{holding.get('Quantity', '—')}")
+                details_right.metric("Buy price", f"₹{holding.get('Buy Price', 0):,.2f}")
+                if "Current Price" in holding and pd.notna(holding["Current Price"]):
+                    st.metric("Current price", f"₹{holding['Current Price']:,.2f}")
+                if "Profit/Loss" in holding and pd.notna(holding["Profit/Loss"]):
+                    st.metric("Profit/Loss", f"₹{holding['Profit/Loss']:,.2f}")
 
     st.divider()
 
@@ -147,6 +166,9 @@ def show():
     # ======================================================
 
     st.subheader("🥧 Portfolio Allocation")
+    st.caption(
+        "Allocation is based on invested cost (quantity × buy price), not current market value."
+    )
 
     pie_df = display_df.copy()
 
@@ -185,11 +207,13 @@ def show():
     st.subheader("🗑 Delete Holding")
 
     stock_id = st.number_input("Portfolio ID", min_value=1, step=1, key="delete_id")
+    confirm_delete = st.checkbox(
+        f"I confirm that I want to permanently delete portfolio holding ID {int(stock_id)}.",
+        key="confirm_delete_holding",
+    )
 
-    if st.button("Delete Holding", key="delete_btn"):
-
-        delete_stock(stock_id)
-
-        st.success("Holding Deleted")
-
+    if st.button("Delete Holding", key="delete_btn", disabled=not confirm_delete):
+        delete_stock(int(stock_id))
+        st.success("Holding deleted.")
+        st.session_state["confirm_delete_holding"] = False
         st.rerun()
