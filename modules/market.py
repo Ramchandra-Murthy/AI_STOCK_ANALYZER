@@ -32,12 +32,56 @@ BSE_UNIVERSE = BSE_CANDIDATES
 DEFAULT_WATCHLIST = [f"{symbol}.NS" for symbol in WATCHLIST]
 
 
-def metric_card(title, value, change):
+FRESHNESS_WARNING_STATUSES = {
+    "DATA UNAVAILABLE",
+    "DATA TIMESTAMP UNAVAILABLE",
+    "FUTURE-DATED MARKET DATA",
+    "STALE INTRADAY DATA",
+    "DAILY DATA ONLY · INTRADAY UNAVAILABLE",
+    "MARKET CALENDAR UNAVAILABLE",
+}
+
+
+def metric_card(title, value, change, change_points=None):
     if value is None:
-        st.metric(title, "N/A", "-")
+        st.metric(title, "N/A", "Data unavailable")
         return
-    delta = f"{change:+.2f}%" if isinstance(change, (int, float)) else None
+    if title in {"NIFTY 50", "SENSEX", "BANK NIFTY"}:
+        if isinstance(change_points, (int, float)) and isinstance(change, (int, float)):
+            delta = f"{change_points:+,.2f} pts · {change:+.2f}%"
+        elif isinstance(change_points, (int, float)):
+            delta = f"{change_points:+,.2f} pts"
+        elif isinstance(change, (int, float)):
+            delta = f"{change:+.2f}%"
+        else:
+            delta = "Change unavailable"
+    else:
+        delta = f"{change:+.2f}%" if isinstance(change, (int, float)) else None
     st.metric(title, value, delta)
+
+
+def show_index_freshness(market, overview):
+    statuses = []
+    for label, key in overview:
+        info = market.get(key, {})
+        status = info.get("session_status", "DATA UNAVAILABLE")
+        statuses.append((label, status))
+
+    warnings = [
+        f"{name}: {status}"
+        for name, status in statuses
+        if status in FRESHNESS_WARNING_STATUSES or status == "DATA UNAVAILABLE"
+    ]
+    if warnings:
+        st.warning("⚠️ MARKET DATA FRESHNESS WARNING — " + "; ".join(warnings))
+    elif statuses and all(status.startswith("INTRADAY DATA") for _, status in statuses):
+        st.success(
+            "🟢 Intraday observations available. Yahoo Finance data is not exchange-tick live."
+        )
+    else:
+        st.info(
+            "Market data reflects the latest available provider observations, not necessarily live quotes."
+        )
 
 
 def normalize_symbol(symbol, exchange):
@@ -126,10 +170,24 @@ def show():
         ("USD / INR", "USD/INR"),
         ("GOLD", "GOLD"),
     ]
+    show_index_freshness(market, overview)
     columns = st.columns(3)
     for index, (label, key) in enumerate(overview):
+        info = market.get(key, {})
         with columns[index % 3]:
-            metric_card(label, market[key]["value"], market[key]["change"])
+            metric_card(
+                label,
+                info.get("value"),
+                info.get("change"),
+                info.get("change_points"),
+            )
+            observed_at = info.get("observed_at")
+            frequency = info.get("frequency", "unknown")
+            if observed_at:
+                st.caption(f"Latest {frequency} observation: {observed_at}")
+            else:
+                st.caption("Observation timestamp unavailable")
+            st.caption(f"Data status: {info.get('session_status', 'DATA UNAVAILABLE')}")
 
     st.divider()
     st.subheader("Exchange")
