@@ -324,13 +324,20 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
 
     def fetch(item: tuple[str, str]) -> tuple[str, dict[str, Any]]:
         name, ticker = item
-        value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
-            ticker
+        value, change, previous_close, observed_at, frequency, is_intraday = (
+            _get_last_observation(ticker)
+        )
+        change_points = (
+            round(value - previous_close, 2)
+            if value is not None and previous_close is not None
+            else None
         )
         session = market_session_status(observed_at, frequency)
         return name, {
             "value": value,
             "change": change,
+            "change_points": change_points,
+            "previous_close": previous_close,
             "observed_at": observed_at,
             "source": "Yahoo Finance",
             "frequency": frequency,
