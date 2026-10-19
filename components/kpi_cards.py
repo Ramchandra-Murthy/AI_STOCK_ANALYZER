@@ -30,8 +30,7 @@ def show_kpi_cards(summary):
             <div class="portfolio-kpi-label">{label}</div>
             <div class="portfolio-kpi-value">{value}</div>
         </div>
-        """
-        for label, value in cards
+        """ for label, value in cards
     )
 
     st.markdown(
