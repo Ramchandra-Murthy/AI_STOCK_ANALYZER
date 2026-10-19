@@ -27,7 +27,7 @@ def calculate_ai_score(summary):
     if summary["holdings"] < 5:
         score -= 20
 
-    if summary["return"] < 0:
+    if summary["return"] is not None and summary["return"] < 0:
         score -= 10
 
     if summary["investment"] == 0:
@@ -52,6 +52,13 @@ def show():
             f"Portfolio valuation is unavailable for {summary['unpriced_holdings']} of "
             f"{summary['holdings']} holdings. Dashboard totals and returns include only "
             "holdings with available prices; unpriced holdings are not treated as losses."
+        )
+
+    if summary["cost_basis_incomplete"]:
+        st.warning(
+            "Profit/Loss and Return are unavailable because one or more priced holdings "
+            "have a missing, zero, negative, or invalid purchase price. Review the holding's "
+            "quantity and purchase price before relying on portfolio performance."
         )
 
     summary["ai_score"] = calculate_ai_score(summary)
