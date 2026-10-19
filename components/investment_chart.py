@@ -21,9 +21,21 @@ def show_investment_chart(df):
     fig = go.Figure()
 
     fig.add_bar(name="Investment", x=chart_df["symbol"], y=invested)
-
     fig.add_bar(name="Current Value", x=chart_df["symbol"], y=chart_df["Current Value"])
 
-    fig.update_layout(barmode="group", height=500, xaxis_title="Stock", yaxis_title="Amount (₹)")
+    fig.update_layout(
+        barmode="group",
+        height=320,
+        xaxis_title="Stock",
+        yaxis_title="Amount (₹)",
+        margin=dict(l=12, r=12, t=16, b=36),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+        autosize=True,
+    )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False, "responsive": True},
+        key="dashboard_investment_comparison_chart",
+    )
