@@ -18,6 +18,9 @@ from services.portfolio_service import get_portfolio, get_summary
 
 
 def calculate_ai_score(summary):
+    """Return a portfolio health score, or None when there is no portfolio to assess."""
+    if summary["holdings"] == 0:
+        return None
 
     score = 100
 
