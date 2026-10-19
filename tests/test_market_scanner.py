@@ -154,7 +154,7 @@ def test_batch_change_screen_counts_returned_histories_not_only_movers(monkeypat
         index=pd.DatetimeIndex(["2026-10-16", "2026-10-19"]),
         columns=columns,
     )
-    coverage = {"NSE": {"histories_returned": 0}}
+    coverage = {"NSE": {"histories_returned": 0, "screen_chunks_requested": 0, "screen_chunks_empty": 0}}
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
     movers = market_scanner._batch_change_screen({"NSE": ["RELIANCE"]}, coverage=coverage)
@@ -174,7 +174,7 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
         index=pd.DatetimeIndex(["2026-10-19"]),
         columns=columns,
     )
-    coverage = {"BSE": {"histories_returned": 0}}
+    coverage = {"BSE": {"histories_returned": 0, "screen_chunks_requested": 0, "screen_chunks_empty": 0}}
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
     movers = market_scanner._batch_change_screen({"BSE": ["500325"]}, coverage=coverage)
