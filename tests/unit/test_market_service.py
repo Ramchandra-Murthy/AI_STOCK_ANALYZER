@@ -86,6 +86,8 @@ def test_indices_keep_all_expected_keys(monkeypatch):
 
     assert set(data) == set(market_service.MARKET_INDICES)
     assert all(item["frequency"] == "intraday_1m" for item in data.values())
+    assert all(item["change_points"] == 1.0 for item in data.values())
+    assert all(item["previous_close"] == 99.0 for item in data.values())
     assert all(item["is_intraday"] is True for item in data.values())
     assert all(item["session_status"] == "INTRADAY DATA · TODAY" for item in data.values())
     assert all(item["is_current_session"] is True for item in data.values())

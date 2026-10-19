@@ -9,8 +9,13 @@ def _get_cached_market_indices():
     return get_market_indices()
 
 
-def _format_change(change):
-    """Format a percentage change without assuming it is available."""
+def _format_change(name, change, change_points):
+    """Show point and percentage moves for equity indices when available."""
+    if name in {"NIFTY 50", "SENSEX", "BANK NIFTY"}:
+        if isinstance(change_points, (int, float)) and isinstance(change, (int, float)):
+            return f"{change_points:+,.2f} pts · {change:+.2f}%"
+        if isinstance(change_points, (int, float)):
+            return f"{change_points:+,.2f} pts"
     if isinstance(change, (int, float)):
         return f"{change:+.2f}%"
     return None
@@ -71,6 +76,7 @@ def show_market_overview():
         for col, (name, info) in zip(cols, row_items, strict=False):
             value = info.get("value")
             change = info.get("change")
+            change_points = info.get("change_points")
             observed_at = info.get("observed_at")
             frequency = info.get("frequency", "unknown")
             is_tick_live = bool(info.get("is_tick_live", False))
@@ -81,7 +87,7 @@ def show_market_overview():
                 col.metric(
                     label=name,
                     value=value,
-                    delta=_format_change(change),
+                    delta=_format_change(name, change, change_points),
                 )
 
             if observed_at:
