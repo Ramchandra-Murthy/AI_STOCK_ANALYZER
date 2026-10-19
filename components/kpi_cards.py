@@ -24,14 +24,12 @@ def show_kpi_cards(summary):
         ("🤖 AI Score", format_ai_score(ai_score)),
     ]
 
-    card_markup = "".join(
-        f"""
+    card_markup = "".join(f"""
         <div class="portfolio-kpi-card">
             <div class="portfolio-kpi-label">{label}</div>
             <div class="portfolio-kpi-value">{value}</div>
         </div>
-        """ for label, value in cards
-    )
+        """ for label, value in cards)
 
     st.markdown(
         f"""
