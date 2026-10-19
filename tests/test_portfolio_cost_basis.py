@@ -35,7 +35,7 @@ def test_get_portfolio_does_not_treat_missing_cost_basis_as_profit():
     assert result.loc[0, "Current Value"] == 973.75
     assert pd.isna(result.loc[0, "Profit"])
     assert pd.isna(result.loc[0, "Return %"])
-    assert result.loc[0, "Cost Basis Valid"] == False
+    assert not bool(result.loc[0, "Cost Basis Valid"])
 
 
 def test_get_portfolio_calculates_profit_when_cost_basis_is_valid():
@@ -59,7 +59,7 @@ def test_get_portfolio_calculates_profit_when_cost_basis_is_valid():
     assert result.loc[0, "Current Value"] == 900.0
     assert result.loc[0, "Profit"] == 100.0
     assert result.loc[0, "Return %"] == 12.5
-    assert result.loc[0, "Cost Basis Valid"] == True
+    assert bool(result.loc[0, "Cost Basis Valid"])
 
 
 def test_get_portfolio_marks_missing_market_price_as_unvalued():
