@@ -146,6 +146,7 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
 
 def _batch_change_screen(
     candidates: dict[str, list[str]],
+    coverage: dict[str, dict[str, int]] | None = None,
 ) -> list[tuple[str, str, float, float]]:
     """Find price movers across the current NSE and BSE universes without a liquidity exclusion."""
     ranked: list[tuple[str, str, float, float]] = []
@@ -162,6 +163,9 @@ def _batch_change_screen(
                 try:
                     close = _extract_series(history, ticker, "Close")
                     volume = _extract_series(history, ticker, "Volume")
+                    exchange = "BSE" if ticker.endswith(".BO") else "NSE"
+                    if not close.empty and not volume.empty and coverage is not None:
+                        coverage[exchange]["histories_returned"] += 1
                     if len(close) < 2 or volume.empty:
                         continue
 
@@ -264,10 +268,7 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         for exchange, symbols in candidates.items()
         for symbol in symbols
     }
-    movers = _batch_change_screen(candidates)
-    for _ticker_value, exchange, _change, _turnover in movers:
-        if exchange in coverage:
-            coverage[exchange]["histories_returned"] += 1
+    movers = _batch_change_screen(candidates, coverage=coverage)
     for exchange in coverage:
         coverage[exchange]["histories_rejected"] = max(
             0, coverage[exchange]["candidates"] - coverage[exchange]["histories_returned"]
