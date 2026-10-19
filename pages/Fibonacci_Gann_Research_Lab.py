@@ -176,9 +176,8 @@ if (frame[numeric_columns] <= 0).any().any():
     st.error("OHLC prices must all be positive.")
     st.stop()
 
-invalid_ohlc = (
-    (frame["high"] < frame[["open", "low", "close"]].max(axis=1))
-    | (frame["low"] > frame[["open", "high", "close"]].min(axis=1))
+invalid_ohlc = (frame["high"] < frame[["open", "low", "close"]].max(axis=1)) | (
+    frame["low"] > frame[["open", "high", "close"]].min(axis=1)
 )
 if invalid_ohlc.any():
     st.error(
@@ -198,7 +197,10 @@ if parsed_timestamps.duplicated().any():
     st.error("Duplicate timestamps were found. Keep only one OHLC candle per timestamp.")
     st.stop()
 if not parsed_timestamps.is_monotonic_increasing:
-    st.error("Timestamps must be in chronological ascending order. Sort the CSV and upload it again.")
+    st.error(
+        "Timestamps must be in chronological ascending order. Sort the CSV and upload it "
+        "again."
+    )
     st.stop()
 
 if signal_mode == "Use CSV signal column":
