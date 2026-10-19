@@ -44,7 +44,7 @@ def test_market_scan_includes_both_exchanges_by_default(monkeypatch) -> None:
     monkeypatch.setattr(
         market_scanner,
         "_batch_change_screen",
-        lambda candidates: calls.append(candidates) or [],
+        lambda candidates, coverage=None: calls.append(candidates) or [],
     )
 
     result = market_scanner.market_scan()
@@ -140,13 +140,10 @@ def test_watchlist_observation_columns_fail_closed_when_observation_missing() ->
     assert columns["Tick Live"] is False
 
 
-
 def test_batch_change_screen_counts_returned_histories_not_only_movers(monkeypatch) -> None:
     from scanner import market_scanner
 
-    columns = pd.MultiIndex.from_product(
-        [["RELIANCE.NS"], ["Close", "Volume"]]
-    )
+    columns = pd.MultiIndex.from_product([["RELIANCE.NS"], ["Close", "Volume"]])
     history = pd.DataFrame(
         [[100.0, 1000], [101.0, 1100]],
         index=pd.DatetimeIndex(["2026-10-16", "2026-10-19"]),
@@ -155,9 +152,7 @@ def test_batch_change_screen_counts_returned_histories_not_only_movers(monkeypat
     coverage = {"NSE": {"histories_returned": 0}}
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
-    movers = market_scanner._batch_change_screen(
-        {"NSE": ["RELIANCE"]}, coverage=coverage
-    )
+    movers = market_scanner._batch_change_screen({"NSE": ["RELIANCE"]}, coverage=coverage)
 
     assert len(movers) == 1
     assert coverage["NSE"]["histories_returned"] == 1
@@ -168,9 +163,7 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
 ) -> None:
     from scanner import market_scanner
 
-    columns = pd.MultiIndex.from_product(
-        [["500325.BO"], ["Close", "Volume"]]
-    )
+    columns = pd.MultiIndex.from_product([["500325.BO"], ["Close", "Volume"]])
     history = pd.DataFrame(
         [[100.0, 1000]],
         index=pd.DatetimeIndex(["2026-10-19"]),
@@ -179,9 +172,7 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
     coverage = {"BSE": {"histories_returned": 0}}
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
-    movers = market_scanner._batch_change_screen(
-        {"BSE": ["500325"]}, coverage=coverage
-    )
+    movers = market_scanner._batch_change_screen({"BSE": ["500325"]}, coverage=coverage)
 
     assert movers == []
     assert coverage["BSE"]["histories_returned"] == 1
