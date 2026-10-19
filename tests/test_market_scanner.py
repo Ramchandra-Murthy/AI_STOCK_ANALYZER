@@ -87,8 +87,11 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
         "BSE": {
             "candidates": 1,
             "tickers_requested": 1,
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
             "histories_returned": 0,
             "histories_rejected": 1,
+            "analysis_download_failed": 0,
             "analyses_completed": 0,
             "final_rows": 0,
         }
