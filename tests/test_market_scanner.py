@@ -199,3 +199,44 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
 
     assert movers == []
     assert coverage["BSE"]["histories_returned"] == 1
+
+
+def test_batch_change_screen_retries_empty_batches_as_smaller_chunks(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    calls = []
+
+    def download(chunk):
+        calls.append(chunk)
+        if len(chunk) > 1:
+            return pd.DataFrame()
+        ticker = chunk[0]
+        columns = pd.MultiIndex.from_product([[ticker], ["Close", "Volume"]])
+        price = 100.0 if ticker == "AAA.NS" else 200.0
+        return pd.DataFrame(
+            [[price, 1000], [price * 1.01, 1200]],
+            index=pd.DatetimeIndex(["2026-10-16", "2026-10-19"]),
+            columns=columns,
+        )
+
+    coverage = {
+        "NSE": {
+            "histories_returned": 0,
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
+            "screen_tickers_with_data": 0,
+            "screen_tickers_missing_data": 0,
+        }
+    }
+    monkeypatch.setattr(market_scanner, "_download_chunk", download)
+
+    movers = market_scanner._batch_change_screen(
+        {"NSE": ["AAA", "BBB"]}, coverage=coverage
+    )
+
+    assert len(movers) == 2
+    assert calls == [["AAA.NS", "BBB.NS"], ["AAA.NS"], ["BBB.NS"]]
+    assert coverage["NSE"]["screen_chunks_requested"] == 3
+    assert coverage["NSE"]["screen_chunks_empty"] == 1
+    assert coverage["NSE"]["screen_tickers_with_data"] == 2
+    assert coverage["NSE"]["screen_tickers_missing_data"] == 0
