@@ -37,4 +37,4 @@ def show_performance_chart(df):
         margin=dict(l=20, r=20, t=20, b=20),
     )
 
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(\n        fig,\n        use_container_width=True,\n        config={"displayModeBar": False, "responsive": True},\n        key="dashboard_performance_chart",\n    )
