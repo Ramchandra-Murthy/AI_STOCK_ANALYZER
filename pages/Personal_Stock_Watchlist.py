@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -40,14 +41,21 @@ def _quote_table(records: list[dict[str, Any]], exchange: str) -> pd.DataFrame:
     """Cache watchlist quotes briefly so ordinary widget reruns do not refetch every symbol."""
     from services.market_service import get_latest_available_price
 
-    rows: list[dict[str, Any]] = []
-    for record in records:
+    def fetch_quote(record: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         symbol = str(record["symbol"]).strip().upper()
         record_exchange = (
             "BSE" if symbol.endswith(".BO") else ("NSE" if symbol.endswith(".NS") else exchange)
         )
         ticker = symbol if symbol.endswith((".NS", ".BO")) else symbol + EXCHANGES[record_exchange]
-        quote = get_latest_available_price(ticker, record_exchange)
+        return symbol, get_latest_available_price(ticker, record_exchange)
+
+    # Quotes are independent network requests; bound concurrency to reduce total wait
+    # without flooding the provider when a watchlist contains many symbols.
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        quotes = list(executor.map(fetch_quote, records))
+
+    rows: list[dict[str, Any]] = []
+    for record, (symbol, quote) in zip(records, quotes):
         last = quote.get("price")
         previous = quote.get("previous_close")
         if last is None:
