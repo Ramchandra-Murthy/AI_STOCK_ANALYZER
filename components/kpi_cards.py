@@ -35,11 +35,7 @@ def show_kpi_cards(summary):
         profit_label = "💵 Profit / Loss"
         return_label = "📊 Return"
 
-    value_label = (
-        "📈 Valued Current Value"
-        if has_unpriced_holdings
-        else "📈 Current Value"
-    )
+    value_label = "📈 Valued Current Value" if has_unpriced_holdings else "📈 Current Value"
 
     cards = [
         (investment_label, _format_currency(summary["investment"])),
