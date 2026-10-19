@@ -21,27 +21,24 @@ def show_kpi_cards(summary):
     ai_score = summary.get("ai_score", 80)
     has_unpriced_holdings = summary.get("unpriced_holdings", 0) > 0
     cost_basis_incomplete = summary.get("cost_basis_incomplete", False)
-    investment_label = (
-        "💰 Known Investment"
-        if cost_basis_incomplete
-        else "💰 Valued Investment"
+
+    if cost_basis_incomplete:
+        investment_label = "💰 Known Investment"
+        profit_label = "💵 Profit / Loss (unavailable)"
+        return_label = "📊 Return (unavailable)"
+    elif has_unpriced_holdings:
+        investment_label = "💰 Valued Investment"
+        profit_label = "💵 Profit / Loss (valued)"
+        return_label = "📊 Return (valued)"
+    else:
+        investment_label = "💰 Investment"
+        profit_label = "💵 Profit / Loss"
+        return_label = "📊 Return"
+
+    value_label = (
+        "📈 Valued Current Value"
         if has_unpriced_holdings
-        else "💰 Investment"
-    )
-    value_label = "📈 Valued Current Value" if has_unpriced_holdings else "📈 Current Value"
-    profit_label = (
-        "💵 Profit / Loss (unavailable)"
-        if cost_basis_incomplete
-        else "💵 Profit / Loss (valued)"
-        if has_unpriced_holdings
-        else "💵 Profit / Loss"
-    )
-    return_label = (
-        "📊 Return (unavailable)"
-        if cost_basis_incomplete
-        else "📊 Return (valued)"
-        if has_unpriced_holdings
-        else "📊 Return"
+        else "📈 Current Value"
     )
 
     cards = [
@@ -53,12 +50,15 @@ def show_kpi_cards(summary):
         ("🤖 AI Score", format_ai_score(ai_score)),
     ]
 
-    card_markup = "".join(f"""
+    card_markup = "".join(
+        f"""
         <div class="portfolio-kpi-card">
             <div class="portfolio-kpi-label">{label}</div>
             <div class="portfolio-kpi-value">{value}</div>
         </div>
-        """ for label, value in cards)
+        """
+        for label, value in cards
+    )
 
     st.markdown(
         f"""
