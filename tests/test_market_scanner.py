@@ -208,17 +208,28 @@ def test_batch_change_screen_retries_empty_batches_as_smaller_chunks(monkeypatch
 
     def download(chunk):
         calls.append(chunk)
-        if len(chunk) > 1:
+        if len(chunk) > 5:
             return pd.DataFrame()
-        ticker = chunk[0]
-        columns = pd.MultiIndex.from_product([[ticker], ["Close", "Volume"]])
-        price = 100.0 if ticker == "AAA.NS" else 200.0
+        columns = pd.MultiIndex.from_product([chunk, ["Close", "Volume"]])
+        values = []
+        for row in range(2):
+            values.append(
+                [
+                    value
+                    for ticker in chunk
+                    for value in (
+                        (100.0 if ticker.endswith("0.NS") else 200.0) * (1 + 0.01 * row),
+                        1000 + row * 200,
+                    )
+                ]
+            )
         return pd.DataFrame(
-            [[price, 1000], [price * 1.01, 1200]],
+            values,
             index=pd.DatetimeIndex(["2026-10-16", "2026-10-19"]),
             columns=columns,
         )
 
+    symbols = [f"AAA{i}" for i in range(6)]
     coverage = {
         "NSE": {
             "histories_returned": 0,
@@ -230,13 +241,12 @@ def test_batch_change_screen_retries_empty_batches_as_smaller_chunks(monkeypatch
     }
     monkeypatch.setattr(market_scanner, "_download_chunk", download)
 
-    movers = market_scanner._batch_change_screen(
-        {"NSE": ["AAA", "BBB"]}, coverage=coverage
-    )
+    movers = market_scanner._batch_change_screen({"NSE": symbols}, coverage=coverage)
 
-    assert len(movers) == 2
-    assert calls == [["AAA.NS", "BBB.NS"], ["AAA.NS"], ["BBB.NS"]]
+    assert len(movers) == 6
+    assert len(calls[0]) == 6
+    assert sorted(map(len, calls[1:])) == [3, 3]
     assert coverage["NSE"]["screen_chunks_requested"] == 3
     assert coverage["NSE"]["screen_chunks_empty"] == 1
-    assert coverage["NSE"]["screen_tickers_with_data"] == 2
+    assert coverage["NSE"]["screen_tickers_with_data"] == 6
     assert coverage["NSE"]["screen_tickers_missing_data"] == 0
