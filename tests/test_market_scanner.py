@@ -274,3 +274,42 @@ def test_yahoo_ticker_maps_bse_codes(monkeypatch) -> None:
     assert _yahoo_ticker("532540", "BSE") == "TCS.BO"
     assert _yahoo_ticker("999999", "BSE") is None
     assert _yahoo_ticker("RELIANCE", "OTHER") is None
+
+
+
+
+def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
+    monkeypatch,
+) -> None:
+    from scanner import market_scanner
+
+    calls = []
+
+    def download(chunk):
+        calls.append(chunk)
+        return pd.DataFrame()
+
+    symbols = [f"{code:06d}" for code in range(500000, 500040)]
+    coverage = {
+        "BSE": {
+            "histories_returned": 0,
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
+            "screen_tickers_with_data": 0,
+            "screen_tickers_missing_data": 0,
+        }
+    }
+
+    monkeypatch.setattr(
+        market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO"
+    )
+    monkeypatch.setattr(market_scanner, "_download_chunk", download)
+
+    movers = market_scanner._batch_change_screen({"BSE": symbols}, coverage=coverage)
+
+    assert movers == []
+    assert len(calls) == 3
+    assert len(calls[0]) == 40
+    assert sorted(len(chunk) for chunk in calls[1:]) == [20, 20]
+    assert coverage["BSE"]["screen_chunks_empty"] == 3
+    assert coverage["BSE"]["screen_tickers_missing_data"] == 40

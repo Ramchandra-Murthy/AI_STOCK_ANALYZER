@@ -162,11 +162,12 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
     return history if history is not None else pd.DataFrame()
 
 
+
 def _batch_change_screen(
     candidates: dict[str, list[str]],
     coverage: dict[str, dict[str, int]] | None = None,
 ) -> list[tuple[str, str, float, float]]:
-    """Find price movers across the current NSE and BSE universes without a liquidity exclusion."""
+    """Find price movers across NSE and BSE universes without a liquidity exclusion."""
     ranked: list[tuple[str, str, float, float]] = []
 
     for exchange, symbols in candidates.items():
@@ -176,59 +177,77 @@ def _batch_change_screen(
             if (ticker := _yahoo_ticker(symbol, exchange)) is not None
         }
         tickers = list(ticker_map)
+
         if coverage is not None:
             coverage[exchange]["tickers_requested"] = len(tickers)
             coverage[exchange]["mapped_tickers"] = len(tickers)
             coverage[exchange]["unmapped_symbols"] = len(symbols) - len(tickers)
             coverage[exchange]["screen_tickers_missing_data"] += len(symbols) - len(tickers)
+
         pending_chunks = [
             tickers[start : start + DOWNLOAD_CHUNK_SIZE]
             for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE)
         ]
+
         while pending_chunks:
             chunk = pending_chunks.pop(0)
+
             if coverage is not None:
                 coverage[exchange]["screen_chunks_requested"] += 1
+
             history = _download_chunk(chunk)
+
             if history.empty:
                 if coverage is not None:
                     coverage[exchange]["screen_chunks_empty"] += 1
-                # A failed large batch can hide valid tickers. Retry smaller groups
-                # before concluding that every symbol in the batch lacks data.
-                if len(chunk) > 5:
+
+                # Keep the existing NSE recovery behavior. For BSE, split a
+                # failed batch only when it is larger than half the normal
+                # chunk size, limiting repeated downloads during data failures.
+                should_split = len(chunk) > 5 and (
+                    exchange != "BSE" or len(chunk) > DOWNLOAD_CHUNK_SIZE // 2
+                )
+
+                if should_split:
                     midpoint = len(chunk) // 2
                     pending_chunks[0:0] = [chunk[:midpoint], chunk[midpoint:]]
                 elif coverage is not None:
                     coverage[exchange]["screen_tickers_missing_data"] += len(chunk)
+
                 continue
 
             for ticker in chunk:
                 try:
                     close = _extract_series(history, ticker, "Close")
                     volume = _extract_series(history, ticker, "Volume")
+
                     if coverage is not None:
                         if not close.empty and not volume.empty:
                             coverage[exchange]["histories_returned"] += 1
                             coverage[exchange]["screen_tickers_with_data"] += 1
                         else:
                             coverage[exchange]["screen_tickers_missing_data"] += 1
+
                     if len(close) < 2 or volume.empty:
                         continue
 
                     latest = float(close.iloc[-1])
                     previous = float(close.iloc[-2])
                     average_volume = float(volume.tail(5).mean())
+
                     if previous == 0:
                         continue
 
                     change_pct = ((latest - previous) / previous) * 100
                     average_turnover = latest * average_volume
                     ranked.append((ticker, exchange, change_pct, average_turnover))
+
                 except (KeyError, TypeError, ValueError, IndexError):
                     continue
 
     ranked.sort(key=lambda row: abs(row[2]), reverse=True)
     return ranked
+
 
 
 def _analyze_history(
