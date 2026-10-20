@@ -13,6 +13,12 @@ from services.watchlist_service import WatchlistError
 from services.watchlist_ui import get_or_create_default_watchlist
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _cached_market_scan(exchange_filter: str) -> pd.DataFrame:
+    """Reuse broad-market scan results briefly instead of repeating provider downloads."""
+    return market_scan(exchange_filter)
+
+
 def _show_data_quality(df: pd.DataFrame) -> None:
     """Show transparent checks for the rows returned by the scanner."""
     st.subheader("Data quality")
@@ -152,7 +158,7 @@ def show():
             df = (
                 scan_watchlist(watchlist)
                 if scan_mode == "Personal Watchlist"
-                else market_scan(exchange_filter)
+                else _cached_market_scan(exchange_filter)
             )
         scanner_coverage = df.attrs.get("scanner_coverage", {})
 
