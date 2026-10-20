@@ -16,6 +16,7 @@ from indicators.trend import detect_trend
 from scanner.dynamic_universe import (
     merge_bse_universe,
     merge_nse_universe,
+    yahoo_symbol_for_bse_code,
 )
 from services.sector_mapping import sector_for_symbol
 
@@ -29,6 +30,23 @@ ANALYSIS_PERIOD = "1y"
 def _ticker(symbol: str, exchange: str) -> str:
     suffix = "NS" if exchange == "NSE" else "BO"
     return f"{symbol}.{suffix}"
+
+
+def _yahoo_ticker(symbol: str, exchange: str) -> str | None:
+    """Return a Yahoo Finance ticker for a supported exchange symbol."""
+    if exchange == "NSE":
+        replacements = {
+            "ZOMATO": "ETERNAL",
+            "TATAMOTORS": "TMPV",
+        }
+        yahoo_symbol = replacements.get(symbol, symbol)
+        return f"{yahoo_symbol}.NS"
+
+    if exchange == "BSE":
+        mapped_symbol = yahoo_symbol_for_bse_code(symbol)
+        return f"{mapped_symbol}.BO" if mapped_symbol else None
+
+    return None
 
 
 def _extract_series(history: pd.DataFrame, ticker: str, field: str) -> pd.Series:
@@ -152,7 +170,17 @@ def _batch_change_screen(
     ranked: list[tuple[str, str, float, float]] = []
 
     for exchange, symbols in candidates.items():
-        tickers = [_ticker(symbol, exchange) for symbol in symbols]
+        ticker_map = {
+            ticker: symbol
+            for symbol in symbols
+            if (ticker := _yahoo_ticker(symbol, exchange)) is not None
+        }
+        tickers = list(ticker_map)
+        if coverage is not None:
+            coverage[exchange]["tickers_requested"] = len(tickers)
+            coverage[exchange]["mapped_tickers"] = len(tickers)
+            coverage[exchange]["unmapped_symbols"] = len(symbols) - len(tickers)
+            coverage[exchange]["screen_tickers_missing_data"] += len(symbols) - len(tickers)
         pending_chunks = [
             tickers[start : start + DOWNLOAD_CHUNK_SIZE]
             for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE)
@@ -273,7 +301,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     coverage = {
         exchange: {
             "candidates": len(symbols),
-            "tickers_requested": len(symbols),
+            "tickers_requested": 0,
+            "mapped_tickers": 0,
+            "unmapped_symbols": 0,
             "screen_chunks_requested": 0,
             "screen_chunks_empty": 0,
             "screen_tickers_with_data": 0,
@@ -287,14 +317,15 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         for exchange, symbols in candidates.items()
     }
     coverage_by_ticker = {
-        _ticker(symbol, exchange): exchange
+        ticker: exchange
         for exchange, symbols in candidates.items()
         for symbol in symbols
+        if (ticker := _yahoo_ticker(symbol, exchange)) is not None
     }
     movers = _batch_change_screen(candidates, coverage=coverage)
     for exchange in coverage:
         coverage[exchange]["histories_rejected"] = max(
-            0, coverage[exchange]["candidates"] - coverage[exchange]["histories_returned"]
+            0, coverage[exchange]["tickers_requested"] - coverage[exchange]["histories_returned"]
         )
     if not movers:
         empty = pd.DataFrame()

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from scanner.market_scanner import _extract_series
+from scanner.market_scanner import _extract_series, _yahoo_ticker
 
 
 def test_extract_series_supports_ticker_first_columns() -> None:
@@ -86,13 +86,15 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
     assert result.attrs["scanner_coverage"] == {
         "BSE": {
             "candidates": 1,
-            "tickers_requested": 1,
+            "tickers_requested": 0,
+            "mapped_tickers": 0,
+            "unmapped_symbols": 0,
             "screen_chunks_requested": 0,
             "screen_chunks_empty": 0,
             "screen_tickers_with_data": 0,
             "screen_tickers_missing_data": 0,
             "histories_returned": 0,
-            "histories_rejected": 1,
+            "histories_rejected": 0,
             "analysis_download_failed": 0,
             "analyses_completed": 0,
             "final_rows": 0,
@@ -193,6 +195,7 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
             "screen_tickers_missing_data": 0,
         }
     }
+    monkeypatch.setattr(market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO")
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
     movers = market_scanner._batch_change_screen({"BSE": ["500325"]}, coverage=coverage)
@@ -250,3 +253,24 @@ def test_batch_change_screen_retries_empty_batches_as_smaller_chunks(monkeypatch
     assert coverage["NSE"]["screen_chunks_empty"] == 1
     assert coverage["NSE"]["screen_tickers_with_data"] == 6
     assert coverage["NSE"]["screen_tickers_missing_data"] == 0
+
+
+def test_yahoo_ticker_maps_current_nse_symbols() -> None:
+    assert _yahoo_ticker("ZOMATO", "NSE") == "ETERNAL.NS"
+    assert _yahoo_ticker("TATAMOTORS", "NSE") == "TMPV.NS"
+    assert _yahoo_ticker("RELIANCE", "NSE") == "RELIANCE.NS"
+
+
+def test_yahoo_ticker_maps_bse_codes(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    monkeypatch.setattr(
+        market_scanner,
+        "yahoo_symbol_for_bse_code",
+        lambda code: {"500325": "RELIANCE", "532540": "TCS"}.get(code),
+    )
+
+    assert _yahoo_ticker("500325", "BSE") == "RELIANCE.BO"
+    assert _yahoo_ticker("532540", "BSE") == "TCS.BO"
+    assert _yahoo_ticker("999999", "BSE") is None
+    assert _yahoo_ticker("RELIANCE", "OTHER") is None
