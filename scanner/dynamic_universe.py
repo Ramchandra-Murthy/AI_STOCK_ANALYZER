@@ -21,6 +21,7 @@ SYMBOL_PATTERN = re.compile(r"^[A-Z0-9&.-]+$")
 
 _cached_nse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_symbols: tuple[float, list[str]] | None = None
+_bse_yahoo_symbol_map: dict[str, str] = {}
 
 
 def _download_nse_equity_list() -> list[str]:
@@ -52,6 +53,8 @@ def _download_nse_equity_list() -> list[str]:
 
 
 def _download_bse_equity_list() -> list[str]:
+    global _bse_yahoo_symbol_map
+
     query = urlencode(
         {
             "scripcode": "",
@@ -83,14 +86,32 @@ def _download_bse_equity_list() -> list[str]:
         and str(row.get("Status", "")).strip().lower() == "active"
         and str(row.get("Segment", "")).strip().lower() == "equity"
     ]
-    symbols = {str(row.get("scrip_id", "")).strip().upper() for row in valid_rows}
-    parsed = sorted(symbol for symbol in symbols if symbol and SYMBOL_PATTERN.fullmatch(symbol))
+
+    symbol_map: dict[str, str] = {}
+    symbols: set[str] = set()
+
+    for row in valid_rows:
+        code = str(row.get("SCRIP_CD", "")).strip()
+        yahoo_symbol = str(row.get("scrip_id", "")).strip().upper()
+
+        if code.isdigit() and len(code) == 6:
+            symbols.add(code)
+
+            if yahoo_symbol and SYMBOL_PATTERN.fullmatch(yahoo_symbol):
+                symbol_map[code] = yahoo_symbol
+
+    parsed = sorted(symbols)
+    _bse_yahoo_symbol_map = symbol_map
+
     logging.info(
-        "BSE universe source=live raw_rows=%d active_equity_rows=%d parsed_symbols=%d",
+        "BSE universe source=live raw_rows=%d active_equity_rows=%d "
+        "parsed_symbols=%d yahoo_mappings=%d",
         len(payload),
         len(valid_rows),
         len(parsed),
+        len(symbol_map),
     )
+
     if not parsed:
         sample_keys = sorted(
             str(key) for row in payload[:3] if isinstance(row, dict) for key in row.keys()
@@ -99,7 +120,13 @@ def _download_bse_equity_list() -> list[str]:
             "BSE response contained no parseable active equity symbols; "
             f"sample field names={sample_keys}"
         )
+
     return parsed
+
+
+def yahoo_symbol_for_bse_code(code: str) -> str | None:
+    """Return the Yahoo Finance symbol mapped to a BSE scrip code."""
+    return _bse_yahoo_symbol_map.get(str(code).strip())
 
 
 def dynamic_nse_symbols() -> list[str]:
