@@ -276,8 +276,6 @@ def test_yahoo_ticker_maps_bse_codes(monkeypatch) -> None:
     assert _yahoo_ticker("RELIANCE", "OTHER") is None
 
 
-
-
 def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
     monkeypatch,
 ) -> None:
@@ -300,9 +298,7 @@ def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
         }
     }
 
-    monkeypatch.setattr(
-        market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO"
-    )
+    monkeypatch.setattr(market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO")
     monkeypatch.setattr(market_scanner, "_download_chunk", download)
 
     movers = market_scanner._batch_change_screen({"BSE": symbols}, coverage=coverage)
