@@ -195,9 +195,7 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
             "screen_tickers_missing_data": 0,
         }
     }
-    monkeypatch.setattr(
-        market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO"
-    )
+    monkeypatch.setattr(market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO")
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
     movers = market_scanner._batch_change_screen({"BSE": ["500325"]}, coverage=coverage)
@@ -300,9 +298,7 @@ def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
         }
     }
 
-    monkeypatch.setattr(
-        market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO"
-    )
+    monkeypatch.setattr(market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO")
     monkeypatch.setattr(market_scanner, "_download_chunk", download)
 
     movers = market_scanner._batch_change_screen({"BSE": symbols}, coverage=coverage)
