@@ -208,3 +208,25 @@ def test_compare_timeframe_backtests_rejects_empty_input() -> None:
 
     with pytest.raises(ValueError, match="at least one timeframe"):
         compare_timeframe_backtests({})
+
+
+def test_backtest_rejects_missing_signal_timestamps() -> None:
+    index = pd.date_range("2026-01-01", periods=3, freq="D")
+    prices = pd.Series([100.0, 101.0, 102.0], index=index)
+    signals = pd.Series([1.0, 1.0], index=index[[0, 2]])
+
+    with pytest.raises(ValueError, match="identical timestamps"):
+        run_backtest(prices, signals, cost_bps=0)
+
+
+def test_backtest_rejects_extra_signal_timestamps() -> None:
+    index = pd.date_range("2026-01-01", periods=3, freq="D")
+    prices = pd.Series([100.0, 101.0, 102.0], index=index)
+    signals = pd.Series(
+        [1.0, 1.0, 1.0, 0.0],
+        index=pd.date_range("2026-01-01", periods=4, freq="D"),
+    )
+
+    with pytest.raises(ValueError, match="identical timestamps"):
+        run_backtest(prices, signals, cost_bps=0)
+
