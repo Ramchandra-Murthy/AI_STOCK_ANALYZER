@@ -755,12 +755,7 @@ def show() -> None:
                         ).strftime("%H:%M:%S IST")
                         total_quotes = len(loaded_quotes)
                         available_quotes = (
-                            int(
-                                loaded_quotes["Current price"]
-                                .astype(str)
-                                .ne("Unavailable")
-                                .sum()
-                            )
+                            int(loaded_quotes["Current price"].astype(str).ne("Unavailable").sum())
                             if total_quotes and "Current price" in loaded_quotes
                             else 0
                         )
@@ -768,10 +763,11 @@ def show() -> None:
                             loaded_quotes.loc[
                                 loaded_quotes["Current price"].astype(str).eq("Unavailable"),
                                 "Symbol",
-                            ].astype(str).tolist()
-                            if total_quotes and {"Current price", "Symbol"}.issubset(
-                                loaded_quotes.columns
-                            )
+                            ]
+                            .astype(str)
+                            .tolist()
+                            if total_quotes
+                            and {"Current price", "Symbol"}.issubset(loaded_quotes.columns)
                             else []
                         )
                         st.info(
