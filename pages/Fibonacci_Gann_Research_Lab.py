@@ -197,7 +197,9 @@ if parsed_timestamps.duplicated().any():
     st.error("Duplicate timestamps were found. Keep only one OHLC candle per timestamp.")
     st.stop()
 if not parsed_timestamps.is_monotonic_increasing:
-    st.error("Timestamps must be in chronological ascending order. Sort the CSV and upload it again.")
+    st.error(
+        "Timestamps must be in chronological ascending order. Sort the CSV and upload it again."
+    )
     st.stop()
 
 if signal_mode == "Use CSV signal column":
