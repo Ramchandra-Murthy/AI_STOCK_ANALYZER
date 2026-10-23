@@ -195,7 +195,9 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
             "screen_tickers_missing_data": 0,
         }
     }
-    monkeypatch.setattr(market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO")
+    monkeypatch.setattr(
+        market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.BO"
+    )
     monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: history)
 
     movers = market_scanner._batch_change_screen({"BSE": ["500325"]}, coverage=coverage)
@@ -274,6 +276,7 @@ def test_yahoo_ticker_maps_bse_codes(monkeypatch) -> None:
     assert _yahoo_ticker("532540", "BSE") == "TCS.BO"
     assert _yahoo_ticker("999999", "BSE") is None
     assert _yahoo_ticker("RELIANCE", "OTHER") is None
+
 
 def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
     monkeypatch,
