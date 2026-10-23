@@ -67,8 +67,10 @@ def run_backtest(
 
     if not prices.index.is_unique or not signals.index.is_unique:
         raise ValueError("prices and signals must not contain duplicate timestamps")
+    if not prices.index.sort_values().equals(signals.index.sort_values()):
+        raise ValueError("prices and signals must have identical timestamps")
 
-    common_index = prices.index.intersection(signals.index).sort_values()
+    common_index = prices.index.sort_values()
     data = pd.DataFrame(
         {
             "price": pd.to_numeric(prices.reindex(common_index), errors="coerce"),
