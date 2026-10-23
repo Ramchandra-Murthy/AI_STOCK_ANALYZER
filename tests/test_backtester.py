@@ -229,4 +229,3 @@ def test_backtest_rejects_extra_signal_timestamps() -> None:
 
     with pytest.raises(ValueError, match="identical timestamps"):
         run_backtest(prices, signals, cost_bps=0)
-
