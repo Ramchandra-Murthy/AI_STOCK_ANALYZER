@@ -161,6 +161,7 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
         return pd.DataFrame()
     return history if history is not None else pd.DataFrame()
 
+
 def _batch_change_screen(
     candidates: dict[str, list[str]],
     coverage: dict[str, dict[str, int]] | None = None,
@@ -245,6 +246,7 @@ def _batch_change_screen(
 
     ranked.sort(key=lambda row: abs(row[2]), reverse=True)
     return ranked
+
 
 def _analyze_history(
     ticker: str,
