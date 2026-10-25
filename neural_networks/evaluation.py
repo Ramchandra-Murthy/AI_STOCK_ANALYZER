@@ -85,13 +85,17 @@ def walk_forward_evaluation(
     target: pd.Series,
     n_splits: int = 3,
     random_state: int = 42,
+    horizon: int = 5,
 ) -> pd.DataFrame:
-    """Evaluate baselines on successive, non-overlapping future folds."""
+    """Evaluate baselines on future folds with a horizon-aware embargo."""
     if not features.index.equals(target.index):
         raise ValueError("features and target must have identical indexes")
     if n_splits < 2:
         raise ValueError("n_splits must be at least 2")
-    splitter = TimeSeriesSplit(n_splits=n_splits)
+    if horizon < 1:
+        raise ValueError("horizon must be at least 1")
+    # Exclude boundary rows whose forward outcome could reach into the test fold.
+    splitter = TimeSeriesSplit(n_splits=n_splits, gap=horizon + 1)
     rows: list[dict[str, Any]] = []
     for fold_number, (train_indices, test_indices) in enumerate(splitter.split(features), start=1):
         X_train, X_test = features.iloc[train_indices], features.iloc[test_indices]

@@ -271,7 +271,9 @@ if raw is not None:
                     "Three expanding-window folds. Each fold trains only on earlier observations "
                     "and evaluates on a later, non-overlapping period."
                 )
-                walk_forward = walk_forward_evaluation(features, target, n_splits=3)
+                walk_forward = walk_forward_evaluation(
+                    features, target, n_splits=3, horizon=int(horizon)
+                )
                 st.dataframe(
                     walk_forward.style.format(
                         {"Accuracy": "{:.1%}", "Balanced accuracy": "{:.1%}", "ROC-AUC": "{:.3f}"}
