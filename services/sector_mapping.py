@@ -25,6 +25,7 @@ SECTOR_BY_SYMBOL = {
     "IDFCFIRSTB": "Financials",
     "PNB": "Financials",
     "DHANBANK": "Financials",
+    "J&KBANK": "Financials",
     "LT": "Industrials",
     "BEL": "Industrials",
     "HAL": "Industrials",
@@ -32,7 +33,10 @@ SECTOR_BY_SYMBOL = {
     "ADANIPORTS": "Industrials",
     "IRFC": "Industrials",
     "RVNL": "Industrials",
+    "AARTECH": "Industrials",
     "NELCAST": "Metals",
+    "VEDL": "Metals",
+    "SSWL": "Automobile Components",
     "ITC": "Consumer",
     "HINDUNILVR": "Consumer",
     "NESTLEIND": "Consumer",
@@ -40,6 +44,7 @@ SECTOR_BY_SYMBOL = {
     "TATACONSUM": "Consumer",
     "TITAN": "Consumer",
     "PNGSREVA": "Consumer",
+    "LINC": "Consumer",
     "MARUTI": "Automobiles",
     "M&M": "Automobiles",
     "TATAMOTORS": "Automobiles",
@@ -64,8 +69,11 @@ SECTOR_BY_SYMBOL = {
     "BHARTIARTL": "Telecom",
     "INDIGO": "Airlines",
     "ZOMATO": "Internet",
+    "ETERNAL": "Internet",
+    "SWIGGY": "Internet",
     "PAYTM": "Financial Technology",
     "JIOFIN": "Financials",
+    "LODHA": "Real Estate",
 }
 
 
