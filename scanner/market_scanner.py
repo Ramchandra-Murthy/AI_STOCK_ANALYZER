@@ -29,11 +29,9 @@ ANALYSIS_PERIOD = "1y"
 FAILED_TICKER_TTL_SECONDS = 5 * 60
 _failed_tickers_until: dict[str, float] = {}
 
-
 def _ticker(symbol: str, exchange: str) -> str:
     suffix = "NS" if exchange == "NSE" else "BO"
     return f"{symbol}.{suffix}"
-
 
 def _yahoo_ticker(symbol: str, exchange: str) -> str | None:
     """Return a Yahoo Finance ticker for a supported exchange symbol."""
@@ -51,7 +49,6 @@ def _yahoo_ticker(symbol: str, exchange: str) -> str | None:
 
     return None
 
-
 def _extract_series(history: pd.DataFrame, ticker: str, field: str) -> pd.Series:
     """Extract a field from either yfinance MultiIndex column orientation."""
     if not isinstance(history.columns, pd.MultiIndex):
@@ -65,7 +62,6 @@ def _extract_series(history: pd.DataFrame, ticker: str, field: str) -> pd.Series
                 return pd.to_numeric(frame[field], errors="coerce").dropna()
 
     return pd.Series(dtype="float64")
-
 
 def _extract_history_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     """Extract one ticker's OHLCV frame from a yfinance batch response."""
@@ -89,13 +85,11 @@ def _extract_history_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     frame = frame.loc[:, required].apply(pd.to_numeric, errors="coerce")
     return frame.dropna(subset=required)
 
-
 def _format_last_data_date(index: pd.Index) -> str:
     """Format the last daily candle date without inventing a date for unknown indexes."""
     if not isinstance(index, pd.DatetimeIndex) or index.empty:
         return "UNKNOWN"
     return index[-1].date().isoformat()
-
 
 def _download_chunk(chunk: list[str]) -> pd.DataFrame:
     """Download a mover-screen chunk, retrying once without threading."""
@@ -130,7 +124,6 @@ def _download_chunk(chunk: list[str]) -> pd.DataFrame:
         return pd.DataFrame()
     return history if history is not None else pd.DataFrame()
 
-
 def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
     """Download the full history for shortlisted tickers in one batch."""
     try:
@@ -164,7 +157,6 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
         return pd.DataFrame()
     return history if history is not None else pd.DataFrame()
 
-
 def _batch_change_screen(
     candidates: dict[str, list[str]],
     coverage: dict[str, dict[str, int]] | None = None,
@@ -182,15 +174,21 @@ def _batch_change_screen(
         for failed_ticker, expiry in list(_failed_tickers_until.items()):
             if expiry <= now:
                 _failed_tickers_until.pop(failed_ticker, None)
-        skipped_failed = [ticker for ticker in ticker_map if _failed_tickers_until.get(ticker, 0) > now]
+        skipped_failed = [
+            ticker for ticker in ticker_map if _failed_tickers_until.get(ticker, 0) > now
+        ]
         tickers = [ticker for ticker in ticker_map if ticker not in skipped_failed]
 
         if coverage is not None:
             coverage[exchange]["tickers_requested"] = len(ticker_map)
             coverage[exchange]["mapped_tickers"] = len(ticker_map)
             coverage[exchange]["unmapped_symbols"] = len(symbols) - len(ticker_map)
-            coverage[exchange]["cached_failures_skipped"] = coverage[exchange].get("cached_failures_skipped", 0) + len(skipped_failed)
-            coverage[exchange]["screen_tickers_missing_data"] += len(symbols) - len(ticker_map) + len(skipped_failed)
+            coverage[exchange]["cached_failures_skipped"] = coverage[exchange].get(
+                "cached_failures_skipped", 0
+            ) + len(skipped_failed)
+            coverage[exchange]["screen_tickers_missing_data"] += (
+                len(symbols) - len(ticker_map) + len(skipped_failed)
+            )
 
         pending_chunks = [
             tickers[start : start + DOWNLOAD_CHUNK_SIZE]
@@ -260,7 +258,6 @@ def _batch_change_screen(
     ranked.sort(key=lambda row: abs(row[2]), reverse=True)
     return ranked
 
-
 def _analyze_history(
     ticker: str,
     history: pd.DataFrame,
@@ -317,7 +314,6 @@ def _analyze_history(
     except (KeyError, TypeError, ValueError, IndexError):
         return None
 
-
 def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     """Scan the selected exchange universe using batched market data and local analysis."""
     selected = exchange_filter.strip().upper()
@@ -359,7 +355,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
             0, coverage[exchange]["tickers_requested"] - coverage[exchange]["histories_returned"]
         )
         coverage[exchange]["history_coverage_pct"] = round(
-            100 * coverage[exchange]["histories_returned"] / max(1, coverage[exchange]["tickers_requested"]), 1
+            100
+            * coverage[exchange]["histories_returned"]
+            / max(1, coverage[exchange]["tickers_requested"]), 1
         )
     if not movers:
         empty = pd.DataFrame()
