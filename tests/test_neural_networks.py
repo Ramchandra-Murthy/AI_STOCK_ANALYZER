@@ -151,6 +151,7 @@ def test_feature_ablation_uses_same_holdout_window_for_each_variant() -> None:
     assert result.loc[result["Feature set"] == "Expanded factors", "Feature count"].eq(10).all()
     assert result["Accuracy"].between(0, 1).all()
 
+
 def test_factor_information_coefficient_reports_chronological_windows() -> None:
     from neural_networks.evaluation import factor_information_coefficient
 
