@@ -12,12 +12,10 @@ from services.market_service import WATCHLIST
 from services.watchlist_service import WatchlistError
 from services.watchlist_ui import get_or_create_default_watchlist
 
-
 @st.cache_data(ttl=300, show_spinner=False)
 def _cached_market_scan(exchange_filter: str) -> pd.DataFrame:
     """Reuse broad-market scan results briefly instead of repeating provider downloads."""
     return market_scan(exchange_filter)
-
 
 def _show_data_quality(df: pd.DataFrame) -> None:
     """Show transparent checks for the rows returned by the scanner."""
@@ -49,7 +47,6 @@ def _show_data_quality(df: pd.DataFrame) -> None:
         "These checks cover only rows returned by the scanner; they do not verify quote freshness or validate the underlying data provider."
     )
 
-
 def _show_price_divergence(df: pd.DataFrame) -> None:
     """Flag differences between daily analysis close and the latest market observation."""
     required = ("Price", "Latest Observation Price")
@@ -76,7 +73,6 @@ def _show_price_divergence(df: pd.DataFrame) -> None:
         "times; it is a review flag, not proof that either value is incorrect."
     )
     st.dataframe(divergent, width="stretch", hide_index=True)
-
 
 def show():
     st.title("📡 AI Market Scanner")
@@ -188,7 +184,9 @@ def show():
                         f"({coverage_pct:.1f}%). Results may omit valid opportunities."
                     )
                 if any(int(row.get("provider_error_chunks", 0)) for row in coverage_rows):
-                    st.caption("Provider error chunks are counted separately; recently failed tickers are briefly skipped to avoid repeated requests.")
+                    st.caption(
+                        "Provider error chunks are counted separately; recently failed tickers are briefly skipped to avoid repeated requests."
+                    )
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
