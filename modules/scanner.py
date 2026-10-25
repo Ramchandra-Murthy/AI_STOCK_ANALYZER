@@ -80,6 +80,69 @@ def _show_data_quality(df: pd.DataFrame) -> None:
     )
 
 
+
+def _live_intraday_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """Return only rows explicitly marked tick-live with a timestamp and live status."""
+    required = {"Tick Live", "Observed At", "Observation Status", "Latest Observation Price"}
+    if not required.issubset(df.columns):
+        return df.iloc[0:0].copy()
+    tick_live = df["Tick Live"].fillna(False).astype(bool)
+    status = df["Observation Status"].astype(str).str.upper()
+    observed_at = df["Observed At"].astype(str).str.strip()
+    price = pd.to_numeric(df["Latest Observation Price"], errors="coerce")
+    verified = (
+        tick_live
+        & status.str.contains("LIVE", regex=False)
+        & ~observed_at.isin(["", "UNKNOWN", "NAT", "NONE"])
+        & price.gt(0)
+    )
+    return df.loc[verified].copy()
+
+
+def _show_coverage_summary(coverage_rows: list[dict]) -> None:
+    """Summarize all pipeline stages before showing per-exchange diagnostics."""
+    totals = {}
+    for key in (
+        "candidates", "mapped_tickers", "unmapped_symbols", "tickers_requested",
+        "screen_chunks_requested", "screen_chunks_empty", "screen_tickers_with_data",
+        "screen_tickers_missing_data", "histories_returned", "histories_rejected",
+        "analysis_requested", "analysis_download_failed", "stale_data_rejected",
+        "unknown_timestamp_rejected", "future_timestamp_rejected", "analyses_completed",
+        "final_rows", "cached_failures_skipped", "provider_error_chunks",
+    ):
+        totals[key] = sum(int(row.get(key, 0) or 0) for row in coverage_rows)
+    st.subheader("Pipeline totals")
+    labels = [
+        ("Universe candidates", "candidates"),
+        ("Mapped symbols", "mapped_tickers"),
+        ("Unmapped symbols", "unmapped_symbols"),
+        ("Screen requests", "tickers_requested"),
+        ("Usable screen histories", "histories_returned"),
+        ("History rejected", "histories_rejected"),
+        ("Analysis requested", "analysis_requested"),
+        ("Analyses completed", "analyses_completed"),
+        ("Final rows", "final_rows"),
+    ]
+    for start in range(0, len(labels), 3):
+        cols = st.columns(3)
+        for col, (label, key) in zip(cols, labels[start : start + 3]):
+            col.metric(label, totals[key])
+    rejection_rows = [
+        {"Rejection / issue": label, "Count": totals[key]}
+        for label, key in (
+            ("Missing/invalid screen history", "screen_tickers_missing_data"),
+            ("Empty screen chunks", "screen_chunks_empty"),
+            ("Stale analysis history", "stale_data_rejected"),
+            ("Unknown timestamp", "unknown_timestamp_rejected"),
+            ("Future timestamp", "future_timestamp_rejected"),
+            ("Analysis download failed", "analysis_download_failed"),
+            ("Provider error chunks", "provider_error_chunks"),
+            ("Recently failed tickers skipped", "cached_failures_skipped"),
+        )
+    ]
+    st.caption("Counts are pipeline events and can overlap; they are not necessarily unique-symbol totals.")
+    st.dataframe(rejection_rows, width="stretch", hide_index=True)
+
 def _show_price_divergence(df: pd.DataFrame) -> None:
     """Flag differences between daily analysis close and the latest market observation."""
     required = ("Price", "Latest Observation Price")
@@ -213,6 +276,8 @@ def show():
                     {"Exchange": exchange, **counts}
                     for exchange, counts in scanner_coverage.items()
                 ]
+                _show_coverage_summary(coverage_rows)
+                st.subheader("Per-exchange diagnostics")
                 st.dataframe(coverage_rows, width="stretch", hide_index=True)
                 requested = sum(int(row.get("tickers_requested", 0)) for row in coverage_rows)
                 usable = sum(int(row.get("histories_returned", 0)) for row in coverage_rows)
@@ -271,10 +336,58 @@ def show():
             )
         _show_price_divergence(df)
         _show_data_quality(df)
-        st.success(f"{len(df)} matching stocks displayed")
-        st.dataframe(
-            df.head(DISPLAY_COUNT) if scan_mode == "Broad Market" else df,
-            width="stretch",
-            height=600,
-        )
-        st.download_button("⬇ Download CSV", df.to_csv(index=False), "market_scan.csv", "text/csv")
+
+        if scan_mode == "Broad Market":
+            st.subheader("Daily Technical Candidates")
+            st.warning(
+                "These are candidates derived from daily candles, not verified live intraday opportunities. "
+                "No live entry price or executable quote is confirmed by this scan."
+            )
+            st.success(f"{len(df)} daily technical candidate(s) match the filters")
+            displayed = df.head(DISPLAY_COUNT)
+            st.dataframe(displayed, width="stretch", height=600)
+            st.download_button(
+                "⬇ Download daily candidates CSV",
+                displayed.to_csv(index=False),
+                "daily_technical_candidates.csv",
+                "text/csv",
+            )
+            st.subheader("Verified Live Intraday Opportunities")
+            st.info(
+                "Broad Market results are not promoted to live opportunities. This section only accepts "
+                "personal-watchlist rows explicitly marked Tick Live, with a live status, observation timestamp, "
+                "and positive observation price."
+            )
+            st.caption(
+                "A live label is a provider/status assertion, not a guarantee of exchange execution or quote accuracy."
+            )
+            st.warning(
+                "No live intraday opportunity can be verified from the Broad Market daily-candle feed alone. "
+                "Switch to Personal Watchlist to inspect qualifying live observations."
+            )
+        else:
+            live_rows = _live_intraday_rows(df)
+            daily_label = "Daily / non-live watchlist analysis"
+            st.subheader(daily_label)
+            st.caption(
+                "Technical indicators are calculated from historical daily data. A separate observation may be intraday."
+            )
+            st.dataframe(df, width="stretch", height=600)
+            st.download_button(
+                "⬇ Download watchlist scan CSV", df.to_csv(index=False), "watchlist_scan.csv", "text/csv"
+            )
+            st.subheader("Verified Live Intraday Opportunities")
+            if live_rows.empty:
+                st.info(
+                    "No watchlist row currently meets the strict live-observation checks. "
+                    "Missing or non-live observations remain unverified, not assumed live."
+                )
+            else:
+                st.success(f"{len(live_rows)} watchlist row(s) meet the live-observation checks")
+                st.dataframe(live_rows, width="stretch", hide_index=True)
+                st.download_button(
+                    "⬇ Download live-observation candidates CSV",
+                    live_rows.to_csv(index=False),
+                    "live_intraday_observations.csv",
+                    "text/csv",
+                )
