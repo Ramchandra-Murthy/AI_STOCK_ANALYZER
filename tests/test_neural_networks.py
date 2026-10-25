@@ -135,8 +135,6 @@ def test_cost_aware_backtest_rejects_empty_signals() -> None:
     with pytest.raises(ValueError, match="at least one holdout signal"):
         backtest_holdout_signals(data["Close"], pd.Index([]), [], horizon=5)
 
-
-
 def test_feature_ablation_uses_same_holdout_window_for_each_variant() -> None:
     from neural_networks.evaluation import compare_feature_ablation
 
