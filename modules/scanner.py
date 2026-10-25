@@ -80,7 +80,6 @@ def _show_data_quality(df: pd.DataFrame) -> None:
     )
 
 
-
 def _live_intraday_rows(df: pd.DataFrame) -> pd.DataFrame:
     """Return only rows explicitly marked tick-live with a timestamp and live status."""
     required = {"Tick Live", "Observed At", "Observation Status", "Latest Observation Price"}
@@ -103,12 +102,25 @@ def _show_coverage_summary(coverage_rows: list[dict]) -> None:
     """Summarize all pipeline stages before showing per-exchange diagnostics."""
     totals = {}
     for key in (
-        "candidates", "mapped_tickers", "unmapped_symbols", "tickers_requested",
-        "screen_chunks_requested", "screen_chunks_empty", "screen_tickers_with_data",
-        "screen_tickers_missing_data", "histories_returned", "histories_rejected",
-        "analysis_requested", "analysis_download_failed", "stale_data_rejected",
-        "unknown_timestamp_rejected", "future_timestamp_rejected", "analyses_completed",
-        "final_rows", "cached_failures_skipped", "provider_error_chunks",
+        "candidates",
+        "mapped_tickers",
+        "unmapped_symbols",
+        "tickers_requested",
+        "screen_chunks_requested",
+        "screen_chunks_empty",
+        "screen_tickers_with_data",
+        "screen_tickers_missing_data",
+        "histories_returned",
+        "histories_rejected",
+        "analysis_requested",
+        "analysis_download_failed",
+        "stale_data_rejected",
+        "unknown_timestamp_rejected",
+        "future_timestamp_rejected",
+        "analyses_completed",
+        "final_rows",
+        "cached_failures_skipped",
+        "provider_error_chunks",
     ):
         totals[key] = sum(int(row.get(key, 0) or 0) for row in coverage_rows)
     st.subheader("Pipeline totals")
@@ -144,6 +156,7 @@ def _show_coverage_summary(coverage_rows: list[dict]) -> None:
         "Counts are pipeline events and can overlap; they are not necessarily unique-symbol totals."
     )
     st.dataframe(rejection_rows, width="stretch", hide_index=True)
+
 
 def _show_price_divergence(df: pd.DataFrame) -> None:
     """Flag differences between daily analysis close and the latest market observation."""
@@ -381,7 +394,10 @@ def show():
             )
             st.dataframe(df, width="stretch", height=600)
             st.download_button(
-                "⬇ Download watchlist scan CSV", df.to_csv(index=False), "watchlist_scan.csv", "text/csv"
+                "⬇ Download watchlist scan CSV",
+                df.to_csv(index=False),
+                "watchlist_scan.csv",
+                "text/csv",
             )
             st.subheader("Verified Live Intraday Opportunities")
             if live_rows.empty:
