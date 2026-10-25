@@ -134,3 +134,20 @@ def test_cost_aware_backtest_rejects_empty_signals() -> None:
     data = sample_ohlcv(rows=180)
     with pytest.raises(ValueError, match="at least one holdout signal"):
         backtest_holdout_signals(data["Close"], pd.Index([]), [], horizon=5)
+
+
+
+def test_feature_ablation_uses_same_holdout_window_for_each_variant() -> None:
+    from neural_networks.evaluation import compare_feature_ablation
+
+    data = sample_ohlcv(rows=520)
+    result = compare_feature_ablation(data, horizon=5, train_fraction=0.70)
+    assert len(result) == 4
+    assert set(result["Feature set"]) == {"Original factors", "Expanded factors"}
+    assert set(result["Model"]) == {"Logistic regression", "MLP"}
+    assert result["Test rows"].nunique() == 1
+    assert result["Test start"].nunique() == 1
+    assert result["Test end"].nunique() == 1
+    assert result.loc[result["Feature set"] == "Original factors", "Feature count"].eq(6).all()
+    assert result.loc[result["Feature set"] == "Expanded factors", "Feature count"].eq(10).all()
+    assert result["Accuracy"].between(0, 1).all()
