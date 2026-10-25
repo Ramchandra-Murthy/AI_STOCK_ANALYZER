@@ -1,12 +1,17 @@
 """Tests for the optional PyTorch LSTM research model."""
 
+import importlib.util
+
 import numpy as np
 import pandas as pd
 import pytest
 
-pytest.importorskip("torch")
-
 from ai_trading.lstm_research import predict_lstm, train_lstm_model
+
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("torch") is None,
+    reason="optional PyTorch dependency is not installed",
+)
 
 
 def sample_frame(rows: int = 260) -> pd.DataFrame:
