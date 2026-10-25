@@ -252,7 +252,9 @@ def factor_information_coefficient(
             f"Need at least {n_windows * 10} valid observations for {n_windows} IC windows"
         )
 
-    window_indices = [part for part in np.array_split(np.arange(len(features)), n_windows) if len(part)]
+    window_indices = [
+        part for part in np.array_split(np.arange(len(features)), n_windows) if len(part)
+    ]
     rows: list[dict[str, Any]] = []
     for factor in features.columns:
         correlations: list[float] = []
@@ -281,9 +283,7 @@ def factor_information_coefficient(
             "Window start": str(features.index.min().date()),
             "Window end": str(features.index.max().date()),
             "Observations": int(len(features)),
-            "Spearman IC": (
-                float(sum(valid_ics) / len(valid_ics)) if valid_ics else float("nan")
-            ),
+            "Spearman IC": (float(sum(valid_ics) / len(valid_ics)) if valid_ics else float("nan")),
             "IC standard deviation": (
                 float(pd.Series(valid_ics).std(ddof=0)) if valid_ics else float("nan")
             ),
