@@ -1,5 +1,3 @@
-import math
-
 import pandas as pd
 import pytest
 
@@ -56,9 +54,13 @@ def test_optional_indicators_may_be_absent_without_changing_base_signal() -> Non
 
 @pytest.mark.parametrize("invalid_value", [float("nan"), float("inf"), -float("inf")])
 def test_invalid_optional_indicator_values_are_ignored(invalid_value: float) -> None:
-    frame = _baseline_frame(BB_Lower=invalid_value, BB_Upper=invalid_value,
-                            Support=invalid_value, Resistance=invalid_value,
-                            ATR=invalid_value)
+    frame = _baseline_frame(
+        BB_Lower=invalid_value,
+        BB_Upper=invalid_value,
+        Support=invalid_value,
+        Resistance=invalid_value,
+        ATR=invalid_value,
+    )
 
     result = generate_signal(frame)
 
@@ -78,19 +80,17 @@ def test_invalid_optional_indicator_values_are_ignored(invalid_value: float) -> 
 
 
 @pytest.mark.parametrize(
-    ("overrides", "expected_score", "expected_reason"),
+    ("overrides", "expected_score"),
     [
-        ({"Close": 100.0, "BB_Lower": 100.0}, 15, None),
-        ({"Close": 100.0, "BB_Upper": 100.0}, 15, None),
-        ({"Close": 100.0, "ATR": 2.0}, 15, None),
+        ({"Close": 100.0, "BB_Lower": 100.0}, 15),
+        ({"Close": 100.0, "BB_Upper": 100.0}, 15),
+        ({"Close": 100.0, "ATR": 2.0}, 15),
     ],
 )
 def test_optional_indicator_threshold_equality_does_not_trigger_adjustment(
-    overrides: dict[str, float], expected_score: int, expected_reason: str | None
+    overrides: dict[str, float], expected_score: int
 ) -> None:
     result = generate_signal(_baseline_frame(**overrides))
 
     assert result["Status"] == "OK"
     assert result["Score"] == expected_score
-    if expected_reason is not None:
-        assert expected_reason in result["Reasons"]
