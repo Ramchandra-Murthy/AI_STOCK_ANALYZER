@@ -158,9 +158,12 @@ def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame
         for metric in metrics:
             values = pd.to_numeric(group[metric], errors="coerce").dropna()
             row[f"{metric} mean"] = float(values.mean()) if not values.empty else float("nan")
-            row[f"{metric} std"] = (
-                float(values.std(ddof=1)) if len(values) > 1 else (0.0 if len(values) == 1 else float("nan"))
-            )
+            if len(values) > 1:
+                row[f"{metric} std"] = float(values.std(ddof=1))
+            elif len(values) == 1:
+                row[f"{metric} std"] = 0.0
+            else:
+                row[f"{metric} std"] = float("nan")
             row[f"{metric} min"] = float(values.min()) if not values.empty else float("nan")
             row[f"{metric} max"] = float(values.max()) if not values.empty else float("nan")
         rows.append(row)
