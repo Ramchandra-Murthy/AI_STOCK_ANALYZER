@@ -34,12 +34,8 @@ def test_calibration_returns_holdout_metrics_and_bins() -> None:
     assert summary["samples"].gt(0).all()
     assert summary["predicted_probability"].between(0.0, 1.0).all()
     assert summary["actual_rate"].between(0.0, 1.0).all()
-    expected_gap = (
-        summary["predicted_probability"] - summary["actual_rate"]
-    ).abs()
-    pd.testing.assert_series_equal(
-        summary["calibration_gap"], expected_gap, check_names=False
-    )
+    expected_gap = (summary["predicted_probability"] - summary["actual_rate"]).abs()
+    pd.testing.assert_series_equal(summary["calibration_gap"], expected_gap, check_names=False)
 
 
 @pytest.mark.parametrize("bins", [1, 11, 2.5, True])
