@@ -237,3 +237,5 @@ if raw is not None:
                 st.error(f"Could not train the model: {exc}")
             except Exception as exc:  # Keep upload errors visible instead of crashing the page.
                 st.error(f"Unexpected model error: {exc}")
+    except Exception as exc:
+        st.error(f"Unexpected data preparation error: {exc}")
