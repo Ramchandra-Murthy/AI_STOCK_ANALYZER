@@ -9,8 +9,8 @@ import streamlit as st
 import yfinance as yf
 
 from neural_networks.baseline import train_baseline
-from neural_networks.features import build_direction_dataset
 from neural_networks.evaluation import compare_holdout_baselines, walk_forward_evaluation
+from neural_networks.features import build_direction_dataset
 
 st.title("Neural Networks Lab")
 st.caption(
