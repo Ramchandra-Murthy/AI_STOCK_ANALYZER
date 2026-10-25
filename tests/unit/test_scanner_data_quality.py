@@ -106,9 +106,7 @@ def test_market_scan_records_analysis_download_failure_per_exchange(monkeypatch)
     monkeypatch.setattr(
         market_scanner,
         "_batch_change_screen",
-        lambda candidates, coverage=None: [
-            ("RELIANCE.NS", "NSE", 1.0, 1_000_000.0)
-        ],
+        lambda candidates, coverage=None: [("RELIANCE.NS", "NSE", 1.0, 1_000_000.0)],
     )
     monkeypatch.setattr(
         market_scanner,
