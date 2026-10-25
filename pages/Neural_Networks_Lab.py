@@ -11,8 +11,8 @@ import yfinance as yf
 from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
-    factor_information_coefficient,
     compare_holdout_baselines,
+    factor_information_coefficient,
     walk_forward_evaluation,
 )
 from neural_networks.features import build_direction_dataset
