@@ -77,12 +77,10 @@ def backtest_holdout_signals(
         strategy_daily.loc[entry_date] -= cost
         for position in range(entry_position + 1, exit_position + 1):
             daily_return = prices.iloc[position] / prices.iloc[position - 1] - 1.0
-            strategy_daily.iloc[position] = (
-                (1.0 + strategy_daily.iloc[position]) * (1.0 + daily_return) - 1.0
-            )
-        strategy_daily.loc[exit_date] = (
-            (1.0 + strategy_daily.loc[exit_date]) * (1.0 - cost) - 1.0
-        )
+            strategy_daily.iloc[position] = (1.0 + strategy_daily.iloc[position]) * (
+                1.0 + daily_return
+            ) - 1.0
+        strategy_daily.loc[exit_date] = (1.0 + strategy_daily.loc[exit_date]) * (1.0 - cost) - 1.0
 
         trades.append(
             {
@@ -146,9 +144,7 @@ def backtest_holdout_signals(
             {
                 "Strategy": "Buy and hold",
                 "Total return": buy_hold_return,
-                "Maximum drawdown": float(
-                    (buy_hold_equity / buy_hold_equity.cummax() - 1.0).min()
-                ),
+                "Maximum drawdown": float((buy_hold_equity / buy_hold_equity.cummax() - 1.0).min()),
                 "Annualized Sharpe": (
                     float(np.sqrt(252.0) * buy_hold_daily.mean() / buy_hold_daily.std(ddof=1))
                     if buy_hold_daily.std(ddof=1) > 0
