@@ -22,7 +22,7 @@ def recommendation_box(action, confidence, risk):
 
     c1, c2 = st.columns(2)
 
-    c1.metric("Confidence", f"{confidence}%")
+    c1.metric("Confidence", "Not calibrated")
 
     c2.metric("Risk", risk)
 
