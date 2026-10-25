@@ -131,10 +131,10 @@ def yahoo_symbol_for_bse_code(code: str) -> str | None:
     if mapped_symbol:
         return mapped_symbol
 
-    # Yahoo Finance supports six-digit BSE scrip codes with the .BO suffix.
-    # Keep curated BSE candidates usable when BSE's live security-master endpoint
-    # is blocked (for example, HTTP 403) and the symbol map could not be populated.
-    if normalized_code.isdigit() and len(normalized_code) == 6:
+    # Yahoo Finance supports BSE scrip codes with the .BO suffix.
+    # Restrict this fallback to known curated candidates so arbitrary or inactive
+    # six-digit codes do not become valid-looking tickers.
+    if normalized_code in BSE_CANDIDATES:
         return normalized_code
 
     return None
