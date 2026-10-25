@@ -240,7 +240,9 @@ def _block_bootstrap_spearman_ic_interval(
     n = len(pair)
     if n < max(10, block_size * 2):
         return float("nan"), float("nan")
-    if pair.iloc[:, 0].nunique() < 2 or pair.iloc[:, 1].nunique() < 2:
+    first_unique = pair.iloc[:, 0].nunique(dropna=True)
+    second_unique = pair.iloc[:, 1].nunique(dropna=True)
+    if min(first_unique, second_unique) < 2:
         return float("nan"), float("nan")
 
     values = pair.to_numpy(dtype=float)
