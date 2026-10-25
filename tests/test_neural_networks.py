@@ -75,7 +75,6 @@ def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
     assert walk_forward["Accuracy"].between(0, 1).all()
 
 
-
 def test_cost_aware_backtest_uses_non_overlapping_trades_and_costs() -> None:
     from neural_networks.strategy_backtest import backtest_holdout_signals
 
