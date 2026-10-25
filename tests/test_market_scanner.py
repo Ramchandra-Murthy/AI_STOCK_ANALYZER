@@ -309,3 +309,29 @@ def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
     assert sorted(len(chunk) for chunk in calls[1:]) == [20, 20]
     assert coverage["BSE"]["screen_chunks_empty"] == 3
     assert coverage["BSE"]["screen_tickers_missing_data"] == 40
+
+
+
+def test_bse_ticker_mapping_falls_back_to_scrip_code_when_live_map_unavailable(monkeypatch) -> None:
+    from scanner import dynamic_universe
+
+    monkeypatch.setattr(dynamic_universe, "_bse_yahoo_symbol_map", {})
+
+    assert dynamic_universe.yahoo_symbol_for_bse_code("500325") == "500325"
+
+
+def test_bse_ticker_mapping_prefers_live_symbol_map(monkeypatch) -> None:
+    from scanner import dynamic_universe
+
+    monkeypatch.setattr(dynamic_universe, "_bse_yahoo_symbol_map", {"500325": "RELIANCE"})
+
+    assert dynamic_universe.yahoo_symbol_for_bse_code("500325") == "RELIANCE"
+
+
+def test_bse_ticker_mapping_rejects_invalid_unmapped_codes(monkeypatch) -> None:
+    from scanner import dynamic_universe
+
+    monkeypatch.setattr(dynamic_universe, "_bse_yahoo_symbol_map", {})
+
+    assert dynamic_universe.yahoo_symbol_for_bse_code("RELIANCE") is None
+    assert dynamic_universe.yahoo_symbol_for_bse_code("12345") is None
