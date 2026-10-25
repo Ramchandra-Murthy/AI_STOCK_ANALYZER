@@ -125,7 +125,7 @@ def _show_coverage_summary(coverage_rows: list[dict]) -> None:
     ]
     for start in range(0, len(labels), 3):
         cols = st.columns(3)
-        for col, (label, key) in zip(cols, labels[start : start + 3]):
+        for col, (label, key) in zip(cols, labels[start : start + 3], strict=False):
             col.metric(label, totals[key])
     rejection_rows = [
         {"Rejection / issue": label, "Count": totals[key]}
