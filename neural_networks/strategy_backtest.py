@@ -110,7 +110,10 @@ def backtest_holdout_signals(
         ],
     )
     first_date = pd.Index(signal_dates)[0]
-    evaluation_daily = strategy_daily.loc[first_date:]
+    evaluation_end = (
+        trade_frame["Exit date"].max() if not trade_frame.empty else pd.Index(signal_dates)[-1]
+    )
+    evaluation_daily = strategy_daily.loc[first_date:evaluation_end]
     strategy_equity = (1.0 + evaluation_daily).cumprod()
     drawdown = strategy_equity / strategy_equity.cummax() - 1.0
     daily_std = float(evaluation_daily.std(ddof=1)) if len(evaluation_daily) > 1 else 0.0
@@ -120,9 +123,10 @@ def backtest_holdout_signals(
         else float("nan")
     )
 
-    buy_hold_daily = prices.loc[first_date:].pct_change(fill_method=None).fillna(0.0)
+    buy_hold_prices = prices.loc[first_date:evaluation_end]
+    buy_hold_daily = buy_hold_prices.pct_change(fill_method=None).fillna(0.0)
     buy_hold_equity = (1.0 + buy_hold_daily).cumprod()
-    buy_hold_return = float(prices.loc[first_date:].iloc[-1] / prices.loc[first_date] - 1.0)
+    buy_hold_return = float(buy_hold_prices.iloc[-1] / buy_hold_prices.iloc[0] - 1.0)
     buy_hold_return = (1.0 - cost) ** 2 * (1.0 + buy_hold_return) - 1.0
 
     summary = pd.DataFrame(
