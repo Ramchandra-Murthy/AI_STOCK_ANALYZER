@@ -27,8 +27,16 @@ upload = st.file_uploader(
     type=["csv"],
     help="Required columns: Date, Open, High, Low, Close, Volume.",
 )
-horizon = st.number_input("Prediction horizon (trading days)", min_value=1, max_value=30, value=5, step=1)
-train_fraction = st.slider("Training fraction (earlier observations)", min_value=0.50, max_value=0.90, value=0.70, step=0.05)
+horizon = st.number_input(
+    "Prediction horizon (trading days)", min_value=1, max_value=30, value=5, step=1
+)
+train_fraction = st.slider(
+    "Training fraction (earlier observations)",
+    min_value=0.50,
+    max_value=0.90,
+    value=0.70,
+    step=0.05,
+)
 
 if upload is not None:
     try:
@@ -80,7 +88,9 @@ if upload is not None:
             try:
                 features, target = build_direction_dataset(data, horizon=int(horizon))
                 if len(features) < 130:
-                    st.error("Not enough usable observations after feature preparation. Upload more history.")
+                    st.error(
+                        "Not enough usable observations after feature preparation. Upload more history."
+                    )
                     st.stop()
                 _, metrics = train_baseline(features, target, train_fraction=float(train_fraction))
                 split_at = int(len(features) * float(train_fraction))
