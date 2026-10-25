@@ -140,7 +140,9 @@ def _show_coverage_summary(coverage_rows: list[dict]) -> None:
             ("Recently failed tickers skipped", "cached_failures_skipped"),
         )
     ]
-    st.caption("Counts are pipeline events and can overlap; they are not necessarily unique-symbol totals.")
+    st.caption(
+        "Counts are pipeline events and can overlap; they are not necessarily unique-symbol totals."
+    )
     st.dataframe(rejection_rows, width="stretch", hide_index=True)
 
 def _show_price_divergence(df: pd.DataFrame) -> None:
@@ -340,7 +342,8 @@ def show():
         if scan_mode == "Broad Market":
             st.subheader("Daily Technical Candidates")
             st.warning(
-                "These are candidates derived from daily candles, not verified live intraday opportunities. "
+                "These are candidates derived from daily candles, not verified live intraday "
+                "opportunities. "
                 "No live entry price or executable quote is confirmed by this scan."
             )
             st.success(f"{len(df)} daily technical candidate(s) match the filters")
@@ -354,15 +357,18 @@ def show():
             )
             st.subheader("Verified Live Intraday Opportunities")
             st.info(
-                "Broad Market results are not promoted to live opportunities. This section only accepts "
-                "personal-watchlist rows explicitly marked Tick Live, with a live status, observation timestamp, "
+                "Broad Market results are not promoted to live opportunities. This section only "
+                "accepts "
+                "personal-watchlist rows explicitly marked Tick Live, with a live status, "
+                "observation timestamp, "
                 "and positive observation price."
             )
             st.caption(
                 "A live label is a provider/status assertion, not a guarantee of exchange execution or quote accuracy."
             )
             st.warning(
-                "No live intraday opportunity can be verified from the Broad Market daily-candle feed alone. "
+                "No live intraday opportunity can be verified from the Broad Market daily-candle "
+                "feed alone. "
                 "Switch to Personal Watchlist to inspect qualifying live observations."
             )
         else:
@@ -370,7 +376,8 @@ def show():
             daily_label = "Daily / non-live watchlist analysis"
             st.subheader(daily_label)
             st.caption(
-                "Technical indicators are calculated from historical daily data. A separate observation may be intraday."
+                "Technical indicators are calculated from historical daily data. A separate "
+                "observation may be intraday."
             )
             st.dataframe(df, width="stretch", height=600)
             st.download_button(
