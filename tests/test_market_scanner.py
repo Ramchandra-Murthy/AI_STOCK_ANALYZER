@@ -369,8 +369,6 @@ def test_batch_change_screen_counts_only_usable_two_candle_history(monkeypatch) 
     assert coverage["NSE"]["screen_tickers_with_data"] == 0
     assert coverage["NSE"]["screen_tickers_missing_data"] == 1
 
-
-
 def test_daily_data_status_handles_fresh_stale_unknown_and_future_dates() -> None:
     from datetime import date
 
@@ -393,7 +391,9 @@ def test_market_scan_rejects_stale_analysis_history(monkeypatch) -> None:
         lambda candidates, coverage=None: [("RELIANCE.NS", "NSE", 1.0, 1_000_000.0)],
     )
     dates = pd.date_range(end="2026-10-01", periods=60, freq="B")
-    columns = pd.MultiIndex.from_product([["RELIANCE.NS"], ["Open", "High", "Low", "Close", "Volume"]])
+    columns = pd.MultiIndex.from_product(
+        [["RELIANCE.NS"], ["Open", "High", "Low", "Close", "Volume"]]
+    )
     values = [[100.0, 102.0, 98.0, 101.0, 100_000.0] for _ in dates]
     history = pd.DataFrame(values, index=dates, columns=columns)
     monkeypatch.setattr(market_scanner, "_download_analysis_chunk", lambda tickers: history)
