@@ -95,9 +95,11 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
             "screen_tickers_missing_data": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
+            "history_coverage_pct": 0.0,
             "analysis_download_failed": 0,
             "analyses_completed": 0,
             "final_rows": 0,
+            "cached_failures_skipped": 0,
         }
     }
 
@@ -175,7 +177,7 @@ def test_batch_change_screen_counts_returned_histories_not_only_movers(monkeypat
     assert coverage["NSE"]["histories_returned"] == 1
 
 
-def test_batch_change_screen_counts_history_even_when_not_enough_closes(
+def test_batch_change_screen_does_not_count_history_with_too_few_candles(
     monkeypatch,
 ) -> None:
     from scanner import market_scanner
@@ -201,7 +203,8 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
     movers = market_scanner._batch_change_screen({"BSE": ["500325"]}, coverage=coverage)
 
     assert movers == []
-    assert coverage["BSE"]["histories_returned"] == 1
+    assert coverage["BSE"]["histories_returned"] == 0
+    assert coverage["BSE"]["screen_tickers_missing_data"] == 1
 
 
 def test_batch_change_screen_retries_empty_batches_as_smaller_chunks(monkeypatch) -> None:
@@ -316,7 +319,7 @@ def test_bse_ticker_mapping_falls_back_to_scrip_code_when_live_map_unavailable(m
 
     monkeypatch.setattr(dynamic_universe, "_bse_yahoo_symbol_map", {})
 
-    assert dynamic_universe.yahoo_symbol_for_bse_code("500325") == "500325"
+    assert dynamic_universe.yahoo_symbol_for_bse_code("500325") == "RELIANCE"
 
 
 def test_bse_ticker_mapping_prefers_live_symbol_map(monkeypatch) -> None:
@@ -334,3 +337,31 @@ def test_bse_ticker_mapping_rejects_invalid_unmapped_codes(monkeypatch) -> None:
 
     assert dynamic_universe.yahoo_symbol_for_bse_code("RELIANCE") is None
     assert dynamic_universe.yahoo_symbol_for_bse_code("12345") is None
+
+
+def test_batch_change_screen_counts_only_usable_two_candle_history(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    ticker = "RELIANCE.NS"
+    columns = pd.MultiIndex.from_product([[ticker], ["Close", "Volume"]])
+    one_candle = pd.DataFrame(
+        [[100.0, 1000]],
+        index=pd.DatetimeIndex(["2026-10-19"]),
+        columns=columns,
+    )
+    coverage = {
+        "NSE": {
+            "histories_returned": 0,
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
+            "screen_tickers_with_data": 0,
+            "screen_tickers_missing_data": 0,
+        }
+    }
+    monkeypatch.setattr(market_scanner, "_download_chunk", lambda chunk: one_candle)
+    monkeypatch.setattr(market_scanner, "_failed_tickers_until", {})
+
+    assert market_scanner._batch_change_screen({"NSE": ["RELIANCE"]}, coverage=coverage) == []
+    assert coverage["NSE"]["histories_returned"] == 0
+    assert coverage["NSE"]["screen_tickers_with_data"] == 0
+    assert coverage["NSE"]["screen_tickers_missing_data"] == 1

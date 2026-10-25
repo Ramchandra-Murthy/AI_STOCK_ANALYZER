@@ -1,3 +1,4 @@
+import time
 from typing import Any
 
 import pandas as pd
@@ -25,6 +26,8 @@ DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 40
 MAX_CANDIDATES_PER_EXCHANGE = 10
 ANALYSIS_PERIOD = "1y"
+FAILED_TICKER_TTL_SECONDS = 5 * 60
+_failed_tickers_until: dict[str, float] = {}
 
 
 def _ticker(symbol: str, exchange: str) -> str:
@@ -175,13 +178,25 @@ def _batch_change_screen(
             for symbol in symbols
             if (ticker := _yahoo_ticker(symbol, exchange)) is not None
         }
-        tickers = list(ticker_map)
+        now = time.monotonic()
+        for failed_ticker, expiry in list(_failed_tickers_until.items()):
+            if expiry <= now:
+                _failed_tickers_until.pop(failed_ticker, None)
+        skipped_failed = [
+            ticker for ticker in ticker_map if _failed_tickers_until.get(ticker, 0) > now
+        ]
+        tickers = [ticker for ticker in ticker_map if ticker not in skipped_failed]
 
         if coverage is not None:
-            coverage[exchange]["tickers_requested"] = len(tickers)
-            coverage[exchange]["mapped_tickers"] = len(tickers)
-            coverage[exchange]["unmapped_symbols"] = len(symbols) - len(tickers)
-            coverage[exchange]["screen_tickers_missing_data"] += len(symbols) - len(tickers)
+            coverage[exchange]["tickers_requested"] = len(ticker_map)
+            coverage[exchange]["mapped_tickers"] = len(ticker_map)
+            coverage[exchange]["unmapped_symbols"] = len(symbols) - len(ticker_map)
+            coverage[exchange]["cached_failures_skipped"] = coverage[exchange].get(
+                "cached_failures_skipped", 0
+            ) + len(skipped_failed)
+            coverage[exchange]["screen_tickers_missing_data"] += (
+                len(symbols) - len(ticker_map) + len(skipped_failed)
+            )
 
         pending_chunks = [
             tickers[start : start + DOWNLOAD_CHUNK_SIZE]
@@ -220,14 +235,18 @@ def _batch_change_screen(
                     close = _extract_series(history, ticker, "Close")
                     volume = _extract_series(history, ticker, "Volume")
 
-                    if coverage is not None:
-                        if not close.empty and not volume.empty:
+                    usable_history = len(close) >= 2 and len(volume) >= 2
+                    if usable_history:
+                        _failed_tickers_until.pop(ticker, None)
+                        if coverage is not None:
                             coverage[exchange]["histories_returned"] += 1
                             coverage[exchange]["screen_tickers_with_data"] += 1
-                        else:
+                    else:
+                        _failed_tickers_until[ticker] = time.monotonic() + FAILED_TICKER_TTL_SECONDS
+                        if coverage is not None:
                             coverage[exchange]["screen_tickers_missing_data"] += 1
 
-                    if len(close) < 2 or volume.empty:
+                    if not usable_history:
                         continue
 
                     latest = float(close.iloc[-1])
@@ -330,6 +349,7 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
             "analysis_download_failed": 0,
             "analyses_completed": 0,
             "final_rows": 0,
+            "cached_failures_skipped": 0,
         }
         for exchange, symbols in candidates.items()
     }
@@ -343,6 +363,12 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     for exchange in coverage:
         coverage[exchange]["histories_rejected"] = max(
             0, coverage[exchange]["tickers_requested"] - coverage[exchange]["histories_returned"]
+        )
+        coverage[exchange]["history_coverage_pct"] = round(
+            100
+            * coverage[exchange]["histories_returned"]
+            / max(1, coverage[exchange]["tickers_requested"]),
+            1,
         )
     if not movers:
         empty = pd.DataFrame()
