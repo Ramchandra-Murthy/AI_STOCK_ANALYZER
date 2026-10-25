@@ -134,7 +134,6 @@ def walk_forward_evaluation(
     return pd.DataFrame(rows)
 
 
-
 def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame:
     """Summarize fold-to-fold dispersion for each model without pooling models."""
     required = {"Model", "Fold", "Accuracy", "Balanced accuracy", "ROC-AUC"}
@@ -144,9 +143,19 @@ def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame
     if fold_results.empty:
         return pd.DataFrame(
             columns=[
-                "Model", "Folds", "Accuracy mean", "Accuracy std", "Accuracy min", "Accuracy max",
-                "Balanced accuracy mean", "Balanced accuracy std", "Balanced accuracy min",
-                "Balanced accuracy max", "ROC-AUC mean", "ROC-AUC std", "ROC-AUC min",
+                "Model",
+                "Folds",
+                "Accuracy mean",
+                "Accuracy std",
+                "Accuracy min",
+                "Accuracy max",
+                "Balanced accuracy mean",
+                "Balanced accuracy std",
+                "Balanced accuracy min",
+                "Balanced accuracy max",
+                "ROC-AUC mean",
+                "ROC-AUC std",
+                "ROC-AUC min",
                 "ROC-AUC max",
             ]
         )
