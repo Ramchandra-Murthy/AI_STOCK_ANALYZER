@@ -134,6 +134,51 @@ def walk_forward_evaluation(
     return pd.DataFrame(rows)
 
 
+def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame:
+    """Summarize fold-to-fold dispersion for each model without pooling models."""
+    required = {"Model", "Fold", "Accuracy", "Balanced accuracy", "ROC-AUC"}
+    missing = sorted(required.difference(fold_results.columns))
+    if missing:
+        raise ValueError("Walk-forward results missing columns: " + ", ".join(missing))
+    if fold_results.empty:
+        return pd.DataFrame(
+            columns=[
+                "Model",
+                "Folds",
+                "Accuracy mean",
+                "Accuracy std",
+                "Accuracy min",
+                "Accuracy max",
+                "Balanced accuracy mean",
+                "Balanced accuracy std",
+                "Balanced accuracy min",
+                "Balanced accuracy max",
+                "ROC-AUC mean",
+                "ROC-AUC std",
+                "ROC-AUC min",
+                "ROC-AUC max",
+            ]
+        )
+
+    metrics = ["Accuracy", "Balanced accuracy", "ROC-AUC"]
+    rows: list[dict[str, Any]] = []
+    for model_name, group in fold_results.groupby("Model", sort=False):
+        row: dict[str, Any] = {"Model": model_name, "Folds": int(group["Fold"].nunique())}
+        for metric in metrics:
+            values = pd.to_numeric(group[metric], errors="coerce").dropna()
+            row[f"{metric} mean"] = float(values.mean()) if not values.empty else float("nan")
+            if len(values) > 1:
+                row[f"{metric} std"] = float(values.std(ddof=1))
+            elif len(values) == 1:
+                row[f"{metric} std"] = 0.0
+            else:
+                row[f"{metric} std"] = float("nan")
+            row[f"{metric} min"] = float(values.min()) if not values.empty else float("nan")
+            row[f"{metric} max"] = float(values.max()) if not values.empty else float("nan")
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def compare_feature_ablation(
     ohlcv: pd.DataFrame,
     horizon: int = 5,

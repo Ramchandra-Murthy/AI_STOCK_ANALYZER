@@ -196,3 +196,34 @@ def test_factor_ic_bootstrap_interval_returns_nan_for_constant_factor() -> None:
     lower, upper = _block_bootstrap_spearman_ic_interval(factor, returns)
     assert np.isnan(lower)
     assert np.isnan(upper)
+
+
+def test_walk_forward_stability_summary_reports_per_model_dispersion() -> None:
+    from neural_networks.evaluation import summarize_walk_forward_stability
+
+    folds = pd.DataFrame(
+        {
+            "Model": ["MLP", "MLP", "MLP", "Logistic regression", "Logistic regression"],
+            "Fold": [1, 2, 3, 1, 2],
+            "Accuracy": [0.6, 0.8, 0.7, 0.55, 0.65],
+            "Balanced accuracy": [0.58, 0.78, 0.68, 0.54, 0.64],
+            "ROC-AUC": [0.61, 0.81, np.nan, 0.56, 0.66],
+        }
+    )
+
+    result = summarize_walk_forward_stability(folds).set_index("Model")
+
+    assert result.loc["MLP", "Folds"] == 3
+    assert result.loc["MLP", "Accuracy mean"] == pytest.approx(0.7)
+    assert result.loc["MLP", "Accuracy std"] == pytest.approx(0.1)
+    assert result.loc["MLP", "Accuracy min"] == pytest.approx(0.6)
+    assert result.loc["MLP", "Accuracy max"] == pytest.approx(0.8)
+    assert result.loc["MLP", "ROC-AUC mean"] == pytest.approx(0.71)
+    assert result.loc["MLP", "ROC-AUC std"] == pytest.approx(np.std([0.61, 0.81], ddof=1))
+
+
+def test_walk_forward_stability_summary_validates_required_columns() -> None:
+    from neural_networks.evaluation import summarize_walk_forward_stability
+
+    with pytest.raises(ValueError, match="missing columns"):
+        summarize_walk_forward_stability(pd.DataFrame({"Model": ["MLP"]}))
