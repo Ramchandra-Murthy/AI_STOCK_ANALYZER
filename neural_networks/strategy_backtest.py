@@ -32,6 +32,10 @@ def backtest_holdout_signals(
         raise ValueError("cost_bps_per_side cannot be negative")
     if len(signal_dates) != len(probability_up):
         raise ValueError("signal_dates and probability_up must have identical lengths")
+    if len(signal_dates) == 0:
+        raise ValueError("at least one holdout signal date is required")
+    if not pd.Index(signal_dates).is_monotonic_increasing:
+        raise ValueError("signal dates must be sorted chronologically")
     if not close.index.is_unique:
         raise ValueError("close index must be unique")
     prices = pd.to_numeric(close, errors="coerce").astype(float)
