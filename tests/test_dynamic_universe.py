@@ -2,6 +2,7 @@ import json
 
 from scanner import dynamic_universe
 
+
 def test_download_bse_equity_list_returns_numeric_scrip_codes(monkeypatch):
     payload = [
         {
@@ -46,6 +47,7 @@ def test_download_bse_equity_list_returns_numeric_scrip_codes(monkeypatch):
     assert dynamic_universe.yahoo_symbol_for_bse_code("532540") == "TCS"
     assert dynamic_universe.yahoo_symbol_for_bse_code("500001") is None
     assert dynamic_universe.yahoo_symbol_for_bse_code("999999") is None
+
 
 def test_curated_bse_fallback_maps_to_paired_company_symbols(monkeypatch):
     monkeypatch.setattr(dynamic_universe, "_bse_yahoo_symbol_map", {})
