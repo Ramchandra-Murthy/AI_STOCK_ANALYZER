@@ -80,9 +80,7 @@ if st.button("Fetch historical OHLCV", type="secondary"):
                     st.session_state["nn_lab_yahoo_csv"] = csv_content
                     st.session_state["nn_lab_yahoo_symbol"] = normalized_symbol
                     st.session_state["nn_lab_yahoo_period"] = history_period
-                    st.success(
-                        f"Fetched {len(downloaded):,} daily rows for {normalized_symbol}."
-                    )
+                    st.success(f"Fetched {len(downloaded):,} daily rows for {normalized_symbol}.")
         except Exception as exc:
             st.error(
                 "Could not fetch Yahoo Finance data. Check the symbol and connection, "
