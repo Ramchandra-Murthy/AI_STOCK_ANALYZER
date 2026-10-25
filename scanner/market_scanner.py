@@ -413,6 +413,8 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     if not analysis_tickers:
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        timings["total_seconds"] = time.perf_counter() - scan_started
+        empty.attrs["scanner_timings"] = timings
         return empty
 
     analysis_download_started = time.perf_counter()
@@ -424,6 +426,8 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
                 coverage[exchange]["analysis_download_failed"] = 1
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        timings["total_seconds"] = time.perf_counter() - scan_started
+        empty.attrs["scanner_timings"] = timings
         return empty
 
     turnover_by_ticker = {ticker: turnover for ticker, _exchange, _change, turnover in movers}
@@ -442,6 +446,8 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     df = pd.DataFrame(rows)
     if df.empty:
         df.attrs["scanner_coverage"] = coverage
+        timings["total_seconds"] = time.perf_counter() - scan_started
+        df.attrs["scanner_timings"] = timings
         return df
 
     # Confidence is intentionally unavailable until calibrated on out-of-sample data.
