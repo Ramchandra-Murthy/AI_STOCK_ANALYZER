@@ -5,7 +5,7 @@ import pandas as pd
 from scanner.market_scanner import _analyze_history
 
 
-def test_market_scanner_marks_confidence_as_not_calibrated() -> None:
+def test_market_scanner_marks_confidence_as_not_calibrated_and_exposes_reasons() -> None:
     history = pd.DataFrame(
         {
             "Open": [100.0] * 50,
@@ -25,6 +25,7 @@ def test_market_scanner_marks_confidence_as_not_calibrated() -> None:
         "Confidence Status": "Not calibrated",
         "Risk": "Medium",
         "Recommendation": "HOLD",
+        "Reasons": ["20 SMA above 50 SMA (Bullish)", "MACD Bullish Crossover"],
     }
 
     with (
@@ -49,3 +50,7 @@ def test_market_scanner_marks_confidence_as_not_calibrated() -> None:
     assert row is not None
     assert row["AI Score"] == 45
     assert row["Confidence"] is None
+    assert row["Confidence Status"] == "Not calibrated"
+    assert row["Signal Reasons"] == (
+        "20 SMA above 50 SMA (Bullish); MACD Bullish Crossover"
+    )
