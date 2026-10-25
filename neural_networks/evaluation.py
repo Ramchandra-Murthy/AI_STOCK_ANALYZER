@@ -232,15 +232,15 @@ def _block_bootstrap_spearman_ic_interval(
         raise ValueError("block_size must be at least 1")
     if not 0 < confidence_level < 1:
         raise ValueError("confidence_level must be between 0 and 1")
-    pair = pd.concat([factor_values, forward_returns], axis=1).replace(
-        [np.inf, -np.inf], np.nan
-    ).dropna()
+    pair = (
+        pd.concat([factor_values, forward_returns], axis=1)
+        .replace([np.inf, -np.inf], np.nan)
+        .dropna()
+    )
     n = len(pair)
-    if (
-        n < max(10, block_size * 2)
-        or pair.iloc[:, 0].nunique() < 2
-        or pair.iloc[:, 1].nunique() < 2
-    ):
+    if n < max(10, block_size * 2):
+        return float("nan"), float("nan")
+    if pair.iloc[:, 0].nunique() < 2 or pair.iloc[:, 1].nunique() < 2:
         return float("nan"), float("nan")
 
     values = pair.to_numpy(dtype=float)
