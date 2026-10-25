@@ -131,3 +131,81 @@ def walk_forward_evaluation(
             )
             rows.append(row)
     return pd.DataFrame(rows)
+
+
+def compare_feature_ablation(
+    ohlcv: pd.DataFrame,
+    horizon: int = 5,
+    train_fraction: float = 0.70,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Compare original and expanded causal factors on identical chronological rows.
+
+    This controlled ablation adapts the Cookbook's factor-research mindset:
+    keep the target, holdout dates, and model settings fixed while comparing
+    the incremental value of additional factors. It does not tune parameters
+    on the holdout and does not imply that the expanded set will perform better.
+    """
+    from neural_networks.features import build_direction_dataset
+
+    all_features, target = build_direction_dataset(ohlcv, horizon=horizon)
+    original_columns = [
+        "return_1d",
+        "return_5d",
+        "return_20d",
+        "volatility_20d",
+        "relative_volume_20d",
+        "range_pct",
+    ]
+    missing = [column for column in original_columns if column not in all_features.columns]
+    if missing:
+        raise ValueError("Original feature columns missing: " + ", ".join(missing))
+
+    # Both variants use the exact same labelled rows and chronological split.
+    feature_sets = [
+        ("Original factors", all_features.loc[:, original_columns]),
+        ("Expanded factors", all_features),
+    ]
+    rows: list[dict[str, Any]] = []
+    for feature_set_name, features in feature_sets:
+        X_train, X_test, y_train, y_test = chronological_split(features, target, train_fraction)
+        if y_train.nunique() < 2:
+            raise ValueError("Training target must contain both classes")
+        models = [
+            ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000))),
+            ("MLP", _mlp(random_state)),
+        ]
+        for model_name, model in models:
+            model.fit(X_train, y_train)
+            predicted = model.predict(X_test)
+            probability_up = None
+            if hasattr(model, "predict_proba") and 1 in model.classes_:
+                probability_up = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
+            row = _score_row(model_name, y_test, predicted, probability_up)
+            row.update(
+                {
+                    "Feature set": feature_set_name,
+                    "Feature count": int(features.shape[1]),
+                    "Train start": str(features.index[0].date()),
+                    "Train end": str(X_train.index[-1].date()),
+                    "Test start": str(X_test.index[0].date()),
+                    "Test end": str(X_test.index[-1].date()),
+                    "Test rows": int(len(X_test)),
+                }
+            )
+            rows.append(row)
+    return pd.DataFrame(rows)[
+        [
+            "Feature set",
+            "Model",
+            "Feature count",
+            "Accuracy",
+            "Balanced accuracy",
+            "ROC-AUC",
+            "Train start",
+            "Train end",
+            "Test start",
+            "Test end",
+            "Test rows",
+        ]
+    ]
