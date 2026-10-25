@@ -10,12 +10,28 @@ from neural_networks.features import build_direction_dataset, build_features
 def sample_ohlcv(rows: int = 180) -> pd.DataFrame:
     index = pd.date_range("2024-01-01", periods=rows, freq="B")
     close = pd.Series(100 + np.arange(rows) * 0.2 + np.sin(np.arange(rows)), index=index)
-    return pd.DataFrame({"Open": close * 0.999, "High": close * 1.01, "Low": close * 0.99, "Close": close, "Volume": 100_000 + np.arange(rows) * 100}, index=index)
+    return pd.DataFrame(
+        {
+            "Open": close * 0.999,
+            "High": close * 1.01,
+            "Low": close * 0.99,
+            "Close": close,
+            "Volume": 100_000 + np.arange(rows) * 100,
+        },
+        index=index,
+    )
 
 
 def test_features_have_expected_columns_and_causal_index() -> None:
     features = build_features(sample_ohlcv())
-    assert list(features.columns) == ["return_1d", "return_5d", "return_20d", "volatility_20d", "relative_volume_20d", "range_pct"]
+    assert list(features.columns) == [
+        "return_1d",
+        "return_5d",
+        "return_20d",
+        "volatility_20d",
+        "relative_volume_20d",
+        "range_pct",
+    ]
 
 
 def test_dataset_excludes_rows_without_future_label() -> None:
