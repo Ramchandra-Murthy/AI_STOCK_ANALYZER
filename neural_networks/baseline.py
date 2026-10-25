@@ -12,9 +12,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 
-def chronological_split(
-    features: pd.DataFrame, target: pd.Series, train_fraction: float = 0.70
-):
+def chronological_split(features: pd.DataFrame, target: pd.Series, train_fraction: float = 0.70):
     """Split ordered observations without shuffling."""
     if not 0.5 <= train_fraction < 0.95:
         raise ValueError("train_fraction must be in [0.5, 0.95)")
