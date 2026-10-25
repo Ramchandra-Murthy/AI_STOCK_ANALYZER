@@ -1,5 +1,7 @@
 import time
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yfinance as yf
@@ -26,6 +28,7 @@ DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 40
 MAX_CANDIDATES_PER_EXCHANGE = 10
 ANALYSIS_PERIOD = "1y"
+MAX_DAILY_DATA_AGE_DAYS = 4
 FAILED_TICKER_TTL_SECONDS = 5 * 60
 _failed_tickers_until: dict[str, float] = {}
 
@@ -102,6 +105,22 @@ def _format_last_data_date(index: pd.Index) -> str:
     if not isinstance(index, pd.DatetimeIndex) or index.empty:
         return "UNKNOWN"
     return index[-1].date().isoformat()
+
+
+def _daily_data_status(index: pd.Index, today: date | None = None) -> str:
+    """Classify daily candle freshness without treating an unknown timestamp as fresh."""
+    if not isinstance(index, pd.DatetimeIndex) or index.empty:
+        return "UNKNOWN"
+    latest = index.max()
+    if pd.isna(latest):
+        return "UNKNOWN"
+    latest_date = latest.date()
+    current_date = today or datetime.now(ZoneInfo("Asia/Kolkata")).date()
+    if latest_date > current_date:
+        return "FUTURE DATE"
+    if (current_date - latest_date).days > MAX_DAILY_DATA_AGE_DAYS:
+        return "STALE"
+    return "FRESH"
 
 
 def _download_chunk(chunk: list[str]) -> pd.DataFrame:
@@ -312,8 +331,17 @@ def _analyze_history(
             "Exchange": exchange,
             "Sector": sector_for_symbol(symbol),
             "Price": round(float(last["Close"]), 2),
+            "Data Provider": "Yahoo Finance",
+            "Data Retrieved At": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(
+                timespec="seconds"
+            ),
             "Data Frequency": "DAILY",
             "Last Data Date": last_data_date,
+            "Data Freshness": _daily_data_status(
+                pd.DatetimeIndex([last_data_date])
+                if last_data_date != "UNKNOWN"
+                else pd.DatetimeIndex([])
+            ),
             "Data Status": "DAILY DATA · NOT INTRADAY",
             "Avg Turnover (₹)": (
                 round(average_turnover, 0) if average_turnover is not None else None
@@ -363,6 +391,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
             "histories_returned": 0,
             "histories_rejected": 0,
             "analysis_download_failed": 0,
+            "stale_data_rejected": 0,
+            "unknown_timestamp_rejected": 0,
+            "future_timestamp_rejected": 0,
             "analyses_completed": 0,
             "final_rows": 0,
             "cached_failures_skipped": 0,
@@ -438,8 +469,19 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     analysis_started = time.perf_counter()
     rows: list[dict[str, Any]] = []
     for ticker in analysis_tickers:
-        row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
         exchange = coverage_by_ticker.get(ticker)
+        ticker_history = _extract_history_frame(history, ticker)
+        freshness = _daily_data_status(ticker_history.index)
+        if freshness != "FRESH":
+            if exchange in coverage:
+                if freshness == "STALE":
+                    coverage[exchange]["stale_data_rejected"] += 1
+                elif freshness == "FUTURE DATE":
+                    coverage[exchange]["future_timestamp_rejected"] += 1
+                else:
+                    coverage[exchange]["unknown_timestamp_rejected"] += 1
+            continue
+        row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
         if row is not None:
             rows.append(row)
             if exchange in coverage:
