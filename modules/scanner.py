@@ -12,6 +12,7 @@ from services.market_service import WATCHLIST
 from services.watchlist_service import WatchlistError
 from services.watchlist_ui import get_or_create_default_watchlist
 
+
 @st.cache_data(ttl=300, show_spinner=False)
 def _cached_market_scan(exchange_filter: str) -> pd.DataFrame:
     """Reuse broad-market scan results briefly instead of repeating provider downloads."""
