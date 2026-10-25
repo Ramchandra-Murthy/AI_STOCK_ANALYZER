@@ -135,7 +135,13 @@ def yahoo_symbol_for_bse_code(code: str) -> str | None:
     # Restrict this fallback to known curated candidates so arbitrary or inactive
     # six-digit codes do not become valid-looking tickers.
     if normalized_code in BSE_CANDIDATES:
-        return normalized_code
+        # The curated baskets are maintained in matching company order. Use the
+        # paired company symbol rather than requesting invalid numeric .BO tickers.
+        paired_symbols = dict(zip(BSE_CANDIDATES, NSE_CANDIDATES, strict=True))
+        yahoo_symbol = paired_symbols.get(normalized_code)
+        replacements = {"ZOMATO": "ETERNAL", "TATAMOTORS": "TMPV"}
+        if yahoo_symbol:
+            return replacements.get(yahoo_symbol, yahoo_symbol)
 
     return None
 
