@@ -125,8 +125,19 @@ def _download_bse_equity_list() -> list[str]:
 
 
 def yahoo_symbol_for_bse_code(code: str) -> str | None:
-    """Return the Yahoo Finance symbol mapped to a BSE scrip code."""
-    return _bse_yahoo_symbol_map.get(str(code).strip())
+    """Return a Yahoo Finance ticker for a BSE code, including curated fallback codes."""
+    normalized_code = str(code).strip()
+    mapped_symbol = _bse_yahoo_symbol_map.get(normalized_code)
+    if mapped_symbol:
+        return mapped_symbol
+
+    # Yahoo Finance supports six-digit BSE scrip codes with the .BO suffix.
+    # Keep curated BSE candidates usable when BSE's live security-master endpoint
+    # is blocked (for example, HTTP 403) and the symbol map could not be populated.
+    if normalized_code.isdigit() and len(normalized_code) == 6:
+        return normalized_code
+
+    return None
 
 
 def dynamic_nse_symbols() -> list[str]:
