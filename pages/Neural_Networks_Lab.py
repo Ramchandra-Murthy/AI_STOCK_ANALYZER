@@ -12,6 +12,7 @@ from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
     compare_holdout_baselines,
+    factor_information_coefficient,
     walk_forward_evaluation,
 )
 from neural_networks.features import build_direction_dataset
@@ -294,6 +295,31 @@ if raw is not None:
                     "Download feature ablation results CSV",
                     data=ablation.to_csv(index=False).encode("utf-8"),
                     file_name="neural_networks_feature_ablation.csv",
+                    mime="text/csv",
+                )
+
+                st.subheader("Factor Information Coefficient (IC)")
+                st.caption(
+                    "Spearman rank correlation between each factor and the subsequent "
+                    f"{int(horizon)}-day forward return, reported across five chronological windows. "
+                    "IC is a research diagnostic, not evidence of a profitable strategy."
+                )
+                factor_ic = factor_information_coefficient(data, horizon=int(horizon), n_windows=5)
+                st.dataframe(
+                    factor_ic.style.format(
+                        {
+                            "Spearman IC": "{:.3f}",
+                            "IC standard deviation": "{:.3f}",
+                        },
+                        na_rep="—",
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download factor IC diagnostics CSV",
+                    data=factor_ic.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_factor_ic.csv",
                     mime="text/csv",
                 )
 

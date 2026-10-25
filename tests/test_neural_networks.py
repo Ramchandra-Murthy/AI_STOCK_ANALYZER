@@ -150,3 +150,22 @@ def test_feature_ablation_uses_same_holdout_window_for_each_variant() -> None:
     assert result.loc[result["Feature set"] == "Original factors", "Feature count"].eq(6).all()
     assert result.loc[result["Feature set"] == "Expanded factors", "Feature count"].eq(10).all()
     assert result["Accuracy"].between(0, 1).all()
+
+
+def test_factor_information_coefficient_reports_chronological_windows() -> None:
+    from neural_networks.evaluation import factor_information_coefficient
+
+    data = sample_ohlcv(rows=520)
+    result = factor_information_coefficient(data, horizon=5, n_windows=5)
+    summary = result.loc[result["Window"] == "Summary"]
+    detail = result.loc[result["Window"] != "Summary"]
+
+    assert len(summary) == 10
+    assert len(detail) == 50
+    assert summary["Factor"].nunique() == 10
+    assert detail.groupby("Factor")["Window"].nunique().eq(5).all()
+    assert summary["Valid windows"].between(0, 5).all()
+    assert summary["Positive windows"].between(0, 5).all()
+    assert detail["Observations"].gt(0).all()
+    assert summary["Window start"].notna().all()
+    assert summary["Window end"].notna().all()

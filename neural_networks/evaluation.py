@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from sklearn.dummy import DummyClassifier
 from sklearn.impute import SimpleImputer
@@ -209,3 +210,86 @@ def compare_feature_ablation(
             "Test rows",
         ]
     ]
+
+
+def factor_information_coefficient(
+    ohlcv: pd.DataFrame,
+    horizon: int = 5,
+    n_windows: int = 5,
+) -> pd.DataFrame:
+    """Summarize factor rank correlation with forward returns by chronological window.
+
+    Positive IC means higher factor values tended to coincide with higher forward
+    returns within that window. IC is descriptive, not a trading strategy or a
+    guarantee of out-of-sample predictive value.
+    """
+    from neural_networks.features import REQUIRED_COLUMNS, build_features
+
+    if horizon < 1:
+        raise ValueError("horizon must be at least 1")
+    if n_windows < 2:
+        raise ValueError("n_windows must be at least 2")
+    missing = [column for column in REQUIRED_COLUMNS if column not in ohlcv.columns]
+    if missing:
+        raise ValueError("Missing required OHLCV columns: " + ", ".join(missing))
+
+    frame = ohlcv.loc[:, REQUIRED_COLUMNS].copy().sort_index()
+    close = pd.to_numeric(frame["Close"], errors="coerce").astype(float)
+    entry_close = close.shift(-1)
+    exit_close = close.shift(-(horizon + 1))
+    forward_return = exit_close / entry_close - 1.0
+    features = build_features(frame)
+    valid = (
+        features.notna().all(axis=1)
+        & forward_return.notna()
+        & entry_close.gt(0)
+        & exit_close.gt(0)
+        & close.gt(0)
+    )
+    features = features.loc[valid]
+    forward_return = forward_return.loc[valid]
+    if len(features) < n_windows * 10:
+        raise ValueError(
+            f"Need at least {n_windows * 10} valid observations for {n_windows} IC windows"
+        )
+
+    window_indices = [
+        part for part in np.array_split(np.arange(len(features)), n_windows) if len(part)
+    ]
+    rows: list[dict[str, Any]] = []
+    for factor in features.columns:
+        correlations: list[float] = []
+        for window_number, positions in enumerate(window_indices, start=1):
+            factor_values = features.iloc[list(positions)][factor]
+            returns = forward_return.iloc[list(positions)]
+            pair = pd.concat([factor_values, returns], axis=1).dropna()
+            ic = float(pair.iloc[:, 0].corr(pair.iloc[:, 1], method="spearman"))
+            if pd.isna(ic):
+                ic = float("nan")
+            correlations.append(ic)
+            rows.append(
+                {
+                    "Factor": factor,
+                    "Window": window_number,
+                    "Window start": str(pair.index.min().date()) if not pair.empty else "",
+                    "Window end": str(pair.index.max().date()) if not pair.empty else "",
+                    "Observations": int(len(pair)),
+                    "Spearman IC": ic,
+                }
+            )
+        valid_ics = [value for value in correlations if pd.notna(value)]
+        summary = {
+            "Factor": factor,
+            "Window": "Summary",
+            "Window start": str(features.index.min().date()),
+            "Window end": str(features.index.max().date()),
+            "Observations": int(len(features)),
+            "Spearman IC": (float(sum(valid_ics) / len(valid_ics)) if valid_ics else float("nan")),
+            "IC standard deviation": (
+                float(pd.Series(valid_ics).std(ddof=0)) if valid_ics else float("nan")
+            ),
+            "Positive windows": int(sum(value > 0 for value in valid_ics)),
+            "Valid windows": int(len(valid_ics)),
+        }
+        rows.append(summary)
+    return pd.DataFrame(rows)
