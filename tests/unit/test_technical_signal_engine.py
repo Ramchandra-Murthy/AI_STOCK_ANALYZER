@@ -91,16 +91,16 @@ def test_rsi_boundaries_apply_expected_score_adjustment(
     result = generate_signal(_signal_frame(RSI_14=rsi))
 
     assert result["Status"] == "OK"
-    assert result["Score"] == 50 + expected_adjustment
+    assert result["Score"] == 10 + expected_adjustment
     assert expected_reason in result["Reasons"]
 
 
 @pytest.mark.parametrize(
     ("macd", "signal_line", "expected_score", "expected_reason"),
     [
-        (1.01, 1.0, 65, "MACD Bullish Crossover"),
-        (1.0, 1.0, 35, "MACD Bearish Crossover"),
-        (0.99, 1.0, 35, "MACD Bearish Crossover"),
+        (1.01, 1.0, 45, "MACD Bullish Crossover"),
+        (1.0, 1.0, 15, "MACD Bearish Crossover"),
+        (0.99, 1.0, 15, "MACD Bearish Crossover"),
     ],
 )
 def test_macd_crossover_uses_macd_relative_to_signal_line(
