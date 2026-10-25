@@ -1,4 +1,4 @@
-""""Tests for the isolated neural-network research baseline."""
+"""Tests for the isolated neural-network research baseline."""
 
 import numpy as np
 import pandas as pd
