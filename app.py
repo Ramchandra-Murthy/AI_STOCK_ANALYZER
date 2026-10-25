@@ -126,6 +126,12 @@ pages = {
         st.Page(show_research, title="Stock Research", icon="🔍", url_path="stock-research"),
         st.Page(show_fundamentals, title="Fundamentals", icon="📊", url_path="fundamentals"),
         st.Page(show_prediction, title="AI Prediction", icon="🤖", url_path="ai-prediction"),
+        st.Page(
+            "pages/Neural_Networks_Lab.py",
+            title="Neural Networks Lab",
+            icon="🧠",
+            url_path="neural-networks-lab",
+        ),
         st.Page(show_backtesting, title="Backtesting", icon="📉", url_path="backtesting"),
         st.Page(
             "pages/Fibonacci_Gann_Research_Lab.py",
