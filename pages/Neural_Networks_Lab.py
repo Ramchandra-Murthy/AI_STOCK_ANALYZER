@@ -10,6 +10,7 @@ import yfinance as yf
 
 from neural_networks.baseline import train_baseline
 from neural_networks.features import build_direction_dataset
+from neural_networks.evaluation import compare_holdout_baselines, walk_forward_evaluation
 
 st.title("Neural Networks Lab")
 st.caption(
@@ -227,9 +228,45 @@ if raw is not None:
                     file_name="neural_networks_holdout_predictions.csv",
                     mime="text/csv",
                 )
+                st.subheader("Holdout baseline comparison")
+                st.caption(
+                    "All models use the same chronological split. The majority-class model is a "
+                    "simple reference; logistic regression tests whether a simpler linear model is competitive."
+                )
+                comparison = compare_holdout_baselines(
+                    features, target, train_fraction=float(train_fraction)
+                )
+                st.dataframe(
+                    comparison.style.format(
+                        {"Accuracy": "{:.1%}", "Balanced accuracy": "{:.1%}", "ROC-AUC": "{:.3f}"}
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+                st.subheader("Walk-forward validation")
+                st.caption(
+                    "Three expanding-window folds. Each fold trains only on earlier observations "
+                    "and evaluates on a later, non-overlapping period."
+                )
+                walk_forward = walk_forward_evaluation(features, target, n_splits=3)
+                st.dataframe(
+                    walk_forward.style.format(
+                        {"Accuracy": "{:.1%}", "Balanced accuracy": "{:.1%}", "ROC-AUC": "{:.3f}"}
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download walk-forward results CSV",
+                    data=walk_forward.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_walk_forward_results.csv",
+                    mime="text/csv",
+                )
                 st.info(
-                    "Interpretation caution: accuracy and ROC-AUC exclude transaction costs and slippage. "
-                    "Compare against a majority-class baseline and use walk-forward testing before considering any strategy."
+                    "Interpretation caution: these are directional classification metrics, not trading returns. "
+                    "They exclude transaction costs, slippage, and execution constraints. Do not treat them as "
+                    "live signals; compare results across folds and test a cost-aware strategy separately."
                 )
             except (ValueError, KeyError) as exc:
                 st.error(f"Could not train the model: {exc}")
