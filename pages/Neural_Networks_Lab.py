@@ -144,13 +144,20 @@ train_fraction = st.slider(
 backtest_col, cost_col = st.columns(2)
 with backtest_col:
     probability_threshold = st.slider(
-        "Long-entry probability threshold", min_value=0.40, max_value=0.80, value=0.50, step=0.05,
+        "Long-entry probability threshold",
+        min_value=0.40,
+        max_value=0.80,
+        value=0.50,
+        step=0.05,
         help="Fixed threshold for this holdout report; do not tune it against the holdout results.",
     )
 with cost_col:
     cost_bps_per_side = st.number_input(
-        "Estimated transaction cost (basis points per side)", min_value=0.0, max_value=200.0,
-        value=10.0, step=1.0,
+        "Estimated transaction cost (basis points per side)",
+        min_value=0.0,
+        max_value=200.0,
+        value=10.0,
+        step=1.0,
         help="Illustrative estimate per entry or exit. Replace with realistic brokerage, taxes, spread, and slippage assumptions.",
     )
 
@@ -209,7 +216,9 @@ if raw is not None:
                         "more history."
                     )
                     st.stop()
-                model, metrics = train_baseline(features, target, train_fraction=float(train_fraction))
+                model, metrics = train_baseline(
+                    features, target, train_fraction=float(train_fraction)
+                )
                 split_at = int(len(features) * float(train_fraction))
                 test_dates = features.index[split_at:]
                 left, middle, right = st.columns(3)
