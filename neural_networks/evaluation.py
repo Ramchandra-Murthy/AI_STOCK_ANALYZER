@@ -132,8 +132,6 @@ def walk_forward_evaluation(
             rows.append(row)
     return pd.DataFrame(rows)
 
-
-
 def compare_feature_ablation(
     ohlcv: pd.DataFrame,
     horizon: int = 5,
@@ -169,9 +167,7 @@ def compare_feature_ablation(
     ]
     rows: list[dict[str, Any]] = []
     for feature_set_name, features in feature_sets:
-        X_train, X_test, y_train, y_test = chronological_split(
-            features, target, train_fraction
-        )
+        X_train, X_test, y_train, y_test = chronological_split(features, target, train_fraction)
         if y_train.nunique() < 2:
             raise ValueError("Training target must contain both classes")
         models = [
