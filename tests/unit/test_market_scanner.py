@@ -51,6 +51,4 @@ def test_market_scanner_marks_confidence_as_not_calibrated_and_exposes_reasons()
     assert row["AI Score"] == 45
     assert row["Confidence"] is None
     assert row["Confidence Status"] == "Not calibrated"
-    assert row["Signal Reasons"] == (
-        "20 SMA above 50 SMA (Bullish); MACD Bullish Crossover"
-    )
+    assert row["Signal Reasons"] == ("20 SMA above 50 SMA (Bullish); MACD Bullish Crossover")
