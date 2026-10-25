@@ -29,9 +29,23 @@ def test_features_have_expected_columns_and_causal_index() -> None:
         "return_5d",
         "return_20d",
         "volatility_20d",
+        "sma_distance_20d",
         "relative_volume_20d",
+        "volume_zscore_20d",
+        "rsi_14",
+        "atr_pct_14",
         "range_pct",
     ]
+
+
+def test_features_do_not_change_when_future_rows_change() -> None:
+    data = sample_ohlcv()
+    original = build_features(data)
+    changed = data.copy()
+    changed.loc[changed.index[-1], ["Open", "High", "Low", "Close", "Volume"]] *= 3
+    updated = build_features(changed)
+    # A future observation must not affect any earlier feature vector.
+    pd.testing.assert_frame_equal(original.iloc[:-1], updated.iloc[:-1])
 
 
 def test_dataset_excludes_rows_without_future_label() -> None:
