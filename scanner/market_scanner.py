@@ -425,7 +425,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         return df
 
     # Confidence is intentionally unavailable until calibrated on out-of-sample data.
-    result = df.sort_values(by="AI Score", ascending=False).head(DISPLAY_COUNT).reset_index(drop=True)
+    result = (
+        df.sort_values(by="AI Score", ascending=False).head(DISPLAY_COUNT).reset_index(drop=True)
+    )
     for exchange in coverage:
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage
