@@ -38,7 +38,16 @@ def build_direction_dataset(
     frame = ohlcv.sort_index().copy()
     features = build_features(frame)
     close = pd.to_numeric(frame["Close"], errors="coerce").astype(float)
-    future_return = close.shift(-horizon) / close - 1.0
-    valid = features.notna().all(axis=1) & future_return.notna() & close.gt(0)
+    # Match the backtest: signal after close[t], enter at close[t+1], exit at close[t+horizon+1].
+    entry_close = close.shift(-1)
+    exit_close = close.shift(-(horizon + 1))
+    future_return = exit_close / entry_close - 1.0
+    valid = (
+        features.notna().all(axis=1)
+        & future_return.notna()
+        & entry_close.gt(0)
+        & exit_close.gt(0)
+        & close.gt(0)
+    )
     target = future_return.loc[valid].gt(0).astype("int8")
     return features.loc[valid], target
