@@ -99,7 +99,7 @@ def test_rsi_boundaries_apply_expected_score_adjustment(
     result = generate_signal(_signal_frame(RSI_14=rsi))
 
     assert result["Status"] == "OK"
-    assert result["Score"] == 10 + expected_adjustment
+    assert result["Score"] == max(0, 15 + expected_adjustment - 5)
     assert expected_reason in result["Reasons"]
 
 
