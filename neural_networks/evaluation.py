@@ -9,10 +9,10 @@ from sklearn.dummy import DummyClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, roc_auc_score
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import TimeSeriesSplit
 
 from neural_networks.baseline import chronological_split
 
