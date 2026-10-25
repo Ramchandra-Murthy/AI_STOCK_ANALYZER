@@ -17,6 +17,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.preprocessing import StandardScaler
 
+from ai_trading.features import build_features
 from ai_trading.ml_model import FEATURE_COLUMNS, make_training_dataset
 
 
@@ -185,13 +186,12 @@ def predict_lstm(
     """Predict the latest feature sequence using a fitted LSTM and scaler."""
     torch, _ = _torch_modules()
     sequence_length = int(trained["sequence_length"])
-    features, _, _ = _sequences(
-        frame,
-        sequence_length=sequence_length,
-        horizon=1,
-        threshold=0.0,
-    )
-    latest = features[-1:]
+    feature_frame = build_features(frame)[FEATURE_COLUMNS].dropna()
+    if len(feature_frame) < sequence_length:
+        raise ValueError("not enough market history for an LSTM prediction")
+    latest = feature_frame.iloc[-sequence_length:].to_numpy(dtype=np.float64)[None, :, :]
+    if not np.isfinite(latest).all():
+        raise ValueError("latest feature sequence must contain only finite values")
     scaler = trained["scaler"]
     scaled = scaler.transform(latest.reshape(-1, latest.shape[-1])).reshape(latest.shape)
     model = trained["model"]
