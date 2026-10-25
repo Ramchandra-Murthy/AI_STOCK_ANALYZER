@@ -75,7 +75,7 @@ def _show_price_divergence(df: pd.DataFrame) -> None:
         "the daily analysis close by at least 0.5%. This can reflect different observation "
         "times; it is a review flag, not proof that either value is incorrect."
     )
-    st.dataframe(divergent, use_container_width=True, hide_index=True)
+    st.dataframe(divergent, width="stretch", hide_index=True)
 
 
 def show():
@@ -153,7 +153,7 @@ def show():
         help="NSE + BSE keeps opportunities from both exchanges in the candidate pool. "
         "Low-liquidity stocks are not removed; use the Risk and turnover information for judgment.",
     )
-    if st.button("Scan", use_container_width=True):
+    if st.button("Scan", width="stretch"):
         with st.spinner("Scanning stocks..."):
             df = (
                 scan_watchlist(watchlist)
@@ -172,7 +172,23 @@ def show():
                     {"Exchange": exchange, **counts}
                     for exchange, counts in scanner_coverage.items()
                 ]
-                st.dataframe(coverage_rows, use_container_width=True, hide_index=True)
+                st.dataframe(coverage_rows, width="stretch", hide_index=True)
+                requested = sum(int(row.get("tickers_requested", 0)) for row in coverage_rows)
+                usable = sum(int(row.get("histories_returned", 0)) for row in coverage_rows)
+                coverage_pct = 100 * usable / max(1, requested)
+                if coverage_pct < 50:
+                    st.error(
+                        f"Low market-history coverage: {usable}/{requested} mapped tickers "
+                        f"({coverage_pct:.1f}%) returned usable two-candle history. "
+                        "Treat the signal list as incomplete; verify prices independently before trading."
+                    )
+                elif coverage_pct < 80:
+                    st.warning(
+                        f"Partial market-history coverage: {usable}/{requested} mapped tickers "
+                        f"({coverage_pct:.1f}%). Results may omit valid opportunities."
+                    )
+                if any(int(row.get("provider_error_chunks", 0)) for row in coverage_rows):
+                    st.caption("Provider error chunks are counted separately; recently failed tickers are briefly skipped to avoid repeated requests.")
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")
@@ -212,7 +228,7 @@ def show():
         st.success(f"{len(df)} matching stocks displayed")
         st.dataframe(
             df.head(DISPLAY_COUNT) if scan_mode == "Broad Market" else df,
-            use_container_width=True,
+            width="stretch",
             height=600,
         )
         st.download_button("⬇ Download CSV", df.to_csv(index=False), "market_scan.csv", "text/csv")
