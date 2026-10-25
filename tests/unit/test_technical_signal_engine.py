@@ -42,6 +42,7 @@ def test_technical_score_is_not_reported_as_predictive_confidence() -> None:
     assert result["Confidence"] is None
     assert result["Confidence Status"] == "Not calibrated"
 
+
 def test_zero_score_never_becomes_one_hundred_percent_confidence() -> None:
     frame = pd.DataFrame(
         [
