@@ -302,7 +302,8 @@ if raw is not None:
                 st.caption(
                     "Spearman rank correlation between each factor and the subsequent "
                     f"{int(horizon)}-day forward return, reported across five chronological windows. "
-                    "IC is a research diagnostic, not evidence of a profitable strategy."
+                    "Moving-block bootstrap intervals provide a rough uncertainty range while preserving short-range dependence. "
+                    "They are not formal significance tests; IC is a research diagnostic, not evidence of a profitable strategy."
                 )
                 factor_ic = factor_information_coefficient(data, horizon=int(horizon), n_windows=5)
                 st.dataframe(
@@ -310,6 +311,8 @@ if raw is not None:
                         {
                             "Spearman IC": "{:.3f}",
                             "IC standard deviation": "{:.3f}",
+                            "IC CI lower": "{:.3f}",
+                            "IC CI upper": "{:.3f}",
                         },
                         na_rep="—",
                     ),

@@ -169,3 +169,30 @@ def test_factor_information_coefficient_reports_chronological_windows() -> None:
     assert detail["Observations"].gt(0).all()
     assert summary["Window start"].notna().all()
     assert summary["Window end"].notna().all()
+
+
+def test_factor_ic_bootstrap_interval_is_bounded_and_reproducible() -> None:
+    from neural_networks.evaluation import _block_bootstrap_spearman_ic_interval
+
+    index = pd.RangeIndex(100)
+    factor = pd.Series(np.linspace(0, 1, 100), index=index)
+    returns = pd.Series(np.linspace(0, 1, 100) + np.sin(np.arange(100)) * 0.05, index=index)
+
+    first = _block_bootstrap_spearman_ic_interval(
+        factor, returns, n_bootstrap=60, block_size=5, random_state=7
+    )
+    second = _block_bootstrap_spearman_ic_interval(
+        factor, returns, n_bootstrap=60, block_size=5, random_state=7
+    )
+    assert first == second
+    assert -1 <= first[0] <= first[1] <= 1
+
+
+def test_factor_ic_bootstrap_interval_returns_nan_for_constant_factor() -> None:
+    from neural_networks.evaluation import _block_bootstrap_spearman_ic_interval
+
+    factor = pd.Series(np.ones(50))
+    returns = pd.Series(np.arange(50, dtype=float))
+    lower, upper = _block_bootstrap_spearman_ic_interval(factor, returns)
+    assert np.isnan(lower)
+    assert np.isnan(upper)

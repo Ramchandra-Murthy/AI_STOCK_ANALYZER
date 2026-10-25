@@ -212,10 +212,66 @@ def compare_feature_ablation(
     ]
 
 
+def _block_bootstrap_spearman_ic_interval(
+    factor_values: pd.Series,
+    forward_returns: pd.Series,
+    *,
+    n_bootstrap: int = 200,
+    block_size: int = 5,
+    confidence_level: float = 0.95,
+    random_state: int = 42,
+) -> tuple[float, float]:
+    """Estimate a percentile interval for Spearman IC using moving-block resampling.
+
+    Contiguous blocks preserve some local dependence. This is a descriptive
+    uncertainty estimate, not a formal significance test or proof of predictability.
+    """
+    if n_bootstrap < 50:
+        raise ValueError("n_bootstrap must be at least 50")
+    if block_size < 1:
+        raise ValueError("block_size must be at least 1")
+    pair = (
+        pd.concat([factor_values, forward_returns], axis=1)
+        .replace([np.inf, -np.inf], np.nan)
+        .dropna()
+    )
+    n = len(pair)
+    if n < max(10, block_size * 2):
+        return float("nan"), float("nan")
+    first_unique = pair.iloc[:, 0].nunique(dropna=True)
+    second_unique = pair.iloc[:, 1].nunique(dropna=True)
+    if min(first_unique, second_unique) < 2:
+        return float("nan"), float("nan")
+
+    values = pair.to_numpy(dtype=float)
+    block_size = min(block_size, n)
+    starts = np.arange(n - block_size + 1)
+    rng = np.random.default_rng(random_state)
+    estimates: list[float] = []
+    blocks_needed = int(np.ceil(n / block_size))
+    for _ in range(n_bootstrap):
+        sampled_starts = rng.choice(starts, size=blocks_needed, replace=True)
+        positions = np.concatenate(
+            [np.arange(start, start + block_size) for start in sampled_starts]
+        )[:n]
+        sample = pd.DataFrame(values[positions])
+        estimate = sample.iloc[:, 0].corr(sample.iloc[:, 1], method="spearman")
+        if pd.notna(estimate):
+            estimates.append(float(estimate))
+    if len(estimates) < max(30, int(n_bootstrap * 0.5)):
+        return float("nan"), float("nan")
+    tail = (1.0 - confidence_level) / 2.0
+    lower, upper = np.quantile(estimates, [tail, 1.0 - tail])
+    return float(lower), float(upper)
+
+
 def factor_information_coefficient(
     ohlcv: pd.DataFrame,
     horizon: int = 5,
     n_windows: int = 5,
+    n_bootstrap: int = 200,
+    block_size: int = 5,
+    confidence_level: float = 0.95,
 ) -> pd.DataFrame:
     """Summarize factor rank correlation with forward returns by chronological window.
 
@@ -229,6 +285,12 @@ def factor_information_coefficient(
         raise ValueError("horizon must be at least 1")
     if n_windows < 2:
         raise ValueError("n_windows must be at least 2")
+    if n_bootstrap < 50:
+        raise ValueError("n_bootstrap must be at least 50")
+    if block_size < 1:
+        raise ValueError("block_size must be at least 1")
+    if not 0 < confidence_level < 1:
+        raise ValueError("confidence_level must be between 0 and 1")
     missing = [column for column in REQUIRED_COLUMNS if column not in ohlcv.columns]
     if missing:
         raise ValueError("Missing required OHLCV columns: " + ", ".join(missing))
@@ -267,6 +329,14 @@ def factor_information_coefficient(
             if pd.isna(ic):
                 ic = float("nan")
             correlations.append(ic)
+            ci_lower, ci_upper = _block_bootstrap_spearman_ic_interval(
+                pair.iloc[:, 0],
+                pair.iloc[:, 1],
+                n_bootstrap=n_bootstrap,
+                block_size=block_size,
+                confidence_level=confidence_level,
+                random_state=42 + window_number,
+            )
             rows.append(
                 {
                     "Factor": factor,
@@ -275,6 +345,8 @@ def factor_information_coefficient(
                     "Window end": str(pair.index.max().date()) if not pair.empty else "",
                     "Observations": int(len(pair)),
                     "Spearman IC": ic,
+                    "IC CI lower": ci_lower,
+                    "IC CI upper": ci_upper,
                 }
             )
         valid_ics = [value for value in correlations if pd.notna(value)]
@@ -285,6 +357,8 @@ def factor_information_coefficient(
             "Window end": str(features.index.max().date()),
             "Observations": int(len(features)),
             "Spearman IC": (float(sum(valid_ics) / len(valid_ics)) if valid_ics else float("nan")),
+            "IC CI lower": float("nan"),
+            "IC CI upper": float("nan"),
             "IC standard deviation": (
                 float(pd.Series(valid_ics).std(ddof=0)) if valid_ics else float("nan")
             ),
