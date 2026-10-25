@@ -311,7 +311,6 @@ def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
     assert coverage["BSE"]["screen_tickers_missing_data"] == 40
 
 
-
 def test_bse_ticker_mapping_falls_back_to_scrip_code_when_live_map_unavailable(monkeypatch) -> None:
     from scanner import dynamic_universe
 
