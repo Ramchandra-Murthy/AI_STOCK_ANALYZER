@@ -95,6 +95,7 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
             "screen_tickers_missing_data": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
+            "history_coverage_pct": 0.0,
             "analysis_download_failed": 0,
             "analyses_completed": 0,
             "final_rows": 0,
@@ -317,7 +318,7 @@ def test_bse_ticker_mapping_falls_back_to_scrip_code_when_live_map_unavailable(m
 
     monkeypatch.setattr(dynamic_universe, "_bse_yahoo_symbol_map", {})
 
-    assert dynamic_universe.yahoo_symbol_for_bse_code("500325") == "500325"
+    assert dynamic_universe.yahoo_symbol_for_bse_code("500325") == "RELIANCE"
 
 
 def test_bse_ticker_mapping_prefers_live_symbol_map(monkeypatch) -> None:
