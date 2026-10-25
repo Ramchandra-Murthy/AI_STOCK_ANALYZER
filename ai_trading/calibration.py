@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import pandas as pd
@@ -31,12 +32,17 @@ def evaluate_calibration(
     test_fraction: float = 0.2,
     bins: int = 5,
 ) -> tuple[CalibrationMetrics, pd.DataFrame]:
-    """Evaluate probability quality on a chronological holdout."""
+    """Evaluate probability quality on a chronological holdout.
 
-    if not 0.1 <= test_fraction <= 0.5:
+    The overall calibration gap compares mean predicted probability with the
+    observed positive rate. Per-bin gaps provide additional detail; neither
+    metric alone establishes that a model is reliable or profitable.
+    """
+
+    if not math.isfinite(test_fraction) or not 0.1 <= test_fraction <= 0.5:
         raise ValueError("test_fraction must be between 0.1 and 0.5")
-    if bins < 2 or bins > 10:
-        raise ValueError("bins must be between 2 and 10")
+    if isinstance(bins, bool) or not isinstance(bins, int) or not 2 <= bins <= 10:
+        raise ValueError("bins must be an integer between 2 and 10")
 
     model, validation = train_model(
         frame,
@@ -87,7 +93,9 @@ def evaluate_calibration(
         )
         .reset_index()
     )
-    summary["calibration_gap"] = (summary["predicted_probability"] - summary["actual_rate"]).abs()
+    summary["calibration_gap"] = (
+        summary["predicted_probability"] - summary["actual_rate"]
+    ).abs()
     return metrics, summary
 
 
