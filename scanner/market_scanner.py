@@ -367,7 +367,8 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         coverage[exchange]["history_coverage_pct"] = round(
             100
             * coverage[exchange]["histories_returned"]
-            / max(1, coverage[exchange]["tickers_requested"]), 1
+            / max(1, coverage[exchange]["tickers_requested"]),
+            1,
         )
     if not movers:
         empty = pd.DataFrame()
