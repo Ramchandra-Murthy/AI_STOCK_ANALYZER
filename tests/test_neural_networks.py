@@ -45,3 +45,31 @@ def test_dataset_excludes_rows_without_future_label() -> None:
 def test_missing_columns_raise_clear_error() -> None:
     with pytest.raises(ValueError, match="Missing required OHLCV columns"):
         build_features(pd.DataFrame({"Close": [1, 2]}))
+
+
+def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
+    from neural_networks.evaluation import (
+        compare_holdout_baselines,
+        walk_forward_evaluation,
+    )
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+
+    comparison = compare_holdout_baselines(features, target, train_fraction=0.70)
+    assert set(comparison["Model"]) == {
+        "Majority-class",
+        "Logistic regression",
+        "MLP",
+    }
+    assert comparison["Accuracy"].between(0, 1).all()
+
+    walk_forward = walk_forward_evaluation(features, target, n_splits=3)
+    assert len(walk_forward) == 9
+    assert set(walk_forward["Model"]) == {
+        "Majority-class",
+        "Logistic regression",
+        "MLP",
+    }
+    assert (walk_forward["Train end"] < walk_forward["Test start"]).all()
+    assert walk_forward["Accuracy"].between(0, 1).all()
