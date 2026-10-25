@@ -11,6 +11,7 @@ import yfinance as yf
 from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import compare_holdout_baselines, walk_forward_evaluation
 from neural_networks.features import build_direction_dataset
+from neural_networks.strategy_backtest import backtest_holdout_signals
 
 st.title("Neural Networks Lab")
 st.caption(
@@ -140,6 +141,18 @@ train_fraction = st.slider(
     value=0.70,
     step=0.05,
 )
+backtest_col, cost_col = st.columns(2)
+with backtest_col:
+    probability_threshold = st.slider(
+        "Long-entry probability threshold", min_value=0.40, max_value=0.80, value=0.50, step=0.05,
+        help="Fixed threshold for this holdout report; do not tune it against the holdout results.",
+    )
+with cost_col:
+    cost_bps_per_side = st.number_input(
+        "Estimated transaction cost (basis points per side)", min_value=0.0, max_value=200.0,
+        value=10.0, step=1.0,
+        help="Illustrative estimate per entry or exit. Replace with realistic brokerage, taxes, spread, and slippage assumptions.",
+    )
 
 if raw is not None:
     try:
@@ -196,7 +209,7 @@ if raw is not None:
                         "more history."
                     )
                     st.stop()
-                _, metrics = train_baseline(features, target, train_fraction=float(train_fraction))
+                model, metrics = train_baseline(features, target, train_fraction=float(train_fraction))
                 split_at = int(len(features) * float(train_fraction))
                 test_dates = features.index[split_at:]
                 left, middle, right = st.columns(3)
@@ -261,6 +274,64 @@ if raw is not None:
                     "Download walk-forward results CSV",
                     data=walk_forward.to_csv(index=False).encode("utf-8"),
                     file_name="neural_networks_walk_forward_results.csv",
+                    mime="text/csv",
+                )
+
+                st.subheader("Cost-aware holdout strategy backtest")
+                st.caption(
+                    "Long-only, non-overlapping trades. Signals are generated after the signal-date close; "
+                    "entry is the next close and exit is the close after the selected holding horizon. "
+                    "The threshold and cost assumptions are explicit and should not be tuned on the holdout."
+                )
+                class_labels = list(model.classes_)
+                probability_up = model.predict_proba(features.iloc[split_at:])[
+                    :, class_labels.index(1)
+                ]
+                backtest_summary, backtest_trades = backtest_holdout_signals(
+                    data["Close"],
+                    test_dates,
+                    probability_up,
+                    horizon=int(horizon),
+                    threshold=float(probability_threshold),
+                    cost_bps_per_side=float(cost_bps_per_side),
+                )
+                st.dataframe(
+                    backtest_summary.style.format(
+                        {
+                            "Total return": "{:.2%}",
+                            "Maximum drawdown": "{:.2%}",
+                            "Annualized Sharpe": "{:.2f}",
+                            "Win rate": "{:.1%}",
+                            "Cost per side (bps)": "{:.1f}",
+                            "Threshold": "{:.2f}",
+                        },
+                        na_rep="—",
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.caption(
+                    "Simplified research simulation: excludes taxes and market impact and assumes close-price fills. "
+                    "The buy-and-hold benchmark uses the same evaluation window and estimated round-trip costs."
+                )
+                with st.expander("View backtest trades"):
+                    st.dataframe(
+                        backtest_trades.style.format(
+                            {
+                                "Probability up": "{:.3f}",
+                                "Entry close": "{:.2f}",
+                                "Exit close": "{:.2f}",
+                                "Gross return": "{:.2%}",
+                                "Net return after costs": "{:.2%}",
+                            }
+                        ),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                st.download_button(
+                    "Download backtest trades CSV",
+                    data=backtest_trades.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_cost_aware_trades.csv",
                     mime="text/csv",
                 )
                 st.info(
