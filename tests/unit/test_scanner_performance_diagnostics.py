@@ -3,7 +3,9 @@ from scanner import market_scanner
 
 def test_market_scan_exposes_stage_timings_when_screen_has_no_movers(monkeypatch) -> None:
     monkeypatch.setattr(market_scanner, "merge_nse_universe", lambda: ["RELIANCE"])
-    monkeypatch.setattr(market_scanner, "_batch_change_screen", lambda candidates, coverage=None: [])
+    monkeypatch.setattr(
+        market_scanner, "_batch_change_screen", lambda candidates, coverage=None: []
+    )
 
     result = market_scanner.market_scan("NSE")
 
