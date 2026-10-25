@@ -316,7 +316,8 @@ def _analyze_history(
             "MACD": round(float(last["MACD"]), 2),
             "ATR": round(float(last["ATR"]), 2),
             "AI Score": signal["Score"],
-            "Confidence": signal["Confidence"],
+            "Confidence": signal.get("Confidence"),
+            "Confidence Status": signal.get("Confidence Status", "Not calibrated"),
             "Risk": signal.get("Risk", "Medium"),
             "Recommendation": signal["Recommendation"],
         }
@@ -423,11 +424,8 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         df.attrs["scanner_coverage"] = coverage
         return df
 
-    result = (
-        df.sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
-        .head(DISPLAY_COUNT)
-        .reset_index(drop=True)
-    )
+    # Confidence is intentionally unavailable until calibrated on out-of-sample data.
+    result = df.sort_values(by="AI Score", ascending=False).head(DISPLAY_COUNT).reset_index(drop=True)
     for exchange in coverage:
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage
