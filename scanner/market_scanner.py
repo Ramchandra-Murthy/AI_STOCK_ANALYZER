@@ -332,10 +332,16 @@ def _analyze_history(
             "Sector": sector_for_symbol(symbol),
             "Price": round(float(last["Close"]), 2),
             "Data Provider": "Yahoo Finance",
-            "Data Retrieved At": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(timespec="seconds"),
+            "Data Retrieved At": datetime.now(ZoneInfo("Asia/Kolkata")).isoformat(
+                timespec="seconds"
+            ),
             "Data Frequency": "DAILY",
             "Last Data Date": last_data_date,
-            "Data Freshness": _daily_data_status(pd.DatetimeIndex([last_data_date]) if last_data_date != "UNKNOWN" else pd.DatetimeIndex([])),
+            "Data Freshness": _daily_data_status(
+                pd.DatetimeIndex([last_data_date])
+                if last_data_date != "UNKNOWN"
+                else pd.DatetimeIndex([])
+            ),
             "Data Status": "DAILY DATA · NOT INTRADAY",
             "Avg Turnover (₹)": (
                 round(average_turnover, 0) if average_turnover is not None else None
