@@ -335,7 +335,10 @@ def _analyze_history(
 
 def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     """Scan the selected exchange universe using batched market data and local analysis."""
+    scan_started = time.perf_counter()
+    timings: dict[str, float] = {}
     selected = exchange_filter.strip().upper()
+    universe_started = time.perf_counter()
     candidates = {}
     if selected in ("NSE", "NSE + BSE", "BOTH"):
         candidates["NSE"] = merge_nse_universe()
@@ -343,6 +346,7 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         candidates["BSE"] = merge_bse_universe()
     if not candidates:
         raise ValueError(f"Unsupported exchange filter: {exchange_filter}")
+    timings["universe_build_seconds"] = time.perf_counter() - universe_started
     coverage = {
         exchange: {
             "candidates": len(symbols),
@@ -368,7 +372,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         for symbol in symbols
         if (ticker := _yahoo_ticker(symbol, exchange)) is not None
     }
+    screen_started = time.perf_counter()
     movers = _batch_change_screen(candidates, coverage=coverage)
+    timings["screen_seconds"] = time.perf_counter() - screen_started
     for exchange in coverage:
         coverage[exchange]["histories_rejected"] = max(
             0, coverage[exchange]["tickers_requested"] - coverage[exchange]["histories_returned"]
@@ -382,6 +388,8 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     if not movers:
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        timings["total_seconds"] = time.perf_counter() - scan_started
+        empty.attrs["scanner_timings"] = timings
         return empty
 
     analysis_tickers: list[str] = []
@@ -407,7 +415,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         empty.attrs["scanner_coverage"] = coverage
         return empty
 
+    analysis_download_started = time.perf_counter()
     history = _download_analysis_chunk(analysis_tickers)
+    timings["analysis_download_seconds"] = time.perf_counter() - analysis_download_started
     if history.empty:
         for exchange in coverage:
             if any(coverage_by_ticker.get(ticker) == exchange for ticker in analysis_tickers):
@@ -418,6 +428,7 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
 
     turnover_by_ticker = {ticker: turnover for ticker, _exchange, _change, turnover in movers}
 
+    analysis_started = time.perf_counter()
     rows: list[dict[str, Any]] = []
     for ticker in analysis_tickers:
         row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
@@ -427,6 +438,7 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
             if exchange in coverage:
                 coverage[exchange]["analyses_completed"] += 1
 
+    timings["analysis_seconds"] = time.perf_counter() - analysis_started
     df = pd.DataFrame(rows)
     if df.empty:
         df.attrs["scanner_coverage"] = coverage
@@ -439,4 +451,6 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
     for exchange in coverage:
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage
+    timings["total_seconds"] = time.perf_counter() - scan_started
+    result.attrs["scanner_timings"] = timings
     return result
