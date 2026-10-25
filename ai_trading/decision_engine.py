@@ -25,7 +25,7 @@ def build_signal_decision(
     trend_score: float = 0.0,
     calibration_gap: float | None = None,
 ) -> SignalDecision:
-    """Combine ML probability, validation, trend and calibration into one decision."""
+    """Combine directional evidence with separate model-reliability diagnostics."""
     if not 0.0 <= probability_up <= 1.0:
         raise ValueError("probability_up must be between 0 and 1")
     if not 0.0 <= accuracy <= 1.0:
@@ -46,9 +46,8 @@ def build_signal_decision(
     confidence = 0.50 * model_confidence + 0.30 * validation + 0.20 * abs(trend_score)
     confidence_pct = round(max(0.0, min(1.0, confidence)) * 100.0, 1)
 
-    directional_score = (
-        0.65 * (2.0 * probability_up - 1.0) + 0.20 * trend_score + 0.15 * (2.0 * validation - 1.0)
-    )
+    # Validation quality affects reliability/confidence, never the direction.
+    directional_score = 0.75 * (2.0 * probability_up - 1.0) + 0.25 * trend_score
     if confidence_pct < 55.0:
         signal = "NEUTRAL"
     elif directional_score >= 0.15:
