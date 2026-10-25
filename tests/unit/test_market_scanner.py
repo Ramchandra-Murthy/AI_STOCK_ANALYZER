@@ -5,7 +5,7 @@ import pandas as pd
 from scanner.market_scanner import _analyze_history
 
 
-def test_market_scanner_preserves_signal_confidence() -> None:
+def test_market_scanner_marks_confidence_as_not_calibrated() -> None:
     history = pd.DataFrame(
         {
             "Open": [100.0] * 50,
@@ -21,7 +21,8 @@ def test_market_scanner_preserves_signal_confidence() -> None:
     signal = {
         "Status": "OK",
         "Score": 45,
-        "Confidence": 55.0,
+        "Confidence": None,
+        "Confidence Status": "Not calibrated",
         "Risk": "Medium",
         "Recommendation": "HOLD",
     }
@@ -47,4 +48,4 @@ def test_market_scanner_preserves_signal_confidence() -> None:
 
     assert row is not None
     assert row["AI Score"] == 45
-    assert row["Confidence"] == 55.0
+    assert row["Confidence"] is None
