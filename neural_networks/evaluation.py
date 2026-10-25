@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from sklearn.dummy import DummyClassifier
 from sklearn.impute import SimpleImputer
@@ -253,7 +254,7 @@ def factor_information_coefficient(
             f"Need at least {n_windows * 10} valid observations for {n_windows} IC windows"
         )
 
-    window_indices = [part for part in __import__("numpy").array_split(range(len(features)), n_windows) if len(part)]
+    window_indices = [part for part in np.array_split(np.arange(len(features)), n_windows) if len(part)]
     rows: list[dict[str, Any]] = []
     for factor in features.columns:
         correlations: list[float] = []
