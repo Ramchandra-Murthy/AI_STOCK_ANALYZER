@@ -18,6 +18,7 @@ def _cached_market_scan(exchange_filter: str) -> pd.DataFrame:
     """Reuse broad-market scan results briefly instead of repeating provider downloads."""
     return market_scan(exchange_filter)
 
+
 def _show_data_quality(df: pd.DataFrame) -> None:
     """Show transparent checks for the rows returned by the scanner."""
     st.subheader("Data quality")
@@ -48,6 +49,7 @@ def _show_data_quality(df: pd.DataFrame) -> None:
         "These checks cover only rows returned by the scanner; they do not verify quote freshness or validate the underlying data provider."
     )
 
+
 def _show_price_divergence(df: pd.DataFrame) -> None:
     """Flag differences between daily analysis close and the latest market observation."""
     required = ("Price", "Latest Observation Price")
@@ -74,6 +76,7 @@ def _show_price_divergence(df: pd.DataFrame) -> None:
         "times; it is a review flag, not proof that either value is incorrect."
     )
     st.dataframe(divergent, width="stretch", hide_index=True)
+
 
 def show():
     st.title("📡 AI Market Scanner")
