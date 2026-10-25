@@ -222,7 +222,7 @@ def factor_information_coefficient(
     returns within that window. IC is descriptive, not a trading strategy or a
     guarantee of out-of-sample predictive value.
     """
-    from neural_networks.features import build_features, REQUIRED_COLUMNS
+    from neural_networks.features import REQUIRED_COLUMNS, build_features
 
     if horizon < 1:
         raise ValueError("horizon must be at least 1")
