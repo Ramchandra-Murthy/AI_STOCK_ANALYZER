@@ -211,8 +211,6 @@ def compare_feature_ablation(
         ]
     ]
 
-
-
 def factor_information_coefficient(
     ohlcv: pd.DataFrame,
     horizon: int = 5,
