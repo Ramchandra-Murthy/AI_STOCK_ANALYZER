@@ -40,7 +40,15 @@ def _signal_frame(**overrides: float) -> pd.DataFrame:
 
 def test_technical_score_is_not_reported_as_predictive_confidence() -> None:
     result = generate_signal(
-        _signal_frame(SMA_20=110.0, SMA_50=100.0, EMA_20=115.0, RSI_14=65.0, MACD=2.0, Signal=1.0, Close=112.0)
+        _signal_frame(
+            SMA_20=110.0,
+            SMA_50=100.0,
+            EMA_20=115.0,
+            RSI_14=65.0,
+            MACD=2.0,
+            Signal=1.0,
+            Close=112.0,
+        )
     )
 
     assert result["Status"] == "OK"
