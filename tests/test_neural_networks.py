@@ -38,7 +38,8 @@ def test_dataset_excludes_rows_without_future_label() -> None:
     data = sample_ohlcv()
     features, target = build_direction_dataset(data, horizon=5)
     assert features.index.equals(target.index)
-    assert features.index.max() == data.index[-6]
+    # Signal at t, enter at t+1 close, exit at t+horizon+1 close.
+    assert features.index.max() == data.index[-7]
     assert set(target.unique()).issubset({0, 1})
 
 
@@ -64,7 +65,7 @@ def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
     }
     assert comparison["Accuracy"].between(0, 1).all()
 
-    walk_forward = walk_forward_evaluation(features, target, n_splits=3)
+    walk_forward = walk_forward_evaluation(features, target, n_splits=3, horizon=5)
     assert len(walk_forward) == 9
     assert set(walk_forward["Model"]) == {
         "Majority-class",
@@ -72,6 +73,10 @@ def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
         "MLP",
     }
     assert (walk_forward["Train end"] < walk_forward["Test start"]).all()
+    for _, fold in walk_forward.groupby("Fold"):
+        train_end = pd.Timestamp(fold["Train end"].iloc[0])
+        test_start = pd.Timestamp(fold["Test start"].iloc[0])
+        assert (test_start - train_end).days >= 8
     assert walk_forward["Accuracy"].between(0, 1).all()
 
 
