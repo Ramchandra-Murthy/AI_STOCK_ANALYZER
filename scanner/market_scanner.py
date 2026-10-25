@@ -320,6 +320,7 @@ def _analyze_history(
             "Confidence Status": signal.get("Confidence Status", "Not calibrated"),
             "Risk": signal.get("Risk", "Medium"),
             "Recommendation": signal["Recommendation"],
+            "Signal Reasons": "; ".join(signal.get("Reasons", [])) or "No reasons supplied",
         }
     except (KeyError, TypeError, ValueError, IndexError):
         return None
