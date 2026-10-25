@@ -88,14 +88,11 @@ def _extract_history_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
 
     frame = frame.loc[:, required].apply(pd.to_numeric, errors="coerce")
     # Non-finite and physically invalid OHLCV rows must not enter indicators or rankings.
-    frame = frame.replace([float("inf"), float("-inf")], float("nan")).dropna(
-        subset=required
-    )
+    frame = frame.replace([float("inf"), float("-inf")], float("nan")).dropna(subset=required)
     valid_prices = (frame[["Open", "High", "Low", "Close"]] > 0).all(axis=1)
     valid_volume = frame["Volume"] >= 0
-    valid_ohlc = (
-        (frame["High"] >= frame[["Open", "Close", "Low"]].max(axis=1))
-        & (frame["Low"] <= frame[["Open", "Close", "High"]].min(axis=1))
+    valid_ohlc = (frame["High"] >= frame[["Open", "Close", "Low"]].max(axis=1)) & (
+        frame["Low"] <= frame[["Open", "Close", "High"]].min(axis=1)
     )
     return frame.loc[valid_prices & valid_volume & valid_ohlc]
 
