@@ -2,17 +2,20 @@ import pandas as pd
 
 from scanner.market_scanner import _extract_series, _yahoo_ticker
 
+
 def test_extract_series_supports_ticker_first_columns() -> None:
     columns = pd.MultiIndex.from_product([["RELIANCE.NS"], ["Close", "Volume"]])
     frame = pd.DataFrame([[100.0, 1_000_000]], columns=columns)
 
     assert _extract_series(frame, "RELIANCE.NS", "Close").tolist() == [100.0]
 
+
 def test_extract_series_supports_field_first_columns() -> None:
     columns = pd.MultiIndex.from_product([["Close", "Volume"], ["RELIANCE.NS"]])
     frame = pd.DataFrame([[100.0, 1_000_000]], columns=columns)
 
     assert _extract_series(frame, "RELIANCE.NS", "Volume").tolist() == [1_000_000]
+
 
 def test_market_scan_uses_only_requested_exchange(monkeypatch) -> None:
     from scanner import market_scanner
@@ -31,6 +34,7 @@ def test_market_scan_uses_only_requested_exchange(monkeypatch) -> None:
     assert result.empty
     assert calls == [{"BSE": ["500325"]}]
 
+
 def test_market_scan_includes_both_exchanges_by_default(monkeypatch) -> None:
     from scanner import market_scanner
 
@@ -48,12 +52,14 @@ def test_market_scan_includes_both_exchanges_by_default(monkeypatch) -> None:
     assert result.empty
     assert calls == [{"NSE": ["RELIANCE"], "BSE": ["500325"]}]
 
+
 def test_bse_candidates_follow_selected_nse_cap_basket() -> None:
     from scanner.universe import bse_candidates_for_nse_symbols
 
     selected = {"RELIANCE", "TCS", "NOT_IN_CURATED_UNIVERSE"}
 
     assert bse_candidates_for_nse_symbols(selected) == ["500325", "532540"]
+
 
 def test_day_trader_cap_filter_includes_bse_candidates() -> None:
     from scanner.day_trader_opportunity import select_day_trader_universe
@@ -63,6 +69,7 @@ def test_day_trader_cap_filter_includes_bse_candidates() -> None:
     assert ("500325", "BSE") in selected
     assert ("532540", "BSE") in selected
     assert all(exchange == "BSE" for _symbol, exchange in selected)
+
 
 def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -> None:
     from scanner import market_scanner
@@ -96,6 +103,7 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
         }
     }
 
+
 def test_format_last_data_date_returns_iso_date_for_datetime_index() -> None:
     from scanner.market_scanner import _format_last_data_date
 
@@ -103,11 +111,13 @@ def test_format_last_data_date_returns_iso_date_for_datetime_index() -> None:
 
     assert _format_last_data_date(index) == "2026-10-19"
 
+
 def test_format_last_data_date_does_not_invent_date_for_unknown_index() -> None:
     from scanner.market_scanner import _format_last_data_date
 
     assert _format_last_data_date(pd.RangeIndex(2)) == "UNKNOWN"
     assert _format_last_data_date(pd.DatetimeIndex([])) == "UNKNOWN"
+
 
 def test_watchlist_observation_columns_distinguish_daily_quote_from_tick_live() -> None:
     from scanner.watchlist_scanner import _observation_columns
@@ -128,6 +138,7 @@ def test_watchlist_observation_columns_distinguish_daily_quote_from_tick_live() 
     assert columns["Observation Status"] == "INTRADAY DATA · TODAY"
     assert columns["Tick Live"] is False
 
+
 def test_watchlist_observation_columns_fail_closed_when_observation_missing() -> None:
     from scanner.watchlist_scanner import _observation_columns
 
@@ -138,6 +149,7 @@ def test_watchlist_observation_columns_fail_closed_when_observation_missing() ->
     assert columns["Observation Frequency"] == "unknown"
     assert columns["Observation Status"] == "MARKET DATA STATUS UNAVAILABLE"
     assert columns["Tick Live"] is False
+
 
 def test_batch_change_screen_counts_returned_histories_not_only_movers(monkeypatch) -> None:
     from scanner import market_scanner
@@ -163,6 +175,7 @@ def test_batch_change_screen_counts_returned_histories_not_only_movers(monkeypat
 
     assert len(movers) == 1
     assert coverage["NSE"]["histories_returned"] == 1
+
 
 def test_batch_change_screen_counts_history_even_when_not_enough_closes(
     monkeypatch,
@@ -191,6 +204,7 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
 
     assert movers == []
     assert coverage["BSE"]["histories_returned"] == 1
+
 
 def test_batch_change_screen_retries_empty_batches_as_smaller_chunks(monkeypatch) -> None:
     from scanner import market_scanner
@@ -242,10 +256,12 @@ def test_batch_change_screen_retries_empty_batches_as_smaller_chunks(monkeypatch
     assert coverage["NSE"]["screen_tickers_with_data"] == 6
     assert coverage["NSE"]["screen_tickers_missing_data"] == 0
 
+
 def test_yahoo_ticker_maps_current_nse_symbols() -> None:
     assert _yahoo_ticker("ZOMATO", "NSE") == "ETERNAL.NS"
     assert _yahoo_ticker("TATAMOTORS", "NSE") == "TMPV.NS"
     assert _yahoo_ticker("RELIANCE", "NSE") == "RELIANCE.NS"
+
 
 def test_yahoo_ticker_maps_bse_codes(monkeypatch) -> None:
     from scanner import market_scanner
@@ -260,6 +276,7 @@ def test_yahoo_ticker_maps_bse_codes(monkeypatch) -> None:
     assert _yahoo_ticker("532540", "BSE") == "TCS.BO"
     assert _yahoo_ticker("999999", "BSE") is None
     assert _yahoo_ticker("RELIANCE", "OTHER") is None
+
 
 def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
     monkeypatch,
@@ -295,12 +312,14 @@ def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
     assert coverage["BSE"]["screen_chunks_empty"] == 3
     assert coverage["BSE"]["screen_tickers_missing_data"] == 40
 
+
 def test_bse_ticker_mapping_falls_back_to_scrip_code_when_live_map_unavailable(monkeypatch) -> None:
     from scanner import dynamic_universe
 
     monkeypatch.setattr(dynamic_universe, "_bse_yahoo_symbol_map", {})
 
     assert dynamic_universe.yahoo_symbol_for_bse_code("500325") == "RELIANCE"
+
 
 def test_bse_ticker_mapping_prefers_live_symbol_map(monkeypatch) -> None:
     from scanner import dynamic_universe
@@ -309,6 +328,7 @@ def test_bse_ticker_mapping_prefers_live_symbol_map(monkeypatch) -> None:
 
     assert dynamic_universe.yahoo_symbol_for_bse_code("500325") == "RELIANCE"
 
+
 def test_bse_ticker_mapping_rejects_invalid_unmapped_codes(monkeypatch) -> None:
     from scanner import dynamic_universe
 
@@ -316,6 +336,7 @@ def test_bse_ticker_mapping_rejects_invalid_unmapped_codes(monkeypatch) -> None:
 
     assert dynamic_universe.yahoo_symbol_for_bse_code("RELIANCE") is None
     assert dynamic_universe.yahoo_symbol_for_bse_code("12345") is None
+
 
 def test_batch_change_screen_counts_only_usable_two_candle_history(monkeypatch) -> None:
     from scanner import market_scanner
