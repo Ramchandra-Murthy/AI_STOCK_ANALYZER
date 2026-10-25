@@ -323,6 +323,9 @@ def _analyze_history(
             "MACD": round(float(last["MACD"]), 2),
             "ATR": round(float(last["ATR"]), 2),
             "AI Score": signal["Score"],
+            "Score Breakdown": "; ".join(
+                f"{name} {value:+d}" for name, value in signal.get("Score Components", {}).items()
+            ),
             "Confidence": signal.get("Confidence"),
             "Confidence Status": signal.get("Confidence Status", "Not calibrated"),
             "Risk": signal.get("Risk", "Medium"),
