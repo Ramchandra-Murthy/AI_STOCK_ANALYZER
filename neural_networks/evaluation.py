@@ -132,6 +132,7 @@ def walk_forward_evaluation(
             rows.append(row)
     return pd.DataFrame(rows)
 
+
 def compare_feature_ablation(
     ohlcv: pd.DataFrame,
     horizon: int = 5,
