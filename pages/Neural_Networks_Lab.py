@@ -304,9 +304,7 @@ if raw is not None:
                     f"{int(horizon)}-day forward return, reported across five chronological windows. "
                     "IC is a research diagnostic, not evidence of a profitable strategy."
                 )
-                factor_ic = factor_information_coefficient(
-                    data, horizon=int(horizon), n_windows=5
-                )
+                factor_ic = factor_information_coefficient(data, horizon=int(horizon), n_windows=5)
                 st.dataframe(
                     factor_ic.style.format(
                         {
