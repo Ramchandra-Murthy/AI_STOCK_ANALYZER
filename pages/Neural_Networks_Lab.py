@@ -9,7 +9,11 @@ import streamlit as st
 import yfinance as yf
 
 from neural_networks.baseline import train_baseline
-from neural_networks.evaluation import compare_holdout_baselines, walk_forward_evaluation
+from neural_networks.evaluation import (
+    compare_feature_ablation,
+    compare_holdout_baselines,
+    walk_forward_evaluation,
+)
 from neural_networks.features import build_direction_dataset
 from neural_networks.strategy_backtest import backtest_holdout_signals
 
@@ -264,6 +268,33 @@ if raw is not None:
                     ),
                     use_container_width=True,
                     hide_index=True,
+                )
+
+                st.subheader("Feature ablation: original vs expanded factors")
+                st.caption(
+                    "A controlled comparison using identical labelled rows, chronological holdout "
+                    "dates, and model settings. This checks whether the additional factors add "
+                    "predictive value; it does not tune on the holdout."
+                )
+                ablation = compare_feature_ablation(
+                    data, horizon=int(horizon), train_fraction=float(train_fraction)
+                )
+                st.dataframe(
+                    ablation.style.format(
+                        {
+                            "Accuracy": "{:.1%}",
+                            "Balanced accuracy": "{:.1%}",
+                            "ROC-AUC": "{:.3f}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download feature ablation results CSV",
+                    data=ablation.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_feature_ablation.csv",
+                    mime="text/csv",
                 )
 
                 st.subheader("Walk-forward validation")
