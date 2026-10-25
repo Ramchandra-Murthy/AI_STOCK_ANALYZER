@@ -22,7 +22,11 @@ st.markdown(
     "Upload historical daily OHLCV data to build causal features and evaluate an MLP classifier "
     "on a later, chronological holdout period."
 )
-upload = st.file_uploader("Upload OHLCV CSV", type=["csv"], help="Required columns: Date, Open, High, Low, Close, Volume.")
+upload = st.file_uploader(
+    "Upload OHLCV CSV",
+    type=["csv"],
+    help="Required columns: Date, Open, High, Low, Close, Volume.",
+)
 horizon = st.number_input("Prediction horizon (trading days)", min_value=1, max_value=30, value=5, step=1)
 train_fraction = st.slider("Training fraction (earlier observations)", min_value=0.50, max_value=0.90, value=0.70, step=0.05)
 
@@ -30,7 +34,14 @@ if upload is not None:
     try:
         raw = pd.read_csv(BytesIO(upload.getvalue()))
         raw.columns = [str(column).strip() for column in raw.columns]
-        date_column = next((column for column in raw.columns if column.lower() in {"date", "datetime", "timestamp"}), None)
+        date_column = next(
+            (
+                column
+                for column in raw.columns
+                if column.lower() in {"date", "datetime", "timestamp"}
+            ),
+            None,
+        )
         if date_column is None:
             st.error("CSV must include a Date, Datetime, or Timestamp column.")
             st.stop()
@@ -52,10 +63,16 @@ if upload is not None:
         data = data.dropna(subset=["Open", "High", "Low", "Close", "Volume"])
         data = data.loc[(data["Close"] > 0) & (data["Volume"] >= 0)]
         if len(data) < 150:
-            st.error(f"Only {len(data)} valid daily rows remain. Upload at least 150 rows; more history is preferable.")
+            st.error(
+                f"Only {len(data)} valid daily rows remain. Upload at least 150 rows; "
+                "more history is preferable."
+            )
             st.stop()
 
-        st.success(f"Validated {len(data):,} daily rows from {data.index.min().date()} to {data.index.max().date()}.")
+        st.success(
+            f"Validated {len(data):,} daily rows from {data.index.min().date()} "
+            f"to {data.index.max().date()}."
+        )
         with st.expander("Preview cleaned OHLCV data"):
             st.dataframe(data.tail(10), use_container_width=True)
 
@@ -76,9 +93,10 @@ if upload is not None:
                 else:
                     right.metric("ROC-AUC", "Unavailable")
                 st.caption(
-                    f"Train: {features.index[0].date()} to {features.index[split_at - 1].date()} · "
+                    f"Train: {features.index[0].date()} to "
+                    f"{features.index[split_at - 1].date()} · "
                     f"Test: {test_dates[0].date()} to {test_dates[-1].date()} · "
-                    f"Label: close-to-close return greater than zero after {int(horizon)} trading days."
+                    f"Label: positive close-to-close return after {int(horizon)} trading days."
                 )
                 result = pd.DataFrame(
                     {
