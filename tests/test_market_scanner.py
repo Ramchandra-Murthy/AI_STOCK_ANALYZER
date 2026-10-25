@@ -177,7 +177,7 @@ def test_batch_change_screen_counts_returned_histories_not_only_movers(monkeypat
     assert coverage["NSE"]["histories_returned"] == 1
 
 
-def test_batch_change_screen_counts_history_even_when_not_enough_closes(
+def test_batch_change_screen_does_not_count_history_with_too_few_candles(
     monkeypatch,
 ) -> None:
     from scanner import market_scanner
@@ -203,7 +203,8 @@ def test_batch_change_screen_counts_history_even_when_not_enough_closes(
     movers = market_scanner._batch_change_screen({"BSE": ["500325"]}, coverage=coverage)
 
     assert movers == []
-    assert coverage["BSE"]["histories_returned"] == 1
+    assert coverage["BSE"]["histories_returned"] == 0
+    assert coverage["BSE"]["screen_tickers_missing_data"] == 1
 
 
 def test_batch_change_screen_retries_empty_batches_as_smaller_chunks(monkeypatch) -> None:
