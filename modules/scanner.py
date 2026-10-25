@@ -19,6 +19,15 @@ def _cached_market_scan(exchange_filter: str) -> pd.DataFrame:
     return market_scan(exchange_filter)
 
 
+def _normalize_broad_market_confidence(df: pd.DataFrame) -> pd.DataFrame:
+    """Prevent cached or legacy scanner rows from presenting scores as calibrated confidence."""
+    result = df.copy()
+    if "Confidence" in result.columns or "AI Score" in result.columns:
+        result["Confidence"] = None
+        result["Confidence Status"] = "Not calibrated"
+    return result
+
+
 def _show_data_quality(df: pd.DataFrame) -> None:
     """Show transparent checks for the rows returned by the scanner."""
     st.subheader("Data quality")
@@ -45,6 +54,27 @@ def _show_data_quality(df: pd.DataFrame) -> None:
         st.warning("Some returned data needs review. Check missing cells and duplicate symbols.")
     else:
         st.success("Returned rows passed the available completeness and numeric checks.")
+    if "Sector" in df.columns:
+        unclassified = df["Sector"].astype(str).str.casefold().eq("unclassified")
+        count = int(unclassified.sum())
+        if count:
+            examples = ", ".join(df.loc[unclassified, "Symbol"].astype(str).head(8))
+            st.warning(
+                f"{count} returned stock(s) have no sector mapping. "
+                f"Review classification before using sector-based comparisons. Examples: {examples}"
+            )
+
+    if "Avg Turnover (₹)" in df.columns:
+        turnover = pd.to_numeric(df["Avg Turnover (₹)"], errors="coerce")
+        low_liquidity = turnover.isna() | turnover.lt(1_000_000)
+        count = int(low_liquidity.sum())
+        if count:
+            examples = ", ".join(df.loc[low_liquidity, "Symbol"].astype(str).head(8))
+            st.warning(
+                f"{count} returned stock(s) have missing or average daily turnover below ₹10 lakh. "
+                f"Execution may be difficult and spreads/slippage may be high. Examples: {examples}"
+            )
+
     st.caption(
         "These checks cover only rows returned by the scanner; they do not verify quote freshness or validate the underlying data provider."
     )
@@ -129,6 +159,13 @@ def show():
         min_ai_score = st.number_input(
             "Minimum AI score", min_value=-100.0, max_value=100.0, value=-100.0, step=1.0
         )
+        min_turnover = st.number_input(
+            "Minimum average daily turnover (₹; 0 = no limit)",
+            min_value=0.0,
+            value=1_000_000.0,
+            step=250_000.0,
+            help="Applied to Broad Market results only. This is a liquidity screen, not a guarantee of execution quality.",
+        )
         trend_filter = st.selectbox("Trend", ["All", "Bullish", "Bearish", "Sideways"])
 
     try:
@@ -161,6 +198,10 @@ def show():
                 else _cached_market_scan(exchange_filter)
             )
         scanner_coverage = df.attrs.get("scanner_coverage", {})
+
+        if scan_mode == "Broad Market":
+            # Streamlit cache/deployments can briefly retain legacy rows with numeric confidence.
+            df = _normalize_broad_market_confidence(df)
 
         if scan_mode == "Broad Market" and scanner_coverage:
             with st.expander("Scan coverage diagnostics", expanded=True):
@@ -206,6 +247,9 @@ def show():
             df = df.loc[df["RSI"].between(min_rsi, max_rsi)]
         if "AI Score" in df.columns:
             df = df.loc[df["AI Score"] >= min_ai_score]
+        if scan_mode == "Broad Market" and min_turnover > 0 and "Avg Turnover (₹)" in df.columns:
+            turnover = pd.to_numeric(df["Avg Turnover (₹)"], errors="coerce")
+            df = df.loc[turnover.ge(min_turnover)]
         if trend_filter != "All" and "Trend" in df.columns:
             df = df.loc[df["Trend"].astype(str).str.casefold() == trend_filter.casefold()]
 

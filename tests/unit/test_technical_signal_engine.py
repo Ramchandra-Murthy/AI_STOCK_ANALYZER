@@ -41,3 +41,29 @@ def test_technical_score_is_not_reported_as_predictive_confidence() -> None:
     assert result["Recommendation"] == "STRONG BUY"
     assert result["Confidence"] is None
     assert result["Confidence Status"] == "Not calibrated"
+
+
+def test_zero_score_never_becomes_one_hundred_percent_confidence() -> None:
+    frame = pd.DataFrame(
+        [
+            {
+                "SMA_20": 90.0,
+                "SMA_50": 100.0,
+                "EMA_20": 80.0,
+                "RSI_14": 75.0,
+                "MACD": 0.0,
+                "Signal": 1.0,
+                "Close": 120.0,
+                "BB_Upper": 110.0,
+                "Resistance": 120.0,
+                "ATR": 10.0,
+            }
+        ]
+    )
+
+    result = generate_signal(frame)
+
+    assert result["Status"] == "OK"
+    assert result["Score"] == 0
+    assert result["Confidence"] is None
+    assert result["Confidence Status"] == "Not calibrated"
