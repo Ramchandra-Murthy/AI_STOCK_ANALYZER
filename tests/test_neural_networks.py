@@ -73,3 +73,45 @@ def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
     }
     assert (walk_forward["Train end"] < walk_forward["Test start"]).all()
     assert walk_forward["Accuracy"].between(0, 1).all()
+
+
+def test_cost_aware_backtest_uses_non_overlapping_trades_and_costs() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=240)
+    signal_dates = data.index[100:180]
+    probabilities = np.full(len(signal_dates), 0.9)
+
+    summary_free, trades_free = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.5,
+        cost_bps_per_side=0,
+    )
+    summary_costed, trades_costed = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.5,
+        cost_bps_per_side=10,
+    )
+
+    assert len(trades_free) > 0
+    assert len(trades_free) == len(trades_costed)
+    assert (
+        trades_free["Exit date"].iloc[:-1].to_numpy()
+        <= trades_free["Signal date"].shift(-1).iloc[:-1].to_numpy()
+    ).all()
+    assert summary_costed.loc[0, "Total return"] <= summary_free.loc[0, "Total return"]
+    assert summary_costed.loc[0, "Trades"] == len(trades_costed)
+
+
+def test_cost_aware_backtest_rejects_empty_signals() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=180)
+    with pytest.raises(ValueError, match="at least one holdout signal"):
+        backtest_holdout_signals(data["Close"], pd.Index([]), [], horizon=5)
