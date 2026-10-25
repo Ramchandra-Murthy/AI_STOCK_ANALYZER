@@ -13,6 +13,7 @@ from neural_networks.evaluation import (
     compare_feature_ablation,
     compare_holdout_baselines,
     factor_information_coefficient,
+    summarize_walk_forward_stability,
     walk_forward_evaluation,
 )
 from neural_networks.features import build_direction_dataset
@@ -345,6 +346,32 @@ if raw is not None:
                     "Download walk-forward results CSV",
                     data=walk_forward.to_csv(index=False).encode("utf-8"),
                     file_name="neural_networks_walk_forward_results.csv",
+                    mime="text/csv",
+                )
+
+                st.subheader("Walk-forward fold stability")
+                st.caption(
+                    "Mean, standard deviation, and range summarize variation across the three future test folds. "
+                    "ROC-AUC excludes folds where it is undefined. These are descriptive diagnostics, not "
+                    "evidence of profitability or a significance test."
+                )
+                fold_stability = summarize_walk_forward_stability(walk_forward)
+                st.dataframe(
+                    fold_stability.style.format(
+                        {
+                            column: "{:.3f}"
+                            for column in fold_stability.columns
+                            if column not in {"Model", "Folds"}
+                        },
+                        na_rep="—",
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download fold stability CSV",
+                    data=fold_stability.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_walk_forward_stability.csv",
                     mime="text/csv",
                 )
 
