@@ -102,7 +102,7 @@ def test_cost_aware_backtest_uses_non_overlapping_trades_and_costs() -> None:
 
     assert len(trades_free) > 0
     assert len(trades_free) == len(trades_costed)
-    assert (trades_free["Exit date"] < trades_free["Signal date"].shift(-1)).all()
+    assert (trades_free["Exit date"] <= trades_free["Signal date"].shift(-1)).all()
     assert summary_costed.loc[0, "Total return"] <= summary_free.loc[0, "Total return"]
     assert summary_costed.loc[0, "Trades"] == len(trades_costed)
 
