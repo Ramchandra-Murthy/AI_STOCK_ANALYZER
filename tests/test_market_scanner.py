@@ -369,6 +369,7 @@ def test_batch_change_screen_counts_only_usable_two_candle_history(monkeypatch) 
     assert coverage["NSE"]["screen_tickers_with_data"] == 0
     assert coverage["NSE"]["screen_tickers_missing_data"] == 1
 
+
 def test_daily_data_status_handles_fresh_stale_unknown_and_future_dates() -> None:
     from datetime import date
 
