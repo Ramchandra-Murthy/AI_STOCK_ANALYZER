@@ -164,6 +164,9 @@ def test_model_trains_with_chronological_validation() -> None:
     assert validation.train_samples > validation.test_samples
     assert 0.0 <= validation.accuracy <= 1.0
     assert validation.roc_auc is not None
+    assert 0.0 <= validation.train_positive_rate <= 1.0
+    assert 0.0 <= validation.test_positive_rate <= 1.0
+    assert validation.positive_rate == pytest.approx(validation.test_positive_rate)
     prediction = predict_latest(model, frame)
     assert prediction["signal"] in {"LONG", "SHORT"}
     assert 0.0 <= float(prediction["probability_up"]) <= 1.0

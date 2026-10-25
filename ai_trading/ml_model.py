@@ -33,6 +33,8 @@ class ModelValidation:
     train_samples: int
     test_samples: int
     positive_rate: float
+    train_positive_rate: float
+    test_positive_rate: float
 
 
 def make_training_dataset(
@@ -131,7 +133,10 @@ def train_model(
         roc_auc=roc_auc,
         train_samples=len(x_train),
         test_samples=len(x_test),
-        positive_rate=float(y.mean()),
+        # Keep the legacy field as a test-set statistic for compatibility.
+        positive_rate=float(y_test.mean()),
+        train_positive_rate=float(y_train.mean()),
+        test_positive_rate=float(y_test.mean()),
     )
 
     if refit_full:

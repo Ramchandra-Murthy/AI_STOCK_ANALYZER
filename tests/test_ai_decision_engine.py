@@ -39,6 +39,23 @@ def test_calibration_gap_reduces_validation_score() -> None:
     assert decision.validation_pct == pytest.approx(60.0)
 
 
+def test_validation_quality_does_not_change_directional_evidence() -> None:
+    weak_validation = build_signal_decision(
+        probability_up=0.25,
+        accuracy=0.50,
+        roc_auc=0.50,
+        trend_score=-0.80,
+    )
+    strong_validation = build_signal_decision(
+        probability_up=0.25,
+        accuracy=0.90,
+        roc_auc=0.90,
+        trend_score=-0.80,
+    )
+    assert weak_validation.signal == "SHORT"
+    assert strong_validation.signal == "SHORT"
+
+
 @pytest.mark.parametrize(
     ("name", "value"),
     [
