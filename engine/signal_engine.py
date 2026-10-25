@@ -16,6 +16,19 @@ def _finite(value: Any) -> float | None:
     return number if math.isfinite(number) else None
 
 
+def _recommendation_for_score(score: int) -> str:
+    """Map the technical score to a label without implying predictive probability."""
+    if score >= 85:
+        return "STRONG BUY"
+    if score >= 70:
+        return "BUY"
+    if score >= 45:
+        return "HOLD"
+    if score >= 25:
+        return "SELL"
+    return "STRONG SELL"
+
+
 def generate_signal(df: pd.DataFrame) -> dict[str, Any]:
     """Generate a deterministic technical signal from the supplied indicator frame.
 
@@ -107,16 +120,7 @@ def generate_signal(df: pd.DataFrame) -> dict[str, Any]:
             reasons.append("Low Volatility")
 
     score = max(0, min(int(score), 100))
-    if score >= 85:
-        recommendation = "STRONG BUY"
-    elif score >= 70:
-        recommendation = "BUY"
-    elif score >= 45:
-        recommendation = "HOLD"
-    elif score >= 25:
-        recommendation = "SELL"
-    else:
-        recommendation = "STRONG SELL"
+    recommendation = _recommendation_for_score(score)
     return {
         "Status": "OK",
         "Score": score,
