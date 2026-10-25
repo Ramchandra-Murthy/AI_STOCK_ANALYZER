@@ -158,3 +158,45 @@ def test_score_adjustments_and_reasons_match_for_support_resistance_and_volatili
 )
 def test_score_recommendation_boundaries(score: int, recommendation: str) -> None:
     assert _recommendation_for_score(score) == recommendation
+
+
+def test_score_components_explain_score_without_changing_existing_score() -> None:
+    result = generate_signal(
+        _signal_frame(
+            SMA_20=110.0,
+            SMA_50=100.0,
+            EMA_20=100.0,
+            RSI_14=50.0,
+            MACD=2.0,
+            Signal=1.0,
+            Close=100.0,
+            BB_Lower=105.0,
+            Support=102.0,
+            Resistance=99.0,
+            ATR=6.0,
+        )
+    )
+
+    components = result["Score Components"]
+    assert components == {
+        "Base": 50,
+        "SMA trend": 15,
+        "EMA trend": -10,
+        "RSI": 5,
+        "MACD": 15,
+        "Bollinger": 10,
+        "Support": 10,
+        "Resistance": -10,
+        "Volatility": -5,
+    }
+    assert sum(components.values()) == result["Score"] == 80
+
+
+def test_score_components_report_zero_for_unavailable_optional_indicators() -> None:
+    result = generate_signal(_signal_frame())
+
+    assert result["Status"] == "OK"
+    assert result["Score Components"]["Bollinger"] == 0
+    assert result["Score Components"]["Support"] == 0
+    assert result["Score Components"]["Resistance"] == 0
+    assert result["Score Components"]["Volatility"] == 0
