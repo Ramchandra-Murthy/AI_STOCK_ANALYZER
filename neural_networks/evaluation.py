@@ -230,7 +230,7 @@ def _block_bootstrap_spearman_ic_interval(
         raise ValueError("n_bootstrap must be at least 50")
     if block_size < 1:
         raise ValueError("block_size must be at least 1")
-    if not 0 < confidence_level < 1:
+    if confidence_level <= 0 or confidence_level >= 1:
         raise ValueError("confidence_level must be between 0 and 1")
     pair = (
         pd.concat([factor_values, forward_returns], axis=1)
