@@ -21,6 +21,8 @@ def generate_signal(df: pd.DataFrame) -> dict[str, Any]:
 
     Live/latest market observations deliberately do not enter this engine. They belong
     to the canonical market service so historical analysis remains reproducible.
+    The technical score is not a calibrated probability of success, so confidence is
+    deliberately reported as unavailable until validated out-of-sample calibration exists.
     """
     if df is None or df.empty:
         return {"Status": "ERROR", "Message": "No indicator data available."}
@@ -115,11 +117,11 @@ def generate_signal(df: pd.DataFrame) -> dict[str, Any]:
         recommendation = "SELL"
     else:
         recommendation = "STRONG SELL"
-    confidence = score if score >= 50 else 100 - score
     return {
         "Status": "OK",
         "Score": score,
-        "Confidence": round(confidence, 1),
+        "Confidence": None,
+        "Confidence Status": "Not calibrated",
         "Recommendation": recommendation,
         "Risk": risk,
         "Reasons": reasons,
