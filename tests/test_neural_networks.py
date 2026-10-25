@@ -171,7 +171,6 @@ def test_factor_information_coefficient_reports_chronological_windows() -> None:
     assert summary["Window end"].notna().all()
 
 
-
 def test_factor_ic_bootstrap_interval_is_bounded_and_reproducible() -> None:
     from neural_networks.evaluation import _block_bootstrap_spearman_ic_interval
 
