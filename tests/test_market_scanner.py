@@ -97,6 +97,9 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
             "histories_rejected": 0,
             "history_coverage_pct": 0.0,
             "analysis_download_failed": 0,
+            "stale_data_rejected": 0,
+            "unknown_timestamp_rejected": 0,
+            "future_timestamp_rejected": 0,
             "analyses_completed": 0,
             "final_rows": 0,
             "cached_failures_skipped": 0,
@@ -365,3 +368,38 @@ def test_batch_change_screen_counts_only_usable_two_candle_history(monkeypatch) 
     assert coverage["NSE"]["histories_returned"] == 0
     assert coverage["NSE"]["screen_tickers_with_data"] == 0
     assert coverage["NSE"]["screen_tickers_missing_data"] == 1
+
+
+
+def test_daily_data_status_handles_fresh_stale_unknown_and_future_dates() -> None:
+    from datetime import date
+
+    from scanner.market_scanner import _daily_data_status
+
+    assert _daily_data_status(pd.DatetimeIndex(["2026-10-23"]), date(2026, 10, 25)) == "FRESH"
+    assert _daily_data_status(pd.DatetimeIndex(["2026-10-10"]), date(2026, 10, 25)) == "STALE"
+    assert _daily_data_status(pd.RangeIndex(2), date(2026, 10, 25)) == "UNKNOWN"
+    assert _daily_data_status(pd.DatetimeIndex(["2026-10-26"]), date(2026, 10, 25)) == "FUTURE DATE"
+
+
+def test_market_scan_rejects_stale_analysis_history(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    monkeypatch.setattr(market_scanner, "merge_nse_universe", lambda: ["RELIANCE"])
+    monkeypatch.setattr(market_scanner, "merge_bse_universe", lambda: [])
+    monkeypatch.setattr(
+        market_scanner,
+        "_batch_change_screen",
+        lambda candidates, coverage=None: [("RELIANCE.NS", "NSE", 1.0, 1_000_000.0)],
+    )
+    dates = pd.date_range(end="2026-10-01", periods=60, freq="B")
+    columns = pd.MultiIndex.from_product([["RELIANCE.NS"], ["Open", "High", "Low", "Close", "Volume"]])
+    values = [[100.0, 102.0, 98.0, 101.0, 100_000.0] for _ in dates]
+    history = pd.DataFrame(values, index=dates, columns=columns)
+    monkeypatch.setattr(market_scanner, "_download_analysis_chunk", lambda tickers: history)
+
+    result = market_scanner.market_scan("NSE")
+
+    assert result.empty
+    assert result.attrs["scanner_coverage"]["NSE"]["stale_data_rejected"] == 1
+    assert result.attrs["scanner_coverage"]["NSE"]["analyses_completed"] == 0
