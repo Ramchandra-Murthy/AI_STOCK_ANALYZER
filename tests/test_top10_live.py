@@ -728,3 +728,58 @@ def test_dhan_quote_failures_are_logged_without_suppressing_diagnostics() -> Non
     assert "logging.warning(" in source
     assert "Dhan intraday quote failed ticker=%s error_type=%s error=%s" in source
     assert "str(exc)[:240]" in source
+
+
+def test_top10_filters_apply_price_move_and_exchange_without_mutating_source() -> None:
+    source = pd.DataFrame(
+        [
+            {"Symbol": "AAA", "Exchange": "NSE", "Price": 100.0, "1-min %": 1.2},
+            {"Symbol": "BBB", "Exchange": "BSE", "Price": 250.0, "1-min %": -0.8},
+            {"Symbol": "CCC", "Exchange": "NSE", "Price": 400.0, "1-min %": 2.5},
+        ]
+    )
+
+    filtered = top10_live._apply_top10_filters(
+        source,
+        min_price=90.0,
+        max_price=300.0,
+        min_move_pct=0.5,
+        max_move_pct=1.5,
+        exchange="NSE + BSE",
+    )
+
+    assert filtered["Symbol"].tolist() == ["AAA", "BBB"]
+    assert len(source) == 3
+
+
+def test_top10_filters_can_select_one_exchange() -> None:
+    source = pd.DataFrame(
+        [
+            {"Symbol": "AAA", "Exchange": "NSE", "Price": 100.0, "1-min %": 1.2},
+            {"Symbol": "BBB", "Exchange": "BSE", "Price": 250.0, "1-min %": -0.8},
+        ]
+    )
+
+    filtered = top10_live._apply_top10_filters(source, exchange="BSE")
+
+    assert filtered["Symbol"].tolist() == ["BBB"]
+
+
+def test_top10_download_uses_yahoo_finance_only(monkeypatch) -> None:
+    expected_frames = {"RELIANCE.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
+    calls = {}
+
+    def fake_download(tickers, **kwargs):
+        calls["tickers"] = tickers
+        calls["kwargs"] = kwargs
+        return expected_frames, []
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+    frames, missing, provider = top10_live._download_top10_frames(["RELIANCE.NS"])
+
+    assert frames == expected_frames
+    assert missing == []
+    assert provider == "Yahoo Finance"
+    assert calls["tickers"] == ["RELIANCE.NS"]
+    assert calls["kwargs"]["interval"] == "1m"
+    assert calls["kwargs"]["recover_missing"] is False
