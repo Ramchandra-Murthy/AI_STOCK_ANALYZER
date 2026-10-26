@@ -390,3 +390,22 @@ def test_mlp_baseline_reports_train_holdout_gap_and_balanced_accuracy() -> None:
     assert metrics["holdout_balanced_accuracy"] == pytest.approx(holdout_balanced_accuracy)
     assert 0 <= metrics["train_accuracy"] <= 1
     assert 0 <= metrics["holdout_balanced_accuracy"] <= 1
+
+
+
+def test_mlp_baseline_reports_probability_calibration_scores() -> None:
+    from sklearn.metrics import brier_score_loss, log_loss
+
+    from neural_networks.baseline import train_baseline
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    _, metrics = train_baseline(features, target, train_fraction=0.70, horizon=5)
+    split_at = int(len(features) * 0.70)
+    y_test = target.iloc[split_at:]
+    probabilities = metrics["probability_up"]
+
+    assert metrics["brier_score"] == pytest.approx(brier_score_loss(y_test, probabilities))
+    assert metrics["log_loss"] == pytest.approx(log_loss(y_test, probabilities, labels=[0, 1]))
+    assert 0 <= metrics["brier_score"] <= 1
+    assert np.isfinite(metrics["log_loss"])
