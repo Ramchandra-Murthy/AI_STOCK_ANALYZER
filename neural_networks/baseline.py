@@ -8,7 +8,7 @@ from typing import Any
 import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, roc_auc_score
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -80,6 +80,9 @@ def train_baseline(
     classes = list(model.named_steps["network"].classes_)
     probabilities = model.predict_proba(X_test)[:, classes.index(1)]
     predictions = (probabilities >= 0.5).astype(int)
+    train_predictions = model.predict(X_train)
+    train_accuracy = float(accuracy_score(y_train, train_predictions))
+    holdout_balanced_accuracy = float(balanced_accuracy_score(y_test, predictions))
     network = model.named_steps["network"]
     convergence_warnings = [
         str(item.message)
@@ -88,6 +91,9 @@ def train_baseline(
     ]
     metrics: dict[str, Any] = {
         "accuracy": float(accuracy_score(y_test, predictions)),
+        "train_accuracy": train_accuracy,
+        "holdout_balanced_accuracy": holdout_balanced_accuracy,
+        "accuracy_gap": float(train_accuracy - accuracy_score(y_test, predictions)),
         "test_samples": int(len(y_test)),
         "train_samples": int(len(y_train)),
         "train_end": str(X_train.index[-1].date()),
