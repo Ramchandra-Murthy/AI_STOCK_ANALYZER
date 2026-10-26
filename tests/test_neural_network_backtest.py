@@ -9,7 +9,9 @@ from neural_networks.strategy_backtest import backtest_holdout_signals
 
 def _prices() -> pd.Series:
     dates = pd.date_range("2025-01-01", periods=8, freq="D")
-    return pd.Series([100, 101, 102, 103, 104, 105, 106, 107], index=dates, name="Close")
+    return pd.Series(
+        [100, 101, 102, 103, 104, 105, 106, 107], index=dates, name="Close"
+    )
 
 
 def test_backtest_uses_next_close_entry_and_horizon_close_exit() -> None:
@@ -34,7 +36,12 @@ def test_backtest_charges_entry_and_exit_costs() -> None:
     cost_bps = 10
     cost = cost_bps / 10_000
     _, trades = backtest_holdout_signals(
-        close, close.index[:1], [0.8], horizon=2, threshold=0.5, cost_bps_per_side=cost_bps
+        close,
+        close.index[:1],
+        [0.8],
+        horizon=2,
+        threshold=0.5,
+        cost_bps_per_side=cost_bps
     )
 
     expected = (1 - cost) ** 2 * (103 / 101) - 1
@@ -44,7 +51,12 @@ def test_backtest_charges_entry_and_exit_costs() -> None:
 def test_backtest_returns_zero_trades_when_threshold_not_met() -> None:
     close = _prices()
     summary, trades = backtest_holdout_signals(
-        close, close.index[:2], [0.8, 0.7], horizon=2, threshold=0.9, cost_bps_per_side=0
+        close,
+        close.index[:2],
+        [0.8, 0.7],
+        horizon=2,
+        threshold=0.9,
+        cost_bps_per_side=0
     )
 
     assert trades.empty
