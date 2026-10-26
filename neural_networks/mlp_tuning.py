@@ -1,5 +1,5 @@
-"""Chronological MLP configuration evaluation helpers.
+"""Public import for chronological MLP configuration evaluation."""
 
-The tuning routine lives in evaluation.py so it can reuse the same fold,
-preprocessing, and metric helpers as the Neural Networks Lab.
-""" 
+from neural_networks.evaluation import compare_mlp_configurations
+
+__all__ = ["compare_mlp_configurations"]
