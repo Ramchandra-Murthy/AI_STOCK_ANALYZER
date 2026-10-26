@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -105,7 +106,14 @@ def download_dhan_symbol_frames(
                 interval=interval,
             )
             frame = _response_frame(response)
-        except Exception:
+        except Exception as exc:
+            # Keep provider failures visible in deployment logs without exposing credentials.
+            logging.warning(
+                "Dhan intraday quote failed ticker=%s error_type=%s error=%s",
+                ticker,
+                type(exc).__name__,
+                str(exc)[:240],
+            )
             frame = pd.DataFrame()
         if frame.empty:
             missing.append(ticker)
