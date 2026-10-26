@@ -392,7 +392,6 @@ def test_mlp_baseline_reports_train_holdout_gap_and_balanced_accuracy() -> None:
     assert 0 <= metrics["holdout_balanced_accuracy"] <= 1
 
 
-
 def test_mlp_baseline_reports_probability_calibration_scores() -> None:
     from sklearn.metrics import brier_score_loss, log_loss
 
