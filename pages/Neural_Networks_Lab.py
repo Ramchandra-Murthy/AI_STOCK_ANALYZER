@@ -12,6 +12,7 @@ from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
     compare_holdout_baselines,
+    evaluate_mlp_seed_stability,
     factor_information_coefficient,
     permutation_feature_sensitivity,
     summarize_probability_reliability,
@@ -258,6 +259,37 @@ if raw is not None:
                         "Holdout accuracy exceeds training accuracy. This is not automatically "
                         "a problem; check fold-to-fold stability and data characteristics."
                     )
+                st.subheader("MLP random-seed stability")
+                seed_stability = evaluate_mlp_seed_stability(
+                    features,
+                    target,
+                    train_fraction=float(train_fraction),
+                    horizon=int(horizon),
+                )
+                st.caption(
+                    "Each run uses the same chronological training and holdout dates but a different "
+                    "MLP initialization seed. Metric variation reveals sensitivity to initialization; "
+                    "it is not independent validation, and the shared holdout should not be used to "
+                    "select a preferred seed."
+                )
+                st.dataframe(
+                    seed_stability.style.format(
+                        {
+                            "Accuracy": "{:.1%}",
+                            "Balanced accuracy": "{:.1%}",
+                            "ROC-AUC": "{:.3f}",
+                            "Brier score": "{:.4f}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download MLP seed-stability CSV",
+                    data=seed_stability.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_seed_stability.csv",
+                    mime="text/csv",
+                )
                 st.subheader("Probability calibration diagnostics")
                 calibration_left, calibration_right = st.columns(2)
                 calibration_left.metric("Brier score", f"{metrics['brier_score']:.4f}")

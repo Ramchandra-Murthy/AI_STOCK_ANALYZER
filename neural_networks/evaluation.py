@@ -242,6 +242,61 @@ def permutation_feature_sensitivity(
     ).reset_index(drop=True)
 
 
+def evaluate_mlp_seed_stability(
+    features: pd.DataFrame,
+    target: pd.Series,
+    *,
+    train_fraction: float = 0.70,
+    horizon: int = 5,
+    random_states: tuple[int, ...] = (7, 21, 42, 84, 126),
+) -> pd.DataFrame:
+    """Measure how MLP initialization seeds affect metrics on one fixed chronological holdout.
+
+    This is a sensitivity check, not independent validation: all seeds share the
+    same train/test dates, and repeated comparison on that holdout can bias research.
+    """
+    from sklearn.metrics import brier_score_loss
+
+    if not features.index.equals(target.index):
+        raise ValueError("features and target must have identical indexes")
+    if len(random_states) < 2:
+        raise ValueError("random_states must contain at least two seeds")
+    if len(set(random_states)) != len(random_states):
+        raise ValueError("random_states must be unique")
+    X_train, X_test, y_train, y_test = chronological_split(
+        features, target, train_fraction, horizon
+    )
+    if y_train.nunique() < 2:
+        raise ValueError("Training target must contain both classes")
+    if y_test.nunique() < 2:
+        raise ValueError("Holdout target must contain both classes")
+
+    rows: list[dict[str, Any]] = []
+    for seed in random_states:
+        model = _mlp(int(seed))
+        model.fit(X_train, y_train)
+        predicted = model.predict(X_test)
+        classes = list(model.classes_)
+        if 1 not in classes:
+            raise ValueError("Training target must contain the positive class 1")
+        probability_up = model.predict_proba(X_test)[:, classes.index(1)]
+        rows.append(
+            {
+                "Random seed": int(seed),
+                "Accuracy": float(accuracy_score(y_test, predicted)),
+                "Balanced accuracy": float(balanced_accuracy_score(y_test, predicted)),
+                "ROC-AUC": float(roc_auc_score(y_test, probability_up)),
+                "Brier score": float(brier_score_loss(y_test, probability_up)),
+                "Train rows": int(len(X_train)),
+                "Holdout rows": int(len(X_test)),
+                "Train end": str(X_train.index[-1].date()),
+                "Holdout start": str(X_test.index[0].date()),
+                "Holdout end": str(X_test.index[-1].date()),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame:
     """Summarize fold-to-fold dispersion for each model without pooling models."""
     required = {"Model", "Fold", "Accuracy", "Balanced accuracy", "ROC-AUC"}
