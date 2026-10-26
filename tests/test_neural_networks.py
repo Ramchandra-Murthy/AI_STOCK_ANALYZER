@@ -529,7 +529,6 @@ def test_permutation_feature_sensitivity_rejects_invalid_inputs(
         permutation_feature_sensitivity(UnusedModel(), features, target, n_repeats=n_repeats)
 
 
-
 def test_mlp_seed_stability_uses_same_holdout_and_is_reproducible() -> None:
     from neural_networks.evaluation import evaluate_mlp_seed_stability
 
