@@ -805,7 +805,9 @@ def summarize_mlp_configuration_results(results: pd.DataFrame) -> pd.DataFrame:
             values = group[metric].dropna()
             row[f"{metric} mean"] = float(values.mean()) if not values.empty else float("nan")
             row[f"{metric} std"] = (
-                float(values.std(ddof=1)) if len(values) > 1 else (0.0 if len(values) == 1 else float("nan"))
+                float(values.std(ddof=1))
+                if len(values) > 1
+                else (0.0 if len(values) == 1 else float("nan"))
             )
             row[f"{metric} min"] = float(values.min()) if not values.empty else float("nan")
             row[f"{metric} max"] = float(values.max()) if not values.empty else float("nan")
