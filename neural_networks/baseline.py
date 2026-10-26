@@ -8,7 +8,13 @@ from typing import Any
 import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    brier_score_loss,
+    log_loss,
+    roc_auc_score,
+)
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -93,6 +99,8 @@ def train_baseline(
         "accuracy": float(accuracy_score(y_test, predictions)),
         "train_accuracy": train_accuracy,
         "holdout_balanced_accuracy": holdout_balanced_accuracy,
+        "brier_score": float(brier_score_loss(y_test, probabilities)),
+        "log_loss": float(log_loss(y_test, probabilities, labels=[0, 1])),
         "accuracy_gap": float(train_accuracy - accuracy_score(y_test, predictions)),
         "test_samples": int(len(y_test)),
         "train_samples": int(len(y_train)),
