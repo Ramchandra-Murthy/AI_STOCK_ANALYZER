@@ -13,6 +13,7 @@ from neural_networks.evaluation import (
     compare_feature_ablation,
     compare_holdout_baselines,
     factor_information_coefficient,
+    summarize_probability_reliability,
     summarize_walk_forward_stability,
     walk_forward_evaluation,
 )
@@ -265,6 +266,34 @@ if raw is not None:
                     "not just the up/down classification. Lower values are better; compare them "
                     "against other models on the same holdout period. They do not establish "
                     "profitable trading signals."
+                )
+                reliability = summarize_probability_reliability(
+                    metrics["actual"], metrics["probability_up"], n_bins=5
+                )
+                st.subheader("Holdout probability reliability by band")
+                st.caption(
+                    "Within each probability band, compare the model's mean predicted up-probability "
+                    "with the observed up frequency. Positive calibration gap means the observed "
+                    "rate was higher than predicted; negative means it was lower. Small sample "
+                    "counts make each band's estimate noisy. This is descriptive, not a guarantee "
+                    "of future calibration or profitability."
+                )
+                st.dataframe(
+                    reliability.style.format(
+                        {
+                            "Mean predicted probability": "{:.1%}",
+                            "Observed up rate": "{:.1%}",
+                            "Calibration gap": "{:+.1%}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download probability reliability CSV",
+                    data=reliability.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_probability_reliability.csv",
+                    mime="text/csv",
                 )
                 st.subheader("MLP training diagnostics")
                 diagnostic_left, diagnostic_middle, diagnostic_right = st.columns(3)
