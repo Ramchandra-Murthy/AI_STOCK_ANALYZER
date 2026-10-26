@@ -256,6 +256,16 @@ if raw is not None:
                         "Holdout accuracy exceeds training accuracy. This is not automatically "
                         "a problem; check fold-to-fold stability and data characteristics."
                     )
+                st.subheader("Probability calibration diagnostics")
+                calibration_left, calibration_right = st.columns(2)
+                calibration_left.metric("Brier score", f"{metrics['brier_score']:.4f}")
+                calibration_right.metric("Log loss", f"{metrics['log_loss']:.4f}")
+                st.caption(
+                    "Brier score and log loss evaluate the quality of predicted probabilities, "
+                    "not just the up/down classification. Lower values are better; compare them "
+                    "against other models on the same holdout period. They do not establish "
+                    "profitable trading signals."
+                )
                 st.subheader("MLP training diagnostics")
                 diagnostic_left, diagnostic_middle, diagnostic_right = st.columns(3)
                 diagnostic_left.metric(
