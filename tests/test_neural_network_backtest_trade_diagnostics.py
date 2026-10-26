@@ -8,9 +8,7 @@ from neural_networks.strategy_backtest import summarize_backtest_trade_distribut
 
 
 def test_trade_distribution_reports_net_trade_statistics() -> None:
-    trades = pd.DataFrame(
-        {"Net return after costs": [0.10, -0.05, 0.0, 0.15, -0.10]}
-    )
+    trades = pd.DataFrame({"Net return after costs": [0.10, -0.05, 0.0, 0.15, -0.10]})
 
     summary = summarize_backtest_trade_distribution(trades)
     row = summary.iloc[0]
