@@ -278,3 +278,70 @@ def test_factor_ic_display_normalizes_mixed_window_types() -> None:
     assert "factor_ic_display = factor_ic.copy()" in source
     assert 'factor_ic_display["Window"] = factor_ic_display["Window"].astype(str)' in source
     assert 'data=factor_ic.to_csv(index=False).encode("utf-8")' in source
+
+
+def test_backtest_equity_return_matches_compounded_non_overlapping_trade_returns() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=260)
+    signal_dates = data.index[100:180]
+    probabilities = np.full(len(signal_dates), 0.9)
+    summary, trades = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.5,
+        cost_bps_per_side=12.0,
+    )
+
+    assert not trades.empty
+    compounded_trade_return = float((1.0 + trades["Net return after costs"]).prod() - 1.0)
+    strategy_return = float(
+        summary.loc[summary["Strategy"] == "MLP threshold strategy", "Total return"].iloc[0]
+    )
+    assert strategy_return == pytest.approx(compounded_trade_return, abs=1e-10)
+
+
+def test_backtest_skips_signals_without_a_complete_future_exit() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=180)
+    signal_dates = data.index[-10:]
+    probabilities = np.full(len(signal_dates), 0.9)
+    summary, trades = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.5,
+        cost_bps_per_side=10.0,
+    )
+
+    assert not trades.empty
+    assert (trades["Exit date"] <= data.index[-1]).all()
+    assert trades["Signal date"].max() <= data.index[-7]
+    assert summary.loc[summary["Strategy"] == "MLP threshold strategy", "Trades"].iloc[0] == len(
+        trades
+    )
+
+
+def test_backtest_threshold_above_all_probabilities_produces_no_trades() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=200)
+    signal_dates = data.index[100:130]
+    probabilities = np.full(len(signal_dates), 0.4)
+    summary, trades = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.8,
+        cost_bps_per_side=10.0,
+    )
+
+    assert trades.empty
+    strategy = summary.loc[summary["Strategy"] == "MLP threshold strategy"].iloc[0]
+    assert strategy["Trades"] == 0
+    assert strategy["Total return"] == pytest.approx(0.0)
