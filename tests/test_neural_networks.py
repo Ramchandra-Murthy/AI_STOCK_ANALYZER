@@ -275,6 +275,6 @@ def test_backtest_benchmark_uses_complete_holdout_window_after_last_trade() -> N
 
 def test_factor_ic_display_normalizes_mixed_window_types() -> None:
     source = open("pages/Neural_Networks_Lab.py", encoding="utf-8").read()
-    assert 'factor_ic_display = factor_ic.copy()' in source
+    assert "factor_ic_display = factor_ic.copy()" in source
     assert 'factor_ic_display["Window"] = factor_ic_display["Window"].astype(str)' in source
     assert 'data=factor_ic.to_csv(index=False).encode("utf-8")' in source
