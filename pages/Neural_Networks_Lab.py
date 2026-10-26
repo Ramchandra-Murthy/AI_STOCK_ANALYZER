@@ -16,6 +16,7 @@ from neural_networks.evaluation import (
     factor_information_coefficient,
     permutation_feature_sensitivity,
     summarize_mlp_seed_stability,
+    summarize_mlp_configuration_results,
     summarize_probability_reliability,
     summarize_walk_forward_stability,
     walk_forward_evaluation,
@@ -162,6 +163,11 @@ with backtest_col:
         help="Fixed threshold for this holdout report; do not tune it against the holdout results.",
     )
 with cost_col:
+    run_mlp_configuration_comparison = st.checkbox(
+        "Run optional chronological MLP configuration comparison (slower)",
+        value=False,
+        help="Compares a small fixed set of architectures across future validation folds. It does not select or deploy a model.",
+    )
     cost_bps_per_side = st.number_input(
         "Estimated transaction cost (basis points per side)",
         min_value=0.0,
@@ -584,6 +590,42 @@ if raw is not None:
                     file_name="neural_networks_walk_forward_stability.csv",
                     mime="text/csv",
                 )
+
+                if run_mlp_configuration_comparison:
+                    st.subheader("Chronological MLP configuration comparison")
+                    st.caption(
+                        "A fixed set of architectures and regularization strengths is compared across "
+                        "expanding chronological validation folds. Means and ranges describe validation "
+                        "folds only; do not use this table to tune repeatedly against the final holdout."
+                    )
+                    configuration_folds = compare_mlp_configurations(
+                        features, target, n_splits=3, horizon=int(horizon)
+                    )
+                    configuration_summary = summarize_mlp_configuration_results(configuration_folds)
+                    st.dataframe(
+                        configuration_summary.style.format(
+                            {
+                                column: "{:.4f}"
+                                for column in configuration_summary.columns
+                                if column not in {"Configuration", "Hidden layers", "Folds", "Iteration-limit folds"}
+                            },
+                            na_rep="—",
+                        ),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    st.download_button(
+                        "Download MLP configuration summary CSV",
+                        data=configuration_summary.to_csv(index=False).encode("utf-8"),
+                        file_name="neural_networks_mlp_configuration_summary.csv",
+                        mime="text/csv",
+                    )
+                    st.download_button(
+                        "Download MLP configuration fold results CSV",
+                        data=configuration_folds.to_csv(index=False).encode("utf-8"),
+                        file_name="neural_networks_mlp_configuration_folds.csv",
+                        mime="text/csv",
+                    )
 
                 st.subheader("Cost-aware holdout strategy backtest")
                 st.caption(
