@@ -223,10 +223,11 @@ if raw is not None:
                     )
                     st.stop()
                 model, metrics = train_baseline(
-                    features, target, train_fraction=float(train_fraction)
+                    features, target, train_fraction=float(train_fraction), horizon=int(horizon)
                 )
                 split_at = int(len(features) * float(train_fraction))
                 test_dates = features.index[split_at:]
+                train_end = metrics["train_end"]
                 left, middle, right = st.columns(3)
                 left.metric("Holdout accuracy", f"{metrics['accuracy']:.1%}")
                 middle.metric("Test observations", f"{metrics['test_samples']:,}")
@@ -235,10 +236,14 @@ if raw is not None:
                 else:
                     right.metric("ROC-AUC", "Unavailable")
                 st.caption(
-                    f"Train: {features.index[0].date()} to "
-                    f"{features.index[split_at - 1].date()} · "
-                    f"Test: {test_dates[0].date()} to {test_dates[-1].date()} · "
-                    f"Label: positive close-to-close return after {int(horizon)} trading days."
+                    f"Train: {features.index[0].date()} to {train_end} "
+                    f"({metrics['train_samples']:,} rows; "
+                    f"{metrics['train_positive']:,} positive / {metrics['train_negative']:,} negative) · "
+                    f"Test: {test_dates[0].date()} to {test_dates[-1].date()} "
+                    f"({metrics['test_samples']:,} rows; "
+                    f"{metrics['test_positive']:,} positive / {metrics['test_negative']:,} negative) · "
+                    f"Label: positive return from next close to close after {int(horizon)} holding days. "
+                    f"Purged {int(horizon) + 1} rows at the split boundary."
                 )
                 result = pd.DataFrame(
                     {
