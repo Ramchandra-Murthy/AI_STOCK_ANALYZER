@@ -726,3 +726,90 @@ def compare_mlp_configurations(
             )
             rows.append(row)
     return pd.DataFrame(rows)
+
+
+def summarize_mlp_configuration_results(results: pd.DataFrame) -> pd.DataFrame:
+    """Summarize MLP configuration metrics across chronological validation folds.
+
+    Fold means and dispersion are descriptive only; this helper does not choose
+    or deploy a model. The final untouched test period must remain separate.
+    """
+    required = {
+        "Configuration",
+        "Hidden layers",
+        "Alpha",
+        "Fold",
+        "Accuracy",
+        "Balanced accuracy",
+        "ROC-AUC",
+        "Brier score",
+        "Log loss",
+        "Training iterations",
+        "Reached iteration limit",
+    }
+    missing = sorted(required.difference(results.columns))
+    if missing:
+        raise ValueError("MLP configuration results missing columns: " + ", ".join(missing))
+    metrics = ["Accuracy", "Balanced accuracy", "ROC-AUC", "Brier score", "Log loss"]
+    output_columns = [
+        "Configuration",
+        "Hidden layers",
+        "Alpha",
+        "Folds",
+        *[f"{metric} {stat}" for metric in metrics for stat in ("mean", "std", "min", "max")],
+        "Iteration-limit folds",
+    ]
+    if results.empty:
+        return pd.DataFrame(columns=output_columns)
+
+    frame = results.copy()
+    for column in ["Configuration", "Fold", "Alpha", "Training iterations", *metrics]:
+        frame[column] = pd.to_numeric(frame[column], errors="coerce")
+    if frame[["Configuration", "Fold", "Alpha", "Training iterations"]].isna().any().any():
+        raise ValueError("configuration identifiers and training iterations must be numeric")
+    if not np.isfinite(
+        frame[["Configuration", "Fold", "Alpha", "Training iterations"]].to_numpy(dtype=float)
+    ).all():
+        raise ValueError("configuration identifiers and training iterations must be finite")
+    if (frame["Configuration"] < 1).any() or (frame["Fold"] < 1).any():
+        raise ValueError("configuration and fold numbers must be positive")
+    if (frame["Alpha"] <= 0).any() or (frame["Training iterations"] < 1).any():
+        raise ValueError("alpha and training iterations must be positive")
+    if frame.duplicated(["Configuration", "Fold"]).any():
+        raise ValueError("each configuration may have only one row per fold")
+    for metric in ["Accuracy", "Balanced accuracy", "Brier score"]:
+        values = frame[metric].dropna()
+        if not np.isfinite(values.to_numpy(dtype=float)).all() or not values.between(0, 1).all():
+            raise ValueError(f"{metric} must be finite and between 0 and 1")
+    auc = frame["ROC-AUC"].dropna()
+    if not np.isfinite(auc.to_numpy(dtype=float)).all() or not auc.between(0, 1).all():
+        raise ValueError("ROC-AUC must be finite and between 0 and 1 when defined")
+    loss = frame["Log loss"].dropna()
+    if not np.isfinite(loss.to_numpy(dtype=float)).all() or (loss < 0).any():
+        raise ValueError("Log loss must be finite and non-negative when defined")
+    if not frame["Reached iteration limit"].isin([True, False, 0, 1]).all():
+        raise ValueError("Reached iteration limit must contain boolean values")
+
+    rows: list[dict[str, Any]] = []
+    for (configuration, hidden_layers, alpha), group in frame.groupby(
+        ["Configuration", "Hidden layers", "Alpha"], sort=True, dropna=False
+    ):
+        row: dict[str, Any] = {
+            "Configuration": int(configuration),
+            "Hidden layers": str(hidden_layers),
+            "Alpha": float(alpha),
+            "Folds": int(group["Fold"].nunique()),
+            "Iteration-limit folds": int(group["Reached iteration limit"].astype(bool).sum()),
+        }
+        for metric in metrics:
+            values = group[metric].dropna()
+            row[f"{metric} mean"] = float(values.mean()) if not values.empty else float("nan")
+            row[f"{metric} std"] = (
+                float(values.std(ddof=1))
+                if len(values) > 1
+                else (0.0 if len(values) == 1 else float("nan"))
+            )
+            row[f"{metric} min"] = float(values.min()) if not values.empty else float("nan")
+            row[f"{metric} max"] = float(values.max()) if not values.empty else float("nan")
+        rows.append(row)
+    return pd.DataFrame(rows, columns=output_columns)
