@@ -267,7 +267,7 @@ if raw is not None:
                     "simple reference; logistic regression tests whether a simpler linear model is competitive."
                 )
                 comparison = compare_holdout_baselines(
-                    features, target, train_fraction=float(train_fraction)
+                    features, target, train_fraction=float(train_fraction), horizon=int(horizon)
                 )
                 st.dataframe(
                     comparison.style.format(
