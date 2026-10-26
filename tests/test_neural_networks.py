@@ -244,3 +244,29 @@ def test_walk_forward_stability_summary_validates_required_columns() -> None:
 
     with pytest.raises(ValueError, match="missing columns"):
         summarize_walk_forward_stability(pd.DataFrame({"Model": ["MLP"]}))
+
+def test_backtest_benchmark_uses_complete_holdout_window_after_last_trade() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=240)
+    signal_dates = data.index[100:180]
+    probabilities = np.full(len(signal_dates), 0.9)
+    cost_bps = 10.0
+
+    summary, trades = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.5,
+        cost_bps_per_side=cost_bps,
+    )
+
+    assert not trades.empty
+    assert trades["Exit date"].max() < data.index[-1]
+    benchmark = summary.loc[summary["Strategy"] == "Buy and hold"].iloc[0]
+    full_period_prices = data.loc[signal_dates[0] :, "Close"]
+    gross_benchmark_return = full_period_prices.iloc[-1] / full_period_prices.iloc[0] - 1.0
+    side_cost = cost_bps / 10_000.0
+    expected_net_return = (1.0 - side_cost) ** 2 * (1.0 + gross_benchmark_return) - 1.0
+    assert benchmark["Total return"] == pytest.approx(expected_net_return)
