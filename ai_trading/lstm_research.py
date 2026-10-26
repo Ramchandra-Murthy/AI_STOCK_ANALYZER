@@ -197,7 +197,9 @@ def predict_lstm(
     model = trained["model"]
     model.eval()
     with torch.no_grad():
-        probability = float(torch.sigmoid(model(torch.from_numpy(scaled.astype(np.float32)))).item())
+        probability = float(
+            torch.sigmoid(model(torch.from_numpy(scaled.astype(np.float32)))).item()
+        )
     return {
         "probability_up": probability,
         "confidence": abs(probability - 0.5) * 2.0,
