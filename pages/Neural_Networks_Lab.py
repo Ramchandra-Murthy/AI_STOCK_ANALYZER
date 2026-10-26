@@ -715,6 +715,7 @@ if raw is not None:
                     hide_index=True,
                 )
                 st.subheader("Transaction-cost sensitivity")
+                from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
                 st.caption(
                     "Re-estimates trade outcomes using gross trade returns at alternative per-side cost "
                     "assumptions. A round trip is represented as two units of turnover. This uses a "
@@ -724,7 +725,6 @@ if raw is not None:
                 gross_trade_returns = pd.to_numeric(
                     backtest_trades["Gross return"], errors="coerce"
                 )
-                from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
 
                 cost_sensitivity = transaction_cost_sensitivity(
                     gross_trade_returns.reset_index(drop=True),
