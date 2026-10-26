@@ -685,6 +685,18 @@ def compare_mlp_configurations(
             row = _score_row("MLP", y_test, predicted, probabilities)
             row.update(
                 {
+                    "Brier score": float(np.mean((probabilities - y_test.to_numpy()) ** 2)),
+                    "Log loss": float(
+                        -np.mean(
+                            y_test.to_numpy() * np.log(np.clip(probabilities, 1e-15, 1 - 1e-15))
+                            + (1 - y_test.to_numpy())
+                            * np.log(np.clip(1 - probabilities, 1e-15, 1 - 1e-15))
+                        )
+                    ),
+                }
+            )
+            row.update(
+                {
                     "Configuration": config_number,
                     "Hidden layers": str(hidden_layers),
                     "Alpha": float(alpha),
