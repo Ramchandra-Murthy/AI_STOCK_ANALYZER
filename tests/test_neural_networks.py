@@ -527,3 +527,46 @@ def test_permutation_feature_sensitivity_rejects_invalid_inputs(
 
     with pytest.raises(ValueError, match=message):
         permutation_feature_sensitivity(UnusedModel(), features, target, n_repeats=n_repeats)
+
+
+
+def test_mlp_seed_stability_uses_same_holdout_and_is_reproducible() -> None:
+    from neural_networks.evaluation import evaluate_mlp_seed_stability
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    seeds = (7, 21, 42)
+    first = evaluate_mlp_seed_stability(
+        features, target, train_fraction=0.70, horizon=5, random_states=seeds
+    )
+    second = evaluate_mlp_seed_stability(
+        features, target, train_fraction=0.70, horizon=5, random_states=seeds
+    )
+
+    assert first["Random seed"].tolist() == list(seeds)
+    assert first["Holdout start"].nunique() == 1
+    assert first["Holdout end"].nunique() == 1
+    assert first["Train end"].nunique() == 1
+    assert first["Holdout rows"].nunique() == 1
+    assert first["Accuracy"].between(0, 1).all()
+    assert first["Balanced accuracy"].between(0, 1).all()
+    assert first["ROC-AUC"].between(0, 1).all()
+    assert first["Brier score"].between(0, 1).all()
+    pd.testing.assert_frame_equal(first, second)
+
+
+@pytest.mark.parametrize(
+    ("features", "target", "seeds", "message"),
+    [
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1], index=[1, 2]), (1, 2), "identical indexes"),
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1]), (1,), "at least two seeds"),
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1]), (1, 1), "unique"),
+    ],
+)
+def test_mlp_seed_stability_rejects_invalid_inputs(
+    features: pd.DataFrame, target: pd.Series, seeds: tuple[int, ...], message: str
+) -> None:
+    from neural_networks.evaluation import evaluate_mlp_seed_stability
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_mlp_seed_stability(features, target, random_states=seeds)
