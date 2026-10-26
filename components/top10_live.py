@@ -63,6 +63,34 @@ _SCAN_FAILURES = 0
 _PROVIDER_DIAGNOSTICS: list[str] = []
 
 
+def _apply_top10_filters(
+    frame: pd.DataFrame,
+    *,
+    min_price: float = 0.0,
+    max_price: float = 0.0,
+    min_move_pct: float = 0.0,
+    max_move_pct: float = 0.0,
+    exchange: str = "NSE + BSE",
+) -> pd.DataFrame:
+    """Apply display-only filters without changing the underlying scan or signal history."""
+    result = frame.copy()
+    if result.empty:
+        return result
+    if "Price" in result.columns:
+        prices = pd.to_numeric(result["Price"], errors="coerce")
+        result = result.loc[prices.ge(min_price)]
+        if max_price > 0:
+            result = result.loc[pd.to_numeric(result["Price"], errors="coerce").le(max_price)]
+    if "1-min %" in result.columns:
+        moves = pd.to_numeric(result["1-min %"], errors="coerce").abs()
+        result = result.loc[moves.ge(min_move_pct)]
+        if max_move_pct > 0:
+            result = result.loc[moves.le(max_move_pct)]
+    if exchange in {"NSE", "BSE"} and "Exchange" in result.columns:
+        result = result.loc[result["Exchange"].eq(exchange)]
+    return result.reset_index(drop=True)
+
+
 def _market_is_open(now: datetime) -> bool:
     """Return true only when the shared exchange calendar confirms regular hours."""
     return is_regular_equity_session_open(now)
@@ -686,9 +714,51 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.subheader("🔴 Live Top-10 Market Scanner")
     st.caption(
         "Ranks the largest absolute 1-minute price moves from the configured "
-        "NSE/BSE candidate universe. Dhan is preferred when configured; Yahoo Finance is the fallback. The fast path scans a balanced sample of NSE and BSE symbols. "
+        "NSE/BSE candidate universe using Yahoo Finance one-minute candles. "
+        "The fast path scans a balanced sample of NSE and BSE symbols. "
         "Degraded coverage is never promoted into signal history."
     )
+
+    with st.expander("Scanner filters", expanded=True):
+        filter_col1, filter_col2 = st.columns(2)
+        with filter_col1:
+            min_price_filter = st.number_input(
+                "Minimum price (₹)",
+                min_value=0.0,
+                value=0.0,
+                step=10.0,
+                key="top10_filter_min_price",
+            )
+        with filter_col2:
+            max_price_filter = st.number_input(
+                "Maximum price (₹; 0 = no limit)",
+                min_value=0.0,
+                value=0.0,
+                step=10.0,
+                key="top10_filter_max_price",
+            )
+        move_col1, move_col2 = st.columns(2)
+        with move_col1:
+            min_move_filter = st.number_input(
+                "Minimum absolute 1-minute move (%)",
+                min_value=0.0,
+                value=0.0,
+                step=0.1,
+                key="top10_filter_min_move",
+            )
+        with move_col2:
+            max_move_filter = st.number_input(
+                "Maximum absolute 1-minute move (%) (0 = no limit)",
+                min_value=0.0,
+                value=0.0,
+                step=0.1,
+                key="top10_filter_max_move",
+            )
+        exchange_filter = st.selectbox(
+            "Exchange",
+            ["NSE + BSE", "NSE", "BSE"],
+            key="top10_filter_exchange",
+        )
 
     if st.button("↻ Refresh Top-10 now", key="top10_manual_refresh"):
         if _market_is_open(datetime.now(_IST)):
@@ -880,8 +950,23 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Displayed results may be incomplete; automatic retry is active."
         )
 
-    st.dataframe(
+    filtered_top10 = _apply_top10_filters(
         annotated_top10,
+        min_price=min_price_filter,
+        max_price=max_price_filter,
+        min_move_pct=min_move_filter,
+        max_move_pct=max_move_filter,
+        exchange=exchange_filter,
+    )
+    if filtered_top10.empty:
+        st.info("No Top-10 rows match these filters. Widen the filters to see more results.")
+    else:
+        st.caption(
+            f"{len(filtered_top10)} of {len(annotated_top10)} Top-10 row(s) match the filters."
+        )
+
+    st.dataframe(
+        filtered_top10,
         use_container_width=True,
         hide_index=True,
         column_config={
