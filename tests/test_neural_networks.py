@@ -347,7 +347,6 @@ def test_backtest_threshold_above_all_probabilities_produces_no_trades() -> None
     assert strategy["Total return"] == pytest.approx(0.0)
 
 
-
 def test_mlp_baseline_reports_training_convergence_diagnostics() -> None:
     from neural_networks.baseline import train_baseline
 
