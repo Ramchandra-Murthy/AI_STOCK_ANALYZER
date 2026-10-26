@@ -235,6 +235,27 @@ if raw is not None:
                     right.metric("ROC-AUC", f"{metrics['roc_auc']:.3f}")
                 else:
                     right.metric("ROC-AUC", "Unavailable")
+                st.subheader("Overfitting and class-balance diagnostics")
+                fit_left, fit_middle, fit_right = st.columns(3)
+                fit_left.metric("Training accuracy", f"{metrics['train_accuracy']:.1%}")
+                fit_middle.metric("Holdout accuracy", f"{metrics['accuracy']:.1%}")
+                fit_right.metric("Train − holdout gap", f"{metrics['accuracy_gap']:+.1%}")
+                st.caption(
+                    f"Holdout balanced accuracy: {metrics['holdout_balanced_accuracy']:.1%}. "
+                    "Balanced accuracy averages recall across classes and helps reveal "
+                    "performance hidden by unequal class counts."
+                )
+                if metrics["accuracy_gap"] >= 0.15:
+                    st.warning(
+                        "Training accuracy exceeds holdout accuracy by at least 15 percentage "
+                        "points. This can indicate overfitting; compare chronological folds and "
+                        "class balance before drawing conclusions."
+                    )
+                elif metrics["accuracy_gap"] < 0:
+                    st.info(
+                        "Holdout accuracy exceeds training accuracy. This is not automatically "
+                        "a problem; check fold-to-fold stability and data characteristics."
+                    )
                 st.subheader("MLP training diagnostics")
                 diagnostic_left, diagnostic_middle, diagnostic_right = st.columns(3)
                 diagnostic_left.metric(
