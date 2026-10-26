@@ -62,8 +62,10 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_CHUNK_SIZE == 20
     assert TOP10_MAX_NSE_CANDIDATES == 10
     assert TOP10_MAX_BSE_CANDIDATES == 10
-    assert TOP10_PROVIDER_RETRIES == 0
-    assert TOP10_PROVIDER_TIMEOUT == 5
+    assert TOP10_PROVIDER_RETRIES == 1
+    assert TOP10_PROVIDER_TIMEOUT == 8
+    assert top10_live.TOP10_MAX_SINGLE_SYMBOL_RECOVERY == 2
+    assert top10_live.TOP10_RECOVERY_TIMEOUT == 4
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert 0 < TOP10_SCAN_WARNING_SECONDS < TOP10_STALE_DATA_SECONDS
     assert TOP10_STALE_DATA_SECONDS >= 3 * TOP10_REFRESH_SECONDS
@@ -672,6 +674,8 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert "retries=TOP10_PROVIDER_RETRIES" in source
     assert "recover_missing=False" in source
+    assert "TOP10_MAX_SINGLE_SYMBOL_RECOVERY" in source
+    assert "usable candles missing for" in source
 
 
 def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> None:
