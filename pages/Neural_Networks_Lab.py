@@ -608,7 +608,13 @@ if raw is not None:
                             {
                                 column: "{:.4f}"
                                 for column in configuration_summary.columns
-                                if column not in {"Configuration", "Hidden layers", "Folds", "Iteration-limit folds"}
+                                if column
+                                not in {
+                                    "Configuration",
+                                    "Hidden layers",
+                                    "Folds",
+                                    "Iteration-limit folds",
+                                }
                             },
                             na_rep="—",
                         ),
