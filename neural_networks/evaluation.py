@@ -9,7 +9,13 @@ import pandas as pd
 from sklearn.dummy import DummyClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    brier_score_loss,
+    log_loss,
+    roc_auc_score,
+)
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
@@ -47,9 +53,19 @@ def _score_row(
         "Accuracy": float(accuracy_score(actual, predicted)),
         "Balanced accuracy": float(balanced_accuracy_score(actual, predicted)),
     }
-    if probability_up is not None and actual.nunique() == 2:
-        row["ROC-AUC"] = float(roc_auc_score(actual, probability_up))
+    if probability_up is not None:
+        probabilities = np.asarray(probability_up, dtype=float)
+        labels = np.asarray(actual, dtype=int)
+        row["Brier score"] = float(brier_score_loss(labels, probabilities))
+        row["Log loss"] = float(log_loss(labels, probabilities, labels=[0, 1]))
+        row["ROC-AUC"] = (
+            float(roc_auc_score(labels, probabilities))
+            if np.unique(labels).size == 2
+            else float("nan")
+        )
     else:
+        row["Brier score"] = float("nan")
+        row["Log loss"] = float("nan")
         row["ROC-AUC"] = float("nan")
     return row
 
