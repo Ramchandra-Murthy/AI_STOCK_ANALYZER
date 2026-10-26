@@ -297,6 +297,42 @@ def evaluate_mlp_seed_stability(
     return pd.DataFrame(rows)
 
 
+def summarize_mlp_seed_stability(seed_results: pd.DataFrame) -> pd.DataFrame:
+    """Summarize metric dispersion across MLP seeds evaluated on one shared holdout.
+
+    This describes initialization sensitivity only. The runs are not independent
+    validation samples because they reuse the same training and holdout observations.
+    """
+    if seed_results.empty:
+        raise ValueError("Seed-stability results must not be empty")
+    metrics = ["Accuracy", "Balanced accuracy", "ROC-AUC", "Brier score"]
+    missing = sorted(set(metrics).difference(seed_results.columns))
+    if missing:
+        raise ValueError("Seed-stability results missing columns: " + ", ".join(missing))
+
+    rows: list[dict[str, Any]] = []
+    for metric in metrics:
+        values = pd.to_numeric(seed_results[metric], errors="coerce").dropna()
+        if values.empty:
+            mean = std = minimum = maximum = float("nan")
+        else:
+            mean = float(values.mean())
+            std = float(values.std(ddof=1)) if len(values) > 1 else 0.0
+            minimum = float(values.min())
+            maximum = float(values.max())
+        rows.append(
+            {
+                "Metric": metric,
+                "Runs": int(len(values)),
+                "Mean": mean,
+                "Std": std,
+                "Min": minimum,
+                "Max": maximum,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame:
     """Summarize fold-to-fold dispersion for each model without pooling models."""
     required = {"Model", "Fold", "Accuracy", "Balanced accuracy", "ROC-AUC"}
