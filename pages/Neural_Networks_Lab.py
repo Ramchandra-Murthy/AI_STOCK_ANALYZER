@@ -235,6 +235,46 @@ if raw is not None:
                     right.metric("ROC-AUC", f"{metrics['roc_auc']:.3f}")
                 else:
                     right.metric("ROC-AUC", "Unavailable")
+                st.subheader("MLP training diagnostics")
+                diagnostic_left, diagnostic_middle, diagnostic_right = st.columns(3)
+                diagnostic_left.metric(
+                    "Training iterations",
+                    f"{metrics['training_iterations']:,} / {metrics['max_iterations']:,}",
+                )
+                diagnostic_middle.metric(
+                    "Final training loss", f"{metrics['final_training_loss']:.5f}"
+                )
+                diagnostic_right.metric(
+                    "Iteration limit reached",
+                    "Yes" if metrics["reached_iteration_limit"] else "No",
+                )
+                loss_curve = metrics["training_loss_curve"]
+                if loss_curve:
+                    st.line_chart(
+                        pd.DataFrame(
+                            {
+                                "Training loss": loss_curve,
+                                "Iteration": range(1, len(loss_curve) + 1),
+                            }
+                        ).set_index("Iteration")
+                    )
+                if metrics["convergence_warnings"]:
+                    for warning_message in metrics["convergence_warnings"]:
+                        st.warning(f"MLP convergence warning: {warning_message}")
+                elif metrics["reached_iteration_limit"]:
+                    st.warning(
+                        "The MLP reached max_iter. Review the loss curve and compare results "
+                        "across chronological folds before interpreting the model."
+                    )
+                else:
+                    st.caption(
+                        "No scikit-learn convergence warning was captured for this fit. "
+                        "This does not establish predictive value or profitability."
+                    )
+                st.caption(
+                    "Training loss describes optimization on the training data only; it is not "
+                    "a measure of holdout performance or trading profitability."
+                )
                 st.caption(
                     f"Train: {features.index[0].date()} to {train_end} "
                     f"({metrics['train_samples']:,} rows; "

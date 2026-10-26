@@ -345,3 +345,22 @@ def test_backtest_threshold_above_all_probabilities_produces_no_trades() -> None
     strategy = summary.loc[summary["Strategy"] == "MLP threshold strategy"].iloc[0]
     assert strategy["Trades"] == 0
     assert strategy["Total return"] == pytest.approx(0.0)
+
+
+def test_mlp_baseline_reports_training_convergence_diagnostics() -> None:
+    from neural_networks.baseline import train_baseline
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    model, metrics = train_baseline(features, target, train_fraction=0.70, horizon=5)
+    network = model.named_steps["network"]
+
+    assert metrics["training_iterations"] == network.n_iter_
+    assert metrics["max_iterations"] == network.max_iter == 300
+    assert metrics["reached_iteration_limit"] is (network.n_iter_ >= network.max_iter)
+    assert metrics["final_training_loss"] == pytest.approx(network.loss_)
+    assert metrics["training_loss_curve"] == pytest.approx(network.loss_curve_)
+    assert len(metrics["training_loss_curve"]) == network.n_iter_
+    assert np.isfinite(metrics["training_loss_curve"]).all()
+    assert isinstance(metrics["convergence_warnings"], list)
+    assert all(isinstance(message, str) for message in metrics["convergence_warnings"])
