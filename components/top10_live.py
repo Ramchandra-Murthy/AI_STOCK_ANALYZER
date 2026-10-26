@@ -81,9 +81,7 @@ def _apply_top10_filters(
         prices = pd.to_numeric(result["Price"], errors="coerce")
         result = result.loc[prices.ge(min_price)]
         if max_price > 0:
-            result = result.loc[
-                pd.to_numeric(result["Price"], errors="coerce").le(max_price)
-            ]
+            result = result.loc[pd.to_numeric(result["Price"], errors="coerce").le(max_price)]
     if "1-min %" in result.columns:
         moves = pd.to_numeric(result["1-min %"], errors="coerce").abs()
         result = result.loc[moves.ge(min_move_pct)]
