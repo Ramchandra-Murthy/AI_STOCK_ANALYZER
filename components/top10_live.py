@@ -27,8 +27,10 @@ TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 20
 TOP10_MAX_NSE_CANDIDATES = 10
 TOP10_MAX_BSE_CANDIDATES = 10
-TOP10_PROVIDER_RETRIES = 0
-TOP10_PROVIDER_TIMEOUT = 5
+TOP10_PROVIDER_RETRIES = 1
+TOP10_PROVIDER_TIMEOUT = 8
+TOP10_MAX_SINGLE_SYMBOL_RECOVERY = 2
+TOP10_RECOVERY_TIMEOUT = 4
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
 TOP10_STALE_DATA_SECONDS = 180
@@ -593,6 +595,32 @@ def _download_top10_frames(
         recover_missing=False,
         diagnostics=_PROVIDER_DIAGNOSTICS,
     )
+
+    # Keep recovery bounded: retry individual tickers only when a small number
+    # are missing, rather than serially retrying an entire failed batch.
+    if 0 < len(missing) <= TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
+        recovered, still_missing = download_symbol_frames(
+            missing,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            batch_size=TOP10_MAX_SINGLE_SYMBOL_RECOVERY,
+            timeout=TOP10_RECOVERY_TIMEOUT,
+            retries=0,
+            recover_missing=True,
+            diagnostics=_PROVIDER_DIAGNOSTICS,
+        )
+        frames.update(recovered)
+        missing = still_missing
+
+    if missing:
+        _PROVIDER_DIAGNOSTICS.append(
+            f"usable candles missing for {len(missing)}/{len(tickers)} tickers"
+        )
+    if not frames:
+        _PROVIDER_DIAGNOSTICS.append(
+            f"no usable one-minute candles returned for {len(tickers)} requested tickers"
+        )
     return frames, missing, "Yahoo Finance"
 
 
