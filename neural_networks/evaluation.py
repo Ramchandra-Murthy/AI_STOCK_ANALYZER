@@ -59,9 +59,12 @@ def compare_holdout_baselines(
     target: pd.Series,
     train_fraction: float = 0.70,
     random_state: int = 42,
+    horizon: int = 0,
 ) -> pd.DataFrame:
-    """Compare majority-class, logistic-regression, and MLP on one chronological holdout."""
-    X_train, X_test, y_train, y_test = chronological_split(features, target, train_fraction)
+    """Compare majority-class, logistic-regression, and MLP on a purged chronological holdout."""
+    X_train, X_test, y_train, y_test = chronological_split(
+        features, target, train_fraction, horizon
+    )
     if y_train.nunique() < 2:
         raise ValueError("Training target must contain both classes")
 
@@ -214,7 +217,9 @@ def compare_feature_ablation(
     ]
     rows: list[dict[str, Any]] = []
     for feature_set_name, features in feature_sets:
-        X_train, X_test, y_train, y_test = chronological_split(features, target, train_fraction)
+        X_train, X_test, y_train, y_test = chronological_split(
+            features, target, train_fraction, horizon
+        )
         if y_train.nunique() < 2:
             raise ValueError("Training target must contain both classes")
         models = [
