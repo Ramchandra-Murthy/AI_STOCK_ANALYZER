@@ -677,9 +677,9 @@ if raw is not None:
                 )
                 if not backtest_trades.empty:
                     benchmark_trade_returns = []
-                    for trade in backtest_trades.itertuples(index=False):
-                        entry_price = float(data.loc[trade._asdict()["Entry date"], "Close"])
-                        exit_price = float(data.loc[trade._asdict()["Exit date"], "Close"])
+                    for _, trade in backtest_trades.iterrows():
+                        entry_price = float(data.loc[trade["Entry date"], "Close"])
+                        exit_price = float(data.loc[trade["Exit date"], "Close"])
                         benchmark_trade_returns.append(exit_price / entry_price - 1.0)
                     relative = benchmark_relative_diagnostics(
                         backtest_trades["Net return after costs"].reset_index(drop=True),
