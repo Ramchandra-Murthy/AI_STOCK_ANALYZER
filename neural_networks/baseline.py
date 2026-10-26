@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
 import warnings
+from typing import Any
 
 import pandas as pd
-from sklearn.impute import SimpleImputer
 from sklearn.exceptions import ConvergenceWarning
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
