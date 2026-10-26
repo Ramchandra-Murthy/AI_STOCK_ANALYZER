@@ -22,6 +22,7 @@ from neural_networks.evaluation import (
     summarize_walk_forward_stability,
     walk_forward_evaluation,
 )
+from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
 from neural_networks.features import build_direction_dataset
 from neural_networks.strategy_backtest import (
     backtest_holdout_signals,
@@ -712,6 +713,41 @@ if raw is not None:
                     ),
                     use_container_width=True,
                     hide_index=True,
+                )
+                st.subheader("Transaction-cost sensitivity")
+                st.caption(
+                    "Re-estimates trade outcomes using gross trade returns at alternative per-side cost "
+                    "assumptions. A round trip is represented as two units of turnover. This uses a "
+                    "linear cost approximation, not a fill simulator; taxes, spread, market impact, and "
+                    "slippage must be considered separately."
+                )
+                gross_trade_returns = pd.to_numeric(
+                    backtest_trades["Gross return"], errors="coerce"
+                )
+                cost_sensitivity = transaction_cost_sensitivity(
+                    gross_trade_returns.reset_index(drop=True),
+                    turnover=pd.Series(2.0, index=range(len(gross_trade_returns))),
+                    cost_bps=(0.0, 5.0, 10.0, 20.0, 30.0),
+                )
+                st.dataframe(
+                    cost_sensitivity.style.format(
+                        {
+                            "cost_bps": "{:.1f}",
+                            "gross_return": "{:.2%}",
+                            "net_return": "{:.2%}",
+                            "cost_drag": "{:.2%}",
+                            "total_turnover": "{:.1f}",
+                        },
+                        na_rep="—",
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download transaction-cost sensitivity CSV",
+                    data=cost_sensitivity.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_transaction_cost_sensitivity.csv",
+                    mime="text/csv",
                 )
                 st.download_button(
                     "Download trade-return distribution CSV",
