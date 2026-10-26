@@ -280,7 +280,6 @@ def test_factor_ic_display_normalizes_mixed_window_types() -> None:
     assert 'data=factor_ic.to_csv(index=False).encode("utf-8")' in source
 
 
-
 def test_backtest_equity_return_matches_compounded_non_overlapping_trade_returns() -> None:
     from neural_networks.strategy_backtest import backtest_holdout_signals
 
@@ -322,7 +321,9 @@ def test_backtest_skips_signals_without_a_complete_future_exit() -> None:
     assert not trades.empty
     assert (trades["Exit date"] <= data.index[-1]).all()
     assert trades["Signal date"].max() <= data.index[-7]
-    assert summary.loc[summary["Strategy"] == "MLP threshold strategy", "Trades"].iloc[0] == len(trades)
+    assert summary.loc[summary["Strategy"] == "MLP threshold strategy", "Trades"].iloc[0] == len(
+        trades
+    )
 
 
 def test_backtest_threshold_above_all_probabilities_produces_no_trades() -> None:
