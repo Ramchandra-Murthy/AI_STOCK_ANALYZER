@@ -28,7 +28,6 @@ from neural_networks.strategy_backtest import (
     summarize_backtest_trade_distribution,
 )
 
-from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
 
 st.title("Neural Networks Lab")
 st.caption(
@@ -725,6 +724,8 @@ if raw is not None:
                 gross_trade_returns = pd.to_numeric(
                     backtest_trades["Gross return"], errors="coerce"
                 )
+                from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
+
                 cost_sensitivity = transaction_cost_sensitivity(
                     gross_trade_returns.reset_index(drop=True),
                     turnover=pd.Series(2.0, index=range(len(gross_trade_returns))),
