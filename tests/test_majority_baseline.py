@@ -15,8 +15,8 @@ def test_majority_baseline_uses_training_majority_not_test_majority() -> None:
     # With train_fraction=0.70, split_at=364 and horizon=0, training rows are 0..362.
     # Make class 1 the training majority, but class 0 the test majority.
     target_values = np.zeros(len(index), dtype=int)
-    target_values[:200] = 1
-    target_values[363:433] = 1  # 70 positive and 86 negative labels in the 156-row test set.
+    target_values[:240] = 1
+    target_values[364:434] = 1  # 70 positive and 86 negative labels in the 156-row test set.
     target = pd.Series(target_values, index=index, name="target")
 
     comparison = compare_holdout_baselines(
