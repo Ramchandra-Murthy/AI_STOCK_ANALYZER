@@ -730,6 +730,25 @@ def test_dhan_quote_failures_are_logged_without_suppressing_diagnostics() -> Non
     assert "str(exc)[:240]" in source
 
 
+def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
+    expected_frames = {"RELIANCE.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
+    calls = {}
+
+    def fake_download(tickers, **kwargs):
+        calls["tickers"] = tickers
+        calls["kwargs"] = kwargs
+        return expected_frames, []
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+    frames, missing, provider = top10_live._download_top10_frames(["RELIANCE.NS"])
+
+    assert frames == expected_frames
+    assert missing == []
+    assert provider == "Yahoo Finance"
+    assert calls["tickers"] == ["RELIANCE.NS"]
+    assert calls["kwargs"]["interval"] == "1m"
+    assert calls["kwargs"]["recover_missing"] is False
+
 def test_top10_filters_apply_price_move_and_exchange_without_mutating_source() -> None:
     source = pd.DataFrame(
         [
