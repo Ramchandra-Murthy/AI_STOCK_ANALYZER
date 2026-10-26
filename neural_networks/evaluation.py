@@ -310,16 +310,22 @@ def summarize_mlp_seed_stability(seed_results: pd.DataFrame) -> pd.DataFrame:
     if missing:
         raise ValueError("Seed-stability results missing columns: " + ", ".join(missing))
 
+    metric_values: dict[str, pd.Series] = {}
+    for metric in metrics:
+        values = pd.to_numeric(seed_results[metric], errors="coerce")
+        if values.isna().any() or not np.isfinite(values.to_numpy(dtype=float)).all():
+            raise ValueError(f"{metric} values must be finite numeric values")
+        if ((values < 0) | (values > 1)).any():
+            raise ValueError(f"{metric} values must be between 0 and 1")
+        metric_values[metric] = values
+
     rows: list[dict[str, Any]] = []
     for metric in metrics:
-        values = pd.to_numeric(seed_results[metric], errors="coerce").dropna()
-        if values.empty:
-            mean = std = minimum = maximum = float("nan")
-        else:
-            mean = float(values.mean())
-            std = float(values.std(ddof=1)) if len(values) > 1 else 0.0
-            minimum = float(values.min())
-            maximum = float(values.max())
+        values = metric_values[metric]
+        mean = float(values.mean())
+        std = float(values.std(ddof=1)) if len(values) > 1 else 0.0
+        minimum = float(values.min())
+        maximum = float(values.max())
         rows.append(
             {
                 "Metric": metric,
