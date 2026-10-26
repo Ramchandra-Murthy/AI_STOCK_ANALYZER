@@ -81,7 +81,9 @@ def _apply_top10_filters(
         prices = pd.to_numeric(result["Price"], errors="coerce")
         result = result.loc[prices.ge(min_price)]
         if max_price > 0:
-            result = result.loc[pd.to_numeric(result["Price"], errors="coerce").le(max_price)]
+            result = result.loc[
+                pd.to_numeric(result["Price"], errors="coerce").le(max_price)
+            ]
     if "1-min %" in result.columns:
         moves = pd.to_numeric(result["1-min %"], errors="coerce").abs()
         result = result.loc[moves.ge(min_move_pct)]
@@ -722,27 +724,41 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
         filter_col1, filter_col2 = st.columns(2)
         with filter_col1:
             min_price_filter = st.number_input(
-                "Minimum price (₹)", min_value=0.0, value=0.0, step=10.0,
+                "Minimum price (₹)",
+                min_value=0.0,
+                value=0.0,
+                step=10.0,
                 key="top10_filter_min_price",
             )
         with filter_col2:
             max_price_filter = st.number_input(
-                "Maximum price (₹; 0 = no limit)", min_value=0.0, value=0.0, step=10.0,
+                "Maximum price (₹; 0 = no limit)",
+                min_value=0.0,
+                value=0.0,
+                step=10.0,
                 key="top10_filter_max_price",
             )
         move_col1, move_col2 = st.columns(2)
         with move_col1:
             min_move_filter = st.number_input(
-                "Minimum absolute 1-minute move (%)", min_value=0.0, value=0.0,
-                step=0.1, key="top10_filter_min_move",
+                "Minimum absolute 1-minute move (%)",
+                min_value=0.0,
+                value=0.0,
+                step=0.1,
+                key="top10_filter_min_move",
             )
         with move_col2:
             max_move_filter = st.number_input(
                 "Maximum absolute 1-minute move (%) (0 = no limit)",
-                min_value=0.0, value=0.0, step=0.1, key="top10_filter_max_move",
+                min_value=0.0,
+                value=0.0,
+                step=0.1,
+                key="top10_filter_max_move",
             )
         exchange_filter = st.selectbox(
-            "Exchange", ["NSE + BSE", "NSE", "BSE"], key="top10_filter_exchange"
+            "Exchange",
+            ["NSE + BSE", "NSE", "BSE"],
+            key="top10_filter_exchange",
         )
 
     if st.button("↻ Refresh Top-10 now", key="top10_manual_refresh"):
@@ -946,7 +962,9 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     if filtered_top10.empty:
         st.info("No Top-10 rows match these filters. Widen the filters to see more results.")
     else:
-        st.caption(f"{len(filtered_top10)} of {len(annotated_top10)} Top-10 row(s) match the filters.")
+        st.caption(
+            f"{len(filtered_top10)} of {len(annotated_top10)} Top-10 row(s) match the filters."
+        )
 
     st.dataframe(
         filtered_top10,
