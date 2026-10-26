@@ -609,3 +609,32 @@ def test_mlp_seed_stability_summary_rejects_invalid_inputs(
 
     with pytest.raises(ValueError, match=message):
         summarize_mlp_seed_stability(results)
+
+
+
+@pytest.mark.parametrize(
+    ("metric", "values", "message"),
+    [
+        ("Accuracy", [0.5, "not-a-number"], "finite numeric values"),
+        ("ROC-AUC", [0.6, np.inf], "finite numeric values"),
+        ("Brier score", [0.2, 1.2], "between 0 and 1"),
+        ("Balanced accuracy", [-0.1, 0.7], "between 0 and 1"),
+    ],
+)
+def test_mlp_seed_stability_summary_rejects_invalid_metric_values(
+    metric: str, values: list[object], message: str
+) -> None:
+    from neural_networks.evaluation import summarize_mlp_seed_stability
+
+    results = pd.DataFrame(
+        {
+            "Accuracy": [0.5, 0.6],
+            "Balanced accuracy": [0.5, 0.6],
+            "ROC-AUC": [0.5, 0.6],
+            "Brier score": [0.2, 0.3],
+        }
+    )
+    results[metric] = values
+
+    with pytest.raises(ValueError, match=message):
+        summarize_mlp_seed_stability(results)
