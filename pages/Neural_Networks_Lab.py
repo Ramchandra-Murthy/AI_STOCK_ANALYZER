@@ -8,7 +8,6 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from ai_trading.benchmark_diagnostics import benchmark_relative_diagnostics
 from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
@@ -676,6 +675,7 @@ if raw is not None:
                     "The buy-and-hold benchmark uses the same evaluation window and estimated round-trip costs."
                 )
                 if not backtest_trades.empty:
+                from ai_trading.benchmark_diagnostics import benchmark_relative_diagnostics
                     benchmark_trade_returns = []
                     for _, trade in backtest_trades.iterrows():
                         entry_price = float(data.loc[trade["Entry date"], "Close"])
