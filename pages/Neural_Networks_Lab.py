@@ -715,6 +715,7 @@ if raw is not None:
                     hide_index=True,
                 )
                 st.subheader("Transaction-cost sensitivity")
+                from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
                 st.caption(
                     "Re-estimates trade outcomes using gross trade returns at alternative per-side cost "
                     "assumptions. A round trip is represented as two units of turnover. This uses a "
