@@ -22,6 +22,7 @@ from neural_networks.evaluation import (
     summarize_walk_forward_stability,
     walk_forward_evaluation,
 )
+from ai_trading.benchmark_diagnostics import benchmark_relative_diagnostics
 from neural_networks.features import build_direction_dataset
 from neural_networks.strategy_backtest import (
     backtest_holdout_signals,
@@ -674,6 +675,43 @@ if raw is not None:
                     "Simplified research simulation: excludes taxes and market impact and assumes close-price fills. "
                     "The buy-and-hold benchmark uses the same evaluation window and estimated round-trip costs."
                 )
+                if not backtest_trades.empty:
+                    benchmark_trade_returns = []
+                    for trade in backtest_trades.itertuples(index=False):
+                        entry_price = float(data.loc[trade._asdict()["Entry date"], "Close"])
+                        exit_price = float(data.loc[trade._asdict()["Exit date"], "Close"])
+                        benchmark_trade_returns.append(exit_price / entry_price - 1.0)
+                    relative = benchmark_relative_diagnostics(
+                        backtest_trades["Net return after costs"].reset_index(drop=True),
+                        pd.Series(benchmark_trade_returns),
+                        periods_per_year=max(1, 252 // int(horizon)),
+                    )
+                    st.subheader("Benchmark-relative trade diagnostics")
+                    st.caption(
+                        "Compares completed strategy trades after estimated costs with buy-and-hold "
+                        "returns over the same entry-to-exit intervals. Tracking error and information "
+                        "ratio are annualized approximations across trade observations, not daily returns. "
+                        "These descriptive metrics do not establish future performance."
+                    )
+                    relative_frame = pd.DataFrame([relative])
+                    st.dataframe(
+                        relative_frame.style.format(
+                            {
+                                "active_return": "{:+.2%}",
+                                "tracking_error": "{:.2%}",
+                                "information_ratio": "{:.3f}",
+                            },
+                            na_rep="—",
+                        ),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    st.download_button(
+                        "Download benchmark-relative diagnostics CSV",
+                        data=relative_frame.to_csv(index=False).encode("utf-8"),
+                        file_name="neural_networks_benchmark_relative_diagnostics.csv",
+                        mime="text/csv",
+                    )
                 with st.expander("View backtest trades"):
                     st.dataframe(
                         backtest_trades.style.format(
