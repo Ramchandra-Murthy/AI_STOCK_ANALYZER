@@ -8,7 +8,6 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
 from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
@@ -24,6 +23,7 @@ from neural_networks.evaluation import (
     walk_forward_evaluation,
 )
 from neural_networks.features import build_direction_dataset
+from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
 from neural_networks.strategy_backtest import (
     backtest_holdout_signals,
     summarize_backtest_trade_distribution,
