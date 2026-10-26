@@ -611,7 +611,6 @@ def test_mlp_seed_stability_summary_rejects_invalid_inputs(
         summarize_mlp_seed_stability(results)
 
 
-
 @pytest.mark.parametrize(
     ("metric", "values", "message"),
     [
