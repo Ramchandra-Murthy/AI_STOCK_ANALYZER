@@ -8,6 +8,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from ai_trading.benchmark_diagnostics import benchmark_relative_diagnostics
 from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
@@ -22,7 +23,6 @@ from neural_networks.evaluation import (
     summarize_walk_forward_stability,
     walk_forward_evaluation,
 )
-from ai_trading.benchmark_diagnostics import benchmark_relative_diagnostics
 from neural_networks.features import build_direction_dataset
 from neural_networks.strategy_backtest import (
     backtest_holdout_signals,
