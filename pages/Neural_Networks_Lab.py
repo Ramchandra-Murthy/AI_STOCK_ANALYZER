@@ -13,6 +13,7 @@ from neural_networks.evaluation import (
     compare_feature_ablation,
     compare_holdout_baselines,
     factor_information_coefficient,
+    permutation_feature_sensitivity,
     summarize_probability_reliability,
     summarize_walk_forward_stability,
     walk_forward_evaluation,
@@ -375,6 +376,37 @@ if raw is not None:
                     ),
                     use_container_width=True,
                     hide_index=True,
+                )
+
+                st.subheader("Holdout feature sensitivity")
+                st.caption(
+                    "Features are shuffled one at a time on the chronological holdout. "
+                    "The mean drop in balanced accuracy estimates how much the fitted model "
+                    "relies on each feature under this test. Correlated features can mask one "
+                    "another; negative values can occur from sampling noise. This is descriptive "
+                    "research, not causal evidence, and repeated holdout inspection can bias conclusions."
+                )
+                sensitivity = permutation_feature_sensitivity(
+                    model,
+                    features.iloc[split_at:],
+                    target.iloc[split_at:],
+                    n_repeats=5,
+                )
+                st.dataframe(
+                    sensitivity.style.format(
+                        {
+                            "Balanced accuracy drop mean": "{:+.4f}",
+                            "Balanced accuracy drop std": "{:.4f}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download feature sensitivity CSV",
+                    data=sensitivity.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_feature_sensitivity.csv",
+                    mime="text/csv",
                 )
 
                 st.subheader("Feature ablation: original vs expanded factors")
