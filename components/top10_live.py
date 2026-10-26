@@ -579,7 +579,7 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
 def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
-    """Download live scanner candles from Yahoo Finance only."""
+    """Download all live scanner candles from Yahoo Finance only."""
     global _PROVIDER_DIAGNOSTICS
     _PROVIDER_DIAGNOSTICS = []
     frames, missing = download_symbol_frames(
@@ -714,7 +714,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     st.subheader("🔴 Live Top-10 Market Scanner")
     st.caption(
         "Ranks the largest absolute 1-minute price moves from the configured "
-        "NSE/BSE candidate universe using Yahoo Finance one-minute candles. The fast path scans a balanced sample of NSE and BSE symbols. "
+        "NSE/BSE candidate universe using Yahoo Finance one-minute candles. "
+        "The fast path scans a balanced sample of NSE and BSE symbols. "
         "Degraded coverage is never promoted into signal history."
     )
 
