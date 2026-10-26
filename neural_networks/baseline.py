@@ -50,7 +50,9 @@ def train_baseline(
     horizon: int = 0,
 ) -> tuple[Pipeline, dict[str, Any]]:
     """Train an MLP and report holdout metrics using a chronological split."""
-    X_train, X_test, y_train, y_test = chronological_split(features, target, train_fraction, horizon)
+    X_train, X_test, y_train, y_test = chronological_split(
+        features, target, train_fraction, horizon
+    )
     if y_train.nunique() < 2:
         raise ValueError("Training target must contain both classes")
     model = Pipeline(
