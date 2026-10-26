@@ -267,11 +267,7 @@ def test_backtest_benchmark_uses_complete_holdout_window_after_last_trade() -> N
     assert trades["Exit date"].max() < data.index[-1]
     benchmark = summary.loc[summary["Strategy"] == "Buy and hold"].iloc[0]
     full_period_prices = data.loc[signal_dates[0] :, "Close"]
-    gross_benchmark_return = (
-        full_period_prices.iloc[-1] / full_period_prices.iloc[0] - 1.0
-    )
+    gross_benchmark_return = full_period_prices.iloc[-1] / full_period_prices.iloc[0] - 1.0
     side_cost = cost_bps / 10_000.0
-    expected_net_return = (
-        (1.0 - side_cost) ** 2 * (1.0 + gross_benchmark_return) - 1.0
-    )
+    expected_net_return = (1.0 - side_cost) ** 2 * (1.0 + gross_benchmark_return) - 1.0
     assert benchmark["Total return"] == pytest.approx(expected_net_return)
