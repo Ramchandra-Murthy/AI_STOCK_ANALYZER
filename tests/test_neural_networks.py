@@ -471,3 +471,59 @@ def test_probability_reliability_rejects_invalid_inputs(
 
     with pytest.raises(ValueError, match=message):
         summarize_probability_reliability(actual, probabilities, n_bins=n_bins)
+
+
+def test_permutation_feature_sensitivity_ranks_features_and_is_reproducible() -> None:
+    from sklearn.impute import SimpleImputer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    from neural_networks.evaluation import permutation_feature_sensitivity
+
+    data = sample_ohlcv(rows=260)
+    features, target = build_direction_dataset(data, horizon=3)
+    split = int(len(features) * 0.70)
+    X_train, X_test = features.iloc[:split], features.iloc[split:]
+    y_train, y_test = target.iloc[:split], target.iloc[split:]
+    model = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+            ("classifier", LogisticRegression(max_iter=1000)),
+        ]
+    ).fit(X_train, y_train)
+
+    first = permutation_feature_sensitivity(model, X_test, y_test, n_repeats=3, random_state=7)
+    second = permutation_feature_sensitivity(model, X_test, y_test, n_repeats=3, random_state=7)
+
+    assert list(first.columns) == [
+        "Feature",
+        "Balanced accuracy drop mean",
+        "Balanced accuracy drop std",
+    ]
+    assert set(first["Feature"]) == set(features.columns)
+    assert first["Balanced accuracy drop mean"].notna().all()
+    assert first["Balanced accuracy drop std"].ge(0).all()
+    pd.testing.assert_frame_equal(first, second)
+
+
+@pytest.mark.parametrize(
+    ("features", "target", "n_repeats", "message"),
+    [
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1], index=[1, 2]), 2, "identical indexes"),
+        (pd.DataFrame({"x": []}), pd.Series([], dtype=int), 2, "must not be empty"),
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1]), 0, "n_repeats"),
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([1, 1]), 2, "both classes"),
+    ],
+)
+def test_permutation_feature_sensitivity_rejects_invalid_inputs(
+    features: pd.DataFrame, target: pd.Series, n_repeats: int, message: str
+) -> None:
+    from neural_networks.evaluation import permutation_feature_sensitivity
+
+    class UnusedModel:
+        pass
+
+    with pytest.raises(ValueError, match=message):
+        permutation_feature_sensitivity(UnusedModel(), features, target, n_repeats=n_repeats)

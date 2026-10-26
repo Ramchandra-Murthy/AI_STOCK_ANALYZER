@@ -196,6 +196,52 @@ def summarize_probability_reliability(
     )
 
 
+def permutation_feature_sensitivity(
+    model: Any,
+    features: pd.DataFrame,
+    target: pd.Series,
+    *,
+    n_repeats: int = 5,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Rank holdout features by balanced-accuracy drop after permutation.
+
+    This is a descriptive sensitivity diagnostic on the supplied holdout.
+    Correlated features can mask one another, and repeated use of a holdout
+    for interpretation can bias research conclusions. It is not causal evidence.
+    """
+    from sklearn.inspection import permutation_importance
+
+    if not features.index.equals(target.index):
+        raise ValueError("features and target must have identical indexes")
+    if features.empty or target.empty:
+        raise ValueError("features and target must not be empty")
+    if n_repeats < 1:
+        raise ValueError("n_repeats must be at least 1")
+    if target.nunique() < 2:
+        raise ValueError("target must contain both classes")
+
+    result = permutation_importance(
+        model,
+        features,
+        target,
+        scoring="balanced_accuracy",
+        n_repeats=n_repeats,
+        random_state=random_state,
+        n_jobs=1,
+    )
+    summary = pd.DataFrame(
+        {
+            "Feature": features.columns,
+            "Balanced accuracy drop mean": result.importances_mean,
+            "Balanced accuracy drop std": result.importances_std,
+        }
+    )
+    return summary.sort_values(
+        "Balanced accuracy drop mean", ascending=False, kind="stable"
+    ).reset_index(drop=True)
+
+
 def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame:
     """Summarize fold-to-fold dispersion for each model without pooling models."""
     required = {"Model", "Fold", "Accuracy", "Balanced accuracy", "ROC-AUC"}
