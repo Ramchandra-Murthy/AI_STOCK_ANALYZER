@@ -748,3 +748,37 @@ def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
     assert calls["tickers"] == ["RELIANCE.NS"]
     assert calls["kwargs"]["interval"] == "1m"
     assert calls["kwargs"]["recover_missing"] is False
+
+def test_top10_filters_apply_price_move_and_exchange_without_mutating_source() -> None:
+    source = pd.DataFrame(
+        [
+            {"Symbol": "AAA", "Exchange": "NSE", "Price": 100.0, "1-min %": 1.2},
+            {"Symbol": "BBB", "Exchange": "BSE", "Price": 250.0, "1-min %": -0.8},
+            {"Symbol": "CCC", "Exchange": "NSE", "Price": 400.0, "1-min %": 2.5},
+        ]
+    )
+
+    filtered = top10_live._apply_top10_filters(
+        source,
+        min_price=90.0,
+        max_price=300.0,
+        min_move_pct=0.5,
+        max_move_pct=1.5,
+        exchange="NSE + BSE",
+    )
+
+    assert filtered["Symbol"].tolist() == ["AAA", "BBB"]
+    assert len(source) == 3
+
+
+def test_top10_filters_can_select_one_exchange() -> None:
+    source = pd.DataFrame(
+        [
+            {"Symbol": "AAA", "Exchange": "NSE", "Price": 100.0, "1-min %": 1.2},
+            {"Symbol": "BBB", "Exchange": "BSE", "Price": 250.0, "1-min %": -0.8},
+        ]
+    )
+
+    filtered = top10_live._apply_top10_filters(source, exchange="BSE")
+
+    assert filtered["Symbol"].tolist() == ["BBB"]
