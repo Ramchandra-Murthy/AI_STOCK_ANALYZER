@@ -569,3 +569,43 @@ def test_mlp_seed_stability_rejects_invalid_inputs(
 
     with pytest.raises(ValueError, match=message):
         evaluate_mlp_seed_stability(features, target, random_states=seeds)
+
+
+def test_mlp_seed_stability_summary_reports_metric_dispersion() -> None:
+    from neural_networks.evaluation import summarize_mlp_seed_stability
+
+    results = pd.DataFrame(
+        {
+            "Accuracy": [0.6, 0.8, 0.7],
+            "Balanced accuracy": [0.55, 0.75, 0.65],
+            "ROC-AUC": [0.61, 0.81, 0.71],
+            "Brier score": [0.24, 0.16, 0.20],
+        }
+    )
+
+    summary = summarize_mlp_seed_stability(results).set_index("Metric")
+
+    assert summary.loc["Accuracy", "Runs"] == 3
+    assert summary.loc["Accuracy", "Mean"] == pytest.approx(0.7)
+    assert summary.loc["Accuracy", "Std"] == pytest.approx(0.1)
+    assert summary.loc["Accuracy", "Min"] == pytest.approx(0.6)
+    assert summary.loc["Accuracy", "Max"] == pytest.approx(0.8)
+    assert summary.loc["Brier score", "Mean"] == pytest.approx(0.2)
+    assert summary.loc["Brier score", "Min"] == pytest.approx(0.16)
+    assert summary.loc["Brier score", "Max"] == pytest.approx(0.24)
+
+
+@pytest.mark.parametrize(
+    ("results", "message"),
+    [
+        (pd.DataFrame(), "must not be empty"),
+        (pd.DataFrame({"Accuracy": [0.5]}), "missing columns"),
+    ],
+)
+def test_mlp_seed_stability_summary_rejects_invalid_inputs(
+    results: pd.DataFrame, message: str
+) -> None:
+    from neural_networks.evaluation import summarize_mlp_seed_stability
+
+    with pytest.raises(ValueError, match=message):
+        summarize_mlp_seed_stability(results)
