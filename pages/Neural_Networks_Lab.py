@@ -8,8 +8,8 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
 from ai_trading.benchmark_diagnostics import benchmark_relative_diagnostics
+from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
 from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
