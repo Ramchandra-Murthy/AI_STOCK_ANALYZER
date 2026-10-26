@@ -472,6 +472,7 @@ def test_probability_reliability_rejects_invalid_inputs(
     with pytest.raises(ValueError, match=message):
         summarize_probability_reliability(actual, probabilities, n_bins=n_bins)
 
+
 def test_permutation_feature_sensitivity_ranks_features_and_is_reproducible() -> None:
     from sklearn.impute import SimpleImputer
     from sklearn.linear_model import LogisticRegression
