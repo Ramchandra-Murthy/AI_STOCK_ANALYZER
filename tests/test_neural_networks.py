@@ -364,3 +364,30 @@ def test_mlp_baseline_reports_training_convergence_diagnostics() -> None:
     assert np.isfinite(metrics["training_loss_curve"]).all()
     assert isinstance(metrics["convergence_warnings"], list)
     assert all(isinstance(message, str) for message in metrics["convergence_warnings"])
+
+
+
+def test_mlp_baseline_reports_train_holdout_gap_and_balanced_accuracy() -> None:
+    from sklearn.metrics import accuracy_score, balanced_accuracy_score
+
+    from neural_networks.baseline import train_baseline
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    model, metrics = train_baseline(features, target, train_fraction=0.70, horizon=5)
+    split_at = int(len(features) * 0.70)
+    train_end = split_at - 6
+    X_train = features.iloc[:train_end]
+    y_train = target.iloc[:train_end]
+    X_test = features.iloc[split_at:]
+    y_test = target.iloc[split_at:]
+    train_accuracy = accuracy_score(y_train, model.predict(X_train))
+    holdout_accuracy = accuracy_score(y_test, model.predict(X_test))
+    holdout_balanced_accuracy = balanced_accuracy_score(y_test, model.predict(X_test))
+
+    assert metrics["train_accuracy"] == pytest.approx(train_accuracy)
+    assert metrics["accuracy"] == pytest.approx(holdout_accuracy)
+    assert metrics["accuracy_gap"] == pytest.approx(train_accuracy - holdout_accuracy)
+    assert metrics["holdout_balanced_accuracy"] == pytest.approx(holdout_balanced_accuracy)
+    assert 0 <= metrics["train_accuracy"] <= 1
+    assert 0 <= metrics["holdout_balanced_accuracy"] <= 1
