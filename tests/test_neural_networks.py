@@ -410,7 +410,6 @@ def test_mlp_baseline_reports_probability_calibration_scores() -> None:
     assert np.isfinite(metrics["log_loss"])
 
 
-
 def test_probability_reliability_reports_counts_and_observed_rates() -> None:
     from neural_networks.evaluation import summarize_probability_reliability
 
