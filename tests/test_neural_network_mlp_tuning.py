@@ -13,7 +13,9 @@ def _dataset(rows: int = 420) -> tuple[pd.DataFrame, pd.Series]:
     features = pd.DataFrame(
         {"signal": rng.normal(size=rows), "noise": rng.normal(size=rows)}, index=index
     )
-    target = pd.Series((features["signal"] + rng.normal(scale=0.8, size=rows) > 0).astype(int), index=index)
+    target = pd.Series(
+        (features["signal"] + rng.normal(scale=0.8, size=rows) > 0).astype(int), index=index
+    )
     return features, target
 
 
