@@ -110,9 +110,10 @@ def backtest_holdout_signals(
         ],
     )
     first_date = pd.Index(signal_dates)[0]
-    evaluation_end = (
-        trade_frame["Exit date"].max() if not trade_frame.empty else pd.Index(signal_dates)[-1]
-    )
+    # Evaluate strategy and benchmark over the complete holdout window, including
+    # dates after the final trade. Ending at the last exit truncates the benchmark
+    # and can make daily risk metrics incomparable across signal thresholds.
+    evaluation_end = prices.index[-1]
     evaluation_daily = strategy_daily.loc[first_date:evaluation_end]
     strategy_equity = (1.0 + evaluation_daily).cumprod()
     drawdown = strategy_equity / strategy_equity.cummax() - 1.0
