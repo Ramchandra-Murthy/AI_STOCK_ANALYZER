@@ -242,7 +242,6 @@ def permutation_feature_sensitivity(
     ).reset_index(drop=True)
 
 
-
 def evaluate_mlp_seed_stability(
     features: pd.DataFrame,
     target: pd.Series,
@@ -296,6 +295,7 @@ def evaluate_mlp_seed_stability(
             }
         )
     return pd.DataFrame(rows)
+
 
 def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame:
     """Summarize fold-to-fold dispersion for each model without pooling models."""
