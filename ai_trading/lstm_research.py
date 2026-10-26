@@ -7,9 +7,9 @@ use this module.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
 import random
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
