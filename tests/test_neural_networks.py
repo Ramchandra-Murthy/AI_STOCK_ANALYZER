@@ -62,6 +62,23 @@ def test_missing_columns_raise_clear_error() -> None:
         build_features(pd.DataFrame({"Close": [1, 2]}))
 
 
+def test_chronological_split_purges_overlapping_label_windows() -> None:
+    from neural_networks.baseline import chronological_split
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    X_train, X_test, y_train, y_test = chronological_split(features, target, 0.70, horizon=5)
+
+    assert X_train.index.equals(y_train.index)
+    assert X_test.index.equals(y_test.index)
+    split_at = int(len(features) * 0.70)
+    assert X_train.index[-1] == features.index[split_at - 7]
+    assert X_test.index[0] == features.index[split_at]
+    # For horizon=5, the last training label exits six source rows after its signal.
+    source_positions = {date: i for i, date in enumerate(data.index)}
+    assert source_positions[X_train.index[-1]] + 6 < source_positions[X_test.index[0]]
+
+
 def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
     from neural_networks.evaluation import (
         compare_holdout_baselines,
@@ -71,7 +88,7 @@ def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
     data = sample_ohlcv(rows=520)
     features, target = build_direction_dataset(data, horizon=5)
 
-    comparison = compare_holdout_baselines(features, target, train_fraction=0.70)
+    comparison = compare_holdout_baselines(features, target, train_fraction=0.70, horizon=5)
     assert set(comparison["Model"]) == {
         "Majority-class",
         "Logistic regression",
