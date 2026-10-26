@@ -303,12 +303,12 @@ def summarize_mlp_seed_stability(seed_results: pd.DataFrame) -> pd.DataFrame:
     This describes initialization sensitivity only. The runs are not independent
     validation samples because they reuse the same training and holdout observations.
     """
+    if seed_results.empty:
+        raise ValueError("Seed-stability results must not be empty")
     metrics = ["Accuracy", "Balanced accuracy", "ROC-AUC", "Brier score"]
     missing = sorted(set(metrics).difference(seed_results.columns))
     if missing:
         raise ValueError("Seed-stability results missing columns: " + ", ".join(missing))
-    if seed_results.empty:
-        raise ValueError("Seed-stability results must not be empty")
 
     rows: list[dict[str, Any]] = []
     for metric in metrics:
