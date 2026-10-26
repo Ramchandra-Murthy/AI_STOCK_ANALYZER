@@ -428,9 +428,20 @@ if raw is not None:
                 comparison = compare_holdout_baselines(
                     features, target, train_fraction=float(train_fraction), horizon=int(horizon)
                 )
+                st.caption(
+                    "Brier score and log loss assess predicted-probability quality; lower is better. "
+                    "Compare them across models on the same holdout. Undefined values are shown as dashes."
+                )
                 st.dataframe(
                     comparison.style.format(
-                        {"Accuracy": "{:.1%}", "Balanced accuracy": "{:.1%}", "ROC-AUC": "{:.3f}"}
+                        {
+                            "Accuracy": "{:.1%}",
+                            "Balanced accuracy": "{:.1%}",
+                            "ROC-AUC": "{:.3f}",
+                            "Brier score": "{:.4f}",
+                            "Log loss": "{:.4f}",
+                        },
+                        na_rep="—",
                     ),
                     use_container_width=True,
                     hide_index=True,
