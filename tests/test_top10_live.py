@@ -721,3 +721,10 @@ def test_top10_scanner_displays_safe_provider_diagnostics() -> None:
     assert "Provider diagnostics (safe summary)" in source
     assert "Quote provider:" in source
     assert "diagnostics=_PROVIDER_DIAGNOSTICS" in source
+
+
+def test_dhan_quote_failures_are_logged_without_suppressing_diagnostics() -> None:
+    source = open("services/dhan_live_provider.py", encoding="utf-8").read()
+    assert 'logging.warning(' in source
+    assert 'Dhan intraday quote failed ticker=%s error_type=%s error=%s' in source
+    assert 'str(exc)[:240]' in source
