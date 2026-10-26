@@ -159,9 +159,10 @@ def summarize_probability_reliability(
         raise ValueError("actual and probabilities must not be empty")
     if not np.isin(actual_values, [0, 1]).all():
         raise ValueError("actual values must contain only binary labels 0 and 1")
-    if not np.isfinite(probability_values).all() or (
-        (probability_values < 0) | (probability_values > 1)
-    ).any():
+    if (
+        not np.isfinite(probability_values).all()
+        or ((probability_values < 0) | (probability_values > 1)).any()
+    ):
         raise ValueError("probabilities must be finite values between 0 and 1")
 
     edges = np.linspace(0.0, 1.0, n_bins + 1)
