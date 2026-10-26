@@ -635,3 +635,94 @@ def factor_information_coefficient(
         }
         rows.append(summary)
     return pd.DataFrame(rows)
+
+
+def compare_mlp_configurations(
+    features: pd.DataFrame,
+    target: pd.Series,
+    *,
+    configurations: tuple[tuple[tuple[int, ...], float], ...] = (
+        ((8,), 0.01),
+        ((16,), 0.1),
+        ((16, 8), 0.1),
+        ((32, 16), 0.01),
+    ),
+    n_splits: int = 3,
+    horizon: int = 5,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Compare MLP configurations on expanding chronological validation folds.
+
+    This reports validation diagnostics only. It does not select or deploy a
+    model automatically, and the final untouched test period must remain unused.
+    """
+    if not features.index.equals(target.index):
+        raise ValueError("features and target must have identical indexes")
+    if features.empty or target.empty:
+        raise ValueError("features and target must not be empty")
+    if n_splits < 2:
+        raise ValueError("n_splits must be at least 2")
+    if horizon < 1:
+        raise ValueError("horizon must be at least 1")
+    if not configurations:
+        raise ValueError("at least one MLP configuration is required")
+    for hidden_layers, alpha in configurations:
+        if not hidden_layers or any(width < 1 for width in hidden_layers):
+            raise ValueError("hidden layer sizes must be positive integers")
+        if alpha <= 0 or not np.isfinite(alpha):
+            raise ValueError("alpha must be finite and positive")
+
+    splitter = TimeSeriesSplit(n_splits=n_splits, gap=horizon + 1)
+    rows: list[dict[str, Any]] = []
+    for fold_number, (train_indices, test_indices) in enumerate(splitter.split(features), start=1):
+        X_train, X_test = features.iloc[train_indices], features.iloc[test_indices]
+        y_train, y_test = target.iloc[train_indices], target.iloc[test_indices]
+        if len(X_train) < 100 or len(X_test) < 30:
+            raise ValueError(
+                "MLP configuration validation needs at least 100 training and 30 test rows per fold"
+            )
+        if y_train.nunique() < 2:
+            raise ValueError(f"Fold {fold_number} training target contains only one class")
+        for config_number, (hidden_layers, alpha) in enumerate(configurations, start=1):
+            network = MLPClassifier(
+                hidden_layer_sizes=hidden_layers,
+                activation="relu",
+                alpha=float(alpha),
+                max_iter=300,
+                early_stopping=False,
+                random_state=random_state + fold_number,
+            )
+            model = _pipeline(network)
+            model.fit(X_train, y_train)
+            probabilities = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
+            predicted = model.predict(X_test)
+            row = _score_row("MLP", y_test, predicted, probabilities)
+            row.update(
+                {
+                    "Brier score": float(np.mean((probabilities - y_test.to_numpy()) ** 2)),
+                    "Log loss": float(
+                        -np.mean(
+                            y_test.to_numpy() * np.log(np.clip(probabilities, 1e-15, 1 - 1e-15))
+                            + (1 - y_test.to_numpy())
+                            * np.log(np.clip(1 - probabilities, 1e-15, 1 - 1e-15))
+                        )
+                    ),
+                }
+            )
+            row.update(
+                {
+                    "Configuration": config_number,
+                    "Hidden layers": str(hidden_layers),
+                    "Alpha": float(alpha),
+                    "Fold": fold_number,
+                    "Train rows": int(len(X_train)),
+                    "Validation rows": int(len(X_test)),
+                    "Train end": str(features.index[train_indices[-1]].date()),
+                    "Validation start": str(features.index[test_indices[0]].date()),
+                    "Validation end": str(features.index[test_indices[-1]].date()),
+                    "Training iterations": int(network.n_iter_),
+                    "Reached iteration limit": bool(network.n_iter_ >= network.max_iter),
+                }
+            )
+            rows.append(row)
+    return pd.DataFrame(rows)
