@@ -12,6 +12,7 @@ from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
     compare_holdout_baselines,
+    compare_mlp_configurations,
     evaluate_mlp_seed_stability,
     factor_information_coefficient,
     permutation_feature_sensitivity,
