@@ -68,6 +68,4 @@ def test_backtest_returns_zero_trades_when_threshold_not_met() -> None:
 def test_backtest_rejects_invalid_probabilities(probabilities: list[float]) -> None:
     close = _prices()
     with pytest.raises(ValueError, match="probabilities must be finite values"):
-        backtest_holdout_signals(
-            close, close.index[:1], probabilities, horizon=2, threshold=0.5
-        )
+        backtest_holdout_signals(close, close.index[:1], probabilities, horizon=2, threshold=0.5)
