@@ -658,9 +658,7 @@ def compare_mlp_configurations(
 
     splitter = TimeSeriesSplit(n_splits=n_splits, gap=horizon + 1)
     rows: list[dict[str, Any]] = []
-    for fold_number, (train_indices, test_indices) in enumerate(
-        splitter.split(features), start=1
-    ):
+    for fold_number, (train_indices, test_indices) in enumerate(splitter.split(features), start=1):
         X_train, X_test = features.iloc[train_indices], features.iloc[test_indices]
         y_train, y_test = target.iloc[train_indices], target.iloc[test_indices]
         if len(X_train) < 100 or len(X_test) < 30:
