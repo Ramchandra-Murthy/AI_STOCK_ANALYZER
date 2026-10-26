@@ -366,7 +366,6 @@ def test_mlp_baseline_reports_training_convergence_diagnostics() -> None:
     assert all(isinstance(message, str) for message in metrics["convergence_warnings"])
 
 
-
 def test_mlp_baseline_reports_train_holdout_gap_and_balanced_accuracy() -> None:
     from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
