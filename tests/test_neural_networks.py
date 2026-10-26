@@ -408,3 +408,66 @@ def test_mlp_baseline_reports_probability_calibration_scores() -> None:
     assert metrics["log_loss"] == pytest.approx(log_loss(y_test, probabilities, labels=[0, 1]))
     assert 0 <= metrics["brier_score"] <= 1
     assert np.isfinite(metrics["log_loss"])
+
+
+def test_probability_reliability_reports_counts_and_observed_rates() -> None:
+    from neural_networks.evaluation import summarize_probability_reliability
+
+    result = summarize_probability_reliability(
+        actual=[0, 1, 1, 0, 1, 1],
+        probabilities=[0.1, 0.2, 0.25, 0.7, 0.8, 0.95],
+        n_bins=5,
+    )
+
+    low = result.loc[result["Probability band"] == "0.00–0.20"].iloc[0]
+    middle = result.loc[result["Probability band"] == "0.20–0.40"].iloc[0]
+    high = result.loc[result["Probability band"] == "0.80–1.00"].iloc[0]
+    assert low["Samples"] == 1
+    assert low["Observed up rate"] == pytest.approx(0.0)
+    assert middle["Samples"] == 2
+    assert middle["Observed up rate"] == pytest.approx(1.0)
+    assert high["Samples"] == 2
+    assert high["Observed up rate"] == pytest.approx(1.0)
+    assert middle["Calibration gap"] == pytest.approx(
+        middle["Observed up rate"] - middle["Mean predicted probability"]
+    )
+
+
+def test_probability_reliability_omits_empty_bins_and_handles_edge_probabilities() -> None:
+    from neural_networks.evaluation import summarize_probability_reliability
+
+    result = summarize_probability_reliability(
+        actual=[0, 1, 1],
+        probabilities=[0.0, 0.5, 1.0],
+        n_bins=4,
+    )
+
+    assert result["Samples"].sum() == 3
+    assert len(result) == 3
+    assert result.iloc[0]["Probability band"] == "0.00–0.25"
+    assert result.iloc[-1]["Probability band"] == "0.75–1.00"
+    assert result["Mean predicted probability"].between(0, 1).all()
+    assert result["Observed up rate"].between(0, 1).all()
+
+
+@pytest.mark.parametrize(
+    ("actual", "probabilities", "n_bins", "message"),
+    [
+        ([0, 1], [0.2], 5, "equal lengths"),
+        ([0, 2], [0.2, 0.8], 5, "binary labels"),
+        ([0, 1], [-0.1, 0.8], 5, "between 0 and 1"),
+        ([0, 1], [0.2, np.inf], 5, "finite values"),
+        ([0, 1], [0.2, 0.8], 1, "n_bins"),
+        ([], [], 5, "must not be empty"),
+    ],
+)
+def test_probability_reliability_rejects_invalid_inputs(
+    actual: list[int],
+    probabilities: list[float],
+    n_bins: int,
+    message: str,
+) -> None:
+    from neural_networks.evaluation import summarize_probability_reliability
+
+    with pytest.raises(ValueError, match=message):
+        summarize_probability_reliability(actual, probabilities, n_bins=n_bins)

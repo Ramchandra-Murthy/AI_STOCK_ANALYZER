@@ -137,6 +137,65 @@ def walk_forward_evaluation(
     return pd.DataFrame(rows)
 
 
+def summarize_probability_reliability(
+    actual: Any,
+    probabilities: Any,
+    n_bins: int = 5,
+) -> pd.DataFrame:
+    """Compare mean predicted up-probability with observed up frequency by fixed bins.
+
+    The table is descriptive holdout diagnostics, not proof of calibration or
+    profitable signals. Empty bins are omitted; small bin counts are noisy.
+    """
+    if n_bins < 2 or n_bins > 20:
+        raise ValueError("n_bins must be between 2 and 20")
+    actual_values = np.asarray(actual)
+    probability_values = np.asarray(probabilities, dtype=float)
+    if actual_values.ndim != 1 or probability_values.ndim != 1:
+        raise ValueError("actual and probabilities must be one-dimensional")
+    if len(actual_values) != len(probability_values):
+        raise ValueError("actual and probabilities must have equal lengths")
+    if len(actual_values) == 0:
+        raise ValueError("actual and probabilities must not be empty")
+    if not np.isin(actual_values, [0, 1]).all():
+        raise ValueError("actual values must contain only binary labels 0 and 1")
+    if (
+        not np.isfinite(probability_values).all()
+        or ((probability_values < 0) | (probability_values > 1)).any()
+    ):
+        raise ValueError("probabilities must be finite values between 0 and 1")
+
+    edges = np.linspace(0.0, 1.0, n_bins + 1)
+    bin_indices = np.minimum(np.digitize(probability_values, edges[1:-1]), n_bins - 1)
+    rows: list[dict[str, Any]] = []
+    for bin_number in range(n_bins):
+        selected = bin_indices == bin_number
+        if not selected.any():
+            continue
+        mean_probability = float(probability_values[selected].mean())
+        observed_rate = float(actual_values[selected].mean())
+        lower, upper = edges[bin_number], edges[bin_number + 1]
+        rows.append(
+            {
+                "Probability band": f"{lower:.2f}–{upper:.2f}",
+                "Samples": int(selected.sum()),
+                "Mean predicted probability": mean_probability,
+                "Observed up rate": observed_rate,
+                "Calibration gap": observed_rate - mean_probability,
+            }
+        )
+    return pd.DataFrame(
+        rows,
+        columns=[
+            "Probability band",
+            "Samples",
+            "Mean predicted probability",
+            "Observed up rate",
+            "Calibration gap",
+        ],
+    )
+
+
 def summarize_walk_forward_stability(fold_results: pd.DataFrame) -> pd.DataFrame:
     """Summarize fold-to-fold dispersion for each model without pooling models."""
     required = {"Model", "Fold", "Accuracy", "Balanced accuracy", "ROC-AUC"}
