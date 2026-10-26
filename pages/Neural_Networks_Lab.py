@@ -30,7 +30,6 @@ from neural_networks.strategy_backtest import (
     summarize_backtest_trade_distribution,
 )
 
-
 st.title("Neural Networks Lab")
 st.caption(
     "Experimental research module inspired by Neural Networks for Algorithmic Trading with MQL5."
