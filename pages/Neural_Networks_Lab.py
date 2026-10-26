@@ -23,7 +23,10 @@ from neural_networks.evaluation import (
     walk_forward_evaluation,
 )
 from neural_networks.features import build_direction_dataset
-from neural_networks.strategy_backtest import backtest_holdout_signals
+from neural_networks.strategy_backtest import (
+    backtest_holdout_signals,
+    summarize_backtest_trade_distribution,
+)
 
 st.title("Neural Networks Lab")
 st.caption(
@@ -685,6 +688,37 @@ if raw is not None:
                         use_container_width=True,
                         hide_index=True,
                     )
+                st.subheader("Trade-return distribution")
+                trade_distribution = summarize_backtest_trade_distribution(backtest_trades)
+                st.caption(
+                    "These statistics describe completed simulated trades after the configured costs. "
+                    "Profit factor is undefined when there are no losing trades. Trade statistics are "
+                    "sample-dependent and do not establish future profitability."
+                )
+                st.dataframe(
+                    trade_distribution.style.format(
+                        {
+                            "Win rate": "{:.1%}",
+                            "Mean net return": "{:.2%}",
+                            "Median net return": "{:.2%}",
+                            "Net return standard deviation": "{:.2%}",
+                            "Best net trade": "{:.2%}",
+                            "Worst net trade": "{:.2%}",
+                            "Profit factor": "{:.3f}",
+                            "Gross profit from winning trades": "{:.2%}",
+                            "Gross loss from losing trades": "{:.2%}",
+                        },
+                        na_rep="—",
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download trade-return distribution CSV",
+                    data=trade_distribution.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_trade_return_distribution.csv",
+                    mime="text/csv",
+                )
                 st.download_button(
                     "Download backtest trades CSV",
                     data=backtest_trades.to_csv(index=False).encode("utf-8"),
