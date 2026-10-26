@@ -312,8 +312,12 @@ if raw is not None:
                     "They are not formal significance tests; IC is a research diagnostic, not evidence of a profitable strategy."
                 )
                 factor_ic = factor_information_coefficient(data, horizon=int(horizon), n_windows=5)
+                # Arrow requires a consistent scalar type for each displayed column.
+                # Keep the calculation/export frame unchanged; normalize only the UI copy.
+                factor_ic_display = factor_ic.copy()
+                factor_ic_display["Window"] = factor_ic_display["Window"].astype(str)
                 st.dataframe(
-                    factor_ic.style.format(
+                    factor_ic_display.style.format(
                         {
                             "Spearman IC": "{:.3f}",
                             "IC standard deviation": "{:.3f}",

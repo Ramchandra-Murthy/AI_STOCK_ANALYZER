@@ -271,3 +271,10 @@ def test_backtest_benchmark_uses_complete_holdout_window_after_last_trade() -> N
     side_cost = cost_bps / 10_000.0
     expected_net_return = (1.0 - side_cost) ** 2 * (1.0 + gross_benchmark_return) - 1.0
     assert benchmark["Total return"] == pytest.approx(expected_net_return)
+
+
+def test_factor_ic_display_normalizes_mixed_window_types() -> None:
+    source = open("pages/Neural_Networks_Lab.py", encoding="utf-8").read()
+    assert "factor_ic_display = factor_ic.copy()" in source
+    assert 'factor_ic_display["Window"] = factor_ic_display["Window"].astype(str)' in source
+    assert 'data=factor_ic.to_csv(index=False).encode("utf-8")' in source
