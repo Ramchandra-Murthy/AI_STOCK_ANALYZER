@@ -15,6 +15,7 @@ from neural_networks.evaluation import (
     evaluate_mlp_seed_stability,
     factor_information_coefficient,
     permutation_feature_sensitivity,
+    summarize_mlp_seed_stability,
     summarize_probability_reliability,
     summarize_walk_forward_stability,
     walk_forward_evaluation,
@@ -271,6 +272,31 @@ if raw is not None:
                     "MLP initialization seed. Metric variation reveals sensitivity to initialization; "
                     "it is not independent validation, and the shared holdout should not be used to "
                     "select a preferred seed."
+                )
+                seed_summary = summarize_mlp_seed_stability(seed_stability)
+                st.subheader("Across-seed metric summary")
+                st.caption(
+                    "Mean, sample standard deviation, minimum, and maximum summarize variation across "
+                    "initialization seeds on the same holdout. These are not confidence intervals or "
+                    "independent estimates of future performance."
+                )
+                st.dataframe(
+                    seed_summary.style.format(
+                        {
+                            "Mean": "{:.4f}",
+                            "Std": "{:.4f}",
+                            "Min": "{:.4f}",
+                            "Max": "{:.4f}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download MLP seed-stability summary CSV",
+                    data=seed_summary.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_seed_stability_summary.csv",
+                    mime="text/csv",
                 )
                 st.dataframe(
                     seed_stability.style.format(
