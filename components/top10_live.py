@@ -63,7 +63,6 @@ _SCAN_FAILURES = 0
 _PROVIDER_DIAGNOSTICS: list[str] = []
 
 
-
 def _apply_top10_filters(
     frame: pd.DataFrame,
     *,
@@ -90,6 +89,7 @@ def _apply_top10_filters(
     if exchange in {"NSE", "BSE"} and "Exchange" in result.columns:
         result = result.loc[result["Exchange"].eq(exchange)]
     return result.reset_index(drop=True)
+
 
 def _market_is_open(now: datetime) -> bool:
     """Return true only when the shared exchange calendar confirms regular hours."""
