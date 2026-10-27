@@ -18,6 +18,7 @@ from algorithmic_trading.walk_forward_validation import (
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.resilient_market_data import download_symbol_frames
 
+
 def max_drawdown(series: pd.Series) -> float:
     wealth = (1.0 + series).cumprod()
     return float((wealth / wealth.cummax() - 1.0).min()) if not wealth.empty else float("nan")
