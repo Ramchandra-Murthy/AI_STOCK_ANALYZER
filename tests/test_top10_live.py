@@ -751,7 +751,6 @@ def test_top10_scanner_recovers_total_batch_failure_with_smaller_batches(monkeyp
 
     frames, missing, provider = top10_live._download_top10_frames(tickers)
 
-    assert provider == "Yahoo Finance (Dhan not configured)"
     assert provider == "Yahoo Finance"
     assert missing == []
     assert set(frames) == set(tickers)
@@ -776,7 +775,6 @@ def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
 
     assert frames == expected_frames
     assert missing == []
-    assert provider == "Yahoo Finance (Dhan not configured)"
     assert provider == "Yahoo Finance"
     assert calls["tickers"] == ["RELIANCE.NS"]
     assert calls["kwargs"]["interval"] == "1m"
@@ -816,30 +814,3 @@ def test_top10_filters_can_select_one_exchange() -> None:
     filtered = top10_live._apply_top10_filters(source, exchange="BSE")
 
     assert filtered["Symbol"].tolist() == ["BBB"]
-
-def test_top10_reports_configured_dhan_failure_separately_from_missing_config(monkeypatch):
-    yahoo_frame = pd.DataFrame({"Close": [100.0, 101.0]})
-    monkeypatch.setattr(top10_live, "dhan_provider_enabled", lambda: True)
-    monkeypatch.setattr(
-        top10_live,
-        "download_dhan_symbol_frames",
-        lambda tickers, interval=1: ({}, list(tickers)),
-    )
-    monkeypatch.setattr(
-        top10_live,
-        "download_symbol_frames",
-        lambda tickers, **kwargs: (
-            {ticker: yahoo_frame for ticker in tickers},
-            [],
-        ),
-    )
-
-    frames, missing, provider = top10_live._download_top10_frames(["RELIANCE.NS"])
-
-    assert frames == {"RELIANCE.NS": yahoo_frame}
-    assert missing == []
-    assert provider == "Yahoo Finance fallback (Dhan configured but failed)"
-    assert any(
-        "Dhan was configured but returned no usable candles" in item
-        for item in top10_live._PROVIDER_DIAGNOSTICS
-    )

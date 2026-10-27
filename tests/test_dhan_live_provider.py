@@ -43,6 +43,7 @@ def test_provider_is_disabled_without_credentials(monkeypatch):
 
     assert dhan_live_provider.dhan_provider_enabled() is False
 
+
 def test_exchange_qualified_security_ids_take_precedence(monkeypatch):
     monkeypatch.setenv(
         "DHAN_SECURITY_MAP_JSON",
