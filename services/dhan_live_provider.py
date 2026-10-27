@@ -56,9 +56,13 @@ def _response_frame(response: dict[str, Any]) -> pd.DataFrame:
         raise ValueError("Dhan returned a non-object response")
     status = str(response.get("status", "")).strip().lower()
     if status and status not in {"success", "ok"}:
-        details = response.get("remarks") or response.get("errorMessage") or response.get(
-            "message"
-        ) or response.get("error_code") or "no error details"
+        details = (
+            response.get("remarks")
+            or response.get("errorMessage")
+            or response.get("message")
+            or response.get("error_code")
+            or "no error details"
+        )
         raise ValueError(f"Dhan API status={status}: {str(details)[:180]}")
     data = response.get("data", response)
     if not isinstance(data, dict):
