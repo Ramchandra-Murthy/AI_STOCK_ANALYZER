@@ -751,7 +751,7 @@ def test_top10_scanner_recovers_total_batch_failure_with_smaller_batches(monkeyp
 
     frames, missing, provider = top10_live._download_top10_frames(tickers)
 
-    assert provider == "Yahoo Finance (Dhan unavailable or not configured)"
+    assert provider == "Yahoo Finance (Dhan not configured)"
     assert missing == []
     assert set(frames) == set(tickers)
     assert len(calls) == 2
@@ -777,7 +777,7 @@ def test_top10_scanner_uses_yahoo_when_dhan_is_not_configured(monkeypatch) -> No
 
     assert frames == expected_frames
     assert missing == []
-    assert provider == "Yahoo Finance (Dhan unavailable or not configured)"
+    assert provider == "Yahoo Finance (Dhan not configured)"
     assert calls["tickers"] == ["RELIANCE.NS"]
     assert calls["kwargs"]["interval"] == "1m"
     assert calls["kwargs"]["recover_missing"] is False
