@@ -140,9 +140,7 @@ if st.button("Load history and run diagnostics", type="primary", key="dlq_run"):
     if benchmark_symbol:
         benchmark_history = frames.get(benchmark_symbol, pd.DataFrame())
         if not benchmark_history.empty and "Close" in benchmark_history.columns:
-            benchmark_close = pd.to_numeric(
-                benchmark_history["Close"], errors="coerce"
-            ).dropna()
+            benchmark_close = pd.to_numeric(benchmark_history["Close"], errors="coerce").dropna()
             benchmark_close = benchmark_close[
                 ~benchmark_close.index.duplicated(keep="last")
             ].sort_index()
@@ -276,9 +274,7 @@ if isinstance(result, dict):
         risk_reference = result.get("external_benchmark_returns", pd.Series(dtype=float))
         risk_reference_name = result.get("external_benchmark_name", "")
         if not risk_reference.empty:
-            risk_strategy, risk_reference = strategy_returns.align(
-                risk_reference, join="inner"
-            )
+            risk_strategy, risk_reference = strategy_returns.align(risk_reference, join="inner")
         elif result.get("benchmark_requested") == "Stock buy-and-hold":
             risk_strategy = strategy_returns
             risk_reference = benchmark_returns
@@ -329,13 +325,25 @@ if isinstance(result, dict):
                     f"Maximum drawdown — {risk_reference_name}",
                 ],
                 "Value": [
-                    f"{excess_cumulative * 100:.2f} pp" if np.isfinite(excess_cumulative) else "N/A",
+                    (
+                        f"{excess_cumulative * 100:.2f} pp"
+                        if np.isfinite(excess_cumulative)
+                        else "N/A"
+                    ),
                     f"{tracking_error:.2%}" if np.isfinite(tracking_error) else "N/A",
                     f"{information_ratio:.2f}" if np.isfinite(information_ratio) else "N/A",
                     f"{baseline_downside:.2%}" if np.isfinite(baseline_downside) else "N/A",
                     f"{reference_downside:.2%}" if np.isfinite(reference_downside) else "N/A",
-                    f"{baseline_risk_drawdown:.1%}" if np.isfinite(baseline_risk_drawdown) else "N/A",
-                    f"{reference_risk_drawdown:.1%}" if np.isfinite(reference_risk_drawdown) else "N/A",
+                    (
+                        f"{baseline_risk_drawdown:.1%}"
+                        if np.isfinite(baseline_risk_drawdown)
+                        else "N/A"
+                    ),
+                    (
+                        f"{reference_risk_drawdown:.1%}"
+                        if np.isfinite(reference_risk_drawdown)
+                        else "N/A"
+                    ),
                 ],
             }
         )
