@@ -18,6 +18,13 @@ _IST = timezone(timedelta(hours=5, minutes=30))
 def _security_map() -> dict[str, int]:
     raw = os.getenv("DHAN_SECURITY_MAP_JSON", "").strip()
     if not raw:
+        try:
+            import streamlit as st
+
+            raw = str(st.secrets.get("DHAN_SECURITY_MAP_JSON", "")).strip()
+        except Exception:
+            raw = ""
+    if not raw:
         return {}
     try:
         parsed = json.loads(raw)
