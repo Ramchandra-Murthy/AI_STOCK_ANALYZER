@@ -14,7 +14,6 @@ import pandas as pd
 import streamlit as st
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
-from services.dhan_live_provider import dhan_provider_enabled, download_dhan_symbol_frames
 from services.market_calendar import (
     equity_market_session_status,
     is_regular_equity_session_open,
@@ -635,6 +634,20 @@ def _download_top10_frames(
         frames.update(yahoo_frames)
         yahoo_frame_count += len(yahoo_frames)
         missing = yahoo_missing
+    """Download live scanner candles from Yahoo Finance only."""
+    global _PROVIDER_DIAGNOSTICS
+    _PROVIDER_DIAGNOSTICS = []
+    frames, missing = download_symbol_frames(
+        tickers,
+        period="1d",
+        interval="1m",
+        auto_adjust=False,
+        batch_size=TOP10_CHUNK_SIZE,
+        timeout=TOP10_PROVIDER_TIMEOUT,
+        retries=TOP10_PROVIDER_RETRIES,
+        recover_missing=False,
+        diagnostics=_PROVIDER_DIAGNOSTICS,
+    )
 
     # Keep recovery bounded while avoiding repeated large provider requests.
     if len(missing) > TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
@@ -687,6 +700,7 @@ def _download_top10_frames(
     else:
         provider_name = "Yahoo Finance (Dhan not configured)"
     return frames, missing, provider_name
+    return frames, missing, "Yahoo Finance"
 
 
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
