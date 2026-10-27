@@ -231,6 +231,64 @@ if isinstance(result, dict):
             "Baseline max drawdown",
             f"{max_drawdown(strategy_returns):.1%}" if not strategy_returns.empty else "N/A",
         )
+        # Compare the baseline and buy-and-hold on the same aligned return dates.
+        active_returns = strategy_returns - benchmark_returns
+        tracking_error = (
+            float(active_returns.std(ddof=1) * np.sqrt(252))
+            if len(active_returns) > 1
+            else float("nan")
+        )
+        active_std = float(active_returns.std(ddof=1))
+        information_ratio = (
+            float(active_returns.mean() / active_std * np.sqrt(252))
+            if np.isfinite(active_std) and active_std > 0
+            else float("nan")
+        )
+
+        def downside_deviation(series: pd.Series) -> float:
+            downside = np.minimum(series.to_numpy(dtype=float), 0.0)
+            return float(np.sqrt(np.mean(np.square(downside))) * np.sqrt(252))
+
+        baseline_downside = downside_deviation(strategy_returns)
+        reference_downside = downside_deviation(benchmark_returns)
+        excess_cumulative = float(strategy_equity.iloc[-1] - benchmark_equity.iloc[-1])
+        risk_metrics = pd.DataFrame(
+            {
+                "Metric": [
+                    "Cumulative excess return vs buy-and-hold (percentage points)",
+                    "Annualized tracking error",
+                    "Annualized information ratio",
+                    "Annualized downside deviation — baseline",
+                    "Annualized downside deviation — buy-and-hold",
+                    "Maximum drawdown — baseline",
+                    "Maximum drawdown — buy-and-hold",
+                ],
+                "Value": [
+                    f"{excess_cumulative * 100:.2f} pp",
+                    f"{tracking_error:.2%}" if np.isfinite(tracking_error) else "N/A",
+                    f"{information_ratio:.2f}" if np.isfinite(information_ratio) else "N/A",
+                    f"{baseline_downside:.2%}" if np.isfinite(baseline_downside) else "N/A",
+                    f"{reference_downside:.2%}" if np.isfinite(reference_downside) else "N/A",
+                    f"{max_drawdown(strategy_returns):.1%}",
+                    f"{max_drawdown(benchmark_returns):.1%}",
+                ],
+            }
+        )
+        st.subheader("Benchmark-relative performance and risk")
+        st.caption(
+            "The reference is buy-and-hold for the same selected stock, not an external market "
+            "index. Returns are aligned to identical dates; the baseline includes the selected "
+            "transaction-cost assumption, while buy-and-hold does not incur simulated turnover "
+            "costs in this simplified comparison."
+        )
+        st.dataframe(risk_metrics, use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download benchmark-relative risk metrics (CSV)",
+            risk_metrics.to_csv(index=False).encode("utf-8"),
+            file_name=f"{result['ticker'].replace('.', '_')}_relative_risk_metrics.csv",
+            mime="text/csv",
+        )
+
         st.subheader("Chronological walk-forward validation")
         try:
             fold_metrics = walk_forward_evaluate(
