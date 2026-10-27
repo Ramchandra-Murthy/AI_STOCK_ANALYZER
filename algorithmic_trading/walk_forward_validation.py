@@ -8,7 +8,6 @@ from algorithmic_trading.backtester import run_backtest
 from algorithmic_trading.trading_costs import IndiaEquityCostModel
 
 
-
 def align_return_series(
     strategy_returns: pd.Series, benchmark_returns: pd.Series
 ) -> tuple[pd.Series, pd.Series]:
