@@ -841,8 +841,6 @@ def test_top10_filters_can_select_one_exchange() -> None:
 
     assert filtered["Symbol"].tolist() == ["BBB"]
 
-
-
 def test_top10_reports_configured_dhan_failure_separately_from_missing_config(monkeypatch):
     yahoo_frame = pd.DataFrame({"Close": [100.0, 101.0]})
     monkeypatch.setattr(top10_live, "dhan_provider_enabled", lambda: True)
@@ -865,5 +863,7 @@ def test_top10_reports_configured_dhan_failure_separately_from_missing_config(mo
     assert frames == {"RELIANCE.NS": yahoo_frame}
     assert missing == []
     assert provider == "Yahoo Finance fallback (Dhan configured but failed)"
-    assert any("Dhan was configured but returned no usable candles" in item
-               for item in top10_live._PROVIDER_DIAGNOSTICS)
+    assert any(
+        "Dhan was configured but returned no usable candles" in item
+        for item in top10_live._PROVIDER_DIAGNOSTICS
+    )
