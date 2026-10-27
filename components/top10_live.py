@@ -584,29 +584,36 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
 def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
-    """Prefer configured Dhan candles and use Yahoo Finance for unresolved symbols."""
+    """Prefer Dhan candles and accurately report when Yahoo fallback is used."""
     global _PROVIDER_DIAGNOSTICS
     _PROVIDER_DIAGNOSTICS = []
     frames: dict[str, pd.DataFrame] = {}
     missing = list(tickers)
-    dhan_used = False
+    dhan_configured = dhan_provider_enabled()
+    dhan_frame_count = 0
+    yahoo_frame_count = 0
 
-    if dhan_provider_enabled():
+    if dhan_configured:
         try:
             dhan_frames, dhan_missing = download_dhan_symbol_frames(tickers, interval=1)
             frames.update(dhan_frames)
+            dhan_frame_count = len(dhan_frames)
             missing = list(dhan_missing)
-            dhan_used = bool(dhan_frames)
             _PROVIDER_DIAGNOSTICS.append(
-                f"Dhan returned usable candles for {len(dhan_frames)}/{len(tickers)} tickers"
+                f"Dhan returned usable candles for {dhan_frame_count}/{len(tickers)} tickers"
             )
+            if not dhan_frames:
+                _PROVIDER_DIAGNOSTICS.append(
+                    "Dhan was configured but returned no usable candles; inspect Dhan warnings "
+                    "in deployment logs for authentication, API, or mapping errors"
+                )
             if dhan_missing:
                 _PROVIDER_DIAGNOSTICS.append(
                     f"Dhan candles unavailable for {len(dhan_missing)} tickers; trying Yahoo fallback"
                 )
         except Exception as exc:
             _PROVIDER_DIAGNOSTICS.append(
-                f"Dhan provider failed ({type(exc).__name__}); trying Yahoo Finance fallback"
+                f"Dhan request failed ({type(exc).__name__}); trying Yahoo Finance fallback"
             )
     else:
         _PROVIDER_DIAGNOSTICS.append(
@@ -626,11 +633,10 @@ def _download_top10_frames(
             diagnostics=_PROVIDER_DIAGNOSTICS,
         )
         frames.update(yahoo_frames)
+        yahoo_frame_count += len(yahoo_frames)
         missing = yahoo_missing
 
-    # If the large batch failed or was only partially usable, retry unresolved
-    # tickers in smaller batches before considering individual-symbol recovery.
-    # This is bounded to at most ceil(len(tickers) / FALLBACK_CHUNK_SIZE) requests.
+    # Keep recovery bounded while avoiding repeated large provider requests.
     if len(missing) > TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
         recovered, still_missing = download_symbol_frames(
             missing,
@@ -644,9 +650,9 @@ def _download_top10_frames(
             diagnostics=_PROVIDER_DIAGNOSTICS,
         )
         frames.update(recovered)
+        yahoo_frame_count += len(recovered)
         missing = still_missing
 
-    # Keep individual recovery bounded to a small number of unresolved tickers.
     if 0 < len(missing) <= TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
         recovered, still_missing = download_symbol_frames(
             missing,
@@ -660,6 +666,7 @@ def _download_top10_frames(
             diagnostics=_PROVIDER_DIAGNOSTICS,
         )
         frames.update(recovered)
+        yahoo_frame_count += len(recovered)
         missing = still_missing
 
     if missing:
@@ -670,11 +677,15 @@ def _download_top10_frames(
         _PROVIDER_DIAGNOSTICS.append(
             f"no usable one-minute candles returned for {len(tickers)} requested tickers"
         )
-    provider_name = (
-        "Dhan + Yahoo Finance fallback"
-        if dhan_used
-        else "Yahoo Finance (Dhan unavailable or not configured)"
-    )
+
+    if dhan_frame_count and yahoo_frame_count:
+        provider_name = "Dhan + Yahoo Finance fallback"
+    elif dhan_frame_count:
+        provider_name = "Dhan"
+    elif dhan_configured:
+        provider_name = "Yahoo Finance fallback (Dhan configured but failed)"
+    else:
+        provider_name = "Yahoo Finance (Dhan not configured)"
     return frames, missing, provider_name
 
 
