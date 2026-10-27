@@ -642,6 +642,7 @@ def _download_top10_frames(
         )
     return frames, missing, "Yahoo Finance"
 
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
