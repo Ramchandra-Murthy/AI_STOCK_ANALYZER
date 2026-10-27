@@ -148,8 +148,6 @@ def test_walk_forward_sorts_unordered_price_and_signal_indexes() -> None:
         str(index[18]),
     ]
 
-
-
 def test_benchmark_returns_align_on_shared_dates_and_drop_invalid_values() -> None:
     dates = pd.date_range("2025-01-01", periods=4, freq="D")
     strategy = pd.Series([0.01, 0.02, float("nan"), 0.04], index=dates)
