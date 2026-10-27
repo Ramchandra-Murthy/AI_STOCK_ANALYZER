@@ -41,6 +41,16 @@ with left:
     )
 with right:
     period = st.selectbox("History", ["6mo", "1y", "2y", "5y"], index=2, key="dlq_period")
+    benchmark_choice = st.selectbox(
+        "Risk-comparison benchmark",
+        ["Stock buy-and-hold", "NIFTY 50 (^NSEI)", "S&P BSE SENSEX (^BSESN)"],
+        key="dlq_benchmark",
+        help="External index comparisons use overlapping trading dates only.",
+    )
+    benchmark_symbol = {
+        "NIFTY 50 (^NSEI)": "^NSEI",
+        "S&P BSE SENSEX (^BSESN)": "^BSESN",
+    }.get(benchmark_choice)
     train_size = st.slider(
         "Initial training window (sessions)",
         min_value=60,
@@ -73,7 +83,7 @@ if not ticker.endswith((".NS", ".BO")):
 if st.button("Load history and run diagnostics", type="primary", key="dlq_run"):
     with st.spinner(f"Loading historical candles for {ticker}..."):
         frames, diagnostics = download_symbol_frames(
-            [ticker],
+            [ticker] + ([benchmark_symbol] if benchmark_symbol else []),
             period=period,
             interval="1d",
             auto_adjust=False,
@@ -125,8 +135,39 @@ if st.button("Load history and run diagnostics", type="primary", key="dlq_run"):
             return float("nan")
         return float(series.mean() / std * np.sqrt(252))
 
+    external_benchmark_returns = pd.Series(dtype=float)
+    external_benchmark_name = ""
+    if benchmark_symbol:
+        benchmark_history = frames.get(benchmark_symbol, pd.DataFrame())
+        if not benchmark_history.empty and "Close" in benchmark_history.columns:
+            benchmark_close = pd.to_numeric(
+                benchmark_history["Close"], errors="coerce"
+            ).dropna()
+            benchmark_close = benchmark_close[
+                ~benchmark_close.index.duplicated(keep="last")
+            ].sort_index()
+            benchmark_returns_raw = benchmark_close.pct_change()
+            aligned = pd.concat(
+                [
+                    strategy_returns.rename("strategy"),
+                    benchmark_returns_raw.rename("benchmark"),
+                ],
+                axis=1,
+                join="inner",
+            ).dropna()
+            external_benchmark_returns = aligned["benchmark"]
+            strategy_returns = aligned["strategy"]
+            external_benchmark_name = benchmark_choice
+        else:
+            st.warning(
+                f"{benchmark_choice} data was unavailable. External benchmark-relative "
+                "metrics will be shown as unavailable; the stock buy-and-hold baseline remains."
+            )
+
     st.session_state["dlq_results"] = {
         "ticker": ticker,
+        "external_benchmark_returns": external_benchmark_returns,
+        "external_benchmark_name": external_benchmark_name,
         "close": close,
         "returns": returns,
         "log_returns": log_returns,
@@ -231,8 +272,20 @@ if isinstance(result, dict):
             "Baseline max drawdown",
             f"{max_drawdown(strategy_returns):.1%}" if not strategy_returns.empty else "N/A",
         )
-        # Compare the baseline and buy-and-hold on the same aligned return dates.
-        active_returns = strategy_returns - benchmark_returns
+        # Use the selected external index only when its aligned returns are available.
+        risk_reference = result.get("external_benchmark_returns", pd.Series(dtype=float))
+        risk_reference_name = result.get("external_benchmark_name", "")
+        if not risk_reference.empty:
+            risk_strategy, risk_reference = strategy_returns.align(
+                risk_reference, join="inner"
+            )
+        else:
+            risk_strategy = strategy_returns
+            risk_reference = benchmark_returns
+            risk_reference_name = "Stock buy-and-hold"
+
+        # Compare returns only on identical dates; never fill missing benchmark observations.
+        active_returns = risk_strategy - risk_reference
         tracking_error = (
             float(active_returns.std(ddof=1) * np.sqrt(252))
             if len(active_returns) > 1
@@ -249,9 +302,17 @@ if isinstance(result, dict):
             downside = np.minimum(series.to_numpy(dtype=float), 0.0)
             return float(np.sqrt(np.mean(np.square(downside))) * np.sqrt(252))
 
-        baseline_downside = downside_deviation(strategy_returns)
-        reference_downside = downside_deviation(benchmark_returns)
-        excess_cumulative = float(strategy_equity.iloc[-1] - benchmark_equity.iloc[-1])
+        baseline_downside = downside_deviation(risk_strategy)
+        reference_downside = downside_deviation(risk_reference)
+        baseline_wealth = (1.0 + risk_strategy).cumprod()
+        reference_wealth = (1.0 + risk_reference).cumprod()
+        excess_cumulative = (
+            float(baseline_wealth.iloc[-1] - reference_wealth.iloc[-1])
+            if not baseline_wealth.empty and not reference_wealth.empty
+            else float("nan")
+        )
+        baseline_risk_drawdown = max_drawdown(risk_strategy)
+        reference_risk_drawdown = max_drawdown(risk_reference)
         risk_metrics = pd.DataFrame(
             {
                 "Metric": [
@@ -261,25 +322,25 @@ if isinstance(result, dict):
                     "Annualized downside deviation — baseline",
                     "Annualized downside deviation — buy-and-hold",
                     "Maximum drawdown — baseline",
-                    "Maximum drawdown — buy-and-hold",
+                    f"Maximum drawdown — {risk_reference_name}",
                 ],
                 "Value": [
-                    f"{excess_cumulative * 100:.2f} pp",
+                    f"{excess_cumulative * 100:.2f} pp" if np.isfinite(excess_cumulative) else "N/A",
                     f"{tracking_error:.2%}" if np.isfinite(tracking_error) else "N/A",
                     f"{information_ratio:.2f}" if np.isfinite(information_ratio) else "N/A",
                     f"{baseline_downside:.2%}" if np.isfinite(baseline_downside) else "N/A",
                     f"{reference_downside:.2%}" if np.isfinite(reference_downside) else "N/A",
-                    f"{max_drawdown(strategy_returns):.1%}",
-                    f"{max_drawdown(benchmark_returns):.1%}",
+                    f"{baseline_risk_drawdown:.1%}" if np.isfinite(baseline_risk_drawdown) else "N/A",
+                    f"{reference_risk_drawdown:.1%}" if np.isfinite(reference_risk_drawdown) else "N/A",
                 ],
             }
         )
         st.subheader("Benchmark-relative performance and risk")
         st.caption(
-            "The reference is buy-and-hold for the same selected stock, not an external market "
-            "index. Returns are aligned to identical dates; the baseline includes the selected "
-            "transaction-cost assumption, while buy-and-hold does not incur simulated turnover "
-            "costs in this simplified comparison."
+            f"Reference: {risk_reference_name}. Metrics use overlapping dates only and do not "
+            "fill missing observations. The baseline includes the selected transaction-cost "
+            "assumption; reference returns do not include simulated trading costs. "
+            "Cumulative excess return is the difference between compounded wealth factors."
         )
         st.dataframe(risk_metrics, use_container_width=True, hide_index=True)
         st.download_button(
