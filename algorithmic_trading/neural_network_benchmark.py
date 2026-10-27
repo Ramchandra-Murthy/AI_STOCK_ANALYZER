@@ -168,12 +168,8 @@ def evaluate_mlp_seed_stability(
             }
         )
 
-    strategy_returns = np.asarray(
-        [row["strategy_cumulative_return"] for row in rows], dtype=float
-    )
-    benchmark_returns = np.asarray(
-        [row["buy_hold_cumulative_return"] for row in rows], dtype=float
-    )
+    strategy_returns = np.asarray([row["strategy_cumulative_return"] for row in rows], dtype=float)
+    benchmark_returns = np.asarray([row["buy_hold_cumulative_return"] for row in rows], dtype=float)
     return {
         "runs": rows,
         "seed_count": len(rows),
