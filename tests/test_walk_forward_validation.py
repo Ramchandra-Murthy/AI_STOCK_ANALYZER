@@ -1,7 +1,11 @@
 import pandas as pd
 import pytest
 
-from algorithmic_trading.walk_forward_validation import walk_forward_evaluate
+from algorithmic_trading.walk_forward_validation import (
+    align_return_series,
+    benchmark_relative_metrics,
+    walk_forward_evaluate,
+)
 
 
 def test_walk_forward_evaluates_sequential_non_overlapping_folds() -> None:
@@ -144,11 +148,6 @@ def test_walk_forward_sorts_unordered_price_and_signal_indexes() -> None:
         str(index[18]),
     ]
 
-
-from algorithmic_trading.walk_forward_validation import (
-    align_return_series,
-    benchmark_relative_metrics,
-)
 
 
 def test_benchmark_returns_align_on_shared_dates_and_drop_invalid_values() -> None:
