@@ -743,10 +743,7 @@ def test_top10_scanner_recovers_total_batch_failure_with_smaller_batches(monkeyp
         if len(calls) == 1:
             return {}, list(requested_tickers)
         return (
-            {
-                ticker: pd.DataFrame({"Close": [100.0, 101.0]})
-                for ticker in requested_tickers
-            },
+            {ticker: pd.DataFrame({"Close": [100.0, 101.0]}) for ticker in requested_tickers},
             [],
         )
 
