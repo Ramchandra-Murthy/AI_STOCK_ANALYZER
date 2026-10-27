@@ -638,6 +638,8 @@ def _download_top10_frames(
             f"no usable one-minute candles returned for {len(tickers)} requested tickers"
         )
     return frames, missing, "Yahoo Finance"
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
