@@ -40,9 +40,9 @@ st.caption(
 )
 
 st.info(
-    "Phase 1 provides data-quality checks, financial time-series diagnostics, and a simple "
-    "momentum baseline. Deep-learning models will be added only after the baseline and "
-    "chronological validation are working reliably."
+    "This research lab provides data-quality checks, financial time-series diagnostics, "
+    "a momentum baseline, chronological walk-forward validation, and an experimental "
+    "neural-network benchmark. Models are for research only and are not live trading signals."
 )
 
 left, right = st.columns(2)
@@ -258,8 +258,20 @@ if isinstance(result, dict):
                 benchmark_equity.rename("Buy-and-hold reference"),
             ],
             axis=1,
+        ).sort_index()
+        chart = chart.loc[~chart.index.duplicated(keep="last")].dropna(how="all")
+        chart.index.name = "Date"
+        chart = chart.reset_index()
+        st.line_chart(
+            chart,
+            x="Date",
+            y=["20-day momentum baseline", "Buy-and-hold reference"],
         )
-        st.line_chart(chart)
+        if not chart.empty:
+            st.caption(
+                f"Chart dates: {pd.Timestamp(chart['Date'].min()).date()} to "
+                f"{pd.Timestamp(chart['Date'].max()).date()}."
+            )
         c1, c2, c3, c4 = st.columns(4)
         c1.metric(
             "Baseline cumulative return",
