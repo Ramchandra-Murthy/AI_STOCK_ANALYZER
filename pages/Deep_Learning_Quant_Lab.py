@@ -137,7 +137,10 @@ if isinstance(result, dict):
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Observations", f"{result['observations']:,}")
     m2.metric("Latest close", f"₹{close.iloc[-1]:,.2f}")
-    m3.metric("20-day annualized volatility", f"{rolling_vol.iloc[-1]:.1%}" if pd.notna(rolling_vol.iloc[-1]) else "N/A")
+    m3.metric(
+        "20-day annualized volatility",
+        f"{rolling_vol.iloc[-1]:.1%}" if pd.notna(rolling_vol.iloc[-1]) else "N/A",
+    )
     m4.metric("Maximum historical drawdown", f"{drawdown.min():.1%}")
 
     diagnostics_tab, baseline_tab, notes_tab = st.tabs(
@@ -154,7 +157,13 @@ if isinstance(result, dict):
         st.line_chart(drawdown.rename("Drawdown"))
         summary = pd.DataFrame(
             {
-                "Metric": ["Mean daily return", "Daily volatility", "Skewness", "Excess kurtosis", "Positive-return days"],
+                "Metric": [
+                    "Mean daily return",
+                    "Daily volatility",
+                    "Skewness",
+                    "Excess kurtosis",
+                    "Positive-return days",
+                ],
                 "Value": [
                     returns.mean(),
                     returns.std(ddof=1),
@@ -187,10 +196,22 @@ if isinstance(result, dict):
         )
         st.line_chart(chart)
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Baseline cumulative return", f"{(strategy_equity.iloc[-1] - 1):.1%}" if not strategy_equity.empty else "N/A")
-        c2.metric("Reference cumulative return", f"{(benchmark_equity.iloc[-1] - 1):.1%}" if not benchmark_equity.empty else "N/A")
-        c3.metric("Baseline Sharpe (annualized)", f"{sharpe(strategy_returns):.2f}" if np.isfinite(sharpe(strategy_returns)) else "N/A")
-        c4.metric("Baseline max drawdown", f"{max_drawdown(strategy_returns):.1%}" if not strategy_returns.empty else "N/A")
+        c1.metric(
+            "Baseline cumulative return",
+            f"{(strategy_equity.iloc[-1] - 1):.1%}" if not strategy_equity.empty else "N/A",
+        )
+        c2.metric(
+            "Reference cumulative return",
+            f"{(benchmark_equity.iloc[-1] - 1):.1%}" if not benchmark_equity.empty else "N/A",
+        )
+        c3.metric(
+            "Baseline Sharpe (annualized)",
+            f"{sharpe(strategy_returns):.2f}" if np.isfinite(sharpe(strategy_returns)) else "N/A",
+        )
+        c4.metric(
+            "Baseline max drawdown",
+            f"{max_drawdown(strategy_returns):.1%}" if not strategy_returns.empty else "N/A",
+        )
         st.warning(
             "This is an exploratory in-sample historical baseline, not a full walk-forward "
             "validation. Results may be distorted by corporate actions, missing observations, "
@@ -210,8 +231,7 @@ if isinstance(result, dict):
         )
 
     with notes_tab:
-        st.markdown(
-            """
+        st.markdown("""
             **Book-aligned roadmap**
 
             1. Establish return-distribution and volatility diagnostics.
@@ -222,8 +242,7 @@ if isinstance(result, dict):
 
             **Not implemented in this first phase:** neural-network training, hyperparameter
             search, end-to-end portfolio optimization, order-book modelling, or live trading.
-            """
-        )
+            """)
         st.caption(
             "Reference: Zihao Zhang and Stefan Zohren, *Deep Learning in Quantitative Trading* "
             "(Cambridge University Press, 2025). This module is an independent research implementation."
