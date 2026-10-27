@@ -734,6 +734,36 @@ def test_dhan_quote_failures_are_logged_without_suppressing_diagnostics() -> Non
     assert "str(exc)[:240]" in source
 
 
+def test_top10_scanner_recovers_total_batch_failure_with_smaller_batches(monkeypatch) -> None:
+    tickers = ["AAA.NS", "BBB.NS", "CCC.BO", "DDD.BO"]
+    calls = []
+
+    def fake_download(requested_tickers, **kwargs):
+        calls.append((list(requested_tickers), kwargs))
+        if len(calls) == 1:
+            return {}, list(requested_tickers)
+        return (
+            {
+                ticker: pd.DataFrame({"Close": [100.0, 101.0]})
+                for ticker in requested_tickers
+            },
+            [],
+        )
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+
+    frames, missing, provider = top10_live._download_top10_frames(tickers)
+
+    assert provider == "Yahoo Finance"
+    assert missing == []
+    assert set(frames) == set(tickers)
+    assert len(calls) == 2
+    assert calls[0][1]["batch_size"] == TOP10_CHUNK_SIZE
+    assert calls[1][1]["batch_size"] == top10_live.TOP10_FALLBACK_CHUNK_SIZE
+    assert calls[1][1]["retries"] == 0
+    assert calls[1][1]["recover_missing"] is False
+
+
 def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
     expected_frames = {"RELIANCE.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
     calls = {}
