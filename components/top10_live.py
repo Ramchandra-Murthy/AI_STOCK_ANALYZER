@@ -18,6 +18,7 @@ from services.market_calendar import (
     equity_market_session_status,
     is_regular_equity_session_open,
 )
+from services.dhan_live_provider import dhan_provider_enabled, download_dhan_symbol_frames
 from services.resilient_market_data import download_symbol_frames
 
 TOP10_REFRESH_SECONDS = 60
@@ -584,8 +585,6 @@ def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
     """Prefer configured Dhan candles and use Yahoo Finance for unresolved symbols."""
-    from services.dhan_live_provider import dhan_provider_enabled, download_dhan_symbol_frames
-
     global _PROVIDER_DIAGNOSTICS
     _PROVIDER_DIAGNOSTICS = []
     frames: dict[str, pd.DataFrame] = {}
