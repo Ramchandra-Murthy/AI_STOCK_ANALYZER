@@ -751,7 +751,7 @@ def test_top10_scanner_recovers_total_batch_failure_with_smaller_batches(monkeyp
 
     frames, missing, provider = top10_live._download_top10_frames(tickers)
 
-    assert provider == "Yahoo Finance"
+    assert provider == "Yahoo Finance (Dhan unavailable or not configured)"
     assert missing == []
     assert set(frames) == set(tickers)
     assert len(calls) == 2
@@ -765,7 +765,7 @@ def test_top10_scanner_uses_yahoo_when_dhan_is_not_configured(monkeypatch) -> No
     expected_frames = {"RELIANCE.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
     calls = {}
 
-    monkeypatch.setattr(top10_live, "dhan_provider_enabled", lambda: False, raising=False)
+    monkeypatch.setattr(top10_live, "dhan_provider_enabled", lambda: False, )
 
     def fake_download(tickers, **kwargs):
         calls["tickers"] = tickers
@@ -786,7 +786,7 @@ def test_top10_scanner_uses_yahoo_when_dhan_is_not_configured(monkeypatch) -> No
 def test_top10_scanner_prefers_dhan_and_falls_back_to_yahoo_for_missing(monkeypatch) -> None:
     dhan_frame = pd.DataFrame({"Close": [200.0, 201.0]})
     yahoo_frame = pd.DataFrame({"Close": [100.0, 101.0]})
-    monkeypatch.setattr(top10_live, "dhan_provider_enabled", lambda: True, raising=False)
+    monkeypatch.setattr(top10_live, "dhan_provider_enabled", lambda: True, )
     monkeypatch.setattr(
         top10_live,
         "download_dhan_symbol_frames",
