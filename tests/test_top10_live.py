@@ -775,7 +775,6 @@ def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
 
     assert frames == expected_frames
     assert missing == []
-    assert provider == "Yahoo Finance (Dhan not configured)"
     assert provider == "Yahoo Finance"
     assert calls["tickers"] == ["RELIANCE.NS"]
     assert calls["kwargs"]["interval"] == "1m"
