@@ -129,3 +129,58 @@ def evaluate_mlp_return_strategy(
         "test_turnover": float(np.sum(turnover)),
         "cost_bps": float(cost_bps),
     }
+
+
+def evaluate_mlp_seed_stability(
+    returns: pd.Series,
+    *,
+    cost_bps: float = 10.0,
+    random_states: tuple[int, ...] = (7, 21, 42, 84, 123),
+) -> dict[str, object]:
+    """Evaluate a fixed chronological holdout across seeds without selecting a winner.
+
+    All runs use identical data splits and model settings. The summary describes
+    sensitivity to initialization; it is not an estimate of independent market
+    regimes and must not be used to select a seed for live trading.
+    """
+    if not random_states:
+        raise ValueError("at least one random state is required")
+    if len(set(random_states)) != len(random_states):
+        raise ValueError("random_states must be unique")
+
+    rows = []
+    for seed in random_states:
+        result = evaluate_mlp_return_strategy(
+            returns,
+            cost_bps=cost_bps,
+            random_state=seed,
+        )
+        rows.append(
+            {
+                "random_state": seed,
+                "test_start": result["test_start"],
+                "test_end": result["test_end"],
+                "strategy_cumulative_return": result["strategy_cumulative_return"],
+                "buy_hold_cumulative_return": result["buy_hold_cumulative_return"],
+                "strategy_sharpe": result["strategy_sharpe"],
+                "strategy_max_drawdown": result["strategy_max_drawdown"],
+                "test_mse": result["test_mse"],
+            }
+        )
+
+    strategy_returns = np.asarray(
+        [row["strategy_cumulative_return"] for row in rows], dtype=float
+    )
+    benchmark_returns = np.asarray(
+        [row["buy_hold_cumulative_return"] for row in rows], dtype=float
+    )
+    return {
+        "runs": rows,
+        "seed_count": len(rows),
+        "outperformance_count": int(np.sum(strategy_returns > benchmark_returns)),
+        "median_strategy_return": float(np.median(strategy_returns)),
+        "minimum_strategy_return": float(np.min(strategy_returns)),
+        "maximum_strategy_return": float(np.max(strategy_returns)),
+        "median_buy_hold_return": float(np.median(benchmark_returns)),
+    }
+
