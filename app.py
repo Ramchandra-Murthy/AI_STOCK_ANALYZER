@@ -132,6 +132,12 @@ pages = {
             icon="🧠",
             url_path="neural-networks-lab",
         ),
+        st.Page(
+            "pages/Deep_Learning_Quant_Lab.py",
+            title="Deep Learning Quant Lab",
+            icon="🧪",
+            url_path="deep-learning-quant-lab",
+        ),
         st.Page(show_backtesting, title="Backtesting", icon="📉", url_path="backtesting"),
         st.Page(
             "pages/Fibonacci_Gann_Research_Lab.py",
