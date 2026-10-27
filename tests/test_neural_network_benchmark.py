@@ -64,7 +64,7 @@ def test_mlp_benchmark_rejects_duplicate_timestamps() -> None:
         evaluate_mlp_return_strategy(duplicated)
 
 
-$3_on_same_test_period() -> None:
+def test_mlp_seed_stability_reports_all_seeds_on_same_test_period() -> None:
     from algorithmic_trading.neural_network_benchmark import evaluate_mlp_seed_stability
 
     result = evaluate_mlp_seed_stability(_returns(), random_states=(1, 2))
