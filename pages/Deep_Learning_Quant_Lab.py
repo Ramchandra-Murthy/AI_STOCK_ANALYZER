@@ -156,7 +156,6 @@ if st.button("Load history and run diagnostics", type="primary", key="dlq_run"):
                 join="inner",
             ).dropna()
             external_benchmark_returns = aligned["benchmark"]
-            strategy_returns = aligned["strategy"]
             external_benchmark_name = benchmark_choice
         else:
             st.warning(
@@ -168,6 +167,7 @@ if st.button("Load history and run diagnostics", type="primary", key="dlq_run"):
         "ticker": ticker,
         "external_benchmark_returns": external_benchmark_returns,
         "external_benchmark_name": external_benchmark_name,
+        "benchmark_requested": benchmark_choice,
         "close": close,
         "returns": returns,
         "log_returns": log_returns,
@@ -279,10 +279,14 @@ if isinstance(result, dict):
             risk_strategy, risk_reference = strategy_returns.align(
                 risk_reference, join="inner"
             )
-        else:
+        elif result.get("benchmark_requested") == "Stock buy-and-hold":
             risk_strategy = strategy_returns
             risk_reference = benchmark_returns
             risk_reference_name = "Stock buy-and-hold"
+        else:
+            risk_strategy = pd.Series(dtype=float)
+            risk_reference = pd.Series(dtype=float)
+            risk_reference_name = result.get("benchmark_requested", "External benchmark")
 
         # Compare returns only on identical dates; never fill missing benchmark observations.
         active_returns = risk_strategy - risk_reference
