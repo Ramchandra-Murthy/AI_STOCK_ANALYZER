@@ -18,6 +18,18 @@ from algorithmic_trading.walk_forward_validation import (
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.resilient_market_data import download_symbol_frames
 
+def max_drawdown(series: pd.Series) -> float:
+    wealth = (1.0 + series).cumprod()
+    return float((wealth / wealth.cummax() - 1.0).min()) if not wealth.empty else float("nan")
+
+
+def sharpe(series: pd.Series) -> float:
+    std = float(series.std(ddof=1))
+    if not np.isfinite(std) or std <= 0:
+        return float("nan")
+    return float(series.mean() / std * np.sqrt(252))
+
+
 st.set_page_config(page_title="Deep Learning Quant Lab", page_icon="🧪", layout="wide")
 
 st.title("🧪 Deep Learning Quant Lab")
@@ -128,16 +140,6 @@ if st.button("Load history and run diagnostics", type="primary", key="dlq_run"):
     strategy_returns = (signal * next_return - costs).dropna()
     benchmark_returns = next_return.loc[strategy_returns.index].dropna()
     strategy_returns = strategy_returns.loc[benchmark_returns.index]
-
-    def max_drawdown(series: pd.Series) -> float:
-        wealth = (1.0 + series).cumprod()
-        return float((wealth / wealth.cummax() - 1.0).min()) if not wealth.empty else float("nan")
-
-    def sharpe(series: pd.Series) -> float:
-        std = float(series.std(ddof=1))
-        if not np.isfinite(std) or std <= 0:
-            return float("nan")
-        return float(series.mean() / std * np.sqrt(252))
 
     external_benchmark_returns = pd.Series(dtype=float)
     external_benchmark_name = ""
