@@ -583,57 +583,6 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
 def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
-    """Prefer Dhan candles and accurately report when Yahoo fallback is used."""
-    global _PROVIDER_DIAGNOSTICS
-    _PROVIDER_DIAGNOSTICS = []
-    frames: dict[str, pd.DataFrame] = {}
-    missing = list(tickers)
-    dhan_configured = dhan_provider_enabled()
-    dhan_frame_count = 0
-    yahoo_frame_count = 0
-
-    if dhan_configured:
-        try:
-            dhan_frames, dhan_missing = download_dhan_symbol_frames(tickers, interval=1)
-            frames.update(dhan_frames)
-            dhan_frame_count = len(dhan_frames)
-            missing = list(dhan_missing)
-            _PROVIDER_DIAGNOSTICS.append(
-                f"Dhan returned usable candles for {dhan_frame_count}/{len(tickers)} tickers"
-            )
-            if not dhan_frames:
-                _PROVIDER_DIAGNOSTICS.append(
-                    "Dhan was configured but returned no usable candles; inspect Dhan warnings "
-                    "in deployment logs for authentication, API, or mapping errors"
-                )
-            if dhan_missing:
-                _PROVIDER_DIAGNOSTICS.append(
-                    f"Dhan candles unavailable for {len(dhan_missing)} tickers; trying Yahoo fallback"
-                )
-        except Exception as exc:
-            _PROVIDER_DIAGNOSTICS.append(
-                f"Dhan request failed ({type(exc).__name__}); trying Yahoo Finance fallback"
-            )
-    else:
-        _PROVIDER_DIAGNOSTICS.append(
-            "Dhan not configured: set DHAN_CLIENT_ID, DHAN_ACCESS_TOKEN, and DHAN_SECURITY_MAP_JSON"
-        )
-
-    if missing:
-        yahoo_frames, yahoo_missing = download_symbol_frames(
-            missing,
-            period="1d",
-            interval="1m",
-            auto_adjust=False,
-            batch_size=TOP10_CHUNK_SIZE,
-            timeout=TOP10_PROVIDER_TIMEOUT,
-            retries=TOP10_PROVIDER_RETRIES,
-            recover_missing=False,
-            diagnostics=_PROVIDER_DIAGNOSTICS,
-        )
-        frames.update(yahoo_frames)
-        yahoo_frame_count += len(yahoo_frames)
-        missing = yahoo_missing
     """Download live scanner candles from Yahoo Finance only."""
     global _PROVIDER_DIAGNOSTICS
     _PROVIDER_DIAGNOSTICS = []
@@ -663,7 +612,6 @@ def _download_top10_frames(
             diagnostics=_PROVIDER_DIAGNOSTICS,
         )
         frames.update(recovered)
-        yahoo_frame_count += len(recovered)
         missing = still_missing
 
     if 0 < len(missing) <= TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
@@ -679,7 +627,6 @@ def _download_top10_frames(
             diagnostics=_PROVIDER_DIAGNOSTICS,
         )
         frames.update(recovered)
-        yahoo_frame_count += len(recovered)
         missing = still_missing
 
     if missing:
@@ -690,19 +637,7 @@ def _download_top10_frames(
         _PROVIDER_DIAGNOSTICS.append(
             f"no usable one-minute candles returned for {len(tickers)} requested tickers"
         )
-
-    if dhan_frame_count and yahoo_frame_count:
-        provider_name = "Dhan + Yahoo Finance fallback"
-    elif dhan_frame_count:
-        provider_name = "Dhan"
-    elif dhan_configured:
-        provider_name = "Yahoo Finance fallback (Dhan configured but failed)"
-    else:
-        provider_name = "Yahoo Finance (Dhan not configured)"
-    return frames, missing, provider_name
     return frames, missing, "Yahoo Finance"
-
-
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only."""
     started = perf_counter()
