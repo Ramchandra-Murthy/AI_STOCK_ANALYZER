@@ -10,7 +10,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from algorithmic_trading.walk_forward_validation import walk_forward_evaluate
+from algorithmic_trading.walk_forward_validation import (
+    benchmark_relative_metrics,
+    walk_forward_evaluate,
+)
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.resilient_market_data import download_symbol_frames
 
@@ -285,34 +288,14 @@ if isinstance(result, dict):
             risk_reference_name = result.get("benchmark_requested", "External benchmark")
 
         # Compare returns only on identical dates; never fill missing benchmark observations.
-        active_returns = risk_strategy - risk_reference
-        tracking_error = (
-            float(active_returns.std(ddof=1) * np.sqrt(252))
-            if len(active_returns) > 1
-            else float("nan")
-        )
-        active_std = float(active_returns.std(ddof=1))
-        information_ratio = (
-            float(active_returns.mean() / active_std * np.sqrt(252))
-            if np.isfinite(active_std) and active_std > 0
-            else float("nan")
-        )
-
-        def downside_deviation(series: pd.Series) -> float:
-            downside = np.minimum(series.to_numpy(dtype=float), 0.0)
-            return float(np.sqrt(np.mean(np.square(downside))) * np.sqrt(252))
-
-        baseline_downside = downside_deviation(risk_strategy)
-        reference_downside = downside_deviation(risk_reference)
-        baseline_wealth = (1.0 + risk_strategy).cumprod()
-        reference_wealth = (1.0 + risk_reference).cumprod()
-        excess_cumulative = (
-            float(baseline_wealth.iloc[-1] - reference_wealth.iloc[-1])
-            if not baseline_wealth.empty and not reference_wealth.empty
-            else float("nan")
-        )
-        baseline_risk_drawdown = max_drawdown(risk_strategy)
-        reference_risk_drawdown = max_drawdown(risk_reference)
+        relative_metrics = benchmark_relative_metrics(risk_strategy, risk_reference)
+        tracking_error = relative_metrics["tracking_error"]
+        information_ratio = relative_metrics["information_ratio"]
+        baseline_downside = relative_metrics["strategy_downside_deviation"]
+        reference_downside = relative_metrics["benchmark_downside_deviation"]
+        excess_cumulative = relative_metrics["cumulative_excess_return"]
+        baseline_risk_drawdown = relative_metrics["strategy_max_drawdown"]
+        reference_risk_drawdown = relative_metrics["benchmark_max_drawdown"]
         risk_metrics = pd.DataFrame(
             {
                 "Metric": [

@@ -8,6 +8,77 @@ from algorithmic_trading.backtester import run_backtest
 from algorithmic_trading.trading_costs import IndiaEquityCostModel
 
 
+def align_return_series(
+    strategy_returns: pd.Series, benchmark_returns: pd.Series
+) -> tuple[pd.Series, pd.Series]:
+    """Return numeric strategy and benchmark returns on shared, valid timestamps only."""
+    if not strategy_returns.index.is_unique:
+        raise ValueError("strategy_returns contains duplicate timestamps")
+    if not benchmark_returns.index.is_unique:
+        raise ValueError("benchmark_returns contains duplicate timestamps")
+
+    aligned = pd.concat(
+        [
+            pd.to_numeric(strategy_returns, errors="coerce").rename("strategy"),
+            pd.to_numeric(benchmark_returns, errors="coerce").rename("benchmark"),
+        ],
+        axis=1,
+        join="inner",
+    )
+    aligned = aligned.replace([float("inf"), float("-inf")], float("nan")).dropna().sort_index()
+    return aligned["strategy"], aligned["benchmark"]
+
+
+def _max_drawdown(returns: pd.Series) -> float:
+    if returns.empty:
+        return float("nan")
+    wealth = (1.0 + returns).cumprod()
+    return float((wealth / wealth.cummax() - 1.0).min())
+
+
+def _downside_deviation(returns: pd.Series) -> float:
+    if returns.empty:
+        return float("nan")
+    downside = returns.clip(upper=0.0).to_numpy(dtype=float)
+    return float(pd.Series(downside).pow(2).mean() ** 0.5 * (252.0**0.5))
+
+
+def benchmark_relative_metrics(
+    strategy_returns: pd.Series, benchmark_returns: pd.Series
+) -> dict[str, float | int]:
+    """Calculate annualized risk and compounded excess return on shared dates.
+
+    Undefined ratios and metrics with no observations are represented as NaN.
+    Returns are daily simple returns; annualization assumes 252 sessions.
+    """
+    strategy, benchmark = align_return_series(strategy_returns, benchmark_returns)
+    active = strategy - benchmark
+    active_std = float(active.std(ddof=1)) if len(active) > 1 else float("nan")
+    tracking_error = active_std * (252.0**0.5) if pd.notna(active_std) else float("nan")
+    information_ratio = (
+        float(active.mean() / active_std * (252.0**0.5))
+        if pd.notna(active_std) and active_std > 0
+        else float("nan")
+    )
+    strategy_wealth = (1.0 + strategy).cumprod()
+    benchmark_wealth = (1.0 + benchmark).cumprod()
+    cumulative_excess = (
+        float(strategy_wealth.iloc[-1] - benchmark_wealth.iloc[-1])
+        if not strategy.empty
+        else float("nan")
+    )
+    return {
+        "observations": len(strategy),
+        "tracking_error": tracking_error,
+        "information_ratio": information_ratio,
+        "strategy_downside_deviation": _downside_deviation(strategy),
+        "benchmark_downside_deviation": _downside_deviation(benchmark),
+        "strategy_max_drawdown": _max_drawdown(strategy),
+        "benchmark_max_drawdown": _max_drawdown(benchmark),
+        "cumulative_excess_return": cumulative_excess,
+    }
+
+
 def walk_forward_evaluate(
     prices: pd.Series,
     signals: pd.Series,
