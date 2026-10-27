@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from algorithmic_trading.neural_network_benchmark import evaluate_mlp_return_strategy
 from algorithmic_trading.walk_forward_validation import (
     benchmark_relative_metrics,
     walk_forward_evaluate,
@@ -388,6 +389,80 @@ if isinstance(result, dict):
             mime="text/csv",
         )
 
+        st.subheader("Experimental neural-network benchmark")
+        st.caption(
+            "A small MLP predicts the next session's return from five lagged returns. "
+            "Training, validation, and test partitions are chronological; preprocessing is "
+            "fitted on training data only. This is experimental research, not a trading signal."
+        )
+        if st.button("Run experimental neural-network benchmark", key="dlq_run_mlp"):
+            try:
+                st.session_state["dlq_mlp_results"] = evaluate_mlp_return_strategy(
+                    returns,
+                    cost_bps=float(result["cost_bps"]),
+                )
+            except (ValueError, FloatingPointError) as exc:
+                st.session_state.pop("dlq_mlp_results", None)
+                st.warning(f"Neural-network benchmark unavailable: {exc}")
+        mlp_results = st.session_state.get("dlq_mlp_results")
+        if isinstance(mlp_results, dict):
+            mlp_metrics = pd.DataFrame(
+                {
+                    "Metric": [
+                        "Training observations",
+                        "Validation observations",
+                        "Test observations",
+                        "Validation MSE",
+                        "Test MSE",
+                        "MLP cumulative test return (after costs)",
+                        "Buy-and-hold cumulative test return",
+                        "MLP annualized Sharpe",
+                        "Buy-and-hold annualized Sharpe",
+                        "MLP maximum drawdown",
+                        "Buy-and-hold maximum drawdown",
+                        "Test turnover",
+                        "Assumed transaction cost (bps)",
+                        "Test period",
+                    ],
+                    "Value": [
+                        mlp_results["train_observations"],
+                        mlp_results["validation_observations"],
+                        mlp_results["test_observations"],
+                        f"{mlp_results['validation_mse']:.8f}",
+                        f"{mlp_results['test_mse']:.8f}",
+                        f"{mlp_results['strategy_cumulative_return']:.2%}",
+                        f"{mlp_results['buy_hold_cumulative_return']:.2%}",
+                        (
+                            f"{mlp_results['strategy_sharpe']:.2f}"
+                            if np.isfinite(mlp_results["strategy_sharpe"])
+                            else "N/A"
+                        ),
+                        (
+                            f"{mlp_results['buy_hold_sharpe']:.2f}"
+                            if np.isfinite(mlp_results["buy_hold_sharpe"])
+                            else "N/A"
+                        ),
+                        f"{mlp_results['strategy_max_drawdown']:.2%}",
+                        f"{mlp_results['buy_hold_max_drawdown']:.2%}",
+                        f"{mlp_results['test_turnover']:.0f}",
+                        mlp_results["cost_bps"],
+                        f"{mlp_results['test_start']} to {mlp_results['test_end']}",
+                    ],
+                }
+            )
+            st.dataframe(mlp_metrics, use_container_width=True, hide_index=True)
+            st.download_button(
+                "Download neural-network benchmark metrics (CSV)",
+                mlp_metrics.to_csv(index=False).encode("utf-8"),
+                file_name=f"{result['ticker'].replace('.', '_')}_mlp_benchmark.csv",
+                mime="text/csv",
+            )
+            st.warning(
+                "The MLP is a small experimental model. A single holdout result does not establish "
+                "predictive skill or future profitability. The reported buy-and-hold reference "
+                "uses the same test target dates; validate robustness before drawing conclusions."
+            )
+
     with notes_tab:
         st.markdown("""
             **Book-aligned roadmap**
@@ -398,8 +473,9 @@ if isinstance(result, dict):
             4. Compare neural networks against the baseline using identical data and costs.
             5. Add portfolio and risk constraints only after validation is reliable.
 
-            **Not implemented in this first phase:** neural-network training, hyperparameter
-            search, end-to-end portfolio optimization, order-book modelling, or live trading.
+            **Implemented experimentally:** a small MLP return benchmark with chronological train/validation/test partitions.
+            **Still not implemented:** hyperparameter search, end-to-end portfolio optimization,
+            order-book modelling, or live trading.
             """)
         st.caption(
             "Reference: Zihao Zhang and Stefan Zohren, *Deep Learning in Quantitative Trading* "
