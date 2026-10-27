@@ -761,9 +761,11 @@ def test_top10_scanner_recovers_total_batch_failure_with_smaller_batches(monkeyp
     assert calls[1][1]["recover_missing"] is False
 
 
-def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
+def test_top10_scanner_uses_yahoo_when_dhan_is_not_configured(monkeypatch) -> None:
     expected_frames = {"RELIANCE.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
     calls = {}
+
+    monkeypatch.setattr(top10_live, "dhan_provider_enabled", lambda: False, raising=False)
 
     def fake_download(tickers, **kwargs):
         calls["tickers"] = tickers
@@ -775,10 +777,35 @@ def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
 
     assert frames == expected_frames
     assert missing == []
-    assert provider == "Yahoo Finance"
+    assert provider == "Yahoo Finance (Dhan unavailable or not configured)"
     assert calls["tickers"] == ["RELIANCE.NS"]
     assert calls["kwargs"]["interval"] == "1m"
     assert calls["kwargs"]["recover_missing"] is False
+
+
+def test_top10_scanner_prefers_dhan_and_falls_back_to_yahoo_for_missing(monkeypatch) -> None:
+    dhan_frame = pd.DataFrame({"Close": [200.0, 201.0]})
+    yahoo_frame = pd.DataFrame({"Close": [100.0, 101.0]})
+    monkeypatch.setattr(top10_live, "dhan_provider_enabled", lambda: True, raising=False)
+    monkeypatch.setattr(
+        top10_live,
+        "download_dhan_symbol_frames",
+        lambda tickers, interval=1: ({"RELIANCE.NS": dhan_frame}, ["TCS.NS"]),
+        raising=False,
+    )
+    calls = []
+
+    def fake_download(tickers, **kwargs):
+        calls.append(list(tickers))
+        return {"TCS.NS": yahoo_frame}, []
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+    frames, missing, provider = top10_live._download_top10_frames(["RELIANCE.NS", "TCS.NS"])
+
+    assert frames == {"RELIANCE.NS": dhan_frame, "TCS.NS": yahoo_frame}
+    assert missing == []
+    assert provider == "Dhan + Yahoo Finance fallback"
+    assert calls[0] == ["TCS.NS"]
 
 
 def test_top10_filters_apply_price_move_and_exchange_without_mutating_source() -> None:
