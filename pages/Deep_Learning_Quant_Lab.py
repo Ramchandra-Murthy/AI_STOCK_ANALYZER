@@ -10,7 +10,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from algorithmic_trading.neural_network_benchmark import (\n    evaluate_mlp_return_strategy,\n    evaluate_mlp_seed_stability,\n)
+from algorithmic_trading.neural_network_benchmark import (
+    evaluate_mlp_return_strategy,
+    evaluate_mlp_seed_stability,
+)
 from algorithmic_trading.walk_forward_validation import (
     benchmark_relative_metrics,
     walk_forward_evaluate,
