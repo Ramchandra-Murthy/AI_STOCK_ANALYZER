@@ -246,9 +246,7 @@ if isinstance(result, dict):
                 "This is a fixed baseline, not a trained or tuned model."
             )
             st.dataframe(fold_metrics, use_container_width=True, hide_index=True)
-            st.line_chart(
-                fold_metrics.set_index("fold")[["total_return", "buy_hold_return"]]
-            )
+            st.line_chart(fold_metrics.set_index("fold")[["total_return", "buy_hold_return"]])
             st.download_button(
                 "Download walk-forward fold metrics (CSV)",
                 fold_metrics.to_csv(index=False).encode("utf-8"),
