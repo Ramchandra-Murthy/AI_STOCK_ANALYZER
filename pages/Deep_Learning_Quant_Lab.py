@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from algorithmic_trading.walk_forward_validation import walk_forward_evaluate
+
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.resilient_market_data import download_symbol_frames
 
@@ -40,6 +42,22 @@ with left:
     )
 with right:
     period = st.selectbox("History", ["6mo", "1y", "2y", "5y"], index=2, key="dlq_period")
+    train_size = st.slider(
+        "Initial training window (sessions)",
+        min_value=60,
+        max_value=504,
+        value=252,
+        step=21,
+        key="dlq_train_size",
+    )
+    n_splits = st.slider(
+        "Out-of-sample folds",
+        min_value=2,
+        max_value=8,
+        value=4,
+        step=1,
+        key="dlq_n_splits",
+    )
     transaction_cost_bps = st.slider(
         "Assumed transaction cost (bps per position change)",
         min_value=0,
@@ -120,6 +138,8 @@ if st.button("Load history and run diagnostics", type="primary", key="dlq_run"):
         "benchmark_returns": benchmark_returns,
         "observations": len(close),
         "cost_bps": transaction_cost_bps,
+        "train_size": train_size,
+        "n_splits": n_splits,
     }
 
 result = st.session_state.get("dlq_results")
@@ -212,10 +232,37 @@ if isinstance(result, dict):
             "Baseline max drawdown",
             f"{max_drawdown(strategy_returns):.1%}" if not strategy_returns.empty else "N/A",
         )
+        st.subheader("Chronological walk-forward validation")
+        try:
+            fold_metrics = walk_forward_evaluate(
+                close,
+                momentum.gt(0).astype(float),
+                min_train_size=int(result["train_size"]),
+                n_splits=int(result["n_splits"]),
+                cost_bps=float(result["cost_bps"]),
+            )
+            st.caption(
+                "Signals are computed from trailing 20-session momentum and evaluated on "
+                "sequential test folds. The existing backtester shifts signals by one bar. "
+                "This is a fixed baseline, not a trained or tuned model."
+            )
+            st.dataframe(fold_metrics, use_container_width=True, hide_index=True)
+            st.line_chart(
+                fold_metrics.set_index("fold")[["total_return", "buy_hold_return"]]
+            )
+            st.download_button(
+                "Download walk-forward fold metrics (CSV)",
+                fold_metrics.to_csv(index=False).encode("utf-8"),
+                file_name=f"{result['ticker'].replace('.', '_')}_walk_forward_folds.csv",
+                mime="text/csv",
+            )
+        except ValueError as exc:
+            st.warning(f"Walk-forward validation unavailable: {exc}")
         st.warning(
-            "This is an exploratory in-sample historical baseline, not a full walk-forward "
-            "validation. Results may be distorted by corporate actions, missing observations, "
-            "market regime changes, and simplified costs. Do not use it alone for live trades."
+            "Walk-forward evaluation improves chronological reporting but does not prove "
+            "future profitability. Results remain sensitive to market regimes, data quality, "
+            "corporate actions, and simplified transaction costs. Do not use this output alone "
+            "for live trades."
         )
         export = pd.DataFrame(
             {
