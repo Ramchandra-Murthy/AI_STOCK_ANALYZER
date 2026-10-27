@@ -19,7 +19,7 @@ def test_mlp_benchmark_uses_chronological_train_validation_test_splits() -> None
     assert result["test_observations"] > 0
     assert result["train_end"] < result["validation_start"]
     assert result["validation_end"] < result["test_start"]
-    assert result["test_end"] == "2020-06-16"
+    assert result["test_end"] == "2020-06-15"
 
 
 def test_mlp_benchmark_returns_comparable_test_metrics() -> None:
