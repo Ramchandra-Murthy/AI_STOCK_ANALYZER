@@ -25,6 +25,8 @@ TOP10_UI_POLL_SECONDS = 2
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 20
+TOP10_FALLBACK_CHUNK_SIZE = 5
+TOP10_FALLBACK_TIMEOUT = 4
 TOP10_MAX_NSE_CANDIDATES = 10
 TOP10_MAX_BSE_CANDIDATES = 10
 TOP10_PROVIDER_RETRIES = 1
@@ -596,8 +598,25 @@ def _download_top10_frames(
         diagnostics=_PROVIDER_DIAGNOSTICS,
     )
 
-    # Keep recovery bounded: retry individual tickers only when a small number
-    # are missing, rather than serially retrying an entire failed batch.
+    # If the large batch failed or was only partially usable, retry unresolved
+    # tickers in smaller batches before considering individual-symbol recovery.
+    # This is bounded to at most ceil(len(tickers) / FALLBACK_CHUNK_SIZE) requests.
+    if len(missing) > TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
+        recovered, still_missing = download_symbol_frames(
+            missing,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            batch_size=TOP10_FALLBACK_CHUNK_SIZE,
+            timeout=TOP10_FALLBACK_TIMEOUT,
+            retries=0,
+            recover_missing=False,
+            diagnostics=_PROVIDER_DIAGNOSTICS,
+        )
+        frames.update(recovered)
+        missing = still_missing
+
+    # Keep individual recovery bounded to a small number of unresolved tickers.
     if 0 < len(missing) <= TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
         recovered, still_missing = download_symbol_frames(
             missing,
