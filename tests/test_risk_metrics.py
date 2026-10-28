@@ -125,3 +125,10 @@ def test_risk_metrics_accept_exact_minus_100_percent_loss() -> None:
 def test_risk_metrics_reject_boolean_and_non_numeric_parameters(metric, kwargs) -> None:
     with pytest.raises(ValueError, match="finite and numeric"):
         metric(pd.Series([0.01, -0.02, 0.03]), **kwargs)
+
+
+def test_max_drawdown_rejects_equity_curve_overflow() -> None:
+    returns = pd.Series([1e308, 1e308])
+
+    with pytest.raises(ValueError, match="equity curve overflowed"):
+        max_drawdown(returns)
