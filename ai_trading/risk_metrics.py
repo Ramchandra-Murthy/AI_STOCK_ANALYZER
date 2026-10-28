@@ -66,8 +66,16 @@ def sharpe_ratio(
     clean = _clean_returns(returns)
     if len(clean) < 2:
         return 0.0
-    period_rf = (1.0 + risk_free_rate) ** (1.0 / periods_per_year) - 1.0
+    try:
+        period_exponent = 1.0 / periods_per_year
+        period_rf = (1.0 + risk_free_rate) ** period_exponent - 1.0
+    except OverflowError as exc:
+        raise ValueError("Sharpe ratio risk-free rate calculation overflowed") from exc
+    if not math.isfinite(period_exponent) or not math.isfinite(period_rf):
+        raise ValueError("Sharpe ratio risk-free rate calculation produced a non-finite result")
     excess = clean - period_rf
+    if not np.isfinite(excess.to_numpy(dtype=float)).all():
+        raise ValueError("Sharpe ratio excess returns overflowed")
     volatility = excess.std(ddof=1)
     if not math.isfinite(float(volatility)):
         raise ValueError("Sharpe ratio volatility overflowed")
