@@ -23,7 +23,11 @@ def _validate_finite_parameter(value: float, name: str) -> float:
 
 def _clean_returns(returns: pd.Series) -> pd.Series:
     """Coerce returns to numeric, ignore missing values, and validate simple returns."""
-    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    numeric = pd.to_numeric(returns, errors="coerce")
+    invalid = returns.notna() & numeric.isna()
+    if invalid.any():
+        raise ValueError("returns must contain only numeric values or missing values")
+    clean = numeric.dropna()
     values = clean.to_numpy(dtype=float)
     if not np.isfinite(values).all():
         raise ValueError("returns must contain only finite numeric values")
