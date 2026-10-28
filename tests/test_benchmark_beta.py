@@ -53,7 +53,6 @@ def test_benchmark_beta_rejects_overflowed_variance() -> None:
         benchmark_beta(strategy, benchmark)
 
 
-
 @pytest.mark.parametrize(
     ("strategy", "benchmark"),
     [
