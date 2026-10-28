@@ -42,6 +42,7 @@ def test_slippage_sensitivity_rejects_invalid_assumptions() -> None:
     with pytest.raises(ValueError, match="non-negative"):
         slippage_sensitivity(pd.Series([0.01]), slippage_bps=(-1.0,))
 
+
 @pytest.mark.parametrize("bad_rate", [float("nan"), float("inf"), float("-inf")])
 def test_slippage_sensitivity_rejects_non_finite_rates(bad_rate: float) -> None:
     with pytest.raises(ValueError, match="finite"):
