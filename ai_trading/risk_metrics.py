@@ -98,7 +98,10 @@ def omega_ratio(
         raise ValueError("omega ratio gain/loss totals overflowed")
     if math.isclose(losses, 0.0, abs_tol=1e-12):
         return float("inf") if gains > 0.0 else None
-    return gains / losses
+    result = gains / losses
+    if not math.isfinite(result):
+        raise ValueError("omega ratio calculation produced a non-finite result")
+    return result
 
 
 def conditional_value_at_risk(
