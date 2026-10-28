@@ -46,7 +46,12 @@ def _mlp(random_state: int) -> Pipeline:
 
 
 def _score_row(
-    model_name: str, actual: pd.Series, predicted: Any, probability_up: Any | None = None
+    model_name: str,
+    actual: pd.Series,
+    predicted: Any,
+    probability_up: Any | None = None,
+    *,
+    score_hard_label_auc: bool = False,
 ) -> dict[str, Any]:
     row: dict[str, Any] = {
         "Model": model_name,
@@ -66,11 +71,11 @@ def _score_row(
     else:
         row["Brier score"] = float("nan")
         row["Log loss"] = float("nan")
-        # ROC-AUC can still describe a hard-label classifier. A constant
-        # majority prediction yields 0.5 when both test classes are present.
+        # Hard labels are not probability scores. Keep ROC-AUC undefined by
+        # default, with an explicit opt-in for the majority-class reference.
         row["ROC-AUC"] = (
             float(roc_auc_score(actual, np.asarray(predicted)))
-            if np.unique(np.asarray(actual)).size == 2
+            if score_hard_label_auc and np.unique(np.asarray(actual)).size == 2
             else float("nan")
         )
     return row
@@ -105,7 +110,15 @@ def compare_holdout_baselines(
         probability_up = None
         if name != "Majority-class" and hasattr(model, "predict_proba") and 1 in model.classes_:
             probability_up = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
-        rows.append(_score_row(name, y_test, predicted, probability_up))
+        rows.append(
+            _score_row(
+                name,
+                y_test,
+                predicted,
+                probability_up,
+                score_hard_label_auc=(name == "Majority-class"),
+            )
+        )
 
     # A constant training-prevalence forecast is a proper probabilistic
     # reference: it uses only the training labels and is evaluated on the
