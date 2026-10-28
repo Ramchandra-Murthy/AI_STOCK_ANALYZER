@@ -162,6 +162,7 @@ def test_risk_metrics_accept_numeric_strings_and_missing_values() -> None:
     assert annualized_volatility(returns) > 0.0
     assert max_drawdown(returns) == pytest.approx(0.02)
 
+
 def test_max_drawdown_rejects_equity_curve_overflow() -> None:
     returns = pd.Series([1e308, 1e308])
 
