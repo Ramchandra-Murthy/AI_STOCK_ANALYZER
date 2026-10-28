@@ -26,6 +26,18 @@ def test_max_drawdown_matches_equity_path() -> None:
     assert max_drawdown(returns) == pytest.approx(expected)
 
 
+def test_max_drawdown_includes_initial_capital_as_peak() -> None:
+    returns = pd.Series([-0.50, -0.25])
+
+    assert max_drawdown(returns) == pytest.approx(0.625)
+
+
+def test_max_drawdown_handles_total_loss_at_first_observation() -> None:
+    returns = pd.Series([-1.0, 0.0])
+
+    assert max_drawdown(returns) == pytest.approx(1.0)
+
+
 def test_omega_ratio_uses_positive_and_negative_excess_returns() -> None:
     returns = pd.Series([0.02, -0.02, 0.03, -0.03])
     assert omega_ratio(returns) == pytest.approx(1.0)
