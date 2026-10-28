@@ -64,3 +64,12 @@ def test_stability_summary_handles_empty_metrics():
 def test_invalid_window_size_is_rejected():
     with pytest.raises(ValueError, match="at least 2"):
         walk_forward_window_metrics(pd.Series([0.01, 0.02]), window_size=1)
+
+
+
+@pytest.mark.parametrize("invalid_return", [float("inf"), float("-inf")])
+def test_walk_forward_window_metrics_rejects_infinite_returns(invalid_return):
+    returns = pd.Series([0.01, invalid_return, 0.02, 0.03])
+
+    with pytest.raises(ValueError, match="returns must contain only finite values"):
+        walk_forward_window_metrics(returns, window_size=2)
