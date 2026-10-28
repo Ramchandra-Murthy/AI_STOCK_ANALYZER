@@ -250,7 +250,6 @@ def summarize_probability_reliability(
     )
 
 
-
 def summarize_probability_calibration(
     actual: Any,
     probabilities: Any,
@@ -280,6 +279,7 @@ def summarize_probability_calibration(
         "Expected calibration error": expected_calibration_error,
         "Maximum absolute calibration gap": float(absolute_gaps.max()),
     }
+
 
 def permutation_feature_sensitivity(
     model: Any,
