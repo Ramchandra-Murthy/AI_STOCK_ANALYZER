@@ -15,8 +15,11 @@ def benchmark_beta(
     """Estimate strategy beta relative to benchmark returns."""
     frame = pd.concat([strategy_returns, benchmark_returns], axis=1)
     frame = frame.apply(pd.to_numeric, errors="coerce").dropna()
-    if not np.isfinite(frame.to_numpy(dtype=float)).all():
+    values = frame.to_numpy(dtype=float)
+    if not np.isfinite(values).all():
         raise ValueError("strategy and benchmark returns must be finite")
+    if (values < -1.0).any():
+        raise ValueError("strategy and benchmark returns cannot be below -100%")
     if len(frame) < 2:
         return None
 

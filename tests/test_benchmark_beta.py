@@ -38,16 +38,30 @@ def test_benchmark_beta_rejects_infinite_returns(invalid):
 
 
 def test_benchmark_beta_rejects_overflowed_calculation():
-    benchmark = pd.Series([-1e308, 1e308])
-    strategy = pd.Series([1e308, -1e308])
+    benchmark = pd.Series([0.01, 0.02])
+    strategy = pd.Series([1e308, 0.01])
 
     with pytest.raises(ValueError, match="non-finite result"):
         benchmark_beta(strategy, benchmark)
 
 
 def test_benchmark_beta_rejects_overflowed_variance() -> None:
-    benchmark = pd.Series([-1e308, 1e308])
+    benchmark = pd.Series([1e308, 0.0])
     strategy = pd.Series([0.01, 0.01])
 
     with pytest.raises(ValueError, match="variance calculation produced a non-finite result"):
+        benchmark_beta(strategy, benchmark)
+
+
+@pytest.mark.parametrize(
+    ("strategy", "benchmark"),
+    [
+        (pd.Series([-1.01, 0.02]), pd.Series([0.01, 0.03])),
+        (pd.Series([0.01, 0.03]), pd.Series([-1.01, 0.02])),
+    ],
+)
+def test_benchmark_beta_rejects_returns_below_minus_100_percent(
+    strategy: pd.Series, benchmark: pd.Series
+) -> None:
+    with pytest.raises(ValueError, match="below -100%"):
         benchmark_beta(strategy, benchmark)
