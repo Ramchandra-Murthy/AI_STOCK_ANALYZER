@@ -41,3 +41,31 @@ def test_slippage_sensitivity_summary_returns_worst_case() -> None:
 def test_slippage_sensitivity_rejects_invalid_assumptions() -> None:
     with pytest.raises(ValueError, match="non-negative"):
         slippage_sensitivity(pd.Series([0.01]), slippage_bps=(-1.0,))
+
+@pytest.mark.parametrize("bad_rate", [float("nan"), float("inf"), float("-inf")])
+def test_slippage_sensitivity_rejects_non_finite_rates(bad_rate: float) -> None:
+    with pytest.raises(ValueError, match="finite"):
+        slippage_sensitivity(pd.Series([0.01]), slippage_bps=(bad_rate,))
+
+
+@pytest.mark.parametrize("bad_return", [float("nan"), float("inf"), float("-inf")])
+def test_slippage_sensitivity_rejects_non_finite_returns(bad_return: float) -> None:
+    with pytest.raises(ValueError, match="returns must contain only finite"):
+        slippage_sensitivity(pd.Series([bad_return]))
+
+
+@pytest.mark.parametrize("bad_turnover", [float("nan"), float("inf"), float("-inf")])
+def test_slippage_sensitivity_rejects_non_finite_turnover(bad_turnover: float) -> None:
+    with pytest.raises(ValueError, match="turnover must contain only finite"):
+        slippage_sensitivity(
+            pd.Series([0.01]),
+            turnover=pd.Series([bad_turnover]),
+        )
+
+
+def test_slippage_sensitivity_rejects_unaligned_turnover() -> None:
+    returns = pd.Series([0.01, 0.02], index=[0, 1])
+    turnover = pd.Series([1.0], index=[0])
+
+    with pytest.raises(ValueError, match="turnover must contain only finite"):
+        slippage_sensitivity(returns, turnover=turnover)
