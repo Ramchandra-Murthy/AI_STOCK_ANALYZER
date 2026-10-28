@@ -93,10 +93,29 @@ def compare_holdout_baselines(
     for name, model in models:
         model.fit(X_train, y_train)
         predicted = model.predict(X_test)
+        # The hard majority-class predictor is an accuracy reference, not a
+        # meaningful probability forecast. Do not score its 0/1 probabilities
+        # with Brier score or log loss.
         probability_up = None
-        if hasattr(model, "predict_proba") and 1 in model.classes_:
+        if name != "Majority-class" and hasattr(model, "predict_proba") and 1 in model.classes_:
             probability_up = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
         rows.append(_score_row(name, y_test, predicted, probability_up))
+
+    # A constant training-prevalence forecast is a proper probabilistic
+    # reference: it uses only the training labels and is evaluated on the
+    # exact same holdout dates as the learned models.
+    prevalence = float(y_train.mean())
+    prevalence_probabilities = np.full(len(y_test), prevalence, dtype=float)
+    prevalence_predictions = (prevalence_probabilities >= 0.5).astype(int)
+    rows.insert(
+        1,
+        _score_row(
+            "Training-prevalence probability baseline",
+            y_test,
+            prevalence_predictions,
+            prevalence_probabilities,
+        ),
+    )
     return pd.DataFrame(rows)
 
 
