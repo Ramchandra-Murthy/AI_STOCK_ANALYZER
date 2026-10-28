@@ -44,7 +44,10 @@ def annualized_volatility(
     clean = _clean_returns(returns)
     if len(clean) < 2:
         return 0.0
-    return float(clean.std(ddof=1) * math.sqrt(periods_per_year))
+    result = float(clean.std(ddof=1) * math.sqrt(periods_per_year))
+    if not math.isfinite(result):
+        raise ValueError("annualized volatility overflowed")
+    return result
 
 
 def sharpe_ratio(
@@ -68,7 +71,10 @@ def sharpe_ratio(
     volatility = excess.std(ddof=1)
     if math.isclose(volatility, 0.0, abs_tol=1e-12):
         return 0.0
-    return float(excess.mean() / volatility * math.sqrt(periods_per_year))
+    result = float(excess.mean() / volatility * math.sqrt(periods_per_year))
+    if not math.isfinite(result):
+        raise ValueError("Sharpe ratio overflowed")
+    return result
 
 
 def omega_ratio(
