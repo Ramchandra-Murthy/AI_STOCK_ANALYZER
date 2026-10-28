@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+import numpy as np
 import pandas as pd
 
 from ai_trading.risk_metrics import max_drawdown, sharpe_ratio
@@ -22,7 +23,10 @@ def parameter_sensitivity_report(
 
     rows: list[dict[str, float | str]] = []
     for parameter, returns in returns_by_parameter.items():
-        clean = pd.to_numeric(returns, errors="coerce").dropna().reset_index(drop=True)
+        clean = pd.to_numeric(returns, errors="coerce").dropna()
+        if not np.isfinite(clean.to_numpy(dtype=float)).all():
+            raise ValueError(f"returns for {parameter!r} must contain only finite numeric values")
+        clean = clean.reset_index(drop=True)
         if clean.empty:
             raise ValueError(f"returns for {parameter!r} must contain valid observations")
 

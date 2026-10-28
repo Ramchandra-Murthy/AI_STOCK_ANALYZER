@@ -41,3 +41,12 @@ def test_benchmark_relative_diagnostics_rejects_invalid_frequency() -> None:
             pd.Series([0.00]),
             periods_per_year=0,
         )
+
+
+@pytest.mark.parametrize("infinite", [float("inf"), float("-inf")])
+def test_benchmark_relative_diagnostics_rejects_infinite_returns(infinite: float) -> None:
+    with pytest.raises(ValueError, match="finite"):
+        benchmark_relative_diagnostics(
+            pd.Series([0.01, infinite]),
+            pd.Series([0.00, 0.01]),
+        )
