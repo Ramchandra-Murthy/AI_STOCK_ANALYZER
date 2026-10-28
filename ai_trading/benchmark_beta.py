@@ -21,10 +21,14 @@ def benchmark_beta(
         return None
 
     benchmark_variance = float(frame.iloc[:, 1].var(ddof=1))
+    if not math.isfinite(benchmark_variance):
+        raise ValueError("benchmark variance calculation produced a non-finite result")
     if math.isclose(benchmark_variance, 0.0, abs_tol=1e-12):
         return None
 
     covariance = float(frame.iloc[:, 0].cov(frame.iloc[:, 1]))
+    if not math.isfinite(covariance):
+        raise ValueError("benchmark covariance calculation produced a non-finite result")
     beta = covariance / benchmark_variance
     if not math.isfinite(beta):
         raise ValueError("benchmark beta calculation produced a non-finite result")
