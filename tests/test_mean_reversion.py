@@ -118,3 +118,25 @@ def test_log_price_diagnostics_reject_non_positive_observations(
 
     with pytest.raises(ValueError, match="strictly positive"):
         function(values)
+
+
+@pytest.mark.parametrize(
+    ("function", "kwargs"),
+    [
+        (adf_diagnostic, {"lags": 1.5}),
+        (adf_diagnostic, {"lags": True}),
+        (hurst_exponent, {"min_lag": 2.5}),
+        (hurst_exponent, {"min_lag": True}),
+        (hurst_exponent, {"max_lag": 4.5}),
+        (hurst_exponent, {"max_lag": False}),
+        (variance_ratio, {"lag": 2.5}),
+        (variance_ratio, {"lag": True}),
+    ],
+)
+def test_mean_reversion_diagnostics_reject_non_integer_lags(
+    mean_reverting_series: pd.Series,
+    function: Callable[..., object],
+    kwargs: dict[str, object],
+) -> None:
+    with pytest.raises(ValueError, match="integer"):
+        function(mean_reverting_series, **kwargs)
