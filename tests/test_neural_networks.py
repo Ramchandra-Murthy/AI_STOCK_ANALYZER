@@ -650,3 +650,28 @@ def test_mlp_seed_stability_summary_rejects_invalid_metric_values(
 
     with pytest.raises(ValueError, match=message):
         summarize_mlp_seed_stability(results)
+
+
+def test_probability_calibration_summary_reports_weighted_and_maximum_gaps() -> None:
+    from neural_networks.evaluation import summarize_probability_calibration
+
+    result = summarize_probability_calibration(
+        actual=[0, 0, 1, 1], probabilities=[0.1, 0.3, 0.6, 0.8], n_bins=2
+    )
+
+    # First bin: mean probability 0.2, observed rate 0.0, gap -0.2.
+    # Second bin: mean probability 0.7, observed rate 1.0, gap +0.3.
+    assert result["Samples"] == 4
+    assert result["Mean predicted probability"] == pytest.approx(0.45)
+    assert result["Observed up rate"] == pytest.approx(0.5)
+    assert result["Expected calibration error"] == pytest.approx(0.25)
+    assert result["Maximum absolute calibration gap"] == pytest.approx(0.3)
+
+
+def test_probability_calibration_summary_rejects_invalid_inputs() -> None:
+    from neural_networks.evaluation import summarize_probability_calibration
+
+    with pytest.raises(ValueError, match="equal lengths"):
+        summarize_probability_calibration([0, 1], [0.2])
+    with pytest.raises(ValueError, match="between 2 and 20"):
+        summarize_probability_calibration([0, 1], [0.2, 0.8], n_bins=1)
