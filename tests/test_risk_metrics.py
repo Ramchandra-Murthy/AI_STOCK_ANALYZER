@@ -51,3 +51,19 @@ def test_invalid_parameters_are_rejected() -> None:
         annualized_volatility(pd.Series([0.01, 0.02]), periods_per_year=0)
     with pytest.raises(ValueError):
         conditional_value_at_risk(pd.Series([0.01, 0.02]), confidence=1.0)
+
+
+@pytest.mark.parametrize("infinite", [float("inf"), float("-inf")])
+def test_risk_metrics_reject_infinite_returns(infinite: float) -> None:
+    returns = pd.Series([0.01, infinite, -0.02])
+
+    with pytest.raises(ValueError, match="finite"):
+        annualized_volatility(returns)
+    with pytest.raises(ValueError, match="finite"):
+        sharpe_ratio(returns)
+    with pytest.raises(ValueError, match="finite"):
+        omega_ratio(returns)
+    with pytest.raises(ValueError, match="finite"):
+        conditional_value_at_risk(returns)
+    with pytest.raises(ValueError, match="finite"):
+        max_drawdown(returns)
