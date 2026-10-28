@@ -144,10 +144,11 @@ def max_drawdown(returns: pd.Series) -> float:
     clean = _clean_returns(returns)
     if clean.empty:
         return 0.0
-    equity = (1.0 + clean).cumprod()
-    if not np.isfinite(equity.to_numpy(dtype=float)).all():
+    equity = np.concatenate(([1.0], (1.0 + clean).cumprod().to_numpy(dtype=float)))
+    if not np.isfinite(equity).all():
         raise ValueError("equity curve overflowed while calculating max drawdown")
-    drawdown = 1.0 - equity / equity.cummax()
+    peak = np.maximum.accumulate(equity)
+    drawdown = 1.0 - equity / peak
     return float(drawdown.max())
 
 
