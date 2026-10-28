@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -33,3 +34,28 @@ def test_rolling_risk_metrics_rejects_invalid_inputs():
 
     with pytest.raises(ValueError, match="not enough observations"):
         rolling_risk_metrics(pd.Series([0.01]), window=2)
+
+
+@pytest.mark.parametrize("window", [True, False, np.bool_(True), 2.5, "3", None])
+def test_rolling_risk_metrics_rejects_non_integer_window(window):
+    with pytest.raises(ValueError, match="window must be an integer"):
+        rolling_risk_metrics(pd.Series([0.01, -0.02, 0.03]), window=window)
+
+
+@pytest.mark.parametrize(
+    "periods_per_year",
+    [True, np.bool_(False), float("nan"), float("inf"), float("-inf"), "invalid", None],
+)
+def test_rolling_risk_metrics_rejects_invalid_periods_per_year(periods_per_year):
+    with pytest.raises(ValueError, match="periods_per_year"):
+        rolling_risk_metrics(
+            pd.Series([0.01, -0.02, 0.03]),
+            window=2,
+            periods_per_year=periods_per_year,
+        )
+
+
+@pytest.mark.parametrize("invalid", [float("inf"), float("-inf")])
+def test_rolling_risk_metrics_rejects_infinite_returns(invalid):
+    with pytest.raises(ValueError, match="finite"):
+        rolling_risk_metrics(pd.Series([0.01, invalid, -0.02]), window=2)
