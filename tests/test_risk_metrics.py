@@ -162,6 +162,13 @@ def test_sharpe_ratio_rejects_result_overflow() -> None:
         sharpe_ratio(returns)
 
 
+def test_sharpe_ratio_rejects_risk_free_rate_annualization_overflow() -> None:
+    returns = pd.Series([0.01, -0.02, 0.03])
+
+    with pytest.raises(ValueError, match="risk-free rate calculation"):
+        sharpe_ratio(returns, periods_per_year=1e-320)
+
+
 def test_cvar_rejects_tail_mean_overflow() -> None:
     returns = pd.Series([1e308, 1e308])
 
