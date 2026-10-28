@@ -84,9 +84,7 @@ def test_parameter_sensitivity_rejects_nonnumeric_returns(invalid: str):
 
 
 def test_parameter_sensitivity_accepts_numeric_strings_and_missing_values():
-    result = parameter_sensitivity_report(
-        {"config": pd.Series(["0.01", None, "-0.02"])}
-    )
+    result = parameter_sensitivity_report({"config": pd.Series(["0.01", None, "-0.02"])})
 
     assert result["observations"].tolist() == [2.0]
 
