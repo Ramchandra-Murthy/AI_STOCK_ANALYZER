@@ -91,10 +91,23 @@ def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
     comparison = compare_holdout_baselines(features, target, train_fraction=0.70, horizon=5)
     assert set(comparison["Model"]) == {
         "Majority-class",
+        "Training-prevalence probability baseline",
         "Logistic regression",
         "MLP",
     }
     assert comparison["Accuracy"].between(0, 1).all()
+    majority = comparison.loc[comparison["Model"] == "Majority-class"].iloc[0]
+    assert np.isnan(majority["Brier score"])
+    assert np.isnan(majority["Log loss"])
+    prevalence = comparison.loc[
+        comparison["Model"] == "Training-prevalence probability baseline"
+    ].iloc[0]
+    split_at = int(len(features) * 0.70)
+    train_end = split_at - 6
+    train_prevalence = float(target.iloc[:train_end].mean())
+    test_target = target.iloc[split_at:].to_numpy()
+    expected_brier = np.mean((train_prevalence - test_target) ** 2)
+    assert prevalence["Brier score"] == pytest.approx(expected_brier)
 
     walk_forward = walk_forward_evaluation(features, target, n_splits=3, horizon=5)
     assert len(walk_forward) == 9
