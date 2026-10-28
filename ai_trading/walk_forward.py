@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from numbers import Integral
 
 import pandas as pd
 
@@ -42,16 +43,20 @@ def walk_forward_backtest(
     refit on all labelled observations that were available before the decision
     timestamp.
     """
-    if horizon < 1:
-        raise ValueError("horizon must be at least 1")
+    if isinstance(horizon, bool) or not isinstance(horizon, Integral) or horizon < 1:
+        raise ValueError("horizon must be a positive integer")
     if not 0.5 <= long_probability <= 1.0:
         raise ValueError("long_probability must be between 0.5 and 1.0")
     if not 0.0 <= short_probability <= 0.5:
         raise ValueError("short_probability must be between 0.0 and 0.5")
     if short_probability >= long_probability:
         raise ValueError("short_probability must be below long_probability")
-    if initial_train < 30:
-        raise ValueError("initial_train must be at least 30")
+    if (
+        isinstance(initial_train, bool)
+        or not isinstance(initial_train, Integral)
+        or initial_train < 30
+    ):
+        raise ValueError("initial_train must be an integer of at least 30")
     if not math.isfinite(transaction_cost_bps) or transaction_cost_bps < 0:
         raise ValueError("transaction_cost_bps must be finite and non-negative")
 
