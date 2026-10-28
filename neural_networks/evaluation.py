@@ -250,6 +250,37 @@ def summarize_probability_reliability(
     )
 
 
+def summarize_probability_calibration(
+    actual: Any,
+    probabilities: Any,
+    n_bins: int = 5,
+) -> dict[str, float | int]:
+    """Summarize holdout probability calibration using fixed-width bins.
+
+    Expected calibration error is the sample-weighted mean absolute gap between
+    each occupied bin's observed event rate and mean predicted probability.
+    It is descriptive and depends on the selected bin count; it is not a
+    guarantee of future calibration or trading performance.
+    """
+    actual_values = np.asarray(actual, dtype=float)
+    probability_values = np.asarray(probabilities, dtype=float)
+    reliability = summarize_probability_reliability(actual_values, probability_values, n_bins)
+    if reliability.empty:
+        raise ValueError("actual and probabilities must not be empty")
+
+    sample_counts = reliability["Samples"].to_numpy(dtype=float)
+    absolute_gaps = reliability["Calibration gap"].abs().to_numpy(dtype=float)
+    total_samples = int(sample_counts.sum())
+    expected_calibration_error = float(np.average(absolute_gaps, weights=sample_counts))
+    return {
+        "Samples": total_samples,
+        "Mean predicted probability": float(probability_values.mean()),
+        "Observed up rate": float(actual_values.mean()),
+        "Expected calibration error": expected_calibration_error,
+        "Maximum absolute calibration gap": float(absolute_gaps.max()),
+    }
+
+
 def permutation_feature_sensitivity(
     model: Any,
     features: pd.DataFrame,
