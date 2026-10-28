@@ -16,7 +16,9 @@ def _clean_parameter_returns(returns: pd.Series, parameter: str) -> pd.Series:
     numeric = pd.to_numeric(returns, errors="coerce")
     invalid = returns.notna() & numeric.isna()
     if invalid.any():
-        raise ValueError(f"returns for {parameter!r} must contain only numeric values or missing values")
+        raise ValueError(
+            f"returns for {parameter!r} must contain only numeric values or missing values"
+        )
     clean = numeric.dropna()
     values = clean.to_numpy(dtype=float)
     if not np.isfinite(values).all():
