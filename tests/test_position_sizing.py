@@ -61,7 +61,6 @@ def test_invalid_inputs_raise():
         kelly_position_size(100000, -0.1, 500)
 
 
-
 @pytest.mark.parametrize("bad_value", [float("nan"), float("inf"), float("-inf")])
 def test_sizing_rejects_non_finite_numeric_inputs(bad_value):
     with pytest.raises(ValueError):
