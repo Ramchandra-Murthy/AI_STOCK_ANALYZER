@@ -40,3 +40,9 @@ def test_prediction_stability_handles_empty_series() -> None:
     assert result["observations"] == 0
     assert result["mean_probability"] is None
     assert result["directional_flips"] == 0
+
+
+@pytest.mark.parametrize("max_std", [float("nan"), float("inf"), float("-inf"), -0.01])
+def test_prediction_stability_report_rejects_invalid_max_std(max_std: float) -> None:
+    with pytest.raises(ValueError, match="finite and non-negative"):
+        prediction_stability_report(pd.Series([0.5, 0.6]), max_std=max_std)
