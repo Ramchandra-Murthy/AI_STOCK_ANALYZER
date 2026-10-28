@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
@@ -15,6 +16,8 @@ def return_autocorrelation(
         raise ValueError("lag must be at least 1")
 
     clean = pd.to_numeric(returns, errors="coerce").dropna()
+    if not np.isfinite(clean.to_numpy(dtype=float)).all():
+        raise ValueError("returns must contain only finite numeric values")
     if len(clean) <= lag:
         return None
 
