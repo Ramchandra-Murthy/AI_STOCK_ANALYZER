@@ -89,6 +89,8 @@ def test_parameter_sensitivity_summary_rejects_invalid_metrics(column, invalid) 
             "max_drawdown": [0.03, 0.05],
         }
     )
+    # Permit malformed text in the fixture so validation inside the function is tested.
+    report[column] = report[column].astype(object)
     report.loc[0, column] = invalid
 
     with pytest.raises(ValueError, match=column):
