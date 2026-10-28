@@ -146,3 +146,17 @@ def test_omega_ratio_rejects_gain_total_overflow() -> None:
 
     with pytest.raises(ValueError, match="gain/loss totals overflowed"):
         omega_ratio(returns)
+
+
+def test_annualized_volatility_rejects_result_overflow() -> None:
+    returns = pd.Series([1e308, -0.5])
+
+    with pytest.raises(ValueError, match="annualized volatility overflowed"):
+        annualized_volatility(returns)
+
+
+def test_sharpe_ratio_rejects_result_overflow() -> None:
+    returns = pd.Series([1e308, -0.5])
+
+    with pytest.raises(ValueError, match="Sharpe ratio overflowed"):
+        sharpe_ratio(returns)
