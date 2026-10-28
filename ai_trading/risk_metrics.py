@@ -9,10 +9,13 @@ import pandas as pd
 
 
 def _clean_returns(returns: pd.Series) -> pd.Series:
-    """Coerce returns to numeric, ignore missing values, and reject infinities."""
+    """Coerce returns to numeric, ignore missing values, and validate simple returns."""
     clean = pd.to_numeric(returns, errors="coerce").dropna()
-    if not np.isfinite(clean.to_numpy(dtype=float)).all():
+    values = clean.to_numpy(dtype=float)
+    if not np.isfinite(values).all():
         raise ValueError("returns must contain only finite numeric values")
+    if (values < -1.0).any():
+        raise ValueError("returns cannot be below -100%")
     return clean
 
 
