@@ -31,7 +31,7 @@ def rolling_risk_metrics(
     if not math.isfinite(periods_per_year):
         raise ValueError("periods_per_year must be finite and numeric")
     if periods_per_year <= 0:
-        raise ValueError("periods_per_year must be finite and positive")
+        raise ValueError("periods_per_year must be positive and finite")
 
     clean = pd.to_numeric(returns, errors="coerce").dropna().reset_index(drop=True)
     if not np.isfinite(clean.to_numpy(dtype=float)).all():
