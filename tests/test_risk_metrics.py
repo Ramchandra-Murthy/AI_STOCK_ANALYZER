@@ -158,5 +158,5 @@ def test_annualized_volatility_rejects_result_overflow() -> None:
 def test_sharpe_ratio_rejects_result_overflow() -> None:
     returns = pd.Series([1e308, -0.5])
 
-    with pytest.raises(ValueError, match="Sharpe ratio overflowed"):
+    with pytest.raises(ValueError, match="Sharpe ratio volatility overflowed"):
         sharpe_ratio(returns)
