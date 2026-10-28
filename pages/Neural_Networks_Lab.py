@@ -356,9 +356,7 @@ if raw is not None:
                     f"{calibration_summary['Maximum absolute calibration gap']:.1%}",
                     help="Largest absolute difference between a bin's mean predicted probability and observed up rate.",
                 )
-                summary_right.metric(
-                    "Holdout observations", f"{calibration_summary['Samples']:,}"
-                )
+                summary_right.metric("Holdout observations", f"{calibration_summary['Samples']:,}")
                 st.caption(
                     f"Overall mean predicted probability: {calibration_summary['Mean predicted probability']:.1%}; "
                     f"observed up rate: {calibration_summary['Observed up rate']:.1%}. "
