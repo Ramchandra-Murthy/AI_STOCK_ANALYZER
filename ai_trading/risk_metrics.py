@@ -8,6 +8,19 @@ import numpy as np
 import pandas as pd
 
 
+def _validate_finite_parameter(value: float, name: str) -> float:
+    """Return a finite numeric parameter, rejecting booleans and invalid types."""
+    if isinstance(value, (bool, np.bool_)):
+        raise ValueError(f"{name} must be finite and numeric")
+    try:
+        numeric_value = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"{name} must be finite and numeric") from exc
+    if not math.isfinite(numeric_value):
+        raise ValueError(f"{name} must be finite and numeric")
+    return numeric_value
+
+
 def _clean_returns(returns: pd.Series) -> pd.Series:
     """Coerce returns to numeric, ignore missing values, and validate simple returns."""
     clean = pd.to_numeric(returns, errors="coerce").dropna()
@@ -25,7 +38,8 @@ def annualized_volatility(
     periods_per_year: float = 252.0,
 ) -> float:
     """Return annualized return volatility."""
-    if not math.isfinite(periods_per_year) or periods_per_year <= 0:
+    periods_per_year = _validate_finite_parameter(periods_per_year, "periods_per_year")
+    if periods_per_year <= 0:
         raise ValueError("periods_per_year must be finite and positive")
     clean = _clean_returns(returns)
     if len(clean) < 2:
@@ -40,9 +54,11 @@ def sharpe_ratio(
     periods_per_year: float = 252.0,
 ) -> float:
     """Return annualized Sharpe ratio using a constant annual risk-free rate."""
-    if not math.isfinite(periods_per_year) or periods_per_year <= 0:
+    periods_per_year = _validate_finite_parameter(periods_per_year, "periods_per_year")
+    risk_free_rate = _validate_finite_parameter(risk_free_rate, "risk_free_rate")
+    if periods_per_year <= 0:
         raise ValueError("periods_per_year must be finite and positive")
-    if not math.isfinite(risk_free_rate) or risk_free_rate <= -1.0:
+    if risk_free_rate <= -1.0:
         raise ValueError("risk_free_rate must be finite and greater than -1")
     clean = _clean_returns(returns)
     if len(clean) < 2:
@@ -61,8 +77,7 @@ def omega_ratio(
     threshold: float = 0.0,
 ) -> float | None:
     """Return the Omega ratio at a return threshold."""
-    if not math.isfinite(threshold):
-        raise ValueError("threshold must be finite")
+    threshold = _validate_finite_parameter(threshold, "threshold")
     clean = _clean_returns(returns)
     if clean.empty:
         return None
@@ -80,7 +95,8 @@ def conditional_value_at_risk(
     confidence: float = 0.95,
 ) -> float | None:
     """Return historical CVaR as a positive loss magnitude."""
-    if not math.isfinite(confidence) or not 0.0 < confidence < 1.0:
+    confidence = _validate_finite_parameter(confidence, "confidence")
+    if not 0.0 < confidence < 1.0:
         raise ValueError("confidence must be finite and between 0 and 1")
     clean = _clean_returns(returns)
     if clean.empty:
