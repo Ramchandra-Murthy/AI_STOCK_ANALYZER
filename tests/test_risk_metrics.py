@@ -167,3 +167,10 @@ def test_cvar_rejects_tail_mean_overflow() -> None:
 
     with pytest.raises(ValueError, match="CVaR tail mean"):
         conditional_value_at_risk(returns, confidence=0.5)
+
+
+def test_omega_ratio_rejects_result_overflow() -> None:
+    returns = pd.Series([1e308, -1e-10])
+
+    with pytest.raises(ValueError, match="omega ratio calculation produced a non-finite result"):
+        omega_ratio(returns)
