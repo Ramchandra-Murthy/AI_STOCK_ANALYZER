@@ -8,6 +8,14 @@ import numpy as np
 import pandas as pd
 
 
+def _validate_integer_parameter(value: int, name: str, minimum: int) -> None:
+    if isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, np.integer)):
+        raise ValueError(f"{name} must be an integer")
+    if value < minimum:
+        qualifier = "non-negative" if minimum == 0 else f"at least {minimum}"
+        raise ValueError(f"{name} must be {qualifier}")
+
+
 def _clean_series(values: pd.Series) -> pd.Series:
     clean = pd.to_numeric(values, errors="coerce").dropna()
     clean = clean[np.isfinite(clean.to_numpy(dtype=float))]
@@ -27,8 +35,7 @@ def adf_diagnostic(
     and optional lagged differences. It reports the ADF statistic but does
     not attach external critical values or p-values.
     """
-    if lags < 0:
-        raise ValueError("lags must be non-negative")
+    _validate_integer_parameter(lags, "lags", 0)
 
     clean = _clean_series(values)
     if len(clean) <= lags + 2:
@@ -73,8 +80,9 @@ def hurst_exponent(
     max_lag: int | None = None,
 ) -> float:
     """Estimate the Hurst exponent from log-log variance scaling."""
-    if min_lag < 2:
-        raise ValueError("min_lag must be at least 2")
+    _validate_integer_parameter(min_lag, "min_lag", 2)
+    if max_lag is not None:
+        _validate_integer_parameter(max_lag, "max_lag", 2)
 
     clean = _clean_series(values)
     if (clean <= 0.0).any():
@@ -109,8 +117,7 @@ def variance_ratio(
     lag: int = 2,
 ) -> float:
     """Estimate the Lo-style variance ratio at a selected lag."""
-    if lag < 2:
-        raise ValueError("lag must be at least 2")
+    _validate_integer_parameter(lag, "lag", 2)
 
     clean = _clean_series(values)
     if (clean <= 0.0).any():
