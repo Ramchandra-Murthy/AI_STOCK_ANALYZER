@@ -20,6 +20,7 @@ from neural_networks.evaluation import (
     permutation_feature_sensitivity,
     summarize_mlp_configuration_results,
     summarize_mlp_seed_stability,
+    summarize_probability_calibration,
     summarize_probability_reliability,
     summarize_walk_forward_stability,
     walk_forward_evaluation,
@@ -340,6 +341,28 @@ if raw is not None:
                 )
                 reliability = summarize_probability_reliability(
                     metrics["actual"], metrics["probability_up"], n_bins=5
+                )
+                calibration_summary = summarize_probability_calibration(
+                    metrics["actual"], metrics["probability_up"], n_bins=5
+                )
+                summary_left, summary_middle, summary_right = st.columns(3)
+                summary_left.metric(
+                    "Expected calibration error",
+                    f"{calibration_summary['Expected calibration error']:.1%}",
+                    help="Sample-weighted mean absolute gap between predicted probability and observed rate across occupied bins. Lower is better, but the estimate depends on binning.",
+                )
+                summary_middle.metric(
+                    "Maximum absolute bin gap",
+                    f"{calibration_summary['Maximum absolute calibration gap']:.1%}",
+                    help="Largest absolute difference between a bin's mean predicted probability and observed up rate.",
+                )
+                summary_right.metric(
+                    "Holdout observations", f"{calibration_summary['Samples']:,}"
+                )
+                st.caption(
+                    f"Overall mean predicted probability: {calibration_summary['Mean predicted probability']:.1%}; "
+                    f"observed up rate: {calibration_summary['Observed up rate']:.1%}. "
+                    "Aggregate rates can hide offsetting errors between probability bands."
                 )
                 st.subheader("Holdout probability reliability by band")
                 st.caption(
