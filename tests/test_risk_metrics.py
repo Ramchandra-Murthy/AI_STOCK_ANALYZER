@@ -1,5 +1,6 @@
 """Tests for book-aligned EROS risk and performance metrics."""
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -106,3 +107,21 @@ def test_risk_metrics_accept_exact_minus_100_percent_loss() -> None:
 
     assert max_drawdown(returns) == pytest.approx(1.0)
     assert conditional_value_at_risk(returns, confidence=0.5) >= 0.0
+
+
+@pytest.mark.parametrize(
+    ("metric", "kwargs"),
+    [
+        (annualized_volatility, {"periods_per_year": True}),
+        (annualized_volatility, {"periods_per_year": np.bool_(False)}),
+        (sharpe_ratio, {"risk_free_rate": True}),
+        (sharpe_ratio, {"periods_per_year": "invalid"}),
+        (omega_ratio, {"threshold": False}),
+        (omega_ratio, {"threshold": "invalid"}),
+        (conditional_value_at_risk, {"confidence": True}),
+        (conditional_value_at_risk, {"confidence": "invalid"}),
+    ],
+)
+def test_risk_metrics_reject_boolean_and_non_numeric_parameters(metric, kwargs) -> None:
+    with pytest.raises(ValueError, match="finite and numeric"):
+        metric(pd.Series([0.01, -0.02, 0.03]), **kwargs)
