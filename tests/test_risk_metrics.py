@@ -67,3 +67,20 @@ def test_risk_metrics_reject_infinite_returns(infinite: float) -> None:
         conditional_value_at_risk(returns)
     with pytest.raises(ValueError, match="finite"):
         max_drawdown(returns)
+
+
+@pytest.mark.parametrize(
+    ("metric", "kwargs"),
+    [
+        (annualized_volatility, {"periods_per_year": float("nan")}),
+        (annualized_volatility, {"periods_per_year": float("inf")}),
+        (sharpe_ratio, {"periods_per_year": float("nan")}),
+        (sharpe_ratio, {"risk_free_rate": float("inf")}),
+        (sharpe_ratio, {"risk_free_rate": -1.0}),
+        (omega_ratio, {"threshold": float("nan")}),
+        (conditional_value_at_risk, {"confidence": float("nan")}),
+    ],
+)
+def test_risk_metrics_reject_non_finite_or_invalid_parameters(metric, kwargs) -> None:
+    with pytest.raises(ValueError):
+        metric(pd.Series([0.01, -0.02, 0.03]), **kwargs)

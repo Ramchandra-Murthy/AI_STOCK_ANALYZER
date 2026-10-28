@@ -22,8 +22,8 @@ def annualized_volatility(
     periods_per_year: float = 252.0,
 ) -> float:
     """Return annualized return volatility."""
-    if periods_per_year <= 0:
-        raise ValueError("periods_per_year must be positive")
+    if not math.isfinite(periods_per_year) or periods_per_year <= 0:
+        raise ValueError("periods_per_year must be finite and positive")
     clean = _clean_returns(returns)
     if len(clean) < 2:
         return 0.0
@@ -37,8 +37,10 @@ def sharpe_ratio(
     periods_per_year: float = 252.0,
 ) -> float:
     """Return annualized Sharpe ratio using a constant annual risk-free rate."""
-    if periods_per_year <= 0:
-        raise ValueError("periods_per_year must be positive")
+    if not math.isfinite(periods_per_year) or periods_per_year <= 0:
+        raise ValueError("periods_per_year must be finite and positive")
+    if not math.isfinite(risk_free_rate) or risk_free_rate <= -1.0:
+        raise ValueError("risk_free_rate must be finite and greater than -1")
     clean = _clean_returns(returns)
     if len(clean) < 2:
         return 0.0
@@ -56,6 +58,8 @@ def omega_ratio(
     threshold: float = 0.0,
 ) -> float | None:
     """Return the Omega ratio at a return threshold."""
+    if not math.isfinite(threshold):
+        raise ValueError("threshold must be finite")
     clean = _clean_returns(returns)
     if clean.empty:
         return None
@@ -73,8 +77,8 @@ def conditional_value_at_risk(
     confidence: float = 0.95,
 ) -> float | None:
     """Return historical CVaR as a positive loss magnitude."""
-    if not 0.0 < confidence < 1.0:
-        raise ValueError("confidence must be between 0 and 1")
+    if not math.isfinite(confidence) or not 0.0 < confidence < 1.0:
+        raise ValueError("confidence must be finite and between 0 and 1")
     clean = _clean_returns(returns)
     if clean.empty:
         return None
