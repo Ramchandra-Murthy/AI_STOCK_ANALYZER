@@ -10,7 +10,10 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from algorithmic_trading.neural_network_benchmark import evaluate_mlp_return_strategy
+from algorithmic_trading.neural_network_benchmark import (
+    evaluate_mlp_return_strategy,
+    evaluate_mlp_seed_stability,
+)
 from algorithmic_trading.walk_forward_validation import (
     benchmark_relative_metrics,
     walk_forward_evaluate,
@@ -477,6 +480,73 @@ if isinstance(result, dict):
                 "predictive skill or future profitability. The reported buy-and-hold reference "
                 "uses the same test target dates; validate robustness before drawing conclusions."
             )
+
+            st.subheader("Model stability across random seeds")
+            st.caption(
+                "Repeats the same chronological holdout with five fixed random seeds. "
+                "This measures sensitivity to initialization only; it does not test new market "
+                "regimes and does not select a best-performing seed."
+            )
+            if st.button("Run seed-stability check", key="dlq_mlp_stability"):
+                try:
+                    st.session_state["dlq_mlp_stability"] = evaluate_mlp_seed_stability(
+                        returns,
+                        cost_bps=float(result["cost_bps"]),
+                    )
+                except (ValueError, FloatingPointError) as exc:
+                    st.session_state.pop("dlq_mlp_stability", None)
+                    st.warning(f"Seed-stability check unavailable: {exc}")
+            stability = st.session_state.get("dlq_mlp_stability")
+            if isinstance(stability, dict):
+                stability_rows = pd.DataFrame(stability["runs"])
+                st.dataframe(
+                    stability_rows.style.format(
+                        {
+                            "strategy_cumulative_return": "{:.2%}",
+                            "buy_hold_cumulative_return": "{:.2%}",
+                            "strategy_sharpe": "{:.2f}",
+                            "strategy_max_drawdown": "{:.2%}",
+                            "test_mse": "{:.8f}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                summary = pd.DataFrame(
+                    [
+                        {
+                            "Seeds tested": stability["seed_count"],
+                            "Seeds beating buy-and-hold": stability["outperformance_count"],
+                            "Median MLP test return": stability["median_strategy_return"],
+                            "Minimum MLP test return": stability["minimum_strategy_return"],
+                            "Maximum MLP test return": stability["maximum_strategy_return"],
+                            "Median buy-and-hold return": stability["median_buy_hold_return"],
+                        }
+                    ]
+                )
+                st.dataframe(
+                    summary.style.format(
+                        {
+                            "Median MLP test return": "{:.2%}",
+                            "Minimum MLP test return": "{:.2%}",
+                            "Maximum MLP test return": "{:.2%}",
+                            "Median buy-and-hold return": "{:.2%}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download seed-stability results (CSV)",
+                    stability_rows.to_csv(index=False).encode("utf-8"),
+                    file_name=f"{result['ticker'].replace('.', '_')}_mlp_seed_stability.csv",
+                    mime="text/csv",
+                )
+                st.warning(
+                    "These runs share one test period and are not independent samples. "
+                    "Do not choose a seed based on test performance or treat this diagnostic "
+                    "as evidence of future profitability."
+                )
 
     with notes_tab:
         st.markdown("""

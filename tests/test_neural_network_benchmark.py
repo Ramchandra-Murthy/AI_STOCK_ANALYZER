@@ -62,3 +62,27 @@ def test_mlp_benchmark_rejects_duplicate_timestamps() -> None:
 
     with pytest.raises(ValueError, match="duplicate timestamps"):
         evaluate_mlp_return_strategy(duplicated)
+
+
+def test_mlp_seed_stability_reports_all_seeds_on_same_test_period() -> None:
+    from algorithmic_trading.neural_network_benchmark import evaluate_mlp_seed_stability
+
+    result = evaluate_mlp_seed_stability(_returns(), random_states=(1, 2))
+
+    assert result["seed_count"] == 2
+    assert len(result["runs"]) == 2
+    assert result["runs"][0]["test_start"] == result["runs"][1]["test_start"]
+    assert result["runs"][0]["test_end"] == result["runs"][1]["test_end"]
+    assert 0 <= result["outperformance_count"] <= 2
+    assert np.isfinite(result["median_strategy_return"])
+    assert result["minimum_strategy_return"] <= result["maximum_strategy_return"]
+
+
+def test_mlp_seed_stability_rejects_empty_or_duplicate_seeds() -> None:
+    from algorithmic_trading.neural_network_benchmark import evaluate_mlp_seed_stability
+
+    with pytest.raises(ValueError, match="at least one"):
+        evaluate_mlp_seed_stability(_returns(), random_states=())
+
+    with pytest.raises(ValueError, match="must be unique"):
+        evaluate_mlp_seed_stability(_returns(), random_states=(7, 7))
