@@ -434,8 +434,11 @@ if raw is not None:
                 )
                 st.subheader("Holdout baseline comparison")
                 st.caption(
-                    "All models use the same chronological split. The majority-class model is a "
-                    "simple reference; logistic regression tests whether a simpler linear model is competitive."
+                    "All models use the same purged chronological split. Majority-class accuracy is "
+                    "a hard-label reference, so its Brier score and log loss are intentionally undefined. "
+                    "The training-prevalence probability baseline forecasts the positive-class rate from "
+                    "training labels only and provides a proper probability-score reference. Logistic "
+                    "regression tests whether a simpler linear model is competitive."
                 )
                 comparison = compare_holdout_baselines(
                     features, target, train_fraction=float(train_fraction), horizon=int(horizon)

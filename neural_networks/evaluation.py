@@ -46,7 +46,12 @@ def _mlp(random_state: int) -> Pipeline:
 
 
 def _score_row(
-    model_name: str, actual: pd.Series, predicted: Any, probability_up: Any | None = None
+    model_name: str,
+    actual: pd.Series,
+    predicted: Any,
+    probability_up: Any | None = None,
+    *,
+    score_hard_label_auc: bool = False,
 ) -> dict[str, Any]:
     row: dict[str, Any] = {
         "Model": model_name,
@@ -66,7 +71,13 @@ def _score_row(
     else:
         row["Brier score"] = float("nan")
         row["Log loss"] = float("nan")
-        row["ROC-AUC"] = float("nan")
+        # Hard labels are not probability scores. Keep ROC-AUC undefined by
+        # default, with an explicit opt-in for the majority-class reference.
+        row["ROC-AUC"] = (
+            float(roc_auc_score(actual, np.asarray(predicted)))
+            if score_hard_label_auc and np.unique(np.asarray(actual)).size == 2
+            else float("nan")
+        )
     return row
 
 
@@ -93,10 +104,37 @@ def compare_holdout_baselines(
     for name, model in models:
         model.fit(X_train, y_train)
         predicted = model.predict(X_test)
+        # The hard majority-class predictor is an accuracy reference, not a
+        # meaningful probability forecast. Do not score its 0/1 probabilities
+        # with Brier score or log loss.
         probability_up = None
-        if hasattr(model, "predict_proba") and 1 in model.classes_:
+        if name != "Majority-class" and hasattr(model, "predict_proba") and 1 in model.classes_:
             probability_up = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
-        rows.append(_score_row(name, y_test, predicted, probability_up))
+        rows.append(
+            _score_row(
+                name,
+                y_test,
+                predicted,
+                probability_up,
+                score_hard_label_auc=(name == "Majority-class"),
+            )
+        )
+
+    # A constant training-prevalence forecast is a proper probabilistic
+    # reference: it uses only the training labels and is evaluated on the
+    # exact same holdout dates as the learned models.
+    prevalence = float(y_train.mean())
+    prevalence_probabilities = np.full(len(y_test), prevalence, dtype=float)
+    prevalence_predictions = (prevalence_probabilities >= 0.5).astype(int)
+    rows.insert(
+        1,
+        _score_row(
+            "Training-prevalence probability baseline",
+            y_test,
+            prevalence_predictions,
+            prevalence_probabilities,
+        ),
+    )
     return pd.DataFrame(rows)
 
 
