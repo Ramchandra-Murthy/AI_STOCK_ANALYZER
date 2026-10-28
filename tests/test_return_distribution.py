@@ -45,3 +45,13 @@ def test_downside_deviation_uses_target_return():
 
 def test_downside_deviation_handles_empty_returns():
     assert downside_deviation(pd.Series(dtype=float)) == 0.0
+
+
+@pytest.mark.parametrize("infinite", [float("inf"), float("-inf")])
+def test_return_distribution_rejects_infinite_returns(infinite: float):
+    returns = pd.Series([0.01, infinite, -0.02])
+
+    with pytest.raises(ValueError, match="finite"):
+        return_distribution_summary(returns)
+    with pytest.raises(ValueError, match="finite"):
+        downside_deviation(returns)
