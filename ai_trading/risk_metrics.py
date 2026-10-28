@@ -82,8 +82,12 @@ def omega_ratio(
     if clean.empty:
         return None
     excess = clean - threshold
+    if not np.isfinite(excess.to_numpy(dtype=float)).all():
+        raise ValueError("omega ratio excess returns overflowed")
     gains = float(excess[excess > 0.0].sum())
     losses = float(-excess[excess < 0.0].sum())
+    if not math.isfinite(gains) or not math.isfinite(losses):
+        raise ValueError("omega ratio gain/loss totals overflowed")
     if math.isclose(losses, 0.0, abs_tol=1e-12):
         return float("inf") if gains > 0.0 else None
     return gains / losses
