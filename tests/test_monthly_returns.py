@@ -31,3 +31,12 @@ def test_monthly_return_diagnostics_rejects_invalid_index() -> None:
 
     with pytest.raises(ValueError, match="valid timestamps"):
         monthly_return_diagnostics(returns)
+
+
+@pytest.mark.parametrize("infinite", [float("inf"), float("-inf")])
+def test_monthly_return_diagnostics_rejects_infinite_returns(infinite: float) -> None:
+    index = pd.to_datetime(["2026-01-01", "2026-01-02"])
+    returns = pd.Series([0.01, infinite], index=index)
+
+    with pytest.raises(ValueError, match="finite"):
+        monthly_return_diagnostics(returns)
