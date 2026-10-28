@@ -55,3 +55,15 @@ def test_return_distribution_rejects_infinite_returns(infinite: float):
         return_distribution_summary(returns)
     with pytest.raises(ValueError, match="finite"):
         downside_deviation(returns)
+
+
+@pytest.mark.parametrize("target", [float("nan"), float("inf"), float("-inf")])
+def test_downside_deviation_rejects_non_finite_target(target: float):
+    with pytest.raises(ValueError, match="target must be a finite numeric value"):
+        downside_deviation(pd.Series([-0.01, 0.02]), target=target)
+
+
+@pytest.mark.parametrize("target", [True, False, "not-a-number", None])
+def test_downside_deviation_rejects_invalid_target_types(target: object):
+    with pytest.raises(ValueError, match="target must be a finite numeric value"):
+        downside_deviation(pd.Series([-0.01, 0.02]), target=target)

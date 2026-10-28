@@ -46,10 +46,19 @@ def downside_deviation(
     *,
     target: float = 0.0,
 ) -> float:
-    """Return the sample downside deviation below a target return."""
+    """Return the downside deviation below a finite numeric target return."""
+    if isinstance(target, (bool, np.bool_)):
+        raise ValueError("target must be a finite numeric value")
+    try:
+        target_value = float(target)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("target must be a finite numeric value") from exc
+    if not math.isfinite(target_value):
+        raise ValueError("target must be a finite numeric value")
+
     clean = _clean_returns(returns)
     if clean.empty:
         return 0.0
 
-    downside = (clean - target).clip(upper=0.0)
+    downside = (clean - target_value).clip(upper=0.0)
     return float(math.sqrt((downside.pow(2)).mean()))
