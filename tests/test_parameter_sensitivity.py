@@ -63,3 +63,9 @@ def test_invalid_parameter_inputs_are_rejected():
 
     with pytest.raises(ValueError, match="must be positive"):
         parameter_sensitivity_report({"config": pd.Series([0.01])}, periods_per_year=0)
+
+
+@pytest.mark.parametrize("infinite", [float("inf"), float("-inf")])
+def test_parameter_sensitivity_rejects_infinite_returns(infinite: float):
+    with pytest.raises(ValueError, match="finite"):
+        parameter_sensitivity_report({"config": pd.Series([0.01, infinite, -0.02])})
