@@ -66,7 +66,13 @@ def _score_row(
     else:
         row["Brier score"] = float("nan")
         row["Log loss"] = float("nan")
-        row["ROC-AUC"] = float("nan")
+        # ROC-AUC can still describe a hard-label classifier. A constant
+        # majority prediction yields 0.5 when both test classes are present.
+        row["ROC-AUC"] = (
+            float(roc_auc_score(actual, np.asarray(predicted)))
+            if np.unique(np.asarray(actual)).size == 2
+            else float("nan")
+        )
     return row
 
 
