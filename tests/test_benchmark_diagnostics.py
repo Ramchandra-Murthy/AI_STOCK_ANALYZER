@@ -50,3 +50,15 @@ def test_benchmark_relative_diagnostics_rejects_infinite_returns(infinite: float
             pd.Series([0.01, infinite]),
             pd.Series([0.00, 0.01]),
         )
+
+
+@pytest.mark.parametrize("frequency", [float("nan"), float("inf"), float("-inf"), 0.5])
+def test_benchmark_relative_diagnostics_rejects_non_finite_or_subunit_frequency(
+    frequency: float,
+) -> None:
+    with pytest.raises(ValueError, match="periods_per_year"):
+        benchmark_relative_diagnostics(
+            pd.Series([0.01, 0.02]),
+            pd.Series([0.00, 0.01]),
+            periods_per_year=frequency,
+        )
