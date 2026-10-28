@@ -31,3 +31,14 @@ def test_return_autocorrelation_summary_reports_selected_lags() -> None:
 def test_return_autocorrelation_rejects_invalid_lag() -> None:
     with pytest.raises(ValueError, match="lag must be at least 1"):
         return_autocorrelation(pd.Series([0.01, 0.02]), lag=0)
+
+
+@pytest.mark.parametrize("infinite", [float("inf"), float("-inf")])
+def test_return_autocorrelation_rejects_infinite_returns(infinite: float) -> None:
+    returns = pd.Series([0.01, infinite, -0.02])
+
+    with pytest.raises(ValueError, match="finite"):
+        return_autocorrelation(returns, lag=1)
+
+    with pytest.raises(ValueError, match="finite"):
+        return_autocorrelation_summary(returns, lags=(1, 2))
