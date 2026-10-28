@@ -160,3 +160,10 @@ def test_sharpe_ratio_rejects_result_overflow() -> None:
 
     with pytest.raises(ValueError, match="Sharpe ratio volatility overflowed"):
         sharpe_ratio(returns)
+
+
+def test_cvar_rejects_tail_mean_overflow() -> None:
+    returns = pd.Series([1e308, 1e308])
+
+    with pytest.raises(ValueError, match="CVaR tail mean"):
+        conditional_value_at_risk(returns, confidence=0.5)
