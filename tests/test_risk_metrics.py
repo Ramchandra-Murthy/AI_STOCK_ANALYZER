@@ -84,3 +84,25 @@ def test_risk_metrics_reject_infinite_returns(infinite: float) -> None:
 def test_risk_metrics_reject_non_finite_or_invalid_parameters(metric, kwargs) -> None:
     with pytest.raises(ValueError):
         metric(pd.Series([0.01, -0.02, 0.03]), **kwargs)
+
+
+@pytest.mark.parametrize(
+    "metric",
+    [
+        annualized_volatility,
+        sharpe_ratio,
+        omega_ratio,
+        conditional_value_at_risk,
+        max_drawdown,
+    ],
+)
+def test_risk_metrics_reject_returns_below_minus_100_percent(metric) -> None:
+    with pytest.raises(ValueError, match="below -100%"):
+        metric(pd.Series([0.02, -1.01, -0.03]))
+
+
+def test_risk_metrics_accept_exact_minus_100_percent_loss() -> None:
+    returns = pd.Series([0.10, -1.0, 0.05])
+
+    assert max_drawdown(returns) == pytest.approx(1.0)
+    assert conditional_value_at_risk(returns, confidence=0.5) >= 0.0
