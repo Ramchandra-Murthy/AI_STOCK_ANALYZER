@@ -64,6 +64,12 @@ def parameter_sensitivity_summary(
             "drawdown_spread": None,
         }
 
+    metric_columns = ["total_return", "sharpe_ratio", "max_drawdown"]
+    for column in metric_columns:
+        values = pd.to_numeric(report[column], errors="coerce")
+        if not np.isfinite(values.to_numpy(dtype=float)).all():
+            raise ValueError(f"{column} must contain only finite numeric values")
+
     best = report.loc[report["total_return"].idxmax()]
     worst = report.loc[report["total_return"].idxmin()]
 
