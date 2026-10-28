@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 
 import numpy as np
@@ -10,31 +11,52 @@ import pandas as pd
 from ai_trading.risk_metrics import max_drawdown, sharpe_ratio
 
 
+def _clean_parameter_returns(returns: pd.Series, parameter: str) -> pd.Series:
+    """Validate one configuration's simple returns without hiding malformed values."""
+    numeric = pd.to_numeric(returns, errors="coerce")
+    invalid = returns.notna() & numeric.isna()
+    if invalid.any():
+        raise ValueError(f"returns for {parameter!r} must contain only numeric values or missing values")
+    clean = numeric.dropna()
+    values = clean.to_numpy(dtype=float)
+    if not np.isfinite(values).all():
+        raise ValueError(f"returns for {parameter!r} must contain only finite numeric values")
+    if (values < -1.0).any():
+        raise ValueError(f"returns for {parameter!r} cannot be below -100%")
+    return clean.reset_index(drop=True)
+
+
 def parameter_sensitivity_report(
     returns_by_parameter: Mapping[str, pd.Series],
     *,
     periods_per_year: float = 252.0,
 ) -> pd.DataFrame:
     """Compare return and risk metrics across parameter configurations."""
-    if periods_per_year <= 0:
-        raise ValueError("periods_per_year must be positive")
+    if isinstance(periods_per_year, (bool, np.bool_)):
+        raise ValueError("periods_per_year must be finite and positive")
+    try:
+        periods_per_year = float(periods_per_year)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("periods_per_year must be finite and positive") from exc
+    if not math.isfinite(periods_per_year) or periods_per_year <= 0:
+        raise ValueError("periods_per_year must be finite and positive")
     if not returns_by_parameter:
         raise ValueError("returns_by_parameter must not be empty")
 
     rows: list[dict[str, float | str]] = []
     for parameter, returns in returns_by_parameter.items():
-        clean = pd.to_numeric(returns, errors="coerce").dropna()
-        if not np.isfinite(clean.to_numpy(dtype=float)).all():
-            raise ValueError(f"returns for {parameter!r} must contain only finite numeric values")
-        clean = clean.reset_index(drop=True)
+        clean = _clean_parameter_returns(returns, str(parameter))
         if clean.empty:
             raise ValueError(f"returns for {parameter!r} must contain valid observations")
 
+        total_return = float((1.0 + clean).prod() - 1.0)
+        if not math.isfinite(total_return):
+            raise ValueError(f"total return for {parameter!r} overflowed")
         rows.append(
             {
                 "parameter": str(parameter),
                 "observations": float(len(clean)),
-                "total_return": float((1.0 + clean).prod() - 1.0),
+                "total_return": total_return,
                 "sharpe_ratio": sharpe_ratio(clean, periods_per_year=periods_per_year),
                 "max_drawdown": max_drawdown(clean),
             }
