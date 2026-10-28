@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import math
+from numbers import Integral
+
+import numpy as np
 import pandas as pd
 
 from ai_trading.risk_metrics import annualized_volatility, max_drawdown, sharpe_ratio
@@ -14,10 +18,18 @@ def rolling_risk_metrics(
     periods_per_year: float = 252.0,
 ) -> pd.DataFrame:
     """Return rolling volatility, Sharpe ratio, and window drawdown."""
+    if isinstance(window, (bool, np.bool_)) or not isinstance(window, Integral):
+        raise ValueError("window must be an integer of at least 2")
     if window < 2:
-        raise ValueError("window must be at least 2")
-    if periods_per_year <= 0:
-        raise ValueError("periods_per_year must be positive")
+        raise ValueError("window must be an integer of at least 2")
+    if isinstance(periods_per_year, (bool, np.bool_)):
+        raise ValueError("periods_per_year must be finite, numeric, and positive")
+    try:
+        periods_per_year = float(periods_per_year)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("periods_per_year must be finite, numeric, and positive") from exc
+    if not math.isfinite(periods_per_year) or periods_per_year <= 0:
+        raise ValueError("periods_per_year must be finite, numeric, and positive")
 
     clean = pd.to_numeric(returns, errors="coerce").dropna().reset_index(drop=True)
     if len(clean) < window:
