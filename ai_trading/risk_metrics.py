@@ -37,8 +37,8 @@ def sharpe_ratio(
     periods_per_year: float = 252.0,
 ) -> float:
     """Return annualized Sharpe ratio using a constant annual risk-free rate."""
-    if periods_per_year <= 0:
-        raise ValueError("periods_per_year must be positive")
+    if not math.isfinite(periods_per_year) or periods_per_year <= 0:
+        raise ValueError("periods_per_year must be finite and positive")
     if not math.isfinite(risk_free_rate) or risk_free_rate <= -1.0:
         raise ValueError("risk_free_rate must be finite and greater than -1")
     clean = _clean_returns(returns)
