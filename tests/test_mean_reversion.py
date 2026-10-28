@@ -120,7 +120,6 @@ def test_log_price_diagnostics_reject_non_positive_observations(
         function(values)
 
 
-
 @pytest.mark.parametrize(
     ("function", "kwargs"),
     [
