@@ -43,3 +43,11 @@ def test_benchmark_beta_rejects_overflowed_calculation():
 
     with pytest.raises(ValueError, match="non-finite result"):
         benchmark_beta(strategy, benchmark)
+
+
+def test_benchmark_beta_rejects_overflowed_variance() -> None:
+    benchmark = pd.Series([-1e308, 1e308])
+    strategy = pd.Series([0.01, 0.01])
+
+    with pytest.raises(ValueError, match="variance calculation produced a non-finite result"):
+        benchmark_beta(strategy, benchmark)
