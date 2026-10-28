@@ -40,3 +40,30 @@ def test_monthly_return_diagnostics_rejects_infinite_returns(infinite: float) ->
 
     with pytest.raises(ValueError, match="finite"):
         monthly_return_diagnostics(returns)
+
+
+@pytest.mark.parametrize("daily_return", [-1.01, -1.5])
+def test_monthly_return_diagnostics_rejects_returns_below_minus_100_percent(
+    daily_return: float,
+) -> None:
+    returns = pd.Series([daily_return], index=pd.to_datetime(["2026-01-01"]))
+
+    with pytest.raises(ValueError, match="below -100%"):
+        monthly_return_diagnostics(returns)
+
+
+def test_monthly_return_diagnostics_accepts_total_loss() -> None:
+    index = pd.to_datetime(["2026-01-01", "2026-01-02"])
+    returns = pd.Series([-1.0, 0.25], index=index)
+
+    report = monthly_return_diagnostics(returns)
+
+    assert report.loc[0, "return"] == pytest.approx(-1.0)
+
+
+def test_monthly_return_diagnostics_rejects_compounding_overflow() -> None:
+    index = pd.to_datetime(["2026-01-01", "2026-01-02"])
+    returns = pd.Series([1e308, 1e308], index=index)
+
+    with pytest.raises(ValueError, match="not finite"):
+        monthly_return_diagnostics(returns)
