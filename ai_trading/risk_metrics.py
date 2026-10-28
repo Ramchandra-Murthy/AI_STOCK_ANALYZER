@@ -114,10 +114,18 @@ def conditional_value_at_risk(
     if clean.empty:
         return None
     var = float(clean.quantile(1.0 - confidence))
+    if not math.isfinite(var):
+        raise ValueError("CVaR quantile calculation produced a non-finite result")
     tail = clean[clean <= var]
     if tail.empty:
         return max(0.0, -var)
-    return max(0.0, float(-tail.mean()))
+    tail_mean = float(tail.mean())
+    if not math.isfinite(tail_mean):
+        raise ValueError("CVaR tail mean calculation produced a non-finite result")
+    result = max(0.0, -tail_mean)
+    if not math.isfinite(result):
+        raise ValueError("CVaR calculation produced a non-finite result")
+    return result
 
 
 def max_drawdown(returns: pd.Series) -> float:
