@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
 def monthly_return_diagnostics(returns: pd.Series) -> pd.DataFrame:
     """Aggregate daily returns into compounded calendar-month returns."""
     clean = pd.to_numeric(returns, errors="coerce").dropna()
+    if not np.isfinite(clean.to_numpy(dtype=float)).all():
+        raise ValueError("returns must contain only finite numeric values")
     columns = ["year", "month", "return"]
     if clean.empty:
         return pd.DataFrame(columns=columns)
