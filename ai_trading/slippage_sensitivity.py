@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
@@ -14,16 +15,21 @@ def slippage_sensitivity(
     """Estimate strategy returns under alternative execution-slippage assumptions."""
     if not slippage_bps:
         raise ValueError("slippage_bps must contain at least one value")
-    if any(float(value) < 0.0 for value in slippage_bps):
+    rates = [float(value) for value in slippage_bps]
+    if not all(np.isfinite(value) for value in rates):
+        raise ValueError("slippage_bps values must be finite")
+    if any(value < 0.0 for value in rates):
         raise ValueError("slippage_bps values must be non-negative")
 
-    clean_returns = pd.to_numeric(returns, errors="coerce").fillna(0.0)
+    clean_returns = pd.to_numeric(returns, errors="coerce")
+    if not np.isfinite(clean_returns.to_numpy(dtype=float)).all():
+        raise ValueError("returns must contain only finite numeric values")
     if turnover is None:
         clean_turnover = clean_returns.ne(0.0).astype(float)
     else:
-        clean_turnover = (
-            pd.to_numeric(turnover, errors="coerce").reindex(clean_returns.index).fillna(0.0)
-        )
+        clean_turnover = pd.to_numeric(turnover, errors="coerce").reindex(clean_returns.index)
+        if not np.isfinite(clean_turnover.to_numpy(dtype=float)).all():
+            raise ValueError("turnover must contain only finite numeric values aligned to returns")
         if (clean_turnover < 0.0).any():
             raise ValueError("turnover values must be non-negative")
 
