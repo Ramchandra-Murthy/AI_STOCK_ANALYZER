@@ -59,3 +59,22 @@ def test_invalid_inputs_raise():
         atr_position_size(100000, 0.01, 0)
     with pytest.raises(ValueError):
         kelly_position_size(100000, -0.1, 500)
+
+
+
+@pytest.mark.parametrize("bad_value", [float("nan"), float("inf"), float("-inf")])
+def test_sizing_rejects_non_finite_numeric_inputs(bad_value):
+    with pytest.raises(ValueError):
+        fixed_dollar_size(bad_value, 0.1, 100)
+    with pytest.raises(ValueError):
+        fixed_dollar_size(1000, bad_value, 100)
+    with pytest.raises(ValueError):
+        fixed_dollar_size(1000, 0.1, bad_value)
+    with pytest.raises(ValueError):
+        fixed_risk_size(1000, 0.01, bad_value, 90)
+    with pytest.raises(ValueError):
+        volatility_size(1000, 0.1, bad_value, 100)
+    with pytest.raises(ValueError):
+        atr_position_size(1000, 0.01, bad_value)
+    with pytest.raises(ValueError):
+        kelly_position_size(1000, bad_value, 100)
