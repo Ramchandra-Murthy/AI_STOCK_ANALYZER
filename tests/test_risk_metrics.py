@@ -139,6 +139,30 @@ def test_risk_metrics_reject_boolean_and_non_numeric_parameters(metric, kwargs) 
         metric(pd.Series([0.01, -0.02, 0.03]), **kwargs)
 
 
+@pytest.mark.parametrize(
+    "metric",
+    [
+        annualized_volatility,
+        sharpe_ratio,
+        omega_ratio,
+        conditional_value_at_risk,
+        max_drawdown,
+    ],
+)
+def test_risk_metrics_reject_non_numeric_return_observations(metric) -> None:
+    returns = pd.Series([0.01, "not-a-return", -0.02])
+
+    with pytest.raises(ValueError, match="numeric values or missing values"):
+        metric(returns)
+
+
+def test_risk_metrics_accept_numeric_strings_and_missing_values() -> None:
+    returns = pd.Series(["0.01", None, "-0.02"])
+
+    assert annualized_volatility(returns) > 0.0
+    assert max_drawdown(returns) == pytest.approx(0.02)
+
+
 def test_max_drawdown_rejects_equity_curve_overflow() -> None:
     returns = pd.Series([1e308, 1e308])
 
