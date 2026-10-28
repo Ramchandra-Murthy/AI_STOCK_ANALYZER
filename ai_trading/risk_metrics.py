@@ -4,7 +4,16 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
 import pandas as pd
+
+
+def _clean_returns(returns: pd.Series) -> pd.Series:
+    """Coerce returns to numeric, ignore missing values, and reject infinities."""
+    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    if not np.isfinite(clean.to_numpy(dtype=float)).all():
+        raise ValueError("returns must contain only finite numeric values")
+    return clean
 
 
 def annualized_volatility(
@@ -15,7 +24,7 @@ def annualized_volatility(
     """Return annualized return volatility."""
     if periods_per_year <= 0:
         raise ValueError("periods_per_year must be positive")
-    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    clean = _clean_returns(returns)
     if len(clean) < 2:
         return 0.0
     return float(clean.std(ddof=1) * math.sqrt(periods_per_year))
@@ -30,7 +39,7 @@ def sharpe_ratio(
     """Return annualized Sharpe ratio using a constant annual risk-free rate."""
     if periods_per_year <= 0:
         raise ValueError("periods_per_year must be positive")
-    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    clean = _clean_returns(returns)
     if len(clean) < 2:
         return 0.0
     period_rf = (1.0 + risk_free_rate) ** (1.0 / periods_per_year) - 1.0
@@ -47,7 +56,7 @@ def omega_ratio(
     threshold: float = 0.0,
 ) -> float | None:
     """Return the Omega ratio at a return threshold."""
-    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    clean = _clean_returns(returns)
     if clean.empty:
         return None
     excess = clean - threshold
@@ -66,7 +75,7 @@ def conditional_value_at_risk(
     """Return historical CVaR as a positive loss magnitude."""
     if not 0.0 < confidence < 1.0:
         raise ValueError("confidence must be between 0 and 1")
-    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    clean = _clean_returns(returns)
     if clean.empty:
         return None
     var = float(clean.quantile(1.0 - confidence))
@@ -78,7 +87,7 @@ def conditional_value_at_risk(
 
 def max_drawdown(returns: pd.Series) -> float:
     """Return maximum drawdown as a positive loss fraction."""
-    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    clean = _clean_returns(returns)
     if clean.empty:
         return 0.0
     equity = (1.0 + clean).cumprod()
