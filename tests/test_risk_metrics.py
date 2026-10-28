@@ -132,3 +132,17 @@ def test_max_drawdown_rejects_equity_curve_overflow() -> None:
 
     with pytest.raises(ValueError, match="equity curve overflowed"):
         max_drawdown(returns)
+
+
+def test_omega_ratio_rejects_excess_return_overflow() -> None:
+    returns = pd.Series([1e308, -0.5])
+
+    with pytest.raises(ValueError, match="excess returns overflowed"):
+        omega_ratio(returns, threshold=-1e308)
+
+
+def test_omega_ratio_rejects_gain_total_overflow() -> None:
+    returns = pd.Series([1e308, 1e308])
+
+    with pytest.raises(ValueError, match="gain/loss totals overflowed"):
+        omega_ratio(returns)
