@@ -179,4 +179,3 @@ def evaluate_mlp_seed_stability(
         "maximum_strategy_return": float(np.max(strategy_returns)),
         "median_buy_hold_return": float(np.median(benchmark_returns)),
     }
-
