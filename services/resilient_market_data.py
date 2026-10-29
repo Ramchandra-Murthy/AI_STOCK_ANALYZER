@@ -9,7 +9,7 @@ exchange-tick execution feed.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from time import sleep
+from time import perf_counter, sleep
 from typing import Any
 
 import pandas as pd
@@ -150,9 +150,15 @@ def download_symbol_frames(
     if not symbols:
         return {}, []
 
+    scan_started = perf_counter()
+    batch_seconds = 0.0
+    recovery_seconds = 0.0
+    batch_count = 0
+    recovery_count = 0
     frames: dict[str, pd.DataFrame] = {}
     for start in range(0, len(symbols), max(1, int(batch_size))):
         chunk = symbols[start : start + max(1, int(batch_size))]
+        batch_started = perf_counter()
         history = _download_batch(
             chunk,
             period=period,
@@ -162,6 +168,8 @@ def download_symbol_frames(
             retries=retries,
             diagnostics=diagnostics,
         )
+        batch_seconds += perf_counter() - batch_started
+        batch_count += 1
         for ticker in chunk:
             frame = _ticker_frame(history, ticker)
             if not frame.empty:
@@ -170,6 +178,7 @@ def download_symbol_frames(
     missing = [ticker for ticker in symbols if ticker not in frames]
     if recover_missing:
         for ticker in missing:
+            recovery_started = perf_counter()
             frame = _download_single(
                 ticker,
                 period=period,
@@ -178,8 +187,21 @@ def download_symbol_frames(
                 timeout=timeout,
                 diagnostics=diagnostics,
             )
+            recovery_seconds += perf_counter() - recovery_started
+            recovery_count += 1
             if not frame.empty:
                 frames[ticker] = frame
+
+    if diagnostics is not None:
+        diagnostics.append(
+            "download summary: "
+            f"requested={len(symbols)} usable={len(frames)} "
+            f"missing={len(symbols) - len(frames)} batches={batch_count} "
+            f"single_recovery_attempts={recovery_count} "
+            f"batch_seconds={batch_seconds:.2f} "
+            f"recovery_seconds={recovery_seconds:.2f} "
+            f"total_seconds={perf_counter() - scan_started:.2f}"
+        )
 
     return frames, [ticker for ticker in symbols if ticker not in frames]
 
