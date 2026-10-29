@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections.abc import Mapping
 from datetime import date
 
@@ -59,11 +60,15 @@ def build_experiment_manifest(
             "start": start.isoformat(),
             "end": end.isoformat(),
             "timeframe": timeframe.strip(),
-            "benchmark": benchmark.strip() if isinstance(benchmark, str) and benchmark.strip() else None,
+            "benchmark": (
+                benchmark.strip() if isinstance(benchmark, str) and benchmark.strip() else None
+            ),
         },
         "execution_assumptions": costs,
         "random_seed": random_seed,
-        "code_version": code_version.strip() if isinstance(code_version, str) and code_version.strip() else None,
+        "code_version": (
+            code_version.strip() if isinstance(code_version, str) and code_version.strip() else None
+        ),
     }
     try:
         canonical = json.dumps(
@@ -92,8 +97,6 @@ def _parse_date(value: str, field: str) -> date:
 
 
 def _nonnegative_finite(value: float, field: str) -> float:
-    import math
-
     if isinstance(value, bool):
         raise ValueError(f"{field} must be finite and non-negative")
     try:
