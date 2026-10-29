@@ -237,5 +237,7 @@ def download_market_frames(
         "missing": missing,
         "coverage_pct": round(len(frames) / len(symbols) * 100, 1) if symbols else 100.0,
         "complete": not missing,
-        "failure_diagnostics": list(dict.fromkeys(diagnostics)),
+        "failure_diagnostics": list(
+            dict.fromkeys(item for item in diagnostics if not item.startswith("download summary:"))
+        ),
     }
