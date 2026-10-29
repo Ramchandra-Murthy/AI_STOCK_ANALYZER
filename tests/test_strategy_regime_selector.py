@@ -52,7 +52,7 @@ def test_selects_only_compatible_validated_strategies():
     )
     assert result["strategy"].tolist() == ["trend_following"]
     assert result.iloc[0]["selection_scope"] == "paper_trading_only"
-    assert result.iloc[0]["live_trading_authorized"] is False
+    assert not bool(result.iloc[0]["live_trading_authorized"])
 
 
 def test_excludes_strategy_without_passing_quality_gate():
