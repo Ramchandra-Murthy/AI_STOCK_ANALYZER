@@ -3,6 +3,7 @@
 Combines existing diagnostics; does not generate signals or place orders.
 Passing means eligible for paper-trading evaluation only.
 """
+
 from __future__ import annotations
 
 import math
@@ -29,7 +30,10 @@ def evaluate_strategy_quality(
         raise ValueError("min_observations must be positive")
     if isinstance(min_walk_forward_windows, bool) or min_walk_forward_windows < 1:
         raise ValueError("min_walk_forward_windows must be positive")
-    if not math.isfinite(float(min_positive_window_fraction)) or not 0 <= min_positive_window_fraction <= 1:
+    if (
+        not math.isfinite(float(min_positive_window_fraction))
+        or not 0 <= min_positive_window_fraction <= 1
+    ):
         raise ValueError("min_positive_window_fraction must be between 0 and 1")
     if not math.isfinite(float(min_sharpe_ratio)):
         raise ValueError("min_sharpe_ratio must be finite")
@@ -89,7 +93,9 @@ def evaluate_strategy_quality(
     elif not {"total_return", "sharpe_ratio"}.issubset(parameter_report.columns):
         missing.append("parameter return and Sharpe metrics")
     else:
-        values = parameter_report[["total_return", "sharpe_ratio"]].apply(pd.to_numeric, errors="coerce")
+        values = parameter_report[["total_return", "sharpe_ratio"]].apply(
+            pd.to_numeric, errors="coerce"
+        )
         if not np.isfinite(values.to_numpy(dtype=float)).all():
             missing.append("valid parameter sensitivity values")
         elif len(values) < 2:
