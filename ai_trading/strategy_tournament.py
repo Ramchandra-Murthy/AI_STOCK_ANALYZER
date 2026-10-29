@@ -79,9 +79,7 @@ def compare_strategies(
         total_return = float((1.0 + clean).prod() - 1.0) if len(clean) else 0.0
         gains = float(clean[clean > 0].sum())
         losses = float(-clean[clean < 0].sum())
-        profit_factor = (
-            gains / losses if losses > 0 else (float("inf") if gains > 0 else None)
-        )
+        profit_factor = gains / losses if losses > 0 else (float("inf") if gains > 0 else None)
         rows.append(
             {
                 "strategy": name,
@@ -101,9 +99,7 @@ def compare_strategies(
     result = pd.DataFrame(rows)
     eligible = result["eligible"] & result["sharpe_ratio"].notna()
     result.loc[eligible, "rank"] = (
-        result.loc[eligible, "sharpe_ratio"]
-        .rank(method="min", ascending=False)
-        .astype(int)
+        result.loc[eligible, "sharpe_ratio"].rank(method="min", ascending=False).astype(int)
     )
     return result.sort_values(
         ["eligible", "rank", "strategy"],
