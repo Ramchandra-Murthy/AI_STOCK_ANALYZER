@@ -9,7 +9,7 @@ from ai_trading.strategy_tournament import compare_strategies
 
 def test_compare_strategies_ranks_consistent_return_streams() -> None:
     returns = {
-        "steady": pd.Series([0.01, 0.01, 0.01, 0.01] * 10),
+        "steady": pd.Series([0.01, 0.009, 0.011, 0.01] * 10),
         "volatile": pd.Series([0.05, -0.04, 0.05, -0.04] * 10),
     }
 
