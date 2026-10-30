@@ -42,3 +42,35 @@ def test_mean_reversion_signals_validate_parameters(
 ) -> None:
     with pytest.raises(ValueError, match=message):
         mean_reversion_signals(pd.Series(np.arange(10, dtype=float)), **kwargs)
+
+
+def test_price_mean_reversion_requires_rsi_reversal_confirmation():
+    from ai_trading.mean_reversion_strategy import price_mean_reversion_signals
+
+    close = pd.Series([100.0] * 35 + [96.0, 93.0, 91.0, 92.0, 94.0, 95.0])
+    result = price_mean_reversion_signals(
+        close, lookback=20, rsi_period=3, entry_z=1.0, oversold_rsi=50.0
+    )
+
+    assert {"zscore", "rsi", "long_entry", "position"} <= set(result.columns)
+    assert result["long_entry"].any()
+    assert (result.loc[result["long_entry"], "zscore"] <= -1.0).all()
+
+
+def test_price_mean_reversion_disables_shorts_by_default():
+    from ai_trading.mean_reversion_strategy import price_mean_reversion_signals
+
+    close = pd.Series([100.0] * 35 + [104.0, 107.0, 109.0, 108.0, 106.0, 105.0])
+    result = price_mean_reversion_signals(
+        close, lookback=20, rsi_period=3, entry_z=1.0, allow_short=False
+    )
+    assert not result["short_entry"].any()
+
+
+def test_price_mean_reversion_validates_inputs():
+    from ai_trading.mean_reversion_strategy import price_mean_reversion_signals
+
+    with pytest.raises(ValueError, match="positive"):
+        price_mean_reversion_signals(pd.Series([100.0] * 30 + [0.0]))
+    with pytest.raises(ValueError, match="RSI thresholds"):
+        price_mean_reversion_signals(pd.Series([100.0] * 40), oversold_rsi=70.0)
