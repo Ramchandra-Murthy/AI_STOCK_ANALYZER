@@ -87,7 +87,7 @@ def evaluate_mean_reversion_parameter_robustness(
     robustness = parameter_robustness_summary(
         report,
         metric_column="sharpe_ratio",
-        parameter_columns=tuple(sorted(allowed.intersection(report.columns))),
+        parameter_columns=("parameter",),
         near_best_tolerance=near_best_tolerance,
     )
     return MeanReversionRobustnessResult(parameter_report=report, robustness=robustness)
