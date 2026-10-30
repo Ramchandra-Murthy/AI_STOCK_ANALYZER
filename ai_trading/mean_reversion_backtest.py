@@ -6,9 +6,9 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from ai_trading.mean_reversion_strategy import price_mean_reversion_signals
 from algorithmic_trading.backtester import BacktestMetrics, run_backtest
 from algorithmic_trading.trading_costs import IndiaEquityCostModel
-from ai_trading.mean_reversion_strategy import price_mean_reversion_signals
 
 
 @dataclass(frozen=True)
