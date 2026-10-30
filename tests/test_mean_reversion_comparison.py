@@ -59,8 +59,9 @@ def test_transaction_costs_reduce_net_return_stream():
         charged.return_streams["mean_reversion_net"]
         <= free.return_streams["mean_reversion_net"] + 1e-12
     ).all()
-    assert charged.return_streams["mean_reversion_gross"] == pytest.approx(
-        free.return_streams["mean_reversion_gross"]
+    pd.testing.assert_series_equal(
+        charged.return_streams["mean_reversion_gross"],
+        free.return_streams["mean_reversion_gross"],
     )
 
 
