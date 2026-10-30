@@ -63,9 +63,7 @@ def compare_price_mean_reversion(
     streams = pd.DataFrame(
         {
             "mean_reversion_net": equity["strategy_return"],
-            "mean_reversion_gross": (
-                equity["position"] * equity["market_return"]
-            ),
+            "mean_reversion_gross": (equity["position"] * equity["market_return"]),
             "buy_and_hold": equity["market_return"],
         },
         index=equity.index,
