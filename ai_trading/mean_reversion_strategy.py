@@ -124,7 +124,7 @@ def price_mean_reversion_signals(
     raw_signal.loc[short_entry.fillna(False)] = -1
     raw_position = 0
     positions: list[int] = []
-    for z_value, signal in zip(zscore.to_numpy(), raw_signal.to_numpy()):
+    for z_value, signal in zip(zscore.to_numpy(), raw_signal.to_numpy(), strict=True):
         if not np.isfinite(z_value):
             raw_position = 0
         elif raw_position == 0 and signal != 0:
