@@ -109,8 +109,11 @@ def price_mean_reversion_signals(
     avg_loss = loss.rolling(rsi_period, min_periods=rsi_period).mean()
     relative_strength = avg_gain / avg_loss.replace(0.0, np.nan)
     rsi = 100.0 - (100.0 / (1.0 + relative_strength))
-    rsi = rsi.mask((avg_loss == 0.0) & (avg_gain > 0.0), 100.0)
-    rsi = rsi.mask((avg_loss == 0.0) & (avg_gain == 0.0), 50.0)
+    no_loss = np.isclose(avg_loss, 0.0, atol=1e-12)
+    has_gain = avg_gain > 1e-12
+    rsi = rsi.mask(no_loss & has_gain, 100.0)
+    no_movement = no_loss & np.isclose(avg_gain, 0.0, atol=1e-12)
+    rsi = rsi.mask(no_movement, 50.0)
 
     improving = rsi > rsi.shift(1)
     weakening = rsi < rsi.shift(1)
