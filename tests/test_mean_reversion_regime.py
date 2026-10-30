@@ -34,9 +34,7 @@ def test_regime_evaluation_returns_aligned_comparisons():
 
     assert not result.return_streams.empty
     assert result.return_streams.index.equals(result.regime_labels.index)
-    assert set(result.regime_labels.unique()).issubset(
-        {"BULLISH", "BEARISH", "RANGE / MIXED"}
-    )
+    assert set(result.regime_labels.unique()).issubset({"BULLISH", "BEARISH", "RANGE / MIXED"})
     assert set(result.regime_comparisons["strategy"]) == set(result.return_streams.columns)
     assert result.regime_comparisons.groupby("regime")["observations"].nunique().eq(1).all()
 
