@@ -26,9 +26,7 @@ def _evidence(*, trades=(4, 5, 3), profit_factor=1.4):
         "profit_factor": profit_factor,
     }
     slippage = pd.DataFrame({"net_return": [0.12, 0.08, 0.03]})
-    parameters = pd.DataFrame(
-        {"total_return": [0.1, 0.08], "sharpe_ratio": [1.1, 0.9]}
-    )
+    parameters = pd.DataFrame({"total_return": [0.1, 0.08], "sharpe_ratio": [1.1, 0.9]})
     return tournament, walk_forward, slippage, parameters
 
 
