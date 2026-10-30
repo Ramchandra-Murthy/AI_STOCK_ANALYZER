@@ -62,7 +62,6 @@ def test_mean_reversion_backtest_accepts_india_equity_cost_model() -> None:
     )
 
 
-def test_mean_reversion_backtest_rejects_misaligned_close_index() -> None:
-    close = _reversal_prices()
-    with pytest.raises(ValueError, match="identical timestamps"):
-        run_price_mean_reversion_backtest(close, signals_close=close)  # type: ignore[call-arg]
+def test_mean_reversion_backtest_rejects_invalid_backtest_cost() -> None:
+    with pytest.raises(ValueError, match="cost_bps"):
+        run_price_mean_reversion_backtest(_reversal_prices(), cost_bps=-1.0)
