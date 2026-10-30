@@ -62,9 +62,7 @@ def test_parameter_robustness_rejects_unknown_parameters():
 def test_parameter_robustness_rejects_duplicate_configurations():
     configuration = {"lookback": 10, "rsi_period": 3}
     with pytest.raises(ValueError, match="duplicate configuration"):
-        evaluate_mean_reversion_parameter_robustness(
-            _prices(), [configuration, configuration]
-        )
+        evaluate_mean_reversion_parameter_robustness(_prices(), [configuration, configuration])
 
 
 def test_parameter_robustness_rejects_invalid_price_input():
