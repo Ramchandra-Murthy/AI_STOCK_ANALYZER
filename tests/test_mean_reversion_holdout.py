@@ -52,16 +52,14 @@ def test_holdout_configuration_is_fixed_across_all_segments():
         min_segment_observations=20,
     )
 
-    assert (charged.segment_metrics["total_return"] <= (
-        result.segment_metrics["total_return"] + 1e-12
-    )).all()
+    assert (
+        charged.segment_metrics["total_return"] <= (result.segment_metrics["total_return"] + 1e-12)
+    ).all()
 
 
 def test_holdout_rejects_invalid_split_fractions():
     with pytest.raises(ValueError, match="less than 1"):
-        evaluate_mean_reversion_holdout(
-            _prices(), train_fraction=0.7, validation_fraction=0.3
-        )
+        evaluate_mean_reversion_holdout(_prices(), train_fraction=0.7, validation_fraction=0.3)
 
 
 def test_holdout_rejects_nonchronological_index():
@@ -72,6 +70,4 @@ def test_holdout_rejects_nonchronological_index():
 
 def test_holdout_rejects_insufficient_segment_history():
     with pytest.raises(ValueError, match="each segment"):
-        evaluate_mean_reversion_holdout(
-            _prices(30), min_segment_observations=20
-        )
+        evaluate_mean_reversion_holdout(_prices(30), min_segment_observations=20)
