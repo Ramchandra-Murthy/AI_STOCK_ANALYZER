@@ -63,7 +63,7 @@ def test_levels_and_state_transitions_are_validated() -> None:
     _signal(tracker)
     with pytest.raises(ValueError, match="already exists"):
         _signal(tracker)
-    with pytest.raises(ValueError, match="only WATCHING"):
+    with pytest.raises(ValueError, match="only OPEN"):
         tracker.close_trade("s1", exit_price=110, exit_reason="target")
 
 
