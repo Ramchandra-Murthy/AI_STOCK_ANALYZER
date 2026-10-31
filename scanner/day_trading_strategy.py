@@ -288,3 +288,107 @@ def classify_day_trade_plan_state(strategy: dict[str, Any], plan: dict[str, Any]
     if close <= entry:
         return "TRIGGERED / BELOW REFERENCE"
     return "WAITING FOR REFERENCE"
+
+
+def analyze_narrow_range_breakout(
+    frame: pd.DataFrame,
+    lookback: int = 4,
+    trend_lookback: int = 20,
+    atr_window: int = 14,
+    max_range_atr: float = 0.67,
+) -> dict[str, Any]:
+    """Identify a completed narrow-range setup and its next-bar trigger levels.
+
+    NR4/NR7 means the latest completed candle has the smallest high-low range
+    among the last N completed candles. The setup is only a watch condition:
+    a subsequent bar must break the setup high/low to trigger. No future bars
+    are used in detection.
+    """
+    if lookback not in (4, 7) or trend_lookback < 2 or atr_window < 2:
+        return {}
+    if not 0 < max_range_atr <= 1:
+        return {}
+    data = prepare_day_trading_frame(frame)
+    required = {"Open", "High", "Low", "Close", "Volume"}
+    if data.empty or not required.issubset(data.columns):
+        return {}
+    if len(data) < max(lookback, trend_lookback, atr_window) + 1:
+        return {}
+
+    high = pd.to_numeric(data["High"], errors="coerce")
+    low = pd.to_numeric(data["Low"], errors="coerce")
+    close = pd.to_numeric(data["Close"], errors="coerce")
+    ranges = high - low
+    setup_range = float(ranges.iloc[-1])
+    comparison = ranges.iloc[-lookback:]
+    if comparison.isna().any() or setup_range <= 0:
+        return {}
+    is_narrowest = setup_range <= float(comparison.min())
+    atr = float(data["ATR 14"].iloc[-1])
+    if not pd.notna(atr) or atr <= 0:
+        true_range = pd.concat(
+            [high - low, (high - close.shift()).abs(), (low - close.shift()).abs()],
+            axis=1,
+        ).max(axis=1)
+        atr = float(true_range.rolling(atr_window, min_periods=atr_window).mean().iloc[-1])
+    if not pd.notna(atr) or atr <= 0:
+        return {}
+
+    setup_high = float(high.iloc[-1])
+    setup_low = float(low.iloc[-1])
+    narrow_by_atr = setup_range / atr <= max_range_atr
+    prior_trend = close.iloc[-trend_lookback - 1 : -1]
+    prior_mean = float(prior_trend.mean()) if len(prior_trend) else float("nan")
+    trend = (
+        "UPTREND"
+        if close.iloc[-2] > prior_mean
+        else "DOWNTREND"
+        if close.iloc[-2] < prior_mean
+        else "MIXED"
+    )
+    qualifies = is_narrowest and narrow_by_atr
+    pattern = f"NR{lookback}" if qualifies else "NO NARROW-RANGE SETUP"
+
+    return {
+        "Pattern": pattern,
+        "Qualifies": bool(qualifies),
+        "Narrowest in lookback": bool(is_narrowest),
+        "Range/ATR": round(setup_range / atr, 4),
+        "ATR": round(atr, 4),
+        "Setup high": round(setup_high, 4),
+        "Setup low": round(setup_low, 4),
+        "Long trigger": round(setup_high, 4) if qualifies else None,
+        "Short trigger": round(setup_low, 4) if qualifies else None,
+        "Long stop reference": round(setup_low, 4) if qualifies else None,
+        "Short stop reference": round(setup_high, 4) if qualifies else None,
+        "Trend context": trend,
+        "Signal timing": "NEXT BAR BREAK ONLY",
+    }
+
+
+def classify_narrow_range_breakout(
+    setup: dict[str, Any],
+    next_bar_high: float,
+    next_bar_low: float,
+) -> str:
+    """Classify a next-bar range break; simultaneous breaks are ambiguous."""
+    if not setup.get("Qualifies"):
+        return "NO VALID SETUP"
+    try:
+        high = float(next_bar_high)
+        low = float(next_bar_low)
+        long_trigger = float(setup["Long trigger"])
+        short_trigger = float(setup["Short trigger"])
+    except (TypeError, ValueError, KeyError):
+        return "INVALID BAR"
+    if high < low:
+        return "INVALID BAR"
+    long_break = high > long_trigger
+    short_break = low < short_trigger
+    if long_break and short_break:
+        return "AMBIGUOUS — BOTH SIDES TOUCHED"
+    if long_break:
+        return "LONG BREAKOUT"
+    if short_break:
+        return "SHORT BREAKDOWN"
+    return "WAITING"
