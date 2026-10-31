@@ -12,8 +12,8 @@ def _frame(ranges):
     return pd.DataFrame(
         {
             "Open": closes,
-            "High": [close + width / 2 for close, width in zip(closes, ranges)],
-            "Low": [close - width / 2 for close, width in zip(closes, ranges)],
+            "High": [close + width / 2 for close, width in zip(closes, ranges, strict=True)],
+            "Low": [close - width / 2 for close, width in zip(closes, ranges, strict=True)],
             "Close": closes,
             "Volume": [1000] * len(ranges),
         },
