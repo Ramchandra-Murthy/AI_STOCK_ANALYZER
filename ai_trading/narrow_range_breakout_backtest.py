@@ -99,19 +99,19 @@ def backtest_narrow_range_breakouts(
             continue
         session_rows = values.iloc[i + 1 :]
         session_rows = session_rows[session_rows["_session"] == setup["_session"]]
-        exit_price, exit_reason, exit_idx = float(session_rows.iloc[-1]["Close"]), "SESSION_CLOSE", len(session_rows) - 1
+        exit_price, exit_reason = float(session_rows.iloc[-1]["Close"]), "SESSION_CLOSE"
         for j, bar in enumerate(session_rows.itertuples(index=False)):
-            high = float(getattr(bar, "High"))
-            low = float(getattr(bar, "Low"))
+            high = float(bar.High)
+            low = float(bar.Low)
             if side == "LONG":
                 stop_hit, target_hit = low <= stop, high >= target
             else:
                 stop_hit, target_hit = high >= stop, low <= target
             if stop_hit:
-                exit_price, exit_reason, exit_idx = stop, "STOP", j
+                exit_price, exit_reason = stop, "STOP"
                 break
             if target_hit:
-                exit_price, exit_reason, exit_idx = target, "TARGET", j
+                exit_price, exit_reason = target, "TARGET"
                 break
         gross = (exit_price - entry) * quantity * (1 if side == "LONG" else -1)
         costs = (abs(entry * quantity) + abs(exit_price * quantity)) * cost_rate
