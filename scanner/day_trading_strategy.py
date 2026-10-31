@@ -342,9 +342,7 @@ def analyze_narrow_range_breakout(
     trend = (
         "UPTREND"
         if close.iloc[-2] > prior_mean
-        else "DOWNTREND"
-        if close.iloc[-2] < prior_mean
-        else "MIXED"
+        else "DOWNTREND" if close.iloc[-2] < prior_mean else "MIXED"
     )
     qualifies = is_narrowest and narrow_by_atr
     pattern = f"NR{lookback}" if qualifies else "NO NARROW-RANGE SETUP"
