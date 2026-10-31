@@ -99,9 +99,7 @@ def evaluate_narrow_range_backtest(
                 "net_pnl": float(group_pnl.sum()),
                 "expectancy": float(group_pnl.mean()),
                 "profit_factor": (
-                    float(group_wins.sum() / abs(group_losses.sum()))
-                    if len(group_losses)
-                    else None
+                    float(group_wins.sum() / abs(group_losses.sum())) if len(group_losses) else None
                 ),
             }
         breakdowns[dimension] = groups
