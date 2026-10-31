@@ -40,7 +40,7 @@ def test_summary_and_breakdowns_use_net_pnl() -> None:
     assert summary["expectancy"] == pytest.approx(50.0)
     assert summary["profit_factor"] == pytest.approx(2.5)
     assert summary["average_r"] == pytest.approx(0.5)
-    assert summary["max_drawdown_pct"] == pytest.approx(-10.0)
+    assert summary["max_drawdown_pct"] == pytest.approx(-100.0 / 12.0)
     assert summary["consecutive_wins"] == 1
     assert summary["consecutive_losses"] == 1
     assert report["breakdowns"]["pattern"]["NR4"]["trade_count"] == 2
