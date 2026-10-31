@@ -48,8 +48,7 @@ def backtest_narrow_range_breakouts(
     ranges = data["High"] - data["Low"]
     previous_close = data["Close"].shift(1)
     true_range = pd.concat(
-        [ranges, (data["High"] - previous_close).abs(),
-         (data["Low"] - previous_close).abs()],
+        [ranges, (data["High"] - previous_close).abs(), (data["Low"] - previous_close).abs()],
         axis=1,
     ).max(axis=1)
     atr = true_range.rolling(atr_window, min_periods=atr_window).mean()
@@ -117,23 +116,25 @@ def backtest_narrow_range_breakouts(
         costs = (abs(entry * quantity) + abs(exit_price * quantity)) * cost_rate
         net = gross - costs
         capital += net
-        trades.append({
-            "setup_time": setup[index_col],
-            "entry_time": nxt[index_col],
-            "side": side,
-            "pattern": f"NR{lookback}",
-            "entry": entry,
-            "stop": stop,
-            "target": target,
-            "exit": exit_price,
-            "exit_reason": exit_reason,
-            "quantity": quantity,
-            "gross_pnl": gross,
-            "costs": costs,
-            "net_pnl": net,
-            "r_multiple": net / (risk * quantity),
-            "capital_after": capital,
-        })
+        trades.append(
+            {
+                "setup_time": setup[index_col],
+                "entry_time": nxt[index_col],
+                "side": side,
+                "pattern": f"NR{lookback}",
+                "entry": entry,
+                "stop": stop,
+                "target": target,
+                "exit": exit_price,
+                "exit_reason": exit_reason,
+                "quantity": quantity,
+                "gross_pnl": gross,
+                "costs": costs,
+                "net_pnl": net,
+                "r_multiple": net / (risk * quantity),
+                "capital_after": capital,
+            }
+        )
 
     pnls = [trade["net_pnl"] for trade in trades]
     wins = [p for p in pnls if p > 0]
