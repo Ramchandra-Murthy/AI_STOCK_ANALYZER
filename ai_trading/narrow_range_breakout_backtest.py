@@ -100,7 +100,7 @@ def backtest_narrow_range_breakouts(
         session_rows = values.iloc[i + 1 :]
         session_rows = session_rows[session_rows["_session"] == setup["_session"]]
         exit_price, exit_reason = float(session_rows.iloc[-1]["Close"]), "SESSION_CLOSE"
-        for j, bar in enumerate(session_rows.itertuples(index=False)):
+        for _j, bar in enumerate(session_rows.itertuples(index=False)):
             high = float(bar.High)
             low = float(bar.Low)
             if side == "LONG":
