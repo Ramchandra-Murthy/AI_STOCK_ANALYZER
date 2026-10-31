@@ -5,8 +5,9 @@ import pytest
 from ai_trading.narrow_range_breakout_evaluation import evaluate_narrow_range_backtest
 
 
-def _trade(pnl: float, r: float, pattern: str = "NR4", side: str = "LONG",
-           exit_reason: str = "TARGET") -> dict[str, object]:
+def _trade(
+    pnl: float, r: float, pattern: str = "NR4", side: str = "LONG", exit_reason: str = "TARGET"
+) -> dict[str, object]:
     return {
         "net_pnl": pnl,
         "r_multiple": r,
