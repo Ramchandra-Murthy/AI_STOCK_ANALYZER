@@ -163,3 +163,15 @@ def test_backtest_rejects_infinite_execution_prices() -> None:
                 threshold=0.0,
                 initial_train=100,
             )
+
+
+@pytest.mark.parametrize("horizon", [1.5, True, "5"])
+def test_backtest_rejects_non_integer_horizon(horizon: object) -> None:
+    with pytest.raises(ValueError, match="horizon must be a positive integer"):
+        walk_forward_backtest(_market_frame(), horizon=horizon)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("initial_train", [30.5, True, "100"])
+def test_backtest_rejects_non_integer_initial_train(initial_train: object) -> None:
+    with pytest.raises(ValueError, match="initial_train must be an integer"):
+        walk_forward_backtest(_market_frame(), initial_train=initial_train)  # type: ignore[arg-type]
