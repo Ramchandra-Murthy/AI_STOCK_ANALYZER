@@ -51,15 +51,15 @@ def test_next_bar_breakout_classification():
     assert classify_narrow_range_breakout(setup, 101.1, 99.5) == "LONG BREAKOUT"
     assert classify_narrow_range_breakout(setup, 100.5, 98.9) == "SHORT BREAKDOWN"
     assert classify_narrow_range_breakout(setup, 100.8, 99.2) == "WAITING"
-    assert (
-        classify_narrow_range_breakout(setup, 101.2, 98.8)
-        == "AMBIGUOUS — BOTH SIDES TOUCHED"
-    )
+    assert classify_narrow_range_breakout(setup, 101.2, 98.8) == "AMBIGUOUS — BOTH SIDES TOUCHED"
 
 
 def test_rejects_invalid_or_insufficient_data():
     assert analyze_narrow_range_breakout(_frame([1.0, 0.5]), lookback=4) == {}
     assert classify_narrow_range_breakout({"Qualifies": False}, 10, 9) == "NO VALID SETUP"
-    assert classify_narrow_range_breakout(
-        {"Qualifies": True, "Long trigger": 10, "Short trigger": 9}, 8, 10
-    ) == "INVALID BAR"
+    assert (
+        classify_narrow_range_breakout(
+            {"Qualifies": True, "Long trigger": 10, "Short trigger": 9}, 8, 10
+        )
+        == "INVALID BAR"
+    )
