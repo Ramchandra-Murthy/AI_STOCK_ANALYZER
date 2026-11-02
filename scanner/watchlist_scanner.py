@@ -61,9 +61,7 @@ def _intraday_context_columns(
         if not required.issubset(baselines.columns):
             baselines = pd.DataFrame()
         else:
-            baselines = baselines.loc[:, ["Close", "Volume"]].apply(
-                pd.to_numeric, errors="coerce"
-            )
+            baselines = baselines.loc[:, ["Close", "Volume"]].apply(pd.to_numeric, errors="coerce")
             baselines = baselines.replace([float("inf"), float("-inf")], float("nan"))
             baselines = baselines.dropna(subset=["Close", "Volume"])
             baselines = baselines.loc[(baselines["Close"] > 0) & (baselines["Volume"] >= 0)]
@@ -71,15 +69,11 @@ def _intraday_context_columns(
 
     average_volume = float(baselines["Volume"].mean()) if not baselines.empty else None
     average_turnover = (
-        float((baselines["Close"] * baselines["Volume"]).mean())
-        if not baselines.empty
-        else None
+        float((baselines["Close"] * baselines["Volume"]).mean()) if not baselines.empty else None
     )
     context = intraday_market_context(
         intraday,
-        previous_close=(
-            float(baselines["Close"].iloc[-1]) if not baselines.empty else None
-        ),
+        previous_close=(float(baselines["Close"].iloc[-1]) if not baselines.empty else None),
         average_daily_volume=average_volume,
         average_daily_turnover=average_turnover,
     )
@@ -97,9 +91,7 @@ def scan_watchlist(symbols: list[str]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
     tickers = list(
-        dict.fromkeys(
-            ticker for symbol in symbols if (ticker := _normalize_ticker(symbol))
-        )
+        dict.fromkeys(ticker for symbol in symbols if (ticker := _normalize_ticker(symbol)))
     )
     intraday_frames: dict[str, pd.DataFrame] = {}
     daily_frames: dict[str, pd.DataFrame] = {}
