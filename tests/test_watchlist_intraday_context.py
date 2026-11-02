@@ -62,3 +62,61 @@ def test_watchlist_context_excludes_same_session_daily_candle():
 
     assert result["Gap %"] == 2.941
     assert result["Cumulative RVOL"] == 0.273
+
+
+def test_intraday_context_deduplicates_timestamps_without_double_counting():
+    from services.intraday_market_context import intraday_market_context
+
+    timestamp = pd.Timestamp("2026-11-02T09:15:00+05:30")
+    intraday = pd.DataFrame(
+        [
+            {"Open": 105, "High": 108, "Low": 104, "Close": 107, "Volume": 1000},
+            {"Open": 105, "High": 107, "Low": 104, "Close": 106, "Volume": 2000},
+        ],
+        index=[timestamp, timestamp],
+    )
+
+    result = intraday_market_context(intraday, previous_close=102)
+
+    assert result["Session volume"] == 2000
+    assert result["Last price"] == 106
+    assert result["Intraday change %"] == 0.952
+
+
+def test_intraday_context_filters_invalid_ohlcv_rows():
+    from services.intraday_market_context import intraday_market_context
+
+    timestamp = pd.Timestamp("2026-11-02T09:15:00+05:30")
+    intraday = pd.DataFrame(
+        [
+            {"Open": 105, "High": 108, "Low": 104, "Close": 107, "Volume": 1000},
+            {"Open": 105, "High": 103, "Low": 104, "Close": 107, "Volume": 9000},
+            {"Open": 105, "High": 108, "Low": 104, "Close": 107, "Volume": -10},
+            {"Open": "bad", "High": 108, "Low": 104, "Close": 107, "Volume": 9000},
+        ],
+        index=[timestamp, timestamp + pd.Timedelta(minutes=1),
+               timestamp + pd.Timedelta(minutes=2), timestamp + pd.Timedelta(minutes=3)],
+    )
+
+    result = intraday_market_context(intraday, previous_close=102)
+
+    assert result["Session volume"] == 1000
+    assert result["Last price"] == 107
+    assert result["Context status"] == "OK"
+
+
+def test_intraday_context_invalid_baselines_do_not_create_relative_metrics():
+    from services.intraday_market_context import intraday_market_context
+
+    intraday, _ = _frames()
+    result = intraday_market_context(
+        intraday,
+        previous_close=float("nan"),
+        average_daily_volume=0,
+        average_daily_turnover=float("inf"),
+    )
+
+    assert result["Gap %"] is None
+    assert result["Cumulative RVOL"] is None
+    assert result["Turnover ratio"] is None
+    assert result["Session volume"] == 3000
