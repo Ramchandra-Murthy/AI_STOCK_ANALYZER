@@ -1,7 +1,5 @@
 """Shared bullish-to-bearish ordering for scanner result tables."""
 
-from __future__ import annotations
-
 import pandas as pd
 
 
