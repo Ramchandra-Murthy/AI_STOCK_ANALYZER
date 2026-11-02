@@ -749,6 +749,7 @@ def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
     assert calls["kwargs"]["interval"] == "1m"
     assert calls["kwargs"]["recover_missing"] is False
 
+
 def test_top10_filters_apply_price_move_and_exchange_without_mutating_source() -> None:
     source = pd.DataFrame(
         [
