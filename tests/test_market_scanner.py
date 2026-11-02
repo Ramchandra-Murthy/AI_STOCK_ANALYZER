@@ -404,3 +404,42 @@ def test_market_scan_rejects_stale_analysis_history(monkeypatch) -> None:
     assert result.empty
     assert result.attrs["scanner_coverage"]["NSE"]["stale_data_rejected"] == 1
     assert result.attrs["scanner_coverage"]["NSE"]["analyses_completed"] == 0
+
+
+def _failing_download(*_args, **_kwargs):
+    raise RuntimeError("provider unavailable")
+
+
+def test_download_chunk_logs_provider_failure_and_returns_empty(monkeypatch, caplog) -> None:
+    import logging
+
+    from scanner import market_scanner
+
+    monkeypatch.setattr(market_scanner.yf, "download", _failing_download)
+
+    with caplog.at_level(logging.DEBUG, logger=market_scanner.logger.name):
+        result = market_scanner._download_chunk(["AAA.NS", "BBB.NS"])
+
+    assert result.empty
+    messages = [record.getMessage() for record in caplog.records]
+    assert any("provider unavailable" in message for message in messages)
+    assert any(record.levelno == logging.WARNING for record in caplog.records)
+
+
+def test_download_analysis_chunk_logs_provider_failure_and_returns_empty(
+    monkeypatch, caplog
+) -> None:
+    import logging
+
+    from scanner import market_scanner
+
+    monkeypatch.setattr(market_scanner.yf, "download", _failing_download)
+
+    with caplog.at_level(logging.DEBUG, logger=market_scanner.logger.name):
+        result = market_scanner._download_analysis_chunk(["AAA.NS"])
+
+    assert result.empty
+    assert any(
+        record.levelno == logging.WARNING and "provider unavailable" in record.getMessage()
+        for record in caplog.records
+    )
