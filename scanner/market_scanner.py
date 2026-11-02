@@ -22,6 +22,7 @@ from scanner.dynamic_universe import (
     yahoo_symbol_for_bse_code,
 )
 from services.sector_mapping import sector_for_symbol
+from services.scanner_trend_sort import sort_bullish_to_bearish
 
 TOP_CANDIDATES_TO_ANALYZE = 20
 DISPLAY_COUNT = 20
@@ -496,9 +497,7 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         return df
 
     # Confidence is intentionally unavailable until calibrated on out-of-sample data.
-    result = (
-        df.sort_values(by="AI Score", ascending=False).head(DISPLAY_COUNT).reset_index(drop=True)
-    )
+    result = sort_bullish_to_bearish(df).head(DISPLAY_COUNT).reset_index(drop=True)
     for exchange in coverage:
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage
