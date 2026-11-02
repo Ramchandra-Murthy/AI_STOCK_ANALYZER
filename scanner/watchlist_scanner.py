@@ -49,6 +49,8 @@ _CONTEXT_FIELDS = {
 def _intraday_context_columns(
     intraday: pd.DataFrame | None,
     daily: pd.DataFrame | None,
+    *,
+    now: datetime | None = None,
 ) -> dict[str, Any]:
     """Build descriptive context from intraday candles and prior daily baselines."""
     if intraday is None or intraday.empty:
@@ -56,8 +58,10 @@ def _intraday_context_columns(
 
     latest_timestamp = pd.Timestamp(intraday.index[-1])
     observed_at = latest_timestamp.to_pydatetime()
-    now = datetime.now(tz=observed_at.tzinfo) if observed_at.tzinfo is not None else datetime.now()
-    freshness = intraday_context_freshness(latest_timestamp, now=now)
+    evaluation_time = now or (
+        datetime.now(tz=observed_at.tzinfo) if observed_at.tzinfo is not None else datetime.now()
+    )
+    freshness = intraday_context_freshness(latest_timestamp, now=evaluation_time)
     session_date = latest_timestamp.date()
     baselines = pd.DataFrame() if daily is None else daily.copy()
     if not baselines.empty:
