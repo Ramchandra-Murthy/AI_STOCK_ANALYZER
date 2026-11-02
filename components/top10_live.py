@@ -584,6 +584,7 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
 def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
+    """Download all live scanner candles from Yahoo Finance only."""
     """Download one-minute candles with bounded staged recovery for failed batches."""
     global _PROVIDER_DIAGNOSTICS
     _PROVIDER_DIAGNOSTICS = []
