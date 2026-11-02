@@ -65,8 +65,8 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_PROVIDER_RETRIES == 1
     assert TOP10_PROVIDER_TIMEOUT == 8
     assert top10_live.TOP10_RECOVERY_CHUNK_SIZE == 2
-    assert top10_live.TOP10_MAX_SINGLE_SYMBOL_RECOVERY == 5
-    assert top10_live.TOP10_RECOVERY_TIMEOUT == 3
+    assert top10_live.TOP10_MAX_SINGLE_SYMBOL_RECOVERY == 2
+    assert top10_live.TOP10_RECOVERY_TIMEOUT == 4
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert 0 < TOP10_SCAN_WARNING_SECONDS < TOP10_STALE_DATA_SECONDS
     assert TOP10_STALE_DATA_SECONDS >= 3 * TOP10_REFRESH_SECONDS
@@ -833,7 +833,7 @@ def test_top10_live_staged_recovery_retries_empty_batch_with_smaller_chunks(monk
     assert frames == {}
     assert missing == tickers
     assert provider == "Yahoo Finance"
-    assert calls == [(10, 20, False), (10, 5, False), (10, 2, False), (10, 10, True)]
+    assert calls == [(10, 20, False), (10, 5, False), (10, 2, False)]
     assert any("after staged recovery" in item for item in top10_live._PROVIDER_DIAGNOSTICS)
 
 
