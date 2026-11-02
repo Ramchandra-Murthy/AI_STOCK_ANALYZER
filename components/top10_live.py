@@ -27,6 +27,9 @@ TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 20
 TOP10_FALLBACK_CHUNK_SIZE = 5
 TOP10_FALLBACK_TIMEOUT = 4
+TOP10_RECOVERY_CHUNK_SIZE = 2
+TOP10_MAX_SINGLE_SYMBOL_RECOVERY = 5
+TOP10_RECOVERY_TIMEOUT = 3
 TOP10_MAX_NSE_CANDIDATES = 10
 TOP10_MAX_BSE_CANDIDATES = 10
 TOP10_PROVIDER_RETRIES = 1
@@ -583,7 +586,7 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
 def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
-    """Download live scanner candles from Yahoo Finance only."""
+    """Download one-minute candles with bounded staged recovery for failed batches."""
     global _PROVIDER_DIAGNOSTICS
     _PROVIDER_DIAGNOSTICS = []
     frames, missing = download_symbol_frames(
@@ -598,8 +601,10 @@ def _download_top10_frames(
         diagnostics=_PROVIDER_DIAGNOSTICS,
     )
 
-    # Keep recovery bounded while avoiding repeated large provider requests.
-    if len(missing) > TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
+    # Recover failed large batches using smaller requests. This also handles the
+    # common provider case where a batch returns no rows but individual symbols
+    # remain available. Keep each stage bounded to avoid retry storms.
+    if missing:
         recovered, still_missing = download_symbol_frames(
             missing,
             period="1d",
@@ -614,13 +619,30 @@ def _download_top10_frames(
         frames.update(recovered)
         missing = still_missing
 
+    if missing:
+        recovered, still_missing = download_symbol_frames(
+            missing,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            batch_size=TOP10_RECOVERY_CHUNK_SIZE,
+            timeout=TOP10_RECOVERY_TIMEOUT,
+            retries=0,
+            recover_missing=False,
+            diagnostics=_PROVIDER_DIAGNOSTICS,
+        )
+        frames.update(recovered)
+        missing = still_missing
+
+    # Individual requests are deliberately capped; unresolved symbols remain
+    # explicitly missing rather than extending a live refresh indefinitely.
     if 0 < len(missing) <= TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
         recovered, still_missing = download_symbol_frames(
             missing,
             period="1d",
             interval="1m",
             auto_adjust=False,
-            batch_size=TOP10_MAX_SINGLE_SYMBOL_RECOVERY,
+            batch_size=len(missing),
             timeout=TOP10_RECOVERY_TIMEOUT,
             retries=0,
             recover_missing=True,
@@ -631,7 +653,7 @@ def _download_top10_frames(
 
     if missing:
         _PROVIDER_DIAGNOSTICS.append(
-            f"usable candles missing for {len(missing)}/{len(tickers)} tickers"
+            f"usable candles missing for {len(missing)}/{len(tickers)} tickers after staged recovery"
         )
     if not frames:
         _PROVIDER_DIAGNOSTICS.append(
