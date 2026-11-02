@@ -1,10 +1,12 @@
 """Scan symbols saved in the user's personal watchlist."""
 
+from datetime import datetime
 from typing import Any
 
 import pandas as pd
 
 from services.analyzer import analyze_stock
+from services.intraday_context_freshness import intraday_context_freshness
 from services.intraday_market_context import intraday_market_context
 from services.resilient_market_data import download_symbol_frames
 
@@ -39,6 +41,7 @@ _CONTEXT_FIELDS = {
     "Session turnover": None,
     "Turnover ratio": None,
     "Context status": "INTRADAY CONTEXT UNAVAILABLE",
+    "Context freshness": "TIMESTAMP_UNAVAILABLE",
     "Cumulative RVOL basis": "Not time-of-day normalized",
 }
 
@@ -51,7 +54,11 @@ def _intraday_context_columns(
     if intraday is None or intraday.empty:
         return dict(_CONTEXT_FIELDS)
 
-    session_date = pd.Timestamp(intraday.index[-1]).date()
+    latest_timestamp = pd.Timestamp(intraday.index[-1])
+    observed_at = latest_timestamp.to_pydatetime()
+    now = datetime.now(tz=observed_at.tzinfo) if observed_at.tzinfo is not None else datetime.now()
+    freshness = intraday_context_freshness(latest_timestamp, now=now)
+    session_date = latest_timestamp.date()
     baselines = pd.DataFrame() if daily is None else daily.copy()
     if not baselines.empty:
         baselines = baselines.loc[
@@ -83,6 +90,7 @@ def _intraday_context_columns(
         **_CONTEXT_FIELDS,
         **context,
         "Context status": context.get("Context status", "INTRADAY CONTEXT UNAVAILABLE"),
+        "Context freshness": freshness,
     }
 
 
