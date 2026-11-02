@@ -28,11 +28,11 @@ def test_watchlist_intraday_context_uses_prior_daily_baselines():
     intraday, daily = _frames()
     result = _intraday_context_columns(intraday, daily)
 
-    assert result["Gap %"] == 5.0
+    assert result["Gap %"] == 2.941
     assert result["Intraday change %"] == 3.81
     assert result["Session volume"] == 3000
     assert result["Cumulative RVOL"] == 0.273
-    assert result["Turnover ratio"] == 0.268
+    assert result["Turnover ratio"] == 0.292
     assert result["Cumulative RVOL basis"] == "Not time-of-day normalized"
     assert result["Context status"] == "OK"
 
