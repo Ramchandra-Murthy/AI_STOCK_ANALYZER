@@ -41,6 +41,8 @@ def intraday_market_context(
         & (data["Low"] <= data[["Open", "Close", "High"]].min(axis=1))
     )
     data = data.loc[valid].sort_index()
+    # Duplicate timestamps can double-count volume/turnover; retain the last valid candle.
+    data = data.loc[~data.index.duplicated(keep="last")]
     if data.empty:
         return {}
 
