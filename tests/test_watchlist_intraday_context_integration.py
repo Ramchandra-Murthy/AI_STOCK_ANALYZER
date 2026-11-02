@@ -1,6 +1,6 @@
 """End-to-end integration tests for watchlist intraday context columns."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -100,7 +100,6 @@ def test_scan_watchlist_keeps_analysis_when_intraday_download_fails(monkeypatch)
     assert row["Turnover ratio"] is None
     assert row["Context status"] == "INTRADAY CONTEXT UNAVAILABLE"
     assert row["Context freshness"] == "TIMESTAMP_UNAVAILABLE"
-
 
 
 def test_watchlist_context_freshness_is_fresh_at_evaluation_time():
