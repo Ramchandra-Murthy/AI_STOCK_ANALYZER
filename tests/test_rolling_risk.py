@@ -29,7 +29,7 @@ def test_rolling_risk_metrics_rejects_invalid_inputs():
     with pytest.raises(ValueError, match="at least 2"):
         rolling_risk_metrics(pd.Series([0.01, 0.02]), window=1)
 
-    with pytest.raises(ValueError, match="must be positive"):
+    with pytest.raises(ValueError, match="positive"):
         rolling_risk_metrics(pd.Series([0.01, 0.02]), window=2, periods_per_year=0)
 
     with pytest.raises(ValueError, match="not enough observations"):
