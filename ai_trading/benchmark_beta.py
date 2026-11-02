@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
 import pandas as pd
 
 
@@ -14,15 +15,27 @@ def benchmark_beta(
     """Estimate strategy beta relative to benchmark returns."""
     frame = pd.concat([strategy_returns, benchmark_returns], axis=1)
     frame = frame.apply(pd.to_numeric, errors="coerce").dropna()
+    values = frame.to_numpy(dtype=float)
+    if not np.isfinite(values).all():
+        raise ValueError("strategy and benchmark returns must be finite")
+    if (values < -1.0).any():
+        raise ValueError("strategy and benchmark returns cannot be below -100%")
     if len(frame) < 2:
         return None
 
     benchmark_variance = float(frame.iloc[:, 1].var(ddof=1))
+    if not math.isfinite(benchmark_variance):
+        raise ValueError("benchmark variance calculation produced a non-finite result")
     if math.isclose(benchmark_variance, 0.0, abs_tol=1e-12):
         return None
 
     covariance = float(frame.iloc[:, 0].cov(frame.iloc[:, 1]))
-    return covariance / benchmark_variance
+    if not math.isfinite(covariance):
+        raise ValueError("benchmark covariance calculation produced a non-finite result")
+    beta = covariance / benchmark_variance
+    if not math.isfinite(beta):
+        raise ValueError("benchmark beta calculation produced a non-finite result")
+    return beta
 
 
 def benchmark_beta_summary(

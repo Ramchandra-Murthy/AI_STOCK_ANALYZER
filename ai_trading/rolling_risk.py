@@ -19,6 +19,7 @@ def rolling_risk_metrics(
 ) -> pd.DataFrame:
     """Return rolling volatility, Sharpe ratio, and window drawdown."""
     if isinstance(window, (bool, np.bool_)) or not isinstance(window, Integral):
+    if isinstance(window, (bool, np.bool_)) or not isinstance(window, (int, np.integer)):
         raise ValueError("window must be an integer of at least 2")
     if window < 2:
         raise ValueError("window must be an integer of at least 2")
@@ -31,6 +32,15 @@ def rolling_risk_metrics(
         raise ValueError("periods_per_year must be finite, numeric, and positive") from exc
     if not math.isfinite(periods_per_year) or periods_per_year <= 0:
         raise ValueError("periods_per_year must be finite, numeric, and positive")
+        raise ValueError("periods_per_year must be finite and numeric")
+    try:
+        periods_per_year = float(periods_per_year)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("periods_per_year must be finite and numeric") from exc
+    if not math.isfinite(periods_per_year):
+        raise ValueError("periods_per_year must be finite and numeric")
+    if periods_per_year <= 0:
+        raise ValueError("periods_per_year must be positive and finite")
 
     clean = pd.to_numeric(returns, errors="coerce").dropna().reset_index(drop=True)
     if not np.isfinite(clean.to_numpy(dtype=float)).all():

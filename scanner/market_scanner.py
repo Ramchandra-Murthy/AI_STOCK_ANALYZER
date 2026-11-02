@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import date, datetime
 from typing import Any
@@ -21,7 +22,10 @@ from scanner.dynamic_universe import (
     merge_nse_universe,
     yahoo_symbol_for_bse_code,
 )
+from services.scanner_trend_sort import sort_bullish_to_bearish
 from services.sector_mapping import sector_for_symbol
+
+logger = logging.getLogger(__name__)
 
 TOP_CANDIDATES_TO_ANALYZE = 20
 DISPLAY_COUNT = 20
@@ -138,8 +142,13 @@ def _download_chunk(chunk: list[str]) -> pd.DataFrame:
         )
         if history is not None and not history.empty:
             return history
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug(
+            "Price download attempt failed, retrying single-threaded (%d symbols, first: %s): %s",
+            len(chunk),
+            chunk[0] if chunk else "-",
+            exc,
+        )
 
     try:
         history = yf.download(
@@ -152,7 +161,13 @@ def _download_chunk(chunk: list[str]) -> pd.DataFrame:
             threads=False,
             timeout=15,
         )
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "Price download failed for a screen chunk (%d symbols, first: %s): %s",
+            len(chunk),
+            chunk[0] if chunk else "-",
+            exc,
+        )
         return pd.DataFrame()
     return history if history is not None else pd.DataFrame()
 
@@ -172,8 +187,13 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
         )
         if history is not None and not history.empty:
             return history
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug(
+            "Price download attempt failed, retrying single-threaded (%d symbols, first: %s): %s",
+            len(chunk),
+            chunk[0] if chunk else "-",
+            exc,
+        )
 
     try:
         history = yf.download(
@@ -186,7 +206,13 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
             threads=False,
             timeout=20,
         )
-    except Exception:
+    except Exception as exc:
+        logger.warning(
+            "Price download failed for the analysis shortlist (%d symbols, first: %s): %s",
+            len(chunk),
+            chunk[0] if chunk else "-",
+            exc,
+        )
         return pd.DataFrame()
     return history if history is not None else pd.DataFrame()
 
@@ -496,9 +522,7 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         return df
 
     # Confidence is intentionally unavailable until calibrated on out-of-sample data.
-    result = (
-        df.sort_values(by="AI Score", ascending=False).head(DISPLAY_COUNT).reset_index(drop=True)
-    )
+    result = sort_bullish_to_bearish(df).head(DISPLAY_COUNT).reset_index(drop=True)
     for exchange in coverage:
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage

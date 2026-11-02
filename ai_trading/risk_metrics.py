@@ -23,7 +23,11 @@ def _validate_finite_parameter(value: float, name: str) -> float:
 
 def _clean_returns(returns: pd.Series) -> pd.Series:
     """Coerce returns to numeric, ignore missing values, and validate simple returns."""
-    clean = pd.to_numeric(returns, errors="coerce").dropna()
+    numeric = pd.to_numeric(returns, errors="coerce")
+    invalid = returns.notna() & numeric.isna()
+    if invalid.any():
+        raise ValueError("returns must contain only numeric values or missing values")
+    clean = numeric.dropna()
     values = clean.to_numpy(dtype=float)
     if not np.isfinite(values).all():
         raise ValueError("returns must contain only finite numeric values")
@@ -66,8 +70,16 @@ def sharpe_ratio(
     clean = _clean_returns(returns)
     if len(clean) < 2:
         return 0.0
-    period_rf = (1.0 + risk_free_rate) ** (1.0 / periods_per_year) - 1.0
+    try:
+        period_exponent = 1.0 / periods_per_year
+        period_rf = (1.0 + risk_free_rate) ** period_exponent - 1.0
+    except OverflowError as exc:
+        raise ValueError("Sharpe ratio risk-free rate calculation overflowed") from exc
+    if not math.isfinite(period_exponent) or not math.isfinite(period_rf):
+        raise ValueError("Sharpe ratio risk-free rate calculation produced a non-finite result")
     excess = clean - period_rf
+    if not np.isfinite(excess.to_numpy(dtype=float)).all():
+        raise ValueError("Sharpe ratio excess returns overflowed")
     volatility = excess.std(ddof=1)
     if not math.isfinite(float(volatility)):
         raise ValueError("Sharpe ratio volatility overflowed")
@@ -98,7 +110,10 @@ def omega_ratio(
         raise ValueError("omega ratio gain/loss totals overflowed")
     if math.isclose(losses, 0.0, abs_tol=1e-12):
         return float("inf") if gains > 0.0 else None
-    return gains / losses
+    result = gains / losses
+    if not math.isfinite(result):
+        raise ValueError("omega ratio calculation produced a non-finite result")
+    return result
 
 
 def conditional_value_at_risk(
@@ -114,10 +129,18 @@ def conditional_value_at_risk(
     if clean.empty:
         return None
     var = float(clean.quantile(1.0 - confidence))
+    if not math.isfinite(var):
+        raise ValueError("CVaR quantile calculation produced a non-finite result")
     tail = clean[clean <= var]
     if tail.empty:
         return max(0.0, -var)
-    return max(0.0, float(-tail.mean()))
+    tail_mean = float(tail.mean())
+    if not math.isfinite(tail_mean):
+        raise ValueError("CVaR tail mean calculation produced a non-finite result")
+    result = max(0.0, -tail_mean)
+    if not math.isfinite(result):
+        raise ValueError("CVaR calculation produced a non-finite result")
+    return result
 
 
 def max_drawdown(returns: pd.Series) -> float:
@@ -125,10 +148,11 @@ def max_drawdown(returns: pd.Series) -> float:
     clean = _clean_returns(returns)
     if clean.empty:
         return 0.0
-    equity = (1.0 + clean).cumprod()
-    if not np.isfinite(equity.to_numpy(dtype=float)).all():
+    equity = np.concatenate(([1.0], (1.0 + clean).cumprod().to_numpy(dtype=float)))
+    if not np.isfinite(equity).all():
         raise ValueError("equity curve overflowed while calculating max drawdown")
-    drawdown = 1.0 - equity / equity.cummax()
+    peak = np.maximum.accumulate(equity)
+    drawdown = 1.0 - equity / peak
     return float(drawdown.max())
 
 

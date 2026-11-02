@@ -26,6 +26,18 @@ def test_max_drawdown_matches_equity_path() -> None:
     assert max_drawdown(returns) == pytest.approx(expected)
 
 
+def test_max_drawdown_includes_initial_capital_as_peak() -> None:
+    returns = pd.Series([-0.50, -0.25])
+
+    assert max_drawdown(returns) == pytest.approx(0.625)
+
+
+def test_max_drawdown_handles_total_loss_at_first_observation() -> None:
+    returns = pd.Series([-1.0, 0.0])
+
+    assert max_drawdown(returns) == pytest.approx(1.0)
+
+
 def test_omega_ratio_uses_positive_and_negative_excess_returns() -> None:
     returns = pd.Series([0.02, -0.02, 0.03, -0.03])
     assert omega_ratio(returns) == pytest.approx(1.0)
@@ -127,6 +139,30 @@ def test_risk_metrics_reject_boolean_and_non_numeric_parameters(metric, kwargs) 
         metric(pd.Series([0.01, -0.02, 0.03]), **kwargs)
 
 
+@pytest.mark.parametrize(
+    "metric",
+    [
+        annualized_volatility,
+        sharpe_ratio,
+        omega_ratio,
+        conditional_value_at_risk,
+        max_drawdown,
+    ],
+)
+def test_risk_metrics_reject_non_numeric_return_observations(metric) -> None:
+    returns = pd.Series([0.01, "not-a-return", -0.02])
+
+    with pytest.raises(ValueError, match="numeric values or missing values"):
+        metric(returns)
+
+
+def test_risk_metrics_accept_numeric_strings_and_missing_values() -> None:
+    returns = pd.Series(["0.01", None, "-0.02"])
+
+    assert annualized_volatility(returns) > 0.0
+    assert max_drawdown(returns) == pytest.approx(0.02)
+
+
 def test_max_drawdown_rejects_equity_curve_overflow() -> None:
     returns = pd.Series([1e308, 1e308])
 
@@ -160,3 +196,24 @@ def test_sharpe_ratio_rejects_result_overflow() -> None:
 
     with pytest.raises(ValueError, match="Sharpe ratio volatility overflowed"):
         sharpe_ratio(returns)
+
+
+def test_sharpe_ratio_rejects_risk_free_rate_annualization_overflow() -> None:
+    returns = pd.Series([0.01, -0.02, 0.03])
+
+    with pytest.raises(ValueError, match="risk-free rate calculation"):
+        sharpe_ratio(returns, periods_per_year=1e-320)
+
+
+def test_cvar_rejects_tail_mean_overflow() -> None:
+    returns = pd.Series([1e308, 1e308])
+
+    with pytest.raises(ValueError, match="CVaR tail mean"):
+        conditional_value_at_risk(returns, confidence=0.5)
+
+
+def test_omega_ratio_rejects_result_overflow() -> None:
+    returns = pd.Series([1e308, -1e-10])
+
+    with pytest.raises(ValueError, match="omega ratio calculation produced a non-finite result"):
+        omega_ratio(returns)

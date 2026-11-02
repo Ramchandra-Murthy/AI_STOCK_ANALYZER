@@ -50,7 +50,16 @@ def fixed_risk_size(
     entry_price: float,
     stop_price: float,
 ) -> PositionSize:
-    """Size so the stop distance consumes the selected risk budget."""
+    """Size to a fixed risk budget without exceeding available capital.
+
+    The risk-distance calculation sets the maximum loss at the stop, while the
+    capital constraint prevents the resulting quantity from requiring more
+    than the supplied capital at the entry price. Costs, slippage, and gaps
+    are not included in the estimate.
+    """
+    values = (capital, risk_fraction, entry_price, stop_price)
+    if not all(math.isfinite(value) for value in values):
+        return PositionSize(0, 0.0, 0.0, "fixed_risk")
     if capital <= 0 or risk_fraction <= 0 or entry_price <= 0:
         return PositionSize(0, 0.0, 0.0, "fixed_risk")
 
@@ -59,7 +68,9 @@ def fixed_risk_size(
     if risk_per_share <= 0:
         return PositionSize(0, risk_budget, 0.0, "fixed_risk")
 
-    quantity = max(0, int(risk_budget // risk_per_share))
+    risk_quantity = max(0, int(risk_budget // risk_per_share))
+    capital_quantity = max(0, int(capital // entry_price))
+    quantity = min(risk_quantity, capital_quantity)
     return PositionSize(quantity, risk_budget, risk_per_share, "fixed_risk")
 
 
