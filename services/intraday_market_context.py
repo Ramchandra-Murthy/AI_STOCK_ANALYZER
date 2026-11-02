@@ -3,8 +3,6 @@
 This module computes descriptive context only. It does not generate trade signals.
 """
 
-from __future__ import annotations
-
 import math
 from typing import Any
 
