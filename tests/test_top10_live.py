@@ -64,8 +64,9 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_MAX_BSE_CANDIDATES == 10
     assert TOP10_PROVIDER_RETRIES == 1
     assert TOP10_PROVIDER_TIMEOUT == 8
-    assert top10_live.TOP10_MAX_SINGLE_SYMBOL_RECOVERY == 2
-    assert top10_live.TOP10_RECOVERY_TIMEOUT == 4
+    assert top10_live.TOP10_RECOVERY_CHUNK_SIZE == 2
+    assert top10_live.TOP10_MAX_SINGLE_SYMBOL_RECOVERY == 5
+    assert top10_live.TOP10_RECOVERY_TIMEOUT == 3
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert 0 < TOP10_SCAN_WARNING_SECONDS < TOP10_STALE_DATA_SECONDS
     assert TOP10_STALE_DATA_SECONDS >= 3 * TOP10_REFRESH_SECONDS
@@ -814,3 +815,50 @@ def test_top10_filters_can_select_one_exchange() -> None:
     filtered = top10_live._apply_top10_filters(source, exchange="BSE")
 
     assert filtered["Symbol"].tolist() == ["BBB"]
+
+
+def test_top10_live_staged_recovery_retries_empty_batch_with_smaller_chunks(monkeypatch) -> None:
+    calls = []
+
+    def fake_download(tickers, **kwargs):
+        symbols = list(tickers)
+        calls.append((len(symbols), kwargs["batch_size"], kwargs["recover_missing"]))
+        return {}, symbols
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+    tickers = [f"SYM{i}.NS" for i in range(10)]
+
+    frames, missing, provider = top10_live._download_top10_frames(tickers)
+
+    assert frames == {}
+    assert missing == tickers
+    assert provider == "Yahoo Finance"
+    assert calls == [(10, 20, False), (10, 5, False), (10, 2, False), (10, 10, True)]
+    assert any("after staged recovery" in item for item in top10_live._PROVIDER_DIAGNOSTICS)
+
+
+def test_top10_live_staged_recovery_preserves_partial_successes(monkeypatch) -> None:
+    calls = 0
+    successful = {"SYM0.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
+
+    def fake_download(tickers, **kwargs):
+        nonlocal calls
+        calls += 1
+        symbols = list(tickers)
+        if calls == 1:
+            return successful, [symbol for symbol in symbols if symbol not in successful]
+        if calls == 2:
+            return {}, symbols
+        if calls == 3:
+            recovered = {symbols[0]: pd.DataFrame({"Close": [200.0, 201.0]})}
+            return recovered, symbols[1:]
+        return {}, symbols
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+    frames, missing, _provider = top10_live._download_top10_frames(
+        [f"SYM{i}.NS" for i in range(4)]
+    )
+
+    assert set(frames) == {"SYM0.NS", "SYM1.NS"}
+    assert missing == ["SYM2.NS", "SYM3.NS"]
+    assert calls == 4
