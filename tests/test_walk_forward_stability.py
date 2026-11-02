@@ -66,7 +66,6 @@ def test_invalid_window_size_is_rejected():
         walk_forward_window_metrics(pd.Series([0.01, 0.02]), window_size=1)
 
 
-
 @pytest.mark.parametrize("invalid_return", [float("inf"), float("-inf")])
 def test_walk_forward_window_metrics_rejects_infinite_returns(invalid_return):
     returns = pd.Series([0.01, invalid_return, 0.02, 0.03])
