@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from numbers import Integral
 
 import numpy as np
 import pandas as pd
@@ -17,12 +18,20 @@ def rolling_risk_metrics(
     periods_per_year: float = 252.0,
 ) -> pd.DataFrame:
     """Return rolling volatility, Sharpe ratio, and window drawdown."""
+    if isinstance(window, (bool, np.bool_)) or not isinstance(window, Integral):
     if isinstance(window, (bool, np.bool_)) or not isinstance(window, (int, np.integer)):
         raise ValueError("window must be an integer of at least 2")
     if window < 2:
         raise ValueError("window must be an integer of at least 2")
 
     if isinstance(periods_per_year, (bool, np.bool_)):
+        raise ValueError("periods_per_year must be finite, numeric, and positive")
+    try:
+        periods_per_year = float(periods_per_year)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("periods_per_year must be finite, numeric, and positive") from exc
+    if not math.isfinite(periods_per_year) or periods_per_year <= 0:
+        raise ValueError("periods_per_year must be finite, numeric, and positive")
         raise ValueError("periods_per_year must be finite and numeric")
     try:
         periods_per_year = float(periods_per_year)
