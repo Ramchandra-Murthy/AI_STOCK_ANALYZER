@@ -1,6 +1,6 @@
 """Shared bullish-to-bearish ordering for scanner result tables."""
 
-import pandas as pd
+import pandas as pd  # noqa: I001 - single required third-party import
 
 
 _TREND_RANKS = {
