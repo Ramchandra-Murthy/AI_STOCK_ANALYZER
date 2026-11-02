@@ -1,9 +1,9 @@
-from __future__ import annotations
-
 """Pure intraday market-context metrics for explainable Stocks-in-Play screening.
 
 This module computes descriptive context only. It does not generate trade signals.
 """
+
+from __future__ import annotations
 
 import math
 from typing import Any
