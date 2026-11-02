@@ -4,9 +4,8 @@ This module computes descriptive context only. It does not generate trade signal
 """
 
 import math
-from typing import Any
-
 import pandas as pd
+from typing import Any
 
 
 _REQUIRED = {"Open", "High", "Low", "Close", "Volume"}
