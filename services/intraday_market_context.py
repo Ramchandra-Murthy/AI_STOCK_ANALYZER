@@ -3,8 +3,9 @@
 This module computes descriptive context only. It does not generate trade signals.
 """
 
-import math
 from typing import Any
+
+import math
 
 import pandas as pd
 
