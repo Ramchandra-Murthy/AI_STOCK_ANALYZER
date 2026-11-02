@@ -1,7 +1,5 @@
 """Shared bullish-to-bearish ordering for scanner result tables."""
 
-from typing import Any
-
 
 _TREND_RANKS = {
     "STRONG BULLISH": 0,
@@ -46,14 +44,14 @@ def _trend_rank(value: object) -> int:
 
 
 def sort_bullish_to_bearish(
-    frame: Any,
+    frame: object,
     *,
     trend_columns: tuple[str, ...] = ("Trend", "trend", "regime", "signal", "Recommendation"),
     strength_columns: tuple[str, ...] = (
         "AI Score", "score", "confidence_pct", "confidence", "trend_pct",
         "Change %", "Change 30m %", "Change 15m %", "Change 5m %",
     ),
-) -> Any:
+) -> object:
     """Sort scanner rows bullish-to-bearish without changing signal values.
 
     Uses the first available explicit trend/signal column, then the first available
@@ -85,6 +83,8 @@ def sort_bullish_to_bearish(
         strength_name = "__trend_order_strength__"
         while strength_name in result.columns:
             strength_name = f"_{strength_name}"
+        import pandas as pd
+
         result[strength_name] = pd.to_numeric(result[strength_column], errors="coerce")
         temporary_columns.append(strength_name)
         sort_columns.append(strength_name)
