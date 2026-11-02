@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from ai_trading.risk_metrics import max_drawdown, sharpe_ratio
@@ -20,6 +21,8 @@ def walk_forward_window_metrics(
         raise ValueError("periods_per_year must be positive")
 
     clean = pd.to_numeric(returns, errors="coerce").dropna().reset_index(drop=True)
+    if not np.isfinite(clean.to_numpy(dtype=float)).all():
+        raise ValueError("returns must contain only finite values")
     if len(clean) < window_size:
         raise ValueError("not enough observations for the requested window size")
 
