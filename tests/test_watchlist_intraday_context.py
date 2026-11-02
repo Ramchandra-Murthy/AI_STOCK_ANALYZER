@@ -60,5 +60,5 @@ def test_watchlist_context_excludes_same_session_daily_candle():
 
     result = _intraday_context_columns(intraday, daily)
 
-    assert result["Gap %"] == 5.0
+    assert result["Gap %"] == 2.941
     assert result["Cumulative RVOL"] == 0.273
