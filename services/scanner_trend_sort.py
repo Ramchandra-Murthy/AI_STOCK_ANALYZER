@@ -76,6 +76,7 @@ def sort_bullish_to_bearish(
     result[rank_name] = result[trend_column].map(_trend_rank)
 
     strength_column = next((column for column in strength_columns if column in result.columns), None)
+    temporary_columns = [rank_name]
     sort_columns = [rank_name]
     ascending = [True]
     if strength_column is not None:
@@ -83,8 +84,9 @@ def sort_bullish_to_bearish(
         while strength_name in result.columns:
             strength_name = f"_{strength_name}"
         result[strength_name] = pd.to_numeric(result[strength_column], errors="coerce")
+        temporary_columns.append(strength_name)
         sort_columns.append(strength_name)
         ascending.append(False)
 
     result = result.sort_values(sort_columns, ascending=ascending, na_position="last", kind="stable")
-    return result.drop(columns=[column for column in result.columns if column.startswith("__trend_order_") or column.startswith("_ __trend_order_")]).reset_index(drop=True)
+    return result.drop(columns=temporary_columns).reset_index(drop=True)
