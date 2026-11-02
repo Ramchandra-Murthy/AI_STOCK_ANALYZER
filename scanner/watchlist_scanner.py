@@ -31,7 +31,6 @@ def _observation_columns(observation: Any) -> dict[str, Any]:
     }
 
 
-
 _CONTEXT_FIELDS = {
     "Gap %": None,
     "Intraday change %": None,
@@ -70,9 +69,7 @@ def _intraday_context_columns(
             baselines = baselines.loc[(baselines["Close"] > 0) & (baselines["Volume"] >= 0)]
             baselines = baselines.tail(20)
 
-    average_volume = (
-        float(baselines["Volume"].mean()) if not baselines.empty else None
-    )
+    average_volume = float(baselines["Volume"].mean()) if not baselines.empty else None
     average_turnover = (
         float((baselines["Close"] * baselines["Volume"]).mean())
         if not baselines.empty
@@ -99,18 +96,34 @@ def scan_watchlist(symbols: list[str]) -> pd.DataFrame:
     """Analyze each saved symbol directly; do not substitute broad-universe movers."""
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
-    tickers = list(dict.fromkeys(ticker for symbol in symbols if (ticker := _normalize_ticker(symbol))))
+    tickers = list(
+        dict.fromkeys(
+            ticker for symbol in symbols if (ticker := _normalize_ticker(symbol))
+        )
+    )
     intraday_frames: dict[str, pd.DataFrame] = {}
     daily_frames: dict[str, pd.DataFrame] = {}
     if tickers:
         try:
             intraday_frames, _ = download_symbol_frames(
-                tickers, period="1d", interval="1m", auto_adjust=True,
-                batch_size=10, timeout=15, retries=0, recover_missing=False,
+                tickers,
+                period="1d",
+                interval="1m",
+                auto_adjust=True,
+                batch_size=10,
+                timeout=15,
+                retries=0,
+                recover_missing=False,
             )
             daily_frames, _ = download_symbol_frames(
-                tickers, period="1mo", interval="1d", auto_adjust=True,
-                batch_size=10, timeout=15, retries=0, recover_missing=False,
+                tickers,
+                period="1mo",
+                interval="1d",
+                auto_adjust=True,
+                batch_size=10,
+                timeout=15,
+                retries=0,
+                recover_missing=False,
             )
         except Exception:
             # Context is optional; existing analysis should remain available.
