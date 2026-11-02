@@ -48,7 +48,6 @@ def test_rolling_risk_metrics_rejects_non_integer_window(window):
 )
 def test_rolling_risk_metrics_rejects_invalid_periods_per_year(periods_per_year):
     with pytest.raises(ValueError, match="periods_per_year must be finite, numeric, and positive"):
-    with pytest.raises(ValueError, match="periods_per_year"):
         rolling_risk_metrics(
             pd.Series([0.01, -0.02, 0.03]),
             window=2,
