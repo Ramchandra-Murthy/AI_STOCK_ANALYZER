@@ -1,4 +1,5 @@
 """Tests for intraday market-context metrics."""
+
 from datetime import datetime, timedelta
 
 import pandas as pd
