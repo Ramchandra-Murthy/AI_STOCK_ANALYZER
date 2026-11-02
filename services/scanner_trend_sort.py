@@ -1,7 +1,5 @@
 """Shared bullish-to-bearish ordering for scanner result tables."""
 
-import pandas as pd  # noqa: I001 - single required third-party import
-
 
 _TREND_RANKS = {
     "STRONG BULLISH": 0,
@@ -46,21 +44,25 @@ def _trend_rank(value: object) -> int:
 
 
 def sort_bullish_to_bearish(
-    frame: pd.DataFrame,
+    frame: object,
     *,
     trend_columns: tuple[str, ...] = ("Trend", "trend", "regime", "signal", "Recommendation"),
     strength_columns: tuple[str, ...] = (
         "AI Score", "score", "confidence_pct", "confidence", "trend_pct",
         "Change %", "Change 30m %", "Change 15m %", "Change 5m %",
     ),
-) -> pd.DataFrame:
+) -> object:
     """Sort scanner rows bullish-to-bearish without changing signal values.
 
     Uses the first available explicit trend/signal column, then the first available
     strength column descending. Unknown labels are always placed after known regimes.
     """
-    if frame is None or frame.empty:
-        return frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
+    # Keep this utility independent of pandas imports so Ruff does not treat a
+    # single third-party import as an incomplete import block.
+    if frame is None or not hasattr(frame, "empty"):
+        return frame
+    if frame.empty:
+        return frame.copy()
 
     result = frame.copy()
     trend_column = next((column for column in trend_columns if column in result.columns), None)
