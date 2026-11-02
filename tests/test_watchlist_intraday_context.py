@@ -94,8 +94,12 @@ def test_intraday_context_filters_invalid_ohlcv_rows():
             {"Open": 105, "High": 108, "Low": 104, "Close": 107, "Volume": -10},
             {"Open": "bad", "High": 108, "Low": 104, "Close": 107, "Volume": 9000},
         ],
-        index=[timestamp, timestamp + pd.Timedelta(minutes=1),
-               timestamp + pd.Timedelta(minutes=2), timestamp + pd.Timedelta(minutes=3)],
+        index=[
+            timestamp,
+            timestamp + pd.Timedelta(minutes=1),
+            timestamp + pd.Timedelta(minutes=2),
+            timestamp + pd.Timedelta(minutes=3),
+        ],
     )
 
     result = intraday_market_context(intraday, previous_close=102)
