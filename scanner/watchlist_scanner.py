@@ -89,7 +89,7 @@ def _intraday_context_columns(
         average_daily_turnover=average_turnover,
     )
     if not context:
-        return dict(_CONTEXT_FIELDS)
+        return {**_CONTEXT_FIELDS, "Market Session": market_session}
     return {
         **_CONTEXT_FIELDS,
         **context,
