@@ -21,8 +21,8 @@ from scanner.dynamic_universe import (
     merge_nse_universe,
     yahoo_symbol_for_bse_code,
 )
-from services.sector_mapping import sector_for_symbol
 from services.scanner_trend_sort import sort_bullish_to_bearish
+from services.sector_mapping import sector_for_symbol
 
 TOP_CANDIDATES_TO_ANALYZE = 20
 DISPLAY_COUNT = 20
