@@ -60,9 +60,7 @@ def test_scan_watchlist_includes_intraday_context_without_changing_analysis(
             {},
         ),
     )
-    monkeypatch.setattr(
-        watchlist_scanner, "analyze_stock", lambda ticker: _analysis_result()
-    )
+    monkeypatch.setattr(watchlist_scanner, "analyze_stock", lambda ticker: _analysis_result())
 
     result = watchlist_scanner.scan_watchlist(["ABC"])
 
@@ -87,9 +85,7 @@ def test_scan_watchlist_keeps_analysis_when_intraday_download_fails(monkeypatch)
         raise RuntimeError("provider unavailable")
 
     monkeypatch.setattr(watchlist_scanner, "download_symbol_frames", fail_download)
-    monkeypatch.setattr(
-        watchlist_scanner, "analyze_stock", lambda ticker: _analysis_result()
-    )
+    monkeypatch.setattr(watchlist_scanner, "analyze_stock", lambda ticker: _analysis_result())
 
     result = watchlist_scanner.scan_watchlist(["ABC"])
 
