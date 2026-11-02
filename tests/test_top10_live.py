@@ -855,9 +855,7 @@ def test_top10_live_staged_recovery_preserves_partial_successes(monkeypatch) -> 
         return {}, symbols
 
     monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
-    frames, missing, _provider = top10_live._download_top10_frames(
-        [f"SYM{i}.NS" for i in range(4)]
-    )
+    frames, missing, _provider = top10_live._download_top10_frames([f"SYM{i}.NS" for i in range(4)])
 
     assert set(frames) == {"SYM0.NS", "SYM1.NS"}
     assert missing == ["SYM2.NS", "SYM3.NS"]
