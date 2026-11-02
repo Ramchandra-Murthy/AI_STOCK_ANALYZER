@@ -75,6 +75,7 @@ def test_scan_watchlist_includes_intraday_context_without_changing_analysis(
     assert row["Session volume"] == 3000
     assert row["Cumulative RVOL"] == 0.273
     assert row["Context status"] == "OK"
+    assert row["Context freshness"] == "STALE"
     assert row["Cumulative RVOL basis"] == "Not time-of-day normalized"
 
 
@@ -98,3 +99,4 @@ def test_scan_watchlist_keeps_analysis_when_intraday_download_fails(monkeypatch)
     assert row["Cumulative RVOL"] is None
     assert row["Turnover ratio"] is None
     assert row["Context status"] == "INTRADAY CONTEXT UNAVAILABLE"
+    assert row["Context freshness"] == "TIMESTAMP_UNAVAILABLE"
