@@ -4,7 +4,6 @@ This module computes descriptive context only. It does not generate trade signal
 """
 
 import math
-
 from typing import Any
 
 import pandas as pd
