@@ -1,6 +1,5 @@
 """Shared bullish-to-bearish ordering for scanner result tables."""
 
-
 _TREND_RANKS = {
     "STRONG BULLISH": 0,
     "BULLISH": 1,
@@ -48,8 +47,15 @@ def sort_bullish_to_bearish(
     *,
     trend_columns: tuple[str, ...] = ("Trend", "trend", "regime", "signal", "Recommendation"),
     strength_columns: tuple[str, ...] = (
-        "AI Score", "score", "confidence_pct", "confidence", "trend_pct",
-        "Change %", "Change 30m %", "Change 15m %", "Change 5m %",
+        "AI Score",
+        "score",
+        "confidence_pct",
+        "confidence",
+        "trend_pct",
+        "Change %",
+        "Change 30m %",
+        "Change 15m %",
+        "Change 5m %",
     ),
 ) -> object:
     """Sort scanner rows bullish-to-bearish without changing signal values.
@@ -75,7 +81,9 @@ def sort_bullish_to_bearish(
         rank_name = f"_{rank_name}"
     result[rank_name] = result[trend_column].map(_trend_rank)
 
-    strength_column = next((column for column in strength_columns if column in result.columns), None)
+    strength_column = next(
+        (column for column in strength_columns if column in result.columns), None
+    )
     temporary_columns = [rank_name]
     sort_columns = [rank_name]
     ascending = [True]
@@ -90,5 +98,7 @@ def sort_bullish_to_bearish(
         sort_columns.append(strength_name)
         ascending.append(False)
 
-    result = result.sort_values(sort_columns, ascending=ascending, na_position="last", kind="stable")
+    result = result.sort_values(
+        sort_columns, ascending=ascending, na_position="last", kind="stable"
+    )
     return result.drop(columns=temporary_columns).reset_index(drop=True)
