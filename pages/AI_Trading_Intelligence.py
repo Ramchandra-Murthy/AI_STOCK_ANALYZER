@@ -13,7 +13,8 @@ from ai_trading.ml_scanner import scan_universe as scan_ml_universe
 from ai_trading.signal_history import attach_outcomes, record_signal
 from ai_trading.walk_forward import walk_forward_backtest
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
-from services.resilient_market_data import download_symbol_frames
+from services.resilient_market_data import download_market_frames, download_symbol_frames
+from services.scanner_trend_sort import sort_bullish_to_bearish
 
 st.set_page_config(page_title="AI Trading Intelligence", page_icon="🧠", layout="wide")
 
@@ -51,6 +52,7 @@ if st.button("Run AI Trading Scan", type="primary"):
         )
     else:
         st.success(f"Analyzed {len(result)} symbols with complete market-data coverage.")
+    result = sort_bullish_to_bearish(result)
     st.subheader("AI Trading Opportunities")
     st.dataframe(result.head(10), use_container_width=True, hide_index=True)
 
@@ -157,6 +159,7 @@ if isinstance(ml_result, pd.DataFrame):
             & ml_result["regime"].isin(regime_filter)
             & (ml_result["confidence_pct"] >= min_confidence)
         ].copy()
+        filtered = sort_bullish_to_bearish(filtered)
 
         metric1, metric2, metric3, metric4 = st.columns(4)
         metric1.metric("Models validated", len(ml_result))
@@ -469,7 +472,7 @@ if st.button("Run Walk-Forward Backtest", type="primary"):
         else f"{str(ml_symbol).strip().upper()}.BO"
     )
     with st.spinner(f"Backtesting {ticker}..."):
-        history_frames, history_diagnostics = download_symbol_frames(
+        history_frames, history_diagnostics = download_market_frames(
             [ticker],
             period="5y",
             interval="1d",

@@ -9,7 +9,13 @@ import pandas as pd
 from sklearn.dummy import DummyClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    brier_score_loss,
+    log_loss,
+    roc_auc_score,
+)
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
@@ -40,17 +46,38 @@ def _mlp(random_state: int) -> Pipeline:
 
 
 def _score_row(
-    model_name: str, actual: pd.Series, predicted: Any, probability_up: Any | None = None
+    model_name: str,
+    actual: pd.Series,
+    predicted: Any,
+    probability_up: Any | None = None,
+    *,
+    score_hard_label_auc: bool = False,
 ) -> dict[str, Any]:
     row: dict[str, Any] = {
         "Model": model_name,
         "Accuracy": float(accuracy_score(actual, predicted)),
         "Balanced accuracy": float(balanced_accuracy_score(actual, predicted)),
     }
-    if probability_up is not None and actual.nunique() == 2:
-        row["ROC-AUC"] = float(roc_auc_score(actual, probability_up))
+    if probability_up is not None:
+        probabilities = np.asarray(probability_up, dtype=float)
+        labels = np.asarray(actual, dtype=int)
+        row["Brier score"] = float(brier_score_loss(labels, probabilities))
+        row["Log loss"] = float(log_loss(labels, probabilities, labels=[0, 1]))
+        row["ROC-AUC"] = (
+            float(roc_auc_score(labels, probabilities))
+            if np.unique(labels).size == 2
+            else float("nan")
+        )
     else:
-        row["ROC-AUC"] = float("nan")
+        row["Brier score"] = float("nan")
+        row["Log loss"] = float("nan")
+        # Hard labels are not probability scores. Keep ROC-AUC undefined by
+        # default, with an explicit opt-in for the majority-class reference.
+        row["ROC-AUC"] = (
+            float(roc_auc_score(actual, np.asarray(predicted)))
+            if score_hard_label_auc and np.unique(np.asarray(actual)).size == 2
+            else float("nan")
+        )
     return row
 
 
@@ -77,10 +104,37 @@ def compare_holdout_baselines(
     for name, model in models:
         model.fit(X_train, y_train)
         predicted = model.predict(X_test)
+        # The hard majority-class predictor is an accuracy reference, not a
+        # meaningful probability forecast. Do not score its 0/1 probabilities
+        # with Brier score or log loss.
         probability_up = None
-        if hasattr(model, "predict_proba") and 1 in model.classes_:
+        if name != "Majority-class" and hasattr(model, "predict_proba") and 1 in model.classes_:
             probability_up = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
-        rows.append(_score_row(name, y_test, predicted, probability_up))
+        rows.append(
+            _score_row(
+                name,
+                y_test,
+                predicted,
+                probability_up,
+                score_hard_label_auc=(name == "Majority-class"),
+            )
+        )
+
+    # A constant training-prevalence forecast is a proper probabilistic
+    # reference: it uses only the training labels and is evaluated on the
+    # exact same holdout dates as the learned models.
+    prevalence = float(y_train.mean())
+    prevalence_probabilities = np.full(len(y_test), prevalence, dtype=float)
+    prevalence_predictions = (prevalence_probabilities >= 0.5).astype(int)
+    rows.insert(
+        1,
+        _score_row(
+            "Training-prevalence probability baseline",
+            y_test,
+            prevalence_predictions,
+            prevalence_probabilities,
+        ),
+    )
     return pd.DataFrame(rows)
 
 
@@ -134,6 +188,239 @@ def walk_forward_evaluation(
                 }
             )
             rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def summarize_probability_reliability(
+    actual: Any,
+    probabilities: Any,
+    n_bins: int = 5,
+) -> pd.DataFrame:
+    """Compare mean predicted up-probability with observed up frequency by fixed bins.
+
+    The table is descriptive holdout diagnostics, not proof of calibration or
+    profitable signals. Empty bins are omitted; small bin counts are noisy.
+    """
+    if n_bins < 2 or n_bins > 20:
+        raise ValueError("n_bins must be between 2 and 20")
+    actual_values = np.asarray(actual)
+    probability_values = np.asarray(probabilities, dtype=float)
+    if actual_values.ndim != 1 or probability_values.ndim != 1:
+        raise ValueError("actual and probabilities must be one-dimensional")
+    if len(actual_values) != len(probability_values):
+        raise ValueError("actual and probabilities must have equal lengths")
+    if len(actual_values) == 0:
+        raise ValueError("actual and probabilities must not be empty")
+    if not np.isin(actual_values, [0, 1]).all():
+        raise ValueError("actual values must contain only binary labels 0 and 1")
+    if (
+        not np.isfinite(probability_values).all()
+        or ((probability_values < 0) | (probability_values > 1)).any()
+    ):
+        raise ValueError("probabilities must be finite values between 0 and 1")
+
+    edges = np.linspace(0.0, 1.0, n_bins + 1)
+    bin_indices = np.minimum(np.digitize(probability_values, edges[1:-1]), n_bins - 1)
+    rows: list[dict[str, Any]] = []
+    for bin_number in range(n_bins):
+        selected = bin_indices == bin_number
+        if not selected.any():
+            continue
+        mean_probability = float(probability_values[selected].mean())
+        observed_rate = float(actual_values[selected].mean())
+        lower, upper = edges[bin_number], edges[bin_number + 1]
+        rows.append(
+            {
+                "Probability band": f"{lower:.2f}–{upper:.2f}",
+                "Samples": int(selected.sum()),
+                "Mean predicted probability": mean_probability,
+                "Observed up rate": observed_rate,
+                "Calibration gap": observed_rate - mean_probability,
+            }
+        )
+    return pd.DataFrame(
+        rows,
+        columns=[
+            "Probability band",
+            "Samples",
+            "Mean predicted probability",
+            "Observed up rate",
+            "Calibration gap",
+        ],
+    )
+
+
+def summarize_probability_calibration(
+    actual: Any,
+    probabilities: Any,
+    n_bins: int = 5,
+) -> dict[str, float | int]:
+    """Summarize holdout probability calibration using fixed-width bins.
+
+    Expected calibration error is the sample-weighted mean absolute gap between
+    each occupied bin's observed event rate and mean predicted probability.
+    It is descriptive and depends on the selected bin count; it is not a
+    guarantee of future calibration or trading performance.
+    """
+    actual_values = np.asarray(actual, dtype=float)
+    probability_values = np.asarray(probabilities, dtype=float)
+    reliability = summarize_probability_reliability(actual_values, probability_values, n_bins)
+    if reliability.empty:
+        raise ValueError("actual and probabilities must not be empty")
+
+    sample_counts = reliability["Samples"].to_numpy(dtype=float)
+    absolute_gaps = reliability["Calibration gap"].abs().to_numpy(dtype=float)
+    total_samples = int(sample_counts.sum())
+    expected_calibration_error = float(np.average(absolute_gaps, weights=sample_counts))
+    return {
+        "Samples": total_samples,
+        "Mean predicted probability": float(probability_values.mean()),
+        "Observed up rate": float(actual_values.mean()),
+        "Expected calibration error": expected_calibration_error,
+        "Maximum absolute calibration gap": float(absolute_gaps.max()),
+    }
+
+
+def permutation_feature_sensitivity(
+    model: Any,
+    features: pd.DataFrame,
+    target: pd.Series,
+    *,
+    n_repeats: int = 5,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Rank holdout features by balanced-accuracy drop after permutation.
+
+    This is a descriptive sensitivity diagnostic on the supplied holdout.
+    Correlated features can mask one another, and repeated use of a holdout
+    for interpretation can bias research conclusions. It is not causal evidence.
+    """
+    from sklearn.inspection import permutation_importance
+
+    if not features.index.equals(target.index):
+        raise ValueError("features and target must have identical indexes")
+    if features.empty or target.empty:
+        raise ValueError("features and target must not be empty")
+    if n_repeats < 1:
+        raise ValueError("n_repeats must be at least 1")
+    if target.nunique() < 2:
+        raise ValueError("target must contain both classes")
+
+    result = permutation_importance(
+        model,
+        features,
+        target,
+        scoring="balanced_accuracy",
+        n_repeats=n_repeats,
+        random_state=random_state,
+        n_jobs=1,
+    )
+    summary = pd.DataFrame(
+        {
+            "Feature": features.columns,
+            "Balanced accuracy drop mean": result.importances_mean,
+            "Balanced accuracy drop std": result.importances_std,
+        }
+    )
+    return summary.sort_values(
+        "Balanced accuracy drop mean", ascending=False, kind="stable"
+    ).reset_index(drop=True)
+
+
+def evaluate_mlp_seed_stability(
+    features: pd.DataFrame,
+    target: pd.Series,
+    *,
+    train_fraction: float = 0.70,
+    horizon: int = 5,
+    random_states: tuple[int, ...] = (7, 21, 42, 84, 126),
+) -> pd.DataFrame:
+    """Measure how MLP initialization seeds affect metrics on one fixed chronological holdout.
+
+    This is a sensitivity check, not independent validation: all seeds share the
+    same train/test dates, and repeated comparison on that holdout can bias research.
+    """
+    from sklearn.metrics import brier_score_loss
+
+    if not features.index.equals(target.index):
+        raise ValueError("features and target must have identical indexes")
+    if len(random_states) < 2:
+        raise ValueError("random_states must contain at least two seeds")
+    if len(set(random_states)) != len(random_states):
+        raise ValueError("random_states must be unique")
+    X_train, X_test, y_train, y_test = chronological_split(
+        features, target, train_fraction, horizon
+    )
+    if y_train.nunique() < 2:
+        raise ValueError("Training target must contain both classes")
+    if y_test.nunique() < 2:
+        raise ValueError("Holdout target must contain both classes")
+
+    rows: list[dict[str, Any]] = []
+    for seed in random_states:
+        model = _mlp(int(seed))
+        model.fit(X_train, y_train)
+        predicted = model.predict(X_test)
+        classes = list(model.classes_)
+        if 1 not in classes:
+            raise ValueError("Training target must contain the positive class 1")
+        probability_up = model.predict_proba(X_test)[:, classes.index(1)]
+        rows.append(
+            {
+                "Random seed": int(seed),
+                "Accuracy": float(accuracy_score(y_test, predicted)),
+                "Balanced accuracy": float(balanced_accuracy_score(y_test, predicted)),
+                "ROC-AUC": float(roc_auc_score(y_test, probability_up)),
+                "Brier score": float(brier_score_loss(y_test, probability_up)),
+                "Train rows": int(len(X_train)),
+                "Holdout rows": int(len(X_test)),
+                "Train end": str(X_train.index[-1].date()),
+                "Holdout start": str(X_test.index[0].date()),
+                "Holdout end": str(X_test.index[-1].date()),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def summarize_mlp_seed_stability(seed_results: pd.DataFrame) -> pd.DataFrame:
+    """Summarize metric dispersion across MLP seeds evaluated on one shared holdout.
+
+    This describes initialization sensitivity only. The runs are not independent
+    validation samples because they reuse the same training and holdout observations.
+    """
+    if seed_results.empty:
+        raise ValueError("Seed-stability results must not be empty")
+    metrics = ["Accuracy", "Balanced accuracy", "ROC-AUC", "Brier score"]
+    missing = sorted(set(metrics).difference(seed_results.columns))
+    if missing:
+        raise ValueError("Seed-stability results missing columns: " + ", ".join(missing))
+
+    metric_values: dict[str, pd.Series] = {}
+    for metric in metrics:
+        values = pd.to_numeric(seed_results[metric], errors="coerce")
+        if values.isna().any() or not np.isfinite(values.to_numpy(dtype=float)).all():
+            raise ValueError(f"{metric} values must be finite numeric values")
+        if ((values < 0) | (values > 1)).any():
+            raise ValueError(f"{metric} values must be between 0 and 1")
+        metric_values[metric] = values
+
+    rows: list[dict[str, Any]] = []
+    for metric in metrics:
+        values = metric_values[metric]
+        mean = float(values.mean())
+        std = float(values.std(ddof=1)) if len(values) > 1 else 0.0
+        minimum = float(values.min())
+        maximum = float(values.max())
+        rows.append(
+            {
+                "Metric": metric,
+                "Runs": int(len(values)),
+                "Mean": mean,
+                "Std": std,
+                "Min": minimum,
+                "Max": maximum,
+            }
+        )
     return pd.DataFrame(rows)
 
 
@@ -417,3 +704,181 @@ def factor_information_coefficient(
         }
         rows.append(summary)
     return pd.DataFrame(rows)
+
+
+def compare_mlp_configurations(
+    features: pd.DataFrame,
+    target: pd.Series,
+    *,
+    configurations: tuple[tuple[tuple[int, ...], float], ...] = (
+        ((8,), 0.01),
+        ((16,), 0.1),
+        ((16, 8), 0.1),
+        ((32, 16), 0.01),
+    ),
+    n_splits: int = 3,
+    horizon: int = 5,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """Compare MLP configurations on expanding chronological validation folds.
+
+    This reports validation diagnostics only. It does not select or deploy a
+    model automatically, and the final untouched test period must remain unused.
+    """
+    if not features.index.equals(target.index):
+        raise ValueError("features and target must have identical indexes")
+    if features.empty or target.empty:
+        raise ValueError("features and target must not be empty")
+    if n_splits < 2:
+        raise ValueError("n_splits must be at least 2")
+    if horizon < 1:
+        raise ValueError("horizon must be at least 1")
+    if not configurations:
+        raise ValueError("at least one MLP configuration is required")
+    for hidden_layers, alpha in configurations:
+        if not hidden_layers or any(width < 1 for width in hidden_layers):
+            raise ValueError("hidden layer sizes must be positive integers")
+        if alpha <= 0 or not np.isfinite(alpha):
+            raise ValueError("alpha must be finite and positive")
+
+    splitter = TimeSeriesSplit(n_splits=n_splits, gap=horizon + 1)
+    rows: list[dict[str, Any]] = []
+    for fold_number, (train_indices, test_indices) in enumerate(splitter.split(features), start=1):
+        X_train, X_test = features.iloc[train_indices], features.iloc[test_indices]
+        y_train, y_test = target.iloc[train_indices], target.iloc[test_indices]
+        if len(X_train) < 100 or len(X_test) < 30:
+            raise ValueError(
+                "MLP configuration validation needs at least 100 training and 30 test rows per fold"
+            )
+        if y_train.nunique() < 2:
+            raise ValueError(f"Fold {fold_number} training target contains only one class")
+        for config_number, (hidden_layers, alpha) in enumerate(configurations, start=1):
+            network = MLPClassifier(
+                hidden_layer_sizes=hidden_layers,
+                activation="relu",
+                alpha=float(alpha),
+                max_iter=300,
+                early_stopping=False,
+                random_state=random_state + fold_number,
+            )
+            model = _pipeline(network)
+            model.fit(X_train, y_train)
+            probabilities = model.predict_proba(X_test)[:, list(model.classes_).index(1)]
+            predicted = model.predict(X_test)
+            row = _score_row("MLP", y_test, predicted, probabilities)
+            row.update(
+                {
+                    "Brier score": float(np.mean((probabilities - y_test.to_numpy()) ** 2)),
+                    "Log loss": float(
+                        -np.mean(
+                            y_test.to_numpy() * np.log(np.clip(probabilities, 1e-15, 1 - 1e-15))
+                            + (1 - y_test.to_numpy())
+                            * np.log(np.clip(1 - probabilities, 1e-15, 1 - 1e-15))
+                        )
+                    ),
+                }
+            )
+            row.update(
+                {
+                    "Configuration": config_number,
+                    "Hidden layers": str(hidden_layers),
+                    "Alpha": float(alpha),
+                    "Fold": fold_number,
+                    "Train rows": int(len(X_train)),
+                    "Validation rows": int(len(X_test)),
+                    "Train end": str(features.index[train_indices[-1]].date()),
+                    "Validation start": str(features.index[test_indices[0]].date()),
+                    "Validation end": str(features.index[test_indices[-1]].date()),
+                    "Training iterations": int(network.n_iter_),
+                    "Reached iteration limit": bool(network.n_iter_ >= network.max_iter),
+                }
+            )
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def summarize_mlp_configuration_results(results: pd.DataFrame) -> pd.DataFrame:
+    """Summarize MLP configuration metrics across chronological validation folds.
+
+    Fold means and dispersion are descriptive only; this helper does not choose
+    or deploy a model. The final untouched test period must remain separate.
+    """
+    required = {
+        "Configuration",
+        "Hidden layers",
+        "Alpha",
+        "Fold",
+        "Accuracy",
+        "Balanced accuracy",
+        "ROC-AUC",
+        "Brier score",
+        "Log loss",
+        "Training iterations",
+        "Reached iteration limit",
+    }
+    missing = sorted(required.difference(results.columns))
+    if missing:
+        raise ValueError("MLP configuration results missing columns: " + ", ".join(missing))
+    metrics = ["Accuracy", "Balanced accuracy", "ROC-AUC", "Brier score", "Log loss"]
+    output_columns = [
+        "Configuration",
+        "Hidden layers",
+        "Alpha",
+        "Folds",
+        *[f"{metric} {stat}" for metric in metrics for stat in ("mean", "std", "min", "max")],
+        "Iteration-limit folds",
+    ]
+    if results.empty:
+        return pd.DataFrame(columns=output_columns)
+
+    frame = results.copy()
+    for column in ["Configuration", "Fold", "Alpha", "Training iterations", *metrics]:
+        frame[column] = pd.to_numeric(frame[column], errors="coerce")
+    if frame[["Configuration", "Fold", "Alpha", "Training iterations"]].isna().any().any():
+        raise ValueError("configuration identifiers and training iterations must be numeric")
+    if not np.isfinite(
+        frame[["Configuration", "Fold", "Alpha", "Training iterations"]].to_numpy(dtype=float)
+    ).all():
+        raise ValueError("configuration identifiers and training iterations must be finite")
+    if (frame["Configuration"] < 1).any() or (frame["Fold"] < 1).any():
+        raise ValueError("configuration and fold numbers must be positive")
+    if (frame["Alpha"] <= 0).any() or (frame["Training iterations"] < 1).any():
+        raise ValueError("alpha and training iterations must be positive")
+    if frame.duplicated(["Configuration", "Fold"]).any():
+        raise ValueError("each configuration may have only one row per fold")
+    for metric in ["Accuracy", "Balanced accuracy", "Brier score"]:
+        values = frame[metric].dropna()
+        if not np.isfinite(values.to_numpy(dtype=float)).all() or not values.between(0, 1).all():
+            raise ValueError(f"{metric} must be finite and between 0 and 1")
+    auc = frame["ROC-AUC"].dropna()
+    if not np.isfinite(auc.to_numpy(dtype=float)).all() or not auc.between(0, 1).all():
+        raise ValueError("ROC-AUC must be finite and between 0 and 1 when defined")
+    loss = frame["Log loss"].dropna()
+    if not np.isfinite(loss.to_numpy(dtype=float)).all() or (loss < 0).any():
+        raise ValueError("Log loss must be finite and non-negative when defined")
+    if not frame["Reached iteration limit"].isin([True, False, 0, 1]).all():
+        raise ValueError("Reached iteration limit must contain boolean values")
+
+    rows: list[dict[str, Any]] = []
+    for (configuration, hidden_layers, alpha), group in frame.groupby(
+        ["Configuration", "Hidden layers", "Alpha"], sort=True, dropna=False
+    ):
+        row: dict[str, Any] = {
+            "Configuration": int(configuration),
+            "Hidden layers": str(hidden_layers),
+            "Alpha": float(alpha),
+            "Folds": int(group["Fold"].nunique()),
+            "Iteration-limit folds": int(group["Reached iteration limit"].astype(bool).sum()),
+        }
+        for metric in metrics:
+            values = group[metric].dropna()
+            row[f"{metric} mean"] = float(values.mean()) if not values.empty else float("nan")
+            row[f"{metric} std"] = (
+                float(values.std(ddof=1))
+                if len(values) > 1
+                else (0.0 if len(values) == 1 else float("nan"))
+            )
+            row[f"{metric} min"] = float(values.min()) if not values.empty else float("nan")
+            row[f"{metric} max"] = float(values.max()) if not values.empty else float("nan")
+        rows.append(row)
+    return pd.DataFrame(rows, columns=output_columns)

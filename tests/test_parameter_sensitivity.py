@@ -20,7 +20,7 @@ def test_parameter_sensitivity_report_ranks_configurations_by_return():
     assert result["return_rank"].tolist() == [1.0, 2.0, 3.0]
 
 
-def test_parameter_sensitivity_report_ignores_invalid_observations():
+def test_parameter_sensitivity_report_ignores_missing_observations():
     returns = {"config": pd.Series([0.01, None, 0.02])}
 
     result = parameter_sensitivity_report(returns)
@@ -61,5 +61,64 @@ def test_invalid_parameter_inputs_are_rejected():
     with pytest.raises(ValueError, match="must not be empty"):
         parameter_sensitivity_report({})
 
-    with pytest.raises(ValueError, match="must be positive"):
+    with pytest.raises(ValueError, match="finite and positive"):
         parameter_sensitivity_report({"config": pd.Series([0.01])}, periods_per_year=0)
+
+    with pytest.raises(ValueError, match="finite and positive"):
+        parameter_sensitivity_report({"config": pd.Series([0.01])}, periods_per_year=float("nan"))
+
+    with pytest.raises(ValueError, match="finite and positive"):
+        parameter_sensitivity_report({"config": pd.Series([0.01])}, periods_per_year=True)
+
+
+@pytest.mark.parametrize("infinite", [float("inf"), float("-inf")])
+def test_parameter_sensitivity_rejects_infinite_returns(infinite: float):
+    with pytest.raises(ValueError, match="finite"):
+        parameter_sensitivity_report({"config": pd.Series([0.01, infinite, -0.02])})
+
+
+@pytest.mark.parametrize("invalid", ["not-a-return", ""])
+def test_parameter_sensitivity_rejects_nonnumeric_returns(invalid: str):
+    with pytest.raises(ValueError, match="numeric values or missing values"):
+        parameter_sensitivity_report({"config": pd.Series([0.01, invalid, -0.02])})
+
+
+def test_parameter_sensitivity_accepts_numeric_strings_and_missing_values():
+    result = parameter_sensitivity_report({"config": pd.Series(["0.01", None, "-0.02"])})
+
+    assert result["observations"].tolist() == [2.0]
+
+
+def test_parameter_sensitivity_rejects_returns_below_total_loss():
+    with pytest.raises(ValueError, match="below -100%"):
+        parameter_sensitivity_report({"config": pd.Series([0.01, -1.01])})
+
+
+def test_parameter_sensitivity_rejects_compounding_overflow():
+    with pytest.raises(ValueError, match="total return.*overflowed"):
+        parameter_sensitivity_report({"config": pd.Series([1e308, 1e308])})
+
+
+@pytest.mark.parametrize(
+    ("column", "invalid"),
+    [
+        ("total_return", float("nan")),
+        ("sharpe_ratio", float("inf")),
+        ("max_drawdown", float("-inf")),
+        ("total_return", "not-a-number"),
+    ],
+)
+def test_parameter_sensitivity_summary_rejects_invalid_metrics(column, invalid) -> None:
+    report = pd.DataFrame(
+        {
+            "parameter": ["a", "b"],
+            "total_return": [0.10, 0.05],
+            "sharpe_ratio": [1.5, 0.8],
+            "max_drawdown": [0.03, 0.05],
+        }
+    )
+    report[column] = report[column].astype(object)
+    report.loc[0, column] = invalid
+
+    with pytest.raises(ValueError, match=column):
+        parameter_sensitivity_summary(report)

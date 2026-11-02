@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
 import pandas as pd
 
 
@@ -14,10 +15,12 @@ def benchmark_relative_diagnostics(
     periods_per_year: int = 252,
 ) -> dict[str, float | int | None]:
     """Measure active return risk and benchmark-relative efficiency."""
-    if periods_per_year < 1:
-        raise ValueError("periods_per_year must be at least 1")
+    if not math.isfinite(periods_per_year) or periods_per_year < 1:
+        raise ValueError("periods_per_year must be finite and at least 1")
     frame = pd.concat([strategy_returns, benchmark_returns], axis=1)
     frame = frame.apply(pd.to_numeric, errors="coerce").dropna()
+    if not np.isfinite(frame.to_numpy(dtype=float)).all():
+        raise ValueError("strategy and benchmark returns must be finite numeric values")
     if frame.empty:
         return {
             "observations": 0,

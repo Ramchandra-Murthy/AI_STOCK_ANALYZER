@@ -87,14 +87,23 @@ def test_download_symbol_frames_splits_universe_into_bounded_batches(monkeypatch
     )
 
     tickers = [f"STOCK{i}.NS" for i in range(23)]
+    diagnostics: list[str] = []
     frames, missing = market_data.download_symbol_frames(
         tickers,
         period="5y",
         interval="1d",
         batch_size=10,
+        diagnostics=diagnostics,
     )
 
     assert [len(batch) for batch in batch_calls] == [10, 10, 3]
+    assert any(
+        "download summary:" in item
+        and "batches=3" in item
+        and "single_recovery_attempts=0" in item
+        and "total_seconds=" in item
+        for item in diagnostics
+    )
     assert [ticker for batch in batch_calls for ticker in batch] == tickers
     assert set(frames) == set(tickers)
     assert missing == []

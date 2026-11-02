@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import pandas as pd
 
 
@@ -41,8 +43,8 @@ def prediction_stability_report(
     max_std: float = 0.10,
 ) -> dict[str, float | int | bool | None]:
     """Classify a probability series as stable when dispersion stays below a limit."""
-    if max_std < 0.0:
-        raise ValueError("max_std must be non-negative")
+    if not math.isfinite(max_std) or max_std < 0.0:
+        raise ValueError("max_std must be finite and non-negative")
     summary = prediction_stability(probabilities)
     std = summary["probability_std"]
     stable = bool(std is not None and float(std) <= max_std)

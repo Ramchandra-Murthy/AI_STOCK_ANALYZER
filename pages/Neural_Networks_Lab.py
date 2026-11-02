@@ -8,16 +8,28 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from ai_trading.benchmark_diagnostics import benchmark_relative_diagnostics
+from ai_trading.transaction_cost_sensitivity import transaction_cost_sensitivity
 from neural_networks.baseline import train_baseline
 from neural_networks.evaluation import (
     compare_feature_ablation,
     compare_holdout_baselines,
+    compare_mlp_configurations,
+    evaluate_mlp_seed_stability,
     factor_information_coefficient,
+    permutation_feature_sensitivity,
+    summarize_mlp_configuration_results,
+    summarize_mlp_seed_stability,
+    summarize_probability_calibration,
+    summarize_probability_reliability,
     summarize_walk_forward_stability,
     walk_forward_evaluation,
 )
 from neural_networks.features import build_direction_dataset
-from neural_networks.strategy_backtest import backtest_holdout_signals
+from neural_networks.strategy_backtest import (
+    backtest_holdout_signals,
+    summarize_backtest_trade_distribution,
+)
 
 st.title("Neural Networks Lab")
 st.caption(
@@ -158,6 +170,11 @@ with backtest_col:
         help="Fixed threshold for this holdout report; do not tune it against the holdout results.",
     )
 with cost_col:
+    run_mlp_configuration_comparison = st.checkbox(
+        "Run optional chronological MLP configuration comparison (slower)",
+        value=False,
+        help="Compares a small fixed set of architectures across future validation folds. It does not select or deploy a model.",
+    )
     cost_bps_per_side = st.number_input(
         "Estimated transaction cost (basis points per side)",
         min_value=0.0,
@@ -235,6 +252,181 @@ if raw is not None:
                     right.metric("ROC-AUC", f"{metrics['roc_auc']:.3f}")
                 else:
                     right.metric("ROC-AUC", "Unavailable")
+                st.subheader("Overfitting and class-balance diagnostics")
+                fit_left, fit_middle, fit_right = st.columns(3)
+                fit_left.metric("Training accuracy", f"{metrics['train_accuracy']:.1%}")
+                fit_middle.metric("Holdout accuracy", f"{metrics['accuracy']:.1%}")
+                fit_right.metric("Train − holdout gap", f"{metrics['accuracy_gap']:+.1%}")
+                st.caption(
+                    f"Holdout balanced accuracy: {metrics['holdout_balanced_accuracy']:.1%}. "
+                    "Balanced accuracy averages recall across classes and helps reveal "
+                    "performance hidden by unequal class counts."
+                )
+                if metrics["accuracy_gap"] >= 0.15:
+                    st.warning(
+                        "Training accuracy exceeds holdout accuracy by at least 15 percentage "
+                        "points. This can indicate overfitting; compare chronological folds and "
+                        "class balance before drawing conclusions."
+                    )
+                elif metrics["accuracy_gap"] < 0:
+                    st.info(
+                        "Holdout accuracy exceeds training accuracy. This is not automatically "
+                        "a problem; check fold-to-fold stability and data characteristics."
+                    )
+                st.subheader("MLP random-seed stability")
+                seed_stability = evaluate_mlp_seed_stability(
+                    features,
+                    target,
+                    train_fraction=float(train_fraction),
+                    horizon=int(horizon),
+                )
+                st.caption(
+                    "Each run uses the same chronological training and holdout dates but a different "
+                    "MLP initialization seed. Metric variation reveals sensitivity to initialization; "
+                    "it is not independent validation, and the shared holdout should not be used to "
+                    "select a preferred seed."
+                )
+                seed_summary = summarize_mlp_seed_stability(seed_stability)
+                st.subheader("Across-seed metric summary")
+                st.caption(
+                    "Mean, sample standard deviation, minimum, and maximum summarize variation across "
+                    "initialization seeds on the same holdout. These are not confidence intervals or "
+                    "independent estimates of future performance."
+                )
+                st.dataframe(
+                    seed_summary.style.format(
+                        {
+                            "Mean": "{:.4f}",
+                            "Std": "{:.4f}",
+                            "Min": "{:.4f}",
+                            "Max": "{:.4f}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download MLP seed-stability summary CSV",
+                    data=seed_summary.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_seed_stability_summary.csv",
+                    mime="text/csv",
+                )
+                st.dataframe(
+                    seed_stability.style.format(
+                        {
+                            "Accuracy": "{:.1%}",
+                            "Balanced accuracy": "{:.1%}",
+                            "ROC-AUC": "{:.3f}",
+                            "Brier score": "{:.4f}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download MLP seed-stability CSV",
+                    data=seed_stability.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_seed_stability.csv",
+                    mime="text/csv",
+                )
+                st.subheader("Probability calibration diagnostics")
+                calibration_left, calibration_right = st.columns(2)
+                calibration_left.metric("Brier score", f"{metrics['brier_score']:.4f}")
+                calibration_right.metric("Log loss", f"{metrics['log_loss']:.4f}")
+                st.caption(
+                    "Brier score and log loss evaluate the quality of predicted probabilities, "
+                    "not just the up/down classification. Lower values are better; compare them "
+                    "against other models on the same holdout period. They do not establish "
+                    "profitable trading signals."
+                )
+                reliability = summarize_probability_reliability(
+                    metrics["actual"], metrics["probability_up"], n_bins=5
+                )
+                calibration_summary = summarize_probability_calibration(
+                    metrics["actual"], metrics["probability_up"], n_bins=5
+                )
+                summary_left, summary_middle, summary_right = st.columns(3)
+                summary_left.metric(
+                    "Expected calibration error",
+                    f"{calibration_summary['Expected calibration error']:.1%}",
+                    help="Sample-weighted mean absolute gap between predicted probability and observed rate across occupied bins. Lower is better, but the estimate depends on binning.",
+                )
+                summary_middle.metric(
+                    "Maximum absolute bin gap",
+                    f"{calibration_summary['Maximum absolute calibration gap']:.1%}",
+                    help="Largest absolute difference between a bin's mean predicted probability and observed up rate.",
+                )
+                summary_right.metric("Holdout observations", f"{calibration_summary['Samples']:,}")
+                st.caption(
+                    f"Overall mean predicted probability: {calibration_summary['Mean predicted probability']:.1%}; "
+                    f"observed up rate: {calibration_summary['Observed up rate']:.1%}. "
+                    "Aggregate rates can hide offsetting errors between probability bands."
+                )
+                st.subheader("Holdout probability reliability by band")
+                st.caption(
+                    "Within each probability band, compare the model's mean predicted up-probability "
+                    "with the observed up frequency. Positive calibration gap means the observed "
+                    "rate was higher than predicted; negative means it was lower. Small sample "
+                    "counts make each band's estimate noisy. This is descriptive, not a guarantee "
+                    "of future calibration or profitability."
+                )
+                st.dataframe(
+                    reliability.style.format(
+                        {
+                            "Mean predicted probability": "{:.1%}",
+                            "Observed up rate": "{:.1%}",
+                            "Calibration gap": "{:+.1%}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download probability reliability CSV",
+                    data=reliability.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_probability_reliability.csv",
+                    mime="text/csv",
+                )
+                st.subheader("MLP training diagnostics")
+                diagnostic_left, diagnostic_middle, diagnostic_right = st.columns(3)
+                diagnostic_left.metric(
+                    "Training iterations",
+                    f"{metrics['training_iterations']:,} / {metrics['max_iterations']:,}",
+                )
+                diagnostic_middle.metric(
+                    "Final training loss", f"{metrics['final_training_loss']:.5f}"
+                )
+                diagnostic_right.metric(
+                    "Iteration limit reached",
+                    "Yes" if metrics["reached_iteration_limit"] else "No",
+                )
+                loss_curve = metrics["training_loss_curve"]
+                if loss_curve:
+                    st.line_chart(
+                        pd.DataFrame(
+                            {
+                                "Training loss": loss_curve,
+                                "Iteration": range(1, len(loss_curve) + 1),
+                            }
+                        ).set_index("Iteration")
+                    )
+                if metrics["convergence_warnings"]:
+                    for warning_message in metrics["convergence_warnings"]:
+                        st.warning(f"MLP convergence warning: {warning_message}")
+                elif metrics["reached_iteration_limit"]:
+                    st.warning(
+                        "The MLP reached max_iter. Review the loss curve and compare results "
+                        "across chronological folds before interpreting the model."
+                    )
+                else:
+                    st.caption(
+                        "No scikit-learn convergence warning was captured for this fit. "
+                        "This does not establish predictive value or profitability."
+                    )
+                st.caption(
+                    "Training loss describes optimization on the training data only; it is not "
+                    "a measure of holdout performance or trading profitability."
+                )
                 st.caption(
                     f"Train: {features.index[0].date()} to {train_end} "
                     f"({metrics['train_samples']:,} rows; "
@@ -263,18 +455,63 @@ if raw is not None:
                 )
                 st.subheader("Holdout baseline comparison")
                 st.caption(
-                    "All models use the same chronological split. The majority-class model is a "
-                    "simple reference; logistic regression tests whether a simpler linear model is competitive."
+                    "All models use the same purged chronological split. Majority-class accuracy is "
+                    "a hard-label reference, so its Brier score and log loss are intentionally undefined. "
+                    "The training-prevalence probability baseline forecasts the positive-class rate from "
+                    "training labels only and provides a proper probability-score reference. Logistic "
+                    "regression tests whether a simpler linear model is competitive."
                 )
                 comparison = compare_holdout_baselines(
                     features, target, train_fraction=float(train_fraction), horizon=int(horizon)
                 )
+                st.caption(
+                    "Brier score and log loss assess predicted-probability quality; lower is better. "
+                    "Compare them across models on the same holdout. Undefined values are shown as dashes."
+                )
                 st.dataframe(
                     comparison.style.format(
-                        {"Accuracy": "{:.1%}", "Balanced accuracy": "{:.1%}", "ROC-AUC": "{:.3f}"}
+                        {
+                            "Accuracy": "{:.1%}",
+                            "Balanced accuracy": "{:.1%}",
+                            "ROC-AUC": "{:.3f}",
+                            "Brier score": "{:.4f}",
+                            "Log loss": "{:.4f}",
+                        },
+                        na_rep="—",
                     ),
                     use_container_width=True,
                     hide_index=True,
+                )
+
+                st.subheader("Holdout feature sensitivity")
+                st.caption(
+                    "Features are shuffled one at a time on the chronological holdout. "
+                    "The mean drop in balanced accuracy estimates how much the fitted model "
+                    "relies on each feature under this test. Correlated features can mask one "
+                    "another; negative values can occur from sampling noise. This is descriptive "
+                    "research, not causal evidence, and repeated holdout inspection can bias conclusions."
+                )
+                sensitivity = permutation_feature_sensitivity(
+                    model,
+                    features.iloc[split_at:],
+                    target.iloc[split_at:],
+                    n_repeats=5,
+                )
+                st.dataframe(
+                    sensitivity.style.format(
+                        {
+                            "Balanced accuracy drop mean": "{:+.4f}",
+                            "Balanced accuracy drop std": "{:.4f}",
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download feature sensitivity CSV",
+                    data=sensitivity.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_feature_sensitivity.csv",
+                    mime="text/csv",
                 )
 
                 st.subheader("Feature ablation: original vs expanded factors")
@@ -384,6 +621,48 @@ if raw is not None:
                     mime="text/csv",
                 )
 
+                if run_mlp_configuration_comparison:
+                    st.subheader("Chronological MLP configuration comparison")
+                    st.caption(
+                        "A fixed set of architectures and regularization strengths is compared across "
+                        "expanding chronological validation folds. Means and ranges describe validation "
+                        "folds only; do not use this table to tune repeatedly against the final holdout."
+                    )
+                    configuration_folds = compare_mlp_configurations(
+                        features, target, n_splits=3, horizon=int(horizon)
+                    )
+                    configuration_summary = summarize_mlp_configuration_results(configuration_folds)
+                    st.dataframe(
+                        configuration_summary.style.format(
+                            {
+                                column: "{:.4f}"
+                                for column in configuration_summary.columns
+                                if column
+                                not in {
+                                    "Configuration",
+                                    "Hidden layers",
+                                    "Folds",
+                                    "Iteration-limit folds",
+                                }
+                            },
+                            na_rep="—",
+                        ),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    st.download_button(
+                        "Download MLP configuration summary CSV",
+                        data=configuration_summary.to_csv(index=False).encode("utf-8"),
+                        file_name="neural_networks_mlp_configuration_summary.csv",
+                        mime="text/csv",
+                    )
+                    st.download_button(
+                        "Download MLP configuration fold results CSV",
+                        data=configuration_folds.to_csv(index=False).encode("utf-8"),
+                        file_name="neural_networks_mlp_configuration_folds.csv",
+                        mime="text/csv",
+                    )
+
                 st.subheader("Cost-aware holdout strategy backtest")
                 st.caption(
                     "Long-only, non-overlapping trades. Signals are generated after the signal-date close; "
@@ -421,6 +700,43 @@ if raw is not None:
                     "Simplified research simulation: excludes taxes and market impact and assumes close-price fills. "
                     "The buy-and-hold benchmark uses the same evaluation window and estimated round-trip costs."
                 )
+                if not backtest_trades.empty:
+                    benchmark_trade_returns = []
+                    for _, trade in backtest_trades.iterrows():
+                        entry_price = float(data.loc[trade["Entry date"], "Close"])
+                        exit_price = float(data.loc[trade["Exit date"], "Close"])
+                        benchmark_trade_returns.append(exit_price / entry_price - 1.0)
+                    relative = benchmark_relative_diagnostics(
+                        backtest_trades["Net return after costs"].reset_index(drop=True),
+                        pd.Series(benchmark_trade_returns),
+                        periods_per_year=max(1, 252 // int(horizon)),
+                    )
+                    st.subheader("Benchmark-relative trade diagnostics")
+                    st.caption(
+                        "Compares completed strategy trades after estimated costs with buy-and-hold "
+                        "returns over the same entry-to-exit intervals. Tracking error and information "
+                        "ratio are annualized approximations across trade observations, not daily returns. "
+                        "These descriptive metrics do not establish future performance."
+                    )
+                    relative_frame = pd.DataFrame([relative])
+                    st.dataframe(
+                        relative_frame.style.format(
+                            {
+                                "active_return": "{:+.2%}",
+                                "tracking_error": "{:.2%}",
+                                "information_ratio": "{:.3f}",
+                            },
+                            na_rep="—",
+                        ),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+                    st.download_button(
+                        "Download benchmark-relative diagnostics CSV",
+                        data=relative_frame.to_csv(index=False).encode("utf-8"),
+                        file_name="neural_networks_benchmark_relative_diagnostics.csv",
+                        mime="text/csv",
+                    )
                 with st.expander("View backtest trades"):
                     st.dataframe(
                         backtest_trades.style.format(
@@ -435,6 +751,73 @@ if raw is not None:
                         use_container_width=True,
                         hide_index=True,
                     )
+                st.subheader("Trade-return distribution")
+                trade_distribution = summarize_backtest_trade_distribution(backtest_trades)
+                st.caption(
+                    "These statistics describe completed simulated trades after the configured costs. "
+                    "Profit factor is undefined when there are no losing trades. Trade statistics are "
+                    "sample-dependent and do not establish future profitability."
+                )
+                st.dataframe(
+                    trade_distribution.style.format(
+                        {
+                            "Win rate": "{:.1%}",
+                            "Mean net return": "{:.2%}",
+                            "Median net return": "{:.2%}",
+                            "Net return standard deviation": "{:.2%}",
+                            "Best net trade": "{:.2%}",
+                            "Worst net trade": "{:.2%}",
+                            "Profit factor": "{:.3f}",
+                            "Gross profit from winning trades": "{:.2%}",
+                            "Gross loss from losing trades": "{:.2%}",
+                        },
+                        na_rep="—",
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.subheader("Transaction-cost sensitivity")
+                st.caption(
+                    "Re-estimates trade outcomes using gross trade returns at alternative per-side cost "
+                    "assumptions. A round trip is represented as two units of turnover. This uses a "
+                    "linear cost approximation, not a fill simulator; taxes, spread, market impact, and "
+                    "slippage must be considered separately."
+                )
+                gross_trade_returns = pd.to_numeric(
+                    backtest_trades["Gross return"], errors="coerce"
+                )
+
+                cost_sensitivity = transaction_cost_sensitivity(
+                    gross_trade_returns.reset_index(drop=True),
+                    turnover=pd.Series(2.0, index=range(len(gross_trade_returns))),
+                    cost_bps=(0.0, 5.0, 10.0, 20.0, 30.0),
+                )
+                st.dataframe(
+                    cost_sensitivity.style.format(
+                        {
+                            "cost_bps": "{:.1f}",
+                            "gross_return": "{:.2%}",
+                            "net_return": "{:.2%}",
+                            "cost_drag": "{:.2%}",
+                            "total_turnover": "{:.1f}",
+                        },
+                        na_rep="—",
+                    ),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.download_button(
+                    "Download transaction-cost sensitivity CSV",
+                    data=cost_sensitivity.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_transaction_cost_sensitivity.csv",
+                    mime="text/csv",
+                )
+                st.download_button(
+                    "Download trade-return distribution CSV",
+                    data=trade_distribution.to_csv(index=False).encode("utf-8"),
+                    file_name="neural_networks_trade_return_distribution.csv",
+                    mime="text/csv",
+                )
                 st.download_button(
                     "Download backtest trades CSV",
                     data=backtest_trades.to_csv(index=False).encode("utf-8"),

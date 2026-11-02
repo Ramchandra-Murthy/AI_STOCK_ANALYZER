@@ -45,15 +45,19 @@ The live Top-10 scanner can prefer Dhan intraday candles when both Dhan credenti
 a symbol-to-security-ID map are configured. Yahoo Finance remains the automatic fallback
 for unmapped or failed Dhan symbols.
 
-Set:
+Set the credentials in Streamlit Secrets and use exchange-qualified security-map keys:
 
-```text
-DHAN_CLIENT_ID=...
-DHAN_ACCESS_TOKEN=...
-DHAN_SECURITY_MAP_JSON={"RELIANCE":2885,"TCS":11536}
+```toml
+DHAN_CLIENT_ID = "..."
+DHAN_ACCESS_TOKEN = "..."
+DHAN_SECURITY_MAP_JSON = '{"NSE:RELIANCE":2885,"NSE:TCS":11536,"BSE:RELIANCE":500325}'
 ```
 
-The map should use the Dhan security IDs for the exchange-qualified symbols being scanned.
+The IDs above are examples only; verify every ID against Dhan's current instrument list.
+Use keys such as `NSE:SYMBOL` and `BSE:SYMBOL`, or exact ticker forms `SYMBOL.NS` and
+`SYMBOL.BO`. Legacy unqualified keys such as `RELIANCE` are treated as NSE-only; they are
+not reused for BSE because exchange-specific IDs can differ. The scanner reports whether
+Dhan actually returned candles and logs API failure payloads without logging credentials.
 No order-management API is used by this provider.
 
 The scanner requests 1-minute intraday OHLCV candles from Dhan. Dhan documents 1-minute

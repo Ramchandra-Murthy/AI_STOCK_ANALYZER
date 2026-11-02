@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import pandas as pd
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    brier_score_loss,
+    log_loss,
+    roc_auc_score,
+)
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -72,12 +80,28 @@ def train_baseline(
             ),
         ]
     )
-    model.fit(X_train, y_train)
+    with warnings.catch_warnings(record=True) as captured_warnings:
+        warnings.simplefilter("always", ConvergenceWarning)
+        model.fit(X_train, y_train)
     classes = list(model.named_steps["network"].classes_)
     probabilities = model.predict_proba(X_test)[:, classes.index(1)]
     predictions = (probabilities >= 0.5).astype(int)
+    train_predictions = model.predict(X_train)
+    train_accuracy = float(accuracy_score(y_train, train_predictions))
+    holdout_balanced_accuracy = float(balanced_accuracy_score(y_test, predictions))
+    network = model.named_steps["network"]
+    convergence_warnings = [
+        str(item.message)
+        for item in captured_warnings
+        if issubclass(item.category, ConvergenceWarning)
+    ]
     metrics: dict[str, Any] = {
         "accuracy": float(accuracy_score(y_test, predictions)),
+        "train_accuracy": train_accuracy,
+        "holdout_balanced_accuracy": holdout_balanced_accuracy,
+        "brier_score": float(brier_score_loss(y_test, probabilities)),
+        "log_loss": float(log_loss(y_test, probabilities, labels=[0, 1])),
+        "accuracy_gap": float(train_accuracy - accuracy_score(y_test, predictions)),
         "test_samples": int(len(y_test)),
         "train_samples": int(len(y_train)),
         "train_end": str(X_train.index[-1].date()),
@@ -85,6 +109,12 @@ def train_baseline(
         "train_negative": int((y_train == 0).sum()),
         "test_positive": int((y_test == 1).sum()),
         "test_negative": int((y_test == 0).sum()),
+        "training_iterations": int(network.n_iter_),
+        "max_iterations": int(network.max_iter),
+        "reached_iteration_limit": bool(network.n_iter_ >= network.max_iter),
+        "final_training_loss": float(network.loss_),
+        "training_loss_curve": [float(loss) for loss in network.loss_curve_],
+        "convergence_warnings": convergence_warnings,
         "probability_up": probabilities,
         "actual": y_test.to_numpy(),
     }

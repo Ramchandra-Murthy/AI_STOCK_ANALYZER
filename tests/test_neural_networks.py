@@ -91,10 +91,23 @@ def test_baseline_comparison_and_walk_forward_preserve_chronology() -> None:
     comparison = compare_holdout_baselines(features, target, train_fraction=0.70, horizon=5)
     assert set(comparison["Model"]) == {
         "Majority-class",
+        "Training-prevalence probability baseline",
         "Logistic regression",
         "MLP",
     }
     assert comparison["Accuracy"].between(0, 1).all()
+    majority = comparison.loc[comparison["Model"] == "Majority-class"].iloc[0]
+    assert np.isnan(majority["Brier score"])
+    assert np.isnan(majority["Log loss"])
+    prevalence = comparison.loc[
+        comparison["Model"] == "Training-prevalence probability baseline"
+    ].iloc[0]
+    split_at = int(len(features) * 0.70)
+    train_end = split_at - 6
+    train_prevalence = float(target.iloc[:train_end].mean())
+    test_target = target.iloc[split_at:].to_numpy()
+    expected_brier = np.mean((train_prevalence - test_target) ** 2)
+    assert prevalence["Brier score"] == pytest.approx(expected_brier)
 
     walk_forward = walk_forward_evaluation(features, target, n_splits=3, horizon=5)
     assert len(walk_forward) == 9
@@ -278,3 +291,387 @@ def test_factor_ic_display_normalizes_mixed_window_types() -> None:
     assert "factor_ic_display = factor_ic.copy()" in source
     assert 'factor_ic_display["Window"] = factor_ic_display["Window"].astype(str)' in source
     assert 'data=factor_ic.to_csv(index=False).encode("utf-8")' in source
+
+
+def test_backtest_equity_return_matches_compounded_non_overlapping_trade_returns() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=260)
+    signal_dates = data.index[100:180]
+    probabilities = np.full(len(signal_dates), 0.9)
+    summary, trades = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.5,
+        cost_bps_per_side=12.0,
+    )
+
+    assert not trades.empty
+    compounded_trade_return = float((1.0 + trades["Net return after costs"]).prod() - 1.0)
+    strategy_return = float(
+        summary.loc[summary["Strategy"] == "MLP threshold strategy", "Total return"].iloc[0]
+    )
+    assert strategy_return == pytest.approx(compounded_trade_return, abs=1e-10)
+
+
+def test_backtest_skips_signals_without_a_complete_future_exit() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=180)
+    signal_dates = data.index[-10:]
+    probabilities = np.full(len(signal_dates), 0.9)
+    summary, trades = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.5,
+        cost_bps_per_side=10.0,
+    )
+
+    assert not trades.empty
+    assert (trades["Exit date"] <= data.index[-1]).all()
+    assert trades["Signal date"].max() <= data.index[-7]
+    assert summary.loc[summary["Strategy"] == "MLP threshold strategy", "Trades"].iloc[0] == len(
+        trades
+    )
+
+
+def test_backtest_threshold_above_all_probabilities_produces_no_trades() -> None:
+    from neural_networks.strategy_backtest import backtest_holdout_signals
+
+    data = sample_ohlcv(rows=200)
+    signal_dates = data.index[100:130]
+    probabilities = np.full(len(signal_dates), 0.4)
+    summary, trades = backtest_holdout_signals(
+        data["Close"],
+        signal_dates,
+        probabilities,
+        horizon=5,
+        threshold=0.8,
+        cost_bps_per_side=10.0,
+    )
+
+    assert trades.empty
+    strategy = summary.loc[summary["Strategy"] == "MLP threshold strategy"].iloc[0]
+    assert strategy["Trades"] == 0
+    assert strategy["Total return"] == pytest.approx(0.0)
+
+
+def test_mlp_baseline_reports_training_convergence_diagnostics() -> None:
+    from neural_networks.baseline import train_baseline
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    model, metrics = train_baseline(features, target, train_fraction=0.70, horizon=5)
+    network = model.named_steps["network"]
+
+    assert metrics["training_iterations"] == network.n_iter_
+    assert metrics["max_iterations"] == network.max_iter == 300
+    assert metrics["reached_iteration_limit"] is (network.n_iter_ >= network.max_iter)
+    assert metrics["final_training_loss"] == pytest.approx(network.loss_)
+    assert metrics["training_loss_curve"] == pytest.approx(network.loss_curve_)
+    assert len(metrics["training_loss_curve"]) == network.n_iter_
+    assert np.isfinite(metrics["training_loss_curve"]).all()
+    assert isinstance(metrics["convergence_warnings"], list)
+    assert all(isinstance(message, str) for message in metrics["convergence_warnings"])
+
+
+def test_mlp_baseline_reports_train_holdout_gap_and_balanced_accuracy() -> None:
+    from sklearn.metrics import accuracy_score, balanced_accuracy_score
+
+    from neural_networks.baseline import train_baseline
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    model, metrics = train_baseline(features, target, train_fraction=0.70, horizon=5)
+    split_at = int(len(features) * 0.70)
+    train_end = split_at - 6
+    X_train = features.iloc[:train_end]
+    y_train = target.iloc[:train_end]
+    X_test = features.iloc[split_at:]
+    y_test = target.iloc[split_at:]
+    train_accuracy = accuracy_score(y_train, model.predict(X_train))
+    holdout_accuracy = accuracy_score(y_test, model.predict(X_test))
+    holdout_balanced_accuracy = balanced_accuracy_score(y_test, model.predict(X_test))
+
+    assert metrics["train_accuracy"] == pytest.approx(train_accuracy)
+    assert metrics["accuracy"] == pytest.approx(holdout_accuracy)
+    assert metrics["accuracy_gap"] == pytest.approx(train_accuracy - holdout_accuracy)
+    assert metrics["holdout_balanced_accuracy"] == pytest.approx(holdout_balanced_accuracy)
+    assert 0 <= metrics["train_accuracy"] <= 1
+    assert 0 <= metrics["holdout_balanced_accuracy"] <= 1
+
+
+def test_mlp_baseline_reports_probability_calibration_scores() -> None:
+    from sklearn.metrics import brier_score_loss, log_loss
+
+    from neural_networks.baseline import train_baseline
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    _, metrics = train_baseline(features, target, train_fraction=0.70, horizon=5)
+    split_at = int(len(features) * 0.70)
+    y_test = target.iloc[split_at:]
+    probabilities = metrics["probability_up"]
+
+    assert metrics["brier_score"] == pytest.approx(brier_score_loss(y_test, probabilities))
+    assert metrics["log_loss"] == pytest.approx(log_loss(y_test, probabilities, labels=[0, 1]))
+    assert 0 <= metrics["brier_score"] <= 1
+    assert np.isfinite(metrics["log_loss"])
+
+
+def test_probability_reliability_reports_counts_and_observed_rates() -> None:
+    from neural_networks.evaluation import summarize_probability_reliability
+
+    result = summarize_probability_reliability(
+        actual=[0, 1, 1, 0, 1, 1],
+        probabilities=[0.1, 0.2, 0.25, 0.7, 0.8, 0.95],
+        n_bins=5,
+    )
+
+    low = result.loc[result["Probability band"] == "0.00–0.20"].iloc[0]
+    middle = result.loc[result["Probability band"] == "0.20–0.40"].iloc[0]
+    high = result.loc[result["Probability band"] == "0.80–1.00"].iloc[0]
+    assert low["Samples"] == 1
+    assert low["Observed up rate"] == pytest.approx(0.0)
+    assert middle["Samples"] == 2
+    assert middle["Observed up rate"] == pytest.approx(1.0)
+    assert high["Samples"] == 2
+    assert high["Observed up rate"] == pytest.approx(1.0)
+    assert middle["Calibration gap"] == pytest.approx(
+        middle["Observed up rate"] - middle["Mean predicted probability"]
+    )
+
+
+def test_probability_reliability_omits_empty_bins_and_handles_edge_probabilities() -> None:
+    from neural_networks.evaluation import summarize_probability_reliability
+
+    result = summarize_probability_reliability(
+        actual=[0, 1, 1],
+        probabilities=[0.0, 0.5, 1.0],
+        n_bins=4,
+    )
+
+    assert result["Samples"].sum() == 3
+    assert len(result) == 3
+    assert result.iloc[0]["Probability band"] == "0.00–0.25"
+    assert result.iloc[-1]["Probability band"] == "0.75–1.00"
+    assert result["Mean predicted probability"].between(0, 1).all()
+    assert result["Observed up rate"].between(0, 1).all()
+
+
+@pytest.mark.parametrize(
+    ("actual", "probabilities", "n_bins", "message"),
+    [
+        ([0, 1], [0.2], 5, "equal lengths"),
+        ([0, 2], [0.2, 0.8], 5, "binary labels"),
+        ([0, 1], [-0.1, 0.8], 5, "between 0 and 1"),
+        ([0, 1], [0.2, np.inf], 5, "finite values"),
+        ([0, 1], [0.2, 0.8], 1, "n_bins"),
+        ([], [], 5, "must not be empty"),
+    ],
+)
+def test_probability_reliability_rejects_invalid_inputs(
+    actual: list[int],
+    probabilities: list[float],
+    n_bins: int,
+    message: str,
+) -> None:
+    from neural_networks.evaluation import summarize_probability_reliability
+
+    with pytest.raises(ValueError, match=message):
+        summarize_probability_reliability(actual, probabilities, n_bins=n_bins)
+
+
+def test_permutation_feature_sensitivity_ranks_features_and_is_reproducible() -> None:
+    from sklearn.impute import SimpleImputer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    from neural_networks.evaluation import permutation_feature_sensitivity
+
+    data = sample_ohlcv(rows=260)
+    features, target = build_direction_dataset(data, horizon=3)
+    split = int(len(features) * 0.70)
+    X_train, X_test = features.iloc[:split], features.iloc[split:]
+    y_train, y_test = target.iloc[:split], target.iloc[split:]
+    model = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+            ("classifier", LogisticRegression(max_iter=1000)),
+        ]
+    ).fit(X_train, y_train)
+
+    first = permutation_feature_sensitivity(model, X_test, y_test, n_repeats=3, random_state=7)
+    second = permutation_feature_sensitivity(model, X_test, y_test, n_repeats=3, random_state=7)
+
+    assert list(first.columns) == [
+        "Feature",
+        "Balanced accuracy drop mean",
+        "Balanced accuracy drop std",
+    ]
+    assert set(first["Feature"]) == set(features.columns)
+    assert first["Balanced accuracy drop mean"].notna().all()
+    assert first["Balanced accuracy drop std"].ge(0).all()
+    pd.testing.assert_frame_equal(first, second)
+
+
+@pytest.mark.parametrize(
+    ("features", "target", "n_repeats", "message"),
+    [
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1], index=[1, 2]), 2, "identical indexes"),
+        (pd.DataFrame({"x": []}), pd.Series([], dtype=int), 2, "must not be empty"),
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1]), 0, "n_repeats"),
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([1, 1]), 2, "both classes"),
+    ],
+)
+def test_permutation_feature_sensitivity_rejects_invalid_inputs(
+    features: pd.DataFrame, target: pd.Series, n_repeats: int, message: str
+) -> None:
+    from neural_networks.evaluation import permutation_feature_sensitivity
+
+    class UnusedModel:
+        pass
+
+    with pytest.raises(ValueError, match=message):
+        permutation_feature_sensitivity(UnusedModel(), features, target, n_repeats=n_repeats)
+
+
+def test_mlp_seed_stability_uses_same_holdout_and_is_reproducible() -> None:
+    from neural_networks.evaluation import evaluate_mlp_seed_stability
+
+    data = sample_ohlcv(rows=520)
+    features, target = build_direction_dataset(data, horizon=5)
+    seeds = (7, 21, 42)
+    first = evaluate_mlp_seed_stability(
+        features, target, train_fraction=0.70, horizon=5, random_states=seeds
+    )
+    second = evaluate_mlp_seed_stability(
+        features, target, train_fraction=0.70, horizon=5, random_states=seeds
+    )
+
+    assert first["Random seed"].tolist() == list(seeds)
+    assert first["Holdout start"].nunique() == 1
+    assert first["Holdout end"].nunique() == 1
+    assert first["Train end"].nunique() == 1
+    assert first["Holdout rows"].nunique() == 1
+    assert first["Accuracy"].between(0, 1).all()
+    assert first["Balanced accuracy"].between(0, 1).all()
+    assert first["ROC-AUC"].between(0, 1).all()
+    assert first["Brier score"].between(0, 1).all()
+    pd.testing.assert_frame_equal(first, second)
+
+
+@pytest.mark.parametrize(
+    ("features", "target", "seeds", "message"),
+    [
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1], index=[1, 2]), (1, 2), "identical indexes"),
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1]), (1,), "at least two seeds"),
+        (pd.DataFrame({"x": [1, 2]}), pd.Series([0, 1]), (1, 1), "unique"),
+    ],
+)
+def test_mlp_seed_stability_rejects_invalid_inputs(
+    features: pd.DataFrame, target: pd.Series, seeds: tuple[int, ...], message: str
+) -> None:
+    from neural_networks.evaluation import evaluate_mlp_seed_stability
+
+    with pytest.raises(ValueError, match=message):
+        evaluate_mlp_seed_stability(features, target, random_states=seeds)
+
+
+def test_mlp_seed_stability_summary_reports_metric_dispersion() -> None:
+    from neural_networks.evaluation import summarize_mlp_seed_stability
+
+    results = pd.DataFrame(
+        {
+            "Accuracy": [0.6, 0.8, 0.7],
+            "Balanced accuracy": [0.55, 0.75, 0.65],
+            "ROC-AUC": [0.61, 0.81, 0.71],
+            "Brier score": [0.24, 0.16, 0.20],
+        }
+    )
+
+    summary = summarize_mlp_seed_stability(results).set_index("Metric")
+
+    assert summary.loc["Accuracy", "Runs"] == 3
+    assert summary.loc["Accuracy", "Mean"] == pytest.approx(0.7)
+    assert summary.loc["Accuracy", "Std"] == pytest.approx(0.1)
+    assert summary.loc["Accuracy", "Min"] == pytest.approx(0.6)
+    assert summary.loc["Accuracy", "Max"] == pytest.approx(0.8)
+    assert summary.loc["Brier score", "Mean"] == pytest.approx(0.2)
+    assert summary.loc["Brier score", "Min"] == pytest.approx(0.16)
+    assert summary.loc["Brier score", "Max"] == pytest.approx(0.24)
+
+
+@pytest.mark.parametrize(
+    ("results", "message"),
+    [
+        (pd.DataFrame(), "must not be empty"),
+        (pd.DataFrame({"Accuracy": [0.5]}), "missing columns"),
+    ],
+)
+def test_mlp_seed_stability_summary_rejects_invalid_inputs(
+    results: pd.DataFrame, message: str
+) -> None:
+    from neural_networks.evaluation import summarize_mlp_seed_stability
+
+    with pytest.raises(ValueError, match=message):
+        summarize_mlp_seed_stability(results)
+
+
+@pytest.mark.parametrize(
+    ("metric", "values", "message"),
+    [
+        ("Accuracy", [0.5, "not-a-number"], "finite numeric values"),
+        ("ROC-AUC", [0.6, np.inf], "finite numeric values"),
+        ("Brier score", [0.2, 1.2], "between 0 and 1"),
+        ("Balanced accuracy", [-0.1, 0.7], "between 0 and 1"),
+    ],
+)
+def test_mlp_seed_stability_summary_rejects_invalid_metric_values(
+    metric: str, values: list[object], message: str
+) -> None:
+    from neural_networks.evaluation import summarize_mlp_seed_stability
+
+    results = pd.DataFrame(
+        {
+            "Accuracy": [0.5, 0.6],
+            "Balanced accuracy": [0.5, 0.6],
+            "ROC-AUC": [0.5, 0.6],
+            "Brier score": [0.2, 0.3],
+        }
+    )
+    results[metric] = values
+
+    with pytest.raises(ValueError, match=message):
+        summarize_mlp_seed_stability(results)
+
+
+def test_probability_calibration_summary_reports_weighted_and_maximum_gaps() -> None:
+    from neural_networks.evaluation import summarize_probability_calibration
+
+    result = summarize_probability_calibration(
+        actual=[0, 0, 1, 1], probabilities=[0.1, 0.3, 0.6, 0.8], n_bins=2
+    )
+
+    # First bin: mean probability 0.2, observed rate 0.0, gap -0.2.
+    # Second bin: mean probability 0.7, observed rate 1.0, gap +0.3.
+    assert result["Samples"] == 4
+    assert result["Mean predicted probability"] == pytest.approx(0.45)
+    assert result["Observed up rate"] == pytest.approx(0.5)
+    assert result["Expected calibration error"] == pytest.approx(0.25)
+    assert result["Maximum absolute calibration gap"] == pytest.approx(0.3)
+
+
+def test_probability_calibration_summary_rejects_invalid_inputs() -> None:
+    from neural_networks.evaluation import summarize_probability_calibration
+
+    with pytest.raises(ValueError, match="equal lengths"):
+        summarize_probability_calibration([0, 1], [0.2])
+    with pytest.raises(ValueError, match="between 2 and 20"):
+        summarize_probability_calibration([0, 1], [0.2, 0.8], n_bins=1)

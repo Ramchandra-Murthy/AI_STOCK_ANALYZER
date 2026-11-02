@@ -163,3 +163,44 @@ def backtest_holdout_signals(
         ]
     )
     return summary, trade_frame
+
+
+def summarize_backtest_trade_distribution(trades: pd.DataFrame) -> pd.DataFrame:
+    """Summarize net trade-return distribution without inferring future performance.
+
+    Profit factor is gross profit from positive net trades divided by the
+    absolute net loss from negative trades. It is undefined when no losing
+    trades exist. Empty trade lists return one row with zero trades and NaN
+    return statistics.
+    """
+    required = {"Net return after costs"}
+    missing = sorted(required.difference(trades.columns))
+    if missing:
+        raise ValueError("Backtest trades missing columns: " + ", ".join(missing))
+
+    values = pd.to_numeric(trades["Net return after costs"], errors="coerce")
+    if values.isna().any() or not np.isfinite(values.to_numpy(dtype=float)).all():
+        raise ValueError("net trade returns must be finite numeric values")
+
+    returns = values.astype(float)
+    winners = returns[returns > 0]
+    losers = returns[returns < 0]
+    gross_profit = float(winners.sum())
+    gross_loss = float(-losers.sum())
+    profit_factor = gross_profit / gross_loss if gross_loss > 0 else float("nan")
+    count = len(returns)
+    row = {
+        "Trades": int(count),
+        "Win rate": float((returns > 0).mean()) if count else float("nan"),
+        "Mean net return": float(returns.mean()) if count else float("nan"),
+        "Median net return": float(returns.median()) if count else float("nan"),
+        "Net return standard deviation": (
+            float(returns.std(ddof=1)) if count > 1 else (0.0 if count == 1 else float("nan"))
+        ),
+        "Best net trade": float(returns.max()) if count else float("nan"),
+        "Worst net trade": float(returns.min()) if count else float("nan"),
+        "Profit factor": profit_factor,
+        "Gross profit from winning trades": gross_profit,
+        "Gross loss from losing trades": gross_loss,
+    }
+    return pd.DataFrame([row])

@@ -25,10 +25,15 @@ TOP10_UI_POLL_SECONDS = 2
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 20
+TOP10_FALLBACK_CHUNK_SIZE = 5
+TOP10_FALLBACK_TIMEOUT = 4
 TOP10_MAX_NSE_CANDIDATES = 10
 TOP10_MAX_BSE_CANDIDATES = 10
-TOP10_PROVIDER_RETRIES = 0
-TOP10_PROVIDER_TIMEOUT = 5
+TOP10_PROVIDER_RETRIES = 1
+TOP10_PROVIDER_TIMEOUT = 8
+TOP10_MAX_SINGLE_SYMBOL_RECOVERY = 2
+TOP10_RECOVERY_CHUNK_SIZE = 2
+TOP10_RECOVERY_TIMEOUT = 4
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
 TOP10_STALE_DATA_SECONDS = 180
@@ -580,6 +585,7 @@ def _download_top10_frames(
     tickers: list[str],
 ) -> tuple[dict[str, pd.DataFrame], list[str], str]:
     """Download all live scanner candles from Yahoo Finance only."""
+    """Download one-minute candles with bounded staged recovery for failed batches."""
     global _PROVIDER_DIAGNOSTICS
     _PROVIDER_DIAGNOSTICS = []
     frames, missing = download_symbol_frames(
@@ -593,6 +599,65 @@ def _download_top10_frames(
         recover_missing=False,
         diagnostics=_PROVIDER_DIAGNOSTICS,
     )
+
+    # Recover failed large batches using smaller requests. This also handles the
+    # common provider case where a batch returns no rows but individual symbols
+    # remain available. Keep each stage bounded to avoid retry storms.
+    if missing:
+        recovered, still_missing = download_symbol_frames(
+            missing,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            batch_size=TOP10_FALLBACK_CHUNK_SIZE,
+            timeout=TOP10_FALLBACK_TIMEOUT,
+            retries=0,
+            recover_missing=False,
+            diagnostics=_PROVIDER_DIAGNOSTICS,
+        )
+        frames.update(recovered)
+        missing = still_missing
+
+    if missing:
+        recovered, still_missing = download_symbol_frames(
+            missing,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            batch_size=TOP10_RECOVERY_CHUNK_SIZE,
+            timeout=TOP10_RECOVERY_TIMEOUT,
+            retries=0,
+            recover_missing=False,
+            diagnostics=_PROVIDER_DIAGNOSTICS,
+        )
+        frames.update(recovered)
+        missing = still_missing
+
+    # Individual requests are deliberately capped; unresolved symbols remain
+    # explicitly missing rather than extending a live refresh indefinitely.
+    if 0 < len(missing) <= TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
+        recovered, still_missing = download_symbol_frames(
+            missing,
+            period="1d",
+            interval="1m",
+            auto_adjust=False,
+            batch_size=len(missing),
+            timeout=TOP10_RECOVERY_TIMEOUT,
+            retries=0,
+            recover_missing=True,
+            diagnostics=_PROVIDER_DIAGNOSTICS,
+        )
+        frames.update(recovered)
+        missing = still_missing
+
+    if missing:
+        _PROVIDER_DIAGNOSTICS.append(
+            f"usable candles missing for {len(missing)}/{len(tickers)} tickers after staged recovery"
+        )
+    if not frames:
+        _PROVIDER_DIAGNOSTICS.append(
+            f"no usable one-minute candles returned for {len(tickers)} requested tickers"
+        )
     return frames, missing, "Yahoo Finance"
 
 

@@ -62,8 +62,11 @@ def test_top10_live_scanner_refreshes_every_minute() -> None:
     assert TOP10_CHUNK_SIZE == 20
     assert TOP10_MAX_NSE_CANDIDATES == 10
     assert TOP10_MAX_BSE_CANDIDATES == 10
-    assert TOP10_PROVIDER_RETRIES == 0
-    assert TOP10_PROVIDER_TIMEOUT == 5
+    assert TOP10_PROVIDER_RETRIES == 1
+    assert TOP10_PROVIDER_TIMEOUT == 8
+    assert top10_live.TOP10_RECOVERY_CHUNK_SIZE == 2
+    assert top10_live.TOP10_MAX_SINGLE_SYMBOL_RECOVERY == 2
+    assert top10_live.TOP10_RECOVERY_TIMEOUT == 4
     assert TOP10_MAX_CONSECUTIVE_FAILURES == 2
     assert 0 < TOP10_SCAN_WARNING_SECONDS < TOP10_STALE_DATA_SECONDS
     assert TOP10_STALE_DATA_SECONDS >= 3 * TOP10_REFRESH_SECONDS
@@ -672,6 +675,8 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert "retries=TOP10_PROVIDER_RETRIES" in source
     assert "recover_missing=False" in source
+    assert "TOP10_MAX_SINGLE_SYMBOL_RECOVERY" in source
+    assert "usable candles missing for" in source
 
 
 def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> None:
@@ -730,6 +735,33 @@ def test_dhan_quote_failures_are_logged_without_suppressing_diagnostics() -> Non
     assert "str(exc)[:240]" in source
 
 
+def test_top10_scanner_recovers_total_batch_failure_with_smaller_batches(monkeypatch) -> None:
+    tickers = ["AAA.NS", "BBB.NS", "CCC.BO", "DDD.BO"]
+    calls = []
+
+    def fake_download(requested_tickers, **kwargs):
+        calls.append((list(requested_tickers), kwargs))
+        if len(calls) == 1:
+            return {}, list(requested_tickers)
+        return (
+            {ticker: pd.DataFrame({"Close": [100.0, 101.0]}) for ticker in requested_tickers},
+            [],
+        )
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+
+    frames, missing, provider = top10_live._download_top10_frames(tickers)
+
+    assert provider == "Yahoo Finance"
+    assert missing == []
+    assert set(frames) == set(tickers)
+    assert len(calls) == 2
+    assert calls[0][1]["batch_size"] == TOP10_CHUNK_SIZE
+    assert calls[1][1]["batch_size"] == top10_live.TOP10_FALLBACK_CHUNK_SIZE
+    assert calls[1][1]["retries"] == 0
+    assert calls[1][1]["recover_missing"] is False
+
+
 def test_top10_scanner_uses_yahoo_finance_only(monkeypatch) -> None:
     expected_frames = {"RELIANCE.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
     calls = {}
@@ -783,3 +815,48 @@ def test_top10_filters_can_select_one_exchange() -> None:
     filtered = top10_live._apply_top10_filters(source, exchange="BSE")
 
     assert filtered["Symbol"].tolist() == ["BBB"]
+
+
+def test_top10_live_staged_recovery_retries_empty_batch_with_smaller_chunks(monkeypatch) -> None:
+    calls = []
+
+    def fake_download(tickers, **kwargs):
+        symbols = list(tickers)
+        calls.append((len(symbols), kwargs["batch_size"], kwargs["recover_missing"]))
+        return {}, symbols
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+    tickers = [f"SYM{i}.NS" for i in range(10)]
+
+    frames, missing, provider = top10_live._download_top10_frames(tickers)
+
+    assert frames == {}
+    assert missing == tickers
+    assert provider == "Yahoo Finance"
+    assert calls == [(10, 20, False), (10, 5, False), (10, 2, False)]
+    assert any("after staged recovery" in item for item in top10_live._PROVIDER_DIAGNOSTICS)
+
+
+def test_top10_live_staged_recovery_preserves_partial_successes(monkeypatch) -> None:
+    calls = 0
+    successful = {"SYM0.NS": pd.DataFrame({"Close": [100.0, 101.0]})}
+
+    def fake_download(tickers, **kwargs):
+        nonlocal calls
+        calls += 1
+        symbols = list(tickers)
+        if calls == 1:
+            return successful, [symbol for symbol in symbols if symbol not in successful]
+        if calls == 2:
+            return {}, symbols
+        if calls == 3:
+            recovered = {symbols[0]: pd.DataFrame({"Close": [200.0, 201.0]})}
+            return recovered, symbols[1:]
+        return {}, symbols
+
+    monkeypatch.setattr(top10_live, "download_symbol_frames", fake_download)
+    frames, missing, _provider = top10_live._download_top10_frames([f"SYM{i}.NS" for i in range(4)])
+
+    assert set(frames) == {"SYM0.NS", "SYM1.NS"}
+    assert missing == ["SYM2.NS", "SYM3.NS"]
+    assert calls == 4

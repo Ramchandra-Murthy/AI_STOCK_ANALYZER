@@ -9,6 +9,7 @@ from scanner.market_scanner import DISPLAY_COUNT, market_scan
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
 from services.market_service import WATCHLIST
+from services.scanner_trend_sort import sort_bullish_to_bearish
 from services.watchlist_service import WatchlistError
 from services.watchlist_ui import get_or_create_default_watchlist
 
@@ -332,6 +333,8 @@ def show():
             df = df.loc[turnover.ge(min_turnover)]
         if trend_filter != "All" and "Trend" in df.columns:
             df = df.loc[df["Trend"].astype(str).str.casefold() == trend_filter.casefold()]
+
+        df = sort_bullish_to_bearish(df)
 
         if df.empty:
             st.warning(
