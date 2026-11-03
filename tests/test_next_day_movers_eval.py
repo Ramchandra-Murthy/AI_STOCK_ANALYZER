@@ -227,8 +227,10 @@ def test_block_bootstrap_interval_behaviour() -> None:
     shifted_low, _ = block_bootstrap_ci(noise + 1.0, block=5, samples=500, seed=1)
     assert shifted_low > 0.0
     assert all(np.isnan(v) for v in block_bootstrap_ci(np.ones(6), block=5, samples=500, seed=1))
-    assert block_bootstrap_ci(noise, block=5, samples=500, seed=9) == block_bootstrap_ci(
-        noise, block=5, samples=500, seed=9
+    # Same seed must reproduce the interval exactly (strict equality, not approximate).
+    np.testing.assert_array_equal(
+        block_bootstrap_ci(noise, block=5, samples=500, seed=9),
+        block_bootstrap_ci(noise, block=5, samples=500, seed=9),
     )
 
 
