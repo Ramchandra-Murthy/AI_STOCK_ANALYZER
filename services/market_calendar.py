@@ -8,12 +8,19 @@ must not assume that an unconfigured year is a trading day.
 
 from __future__ import annotations
 
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 IST = ZoneInfo("Asia/Kolkata")
 REGULAR_SESSION_OPEN = time(9, 15)
 REGULAR_SESSION_CLOSE = time(15, 30)
+# Longest run of consecutive non-trading days searched before failing closed.
+MAX_NON_TRADING_RUN_DAYS = 14
+
+
+class CalendarUnavailableError(ValueError):
+    """Raised when a date needs a holiday calendar that is not configured."""
+
 
 # NSE's 2026 equity holiday calendar, including the January 15 Maharashtra
 # municipal-election holiday and August 26 Id-E-Milad. Review exchange notices
@@ -53,6 +60,41 @@ def is_equity_calendar_year_supported(year: int) -> bool:
 def is_equity_market_holiday(day: date) -> bool:
     """Return whether day is a listed full-day equity holiday in a supported year."""
     return day in EQUITY_HOLIDAYS_BY_YEAR.get(day.year, frozenset())
+
+
+def is_equity_trading_day(day: date) -> bool:
+    """Return whether day is a regular equity trading day (weekday and not a holiday).
+
+    Raises CalendarUnavailableError for years without a configured holiday
+    calendar, because treating an unknown year as holiday-free could produce a
+    wrong target date.
+    """
+    if not is_equity_calendar_year_supported(day.year):
+        raise CalendarUnavailableError(
+            f"No exchange-verified equity holiday calendar is configured for {day.year}."
+        )
+    return day.weekday() < 5 and not is_equity_market_holiday(day)
+
+
+def _step_to_trading_day(start: date, step: int) -> date:
+    candidate = start
+    for _ in range(MAX_NON_TRADING_RUN_DAYS):
+        candidate += timedelta(days=step)
+        if is_equity_trading_day(candidate):
+            return candidate
+    raise CalendarUnavailableError(
+        f"No equity trading day found within {MAX_NON_TRADING_RUN_DAYS} days of {start}."
+    )
+
+
+def next_equity_trading_day(after: date) -> date:
+    """Return the first regular trading day strictly after the given date."""
+    return _step_to_trading_day(after, 1)
+
+
+def previous_equity_trading_day(before: date) -> date:
+    """Return the last regular trading day strictly before the given date."""
+    return _step_to_trading_day(before, -1)
 
 
 def equity_market_session_status(
