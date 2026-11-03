@@ -656,7 +656,8 @@ def supporting_factors(
         notes.append(
             f"{label}: {_format_value(float(value), kind)} (percentile {rank_row[name] * 100:.0f})"
         )
-    if feature_row.get("breakout_20d") == 1.0:
+    # breakout_20d is a 0/1 flag stored as float (NaN when unknown); NaN compares False.
+    if feature_row.get("breakout_20d", 0.0) > 0.5:
         notes.append("Closed above prior 20-day high")
     return tuple(notes)
 
