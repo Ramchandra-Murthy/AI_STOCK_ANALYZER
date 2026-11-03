@@ -175,6 +175,12 @@ pages = {
             title="Day Trader Opportunity Scanner",
             icon="⚡",
         ),
+        st.Page(
+            "pages/Next_Day_Upside_Scanner.py",
+            title="Next-Day Upside Scanner",
+            icon="🌅",
+            url_path="next-day-upside-scanner",
+        ),
     ],
     "🧠 AI Trading Intelligence": [
         st.Page(

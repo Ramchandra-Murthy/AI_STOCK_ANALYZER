@@ -55,6 +55,10 @@ jobs:
         tests/test_backtester.py
         tests/test_walk_forward_validation.py
         tests/test_watchlist_*.py
+        tests/test_market_calendar.py
+        tests/test_next_day_movers.py
+        tests/test_next_day_movers_eval.py
+        tests/test_next_day_upside_scanner_ui.py
         tests/test_unusual_activity_scan.py
         tests/test_sotp_classification_service.py
         tests/forecast

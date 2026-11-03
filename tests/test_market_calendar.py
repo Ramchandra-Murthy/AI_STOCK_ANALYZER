@@ -1,11 +1,17 @@
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
+import pytest
+
 from services.market_calendar import (
+    CalendarUnavailableError,
     equity_market_session_status,
     is_equity_calendar_year_supported,
     is_equity_market_holiday,
+    is_equity_trading_day,
     is_regular_equity_session_open,
+    next_equity_trading_day,
+    previous_equity_trading_day,
 )
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -38,3 +44,25 @@ def test_unconfigured_calendar_year_fails_closed_during_session_hours() -> None:
     assert not is_equity_calendar_year_supported(2027)
     assert equity_market_session_status(now) == "CALENDAR_UNAVAILABLE"
     assert not is_regular_equity_session_open(now)
+
+
+def test_trading_day_checks_weekends_and_holidays() -> None:
+    assert is_equity_trading_day(date(2026, 11, 3))
+    assert not is_equity_trading_day(date(2026, 11, 7))  # Saturday
+    assert not is_equity_trading_day(date(2026, 11, 10))  # exchange holiday
+
+
+def test_next_and_previous_trading_day_skip_weekends_and_holidays() -> None:
+    assert next_equity_trading_day(date(2026, 11, 3)) == date(2026, 11, 4)
+    assert next_equity_trading_day(date(2026, 11, 6)) == date(2026, 11, 9)  # Friday -> Monday
+    assert next_equity_trading_day(date(2026, 11, 9)) == date(2026, 11, 11)  # holiday on the 10th
+    assert previous_equity_trading_day(date(2026, 11, 11)) == date(2026, 11, 9)
+    assert previous_equity_trading_day(date(2026, 11, 9)) == date(2026, 11, 6)
+
+
+def test_trading_day_helpers_fail_closed_for_unconfigured_year() -> None:
+    with pytest.raises(CalendarUnavailableError):
+        is_equity_trading_day(date(2027, 1, 4))
+    # The step from the last configured day into 2027 must not guess a date.
+    with pytest.raises(CalendarUnavailableError):
+        next_equity_trading_day(date(2026, 12, 31))
