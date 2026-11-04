@@ -8,4 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Repository foundation (M0) including directory structure, CI/CD workflows, governance documents, and tool configurations.
+- Next-day scanner validation suite (calendar/session boundaries, live-vs-evaluation parity,
+  look-ahead, costs, bad-data handling) and an append-only paper-trading log with
+  after-the-session outcomes, baselines and costs. Research only; no orders are placed.
 
+### Fixed
+- Next-day scanner walk-forward evaluation no longer rejects a symbol for the whole history
+  because of invalid rows that only occur later (look-ahead through data-quality filtering);
+  the live scan and the evaluation now apply the same per-date rule.
+- Next-day scanner returns `UNAVAILABLE` when stocks traded on a day the configured calendar
+  marks closed, instead of ranking against a possibly wrong cutoff and target date.
+- Next-day scanner page warns when the displayed result was produced for a different exchange
+  or shortlist-size selection.

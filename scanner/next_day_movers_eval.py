@@ -41,7 +41,7 @@ from scanner.next_day_movers import (
     benchmark_feature_frame,
     benchmark_tickers,
     build_universe,
-    clean_ohlcv,
+    clean_ohlcv_history,
     compute_feature_frame,
     default_frame_fetcher,
     ineligibility_flags,
@@ -153,15 +153,17 @@ def build_evaluation_panel(
     the primary benchmark's outcomes on the same ``date`` index.
     """
     cleaned: dict[str, pd.DataFrame] = {}
+    unreliable_by_ticker: dict[str, pd.Series] = {}
     dropped: dict[str, list[str]] = {}
     for ticker, frame in frames.items():
         if ticker not in instruments:
             continue
-        clean, reasons = clean_ohlcv(frame, None)
-        if clean is None:
+        clean, unreliable, reasons = clean_ohlcv_history(frame)
+        if clean is None or unreliable is None:
             dropped[ticker] = reasons
         else:
             cleaned[ticker] = clean
+            unreliable_by_ticker[ticker] = unreliable
     if not cleaned:
         raise EvaluationDataError("no usable price history for any symbol")
 
@@ -169,7 +171,7 @@ def build_evaluation_panel(
 
     bm_clean: dict[str, pd.DataFrame] = {}
     for exchange, frame in benchmarks.items():
-        clean, _ = clean_ohlcv(frame, None)
+        clean, _, _ = clean_ohlcv_history(frame)
         if clean is not None:
             bm_clean[exchange] = clean
     bm_features = {ex: benchmark_feature_frame(c) for ex, c in bm_clean.items()}
@@ -178,7 +180,9 @@ def build_evaluation_panel(
     for ticker, clean in cleaned.items():
         inst = instruments[ticker]
         feats = compute_feature_frame(clean)
-        feats["eligible"] = ~ineligibility_flags(feats, scanner).any(axis=1)
+        feats["eligible"] = ~ineligibility_flags(feats, scanner).any(axis=1) & ~(
+            unreliable_by_ticker[ticker].reindex(feats.index).fillna(False).astype(bool)
+        )
         next_open = clean["Open"].reindex(calendar).shift(-1).reindex(feats.index)
         next_close = clean["Close"].reindex(calendar).shift(-1).reindex(feats.index)
         feats["o2c"] = next_close / next_open - 1.0

@@ -81,6 +81,9 @@ OHLC_TOLERANCE = 1e-3
 COVERAGE_EPSILON = 1e-9
 INVALID_WINDOW_ROWS = 60
 MIN_SECTOR_PEERS = 3
+# Bars on a day the calendar marks closed are treated as a calendar conflict once this many
+# stocks (with real volume) carry one; a single stray provider bar is ignored.
+CALENDAR_CONFLICT_MIN_SYMBOLS = 3
 
 # Fixed a-priori weights (sum to 1.0). They are NOT fitted to data.
 FACTOR_WEIGHTS: dict[str, float] = {
@@ -220,6 +223,12 @@ class ScanResult:
     disclaimer: str = DISCLAIMER
     score_type: str = SCORE_TYPE
     errors: tuple[str, ...] = field(default_factory=tuple)
+    # Scored universe and the plain 5-day-momentum top-N at the cutoff. They are the
+    # paper-trading baselines (equal-weight universe, momentum) and are empty when no
+    # ranking was produced.
+    eligible_tickers: tuple[str, ...] = ()
+    momentum5_tickers: tuple[str, ...] = ()
+    benchmark_tickers: tuple[tuple[str, str], ...] = ()
 
     def to_frame(self) -> pd.DataFrame:
         """Return the shortlist as a display-ready DataFrame (empty if unavailable)."""
@@ -396,21 +405,15 @@ def _normalise_index(index: pd.Index) -> pd.DatetimeIndex:
     return stamps.normalize()
 
 
-def clean_ohlcv(
-    frame: pd.DataFrame | None, cutoff: date | None = None
-) -> tuple[pd.DataFrame | None, list[str]]:
-    """Return a validated daily OHLCV frame and any reasons it is unreliable.
-
-    Bars dated after ``cutoff`` are dropped so a partially formed session can never
-    leak into the features. Rows with non-positive or inconsistent prices, negative
-    or missing volume and duplicate dates are removed; if too many recent rows were
-    invalid the whole record is rejected.
-    """
+def _prepare_ohlcv(
+    frame: pd.DataFrame | None, cutoff: date | None
+) -> tuple[pd.DataFrame | None, pd.Series | None, list[str]]:
+    """Coerce a raw frame and flag valid rows; returns ``(data, valid, reasons)``."""
     if frame is None or frame.empty:
-        return None, ["no_data"]
+        return None, None, ["no_data"]
     missing = [c for c in REQUIRED_COLUMNS if c not in frame.columns]
     if missing:
-        return None, [f"missing_columns:{','.join(missing)}"]
+        return None, None, [f"missing_columns:{','.join(missing)}"]
 
     data = frame.loc[:, list(REQUIRED_COLUMNS)].apply(pd.to_numeric, errors="coerce")
     data.index = _normalise_index(frame.index)
@@ -420,7 +423,7 @@ def clean_ohlcv(
     if cutoff is not None:
         data = data[data.index <= pd.Timestamp(cutoff)]
     if data.empty:
-        return None, ["no_data_before_cutoff"]
+        return None, None, ["no_data_before_cutoff"]
 
     o, h, low, c, v = (data[col] for col in REQUIRED_COLUMNS)
     tol = OHLC_TOLERANCE
@@ -438,17 +441,64 @@ def clean_ohlcv(
         & v.notna()
         & (v >= 0)
     )
-    reasons: list[str] = []
-    recent_invalid = int((~valid).tail(INVALID_WINDOW_ROWS).sum())
-    if recent_invalid > max(2, int(0.05 * min(len(data), INVALID_WINDOW_ROWS))):
-        reasons.append(
-            f"unreliable_records:{recent_invalid}_invalid_rows_in_last_{INVALID_WINDOW_ROWS}"
-        )
+    return data, valid, []
+
+
+def unreliable_record_flags(valid: pd.Series) -> pd.Series:
+    """Per-date flag: too many invalid rows within the 60 rows ending on that date.
+
+    Uses only rows dated on or before each date, so the live scan (last row) and the
+    walk-forward evaluation (every row) apply exactly the same rule without look-ahead.
+    """
+    invalid = (~valid).astype(float)
+    recent = invalid.rolling(INVALID_WINDOW_ROWS, min_periods=1).sum()
+    window = np.minimum(np.arange(1, len(valid) + 1), INVALID_WINDOW_ROWS)
+    allowed = np.maximum(2, (0.05 * window).astype(int))
+    return pd.Series(recent.to_numpy() > allowed, index=valid.index)
+
+
+def clean_ohlcv(
+    frame: pd.DataFrame | None, cutoff: date | None = None
+) -> tuple[pd.DataFrame | None, list[str]]:
+    """Return a validated daily OHLCV frame and any reasons it is unreliable.
+
+    Bars dated after ``cutoff`` are dropped so a partially formed session can never
+    leak into the features. Rows with non-positive or inconsistent prices, negative
+    or missing volume and duplicate dates are removed; if too many recent rows were
+    invalid the whole record is rejected.
+    """
+    data, valid, reasons = _prepare_ohlcv(frame, cutoff)
+    if data is None or valid is None:
         return None, reasons
+    if bool(unreliable_record_flags(valid).iloc[-1]):
+        recent_invalid = int((~valid).tail(INVALID_WINDOW_ROWS).sum())
+        return None, [
+            f"unreliable_records:{recent_invalid}_invalid_rows_in_last_{INVALID_WINDOW_ROWS}"
+        ]
     data = data[valid]
     if data.empty:
         return None, ["no_valid_rows"]
-    return data, reasons
+    return data, []
+
+
+def clean_ohlcv_history(
+    frame: pd.DataFrame | None,
+) -> tuple[pd.DataFrame | None, pd.Series | None, list[str]]:
+    """Clean a full history for walk-forward use without look-ahead.
+
+    Returns ``(clean, unreliable, reasons)`` where ``unreliable`` is the per-date
+    :func:`unreliable_record_flags` series aligned to ``clean.index``. Rows are removed
+    exactly as in :func:`clean_ohlcv`, but a symbol is never rejected as a whole because
+    of rows that lie in the future of an earlier date.
+    """
+    data, valid, reasons = _prepare_ohlcv(frame, None)
+    if data is None or valid is None:
+        return None, None, reasons
+    flags = unreliable_record_flags(valid)[valid]
+    data = data[valid]
+    if data.empty:
+        return None, None, ["no_valid_rows"]
+    return data, flags, []
 
 
 # ---------------------------------------------------------------------------
@@ -691,6 +741,48 @@ def risk_flags(
 # ---------------------------------------------------------------------------
 
 
+def calendar_conflicts(
+    frames: Mapping[str, pd.DataFrame],
+    stock_tickers: Iterable[str],
+    cutoff: date,
+    today: date,
+) -> list[date]:
+    """Dates after the cutoff, up to today, on which the calendar says closed but stocks traded.
+
+    A real session on a day the configured calendar marks closed (a special or muhurat
+    session, or a calendar gap) would make the cutoff and target dates wrong. Only stock
+    bars with positive volume count, because index series often carry zero volume and
+    providers sometimes emit placeholder bars on holidays.
+    """
+    counts: dict[date, int] = {}
+    for ticker in stock_tickers:
+        frame = frames.get(ticker)
+        if frame is None or frame.empty or "Volume" not in frame.columns:
+            continue
+        stamps = _normalise_index(frame.index)
+        volume = pd.to_numeric(frame["Volume"], errors="coerce").to_numpy()
+        seen: set[date] = set()
+        for stamp, vol in zip(stamps, volume, strict=False):
+            if pd.isna(stamp) or not vol > 0:
+                continue
+            day = stamp.date()
+            if cutoff < day <= today:
+                seen.add(day)
+        for day in seen:
+            counts[day] = counts.get(day, 0) + 1
+    conflicts: list[date] = []
+    for day, count in sorted(counts.items()):
+        if count < CALENDAR_CONFLICT_MIN_SYMBOLS:
+            continue
+        try:
+            closed = not is_equity_trading_day(day)
+        except CalendarUnavailableError:
+            closed = True
+        if closed:
+            conflicts.append(day)
+    return conflicts
+
+
 def default_frame_fetcher(period: str = "1y") -> FrameFetcher:
     """Build the default fetcher on top of ``download_market_frames`` (lazy import)."""
 
@@ -789,6 +881,20 @@ def scan_next_day_movers(
             target,
             excluded,
             errors=(f"{type(exc).__name__}: {exc}",),
+        )
+
+    conflicts = calendar_conflicts(frames, tickers.values(), cutoff, now.date())
+    if conflicts:
+        days = ", ".join(day.isoformat() for day in conflicts)
+        return _unavailable(
+            f"Calendar conflict: stocks traded on {days}, which the configured calendar marks "
+            "closed (special session or calendar gap). The cutoff and target dates may be "
+            "wrong, so no ranking was produced. Check exchange notices and update the calendar.",
+            now,
+            cutoff,
+            target,
+            excluded,
+            {"calendar_conflicts": [day.isoformat() for day in conflicts]},
         )
 
     benchmarks: dict[str, pd.DataFrame] = {}
@@ -953,6 +1059,13 @@ def scan_next_day_movers(
         )
 
     quality["ranked"] = len(ordered)
+    momentum = (
+        panel[["ret_5d"]]
+        .dropna()
+        .assign(_ticker=lambda frame: frame.index)
+        .sort_values(["ret_5d", "_ticker"], ascending=[False, True])
+        .head(cfg.top_n)
+    )
     return ScanResult(
         status=status,
         candidates=tuple(candidates),
@@ -963,4 +1076,7 @@ def scan_next_day_movers(
         data_quality=quality,
         unavailable_data=tuple(unavailable),
         warnings=tuple(warnings),
+        eligible_tickers=tuple(str(t) for t in sorted(panel.index)),
+        momentum5_tickers=tuple(str(t) for t in momentum.index),
+        benchmark_tickers=tuple(sorted(bench.items())),
     )
