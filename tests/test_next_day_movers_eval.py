@@ -329,8 +329,15 @@ def test_invalid_and_unusable_histories_are_dropped_with_reasons() -> None:
     broken.iloc[-30:, broken.columns.get_loc("Close")] = np.nan
     frames["INFY.NS"] = broken
     result = run_walk_forward(frames, instruments, benchmarks, quick_config())
-    assert set(result.coverage["symbols_dropped"]) == {"TCS.NS", "INFY.NS"}
-    assert result.coverage["symbols_used"] == 12
+    # An empty frame is unusable for every date. INFY's bad rows are all recent, so it must
+    # NOT be removed from earlier dates (that would use future data quality): it stays in the
+    # panel and only becomes ineligible once the bad rows enter its trailing window.
+    assert set(result.coverage["symbols_dropped"]) == {"TCS.NS"}
+    assert result.coverage["symbols_used"] == 13
+    panel, _, _ = build_evaluation_panel(frames, instruments, benchmarks, quick_config().scanner)
+    infy = panel.xs("INFY.NS", level="ticker")
+    assert bool(infy["eligible"].iloc[-100])  # healthy history is still evaluated
+    assert infy.index.max() < panel.index.get_level_values("date").max()  # no bars once bad
 
 
 # --------------------------------------------------------------------------- provider boundary

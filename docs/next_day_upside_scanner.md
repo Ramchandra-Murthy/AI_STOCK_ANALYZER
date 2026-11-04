@@ -51,8 +51,17 @@ available to be ranked; missing factors are never filled in.
   (session close + 15 minutes) uses the previous session as the cutoff. A year without a
   configured holiday list raises `CalendarUnavailableError` and the scan reports
   `UNAVAILABLE` instead of guessing a target date.
+  Only 2026 is configured. A run whose cutoff or target falls in a year without a verified list
+  (from the evening of 31 Dec 2026 until a 2027 list is added to
+  `EQUITY_HOLIDAYS_BY_YEAR`) is `UNAVAILABLE`; future holidays are never inferred. Special
+  sessions (for example Muhurat trading) are not modelled: if stocks with real volume (at
+  least three) carry a bar on a day after the cutoff that the calendar marks closed, the scan is
+  `UNAVAILABLE` with a "Calendar conflict" message rather than using a possibly wrong cutoff.
 - **Cutoff:** the regular-session close (15:30 IST) of the last completed session. Bars
   dated after it are dropped before any feature is computed.
+  Boundaries (tested): before 09:15 and during the session use the previous session; from
+  15:45 (close plus buffer) on a trading day the same day is the cutoff; weekends and
+  configured holidays use the previous session; the target skips weekends and holidays.
 - **Universe:** the curated NSE and BSE lists in `scanner/universe.py`, validated and
   de-duplicated. BSE symbols are six-digit scrip codes, mapped through the existing
   `scanner/dynamic_universe.py` helpers. By default a BSE listing that pairs with an NSE
@@ -97,6 +106,14 @@ dated on or before `t`; outcomes are never used to build features or choose weig
   drawdown, score-quintile table, sequential fold stability, and sample coverage.
 - **Baselines:** the market index, the equal-weight eligible universe and a plain 5-day
   momentum ranking.
+- **Data-quality rejection is per date:** a record is "unreliable" at date `t` when too many of
+  the 60 rows ending at `t` were invalid. The live scan evaluates this at the cutoff and the
+  evaluation at every date, so a symbol is never removed from earlier dates because of rows that
+  only appear later. (Before the follow-up PR the evaluation rejected such a symbol for the whole
+  history, a small look-ahead; this was corrected without changing any weight, threshold or rule.)
+- **Cost comparison:** the strategy series is net of round-trip costs and slippage, while the
+  equal-weight universe and index baselines are gross (free). That is conservative against the
+  score and is the definition used by the pre-registered excess-return check.
 - **Edge rule (fixed before looking at results):** at least 120 evaluated days; the 95%
   block-bootstrap lower bound of mean daily net excess return vs the eligible universe is
   above zero; at least 60% of folds have positive net excess; mean net return is positive.
@@ -141,3 +158,52 @@ print(report.summary)
 Both functions accept an injected `fetcher` for offline use and tests. The Streamlit page
 is registered in `app.py` under the scanners group and fetches data only when a button is
 pressed.
+
+## Paper-trading log
+
+`scanner/next_day_paper_log.py` keeps an append-only JSON-lines file
+(`generated_reports/paper_trading/next_day_scanner_log.jsonl`, git-ignored, local to the
+server). It is research evidence, not live-trading performance, and nothing in it is sent to a
+broker.
+
+1. **Shortlist record** (`record_shortlist`): saved only before the target session opens
+   (09:15 IST) and never overwritten. It stores the prediction cutoff, target session,
+   generation time, status and warnings, each candidate's score, risk flags, last close, data
+   timestamp and data source, the scored universe, the momentum-5d top-N and the index tickers.
+   Rankings with status `UNAVAILABLE` are never recorded.
+2. **Outcome record** (`settle_outcomes`): written only after the target session has completed
+   (close plus 15 minutes), from bars dated exactly on the target session. Open-to-close return
+   is shown gross and net of the same round-trip costs and slippage as the evaluation, next to
+   the equal-weight universe, momentum-5d and index baselines. A missing, invalid or
+   zero-volume bar is recorded as `missing`, not as zero; a provider failure or absent target
+   bars leaves the session pending and writes nothing.
+3. **Summary** (`summarise_paper_log`): per-session table and totals. The log needs at least
+   120 settled sessions before the pre-registered rule could be applied, and even then it is
+   necessary, not sufficient, evidence.
+
+The Streamlit page has a *Paper-trading log* tab with buttons to save the current shortlist and
+to record outcomes for completed sessions; nothing runs automatically. The log lives on the
+server's local disk and can be lost on redeploy.
+
+## Validation and reproducibility
+
+What was verified: behaviour on synthetic, injected data. This covers calendar and session
+boundaries, exclusion reasons, provider-failure states, live/evaluation score parity for the
+same date, absence of future-bar influence, cost arithmetic and paper-log rules. **No live
+market-data accuracy was verified**; Yahoo Finance data, NSE surveillance lookups and the
+2026 holiday list were not checked against exchange sources in this work. Check holidays
+against NSE/BSE circulars before relying on a date.
+
+```bash
+uv sync --locked --no-build --no-install-project
+PYTHONPATH=. uv run --locked --no-sync python -m pytest --import-mode=importlib -q \
+  tests/test_market_calendar.py tests/test_next_day_movers.py tests/test_next_day_movers_eval.py \
+  tests/test_next_day_scanner_validation.py tests/test_next_day_paper_log.py \
+  tests/test_next_day_upside_scanner_ui.py
+uv run --locked --no-sync ruff check . && uv run --locked --no-sync black --check .
+```
+
+To check a live run by hand after the close: run the scan, confirm the shown cutoff is the
+last completed session and the target is the next trading day, spot-check a few last closes
+against the exchange website, and compare `Data timestamp` with the cutoff.
+
