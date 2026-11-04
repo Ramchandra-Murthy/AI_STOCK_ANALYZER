@@ -51,8 +51,8 @@ def test_paper_log_reports_corrupt_lines_without_hiding_valid_records(
 
 def test_session_is_not_complete_before_close_plus_settlement_buffer() -> None:
     target = date(2026, 11, 4)
-    before_buffer = datetime(2026, 11, 4, 15, 29, tzinfo=IST)
-    after_buffer = datetime(2026, 11, 4, 15, 31, tzinfo=IST)
+    before_buffer = datetime(2026, 11, 4, 15, 44, tzinfo=IST)
+    after_buffer = datetime(2026, 11, 4, 15, 46, tzinfo=IST)
 
     assert not session_is_complete(target, before_buffer)
     assert session_is_complete(target, after_buffer)
