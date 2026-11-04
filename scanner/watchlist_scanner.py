@@ -8,6 +8,7 @@ import pandas as pd
 from services.analyzer import analyze_stock
 from services.intraday_context_freshness import intraday_context_freshness
 from services.intraday_market_context import intraday_market_context
+from services.market_calendar import IST, equity_market_session_status
 from services.resilient_market_data import download_symbol_frames
 
 
@@ -42,8 +43,14 @@ _CONTEXT_FIELDS = {
     "Turnover ratio": None,
     "Context status": "INTRADAY CONTEXT UNAVAILABLE",
     "Context freshness": "TIMESTAMP_UNAVAILABLE",
+    "Market Session": "CALENDAR_UNAVAILABLE",
     "Cumulative RVOL basis": "Not time-of-day normalized",
 }
+
+
+def _market_session_status(now: datetime | None = None) -> str:
+    """Return the shared equity calendar status for watchlist context."""
+    return equity_market_session_status(now or datetime.now(tz=IST))
 
 
 def _intraday_context_columns(
@@ -53,8 +60,9 @@ def _intraday_context_columns(
     now: datetime | None = None,
 ) -> dict[str, Any]:
     """Build descriptive context from intraday candles and prior daily baselines."""
+    market_session = _market_session_status(now)
     if intraday is None or intraday.empty:
-        return dict(_CONTEXT_FIELDS)
+        return {**_CONTEXT_FIELDS, "Market Session": market_session}
 
     latest_timestamp = pd.Timestamp(intraday.index[-1])
     observed_at = latest_timestamp.to_pydatetime()
@@ -89,12 +97,13 @@ def _intraday_context_columns(
         average_daily_turnover=average_turnover,
     )
     if not context:
-        return dict(_CONTEXT_FIELDS)
+        return {**_CONTEXT_FIELDS, "Market Session": market_session}
     return {
         **_CONTEXT_FIELDS,
         **context,
         "Context status": context.get("Context status", "INTRADAY CONTEXT UNAVAILABLE"),
         "Context freshness": freshness,
+        "Market Session": market_session,
     }
 
 
