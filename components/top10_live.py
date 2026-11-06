@@ -4,7 +4,9 @@
 
 from __future__ import annotations
 
+import logging
 from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from threading import Lock
 from time import perf_counter
@@ -18,22 +20,30 @@ from services.market_calendar import (
     equity_market_session_status,
     is_regular_equity_session_open,
 )
-from services.resilient_market_data import download_symbol_frames
+from services.resilient_market_data import download_symbol_frames, download_symbols_individually
+
+logger = logging.getLogger(__name__)
 
 TOP10_REFRESH_SECONDS = 60
 TOP10_UI_POLL_SECONDS = 2
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
-TOP10_CHUNK_SIZE = 20
-TOP10_FALLBACK_CHUNK_SIZE = 5
-TOP10_FALLBACK_TIMEOUT = 4
+TOP10_CHUNK_SIZE = 10
 TOP10_MAX_NSE_CANDIDATES = 10
 TOP10_MAX_BSE_CANDIDATES = 10
-TOP10_PROVIDER_RETRIES = 1
-TOP10_PROVIDER_TIMEOUT = 8
-TOP10_MAX_SINGLE_SYMBOL_RECOVERY = 2
-TOP10_RECOVERY_CHUNK_SIZE = 2
-TOP10_RECOVERY_TIMEOUT = 4
+TOP10_PROVIDER_RETRIES = 0
+TOP10_PROVIDER_TIMEOUT = 5
+# Bounded recovery for symbols the first batch pass could not resolve.
+TOP10_FALLBACK_CHUNK_SIZE = 5
+TOP10_FALLBACK_TIMEOUT = 4
+TOP10_MAX_SINGLE_SYMBOL_RECOVERY = 4
+TOP10_SCAN_BUDGET_SECONDS = 30
+# A scan still running after this long is abandoned so the page cannot refresh forever.
+TOP10_SCAN_HARD_TIMEOUT_SECONDS = 90
+# Failed scans are retried with exponential backoff, never more often than this.
+TOP10_RETRY_BACKOFF_SECONDS = 15
+TOP10_RETRY_BACKOFF_MAX_SECONDS = 60
+TOP10_MANUAL_REFRESH_MIN_SECONDS = 5
 TOP10_MAX_CONSECUTIVE_FAILURES = 2
 TOP10_SCAN_WARNING_SECONDS = 20
 TOP10_STALE_DATA_SECONDS = 180
@@ -44,6 +54,7 @@ TOP10_MARKET_CLOSE_MINUTE = 30
 TOP10_SESSION_STATUS_KEY = "top10_market_status"
 TOP10_PARTIAL_FAILURES_KEY = "top10_partial_failures"
 TOP10_COVERAGE_KEY = "top10_quote_coverage"
+TOP10_SEEN_GENERATION_KEY = "top10_seen_scan_generation"
 TOP10_EXPECTED_QUOTES = 20
 TOP10_GOOD_COVERAGE_QUOTES = 18
 TOP10_REDUCED_COVERAGE_QUOTES = 10
@@ -63,9 +74,20 @@ _IST = ZoneInfo(TOP10_TIMEZONE)
 _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
 _SCAN_LOCK = Lock()
 _SCAN_FUTURE: Future[tuple[pd.DataFrame, float, int, int]] | None = None
+# The last *successful* scan; a failed refresh never clears it.
 _SCAN_RESULT: tuple[pd.DataFrame, float, int, int] | None = None
 _SCAN_FAILURES = 0
+_SCAN_COMPLETED_AT: datetime | None = None
+_SCAN_GENERATION = 0
+_SCAN_LAST_ERROR: str | None = None
+_SCAN_NEXT_ATTEMPT_AT: datetime | None = None
+_SCAN_STARTED_AT: datetime | None = None
+# When the worker really finished, so polling jitter never shifts the refresh cadence.
+_SCAN_FINISHED_AT: datetime | None = None
+_SCAN_TOKEN = 0
+# Working list for the scan in progress, and the settled copy shown in the UI.
 _PROVIDER_DIAGNOSTICS: list[str] = []
+_LAST_SCAN_DIAGNOSTICS: list[str] = []
 
 
 def _apply_top10_filters(
@@ -581,13 +603,20 @@ def _render_signal_quality_metrics(history: list[pd.DataFrame] | None) -> None:
         column.metric(label, f"{metrics[label]:.1f}%")
 
 
-def _download_top10_frames(
+class Top10ScanError(RuntimeError):
+    """Scan failure whose message is safe to show to the user."""
+
+
+def _download_yahoo_frames(
     tickers: list[str],
-) -> tuple[dict[str, pd.DataFrame], list[str], str]:
-    """Download all live scanner candles from Yahoo Finance only."""
-    """Download one-minute candles with bounded staged recovery for failed batches."""
-    global _PROVIDER_DIAGNOSTICS
-    _PROVIDER_DIAGNOSTICS = []
+    started: float,
+) -> tuple[dict[str, pd.DataFrame], list[str]]:
+    """Fetch Yahoo candles, recovering unresolved symbols with strictly bounded stages.
+
+    Every stage is capped (batch count, per-request timeout, no retry loops, a hard
+    limit on single-symbol requests and an overall time budget) so a provider
+    outage can never turn one scan into a retry storm.
+    """
     frames, missing = download_symbol_frames(
         tickers,
         period="1d",
@@ -600,11 +629,13 @@ def _download_top10_frames(
         diagnostics=_PROVIDER_DIAGNOSTICS,
     )
 
-    # Recover failed large batches using smaller requests. This also handles the
-    # common provider case where a batch returns no rows but individual symbols
-    # remain available. Keep each stage bounded to avoid retry storms.
-    if missing:
-        recovered, still_missing = download_symbol_frames(
+    def budget_left() -> bool:
+        return perf_counter() - started < TOP10_SCAN_BUDGET_SECONDS
+
+    # Stage 2: ask again for only the unresolved symbols, in smaller batches. This
+    # covers the case where a large batch returns no rows but smaller ones succeed.
+    if missing and budget_left():
+        recovered, missing = download_symbol_frames(
             missing,
             period="1d",
             interval="1m",
@@ -615,56 +646,67 @@ def _download_top10_frames(
             recover_missing=False,
             diagnostics=_PROVIDER_DIAGNOSTICS,
         )
-        frames.update(recovered)
-        missing = still_missing
+        frames = {**frames, **recovered}
 
-    if missing:
-        recovered, still_missing = download_symbol_frames(
+    # Stage 3: direct per-symbol requests, only when a few symbols remain. A mass
+    # failure is a provider-level problem that per-symbol requests would only amplify.
+    if 0 < len(missing) <= TOP10_MAX_SINGLE_SYMBOL_RECOVERY and budget_left():
+        recovered, missing = download_symbols_individually(
             missing,
             period="1d",
             interval="1m",
             auto_adjust=False,
-            batch_size=TOP10_RECOVERY_CHUNK_SIZE,
-            timeout=TOP10_RECOVERY_TIMEOUT,
+            timeout=TOP10_FALLBACK_TIMEOUT,
             retries=0,
-            recover_missing=False,
+            max_symbols=TOP10_MAX_SINGLE_SYMBOL_RECOVERY,
             diagnostics=_PROVIDER_DIAGNOSTICS,
         )
-        frames.update(recovered)
-        missing = still_missing
+        frames = {**frames, **recovered}
 
-    # Individual requests are deliberately capped; unresolved symbols remain
-    # explicitly missing rather than extending a live refresh indefinitely.
-    if 0 < len(missing) <= TOP10_MAX_SINGLE_SYMBOL_RECOVERY:
-        recovered, still_missing = download_symbol_frames(
-            missing,
-            period="1d",
-            interval="1m",
-            auto_adjust=False,
-            batch_size=len(missing),
-            timeout=TOP10_RECOVERY_TIMEOUT,
-            retries=0,
-            recover_missing=True,
-            diagnostics=_PROVIDER_DIAGNOSTICS,
+    if missing and not budget_left():
+        _PROVIDER_DIAGNOSTICS.append(
+            f"recovery stopped: scan time budget of {TOP10_SCAN_BUDGET_SECONDS}s reached"
         )
-        frames.update(recovered)
-        missing = still_missing
+    return frames, missing
 
-    if missing:
-        _PROVIDER_DIAGNOSTICS.append(
-            f"usable candles missing for {len(missing)}/{len(tickers)} tickers after staged recovery"
-        )
-    if not frames:
-        _PROVIDER_DIAGNOSTICS.append(
-            f"no usable one-minute candles returned for {len(tickers)} requested tickers"
-        )
+
+def _download_top10_frames(
+    tickers: list[str],
+) -> tuple[dict[str, pd.DataFrame], list[str], str]:
+    """Download one-minute Yahoo Finance candles with bounded staged recovery."""
+    started = perf_counter()
+    _PROVIDER_DIAGNOSTICS.clear()
+    frames, missing = _download_yahoo_frames(tickers, started)
     return frames, missing, "Yahoo Finance"
 
 
+def _describe_no_quotes(
+    requested: int,
+    missing: int,
+    stale_ages: list[float],
+    unusable: int,
+) -> str:
+    """Explain, in provider-neutral terms, why a scan produced zero usable quotes."""
+    parts = [f"{missing} missing from the provider"]
+    if stale_ages:
+        parts.append(
+            f"{len(stale_ages)} stale (freshest candle {min(stale_ages) / 60:.0f} min old)"
+        )
+    if unusable:
+        parts.append(f"{unusable} with unusable candle data")
+    return (
+        f"No usable live quotes: 0 of {requested} symbols had a fresh 1-minute candle "
+        f"({', '.join(parts)})."
+    )
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
-    """Scan a small curated candidate set with one-minute candles only."""
+    """Scan a small curated candidate set with one-minute candles only.
+
+    Only real provider candles become rows: unresolved, stale or malformed symbols
+    are skipped (and reported), never estimated or filled in.
+    """
     started = perf_counter()
-    failures = 0
     rows: list[dict[str, object]] = []
     latest_candles: list[pd.Timestamp] = []
 
@@ -679,25 +721,37 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         for symbols in [[symbol for venue, symbol in candidates if venue == exchange]]
     }
     all_tickers = [ticker for tickers in tickers_by_exchange.values() for ticker in tickers]
-    frames, _missing, provider_name = _download_top10_frames(all_tickers)
-    failures = len(_missing) if _missing else 0
+    frames, missing, provider_name = _download_top10_frames(all_tickers)
+    failures = len(missing)
+
+    scan_now = datetime.now(_IST)
+    stale_ages: list[float] = []
+    unusable = 0
 
     for exchange, tickers in tickers_by_exchange.items():
         for ticker in tickers:
-            close = pd.to_numeric(
-                frames.get(ticker, pd.DataFrame()).get("Close"),
-                errors="coerce",
-            ).dropna()
+            frame = frames.get(ticker)
+            if frame is None or frame.empty or "Close" not in frame.columns:
+                # Unresolved by the provider; already counted in ``failures``.
+                continue
+            close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
             if len(close) < 2:
+                unusable += 1
                 continue
 
             candle_timestamp = close.index[-1]
-            if not _is_fresh_provider_timestamp(candle_timestamp, datetime.now(_IST)):
+            if not _is_fresh_provider_timestamp(candle_timestamp, scan_now):
+                age = _provider_age_seconds(candle_timestamp, scan_now)
+                if age is None:
+                    unusable += 1
+                else:
+                    stale_ages.append(age)
                 continue
 
             latest = float(close.iloc[-1])
             previous = float(close.iloc[-2])
             if latest <= 0 or previous <= 0:
+                unusable += 1
                 continue
 
             change_1m = (latest / previous - 1.0) * 100
@@ -717,11 +771,21 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
                 }
             )
 
+    if stale_ages:
+        _PROVIDER_DIAGNOSTICS.append(
+            f"{len(stale_ages)} symbol(s) skipped: latest candle older than "
+            f"{TOP10_STALE_DATA_SECONDS}s (freshest {min(stale_ages):.0f}s old)"
+        )
+    if unusable:
+        _PROVIDER_DIAGNOSTICS.append(
+            f"{unusable} symbol(s) skipped: insufficient or invalid candle data"
+        )
+
     frame = pd.DataFrame(rows)
     if frame.empty:
-        raise RuntimeError("Live quote provider returned no usable 1-minute quotes")
-    if frame.empty:
-        return frame, round(perf_counter() - started, 2), failures, 0
+        message = _describe_no_quotes(len(all_tickers), failures, stale_ages, unusable)
+        _PROVIDER_DIAGNOSTICS.append(message)
+        raise Top10ScanError(message)
 
     valid_quotes = len(frame)
     trusted_quotes = min(valid_quotes, TOP10_EXPECTED_QUOTES)
@@ -747,188 +811,283 @@ def _load_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     return _scan_live_top10()
 
 
-def _start_background_scan() -> None:
-    """Start one shared scan without blocking the Streamlit fragment."""
-    global _SCAN_FUTURE
-    with _SCAN_LOCK:
-        if _SCAN_FUTURE is None or _SCAN_FUTURE.done():
-            _SCAN_FUTURE = _SCAN_EXECUTOR.submit(_scan_live_top10)
+@dataclass(frozen=True)
+class _ScanSnapshot:
+    """Consistent, lock-free view of the shared background scan state."""
+
+    result: tuple[pd.DataFrame, float, int, int] | None
+    generation: int
+    completed_at: datetime | None
+    failures: int
+    last_error: str | None
+    running: bool
+    next_attempt_at: datetime | None
+    diagnostics: tuple[str, ...]
 
 
-def _consume_background_scan() -> tuple[pd.DataFrame, float, int, int] | None:
-    """Return a completed background scan and keep the UI non-blocking."""
-    global _SCAN_FUTURE, _SCAN_RESULT, _SCAN_FAILURES
-    with _SCAN_LOCK:
-        if _SCAN_FUTURE is not None and _SCAN_FUTURE.done():
-            try:
-                _SCAN_RESULT = _SCAN_FUTURE.result()
-            except Exception:
-                _SCAN_RESULT = None
-                _SCAN_FAILURES += 1
-            else:
-                _SCAN_FAILURES = 0
-            _SCAN_FUTURE = None
-        return _SCAN_RESULT
-
-
-@st.fragment(run_every=f"{TOP10_UI_POLL_SECONDS}s")
-def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> None:
-    """Render a live Top-10 scanner while refresh work runs in the background."""
-    del period, interval
-
-    st.subheader("🔴 Live Top-10 Market Scanner")
-    st.caption(
-        "Ranks the largest absolute 1-minute price moves from the configured "
-        "NSE/BSE candidate universe using Yahoo Finance one-minute candles. "
-        "The fast path scans a balanced sample of NSE and BSE symbols. "
-        "Degraded coverage is never promoted into signal history."
+def _retry_delay_seconds(failures: int) -> int:
+    """Exponential retry backoff after consecutive failed scans, capped per minute."""
+    if failures <= 0:
+        return 0
+    return min(
+        TOP10_RETRY_BACKOFF_SECONDS * 2 ** (failures - 1),
+        TOP10_RETRY_BACKOFF_MAX_SECONDS,
     )
 
-    with st.expander("Scanner filters", expanded=True):
-        filter_col1, filter_col2 = st.columns(2)
-        with filter_col1:
-            min_price_filter = st.number_input(
-                "Minimum price (₹)",
-                min_value=0.0,
-                value=0.0,
-                step=10.0,
-                key="top10_filter_min_price",
-            )
-        with filter_col2:
-            max_price_filter = st.number_input(
-                "Maximum price (₹; 0 = no limit)",
-                min_value=0.0,
-                value=0.0,
-                step=10.0,
-                key="top10_filter_max_price",
-            )
-        move_col1, move_col2 = st.columns(2)
-        with move_col1:
-            min_move_filter = st.number_input(
-                "Minimum absolute 1-minute move (%)",
-                min_value=0.0,
-                value=0.0,
-                step=0.1,
-                key="top10_filter_min_move",
-            )
-        with move_col2:
-            max_move_filter = st.number_input(
-                "Maximum absolute 1-minute move (%) (0 = no limit)",
-                min_value=0.0,
-                value=0.0,
-                step=0.1,
-                key="top10_filter_max_move",
-            )
-        exchange_filter = st.selectbox(
-            "Exchange",
-            ["NSE + BSE", "NSE", "BSE"],
-            key="top10_filter_exchange",
+
+def _safe_error_message(exc: BaseException) -> str:
+    """Return a user-safe failure summary; raw provider errors stay in the server log."""
+    if isinstance(exc, Top10ScanError):
+        return str(exc)
+    return f"Quote provider error ({type(exc).__name__})."
+
+
+def _reset_scan_state() -> None:
+    """Forget all shared scan state (used by tests; the executor is left alone)."""
+    global _SCAN_FUTURE, _SCAN_RESULT, _SCAN_FAILURES, _SCAN_COMPLETED_AT
+    global _SCAN_GENERATION, _SCAN_LAST_ERROR, _SCAN_NEXT_ATTEMPT_AT, _SCAN_STARTED_AT
+    global _SCAN_FINISHED_AT
+    with _SCAN_LOCK:
+        _SCAN_FUTURE = None
+        _SCAN_RESULT = None
+        _SCAN_FAILURES = 0
+        _SCAN_COMPLETED_AT = None
+        _SCAN_GENERATION = 0
+        _SCAN_LAST_ERROR = None
+        _SCAN_NEXT_ATTEMPT_AT = None
+        _SCAN_STARTED_AT = None
+        _SCAN_FINISHED_AT = None
+        _LAST_SCAN_DIAGNOSTICS.clear()
+        _PROVIDER_DIAGNOSTICS.clear()
+
+
+def _run_background_scan(token: int) -> tuple[pd.DataFrame, float, int, int]:
+    """Worker entry point: run one scan; publish its diagnostics and finish time."""
+    global _SCAN_FINISHED_AT
+    try:
+        return _scan_live_top10()
+    finally:
+        with _SCAN_LOCK:
+            # A scan abandoned by the watchdog must not overwrite newer state.
+            if token == _SCAN_TOKEN:
+                _LAST_SCAN_DIAGNOSTICS[:] = list(dict.fromkeys(_PROVIDER_DIAGNOSTICS))
+                _SCAN_FINISHED_AT = datetime.now(_IST)
+
+
+def _record_scan_failure(message: str, now: datetime) -> None:
+    """Register one failed scan and schedule the next attempt. Caller holds the lock."""
+    global _SCAN_FAILURES, _SCAN_LAST_ERROR, _SCAN_NEXT_ATTEMPT_AT
+    _SCAN_FAILURES += 1
+    _SCAN_LAST_ERROR = message
+    _SCAN_NEXT_ATTEMPT_AT = now + timedelta(seconds=_retry_delay_seconds(_SCAN_FAILURES))
+
+
+def _settle_background_scan(now: datetime) -> None:
+    """Fold a finished (or stuck) background scan into the shared state.
+
+    The last successful result is never discarded by a failed refresh. Caller must
+    hold ``_SCAN_LOCK``.
+    """
+    global _SCAN_FUTURE, _SCAN_RESULT, _SCAN_FAILURES, _SCAN_COMPLETED_AT
+    global _SCAN_GENERATION, _SCAN_LAST_ERROR, _SCAN_NEXT_ATTEMPT_AT
+    global _SCAN_EXECUTOR, _SCAN_TOKEN
+    if _SCAN_FUTURE is None:
+        return
+
+    if not _SCAN_FUTURE.done():
+        started = _SCAN_STARTED_AT
+        if started is None or now - started < timedelta(seconds=TOP10_SCAN_HARD_TIMEOUT_SECONDS):
+            return
+        # A hung provider call must not leave the page refreshing forever: orphan the
+        # stuck worker (its late result is ignored) and move to a fresh executor.
+        _SCAN_TOKEN += 1
+        _SCAN_FUTURE = None
+        _SCAN_EXECUTOR.shutdown(wait=False, cancel_futures=True)
+        _SCAN_EXECUTOR = ThreadPoolExecutor(max_workers=1, thread_name_prefix="top10-scan")
+        message = f"Live scan timed out after {TOP10_SCAN_HARD_TIMEOUT_SECONDS}s."
+        _LAST_SCAN_DIAGNOSTICS[:] = [message]
+        _record_scan_failure(message, now)
+        logger.warning("Top-10 scan abandoned: %s", message)
+        return
+
+    future, _SCAN_FUTURE = _SCAN_FUTURE, None
+    finished = _SCAN_FINISHED_AT or now
+    try:
+        result = future.result()
+    except Exception as exc:  # provider failures must never crash the page
+        logger.warning("Top-10 scan failed (%s)", type(exc).__name__, exc_info=exc)
+        _record_scan_failure(_safe_error_message(exc), finished)
+    else:
+        _SCAN_RESULT = result
+        _SCAN_COMPLETED_AT = finished
+        _SCAN_GENERATION += 1
+        _SCAN_FAILURES = 0
+        _SCAN_LAST_ERROR = None
+        _SCAN_NEXT_ATTEMPT_AT = finished + timedelta(seconds=TOP10_REFRESH_SECONDS)
+
+
+def _scan_snapshot(now: datetime | None = None) -> _ScanSnapshot:
+    """Settle any finished scan, then return the current shared scan state."""
+    current = now or datetime.now(_IST)
+    with _SCAN_LOCK:
+        _settle_background_scan(current)
+        return _ScanSnapshot(
+            result=_SCAN_RESULT,
+            generation=_SCAN_GENERATION,
+            completed_at=_SCAN_COMPLETED_AT,
+            failures=_SCAN_FAILURES,
+            last_error=_SCAN_LAST_ERROR,
+            running=_SCAN_FUTURE is not None,
+            next_attempt_at=_SCAN_NEXT_ATTEMPT_AT,
+            diagnostics=tuple(_LAST_SCAN_DIAGNOSTICS),
         )
 
-    if st.button("↻ Refresh Top-10 now", key="top10_manual_refresh"):
-        if _market_is_open(datetime.now(_IST)):
-            _load_live_top10.clear()
-            _start_background_scan()
-            st.rerun(scope="fragment")
-        else:
-            status = equity_market_session_status(datetime.now(_IST))
-            if status == "CALENDAR_UNAVAILABLE":
-                st.warning(
-                    "⚠️ EXCHANGE CALENDAR UNAVAILABLE · Live scanning is paused because "
-                    "this calendar year has no verified exchange holiday schedule configured."
-                )
-            else:
-                st.info(
-                    "⚪ MARKET CLOSED · Live Top-10 refresh is available during the next "
-                    "regular NSE/BSE session."
-                )
 
-    background_result = _consume_background_scan()
-    if background_result is not None:
-        st.session_state["top10_live_previous_result"] = st.session_state.get(
-            "top10_live_result", (pd.DataFrame(), 0.0, 0, 0)
-        )[0]
-        st.session_state["top10_live_result"] = background_result
-        st.session_state["top10_live_completed_at"] = datetime.now(_IST)
-        st.session_state[TOP10_PARTIAL_FAILURES_KEY] = background_result[2]
-        st.session_state[TOP10_COVERAGE_KEY] = background_result[3]
+def _start_background_scan(*, now: datetime | None = None, force: bool = False) -> bool:
+    """Start one shared scan without blocking the Streamlit fragment.
+
+    Returns True only when a scan was actually started. At most one scan runs at a
+    time. Automatic starts wait out the retry backoff after a failure; ``force``
+    (the manual button) bypasses the backoff but is still rate limited.
+    """
+    global _SCAN_FUTURE, _SCAN_STARTED_AT, _SCAN_FINISHED_AT, _SCAN_TOKEN
+    current = now or datetime.now(_IST)
+    with _SCAN_LOCK:
+        _settle_background_scan(current)
+        if _SCAN_FUTURE is not None:
+            return False
+        if force:
+            if _SCAN_STARTED_AT is not None and current < _SCAN_STARTED_AT + timedelta(
+                seconds=TOP10_MANUAL_REFRESH_MIN_SECONDS
+            ):
+                return False
+        elif _SCAN_NEXT_ATTEMPT_AT is not None and current < _SCAN_NEXT_ATTEMPT_AT:
+            return False
+        _SCAN_TOKEN += 1
+        _SCAN_STARTED_AT = current
+        _SCAN_FINISHED_AT = None
+        _SCAN_FUTURE = _SCAN_EXECUTOR.submit(_run_background_scan, _SCAN_TOKEN)
+        return True
+
+
+def _sync_session_with_snapshot(snapshot: _ScanSnapshot) -> None:
+    """Copy a newly completed shared scan into this session's state exactly once."""
+    if snapshot.result is None:
+        return
+    if snapshot.generation == st.session_state.get(TOP10_SEEN_GENERATION_KEY):
+        return
+    st.session_state["top10_live_previous_result"] = st.session_state.get(
+        "top10_live_result", (pd.DataFrame(), 0.0, 0, 0)
+    )[0]
+    st.session_state["top10_live_result"] = snapshot.result
+    st.session_state["top10_live_completed_at"] = snapshot.completed_at
+    st.session_state[TOP10_PARTIAL_FAILURES_KEY] = snapshot.result[2]
+    st.session_state[TOP10_COVERAGE_KEY] = snapshot.result[3]
+    st.session_state[TOP10_SEEN_GENERATION_KEY] = snapshot.generation
+
+
+def _render_provider_diagnostics(diagnostics: tuple[str, ...]) -> None:
+    """Show the safe diagnostic summary of the last completed scan, if any."""
+    if diagnostics:
+        st.caption("Provider diagnostics (safe summary): " + "; ".join(dict.fromkeys(diagnostics)))
+
+
+def _render_market_closed_notice(market_status: str, *, has_data: bool) -> None:
+    """Explain, in exactly one message, why live scanning is not running right now."""
+    tail = (
+        "Showing the last completed scan."
+        if has_data
+        else "No live Top-10 scan is available until the next regular NSE/BSE session."
+    )
+    if market_status == "CALENDAR_UNAVAILABLE":
+        st.warning(
+            "⚠️ EXCHANGE CALENDAR UNAVAILABLE · Live scanning is paused because this "
+            f"calendar year has no verified exchange holiday schedule configured. {tail}"
+        )
+    elif market_status == "HOLIDAY":
+        st.info(f"⚪ MARKET HOLIDAY · The regular NSE/BSE session is closed today. {tail}")
+    else:
+        st.info(
+            f"⚪ MARKET CLOSED · Live scanning resumes in the next regular NSE/BSE session. {tail}"
+        )
+
+
+def _handle_manual_refresh() -> None:
+    """Handle the manual refresh button: market-hours gated and rate limited."""
+    now = datetime.now(_IST)
+    if not _market_is_open(now):
+        _render_market_closed_notice(equity_market_session_status(now), has_data=False)
+        return
+    _load_live_top10.clear()
+    _start_background_scan(now=now, force=True)
+
+
+def _render_live_top10_results() -> None:
+    """Render the auto-refreshing results area. It contains no widgets."""
+    now = datetime.now(_IST)
+    market_open = _market_is_open(now)
+    market_status = "OPEN" if market_open else equity_market_session_status(now)
+
+    snapshot = _scan_snapshot(now)
+    _sync_session_with_snapshot(snapshot)
 
     top10, scan_seconds, partial_failures, valid_quotes = st.session_state.get(
         "top10_live_result",
         (pd.DataFrame(), 0.0, 0, 0),
     )
     completed_at = st.session_state.get("top10_live_completed_at")
-    scan_running = _SCAN_FUTURE is not None and not _SCAN_FUTURE.done()
-
-    now = datetime.now(_IST)
-    market_status = equity_market_session_status(now)
-    market_open = market_status == "OPEN"
+    scan_running = snapshot.running
 
     refresh_due = market_open and (
         completed_at is None or now >= completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS)
     )
-    if not scan_running and refresh_due:
-        _start_background_scan()
+    if not scan_running and refresh_due and _start_background_scan(now=now):
         scan_running = True
-    next_refresh = (
-        (completed_at + timedelta(seconds=TOP10_REFRESH_SECONDS))
-        if completed_at is not None
-        else now + timedelta(seconds=TOP10_REFRESH_SECONDS)
-    )
+    next_refresh = snapshot.next_attempt_at or (now + timedelta(seconds=TOP10_REFRESH_SECONDS))
+    scan_failed = snapshot.failures > 0 and snapshot.last_error is not None and not scan_running
 
     if not market_open:
-        if market_status == "CALENDAR_UNAVAILABLE":
-            session_status = "CALENDAR_UNAVAILABLE"
-            st.warning(
-                "⚠️ EXCHANGE CALENDAR UNAVAILABLE · Live scanning is paused until a "
-                "verified holiday calendar is configured for this year."
-            )
-        elif market_status == "HOLIDAY":
-            session_status = "MARKET_HOLIDAY"
-            st.info("⚪ MARKET HOLIDAY · The regular NSE/BSE session is closed today.")
-        else:
-            session_status = "MARKET_CLOSED"
-            st.info(
-                "⚪ MARKET CLOSED · Live scanning resumes during the next regular NSE/BSE session."
-            )
+        session_status = {
+            "CALENDAR_UNAVAILABLE": "CALENDAR_UNAVAILABLE",
+            "HOLIDAY": "MARKET_HOLIDAY",
+        }.get(market_status, "MARKET_CLOSED")
     elif scan_running:
         session_status = "REFRESHING"
-        st.info("🟡 LIVE REFRESH · Updating the Top-10 in the background.")
+    elif scan_failed:
+        session_status = "PROVIDER_ERROR"
     else:
         session_status = "READY"
 
     st.session_state[TOP10_SESSION_STATUS_KEY] = session_status
 
     if top10.empty:
-        if market_status == "CALENDAR_UNAVAILABLE":
-            st.warning(
-                "⚠️ EXCHANGE CALENDAR UNAVAILABLE · No live scan is shown because this "
-                "year's exchange holiday calendar has not been verified."
-            )
-        elif market_status == "HOLIDAY":
-            st.info("⚪ MARKET HOLIDAY · No live Top-10 scan is available on an exchange holiday.")
-        elif not market_open:
-            st.info(
-                "⚪ MARKET CLOSED · No live Top-10 scan is available outside market hours. "
-                "Live scanning will begin during the next regular NSE/BSE session."
-            )
-        elif _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
+        # Exactly one status message while there is nothing to show.
+        if not market_open:
+            _render_market_closed_notice(market_status, has_data=False)
+        elif scan_running:
+            st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
+        elif scan_failed and snapshot.failures >= TOP10_MAX_CONSECUTIVE_FAILURES:
             st.error(
-                "🔴 LIVE DATA UNAVAILABLE · The quote provider failed repeatedly. "
-                "Retrying automatically."
+                f"🔴 LIVE DATA UNAVAILABLE · {snapshot.last_error} "
+                f"Retrying automatically at {next_refresh:%H:%M:%S} IST."
+            )
+        elif scan_failed:
+            st.warning(
+                f"🟠 SCAN FAILED · {snapshot.last_error} "
+                f"Retrying automatically at {next_refresh:%H:%M:%S} IST."
             )
         else:
-            st.info("🟡 REFRESHING · Fetching the first live Top-10 scan in the background…")
-        if _PROVIDER_DIAGNOSTICS:
-            st.caption(
-                "Provider diagnostics (safe summary): "
-                + "; ".join(dict.fromkeys(_PROVIDER_DIAGNOSTICS))
-            )
+            st.info("🟡 REFRESHING · Waiting for the first live Top-10 scan to start…")
+        _render_provider_diagnostics(snapshot.diagnostics)
         return
 
-    if _SCAN_FAILURES >= TOP10_MAX_CONSECUTIVE_FAILURES:
+    if not market_open:
+        _render_market_closed_notice(market_status, has_data=True)
+    if scan_failed:
         st.warning(
-            "🟠 PROVIDER ISSUE · Showing the last successful Top-10. Automatic retry is active."
+            "🟠 PROVIDER ISSUE · Showing the last successful Top-10"
+            f" from {completed_at:%H:%M:%S} IST. {snapshot.last_error} "
+            f"Automatic retry at {next_refresh:%H:%M:%S} IST."
         )
     elif partial_failures:
         unresolved = max(0, TOP10_EXPECTED_QUOTES - valid_quotes)
@@ -938,11 +1097,7 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             "Do not use these rows for trading decisions."
         )
 
-    if _PROVIDER_DIAGNOSTICS:
-        st.caption(
-            "Provider diagnostics (safe summary): "
-            + "; ".join(dict.fromkeys(_PROVIDER_DIAGNOSTICS))
-        )
+    _render_provider_diagnostics(snapshot.diagnostics)
     st.caption(f"Quote provider: {top10.attrs.get('provider', 'unknown')}")
 
     scan_age_seconds = (
@@ -954,6 +1109,8 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
     )
     if scan_running:
         status = "🟡 REFRESHING · showing previous data"
+    elif scan_failed:
+        status = "🟠 REFRESH FAILED · showing last successful scan"
     elif data_age_seconds is not None and data_age_seconds >= TOP10_STALE_DATA_SECONDS:
         status = "🔴 STALE DATA · latest completed data"
     elif completed_at is not None and scan_seconds >= TOP10_SCAN_WARNING_SECONDS:
@@ -1017,11 +1174,11 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
 
     filtered_top10 = _apply_top10_filters(
         annotated_top10,
-        min_price=min_price_filter,
-        max_price=max_price_filter,
-        min_move_pct=min_move_filter,
-        max_move_pct=max_move_filter,
-        exchange=exchange_filter,
+        min_price=float(st.session_state.get("top10_filter_min_price", 0.0) or 0.0),
+        max_price=float(st.session_state.get("top10_filter_max_price", 0.0) or 0.0),
+        min_move_pct=float(st.session_state.get("top10_filter_min_move", 0.0) or 0.0),
+        max_move_pct=float(st.session_state.get("top10_filter_max_move", 0.0) or 0.0),
+        exchange=str(st.session_state.get("top10_filter_exchange", "NSE + BSE")),
     )
     if filtered_top10.empty:
         st.info("No Top-10 rows match these filters. Widen the filters to see more results.")
@@ -1083,3 +1240,77 @@ def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> Non
             )
             if not history_trend.empty:
                 st.line_chart(history_trend)
+
+
+@st.fragment(run_every=f"{TOP10_UI_POLL_SECONDS}s")
+def _live_top10_fragment() -> None:
+    """Poll the shared scan state, replacing a single output slot on every run.
+
+    Only non-widget elements live in this auto-refreshing fragment, and they are
+    written into one ``st.empty()`` slot so a poll can never stack a second copy of
+    the status messages or the table on top of the previous one.
+    """
+    with st.empty().container():
+        _render_live_top10_results()
+
+
+def show_live_top10_scanner(*, period: str = "6mo", interval: str = "1d") -> None:
+    """Render the live Top-10 scanner: static controls once, results auto-refreshing."""
+    del period, interval
+
+    st.subheader("🔴 Live Top-10 Market Scanner")
+    st.caption(
+        "Ranks the largest absolute 1-minute price moves from the configured "
+        "NSE/BSE candidate universe using Yahoo Finance one-minute candles. "
+        "The fast path scans a balanced sample of NSE and BSE symbols. "
+        "Degraded coverage is never promoted into signal history."
+    )
+
+    # Widgets live outside the auto-refreshing fragment: a widget re-created by every
+    # poll is what stacked duplicate filters and buttons on screen. The fragment only
+    # reads their values from ``st.session_state``.
+    with st.expander("Scanner filters", expanded=True):
+        filter_col1, filter_col2 = st.columns(2)
+        with filter_col1:
+            st.number_input(
+                "Minimum price (₹)",
+                min_value=0.0,
+                value=0.0,
+                step=10.0,
+                key="top10_filter_min_price",
+            )
+        with filter_col2:
+            st.number_input(
+                "Maximum price (₹; 0 = no limit)",
+                min_value=0.0,
+                value=0.0,
+                step=10.0,
+                key="top10_filter_max_price",
+            )
+        move_col1, move_col2 = st.columns(2)
+        with move_col1:
+            st.number_input(
+                "Minimum absolute 1-minute move (%)",
+                min_value=0.0,
+                value=0.0,
+                step=0.1,
+                key="top10_filter_min_move",
+            )
+        with move_col2:
+            st.number_input(
+                "Maximum absolute 1-minute move (%) (0 = no limit)",
+                min_value=0.0,
+                value=0.0,
+                step=0.1,
+                key="top10_filter_max_move",
+            )
+        st.selectbox(
+            "Exchange",
+            ["NSE + BSE", "NSE", "BSE"],
+            key="top10_filter_exchange",
+        )
+
+    if st.button("↻ Refresh Top-10 now", key="top10_manual_refresh"):
+        _handle_manual_refresh()
+
+    _live_top10_fragment()
