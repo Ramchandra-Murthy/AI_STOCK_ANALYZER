@@ -882,3 +882,156 @@ def test_each_entry_point_renders_the_scanner_at_most_once(relative_path: str) -
         and node.func.id == "show_live_top10_scanner"
     ]
     assert len(calls) <= 1
+
+
+# ------------------------------------------------- momentum ranking integration
+
+
+def _trend_frame(now: pd.Timestamp, *, per_minute: float, bars: int = 30) -> pd.DataFrame:
+    """Synthetic one-minute candles whose latest completed bar is ~30s old."""
+    closes = tuple(100.0 * (1.0 + per_minute) ** i for i in range(bars))
+    frame = _fresh_frame(now, age_seconds=90, closes=closes)
+    frame["Volume"] = 1000.0
+    return frame
+
+
+def _patch_download(monkeypatch, frames: dict[str, pd.DataFrame]) -> None:
+    monkeypatch.setattr(
+        top10_live,
+        "_download_top10_frames",
+        lambda _tickers: (frames, [t for t in ALL_TICKERS if t not in frames], "Test provider"),
+    )
+
+
+def test_scan_attaches_a_momentum_ranking_without_changing_the_movers_table(monkeypatch) -> None:
+    now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
+    frames = {
+        NSE_TICKERS[0]: _trend_frame(now, per_minute=0.0010),
+        NSE_TICKERS[1]: _trend_frame(now, per_minute=0.0002),
+        BSE_TICKERS[0]: _trend_frame(now, per_minute=0.0005),
+        NSE_TICKERS[2]: _fresh_frame(now, age_seconds=90, closes=(100.0, 103.0)),  # too short
+    }
+    _patch_download(monkeypatch, frames)
+
+    result, _elapsed, _failures, _valid = top10_live._scan_live_top10()
+
+    momentum = result.attrs["momentum"]
+    ranking = momentum["ranking"]
+    names = [NSE_TICKERS[i].rsplit(".", 1)[0] for i in range(3)]
+    bse = BSE_TICKERS[0].rsplit(".", 1)[0]
+    assert list(ranking["Symbol"]) == [names[0], bse, names[1]]
+    assert list(ranking["Exchange"]) == ["NSE", "BSE", "NSE"]
+    # The too-short symbol is still a mover, but is reported, never ranked or estimated.
+    assert names[2] in set(result["Symbol"])
+    assert names[2] not in set(ranking["Symbol"])
+    assert names[2] in set(momentum["unranked"]["Symbol"])
+    assert momentum["summary"]["scored"] == 3
+    assert momentum["summary"]["requested"] == len(ALL_TICKERS)
+    assert momentum["summary"]["missing_from_provider"] == len(ALL_TICKERS) - 4
+    # Movers are still ordered by absolute 1-minute move only.
+    assert list(result["Symbol"])[0] == names[2]
+    assert "Momentum strength" not in result.columns
+
+
+def test_a_momentum_failure_never_fails_the_scan(monkeypatch) -> None:
+    now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
+    frames = {NSE_TICKERS[0]: _trend_frame(now, per_minute=0.0010)}
+    _patch_download(monkeypatch, frames)
+
+    def broken(*_args, **_kwargs):
+        raise ValueError("engine exploded")
+
+    monkeypatch.setattr(top10_live, "compute_momentum_batch", broken)
+    top10_live._PROVIDER_DIAGNOSTICS.clear()
+
+    result, _elapsed, _failures, valid_quotes = top10_live._scan_live_top10()
+
+    assert valid_quotes == 1
+    assert len(result) == 1
+    assert "ranking" not in result.attrs["momentum"]
+    assert "ValueError" in result.attrs["momentum"]["error"]
+    assert "engine exploded" not in result.attrs["momentum"]["error"]  # no raw details
+    assert any("momentum ranking unavailable" in d for d in top10_live._PROVIDER_DIAGNOSTICS)
+
+
+def _momentum_scan_result(monkeypatch, clock: _Clock):
+    now = pd.Timestamp(clock.current)
+    frames = {
+        NSE_TICKERS[0]: _trend_frame(now, per_minute=0.0010),
+        BSE_TICKERS[0]: _trend_frame(now, per_minute=0.0005),
+        NSE_TICKERS[1]: _trend_frame(now, per_minute=0.0002),
+        NSE_TICKERS[2]: _fresh_frame(now, age_seconds=90, closes=(100.0, 103.0)),
+    }
+    _patch_download(monkeypatch, frames)
+    return top10_live._scan_live_top10()
+
+
+def _capture_tables(monkeypatch, fake_st: _FakeStreamlit) -> list[pd.DataFrame]:
+    shown: list[pd.DataFrame] = []
+    monkeypatch.setattr(
+        fake_st,
+        "dataframe",
+        lambda data=None, *_a, **_k: shown.append(data) or None,
+        raising=False,
+    )
+    return shown
+
+
+def test_momentum_panel_renders_once_per_poll_without_widgets(
+    monkeypatch, executor, clock, fake_st
+) -> None:
+    shown = _capture_tables(monkeypatch, fake_st)
+    scan = _momentum_scan_result(monkeypatch, clock)
+    _scripted_scans(monkeypatch, [scan])
+    _render_poll(fake_st)
+    executor.run_pending()
+
+    for _ in range(3):
+        shown.clear()
+        _render_poll(fake_st)
+        panels = [data for data in shown if "Momentum strength" in data.columns]
+        assert len(panels) == 1
+        assert fake_st.widget_count() == 0
+        assert len([data for data in shown if "1-min %" in data.columns]) == 1
+        notes = " ".join(fake_st.kinds("caption"))
+        assert "not a probability, forecast or trade signal" in notes
+        assert "Not ranked (never estimated)" in notes
+
+
+def test_momentum_panel_follows_the_exchange_filter_without_touching_the_scan(
+    monkeypatch, executor, clock, fake_st
+) -> None:
+    shown = _capture_tables(monkeypatch, fake_st)
+    scan = _momentum_scan_result(monkeypatch, clock)
+    _scripted_scans(monkeypatch, [scan])
+    _render_poll(fake_st)
+    executor.run_pending()
+
+    fake_st.session_state["top10_filter_exchange"] = "BSE"
+    shown.clear()
+    _render_poll(fake_st)
+    panel = [data for data in shown if "Momentum strength" in data.columns][-1]
+
+    assert set(panel["Exchange"]) == {"BSE"}
+    assert list(panel["Rank"]) == [1]
+    assert len(scan[0].attrs["momentum"]["ranking"]) == 3  # stored ranking is unchanged
+
+
+def test_momentum_panel_shows_one_warning_when_the_engine_failed(
+    monkeypatch, executor, clock, fake_st
+) -> None:
+    shown = _capture_tables(monkeypatch, fake_st)
+    scan = _momentum_scan_result(monkeypatch, clock)
+    scan[0].attrs["momentum"] = {"error": "Momentum ranking unavailable (ValueError)."}
+    _scripted_scans(monkeypatch, [scan])
+    _render_poll(fake_st)
+    executor.run_pending()
+
+    shown.clear()
+    _render_poll(fake_st)
+
+    warnings = [text for text in fake_st.kinds("warning") if "Momentum ranking" in text]
+    assert len(warnings) == 1
+    assert "movers table above is unaffected" in warnings[0]
+    assert not [data for data in shown if "Momentum strength" in data.columns]
+    assert len([data for data in shown if "1-min %" in data.columns]) == 1
