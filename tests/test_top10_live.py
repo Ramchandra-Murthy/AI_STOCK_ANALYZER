@@ -873,3 +873,37 @@ def test_top10_live_staged_recovery_preserves_partial_successes(monkeypatch) -> 
     assert batch_calls == 2
     # Genuinely recovered candles are real provider data; the rest stays missing, not filled.
     assert float(frames["SYM1.NS"]["Close"].iloc[-1]) == 201.0
+
+
+def test_signal_strength_tolerates_missing_five_minute_and_rank_readings() -> None:
+    """Regression: a mover with < 6 candles has a NaN 5-min move and crashed the page."""
+    nan = float("nan")
+
+    score, direction = top10_live._calculate_signal_strength(
+        {"1-min %": 1.5, "5-min %": nan, "Rank change": nan, "Status": "NEW"}
+    )
+
+    assert 0 <= score <= 100
+    assert direction == "MIXED"  # a missing 5-min move is not evidence the move is confirmed
+    assert top10_live._calculate_signal_strength({"1-min %": nan, "5-min %": nan})[1] == "NEUTRAL"
+    assert top10_live._calculate_signal_strength({"1-min %": 2.0, "5-min %": None})[0] > 0
+
+
+def test_add_signal_strength_does_not_raise_when_a_row_lacks_a_five_minute_move() -> None:
+    frame = pd.DataFrame(
+        {
+            "Rank": [1, 2],
+            "Symbol": ["AAA", "BBB"],
+            "Exchange": ["NSE", "NSE"],
+            "Price": [100.0, 50.0],
+            "1-min %": [2.0, 1.0],
+            "5-min %": [3.0, None],
+            "Status": ["NEW", "NEW"],
+            "Rank change": [None, None],
+        }
+    )
+
+    enriched = top10_live._add_signal_strength(frame)
+
+    assert list(enriched["Momentum score"]) == sorted(enriched["Momentum score"], reverse=True)
+    assert enriched["Momentum score"].notna().all()

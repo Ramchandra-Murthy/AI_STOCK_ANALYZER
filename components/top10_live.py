@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -262,12 +263,24 @@ def _watchlist_change_alerts(annotated: pd.DataFrame) -> list[str]:
     return alerts
 
 
+def _finite_or_zero(value: object) -> float:
+    """Return ``value`` as a float, counting a missing, NaN or infinite reading as 0.
+
+    A row with too few candles has no 5-minute move; pandas stores that as NaN, which is
+    truthy and would otherwise slip past an ``or 0.0`` fallback and crash the score.
+    """
+    try:
+        number = float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0.0
+    return number if math.isfinite(number) else 0.0
+
+
 def _calculate_signal_strength(row: dict[str, object]) -> tuple[int, str]:
     """Calculate a transparent 0-100 momentum score and price-move direction."""
-    move_1m = float(row.get("1-min %", 0.0) or 0.0)
-    move_5m = float(row.get("5-min %", 0.0) or 0.0)
-    rank_change = row.get("Rank change")
-    rank_jump = abs(int(rank_change)) if rank_change is not None else 0
+    move_1m = _finite_or_zero(row.get("1-min %"))
+    move_5m = _finite_or_zero(row.get("5-min %"))
+    rank_jump = int(abs(_finite_or_zero(row.get("Rank change"))))
     status = str(row.get("Status", ""))
 
     move_1m_score = min(abs(move_1m) / TOP10_SCORE_MAX_1M_PCT, 1.0) * 40
