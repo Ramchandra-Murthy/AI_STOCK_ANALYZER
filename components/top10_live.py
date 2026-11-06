@@ -16,6 +16,14 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import streamlit as st
 
+from scanner.momentum_engine import SCORE_TYPE as MOMENTUM_SCORE_TYPE
+from scanner.momentum_engine import compute_momentum_batch
+from scanner.momentum_ranking import (
+    rank_momentum,
+    summarize_momentum,
+    unranked_table,
+    view_ranking,
+)
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_calendar import (
     equity_market_session_status,
@@ -713,6 +721,32 @@ def _describe_no_quotes(
     )
 
 
+def _compute_momentum_view(
+    frames: dict[str, pd.DataFrame],
+    *,
+    requested: int,
+    as_of: datetime,
+) -> dict[str, object]:
+    """Score and rank every downloaded symbol with the momentum engine.
+
+    This is additive: a failure here is reported in the result and the diagnostics but
+    never fails the scan, and the Top-10 movers table is unaffected either way. Only real
+    provider candles are scored; symbols the engine cannot score are listed, not ranked.
+    """
+    try:
+        results = compute_momentum_batch(frames, as_of=as_of)
+        return {
+            "ranking": rank_momentum(results, top_n=None),
+            "summary": summarize_momentum(results, requested=requested),
+            "unranked": unranked_table(results),
+            "as_of": as_of,
+        }
+    except Exception as exc:  # momentum is a secondary view; never break the scan
+        logger.warning("Momentum ranking failed (%s)", type(exc).__name__, exc_info=exc)
+        _PROVIDER_DIAGNOSTICS.append(f"momentum ranking unavailable ({type(exc).__name__})")
+        return {"error": f"Momentum ranking unavailable ({type(exc).__name__})."}
+
+
 def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     """Scan a small curated candidate set with one-minute candles only.
 
@@ -815,6 +849,9 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         .reset_index(drop=True)
     )
     frame["Rank"] = range(1, len(frame) + 1)
+    frame.attrs["momentum"] = _compute_momentum_view(
+        frames, requested=len(all_tickers), as_of=scan_now
+    )
     return frame, round(perf_counter() - started, 2), failures, trusted_quotes
 
 
@@ -1035,6 +1072,56 @@ def _handle_manual_refresh() -> None:
     _start_background_scan(now=now, force=True)
 
 
+def _render_momentum_ranking(top10: pd.DataFrame, completed_at: datetime | None) -> None:
+    """Show the engine's NSE/BSE momentum ranking from the same scan. Contains no widgets."""
+    info = top10.attrs.get("momentum")
+    if not isinstance(info, dict):
+        return
+    with st.expander("⚡ Momentum ranking (NSE + BSE)", expanded=False):
+        if info.get("error"):
+            st.warning(f"🟠 {info['error']} The Top-10 movers table above is unaffected.")
+            return
+        summary = info.get("summary", {})
+        exchange = str(st.session_state.get("top10_filter_exchange", "NSE + BSE"))
+        view = view_ranking(info["ranking"], exchange=exchange)
+        scan_time = f"{completed_at:%H:%M:%S} IST" if completed_at is not None else "unknown time"
+        st.caption(
+            f"Scan of {scan_time} · {summary.get('scored', 0)} of "
+            f"{summary.get('requested', 0)} symbols scored · "
+            f"{summary.get('unscored', 0)} not scorable · "
+            f"{summary.get('missing_from_provider', 0)} missing from the provider"
+        )
+        if view.empty:
+            st.info("No symbol has a scorable momentum reading in this scan.")
+        else:
+            st.dataframe(
+                view,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Momentum strength": st.column_config.NumberColumn(
+                        "Momentum strength", min_value=0, max_value=100, format="%.1f"
+                    ),
+                    "Volume ratio": st.column_config.NumberColumn("Volume ratio", format="%.2f"),
+                    "Score coverage": st.column_config.NumberColumn(
+                        "Score coverage", format="%.2f"
+                    ),
+                },
+            )
+        unranked = info.get("unranked")
+        if isinstance(unranked, pd.DataFrame) and not unranked.empty:
+            st.caption(
+                "Not ranked (never estimated): "
+                + "; ".join(
+                    f"{row.Symbol} {row.Status}" for row in unranked.itertuples(index=False)
+                )
+            )
+        st.caption(
+            "Momentum strength (0-100) describes how strong and confirmed the recent move is. "
+            f"It is not a probability, forecast or trade signal ({MOMENTUM_SCORE_TYPE})."
+        )
+
+
 def _render_live_top10_results() -> None:
     """Render the auto-refreshing results area. It contains no widgets."""
     now = datetime.now(_IST)
@@ -1226,6 +1313,8 @@ def _render_live_top10_results() -> None:
             "5-min %": st.column_config.NumberColumn("5-min %", format="%.2f"),
         },
     )
+
+    _render_momentum_ranking(top10, completed_at)
 
     history_table = _signal_history_table(signal_history)
     history_trend = _signal_history_trend(signal_history)
