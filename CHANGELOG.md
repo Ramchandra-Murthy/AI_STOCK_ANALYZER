@@ -20,3 +20,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   marks closed, instead of ranking against a possibly wrong cutoff and target date.
 - Next-day scanner page warns when the displayed result was produced for a different exchange
   or shortlist-size selection.
+- Intraday momentum engine (`scanner/momentum_engine.py`): transparent 0-100 momentum-strength score from 1/5/10/15-minute windows with volume and multi-timeframe confirmation, UP/DOWN/MIXED/NEUTRAL direction, explainable components, and explicit handling of missing, stale and insufficient data. Pure computation; not a probability or recommendation.
