@@ -13,6 +13,7 @@ from typing import Any
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from api.scan_history import recent_scans
 from api.scan_manager import ErosScanManager
@@ -50,6 +51,9 @@ def _stats(frame: pd.DataFrame) -> dict[str, Any]:
 @app.get("/", include_in_schema=False)
 def dashboard() -> FileResponse:
     """Serve the EROS browser dashboard."""
+    react_index = Path(__file__).resolve().parents[1] / "frontend" / "dist" / "index.html"
+    if react_index.is_file():
+        return FileResponse(react_index)
     return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
@@ -276,3 +280,14 @@ def market(
         "count": min(len(frame), limit),
         "results": _records(frame.head(limit)),
     }
+
+
+# Serve the production React bundle when it has been built. API routes above
+# remain authoritative; the legacy static dashboard remains the safe fallback.
+_REACT_DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
+if (_REACT_DIST / "assets").is_dir():
+    app.mount(
+        "/assets",
+        StaticFiles(directory=_REACT_DIST / "assets"),
+        name="react-assets",
+    )
