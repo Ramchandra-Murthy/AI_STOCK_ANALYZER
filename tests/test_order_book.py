@@ -74,9 +74,7 @@ def test_zero_quantity_deletes_level():
 
 
 def test_update_matches_float_price_with_small_representation_difference():
-    book = OrderBookSnapshot.from_levels(
-        "ABC", NOW, bids=[(100.0, 10.0)], asks=[(101.0, 12.0)]
-    )
+    book = OrderBookSnapshot.from_levels("ABC", NOW, bids=[(100.0, 10.0)], asks=[(101.0, 12.0)])
     updated = book.apply_update(
         LevelUpdate(NOW + timedelta(milliseconds=1), "bid", 100.0 + 1e-11, 20.0)
     )
