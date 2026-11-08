@@ -1,5 +1,6 @@
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -29,7 +30,8 @@ logger = logging.getLogger(__name__)
 
 TOP_CANDIDATES_TO_ANALYZE = 20
 DISPLAY_COUNT = 20
-DOWNLOAD_CHUNK_SIZE = 40
+DOWNLOAD_CHUNK_SIZE = 100
+MAX_SCREEN_WORKERS = 4
 MAX_CANDIDATES_PER_EXCHANGE = 10
 ANALYSIS_PERIOD = "1y"
 MAX_DAILY_DATA_AGE_DAYS = 4
@@ -137,7 +139,7 @@ def _download_chunk(chunk: list[str]) -> pd.DataFrame:
             auto_adjust=True,
             progress=False,
             group_by="ticker",
-            threads=True,
+            threads=False,
             timeout=10,
         )
         if history is not None and not history.empty:
@@ -182,7 +184,7 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
             auto_adjust=True,
             progress=False,
             group_by="ticker",
-            threads=True,
+            threads=False,
             timeout=15,
         )
         if history is not None and not history.empty:
@@ -255,65 +257,82 @@ def _batch_change_screen(
             for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE)
         ]
 
+        # Run a small, bounded number of independent Yahoo requests concurrently.
+        # yfinance's own per-download threading is disabled to avoid nested
+        # thread pools and excessive connection fan-out.
         while pending_chunks:
-            chunk = pending_chunks.pop(0)
+            current_chunks = pending_chunks
+            pending_chunks = []
+            with ThreadPoolExecutor(max_workers=MAX_SCREEN_WORKERS) as executor:
+                futures = {
+                    executor.submit(_download_chunk, chunk): chunk for chunk in current_chunks
+                }
+                for future in as_completed(futures):
+                    chunk = futures[future]
+                    if coverage is not None:
+                        coverage[exchange]["screen_chunks_requested"] += 1
 
-            if coverage is not None:
-                coverage[exchange]["screen_chunks_requested"] += 1
+                    try:
+                        history = future.result()
+                    except Exception as exc:  # defensive boundary around provider workers
+                        logger.warning(
+                            "Price screen worker failed (%d symbols, first: %s): %s",
+                            len(chunk),
+                            chunk[0] if chunk else "-",
+                            exc,
+                        )
+                        history = pd.DataFrame()
 
-            history = _download_chunk(chunk)
-
-            if history.empty:
-                if coverage is not None:
-                    coverage[exchange]["screen_chunks_empty"] += 1
-
-                # Keep the existing NSE recovery behavior. For BSE, split a
-                # failed batch only when it is larger than half the normal
-                # chunk size, limiting repeated downloads during data failures.
-                should_split = len(chunk) > 5 and (
-                    exchange != "BSE" or len(chunk) > DOWNLOAD_CHUNK_SIZE // 2
-                )
-
-                if should_split:
-                    midpoint = len(chunk) // 2
-                    pending_chunks[0:0] = [chunk[:midpoint], chunk[midpoint:]]
-                elif coverage is not None:
-                    coverage[exchange]["screen_tickers_missing_data"] += len(chunk)
-
-                continue
-
-            for ticker in chunk:
-                try:
-                    close = _extract_series(history, ticker, "Close")
-                    volume = _extract_series(history, ticker, "Volume")
-
-                    usable_history = len(close) >= 2 and len(volume) >= 2
-                    if usable_history:
-                        _failed_tickers_until.pop(ticker, None)
+                    if history.empty:
                         if coverage is not None:
-                            coverage[exchange]["histories_returned"] += 1
-                            coverage[exchange]["screen_tickers_with_data"] += 1
-                    else:
-                        _failed_tickers_until[ticker] = time.monotonic() + FAILED_TICKER_TTL_SECONDS
-                        if coverage is not None:
-                            coverage[exchange]["screen_tickers_missing_data"] += 1
+                            coverage[exchange]["screen_chunks_empty"] += 1
 
-                    if not usable_history:
+                        # Preserve bounded recovery: failed NSE chunks may split
+                        # down to small batches; BSE chunks split only once.
+                        should_split = len(chunk) > 5 and (
+                            exchange != "BSE" or len(chunk) > DOWNLOAD_CHUNK_SIZE // 2
+                        )
+                        if should_split:
+                            midpoint = len(chunk) // 2
+                            pending_chunks.extend([chunk[:midpoint], chunk[midpoint:]])
+                        elif coverage is not None:
+                            coverage[exchange]["screen_tickers_missing_data"] += len(chunk)
                         continue
 
-                    latest = float(close.iloc[-1])
-                    previous = float(close.iloc[-2])
-                    average_volume = float(volume.tail(5).mean())
+                    for ticker in chunk:
+                        try:
+                            close = _extract_series(history, ticker, "Close")
+                            volume = _extract_series(history, ticker, "Volume")
 
-                    if previous == 0:
-                        continue
+                            usable_history = len(close) >= 2 and len(volume) >= 2
+                            if usable_history:
+                                _failed_tickers_until.pop(ticker, None)
+                                if coverage is not None:
+                                    coverage[exchange]["histories_returned"] += 1
+                                    coverage[exchange]["screen_tickers_with_data"] += 1
+                            else:
+                                _failed_tickers_until[ticker] = (
+                                    time.monotonic() + FAILED_TICKER_TTL_SECONDS
+                                )
+                                if coverage is not None:
+                                    coverage[exchange]["screen_tickers_missing_data"] += 1
 
-                    change_pct = ((latest - previous) / previous) * 100
-                    average_turnover = latest * average_volume
-                    ranked.append((ticker, exchange, change_pct, average_turnover))
+                            if not usable_history:
+                                continue
 
-                except (KeyError, TypeError, ValueError, IndexError):
-                    continue
+                            latest = float(close.iloc[-1])
+                            previous = float(close.iloc[-2])
+                            average_volume = float(volume.tail(5).mean())
+
+                            if previous == 0:
+                                continue
+
+                            change_pct = ((latest - previous) / previous) * 100
+                            average_turnover = latest * average_volume
+                            ranked.append((ticker, exchange, change_pct, average_turnover))
+
+                        except (KeyError, TypeError, ValueError, IndexError):
+                            continue
 
     ranked.sort(key=lambda row: abs(row[2]), reverse=True)
     return ranked
