@@ -76,3 +76,35 @@ pytest tests/test_order_book.py
 ruff check ai_trading/order_book.py tests/test_order_book.py
 black --check ai_trading/order_book.py tests/test_order_book.py
 ```
+
+
+## Sequenced event replay and recovery
+
+`ai_trading/order_book_replay.py` adds a deterministic replay coordinator for
+normalized `LevelUpdate` events:
+
+- Replay requires a sequence number on the initial snapshot and every update.
+- Only the exact next sequence is applied. Future events are buffered and the
+  book is marked unsynchronized; the last valid snapshot remains unchanged.
+- If the missing event arrives before the buffer limit is reached, buffered
+  events are applied in ascending contiguous sequence order.
+- If the gap remains, the caller must request and provide a fresh authoritative
+  snapshot. The replay coordinator drops buffered events covered by that
+  snapshot and applies only the contiguous buffered suffix after it.
+- Duplicate events are ignored. Conflicting events with the same buffered
+  sequence, invalid book transitions and buffer overflow are reported rather
+  than silently accepted.
+- A buffer overflow clears the bounded buffer and requires authoritative
+  snapshot recovery. No event is synthesized and no gap is skipped.
+
+The replay coordinator is transport-agnostic. The upstream adapter remains
+responsible for detecting disconnects, requesting provider snapshots, mapping
+provider event semantics to absolute SET/DELETE updates, and deciding when a
+feed is safe to resume. A `gap` or `invalid` result must not be treated as a
+tradable live book.
+
+Run the focused tests with:
+
+```bash
+pytest tests/test_order_book.py tests/test_order_book_replay.py
+```
