@@ -21,10 +21,40 @@ ENV PATH="/app/.venv/bin:${PATH}" \
 WORKDIR /app
 
 COPY --from=python-deps /app/.venv /app/.venv
-COPY . /app
+
+# Copy only runtime packages required by api.main and its imported services.
+# This intentionally excludes repository-wide data, reports, tests, backups,
+# developer tooling, Streamlit secrets, local databases and environment files.
+COPY api/ /app/api/
+COPY scanner/ /app/scanner/
+COPY services/ /app/services/
+COPY modules/ /app/modules/
+COPY config/ /app/config/
+COPY core/ /app/core/
+COPY domain/ /app/domain/
+COPY engine/ /app/engine/
+COPY indicators/ /app/indicators/
+COPY utils/ /app/utils/
+COPY data/ /app/data/
+COPY database/ /app/database/
+COPY ai/ /app/ai/
+COPY ai_trading/ /app/ai_trading/
+COPY algorithmic_trading/ /app/algorithmic_trading/
+COPY components/ /app/components/
+COPY capital/ /app/capital/
+COPY charts/ /app/charts/
+COPY exceptions/ /app/exceptions/
+COPY forecast/ /app/forecast/
+COPY interfaces/ /app/interfaces/
+COPY portfolio/ /app/portfolio/
+COPY strategy/ /app/strategy/
+COPY neural_networks/ /app/neural_networks/
+
+COPY pyproject.toml uv.lock /app/
 COPY --from=frontend-build /frontend/dist /app/frontend/dist
 
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
+    && mkdir -p /app/data \
     && chown -R appuser:appuser /app /home/appuser
 USER appuser
 
