@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import dataclasses
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ _REQUIRED_COLUMNS = (
 )
 
 
-@dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True)
 class MarketImpactHoldoutValidation:
     """Calibration fit plus strictly later holdout diagnostics."""
 
