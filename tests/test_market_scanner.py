@@ -454,9 +454,7 @@ def test_broad_market_screen_uses_larger_batches_and_reports_progress(monkeypatc
 
     def download(chunk):
         calls.append(len(chunk))
-        columns = pd.MultiIndex.from_product(
-            [chunk, ["Close", "Volume"]]
-        )
+        columns = pd.MultiIndex.from_product([chunk, ["Close", "Volume"]])
         values = [
             [value for _ticker in chunk for value in (100.0, 1000.0)],
             [value for _ticker in chunk for value in (101.0, 1200.0)],
