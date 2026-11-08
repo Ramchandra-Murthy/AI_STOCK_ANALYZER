@@ -75,9 +75,12 @@ class LevelUpdate:
         if self.side not in ("bid", "ask"):
             raise ValueError("side must be 'bid' or 'ask'")
         object.__setattr__(self, "price", _positive_finite(self.price, "price"))
-        object.__setattr__(
-            self, "quantity", _positive_finite(self.quantity, "quantity", allow_zero=True)
-        )
+        # Preserve the exact integer zero sentinel for DELETE updates; normalize
+        # positive quantities to float for consistent arithmetic.
+        if self.quantity == 0 and not isinstance(self.quantity, bool):
+            object.__setattr__(self, "quantity", 0)
+        else:
+            object.__setattr__(self, "quantity", _positive_finite(self.quantity, "quantity"))
         if self.sequence is not None and (
             isinstance(self.sequence, bool)
             or not isinstance(self.sequence, int)
@@ -176,10 +179,18 @@ class OrderBookSnapshot:
             raise ValueError("update sequence must be greater than the current sequence")
 
         side_levels = list(self.bids if update.side == "bid" else self.asks)
+        price_tolerance = max(abs(update.price), 1.0) * 1e-12
         existing = next(
-            (i for i, level in enumerate(side_levels) if level.price == update.price), None
+            (
+                i
+                for i, level in enumerate(side_levels)
+                if math.isclose(
+                    level.price, update.price, rel_tol=1e-12, abs_tol=price_tolerance
+                )
+            ),
+            None,
         )
-        if update.quantity == 0.0:
+        if update.quantity == 0:
             if existing is not None:
                 side_levels.pop(existing)
         elif existing is None:
