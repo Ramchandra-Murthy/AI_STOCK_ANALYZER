@@ -5,7 +5,7 @@ Level-2 order-book data. In particular, this module does not estimate the
 quoted bid-ask spread or queue position.
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 
 import math
 
