@@ -106,6 +106,7 @@ class Level2EventReplay:
 
         if sequence != self.expected_sequence or not self._synchronized:
             if not self._store(update):
+                self._synchronized = False
                 return self._result(
                     "buffer_overflow",
                     sequence,
@@ -137,7 +138,6 @@ class Level2EventReplay:
         if snapshot.sequence < self._snapshot.sequence:
             raise ValueError("replacement snapshot cannot move sequence backwards")
 
-        was_synchronized = self._synchronized
         self._snapshot = snapshot
         self._buffer = {
             sequence: update
@@ -146,7 +146,7 @@ class Level2EventReplay:
         }
         self._last_error = None
         self._synchronized = not self._buffer
-        return self._drain(None, was_synchronized=was_synchronized)
+        return self._drain(None, was_synchronized=False)
 
     def _store(self, update: LevelUpdate) -> bool:
         assert update.sequence is not None
