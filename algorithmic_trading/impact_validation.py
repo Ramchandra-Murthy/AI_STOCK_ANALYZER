@@ -6,13 +6,6 @@ import numpy as np
 import pandas as pd
 
 
-_REQUIRED_COLUMNS = (
-    "observed_shortfall_bps",
-    "participation_rate",
-    "volatility",
-)
-
-
 class MarketImpactHoldoutValidation:
     """Calibration fit plus strictly later holdout diagnostics."""
 
@@ -44,10 +37,11 @@ def _prepare_observations(data: pd.DataFrame, label: str) -> pd.DataFrame:
         raise ValueError(f"{label} contains duplicate timestamps")
     if not data.index.is_monotonic_increasing:
         raise ValueError(f"{label} timestamps must be chronological")
-    missing = sorted(set(_REQUIRED_COLUMNS).difference(data.columns))
+    required_columns = ("observed_shortfall_bps", "participation_rate", "volatility")
+    missing = sorted(set(required_columns).difference(data.columns))
     if missing:
         raise ValueError(f"{label} is missing required columns: {', '.join(missing)}")
-    prepared = data.loc[:, list(_REQUIRED_COLUMNS)].apply(pd.to_numeric, errors="coerce")
+    prepared = data.loc[:, list(required_columns)].apply(pd.to_numeric, errors="coerce")
     values = prepared.to_numpy(dtype=float)
     if len(prepared) == 0 or not np.isfinite(values).all():
         raise ValueError(f"{label} must contain non-empty finite numeric observations")
