@@ -85,18 +85,14 @@ def calibrate_market_impact(
 
     half_spread, coefficient = min(
         candidates,
-        key=lambda pair: float(
-            np.square(target - (pair[0] + pair[1] * feature)).sum()
-        ),
+        key=lambda pair: float(np.square(target - (pair[0] + pair[1] * feature)).sum()),
     )
     predicted = half_spread + coefficient * feature
     residual = target - predicted
     rmse = float(np.sqrt(np.mean(np.square(residual))))
     total_variance = float(np.square(target - target.mean()).sum())
     r_squared = (
-        float(1.0 - np.square(residual).sum() / total_variance)
-        if total_variance > 0
-        else None
+        float(1.0 - np.square(residual).sum() / total_variance) if total_variance > 0 else None
     )
     return MarketImpactCalibration(
         impact_coefficient=coefficient,
