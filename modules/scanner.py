@@ -15,9 +15,12 @@ from services.watchlist_ui import get_or_create_default_watchlist
 
 
 @st.cache_data(ttl=300, show_spinner=False)
-def _cached_market_scan(exchange_filter: str) -> pd.DataFrame:
-    """Reuse broad-market scan results briefly instead of repeating provider downloads."""
-    return market_scan(exchange_filter)
+def _cached_market_scan(
+    exchange_filter: str,
+    _progress_callback=None,
+) -> pd.DataFrame:
+    """Reuse broad-market results; report progress only when a cache miss runs the scan."""
+    return market_scan(exchange_filter, progress_callback=_progress_callback)
 
 
 def _normalize_broad_market_confidence(df: pd.DataFrame) -> pd.DataFrame:
@@ -270,12 +273,33 @@ def show():
         "Low-liquidity stocks are not removed; use the Risk and turnover information for judgment.",
     )
     if st.button("Scan", width="stretch"):
-        with st.spinner("Scanning stocks..."):
-            df = (
-                scan_watchlist(watchlist)
-                if scan_mode == "Personal Watchlist"
-                else _cached_market_scan(exchange_filter)
+        if scan_mode == "Personal Watchlist":
+            with st.spinner("Scanning personal watchlist..."):
+                df = scan_watchlist(watchlist)
+        else:
+            scan_status = st.status(
+                "Preparing broad-market scan...",
+                expanded=False,
             )
+
+            def report_scan_progress(exchange: str, completed: int, initial_total: int) -> None:
+                scan_status.update(
+                    label=(
+                        f"Screening {exchange}: {completed} batch(es) processed "
+                        f"(initial batches: {initial_total})"
+                    ),
+                    state="running",
+                )
+
+            try:
+                df = _cached_market_scan(
+                    exchange_filter,
+                    _progress_callback=report_scan_progress,
+                )
+                scan_status.update(label="Broad-market scan complete", state="complete")
+            except Exception:
+                scan_status.update(label="Broad-market scan failed", state="error")
+                raise
         scanner_coverage = df.attrs.get("scanner_coverage", {})
 
         if scan_mode == "Broad Market":
