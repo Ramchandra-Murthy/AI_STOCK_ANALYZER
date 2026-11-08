@@ -53,14 +53,14 @@ def intraday_microstructure_features(
     if missing:
         raise ValueError(f"bars must contain OHLCV columns: {', '.join(missing)}")
 
-    frame = bars.loc[:, _REQUIRED_COLUMNS].copy()
+    frame = bars.loc[:, list(_REQUIRED_COLUMNS)].copy()
     for column in _REQUIRED_COLUMNS:
         frame[column] = pd.to_numeric(frame[column], errors="coerce")
     frame = frame.dropna(subset=list(_REQUIRED_COLUMNS))
     if frame.empty:
         raise ValueError("bars must contain at least one complete OHLCV row")
 
-    values = frame.loc[:, _REQUIRED_COLUMNS].to_numpy(dtype=float)
+    values = frame.loc[:, list(_REQUIRED_COLUMNS)].to_numpy(dtype=float)
     if not np.isfinite(values).all():
         raise ValueError("OHLCV values must be finite")
     if (frame[["Open", "High", "Low", "Close"]] <= 0.0).any().any():
