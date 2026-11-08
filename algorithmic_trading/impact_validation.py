@@ -47,10 +47,7 @@ def _prepare_observations(data: pd.DataFrame, label: str) -> pd.DataFrame:
         raise ValueError(f"{label} must contain non-empty finite numeric observations")
     if (prepared["observed_shortfall_bps"] < 0).any():
         raise ValueError(f"{label} shortfall must be non-negative")
-    if (
-        (prepared["participation_rate"] <= 0)
-        | (prepared["participation_rate"] > 1)
-    ).any():
+    if ((prepared["participation_rate"] <= 0) | (prepared["participation_rate"] > 1)).any():
         raise ValueError(f"{label} participation_rate must be in (0, 1]")
     if (prepared["volatility"] < 0).any():
         raise ValueError(f"{label} volatility must be non-negative")
@@ -97,9 +94,7 @@ def validate_market_impact_out_of_sample(
     bias = float(np.mean(residual))
     total_variance = float(np.square(actual - actual.mean()).sum())
     r_squared = (
-        float(1.0 - np.square(residual).sum() / total_variance)
-        if total_variance > 0
-        else None
+        float(1.0 - np.square(residual).sum() / total_variance) if total_variance > 0 else None
     )
     predictions = pd.DataFrame(
         {
