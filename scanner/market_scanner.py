@@ -184,7 +184,7 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
             auto_adjust=True,
             progress=False,
             group_by="ticker",
-            threads=False,
+            threads=True,
             timeout=15,
         )
         if history is not None and not history.empty:
