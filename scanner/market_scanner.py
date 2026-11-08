@@ -222,6 +222,7 @@ def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
 def _batch_change_screen(
     candidates: dict[str, list[str]],
     coverage: dict[str, dict[str, int]] | None = None,
+    progress_callback: Any | None = None,
 ) -> list[tuple[str, str, float, float]]:
     """Find price movers across NSE and BSE universes without a liquidity exclusion."""
     ranked: list[tuple[str, str, float, float]] = []
@@ -256,6 +257,8 @@ def _batch_change_screen(
             tickers[start : start + DOWNLOAD_CHUNK_SIZE]
             for start in range(0, len(tickers), DOWNLOAD_CHUNK_SIZE)
         ]
+        initial_chunk_count = len(pending_chunks)
+        completed_chunks = 0
 
         # Run a small, bounded number of independent Yahoo requests concurrently.
         # yfinance's own per-download threading is disabled to avoid nested
@@ -269,6 +272,9 @@ def _batch_change_screen(
                 }
                 for future in as_completed(futures):
                     chunk = futures[future]
+                    completed_chunks += 1
+                    if progress_callback is not None:
+                        progress_callback(exchange, completed_chunks, initial_chunk_count)
                     if coverage is not None:
                         coverage[exchange]["screen_chunks_requested"] += 1
 
@@ -409,7 +415,10 @@ def _analyze_history(
         return None
 
 
-def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
+def market_scan(
+    exchange_filter: str = "NSE + BSE",
+    progress_callback: Any | None = None,
+) -> pd.DataFrame:
     """Scan the selected exchange universe using batched market data and local analysis."""
     scan_started = time.perf_counter()
     timings: dict[str, float] = {}
@@ -452,7 +461,9 @@ def market_scan(exchange_filter: str = "NSE + BSE") -> pd.DataFrame:
         if (ticker := _yahoo_ticker(symbol, exchange)) is not None
     }
     screen_started = time.perf_counter()
-    movers = _batch_change_screen(candidates, coverage=coverage)
+    movers = _batch_change_screen(
+        candidates, coverage=coverage, progress_callback=progress_callback
+    )
     timings["screen_seconds"] = time.perf_counter() - screen_started
     for exchange in coverage:
         coverage[exchange]["histories_rejected"] = max(
