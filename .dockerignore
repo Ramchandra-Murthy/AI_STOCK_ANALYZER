@@ -38,3 +38,13 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Frontend build/install artifacts are generated inside Docker stages
+frontend/node_modules/
+frontend/dist/
+
+# Local secrets and credentials must never enter a build context
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
