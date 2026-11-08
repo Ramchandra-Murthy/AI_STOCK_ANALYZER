@@ -467,9 +467,7 @@ def test_broad_market_screen_uses_larger_batches_and_reports_progress(monkeypatc
             columns=columns,
         )
 
-    monkeypatch.setattr(
-        market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.NS"
-    )
+    monkeypatch.setattr(market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.NS")
     monkeypatch.setattr(market_scanner, "_download_chunk", download)
     coverage = {
         "NSE": {
