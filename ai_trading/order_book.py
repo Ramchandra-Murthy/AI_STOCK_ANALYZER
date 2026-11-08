@@ -75,12 +75,10 @@ class LevelUpdate:
         if self.side not in ("bid", "ask"):
             raise ValueError("side must be 'bid' or 'ask'")
         object.__setattr__(self, "price", _positive_finite(self.price, "price"))
-        # Preserve the exact integer zero sentinel for DELETE updates; normalize
-        # positive quantities to float for consistent arithmetic.
-        if self.quantity == 0 and not isinstance(self.quantity, bool):
-            object.__setattr__(self, "quantity", 0)
-        else:
-            object.__setattr__(self, "quantity", _positive_finite(self.quantity, "quantity"))
+        # Zero is a control sentinel for DELETE; keep it exact and normalize
+        # only positive quantities for consistent arithmetic.
+        quantity = _positive_finite(self.quantity, "quantity", allow_zero=True)
+        object.__setattr__(self, "quantity", 0 if math.isclose(quantity, 0.0, abs_tol=0.0) else quantity)
         if self.sequence is not None and (
             isinstance(self.sequence, bool)
             or not isinstance(self.sequence, int)
@@ -190,7 +188,7 @@ class OrderBookSnapshot:
             ),
             None,
         )
-        if update.quantity == 0:
+        if math.isclose(update.quantity, 0.0, rel_tol=0.0, abs_tol=0.0):
             if existing is not None:
                 side_levels.pop(existing)
         elif existing is None:
