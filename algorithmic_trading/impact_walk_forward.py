@@ -38,7 +38,9 @@ def validate_market_impact_walk_forward(
 
     remaining = len(observations) - min_train_size
     if remaining < n_splits * 2:
-        raise ValueError("not enough observations for the requested training size and holdout folds")
+        raise ValueError(
+            "not enough observations for the requested training size and holdout folds"
+        )
 
     base_size, extra = divmod(remaining, n_splits)
     fold_sizes = [base_size + (1 if fold < extra else 0) for fold in range(n_splits)]
