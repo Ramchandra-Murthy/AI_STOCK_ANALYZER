@@ -443,3 +443,59 @@ def test_download_analysis_chunk_logs_provider_failure_and_returns_empty(
         record.levelno == logging.WARNING and "provider unavailable" in record.getMessage()
         for record in caplog.records
     )
+
+
+def test_broad_market_screen_uses_larger_batches_and_reports_progress(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    symbols = [f"AAA{i}" for i in range(205)]
+    calls = []
+    progress = []
+
+    def download(chunk):
+        calls.append(len(chunk))
+        columns = pd.MultiIndex.from_product(
+            [[f"{symbol}.NS" for symbol in chunk], ["Close", "Volume"]]
+        )
+        values = [
+            [value for _ticker in chunk for value in (100.0, 1000.0)],
+            [value for _ticker in chunk for value in (101.0, 1200.0)],
+        ]
+        return pd.DataFrame(
+            values,
+            index=pd.DatetimeIndex(["2026-10-16", "2026-10-19"]),
+            columns=columns,
+        )
+
+    monkeypatch.setattr(
+        market_scanner, "_yahoo_ticker", lambda symbol, exchange: f"{symbol}.NS"
+    )
+    monkeypatch.setattr(market_scanner, "_download_chunk", download)
+    coverage = {
+        "NSE": {
+            "tickers_requested": 0,
+            "mapped_tickers": 0,
+            "unmapped_symbols": 0,
+            "cached_failures_skipped": 0,
+            "histories_returned": 0,
+            "screen_chunks_requested": 0,
+            "screen_chunks_empty": 0,
+            "screen_tickers_with_data": 0,
+            "screen_tickers_missing_data": 0,
+        }
+    }
+
+    movers = market_scanner._batch_change_screen(
+        {"NSE": symbols},
+        coverage=coverage,
+        progress_callback=lambda exchange, completed, total: progress.append(
+            (exchange, completed, total)
+        ),
+    )
+
+    assert sorted(calls) == [5, 100, 100]
+    assert len(movers) == 205
+    assert coverage["NSE"]["screen_chunks_requested"] == 3
+    assert coverage["NSE"]["histories_returned"] == 205
+    assert len(progress) == 3
+    assert all(exchange == "NSE" and total == 3 for exchange, _done, total in progress)
