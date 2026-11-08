@@ -65,9 +65,7 @@ def test_zero_volume_bar_does_not_fill() -> None:
     ("quantity", "volume", "volatility"),
     [(float("nan"), 100, 0.01), (10, 0, 0.01), (10, 100, -0.01), (101, 100, 0.01)],
 )
-def test_impact_rejects_invalid_inputs(
-    quantity: float, volume: float, volatility: float
-) -> None:
+def test_impact_rejects_invalid_inputs(quantity: float, volume: float, volatility: float) -> None:
     with pytest.raises(ValueError):
         estimate_market_impact_bps(
             filled_quantity=quantity,
