@@ -119,6 +119,18 @@ def test_conflicting_events_with_same_buffered_sequence_are_rejected():
     assert result.buffered_sequences == (12,)
 
 
+def test_missing_event_can_drain_a_full_buffer_without_overflow():
+    replay = Level2EventReplay(_book(), max_buffered_events=1)
+    replay.ingest(_event(12, side="ask", price=102.0, quantity=25.0))
+
+    result = replay.ingest(_event(11, side="bid", price=100.0, quantity=16.0))
+
+    assert result.status == "recovered"
+    assert result.synchronized
+    assert result.applied_count == 2
+    assert result.snapshot.sequence == 12
+
+
 def test_buffer_overflow_requires_authoritative_snapshot():
     replay = Level2EventReplay(_book(), max_buffered_events=1)
     replay.ingest(_event(12))
@@ -165,7 +177,7 @@ def test_constructor_rejects_invalid_configuration(snapshot, max_buffered_events
 def test_replay_requires_sequence_numbers():
     replay = Level2EventReplay(_book())
     with pytest.raises(ValueError, match="sequence"):
-        replay.ingest(_event(11).__class__(NOW, "bid", 100.0, 15.0))
+        replay.ingest(LevelUpdate(NOW, "bid", 100.0, 15.0))
 
 
 def test_replacement_snapshot_must_match_symbol_and_not_move_backwards():
