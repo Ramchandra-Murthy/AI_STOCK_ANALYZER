@@ -461,9 +461,12 @@ def market_scan(
         if (ticker := _yahoo_ticker(symbol, exchange)) is not None
     }
     screen_started = time.perf_counter()
-    movers = _batch_change_screen(
-        candidates, coverage=coverage, progress_callback=progress_callback
-    )
+    if progress_callback is None:
+        movers = _batch_change_screen(candidates, coverage=coverage)
+    else:
+        movers = _batch_change_screen(
+            candidates, coverage=coverage, progress_callback=progress_callback
+        )
     timings["screen_seconds"] = time.perf_counter() - screen_started
     for exchange in coverage:
         coverage[exchange]["histories_rejected"] = max(
