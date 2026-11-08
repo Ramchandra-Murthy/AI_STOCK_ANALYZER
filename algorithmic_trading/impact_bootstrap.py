@@ -80,9 +80,7 @@ def bootstrap_market_impact_calibration(
     successful = len(coefficients)
     minimum_successful = int(np.ceil(samples * 0.8))
     if successful < minimum_successful:
-        raise ValueError(
-            "insufficient valid bootstrap samples; predictor variation is too limited"
-        )
+        raise ValueError("insufficient valid bootstrap samples; predictor variation is too limited")
 
     tail = (1.0 - confidence) / 2.0
     lower, upper = tail, 1.0 - tail
