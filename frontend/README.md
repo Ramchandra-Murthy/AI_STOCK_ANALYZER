@@ -10,7 +10,7 @@ From the repository root, in separate terminals:
 ```bash
 uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 cd frontend
-npm install
+npm ci --ignore-scripts
 npm run dev
 ```
 
@@ -20,7 +20,7 @@ Open http://127.0.0.1:5173. Vite proxies `/health` and `/api/*` to FastAPI.
 
 ```bash
 cd frontend
-npm install
+npm ci --ignore-scripts
 npm run build
 ```
 
