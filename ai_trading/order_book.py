@@ -61,7 +61,7 @@ class LevelUpdate:
     event quantities must be decoded by the adapter before constructing it.
     """
 
-    timestamp: datetime | str
+    timestamp: datetime
     side: BookSide
     price: float
     quantity: float
@@ -104,7 +104,7 @@ class OrderBookSnapshot:
     """Immutable aggregated L2 book snapshot with bids/asks sorted best-first."""
 
     symbol: str
-    timestamp: datetime | str
+    timestamp: datetime
     bids: tuple[OrderBookLevel, ...]
     asks: tuple[OrderBookLevel, ...]
     sequence: int | None = None
