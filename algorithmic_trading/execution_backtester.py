@@ -144,9 +144,7 @@ def run_execution_aware_backtest(
     result.index.name = prices.index.name
     result["strategy_equity"] = result["equity"]
     result["buy_hold_equity"] = initial_capital * (1.0 + result["market_return"]).cumprod()
-    result["drawdown"] = result["strategy_equity"].div(
-        result["strategy_equity"].cummax()
-    ).sub(1.0)
+    result["drawdown"] = result["strategy_equity"].div(result["strategy_equity"].cummax()).sub(1.0)
 
     active = result["position"].ne(0)
     starts = active & (
