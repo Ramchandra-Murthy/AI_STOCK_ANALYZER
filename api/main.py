@@ -285,9 +285,16 @@ def market(
 # Serve the production React bundle when it has been built. API routes above
 # remain authoritative; the legacy static dashboard remains the safe fallback.
 _REACT_DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
-if (_REACT_DIST / "assets").is_dir():
+if (_REACT_DIST.is_dir() and (_REACT_DIST / "index.html").is_file()):
+    if (_REACT_DIST / "assets").is_dir():
+        app.mount(
+            "/assets",
+            StaticFiles(directory=_REACT_DIST / "assets"),
+            name="react-assets",
+        )
+    # Register last so explicit API and documentation routes take precedence.
     app.mount(
-        "/assets",
-        StaticFiles(directory=_REACT_DIST / "assets"),
-        name="react-assets",
+        "/",
+        StaticFiles(directory=_REACT_DIST, html=True),
+        name="react-app",
     )
