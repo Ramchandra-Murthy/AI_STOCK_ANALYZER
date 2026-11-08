@@ -5,8 +5,6 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from algorithmic_trading.impact_calibration import MarketImpactCalibration, calibrate_market_impact
-
 
 _REQUIRED_COLUMNS = (
     "observed_shortfall_bps",
@@ -20,7 +18,7 @@ class MarketImpactHoldoutValidation:
 
     def __init__(
         self,
-        calibration: MarketImpactCalibration,
+        calibration: object,
         observations: int,
         rmse_bps: float,
         mae_bps: float,
@@ -84,6 +82,8 @@ def validate_market_impact_out_of_sample(
         raise ValueError("calibration and holdout timestamps must use the same timezone")
     if calibration.index[-1] >= holdout.index[0]:
         raise ValueError("holdout_data must start strictly after calibration_data ends")
+
+    from algorithmic_trading.impact_calibration import calibrate_market_impact
 
     fitted = calibrate_market_impact(
         calibration["observed_shortfall_bps"],
