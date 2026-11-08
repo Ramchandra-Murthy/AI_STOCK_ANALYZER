@@ -27,7 +27,7 @@ def test_execution_backtest_lags_signals_and_respects_volume_cap() -> None:
 
 def test_execution_impact_increases_buy_fill_price_and_reduces_return() -> None:
     prices, signals, volumes, volatility = _inputs([10_000.0] * 4)
-    no_impact, no_impact_metrics = run_execution_aware_backtest(
+    _, no_impact_metrics = run_execution_aware_backtest(
         prices, signals, volumes, volatility, impact_coefficient=0.0
     )
     with_impact, metrics = run_execution_aware_backtest(
@@ -62,9 +62,7 @@ def test_sell_fill_is_below_reference_and_short_position_is_supported() -> None:
 def test_execution_backtest_rejects_invalid_market_impact_parameters(bad: float) -> None:
     prices, signals, volumes, volatility = _inputs()
     with pytest.raises(ValueError):
-        run_execution_aware_backtest(
-            prices, signals, volumes, volatility, impact_coefficient=bad
-        )
+        run_execution_aware_backtest(prices, signals, volumes, volatility, impact_coefficient=bad)
 
 
 def test_execution_backtest_rejects_misaligned_market_data() -> None:
