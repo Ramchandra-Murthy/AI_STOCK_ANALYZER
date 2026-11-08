@@ -13,6 +13,7 @@ from typing import Any
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from api.scan_history import recent_scans
 from api.scan_manager import ErosScanManager
@@ -23,6 +24,8 @@ from services.analyzer import analyze_stock
 from services.intraday_exchange_summary import exchange_summary
 from services.intraday_health import assess_scan_health
 from services.options_analytics import fetch_option_chain, summarize_option_chain
+
+REACT_DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 
 app = FastAPI(
     title="EROS Market API",
@@ -50,6 +53,9 @@ def _stats(frame: pd.DataFrame) -> dict[str, Any]:
 @app.get("/", include_in_schema=False)
 def dashboard() -> FileResponse:
     """Serve the EROS browser dashboard."""
+    react_index = REACT_DIST / "index.html"
+    if react_index.is_file():
+        return FileResponse(react_index)
     return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
@@ -276,3 +282,20 @@ def market(
         "count": min(len(frame), limit),
         "results": _records(frame.head(limit)),
     }
+
+
+# Serve the production React bundle when it has been built. API routes above
+# remain authoritative; the legacy static dashboard remains the safe fallback.
+if REACT_DIST.is_dir() and (REACT_DIST / "index.html").is_file():
+    if (REACT_DIST / "assets").is_dir():
+        app.mount(
+            "/assets",
+            StaticFiles(directory=REACT_DIST / "assets"),
+            name="react-assets",
+        )
+    # Register last so explicit API and documentation routes take precedence.
+    app.mount(
+        "/",
+        StaticFiles(directory=REACT_DIST, html=True),
+        name="react-app",
+    )

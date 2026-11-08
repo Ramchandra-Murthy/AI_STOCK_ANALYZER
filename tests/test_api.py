@@ -8,9 +8,20 @@ def test_health():
     assert health() == {"status": "ok", "service": "eros-api"}
 
 
-def test_dashboard_path():
+def test_dashboard_path_uses_legacy_fallback(monkeypatch, tmp_path):
+    monkeypatch.setattr("api.main.REACT_DIST", tmp_path)
     response = dashboard()
     assert str(response.path).replace("\\", "/").endswith("api/static/index.html")
+
+
+def test_dashboard_prefers_react_build(monkeypatch, tmp_path):
+    react_index = tmp_path / "index.html"
+    react_index.write_text("<html>React</html>", encoding="utf-8")
+    monkeypatch.setattr("api.main.REACT_DIST", tmp_path)
+
+    response = dashboard()
+
+    assert response.path == react_index
 
 
 def test_intraday_health_without_scan(monkeypatch):
