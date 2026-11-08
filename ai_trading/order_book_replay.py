@@ -44,9 +44,7 @@ class Level2EventReplay:
     snapshot through :meth:`replace_snapshot`. No missing event is inferred.
     """
 
-    def __init__(
-        self, snapshot: OrderBookSnapshot, *, max_buffered_events: int = 10_000
-    ) -> None:
+    def __init__(self, snapshot: OrderBookSnapshot, *, max_buffered_events: int = 10_000) -> None:
         if not isinstance(snapshot, OrderBookSnapshot):
             raise ValueError("snapshot must be an OrderBookSnapshot")
         if snapshot.sequence is None:
