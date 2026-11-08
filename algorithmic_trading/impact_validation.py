@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 
 from algorithmic_trading.impact_calibration import (
-    MarketImpactCalibration,
     calibrate_market_impact,
+    MarketImpactCalibration,
 )
 
 
