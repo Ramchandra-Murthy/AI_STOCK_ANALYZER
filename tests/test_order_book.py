@@ -45,9 +45,7 @@ def test_metrics_calculate_spread_depth_imbalance_and_microprice():
 
 
 def test_depth_imbalance_is_bounded_and_reflects_bid_pressure():
-    book = OrderBookSnapshot.from_levels(
-        "ABC", NOW, bids=[(10, 90)], asks=[(11, 10)]
-    )
+    book = OrderBookSnapshot.from_levels("ABC", NOW, bids=[(10, 90)], asks=[(11, 10)])
     assert book.metrics().depth_imbalance == pytest.approx(0.8)
 
 
