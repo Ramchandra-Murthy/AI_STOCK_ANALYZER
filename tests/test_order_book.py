@@ -73,6 +73,23 @@ def test_zero_quantity_deletes_level():
     assert [level.price for level in updated.asks] == [102.0, 103.0]
 
 
+def test_update_matches_float_price_with_small_representation_difference():
+    book = OrderBookSnapshot.from_levels(
+        "ABC", NOW, bids=[(100.0, 10.0)], asks=[(101.0, 12.0)]
+    )
+    updated = book.apply_update(
+        LevelUpdate(NOW + timedelta(milliseconds=1), "bid", 100.0 + 1e-11, 20.0)
+    )
+    assert len(updated.bids) == 1
+    assert updated.bids[0].quantity == 20.0
+
+
+@pytest.mark.parametrize("quantity", [True, False, -1.0, float("nan"), float("inf")])
+def test_level_update_rejects_invalid_quantity(quantity):
+    with pytest.raises(ValueError, match="quantity"):
+        LevelUpdate(NOW, "bid", 100.0, quantity)
+
+
 def test_update_rejects_crossed_book_without_mutating_original():
     book = _book()
     with pytest.raises(ValueError, match="crossed"):
