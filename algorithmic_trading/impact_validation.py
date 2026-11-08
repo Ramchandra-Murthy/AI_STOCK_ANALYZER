@@ -5,10 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from algorithmic_trading.impact_calibration import (
-    MarketImpactCalibration,
-    calibrate_market_impact,
-)
+from algorithmic_trading.impact_calibration import MarketImpactCalibration, calibrate_market_impact
 
 
 _REQUIRED_COLUMNS = (
