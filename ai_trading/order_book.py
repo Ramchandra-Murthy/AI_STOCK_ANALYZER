@@ -19,7 +19,9 @@ BookSide = Literal["bid", "ask"]
 def _positive_finite(value: float, field: str, *, allow_zero: bool = False) -> float:
     """Convert a numeric value to float and enforce finite positive quantities."""
     if isinstance(value, bool):
-        raise ValueError(f"{field} must be a finite {'non-negative' if allow_zero else 'positive'} number")
+        raise ValueError(
+            f"{field} must be a finite {'non-negative' if allow_zero else 'positive'} number"
+        )
     try:
         number = float(value)
     except (TypeError, ValueError, OverflowError) as exc:
@@ -77,7 +79,9 @@ class LevelUpdate:
             self, "quantity", _positive_finite(self.quantity, "quantity", allow_zero=True)
         )
         if self.sequence is not None and (
-            isinstance(self.sequence, bool) or not isinstance(self.sequence, int) or self.sequence < 0
+            isinstance(self.sequence, bool)
+            or not isinstance(self.sequence, int)
+            or self.sequence < 0
         ):
             raise ValueError("sequence must be a non-negative integer or None")
 
@@ -172,7 +176,9 @@ class OrderBookSnapshot:
             raise ValueError("update sequence must be greater than the current sequence")
 
         side_levels = list(self.bids if update.side == "bid" else self.asks)
-        existing = next((i for i, level in enumerate(side_levels) if level.price == update.price), None)
+        existing = next(
+            (i for i, level in enumerate(side_levels) if level.price == update.price), None
+        )
         if update.quantity == 0.0:
             if existing is not None:
                 side_levels.pop(existing)
@@ -207,9 +213,8 @@ class OrderBookSnapshot:
         imbalance = (bid_depth - ask_depth) / total_depth if total_depth else 0.0
         top_total = best_bid.quantity + best_ask.quantity
         microprice = (
-            (best_ask.price * best_bid.quantity + best_bid.price * best_ask.quantity)
-            / top_total
-        )
+            best_ask.price * best_bid.quantity + best_bid.price * best_ask.quantity
+        ) / top_total
         return OrderBookMetrics(
             best_bid=best_bid.price,
             best_ask=best_ask.price,
