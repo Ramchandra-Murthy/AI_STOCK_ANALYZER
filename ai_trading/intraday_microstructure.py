@@ -12,7 +12,6 @@ import math
 import numpy as np
 import pandas as pd
 
-
 _REQUIRED_COLUMNS = ("Open", "High", "Low", "Close", "Volume")
 
 
@@ -68,10 +67,9 @@ def intraday_microstructure_features(
         raise ValueError("OHLC prices must be positive")
     if (frame["Volume"] < 0.0).any():
         raise ValueError("Volume must be non-negative")
-    if (
-        (frame["High"] < frame[["Open", "Low", "Close"]].max(axis=1)).any()
-        or (frame["Low"] > frame[["Open", "High", "Close"]].min(axis=1)).any()
-    ):
+    if (frame["High"] < frame[["Open", "Low", "Close"]].max(axis=1)).any() or (
+        frame["Low"] > frame[["Open", "High", "Close"]].min(axis=1)
+    ).any():
         raise ValueError("each bar must satisfy Low <= Open/Close <= High")
 
     close = frame["Close"]
@@ -82,9 +80,7 @@ def intraday_microstructure_features(
 
     frame["log_return"] = log_return
     frame["range_pct"] = (frame["High"] - frame["Low"]) / close
-    frame["realized_variance"] = log_return.pow(2).rolling(
-        window=window, min_periods=window
-    ).sum()
+    frame["realized_variance"] = log_return.pow(2).rolling(window=window, min_periods=window).sum()
     frame["realized_volatility"] = np.sqrt(frame["realized_variance"])
     frame["parkinson_volatility"] = np.sqrt(
         parkinson_variance.rolling(window=window, min_periods=window).mean()
@@ -92,14 +88,10 @@ def intraday_microstructure_features(
     frame["turnover"] = turnover
 
     illiquidity = log_return.abs().div(turnover.where(turnover > 0.0))
-    frame["amihud_illiquidity"] = illiquidity.rolling(
-        window=window, min_periods=window
-    ).mean()
+    frame["amihud_illiquidity"] = illiquidity.rolling(window=window, min_periods=window).mean()
 
     prior_volume = frame["Volume"].shift(1)
     prior_mean = prior_volume.rolling(window=window, min_periods=window).mean()
     prior_std = prior_volume.rolling(window=window, min_periods=window).std(ddof=0)
-    frame["volume_zscore"] = (frame["Volume"] - prior_mean).div(
-        prior_std.where(prior_std > 0.0)
-    )
+    frame["volume_zscore"] = (frame["Volume"] - prior_mean).div(prior_std.where(prior_std > 0.0))
     return frame
