@@ -94,7 +94,9 @@ class Level2EventReplay:
         sequence = update.sequence
         assert self._snapshot.sequence is not None
         if sequence <= self._snapshot.sequence:
-            return self._result("duplicate", sequence, 0, "event is at or behind the current snapshot")
+            return self._result(
+                "duplicate", sequence, 0, "event is at or behind the current snapshot"
+            )
 
         buffered = self._buffer.get(sequence)
         if buffered is not None:
@@ -104,7 +106,7 @@ class Level2EventReplay:
                 )
             return self._result("duplicate", sequence, 0, "event is already buffered")
 
-        if sequence != self.expected_sequence or not self._synchronized:
+        if sequence > self.expected_sequence:
             if not self._store(update):
                 self._synchronized = False
                 return self._result(
@@ -116,15 +118,28 @@ class Level2EventReplay:
             self._synchronized = False
             return self._drain(sequence, was_synchronized=False)
 
+        was_synchronized = self._synchronized
         try:
             self._snapshot = self._snapshot.apply_update(update)
         except ValueError as exc:
-            self._store(update)
+            if not self._store(update):
+                self._synchronized = False
+                return self._result(
+                    "buffer_overflow",
+                    sequence,
+                    0,
+                    "invalid event and event buffer limit exceeded; snapshot recovery is required",
+                )
             self._synchronized = False
             self._last_error = str(exc)
             return self._result("invalid", sequence, 0, self._last_error)
 
-        return self._result("applied", sequence, 1)
+        if was_synchronized:
+            return self._result("applied", sequence, 1)
+        result = self._drain(sequence, was_synchronized=False)
+        return self._result(
+            result.status, sequence, result.applied_count + 1, result.message
+        )
 
     def replace_snapshot(self, snapshot: OrderBookSnapshot) -> ReplayResult:
         """Install an authoritative snapshot and replay any now-contiguous buffer."""
