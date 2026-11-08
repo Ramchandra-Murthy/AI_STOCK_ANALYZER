@@ -8,9 +8,10 @@ individual order queue priority.
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Iterable, Literal
+from typing import Literal
 
 BookSide = Literal["bid", "ask"]
 
