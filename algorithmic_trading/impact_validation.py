@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
-
 import numpy as np
 import pandas as pd
 
@@ -20,17 +18,26 @@ _REQUIRED_COLUMNS = (
 )
 
 
-@dataclasses.dataclass(frozen=True)
 class MarketImpactHoldoutValidation:
     """Calibration fit plus strictly later holdout diagnostics."""
 
-    calibration: MarketImpactCalibration
-    observations: int
-    rmse_bps: float
-    mae_bps: float
-    bias_bps: float
-    r_squared: float | None
-    predictions: pd.DataFrame
+    def __init__(
+        self,
+        calibration: MarketImpactCalibration,
+        observations: int,
+        rmse_bps: float,
+        mae_bps: float,
+        bias_bps: float,
+        r_squared: float | None,
+        predictions: pd.DataFrame,
+    ) -> None:
+        self.calibration = calibration
+        self.observations = observations
+        self.rmse_bps = rmse_bps
+        self.mae_bps = mae_bps
+        self.bias_bps = bias_bps
+        self.r_squared = r_squared
+        self.predictions = predictions
 
 
 def _prepare_observations(data: pd.DataFrame, label: str) -> pd.DataFrame:
