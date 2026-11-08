@@ -78,7 +78,9 @@ class LevelUpdate:
         # Zero is a control sentinel for DELETE; keep it exact and normalize
         # only positive quantities for consistent arithmetic.
         quantity = _positive_finite(self.quantity, "quantity", allow_zero=True)
-        object.__setattr__(self, "quantity", 0 if math.isclose(quantity, 0.0, abs_tol=0.0) else quantity)
+        object.__setattr__(
+            self, "quantity", 0 if math.isclose(quantity, 0.0, abs_tol=0.0) else quantity
+        )
         if self.sequence is not None and (
             isinstance(self.sequence, bool)
             or not isinstance(self.sequence, int)
@@ -182,9 +184,7 @@ class OrderBookSnapshot:
             (
                 i
                 for i, level in enumerate(side_levels)
-                if math.isclose(
-                    level.price, update.price, rel_tol=1e-12, abs_tol=price_tolerance
-                )
+                if math.isclose(level.price, update.price, rel_tol=1e-12, abs_tol=price_tolerance)
             ),
             None,
         )
