@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from ai_trading.order_book import LevelUpdate, OrderBookLevel, OrderBookSnapshot
 
-NOW = datetime(2026, 11, 9, 4, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 11, 9, 4, 0, tzinfo=UTC)
 
 
 def _book():
