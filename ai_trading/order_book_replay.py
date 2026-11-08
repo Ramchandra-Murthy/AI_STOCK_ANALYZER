@@ -135,9 +135,7 @@ class Level2EventReplay:
         if was_synchronized:
             return self._result("applied", sequence, 1)
         result = self._drain(sequence, was_synchronized=False)
-        return self._result(
-            result.status, sequence, result.applied_count + 1, result.message
-        )
+        return self._result(result.status, sequence, result.applied_count + 1, result.message)
 
     def replace_snapshot(self, snapshot: OrderBookSnapshot) -> ReplayResult:
         """Install an authoritative snapshot and replay any now-contiguous buffer."""
