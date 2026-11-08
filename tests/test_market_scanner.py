@@ -293,7 +293,7 @@ def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
         calls.append(chunk)
         return pd.DataFrame()
 
-    symbols = [f"{code:06d}" for code in range(500000, 500040)]
+    symbols = [f"{code:06d}" for code in range(500000, 500100)]
     coverage = {
         "BSE": {
             "histories_returned": 0,
@@ -311,10 +311,10 @@ def test_batch_change_screen_stops_splitting_after_repeated_bse_failures(
 
     assert movers == []
     assert len(calls) == 3
-    assert len(calls[0]) == 40
-    assert sorted(len(chunk) for chunk in calls[1:]) == [20, 20]
+    assert len(calls[0]) == 100
+    assert sorted(len(chunk) for chunk in calls[1:]) == [50, 50]
     assert coverage["BSE"]["screen_chunks_empty"] == 3
-    assert coverage["BSE"]["screen_tickers_missing_data"] == 40
+    assert coverage["BSE"]["screen_tickers_missing_data"] == 100
 
 
 def test_bse_ticker_mapping_falls_back_to_scrip_code_when_live_map_unavailable(monkeypatch) -> None:
@@ -455,7 +455,7 @@ def test_broad_market_screen_uses_larger_batches_and_reports_progress(monkeypatc
     def download(chunk):
         calls.append(len(chunk))
         columns = pd.MultiIndex.from_product(
-            [[f"{symbol}.NS" for symbol in chunk], ["Close", "Volume"]]
+            [chunk, ["Close", "Volume"]]
         )
         values = [
             [value for _ticker in chunk for value in (100.0, 1000.0)],
