@@ -83,7 +83,7 @@ def simulate_execution(
     rows: list[dict[str, float]] = []
     direction = 1.0 if side == "buy" else -1.0
 
-    for timestamp, bar in frame.iterrows():
+    for _, bar in frame.iterrows():
         capacity = float(bar["bar_volume"]) * max_participation
         filled = min(remaining, capacity)
         if filled > 0 and bar["bar_volume"] > 0:
