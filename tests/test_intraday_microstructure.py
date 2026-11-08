@@ -6,7 +6,7 @@ from ai_trading.intraday_microstructure import intraday_microstructure_features
 
 
 def _bars(count=6):
-    close = pd.Series([100.0, 101.0, 100.5, 102.0, 101.5, 103.0][:count])
+    close = np.asarray([100.0, 101.0, 100.5, 102.0, 101.5, 103.0][:count])
     return pd.DataFrame(
         {
             "Open": close - 0.2,
