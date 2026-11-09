@@ -102,7 +102,7 @@ def test_optimizer_rejects_invalid_previous_weights(returns: pd.DataFrame) -> No
     with pytest.raises(ValueError, match="sum to 1"):
         cost_aware_minimum_variance_weights(
             returns,
-            previous_weights=pd.Series({"A": 0.5, "B": 0.5}),
+            previous_weights=pd.Series({"A": 0.4, "B": 0.4}),
         )
     with pytest.raises(ValueError, match="unknown assets"):
         cost_aware_minimum_variance_weights(
