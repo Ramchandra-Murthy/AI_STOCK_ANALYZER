@@ -96,7 +96,7 @@ def compare_holdout_baselines(
         raise ValueError("Training target must contain both classes")
 
     models = [
-        ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent"), scale=False)),
+        ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent", random_state=random_state), scale=False)),
         (
             "Logistic regression",
             _pipeline(LogisticRegression(max_iter=1000, random_state=random_state)),
@@ -168,7 +168,7 @@ def walk_forward_evaluation(
         if y_train.nunique() < 2:
             raise ValueError(f"Fold {fold_number} training target contains only one class")
         models = [
-            ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent"), scale=False)),
+            ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent", random_state=random_state), scale=False)),
             (
                 "Logistic regression",
                 _pipeline(
