@@ -64,8 +64,7 @@ def _connect(database_path: str | Path | None) -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.execute("PRAGMA busy_timeout = 10000")
-    connection.executescript(
-        """
+    connection.executescript("""
         CREATE TABLE IF NOT EXISTS momentum_snapshots (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             captured_at TEXT NOT NULL UNIQUE
@@ -85,8 +84,7 @@ def _connect(database_path: str | Path | None) -> sqlite3.Connection:
         );
         CREATE INDEX IF NOT EXISTS idx_momentum_snapshots_time
             ON momentum_snapshots(captured_at DESC);
-        """
-    )
+        """)
     return connection
 
 
@@ -120,7 +118,9 @@ def _normalise_ranking(ranking: pd.DataFrame) -> list[tuple[object, ...]]:
         except (TypeError, ValueError, OverflowError) as exc:
             raise MomentumHistoryError("Rank and momentum strength must be numeric.") from exc
         if rank < 1 or not math.isfinite(score) or not 0 <= score <= 100:
-            raise MomentumHistoryError("Rank must be positive and score must be finite in [0, 100].")
+            raise MomentumHistoryError(
+                "Rank must be positive and score must be finite in [0, 100]."
+            )
 
         volume_value = row.get("Volume ratio")
         try:
@@ -257,8 +257,7 @@ def compare_momentum_snapshots(
     previous_by_key: dict[tuple[str, str], dict[str, object]] = {}
     if required.issubset(previous.columns):
         previous_by_key = {
-            (str(row["Exchange"]), str(row["Symbol"])): row
-            for row in previous.to_dict("records")
+            (str(row["Exchange"]), str(row["Symbol"])): row for row in previous.to_dict("records")
         }
 
     current_keys: set[tuple[str, str]] = set()
