@@ -69,9 +69,7 @@ if run:
 
     analysed = len(result)
     unavailable = len(symbols) - analysed
-    st.success(
-        f"Analysed {analysed} of {len(symbols)} selected {exchange} symbols."
-    )
+    st.success(f"Analysed {analysed} of {len(symbols)} selected {exchange} symbols.")
     if unavailable:
         st.info(
             f"{unavailable} selected symbols were skipped because usable market data "
