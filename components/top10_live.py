@@ -1133,7 +1133,11 @@ def _render_momentum_ranking(top10: pd.DataFrame, completed_at: datetime | None)
             try:
                 history = load_momentum_history(limit=10)
                 captured_key = captured_at.isoformat(timespec="seconds")
-                previous = history.loc[history["Scan time"].lt(captured_key)] if not history.empty else pd.DataFrame()
+                previous = (
+                    history.loc[history["Scan time"].lt(captured_key)]
+                    if not history.empty
+                    else pd.DataFrame()
+                )
                 previous_snapshot = (
                     previous.loc[previous["Scan time"].eq(previous["Scan time"].max())]
                     if not previous.empty
