@@ -143,3 +143,78 @@ def test_estimate_rebalance_cost_rejects_negative_cost() -> None:
             pd.Series({"A": 1.0}),
             cost_bps=-1.0,
         )
+
+
+def test_optimizer_matches_independent_two_asset_grid_search() -> None:
+    rng = np.random.default_rng(2026)
+    returns = pd.DataFrame(
+        {
+            "A": rng.normal(0.0005, 0.012, 180),
+            "B": rng.normal(0.0002, 0.007, 180),
+        }
+    )
+    covariance = shrinkage_covariance(returns, shrinkage=0.15).to_numpy()
+    weights = cost_aware_minimum_variance_weights(
+        returns,
+        shrinkage=0.15,
+        max_weight=0.8,
+        tolerance=1e-12,
+    ).to_numpy()
+    actual_variance = float(weights @ covariance @ weights)
+
+    grid = np.linspace(0.2, 0.8, 30_001)
+    candidates = np.column_stack([grid, 1.0 - grid])
+    grid_variances = np.einsum("ij,jk,ik->i", candidates, covariance, candidates)
+
+    assert actual_variance <= float(grid_variances.min()) + 1e-12
+
+
+def test_optimizer_handles_zero_variance_and_highly_correlated_assets() -> None:
+    constant = np.full(80, 0.01)
+    varying = np.linspace(-0.02, 0.02, 80)
+    returns = pd.DataFrame(
+        {
+            "constant_a": constant,
+            "constant_b": constant.copy(),
+            "correlated_a": varying,
+            "correlated_b": varying * 0.999 + 1e-7 * np.sin(np.arange(80)),
+        }
+    )
+
+    covariance = shrinkage_covariance(returns, shrinkage=0.2)
+    weights = cost_aware_minimum_variance_weights(returns, max_weight=0.4)
+
+    assert np.isfinite(covariance.to_numpy()).all()
+    assert np.linalg.eigvalsh(covariance.to_numpy()).min() > 0.0
+    assert weights.sum() == pytest.approx(1.0)
+    assert weights.min() >= 0.0
+    assert weights.max() <= 0.4 + 1e-10
+
+
+@pytest.mark.parametrize(
+    ("target", "current"),
+    [
+        ({"A": 0.8, "B": 0.1}, {"A": 0.6, "B": 0.4}),
+        ({"A": 0.5, "B": 0.5}, {"A": -0.1, "B": 1.1}),
+        ({"A": np.nan, "B": 0.0}, {"A": 0.5, "B": 0.5}),
+    ],
+)
+def test_estimate_rebalance_cost_rejects_invalid_portfolio_weights(
+    target: dict[str, float],
+    current: dict[str, float],
+) -> None:
+    with pytest.raises(ValueError):
+        estimate_rebalance_cost(
+            pd.Series(target),
+            pd.Series(current),
+            cost_bps=20.0,
+        )
+
+
+def test_estimate_rebalance_cost_requires_series_inputs() -> None:
+    with pytest.raises(ValueError, match="pandas Series"):
+        estimate_rebalance_cost(
+            {"A": 1.0},  # type: ignore[arg-type]
+            pd.Series({"A": 1.0}),
+            cost_bps=20.0,
+        )
