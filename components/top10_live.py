@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import math
+import sqlite3
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -28,6 +29,11 @@ from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_calendar import (
     equity_market_session_status,
     is_regular_equity_session_open,
+)
+from services.momentum_history import (
+    compare_momentum_snapshots,
+    load_momentum_history,
+    record_momentum_snapshot,
 )
 from services.resilient_market_data import download_symbol_frames, download_symbols_individually
 
@@ -1120,6 +1126,60 @@ def _render_momentum_ranking(top10: pd.DataFrame, completed_at: datetime | None)
             "Momentum strength (0-100) describes how strong and confirmed the recent move is. "
             f"It is not a probability, forecast or trade signal ({MOMENTUM_SCORE_TYPE})."
         )
+
+        ranking = info.get("ranking")
+        captured_at = info.get("as_of") or completed_at
+        if isinstance(ranking, pd.DataFrame) and isinstance(captured_at, datetime):
+            try:
+                history = load_momentum_history(limit=10)
+                captured_key = captured_at.isoformat(timespec="seconds")
+                previous = (
+                    history.loc[history["Scan time"].lt(captured_key)]
+                    if not history.empty
+                    else pd.DataFrame()
+                )
+                previous_snapshot = (
+                    previous.loc[previous["Scan time"].eq(previous["Scan time"].max())]
+                    if not previous.empty
+                    else pd.DataFrame()
+                )
+                changes = compare_momentum_snapshots(ranking, previous_snapshot)
+                if not changes.empty:
+                    st.caption("Momentum changes versus the previous complete stored scan")
+                    st.dataframe(changes, use_container_width=True, hide_index=True)
+
+                complete_coverage = (
+                    int(summary.get("scored", 0)) == int(summary.get("requested", 0))
+                    and int(summary.get("unscored", 0)) == 0
+                    and int(summary.get("missing_from_provider", 0)) == 0
+                )
+                saved_key = st.session_state.get("momentum_history_saved_at")
+                if complete_coverage and saved_key != captured_key:
+                    record_momentum_snapshot(ranking, captured_at)
+                    st.session_state["momentum_history_saved_at"] = captured_key
+                elif not complete_coverage:
+                    st.caption("History not updated: this scan has incomplete symbol coverage.")
+
+                if not history.empty:
+                    chart_data = history.copy()
+                    chart_data["Scan time"] = pd.to_datetime(
+                        chart_data["Scan time"], errors="coerce"
+                    )
+                    chart_data["Label"] = (
+                        chart_data["Exchange"].astype(str) + ":" + chart_data["Symbol"].astype(str)
+                    )
+                    trend = chart_data.pivot_table(
+                        index="Scan time",
+                        columns="Label",
+                        values="Momentum strength",
+                        aggfunc="last",
+                    ).sort_index()
+                    if not trend.empty:
+                        st.caption("Recent momentum-strength history (last 10 stored scans)")
+                        st.line_chart(trend)
+            except (OSError, sqlite3.Error, ValueError) as exc:
+                logger.warning("Momentum history unavailable (%s)", type(exc).__name__)
+                st.caption("Persistent momentum history is temporarily unavailable.")
 
 
 def _render_live_top10_results() -> None:
