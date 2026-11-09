@@ -13,6 +13,8 @@ import numpy as np
 import pandas as pd
 
 from algorithmic_trading.robust_portfolio_allocation import (
+    _finite_parameter,
+    _validate_returns,
     cost_aware_minimum_variance_weights,
 )
 
@@ -24,19 +26,8 @@ def _validate_inputs(
     cost_bps: float,
     max_weight: float,
 ) -> tuple[pd.DataFrame, int, int, float, float]:
-    if not isinstance(returns, pd.DataFrame):
-        raise ValueError("returns must be a pandas DataFrame")
-    if returns.empty or returns.shape[1] == 0:
-        raise ValueError("returns must contain observations and assets")
-    if not returns.columns.is_unique:
-        raise ValueError("asset columns must be unique")
-    if not returns.index.is_unique or not returns.index.is_monotonic_increasing:
-        raise ValueError("returns must have a unique, chronological index")
-    numeric = returns.apply(pd.to_numeric, errors="coerce")
-    values = numeric.to_numpy(dtype=float)
-    if not np.isfinite(values).all():
-        raise ValueError("returns must be complete and finite")
-    if (values <= -1.0).any():
+    numeric = _validate_returns(returns)
+    if (numeric.to_numpy(dtype=float) <= -1.0).any():
         raise ValueError("returns must be greater than -100%")
     if isinstance(lookback, bool) or not isinstance(lookback, int) or lookback < 2:
         raise ValueError("lookback must be an integer of at least 2")
@@ -46,14 +37,11 @@ def _validate_inputs(
         or rebalance_every < 1
     ):
         raise ValueError("rebalance_every must be a positive integer")
-    try:
-        costs = float(cost_bps)
-        cap = float(max_weight)
-    except (TypeError, ValueError, OverflowError) as exc:
-        raise ValueError("cost_bps and max_weight must be finite numbers") from exc
-    if isinstance(cost_bps, bool) or not math.isfinite(costs) or costs < 0:
+    costs = _finite_parameter(cost_bps, "cost_bps")
+    cap = _finite_parameter(max_weight, "max_weight")
+    if costs < 0.0:
         raise ValueError("cost_bps must be finite and non-negative")
-    if isinstance(max_weight, bool) or not math.isfinite(cap) or not 0 < cap <= 1:
+    if not 0.0 < cap <= 1.0:
         raise ValueError("max_weight must be finite and in (0, 1]")
     if cap * numeric.shape[1] < 1.0 - 1e-12:
         raise ValueError("max_weight is too small for the number of assets")
