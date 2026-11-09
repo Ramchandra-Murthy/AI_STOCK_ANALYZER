@@ -191,17 +191,13 @@ def walk_forward_portfolio_evaluate(
                 )
                 state["returns"].append(net_return)
                 denominator = 1.0 + portfolio_return
-                state["weights"] = (
-                    state["weights"] * (1.0 + daily_returns) / denominator
-                )
+                state["weights"] = state["weights"] * (1.0 + daily_returns) / denominator
 
     test_index = numeric.index[lookback:]
     output: list[dict[str, object]] = []
     for name in names:
         state = states[name]
-        strategy_returns = pd.Series(
-            state["returns"], index=test_index, dtype=float, name=name
-        )
+        strategy_returns = pd.Series(state["returns"], index=test_index, dtype=float, name=name)
         row: dict[str, object] = {
             "strategy": name,
             **_performance_metrics(strategy_returns),
