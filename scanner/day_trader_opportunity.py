@@ -13,11 +13,15 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.day_trading_strategy import (
     analyze_day_trade_setup,
     calculate_day_trade_plan,
     classify_day_trade_plan_state,
+)
+from scanner.dynamic_universe import (
+    merge_bse_universe,
+    merge_nse_universe,
+    yahoo_symbol_for_bse_code,
 )
 from scanner.surveillance import (
     apply_safety_filter,
@@ -108,10 +112,21 @@ def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     return interval, bars
 
 
-def _ticker(symbol: str, exchange: str) -> str:
+def _ticker(symbol: str, exchange: str) -> str | None:
+    """Resolve an exchange symbol to a Yahoo Finance ticker.
+
+    BSE scrip codes must be mapped through the official BSE scrip_id field;
+    appending .BO to a numeric code produces unreliable/unusable coverage.
+    """
     cleaned = str(symbol).strip().upper()
-    suffix = ".NS" if exchange == "NSE" else ".BO"
-    return cleaned if cleaned.endswith((".NS", ".BO")) else f"{cleaned}{suffix}"
+    if exchange == "NSE":
+        return cleaned if cleaned.endswith((".NS", ".BO")) else f"{cleaned}.NS"
+    if exchange == "BSE":
+        if cleaned.endswith((".NS", ".BO")):
+            return cleaned
+        mapped = yahoo_symbol_for_bse_code(cleaned)
+        return f"{mapped}.BO" if mapped else None
+    return None
 
 
 def _frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
@@ -219,7 +234,12 @@ def scan_day_trader_opportunities(
     }
 
     for exchange in exchanges:
-        tickers = [_ticker(symbol, exchange) for symbol, venue in universe if venue == exchange]
+        exchange_symbols = [symbol for symbol, venue in universe if venue == exchange]
+        resolved_tickers = [_ticker(symbol, exchange) for symbol in exchange_symbols]
+        scan_stats["unmapped_symbol_count"] = scan_stats.get("unmapped_symbol_count", 0) + sum(
+            ticker is None for ticker in resolved_tickers
+        )
+        tickers = [ticker for ticker in resolved_tickers if ticker is not None]
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
             scan_stats["attempted_count"] += len(chunk)
