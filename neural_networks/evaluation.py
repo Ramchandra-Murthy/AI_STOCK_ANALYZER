@@ -97,7 +97,10 @@ def compare_holdout_baselines(
 
     models = [
         ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent"), scale=False)),
-        ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000))),
+        (
+            "Logistic regression",
+            _pipeline(LogisticRegression(max_iter=1000, random_state=random_state)),
+        ),
         ("MLP", _mlp(random_state)),
     ]
     rows = []
@@ -166,7 +169,12 @@ def walk_forward_evaluation(
             raise ValueError(f"Fold {fold_number} training target contains only one class")
         models = [
             ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent"), scale=False)),
-            ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000))),
+            (
+                "Logistic regression",
+                _pipeline(
+                    LogisticRegression(max_iter=1000, random_state=random_state + fold_number)
+                ),
+            ),
             ("MLP", _mlp(random_state + fold_number)),
         ]
         for name, model in models:
@@ -510,7 +518,10 @@ def compare_feature_ablation(
         if y_train.nunique() < 2:
             raise ValueError("Training target must contain both classes")
         models = [
-            ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000))),
+            (
+                "Logistic regression",
+                _pipeline(LogisticRegression(max_iter=1000, random_state=random_state)),
+            ),
             ("MLP", _mlp(random_state)),
         ]
         for model_name, model in models:
