@@ -26,9 +26,10 @@ with left:
     count = st.slider(
         "Symbols to scan",
         min_value=10,
-        max_value=min(50, len(universe)),
-        value=20,
+        max_value=len(universe),
+        value=len(universe),
         step=5,
+        help=f"Default scans all {len(universe)} curated {exchange} candidates. Reduce this only for a quicker sample.",
     )
 with right:
     capital = st.number_input(
@@ -61,10 +62,19 @@ if run:
         )
 
     if result.empty:
-        st.warning("No usable market data was returned for the selected universe.")
+        st.warning(
+            f"No usable market data was returned for any of the {len(symbols)} selected symbols."
+        )
         st.stop()
 
-    st.success(f"Scanned {len(result)} symbols.")
+    analysed = len(result)
+    unavailable = len(symbols) - analysed
+    st.success(f"Analysed {analysed} of {len(symbols)} selected {exchange} symbols.")
+    if unavailable:
+        st.info(
+            f"{unavailable} selected symbols were skipped because usable market data "
+            "or valid analysis was unavailable."
+        )
 
     top = result.head(10)
     st.subheader("Top 10 by algorithmic signal score")
