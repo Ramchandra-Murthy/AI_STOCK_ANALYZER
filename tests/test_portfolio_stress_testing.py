@@ -10,7 +10,7 @@ from algorithmic_trading.stress_testing import run_portfolio_stress_scenarios
 def test_stress_scenarios_calculate_weighted_pnl_and_worst_contributor() -> None:
     weights = pd.Series({"A": 0.6, "B": 0.3, "C": 0.1})
     scenarios = {
-        "market_selloff": {"A": -0.10, "B": -0.20, "C": -0.30},
+        "market_selloff": {"A": -0.10, "B": -0.20, "C": -0.80},
         "single_name_shock": {"B": -0.50},
     }
 
@@ -18,9 +18,9 @@ def test_stress_scenarios_calculate_weighted_pnl_and_worst_contributor() -> None
         weights, scenarios, portfolio_value=1_000_000.0
     )
 
-    assert result.loc["market_selloff", "portfolio_return"] == pytest.approx(-0.15)
-    assert result.loc["market_selloff", "pnl"] == pytest.approx(-150_000.0)
-    assert result.loc["market_selloff", "portfolio_value_after"] == pytest.approx(850_000.0)
+    assert result.loc["market_selloff", "portfolio_return"] == pytest.approx(-0.20)
+    assert result.loc["market_selloff", "pnl"] == pytest.approx(-200_000.0)
+    assert result.loc["market_selloff", "portfolio_value_after"] == pytest.approx(800_000.0)
     assert result.loc["market_selloff", "worst_contributor"] == "C"
     assert result.loc["single_name_shock", "portfolio_return"] == pytest.approx(-0.15)
     assert result.loc["single_name_shock", "worst_contributor"] == "B"
@@ -51,7 +51,7 @@ def test_zero_shock_scenario_preserves_portfolio_value() -> None:
         pd.Series({"A": 0.7, "B": 0.2}),
         pd.Series({"A": -0.1, "B": 1.1}),
         pd.Series({"A": np.nan, "B": 1.0}),
-        pd.Series({"A": 0.5, "A": 0.5}),
+        pd.Series([0.5, 0.5], index=["A", "A"]),
     ],
 )
 def test_invalid_weights_are_rejected(weights: pd.Series) -> None:
@@ -92,4 +92,6 @@ def test_portfolio_value_must_be_positive_and_finite() -> None:
 
     for value in (0.0, -1.0, np.inf, np.nan):
         with pytest.raises(ValueError, match="portfolio_value"):
-            run_portfolio_stress_scenarios(weights, {"stress": {"A": -0.1}}, portfolio_value=value)
+            run_portfolio_stress_scenarios(
+                weights, {"stress": {"A": -0.1}}, portfolio_value=value
+            )
