@@ -115,3 +115,26 @@ black --check scanner/momentum_engine.py scanner/momentum_ranking.py
   provider diagnostics and never fails the scan.
 - The same limitations as above apply: fixed, unfitted weights; no demonstrated predictive
   value; not volatility adjusted; verified on synthetic bars only.
+
+
+## Persistent ranking history
+
+`services/momentum_history.py` stores complete NSE/BSE ranking snapshots in SQLite.
+The default database is `data/momentum_history.sqlite3`; deployments can set
+`MOMENTUM_HISTORY_DATABASE_PATH` to a durable writable location. The store keeps at
+most 240 snapshots by default and writes each snapshot atomically. Repeated writes with
+the same timestamp are idempotent.
+
+The Live Top-10 momentum panel compares the current ranking with the preceding stored
+snapshot and labels rank promotion/demotion, score strengthening/weakening, new entries,
+and dropped symbols. A snapshot is persisted only when every requested symbol has a
+scorable result; incomplete provider coverage is shown but is not added to history.
+History is descriptive research context, not a probability, forecast, or trade signal.
+
+Run the focused tests with:
+
+```bash
+PYTHONPATH=. python -m pytest --import-mode=importlib -q tests/test_momentum_history.py
+ruff check services/momentum_history.py tests/test_momentum_history.py
+black --check services/momentum_history.py tests/test_momentum_history.py
+```
