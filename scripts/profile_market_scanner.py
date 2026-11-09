@@ -28,14 +28,8 @@ def build_report(result: Any, elapsed_seconds: float) -> dict[str, Any]:
     coverage = attrs.get("scanner_coverage", {})
     rows = len(result)
 
-    stage_timings = {
-        key: round(float(timings[key]), 6)
-        for key in TIMING_KEYS
-        if key in timings
-    }
-    slowest_stage = (
-        max(stage_timings, key=stage_timings.get) if stage_timings else None
-    )
+    stage_timings = {key: round(float(timings[key]), 6) for key in TIMING_KEYS if key in timings}
+    slowest_stage = max(stage_timings, key=stage_timings.get) if stage_timings else None
 
     exchange_coverage = {}
     for exchange, values in coverage.items():
@@ -51,12 +45,8 @@ def build_report(result: Any, elapsed_seconds: float) -> dict[str, Any]:
             "screen_chunks_empty": int(values.get("screen_chunks_empty", 0) or 0),
             "cached_failures_skipped": int(values.get("cached_failures_skipped", 0) or 0),
             "stale_data_rejected": int(values.get("stale_data_rejected", 0) or 0),
-            "unknown_timestamp_rejected": int(
-                values.get("unknown_timestamp_rejected", 0) or 0
-            ),
-            "future_timestamp_rejected": int(
-                values.get("future_timestamp_rejected", 0) or 0
-            ),
+            "unknown_timestamp_rejected": int(values.get("unknown_timestamp_rejected", 0) or 0),
+            "future_timestamp_rejected": int(values.get("future_timestamp_rejected", 0) or 0),
             "analyses_completed": int(values.get("analyses_completed", 0) or 0),
             "final_rows": int(values.get("final_rows", 0) or 0),
         }
