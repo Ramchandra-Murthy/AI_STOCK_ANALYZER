@@ -40,7 +40,7 @@ from services.resilient_market_data import download_symbol_frames, download_symb
 logger = logging.getLogger(__name__)
 
 TOP10_REFRESH_SECONDS = 60
-TOP10_UI_POLL_SECONDS = 2
+TOP10_UI_POLL_SECONDS = 5
 TOP10_CACHE_SECONDS = 50
 TOP10_TIMEZONE = "Asia/Kolkata"
 TOP10_CHUNK_SIZE = 10
@@ -1008,6 +1008,9 @@ def _start_background_scan(*, now: datetime | None = None, force: bool = False) 
     """
     global _SCAN_FUTURE, _SCAN_STARTED_AT, _SCAN_FINISHED_AT, _SCAN_TOKEN
     current = now or datetime.now(_IST)
+    # Keep the provider boundary safe even if a future caller bypasses the UI gate.
+    if not _market_is_open(current):
+        return False
     with _SCAN_LOCK:
         _settle_background_scan(current)
         if _SCAN_FUTURE is not None:
