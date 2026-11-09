@@ -313,3 +313,49 @@ def test_ticker_resolves_bse_scrip_codes_to_yahoo_symbols(monkeypatch):
     assert _ticker("532540", "BSE") == "TCS.BO"
     assert _ticker("999999", "BSE") is None
     assert _ticker("RELIANCE", "NSE") == "RELIANCE.NS"
+
+
+def test_score_ranks_long_neutral_then_short_and_scores_downside():
+    rows = pd.DataFrame(
+        [
+            {
+                "Symbol": "SHORT_STRONG",
+                "Direction": "SHORT",
+                "5-min change %": -2.0,
+                "Volume surge x": 3.0,
+                "Session range %": 4.0,
+                "Breakout": "—",
+                "Breakdown": "YES",
+                "Low-price flag": "—",
+                "Setup score": 90,
+            },
+            {
+                "Symbol": "NEUTRAL",
+                "Direction": "NEUTRAL",
+                "5-min change %": 0.0,
+                "Volume surge x": 1.0,
+                "Session range %": 1.0,
+                "Breakout": "—",
+                "Breakdown": "—",
+                "Low-price flag": "—",
+                "Setup score": 20,
+            },
+            {
+                "Symbol": "LONG_STRONG",
+                "Direction": "LONG",
+                "5-min change %": 2.0,
+                "Volume surge x": 3.0,
+                "Session range %": 4.0,
+                "Breakout": "YES",
+                "Breakdown": "—",
+                "Low-price flag": "—",
+                "Setup score": 90,
+            },
+        ]
+    )
+
+    result = score_opportunity_rows(rows)
+
+    assert result["Symbol"].tolist() == ["LONG_STRONG", "NEUTRAL", "SHORT_STRONG"]
+    assert result.loc[result["Symbol"].eq("SHORT_STRONG"), "Opportunity score"].iloc[0] == 100.0
+    assert result.loc[result["Symbol"].eq("LONG_STRONG"), "Opportunity score"].iloc[0] == 100.0
