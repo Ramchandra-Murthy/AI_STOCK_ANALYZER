@@ -1162,9 +1162,7 @@ def _render_momentum_ranking(top10: pd.DataFrame, completed_at: datetime | None)
                         chart_data["Scan time"], errors="coerce"
                     )
                     chart_data["Label"] = (
-                        chart_data["Exchange"].astype(str)
-                        + ":"
-                        + chart_data["Symbol"].astype(str)
+                        chart_data["Exchange"].astype(str) + ":" + chart_data["Symbol"].astype(str)
                     )
                     trend = chart_data.pivot_table(
                         index="Scan time",
