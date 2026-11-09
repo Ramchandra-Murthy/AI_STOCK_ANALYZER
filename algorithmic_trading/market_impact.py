@@ -177,7 +177,8 @@ def summarize_execution_fills(
     values = fills[list(required)].apply(pd.to_numeric, errors="coerce")
     if not np.isfinite(values.to_numpy(dtype=float)).all():
         raise ValueError("fill diagnostics inputs must be finite numeric values")
-    if (values[["bar_volume", "filled_quantity", "remaining_quantity", "participation_rate"]] < 0).any().any():
+    non_negative_columns = ["bar_volume", "filled_quantity", "remaining_quantity", "participation_rate"]
+    if (values[non_negative_columns] < 0).any().any():
         raise ValueError("fill quantities, volume, and participation must be non-negative")
     if (values["execution_price"] <= 0).any():
         raise ValueError("execution prices must be greater than zero")
