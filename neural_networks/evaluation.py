@@ -518,7 +518,10 @@ def compare_feature_ablation(
         if y_train.nunique() < 2:
             raise ValueError("Training target must contain both classes")
         models = [
-            ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000, random_state=random_state))),
+            (
+                "Logistic regression",
+                _pipeline(LogisticRegression(max_iter=1000, random_state=random_state)),
+            ),
             ("MLP", _mlp(random_state)),
         ]
         for model_name, model in models:
