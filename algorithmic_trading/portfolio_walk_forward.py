@@ -180,10 +180,16 @@ def walk_forward_portfolio_evaluate(
             state["cost_fraction"] = float(state["cost_fraction"]) + cost_fraction
             state["weights"] = target.copy()
 
-            for row in numeric.iloc[start:stop].itertuples(index=False, name=None):
+            for offset, row in enumerate(
+                numeric.iloc[start:stop].itertuples(index=False, name=None)
+            ):
                 daily_returns = np.asarray(row, dtype=float)
                 portfolio_return = float(np.dot(state["weights"], daily_returns))
-                net_return = (1.0 - cost_fraction) * (1.0 + portfolio_return) - 1.0
+                net_return = (
+                    (1.0 - cost_fraction) * (1.0 + portfolio_return) - 1.0
+                    if offset == 0
+                    else portfolio_return
+                )
                 state["returns"].append(net_return)
                 denominator = 1.0 + portfolio_return
                 state["weights"] = (
