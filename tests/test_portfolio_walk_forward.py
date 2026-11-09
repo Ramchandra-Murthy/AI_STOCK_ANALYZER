@@ -76,7 +76,7 @@ def test_evaluator_is_deterministic(returns: pd.DataFrame) -> None:
         ({"lookback": 1}, "lookback"),
         ({"rebalance_every": 0}, "rebalance_every"),
         ({"cost_bps": -1.0}, "cost_bps"),
-        ({"cost_bps": 10000.0}, "cost_bps"),
+        ({"cost_bps": 10000.0, "lookback": 60}, "cost_bps"),
         ({"max_weight": 0.0}, "max_weight"),
         ({"max_weight": 0.2}, "too small"),
     ],
