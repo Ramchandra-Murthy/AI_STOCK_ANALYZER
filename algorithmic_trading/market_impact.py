@@ -6,8 +6,32 @@ Volatility is supplied as a decimal return (for example, 0.02 for 2%).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 import pandas as pd
+
+
+@dataclass(frozen=True)
+class ExecutionFillDiagnostics:
+    """Order-level completion and implementation-shortfall summary."""
+
+    side: str
+    requested_quantity: float
+    filled_quantity: float
+    remaining_quantity: float
+    fill_ratio: float
+    arrival_price: float
+    volume_weighted_price: float | None
+    slippage_bps: float | None
+    implementation_shortfall: float | None
+    total_executed_notional: float
+    total_market_volume: float
+    average_participation_rate: float
+    maximum_participation_rate: float
+    bars_observed: int
+    bars_to_complete: int | None
+    completed: bool
 
 
 def estimate_market_impact_bps(
@@ -117,3 +141,111 @@ def simulate_execution(
     result = pd.DataFrame(rows, index=frame.index)
     result.index.name = prices.index.name
     return result
+
+
+def summarize_execution_fills(
+    fills: pd.DataFrame,
+    *,
+    order_quantity: float,
+    side: str,
+    arrival_price: float,
+) -> ExecutionFillDiagnostics:
+    """Summarize simulated fills against an explicit arrival-price benchmark.
+
+    The function accepts the output of :func:`simulate_execution`. Slippage is
+    positive when execution is worse than arrival price for either side.
+    Brokerage, statutory charges and taxes are deliberately excluded.
+    """
+    if side not in {"buy", "sell"}:
+        raise ValueError("side must be 'buy' or 'sell'")
+    if not np.isfinite(order_quantity) or order_quantity <= 0:
+        raise ValueError("order_quantity must be finite and greater than zero")
+    if not np.isfinite(arrival_price) or arrival_price <= 0:
+        raise ValueError("arrival_price must be finite and greater than zero")
+    required = {
+        "bar_volume",
+        "filled_quantity",
+        "remaining_quantity",
+        "execution_price",
+        "participation_rate",
+    }
+    missing = required.difference(fills.columns)
+    if missing:
+        raise ValueError(f"fills missing required columns: {sorted(missing)}")
+    if fills.empty:
+        raise ValueError("fills must contain at least one observed bar")
+    values = fills[list(required)].apply(pd.to_numeric, errors="coerce")
+    if not np.isfinite(values.to_numpy(dtype=float)).all():
+        raise ValueError("fill diagnostics inputs must be finite numeric values")
+    non_negative_columns = [
+        "bar_volume",
+        "filled_quantity",
+        "remaining_quantity",
+        "participation_rate",
+    ]
+    if (values[non_negative_columns] < 0).any().any():
+        raise ValueError("fill quantities, volume, and participation must be non-negative")
+    if (values["execution_price"] <= 0).any():
+        raise ValueError("execution prices must be greater than zero")
+
+    tolerance = max(1e-9, float(order_quantity) * 1e-12)
+    cumulative_fills = values["filled_quantity"].cumsum()
+    if (values["filled_quantity"] > values["bar_volume"] + tolerance).any():
+        raise ValueError("per-bar fills cannot exceed market volume")
+    if (cumulative_fills > float(order_quantity) + tolerance).any():
+        raise ValueError("cumulative filled quantity cannot exceed order quantity")
+
+    expected_remaining = (float(order_quantity) - cumulative_fills).clip(lower=0.0)
+    if not np.isclose(
+        values["remaining_quantity"].to_numpy(dtype=float),
+        expected_remaining.to_numpy(dtype=float),
+        rtol=1e-9,
+        atol=tolerance,
+    ).all():
+        raise ValueError("remaining quantity does not reconcile to cumulative fills")
+
+    expected_participation = np.divide(
+        values["filled_quantity"].to_numpy(dtype=float),
+        values["bar_volume"].to_numpy(dtype=float),
+        out=np.zeros(len(values), dtype=float),
+        where=values["bar_volume"].to_numpy(dtype=float) > 0,
+    )
+    if not np.isclose(
+        values["participation_rate"].to_numpy(dtype=float),
+        expected_participation,
+        rtol=1e-9,
+        atol=tolerance,
+    ).all():
+        raise ValueError("participation rate does not reconcile to per-bar fills and volume")
+
+    filled_quantity = float(cumulative_fills.iloc[-1])
+    remaining_quantity = float(expected_remaining.iloc[-1])
+
+    executed_notional = float((values["filled_quantity"] * values["execution_price"]).sum())
+    vwap = executed_notional / filled_quantity if filled_quantity > 0 else None
+    direction = 1.0 if side == "buy" else -1.0
+    slippage_bps = direction * (vwap / arrival_price - 1.0) * 10_000.0 if vwap is not None else None
+    shortfall = direction * (vwap - arrival_price) * filled_quantity if vwap is not None else None
+    total_volume = float(values["bar_volume"].sum())
+    average_participation = filled_quantity / total_volume if total_volume > 0 else 0.0
+    completion_positions = np.flatnonzero(values["remaining_quantity"].to_numpy() <= tolerance)
+    bars_to_complete = int(completion_positions[0] + 1) if len(completion_positions) else None
+
+    return ExecutionFillDiagnostics(
+        side=side,
+        requested_quantity=float(order_quantity),
+        filled_quantity=filled_quantity,
+        remaining_quantity=remaining_quantity,
+        fill_ratio=filled_quantity / float(order_quantity),
+        arrival_price=float(arrival_price),
+        volume_weighted_price=vwap,
+        slippage_bps=slippage_bps,
+        implementation_shortfall=shortfall,
+        total_executed_notional=executed_notional,
+        total_market_volume=total_volume,
+        average_participation_rate=average_participation,
+        maximum_participation_rate=float(values["participation_rate"].max()),
+        bars_observed=len(values),
+        bars_to_complete=bars_to_complete,
+        completed=remaining_quantity <= tolerance,
+    )
