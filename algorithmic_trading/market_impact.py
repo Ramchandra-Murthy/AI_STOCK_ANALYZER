@@ -177,7 +177,12 @@ def summarize_execution_fills(
     values = fills[list(required)].apply(pd.to_numeric, errors="coerce")
     if not np.isfinite(values.to_numpy(dtype=float)).all():
         raise ValueError("fill diagnostics inputs must be finite numeric values")
-    non_negative_columns = ["bar_volume", "filled_quantity", "remaining_quantity", "participation_rate"]
+    non_negative_columns = [
+        "bar_volume",
+        "filled_quantity",
+        "remaining_quantity",
+        "participation_rate",
+    ]
     if (values[non_negative_columns] < 0).any().any():
         raise ValueError("fill quantities, volume, and participation must be non-negative")
     if (values["execution_price"] <= 0).any():
@@ -192,17 +197,11 @@ def summarize_execution_fills(
     if not np.isclose(reported_remaining, remaining_quantity, rtol=1e-9, atol=tolerance):
         raise ValueError("final remaining quantity does not reconcile to cumulative fills")
 
-    executed_notional = float(
-        (values["filled_quantity"] * values["execution_price"]).sum()
-    )
+    executed_notional = float((values["filled_quantity"] * values["execution_price"]).sum())
     vwap = executed_notional / filled_quantity if filled_quantity > 0 else None
     direction = 1.0 if side == "buy" else -1.0
-    slippage_bps = (
-        direction * (vwap / arrival_price - 1.0) * 10_000.0 if vwap is not None else None
-    )
-    shortfall = (
-        direction * (vwap - arrival_price) * filled_quantity if vwap is not None else None
-    )
+    slippage_bps = direction * (vwap / arrival_price - 1.0) * 10_000.0 if vwap is not None else None
+    shortfall = direction * (vwap - arrival_price) * filled_quantity if vwap is not None else None
     total_volume = float(values["bar_volume"].sum())
     average_participation = filled_quantity / total_volume if total_volume > 0 else 0.0
     completion_positions = np.flatnonzero(values["remaining_quantity"].to_numpy() <= tolerance)
