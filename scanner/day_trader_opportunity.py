@@ -183,9 +183,12 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     result.loc[long_momentum & volume_confirmed, "Setup"] = "Bullish volume + momentum"
     result.loc[short_momentum & volume_confirmed, "Setup"] = "Bearish volume + momentum"
     result.loc[direction.eq("LONG") & result["Breakout"].eq("YES"), "Setup"] = "Breakout watch"
-    breakdown_column = "Strategy breakdown" if "Strategy breakdown" in result else "Breakdown"
+    breakdown_signal = result.get(
+        "Strategy breakdown",
+        result.get("Breakdown", pd.Series("NO", index=result.index)),
+    )
     result.loc[
-        direction.eq("SHORT") & result[breakdown_column].eq("YES"),
+        direction.eq("SHORT") & breakdown_signal.eq("YES"),
         "Setup",
     ] = "Breakdown watch"
     result.loc[
