@@ -62,9 +62,7 @@ def run_portfolio_stress_scenarios(
             try:
                 shock = float(value)
             except (TypeError, ValueError, OverflowError) as exc:
-                raise ValueError(
-                    f"scenario '{name}' returns must be finite and >= -100%"
-                ) from exc
+                raise ValueError(f"scenario '{name}' returns must be finite and >= -100%") from exc
             if not math.isfinite(shock) or shock < -1.0:
                 raise ValueError(f"scenario '{name}' returns must be finite and >= -100%")
             shocks.loc[symbol] = shock
