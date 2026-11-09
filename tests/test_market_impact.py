@@ -136,14 +136,15 @@ def test_fill_diagnostics_report_partial_sell_and_positive_slippage() -> None:
 def test_fill_diagnostics_reject_inconsistent_remaining_quantity() -> None:
     from algorithmic_trading.market_impact import summarize_execution_fills
 
-    index = pd.date_range("2026-01-01", periods=1, freq="min")
+    index = pd.date_range("2026-01-01", periods=2, freq="min")
     fills = simulate_execution(
-        order_quantity=100,
+        order_quantity=250,
         side="buy",
-        prices=pd.Series([100.0], index=index),
-        volumes=pd.Series([1_000.0], index=index),
-        volatility=pd.Series([0.01], index=index),
+        prices=pd.Series([100.0, 101.0], index=index),
+        volumes=pd.Series([1_000.0, 1_000.0], index=index),
+        volatility=pd.Series([0.01, 0.01], index=index),
+        max_participation=0.10,
     )
     fills.loc[index[0], "remaining_quantity"] = 0.0
-    with pytest.raises(ValueError, match="does not reconcile"):
-        summarize_execution_fills(fills, order_quantity=100, side="buy", arrival_price=100.0)
+    with pytest.raises(ValueError, match="remaining quantity does not reconcile"):
+        summarize_execution_fills(fills, order_quantity=250, side="buy", arrival_price=100.0)
