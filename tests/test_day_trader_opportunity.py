@@ -2,6 +2,7 @@ import pandas as pd
 
 from scanner.day_trader_opportunity import (
     _candle_settings,
+    _ticker,
     score_opportunity_rows,
     select_day_trader_universe,
     summarize_day_trading_setup,
@@ -301,3 +302,19 @@ def test_day_trade_plan_state_invalidated():
         },
     )
     assert state == "INVALIDATED"
+
+
+
+def test_ticker_resolves_bse_scrip_codes_to_yahoo_symbols(monkeypatch):
+    import scanner.day_trader_opportunity as scanner
+
+    monkeypatch.setattr(
+        scanner,
+        "yahoo_symbol_for_bse_code",
+        lambda code: {"500325": "RELIANCE", "532540": "TCS"}.get(code),
+    )
+
+    assert _ticker("500325", "BSE") == "RELIANCE.BO"
+    assert _ticker("532540", "BSE") == "TCS.BO"
+    assert _ticker("999999", "BSE") is None
+    assert _ticker("RELIANCE", "NSE") == "RELIANCE.NS"
