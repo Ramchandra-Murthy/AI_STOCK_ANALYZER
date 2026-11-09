@@ -440,10 +440,10 @@ def test_failed_first_scan_backs_off_exponentially_and_is_capped(
         assert snapshot.result is None
         assert snapshot.next_attempt_at == clock.current + timedelta(seconds=delay)
 
-        # Polling every 2s during the backoff window must not start another scan.
+        # Polling at the UI cadence during the backoff window must not start another scan.
         scans_before = len(calls)
-        while clock.current + timedelta(seconds=2) < snapshot.next_attempt_at:
-            clock.advance(seconds=2)
+        while clock.current + timedelta(seconds=top10_live.TOP10_UI_POLL_SECONDS) < snapshot.next_attempt_at:
+            clock.advance(seconds=top10_live.TOP10_UI_POLL_SECONDS)
             assert top10_live._start_background_scan(now=clock.current) is False
         assert len(calls) == scans_before
         clock.current = snapshot.next_attempt_at
@@ -758,7 +758,7 @@ def test_repeated_failures_escalate_to_an_error_and_keep_retrying_slowly(
 ) -> None:
     calls = _scripted_scans(monkeypatch, [top10_live.Top10ScanError("down")] * 10)
 
-    for _ in range(40):  # 40 polls, 2s apart, i.e. 80s of an unavailable provider
+    for _ in range(16):  # 16 polls, 5s apart, i.e. 80s of an unavailable provider
         _render_poll(fake_st)
         executor.run_pending()
         clock.advance(seconds=top10_live.TOP10_UI_POLL_SECONDS)
@@ -803,6 +803,18 @@ def test_polling_between_refresh_intervals_does_not_start_extra_scans(
     _render_poll(fake_st)
     executor.run_pending()
     assert len(calls) == 2  # the interval elapsed, so exactly one more scan ran
+
+
+def test_background_scan_is_blocked_when_the_market_is_closed(
+    monkeypatch, executor, clock
+) -> None:
+    clock.current = MARKET_CLOSED
+    calls = _scripted_scans(monkeypatch, [])
+
+    assert top10_live._start_background_scan(now=clock.current) is False
+    assert top10_live._start_background_scan(now=clock.current, force=True) is False
+    assert calls == []
+    assert executor.pending == []
 
 
 def test_manual_refresh_is_ignored_when_the_market_is_closed(
