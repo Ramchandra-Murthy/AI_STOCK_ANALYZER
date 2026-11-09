@@ -21,6 +21,7 @@ from services.intraday_auto_refresh import (
     market_is_open,
     next_refresh_seconds,
     refresh_label,
+    seconds_until_first_scan,
 )
 from services.intraday_dynamic_filter import filter_intraday_candidates
 from services.intraday_exchange_summary import exchange_summary
@@ -248,8 +249,19 @@ def _live_market_mode_controller():
         return
 
     last_scan = st.session_state.get("intraday_last_scan_at")
+    if last_scan is None:
+        initial_wait = seconds_until_first_scan(now)
+        if initial_wait > 0:
+            st.info(
+                "🟢 Live Market Mode: READY · first automatic scan starts at 09:25 IST "
+                f"({refresh_label(initial_wait)} remaining) to let opening volatility settle."
+            )
+            return
+        st.session_state["intraday_auto_refresh_pending"] = True
+        st.rerun()
+
     remaining = next_refresh_seconds(last_scan, refresh_interval, now)
-    if last_scan is None or remaining <= 0:
+    if remaining <= 0:
         st.session_state["intraday_auto_refresh_pending"] = True
         st.rerun()
 
