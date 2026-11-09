@@ -97,7 +97,10 @@ def compare_holdout_baselines(
 
     models = [
         ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent"), scale=False)),
-        ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000, random_state=random_state))),
+        (
+            "Logistic regression",
+            _pipeline(LogisticRegression(max_iter=1000, random_state=random_state)),
+        ),
         ("MLP", _mlp(random_state)),
     ]
     rows = []
@@ -166,7 +169,12 @@ def walk_forward_evaluation(
             raise ValueError(f"Fold {fold_number} training target contains only one class")
         models = [
             ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent"), scale=False)),
-            ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000, random_state=random_state + fold_number))),
+            (
+                "Logistic regression",
+                _pipeline(
+                    LogisticRegression(max_iter=1000, random_state=random_state + fold_number)
+                ),
+            ),
             ("MLP", _mlp(random_state + fold_number)),
         ]
         for name, model in models:
