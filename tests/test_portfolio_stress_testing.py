@@ -14,9 +14,7 @@ def test_stress_scenarios_calculate_weighted_pnl_and_worst_contributor() -> None
         "single_name_shock": {"B": -0.50},
     }
 
-    result = run_portfolio_stress_scenarios(
-        weights, scenarios, portfolio_value=1_000_000.0
-    )
+    result = run_portfolio_stress_scenarios(weights, scenarios, portfolio_value=1_000_000.0)
 
     assert result.loc["market_selloff", "portfolio_return"] == pytest.approx(-0.20)
     assert result.loc["market_selloff", "pnl"] == pytest.approx(-200_000.0)
@@ -92,6 +90,4 @@ def test_portfolio_value_must_be_positive_and_finite() -> None:
 
     for value in (0.0, -1.0, np.inf, np.nan):
         with pytest.raises(ValueError, match="portfolio_value"):
-            run_portfolio_stress_scenarios(
-                weights, {"stress": {"A": -0.1}}, portfolio_value=value
-            )
+            run_portfolio_stress_scenarios(weights, {"stress": {"A": -0.1}}, portfolio_value=value)
