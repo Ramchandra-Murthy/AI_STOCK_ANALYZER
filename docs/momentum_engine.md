@@ -90,7 +90,28 @@ its magnitude weight (10 / 20 / 15 / 15).
 ## Reproducing the tests
 
 ```bash
-PYTHONPATH=. python -m pytest --import-mode=importlib -q tests/test_momentum_engine.py
-ruff check scanner/momentum_engine.py tests/test_momentum_engine.py
-black --check scanner/momentum_engine.py tests/test_momentum_engine.py
+PYTHONPATH=. python -m pytest --import-mode=importlib -q tests/test_momentum_engine.py tests/test_momentum_ranking.py
+ruff check scanner/momentum_engine.py scanner/momentum_ranking.py
+black --check scanner/momentum_engine.py scanner/momentum_ranking.py
 ```
+
+## Ranking and scanner integration
+
+`scanner/momentum_ranking.py` orders engine results; it never scores anything itself.
+
+- **Who is ranked.** Only results with a real score (`OK` or `PARTIAL`). `STALE`,
+  `INSUFFICIENT`, `INVALID` and symbols the provider never returned are excluded and reported
+  (`summarize_momentum`, `unranked_table`), so a coverage gap is visible.
+- **Order.** Momentum strength (descending, ties at 6 decimals), then timeframe confirmation
+  (`FULL` before `PARTIAL` before `NONE`), then volume ratio (higher first, missing last), then
+  ticker. The result does not depend on input order.
+- **Exchanges.** Keyed by Yahoo ticker, so the same company on NSE and BSE is two rows.
+  `Exchange rank` is the position among all scored symbols of that exchange; the exchange
+  filter in the scanner only hides rows and renumbers `Rank` for what is shown.
+- **Scanner.** `components/top10_live.py` scores every downloaded symbol at the scan time and
+  stores the ranking on the scan result. The movers table is still ordered by absolute 1-minute
+  move and keeps its own simpler "Momentum score"; the new panel is labelled "Momentum
+  strength" so the two are not confused. A failure in this step is reported in the panel and the
+  provider diagnostics and never fails the scan.
+- The same limitations as above apply: fixed, unfitted weights; no demonstrated predictive
+  value; not volatility adjusted; verified on synthetic bars only.
