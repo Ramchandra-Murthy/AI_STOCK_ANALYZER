@@ -157,7 +157,9 @@ def cost_aware_minimum_variance_weights(
         unknown = previous_weights.index.difference(numeric.columns)
         if len(unknown):
             raise ValueError(f"previous_weights contains unknown assets: {list(unknown)}")
-        previous_series = pd.to_numeric(previous_weights.reindex(numeric.columns), errors="coerce")
+        previous_series = pd.to_numeric(
+            previous_weights.reindex(numeric.columns, fill_value=0.0), errors="coerce"
+        )
         previous = previous_series.to_numpy(dtype=float)
         if not np.isfinite(previous).all() or (previous < 0.0).any():
             raise ValueError("previous weights must be finite and non-negative")
