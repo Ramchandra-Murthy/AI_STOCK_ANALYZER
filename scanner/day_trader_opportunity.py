@@ -1,8 +1,9 @@
 """Intraday opportunity screening for momentum and low-priced stocks.
 
 The scanner ranks observable intraday conditions; it does not predict profits or
-provide guaranteed trade signals. The candidate universe is the repository's
-current NSE+BSE symbol list and is therefore not an exchange-wide screener.
+provide guaranteed trade signals. The All caps universe is built from the current dynamic NSE and BSE equity
+lists. Provider coverage is reported separately; a listed symbol is not assumed
+to have a usable intraday quote.
 """
 
 from __future__ import annotations
@@ -17,17 +18,21 @@ from scanner.day_trading_strategy import (
     calculate_day_trade_plan,
     classify_day_trade_plan_state,
 )
+from scanner.dynamic_universe import (
+    merge_bse_universe,
+    merge_nse_universe,
+    yahoo_symbol_for_bse_code,
+)
 from scanner.surveillance import (
     apply_safety_filter,
     fetch_nse_safety_snapshot,
     liquidity_warning,
 )
-from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
+from scanner.universe import bse_candidates_for_nse_symbols
 from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
 CHUNK_SIZE = 100
-MAX_FAST_UNIVERSE = 200
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
@@ -81,20 +86,19 @@ def select_day_trader_universe(
         return []
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
     if cap_category == "All caps":
-        # The live exchange lists can contain thousands of symbols. Downloading
-        # 1-minute candles for that entire universe makes the interactive scanner
-        # too slow. Use the maintained curated universe for the fast broad scan;
-        # the detailed setup engine still evaluates every symbol that passes the
-        # cheap first-stage filters.
-        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES] + [
-            (symbol, "BSE") for symbol in BSE_CANDIDATES
-        ]
+        # All caps means the complete current exchange equity lists, not a
+        # curated large-cap shortlist. Keep exchange membership separate so
+        # duplicate company listings on NSE and BSE remain independently scannable.
+        universe = [(symbol, "NSE") for symbol in merge_nse_universe()]
+        universe.extend((symbol, "BSE") for symbol in merge_bse_universe())
     else:
+        # Named cap baskets are maintained research subsets. Users selecting
+        # All caps receive the full dynamic exchange universe above.
         selected = CAP_UNIVERSES[cap_category]
-        universe = [(symbol, "NSE") for symbol in NSE_CANDIDATES if symbol in selected]
+        universe = [(symbol, "NSE") for symbol in merge_nse_universe() if symbol in selected]
         universe.extend((symbol, "BSE") for symbol in bse_candidates_for_nse_symbols(selected))
     filtered = [(symbol, venue) for symbol, venue in universe if venue in exchanges]
-    return filtered[:MAX_FAST_UNIVERSE]
+    return sorted(set(filtered), key=lambda item: (item[1], item[0]))
 
 
 def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
@@ -108,10 +112,21 @@ def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     return interval, bars
 
 
-def _ticker(symbol: str, exchange: str) -> str:
+def _ticker(symbol: str, exchange: str) -> str | None:
+    """Resolve an exchange symbol to a Yahoo Finance ticker.
+
+    BSE scrip codes must be mapped through the official BSE scrip_id field;
+    appending .BO to a numeric code produces unreliable/unusable coverage.
+    """
     cleaned = str(symbol).strip().upper()
-    suffix = ".NS" if exchange == "NSE" else ".BO"
-    return cleaned if cleaned.endswith((".NS", ".BO")) else f"{cleaned}{suffix}"
+    if exchange == "NSE":
+        return cleaned if cleaned.endswith((".NS", ".BO")) else f"{cleaned}.NS"
+    if exchange == "BSE":
+        if cleaned.endswith((".NS", ".BO")):
+            return cleaned
+        mapped = yahoo_symbol_for_bse_code(cleaned)
+        return f"{mapped}.BO" if mapped else None
+    return None
 
 
 def _frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
@@ -219,7 +234,12 @@ def scan_day_trader_opportunities(
     }
 
     for exchange in exchanges:
-        tickers = [_ticker(symbol, exchange) for symbol, venue in universe if venue == exchange]
+        exchange_symbols = [symbol for symbol, venue in universe if venue == exchange]
+        resolved_tickers = [_ticker(symbol, exchange) for symbol in exchange_symbols]
+        scan_stats["unmapped_symbol_count"] = scan_stats.get("unmapped_symbol_count", 0) + sum(
+            ticker is None for ticker in resolved_tickers
+        )
+        tickers = [ticker for ticker in resolved_tickers if ticker is not None]
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
             scan_stats["attempted_count"] += len(chunk)
