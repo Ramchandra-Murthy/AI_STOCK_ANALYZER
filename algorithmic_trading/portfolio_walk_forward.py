@@ -57,6 +57,8 @@ def _validate_inputs(
         raise ValueError("max_weight must be finite and in (0, 1]")
     if cap * numeric.shape[1] < 1.0 - 1e-12:
         raise ValueError("max_weight is too small for the number of assets")
+    if costs >= 10_000.0:
+        raise ValueError("cost_bps must be below 10000")
     if len(numeric) <= lookback:
         raise ValueError("returns must contain observations beyond the lookback")
     return numeric, lookback, rebalance_every, costs, cap
@@ -119,9 +121,6 @@ def walk_forward_portfolio_evaluate(
     numeric, lookback, rebalance_every, costs, cap = _validate_inputs(
         returns, lookback, rebalance_every, cost_bps, max_weight
     )
-    if costs / 10_000.0 >= 1.0:
-        raise ValueError("cost_bps must be below 10000")
-
     names = (
         "equal_weight",
         "sample_minimum_variance",
