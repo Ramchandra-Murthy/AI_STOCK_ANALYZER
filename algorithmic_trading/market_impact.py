@@ -188,14 +188,38 @@ def summarize_execution_fills(
     if (values["execution_price"] <= 0).any():
         raise ValueError("execution prices must be greater than zero")
 
-    filled_quantity = float(values["filled_quantity"].sum())
     tolerance = max(1e-9, float(order_quantity) * 1e-12)
-    if filled_quantity > order_quantity + tolerance:
-        raise ValueError("total filled quantity cannot exceed order quantity")
-    remaining_quantity = max(float(order_quantity) - filled_quantity, 0.0)
-    reported_remaining = float(values["remaining_quantity"].iloc[-1])
-    if not np.isclose(reported_remaining, remaining_quantity, rtol=1e-9, atol=tolerance):
-        raise ValueError("final remaining quantity does not reconcile to cumulative fills")
+    cumulative_fills = values["filled_quantity"].cumsum()
+    if (values["filled_quantity"] > values["bar_volume"] + tolerance).any():
+        raise ValueError("per-bar fills cannot exceed market volume")
+    if (cumulative_fills > float(order_quantity) + tolerance).any():
+        raise ValueError("cumulative filled quantity cannot exceed order quantity")
+
+    expected_remaining = (float(order_quantity) - cumulative_fills).clip(lower=0.0)
+    if not np.isclose(
+        values["remaining_quantity"].to_numpy(dtype=float),
+        expected_remaining.to_numpy(dtype=float),
+        rtol=1e-9,
+        atol=tolerance,
+    ).all():
+        raise ValueError("remaining quantity does not reconcile to cumulative fills")
+
+    expected_participation = np.divide(
+        values["filled_quantity"].to_numpy(dtype=float),
+        values["bar_volume"].to_numpy(dtype=float),
+        out=np.zeros(len(values), dtype=float),
+        where=values["bar_volume"].to_numpy(dtype=float) > 0,
+    )
+    if not np.isclose(
+        values["participation_rate"].to_numpy(dtype=float),
+        expected_participation,
+        rtol=1e-9,
+        atol=tolerance,
+    ).all():
+        raise ValueError("participation rate does not reconcile to per-bar fills and volume")
+
+    filled_quantity = float(cumulative_fills.iloc[-1])
+    remaining_quantity = float(expected_remaining.iloc[-1])
 
     executed_notional = float((values["filled_quantity"] * values["execution_price"]).sum())
     vwap = executed_notional / filled_quantity if filled_quantity > 0 else None
