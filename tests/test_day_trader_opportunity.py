@@ -114,12 +114,8 @@ def test_candle_settings_keep_fine_windows_on_one_minute_data():
 def test_all_caps_uses_complete_dynamic_exchange_universe(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
-    monkeypatch.setattr(
-        scanner, "merge_nse_universe", lambda: ["RELIANCE", "MIDCAP1", "SMALLCAP1"]
-    )
-    monkeypatch.setattr(
-        scanner, "merge_bse_universe", lambda: ["500325", "540000", "590000"]
-    )
+    monkeypatch.setattr(scanner, "merge_nse_universe", lambda: ["RELIANCE", "MIDCAP1", "SMALLCAP1"])
+    monkeypatch.setattr(scanner, "merge_bse_universe", lambda: ["500325", "540000", "590000"])
 
     universe = select_day_trader_universe("All caps", "Both")
 
@@ -302,7 +298,6 @@ def test_day_trade_plan_state_invalidated():
         },
     )
     assert state == "INVALIDATED"
-
 
 
 def test_ticker_resolves_bse_scrip_codes_to_yahoo_symbols(monkeypatch):
