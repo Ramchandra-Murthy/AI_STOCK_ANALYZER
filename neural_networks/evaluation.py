@@ -97,7 +97,7 @@ def compare_holdout_baselines(
 
     models = [
         ("Majority-class", _pipeline(DummyClassifier(strategy="most_frequent"), scale=False)),
-        ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000))),
+        ("Logistic regression", _pipeline(LogisticRegression(max_iter=1000, random_state=random_state))),
         ("MLP", _mlp(random_state)),
     ]
     rows = []
