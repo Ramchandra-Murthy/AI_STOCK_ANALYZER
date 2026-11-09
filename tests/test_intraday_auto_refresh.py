@@ -6,6 +6,7 @@ from services.intraday_auto_refresh import (
     market_is_open,
     next_refresh_seconds,
     refresh_label,
+    seconds_until_first_scan,
 )
 
 
@@ -28,3 +29,15 @@ def test_next_refresh_counts_down_from_last_scan():
 def test_refresh_label_formats_minutes_and_seconds():
     assert refresh_label(90) == "1m 30s"
     assert refresh_label(0) == "refresh due"
+
+
+def test_first_automatic_scan_waits_until_0925_ist():
+    at_open = datetime.fromisoformat("2026-09-21T09:15:00+05:30")
+    just_before = datetime.fromisoformat("2026-09-21T09:24:30+05:30")
+    at_first_scan = datetime.fromisoformat("2026-09-21T09:25:00+05:30")
+    after_first_scan = datetime.fromisoformat("2026-09-21T10:00:00+05:30")
+
+    assert seconds_until_first_scan(at_open) == 600
+    assert seconds_until_first_scan(just_before) == 30
+    assert seconds_until_first_scan(at_first_scan) == 0
+    assert seconds_until_first_scan(after_first_scan) == 0
