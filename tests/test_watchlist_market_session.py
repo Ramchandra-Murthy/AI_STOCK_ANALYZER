@@ -8,18 +8,9 @@ from scanner.watchlist_scanner import _intraday_context_columns, _market_session
 
 
 def test_market_session_status_uses_shared_calendar():
-    assert (
-        _market_session_status(datetime.fromisoformat("2026-11-02T10:00:00+05:30"))
-        == "OPEN"
-    )
-    assert (
-        _market_session_status(datetime.fromisoformat("2026-11-02T16:00:00+05:30"))
-        == "CLOSED"
-    )
-    assert (
-        _market_session_status(datetime.fromisoformat("2026-11-01T10:00:00+05:30"))
-        == "CLOSED"
-    )
+    assert _market_session_status(datetime.fromisoformat("2026-11-02T10:00:00+05:30")) == "OPEN"
+    assert _market_session_status(datetime.fromisoformat("2026-11-02T16:00:00+05:30")) == "CLOSED"
+    assert _market_session_status(datetime.fromisoformat("2026-11-01T10:00:00+05:30")) == "CLOSED"
 
 
 def test_market_session_is_reported_when_intraday_data_is_missing():
