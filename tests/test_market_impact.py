@@ -84,3 +84,70 @@ def test_execution_rejects_misaligned_indexes() -> None:
             volumes=pd.Series([1_000.0, 1_000.0], index=index),
             volatility=pd.Series([0.01], index=index[:1]),
         )
+
+
+
+def test_fill_diagnostics_report_completion_and_buy_slippage() -> None:
+    from algorithmic_trading.market_impact import summarize_execution_fills
+
+    index = pd.date_range("2026-01-01", periods=3, freq="min")
+    fills = simulate_execution(
+        order_quantity=250,
+        side="buy",
+        prices=pd.Series([100.0, 101.0, 102.0], index=index),
+        volumes=pd.Series([1_000.0] * 3, index=index),
+        volatility=pd.Series([0.01] * 3, index=index),
+        max_participation=0.10,
+    )
+    diagnostics = summarize_execution_fills(
+        fills, order_quantity=250, side="buy", arrival_price=100.0
+    )
+
+    assert diagnostics.completed is True
+    assert diagnostics.fill_ratio == pytest.approx(1.0)
+    assert diagnostics.bars_to_complete == 3
+    assert diagnostics.remaining_quantity == pytest.approx(0.0)
+    assert diagnostics.slippage_bps > 0
+    assert diagnostics.implementation_shortfall > 0
+    assert diagnostics.maximum_participation_rate == pytest.approx(0.10)
+
+
+def test_fill_diagnostics_report_partial_sell_and_positive_slippage() -> None:
+    from algorithmic_trading.market_impact import summarize_execution_fills
+
+    index = pd.date_range("2026-01-01", periods=2, freq="min")
+    fills = simulate_execution(
+        order_quantity=300,
+        side="sell",
+        prices=pd.Series([100.0, 99.0], index=index),
+        volumes=pd.Series([1_000.0, 1_000.0], index=index),
+        volatility=pd.Series([0.01, 0.01], index=index),
+        max_participation=0.10,
+    )
+    diagnostics = summarize_execution_fills(
+        fills, order_quantity=300, side="sell", arrival_price=100.0
+    )
+
+    assert diagnostics.completed is False
+    assert diagnostics.fill_ratio == pytest.approx(2 / 3)
+    assert diagnostics.remaining_quantity == pytest.approx(100.0)
+    assert diagnostics.bars_to_complete is None
+    assert diagnostics.slippage_bps > 0
+
+
+def test_fill_diagnostics_reject_inconsistent_remaining_quantity() -> None:
+    from algorithmic_trading.market_impact import summarize_execution_fills
+
+    index = pd.date_range("2026-01-01", periods=1, freq="min")
+    fills = simulate_execution(
+        order_quantity=100,
+        side="buy",
+        prices=pd.Series([100.0], index=index),
+        volumes=pd.Series([1_000.0], index=index),
+        volatility=pd.Series([0.01], index=index),
+    )
+    fills.loc[index[0], "remaining_quantity"] = 0.0
+    with pytest.raises(ValueError, match="does not reconcile"):
+        summarize_execution_fills(
+            fills, order_quantity=100, side="buy", arrival_price=100.0
+        )
