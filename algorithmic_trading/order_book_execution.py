@@ -3,6 +3,7 @@
 This is a static-book sweep approximation. It does not model queue priority,
 book replenishment, cancellations during execution, latency, or hidden liquidity.
 """
+
 from __future__ import annotations
 
 import math
@@ -16,6 +17,7 @@ from ai_trading.order_book import OrderBookSnapshot
 @dataclass(frozen=True)
 class OrderBookExecutionEstimate:
     """Estimated fills and implementation-shortfall diagnostics for one sweep."""
+
     symbol: str
     side: str
     requested_quantity: float
@@ -78,18 +80,21 @@ def estimate_order_book_execution(
         filled = min(remaining, level.quantity)
         if filled <= 0:
             continue
-        rows.append({
-            "level": float(level_number),
-            "price": level.price,
-            "available_quantity": level.quantity,
-            "filled_quantity": filled,
-            "executed_notional": filled * level.price,
-        })
+        rows.append(
+            {
+                "level": float(level_number),
+                "price": level.price,
+                "available_quantity": level.quantity,
+                "filled_quantity": filled,
+                "executed_notional": filled * level.price,
+            }
+        )
         remaining -= filled
 
-    fills = pd.DataFrame(rows, columns=[
-        "level", "price", "available_quantity", "filled_quantity", "executed_notional"
-    ])
+    fills = pd.DataFrame(
+        rows,
+        columns=["level", "price", "available_quantity", "filled_quantity", "executed_notional"],
+    )
     filled_quantity = requested - remaining
     executed_notional = float(fills["executed_notional"].sum()) if not fills.empty else 0.0
     vwap = executed_notional / filled_quantity if filled_quantity > 0 else None
