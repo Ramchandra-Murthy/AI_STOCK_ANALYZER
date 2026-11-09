@@ -58,9 +58,7 @@ def test_transaction_costs_reduce_returns_and_are_consistent(
 
     assert charged["estimated_cost_fraction"].gt(0).all()
     assert (charged["total_return"] < free["total_return"]).all()
-    assert charged["gross_turnover"].tolist() == pytest.approx(
-        free["gross_turnover"].tolist()
-    )
+    assert charged["gross_turnover"].tolist() == pytest.approx(free["gross_turnover"].tolist())
 
 
 def test_evaluator_is_deterministic(returns: pd.DataFrame) -> None:
@@ -100,7 +98,9 @@ def test_evaluator_rejects_invalid_return_data() -> None:
 
 def test_evaluator_rejects_unsorted_or_duplicate_timestamps() -> None:
     index = pd.date_range("2025-01-01", periods=20, freq="B")
-    values = pd.DataFrame({"A": np.linspace(0.001, 0.02, 20), "B": np.linspace(0.002, 0.01, 20)}, index=index)
+    values = pd.DataFrame(
+        {"A": np.linspace(0.001, 0.02, 20), "B": np.linspace(0.002, 0.01, 20)}, index=index
+    )
     with pytest.raises(ValueError, match="chronological"):
         walk_forward_portfolio_evaluate(values.iloc[::-1], lookback=5, max_weight=0.6)
     duplicated = pd.concat([values, values.iloc[[4]]])
