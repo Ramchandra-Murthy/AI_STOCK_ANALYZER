@@ -4,6 +4,7 @@ import pytest
 from algorithmic_trading.market_impact import (
     estimate_market_impact_bps,
     simulate_execution,
+    summarize_execution_fills,
 )
 
 
@@ -86,10 +87,7 @@ def test_execution_rejects_misaligned_indexes() -> None:
         )
 
 
-
 def test_fill_diagnostics_report_completion_and_buy_slippage() -> None:
-    from algorithmic_trading.market_impact import summarize_execution_fills
-
     index = pd.date_range("2026-01-01", periods=3, freq="min")
     fills = simulate_execution(
         order_quantity=250,
@@ -148,6 +146,4 @@ def test_fill_diagnostics_reject_inconsistent_remaining_quantity() -> None:
     )
     fills.loc[index[0], "remaining_quantity"] = 0.0
     with pytest.raises(ValueError, match="does not reconcile"):
-        summarize_execution_fills(
-            fills, order_quantity=100, side="buy", arrival_price=100.0
-        )
+        summarize_execution_fills(fills, order_quantity=100, side="buy", arrival_price=100.0)
