@@ -158,9 +158,10 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     volatility = (result["Session range %"].clip(lower=0) / 4.0 * 20).clip(upper=20)
     breakout = result["Breakout"].eq("YES").astype(float) * 15
     breakdown_column = "Strategy breakdown" if "Strategy breakdown" in result else "Breakdown"
-    breakdown = result.get(
-        breakdown_column, pd.Series("NO", index=result.index)
-    ).eq("YES").astype(float) * 15
+    breakdown = (
+        result.get(breakdown_column, pd.Series("NO", index=result.index)).eq("YES").astype(float)
+        * 15
+    )
     long_score = long_momentum + volume + volatility + breakout
     short_score = short_momentum + volume + volatility + breakdown
     result["Opportunity score"] = pd.concat([long_score, short_score], axis=1).max(axis=1).round(1)
@@ -168,9 +169,11 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     setup_score = result.get("Setup score", result["Opportunity score"])
     result["Composite score"] = (result["Opportunity score"] * 0.6 + setup_score * 0.4).round(1)
     direction_order = {"LONG": 0, "NEUTRAL": 1, "SHORT": 2}
-    result["_direction_order"] = result.get(
-        "Direction", pd.Series("NEUTRAL", index=result.index)
-    ).map(direction_order).fillna(1)
+    result["_direction_order"] = (
+        result.get("Direction", pd.Series("NEUTRAL", index=result.index))
+        .map(direction_order)
+        .fillna(1)
+    )
 
     direction = result.get("Direction", pd.Series("NEUTRAL", index=result.index))
     result["Setup"] = "Momentum watch"
@@ -179,37 +182,35 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     volume_confirmed = result["Volume surge x"] >= 1.5
     result.loc[long_momentum & volume_confirmed, "Setup"] = "Bullish volume + momentum"
     result.loc[short_momentum & volume_confirmed, "Setup"] = "Bearish volume + momentum"
-    result.loc[direction.eq("LONG") & result["Breakout"].eq("YES"), "Setup"] = (
-        "Breakout watch"
-    )
+    result.loc[direction.eq("LONG") & result["Breakout"].eq("YES"), "Setup"] = "Breakout watch"
     breakdown_column = "Strategy breakdown" if "Strategy breakdown" in result else "Breakdown"
     result.loc[
         direction.eq("SHORT") & result[breakdown_column].eq("YES"),
         "Setup",
     ] = "Breakdown watch"
     result.loc[
-        direction.eq("LONG")
-        & result["Low-price flag"].eq("YES")
-        & volume_confirmed,
+        direction.eq("LONG") & result["Low-price flag"].eq("YES") & volume_confirmed,
         "Setup",
     ] = "Low-price bullish volume watch"
     result.loc[
-        direction.eq("SHORT")
-        & result["Low-price flag"].eq("YES")
-        & volume_confirmed,
+        direction.eq("SHORT") & result["Low-price flag"].eq("YES") & volume_confirmed,
         "Setup",
     ] = "Low-price bearish volume watch"
 
-    return result.sort_values(
-        [
-            "_direction_order",
-            "Composite score",
-            "Opportunity score",
-            "Volume surge x",
-        ],
-        ascending=[True, False, False, False],
-        na_position="last",
-    ).drop(columns=["_direction_order"]).reset_index(drop=True)
+    return (
+        result.sort_values(
+            [
+                "_direction_order",
+                "Composite score",
+                "Opportunity score",
+                "Volume surge x",
+            ],
+            ascending=[True, False, False, False],
+            na_position="last",
+        )
+        .drop(columns=["_direction_order"])
+        .reset_index(drop=True)
+    )
 
 
 def scan_day_trader_opportunities(
