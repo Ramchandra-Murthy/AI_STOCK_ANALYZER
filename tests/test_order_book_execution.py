@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -10,7 +10,7 @@ from algorithmic_trading.order_book_execution import estimate_order_book_executi
 def snapshot() -> OrderBookSnapshot:
     return OrderBookSnapshot.from_levels(
         "RELIANCE",
-        datetime(2026, 1, 5, 4, 0, tzinfo=timezone.utc),
+        datetime(2026, 1, 5, 4, 0, tzinfo=UTC),
         bids=[(99.0, 100.0), (98.0, 200.0), (97.0, 300.0)],
         asks=[(101.0, 50.0), (102.0, 100.0), (103.0, 200.0)],
         sequence=10,
