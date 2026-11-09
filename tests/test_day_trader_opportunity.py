@@ -35,7 +35,7 @@ def test_score_ranks_volume_momentum_breakout():
 
     assert result.iloc[0]["Symbol"] == "A"
     assert result.iloc[0]["Opportunity score"] == 100.0
-    assert result.iloc[0]["Setup"] == "Low-price volume watch"
+    assert result.iloc[0]["Setup"] == "Low-price bullish volume watch"
 
 
 def test_score_handles_empty_input():
