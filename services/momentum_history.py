@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 import os
 import sqlite3
+from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -164,7 +165,7 @@ def record_momentum_snapshot(
         return None
     timestamp = _as_ist(captured_at).isoformat(timespec="seconds")
 
-    with _connect(database_path) as connection:
+    with closing(_connect(database_path)) as connection, connection:
         connection.execute(
             "INSERT OR IGNORE INTO momentum_snapshots (captured_at) VALUES (?)", (timestamp,)
         )
@@ -174,6 +175,9 @@ def record_momentum_snapshot(
         if snapshot is None:
             raise MomentumHistoryError("Could not resolve the stored momentum snapshot.")
         snapshot_id = int(snapshot["id"])
+        connection.execute(
+            "DELETE FROM momentum_snapshot_rows WHERE snapshot_id = ?", (snapshot_id,)
+        )
         connection.executemany(
             """
             INSERT INTO momentum_snapshot_rows (
@@ -208,7 +212,7 @@ def load_momentum_history(
     """Load the most recent snapshots in chronological order."""
     if limit < 1:
         raise MomentumHistoryError("limit must be at least one.")
-    with _connect(database_path) as connection:
+    with closing(_connect(database_path)) as connection:
         rows = connection.execute(
             """
             SELECT s.captured_at, r.symbol, r.exchange, r.rank, r.score,
