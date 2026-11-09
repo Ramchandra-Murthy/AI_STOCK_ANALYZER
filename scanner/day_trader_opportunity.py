@@ -172,16 +172,33 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
         "Direction", pd.Series("NEUTRAL", index=result.index)
     ).map(direction_order).fillna(1)
 
+    direction = result.get("Direction", pd.Series("NEUTRAL", index=result.index))
     result["Setup"] = "Momentum watch"
+    long_momentum = (direction.eq("LONG")) & (result["5-min change %"] >= 0.75)
+    short_momentum = (direction.eq("SHORT")) & (result["5-min change %"] <= -0.75)
+    volume_confirmed = result["Volume surge x"] >= 1.5
+    result.loc[long_momentum & volume_confirmed, "Setup"] = "Bullish volume + momentum"
+    result.loc[short_momentum & volume_confirmed, "Setup"] = "Bearish volume + momentum"
+    result.loc[direction.eq("LONG") & result["Breakout"].eq("YES"), "Setup"] = (
+        "Breakout watch"
+    )
+    breakdown_column = "Strategy breakdown" if "Strategy breakdown" in result else "Breakdown"
     result.loc[
-        (result["Volume surge x"] >= 1.5) & (result["5-min change %"] >= 0.75),
+        direction.eq("SHORT") & result[breakdown_column].eq("YES"),
         "Setup",
-    ] = "Volume + momentum"
-    result.loc[result["Breakout"].eq("YES"), "Setup"] = "Breakout watch"
+    ] = "Breakdown watch"
     result.loc[
-        result["Low-price flag"].eq("YES") & (result["Volume surge x"] >= 1.5),
+        direction.eq("LONG")
+        & result["Low-price flag"].eq("YES")
+        & volume_confirmed,
         "Setup",
-    ] = "Low-price volume watch"
+    ] = "Low-price bullish volume watch"
+    result.loc[
+        direction.eq("SHORT")
+        & result["Low-price flag"].eq("YES")
+        & volume_confirmed,
+        "Setup",
+    ] = "Low-price bearish volume watch"
 
     return result.sort_values(
         [
