@@ -208,6 +208,10 @@ def estimate_rebalance_cost(
     cost_bps = _finite_parameter(cost_bps, "cost_bps")
     if cost_bps < 0.0:
         raise ValueError("cost_bps must be non-negative")
+    if not isinstance(target_weights, pd.Series) or not isinstance(current_weights, pd.Series):
+        raise ValueError("target_weights and current_weights must be pandas Series")
+    if target_weights.empty or current_weights.empty:
+        raise ValueError("weight Series must not be empty")
     if not target_weights.index.is_unique or not current_weights.index.is_unique:
         raise ValueError("weight symbols must be unique")
     symbols = target_weights.index.union(current_weights.index)
@@ -216,6 +220,10 @@ def estimate_rebalance_cost(
     values = np.concatenate([target.to_numpy(dtype=float), current.to_numpy(dtype=float)])
     if not np.isfinite(values).all() or (values < 0.0).any():
         raise ValueError("weights must be finite and non-negative")
+    if not math.isclose(float(target.sum()), 1.0, rel_tol=0.0, abs_tol=1e-8):
+        raise ValueError("target weights must sum to 1")
+    if not math.isclose(float(current.sum()), 1.0, rel_tol=0.0, abs_tol=1e-8):
+        raise ValueError("current weights must sum to 1")
     turnover = float((target - current).abs().sum())
     return {
         "gross_turnover": turnover,
