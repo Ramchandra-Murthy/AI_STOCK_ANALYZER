@@ -94,12 +94,12 @@ def _project_capped_simplex(values: np.ndarray, cap: float) -> np.ndarray:
     result = np.clip(values - (lower + upper) / 2.0, 0.0, cap)
     residual = 1.0 - float(result.sum())
     if abs(residual) > 1e-10:
-        eligible = np.flatnonzero(
-            (result < cap - 1e-12) if residual > 0 else (result > 1e-12)
-        )
+        eligible = np.flatnonzero((result < cap - 1e-12) if residual > 0 else (result > 1e-12))
         for index in eligible:
-            adjustment = min(cap - result[index], residual) if residual > 0 else max(
-                -result[index], residual
+            adjustment = (
+                min(cap - result[index], residual)
+                if residual > 0
+                else max(-result[index], residual)
             )
             result[index] += adjustment
             residual -= adjustment
