@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 
 INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
 MARKET_OPEN = time(9, 15)
+FIRST_SCAN_TIME = time(9, 25)
 MARKET_CLOSE = time(15, 30)
 DEFAULT_REFRESH_SECONDS = 300
 ALLOWED_REFRESH_SECONDS = (60, 120, 300, 600)
@@ -16,6 +17,20 @@ def market_is_open(now: datetime | None = None) -> bool:
     """Return whether the NSE cash session is currently open on a weekday."""
     current = now.astimezone(INDIA_TIMEZONE) if now else datetime.now(INDIA_TIMEZONE)
     return current.weekday() < 5 and MARKET_OPEN <= current.time() < MARKET_CLOSE
+
+
+def seconds_until_first_scan(now: datetime | None = None) -> int:
+    """Return seconds until the first automatic scan is allowed at 09:25 IST."""
+    current = now.astimezone(INDIA_TIMEZONE) if now else datetime.now(INDIA_TIMEZONE)
+    if current.time() >= FIRST_SCAN_TIME:
+        return 0
+    target = current.replace(
+        hour=FIRST_SCAN_TIME.hour,
+        minute=FIRST_SCAN_TIME.minute,
+        second=0,
+        microsecond=0,
+    )
+    return max(0, int((target - current).total_seconds()))
 
 
 def next_refresh_seconds(
