@@ -442,7 +442,10 @@ def test_failed_first_scan_backs_off_exponentially_and_is_capped(
 
         # Polling at the UI cadence during the backoff window must not start another scan.
         scans_before = len(calls)
-        while clock.current + timedelta(seconds=top10_live.TOP10_UI_POLL_SECONDS) < snapshot.next_attempt_at:
+        while (
+            clock.current + timedelta(seconds=top10_live.TOP10_UI_POLL_SECONDS)
+            < snapshot.next_attempt_at
+        ):
             clock.advance(seconds=top10_live.TOP10_UI_POLL_SECONDS)
             assert top10_live._start_background_scan(now=clock.current) is False
         assert len(calls) == scans_before
@@ -805,9 +808,7 @@ def test_polling_between_refresh_intervals_does_not_start_extra_scans(
     assert len(calls) == 2  # the interval elapsed, so exactly one more scan ran
 
 
-def test_background_scan_is_blocked_when_the_market_is_closed(
-    monkeypatch, executor, clock
-) -> None:
+def test_background_scan_is_blocked_when_the_market_is_closed(monkeypatch, executor, clock) -> None:
     clock.current = MARKET_CLOSED
     calls = _scripted_scans(monkeypatch, [])
 
