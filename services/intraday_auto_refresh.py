@@ -13,15 +13,24 @@ DEFAULT_REFRESH_SECONDS = 300
 ALLOWED_REFRESH_SECONDS = (60, 120, 300, 600)
 
 
+def _as_india_time(value: datetime | None) -> datetime:
+    """Normalize a timestamp to IST; treat naive values as local Indian time."""
+    if value is None:
+        return datetime.now(INDIA_TIMEZONE)
+    if value.tzinfo is None:
+        return value.replace(tzinfo=INDIA_TIMEZONE)
+    return value.astimezone(INDIA_TIMEZONE)
+
+
 def market_is_open(now: datetime | None = None) -> bool:
     """Return whether the NSE cash session is currently open on a weekday."""
-    current = now.astimezone(INDIA_TIMEZONE) if now else datetime.now(INDIA_TIMEZONE)
+    current = _as_india_time(now)
     return current.weekday() < 5 and MARKET_OPEN <= current.time() < MARKET_CLOSE
 
 
 def seconds_until_first_scan(now: datetime | None = None) -> int:
     """Return seconds until the first automatic scan is allowed at 09:25 IST."""
-    current = now.astimezone(INDIA_TIMEZONE) if now else datetime.now(INDIA_TIMEZONE)
+    current = _as_india_time(now)
     if current.time() >= FIRST_SCAN_TIME:
         return 0
     target = current.replace(
@@ -39,11 +48,11 @@ def next_refresh_seconds(
     now: datetime | None = None,
 ) -> int:
     """Return whole seconds until the next scheduled refresh."""
-    current = now.astimezone(INDIA_TIMEZONE) if now else datetime.now(INDIA_TIMEZONE)
+    current = _as_india_time(now)
     if last_scan_at is None:
         return 0
 
-    last = last_scan_at.astimezone(INDIA_TIMEZONE)
+    last = _as_india_time(last_scan_at)
     elapsed = max(0, int((current - last).total_seconds()))
     return max(0, interval_seconds - elapsed)
 

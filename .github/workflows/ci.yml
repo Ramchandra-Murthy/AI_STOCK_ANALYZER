@@ -56,6 +56,7 @@ jobs:
         tests/test_walk_forward_validation.py
         tests/test_watchlist_*.py
         tests/test_market_calendar.py
+        tests/test_intraday_auto_refresh.py
         tests/test_next_day_movers.py
         tests/test_next_day_movers_eval.py
         tests/test_next_day_scanner_validation.py
