@@ -8,8 +8,8 @@ to have a usable intraday quote.
 
 from __future__ import annotations
 
-from typing import Any
 import time
+from typing import Any
 
 import pandas as pd
 import yfinance as yf
