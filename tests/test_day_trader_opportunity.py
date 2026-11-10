@@ -423,6 +423,7 @@ def test_coverage_diagnostics_handle_empty_universe():
     assert stats["universe_resolution_pct"] == 0.0
     assert stats["no_usable_data_count"] == 0
 
+
 def test_chunk_download_retries_empty_response_then_succeeds(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
