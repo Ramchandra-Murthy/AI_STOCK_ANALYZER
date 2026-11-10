@@ -1063,11 +1063,37 @@ else:
             ]
             if column in risk_results.columns
         ]
-        st.dataframe(
-            risk_results[risk_columns],
-            use_container_width=True,
-            hide_index=True,
-        )
+        directional_tabs = st.tabs(["🟢 LONG", "⚪ NEUTRAL", "🔴 SHORT", "All directions"])
+        direction_groups = [
+            ("LONG", directional_tabs[0]),
+            ("NEUTRAL", directional_tabs[1]),
+            ("SHORT", directional_tabs[2]),
+        ]
+        for direction, tab in direction_groups:
+            directional_rows = risk_results[
+                risk_results.get("Direction", pd.Series("", index=risk_results.index))
+                .fillna("NEUTRAL")
+                .astype(str)
+                .str.upper()
+                .eq(direction)
+            ]
+            with tab:
+                st.metric(f"{direction} candidates", len(directional_rows))
+                if directional_rows.empty:
+                    st.info(f"No {direction} candidates meet the current filters.")
+                else:
+                    st.dataframe(
+                        directional_rows[risk_columns],
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+        with directional_tabs[3]:
+            st.metric("All filtered candidates", len(risk_results))
+            st.dataframe(
+                risk_results[risk_columns],
+                use_container_width=True,
+                hide_index=True,
+            )
     st.download_button(
         "Download opportunity CSV",
         risk_results.to_csv(index=False).encode("utf-8"),
