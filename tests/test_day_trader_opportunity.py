@@ -829,6 +829,8 @@ def test_day_trade_plan_preserves_directional_level_geometry():
     assert short_plan["Target 3"] < short_plan["Target 2"] < short_plan["Target 1"]
     assert short_plan["Target 1"] < short_plan["Entry reference"] < short_plan["Stop reference"]
 
+
+
 def test_frame_extracts_ticker_first_yfinance_columns():
     from scanner.day_trader_opportunity import _frame
 
