@@ -149,6 +149,21 @@ def _add_coverage_diagnostics(stats: dict[str, Any]) -> dict[str, Any]:
     return stats
 
 
+def _set_scan_timing_diagnostics(
+    scan_stats: dict[str, Any],
+    *,
+    total_seconds: float,
+    download_seconds: float,
+    analysis_seconds: float,
+    safety_filter_seconds: float = 0.0,
+) -> None:
+    """Store rounded phase timings consistently in scanner diagnostics."""
+    scan_stats["download_seconds"] = round(max(0.0, download_seconds), 3)
+    scan_stats["analysis_seconds"] = round(max(0.0, analysis_seconds), 3)
+    scan_stats["safety_filter_seconds"] = round(max(0.0, safety_filter_seconds), 3)
+    scan_stats["scan_duration_seconds"] = round(max(0.0, total_seconds), 3)
+
+
 def scan_has_provider_data(scan_stats: dict[str, Any]) -> bool:
     """Return whether at least one mapped-symbol download chunk returned data."""
     mapped = int(scan_stats.get("mapped_symbol_count", 0) or 0)
@@ -520,9 +535,12 @@ def scan_day_trader_opportunities(
                     continue
             analysis_seconds += perf_counter() - analysis_started
 
-    scan_stats["download_seconds"] = round(download_seconds, 3)
-    scan_stats["analysis_seconds"] = round(analysis_seconds, 3)
-    scan_stats["scan_duration_seconds"] = round(perf_counter() - scan_started, 3)
+    _set_scan_timing_diagnostics(
+        scan_stats,
+        total_seconds=perf_counter() - scan_started,
+        download_seconds=download_seconds,
+        analysis_seconds=analysis_seconds,
+    )
     scan_stats["unmapped_symbol_count"] = scan_stats.get("unmapped_symbol_count", 0)
     _add_coverage_diagnostics(scan_stats)
 
@@ -542,8 +560,13 @@ def scan_day_trader_opportunities(
     safety_started = perf_counter()
     safety, _ = fetch_nse_safety_snapshot(nse_symbols)
     result = apply_safety_filter(result, safety, exclude_flagged=False)
-    scan_stats["safety_filter_seconds"] = round(perf_counter() - safety_started, 3)
-    scan_stats["scan_duration_seconds"] = round(perf_counter() - scan_started, 3)
+    _set_scan_timing_diagnostics(
+        scan_stats,
+        total_seconds=perf_counter() - scan_started,
+        download_seconds=download_seconds,
+        analysis_seconds=analysis_seconds,
+        safety_filter_seconds=perf_counter() - safety_started,
+    )
     scan_stats["matches_after_safety"] = len(result)
     scan_stats["filtered_count"] = max(
         0,
