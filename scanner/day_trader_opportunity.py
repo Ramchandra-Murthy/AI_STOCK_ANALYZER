@@ -343,15 +343,27 @@ def scan_day_trader_opportunities(
         "lookback_minutes": lookback_minutes,
         "exchange": exchange_category,
         "cap_category": cap_category,
+        "exchange_diagnostics": {},
     }
 
     for exchange in exchanges:
         exchange_symbols = [symbol for symbol, venue in universe if venue == exchange]
+        exchange_stats = {
+            "candidate_count": len(exchange_symbols),
+            "mapped_symbol_count": 0,
+            "chunks_attempted": 0,
+            "chunks_succeeded": 0,
+            "chunks_failed": 0,
+            "usable_data_count": 0,
+            "download_seconds": 0.0,
+        }
+        scan_stats["exchange_diagnostics"][exchange] = exchange_stats
         resolved_tickers = [_ticker(symbol, exchange) for symbol in exchange_symbols]
         scan_stats["unmapped_symbol_count"] = scan_stats.get("unmapped_symbol_count", 0) + sum(
             ticker is None for ticker in resolved_tickers
         )
         tickers = [ticker for ticker in resolved_tickers if ticker is not None]
+        exchange_stats["mapped_symbol_count"] = len(tickers)
         scan_stats["mapped_symbol_count"] += len(tickers)
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
@@ -360,15 +372,20 @@ def scan_day_trader_opportunities(
             ) + len(chunk)
             download_started = perf_counter()
             history, download_attempts = _download_chunk_with_retry(chunk, interval)
-            download_seconds += perf_counter() - download_started
+            chunk_download_seconds = perf_counter() - download_started
+            download_seconds += chunk_download_seconds
+            exchange_stats["chunks_attempted"] += 1
+            exchange_stats["download_seconds"] += chunk_download_seconds
             scan_stats["download_attempts"] = (
                 scan_stats.get("download_attempts", 0) + download_attempts
             )
             if history.empty:
+                exchange_stats["chunks_failed"] += 1
                 scan_stats["download_failed_chunks"] += 1
                 scan_stats["empty_chunks"] += 1
                 continue
 
+            exchange_stats["chunks_succeeded"] += 1
             scan_stats["nonempty_chunks"] += 1
             analysis_started = perf_counter()
             for ticker in chunk:
@@ -386,6 +403,7 @@ def scan_day_trader_opportunities(
                         continue
 
                     scan_stats["usable_data_count"] += 1
+                    exchange_stats["usable_data_count"] += 1
                     price = float(close.iloc[-1])
                     prior = float(close.iloc[-1 - bars])
                     if price <= 0 or prior <= 0:
@@ -534,6 +552,9 @@ def scan_day_trader_opportunities(
                 except (KeyError, TypeError, ValueError, IndexError):
                     continue
             analysis_seconds += perf_counter() - analysis_started
+
+    for exchange_stats in scan_stats["exchange_diagnostics"].values():
+        exchange_stats["download_seconds"] = round(exchange_stats["download_seconds"], 3)
 
     _set_scan_timing_diagnostics(
         scan_stats,
