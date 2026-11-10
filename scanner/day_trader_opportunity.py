@@ -270,18 +270,45 @@ def _ticker(symbol: str, exchange: str) -> str | None:
 
 
 def _frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
+    """Extract and validate one ticker's OHLCV frame from Yahoo batch data.
+
+    yfinance can return MultiIndex columns with either ticker-first or
+    price-field-first ordering. Resolve the ticker by inspecting every level
+    rather than assuming a fixed column layout.
+    """
     if history is None or history.empty:
         return pd.DataFrame()
+
     if isinstance(history.columns, pd.MultiIndex):
-        if ticker not in history.columns.get_level_values(0):
+        data = pd.DataFrame()
+        for level in range(history.columns.nlevels):
+            if ticker not in history.columns.get_level_values(level):
+                continue
+            candidate = history.xs(ticker, axis=1, level=level).copy()
+            if {"Open", "High", "Low", "Close", "Volume"}.issubset(candidate.columns):
+                data = candidate
+                break
+        if data.empty:
             return pd.DataFrame()
-        data = history[ticker].copy()
     else:
         data = history.copy()
-    required = {"High", "Low", "Close", "Volume"}
-    if not required.issubset(data.columns):
+
+    required = ["Open", "High", "Low", "Close", "Volume"]
+    if not set(required).issubset(data.columns):
         return pd.DataFrame()
-    data = data.dropna(subset=list(required)).sort_index()
+
+    data = data.loc[:, required].apply(pd.to_numeric, errors="coerce")
+    data = data.replace([float("inf"), float("-inf")], float("nan"))
+    data = data.dropna(subset=required).sort_index()
+    if data.empty:
+        return data
+
+    valid_prices = (data[["Open", "High", "Low", "Close"]] > 0).all(axis=1)
+    valid_volume = data["Volume"] >= 0
+    valid_ohlc = (data["High"] >= data[["Open", "Close", "Low"]].max(axis=1)) & (
+        data["Low"] <= data[["Open", "Close", "High"]].min(axis=1)
+    )
+    data = data.loc[valid_prices & valid_volume & valid_ohlc]
     return data[~data.index.duplicated(keep="last")]
 
 
