@@ -198,12 +198,14 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
 
     support, support_valid = optional_level("Support")
     resistance, resistance_valid = optional_level("Resistance")
+    long_score = strategy.get("Long setup score", 0)
+    short_score = strategy.get("Short setup score", 0)
     direction = (
         "LONG"
-        if strategy.get("Long setup score", 0) > strategy.get("Short setup score", 0)
+        if long_score >= 70 and long_score > short_score
         else (
             "SHORT"
-            if strategy.get("Short setup score", 0) > strategy.get("Long setup score", 0)
+            if short_score >= 70 and short_score > long_score
             else "NEUTRAL"
         )
     )
