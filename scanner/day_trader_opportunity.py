@@ -311,9 +311,6 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     inferred_direction = pd.Series("NEUTRAL", index=result.index)
     inferred_direction = inferred_direction.mask(change > 0, "LONG").mask(change < 0, "SHORT")
     direction = result.get("Direction", inferred_direction).fillna(inferred_direction)
-    direction_order = {"LONG": 0, "NEUTRAL": 1, "SHORT": 2}
-    result["_direction_order"] = direction.map(direction_order).fillna(1)
-
     result["Setup"] = "Momentum watch"
     long_momentum = (direction.eq("LONG")) & (result["5-min change %"] >= 0.75)
     short_momentum = (direction.eq("SHORT")) & (result["5-min change %"] <= -0.75)
@@ -341,15 +338,13 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
     return (
         result.sort_values(
             [
-                "_direction_order",
                 "Composite score",
                 "Opportunity score",
                 "Volume surge x",
             ],
-            ascending=[True, False, False, False],
+            ascending=[False, False, False],
             na_position="last",
         )
-        .drop(columns=["_direction_order"])
         .reset_index(drop=True)
     )
 
