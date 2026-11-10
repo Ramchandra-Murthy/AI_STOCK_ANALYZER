@@ -486,7 +486,8 @@ def market_scan(
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
         timings["cpu_seconds"] = time.process_time() - cpu_started
-        timings["total_seconds"] = time.perf_counter() - scan_started
+        timings["cpu_seconds"] = time.process_time() - cpu_started
+    timings["total_seconds"] = time.perf_counter() - scan_started
         empty.attrs["scanner_timings"] = timings
         return empty
 
