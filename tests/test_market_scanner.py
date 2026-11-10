@@ -496,6 +496,7 @@ def test_broad_market_screen_uses_larger_batches_and_reports_progress(monkeypatc
     assert len(progress) == 3
     assert all(exchange == "NSE" and total == 3 for exchange, _done, total in progress)
 
+
 def test_market_scan_records_resource_diagnostics_when_no_movers(monkeypatch) -> None:
     from scanner import market_scanner
 
