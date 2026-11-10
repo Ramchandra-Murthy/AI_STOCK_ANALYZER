@@ -764,8 +764,14 @@ elif raw_results.empty:
     if scan_stats:
         diagnostics = {
             "Candidate universe": scan_stats.get("candidate_count", 0),
-            "Symbols attempted": scan_stats.get("attempted_count", 0),
+            "Universe symbols accounted for": scan_stats.get("attempted_count", 0),
+            "Yahoo-mapped symbols": scan_stats.get("mapped_symbol_count", 0),
+            "Unmapped symbols": scan_stats.get("unmapped_symbol_count", 0),
             "Usable intraday data": scan_stats.get("usable_data_count", 0),
+            "No usable intraday data": scan_stats.get("no_usable_data_count", 0),
+            "Data coverage (%)": scan_stats.get("data_coverage_pct", 0),
+            "Universe resolution (%)": scan_stats.get("universe_resolution_pct", 0),
+            "Scan completed": scan_stats.get("scan_completed", False),
             "Strategy data available": scan_stats.get("strategy_count", 0),
             "Price-change filter pass": scan_stats.get("price_change_pass_count", 0),
             "Volume-surge filter pass": scan_stats.get("volume_surge_pass_count", 0),
@@ -788,8 +794,9 @@ else:
     scan_stats = st.session_state.get("intraday_scan_stats", {})
     if scan_stats:
         st.caption(
-            f"Scan: {scan_stats.get('attempted_count', 0)} attempted • "
-            f"{scan_stats.get('usable_data_count', 0)} usable • "
+            f"Universe: {scan_stats.get('candidate_count', 0)} symbols • "
+            f"{scan_stats.get('usable_data_count', 0)} usable "
+            f"({scan_stats.get('data_coverage_pct', 0)}% coverage) • "
             f"{scan_stats.get('matches_before_safety', 0)} matched filters"
         )
     if "Latest candle" in results.columns:
