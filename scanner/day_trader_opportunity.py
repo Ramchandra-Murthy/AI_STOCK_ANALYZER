@@ -307,6 +307,7 @@ def scan_day_trader_opportunities(
     min_change_percent: float = 0.5,
     min_volume_surge: float = 1.2,
     low_price_only: bool = False,
+    exclude_flagged: bool = True,
 ) -> pd.DataFrame:
     """Find intraday momentum candidates, including configurable low-price mode.
 
@@ -594,7 +595,7 @@ def scan_day_trader_opportunities(
     nse_symbols = result.loc[result["Exchange"].eq("NSE"), "Symbol"].tolist()
     safety_started = perf_counter()
     safety, _ = fetch_nse_safety_snapshot(nse_symbols)
-    result = apply_safety_filter(result, safety, exclude_flagged=False)
+    result = apply_safety_filter(result, safety, exclude_flagged=exclude_flagged)
     _set_scan_timing_diagnostics(
         scan_stats,
         total_seconds=perf_counter() - scan_started,
