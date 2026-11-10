@@ -304,6 +304,7 @@ def scan_day_trader_opportunities(
         "strategy_count": 0,
         "download_failed_chunks": 0,
         "empty_chunks": 0,
+        "nonempty_chunks": 0,
         "filtered_count": 0,
         "price_change_pass_count": 0,
         "volume_surge_pass_count": 0,
@@ -339,6 +340,7 @@ def scan_day_trader_opportunities(
                 scan_stats["empty_chunks"] += 1
                 continue
 
+            scan_stats["nonempty_chunks"] += 1
             for ticker in chunk:
                 try:
                     data = _frame(history, ticker)
