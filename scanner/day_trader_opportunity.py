@@ -292,9 +292,9 @@ def scan_day_trader_opportunities(
         scan_stats["mapped_symbol_count"] += len(tickers)
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
-            scan_stats["downloaded_chunk_symbol_count"] = (
-                scan_stats.get("downloaded_chunk_symbol_count", 0) + len(chunk)
-            )
+            scan_stats["downloaded_chunk_symbol_count"] = scan_stats.get(
+                "downloaded_chunk_symbol_count", 0
+            ) + len(chunk)
             try:
                 history = yf.download(
                     tickers=chunk,
