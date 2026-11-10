@@ -95,6 +95,8 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
             "screen_tickers_missing_data": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
+            "mapped_histories_missing": 0,
+            "screen_attempted_tickers": 0,
             "history_coverage_pct": 0.0,
             "analysis_download_failed": 0,
             "stale_data_rejected": 0,
