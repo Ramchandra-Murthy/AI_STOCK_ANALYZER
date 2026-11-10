@@ -341,8 +341,9 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
                 "Composite score",
                 "Opportunity score",
                 "Volume surge x",
+                "Symbol",
             ],
-            ascending=[False, False, False],
+            ascending=[False, False, False, True],
             na_position="last",
         )
         .reset_index(drop=True)
