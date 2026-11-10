@@ -268,6 +268,9 @@ def test_day_trade_plan_state_waiting_long():
             "Plan": "LONG reference plan",
             "Entry reference": 101.0,
             "Stop reference": 98.0,
+            "Target 1": 104.0,
+            "Target 2": 107.0,
+            "Target 3": 110.0,
         },
     )
     assert state == "WAITING FOR REFERENCE"
@@ -282,6 +285,9 @@ def test_day_trade_plan_state_triggered_short():
             "Plan": "SHORT reference plan",
             "Entry reference": 99.0,
             "Stop reference": 102.0,
+            "Target 1": 96.0,
+            "Target 2": 93.0,
+            "Target 3": 90.0,
         },
     )
     assert state == "TRIGGERED / BELOW REFERENCE"
@@ -296,9 +302,56 @@ def test_day_trade_plan_state_invalidated():
             "Plan": "LONG reference plan",
             "Entry reference": 101.0,
             "Stop reference": 98.0,
+            "Target 1": 104.0,
+            "Target 2": 107.0,
+            "Target 3": 110.0,
         },
     )
     assert state == "INVALIDATED"
+
+
+
+def test_day_trade_plan_state_rejects_incomplete_or_invalid_plans():
+    from scanner.day_trading_strategy import classify_day_trade_plan_state
+
+    invalid_plans = [
+        {"Plan": "INSUFFICIENT RISK RANGE", "Entry reference": 100.0, "Stop reference": 100.0},
+        {"Plan": "NO CLEAR DIRECTION", "Entry reference": 100.0, "Stop reference": 98.0},
+        {
+            "Plan": "LONG reference plan",
+            "Entry reference": 101.0,
+            "Stop reference": 98.0,
+            "Target 1": None,
+            "Target 2": None,
+            "Target 3": None,
+        },
+        {
+            "Plan": "LONG reference plan",
+            "Entry reference": 101.0,
+            "Stop reference": 98.0,
+            "Target 1": 97.0,
+            "Target 2": 107.0,
+            "Target 3": 110.0,
+        },
+    ]
+
+    for plan in invalid_plans:
+        assert classify_day_trade_plan_state({"Close": 100.0}, plan) == "NO TRADE PLAN"
+
+
+def test_day_trade_plan_state_rejects_non_finite_and_malformed_prices():
+    from scanner.day_trading_strategy import classify_day_trade_plan_state
+
+    valid_long = {
+        "Plan": "LONG reference plan",
+        "Entry reference": 101.0,
+        "Stop reference": 98.0,
+        "Target 1": 104.0,
+        "Target 2": 107.0,
+        "Target 3": 110.0,
+    }
+    for close in ["bad", float("nan"), float("inf"), 0]:
+        assert classify_day_trade_plan_state({"Close": close}, valid_long) == "NO TRADE PLAN"
 
 
 def test_ticker_resolves_bse_scrip_codes_to_yahoo_symbols(monkeypatch):

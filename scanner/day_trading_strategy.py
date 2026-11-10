@@ -307,24 +307,38 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
 
 
 def classify_day_trade_plan_state(strategy: dict[str, Any], plan: dict[str, Any]) -> str:
-    """Classify the current setup against its reference levels."""
-    if not plan.get("Entry reference") or not plan.get("Stop reference"):
+    """Classify only complete, geometrically valid directional plans."""
+    direction_by_label = {
+        "LONG reference plan": "LONG",
+        "SHORT reference plan": "SHORT",
+    }
+    direction = direction_by_label.get(str(plan.get("Plan", "")))
+    if direction is None:
         return "NO TRADE PLAN"
 
-    close = float(strategy.get("Close", 0) or 0)
-    entry = float(plan["Entry reference"])
-    stop = float(plan["Stop reference"])
-    direction = "LONG" if "LONG" in str(plan.get("Plan", "")) else "SHORT"
+    try:
+        close = float(strategy.get("Close", 0))
+        entry = float(plan["Entry reference"])
+        stop = float(plan["Stop reference"])
+        targets = [float(plan[f"Target {number}"]) for number in (1, 2, 3)]
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return "NO TRADE PLAN"
 
-    if close <= 0:
+    levels = [close, entry, stop, *targets]
+    if not all(math.isfinite(level) and level > 0 for level in levels):
         return "NO TRADE PLAN"
 
     if direction == "LONG":
+        if not stop < entry < targets[0] < targets[1] < targets[2]:
+            return "NO TRADE PLAN"
         if close <= stop:
             return "INVALIDATED"
         if close >= entry:
             return "TRIGGERED / ABOVE REFERENCE"
         return "WAITING FOR REFERENCE"
+
+    if not targets[2] < targets[1] < targets[0] < entry < stop:
+        return "NO TRADE PLAN"
     if close >= stop:
         return "INVALIDATED"
     if close <= entry:
