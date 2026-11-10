@@ -650,3 +650,105 @@ def test_completed_volume_bars_returns_empty_for_unsupported_interval():
     volume = pd.Series([100], index=pd.date_range("2026-11-10 10:00", periods=1, tz="Asia/Kolkata"))
 
     assert _completed_volume_bars(volume, "15m").empty
+
+
+def test_day_trade_plan_rejects_non_finite_market_inputs():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    for close, atr in [(float("nan"), 2.0), (100.0, float("inf")), (100.0, 0.0)]:
+        result = calculate_day_trade_plan(
+            {
+                "Long setup score": 80,
+                "Short setup score": 30,
+                "Close": close,
+                "ATR 14": atr,
+                "Support": 98.0,
+                "Resistance": 102.0,
+            }
+        )
+        assert result["Plan"] == "INSUFFICIENT DATA"
+        assert result["Entry reference"] is None
+
+
+def test_day_trade_plan_rejects_malformed_or_non_positive_levels():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    for support in ["not-a-price", 0, float("nan"), float("inf")]:
+        result = calculate_day_trade_plan(
+            {
+                "Long setup score": 80,
+                "Short setup score": 30,
+                "Close": 100.0,
+                "ATR 14": 2.0,
+                "Support": support,
+                "Resistance": 102.0,
+            }
+        )
+        assert result["Plan"] == "INSUFFICIENT DATA"
+        assert result["Entry reference"] is None
+
+
+def test_day_trade_plan_rejects_crossed_support_and_resistance():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    result = calculate_day_trade_plan(
+        {
+            "Long setup score": 80,
+            "Short setup score": 30,
+            "Close": 100.0,
+            "ATR 14": 2.0,
+            "Support": 103.0,
+            "Resistance": 102.0,
+        }
+    )
+
+    assert result["Plan"] == "INSUFFICIENT DATA"
+    assert result["Entry reference"] is None
+
+
+def test_day_trade_plan_rejects_short_targets_at_or_below_zero():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    result = calculate_day_trade_plan(
+        {
+            "Long setup score": 30,
+            "Short setup score": 80,
+            "Close": 10.0,
+            "ATR 14": 5.0,
+            "Support": 1.0,
+            "Resistance": 20.0,
+        }
+    )
+
+    assert result["Plan"] == "INSUFFICIENT RISK RANGE"
+    assert result["Target 1"] is None
+
+
+def test_day_trade_plan_preserves_directional_level_geometry():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    long_plan = calculate_day_trade_plan(
+        {
+            "Long setup score": 80,
+            "Short setup score": 30,
+            "Close": 100.0,
+            "ATR 14": 2.0,
+            "Support": 98.0,
+            "Resistance": 101.0,
+        }
+    )
+    short_plan = calculate_day_trade_plan(
+        {
+            "Long setup score": 30,
+            "Short setup score": 80,
+            "Close": 100.0,
+            "ATR 14": 2.0,
+            "Support": 99.0,
+            "Resistance": 102.0,
+        }
+    )
+
+    assert long_plan["Stop reference"] < long_plan["Entry reference"]
+    assert long_plan["Entry reference"] < long_plan["Target 1"] < long_plan["Target 2"] < long_plan["Target 3"]
+    assert short_plan["Target 3"] < short_plan["Target 2"] < short_plan["Target 1"]
+    assert short_plan["Target 1"] < short_plan["Entry reference"] < short_plan["Stop reference"]
