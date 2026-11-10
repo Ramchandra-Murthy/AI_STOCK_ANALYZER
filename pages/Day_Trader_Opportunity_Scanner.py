@@ -809,6 +809,8 @@ elif raw_results.empty:
             "Yahoo-mapped symbols": scan_stats.get("mapped_symbol_count", 0),
             "Unmapped symbols": scan_stats.get("unmapped_symbol_count", 0),
             "Usable intraday data": scan_stats.get("usable_data_count", 0),
+            "Stale candles rejected": scan_stats.get("stale_candle_count", 0),
+            "Oldest accepted candle age (min)": scan_stats.get("max_candle_age_minutes", 0),
             "No usable intraday data": scan_stats.get("no_usable_data_count", 0),
             "Data coverage (%)": scan_stats.get("data_coverage_pct", 0),
             "Universe resolution (%)": scan_stats.get("universe_resolution_pct", 0),
