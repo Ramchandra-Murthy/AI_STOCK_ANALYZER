@@ -422,17 +422,22 @@ def _price_jump_watchlist():
 
     if auto_refresh:
         st.caption(
-            "🟢 Live Price-Jump Watchlist: refreshes every 1 minute during NSE market hours. "
-            "The selected price-jump window is evaluated on each refresh."
+            "🟢 Live Price-Jump Watchlist: refreshes at the selected interval during NSE "
+            "market hours. The selected price-jump window is evaluated on each refresh."
         )
 
     pulse_scan = st.button("Run Price-Jump Pulse", type="primary", key="run_price_jump_pulse")
-    should_auto_scan = auto_refresh and market_is_open(
-        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime()
+    pulse_now = pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime()
+    last_pulse_attempt = st.session_state.get("price_jump_last_attempt_at")
+    pulse_refresh_due = (
+        last_pulse_attempt is None
+        or next_refresh_seconds(last_pulse_attempt, refresh_interval, pulse_now) <= 0
     )
+    should_auto_scan = auto_refresh and market_is_open(pulse_now) and pulse_refresh_due
     active_job_id = st.session_state.get("price_jump_scan_job_id")
 
     if (pulse_scan or should_auto_scan) and not active_job_id:
+        st.session_state["price_jump_last_attempt_at"] = pulse_now
         active_job_id = _SCAN_MANAGER.start_price_jump_scan(
             limit=30,
             cap_category=jump_cap,
@@ -479,6 +484,7 @@ def _price_jump_watchlist():
             st.session_state["price_jump_scan_time"] = pulse_at.tz_convert(
                 "Asia/Kolkata"
             ).strftime("%d %b %Y, %H:%M:%S IST")
+            st.session_state["price_jump_last_success_at"] = pulse_at.to_pydatetime()
             st.session_state["price_jump_scan_stats"] = dict(job.get("scan_stats", {}))
             st.session_state["price_jump_scan_window"] = jump_window
             st.session_state["price_jump_history"] = append_price_jump_snapshot(
