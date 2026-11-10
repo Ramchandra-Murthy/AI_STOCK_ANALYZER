@@ -465,7 +465,6 @@ def test_chunk_download_stops_after_bounded_failures(monkeypatch):
     assert len(calls) == scanner.CHUNK_DOWNLOAD_ATTEMPTS
 
 
-
 def test_scan_provider_data_contract_detects_all_failed_chunks():
     assert (
         scan_has_provider_data(
