@@ -296,6 +296,7 @@ if scan_requested or auto_scan_requested:
                     min_change_percent=min_change,
                     min_volume_surge=min_volume,
                     low_price_only=low_price_only,
+                    exclude_flagged=exclude_flagged,
                 )
 
             scan_stats = results.attrs.get("scan_stats", {}) if results is not None else {}
