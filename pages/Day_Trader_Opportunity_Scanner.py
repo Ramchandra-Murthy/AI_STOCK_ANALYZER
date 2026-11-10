@@ -812,6 +812,10 @@ elif raw_results.empty:
             "Data coverage (%)": scan_stats.get("data_coverage_pct", 0),
             "Universe resolution (%)": scan_stats.get("universe_resolution_pct", 0),
             "Scan completed": scan_stats.get("scan_completed", False),
+            "Total scan duration (s)": scan_stats.get("scan_duration_seconds", 0),
+            "Yahoo download time (s)": scan_stats.get("download_seconds", 0),
+            "Signal analysis time (s)": scan_stats.get("analysis_seconds", 0),
+            "Safety check time (s)": scan_stats.get("safety_filter_seconds", 0),
             "Strategy data available": scan_stats.get("strategy_count", 0),
             "Price-change filter pass": scan_stats.get("price_change_pass_count", 0),
             "Volume-surge filter pass": scan_stats.get("volume_surge_pass_count", 0),
@@ -837,7 +841,10 @@ else:
             f"Universe: {scan_stats.get('candidate_count', 0)} symbols • "
             f"{scan_stats.get('usable_data_count', 0)} usable "
             f"({scan_stats.get('data_coverage_pct', 0)}% coverage) • "
-            f"{scan_stats.get('matches_before_safety', 0)} matched filters"
+            f"{scan_stats.get('matches_before_safety', 0)} matched filters • "
+            f"{scan_stats.get('scan_duration_seconds', 0)}s total "
+            f"(download {scan_stats.get('download_seconds', 0)}s, "
+            f"analysis {scan_stats.get('analysis_seconds', 0)}s)"
         )
     if "Latest candle" in results.columns:
         observed = pd.to_datetime(results["Latest candle"], errors="coerce").dropna()
