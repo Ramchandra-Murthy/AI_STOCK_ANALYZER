@@ -833,9 +833,7 @@ def test_frame_extracts_ticker_first_yfinance_columns():
     from scanner.day_trader_opportunity import _frame
 
     index = pd.date_range("2026-11-10 09:15", periods=2, freq="5min")
-    columns = pd.MultiIndex.from_product(
-        [["ABC.NS"], ["Open", "High", "Low", "Close", "Volume"]]
-    )
+    columns = pd.MultiIndex.from_product([["ABC.NS"], ["Open", "High", "Low", "Close", "Volume"]])
     history = pd.DataFrame(
         [[100, 103, 99, 102, 1000], [102, 104, 101, 103, 1200]],
         index=index,
@@ -852,13 +850,15 @@ def test_frame_extracts_field_first_yfinance_columns():
     from scanner.day_trader_opportunity import _frame
 
     index = pd.date_range("2026-11-10 09:15", periods=2, freq="5min")
-    columns = pd.MultiIndex.from_product(
-        [["Open", "High", "Low", "Close", "Volume"], ["ABC.NS"]]
-    )
     history = pd.DataFrame(
-        [[100, 102], [103, 104], [99, 101], [102, 103], [1000, 1200]],
+        {
+            ("Open", "ABC.NS"): [100, 102],
+            ("High", "ABC.NS"): [103, 104],
+            ("Low", "ABC.NS"): [99, 101],
+            ("Close", "ABC.NS"): [102, 103],
+            ("Volume", "ABC.NS"): [1000, 1200],
+        },
         index=index,
-        columns=columns,
     )
 
     result = _frame(history, "ABC.NS")
