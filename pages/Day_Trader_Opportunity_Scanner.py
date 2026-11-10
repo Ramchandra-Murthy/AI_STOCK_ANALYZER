@@ -833,6 +833,12 @@ elif raw_results.empty:
             use_container_width=True,
             hide_index=True,
         )
+    exchange_diagnostics = scan_stats.get("exchange_diagnostics", {})
+    if exchange_diagnostics:
+        st.subheader("Exchange coverage and scan performance")
+        exchange_frame = pd.DataFrame.from_dict(exchange_diagnostics, orient="index")
+        exchange_frame.index.name = "Exchange"
+        st.dataframe(exchange_frame.reset_index(), use_container_width=True, hide_index=True)
 else:
     results = raw_results.copy()
     scan_stats = st.session_state.get("intraday_scan_stats", {})
@@ -846,6 +852,16 @@ else:
             f"(download {scan_stats.get('download_seconds', 0)}s, "
             f"analysis {scan_stats.get('analysis_seconds', 0)}s)"
         )
+    exchange_diagnostics = scan_stats.get("exchange_diagnostics", {})
+    if exchange_diagnostics:
+        with st.expander("Exchange coverage and scan performance"):
+            exchange_frame = pd.DataFrame.from_dict(exchange_diagnostics, orient="index")
+            exchange_frame.index.name = "Exchange"
+            st.dataframe(
+                exchange_frame.reset_index(),
+                use_container_width=True,
+                hide_index=True,
+            )
     if "Latest candle" in results.columns:
         observed = pd.to_datetime(results["Latest candle"], errors="coerce").dropna()
         if not observed.empty:
