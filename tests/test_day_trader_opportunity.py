@@ -259,6 +259,26 @@ def test_day_trade_plan_rejects_neutral_direction():
     assert result["Entry reference"] is None
 
 
+
+def test_day_trade_plan_requires_confirmed_directional_setup():
+    from scanner.day_trading_strategy import calculate_day_trade_plan
+
+    for long_score, short_score in [(69, 20), (45, 40), (30, 69), (70, 70)]:
+        result = calculate_day_trade_plan(
+            {
+                "Long setup score": long_score,
+                "Short setup score": short_score,
+                "Close": 100.0,
+                "ATR 14": 2.0,
+                "Support": 98.0,
+                "Resistance": 102.0,
+            }
+        )
+        assert result["Plan"] == "NO CLEAR DIRECTION"
+        assert result["Entry reference"] is None
+        assert result["Stop reference"] is None
+
+
 def test_day_trade_plan_state_waiting_long():
     from scanner.day_trading_strategy import classify_day_trade_plan_state
 
