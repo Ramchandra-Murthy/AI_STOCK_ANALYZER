@@ -9,6 +9,7 @@ opening-range structure.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import pandas as pd
@@ -177,10 +178,26 @@ def analyze_day_trade_setup(
 
 def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
     """Calculate conditional entry, stop and target reference levels."""
-    close = float(strategy.get("Close", 0) or 0)
-    atr = float(strategy.get("ATR 14", 0) or 0)
-    support = strategy.get("Support")
-    resistance = strategy.get("Resistance")
+    try:
+        close = float(strategy.get("Close", 0) or 0)
+        atr = float(strategy.get("ATR 14", 0) or 0)
+    except (TypeError, ValueError):
+        close, atr = 0.0, 0.0
+
+    def optional_level(name: str) -> tuple[float | None, bool]:
+        value = strategy.get(name)
+        if value is None:
+            return None, True
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError):
+            return None, False
+        if not math.isfinite(parsed) or parsed <= 0:
+            return None, False
+        return parsed, True
+
+    support, support_valid = optional_level("Support")
+    resistance, resistance_valid = optional_level("Resistance")
     direction = (
         "LONG"
         if strategy.get("Long setup score", 0) > strategy.get("Short setup score", 0)
@@ -191,7 +208,15 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
         )
     )
 
-    if close <= 0 or atr <= 0:
+    if (
+        not math.isfinite(close)
+        or not math.isfinite(atr)
+        or close <= 0
+        or atr <= 0
+        or not support_valid
+        or not resistance_valid
+        or (support is not None and resistance is not None and support >= resistance)
+    ):
         return {
             "Plan": "INSUFFICIENT DATA",
             "Entry reference": None,
@@ -250,6 +275,23 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
         entry + risk * multiple if direction == "LONG" else entry - risk * multiple
         for multiple in (1.0, 2.0, 3.0)
     ]
+    if (
+        not all(math.isfinite(level) and level > 0 for level in [entry, stop, *targets])
+        or (direction == "LONG" and not stop < entry < targets[0] < targets[1] < targets[2])
+        or (direction == "SHORT" and not targets[2] < targets[1] < targets[0] < entry < stop)
+    ):
+        return {
+            "Plan": "INSUFFICIENT RISK RANGE",
+            "Entry reference": round(entry, 2),
+            "Stop reference": round(stop, 2),
+            "Target 1": None,
+            "Target 2": None,
+            "Target 3": None,
+            "Risk per share": None,
+            "R:R T1": None,
+            "R:R T2": None,
+            "R:R T3": None,
+        }
     return {
         "Plan": f"{direction} reference plan",
         "Entry reference": round(entry, 2),
