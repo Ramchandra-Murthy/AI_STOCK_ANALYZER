@@ -8,6 +8,7 @@ to have a usable intraday quote.
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import pandas as pd
@@ -33,6 +34,40 @@ from scanner.unusual_activity import CAP_UNIVERSES
 from services.intraday_vwap_orb import vwap_orb_metrics
 
 CHUNK_SIZE = 100
+CHUNK_DOWNLOAD_ATTEMPTS = 3
+CHUNK_RETRY_BACKOFF_SECONDS = (0.5, 1.0)
+
+
+def _download_chunk_with_retry(
+    tickers: list[str],
+    interval: str,
+) -> tuple[pd.DataFrame, int]:
+    """Download one ticker chunk, retrying transient provider failures.
+
+    Retries are bounded and apply to both exceptions and empty provider
+    responses. The caller retains coverage diagnostics for chunks that fail
+    after the final attempt.
+    """
+    for attempt in range(1, CHUNK_DOWNLOAD_ATTEMPTS + 1):
+        try:
+            history = yf.download(
+                tickers=tickers,
+                period="1d",
+                interval=interval,
+                progress=False,
+                auto_adjust=False,
+                group_by="ticker",
+                threads=True,
+                timeout=15,
+            )
+            if history is not None and not history.empty:
+                return history, attempt
+        except Exception:
+            if attempt == CHUNK_DOWNLOAD_ATTEMPTS:
+                return pd.DataFrame(), attempt
+        if attempt < CHUNK_DOWNLOAD_ATTEMPTS:
+            time.sleep(CHUNK_RETRY_BACKOFF_SECONDS[attempt - 1])
+    return pd.DataFrame(), CHUNK_DOWNLOAD_ATTEMPTS
 
 
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
@@ -295,22 +330,12 @@ def scan_day_trader_opportunities(
             scan_stats["downloaded_chunk_symbol_count"] = scan_stats.get(
                 "downloaded_chunk_symbol_count", 0
             ) + len(chunk)
-            try:
-                history = yf.download(
-                    tickers=chunk,
-                    period="1d",
-                    interval=interval,
-                    progress=False,
-                    auto_adjust=False,
-                    group_by="ticker",
-                    threads=True,
-                    timeout=10,
-                )
-            except Exception:
+            history, download_attempts = _download_chunk_with_retry(chunk, interval)
+            scan_stats["download_attempts"] = (
+                scan_stats.get("download_attempts", 0) + download_attempts
+            )
+            if history.empty:
                 scan_stats["download_failed_chunks"] += 1
-                continue
-
-            if history is None or history.empty:
                 scan_stats["empty_chunks"] += 1
                 continue
 

@@ -422,3 +422,43 @@ def test_coverage_diagnostics_handle_empty_universe():
     assert stats["data_coverage_pct"] == 0.0
     assert stats["universe_resolution_pct"] == 0.0
     assert stats["no_usable_data_count"] == 0
+
+
+def test_chunk_download_retries_empty_response_then_succeeds(monkeypatch):
+    import scanner.day_trader_opportunity as scanner
+
+    calls = []
+    expected = pd.DataFrame({"Close": [100.0]})
+
+    def fake_download(**kwargs):
+        calls.append(kwargs)
+        return pd.DataFrame() if len(calls) == 1 else expected
+
+    monkeypatch.setattr(scanner.yf, "download", fake_download)
+    monkeypatch.setattr(scanner.time, "sleep", lambda _delay: None)
+
+    result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
+
+    assert result.equals(expected)
+    assert attempts == 2
+    assert len(calls) == 2
+    assert calls[-1]["timeout"] == 15
+
+
+def test_chunk_download_stops_after_bounded_failures(monkeypatch):
+    import scanner.day_trader_opportunity as scanner
+
+    calls = []
+
+    def fake_download(**_kwargs):
+        calls.append(True)
+        raise TimeoutError("provider timeout")
+
+    monkeypatch.setattr(scanner.yf, "download", fake_download)
+    monkeypatch.setattr(scanner.time, "sleep", lambda _delay: None)
+
+    result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
+
+    assert result.empty
+    assert attempts == scanner.CHUNK_DOWNLOAD_ATTEMPTS
+    assert len(calls) == scanner.CHUNK_DOWNLOAD_ATTEMPTS
