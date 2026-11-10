@@ -3,8 +3,8 @@ import pandas as pd
 from scanner.day_trader_opportunity import (
     _candle_settings,
     _ticker,
-    score_opportunity_rows,
     scan_has_provider_data,
+    score_opportunity_rows,
     select_day_trader_universe,
     summarize_day_trading_setup,
 )
