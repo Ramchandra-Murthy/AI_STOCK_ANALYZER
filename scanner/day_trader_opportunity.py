@@ -101,6 +101,18 @@ def select_day_trader_universe(
     return sorted(set(filtered), key=lambda item: (item[1], item[0]))
 
 
+def _add_coverage_diagnostics(stats: dict[str, Any]) -> dict[str, Any]:
+    """Add explicit universe-resolution and usable-data coverage metrics."""
+    candidates = int(stats.get("candidate_count", 0) or 0)
+    mapped = int(stats.get("mapped_symbol_count", 0) or 0)
+    usable = int(stats.get("usable_data_count", 0) or 0)
+    stats["no_usable_data_count"] = max(0, mapped - usable)
+    stats["data_coverage_pct"] = round(100.0 * usable / candidates, 1) if candidates else 0.0
+    stats["universe_resolution_pct"] = round(100.0 * mapped / candidates, 1) if candidates else 0.0
+    stats["scan_completed"] = True
+    return stats
+
+
 def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     """Use the smallest candle interval that supports the requested lookback."""
     if lookback_minutes in (2, 3):
@@ -251,7 +263,8 @@ def scan_day_trader_opportunities(
     rows: list[dict[str, Any]] = []
     scan_stats: dict[str, Any] = {
         "candidate_count": len(universe),
-        "attempted_count": 0,
+        "attempted_count": len(universe),
+        "mapped_symbol_count": 0,
         "usable_data_count": 0,
         "strategy_count": 0,
         "download_failed_chunks": 0,
@@ -276,9 +289,12 @@ def scan_day_trader_opportunities(
             ticker is None for ticker in resolved_tickers
         )
         tickers = [ticker for ticker in resolved_tickers if ticker is not None]
+        scan_stats["mapped_symbol_count"] += len(tickers)
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
-            scan_stats["attempted_count"] += len(chunk)
+            scan_stats["downloaded_chunk_symbol_count"] = scan_stats.get(
+                "downloaded_chunk_symbol_count", 0
+            ) + len(chunk)
             try:
                 history = yf.download(
                     tickers=chunk,
@@ -460,6 +476,9 @@ def scan_day_trader_opportunities(
                     )
                 except (KeyError, TypeError, ValueError, IndexError):
                     continue
+
+    scan_stats["unmapped_symbol_count"] = scan_stats.get("unmapped_symbol_count", 0)
+    _add_coverage_diagnostics(scan_stats)
 
     if not rows:
         empty = pd.DataFrame()
