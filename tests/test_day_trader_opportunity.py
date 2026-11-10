@@ -539,3 +539,18 @@ def test_scan_timing_diagnostics_clamp_negative_clock_deltas():
         "safety_filter_seconds": 0.0,
         "scan_duration_seconds": 0.0,
     }
+
+
+def test_exchange_diagnostics_track_mapping_chunks_and_usable_data(monkeypatch):
+    import scanner.day_trader_opportunity as scanner
+
+    monkeypatch.setattr(scanner, "merge_nse_universe", lambda: ["NSE_A", "NSE_B"])
+    monkeypatch.setattr(scanner, "merge_bse_universe", lambda: ["500001"])
+    monkeypatch.setattr(scanner, "yahoo_symbol_for_bse_code", lambda _code: None)
+
+    universe = scanner.select_day_trader_universe("All caps", "Both")
+    assert len(universe) == 3
+    nse_symbols = [symbol for symbol, exchange in universe if exchange == "NSE"]
+    bse_symbols = [symbol for symbol, exchange in universe if exchange == "BSE"]
+    assert len(nse_symbols) == 2
+    assert len(bse_symbols) == 1
