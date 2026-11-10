@@ -572,3 +572,34 @@ def test_exchange_diagnostics_round_download_time_and_preserve_counts():
     assert result["NSE"]["usable_data_count"] == 900
     assert result["BSE"]["download_seconds"] == 0.0
     assert result["BSE"]["mapped_symbol_count"] == 2100
+
+
+def test_candle_age_minutes_handles_aware_and_naive_timestamps():
+    from scanner.day_trader_opportunity import candle_age_minutes
+
+    now = pd.Timestamp("2026-11-10 10:15:00", tz="Asia/Kolkata")
+    assert candle_age_minutes(pd.Timestamp("2026-11-10 10:05:00", tz="Asia/Kolkata"), now) == 10.0
+    assert candle_age_minutes(pd.Timestamp("2026-11-10 10:05:00"), now) == 10.0
+
+
+def test_candle_age_minutes_rejects_invalid_timestamp():
+    from scanner.day_trader_opportunity import candle_age_minutes
+
+    assert candle_age_minutes("not-a-timestamp") is None
+
+
+def test_freshness_limits_reflect_exchange_provider_delay():
+    from scanner.day_trader_opportunity import max_candle_age_minutes
+
+    assert max_candle_age_minutes("NSE", "5m") == 15.0
+    assert max_candle_age_minutes("BSE", "5m") == 30.0
+    assert max_candle_age_minutes("NSE", "1m") == 10.0
+    assert max_candle_age_minutes("BSE", "1m") == 25.0
+
+
+def test_candle_age_clamps_future_timestamps_to_zero():
+    from scanner.day_trader_opportunity import candle_age_minutes
+
+    now = pd.Timestamp("2026-11-10 10:15:00", tz="Asia/Kolkata")
+    future = pd.Timestamp("2026-11-10 10:16:00", tz="Asia/Kolkata")
+    assert candle_age_minutes(future, now) == 0.0
