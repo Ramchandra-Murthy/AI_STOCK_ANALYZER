@@ -41,3 +41,29 @@ def test_first_automatic_scan_waits_until_0925_ist():
     assert seconds_until_first_scan(just_before) == 30
     assert seconds_until_first_scan(at_first_scan) == 0
     assert seconds_until_first_scan(after_first_scan) == 0
+
+
+
+def test_naive_market_time_is_interpreted_as_india_local_time():
+    # Deployment hosts may run in UTC; naive dashboard timestamps must not
+    # be reinterpreted using the host machine's timezone.
+    assert market_is_open(datetime.fromisoformat("2026-09-21T12:00:00")) is True
+    assert market_is_open(datetime.fromisoformat("2026-09-20T12:00:00")) is False
+
+
+def test_market_session_boundaries_are_half_open():
+    assert market_is_open(datetime.fromisoformat("2026-09-21T09:14:59+05:30")) is False
+    assert market_is_open(datetime.fromisoformat("2026-09-21T09:15:00+05:30")) is True
+    assert market_is_open(datetime.fromisoformat("2026-09-21T15:29:59+05:30")) is True
+    assert market_is_open(datetime.fromisoformat("2026-09-21T15:30:00+05:30")) is False
+
+
+def test_naive_refresh_timestamps_are_interpreted_as_india_local_time():
+    last = datetime.fromisoformat("2026-09-21T12:00:00")
+    now = datetime.fromisoformat("2026-09-21T12:03:30")
+    assert next_refresh_seconds(last, 300, now) == 90
+
+
+def test_naive_first_scan_clock_uses_india_local_time():
+    at_open = datetime.fromisoformat("2026-09-21T09:15:00")
+    assert seconds_until_first_scan(at_open) == 600
