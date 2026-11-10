@@ -151,31 +151,67 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
 
     result = rows.copy()
-    momentum = (result["5-min change %"].clip(lower=0) / 2.0 * 35).clip(upper=35)
+    change = result["5-min change %"]
+    long_momentum = (change.clip(lower=0) / 2.0 * 35).clip(upper=35)
+    short_momentum = ((-change).clip(lower=0) / 2.0 * 35).clip(upper=35)
     volume = ((result["Volume surge x"] - 1.0).clip(lower=0) / 2.0 * 30).clip(upper=30)
     volatility = (result["Session range %"].clip(lower=0) / 4.0 * 20).clip(upper=20)
     breakout = result["Breakout"].eq("YES").astype(float) * 15
-    result["Opportunity score"] = (momentum + volume + volatility + breakout).round(1)
+    breakdown_column = "Strategy breakdown" if "Strategy breakdown" in result else "Breakdown"
+    breakdown = (
+        result.get(breakdown_column, pd.Series("NO", index=result.index)).eq("YES").astype(float)
+        * 15
+    )
+    long_score = long_momentum + volume + volatility + breakout
+    short_score = short_momentum + volume + volatility + breakdown
+    result["Opportunity score"] = pd.concat([long_score, short_score], axis=1).max(axis=1).round(1)
 
     setup_score = result.get("Setup score", result["Opportunity score"])
     result["Composite score"] = (result["Opportunity score"] * 0.6 + setup_score * 0.4).round(1)
+    inferred_direction = pd.Series("NEUTRAL", index=result.index)
+    inferred_direction = inferred_direction.mask(change > 0, "LONG").mask(change < 0, "SHORT")
+    direction = result.get("Direction", inferred_direction).fillna(inferred_direction)
+    direction_order = {"LONG": 0, "NEUTRAL": 1, "SHORT": 2}
+    result["_direction_order"] = direction.map(direction_order).fillna(1)
 
     result["Setup"] = "Momentum watch"
+    long_momentum = (direction.eq("LONG")) & (result["5-min change %"] >= 0.75)
+    short_momentum = (direction.eq("SHORT")) & (result["5-min change %"] <= -0.75)
+    volume_confirmed = result["Volume surge x"] >= 1.5
+    result.loc[long_momentum & volume_confirmed, "Setup"] = "Bullish volume + momentum"
+    result.loc[short_momentum & volume_confirmed, "Setup"] = "Bearish volume + momentum"
+    result.loc[direction.eq("LONG") & result["Breakout"].eq("YES"), "Setup"] = "Breakout watch"
+    breakdown_signal = result.get(
+        "Strategy breakdown",
+        result.get("Breakdown", pd.Series("NO", index=result.index)),
+    )
     result.loc[
-        (result["Volume surge x"] >= 1.5) & (result["5-min change %"] >= 0.75),
+        direction.eq("SHORT") & breakdown_signal.eq("YES"),
         "Setup",
-    ] = "Volume + momentum"
-    result.loc[result["Breakout"].eq("YES"), "Setup"] = "Breakout watch"
+    ] = "Breakdown watch"
     result.loc[
-        result["Low-price flag"].eq("YES") & (result["Volume surge x"] >= 1.5),
+        direction.eq("LONG") & result["Low-price flag"].eq("YES") & volume_confirmed,
         "Setup",
-    ] = "Low-price volume watch"
+    ] = "Low-price bullish volume watch"
+    result.loc[
+        direction.eq("SHORT") & result["Low-price flag"].eq("YES") & volume_confirmed,
+        "Setup",
+    ] = "Low-price bearish volume watch"
 
-    return result.sort_values(
-        ["Composite score", "Opportunity score", "5-min change %", "Volume surge x"],
-        ascending=[False, False, False, False],
-        na_position="last",
-    ).reset_index(drop=True)
+    return (
+        result.sort_values(
+            [
+                "_direction_order",
+                "Composite score",
+                "Opportunity score",
+                "Volume surge x",
+            ],
+            ascending=[True, False, False, False],
+            na_position="last",
+        )
+        .drop(columns=["_direction_order"])
+        .reset_index(drop=True)
+    )
 
 
 def scan_day_trader_opportunities(
@@ -295,11 +331,26 @@ def scan_day_trader_opportunities(
 
                     prior_highs = high.iloc[-21:-1] if len(high) >= 21 else high.iloc[:-1]
                     breakout = len(prior_highs) > 0 and price > float(prior_highs.max())
+                    prior_lows = (
+                        pd.to_numeric(session["Low"], errors="coerce").iloc[-21:-1]
+                        if len(session) >= 21
+                        else pd.to_numeric(session["Low"], errors="coerce").iloc[:-1]
+                    )
+                    breakdown = len(prior_lows) > 0 and price < float(prior_lows.min())
 
-                    price_pass = change >= min_change_percent
+                    # Include meaningful downside moves as short candidates too.
+                    price_pass = abs(change) >= min_change_percent
                     volume_pass = volume_surge >= min_volume_surge
                     if price_pass:
                         scan_stats["price_change_pass_count"] += 1
+                    if change < 0 and price_pass:
+                        scan_stats["downside_move_pass_count"] = (
+                            scan_stats.get("downside_move_pass_count", 0) + 1
+                        )
+                    elif change > 0 and price_pass:
+                        scan_stats["upside_move_pass_count"] = (
+                            scan_stats.get("upside_move_pass_count", 0) + 1
+                        )
                     if volume_pass:
                         scan_stats["volume_surge_pass_count"] += 1
                     if price_pass and volume_pass:
@@ -367,6 +418,7 @@ def scan_day_trader_opportunities(
                             "Volume surge x": round(volume_surge, 2),
                             "Session range %": round(session_range, 2),
                             "Breakout": "YES" if breakout else "—",
+                            "Breakdown": "YES" if breakdown else "—",
                             "Day-trading setup": strategy_name,
                             "Direction": direction,
                             "Setup state": setup_state,

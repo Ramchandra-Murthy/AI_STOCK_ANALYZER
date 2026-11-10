@@ -35,7 +35,7 @@ def test_score_ranks_volume_momentum_breakout():
 
     assert result.iloc[0]["Symbol"] == "A"
     assert result.iloc[0]["Opportunity score"] == 100.0
-    assert result.iloc[0]["Setup"] == "Low-price volume watch"
+    assert result.iloc[0]["Setup"] == "Low-price bullish volume watch"
 
 
 def test_score_handles_empty_input():
@@ -313,3 +313,83 @@ def test_ticker_resolves_bse_scrip_codes_to_yahoo_symbols(monkeypatch):
     assert _ticker("532540", "BSE") == "TCS.BO"
     assert _ticker("999999", "BSE") is None
     assert _ticker("RELIANCE", "NSE") == "RELIANCE.NS"
+
+
+def test_score_ranks_long_neutral_then_short_and_scores_downside():
+    rows = pd.DataFrame(
+        [
+            {
+                "Symbol": "SHORT_STRONG",
+                "Direction": "SHORT",
+                "5-min change %": -2.0,
+                "Volume surge x": 3.0,
+                "Session range %": 4.0,
+                "Breakout": "—",
+                "Breakdown": "YES",
+                "Low-price flag": "—",
+                "Setup score": 90,
+            },
+            {
+                "Symbol": "NEUTRAL",
+                "Direction": "NEUTRAL",
+                "5-min change %": 0.0,
+                "Volume surge x": 1.0,
+                "Session range %": 1.0,
+                "Breakout": "—",
+                "Breakdown": "—",
+                "Low-price flag": "—",
+                "Setup score": 20,
+            },
+            {
+                "Symbol": "LONG_STRONG",
+                "Direction": "LONG",
+                "5-min change %": 2.0,
+                "Volume surge x": 3.0,
+                "Session range %": 4.0,
+                "Breakout": "YES",
+                "Breakdown": "—",
+                "Low-price flag": "—",
+                "Setup score": 90,
+            },
+        ]
+    )
+
+    result = score_opportunity_rows(rows)
+
+    assert result["Symbol"].tolist() == ["LONG_STRONG", "NEUTRAL", "SHORT_STRONG"]
+    assert result.loc[result["Symbol"].eq("SHORT_STRONG"), "Opportunity score"].iloc[0] == 100.0
+    assert result.loc[result["Symbol"].eq("LONG_STRONG"), "Opportunity score"].iloc[0] == 100.0
+
+
+def test_score_labels_bearish_momentum_and_breakdown():
+    rows = pd.DataFrame(
+        [
+            {
+                "Symbol": "BEARISH_MOMENTUM",
+                "Direction": "SHORT",
+                "5-min change %": -1.2,
+                "Volume surge x": 2.0,
+                "Session range %": 2.0,
+                "Breakout": "—",
+                "Breakdown": "—",
+                "Low-price flag": "—",
+                "Setup score": 75,
+            },
+            {
+                "Symbol": "BEARISH_BREAKDOWN",
+                "Direction": "SHORT",
+                "5-min change %": -0.4,
+                "Volume surge x": 1.2,
+                "Session range %": 2.0,
+                "Breakout": "—",
+                "Breakdown": "YES",
+                "Low-price flag": "—",
+                "Setup score": 80,
+            },
+        ]
+    )
+
+    result = score_opportunity_rows(rows).set_index("Symbol")
+
+    assert result.loc["BEARISH_MOMENTUM", "Setup"] == "Bearish volume + momentum"
+    assert result.loc["BEARISH_BREAKDOWN", "Setup"] == "Breakdown watch"
