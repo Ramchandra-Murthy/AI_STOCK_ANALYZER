@@ -647,4 +647,3 @@ def test_completed_volume_bars_returns_empty_for_unsupported_interval():
     volume = pd.Series([100], index=pd.date_range("2026-11-10 10:00", periods=1, tz="Asia/Kolkata"))
 
     assert _completed_volume_bars(volume, "15m").empty
-
