@@ -6,7 +6,10 @@ import pandas as pd
 import streamlit as st
 
 from api.main import _SCAN_MANAGER
-from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from scanner.day_trader_opportunity import (
+    scan_day_trader_opportunities,
+    scan_has_provider_data,
+)
 from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.price_jump_history_analytics import summarize_price_jump_history
 from services.price_jump_watchlist_delta import compare_watchlists
@@ -296,12 +299,7 @@ if scan_requested or auto_scan_requested:
                 )
 
             scan_stats = results.attrs.get("scan_stats", {}) if results is not None else {}
-            no_provider_data = (
-                int(scan_stats.get("mapped_symbol_count", 0) or 0) > 0
-                and int(scan_stats.get("nonempty_chunks", 0) or 0) == 0
-                and int(scan_stats.get("download_failed_chunks", 0) or 0) > 0
-            )
-            if results is None or no_provider_data:
+            if results is None or not scan_has_provider_data(scan_stats):
                 st.session_state["intraday_last_scan_status"] = "FAILED"
                 st.session_state["intraday_scan_stats"] = scan_stats
                 st.error(
