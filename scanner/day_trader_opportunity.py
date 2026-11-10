@@ -251,7 +251,8 @@ def scan_day_trader_opportunities(
     rows: list[dict[str, Any]] = []
     scan_stats: dict[str, Any] = {
         "candidate_count": len(universe),
-        "attempted_count": 0,
+        "attempted_count": len(universe),
+        "mapped_symbol_count": 0,
         "usable_data_count": 0,
         "strategy_count": 0,
         "download_failed_chunks": 0,
@@ -276,9 +277,12 @@ def scan_day_trader_opportunities(
             ticker is None for ticker in resolved_tickers
         )
         tickers = [ticker for ticker in resolved_tickers if ticker is not None]
+        scan_stats["mapped_symbol_count"] += len(tickers)
         for start in range(0, len(tickers), CHUNK_SIZE):
             chunk = tickers[start : start + CHUNK_SIZE]
-            scan_stats["attempted_count"] += len(chunk)
+            scan_stats["downloaded_chunk_symbol_count"] = (
+                scan_stats.get("downloaded_chunk_symbol_count", 0) + len(chunk)
+            )
             try:
                 history = yf.download(
                     tickers=chunk,
@@ -460,6 +464,18 @@ def scan_day_trader_opportunities(
                     )
                 except (KeyError, TypeError, ValueError, IndexError):
                     continue
+
+    scan_stats["unmapped_symbol_count"] = scan_stats.get("unmapped_symbol_count", 0)
+    scan_stats["no_usable_data_count"] = max(
+        0, scan_stats["mapped_symbol_count"] - scan_stats["usable_data_count"]
+    )
+    scan_stats["data_coverage_pct"] = round(
+        100.0 * scan_stats["usable_data_count"] / scan_stats["candidate_count"], 1
+    ) if scan_stats["candidate_count"] else 0.0
+    scan_stats["universe_resolution_pct"] = round(
+        100.0 * scan_stats["mapped_symbol_count"] / scan_stats["candidate_count"], 1
+    ) if scan_stats["candidate_count"] else 0.0
+    scan_stats["scan_completed"] = True
 
     if not rows:
         empty = pd.DataFrame()
