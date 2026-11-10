@@ -101,6 +101,18 @@ def select_day_trader_universe(
     return sorted(set(filtered), key=lambda item: (item[1], item[0]))
 
 
+def _add_coverage_diagnostics(stats: dict[str, Any]) -> dict[str, Any]:
+    """Add explicit universe-resolution and usable-data coverage metrics."""
+    candidates = int(stats.get("candidate_count", 0) or 0)
+    mapped = int(stats.get("mapped_symbol_count", 0) or 0)
+    usable = int(stats.get("usable_data_count", 0) or 0)
+    stats["no_usable_data_count"] = max(0, mapped - usable)
+    stats["data_coverage_pct"] = round(100.0 * usable / candidates, 1) if candidates else 0.0
+    stats["universe_resolution_pct"] = round(100.0 * mapped / candidates, 1) if candidates else 0.0
+    stats["scan_completed"] = True
+    return stats
+
+
 def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     """Use the smallest candle interval that supports the requested lookback."""
     if lookback_minutes in (2, 3):
@@ -466,16 +478,7 @@ def scan_day_trader_opportunities(
                     continue
 
     scan_stats["unmapped_symbol_count"] = scan_stats.get("unmapped_symbol_count", 0)
-    scan_stats["no_usable_data_count"] = max(
-        0, scan_stats["mapped_symbol_count"] - scan_stats["usable_data_count"]
-    )
-    scan_stats["data_coverage_pct"] = round(
-        100.0 * scan_stats["usable_data_count"] / scan_stats["candidate_count"], 1
-    ) if scan_stats["candidate_count"] else 0.0
-    scan_stats["universe_resolution_pct"] = round(
-        100.0 * scan_stats["mapped_symbol_count"] / scan_stats["candidate_count"], 1
-    ) if scan_stats["candidate_count"] else 0.0
-    scan_stats["scan_completed"] = True
+    _add_coverage_diagnostics(scan_stats)
 
     if not rows:
         empty = pd.DataFrame()
