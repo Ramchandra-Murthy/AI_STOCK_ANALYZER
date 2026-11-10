@@ -828,3 +828,62 @@ def test_day_trade_plan_preserves_directional_level_geometry():
     )
     assert short_plan["Target 3"] < short_plan["Target 2"] < short_plan["Target 1"]
     assert short_plan["Target 1"] < short_plan["Entry reference"] < short_plan["Stop reference"]
+
+
+def test_frame_extracts_ticker_first_yfinance_columns():
+    from scanner.day_trader_opportunity import _frame
+
+    index = pd.date_range("2026-11-10 09:15", periods=2, freq="5min")
+    columns = pd.MultiIndex.from_product([["ABC.NS"], ["Open", "High", "Low", "Close", "Volume"]])
+    history = pd.DataFrame(
+        [[100, 103, 99, 102, 1000], [102, 104, 101, 103, 1200]],
+        index=index,
+        columns=columns,
+    )
+
+    result = _frame(history, "ABC.NS")
+
+    assert result.columns.tolist() == ["Open", "High", "Low", "Close", "Volume"]
+    assert result["Close"].tolist() == [102, 103]
+
+
+def test_frame_extracts_field_first_yfinance_columns():
+    from scanner.day_trader_opportunity import _frame
+
+    index = pd.date_range("2026-11-10 09:15", periods=2, freq="5min")
+    history = pd.DataFrame(
+        {
+            ("Open", "ABC.NS"): [100, 102],
+            ("High", "ABC.NS"): [103, 104],
+            ("Low", "ABC.NS"): [99, 101],
+            ("Close", "ABC.NS"): [102, 103],
+            ("Volume", "ABC.NS"): [1000, 1200],
+        },
+        index=index,
+    )
+
+    result = _frame(history, "ABC.NS")
+
+    assert result["Close"].tolist() == [102, 103]
+    assert result["Volume"].tolist() == [1000, 1200]
+
+
+def test_frame_rejects_invalid_ohlcv_rows():
+    from scanner.day_trader_opportunity import _frame
+
+    index = pd.date_range("2026-11-10 09:15", periods=3, freq="5min")
+    history = pd.DataFrame(
+        {
+            "Open": [100, 100, 100],
+            "High": [103, 99, 103],
+            "Low": [99, 98, 99],
+            "Close": [102, 101, 102],
+            "Volume": [1000, 1000, -1],
+        },
+        index=index,
+    )
+
+    result = _frame(history, "ABC.NS")
+
+    assert len(result) == 1
+    assert result["Close"].tolist() == [102]
