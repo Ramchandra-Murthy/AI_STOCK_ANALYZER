@@ -495,3 +495,24 @@ def test_broad_market_screen_uses_larger_batches_and_reports_progress(monkeypatc
     assert coverage["NSE"]["histories_returned"] == 205
     assert len(progress) == 3
     assert all(exchange == "NSE" and total == 3 for exchange, _done, total in progress)
+
+
+
+def test_market_scan_records_resource_diagnostics_when_no_movers(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    monkeypatch.setattr(market_scanner, "merge_nse_universe", lambda: ["RELIANCE"])
+    monkeypatch.setattr(market_scanner, "merge_bse_universe", lambda: [])
+    monkeypatch.setattr(
+        market_scanner,
+        "_batch_change_screen",
+        lambda candidates, coverage=None: [],
+    )
+
+    result = market_scanner.market_scan("NSE")
+    timings = result.attrs["scanner_timings"]
+
+    assert timings["screen_workers"] == 2
+    assert timings["download_chunk_size"] == 100
+    assert timings["cpu_seconds"] >= 0
+    assert timings["total_seconds"] >= 0
