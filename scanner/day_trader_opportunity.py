@@ -148,6 +148,14 @@ def _add_coverage_diagnostics(stats: dict[str, Any]) -> dict[str, Any]:
     return stats
 
 
+
+def scan_has_provider_data(scan_stats: dict[str, Any]) -> bool:
+    """Return whether at least one mapped-symbol download chunk returned data."""
+    mapped = int(scan_stats.get("mapped_symbol_count", 0) or 0)
+    nonempty = int(scan_stats.get("nonempty_chunks", 0) or 0)
+    failed = int(scan_stats.get("download_failed_chunks", 0) or 0)
+    return mapped == 0 or nonempty > 0 or failed == 0
+
 def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     """Use the smallest candle interval that supports the requested lookback."""
     if lookback_minutes in (2, 3):
