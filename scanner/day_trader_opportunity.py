@@ -9,6 +9,7 @@ to have a usable intraday quote.
 from __future__ import annotations
 
 import time
+from time import perf_counter
 from typing import Any
 
 import pandas as pd
@@ -295,6 +296,9 @@ def scan_day_trader_opportunities(
     ):
         return pd.DataFrame()
 
+    scan_started = perf_counter()
+    download_seconds = 0.0
+    analysis_seconds = 0.0
     universe = select_day_trader_universe(cap_category, exchange_category)
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
 
@@ -339,7 +343,9 @@ def scan_day_trader_opportunities(
             scan_stats["downloaded_chunk_symbol_count"] = scan_stats.get(
                 "downloaded_chunk_symbol_count", 0
             ) + len(chunk)
+            download_started = perf_counter()
             history, download_attempts = _download_chunk_with_retry(chunk, interval)
+            download_seconds += perf_counter() - download_started
             scan_stats["download_attempts"] = (
                 scan_stats.get("download_attempts", 0) + download_attempts
             )
@@ -349,6 +355,7 @@ def scan_day_trader_opportunities(
                 continue
 
             scan_stats["nonempty_chunks"] += 1
+            analysis_started = perf_counter()
             for ticker in chunk:
                 try:
                     data = _frame(history, ticker)
@@ -511,7 +518,11 @@ def scan_day_trader_opportunities(
                     )
                 except (KeyError, TypeError, ValueError, IndexError):
                     continue
+            analysis_seconds += perf_counter() - analysis_started
 
+    scan_stats["download_seconds"] = round(download_seconds, 3)
+    scan_stats["analysis_seconds"] = round(analysis_seconds, 3)
+    scan_stats["scan_duration_seconds"] = round(perf_counter() - scan_started, 3)
     scan_stats["unmapped_symbol_count"] = scan_stats.get("unmapped_symbol_count", 0)
     _add_coverage_diagnostics(scan_stats)
 
@@ -528,8 +539,11 @@ def scan_day_trader_opportunities(
     )
 
     nse_symbols = result.loc[result["Exchange"].eq("NSE"), "Symbol"].tolist()
+    safety_started = perf_counter()
     safety, _ = fetch_nse_safety_snapshot(nse_symbols)
     result = apply_safety_filter(result, safety, exclude_flagged=False)
+    scan_stats["safety_filter_seconds"] = round(perf_counter() - safety_started, 3)
+    scan_stats["scan_duration_seconds"] = round(perf_counter() - scan_started, 3)
     scan_stats["matches_after_safety"] = len(result)
     scan_stats["filtered_count"] = max(
         0,
