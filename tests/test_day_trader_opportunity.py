@@ -541,16 +541,35 @@ def test_scan_timing_diagnostics_clamp_negative_clock_deltas():
     }
 
 
-def test_exchange_diagnostics_track_mapping_chunks_and_usable_data(monkeypatch):
-    import scanner.day_trader_opportunity as scanner
 
-    monkeypatch.setattr(scanner, "merge_nse_universe", lambda: ["NSE_A", "NSE_B"])
-    monkeypatch.setattr(scanner, "merge_bse_universe", lambda: ["500001"])
-    monkeypatch.setattr(scanner, "yahoo_symbol_for_bse_code", lambda _code: None)
+def test_exchange_diagnostics_round_download_time_and_preserve_counts():
+    from scanner.day_trader_opportunity import _finalize_exchange_diagnostics
 
-    universe = scanner.select_day_trader_universe("All caps", "Both")
-    assert len(universe) == 3
-    nse_symbols = [symbol for symbol, exchange in universe if exchange == "NSE"]
-    bse_symbols = [symbol for symbol, exchange in universe if exchange == "BSE"]
-    assert len(nse_symbols) == 2
-    assert len(bse_symbols) == 1
+    result = _finalize_exchange_diagnostics(
+        {
+            "NSE": {
+                "candidate_count": 1200,
+                "mapped_symbol_count": 1180,
+                "chunks_attempted": 12,
+                "chunks_succeeded": 11,
+                "chunks_failed": 1,
+                "usable_data_count": 900,
+                "download_seconds": 23.45678,
+            },
+            "BSE": {
+                "candidate_count": 3000,
+                "mapped_symbol_count": 2100,
+                "chunks_attempted": 21,
+                "chunks_succeeded": 18,
+                "chunks_failed": 3,
+                "usable_data_count": 1400,
+                "download_seconds": -0.2,
+            },
+        }
+    )
+
+    assert result["NSE"]["download_seconds"] == 23.457
+    assert result["NSE"]["chunks_failed"] == 1
+    assert result["NSE"]["usable_data_count"] == 900
+    assert result["BSE"]["download_seconds"] == 0.0
+    assert result["BSE"]["mapped_symbol_count"] == 2100
