@@ -644,9 +644,7 @@ def test_completed_volume_bars_supports_one_minute_data_and_naive_index():
 def test_completed_volume_bars_returns_empty_for_unsupported_interval():
     from scanner.day_trader_opportunity import _completed_volume_bars
 
-    volume = pd.Series(
-        [100], index=pd.date_range("2026-11-10 10:00", periods=1, tz="Asia/Kolkata")
-    )
+    volume = pd.Series([100], index=pd.date_range("2026-11-10 10:00", periods=1, tz="Asia/Kolkata"))
 
     assert _completed_volume_bars(volume, "15m").empty
 
