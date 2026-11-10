@@ -603,3 +603,47 @@ def test_candle_age_clamps_future_timestamps_to_zero():
     now = pd.Timestamp("2026-11-10 10:15:00", tz="Asia/Kolkata")
     future = pd.Timestamp("2026-11-10 10:16:00", tz="Asia/Kolkata")
     assert candle_age_minutes(future, now) == 0.0
+
+
+def test_completed_volume_bars_excludes_in_progress_five_minute_candle():
+    from scanner.day_trader_opportunity import _completed_volume_bars
+
+    index = pd.date_range("2026-11-10 10:00", periods=4, freq="5min", tz="Asia/Kolkata")
+    volume = pd.Series([100, 110, 120, 900], index=index)
+    now = pd.Timestamp("2026-11-10 10:17", tz="Asia/Kolkata")
+
+    result = _completed_volume_bars(volume, "5m", now)
+
+    assert result.tolist() == [100, 110, 120]
+
+
+def test_completed_volume_bars_keeps_fully_closed_five_minute_candle():
+    from scanner.day_trader_opportunity import _completed_volume_bars
+
+    index = pd.date_range("2026-11-10 10:00", periods=4, freq="5min", tz="Asia/Kolkata")
+    volume = pd.Series([100, 110, 120, 130], index=index)
+    now = pd.Timestamp("2026-11-10 10:20", tz="Asia/Kolkata")
+
+    result = _completed_volume_bars(volume, "5m", now)
+
+    assert result.tolist() == [100, 110, 120, 130]
+
+
+def test_completed_volume_bars_supports_one_minute_data_and_naive_index():
+    from scanner.day_trader_opportunity import _completed_volume_bars
+
+    index = pd.date_range("2026-11-10 10:00", periods=4, freq="min")
+    volume = pd.Series([100, 110, 120, 900], index=index)
+    now = pd.Timestamp("2026-11-10 10:03", tz="Asia/Kolkata")
+
+    result = _completed_volume_bars(volume, "1m", now)
+
+    assert result.tolist() == [100, 110, 120]
+
+
+def test_completed_volume_bars_returns_empty_for_unsupported_interval():
+    from scanner.day_trader_opportunity import _completed_volume_bars
+
+    volume = pd.Series([100], index=pd.date_range("2026-11-10 10:00", periods=1, tz="Asia/Kolkata"))
+
+    assert _completed_volume_bars(volume, "15m").empty

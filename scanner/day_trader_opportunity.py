@@ -214,6 +214,33 @@ def candle_age_minutes(timestamp: object, now: object | None = None) -> float | 
         return None
 
 
+def _completed_volume_bars(
+    volume: pd.Series,
+    interval: str,
+    now: object | None = None,
+) -> pd.Series:
+    """Return only volume bars whose full interval has elapsed.
+
+    Yahoo intraday indexes identify bar start times. The newest bar can still
+    be accumulating volume, so it must not be compared with completed bars.
+    """
+    interval_minutes = {"1m": 1, "5m": 5}.get(interval)
+    if interval_minutes is None or volume.empty:
+        return volume.iloc[0:0]
+    current_at = pd.Timestamp.now(tz="Asia/Kolkata") if now is None else pd.Timestamp(now)
+    if current_at.tzinfo is None:
+        current_at = current_at.tz_localize("Asia/Kolkata")
+    else:
+        current_at = current_at.tz_convert("Asia/Kolkata")
+    bar_starts = pd.DatetimeIndex(pd.to_datetime(volume.index))
+    if bar_starts.tz is None:
+        bar_starts = bar_starts.tz_localize("Asia/Kolkata")
+    else:
+        bar_starts = bar_starts.tz_convert("Asia/Kolkata")
+    completed = bar_starts + pd.Timedelta(minutes=interval_minutes) <= current_at
+    return volume.loc[completed].dropna()
+
+
 def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     """Use the smallest candle interval that supports the requested lookback."""
     if lookback_minutes in (2, 3):
@@ -467,8 +494,13 @@ def scan_day_trader_opportunities(
                         continue
 
                     change = (price / prior - 1.0) * 100.0
-                    baseline = float(volume.iloc[-min(21, len(volume) - 1) : -1].median())
-                    latest_volume = float(volume.iloc[-1])
+                    completed_volume = _completed_volume_bars(session["Volume"], interval)
+                    if len(completed_volume) < 6:
+                        continue
+                    baseline = float(
+                        completed_volume.iloc[-min(21, len(completed_volume) - 1) : -1].median()
+                    )
+                    latest_volume = float(completed_volume.iloc[-1])
                     volume_surge = latest_volume / baseline if baseline > 0 else 0.0
 
                     session_high = float(pd.to_numeric(session["High"], errors="coerce").max())
