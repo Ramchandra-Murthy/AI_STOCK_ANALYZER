@@ -149,6 +149,19 @@ def _add_coverage_diagnostics(stats: dict[str, Any]) -> dict[str, Any]:
     return stats
 
 
+def _finalize_exchange_diagnostics(
+    exchange_diagnostics: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """Return exchange diagnostics with stable rounded timing values."""
+    return {
+        exchange: {
+            **metrics,
+            "download_seconds": round(max(0.0, float(metrics.get("download_seconds", 0))), 3),
+        }
+        for exchange, metrics in exchange_diagnostics.items()
+    }
+
+
 def _set_scan_timing_diagnostics(
     scan_stats: dict[str, Any],
     *,
@@ -553,8 +566,9 @@ def scan_day_trader_opportunities(
                     continue
             analysis_seconds += perf_counter() - analysis_started
 
-    for exchange_stats in scan_stats["exchange_diagnostics"].values():
-        exchange_stats["download_seconds"] = round(exchange_stats["download_seconds"], 3)
+    scan_stats["exchange_diagnostics"] = _finalize_exchange_diagnostics(
+        scan_stats["exchange_diagnostics"]
+    )
 
     _set_scan_timing_diagnostics(
         scan_stats,
