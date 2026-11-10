@@ -148,6 +148,14 @@ def _add_coverage_diagnostics(stats: dict[str, Any]) -> dict[str, Any]:
     return stats
 
 
+def scan_has_provider_data(scan_stats: dict[str, Any]) -> bool:
+    """Return whether at least one mapped-symbol download chunk returned data."""
+    mapped = int(scan_stats.get("mapped_symbol_count", 0) or 0)
+    nonempty = int(scan_stats.get("nonempty_chunks", 0) or 0)
+    failed = int(scan_stats.get("download_failed_chunks", 0) or 0)
+    return mapped == 0 or nonempty > 0 or failed == 0
+
+
 def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     """Use the smallest candle interval that supports the requested lookback."""
     if lookback_minutes in (2, 3):
@@ -304,6 +312,7 @@ def scan_day_trader_opportunities(
         "strategy_count": 0,
         "download_failed_chunks": 0,
         "empty_chunks": 0,
+        "nonempty_chunks": 0,
         "filtered_count": 0,
         "price_change_pass_count": 0,
         "volume_surge_pass_count": 0,
@@ -339,6 +348,7 @@ def scan_day_trader_opportunities(
                 scan_stats["empty_chunks"] += 1
                 continue
 
+            scan_stats["nonempty_chunks"] += 1
             for ticker in chunk:
                 try:
                     data = _frame(history, ticker)

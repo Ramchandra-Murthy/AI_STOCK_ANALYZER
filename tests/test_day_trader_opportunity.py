@@ -3,6 +3,7 @@ import pandas as pd
 from scanner.day_trader_opportunity import (
     _candle_settings,
     _ticker,
+    scan_has_provider_data,
     score_opportunity_rows,
     select_day_trader_universe,
     summarize_day_trading_setup,
@@ -462,3 +463,39 @@ def test_chunk_download_stops_after_bounded_failures(monkeypatch):
     assert result.empty
     assert attempts == scanner.CHUNK_DOWNLOAD_ATTEMPTS
     assert len(calls) == scanner.CHUNK_DOWNLOAD_ATTEMPTS
+
+
+def test_scan_provider_data_contract_detects_all_failed_chunks():
+    assert (
+        scan_has_provider_data(
+            {
+                "mapped_symbol_count": 1200,
+                "nonempty_chunks": 0,
+                "download_failed_chunks": 12,
+            }
+        )
+        is False
+    )
+
+
+def test_scan_provider_data_contract_accepts_partial_provider_success():
+    assert (
+        scan_has_provider_data(
+            {
+                "mapped_symbol_count": 1200,
+                "nonempty_chunks": 1,
+                "download_failed_chunks": 11,
+            }
+        )
+        is True
+    )
+
+
+def test_scan_provider_data_contract_accepts_empty_mapped_universe():
+    assert scan_has_provider_data(
+        {
+            "mapped_symbol_count": 0,
+            "nonempty_chunks": 0,
+            "download_failed_chunks": 0,
+        }
+    )

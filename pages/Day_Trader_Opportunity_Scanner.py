@@ -6,7 +6,10 @@ import pandas as pd
 import streamlit as st
 
 from api.main import _SCAN_MANAGER
-from scanner.day_trader_opportunity import scan_day_trader_opportunities
+from scanner.day_trader_opportunity import (
+    scan_day_trader_opportunities,
+    scan_has_provider_data,
+)
 from scanner.price_jump_history import append_price_jump_snapshot
 from scanner.price_jump_history_analytics import summarize_price_jump_history
 from services.price_jump_watchlist_delta import compare_watchlists
@@ -277,69 +280,100 @@ scan_requested = st.button("Scan now", type="primary")
 auto_scan_requested = st.session_state.pop("intraday_auto_refresh_pending", False)
 
 if scan_requested or auto_scan_requested:
-    previous_results = st.session_state.get("day_trader_opportunities")
-    with st.spinner("Scanning the current NSE+BSE candidate universe…"):
-        results = scan_day_trader_opportunities(
-            limit=100,
-            exchange_category=exchange,
-            cap_category=cap_category,
-            max_price=price_limit,
-            lookback_minutes=lookback,
-            min_change_percent=min_change,
-            min_volume_surge=min_volume,
-            low_price_only=low_price_only,
-        )
-    scan_stats = results.attrs.get("scan_stats", {}) if results is not None else {}
-    st.session_state["intraday_scan_stats"] = scan_stats
-    results = results.head(limit).reset_index(drop=True)
-    scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
-    st.session_state["intraday_market_regime"] = classify_scan_regime(results)
-    snapshot_history = st.session_state.get("intraday_scan_snapshots", [])
-    st.session_state["intraday_scan_snapshots"] = record_scan_snapshot(
-        snapshot_history,
-        results,
-        scan_at.to_pydatetime(),
-    )
-    st.session_state["day_trader_opportunities"] = results
-    st.session_state["intraday_last_scan_at"] = scan_at
-    if previous_results is not None:
-        alerts = detect_intraday_alerts(previous_results, results, scan_at.to_pydatetime())
-        alert_history = st.session_state.get("intraday_alert_history", [])
-        st.session_state["intraday_alert_history"] = append_alert_history(alert_history, alerts)
-    scan_health = assess_scan_health(results, scan_at.to_pydatetime())
-    health_history = st.session_state.get("intraday_health_history", [])
-    st.session_state["intraday_health_history"] = record_health_observation(
-        health_history,
-        scan_health,
-        scan_at.to_pydatetime(),
-    )
-    previous_states = st.session_state.get("intraday_setup_states", {})
-    updated_states, transitions = record_setup_state_transitions(
-        previous_states,
-        results,
-        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
-    )
-    st.session_state["intraday_setup_states"] = updated_states
-    previous_monitor = st.session_state.get("intraday_setup_monitor", {})
-    st.session_state["intraday_setup_monitor"] = record_setup_observations(
-        previous_monitor,
-        results,
-        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
-    )
-    previous_outcomes = st.session_state.get("intraday_setup_outcomes", {})
-    st.session_state["intraday_setup_outcomes"] = record_setup_outcomes(
-        previous_outcomes,
-        results,
-        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
-    )
-    previous_windows = st.session_state.get("intraday_multi_window_outcomes", {})
-    st.session_state["intraday_multi_window_outcomes"] = record_multi_window_outcomes(
-        previous_windows,
-        results,
-        pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
-    )
-    history = st.session_state.get("intraday_state_transitions", [])
-    st.session_state["intraday_state_transitions"] = transitions + history
+    if st.session_state.get("intraday_scan_in_progress", False):
+        st.info("An intraday scan is already running. Please wait for it to finish.")
+    else:
+        st.session_state["intraday_scan_in_progress"] = True
+        try:
+            previous_results = st.session_state.get("day_trader_opportunities")
+            with st.spinner("Scanning the current NSE+BSE candidate universe…"):
+                results = scan_day_trader_opportunities(
+                    limit=100,
+                    exchange_category=exchange,
+                    cap_category=cap_category,
+                    max_price=price_limit,
+                    lookback_minutes=lookback,
+                    min_change_percent=min_change,
+                    min_volume_surge=min_volume,
+                    low_price_only=low_price_only,
+                )
+
+            scan_stats = results.attrs.get("scan_stats", {}) if results is not None else {}
+            if results is None or not scan_has_provider_data(scan_stats):
+                st.session_state["intraday_last_scan_status"] = "FAILED"
+                st.session_state["intraday_scan_stats"] = scan_stats
+                st.error(
+                    "The scan could not retrieve usable market-data chunks. "
+                    "Your previous successful results have been preserved. "
+                    "Check the connection/provider and retry."
+                )
+            else:
+                results = results.head(limit).reset_index(drop=True)
+                scan_at = pd.Timestamp.now(tz="Asia/Kolkata")
+                st.session_state["intraday_scan_stats"] = scan_stats
+                st.session_state["intraday_market_regime"] = classify_scan_regime(results)
+                snapshot_history = st.session_state.get("intraday_scan_snapshots", [])
+                st.session_state["intraday_scan_snapshots"] = record_scan_snapshot(
+                    snapshot_history,
+                    results,
+                    scan_at.to_pydatetime(),
+                )
+                st.session_state["day_trader_opportunities"] = results
+                st.session_state["intraday_last_scan_at"] = scan_at
+                st.session_state["intraday_last_scan_status"] = "SUCCESS"
+                if previous_results is not None:
+                    alerts = detect_intraday_alerts(
+                        previous_results,
+                        results,
+                        scan_at.to_pydatetime(),
+                    )
+                    alert_history = st.session_state.get("intraday_alert_history", [])
+                    st.session_state["intraday_alert_history"] = append_alert_history(
+                        alert_history,
+                        alerts,
+                    )
+                scan_health = assess_scan_health(results, scan_at.to_pydatetime())
+                health_history = st.session_state.get("intraday_health_history", [])
+                st.session_state["intraday_health_history"] = record_health_observation(
+                    health_history,
+                    scan_health,
+                    scan_at.to_pydatetime(),
+                )
+                previous_states = st.session_state.get("intraday_setup_states", {})
+                updated_states, transitions = record_setup_state_transitions(
+                    previous_states,
+                    results,
+                    pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+                )
+                st.session_state["intraday_setup_states"] = updated_states
+                previous_monitor = st.session_state.get("intraday_setup_monitor", {})
+                st.session_state["intraday_setup_monitor"] = record_setup_observations(
+                    previous_monitor,
+                    results,
+                    pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+                )
+                previous_outcomes = st.session_state.get("intraday_setup_outcomes", {})
+                st.session_state["intraday_setup_outcomes"] = record_setup_outcomes(
+                    previous_outcomes,
+                    results,
+                    pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+                )
+                previous_windows = st.session_state.get("intraday_multi_window_outcomes", {})
+                st.session_state["intraday_multi_window_outcomes"] = record_multi_window_outcomes(
+                    previous_windows,
+                    results,
+                    pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime(),
+                )
+                history = st.session_state.get("intraday_state_transitions", [])
+                st.session_state["intraday_state_transitions"] = transitions + history
+        except Exception as exc:
+            st.session_state["intraday_last_scan_status"] = "FAILED"
+            st.error(
+                "Intraday scan failed. The previous successful results have been preserved. "
+                f"Details: {exc}"
+            )
+        finally:
+            st.session_state["intraday_scan_in_progress"] = False
 
 raw_results = st.session_state.get("day_trader_opportunities")
 last_scan_at = st.session_state.get("intraday_last_scan_at")
