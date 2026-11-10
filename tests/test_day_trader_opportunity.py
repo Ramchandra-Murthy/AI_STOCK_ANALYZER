@@ -749,6 +749,11 @@ def test_day_trade_plan_preserves_directional_level_geometry():
     )
 
     assert long_plan["Stop reference"] < long_plan["Entry reference"]
-    assert long_plan["Entry reference"] < long_plan["Target 1"] < long_plan["Target 2"] < long_plan["Target 3"]
+    assert (
+        long_plan["Entry reference"]
+        < long_plan["Target 1"]
+        < long_plan["Target 2"]
+        < long_plan["Target 3"]
+    )
     assert short_plan["Target 3"] < short_plan["Target 2"] < short_plan["Target 1"]
     assert short_plan["Target 1"] < short_plan["Entry reference"] < short_plan["Stop reference"]
