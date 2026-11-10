@@ -573,6 +573,7 @@ def test_exchange_diagnostics_round_download_time_and_preserve_counts():
     assert result["BSE"]["download_seconds"] == 0.0
     assert result["BSE"]["mapped_symbol_count"] == 2100
 
+
 def test_candle_age_minutes_handles_aware_and_naive_timestamps():
     from scanner.day_trader_opportunity import candle_age_minutes
 
@@ -602,4 +603,3 @@ def test_candle_age_clamps_future_timestamps_to_zero():
     now = pd.Timestamp("2026-11-10 10:15:00", tz="Asia/Kolkata")
     future = pd.Timestamp("2026-11-10 10:16:00", tz="Asia/Kolkata")
     assert candle_age_minutes(future, now) == 0.0
-
