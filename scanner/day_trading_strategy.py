@@ -203,11 +203,7 @@ def calculate_day_trade_plan(strategy: dict[str, Any]) -> dict[str, Any]:
     direction = (
         "LONG"
         if long_score >= 70 and long_score > short_score
-        else (
-            "SHORT"
-            if short_score >= 70 and short_score > long_score
-            else "NEUTRAL"
-        )
+        else ("SHORT" if short_score >= 70 and short_score > long_score else "NEUTRAL")
     )
 
     if (
