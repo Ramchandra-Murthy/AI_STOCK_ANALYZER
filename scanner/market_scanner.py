@@ -485,9 +485,9 @@ def market_scan(
         coverage[exchange]["screen_attempted_tickers"] = attempted
         coverage[exchange]["mapped_histories_missing"] = missing
         coverage[exchange]["histories_rejected"] = missing
-        coverage[exchange]["history_coverage_pct"] = round(
-            100 * returned / mapped, 1
-        ) if mapped else 0.0
+        coverage[exchange]["history_coverage_pct"] = (
+            round(100 * returned / mapped, 1) if mapped else 0.0
+        )
     if not movers:
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
