@@ -393,3 +393,32 @@ def test_score_labels_bearish_momentum_and_breakdown():
 
     assert result.loc["BEARISH_MOMENTUM", "Setup"] == "Bearish volume + momentum"
     assert result.loc["BEARISH_BREAKDOWN", "Setup"] == "Breakdown watch"
+
+
+def test_coverage_diagnostics_distinguish_unmapped_and_unusable_symbols():
+    from scanner.day_trader_opportunity import _add_coverage_diagnostics
+
+    stats = _add_coverage_diagnostics(
+        {
+            "candidate_count": 100,
+            "mapped_symbol_count": 80,
+            "usable_data_count": 60,
+        }
+    )
+
+    assert stats["no_usable_data_count"] == 20
+    assert stats["data_coverage_pct"] == 60.0
+    assert stats["universe_resolution_pct"] == 80.0
+    assert stats["scan_completed"] is True
+
+
+def test_coverage_diagnostics_handle_empty_universe():
+    from scanner.day_trader_opportunity import _add_coverage_diagnostics
+
+    stats = _add_coverage_diagnostics(
+        {"candidate_count": 0, "mapped_symbol_count": 0, "usable_data_count": 0}
+    )
+
+    assert stats["data_coverage_pct"] == 0.0
+    assert stats["universe_resolution_pct"] == 0.0
+    assert stats["no_usable_data_count"] == 0
