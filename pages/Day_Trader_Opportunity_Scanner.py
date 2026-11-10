@@ -161,8 +161,8 @@ elif options_result.status == "AVAILABLE":
     metric_right.metric("Provider", options_result.provider_symbol.split(":")[0])
 
     option_summary = summarize_option_chain(options_result.chain)
-    st.dataframe(option_summary, use_container_width=True, hide_index=True)
-    st.dataframe(options_result.chain, use_container_width=True, hide_index=True)
+    st.dataframe(option_summary, width="stretch", hide_index=True)
+    st.dataframe(options_result.chain, width="stretch", hide_index=True)
     st.download_button(
         "Download option chain CSV",
         options_result.chain.to_csv(index=False).encode("utf-8"),
@@ -398,7 +398,7 @@ if market_regime:
         "Descriptive breadth and volume context from the latest completed scan; "
         "not a forecast."
     )
-    st.dataframe(pd.DataFrame([market_regime]), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame([market_regime]), width="stretch", hide_index=True)
 
 exchange_pulse = exchange_summary(raw_results)
 st.subheader("NSE / BSE intraday pulse")
@@ -409,7 +409,7 @@ st.caption(
 if exchange_pulse.empty:
     st.caption("Run a scan with both exchanges selected to populate the exchange pulse.")
 else:
-    st.dataframe(exchange_pulse, use_container_width=True, hide_index=True)
+    st.dataframe(exchange_pulse, width="stretch", hide_index=True)
 @st.fragment(run_every=60 if auto_refresh else None, key="price_jump_watchlist")
 def _price_jump_watchlist():
     price_jump_col, price_jump_status = st.columns([4, 1])
@@ -555,7 +555,7 @@ def _price_jump_watchlist():
             ]
             if column in pulse_results.columns
         ]
-        st.dataframe(pulse_results[pulse_columns], use_container_width=True, hide_index=True)
+        st.dataframe(pulse_results[pulse_columns], width="stretch", hide_index=True)
 
         st.subheader("⭐ Top 10 Price-Jump Watchlist")
         if st.session_state.get("price_jump_scan_window") == 1:
@@ -589,7 +589,7 @@ def _price_jump_watchlist():
         ]
         st.dataframe(
             watchlist[watchlist_columns],
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
         st.download_button(
@@ -609,7 +609,7 @@ def _price_jump_watchlist():
             )
             st.dataframe(
                 watchlist_delta,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
         elif st.session_state.get("price_jump_top10_watchlist") is not None:
@@ -632,7 +632,7 @@ def _price_jump_watchlist():
                 "Repeated observations in this Streamlit session show price-jump persistence "
                 "by symbol and exchange."
             )
-            st.dataframe(pulse_history.head(20), use_container_width=True, hide_index=True)
+            st.dataframe(pulse_history.head(20), width="stretch", hide_index=True)
 
 
 _price_jump_watchlist()
@@ -644,7 +644,7 @@ st.caption(
 if snapshots.empty:
     st.caption("No completed scan snapshots are available yet.")
 else:
-    st.dataframe(snapshots.tail(50), use_container_width=True, hide_index=True)
+    st.dataframe(snapshots.tail(50), width="stretch", hide_index=True)
     st.download_button(
         "Download scan snapshot history CSV",
         snapshots.to_csv(index=False).encode("utf-8"),
@@ -661,7 +661,7 @@ st.caption(
 if snapshot_deltas.empty:
     st.caption("Run at least two completed scans to populate scan-change history.")
 else:
-    st.dataframe(snapshot_deltas, use_container_width=True, hide_index=True)
+    st.dataframe(snapshot_deltas, width="stretch", hide_index=True)
     st.download_button(
         "Download scan change history CSV",
         snapshot_deltas.to_csv(index=False).encode("utf-8"),
@@ -678,7 +678,7 @@ st.caption(
 if alert_history.empty:
     st.caption("No changes have been detected between scans yet.")
 else:
-    st.dataframe(alert_history.head(100), use_container_width=True, hide_index=True)
+    st.dataframe(alert_history.head(100), width="stretch", hide_index=True)
     st.download_button(
         "Download intraday alert history CSV",
         alert_history.to_csv(index=False).encode("utf-8"),
@@ -748,11 +748,11 @@ if journal_submit:
         st.rerun()
 
 journal_summary_frame = journal_summary(st.session_state.get("intraday_trade_journal", []))
-st.dataframe(journal_summary_frame, use_container_width=True, hide_index=True)
+st.dataframe(journal_summary_frame, width="stretch", hide_index=True)
 if journal.empty:
     st.caption("No journal entries recorded in this session yet.")
 else:
-    st.dataframe(journal.head(100), use_container_width=True, hide_index=True)
+    st.dataframe(journal.head(100), width="stretch", hide_index=True)
     st.download_button(
         "Download trade journal CSV",
         journal.to_csv(index=False).encode("utf-8"),
@@ -770,11 +770,11 @@ st.caption(
     "Descriptive statistics from journaled closed trades. They summarize recorded history "
     "and are not a forecast of future performance."
 )
-st.dataframe(performance, use_container_width=True, hide_index=True)
+st.dataframe(performance, width="stretch", hide_index=True)
 if not setup_stats.empty:
-    st.dataframe(setup_stats, use_container_width=True, hide_index=True)
+    st.dataframe(setup_stats, width="stretch", hide_index=True)
 if not side_stats.empty:
-    st.dataframe(side_stats, use_container_width=True, hide_index=True)
+    st.dataframe(side_stats, width="stretch", hide_index=True)
 
 health_history = health_history_frame(st.session_state.get("intraday_health_history", []))
 st.subheader("Intraday scan health history")
@@ -785,7 +785,7 @@ st.caption(
 if health_history.empty:
     st.caption("No completed scan health observations are available yet.")
 else:
-    st.dataframe(health_history.head(50), use_container_width=True, hide_index=True)
+    st.dataframe(health_history.head(50), width="stretch", hide_index=True)
     st.download_button(
         "Download scan health history CSV",
         health_history.to_csv(index=False).encode("utf-8"),
@@ -830,7 +830,7 @@ elif raw_results.empty:
         st.subheader("Scan diagnostics")
         st.dataframe(
             pd.DataFrame([diagnostics]),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
     exchange_diagnostics = scan_stats.get("exchange_diagnostics", {})
@@ -838,7 +838,7 @@ elif raw_results.empty:
         st.subheader("Exchange coverage and scan performance")
         exchange_frame = pd.DataFrame.from_dict(exchange_diagnostics, orient="index")
         exchange_frame.index.name = "Exchange"
-        st.dataframe(exchange_frame.reset_index(), use_container_width=True, hide_index=True)
+        st.dataframe(exchange_frame.reset_index(), width="stretch", hide_index=True)
 else:
     results = raw_results.copy()
     scan_stats = st.session_state.get("intraday_scan_stats", {})
@@ -884,7 +884,7 @@ else:
         )
         st.dataframe(
             exchange_frame.reset_index(),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
     if "Latest candle" in results.columns:
@@ -1033,7 +1033,7 @@ else:
                         "Planned R:R": sizing_result.planned_rr,
                     }]
                 ),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
     st.subheader("Intraday quality dashboard")
@@ -1041,7 +1041,7 @@ else:
         "Consolidated session metrics from the observed setup history. "
         "These metrics describe the current session and do not predict future returns."
     )
-    st.dataframe(quality_summary, use_container_width=True, hide_index=True)
+    st.dataframe(quality_summary, width="stretch", hide_index=True)
 
     validation = build_signal_validation_frame(
         st.session_state.get("intraday_setup_outcomes", {}),
@@ -1072,7 +1072,7 @@ else:
     if validation.empty:
         st.caption("No observed setup outcomes are available for validation yet.")
     else:
-        st.dataframe(validation.head(50), use_container_width=True, hide_index=True)
+        st.dataframe(validation.head(50), width="stretch", hide_index=True)
         st.download_button(
             "Download signal validation CSV",
             validation.to_csv(index=False).encode("utf-8"),
@@ -1179,14 +1179,14 @@ else:
                 else:
                     st.dataframe(
                         directional_rows[risk_columns],
-                        use_container_width=True,
+                        width="stretch",
                         hide_index=True,
                     )
         with directional_tabs[3]:
             st.metric("All filtered candidates", len(risk_results))
             st.dataframe(
                 risk_results[risk_columns],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
     st.download_button(
@@ -1201,7 +1201,7 @@ else:
     if transition_history.empty:
         st.caption("No setup-state changes have been observed in this session yet.")
     else:
-        st.dataframe(transition_history.head(50), use_container_width=True, hide_index=True)
+        st.dataframe(transition_history.head(50), width="stretch", hide_index=True)
         st.download_button(
             "Download state-change history CSV",
             transition_history.to_csv(index=False).encode("utf-8"),
@@ -1221,7 +1221,7 @@ else:
     if monitor.empty:
         st.caption("No setup observations are available yet.")
     else:
-        st.dataframe(monitor.head(50), use_container_width=True, hide_index=True)
+        st.dataframe(monitor.head(50), width="stretch", hide_index=True)
         st.download_button(
             "Download setup monitoring CSV",
             monitor.to_csv(index=False).encode("utf-8"),
@@ -1240,7 +1240,7 @@ else:
     if outcomes.empty:
         st.caption("No repeated setup observations are available yet.")
     else:
-        st.dataframe(outcomes.head(50), use_container_width=True, hide_index=True)
+        st.dataframe(outcomes.head(50), width="stretch", hide_index=True)
         st.download_button(
             "Download setup outcome CSV",
             outcomes.to_csv(index=False).encode("utf-8"),
@@ -1257,7 +1257,7 @@ else:
     if window_outcomes.empty:
         st.caption("No multi-window observations are available yet.")
     else:
-        st.dataframe(window_outcomes.head(50), use_container_width=True, hide_index=True)
+        st.dataframe(window_outcomes.head(50), width="stretch", hide_index=True)
         st.download_button(
             "Download multi-window outcome CSV",
             window_outcomes.to_csv(index=False).encode("utf-8"),
@@ -1273,7 +1273,7 @@ else:
     if statistics.empty:
         st.caption("Not enough observed outcomes for statistics yet.")
     else:
-        st.dataframe(statistics, use_container_width=True, hide_index=True)
+        st.dataframe(statistics, width="stretch", hide_index=True)
         st.download_button(
             "Download setup statistics CSV",
             statistics.to_csv(index=False).encode("utf-8"),
@@ -1289,7 +1289,7 @@ else:
     if regime.empty:
         st.caption("Not enough observations for session-phase analysis yet.")
     else:
-        st.dataframe(regime, use_container_width=True, hide_index=True)
+        st.dataframe(regime, width="stretch", hide_index=True)
         st.download_button(
             "Download session-phase statistics CSV",
             regime.to_csv(index=False).encode("utf-8"),
