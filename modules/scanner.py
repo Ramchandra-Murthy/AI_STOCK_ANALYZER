@@ -37,8 +37,11 @@ def _show_data_quality(df: pd.DataFrame) -> None:
     st.subheader("Data quality")
     required = [column for column in ("Symbol", "Price", "RSI", "AI Score") if column in df.columns]
     missing_cells = int(df[required].isna().sum().sum()) if required else 0
+    duplicate_key = (
+        ["Symbol", "Exchange"] if {"Symbol", "Exchange"}.issubset(df.columns) else ["Symbol"]
+    )
     duplicate_symbols = (
-        int(df["Symbol"].astype(str).duplicated().sum()) if "Symbol" in df.columns else 0
+        int(df.duplicated(subset=duplicate_key).sum()) if "Symbol" in df.columns else 0
     )
     invalid_numeric = 0
     for column in ("Price", "RSI", "AI Score"):
@@ -204,7 +207,9 @@ def show():
     )
 
     st.caption(
-        f"Broad candidate pool: {len(NSE_CANDIDATES)} NSE + {len(BSE_CANDIDATES)} BSE symbols. "
+        "Broad Market scans the dynamic mapped NSE/BSE equity universes. "
+        f"The curated starter lists contain {len(NSE_CANDIDATES)} NSE + "
+        f"{len(BSE_CANDIDATES)} BSE symbols; they are not the broad-scan limit. "
         f"Exchange preference: {selected_exchange}."
     )
     if min_volume > 0:
@@ -283,7 +288,10 @@ def show():
                 expanded=False,
             )
 
+            scan_progress_state = {"started": False}
+
             def report_scan_progress(exchange: str, completed: int, initial_total: int) -> None:
+                scan_progress_state["started"] = True
                 scan_status.update(
                     label=(
                         f"Screening {exchange}: {completed} batch(es) processed "
@@ -297,7 +305,12 @@ def show():
                     exchange_filter,
                     _progress_callback=report_scan_progress,
                 )
-                scan_status.update(label="Broad-market scan complete", state="complete")
+                completion_label = (
+                    "Broad-market scan complete"
+                    if scan_progress_state["started"]
+                    else "Broad-market scan complete (cached result reused)"
+                )
+                scan_status.update(label=completion_label, state="complete")
             except Exception:
                 scan_status.update(label="Broad-market scan failed", state="error")
                 raise
@@ -318,6 +331,28 @@ def show():
                     for exchange, counts in scanner_coverage.items()
                 ]
                 _show_coverage_summary(coverage_rows)
+                timings = df.attrs.get("scanner_timings", {})
+                if timings:
+                    st.subheader("Performance diagnostics")
+                    timing_labels = [
+                        ("Universe build", "universe_build_seconds"),
+                        ("Full-universe screen", "screen_seconds"),
+                        ("Shortlist history download", "analysis_download_seconds"),
+                        ("Technical analysis", "analysis_seconds"),
+                        ("Total CPU time", "cpu_seconds"),
+                        ("Total wall time", "total_seconds"),
+                    ]
+                    timing_cols = st.columns(3)
+                    for index, (label, key) in enumerate(timing_labels):
+                        value = timings.get(key)
+                        if value is not None:
+                            timing_cols[index % 3].metric(label, f"{float(value):.1f} s")
+                    st.caption(
+                        "Screen configuration: "
+                        f"{timings.get('screen_workers', 'unknown')} concurrent workers; "
+                        f"{timings.get('download_chunk_size', 'unknown')} symbols per batch. "
+                        "The 5-minute cache avoids repeating a completed scan for the same exchange selection."
+                    )
                 st.subheader("Per-exchange diagnostics")
                 st.dataframe(coverage_rows, width="stretch", hide_index=True)
                 requested = sum(int(row.get("tickers_requested", 0)) for row in coverage_rows)

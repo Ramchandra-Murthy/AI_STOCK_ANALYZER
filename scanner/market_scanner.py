@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 TOP_CANDIDATES_TO_ANALYZE = 20
 DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 100
-MAX_SCREEN_WORKERS = 4
+MAX_SCREEN_WORKERS = 2
 MAX_CANDIDATES_PER_EXCHANGE = 10
 ANALYSIS_PERIOD = "1y"
 MAX_DAILY_DATA_AGE_DAYS = 4
@@ -421,7 +421,11 @@ def market_scan(
 ) -> pd.DataFrame:
     """Scan the selected exchange universe using batched market data and local analysis."""
     scan_started = time.perf_counter()
-    timings: dict[str, float] = {}
+    cpu_started = time.process_time()
+    timings: dict[str, float] = {
+        "screen_workers": MAX_SCREEN_WORKERS,
+        "download_chunk_size": DOWNLOAD_CHUNK_SIZE,
+    }
     selected = exchange_filter.strip().upper()
     universe_started = time.perf_counter()
     candidates = {}
@@ -481,6 +485,7 @@ def market_scan(
     if not movers:
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        timings["cpu_seconds"] = time.process_time() - cpu_started
         timings["total_seconds"] = time.perf_counter() - scan_started
         empty.attrs["scanner_timings"] = timings
         return empty
@@ -506,6 +511,7 @@ def market_scan(
     if not analysis_tickers:
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        timings["cpu_seconds"] = time.process_time() - cpu_started
         timings["total_seconds"] = time.perf_counter() - scan_started
         empty.attrs["scanner_timings"] = timings
         return empty
@@ -519,6 +525,7 @@ def market_scan(
                 coverage[exchange]["analysis_download_failed"] = 1
         empty = pd.DataFrame()
         empty.attrs["scanner_coverage"] = coverage
+        timings["cpu_seconds"] = time.process_time() - cpu_started
         timings["total_seconds"] = time.perf_counter() - scan_started
         empty.attrs["scanner_timings"] = timings
         return empty
@@ -550,6 +557,7 @@ def market_scan(
     df = pd.DataFrame(rows)
     if df.empty:
         df.attrs["scanner_coverage"] = coverage
+        timings["cpu_seconds"] = time.process_time() - cpu_started
         timings["total_seconds"] = time.perf_counter() - scan_started
         df.attrs["scanner_timings"] = timings
         return df
@@ -559,6 +567,7 @@ def market_scan(
     for exchange in coverage:
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage
+    timings["cpu_seconds"] = time.process_time() - cpu_started
     timings["total_seconds"] = time.perf_counter() - scan_started
     result.attrs["scanner_timings"] = timings
     return result
