@@ -541,7 +541,6 @@ def test_scan_timing_diagnostics_clamp_negative_clock_deltas():
     }
 
 
-
 def test_exchange_diagnostics_round_download_time_and_preserve_counts():
     from scanner.day_trader_opportunity import _finalize_exchange_diagnostics
 
