@@ -337,7 +337,8 @@ def show():
                         ("Full-universe screen", "screen_seconds"),
                         ("Shortlist history download", "analysis_download_seconds"),
                         ("Technical analysis", "analysis_seconds"),
-                        ("Total scan", "total_seconds"),
+                        ("Total CPU time", "cpu_seconds"),
+                        ("Total wall time", "total_seconds"),
                     ]
                     timing_cols = st.columns(3)
                     for index, (label, key) in enumerate(timing_labels):
