@@ -847,21 +847,46 @@ else:
             f"Universe: {scan_stats.get('candidate_count', 0)} symbols • "
             f"{scan_stats.get('usable_data_count', 0)} usable "
             f"({scan_stats.get('data_coverage_pct', 0)}% coverage) • "
-            f"{scan_stats.get('matches_before_safety', 0)} matched filters • "
-            f"{scan_stats.get('scan_duration_seconds', 0)}s total "
-            f"(download {scan_stats.get('download_seconds', 0)}s, "
-            f"analysis {scan_stats.get('analysis_seconds', 0)}s)"
+            f"{scan_stats.get('matches_before_safety', 0)} matched filters"
+        )
+        timing_columns = st.columns(4)
+        timing_columns[0].metric(
+            "Total scan",
+            f"{scan_stats.get('scan_duration_seconds', 0)} s",
+        )
+        timing_columns[1].metric(
+            "Yahoo download",
+            f"{scan_stats.get('download_seconds', 0)} s",
+        )
+        timing_columns[2].metric(
+            "Signal analysis",
+            f"{scan_stats.get('analysis_seconds', 0)} s",
+        )
+        timing_columns[3].metric(
+            "Safety checks",
+            f"{scan_stats.get('safety_filter_seconds', 0)} s",
         )
     exchange_diagnostics = scan_stats.get("exchange_diagnostics", {})
     if exchange_diagnostics:
-        with st.expander("Exchange coverage and scan performance"):
-            exchange_frame = pd.DataFrame.from_dict(exchange_diagnostics, orient="index")
-            exchange_frame.index.name = "Exchange"
-            st.dataframe(
-                exchange_frame.reset_index(),
-                use_container_width=True,
-                hide_index=True,
-            )
+        st.subheader("NSE / BSE scan coverage")
+        exchange_frame = pd.DataFrame.from_dict(exchange_diagnostics, orient="index")
+        exchange_frame.index.name = "Exchange"
+        exchange_frame = exchange_frame.rename(
+            columns={
+                "candidate_count": "Candidates",
+                "mapped_symbol_count": "Yahoo mapped",
+                "chunks_attempted": "Chunks attempted",
+                "chunks_succeeded": "Chunks succeeded",
+                "chunks_failed": "Chunks failed",
+                "usable_data_count": "Usable data",
+                "download_seconds": "Download seconds",
+            }
+        )
+        st.dataframe(
+            exchange_frame.reset_index(),
+            use_container_width=True,
+            hide_index=True,
+        )
     if "Latest candle" in results.columns:
         observed = pd.to_datetime(results["Latest candle"], errors="coerce").dropna()
         if not observed.empty:
