@@ -302,6 +302,9 @@ def test_day_trade_plan_state_invalidated():
             "Plan": "LONG reference plan",
             "Entry reference": 101.0,
             "Stop reference": 98.0,
+            "Target 1": 104.0,
+            "Target 2": 107.0,
+            "Target 3": 110.0,
         },
     )
     assert state == "INVALIDATED"
