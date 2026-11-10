@@ -604,7 +604,11 @@ def scan_day_trader_opportunities(
                             "Latest candle": str(latest_candle_at),
                             "Candle age (min)": round(candle_age, 2),
                             "Freshness limit (min)": freshness_limit,
-                            "Data delay": "Up to 15 min provider delay" if exchange == "BSE" else "Provider timestamp",
+                            "Data delay": (
+                                "Up to 15 min provider delay"
+                                if exchange == "BSE"
+                                else "Provider timestamp"
+                            ),
                             "Liquidity": liquidity_warning(price, latest_volume),
                         }
                     )
