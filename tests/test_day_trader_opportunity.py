@@ -357,9 +357,12 @@ def test_score_ranks_long_neutral_then_short_and_scores_downside():
 
     result = score_opportunity_rows(rows)
 
-    assert result["Symbol"].tolist() == ["LONG_STRONG", "NEUTRAL", "SHORT_STRONG"]
+    assert result["Symbol"].tolist() == ["LONG_STRONG", "SHORT_STRONG", "NEUTRAL"]
     assert result.loc[result["Symbol"].eq("SHORT_STRONG"), "Opportunity score"].iloc[0] == 100.0
     assert result.loc[result["Symbol"].eq("LONG_STRONG"), "Opportunity score"].iloc[0] == 100.0
+    assert result.loc[result["Symbol"].eq("SHORT_STRONG"), "Composite score"].iloc[0] == (
+        result.loc[result["Symbol"].eq("LONG_STRONG"), "Composite score"].iloc[0]
+    )
 
 
 def test_score_labels_bearish_momentum_and_breakdown():
