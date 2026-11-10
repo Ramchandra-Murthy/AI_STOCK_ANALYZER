@@ -43,7 +43,6 @@ def test_first_automatic_scan_waits_until_0925_ist():
     assert seconds_until_first_scan(after_first_scan) == 0
 
 
-
 def test_naive_market_time_is_interpreted_as_india_local_time():
     # Deployment hosts may run in UTC; naive dashboard timestamps must not
     # be reinterpreted using the host machine's timezone.
