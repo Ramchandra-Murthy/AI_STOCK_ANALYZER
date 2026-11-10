@@ -185,6 +185,35 @@ def scan_has_provider_data(scan_stats: dict[str, Any]) -> bool:
     return mapped == 0 or nonempty > 0 or failed == 0
 
 
+def max_candle_age_minutes(exchange: str, interval: str) -> float:
+    """Return a conservative source-specific freshness limit for intraday candles.
+
+    Yahoo's BSE intraday coverage can be delayed relative to NSE. The larger
+    BSE allowance avoids misclassifying that known provider delay as bad data.
+    """
+    if exchange == "BSE":
+        return 25.0 if interval == "1m" else 30.0
+    return 10.0 if interval == "1m" else 15.0
+
+
+def candle_age_minutes(timestamp: object, now: object | None = None) -> float | None:
+    """Calculate candle age in minutes, interpreting naive timestamps as IST."""
+    try:
+        candle_at = pd.Timestamp(timestamp)
+        current_at = pd.Timestamp.now(tz="Asia/Kolkata") if now is None else pd.Timestamp(now)
+        if candle_at.tzinfo is None:
+            candle_at = candle_at.tz_localize("Asia/Kolkata")
+        else:
+            candle_at = candle_at.tz_convert("Asia/Kolkata")
+        if current_at.tzinfo is None:
+            current_at = current_at.tz_localize("Asia/Kolkata")
+        else:
+            current_at = current_at.tz_convert("Asia/Kolkata")
+        return max(0.0, (current_at - candle_at).total_seconds() / 60.0)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
 def _candle_settings(lookback_minutes: int) -> tuple[str, int]:
     """Use the smallest candle interval that supports the requested lookback."""
     if lookback_minutes in (2, 3):
@@ -342,6 +371,8 @@ def scan_day_trader_opportunities(
         "attempted_count": len(universe),
         "mapped_symbol_count": 0,
         "usable_data_count": 0,
+        "stale_candle_count": 0,
+        "max_candle_age_minutes": 0.0,
         "strategy_count": 0,
         "download_failed_chunks": 0,
         "empty_chunks": 0,
@@ -369,6 +400,7 @@ def scan_day_trader_opportunities(
             "chunks_succeeded": 0,
             "chunks_failed": 0,
             "usable_data_count": 0,
+            "stale_candle_count": 0,
             "download_seconds": 0.0,
         }
         scan_stats["exchange_diagnostics"][exchange] = exchange_stats
@@ -408,7 +440,18 @@ def scan_day_trader_opportunities(
                     if len(data) <= bars:
                         continue
 
-                    session_date = data.index[-1].date()
+                    latest_candle_at = data.index[-1]
+                    candle_age = candle_age_minutes(latest_candle_at)
+                    freshness_limit = max_candle_age_minutes(exchange, interval)
+                    if candle_age is None or candle_age > freshness_limit:
+                        scan_stats["stale_candle_count"] += 1
+                        exchange_stats["stale_candle_count"] += 1
+                        continue
+                    scan_stats["max_candle_age_minutes"] = round(
+                        max(scan_stats["max_candle_age_minutes"], candle_age), 2
+                    )
+
+                    session_date = latest_candle_at.date()
                     session = data.loc[[stamp.date() == session_date for stamp in data.index]]
                     close = pd.to_numeric(session["Close"], errors="coerce").dropna()
                     high = pd.to_numeric(session["High"], errors="coerce").dropna()
@@ -558,8 +601,10 @@ def scan_day_trader_opportunities(
                             "Strategy breakout": strategy_breakout,
                             "Strategy breakdown": strategy_breakdown,
                             "Low-price flag": "YES" if low_price else "—",
-                            "Latest candle": str(session.index[-1]),
-                            "Data delay": "15 min" if exchange == "BSE" else "Real-time",
+                            "Latest candle": str(latest_candle_at),
+                            "Candle age (min)": round(candle_age, 2),
+                            "Freshness limit (min)": freshness_limit,
+                            "Data delay": "Up to 15 min provider delay" if exchange == "BSE" else "Provider timestamp",
                             "Liquidity": liquidity_warning(price, latest_volume),
                         }
                     )
