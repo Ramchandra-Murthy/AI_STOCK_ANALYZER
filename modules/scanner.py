@@ -37,7 +37,9 @@ def _show_data_quality(df: pd.DataFrame) -> None:
     st.subheader("Data quality")
     required = [column for column in ("Symbol", "Price", "RSI", "AI Score") if column in df.columns]
     missing_cells = int(df[required].isna().sum().sum()) if required else 0
-    duplicate_key = ["Symbol", "Exchange"] if {"Symbol", "Exchange"}.issubset(df.columns) else ["Symbol"]
+    duplicate_key = (
+        ["Symbol", "Exchange"] if {"Symbol", "Exchange"}.issubset(df.columns) else ["Symbol"]
+    )
     duplicate_symbols = (
         int(df.duplicated(subset=duplicate_key).sum()) if "Symbol" in df.columns else 0
     )
