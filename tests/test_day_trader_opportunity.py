@@ -259,7 +259,6 @@ def test_day_trade_plan_rejects_neutral_direction():
     assert result["Entry reference"] is None
 
 
-
 def test_day_trade_plan_requires_confirmed_directional_setup():
     from scanner.day_trading_strategy import calculate_day_trade_plan
 
@@ -328,7 +327,6 @@ def test_day_trade_plan_state_invalidated():
         },
     )
     assert state == "INVALIDATED"
-
 
 
 def test_day_trade_plan_state_rejects_incomplete_or_invalid_plans():
