@@ -499,3 +499,43 @@ def test_scan_provider_data_contract_accepts_empty_mapped_universe():
             "download_failed_chunks": 0,
         }
     )
+
+
+def test_scan_timing_diagnostics_are_rounded_and_non_negative():
+    from scanner.day_trader_opportunity import _set_scan_timing_diagnostics
+
+    stats = {}
+    _set_scan_timing_diagnostics(
+        stats,
+        total_seconds=12.34567,
+        download_seconds=8.76543,
+        analysis_seconds=2.34567,
+        safety_filter_seconds=1.23456,
+    )
+
+    assert stats == {
+        "download_seconds": 8.765,
+        "analysis_seconds": 2.346,
+        "safety_filter_seconds": 1.235,
+        "scan_duration_seconds": 12.346,
+    }
+
+
+def test_scan_timing_diagnostics_clamp_negative_clock_deltas():
+    from scanner.day_trader_opportunity import _set_scan_timing_diagnostics
+
+    stats = {}
+    _set_scan_timing_diagnostics(
+        stats,
+        total_seconds=-1.0,
+        download_seconds=-0.5,
+        analysis_seconds=0.25,
+        safety_filter_seconds=-0.1,
+    )
+
+    assert stats == {
+        "download_seconds": 0.0,
+        "analysis_seconds": 0.25,
+        "safety_filter_seconds": 0.0,
+        "scan_duration_seconds": 0.0,
+    }
