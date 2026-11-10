@@ -335,19 +335,16 @@ def score_opportunity_rows(rows: pd.DataFrame) -> pd.DataFrame:
         "Setup",
     ] = "Low-price bearish volume watch"
 
-    return (
-        result.sort_values(
-            [
-                "Composite score",
-                "Opportunity score",
-                "Volume surge x",
-                "Symbol",
-            ],
-            ascending=[False, False, False, True],
-            na_position="last",
-        )
-        .reset_index(drop=True)
-    )
+    return result.sort_values(
+        [
+            "Composite score",
+            "Opportunity score",
+            "Volume surge x",
+            "Symbol",
+        ],
+        ascending=[False, False, False, True],
+        na_position="last",
+    ).reset_index(drop=True)
 
 
 def scan_day_trader_opportunities(
