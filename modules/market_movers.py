@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
+
 from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_calendar import equity_market_session_status
