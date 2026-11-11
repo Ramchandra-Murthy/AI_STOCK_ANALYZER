@@ -9,6 +9,7 @@ exchange-tick execution feed.
 from __future__ import annotations
 
 from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from time import perf_counter, sleep
 from typing import Any
 
@@ -185,21 +186,32 @@ def download_symbol_frames(
     retries: int = DEFAULT_RETRIES,
     recover_missing: bool = True,
     diagnostics: list[str] | None = None,
+    max_workers: int = 3,
 ) -> tuple[dict[str, pd.DataFrame], list[str]]:
-    """Return usable ticker frames plus an explicit list of unresolved tickers."""
+    """Return usable frames, downloading batches with bounded concurrency.
+
+    Concurrency is deliberately capped so scanner speed improves without
+    creating an unbounded burst of requests against the quote provider.
+    Results are reassembled in input order; unresolved symbols remain explicit.
+    """
     symbols = list(dict.fromkeys(str(t).strip().upper() for t in tickers if str(t).strip()))
     if not symbols:
         return {}, []
 
     scan_started = perf_counter()
-    batch_seconds = 0.0
     recovery_seconds = 0.0
-    batch_count = 0
     recovery_count = 0
+    batch_size = max(1, int(batch_size))
+    worker_count = max(1, min(int(max_workers), 4))
+    chunks = [
+        symbols[start : start + batch_size]
+        for start in range(0, len(symbols), batch_size)
+    ]
     frames: dict[str, pd.DataFrame] = {}
-    for start in range(0, len(symbols), max(1, int(batch_size))):
-        chunk = symbols[start : start + max(1, int(batch_size))]
-        batch_started = perf_counter()
+    batch_seconds = 0.0
+
+    def download_one(chunk: list[str]) -> tuple[list[str], pd.DataFrame, float]:
+        started = perf_counter()
         history = _download_batch(
             chunk,
             period=period,
@@ -209,8 +221,19 @@ def download_symbol_frames(
             retries=retries,
             diagnostics=diagnostics,
         )
-        batch_seconds += perf_counter() - batch_started
-        batch_count += 1
+        return chunk, history, perf_counter() - started
+
+    # Keep only a small fixed number of provider requests in flight.
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        futures = [executor.submit(download_one, chunk) for chunk in chunks]
+        completed: dict[int, tuple[list[str], pd.DataFrame]] = {}
+        for future in as_completed(futures):
+            chunk, history, elapsed = future.result()
+            batch_seconds += elapsed
+            completed[chunks.index(chunk)] = (chunk, history)
+
+    for chunk_index in range(len(chunks)):
+        chunk, history = completed[chunk_index]
         for ticker in chunk:
             frame = _ticker_frame(history, ticker)
             if not frame.empty:
@@ -237,7 +260,8 @@ def download_symbol_frames(
         diagnostics.append(
             "download summary: "
             f"requested={len(symbols)} usable={len(frames)} "
-            f"missing={len(symbols) - len(frames)} batches={batch_count} "
+            f"missing={len(symbols) - len(frames)} batches={len(chunks)} "
+            f"batch_workers={worker_count} "
             f"single_recovery_attempts={recovery_count} "
             f"batch_seconds={batch_seconds:.2f} "
             f"recovery_seconds={recovery_seconds:.2f} "
