@@ -95,6 +95,8 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
             "screen_tickers_missing_data": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
+            "mapped_histories_missing": 0,
+            "screen_attempted_tickers": 0,
             "history_coverage_pct": 0.0,
             "analysis_download_failed": 0,
             "stale_data_rejected": 0,
@@ -515,3 +517,33 @@ def test_market_scan_records_resource_diagnostics_when_no_movers(monkeypatch) ->
     assert timings["download_chunk_size"] == 100
     assert timings["cpu_seconds"] >= 0
     assert timings["total_seconds"] >= 0
+
+
+def test_market_scan_coverage_excludes_cached_and_unmapped_from_download_misses(
+    monkeypatch,
+) -> None:
+    from scanner import market_scanner
+
+    monkeypatch.setattr(market_scanner, "merge_nse_universe", lambda: ["AAA", "BBB", "CCC"])
+
+    def screen(candidates, coverage=None):
+        assert candidates == {"NSE": ["AAA", "BBB", "CCC"]}
+        coverage["NSE"].update(
+            mapped_tickers=2,
+            tickers_requested=2,
+            unmapped_symbols=1,
+            cached_failures_skipped=1,
+            histories_returned=1,
+        )
+        return []
+
+    monkeypatch.setattr(market_scanner, "_batch_change_screen", screen)
+    result = market_scanner.market_scan("NSE")
+    counts = result.attrs["scanner_coverage"]["NSE"]
+
+    assert counts["screen_attempted_tickers"] == 1
+    assert counts["mapped_histories_missing"] == 0
+    assert counts["histories_rejected"] == 0
+    assert counts["history_coverage_pct"] == 50.0
+    assert counts["unmapped_symbols"] == 1
+    assert counts["cached_failures_skipped"] == 1

@@ -448,6 +448,8 @@ def market_scan(
             "screen_tickers_missing_data": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
+            "mapped_histories_missing": 0,
+            "screen_attempted_tickers": 0,
             "analysis_download_failed": 0,
             "stale_data_rejected": 0,
             "unknown_timestamp_rejected": 0,
@@ -473,14 +475,18 @@ def market_scan(
         )
     timings["screen_seconds"] = time.perf_counter() - screen_started
     for exchange in coverage:
-        coverage[exchange]["histories_rejected"] = max(
-            0, coverage[exchange]["tickers_requested"] - coverage[exchange]["histories_returned"]
-        )
-        coverage[exchange]["history_coverage_pct"] = round(
-            100
-            * coverage[exchange]["histories_returned"]
-            / max(1, coverage[exchange]["tickers_requested"]),
-            1,
+        # Partition mapped symbols into attempted, cached, and usable outcomes.
+        # Unmapped symbols are not Yahoo download failures.
+        mapped = coverage[exchange]["mapped_tickers"]
+        cached = coverage[exchange]["cached_failures_skipped"]
+        returned = coverage[exchange]["histories_returned"]
+        attempted = max(0, mapped - cached)
+        missing = max(0, attempted - returned)
+        coverage[exchange]["screen_attempted_tickers"] = attempted
+        coverage[exchange]["mapped_histories_missing"] = missing
+        coverage[exchange]["histories_rejected"] = missing
+        coverage[exchange]["history_coverage_pct"] = (
+            round(100 * returned / mapped, 1) if mapped else 0.0
         )
     if not movers:
         empty = pd.DataFrame()
