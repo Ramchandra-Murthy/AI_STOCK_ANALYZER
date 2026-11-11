@@ -231,9 +231,11 @@ def _market_observation_date(value: Any):
 def _get_last_observation(
     ticker: str,
     *,
-    use_intraday: bool = True,
+    use_intraday: bool | None = None,
 ) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
     """Return price, change, previous close, time, frequency and intraday flag."""
+    if use_intraday is None:
+        use_intraday = equity_market_session_status(datetime.now(INDIA_TIMEZONE)) == "OPEN"
     try:
         intraday_frames: dict[str, pd.DataFrame] = {}
         if use_intraday:
@@ -312,10 +314,8 @@ def _get_last_observation(
 def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, Any]:
     """Fetch a quote only from the requested exchange; never substitute another listing."""
     normalized = normalize_market_symbol(symbol, exchange)
-    use_intraday = equity_market_session_status(datetime.now(INDIA_TIMEZONE)) == "OPEN"
     value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
-        normalized,
-        use_intraday=use_intraday,
+        normalized
     )
     resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
     session = market_session_status(observed_at, frequency)
@@ -375,10 +375,8 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
 def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for name, ticker in watchlist.items():
-        use_intraday = equity_market_session_status(datetime.now(INDIA_TIMEZONE)) == "OPEN"
         value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
-            ticker,
-            use_intraday=use_intraday,
+            ticker
         )
         if value is None or change is None:
             continue
