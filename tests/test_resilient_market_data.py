@@ -361,6 +361,7 @@ def test_zero_cache_ttl_forces_a_fresh_provider_request(monkeypatch) -> None:
 
 
 def test_market_cap_metadata_is_cached_and_uses_provider(monkeypatch) -> None:
+    market_data.clear_market_metadata_cache()
     calls = []
 
     class FakeTicker:
@@ -381,6 +382,7 @@ def test_market_cap_metadata_is_cached_and_uses_provider(monkeypatch) -> None:
 
 
 def test_market_cap_metadata_does_not_cache_unavailable_values(monkeypatch) -> None:
+    market_data.clear_market_metadata_cache()
     calls = []
 
     class FakeTicker:
