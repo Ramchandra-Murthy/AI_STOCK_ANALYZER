@@ -6,7 +6,6 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import pandas as pd
-import yfinance as yf
 
 from engine.breakout_engine import detect_breakout
 from engine.signal_engine import generate_signal
@@ -151,7 +150,7 @@ def _download_shared_history(
         )
     except Exception as exc:
         logger.warning(
-            "Shared market-data download failed (%d symbols, first: %s): %s",
+            "Shared market-data provider unavailable (%d symbols, first: %s): %s",
             len(chunk),
             chunk[0],
             exc,
