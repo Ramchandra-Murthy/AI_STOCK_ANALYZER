@@ -380,7 +380,9 @@ def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
     if not expiry_values:
         raise RuntimeError("NSE returned no usable option-chain expiries.")
 
-    selected_expiry = expiry if expiry in expiry_values else expiry_values[0]
+    if expiry is not None and expiry not in expiry_values:
+        raise ValueError(f"Requested NSE expiry {expiry} is not available.")
+    selected_expiry = expiry if expiry is not None else expiry_values[0]
     payload.setdefault("records", {})
     if isinstance(payload["records"], dict):
         payload["records"]["expiryDates"] = list(expiry_values)
