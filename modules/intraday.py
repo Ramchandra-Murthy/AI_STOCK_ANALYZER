@@ -57,6 +57,7 @@ from services.market_calendar import (
     is_regular_equity_session_open,
 )
 from services.resilient_market_data import download_symbol_frames
+from services.resilient_market_data import download_symbol_frames
 
 IST = ZoneInfo("Asia/Kolkata")
 
