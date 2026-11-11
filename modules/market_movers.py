@@ -13,8 +13,8 @@ import yfinance as yf
 
 from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
-from services.resilient_market_data import download_symbol_frames
 from services.market_calendar import equity_market_session_status
+from services.resilient_market_data import download_symbol_frames
 
 IST = ZoneInfo("Asia/Kolkata")
 BATCH_SIZE = 40
