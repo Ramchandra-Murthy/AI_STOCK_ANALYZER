@@ -142,7 +142,7 @@ def build_report(
 
 
 def main() -> int:
-    """Execute one scan and print or save its performance report as JSON."""
+    """Execute one scan and print its performance report as JSON."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--exchange",
@@ -183,8 +183,6 @@ def main() -> int:
         runtime_delta=_runtime_delta(runtime_before, market_data_runtime_stats()),
     )
     rendered = json.dumps(report, indent=2, sort_keys=True)
-    if args.output:
-        args.output.write_text(rendered + "\\n", encoding="utf-8")
     print(rendered)
     return 0
 
