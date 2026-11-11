@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from scanner.price_jump import _candle_settings, calculate_price_jump
@@ -86,6 +87,36 @@ def test_calculate_price_jump_supports_one_minute_window():
     assert result["intraday_pct"] == 1.0
     assert result["day_pct"] == 1.0
     assert result["qualifies"] == 1.0
+
+
+def test_calculate_price_jump_rejects_infinite_prices_and_volumes():
+    index = pd.date_range("2026-09-18 09:15", periods=3, freq="1min")
+    frame = pd.DataFrame(
+        {
+            "Close": [100.0, np.inf, 102.0],
+            "Volume": [1000.0, 1200.0, np.inf],
+        },
+        index=index,
+    )
+
+    result = calculate_price_jump(frame, lookback_bars=1)
+
+    assert result is None
+
+
+def test_calculate_price_jump_rejects_non_positive_prices_and_negative_volume():
+    index = pd.date_range("2026-09-18 09:15", periods=3, freq="1min")
+    frame = pd.DataFrame(
+        {
+            "Close": [100.0, 0.0, 102.0],
+            "Volume": [1000.0, -10.0, 1500.0],
+        },
+        index=index,
+    )
+
+    result = calculate_price_jump(frame, lookback_bars=1)
+
+    assert result is None
 
 
 def test_candle_settings_use_one_minute_for_short_windows():
