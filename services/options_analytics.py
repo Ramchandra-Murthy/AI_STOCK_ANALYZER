@@ -567,7 +567,19 @@ def _fetch_yahoo_option_chain(
             "Yahoo Finance did not expose an option chain for this underlying.",
         )
 
-    selected_expiry = expiry if expiry in expiries else expiries[0]
+    if expiry is not None and expiry not in expiries:
+        return OptionChainResult(
+            underlying,
+            symbol,
+            expiry,
+            _spot_price(ticker),
+            pd.DataFrame(columns=CHAIN_COLUMNS),
+            expiries,
+            "UNAVAILABLE",
+            f"Requested Yahoo Finance expiry {expiry} is not available.",
+        )
+
+    selected_expiry = expiry if expiry is not None else expiries[0]
     try:
         raw = ticker.option_chain(selected_expiry)
         chain = _normalize_chain(raw.calls, raw.puts)
