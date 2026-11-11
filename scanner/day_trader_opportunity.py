@@ -63,6 +63,7 @@ def _download_chunk_with_retry(
     history = pd.concat(frames, axis=1).sort_index()
     return history, 1
 
+
 def summarize_day_trading_setup(strategy: dict[str, Any]) -> dict[str, Any]:
     """Convert setup-engine conditions into concise scanner evidence."""
     long_score = strategy["Long setup score"]
