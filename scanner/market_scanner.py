@@ -32,7 +32,6 @@ TOP_CANDIDATES_TO_ANALYZE = 20
 DISPLAY_COUNT = 20
 DOWNLOAD_CHUNK_SIZE = 100
 MAX_SCREEN_WORKERS = 2
-MAX_CANDIDATES_PER_EXCHANGE = 10
 ANALYSIS_PERIOD = "1y"
 MAX_DAILY_DATA_AGE_DAYS = 4
 FAILED_TICKER_TTL_SECONDS = 5 * 60
@@ -415,11 +414,59 @@ def _analyze_history(
         return None
 
 
+def _select_analysis_tickers(
+    movers: list[tuple[str, str, float, float]],
+    exchanges: list[str],
+    limit: int,
+) -> list[str]:
+    """Select a bounded, exchange-balanced analysis shortlist.
+
+    Allocate the limit evenly across selected exchanges first, then use any
+    unused capacity for the strongest remaining movers.
+    """
+    if limit < 1 or not exchanges:
+        return []
+
+    base, remainder = divmod(limit, len(exchanges))
+    quotas = {
+        exchange: base + (1 if index < remainder else 0) for index, exchange in enumerate(exchanges)
+    }
+    selected: list[str] = []
+    seen: set[str] = set()
+    counts = {exchange: 0 for exchange in exchanges}
+
+    for ticker, exchange, _change, _turnover in movers:
+        if exchange not in quotas or ticker in seen or counts[exchange] >= quotas[exchange]:
+            continue
+        selected.append(ticker)
+        seen.add(ticker)
+        counts[exchange] += 1
+        if len(selected) >= limit:
+            return selected
+
+    # If one exchange has too few candidates, fill the unused slots from the
+    # remaining globally ranked movers instead of returning an undersized list.
+    for ticker, exchange, _change, _turnover in movers:
+        if exchange not in quotas or ticker in seen:
+            continue
+        selected.append(ticker)
+        seen.add(ticker)
+        if len(selected) >= limit:
+            break
+    return selected
+
+
 def market_scan(
     exchange_filter: str = "NSE + BSE",
     progress_callback: Any | None = None,
+    analysis_limit: int = TOP_CANDIDATES_TO_ANALYZE,
 ) -> pd.DataFrame:
     """Scan the selected exchange universe using batched market data and local analysis."""
+    if not isinstance(analysis_limit, int) or isinstance(analysis_limit, bool):
+        raise ValueError("analysis_limit must be a positive integer")
+    if analysis_limit < 1 or analysis_limit > 500:
+        raise ValueError("analysis_limit must be between 1 and 500")
+
     scan_started = time.perf_counter()
     cpu_started = time.process_time()
     timings: dict[str, float] = {
@@ -448,8 +495,6 @@ def market_scan(
             "screen_tickers_missing_data": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
-            "mapped_histories_missing": 0,
-            "screen_attempted_tickers": 0,
             "analysis_download_failed": 0,
             "stale_data_rejected": 0,
             "unknown_timestamp_rejected": 0,
@@ -475,18 +520,14 @@ def market_scan(
         )
     timings["screen_seconds"] = time.perf_counter() - screen_started
     for exchange in coverage:
-        # Partition mapped symbols into attempted, cached, and usable outcomes.
-        # Unmapped symbols are not Yahoo download failures.
-        mapped = coverage[exchange]["mapped_tickers"]
-        cached = coverage[exchange]["cached_failures_skipped"]
-        returned = coverage[exchange]["histories_returned"]
-        attempted = max(0, mapped - cached)
-        missing = max(0, attempted - returned)
-        coverage[exchange]["screen_attempted_tickers"] = attempted
-        coverage[exchange]["mapped_histories_missing"] = missing
-        coverage[exchange]["histories_rejected"] = missing
-        coverage[exchange]["history_coverage_pct"] = (
-            round(100 * returned / mapped, 1) if mapped else 0.0
+        coverage[exchange]["histories_rejected"] = max(
+            0, coverage[exchange]["tickers_requested"] - coverage[exchange]["histories_returned"]
+        )
+        coverage[exchange]["history_coverage_pct"] = round(
+            100
+            * coverage[exchange]["histories_returned"]
+            / max(1, coverage[exchange]["tickers_requested"]),
+            1,
         )
     if not movers:
         empty = pd.DataFrame()
@@ -496,17 +537,23 @@ def market_scan(
         empty.attrs["scanner_timings"] = timings
         return empty
 
-    analysis_tickers: list[str] = []
-    seen: set[str] = set()
-    exchange_counts = {"NSE": 0, "BSE": 0}
+    exchange_order = list(candidates)
+    available_by_exchange = {
+        exchange: sum(1 for _ticker, venue, _change, _turnover in movers if venue == exchange)
+        for exchange in exchange_order
+    }
+    selected_by_exchange = {exchange: 0 for exchange in exchange_order}
+    analysis_tickers = _select_analysis_tickers(movers, exchange_order, analysis_limit)
+    selected_set = set(analysis_tickers)
     for ticker, exchange, _change, _turnover in movers:
-        if ticker in seen or exchange_counts[exchange] >= MAX_CANDIDATES_PER_EXCHANGE:
-            continue
-        analysis_tickers.append(ticker)
-        seen.add(ticker)
-        exchange_counts[exchange] += 1
-        if len(analysis_tickers) >= TOP_CANDIDATES_TO_ANALYZE:
-            break
+        if ticker in selected_set:
+            selected_by_exchange[exchange] += 1
+    for exchange in coverage:
+        coverage[exchange]["analysis_candidates_available"] = available_by_exchange[exchange]
+        coverage[exchange]["analysis_candidates_deferred"] = max(
+            0, available_by_exchange[exchange] - selected_by_exchange[exchange]
+        )
+        coverage[exchange]["analysis_shortlist_limit"] = analysis_limit
 
     for ticker in analysis_tickers:
         exchange = coverage_by_ticker.get(ticker)
@@ -569,7 +616,7 @@ def market_scan(
         return df
 
     # Confidence is intentionally unavailable until calibrated on out-of-sample data.
-    result = sort_bullish_to_bearish(df).head(DISPLAY_COUNT).reset_index(drop=True)
+    result = sort_bullish_to_bearish(df).head(analysis_limit).reset_index(drop=True)
     for exchange in coverage:
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage
