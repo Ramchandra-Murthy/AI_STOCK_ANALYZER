@@ -803,12 +803,22 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
 
             latest = float(close.iloc[-1])
             previous = float(close.iloc[-2])
-            if latest <= 0 or previous <= 0:
+            if (
+                not math.isfinite(latest)
+                or not math.isfinite(previous)
+                or latest <= 0
+                or previous <= 0
+            ):
                 unusable += 1
                 continue
 
             change_1m = (latest / previous - 1.0) * 100
             change_5m = (latest / float(close.iloc[-6]) - 1.0) * 100 if len(close) >= 6 else None
+            if not math.isfinite(change_1m) or (
+                change_5m is not None and not math.isfinite(change_5m)
+            ):
+                unusable += 1
+                continue
             latest_candles.append(pd.Timestamp(candle_timestamp))
             symbol = ticker.rsplit(".", 1)[0]
 
@@ -847,9 +857,14 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     frame.attrs["candidate_pool_size"] = len(all_tickers)
     frame.attrs["coverage_complete"] = trusted_quotes >= TOP10_EXPECTED_QUOTES
     frame.attrs["latest_candle_at"] = max(latest_candles) if latest_candles else None
+    # Stable tie-breaking keeps ranks reproducible across refreshes and pandas versions.
     frame = (
         frame.assign(_abs_change=frame["1-min %"].abs())
-        .sort_values("_abs_change", ascending=False)
+        .sort_values(
+            ["_abs_change", "Exchange", "Symbol"],
+            ascending=[False, True, True],
+            kind="mergesort",
+        )
         .head(10)
         .drop(columns="_abs_change")
         .reset_index(drop=True)
