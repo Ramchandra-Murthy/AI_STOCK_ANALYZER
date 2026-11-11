@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event, Lock
+from time import sleep
 
 import pandas as pd
 import pytest
@@ -492,7 +493,7 @@ def test_concurrent_identical_batch_downloads_are_coalesced(monkeypatch) -> None
         assert provider_started.wait(timeout=2)
         second_future = executor.submit(fetch)
         # Give the second caller time to join the already-running batch Future.
-        release_provider.wait(timeout=0.05)
+        sleep(0.1)
         release_provider.set()
         first, first_missing = first_future.result(timeout=3)
         second, second_missing = second_future.result(timeout=3)
