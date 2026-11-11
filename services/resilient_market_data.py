@@ -332,8 +332,9 @@ def download_symbol_frames(
             if not frame.empty:
                 frames[ticker] = frame
 
-    for ticker, frame in frames.items():
-        _store_cached_frame(_cache_key(ticker, period, interval, auto_adjust), frame)
+    if ttl > 0:
+        for ticker, frame in frames.items():
+            _store_cached_frame(_cache_key(ticker, period, interval, auto_adjust), frame)
 
     if diagnostics is not None:
         diagnostics.append(
