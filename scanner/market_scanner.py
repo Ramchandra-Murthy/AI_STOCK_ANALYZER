@@ -429,8 +429,7 @@ def _select_analysis_tickers(
 
     base, remainder = divmod(limit, len(exchanges))
     quotas = {
-        exchange: base + (1 if index < remainder else 0)
-        for index, exchange in enumerate(exchanges)
+        exchange: base + (1 if index < remainder else 0) for index, exchange in enumerate(exchanges)
     }
     selected: list[str] = []
     seen: set[str] = set()
