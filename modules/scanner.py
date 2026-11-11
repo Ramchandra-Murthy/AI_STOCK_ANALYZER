@@ -5,7 +5,7 @@ import math
 import pandas as pd
 import streamlit as st
 
-from scanner.market_scanner import DISPLAY_COUNT, market_scan
+from scanner.market_scanner import market_scan
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from scanner.watchlist_scanner import scan_watchlist
 from services.market_service import WATCHLIST
@@ -443,7 +443,7 @@ def show():
                 "No live entry price or executable quote is confirmed by this scan."
             )
             st.success(f"{len(df)} daily technical candidate(s) match the filters")
-            displayed = df.head(DISPLAY_COUNT)
+            displayed = df.head(analysis_limit)
             st.dataframe(displayed, width="stretch", height=600)
             st.download_button(
                 "⬇ Download daily candidates CSV",
