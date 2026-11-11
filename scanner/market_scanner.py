@@ -128,9 +128,7 @@ def _daily_data_status(index: pd.Index, today: date | None = None) -> str:
     return "FRESH"
 
 
-def _download_shared_history(
-    chunk: list[str], *, period: str, timeout: float
-) -> pd.DataFrame:
+def _download_shared_history(chunk: list[str], *, period: str, timeout: float) -> pd.DataFrame:
     """Download a chunk through the shared cache and bounded provider controls."""
     if not chunk:
         return pd.DataFrame()
