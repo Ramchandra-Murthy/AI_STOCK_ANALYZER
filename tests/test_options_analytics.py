@@ -349,3 +349,52 @@ def test_fetch_option_chain_explains_dhan_http_401(monkeypatch):
     assert "DHAN_CLIENT_ID" in result.message
     assert "DHAN_ACCESS_TOKEN" in result.message
     assert "Never paste credentials" in result.message
+
+
+def test_nse_option_chain_rejects_unavailable_requested_expiry(monkeypatch):
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_nse_expiries",
+        lambda underlying: ("08-Oct-2026", "15-Oct-2026"),
+    )
+
+    from services.options_analytics import _fetch_nse_option_chain
+
+    try:
+        _fetch_nse_option_chain("NIFTY", "22-Oct-2026")
+    except ValueError as exc:
+        assert "Requested NSE expiry" in str(exc)
+    else:
+        raise AssertionError("Unavailable requested expiry must not fall back silently")
+
+
+def test_dhan_option_chain_rejects_unavailable_requested_expiry(monkeypatch):
+    monkeypatch.setattr(
+        "services.options_analytics._fetch_dhan_expiries",
+        lambda underlying: ("2026-10-08", "2026-10-15"),
+    )
+
+    from services.options_analytics import _fetch_dhan_option_chain
+
+    try:
+        _fetch_dhan_option_chain("NIFTY", "22-Oct-2026")
+    except ValueError as exc:
+        assert "Requested Dhan expiry" in str(exc)
+    else:
+        raise AssertionError("Unavailable requested expiry must not fall back silently")
+
+
+def test_yahoo_option_chain_rejects_unavailable_requested_expiry(monkeypatch):
+    class FakeTicker:
+        options = ("2026-10-08", "2026-10-15")
+
+        def option_chain(self, expiry):
+            raise AssertionError("Must not request a different expiry")
+
+    monkeypatch.setattr("services.options_analytics.yf.Ticker", lambda symbol: FakeTicker())
+    from services.options_analytics import _fetch_yahoo_option_chain
+
+    result = _fetch_yahoo_option_chain("NIFTY", "2026-10-22")
+
+    assert result.status == "UNAVAILABLE"
+    assert result.expiry == "2026-10-22"
+    assert "Requested Yahoo Finance expiry" in result.message
