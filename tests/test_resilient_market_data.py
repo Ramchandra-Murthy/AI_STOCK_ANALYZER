@@ -1,8 +1,16 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from services import resilient_market_data as market_data
+
+
+@pytest.fixture(autouse=True)
+def _clear_market_data_cache():
+    market_data.clear_market_data_cache()
+    yield
+    market_data.clear_market_data_cache()
 
 
 def _frame() -> pd.DataFrame:
@@ -261,3 +269,92 @@ def test_batch_then_single_recovery_with_mocked_provider(monkeypatch) -> None:
 
     assert set(frames) == {"AAA.NS", "BBB.NS"}
     assert missing == ["CCC.NS"]
+
+
+def test_download_symbol_frames_reuses_fresh_cached_frames(monkeypatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_batch(tickers, **_kwargs):
+        calls.append(list(tickers))
+        return pd.concat({ticker: _frame() for ticker in tickers}, axis=1)
+
+    monkeypatch.setattr(market_data, "_download_batch", fake_batch)
+    first, first_missing = market_data.download_symbol_frames(
+        ["AAA.NS", "BBB.NS"], period="1d", interval="1m", recover_missing=False
+    )
+    second, second_missing = market_data.download_symbol_frames(
+        ["AAA.NS", "BBB.NS"], period="1d", interval="1m", recover_missing=False
+    )
+
+    assert set(first) == set(second) == {"AAA.NS", "BBB.NS"}
+    assert first_missing == second_missing == []
+    assert calls == [["AAA.NS", "BBB.NS"]]
+    assert market_data.market_data_cache_stats()["entries"] == 2
+
+
+def test_market_data_cache_returns_independent_frame_copies(monkeypatch) -> None:
+    monkeypatch.setattr(
+        market_data,
+        "_download_batch",
+        lambda tickers, **_kwargs: pd.concat({ticker: _frame() for ticker in tickers}, axis=1),
+    )
+    first, _ = market_data.download_symbol_frames(
+        ["AAA.NS"], period="1d", interval="5m", recover_missing=False
+    )
+    first["AAA.NS"].iloc[0, first["AAA.NS"].columns.get_loc("Close")] = -1
+    second, _ = market_data.download_symbol_frames(
+        ["AAA.NS"], period="1d", interval="5m", recover_missing=False
+    )
+
+    assert second["AAA.NS"]["Close"].iloc[0] == 100.5
+
+
+def test_market_data_cache_ttl_expiry_triggers_provider_refresh(monkeypatch) -> None:
+    clock = [100.0]
+    calls: list[int] = []
+
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    def fake_batch(tickers, **_kwargs):
+        calls.append(1)
+        return pd.concat({ticker: _frame() for ticker in tickers}, axis=1)
+
+    monkeypatch.setattr(market_data, "_download_batch", fake_batch)
+    market_data.download_symbol_frames(
+        ["AAA.NS"],
+        period="1d",
+        interval="1m",
+        recover_missing=False,
+        cache_ttl_seconds=5,
+    )
+    clock[0] += 6
+    market_data.download_symbol_frames(
+        ["AAA.NS"],
+        period="1d",
+        interval="1m",
+        recover_missing=False,
+        cache_ttl_seconds=5,
+    )
+
+    assert len(calls) == 2
+    assert market_data.market_data_cache_stats()["entries"] == 1
+
+
+def test_zero_cache_ttl_forces_a_fresh_provider_request(monkeypatch) -> None:
+    calls: list[int] = []
+
+    def fake_batch(tickers, **_kwargs):
+        calls.append(1)
+        return pd.concat({ticker: _frame() for ticker in tickers}, axis=1)
+
+    monkeypatch.setattr(market_data, "_download_batch", fake_batch)
+    for _ in range(2):
+        market_data.download_symbol_frames(
+            ["AAA.NS"],
+            period="1d",
+            interval="1m",
+            recover_missing=False,
+            cache_ttl_seconds=0,
+        )
+
+    assert len(calls) == 2
