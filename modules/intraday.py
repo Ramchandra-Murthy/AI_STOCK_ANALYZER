@@ -371,9 +371,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
             nifty_1m = (float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-2]) - 1) * 100
         if len(benchmark_close) >= 6:
             nifty_5m = (float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-6]) - 1) * 100
-        daily_benchmark_frames, _ = _download_intraday_frames(
-            ["^NSEI"], "1d", recover_missing=True
-        )
+        daily_benchmark_frames, _ = _download_intraday_frames(["^NSEI"], "1d", recover_missing=True)
         daily_frame = daily_benchmark_frames.get("^NSEI", pd.DataFrame())
         daily_close = pd.to_numeric(daily_frame["Close"], errors="coerce").dropna()
         if len(daily_close) >= 2:
