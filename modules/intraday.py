@@ -261,6 +261,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
         "scan_seconds": 0.0,
     }
 
+    processing_started = perf_counter()
     for exchange in ("NSE", "BSE"):
         symbols = [symbol for symbol, venue in candidates if venue == exchange]
         tickers = [_live_board_ticker(symbol, exchange) for symbol in symbols]
@@ -279,7 +280,6 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
                 stats["failed_chunks"] += 1
                 continue
 
-            processing_started = perf_counter()
             for ticker in chunk:
                 frame = history_frames.get(ticker, pd.DataFrame())
                 if len(frame) < 2:
