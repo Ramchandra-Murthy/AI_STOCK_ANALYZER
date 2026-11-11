@@ -329,7 +329,10 @@ def test_market_data_cache_ttl_expiry_triggers_provider_refresh(monkeypatch) -> 
     )
     clock[0] += 6
     market_data.download_symbol_frames(
-        ["AAA.NS"], period="1d", interval="1m", recover_missing=False,
+        ["AAA.NS"],
+        period="1d",
+        interval="1m",
+        recover_missing=False,
         cache_ttl_seconds=5,
     )
 
