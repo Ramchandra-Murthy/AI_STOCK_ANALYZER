@@ -318,7 +318,9 @@ def _fetch_dhan_option_chain(
         raise RuntimeError("Dhan returned no active option expiries.")
 
     requested = _dhan_expiry(expiry) if expiry else None
-    selected = requested if requested in expiry_values else expiry_values[0]
+    if requested is not None and requested not in expiry_values:
+        raise ValueError(f"Requested Dhan expiry {requested} is not available.")
+    selected = requested if requested is not None else expiry_values[0]
     response = client.option_chain(security_id, segment, selected)
 
     if not isinstance(response, dict) or response.get("status") != "success":
@@ -335,7 +337,9 @@ def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
     except Exception:
         expiry_values = ()
 
-    selected_expiry = expiry if expiry in expiry_values else None
+    if expiry is not None and expiry_values and expiry not in expiry_values:
+        raise ValueError(f"Requested NSE expiry {expiry} is not available.")
+    selected_expiry = expiry if expiry is not None else None
     if selected_expiry is None and expiry_values:
         selected_expiry = expiry_values[0]
 
