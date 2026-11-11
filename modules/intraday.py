@@ -7,7 +7,6 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import streamlit as st
 
-
 from scanner.eros_fusion import compute_eros_fusion
 from scanner.eros_fusion_history import append_eros_fusion_snapshot
 from scanner.eros_fusion_history_analytics import summarize_eros_fusion_history
@@ -56,6 +55,7 @@ from services.market_calendar import (
     is_equity_market_holiday,
     is_regular_equity_session_open,
 )
+from services.resilient_market_data import download_symbol_frames
 
 IST = ZoneInfo("Asia/Kolkata")
 
@@ -227,8 +227,6 @@ def _download_intraday_frames(
     tickers: list[str], interval: str, *, recover_missing: bool = False
 ) -> tuple[dict[str, pd.DataFrame], list[str]]:
     """Fetch intraday-board history through the shared bounded market-data service."""
-    from services.resilient_market_data import download_symbol_frames
-
     return download_symbol_frames(
         tickers,
         period="5d",
