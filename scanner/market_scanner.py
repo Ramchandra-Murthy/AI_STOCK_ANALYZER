@@ -6,7 +6,6 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import pandas as pd
-import yfinance as yf
 
 from engine.breakout_engine import detect_breakout
 from engine.signal_engine import generate_signal
@@ -23,6 +22,7 @@ from scanner.dynamic_universe import (
     merge_nse_universe,
     yahoo_symbol_for_bse_code,
 )
+from services.resilient_market_data import download_symbol_frames
 from services.scanner_trend_sort import sort_bullish_to_bearish
 from services.sector_mapping import sector_for_symbol
 
@@ -128,94 +128,58 @@ def _daily_data_status(index: pd.Index, today: date | None = None) -> str:
     return "FRESH"
 
 
-def _download_chunk(chunk: list[str]) -> pd.DataFrame:
-    """Download a mover-screen chunk, retrying once without threading."""
-    try:
-        history = yf.download(
-            tickers=chunk,
-            period="5d",
-            interval="1d",
-            auto_adjust=True,
-            progress=False,
-            group_by="ticker",
-            threads=False,
-            timeout=10,
-        )
-        if history is not None and not history.empty:
-            return history
-    except Exception as exc:
-        logger.debug(
-            "Price download attempt failed, retrying single-threaded (%d symbols, first: %s): %s",
-            len(chunk),
-            chunk[0] if chunk else "-",
-            exc,
-        )
+def _download_shared_history(chunk: list[str], *, period: str, timeout: float) -> pd.DataFrame:
+    """Download a chunk through the shared cache and bounded provider controls."""
+    if not chunk:
+        return pd.DataFrame()
 
+    diagnostics: list[str] = []
     try:
-        history = yf.download(
-            tickers=chunk,
-            period="5d",
+        frames, missing = download_symbol_frames(
+            chunk,
+            period=period,
             interval="1d",
             auto_adjust=True,
-            progress=False,
-            group_by="ticker",
-            threads=False,
-            timeout=15,
+            batch_size=len(chunk),
+            timeout=timeout,
+            recover_missing=True,
+            diagnostics=diagnostics,
+            max_workers=MAX_SCREEN_WORKERS,
         )
     except Exception as exc:
         logger.warning(
-            "Price download failed for a screen chunk (%d symbols, first: %s): %s",
+            "Shared market-data provider unavailable (%d symbols, first: %s): %s",
             len(chunk),
-            chunk[0] if chunk else "-",
+            chunk[0],
             exc,
         )
         return pd.DataFrame()
-    return history if history is not None else pd.DataFrame()
+
+    if diagnostics:
+        logger.debug("Market history retrieval: %s", diagnostics[-1])
+    if missing:
+        logger.info(
+            "Historical coverage incomplete: requested=%d returned=%d missing=%d",
+            len(chunk),
+            len(frames),
+            len(missing),
+        )
+    if not frames:
+        return pd.DataFrame()
+    if len(frames) == 1:
+        ticker, frame = next(iter(frames.items()))
+        return pd.concat({ticker: frame}, axis=1)
+    return pd.concat(frames, axis=1)
+
+
+def _download_chunk(chunk: list[str]) -> pd.DataFrame:
+    """Download broad-market screening history through shared market-data controls."""
+    return _download_shared_history(chunk, period="5d", timeout=15.0)
 
 
 def _download_analysis_chunk(chunk: list[str]) -> pd.DataFrame:
-    """Download the full history for shortlisted tickers in one batch."""
-    try:
-        history = yf.download(
-            tickers=chunk,
-            period=ANALYSIS_PERIOD,
-            interval="1d",
-            auto_adjust=True,
-            progress=False,
-            group_by="ticker",
-            threads=True,
-            timeout=15,
-        )
-        if history is not None and not history.empty:
-            return history
-    except Exception as exc:
-        logger.debug(
-            "Price download attempt failed, retrying single-threaded (%d symbols, first: %s): %s",
-            len(chunk),
-            chunk[0] if chunk else "-",
-            exc,
-        )
-
-    try:
-        history = yf.download(
-            tickers=chunk,
-            period=ANALYSIS_PERIOD,
-            interval="1d",
-            auto_adjust=True,
-            progress=False,
-            group_by="ticker",
-            threads=False,
-            timeout=20,
-        )
-    except Exception as exc:
-        logger.warning(
-            "Price download failed for the analysis shortlist (%d symbols, first: %s): %s",
-            len(chunk),
-            chunk[0] if chunk else "-",
-            exc,
-        )
-        return pd.DataFrame()
-    return history if history is not None else pd.DataFrame()
+    """Download full shortlisted history through the shared market-data service."""
+    return _download_shared_history(chunk, period=ANALYSIS_PERIOD, timeout=20.0)
 
 
 def _batch_change_screen(
