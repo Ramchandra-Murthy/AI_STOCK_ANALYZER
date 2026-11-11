@@ -9,12 +9,10 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
-import yfinance as yf
-
 from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_calendar import equity_market_session_status
-from services.resilient_market_data import download_symbol_frames
+from services.resilient_market_data import download_symbol_frames, get_market_cap
 
 IST = ZoneInfo("Asia/Kolkata")
 BATCH_SIZE = 40
@@ -84,12 +82,8 @@ def _quote_freshness(observed_at: str, now: datetime | None = None) -> str:
 
 
 def _market_cap(ticker: str) -> float | None:
-    try:
-        value = yf.Ticker(ticker).fast_info.get("market_cap")
-        number = float(value) if value is not None else 0.0
-        return number if number > 0 else None
-    except Exception:
-        return None
+    """Use the shared, throttled metadata cache instead of an unbounded provider path."""
+    return get_market_cap(ticker, cache_ttl_seconds=CAP_CACHE_TTL_SECONDS)
 
 
 def _scan_batches(
