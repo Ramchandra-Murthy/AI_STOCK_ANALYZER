@@ -25,7 +25,7 @@ def test_last_observation_prefers_intraday(monkeypatch):
     monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
 
     value, change, previous_close, observed_at, frequency, is_intraday = (
-        market_service._get_last_observation("TEST")
+        market_service._get_last_observation("TEST", use_intraday=True)
     )
     assert value == 105.0
     assert change == 6.06
