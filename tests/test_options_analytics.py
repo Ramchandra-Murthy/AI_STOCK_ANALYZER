@@ -406,3 +406,23 @@ def test_yahoo_option_chain_rejects_unavailable_requested_expiry(monkeypatch):
     assert result.status == "UNAVAILABLE"
     assert result.expiry == "2026-10-22"
     assert "Requested Yahoo Finance expiry" in result.message
+
+
+def test_option_chain_result_records_timezone_aware_retrieval_time():
+    from datetime import datetime, timezone
+
+    from services.options_analytics import OptionChainResult
+
+    result = OptionChainResult(
+        underlying="NIFTY",
+        provider_symbol="Dhan:NIFTY",
+        expiry="2026-11-12",
+        spot=25000.0,
+        chain=pd.DataFrame(),
+        expiries=("2026-11-12",),
+        status="AVAILABLE",
+        message="test",
+    )
+
+    assert isinstance(result.fetched_at_utc, datetime)
+    assert result.fetched_at_utc.tzinfo is timezone.utc
