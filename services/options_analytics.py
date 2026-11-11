@@ -8,7 +8,7 @@ Provider availability and timestamps are surfaced rather than inferred.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 import yfinance as yf
@@ -73,7 +73,7 @@ class OptionChainResult:
     status: str
     message: str
     # Local retrieval time, not a provider-supplied market-data timestamp.
-    fetched_at_utc: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    fetched_at_utc: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 def available_expiries(underlying: str) -> tuple[str, ...]:
