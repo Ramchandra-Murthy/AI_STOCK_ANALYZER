@@ -560,3 +560,20 @@ def test_analysis_shortlist_rejects_invalid_limits():
     from scanner.market_scanner import _select_analysis_tickers
 
     assert _select_analysis_tickers([], ["NSE"], 0) == []
+
+
+
+def test_analyze_history_frame_does_not_extract_batch_history_again(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    def unexpected_extract(*args, **kwargs):
+        raise AssertionError("already-extracted ticker frame must not be sliced again")
+
+    monkeypatch.setattr(market_scanner, "_extract_history_frame", unexpected_extract)
+
+    result = market_scanner._analyze_history_frame(
+        "RELIANCE.NS",
+        pd.DataFrame({"Close": [100.0], "Volume": [1000]}),
+    )
+
+    assert result is None
