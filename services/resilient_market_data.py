@@ -30,9 +30,9 @@ MARKET_DATA_CACHE_TTLS = {
 }
 _PROVIDER_REQUEST_LIMIT = BoundedSemaphore(MAX_PROVIDER_REQUESTS_IN_FLIGHT)
 _CACHE_LOCK = RLock()
-_MARKET_DATA_CACHE: OrderedDict[
-    tuple[str, str, str, bool], tuple[float, pd.DataFrame]
-] = OrderedDict()
+_MARKET_DATA_CACHE: OrderedDict[tuple[str, str, str, bool], tuple[float, pd.DataFrame]] = (
+    OrderedDict()
+)
 
 
 def _cache_ttl(interval: str, override: float | None = None) -> float:
