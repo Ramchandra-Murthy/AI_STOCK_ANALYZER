@@ -171,14 +171,14 @@ def main() -> int:
             "elapsed_seconds": round(elapsed, 6),
             "cpu_seconds": round(cpu_elapsed, 6),
             "error_type": type(exc).__name__,
-            "error": str(exc)[:500],
+            "error": "Market scan failed; inspect protected application logs for details.",
             "market_data_runtime_delta": _runtime_delta(
                 runtime_before, market_data_runtime_stats()
             ),
         }
         rendered = json.dumps(report, indent=2, sort_keys=True)
         if args.output:
-            args.output.write_text(rendered + "\\n", encoding="utf-8")
+            args.output.write_text(rendered + "\n", encoding="utf-8")
         print(rendered)
         return 1
 
