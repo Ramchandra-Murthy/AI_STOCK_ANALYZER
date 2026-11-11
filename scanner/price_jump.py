@@ -26,12 +26,14 @@ def calculate_price_jump(
     clean = frame.loc[:, ["Close", "Volume"]].copy()
     for column in ("Close", "Volume"):
         clean[column] = pd.to_numeric(clean[column], errors="coerce")
-    finite_rows = np.isfinite(clean[["Close", "Volume"]]).all(axis=1)
-    clean = clean.loc[finite_rows & (clean["Close"] > 0) & (clean["Volume"] >= 0)]
     clean = clean.dropna().sort_index()
-    clean = clean[~clean.index.duplicated(keep="last")]
     if clean.empty:
         return None
+    if not np.isfinite(clean[["Close", "Volume"]]).all().all():
+        return None
+    if (clean["Close"] <= 0).any() or (clean["Volume"] < 0).any():
+        return None
+    clean = clean[~clean.index.duplicated(keep="last")]
 
     session_date = clean.index[-1].date()
     current = clean.loc[clean.index.date == session_date]
