@@ -24,9 +24,19 @@ RETRY_BACKOFF_SECONDS = 1.0
 MAX_PROVIDER_REQUESTS_IN_FLIGHT = 4
 MARKET_DATA_CACHE_MAX_ENTRIES = 2000
 MARKET_DATA_CACHE_TTLS = {
-    "1m": 20.0, "2m": 30.0, "5m": 45.0, "15m": 90.0,
-    "30m": 120.0, "60m": 180.0, "90m": 180.0, "1h": 180.0,
-    "1d": 900.0, "5d": 1800.0, "1wk": 3600.0, "1mo": 7200.0, "3mo": 7200.0,
+    "1m": 20.0,
+    "2m": 30.0,
+    "5m": 45.0,
+    "15m": 90.0,
+    "30m": 120.0,
+    "60m": 180.0,
+    "90m": 180.0,
+    "1h": 180.0,
+    "1d": 900.0,
+    "5d": 1800.0,
+    "1wk": 3600.0,
+    "1mo": 7200.0,
+    "3mo": 7200.0,
 }
 _PROVIDER_REQUEST_LIMIT = BoundedSemaphore(MAX_PROVIDER_REQUESTS_IN_FLIGHT)
 _CACHE_LOCK = RLock()
