@@ -332,6 +332,7 @@ def test_market_data_cache_ttl_expiry_triggers_provider_refresh(monkeypatch) -> 
     )
 
     assert len(calls) == 2
+    assert market_data.market_data_cache_stats()["entries"] == 0
 
 
 def test_zero_cache_ttl_forces_a_fresh_provider_request(monkeypatch) -> None:
