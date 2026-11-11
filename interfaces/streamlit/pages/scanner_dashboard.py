@@ -14,6 +14,7 @@ from services.market_calendar import equity_market_session_status
 from services.resilient_market_data import (
     MAX_PROVIDER_REQUESTS_IN_FLIGHT,
     market_data_cache_stats,
+    market_data_runtime_stats,
 )
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -27,6 +28,7 @@ st.set_page_config(
 now_ist = datetime.now(IST)
 market_status = equity_market_session_status(now_ist)
 cache_stats = market_data_cache_stats()
+runtime_stats = market_data_runtime_stats()
 
 st.title("NSE/BSE Scanner Operations")
 st.caption(
@@ -51,6 +53,19 @@ with cache_col:
 with provider_col:
     st.metric("Provider concurrency cap", MAX_PROVIDER_REQUESTS_IN_FLIGHT)
     st.caption("Shared across market-data service calls")
+
+st.subheader("Market-data runtime telemetry")
+metric_cols = st.columns(5)
+metric_cols[0].metric("Download calls", f"{runtime_stats['scan_calls']:,}")
+metric_cols[1].metric("Cache hits", f"{runtime_stats['cache_hits']:,}")
+metric_cols[2].metric("Cache misses", f"{runtime_stats['cache_misses']:,}")
+metric_cols[3].metric("Provider errors", f"{runtime_stats['provider_errors']:,}")
+metric_cols[4].metric("Cumulative fetch time", f"{runtime_stats['total_scan_seconds']:.1f}s")
+st.caption(
+    f"Batch requests: {runtime_stats['batch_requests']:,} · "
+    f"Single-symbol recovery requests: {runtime_stats['single_symbol_requests']:,}. "
+    "Counters are process-local and reset when the Streamlit process restarts."
+)
 
 if market_status == "OPEN":
     st.success("The configured calendar confirms the regular NSE/BSE equity session is open.")
