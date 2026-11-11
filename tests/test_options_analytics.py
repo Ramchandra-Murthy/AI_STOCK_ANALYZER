@@ -409,7 +409,7 @@ def test_yahoo_option_chain_rejects_unavailable_requested_expiry(monkeypatch):
 
 
 def test_option_chain_result_records_timezone_aware_retrieval_time():
-    from datetime import datetime, timezone
+    from datetime import UTC, datetime
 
     from services.options_analytics import OptionChainResult
 
@@ -425,4 +425,4 @@ def test_option_chain_result_records_timezone_aware_retrieval_time():
     )
 
     assert isinstance(result.fetched_at_utc, datetime)
-    assert result.fetched_at_utc.tzinfo is timezone.utc
+    assert result.fetched_at_utc.tzinfo is UTC
