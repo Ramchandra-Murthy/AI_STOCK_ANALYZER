@@ -10,7 +10,8 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from services.market_calendar import equity_market_session_status
-from services.resilient_market_data import download_symbol_frames, get_company_name as get_cached_company_name
+from services.resilient_market_data import download_symbol_frames
+from services.resilient_market_data import get_company_name as get_cached_company_name
 
 MARKET_INDICES = {
     "NIFTY 50": "^NSEI",
