@@ -14,7 +14,6 @@ import argparse
 import json
 import math
 import time
-from pathlib import Path
 from typing import Any
 
 from scanner.market_scanner import market_scan
@@ -151,11 +150,6 @@ def main() -> int:
         choices=("NSE", "BSE", "NSE + BSE"),
         help="Exchange universe to scan (default: NSE + BSE).",
     )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        help="Optional path for the JSON report; stdout remains the default.",
-    )
     args = parser.parse_args()
 
     runtime_before = market_data_runtime_stats()
@@ -177,8 +171,6 @@ def main() -> int:
             ),
         }
         rendered = json.dumps(report, indent=2, sort_keys=True)
-        if args.output:
-            args.output.write_text(rendered + "\n", encoding="utf-8")
         print(rendered)
         return 1
 
