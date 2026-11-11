@@ -302,7 +302,6 @@ def _download_batch(
     return pd.DataFrame()
 
 
-
 def _download_batch_singleflight(
     tickers: list[str],
     *,
