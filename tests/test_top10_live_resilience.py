@@ -248,6 +248,46 @@ def _scripted_scans(monkeypatch: pytest.MonkeyPatch, outcomes: list[object]) -> 
 # ----------------------------------------------- scan: partial / zero / fabricated data
 
 
+def test_scan_rejects_infinite_prices_and_keeps_valid_quotes(monkeypatch) -> None:
+    now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
+    frames = {
+        NSE_TICKERS[0]: _fresh_frame(now, age_seconds=20, closes=(100.0, float("inf"))),
+        NSE_TICKERS[1]: _fresh_frame(now, age_seconds=20, closes=(100.0, 101.0)),
+    }
+    monkeypatch.setattr(
+        top10_live,
+        "_download_top10_frames",
+        lambda _tickers: (frames, ALL_TICKERS[2:], "Test provider"),
+    )
+    top10_live._PROVIDER_DIAGNOSTICS.clear()
+
+    result, _elapsed, _failures, valid_quotes = top10_live._scan_live_top10()
+
+    assert valid_quotes == 1
+    assert result["Symbol"].tolist() == [NSE_TICKERS[1].rsplit(".", 1)[0]]
+    assert any("1 symbol(s) skipped" in item for item in top10_live._PROVIDER_DIAGNOSTICS)
+
+
+def test_scan_uses_stable_exchange_and_symbol_tiebreaks_for_equal_moves(monkeypatch) -> None:
+    now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
+    frames = {
+        ticker: _fresh_frame(now, age_seconds=20, closes=(100.0, 101.0))
+        for ticker in ALL_TICKERS[:4]
+    }
+    monkeypatch.setattr(
+        top10_live,
+        "_download_top10_frames",
+        lambda _tickers: (frames, ALL_TICKERS[4:], "Test provider"),
+    )
+
+    result, _elapsed, _failures, valid_quotes = top10_live._scan_live_top10()
+
+    assert valid_quotes == 4
+    assert list(zip(result["Exchange"], result["Symbol"], strict=True)) == sorted(
+        zip(result["Exchange"], result["Symbol"], strict=True)
+    )
+
+
 def test_scan_shows_valid_quotes_when_some_symbols_are_missing(monkeypatch) -> None:
     """Regression: one unresolved ticker used to crash the whole scan."""
     now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
