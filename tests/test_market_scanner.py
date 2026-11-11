@@ -516,6 +516,7 @@ def test_market_scan_records_resource_diagnostics_when_no_movers(monkeypatch) ->
     assert timings["cpu_seconds"] >= 0
     assert timings["total_seconds"] >= 0
 
+
 def test_analysis_shortlist_uses_full_limit_for_single_exchange():
     from scanner.market_scanner import _select_analysis_tickers
 
@@ -530,9 +531,7 @@ def test_analysis_shortlist_uses_full_limit_for_single_exchange():
 def test_analysis_shortlist_balances_both_exchanges():
     from scanner.market_scanner import _select_analysis_tickers
 
-    movers = [
-        (f"N{index}.NS", "NSE", 10.0 - index / 100, 1000.0) for index in range(20)
-    ] + [
+    movers = [(f"N{index}.NS", "NSE", 10.0 - index / 100, 1000.0) for index in range(20)] + [
         (f"B{index}.BO", "BSE", 9.0 - index / 100, 1000.0) for index in range(20)
     ]
 
@@ -546,9 +545,7 @@ def test_analysis_shortlist_balances_both_exchanges():
 def test_analysis_shortlist_fills_unused_exchange_quota():
     from scanner.market_scanner import _select_analysis_tickers
 
-    movers = [
-        (f"N{index}.NS", "NSE", 10.0 - index / 100, 1000.0) for index in range(3)
-    ] + [
+    movers = [(f"N{index}.NS", "NSE", 10.0 - index / 100, 1000.0) for index in range(3)] + [
         (f"B{index}.BO", "BSE", 9.0 - index / 100, 1000.0) for index in range(20)
     ]
 
