@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 
 import pandas as pd
-import yfinance as yf
 
 from engine.trading_pipeline import integrated_trade_frame
+from services.resilient_market_data import download_symbol_frames
 
 DEFAULT_TICKERS = [
     "RELIANCE.NS",
@@ -29,17 +29,19 @@ def _download(
     period: str,
     interval: str,
 ) -> pd.DataFrame:
-    """Download a batch of ticker histories from yfinance."""
-    return yf.download(
-        tickers=list(tickers),
+    """Download ticker histories through the shared resilient market-data layer."""
+    frames, _missing = download_symbol_frames(
+        tickers,
         period=period,
         interval=interval,
         auto_adjust=False,
-        progress=False,
-        group_by="ticker",
-        threads=True,
+        batch_size=10,
         timeout=10,
+        recover_missing=True,
     )
+    if not frames:
+        return pd.DataFrame()
+    return pd.concat(frames, axis=1)
 
 
 def _symbol_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
