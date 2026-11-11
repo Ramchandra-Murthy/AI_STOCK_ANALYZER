@@ -361,8 +361,10 @@ def download_market_frames(
     timeout: float = DEFAULT_TIMEOUT,
     retries: int = DEFAULT_RETRIES,
     recover_missing: bool = True,
+    cache_ttl_seconds: float | None = None,
 ) -> tuple[dict[str, pd.DataFrame], dict[str, Any]]:
     """Download frames with diagnostics suitable for scanner health reporting."""
+
     symbols = list(dict.fromkeys(str(t).strip().upper() for t in tickers if str(t).strip()))
     diagnostics: list[str] = []
     frames, missing = download_symbol_frames(
@@ -375,6 +377,7 @@ def download_market_frames(
         retries=retries,
         recover_missing=recover_missing,
         diagnostics=diagnostics,
+        cache_ttl_seconds=cache_ttl_seconds,
     )
     return frames, {
         "requested": len(symbols),
