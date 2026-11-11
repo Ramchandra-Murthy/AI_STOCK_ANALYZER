@@ -115,7 +115,7 @@ def _scan_batches(
             chunk = tickers[start : start + BATCH_SIZE]
             batches += 1
             try:
-                frames, missing = download_symbol_frames(
+                frames, _missing = download_symbol_frames(
                     chunk,
                     period="5d",
                     interval="5m",
