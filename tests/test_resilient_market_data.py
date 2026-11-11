@@ -358,3 +358,43 @@ def test_zero_cache_ttl_forces_a_fresh_provider_request(monkeypatch) -> None:
         )
 
     assert len(calls) == 2
+
+
+def test_market_cap_metadata_is_cached_and_uses_provider(monkeypatch) -> None:
+    market_data.clear_market_metadata_cache()
+    calls = []
+
+    class FakeTicker:
+        def __init__(self, ticker, **kwargs):
+            calls.append((ticker, kwargs))
+
+        @property
+        def fast_info(self):
+            return {"market_cap": 123456.0}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+
+    first = market_data.get_market_cap("AAA.NS")
+    second = market_data.get_market_cap("AAA.NS")
+
+    assert first == second == 123456.0
+    assert calls == [("AAA.NS", {"timeout": market_data.DEFAULT_TIMEOUT})]
+
+
+def test_market_cap_metadata_does_not_cache_unavailable_values(monkeypatch) -> None:
+    market_data.clear_market_metadata_cache()
+    calls = []
+
+    class FakeTicker:
+        def __init__(self, ticker, **kwargs):
+            calls.append(ticker)
+
+        @property
+        def fast_info(self):
+            return {"market_cap": None}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+
+    assert market_data.get_market_cap("AAA.NS") is None
+    assert market_data.get_market_cap("AAA.NS") is None
+    assert calls == ["AAA.NS", "AAA.NS"]

@@ -43,6 +43,51 @@ _CACHE_LOCK = RLock()
 _MARKET_DATA_CACHE: OrderedDict[tuple[str, str, str, bool], tuple[float, pd.DataFrame]] = (
     OrderedDict()
 )
+_METADATA_CACHE: dict[str, tuple[float, float]] = {}
+_METADATA_CACHE_LOCK = RLock()
+DEFAULT_METADATA_CACHE_TTL_SECONDS = 1800.0
+
+
+def get_market_cap(
+    ticker: str,
+    *,
+    cache_ttl_seconds: float = DEFAULT_METADATA_CACHE_TTL_SECONDS,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> float | None:
+    """Fetch Yahoo market-cap metadata with shared request throttling and a TTL cache."""
+    symbol = str(ticker).strip().upper()
+    if not symbol:
+        return None
+    ttl = max(0.0, float(cache_ttl_seconds))
+    now = monotonic()
+    if ttl > 0:
+        with _METADATA_CACHE_LOCK:
+            cached = _METADATA_CACHE.get(symbol)
+            if cached is not None:
+                stored_at, value = cached
+                if now - stored_at < ttl:
+                    return value
+                del _METADATA_CACHE[symbol]
+
+    try:
+        with _PROVIDER_REQUEST_LIMIT:
+            raw_value = yf.Ticker(symbol, timeout=timeout).fast_info.get("market_cap")
+        value = float(raw_value) if raw_value is not None else 0.0
+        if not pd.notna(value) or value <= 0:
+            return None
+    except Exception:
+        return None
+
+    if ttl > 0:
+        with _METADATA_CACHE_LOCK:
+            _METADATA_CACHE[symbol] = (monotonic(), value)
+    return value
+
+
+def clear_market_metadata_cache() -> None:
+    """Clear cached market-cap metadata; primarily useful for tests and refreshes."""
+    with _METADATA_CACHE_LOCK:
+        _METADATA_CACHE.clear()
 
 
 def _cache_ttl(interval: str, override: float | None = None) -> float:

@@ -230,17 +230,23 @@ def _market_observation_date(value: Any):
 
 def _get_last_observation(
     ticker: str,
+    *,
+    use_intraday: bool | None = None,
 ) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
     """Return price, change, previous close, time, frequency and intraday flag."""
+    if use_intraday is None:
+        use_intraday = equity_market_session_status(datetime.now(INDIA_TIMEZONE)) == "OPEN"
     try:
-        intraday_frames, _intraday_diagnostics = download_symbol_frames(
-            [ticker],
-            period="1d",
-            interval="1m",
-            auto_adjust=True,
-            batch_size=1,
-            timeout=15,
-        )
+        intraday_frames: dict[str, pd.DataFrame] = {}
+        if use_intraday:
+            intraday_frames, _intraday_diagnostics = download_symbol_frames(
+                [ticker],
+                period="1d",
+                interval="1m",
+                auto_adjust=True,
+                batch_size=1,
+                timeout=15,
+            )
         close = _clean_close_series(intraday_frames.get(ticker, pd.DataFrame()))
         if not close.empty:
             latest = float(close.iloc[-1])

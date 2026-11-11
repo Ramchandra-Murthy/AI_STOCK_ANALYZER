@@ -104,3 +104,17 @@ def test_market_movers_scan_uses_shared_market_data_service(monkeypatch):
     assert calls[0][1]["recover_missing"] is True
     assert stats["usable_quotes"] == 1
     assert result.iloc[0]["Symbol"] == "TEST"
+
+
+def test_market_cap_uses_shared_metadata_service(monkeypatch):
+    from modules import market_movers
+
+    calls = []
+    monkeypatch.setattr(
+        market_movers,
+        "get_market_cap",
+        lambda ticker, **kwargs: calls.append((ticker, kwargs)) or 123.0,
+    )
+
+    assert market_movers._market_cap("TEST.NS") == 123.0
+    assert calls == [("TEST.NS", {"cache_ttl_seconds": market_movers.CAP_CACHE_TTL_SECONDS})]

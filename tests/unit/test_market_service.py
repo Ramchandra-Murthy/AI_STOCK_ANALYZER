@@ -25,7 +25,7 @@ def test_last_observation_prefers_intraday(monkeypatch):
     monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
 
     value, change, previous_close, observed_at, frequency, is_intraday = (
-        market_service._get_last_observation("TEST")
+        market_service._get_last_observation("TEST", use_intraday=True)
     )
     assert value == 105.0
     assert change == 6.06
@@ -47,7 +47,7 @@ def test_last_observation_does_not_use_same_day_daily_or_previous_minute_as_prev
     monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
 
     value, change, previous_close, observed_at, frequency, is_intraday = (
-        market_service._get_last_observation("TEST")
+        market_service._get_last_observation("TEST", use_intraday=True)
     )
     assert value == 105.0
     assert change is None
@@ -128,3 +128,19 @@ def test_normalize_market_symbol_rejects_unknown_exchange():
 def test_normalize_market_symbol_preserves_explicit_exchange_suffix():
     assert market_service.normalize_market_symbol("RELIANCE.NS", "BSE") == "RELIANCE.NS"
     assert market_service.normalize_market_symbol("500325.BO", "NSE") == "500325.BO"
+
+
+def test_last_observation_skips_intraday_request_when_market_is_closed(monkeypatch):
+    intervals = []
+
+    def fake_download(tickers, *, interval, **kwargs):
+        intervals.append(interval)
+        index = pd.to_datetime(["2026-11-10 00:00:00+05:30", "2026-11-11 00:00:00+05:30"])
+        return {"TEST": pd.DataFrame({"Close": [100.0, 105.0]}, index=index)}, []
+
+    monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
+    value = market_service._get_last_observation("TEST", use_intraday=False)
+
+    assert value[0] == 105.0
+    assert value[4:] == ("daily", False)
+    assert intervals == ["1d"]
