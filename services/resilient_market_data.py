@@ -203,10 +203,7 @@ def download_symbol_frames(
     recovery_count = 0
     batch_size = max(1, int(batch_size))
     worker_count = max(1, min(int(max_workers), 4))
-    chunks = [
-        symbols[start : start + batch_size]
-        for start in range(0, len(symbols), batch_size)
-    ]
+    chunks = [symbols[start : start + batch_size] for start in range(0, len(symbols), batch_size)]
     frames: dict[str, pd.DataFrame] = {}
     batch_seconds = 0.0
 
