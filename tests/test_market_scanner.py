@@ -643,4 +643,3 @@ def test_broad_market_download_returns_empty_frame_when_all_history_missing(monk
     )
 
     assert market_scanner._download_analysis_chunk(["MISSING.NS"]).empty
-
