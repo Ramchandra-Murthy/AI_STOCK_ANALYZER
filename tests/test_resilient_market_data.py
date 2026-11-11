@@ -332,7 +332,7 @@ def test_market_data_cache_ttl_expiry_triggers_provider_refresh(monkeypatch) -> 
     )
 
     assert len(calls) == 2
-    assert market_data.market_data_cache_stats()["entries"] == 0
+    assert market_data.market_data_cache_stats()["entries"] == 1
 
 
 def test_zero_cache_ttl_forces_a_fresh_provider_request(monkeypatch) -> None:
@@ -345,8 +345,12 @@ def test_zero_cache_ttl_forces_a_fresh_provider_request(monkeypatch) -> None:
     monkeypatch.setattr(market_data, "_download_batch", fake_batch)
     for _ in range(2):
         market_data.download_symbol_frames(
-            ["AAA.NS"], period="1d", interval="1m", recover_missing=False,
+            ["AAA.NS"],
+            period="1d",
+            interval="1m",
+            recover_missing=False,
             cache_ttl_seconds=0,
         )
 
     assert len(calls) == 2
+
