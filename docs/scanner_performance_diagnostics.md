@@ -5,8 +5,8 @@ returned DataFrame. Use the profiling CLI to capture a reproducible JSON report:
 
 ```bash
 python scripts/profile_market_scanner.py --exchange "NSE + BSE"
-python scripts/profile_market_scanner.py --exchange NSE --output nse-profile.json
-python scripts/profile_market_scanner.py --exchange BSE --output bse-profile.json
+python scripts/profile_market_scanner.py --exchange NSE
+python scripts/profile_market_scanner.py --exchange BSE
 ```
 
 The report includes:
