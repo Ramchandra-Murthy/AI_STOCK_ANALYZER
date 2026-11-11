@@ -612,9 +612,7 @@ def market_scan(
                 else:
                     coverage[exchange]["unknown_timestamp_rejected"] += 1
             continue
-        row = _analyze_history_frame(
-            ticker, ticker_history, turnover_by_ticker.get(ticker)
-        )
+        row = _analyze_history_frame(ticker, ticker_history, turnover_by_ticker.get(ticker))
         if row is not None:
             rows.append(row)
             if exchange in coverage:
