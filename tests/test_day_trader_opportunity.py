@@ -499,44 +499,43 @@ def test_coverage_diagnostics_handle_empty_universe():
     assert stats["no_usable_data_count"] == 0
 
 
-def test_chunk_download_retries_empty_response_then_succeeds(monkeypatch):
+def test_chunk_download_uses_shared_market_data_service(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
     calls = []
-    expected = pd.DataFrame({"Close": [100.0]})
+    expected = pd.DataFrame({"Close": [100.0]}, index=pd.date_range("2026-11-10", periods=1))
 
-    def fake_download(**kwargs):
-        calls.append(kwargs)
-        return pd.DataFrame() if len(calls) == 1 else expected
+    def fake_download(tickers, **kwargs):
+        calls.append((tickers, kwargs))
+        return {"ABC.NS": expected}, []
 
-    monkeypatch.setattr(scanner.yf, "download", fake_download)
-    monkeypatch.setattr(scanner.time, "sleep", lambda _delay: None)
+    monkeypatch.setattr(scanner, "download_symbol_frames", fake_download)
 
     result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
 
-    assert result.equals(expected)
-    assert attempts == 2
-    assert len(calls) == 2
-    assert calls[-1]["timeout"] == 15
+    assert result[("ABC.NS", "Close")].tolist() == [100.0]
+    assert attempts == 1
+    assert calls[0][0] == ["ABC.NS"]
+    assert calls[0][1]["interval"] == "5m"
+    assert calls[0][1]["recover_missing"] is False
 
 
-def test_chunk_download_stops_after_bounded_failures(monkeypatch):
+def test_chunk_download_reports_empty_when_shared_service_finds_no_frames(monkeypatch):
     import scanner.day_trader_opportunity as scanner
 
     calls = []
 
-    def fake_download(**_kwargs):
-        calls.append(True)
-        raise TimeoutError("provider timeout")
+    def fake_download(tickers, **kwargs):
+        calls.append(tickers)
+        return {}, ["ABC.NS"]
 
-    monkeypatch.setattr(scanner.yf, "download", fake_download)
-    monkeypatch.setattr(scanner.time, "sleep", lambda _delay: None)
+    monkeypatch.setattr(scanner, "download_symbol_frames", fake_download)
 
     result, attempts = scanner._download_chunk_with_retry(["ABC.NS"], "5m")
 
     assert result.empty
     assert attempts == scanner.CHUNK_DOWNLOAD_ATTEMPTS
-    assert len(calls) == scanner.CHUNK_DOWNLOAD_ATTEMPTS
+    assert calls == [["ABC.NS"]]
 
 
 def test_scan_provider_data_contract_detects_all_failed_chunks():
