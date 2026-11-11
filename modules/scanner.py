@@ -17,10 +17,15 @@ from services.watchlist_ui import get_or_create_default_watchlist
 @st.cache_data(ttl=300, show_spinner=False)
 def _cached_market_scan(
     exchange_filter: str,
+    analysis_limit: int,
     _progress_callback=None,
 ) -> pd.DataFrame:
-    """Reuse broad-market results; report progress only when a cache miss runs the scan."""
-    return market_scan(exchange_filter, progress_callback=_progress_callback)
+    """Reuse broad-market results for a given exchange and analysis budget."""
+    return market_scan(
+        exchange_filter,
+        progress_callback=_progress_callback,
+        analysis_limit=analysis_limit,
+    )
 
 
 def _normalize_broad_market_confidence(df: pd.DataFrame) -> pd.DataFrame:
@@ -120,6 +125,8 @@ def _show_coverage_summary(coverage_rows: list[dict]) -> None:
         "histories_returned",
         "histories_rejected",
         "analysis_requested",
+        "analysis_candidates_available",
+        "analysis_candidates_deferred",
         "analysis_download_failed",
         "stale_data_rejected",
         "unknown_timestamp_rejected",
@@ -139,7 +146,9 @@ def _show_coverage_summary(coverage_rows: list[dict]) -> None:
         ("Screen batches", "screen_chunks_requested"),
         ("Usable screen histories", "histories_returned"),
         ("History rejected", "histories_rejected"),
-        ("Analysis requested", "analysis_requested"),
+        ("Mover candidates", "analysis_candidates_available"),
+        ("Detailed analysis requested", "analysis_requested"),
+        ("Candidates deferred by limit", "analysis_candidates_deferred"),
         ("Analyses completed", "analyses_completed"),
         ("Final rows", "final_rows"),
     ]
@@ -278,6 +287,16 @@ def show():
         help="NSE + BSE keeps opportunities from both exchanges in the candidate pool. "
         "Low-liquidity stocks are not removed; use the Risk and turnover information for judgment.",
     )
+    analysis_limit = st.selectbox(
+        "Detailed analysis candidates",
+        [20, 50, 100, 200],
+        index=0,
+        help=(
+            "The broad-market screen checks the full mapped exchange universe. "
+            "This setting controls how many of the strongest movers receive full one-year "
+            "technical analysis. Larger values take longer."
+        ),
+    )
     if st.button("Scan", width="stretch"):
         if scan_mode == "Personal Watchlist":
             with st.spinner("Scanning personal watchlist..."):
@@ -303,6 +322,7 @@ def show():
             try:
                 df = _cached_market_scan(
                     exchange_filter,
+                    analysis_limit,
                     _progress_callback=report_scan_progress,
                 )
                 completion_label = (
