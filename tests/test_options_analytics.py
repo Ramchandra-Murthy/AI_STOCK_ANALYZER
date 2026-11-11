@@ -369,6 +369,14 @@ def test_nse_option_chain_rejects_unavailable_requested_expiry(monkeypatch):
 
 def test_dhan_option_chain_rejects_unavailable_requested_expiry(monkeypatch):
     monkeypatch.setattr(
+        "services.options_analytics.DhanCredentials.from_env",
+        lambda: object(),
+    )
+    monkeypatch.setattr(
+        "services.options_analytics.DhanMarketData",
+        lambda credentials: object(),
+    )
+    monkeypatch.setattr(
         "services.options_analytics._fetch_dhan_expiries",
         lambda underlying: ("2026-10-08", "2026-10-15"),
     )
