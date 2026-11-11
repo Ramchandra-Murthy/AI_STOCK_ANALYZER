@@ -45,7 +45,39 @@ _MARKET_DATA_CACHE: OrderedDict[tuple[str, str, str, bool], tuple[float, pd.Data
 )
 _METADATA_CACHE: dict[str, tuple[float, float]] = {}
 _METADATA_CACHE_LOCK = RLock()
+_RUNTIME_STATS_LOCK = RLock()
+_RUNTIME_STATS = {
+    "scan_calls": 0,
+    "batch_requests": 0,
+    "single_symbol_requests": 0,
+    "provider_errors": 0,
+    "cache_hits": 0,
+    "cache_misses": 0,
+    "total_scan_seconds": 0.0,
+}
 DEFAULT_METADATA_CACHE_TTL_SECONDS = 1800.0
+
+
+def _record_runtime_stat(name: str, amount: int | float = 1) -> None:
+    """Update one process-local market-data telemetry counter safely."""
+    with _RUNTIME_STATS_LOCK:
+        _RUNTIME_STATS[name] += amount
+
+
+def market_data_runtime_stats() -> dict[str, int | float]:
+    """Return process-local request, cache, error, and scan-duration counters."""
+    with _RUNTIME_STATS_LOCK:
+        stats = dict(_RUNTIME_STATS)
+    stats["cache_entries"] = market_data_cache_stats()["entries"]
+    stats["cache_capacity"] = MARKET_DATA_CACHE_MAX_ENTRIES
+    return stats
+
+
+def clear_market_data_runtime_stats() -> None:
+    """Reset process-local telemetry counters for tests and diagnostics."""
+    with _RUNTIME_STATS_LOCK:
+        for key in _RUNTIME_STATS:
+            _RUNTIME_STATS[key] = 0.0 if key == "total_scan_seconds" else 0
 
 
 def get_market_cap(
@@ -237,6 +269,7 @@ def _download_batch(
     for attempt in range(retry_count + 1):
         try:
             with _PROVIDER_REQUEST_LIMIT:
+                _record_runtime_stat("batch_requests")
                 result = yf.download(
                     tickers=tickers,
                     period=period,
@@ -252,6 +285,7 @@ def _download_batch(
                 return result
         except Exception as exc:
             last_error = exc
+            _record_runtime_stat("provider_errors")
             if diagnostics is not None:
                 diagnostics.append(f"batch request raised {type(exc).__name__}")
         else:
@@ -282,6 +316,7 @@ def _download_single(
     for attempt in range(retry_count + 1):
         try:
             with _PROVIDER_REQUEST_LIMIT:
+                _record_runtime_stat("single_symbol_requests")
                 result = yf.Ticker(ticker).history(
                     period=period,
                     interval=interval,
@@ -294,6 +329,7 @@ def _download_single(
             if not frame.empty:
                 return frame
         except Exception as exc:
+            _record_runtime_stat("provider_errors")
             if diagnostics is not None:
                 diagnostics.append(f"single-symbol request raised {type(exc).__name__}")
         if attempt < retry_count:
@@ -365,6 +401,7 @@ def download_symbol_frames(
         return {}, []
 
     scan_started = perf_counter()
+    _record_runtime_stat("scan_calls")
     recovery_seconds = 0.0
     recovery_count = 0
     batch_size = max(1, int(batch_size))
@@ -377,6 +414,9 @@ def download_symbol_frames(
         if cached is not None:
             frames[ticker] = cached
             cache_hits += 1
+            _record_runtime_stat("cache_hits")
+        else:
+            _record_runtime_stat("cache_misses")
 
     uncached_symbols = [ticker for ticker in symbols if ticker not in frames]
     chunks = [
@@ -435,6 +475,8 @@ def download_symbol_frames(
     if ttl > 0:
         for ticker, frame in frames.items():
             _store_cached_frame(_cache_key(ticker, period, interval, auto_adjust), frame)
+
+    _record_runtime_stat("total_scan_seconds", perf_counter() - scan_started)
 
     if diagnostics is not None:
         diagnostics.append(

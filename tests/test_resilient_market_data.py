@@ -9,6 +9,7 @@ from services import resilient_market_data as market_data
 @pytest.fixture(autouse=True)
 def _clear_market_data_cache():
     market_data.clear_market_data_cache()
+    market_data.clear_market_data_runtime_stats()
     market_data.clear_market_metadata_cache()
     market_data.clear_company_name_cache()
     yield
@@ -438,3 +439,24 @@ def test_company_name_unavailable_metadata_is_not_cached(monkeypatch) -> None:
     assert market_data.get_company_name("UNKNOWN.NS") == "UNKNOWN.NS"
     assert market_data.get_company_name("UNKNOWN.NS") == "UNKNOWN.NS"
     assert calls == ["UNKNOWN.NS", "UNKNOWN.NS"]
+
+
+def test_runtime_telemetry_tracks_cache_hits_and_misses(monkeypatch) -> None:
+    monkeypatch.setattr(
+        market_data,
+        "_download_batch",
+        lambda tickers, **_kwargs: pd.concat({ticker: _frame() for ticker in tickers}, axis=1),
+    )
+    market_data.download_symbol_frames(
+        ["AAA.NS"], period="1d", interval="1m", recover_missing=False
+    )
+    market_data.download_symbol_frames(
+        ["AAA.NS"], period="1d", interval="1m", recover_missing=False
+    )
+
+    stats = market_data.market_data_runtime_stats()
+    assert stats["scan_calls"] == 2
+    assert stats["cache_misses"] == 1
+    assert stats["cache_hits"] == 1
+    assert stats["total_scan_seconds"] >= 0
+    assert stats["cache_entries"] == 1
