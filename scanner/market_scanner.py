@@ -463,6 +463,11 @@ def market_scan(
     analysis_limit: int = TOP_CANDIDATES_TO_ANALYZE,
 ) -> pd.DataFrame:
     """Scan the selected exchange universe using batched market data and local analysis."""
+    if not isinstance(analysis_limit, int) or isinstance(analysis_limit, bool):
+        raise ValueError("analysis_limit must be a positive integer")
+    if analysis_limit < 1 or analysis_limit > 500:
+        raise ValueError("analysis_limit must be between 1 and 500")
+
     scan_started = time.perf_counter()
     cpu_started = time.process_time()
     timings: dict[str, float] = {
@@ -532,11 +537,6 @@ def market_scan(
         timings["total_seconds"] = time.perf_counter() - scan_started
         empty.attrs["scanner_timings"] = timings
         return empty
-
-    if not isinstance(analysis_limit, int) or isinstance(analysis_limit, bool):
-        raise ValueError("analysis_limit must be a positive integer")
-    if analysis_limit < 1 or analysis_limit > 500:
-        raise ValueError("analysis_limit must be between 1 and 500")
 
     exchange_order = list(candidates)
     available_by_exchange = {
