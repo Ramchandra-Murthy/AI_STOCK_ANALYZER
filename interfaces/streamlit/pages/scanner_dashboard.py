@@ -62,7 +62,9 @@ elif market_status == "CALENDAR_UNAVAILABLE":
         "closed until an exchange-verified calendar is added."
     )
 else:
-    st.info("Regular equity session is closed. The live Top-10 component will not fetch live quotes.")
+    st.info(
+        "Regular equity session is closed. The live Top-10 component will not fetch live quotes."
+    )
 
 st.divider()
 st.subheader("Live Top-10 scanner")
@@ -105,7 +107,9 @@ if isinstance(results, pd.DataFrame):
     if scanned_at:
         st.caption(f"Last completed research scan: {scanned_at}")
     if results.empty:
-        st.warning("No symbols produced a valid integrated result. Check provider availability and symbol coverage.")
+        st.warning(
+            "No symbols produced a valid integrated result. Check provider availability and symbol coverage."
+        )
     else:
         st.success(f"Integrated results available for {len(results)} symbols.")
         st.dataframe(results, use_container_width=True, hide_index=True)
