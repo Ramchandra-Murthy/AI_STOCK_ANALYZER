@@ -48,8 +48,6 @@ _METADATA_CACHE_LOCK = RLock()
 DEFAULT_METADATA_CACHE_TTL_SECONDS = 1800.0
 
 
-
-
 def get_market_cap(
     ticker: str,
     *,
