@@ -7,9 +7,7 @@ import modules.intraday as intraday
 
 def test_intraday_download_uses_shared_market_data_controls(monkeypatch) -> None:
     calls: dict[str, object] = {}
-    frame = pd.DataFrame(
-        {"Close": [100.0]}, index=pd.DatetimeIndex(["2026-11-11 09:15:00"])
-    )
+    frame = pd.DataFrame({"Close": [100.0]}, index=pd.DatetimeIndex(["2026-11-11 09:15:00"]))
 
     def fake_download(tickers, **kwargs):
         calls["tickers"] = tickers
@@ -39,9 +37,7 @@ def test_intraday_download_can_recover_missing_single_symbol(monkeypatch) -> Non
 
     monkeypatch.setattr(intraday, "download_symbol_frames", fake_download)
 
-    frames, missing = intraday._download_intraday_frames(
-        ["TCS.NS"], "5m", recover_missing=True
-    )
+    frames, missing = intraday._download_intraday_frames(["TCS.NS"], "5m", recover_missing=True)
 
     assert frames == {}
     assert missing == ["TCS.NS"]
