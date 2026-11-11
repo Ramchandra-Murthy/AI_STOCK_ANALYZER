@@ -415,7 +415,10 @@ def test_download_chunk_logs_provider_failure_and_returns_empty(monkeypatch, cap
 
     from scanner import market_scanner
 
-    monkeypatch.setattr(market_scanner.yf, "download", _failing_download)
+    def failing_shared_download(*_args, **_kwargs):
+        raise RuntimeError("provider unavailable")
+
+    monkeypatch.setattr(market_scanner, "download_symbol_frames", failing_shared_download)
 
     with caplog.at_level(logging.DEBUG, logger=market_scanner.logger.name):
         result = market_scanner._download_chunk(["AAA.NS", "BBB.NS"])
@@ -433,7 +436,10 @@ def test_download_analysis_chunk_logs_provider_failure_and_returns_empty(
 
     from scanner import market_scanner
 
-    monkeypatch.setattr(market_scanner.yf, "download", _failing_download)
+    def failing_shared_download(*_args, **_kwargs):
+        raise RuntimeError("provider unavailable")
+
+    monkeypatch.setattr(market_scanner, "download_symbol_frames", failing_shared_download)
 
     with caplog.at_level(logging.DEBUG, logger=market_scanner.logger.name):
         result = market_scanner._download_analysis_chunk(["AAA.NS"])
