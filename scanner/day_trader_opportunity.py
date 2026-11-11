@@ -12,6 +12,7 @@ from time import perf_counter
 from typing import Any
 
 import pandas as pd
+
 from scanner.day_trading_strategy import (
     analyze_day_trade_setup,
     calculate_day_trade_plan,
