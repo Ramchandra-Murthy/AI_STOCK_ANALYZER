@@ -47,7 +47,7 @@ def test_last_observation_does_not_use_same_day_daily_or_previous_minute_as_prev
     monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
 
     value, change, previous_close, observed_at, frequency, is_intraday = (
-        market_service._get_last_observation("TEST")
+        market_service._get_last_observation("TEST", use_intraday=True)
     )
     assert value == 105.0
     assert change is None
