@@ -90,7 +90,6 @@ def clear_market_metadata_cache() -> None:
         _METADATA_CACHE.clear()
 
 
-
 _COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
 _COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
 
