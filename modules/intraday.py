@@ -6,7 +6,8 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
-import yfinance as yf
+
+from services.resilient_market_data import download_symbol_frames
 
 from scanner.eros_fusion import compute_eros_fusion
 from scanner.eros_fusion_history import append_eros_fusion_snapshot
@@ -223,6 +224,21 @@ def _frame_from_board_download(history: pd.DataFrame, ticker: str) -> pd.DataFra
     return frame[~frame.index.duplicated(keep="last")]
 
 
+def _download_intraday_frames(
+    tickers: list[str], interval: str, *, recover_missing: bool = False
+) -> tuple[dict[str, pd.DataFrame], list[str]]:
+    """Fetch intraday-board history through the shared bounded market-data service."""
+    return download_symbol_frames(
+        tickers,
+        period="5d",
+        interval=interval,
+        auto_adjust=False,
+        batch_size=LIVE_BOARD_CHUNK_SIZE,
+        timeout=10,
+        recover_missing=recover_missing,
+    )
+
+
 @st.cache_data(ttl=LIVE_BOARD_REFRESH_SECONDS, show_spinner=False)
 def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, int | float]]:
     """Build a dynamic 20-stock board from the broad NSE+BSE universe."""
@@ -253,24 +269,10 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
             stats["chunks"] += 1
             download_started = perf_counter()
             try:
-                history = yf.download(
-                    tickers=chunk,
-                    period="5d",
-                    interval="1m",
-                    progress=False,
-                    auto_adjust=False,
-                    group_by="ticker",
-                    threads=False,
-                )
-                daily_history = yf.download(
-                    tickers=chunk,
-                    period="5d",
-                    interval="1d",
-                    progress=False,
-                    auto_adjust=False,
-                    group_by="ticker",
-                    threads=False,
-                )
+                history_frames, missing_intraday = _download_intraday_frames(chunk, "1m")
+                daily_frames, missing_daily = _download_intraday_frames(chunk, "1d")
+                stats["missing_intraday"] = stats.get("missing_intraday", 0) + len(missing_intraday)
+                stats["missing_daily"] = stats.get("missing_daily", 0) + len(missing_daily)
                 stats["download_seconds"] += perf_counter() - download_started
             except Exception:
                 stats["download_seconds"] += perf_counter() - download_started
@@ -279,7 +281,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
 
             processing_started = perf_counter()
             for ticker in chunk:
-                frame = _frame_from_board_download(history, ticker)
+                frame = history_frames.get(ticker, pd.DataFrame())
                 if len(frame) < 2:
                     continue
                 stats["usable"] += 1
@@ -318,7 +320,7 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
 
                 today_change = None
                 try:
-                    daily_frame = _frame_from_board_download(daily_history, ticker)
+                    daily_frame = daily_frames.get(ticker, pd.DataFrame())
                     daily_close = pd.to_numeric(daily_frame["Close"], errors="coerce").dropna()
                     if len(daily_close) >= 2 and float(daily_close.iloc[-2]) > 0:
                         today_change = (price / float(daily_close.iloc[-2]) - 1.0) * 100
@@ -363,27 +365,17 @@ def _fetch_live_board() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[
     nifty_1m = nifty_5m = nifty_today = None
     benchmark_started = perf_counter()
     try:
-        benchmark = yf.download(
-            "^NSEI",
-            period="5d",
-            interval="1m",
-            progress=False,
-            auto_adjust=False,
-        )
-        benchmark_frame = _frame_from_board_download(benchmark, "^NSEI")
+        benchmark_frames, _ = _download_intraday_frames(["^NSEI"], "1m", recover_missing=True)
+        benchmark_frame = benchmark_frames.get("^NSEI", pd.DataFrame())
         benchmark_close = pd.to_numeric(benchmark_frame["Close"], errors="coerce").dropna()
         if len(benchmark_close) >= 2:
             nifty_1m = (float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-2]) - 1) * 100
         if len(benchmark_close) >= 6:
             nifty_5m = (float(benchmark_close.iloc[-1]) / float(benchmark_close.iloc[-6]) - 1) * 100
-        daily_benchmark = yf.download(
-            "^NSEI",
-            period="5d",
-            interval="1d",
-            progress=False,
-            auto_adjust=False,
+        daily_benchmark_frames, _ = _download_intraday_frames(
+            ["^NSEI"], "1d", recover_missing=True
         )
-        daily_frame = _frame_from_board_download(daily_benchmark, "^NSEI")
+        daily_frame = daily_benchmark_frames.get("^NSEI", pd.DataFrame())
         daily_close = pd.to_numeric(daily_frame["Close"], errors="coerce").dropna()
         if len(daily_close) >= 2:
             nifty_today = (float(benchmark_close.iloc[-1]) / float(daily_close.iloc[-2]) - 1) * 100
@@ -2055,12 +2047,14 @@ def show() -> None:
     ticker = _ticker(symbol, exchange)
     with st.spinner(f"Loading recent {interval} candles for {ticker}…"):
         try:
-            intraday = yf.download(
-                ticker, period="5d", interval=interval, progress=False, auto_adjust=False
+            intraday_frames, missing_intraday = _download_intraday_frames(
+                [ticker], interval, recover_missing=True
             )
-            daily = yf.download(
-                ticker, period="5d", interval="1d", progress=False, auto_adjust=False
+            daily_frames, missing_daily = _download_intraday_frames(
+                [ticker], "1d", recover_missing=True
             )
+            intraday = intraday_frames.get(ticker, pd.DataFrame())
+            daily = daily_frames.get(ticker, pd.DataFrame())
         except Exception as exc:
             st.error(f"Could not retrieve market data: {exc}")
             return
