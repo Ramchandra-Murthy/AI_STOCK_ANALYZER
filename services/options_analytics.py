@@ -318,7 +318,9 @@ def _fetch_dhan_option_chain(
         raise RuntimeError("Dhan returned no active option expiries.")
 
     requested = _dhan_expiry(expiry) if expiry else None
-    selected = requested if requested in expiry_values else expiry_values[0]
+    if requested is not None and requested not in expiry_values:
+        raise ValueError(f"Requested Dhan expiry {requested} is not available.")
+    selected = requested if requested is not None else expiry_values[0]
     response = client.option_chain(security_id, segment, selected)
 
     if not isinstance(response, dict) or response.get("status") != "success":
@@ -335,7 +337,9 @@ def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
     except Exception:
         expiry_values = ()
 
-    selected_expiry = expiry if expiry in expiry_values else None
+    if expiry is not None and expiry_values and expiry not in expiry_values:
+        raise ValueError(f"Requested NSE expiry {expiry} is not available.")
+    selected_expiry = expiry if expiry is not None else None
     if selected_expiry is None and expiry_values:
         selected_expiry = expiry_values[0]
 
@@ -376,7 +380,9 @@ def _fetch_nse_option_chain(underlying: str, expiry: str | None = None) -> dict:
     if not expiry_values:
         raise RuntimeError("NSE returned no usable option-chain expiries.")
 
-    selected_expiry = expiry if expiry in expiry_values else expiry_values[0]
+    if expiry is not None and expiry not in expiry_values:
+        raise ValueError(f"Requested NSE expiry {expiry} is not available.")
+    selected_expiry = expiry if expiry is not None else expiry_values[0]
     payload.setdefault("records", {})
     if isinstance(payload["records"], dict):
         payload["records"]["expiryDates"] = list(expiry_values)
@@ -561,7 +567,19 @@ def _fetch_yahoo_option_chain(
             "Yahoo Finance did not expose an option chain for this underlying.",
         )
 
-    selected_expiry = expiry if expiry in expiries else expiries[0]
+    if expiry is not None and expiry not in expiries:
+        return OptionChainResult(
+            underlying,
+            symbol,
+            expiry,
+            _spot_price(ticker),
+            pd.DataFrame(columns=CHAIN_COLUMNS),
+            expiries,
+            "UNAVAILABLE",
+            f"Requested Yahoo Finance expiry {expiry} is not available.",
+        )
+
+    selected_expiry = expiry if expiry is not None else expiries[0]
     try:
         raw = ticker.option_chain(selected_expiry)
         chain = _normalize_chain(raw.calls, raw.puts)
