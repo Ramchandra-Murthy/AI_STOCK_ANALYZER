@@ -404,7 +404,6 @@ def test_market_cap_metadata_does_not_cache_unavailable_values(monkeypatch) -> N
     assert calls == ["AAA.NS", "AAA.NS"]
 
 
-
 def test_company_name_metadata_is_cached_and_provider_request_is_shared(monkeypatch) -> None:
     calls: list[str] = []
 
