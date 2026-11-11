@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 
 import pandas as pd
+
 from engine.trading_pipeline import integrated_trade_frame
 from services.resilient_market_data import download_symbol_frames
 
