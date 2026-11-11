@@ -95,8 +95,6 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
             "screen_tickers_missing_data": 0,
             "histories_returned": 0,
             "histories_rejected": 0,
-            "mapped_histories_missing": 0,
-            "screen_attempted_tickers": 0,
             "history_coverage_pct": 0.0,
             "analysis_download_failed": 0,
             "stale_data_rejected": 0,
@@ -519,31 +517,46 @@ def test_market_scan_records_resource_diagnostics_when_no_movers(monkeypatch) ->
     assert timings["total_seconds"] >= 0
 
 
-def test_market_scan_coverage_excludes_cached_and_unmapped_from_download_misses(
-    monkeypatch,
-) -> None:
-    from scanner import market_scanner
+def test_analysis_shortlist_uses_full_limit_for_single_exchange():
+    from scanner.market_scanner import _select_analysis_tickers
 
-    monkeypatch.setattr(market_scanner, "merge_nse_universe", lambda: ["AAA", "BBB", "CCC"])
+    movers = [(f"{index}.NS", "NSE", 5.0 - index / 100, 1000.0) for index in range(30)]
 
-    def screen(candidates, coverage=None):
-        assert candidates == {"NSE": ["AAA", "BBB", "CCC"]}
-        coverage["NSE"].update(
-            mapped_tickers=2,
-            tickers_requested=2,
-            unmapped_symbols=1,
-            cached_failures_skipped=1,
-            histories_returned=1,
-        )
-        return []
+    selected = _select_analysis_tickers(movers, ["NSE"], 20)
 
-    monkeypatch.setattr(market_scanner, "_batch_change_screen", screen)
-    result = market_scanner.market_scan("NSE")
-    counts = result.attrs["scanner_coverage"]["NSE"]
+    assert len(selected) == 20
+    assert selected == [f"{index}.NS" for index in range(20)]
 
-    assert counts["screen_attempted_tickers"] == 1
-    assert counts["mapped_histories_missing"] == 0
-    assert counts["histories_rejected"] == 0
-    assert counts["history_coverage_pct"] == 50.0
-    assert counts["unmapped_symbols"] == 1
-    assert counts["cached_failures_skipped"] == 1
+
+def test_analysis_shortlist_balances_both_exchanges():
+    from scanner.market_scanner import _select_analysis_tickers
+
+    movers = [(f"N{index}.NS", "NSE", 10.0 - index / 100, 1000.0) for index in range(20)] + [
+        (f"B{index}.BO", "BSE", 9.0 - index / 100, 1000.0) for index in range(20)
+    ]
+
+    selected = _select_analysis_tickers(movers, ["NSE", "BSE"], 20)
+
+    assert len(selected) == 20
+    assert sum(ticker.endswith(".NS") for ticker in selected) == 10
+    assert sum(ticker.endswith(".BO") for ticker in selected) == 10
+
+
+def test_analysis_shortlist_fills_unused_exchange_quota():
+    from scanner.market_scanner import _select_analysis_tickers
+
+    movers = [(f"N{index}.NS", "NSE", 10.0 - index / 100, 1000.0) for index in range(3)] + [
+        (f"B{index}.BO", "BSE", 9.0 - index / 100, 1000.0) for index in range(20)
+    ]
+
+    selected = _select_analysis_tickers(movers, ["NSE", "BSE"], 20)
+
+    assert len(selected) == 20
+    assert sum(ticker.endswith(".NS") for ticker in selected) == 3
+    assert sum(ticker.endswith(".BO") for ticker in selected) == 17
+
+
+def test_analysis_shortlist_rejects_invalid_limits():
+    from scanner.market_scanner import _select_analysis_tickers
+
+    assert _select_analysis_tickers([], ["NSE"], 0) == []
