@@ -56,7 +56,6 @@ from services.market_calendar import (
     is_equity_market_holiday,
     is_regular_equity_session_open,
 )
-from services.resilient_market_data import download_symbol_frames
 
 IST = ZoneInfo("Asia/Kolkata")
 
@@ -228,6 +227,8 @@ def _download_intraday_frames(
     tickers: list[str], interval: str, *, recover_missing: bool = False
 ) -> tuple[dict[str, pd.DataFrame], list[str]]:
     """Fetch intraday-board history through the shared bounded market-data service."""
+    from services.resilient_market_data import download_symbol_frames
+
     return download_symbol_frames(
         tickers,
         period="5d",
