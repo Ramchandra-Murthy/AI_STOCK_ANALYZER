@@ -90,6 +90,51 @@ def clear_market_metadata_cache() -> None:
         _METADATA_CACHE.clear()
 
 
+_COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
+_COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
+
+
+def get_company_name(
+    ticker: str,
+    *,
+    cache_ttl_seconds: float = _COMPANY_NAME_CACHE_TTL_SECONDS,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> str:
+    """Resolve a company name through the shared provider limit and a long-lived cache."""
+    symbol = str(ticker).strip().upper()
+    if not symbol:
+        return ""
+    ttl = max(0.0, float(cache_ttl_seconds))
+    now = monotonic()
+    if ttl > 0:
+        with _METADATA_CACHE_LOCK:
+            cached = _COMPANY_NAME_CACHE.get(symbol)
+            if cached is not None:
+                stored_at, cached_name = cached
+                if now - stored_at < ttl:
+                    return cached_name
+                del _COMPANY_NAME_CACHE[symbol]
+
+    try:
+        with _PROVIDER_REQUEST_LIMIT:
+            info = yf.Ticker(symbol, timeout=timeout).get_info()
+        raw_name = info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
+        resolved = raw_name.strip() if isinstance(raw_name, str) and raw_name.strip() else symbol
+    except Exception:
+        resolved = symbol
+
+    if resolved != symbol and ttl > 0:
+        with _METADATA_CACHE_LOCK:
+            _COMPANY_NAME_CACHE[symbol] = (monotonic(), resolved)
+    return resolved
+
+
+def clear_company_name_cache() -> None:
+    """Clear cached company names; primarily useful for tests and explicit refreshes."""
+    with _METADATA_CACHE_LOCK:
+        _COMPANY_NAME_CACHE.clear()
+
+
 def _cache_ttl(interval: str, override: float | None = None) -> float:
     """Return a conservative interval-aware cache lifetime."""
     if override is not None:

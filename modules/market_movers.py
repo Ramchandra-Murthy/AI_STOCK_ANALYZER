@@ -17,7 +17,7 @@ from services.resilient_market_data import download_symbol_frames, get_market_ca
 
 IST = ZoneInfo("Asia/Kolkata")
 BATCH_SIZE = 40
-CAP_WORKERS = 12
+CAP_WORKERS = 4
 CAP_CACHE_TTL_SECONDS = 1800
 SCAN_CACHE_TTL_SECONDS = 180
 LARGE_CAP_RANK_MAX = 100

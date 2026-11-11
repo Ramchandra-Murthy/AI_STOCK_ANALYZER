@@ -8,10 +8,10 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import pandas as pd
-import yfinance as yf
 
 from services.market_calendar import equity_market_session_status
 from services.resilient_market_data import download_symbol_frames
+from services.resilient_market_data import get_company_name as get_cached_company_name
 
 MARKET_INDICES = {
     "NIFTY 50": "^NSEI",
@@ -178,33 +178,8 @@ def market_session_status(
 
 
 def get_company_name(ticker: str) -> str:
-    """Resolve a human-readable company name, with Yahoo search as fallback."""
-    try:
-        info = yf.Ticker(ticker).get_info()
-        name = info.get("longName") or info.get("shortName")
-        if isinstance(name, str) and name.strip():
-            return name.strip()
-    except Exception:
-        pass
-
-    try:
-        quotes = yf.Search(ticker, max_results=8, news_count=0).quotes
-        normalized = ticker.strip().upper()
-        for quote in quotes:
-            symbol = str(quote.get("symbol", "")).strip().upper()
-            if symbol != normalized:
-                continue
-            name = quote.get("longname") or quote.get("shortname")
-            if isinstance(name, str) and name.strip():
-                return name.strip()
-        for quote in quotes:
-            name = quote.get("longname") or quote.get("shortname")
-            if isinstance(name, str) and name.strip():
-                return name.strip()
-    except Exception:
-        pass
-
-    return ticker
+    """Resolve a company name through the shared throttled metadata cache."""
+    return get_cached_company_name(ticker)
 
 
 def _clean_close_series(history: pd.DataFrame) -> pd.Series:
