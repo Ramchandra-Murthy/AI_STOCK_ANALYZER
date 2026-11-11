@@ -562,7 +562,6 @@ def test_analysis_shortlist_rejects_invalid_limits():
     assert _select_analysis_tickers([], ["NSE"], 0) == []
 
 
-
 def test_analyze_history_frame_does_not_extract_batch_history_again(monkeypatch) -> None:
     from scanner import market_scanner
 
