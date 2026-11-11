@@ -10,10 +10,10 @@ import pathlib
 
 import pandas as pd
 import streamlit.testing.v1 as streamlit_testing
-import yfinance as yf
 
 import ai_trading.ml_scanner as ml_scanner
 import modules.intraday as intraday
+import services.resilient_market_data as resilient_market_data
 
 PAGE = pathlib.Path(__file__).resolve().parents[1] / "pages" / "AI_Trading_Command_Center.py"
 
@@ -76,12 +76,14 @@ def test_command_center_cycle_updates_paper_portfolio(monkeypatch) -> None:
     monkeypatch.setattr(ml_scanner, "scan_universe", lambda *args, **kwargs: _ml_result())
 
     prices = pd.DataFrame(
-        {("Close", "RELIANCE.NS"): [1_950.0, 2_000.0]},
+        {"Close": [1_950.0, 2_000.0]},
         index=pd.date_range("2026-10-02", periods=2, freq="D"),
     )
-    prices.columns = pd.MultiIndex.from_tuples(prices.columns)
-
-    monkeypatch.setattr(yf, "download", lambda *args, **kwargs: prices)
+    monkeypatch.setattr(
+        resilient_market_data,
+        "download_symbol_frames",
+        lambda tickers, **kwargs: ({"RELIANCE.NS": prices}, []),
+    )
 
     app = streamlit_testing.AppTest.from_file(PAGE).run()
     app.button[0].click().run()
