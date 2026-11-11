@@ -118,8 +118,10 @@ def get_company_name(
     try:
         with _PROVIDER_REQUEST_LIMIT:
             info = yf.Ticker(symbol, timeout=timeout).get_info()
-        name = info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
-        resolved = name.strip() if isinstance(name, str) and name.strip() else symbol
+        raw_name = (
+            info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
+        )
+        resolved = raw_name.strip() if isinstance(raw_name, str) and raw_name.strip() else symbol
     except Exception:
         resolved = symbol
 
