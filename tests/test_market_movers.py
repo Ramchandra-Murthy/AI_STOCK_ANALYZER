@@ -72,3 +72,35 @@ def test_quote_freshness_labels_weekend_snapshot_as_closed():
 
     now = datetime(2026, 10, 18, 11, 0, tzinfo=ZoneInfo("Asia/Kolkata"))
     assert _quote_freshness("2026-10-16 15:25:00 IST", now) == "MARKET CLOSED · LAST AVAILABLE DATA"
+
+
+def test_market_movers_scan_uses_shared_market_data_service(monkeypatch):
+    from modules import market_movers
+
+    index = pd.date_range("2026-11-10 09:15", periods=8, freq="5min", tz="Asia/Kolkata")
+    frame = pd.DataFrame(
+        {
+            "Open": [100.0] * 8,
+            "High": [101.0] * 7 + [103.0],
+            "Low": [99.0] * 8,
+            "Close": [100.0, 100.2, 100.4, 100.6, 100.8, 101.0, 101.2, 102.0],
+            "Volume": [1000] * 7 + [3000],
+        },
+        index=index,
+    )
+    calls = []
+
+    def fake_download(tickers, **kwargs):
+        calls.append((tickers, kwargs))
+        return {tickers[0]: frame}, []
+
+    monkeypatch.setattr(market_movers, "download_symbol_frames", fake_download)
+    monkeypatch.setattr(market_movers, "_quote_freshness", lambda _value: "TEST")
+
+    result, stats = market_movers._scan_batches([("TEST", "NSE")], 1)
+
+    assert calls[0][0] == ["TEST.NS"]
+    assert calls[0][1]["interval"] == "5m"
+    assert calls[0][1]["recover_missing"] is True
+    assert stats["usable_quotes"] == 1
+    assert result.iloc[0]["Symbol"] == "TEST"

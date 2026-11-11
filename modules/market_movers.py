@@ -14,6 +14,7 @@ import yfinance as yf
 from scanner.dynamic_universe import merge_bse_universe, merge_nse_universe
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
 from services.market_calendar import equity_market_session_status
+from services.resilient_market_data import download_symbol_frames
 
 IST = ZoneInfo("Asia/Kolkata")
 BATCH_SIZE = 40
@@ -114,21 +115,24 @@ def _scan_batches(
             chunk = tickers[start : start + BATCH_SIZE]
             batches += 1
             try:
-                history = yf.download(
-                    tickers=chunk,
+                frames, _missing = download_symbol_frames(
+                    chunk,
                     period="5d",
                     interval="5m",
                     auto_adjust=False,
-                    progress=False,
-                    group_by="ticker",
-                    threads=False,
+                    batch_size=len(chunk),
                     timeout=15,
+                    retries=2,
+                    recover_missing=True,
+                    max_workers=4,
                 )
             except Exception:
                 failed_batches += 1
                 continue
+            if not frames:
+                failed_batches += 1
             for ticker in chunk:
-                frame = _extract_frame(history, ticker)
+                frame = _extract_frame(frames.get(ticker, pd.DataFrame()), ticker)
                 if len(frame) < 7:
                     continue
                 close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
