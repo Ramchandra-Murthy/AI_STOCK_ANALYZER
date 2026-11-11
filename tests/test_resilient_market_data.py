@@ -9,8 +9,12 @@ from services import resilient_market_data as market_data
 @pytest.fixture(autouse=True)
 def _clear_market_data_cache():
     market_data.clear_market_data_cache()
+    market_data.clear_market_metadata_cache()
+    market_data.clear_company_name_cache()
     yield
     market_data.clear_market_data_cache()
+    market_data.clear_market_metadata_cache()
+    market_data.clear_company_name_cache()
 
 
 def _frame() -> pd.DataFrame:
@@ -398,3 +402,40 @@ def test_market_cap_metadata_does_not_cache_unavailable_values(monkeypatch) -> N
     assert market_data.get_market_cap("AAA.NS") is None
     assert market_data.get_market_cap("AAA.NS") is None
     assert calls == ["AAA.NS", "AAA.NS"]
+
+
+
+def test_company_name_metadata_is_cached_and_provider_request_is_shared(monkeypatch) -> None:
+    calls: list[str] = []
+
+    class FakeTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        def get_info(self) -> dict[str, str]:
+            calls.append(self.ticker)
+            return {"longName": "Example Industries"}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+
+    assert market_data.get_company_name("example.ns") == "Example Industries"
+    assert market_data.get_company_name("EXAMPLE.NS") == "Example Industries"
+    assert calls == ["EXAMPLE.NS"]
+
+
+def test_company_name_unavailable_metadata_is_not_cached(monkeypatch) -> None:
+    calls: list[str] = []
+
+    class FakeTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        def get_info(self) -> dict[str, str]:
+            calls.append(self.ticker)
+            return {}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+
+    assert market_data.get_company_name("UNKNOWN.NS") == "UNKNOWN.NS"
+    assert market_data.get_company_name("UNKNOWN.NS") == "UNKNOWN.NS"
+    assert calls == ["UNKNOWN.NS", "UNKNOWN.NS"]
