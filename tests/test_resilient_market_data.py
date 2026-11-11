@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event, Lock
+
 import pandas as pd
 import pytest
 
@@ -460,3 +463,44 @@ def test_runtime_telemetry_tracks_cache_hits_and_misses(monkeypatch) -> None:
     assert stats["cache_hits"] == 1
     assert stats["total_scan_seconds"] >= 0
     assert stats["cache_entries"] == 1
+
+def test_concurrent_identical_batch_downloads_are_coalesced(monkeypatch) -> None:
+    calls: list[list[str]] = []
+    calls_lock = Lock()
+    provider_started = Event()
+    release_provider = Event()
+
+    def fake_batch(tickers, **_kwargs):
+        with calls_lock:
+            calls.append(list(tickers))
+        provider_started.set()
+        assert release_provider.wait(timeout=3)
+        return pd.concat({ticker: _frame() for ticker in tickers}, axis=1)
+
+    monkeypatch.setattr(market_data, "_download_batch", fake_batch)
+
+    def fetch():
+        return market_data.download_symbol_frames(
+            ["AAA.NS", "BBB.NS"],
+            period="1d",
+            interval="1m",
+            recover_missing=False,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first_future = executor.submit(fetch)
+        assert provider_started.wait(timeout=2)
+        second_future = executor.submit(fetch)
+        # Give the second caller time to join the already-running batch Future.
+        release_provider.wait(timeout=0.05)
+        release_provider.set()
+        first, first_missing = first_future.result(timeout=3)
+        second, second_missing = second_future.result(timeout=3)
+
+    assert calls == [["AAA.NS", "BBB.NS"]]
+    assert first_missing == second_missing == []
+    assert set(first) == set(second) == {"AAA.NS", "BBB.NS"}
+
+    first["AAA.NS"].iloc[0, first["AAA.NS"].columns.get_loc("Close")] = -1
+    assert second["AAA.NS"]["Close"].iloc[0] == 100.5
+
