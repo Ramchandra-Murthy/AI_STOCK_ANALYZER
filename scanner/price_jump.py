@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
@@ -22,7 +23,12 @@ def calculate_price_jump(
     if not required.issubset(frame.columns):
         return None
 
-    clean = frame.loc[:, ["Close", "Volume"]].dropna().sort_index()
+    clean = frame.loc[:, ["Close", "Volume"]].copy()
+    for column in ("Close", "Volume"):
+        clean[column] = pd.to_numeric(clean[column], errors="coerce")
+    finite_rows = np.isfinite(clean[["Close", "Volume"]]).all(axis=1)
+    clean = clean.loc[finite_rows & (clean["Close"] > 0) & (clean["Volume"] >= 0)]
+    clean = clean.dropna().sort_index()
     clean = clean[~clean.index.duplicated(keep="last")]
     if clean.empty:
         return None
@@ -35,7 +41,7 @@ def calculate_price_jump(
     price = float(current.iloc[-1]["Close"])
     prior_price = float(current.iloc[-1 - lookback_bars]["Close"])
     session_open = float(current.iloc[0]["Close"])
-    if price <= 0 or prior_price <= 0 or session_open <= 0:
+    if not all(np.isfinite(value) and value > 0 for value in (price, prior_price, session_open)):
         return None
 
     intraday_pct = (price / prior_price - 1.0) * 100.0
@@ -43,6 +49,10 @@ def calculate_price_jump(
     baseline = float(current["Volume"].iloc[-min(13, len(current) - 1) : -1].mean())
     volume = float(current.iloc[-1]["Volume"])
     relative_volume = volume / baseline if baseline > 0 else float("nan")
+    if not np.isfinite(intraday_pct) or not np.isfinite(day_pct):
+        return None
+    if np.isinf(relative_volume):
+        relative_volume = float("nan")
     return {
         "price": price,
         "intraday_pct": round(intraday_pct, 10),
