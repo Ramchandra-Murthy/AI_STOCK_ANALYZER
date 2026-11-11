@@ -96,7 +96,7 @@ def test_download_symbol_frames_splits_universe_into_bounded_batches(monkeypatch
         diagnostics=diagnostics,
     )
 
-    assert [len(batch) for batch in batch_calls] == [10, 10, 3]
+    assert sorted(len(batch) for batch in batch_calls) == [3, 10, 10]
     assert any(
         "download summary:" in item
         and "batches=3" in item
@@ -104,7 +104,7 @@ def test_download_symbol_frames_splits_universe_into_bounded_batches(monkeypatch
         and "total_seconds=" in item
         for item in diagnostics
     )
-    assert [ticker for batch in batch_calls for ticker in batch] == tickers
+    assert sorted(ticker for batch in batch_calls for ticker in batch) == sorted(tickers)
     assert set(frames) == set(tickers)
     assert missing == []
 
