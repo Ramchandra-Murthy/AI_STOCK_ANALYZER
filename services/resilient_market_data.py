@@ -110,17 +110,15 @@ def get_company_name(
         with _METADATA_CACHE_LOCK:
             cached = _COMPANY_NAME_CACHE.get(symbol)
             if cached is not None:
-                stored_at, name = cached
+                stored_at, cached_name = cached
                 if now - stored_at < ttl:
-                    return name
+                    return cached_name
                 del _COMPANY_NAME_CACHE[symbol]
 
     try:
         with _PROVIDER_REQUEST_LIMIT:
             info = yf.Ticker(symbol, timeout=timeout).get_info()
-        raw_name = (
-            info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
-        )
+        raw_name = info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
         resolved = raw_name.strip() if isinstance(raw_name, str) and raw_name.strip() else symbol
     except Exception:
         resolved = symbol
