@@ -583,19 +583,34 @@ def test_analyze_history_frame_does_not_extract_batch_history_again(monkeypatch)
 
     assert result is None
 
-def test_broad_market_download_uses_shared_service_and_preserves_ticker_columns(monkeypatch) -> None:
+
+def test_broad_market_download_uses_shared_service_and_preserves_ticker_columns(
+    monkeypatch,
+) -> None:
     from scanner import market_scanner
 
     calls = []
     index = pd.DatetimeIndex(["2026-11-09", "2026-11-10"])
     frames = {
         "RELIANCE.NS": pd.DataFrame(
-            {"Open": [100.0, 101.0], "High": [102.0, 103.0], "Low": [99.0, 100.0],
-             "Close": [101.0, 102.0], "Volume": [1000, 1100]}, index=index
+            {
+                "Open": [100.0, 101.0],
+                "High": [102.0, 103.0],
+                "Low": [99.0, 100.0],
+                "Close": [101.0, 102.0],
+                "Volume": [1000, 1100],
+            },
+            index=index,
         ),
         "TCS.NS": pd.DataFrame(
-            {"Open": [200.0, 201.0], "High": [202.0, 203.0], "Low": [199.0, 200.0],
-             "Close": [201.0, 202.0], "Volume": [2000, 2100]}, index=index
+            {
+                "Open": [200.0, 201.0],
+                "High": [202.0, 203.0],
+                "Low": [199.0, 200.0],
+                "Close": [201.0, 202.0],
+                "Volume": [2000, 2100],
+            },
+            index=index,
         ),
     }
 
@@ -612,7 +627,10 @@ def test_broad_market_download_uses_shared_service_and_preserves_ticker_columns(
     assert calls[0][1]["recover_missing"] is True
     assert isinstance(history.columns, pd.MultiIndex)
     assert set(history.columns.get_level_values(0)) == set(frames)
-    assert market_scanner._extract_series(history, "RELIANCE.NS", "Close").tolist() == [101.0, 102.0]
+    assert market_scanner._extract_series(history, "RELIANCE.NS", "Close").tolist() == [
+        101.0,
+        102.0,
+    ]
 
 
 def test_broad_market_download_returns_empty_frame_when_all_history_missing(monkeypatch) -> None:
