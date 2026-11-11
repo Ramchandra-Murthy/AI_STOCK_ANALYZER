@@ -271,7 +271,6 @@ def test_batch_then_single_recovery_with_mocked_provider(monkeypatch) -> None:
     assert missing == ["CCC.NS"]
 
 
-
 def test_download_symbol_frames_reuses_fresh_cached_frames(monkeypatch) -> None:
     calls: list[list[str]] = []
 
@@ -322,7 +321,10 @@ def test_market_data_cache_ttl_expiry_triggers_provider_refresh(monkeypatch) -> 
 
     monkeypatch.setattr(market_data, "_download_batch", fake_batch)
     market_data.download_symbol_frames(
-        ["AAA.NS"], period="1d", interval="1m", recover_missing=False,
+        ["AAA.NS"],
+        period="1d",
+        interval="1m",
+        recover_missing=False,
         cache_ttl_seconds=5,
     )
     clock[0] += 6
@@ -353,4 +355,3 @@ def test_zero_cache_ttl_forces_a_fresh_provider_request(monkeypatch) -> None:
         )
 
     assert len(calls) == 2
-
