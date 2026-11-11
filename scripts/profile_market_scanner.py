@@ -51,8 +51,10 @@ def _runtime_delta(before: dict[str, Any], after: dict[str, Any]) -> dict[str, i
     delta: dict[str, int | float] = {}
     for key in RUNTIME_COUNTERS:
         difference = _safe_number(after.get(key, 0)) - _safe_number(before.get(key, 0))
-        delta[key] = round(max(0.0, difference), 6) if key == "total_scan_seconds" else int(
-            max(0.0, difference)
+        delta[key] = (
+            round(max(0.0, difference), 6)
+            if key == "total_scan_seconds"
+            else int(max(0.0, difference))
         )
     return delta
 
@@ -71,9 +73,7 @@ def build_report(
     rows = len(result)
 
     stage_timings = {
-        key: round(_safe_number(timings[key]), 6)
-        for key in TIMING_KEYS
-        if key in timings
+        key: round(_safe_number(timings[key]), 6) for key in TIMING_KEYS if key in timings
     }
     slowest_stage = max(stage_timings, key=stage_timings.get) if stage_timings else None
     stage_percentages = {
@@ -99,10 +99,7 @@ def build_report(
         values = raw_values or {}
         requested = int(values.get("tickers_requested", 0) or 0)
         returned = int(values.get("histories_returned", 0) or 0)
-        summary = {
-            key: int(values.get(key, 0) or 0)
-            for key in totals
-        }
+        summary = {key: int(values.get(key, 0) or 0) for key in totals}
         summary["history_coverage_pct"] = round(100.0 * returned / max(1, requested), 1)
         exchange_coverage[str(exchange)] = summary
         for key in totals:
