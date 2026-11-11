@@ -440,6 +440,7 @@ def test_company_name_unavailable_metadata_is_not_cached(monkeypatch) -> None:
     assert market_data.get_company_name("UNKNOWN.NS") == "UNKNOWN.NS"
     assert calls == ["UNKNOWN.NS", "UNKNOWN.NS"]
 
+
 def test_runtime_telemetry_tracks_cache_hits_and_misses(monkeypatch) -> None:
     monkeypatch.setattr(
         market_data,
