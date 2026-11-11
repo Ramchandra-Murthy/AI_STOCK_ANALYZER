@@ -230,17 +230,21 @@ def _market_observation_date(value: Any):
 
 def _get_last_observation(
     ticker: str,
+    *,
+    use_intraday: bool = True,
 ) -> tuple[float | None, float | None, float | None, str | None, str, bool]:
     """Return price, change, previous close, time, frequency and intraday flag."""
     try:
-        intraday_frames, _intraday_diagnostics = download_symbol_frames(
-            [ticker],
-            period="1d",
-            interval="1m",
-            auto_adjust=True,
-            batch_size=1,
-            timeout=15,
-        )
+        intraday_frames: dict[str, pd.DataFrame] = {}
+        if use_intraday:
+            intraday_frames, _intraday_diagnostics = download_symbol_frames(
+                [ticker],
+                period="1d",
+                interval="1m",
+                auto_adjust=True,
+                batch_size=1,
+                timeout=15,
+            )
         close = _clean_close_series(intraday_frames.get(ticker, pd.DataFrame()))
         if not close.empty:
             latest = float(close.iloc[-1])
@@ -308,8 +312,10 @@ def _get_last_observation(
 def get_latest_available_price(symbol: str, exchange: str = "NSE") -> dict[str, Any]:
     """Fetch a quote only from the requested exchange; never substitute another listing."""
     normalized = normalize_market_symbol(symbol, exchange)
+    use_intraday = equity_market_session_status(datetime.now(INDIA_TIMEZONE)) == "OPEN"
     value, change, previous_close, observed_at, frequency, is_intraday = _get_last_observation(
-        normalized
+        normalized,
+        use_intraday=use_intraday,
     )
     resolved_exchange = "BSE" if normalized.endswith(".BO") else "NSE"
     session = market_session_status(observed_at, frequency)
@@ -369,8 +375,10 @@ def get_market_indices() -> dict[str, dict[str, Any]]:
 def _scan_watchlist(watchlist: dict[str, str]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for name, ticker in watchlist.items():
+        use_intraday = equity_market_session_status(datetime.now(INDIA_TIMEZONE)) == "OPEN"
         value, change, _previous_close, observed_at, frequency, is_intraday = _get_last_observation(
-            ticker
+            ticker,
+            use_intraday=use_intraday,
         )
         if value is None or change is None:
             continue
