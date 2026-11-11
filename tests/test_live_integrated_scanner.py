@@ -76,3 +76,24 @@ def test_scan_integrated_tickers_deduplicates_symbols() -> None:
     )
 
     assert len(result) == 1
+
+
+def test_default_download_uses_shared_resilient_market_data(monkeypatch) -> None:
+    import engine.live_integrated_scanner as scanner
+
+    expected = _history()
+    calls = {}
+
+    def shared_download(tickers, **kwargs):
+        calls["tickers"] = list(tickers)
+        calls["kwargs"] = kwargs
+        return {"RELIANCE.NS": expected}, []
+
+    monkeypatch.setattr(scanner, "download_symbol_frames", shared_download)
+
+    result = scanner._download(["RELIANCE.NS"], period="6mo", interval="1d")
+
+    assert result.equals(pd.concat({"RELIANCE.NS": expected}, axis=1))
+    assert calls["tickers"] == ["RELIANCE.NS"]
+    assert calls["kwargs"]["timeout"] == 10
+    assert calls["kwargs"]["recover_missing"] is True
