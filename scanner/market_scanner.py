@@ -348,8 +348,20 @@ def _analyze_history(
     history: pd.DataFrame,
     average_turnover: float | None = None,
 ) -> dict[str, Any] | None:
-    """Run the scanner's technical analysis locally on already-downloaded data."""
-    df = _extract_history_frame(history, ticker)
+    """Extract one ticker from a batch response and analyze its daily history."""
+    return _analyze_history_frame(
+        ticker,
+        _extract_history_frame(history, ticker),
+        average_turnover,
+    )
+
+
+def _analyze_history_frame(
+    ticker: str,
+    df: pd.DataFrame,
+    average_turnover: float | None = None,
+) -> dict[str, Any] | None:
+    """Analyze an already-extracted ticker frame without repeating MultiIndex slicing."""
     if len(df) < 50:
         return None
 
@@ -600,7 +612,7 @@ def market_scan(
                 else:
                     coverage[exchange]["unknown_timestamp_rejected"] += 1
             continue
-        row = _analyze_history(ticker, history, turnover_by_ticker.get(ticker))
+        row = _analyze_history_frame(ticker, ticker_history, turnover_by_ticker.get(ticker))
         if row is not None:
             rows.append(row)
             if exchange in coverage:
