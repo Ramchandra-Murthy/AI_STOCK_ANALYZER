@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import streamlit as st
-import yfinance as yf
 
 from ai_trading.ml_scanner import scan_universe
 from ai_trading.paper_trading import PaperPortfolio, apply_ml_signals
@@ -20,6 +19,7 @@ from ai_trading.performance import build_performance_report
 from ai_trading.risk import RiskLimits, risk_warnings
 from modules.intraday import _fetch_live_board, _market_session_is_open
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES
+from services.resilient_market_data import download_symbol_frames
 
 IST = ZoneInfo("Asia/Kolkata")
 
@@ -152,26 +152,32 @@ if run_cycle:
             )
             for symbol, exchange in zip(ml_result["symbol"], ml_result["exchange"], strict=True)
         ]
-        prices_data = yf.download(
+        price_frames, missing_prices = download_symbol_frames(
             tickers,
             period="5d",
+            interval="1d",
             auto_adjust=False,
-            progress=False,
-            threads=False,
+            batch_size=10,
+            timeout=10,
+            recover_missing=True,
         )
 
         prices: dict[str, float] = {}
-        if isinstance(prices_data.columns, pd.MultiIndex):
-            close_data = prices_data["Close"]
-            for symbol, ticker in zip(ml_result["symbol"], tickers, strict=True):
-                if ticker in close_data:
-                    series = pd.to_numeric(close_data[ticker], errors="coerce").dropna()
-                    if not series.empty:
-                        prices[str(symbol).upper()] = float(series.iloc[-1])
-        elif "Close" in prices_data and len(ml_result) == 1:
-            series = pd.to_numeric(prices_data["Close"], errors="coerce").dropna()
+        for symbol, ticker in zip(ml_result["symbol"], tickers, strict=True):
+            frame = price_frames.get(ticker)
+            if frame is None or frame.empty or "Close" not in frame.columns:
+                continue
+            series = pd.to_numeric(frame["Close"], errors="coerce")
+            series = series[series.map(pd.notna)]
             if not series.empty:
-                prices[str(ml_result.iloc[0]["symbol"]).upper()] = float(series.iloc[-1])
+                latest_price = float(series.iloc[-1])
+                if pd.notna(latest_price) and latest_price > 0:
+                    prices[str(symbol).upper()] = latest_price
+        if missing_prices:
+            st.warning(
+                f"Latest prices unavailable for {len(missing_prices)} candidate(s); "
+                "paper trades will only use symbols with valid prices."
+            )
 
         fills = apply_ml_signals(
             portfolio,
