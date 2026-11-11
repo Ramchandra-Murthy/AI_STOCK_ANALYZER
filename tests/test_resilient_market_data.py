@@ -317,6 +317,7 @@ def test_market_data_cache_returns_independent_frame_copies(monkeypatch) -> None
 
     assert second["AAA.NS"]["Close"].iloc[0] == 100.5
 
+
 def test_market_data_cache_ttl_expiry_triggers_provider_refresh(monkeypatch) -> None:
     clock = [100.0]
     calls: list[int] = []
@@ -464,6 +465,7 @@ def test_runtime_telemetry_tracks_cache_hits_and_misses(monkeypatch) -> None:
     assert stats["total_scan_seconds"] >= 0
     assert stats["cache_entries"] == 1
 
+
 def test_concurrent_identical_batch_downloads_are_coalesced(monkeypatch) -> None:
     calls: list[list[str]] = []
     calls_lock = Lock()
@@ -503,4 +505,3 @@ def test_concurrent_identical_batch_downloads_are_coalesced(monkeypatch) -> None
 
     first["AAA.NS"].iloc[0, first["AAA.NS"].columns.get_loc("Close")] = -1
     assert second["AAA.NS"]["Close"].iloc[0] == 100.5
-
