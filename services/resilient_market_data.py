@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from collections.abc import Iterable
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from threading import BoundedSemaphore, RLock
 from time import monotonic, perf_counter, sleep
 from typing import Any
@@ -40,6 +40,8 @@ MARKET_DATA_CACHE_TTLS = {
 }
 _PROVIDER_REQUEST_LIMIT = BoundedSemaphore(MAX_PROVIDER_REQUESTS_IN_FLIGHT)
 _CACHE_LOCK = RLock()
+_INFLIGHT_BATCH_LOCK = RLock()
+_INFLIGHT_BATCH_DOWNLOADS: dict[tuple[Any, ...], Future[pd.DataFrame]] = {}
 _MARKET_DATA_CACHE: OrderedDict[tuple[str, str, str, bool], tuple[float, pd.DataFrame]] = (
     OrderedDict()
 )
@@ -300,6 +302,73 @@ def _download_batch(
     return pd.DataFrame()
 
 
+
+def _download_batch_singleflight(
+    tickers: list[str],
+    *,
+    period: str,
+    interval: str,
+    auto_adjust: bool,
+    timeout: float,
+    retries: int,
+    diagnostics: list[str] | None,
+    cache_ttl_seconds: float,
+) -> pd.DataFrame:
+    """Coalesce identical concurrent batch downloads into one provider request.
+
+    The first caller owns the provider request. Concurrent callers wait on the
+    same Future and receive independent DataFrame copies. Successful frames are
+    placed in the normal symbol cache before the in-flight entry is released,
+    preventing a cache-miss gap between concurrent scans.
+    """
+    key = (
+        tuple(tickers),
+        str(period),
+        str(interval),
+        bool(auto_adjust),
+        float(timeout),
+        int(retries),
+    )
+    with _INFLIGHT_BATCH_LOCK:
+        future = _INFLIGHT_BATCH_DOWNLOADS.get(key)
+        is_leader = future is None
+        if future is None:
+            future = Future()
+            _INFLIGHT_BATCH_DOWNLOADS[key] = future
+
+    if not is_leader:
+        return future.result().copy(deep=True)
+
+    try:
+        history = _download_batch(
+            tickers,
+            period=period,
+            interval=interval,
+            auto_adjust=auto_adjust,
+            timeout=timeout,
+            retries=retries,
+            diagnostics=diagnostics,
+        )
+        if cache_ttl_seconds > 0 and history is not None and not history.empty:
+            for ticker in tickers:
+                frame = _ticker_frame(history, ticker)
+                if not frame.empty:
+                    _store_cached_frame(
+                        _cache_key(ticker, period, interval, auto_adjust),
+                        frame,
+                    )
+        result = history.copy(deep=True) if history is not None else pd.DataFrame()
+        future.set_result(result)
+        return result.copy(deep=True)
+    except BaseException as exc:
+        future.set_exception(exc)
+        raise
+    finally:
+        with _INFLIGHT_BATCH_LOCK:
+            if _INFLIGHT_BATCH_DOWNLOADS.get(key) is future:
+                del _INFLIGHT_BATCH_DOWNLOADS[key]
+
+
 def _download_single(
     ticker: str,
     *,
@@ -427,7 +496,7 @@ def download_symbol_frames(
 
     def download_one(chunk: list[str]) -> tuple[list[str], pd.DataFrame, float]:
         started = perf_counter()
-        history = _download_batch(
+        history = _download_batch_singleflight(
             chunk,
             period=period,
             interval=interval,
@@ -435,6 +504,7 @@ def download_symbol_frames(
             timeout=timeout,
             retries=retries,
             diagnostics=diagnostics,
+            cache_ttl_seconds=ttl,
         )
         return chunk, history, perf_counter() - started
 
