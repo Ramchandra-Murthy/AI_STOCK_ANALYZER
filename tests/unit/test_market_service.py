@@ -135,9 +135,7 @@ def test_last_observation_skips_intraday_request_when_market_is_closed(monkeypat
 
     def fake_download(tickers, *, interval, **kwargs):
         intervals.append(interval)
-        index = pd.to_datetime(
-            ["2026-11-10 00:00:00+05:30", "2026-11-11 00:00:00+05:30"]
-        )
+        index = pd.to_datetime(["2026-11-10 00:00:00+05:30", "2026-11-11 00:00:00+05:30"])
         return {"TEST": pd.DataFrame({"Close": [100.0, 105.0]}, index=index)}, []
 
     monkeypatch.setattr(market_service, "download_symbol_frames", fake_download)
