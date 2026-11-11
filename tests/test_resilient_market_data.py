@@ -317,7 +317,6 @@ def test_market_data_cache_returns_independent_frame_copies(monkeypatch) -> None
 
     assert second["AAA.NS"]["Close"].iloc[0] == 100.5
 
-
 def test_market_data_cache_ttl_expiry_triggers_provider_refresh(monkeypatch) -> None:
     clock = [100.0]
     calls: list[int] = []
