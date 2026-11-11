@@ -246,6 +246,7 @@ def download_symbol_frames(
                 interval=interval,
                 auto_adjust=auto_adjust,
                 timeout=timeout,
+                retries=retries,
                 diagnostics=diagnostics,
             )
             recovery_seconds += perf_counter() - recovery_started
