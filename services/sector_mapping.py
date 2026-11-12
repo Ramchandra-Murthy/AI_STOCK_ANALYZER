@@ -74,6 +74,7 @@ SECTOR_BY_SYMBOL = {
     "PAYTM": "Financial Technology",
     "JIOFIN": "Financials",
     "LODHA": "Real Estate",
+    "DLF": "Real Estate",
 
     "HINDUNILVR": "Consumer",
     "KOTAKBANK": "Financials",
