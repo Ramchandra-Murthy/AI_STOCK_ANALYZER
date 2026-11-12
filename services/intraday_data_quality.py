@@ -7,6 +7,12 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 
+from services.market_calendar import (
+    CalendarUnavailableError,
+    equity_market_session_status,
+    is_equity_trading_day,
+)
+
 IST = ZoneInfo("Asia/Kolkata")
 OHLCV_COLUMNS = ("Open", "High", "Low", "Close", "Volume")
 
@@ -74,3 +80,39 @@ def completed_ohlcv_bars(
     completed = pd.DataFrame.from_dict(records, orient="index", columns=OHLCV_COLUMNS)
     completed.index = pd.DatetimeIndex(completed.index)
     return completed.sort_index(), rejected
+
+
+def current_session_ohlcv_bars(
+    frame: pd.DataFrame,
+    as_of: datetime,
+    interval_minutes: int,
+    stale_after_minutes: int = 15,
+) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Keep valid completed bars from today, rejecting stale or unverified sessions."""
+    completed, rejected = completed_ohlcv_bars(frame, as_of, interval_minutes)
+    rejected["stale_symbols"] = 0
+    if completed.empty:
+        return completed, rejected
+
+    current = pd.Timestamp(as_of)
+    current = current.tz_localize(IST) if current.tzinfo is None else current.tz_convert(IST)
+    session_status = equity_market_session_status(current.to_pydatetime())
+    try:
+        trading_day = is_equity_trading_day(current.date())
+    except CalendarUnavailableError:
+        trading_day = False
+
+    latest_end = completed.index[-1] + pd.Timedelta(minutes=interval_minutes)
+    is_stale_open_candle = (
+        session_status == "OPEN"
+        and (current - latest_end).total_seconds() > stale_after_minutes * 60
+    )
+    if (
+        session_status == "CALENDAR_UNAVAILABLE"
+        or not trading_day
+        or completed.index[-1].date() != current.date()
+        or is_stale_open_candle
+    ):
+        rejected["stale_symbols"] = 1
+        return completed.iloc[0:0], rejected
+    return completed, rejected
