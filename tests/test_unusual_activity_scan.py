@@ -116,4 +116,5 @@ def test_completed_activity_frame_rejects_partial_future_duplicate_and_invalid_b
         "missing_ohlcv": 0,
         "invalid_ohlcv": 1,
         "stale_symbols": 0,
+        "missing_ohlcv_columns": 0,
     }

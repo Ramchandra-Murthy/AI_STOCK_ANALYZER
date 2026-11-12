@@ -83,7 +83,9 @@ def test_market_movers_rejects_incomplete_future_duplicate_and_invalid_candles()
         "future_candles": 1,
         "incomplete_candles": 1,
         "duplicate_candles": 1,
+        "missing_ohlcv": 0,
         "invalid_ohlcv": 1,
+        "missing_ohlcv_columns": 0,
         "stale_symbols": 0,
     }
 

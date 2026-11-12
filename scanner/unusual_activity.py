@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
+from services.intraday_data_quality import completed_ohlcv_bars
 from services.market_calendar import (
     CalendarUnavailableError,
     equity_market_session_status,
@@ -181,56 +182,10 @@ def _completed_activity_frame(
     frame: pd.DataFrame, as_of: datetime
 ) -> tuple[pd.DataFrame, dict[str, int]]:
     """Validate OHLCV and keep only completed, current-session five-minute bars."""
-    rejected = {
-        "incomplete_candles": 0,
-        "future_candles": 0,
-        "duplicate_candles": 0,
-        "invalid_timestamps": 0,
-        "missing_ohlcv": 0,
-        "invalid_ohlcv": 0,
-        "stale_symbols": 0,
-    }
     current = pd.Timestamp(as_of)
     current = current.tz_localize(IST) if current.tzinfo is None else current.tz_convert(IST)
-    records: dict[pd.Timestamp, dict[str, float]] = {}
-    required = ("Open", "High", "Low", "Close", "Volume")
-    for timestamp, row in frame.iterrows():
-        try:
-            start = pd.Timestamp(timestamp)
-            if pd.isna(start):
-                raise ValueError("invalid timestamp")
-            start = start.tz_localize(IST) if start.tzinfo is None else start.tz_convert(IST)
-        except (TypeError, ValueError, OverflowError):
-            rejected["invalid_timestamps"] += 1
-            continue
-        if start > current:
-            rejected["future_candles"] += 1
-            continue
-        if start + pd.Timedelta(minutes=5) > current:
-            rejected["incomplete_candles"] += 1
-            continue
-        if not set(required).issubset(frame.columns) or row.loc[list(required)].isna().any():
-            rejected["missing_ohlcv"] += 1
-            continue
-        try:
-            candle = {name: float(row[name]) for name in required}
-        except (TypeError, ValueError, OverflowError):
-            rejected["invalid_ohlcv"] += 1
-            continue
-        if (
-            not all(pd.notna(value) and abs(value) != float("inf") for value in candle.values())
-            or min(candle[name] for name in required[:4]) <= 0
-            or candle["Volume"] < 0
-            or candle["High"] < max(candle["Open"], candle["Close"], candle["Low"])
-            or candle["Low"] > min(candle["Open"], candle["Close"], candle["High"])
-        ):
-            rejected["invalid_ohlcv"] += 1
-            continue
-        if start in records:
-            rejected["duplicate_candles"] += 1
-        records[start] = candle
-
-    completed = pd.DataFrame.from_dict(records, orient="index").sort_index()
+    completed, rejected = completed_ohlcv_bars(frame, current.to_pydatetime(), 5)
+    rejected["stale_symbols"] = 0
     if completed.empty:
         return completed, rejected
 
