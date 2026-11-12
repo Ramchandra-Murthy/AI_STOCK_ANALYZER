@@ -505,3 +505,60 @@ def test_concurrent_identical_batch_downloads_are_coalesced(monkeypatch) -> None
 
     first["AAA.NS"].iloc[0, first["AAA.NS"].columns.get_loc("Close")] = -1
     assert second["AAA.NS"]["Close"].iloc[0] == 100.5
+
+
+def test_download_symbol_frames_caps_single_symbol_recovery(monkeypatch) -> None:
+    batch_calls: list[list[str]] = []
+    single_calls: list[str] = []
+
+    def empty_batch(tickers, **_kwargs):
+        batch_calls.append(list(tickers))
+        return pd.DataFrame()
+
+    def empty_single(ticker, **_kwargs):
+        single_calls.append(ticker)
+        return pd.DataFrame()
+
+    monkeypatch.setattr(market_data, "_download_batch", empty_batch)
+    monkeypatch.setattr(market_data, "_download_single", empty_single)
+    symbols = [f"S{i}.NS" for i in range(100)]
+    diagnostics: list[str] = []
+
+    frames, missing = market_data.download_symbol_frames(
+        symbols,
+        period="1d",
+        interval="1m",
+        batch_size=100,
+        recover_missing=True,
+        recovery_max_symbols=20,
+        retries=0,
+        diagnostics=diagnostics,
+    )
+
+    assert frames == {}
+    assert missing == symbols
+    assert len(batch_calls) == 1
+    assert single_calls == symbols[:20]
+    assert any("single_recovery_attempts=20" in item for item in diagnostics)
+
+
+def test_download_symbol_frames_can_disable_recovery_with_zero_budget(monkeypatch) -> None:
+    single_calls: list[str] = []
+    monkeypatch.setattr(market_data, "_download_batch", lambda *_args, **_kwargs: pd.DataFrame())
+    monkeypatch.setattr(
+        market_data,
+        "_download_single",
+        lambda ticker, **_kwargs: single_calls.append(ticker) or pd.DataFrame(),
+    )
+
+    _frames, missing = market_data.download_symbol_frames(
+        ["AAA.NS", "BBB.NS"],
+        period="1d",
+        interval="1m",
+        recover_missing=True,
+        recovery_max_symbols=0,
+        retries=0,
+    )
+
+    assert missing == ["AAA.NS", "BBB.NS"]
+    assert single_calls == []
