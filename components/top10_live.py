@@ -185,6 +185,56 @@ def _is_fresh_provider_timestamp(timestamp: object, now: datetime) -> bool:
     return age_seconds is not None and age_seconds < TOP10_STALE_DATA_SECONDS
 
 
+def _completed_one_minute_closes(
+    close: pd.Series, now: datetime
+) -> tuple[pd.Series, dict[str, int]]:
+    """Keep only valid, unique, completed one-minute candles in India time.
+
+    Yahoo's intraday index represents the candle start. A timestamp can therefore
+    be recent while its candle is still forming; signal calculations must use its
+    end time for completion and freshness checks.
+    """
+    counts = {"invalid": 0, "future": 0, "incomplete": 0, "duplicates": 0}
+    current = pd.Timestamp(now)
+    current = current.tz_localize(_IST) if current.tzinfo is None else current.tz_convert(_IST)
+    values: dict[pd.Timestamp, float] = {}
+    for timestamp, raw_value in close.items():
+        try:
+            candle_start = pd.Timestamp(timestamp)
+            if pd.isna(candle_start):
+                raise ValueError("invalid candle timestamp")
+            candle_start = (
+                candle_start.tz_localize(_IST)
+                if candle_start.tzinfo is None
+                else candle_start.tz_convert(_IST)
+            )
+            value = float(raw_value)
+        except (TypeError, ValueError, OverflowError):
+            counts["invalid"] += 1
+            continue
+        if not math.isfinite(value) or value <= 0:
+            counts["invalid"] += 1
+            continue
+        if candle_start > current:
+            counts["future"] += 1
+            continue
+        if candle_start + pd.Timedelta(minutes=1) > current:
+            counts["incomplete"] += 1
+            continue
+        if candle_start in values:
+            counts["duplicates"] += 1
+        values[candle_start] = value
+    ordered = sorted(values.items(), key=lambda item: item[0])
+    return (
+        pd.Series(
+            [value for _, value in ordered],
+            index=pd.DatetimeIndex([timestamp for timestamp, _ in ordered]),
+            dtype="float64",
+        ),
+        counts,
+    )
+
+
 def _format_candle_time(timestamp: object) -> str:
     """Format a provider candle timestamp in India time for the live table."""
     try:
@@ -780,6 +830,7 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
     scan_now = datetime.now(_IST)
     stale_ages: list[float] = []
     unusable = 0
+    rejected = {"invalid": 0, "future": 0, "incomplete": 0, "duplicates": 0}
 
     for exchange, tickers in tickers_by_exchange.items():
         for ticker in tickers:
@@ -787,13 +838,16 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
             if frame is None or frame.empty or "Close" not in frame.columns:
                 # Unresolved by the provider; already counted in ``failures``.
                 continue
-            close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
+            close, rejected_counts = _completed_one_minute_closes(frame["Close"], scan_now)
+            for reason, count in rejected_counts.items():
+                rejected[reason] += count
             if len(close) < 2:
                 unusable += 1
                 continue
 
             candle_timestamp = close.index[-1]
-            if not _is_fresh_provider_timestamp(candle_timestamp, scan_now):
+            candle_end = candle_timestamp + pd.Timedelta(minutes=1)
+            if not _is_fresh_provider_timestamp(candle_end, scan_now):
                 age = _provider_age_seconds(candle_timestamp, scan_now)
                 if age is None:
                     unusable += 1
@@ -843,6 +897,15 @@ def _scan_live_top10() -> tuple[pd.DataFrame, float, int, int]:
         _PROVIDER_DIAGNOSTICS.append(
             f"{unusable} symbol(s) skipped: insufficient or invalid candle data"
         )
+    for reason, count in rejected.items():
+        if count:
+            label = {
+                "invalid": "invalid candle values or timestamps",
+                "future": "future-dated candles",
+                "incomplete": "incomplete one-minute candles",
+                "duplicates": "duplicate candle timestamps",
+            }[reason]
+            _PROVIDER_DIAGNOSTICS.append(f"{count} candle(s) rejected: {label}")
 
     frame = pd.DataFrame(rows)
     if frame.empty:
