@@ -13,7 +13,7 @@ from collections.abc import Iterable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from threading import BoundedSemaphore, RLock
 from time import monotonic, perf_counter, sleep
-from typing import Any
+from typing import Any, Literal, TypedDict
 
 import pandas as pd
 import yfinance as yf
@@ -44,8 +44,19 @@ PROVIDER_CIRCUIT_FAILURE_THRESHOLD = 3
 PROVIDER_CIRCUIT_FAILURE_WINDOW_SECONDS = 60.0
 PROVIDER_CIRCUIT_COOLDOWN_SECONDS = 30.0
 PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS = 300.0
+
+
+class _ProviderCircuitState(TypedDict):
+    state: Literal["closed", "open", "half_open"]
+    failures: deque[float]
+    opened_at: float
+    cooldown_seconds: float
+    trips: int
+    probe_in_flight: bool
+
+
 _PROVIDER_CIRCUIT_LOCK = RLock()
-_PROVIDER_CIRCUIT = {
+_PROVIDER_CIRCUIT: _ProviderCircuitState = {
     "state": "closed",
     "failures": deque(),
     "opened_at": 0.0,
