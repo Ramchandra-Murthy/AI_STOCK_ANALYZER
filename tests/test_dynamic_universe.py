@@ -56,3 +56,47 @@ def test_curated_bse_fallback_maps_to_paired_company_symbols(monkeypatch):
     assert dynamic_universe.yahoo_symbol_for_bse_code("532540") == "TCS"
     assert dynamic_universe.yahoo_symbol_for_bse_code("500001") is None
     assert dynamic_universe.yahoo_symbol_for_bse_code("999999") is None
+
+
+def test_dynamic_bse_group_a_codes_uses_official_group_filter(monkeypatch):
+    payload = [
+        {"SCRIP_CD": "500325", "Status": "Active", "Segment": "Equity"},
+        {"SCRIP_CD": "532540", "Status": "Active", "Segment": "Equity"},
+        {"SCRIP_CD": "500001", "Status": "Suspended", "Segment": "Equity"},
+        {"SCRIP_CD": "12345", "Status": "Active", "Segment": "Equity"},
+    ]
+    requested_urls = []
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            return json.dumps(payload).encode("utf-8")
+
+    def fake_urlopen(request, timeout):
+        requested_urls.append(request.full_url)
+        assert timeout == 15
+        return FakeResponse()
+
+    monkeypatch.setattr(dynamic_universe, "urlopen", fake_urlopen)
+    monkeypatch.setattr(dynamic_universe, "_cached_bse_group_a", None)
+
+    assert dynamic_universe.dynamic_bse_group_a_codes() == {"500325", "532540"}
+    assert "Group=A" in requested_urls[0]
+    assert "segment=Equity" in requested_urls[0]
+    assert "status=Active" in requested_urls[0]
+
+
+def test_dynamic_bse_group_a_codes_returns_none_when_source_unavailable(monkeypatch):
+    monkeypatch.setattr(dynamic_universe, "_cached_bse_group_a", None)
+
+    def fail_urlopen(*args, **kwargs):
+        raise OSError("BSE unavailable")
+
+    monkeypatch.setattr(dynamic_universe, "urlopen", fail_urlopen)
+
+    assert dynamic_universe.dynamic_bse_group_a_codes() is None
