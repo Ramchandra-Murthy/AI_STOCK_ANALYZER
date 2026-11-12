@@ -19,7 +19,8 @@ import pandas as pd
 import yfinance as yf
 
 DEFAULT_RETRIES = 2
-MAX_SINGLE_SYMBOL_RECOVERY_PER_CALL = 20
+MAX_SINGLE_SYMBOL_RECOVERY_PER_CALL = 25
+DEFAULT_MAX_RECOVERY_SECONDS = 20.0
 DEFAULT_TIMEOUT = 12.0
 RETRY_BACKOFF_SECONDS = 1.0
 MAX_PROVIDER_REQUESTS_IN_FLIGHT = 4
@@ -220,14 +221,10 @@ def _store_cached_frame(key, frame: pd.DataFrame) -> None:
 
 
 def _configure_yfinance() -> None:
-    """Enable yfinance's built-in transient-network retry support when available."""
+    """Disable hidden provider retries; the shared service owns retry budgets."""
     try:
-        yf.config.network.retries = max(
-            int(getattr(yf.config.network, "retries", 0)),
-            DEFAULT_RETRIES,
-        )
+        yf.config.network.retries = 0
     except (AttributeError, TypeError, ValueError):
-        # Older yfinance versions may not expose the global config object.
         return
 
 
@@ -458,7 +455,9 @@ def download_symbol_frames(
     diagnostics: list[str] | None = None,
     max_workers: int = 3,
     cache_ttl_seconds: float | None = None,
-    recovery_max_symbols: int = MAX_SINGLE_SYMBOL_RECOVERY_PER_CALL,
+    recovery_max_symbols: int | None = None,
+    max_recovery_symbols: int = MAX_SINGLE_SYMBOL_RECOVERY_PER_CALL,
+    max_recovery_seconds: float = DEFAULT_MAX_RECOVERY_SECONDS,
 ) -> tuple[dict[str, pd.DataFrame], list[str]]:
     """Return usable frames, downloading batches with bounded concurrency.
 
@@ -474,6 +473,7 @@ def download_symbol_frames(
     _record_runtime_stat("scan_calls")
     recovery_seconds = 0.0
     recovery_count = 0
+    recovery_limit = 0
     batch_size = max(1, int(batch_size))
     worker_count = max(1, min(int(max_workers), MAX_PROVIDER_REQUESTS_IN_FLIGHT))
     ttl = _cache_ttl(interval, cache_ttl_seconds)
@@ -527,16 +527,23 @@ def download_symbol_frames(
 
     missing = [ticker for ticker in symbols if ticker not in frames]
     if recover_missing:
-        recovery_limit = max(0, int(recovery_max_symbols))
+        recovery_limit = max(
+            0,
+            int(max_recovery_symbols if recovery_max_symbols is None else recovery_max_symbols),
+        )
+        recovery_deadline = perf_counter() + max(0.0, float(max_recovery_seconds))
         for ticker in missing[:recovery_limit]:
+            remaining = recovery_deadline - perf_counter()
+            if remaining <= 0:
+                break
             recovery_started = perf_counter()
             frame = _download_single(
                 ticker,
                 period=period,
                 interval=interval,
                 auto_adjust=auto_adjust,
-                timeout=timeout,
-                retries=retries,
+                timeout=min(float(timeout), max(0.1, remaining)),
+                retries=0,
                 diagnostics=diagnostics,
             )
             recovery_seconds += perf_counter() - recovery_started
@@ -562,7 +569,8 @@ def download_symbol_frames(
             f"cache_hits={cache_hits} cache_ttl={ttl:.0f}s "
             f"batch_workers={worker_count} provider_request_limit={MAX_PROVIDER_REQUESTS_IN_FLIGHT} "
             f"single_recovery_attempts={recovery_count} "
-            f"single_recovery_limit={max(0, int(recovery_max_symbols))} "
+            f"single_recovery_limit={recovery_limit} "
+            f"recovery_budget={max(0.0, float(max_recovery_seconds)):.2f}s "
             f"batch_seconds={batch_seconds:.2f} "
             f"recovery_seconds={recovery_seconds:.2f} "
             f"total_seconds={perf_counter() - scan_started:.2f}"
@@ -582,6 +590,8 @@ def download_market_frames(
     retries: int = DEFAULT_RETRIES,
     recover_missing: bool = True,
     cache_ttl_seconds: float | None = None,
+    max_recovery_symbols: int = MAX_SINGLE_SYMBOL_RECOVERY_PER_CALL,
+    max_recovery_seconds: float = DEFAULT_MAX_RECOVERY_SECONDS,
 ) -> tuple[dict[str, pd.DataFrame], dict[str, Any]]:
     """Download frames with diagnostics suitable for scanner health reporting."""
 
@@ -598,6 +608,8 @@ def download_market_frames(
         recover_missing=recover_missing,
         diagnostics=diagnostics,
         cache_ttl_seconds=cache_ttl_seconds,
+        max_recovery_symbols=max_recovery_symbols,
+        max_recovery_seconds=max_recovery_seconds,
     )
     return frames, {
         "requested": len(symbols),
