@@ -219,6 +219,23 @@ def _store_negative_metadata_cache(
         cache.popitem(last=False)
 
 
+def _get_cached_negative_metadata(
+    cache: OrderedDict[str, float],
+    symbol: str,
+    ttl_seconds: float,
+    now: float,
+) -> bool:
+    """Return whether a negative result is still valid, removing expired entries."""
+    negative_until = cache.get(symbol)
+    if negative_until is None:
+        return False
+    if ttl_seconds > 0 and now < negative_until:
+        cache.move_to_end(symbol)
+        return True
+    cache.pop(symbol, None)
+    return False
+
+
 def _record_runtime_stat(name: str, amount: int | float = 1) -> None:
     """Update one process-local market-data telemetry counter safely."""
     with _RUNTIME_STATS_LOCK:
@@ -262,11 +279,8 @@ def get_market_cap(
             if ttl > 0 and now - stored_at < ttl:
                 return value
             del _METADATA_CACHE[symbol]
-        negative_until = _NEGATIVE_METADATA_CACHE.get(symbol)
-        if negative_until is not None:
-            if negative_ttl > 0 and now < negative_until:
-                return None
-            del _NEGATIVE_METADATA_CACHE[symbol]
+        if _get_cached_negative_metadata(_NEGATIVE_METADATA_CACHE, symbol, negative_ttl, now):
+            return None
 
     if not _provider_circuit_allows_request():
         return None
@@ -321,11 +335,10 @@ def get_company_name(
             if ttl > 0 and now - stored_at < ttl:
                 return cached_name
             del _COMPANY_NAME_CACHE[symbol]
-        negative_until = _COMPANY_NAME_NEGATIVE_CACHE.get(symbol)
-        if negative_until is not None:
-            if negative_ttl > 0 and now < negative_until:
-                return symbol
-            del _COMPANY_NAME_NEGATIVE_CACHE[symbol]
+        if _get_cached_negative_metadata(
+            _COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl, now
+        ):
+            return symbol
 
     if not _provider_circuit_allows_request():
         return symbol
