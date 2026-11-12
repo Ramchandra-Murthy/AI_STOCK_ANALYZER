@@ -204,7 +204,6 @@ DEFAULT_METADATA_CACHE_TTL_SECONDS = 1800.0
 NEGATIVE_METADATA_CACHE_TTL_SECONDS = 120.0
 
 
-
 def _store_negative_metadata_cache(
     cache: OrderedDict[str, float],
     symbol: str,
@@ -335,9 +334,7 @@ def get_company_name(
             if ttl > 0 and now - stored_at < ttl:
                 return cached_name
             del _COMPANY_NAME_CACHE[symbol]
-        if _get_cached_negative_metadata(
-            _COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl, now
-        ):
+        if _get_cached_negative_metadata(_COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl, now):
             return symbol
 
     if not _provider_circuit_allows_request():
@@ -359,9 +356,10 @@ def get_company_name(
             if ttl > 0:
                 _COMPANY_NAME_CACHE[symbol] = (monotonic(), resolved)
         elif negative_ttl > 0:
-            _store_negative_metadata_cache(_COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl)
+            _store_negative_metadata_cache(
+                _COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl
+            )
     return resolved
-
 
 
 
