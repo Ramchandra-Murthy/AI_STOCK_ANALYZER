@@ -492,7 +492,10 @@ def test_company_name_negative_cache_can_be_disabled(monkeypatch) -> None:
     monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
 
     for _ in range(2):
-        assert market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=0) == "UNKNOWN.NS"
+        assert (
+            market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=0)
+            == "UNKNOWN.NS"
+        )
 
     assert calls == ["UNKNOWN.NS", "UNKNOWN.NS"]
 
