@@ -633,7 +633,6 @@ def test_cache_hit_does_not_extend_absolute_ttl(monkeypatch) -> None:
     assert calls == [0, 1]
 
 
-
 def test_provider_circuit_opens_after_three_failures_and_suppresses_requests(monkeypatch) -> None:
     clock = [100.0]
     monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
@@ -666,7 +665,9 @@ def test_provider_circuit_allows_only_one_half_open_probe_and_recovers(monkeypat
     assert stats["probe_in_flight"] is False
 
 
-def test_provider_circuit_reopens_with_exponential_cooldown_after_probe_failure(monkeypatch) -> None:
+def test_provider_circuit_reopens_with_exponential_cooldown_after_probe_failure(
+    monkeypatch,
+) -> None:
     clock = [100.0]
     monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
 
