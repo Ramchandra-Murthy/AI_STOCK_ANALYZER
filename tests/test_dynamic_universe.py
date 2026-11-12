@@ -256,8 +256,20 @@ def test_merge_reports_official_count_curated_additions_and_final_count(monkeypa
 @pytest.mark.parametrize(
     ("exchange", "cache_name", "loader_name", "fetch_name", "symbols"),
     [
-        ("NSE", "_cached_nse_symbols", "_download_nse_equity_list", "dynamic_nse_symbols", ["LIVE_NSE"]),
-        ("BSE", "_cached_bse_symbols", "_download_bse_equity_list", "dynamic_bse_symbols", ["500325"]),
+        (
+            "NSE",
+            "_cached_nse_symbols",
+            "_download_nse_equity_list",
+            "dynamic_nse_symbols",
+            ["LIVE_NSE"],
+        ),
+        (
+            "BSE",
+            "_cached_bse_symbols",
+            "_download_bse_equity_list",
+            "dynamic_bse_symbols",
+            ["500325"],
+        ),
     ],
 )
 def test_concurrent_universe_refresh_is_coalesced(
