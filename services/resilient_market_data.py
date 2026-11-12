@@ -76,8 +76,7 @@ def provider_circuit_breaker_stats() -> dict[str, Any]:
         remaining = (
             max(
                 0.0,
-                _PROVIDER_CIRCUIT["cooldown_seconds"]
-                - (now - _PROVIDER_CIRCUIT["opened_at"]),
+                _PROVIDER_CIRCUIT["cooldown_seconds"] - (now - _PROVIDER_CIRCUIT["opened_at"]),
             )
             if state == "open"
             else 0.0
@@ -125,8 +124,7 @@ def _provider_circuit_record_failure() -> None:
         if state == "half_open":
             _PROVIDER_CIRCUIT["trips"] += 1
             _PROVIDER_CIRCUIT["cooldown_seconds"] = min(
-                PROVIDER_CIRCUIT_COOLDOWN_SECONDS
-                * (2 ** (_PROVIDER_CIRCUIT["trips"] - 1)),
+                PROVIDER_CIRCUIT_COOLDOWN_SECONDS * (2 ** (_PROVIDER_CIRCUIT["trips"] - 1)),
                 PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
             )
             _PROVIDER_CIRCUIT["state"] = "open"
@@ -141,8 +139,7 @@ def _provider_circuit_record_failure() -> None:
         if len(failures) >= PROVIDER_CIRCUIT_FAILURE_THRESHOLD:
             _PROVIDER_CIRCUIT["trips"] += 1
             _PROVIDER_CIRCUIT["cooldown_seconds"] = min(
-                PROVIDER_CIRCUIT_COOLDOWN_SECONDS
-                * (2 ** (_PROVIDER_CIRCUIT["trips"] - 1)),
+                PROVIDER_CIRCUIT_COOLDOWN_SECONDS * (2 ** (_PROVIDER_CIRCUIT["trips"] - 1)),
                 PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
             )
             _PROVIDER_CIRCUIT["state"] = "open"
