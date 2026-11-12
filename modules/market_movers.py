@@ -157,6 +157,7 @@ def _scan_batches(
             )
         except Exception:
             frames, missing = {}, tickers
+            missing_symbols = list(tickers)
             failed_batches = batches
             provider_diagnostics.append("market-data download raised an unexpected exception")
         else:
@@ -247,7 +248,7 @@ def _scan_batches(
         "market_data_cache_misses": _diagnostic_count(provider_diagnostics, "cache_misses"),
         **{f"rejected_{reason}": count for reason, count in rejected_counts.items()},
     }
-    stats["live_data_status"] = (
+    stats["data_availability"] = (
         "UNAVAILABLE"
         if not tickers or not rows
         else "PARTIAL" if missing_symbols or len(rows) < len(selected) else "AVAILABLE"
@@ -257,6 +258,10 @@ def _scan_batches(
 
 def _diagnostic_count(diagnostics: list[str], key: str) -> int:
     """Extract a numeric field from the shared market-data download summary."""
+    if key == "cache_misses":
+        requested = _diagnostic_count(diagnostics, "requested")
+        cache_hits = _diagnostic_count(diagnostics, "cache_hits")
+        return max(0, requested - cache_hits)
     marker = f"{key}="
     for line in diagnostics:
         if not line.startswith("download summary:") or marker not in line:
