@@ -104,9 +104,7 @@ def _scan_batches(
 
     started = perf_counter()
     tickers = [_ticker(symbol, exchange) for symbol, exchange in selected]
-    symbol_by_ticker = {
-        _ticker(symbol, exchange): symbol for symbol, exchange in selected
-    }
+    symbol_by_ticker = {_ticker(symbol, exchange): symbol for symbol, exchange in selected}
     batches = (len(tickers) + BATCH_SIZE - 1) // BATCH_SIZE
     rows: list[dict[str, object]] = []
     failed_batches = 0
