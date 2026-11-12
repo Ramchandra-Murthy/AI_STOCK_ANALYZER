@@ -324,9 +324,16 @@ def _analyze_history_frame(
     ticker: str,
     df: pd.DataFrame,
     average_turnover: float | None = None,
+    outcome: dict[str, int] | None = None,
 ) -> dict[str, Any] | None:
-    """Analyze an already-extracted ticker frame without repeating MultiIndex slicing."""
+    """Analyze one ticker and optionally record why it did not produce a result."""
+    if outcome is not None:
+        outcome["analysis_attempted"] = outcome.get("analysis_attempted", 0) + 1
     if len(df) < 50:
+        if outcome is not None:
+            outcome["analysis_insufficient_history"] = (
+                outcome.get("analysis_insufficient_history", 0) + 1
+            )
         return None
 
     last_data_date = _format_last_data_date(df.index)
@@ -347,6 +354,8 @@ def _analyze_history_frame(
         detect_breakout(df)
 
         if signal.get("Status") != "OK":
+            if outcome is not None:
+                outcome["analysis_signal_rejected"] = outcome.get("analysis_signal_rejected", 0) + 1
             return None
 
         last = df.iloc[-1]
@@ -387,6 +396,8 @@ def _analyze_history_frame(
             "Signal Reasons": "; ".join(signal.get("Reasons", [])) or "No reasons supplied",
         }
     except (KeyError, TypeError, ValueError, IndexError):
+        if outcome is not None:
+            outcome["analysis_errors"] = outcome.get("analysis_errors", 0) + 1
         return None
 
 
@@ -475,6 +486,10 @@ def market_scan(
             "stale_data_rejected": 0,
             "unknown_timestamp_rejected": 0,
             "future_timestamp_rejected": 0,
+            "analysis_attempted": 0,
+            "analysis_insufficient_history": 0,
+            "analysis_signal_rejected": 0,
+            "analysis_errors": 0,
             "analyses_completed": 0,
             "final_rows": 0,
             "cached_failures_skipped": 0,
@@ -576,7 +591,10 @@ def market_scan(
                 else:
                     coverage[exchange]["unknown_timestamp_rejected"] += 1
             continue
-        row = _analyze_history_frame(ticker, ticker_history, turnover_by_ticker.get(ticker))
+        outcome = coverage.get(exchange, {})
+        row = _analyze_history_frame(
+            ticker, ticker_history, turnover_by_ticker.get(ticker), outcome=outcome
+        )
         if row is not None:
             rows.append(row)
             if exchange in coverage:
