@@ -682,3 +682,45 @@ def test_provider_circuit_reopens_with_exponential_cooldown_after_probe_failure(
     assert stats["state"] == "open"
     assert stats["cooldown_seconds"] == 60.0
     assert stats["trips"] == 2
+
+
+def test_provider_circuit_does_not_leave_probe_reserved_after_request_setup_error(
+    monkeypatch,
+) -> None:
+    clock = [100.0]
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+    for _ in range(market_data.PROVIDER_CIRCUIT_FAILURE_THRESHOLD):
+        market_data._provider_circuit_record_failure()
+    clock[0] += market_data.PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+
+    assert market_data._provider_circuit_allows_request() is True
+    market_data._provider_circuit_cancel_probe()
+
+    stats = market_data.provider_circuit_breaker_stats()
+    assert stats["state"] == "half_open"
+    assert stats["probe_in_flight"] is False
+    assert market_data._provider_circuit_allows_request() is True
+
+
+def test_provider_circuit_exponential_cooldown_is_capped(monkeypatch) -> None:
+    clock = [100.0]
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    for expected_cooldown in (30.0, 60.0, 120.0, 240.0, 300.0, 300.0):
+        market_data._provider_circuit_record_failure()
+        market_data._provider_circuit_record_failure()
+        market_data._provider_circuit_record_failure()
+        stats = market_data.provider_circuit_breaker_stats()
+        assert stats["state"] == "open"
+        assert stats["cooldown_seconds"] == expected_cooldown
+
+        clock[0] += expected_cooldown
+        assert market_data._provider_circuit_allows_request() is True
+        market_data._provider_circuit_record_failure()
+        stats = market_data.provider_circuit_breaker_stats()
+        assert stats["state"] == "open"
+        assert stats["cooldown_seconds"] == min(
+            expected_cooldown * 2,
+            market_data.PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
+        )
+        market_data._reset_provider_circuit_breaker()
