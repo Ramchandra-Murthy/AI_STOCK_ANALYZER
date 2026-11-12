@@ -75,7 +75,6 @@ SECTOR_BY_SYMBOL = {
     "JIOFIN": "Financials",
     "LODHA": "Real Estate",
     "DLF": "Real Estate",
-
     "DABUR": "Consumer",
     "GODREJCP": "Consumer",
     "PIDILITIND": "Chemicals",
