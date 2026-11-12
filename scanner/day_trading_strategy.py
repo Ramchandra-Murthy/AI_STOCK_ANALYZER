@@ -10,9 +10,15 @@ opening-range structure.
 from __future__ import annotations
 
 import math
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pandas as pd
+
+from services.intraday_data_quality import current_session_ohlcv_bars
+
+IST = ZoneInfo("Asia/Kolkata")
 
 
 def _series(frame: pd.DataFrame, name: str) -> pd.Series:
@@ -350,6 +356,9 @@ def analyze_narrow_range_breakout(
     trend_lookback: int = 20,
     atr_window: int = 14,
     max_range_atr: float = 0.67,
+    *,
+    as_of: datetime | None = None,
+    interval_minutes: int = 5,
 ) -> dict[str, Any]:
     """Identify a completed narrow-range setup and its next-bar trigger levels.
 
@@ -360,13 +369,39 @@ def analyze_narrow_range_breakout(
     """
     if lookback not in (4, 7) or trend_lookback < 2 or atr_window < 2:
         return {}
-    if not 0 < max_range_atr <= 1:
+    if not 0 < max_range_atr <= 1 or interval_minutes < 1:
         return {}
-    data = prepare_day_trading_frame(frame)
+    evaluation_time = as_of or datetime.now(IST)
+    completed, rejected = current_session_ohlcv_bars(
+        frame,
+        evaluation_time,
+        interval_minutes,
+        stale_after_minutes=max(15, interval_minutes * 3),
+    )
+    if (
+        completed.empty
+        or rejected["future_candles"]
+        or rejected["missing_ohlcv"]
+        or rejected["invalid_ohlcv"]
+        or rejected["missing_ohlcv_columns"]
+    ):
+        return {}
+    completed = completed.loc[completed.index.date == completed.index[-1].date()]
+    required_bars = max(lookback, trend_lookback, atr_window) + 1
+    if len(completed) < required_bars:
+        return {}
+    recent_index = completed.index[-required_bars:]
+    expected_delta = pd.Timedelta(minutes=interval_minutes)
+    if any(
+        right - left != expected_delta
+        for left, right in zip(recent_index[:-1], recent_index[1:], strict=True)
+    ):
+        return {}
+    data = prepare_day_trading_frame(completed)
     required = {"Open", "High", "Low", "Close", "Volume"}
     if data.empty or not required.issubset(data.columns):
         return {}
-    if len(data) < max(lookback, trend_lookback, atr_window) + 1:
+    if len(data) < required_bars:
         return {}
 
     high = pd.to_numeric(data["High"], errors="coerce")
