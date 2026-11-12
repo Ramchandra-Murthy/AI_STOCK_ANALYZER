@@ -21,6 +21,7 @@ from scanner.day_trading_strategy import (
 from scanner.dynamic_universe import (
     merge_bse_universe,
     merge_nse_universe,
+    universe_source_status,
     yahoo_symbol_for_bse_code,
 )
 from scanner.surveillance import (
@@ -399,6 +400,7 @@ def scan_day_trader_opportunities(
     analysis_seconds = 0.0
     universe = select_day_trader_universe(cap_category, exchange_category)
     exchanges = ("NSE", "BSE") if exchange_category == "Both" else (exchange_category,)
+    source_status = universe_source_status()
 
     # Use 5-minute candles for the default 5-minute scan. This cuts the Yahoo
     # payload substantially while preserving the requested 5-minute signal.
@@ -429,6 +431,20 @@ def scan_day_trader_opportunities(
         "exchange": exchange_category,
         "cap_category": cap_category,
         "exchange_diagnostics": {},
+        "universe_provenance": (
+            {
+                exchange: source_status[exchange]
+                for exchange in exchanges
+                if exchange in source_status
+            }
+            if cap_category == "All caps"
+            else {}
+        ),
+        "universe_description": (
+            "Dynamic official exchange lists merged with curated additions."
+            if cap_category == "All caps"
+            else f"Curated {cap_category} research subset; this is not full exchange coverage."
+        ),
     }
 
     for exchange in exchanges:

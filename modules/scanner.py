@@ -336,6 +336,7 @@ def show():
                 scan_status.update(label="Broad-market scan failed", state="error")
                 raise
         scanner_coverage = df.attrs.get("scanner_coverage", {})
+        universe_provenance = df.attrs.get("scanner_universe_provenance", {})
 
         if scan_mode == "Broad Market":
             # Streamlit cache/deployments can briefly retain legacy rows with numeric confidence.
@@ -343,6 +344,23 @@ def show():
 
         if scan_mode == "Broad Market" and scanner_coverage:
             with st.expander("Scan coverage diagnostics", expanded=True):
+                if universe_provenance:
+                    st.markdown("**Universe source and provenance**")
+                    for exchange, provenance in universe_provenance.items():
+                        status = str(provenance.get("source", "source unavailable"))
+                        st.caption(
+                            f"{exchange}: {status} · official source symbols: "
+                            f"{provenance.get('source_symbols', 0)} · curated additions: "
+                            f"{provenance.get('curated_additions', 0)} · merged universe: "
+                            f"{provenance.get('merged_symbols', 0)} · cache age: "
+                            f"{provenance.get('cache_age_seconds', 0)}s"
+                        )
+                        reason = str(provenance.get("reason", ""))
+                        if provenance.get("official_source_status") == "source unavailable":
+                            st.warning(
+                                f"{exchange} official source unavailable; curated fallback "
+                                f"is active. {reason}"
+                            )
                 st.caption(
                     "Coverage counts describe the broad-market scan pipeline. "
                     "History rejections include symbols without usable two-candle price/volume history."
