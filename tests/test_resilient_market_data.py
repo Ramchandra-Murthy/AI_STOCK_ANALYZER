@@ -493,8 +493,7 @@ def test_company_name_negative_cache_can_be_disabled(monkeypatch) -> None:
 
     for _ in range(2):
         assert (
-            market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=0)
-            == "UNKNOWN.NS"
+            market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=0) == "UNKNOWN.NS"
         )
 
     assert calls == ["UNKNOWN.NS", "UNKNOWN.NS"]
