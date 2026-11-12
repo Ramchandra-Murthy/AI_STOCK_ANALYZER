@@ -443,6 +443,16 @@ def _select_analysis_tickers(
     return selected
 
 
+def _deduplicate_scan_results(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Keep the highest-ranked row for each exchange-qualified company symbol."""
+    key = ["Symbol", "Exchange"]
+    if df.empty or not set(key).issubset(df.columns):
+        return df.copy(), 0
+    duplicate_mask = df.duplicated(subset=key, keep="first")
+    removed = int(duplicate_mask.sum())
+    return df.loc[~duplicate_mask].reset_index(drop=True), removed
+
+
 def market_scan(
     exchange_filter: str = "NSE + BSE",
     progress_callback: Any | None = None,
@@ -610,8 +620,10 @@ def market_scan(
         return df
 
     # Confidence is intentionally unavailable until calibrated on out-of-sample data.
-    result = sort_bullish_to_bearish(df).head(analysis_limit).reset_index(drop=True)
+    ranked = sort_bullish_to_bearish(df).head(analysis_limit).reset_index(drop=True)
+    result, duplicate_rows_removed = _deduplicate_scan_results(ranked)
     for exchange in coverage:
+        coverage[exchange]["duplicate_rows_removed"] = duplicate_rows_removed
         coverage[exchange]["final_rows"] = int((result["Exchange"] == exchange).sum())
     result.attrs["scanner_coverage"] = coverage
     timings["cpu_seconds"] = time.process_time() - cpu_started
