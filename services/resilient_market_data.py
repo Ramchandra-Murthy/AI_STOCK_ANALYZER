@@ -185,10 +185,10 @@ _MARKET_DATA_CACHE: OrderedDict[tuple[str, str, str, bool], tuple[float, pd.Data
 )
 _METADATA_CACHE: dict[str, tuple[float, float]] = {}
 _NEGATIVE_METADATA_CACHE: dict[str, float] = {}
+_METADATA_CACHE_LOCK = RLock()
 _COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
 _COMPANY_NAME_NEGATIVE_CACHE: dict[str, float] = {}
 _COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
-_METADATA_CACHE_LOCK = RLock()
 _RUNTIME_STATS_LOCK = RLock()
 _RUNTIME_STATS = {
     "scan_calls": 0,
