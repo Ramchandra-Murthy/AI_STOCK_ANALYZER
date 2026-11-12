@@ -171,7 +171,50 @@ def test_market_movers_scan_uses_shared_market_data_service(monkeypatch):
     assert calls[0][1]["interval"] == "5m"
     assert calls[0][1]["recover_missing"] is True
     assert stats["usable_quotes"] == 1
+    assert stats["live_data_status"] == "AVAILABLE"
+    assert stats["missing_symbols"] == 0
+    assert stats["market_data_cache_hits"] == 0
     assert result.iloc[0]["Symbol"] == "TEST"
+
+
+def test_market_movers_reports_missing_provider_symbols(monkeypatch):
+    from modules import market_movers
+
+    monkeypatch.setattr(
+        market_movers, "download_symbol_frames", lambda tickers, **kwargs: ({}, tickers)
+    )
+    result, stats = market_movers._scan_batches([("TEST", "NSE")], 0)
+
+    assert result.empty
+    assert stats["live_data_status"] == "UNAVAILABLE"
+    assert stats["missing_symbols"] == 1
+
+
+def test_market_movers_parses_shared_market_data_cache_hits():
+    from modules.market_movers import _diagnostic_count
+
+    assert (
+        _diagnostic_count(
+            [
+                "download summary: requested=5 usable=5 missing=0 batches=1 cache_hits=3 cache_ttl=60s"
+            ],
+            "cache_hits",
+        )
+        == 3
+    )
+    assert _diagnostic_count(["provider request failed"], "cache_hits") == 0
+
+
+def test_dashboard_market_movers_uses_coverage_aware_scanner(monkeypatch):
+    import components.market_movers as dashboard_movers
+    import modules.market_movers as scanner_movers
+
+    calls = []
+    monkeypatch.setattr(scanner_movers, "show", lambda: calls.append("coverage scanner"))
+
+    dashboard_movers.show_market_movers()
+
+    assert calls == ["coverage scanner"]
 
 
 def test_market_cap_uses_shared_metadata_service(monkeypatch):
@@ -247,3 +290,4 @@ def test_market_movers_submits_exchange_universe_in_one_bounded_parallel_call(mo
     assert stats["batches"] == 2
     assert stats["usable_quotes"] == 3
     assert set(result["Ticker"]) == {"AAA.NS", "BBB.NS", "CCC.BO"}
+
