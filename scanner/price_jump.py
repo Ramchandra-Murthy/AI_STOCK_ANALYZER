@@ -1,43 +1,62 @@
 from __future__ import annotations
 
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import numpy as np
 import pandas as pd
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
 from scanner.unusual_activity import CAP_UNIVERSES, _ticker, finalize_scan_result
+from services.intraday_data_quality import current_session_ohlcv_bars
 from services.resilient_market_data import download_market_frames
 
 INTRADAY_PERIOD = "1d"
 MAX_FAST_UNIVERSE = 200
+IST = ZoneInfo("Asia/Kolkata")
 
 
 def calculate_price_jump(
     frame: pd.DataFrame,
     lookback_bars: int = 1,
     jump_percent: float = 1.0,
+    *,
+    interval_minutes: int = 1,
+    as_of: datetime | None = None,
 ) -> dict[str, float | None] | None:
     """Calculate the latest same-session price jump, day change and relative volume."""
-    if frame is None or frame.empty or lookback_bars < 1:
+    if frame is None or frame.empty or lookback_bars < 1 or interval_minutes < 1:
         return None
-    required = {"Close", "Volume"}
-    if not required.issubset(frame.columns):
-        return None
+    current = as_of or datetime.now(IST)
+    clean, _rejected = current_session_ohlcv_bars(
+        frame,
+        current,
+        interval_minutes,
+        stale_after_minutes=max(3, interval_minutes * 3),
+    )
+    return _calculate_from_completed_frame(clean, lookback_bars, jump_percent, interval_minutes)
 
-    clean = frame.loc[:, ["Close", "Volume"]].copy()
-    for column in ("Close", "Volume"):
-        clean[column] = pd.to_numeric(clean[column], errors="coerce")
-    clean = clean.dropna().sort_index()
+
+def _calculate_from_completed_frame(
+    clean: pd.DataFrame,
+    lookback_bars: int,
+    jump_percent: float,
+    interval_minutes: int,
+) -> dict[str, float | None] | None:
+    """Calculate pulse metrics after timestamp and OHLCV validation."""
     if clean.empty:
         return None
-    if not np.isfinite(clean[["Close", "Volume"]]).all().all():
-        return None
-    if (clean["Close"] <= 0).any() or (clean["Volume"] < 0).any():
-        return None
-    clean = clean[~clean.index.duplicated(keep="last")]
 
     session_date = clean.index[-1].date()
     current = clean.loc[clean.index.date == session_date]
     if len(current) <= lookback_bars:
+        return None
+    lookback_index = current.index[-lookback_bars - 1 :]
+    expected_delta = pd.Timedelta(minutes=interval_minutes)
+    if any(
+        right - left != expected_delta
+        for left, right in zip(lookback_index[:-1], lookback_index[1:], strict=True)
+    ):
         return None
 
     price = float(current.iloc[-1]["Close"])
@@ -100,14 +119,29 @@ def _append_price_jump_rows(
     cap_category: str,
     lookback_minutes: int,
     bars: int,
+    interval_minutes: int,
     jump_percent: float,
+    as_of: datetime,
     frames: dict[str, pd.DataFrame],
 ) -> None:
     """Append qualifying price-pulse rows and update scan diagnostics."""
     for ticker in tickers:
         try:
             frame = frames.get(ticker, pd.DataFrame())
-            metrics = calculate_price_jump(frame, bars, jump_percent)
+            clean, rejected = current_session_ohlcv_bars(
+                frame,
+                as_of,
+                interval_minutes,
+                stale_after_minutes=max(3, interval_minutes * 3),
+            )
+            for reason, count in rejected.items():
+                stats[f"rejected_{reason}"] = int(stats[f"rejected_{reason}"]) + count
+            metrics = _calculate_from_completed_frame(
+                clean,
+                bars,
+                jump_percent,
+                interval_minutes,
+            )
             if metrics is None:
                 continue
             stats["usable_count"] = int(stats["usable_count"]) + 1
@@ -129,7 +163,7 @@ def _append_price_jump_rows(
                         if pd.notna(metrics["relative_volume"])
                         else None
                     ),
-                    "Latest candle (provider time)": str(frame.index[-1]),
+                    "Latest candle (provider time)": str(clean.index[-1]),
                 }
             )
         except (KeyError, TypeError, ValueError, IndexError):
@@ -155,6 +189,8 @@ def scan_price_jumps(
 
     selected_universe = _selected_price_jump_universe(cap_category, exchange_category)
     interval, bars = _candle_settings(lookback_minutes)
+    interval_minutes = int(interval.removesuffix("m"))
+    evaluation_time = datetime.now(IST)
     duplicate_count = 0
     stats: dict[str, object] = {
         "candidate_count": len(selected_universe),
@@ -167,6 +203,14 @@ def scan_price_jumps(
         "matches_before_limit": 0,
         "displayed_count": 0,
         "interval": interval,
+        "rejected_invalid_timestamps": 0,
+        "rejected_future_candles": 0,
+        "rejected_incomplete_candles": 0,
+        "rejected_duplicate_candles": 0,
+        "rejected_missing_ohlcv": 0,
+        "rejected_invalid_ohlcv": 0,
+        "rejected_missing_ohlcv_columns": 0,
+        "rejected_stale_symbols": 0,
     }
     rows: list[dict[str, object]] = []
 
@@ -197,7 +241,9 @@ def scan_price_jumps(
             cap_category,
             lookback_minutes,
             bars,
+            interval_minutes,
             jump_percent,
+            evaluation_time,
             frames,
         )
 

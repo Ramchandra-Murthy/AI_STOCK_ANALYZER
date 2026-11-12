@@ -7,12 +7,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
-from services.intraday_data_quality import completed_ohlcv_bars
-from services.market_calendar import (
-    CalendarUnavailableError,
-    equity_market_session_status,
-    is_equity_trading_day,
-)
+from services.intraday_data_quality import current_session_ohlcv_bars
 from services.resilient_market_data import download_market_frames
 
 CHUNK_SIZE = 100
@@ -182,28 +177,7 @@ def _completed_activity_frame(
     frame: pd.DataFrame, as_of: datetime
 ) -> tuple[pd.DataFrame, dict[str, int]]:
     """Validate OHLCV and keep only completed, current-session five-minute bars."""
-    current = pd.Timestamp(as_of)
-    current = current.tz_localize(IST) if current.tzinfo is None else current.tz_convert(IST)
-    completed, rejected = completed_ohlcv_bars(frame, current.to_pydatetime(), 5)
-    rejected["stale_symbols"] = 0
-    if completed.empty:
-        return completed, rejected
-
-    session_status = equity_market_session_status(current.to_pydatetime())
-    latest_end = completed.index[-1] + pd.Timedelta(minutes=5)
-    try:
-        trading_day = is_equity_trading_day(current.date())
-    except CalendarUnavailableError:
-        trading_day = False
-    if (
-        session_status == "CALENDAR_UNAVAILABLE"
-        or not trading_day
-        or completed.index[-1].date() != current.date()
-        or (session_status == "OPEN" and (current - latest_end).total_seconds() > 15 * 60)
-    ):
-        rejected["stale_symbols"] = 1
-        return completed.iloc[0:0], rejected
-    return completed, rejected
+    return current_session_ohlcv_bars(frame, as_of, interval_minutes=5)
 
 
 def finalize_scan_result(

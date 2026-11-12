@@ -644,12 +644,29 @@ def _price_jump_watchlist():
 
     pulse_stats = st.session_state.get("price_jump_scan_stats", {})
     if pulse_stats:
+        st.caption("Yahoo Finance is a research data source, not an execution feed.")
         st.caption(
             f"Candidates checked: {pulse_stats.get('candidate_count', 0)} · "
             f"Usable candles: {pulse_stats.get('usable_count', 0)} · "
             f"Matches before limit: {pulse_stats.get('matches_before_limit', 0)} · "
             f"Interval: {pulse_stats.get('interval', '—')}"
         )
+        rejected = {
+            "incomplete": pulse_stats.get("rejected_incomplete_candles", 0),
+            "future": pulse_stats.get("rejected_future_candles", 0),
+            "duplicates": pulse_stats.get("rejected_duplicate_candles", 0),
+            "invalid timestamps": pulse_stats.get("rejected_invalid_timestamps", 0),
+            "missing OHLCV": pulse_stats.get("rejected_missing_ohlcv", 0),
+            "invalid OHLCV": pulse_stats.get("rejected_invalid_ohlcv", 0),
+            "stale symbols": pulse_stats.get("rejected_stale_symbols", 0),
+            "missing OHLCV columns": pulse_stats.get("rejected_missing_ohlcv_columns", 0),
+        }
+        rejected = {reason: count for reason, count in rejected.items() if count}
+        if rejected:
+            st.warning(
+                "Excluded provider data: "
+                + " · ".join(f"{reason}: {count}" for reason, count in rejected.items())
+            )
 
     price_jump_history = st.session_state.get("price_jump_history")
     if price_jump_history is not None and not price_jump_history.empty:
