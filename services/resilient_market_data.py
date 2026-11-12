@@ -473,6 +473,7 @@ def download_symbol_frames(
     _record_runtime_stat("scan_calls")
     recovery_seconds = 0.0
     recovery_count = 0
+    recovery_limit = 0
     batch_size = max(1, int(batch_size))
     worker_count = max(1, min(int(max_workers), MAX_PROVIDER_REQUESTS_IN_FLIGHT))
     ttl = _cache_ttl(interval, cache_ttl_seconds)
