@@ -877,7 +877,9 @@ def test_metadata_provider_exceptions_are_not_negative_cached(monkeypatch) -> No
     monkeypatch.setattr(market_data.yf, "Ticker", FailingTicker)
     for _ in range(2):
         assert market_data.get_market_cap("TIMEOUT.NS") is None
+        market_data._reset_provider_circuit_breaker()
         assert market_data.get_company_name("TIMEOUT.NS") == "TIMEOUT.NS"
+        market_data._reset_provider_circuit_breaker()
 
     assert calls == ["TIMEOUT.NS"] * 4
     assert "TIMEOUT.NS" not in market_data._NEGATIVE_METADATA_CACHE
