@@ -284,10 +284,6 @@ def clear_market_metadata_cache() -> None:
         _NEGATIVE_METADATA_CACHE.clear()
 
 
-_COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
-_COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
-
-
 def get_company_name(
     ticker: str,
     *,
@@ -336,6 +332,10 @@ def get_company_name(
         elif negative_ttl > 0:
             _COMPANY_NAME_NEGATIVE_CACHE[symbol] = monotonic() + negative_ttl
     return resolved
+
+
+_COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
+_COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
 
 
 def clear_company_name_cache() -> None:
