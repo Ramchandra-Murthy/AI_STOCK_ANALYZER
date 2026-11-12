@@ -591,4 +591,3 @@ def show() -> None:
         "intraday_market_movers.csv",
         "text/csv",
     )
-
