@@ -8,7 +8,7 @@ exchange-tick execution feed.
 
 from __future__ import annotations
 
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from collections.abc import Iterable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from threading import BoundedSemaphore, RLock
@@ -40,6 +40,129 @@ MARKET_DATA_CACHE_TTLS = {
     "1mo": 7200.0,
     "3mo": 7200.0,
 }
+PROVIDER_CIRCUIT_FAILURE_THRESHOLD = 3
+PROVIDER_CIRCUIT_FAILURE_WINDOW_SECONDS = 60.0
+PROVIDER_CIRCUIT_COOLDOWN_SECONDS = 30.0
+PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS = 300.0
+_PROVIDER_CIRCUIT_LOCK = RLock()
+_PROVIDER_CIRCUIT = {
+    "state": "closed",
+    "failures": deque(),
+    "opened_at": 0.0,
+    "cooldown_seconds": PROVIDER_CIRCUIT_COOLDOWN_SECONDS,
+    "trips": 0,
+    "probe_in_flight": False,
+}
+
+
+def _reset_provider_circuit_breaker() -> None:
+    """Reset provider protection state; intended for isolated tests."""
+    with _PROVIDER_CIRCUIT_LOCK:
+        _PROVIDER_CIRCUIT.update(
+            state="closed",
+            failures=deque(),
+            opened_at=0.0,
+            cooldown_seconds=PROVIDER_CIRCUIT_COOLDOWN_SECONDS,
+            trips=0,
+            probe_in_flight=False,
+        )
+
+
+def provider_circuit_breaker_stats() -> dict[str, Any]:
+    """Return a read-only snapshot of the process-local Yahoo circuit breaker."""
+    now = monotonic()
+    with _PROVIDER_CIRCUIT_LOCK:
+        state = _PROVIDER_CIRCUIT["state"]
+        remaining = (
+            max(
+                0.0,
+                _PROVIDER_CIRCUIT["cooldown_seconds"]
+                - (now - _PROVIDER_CIRCUIT["opened_at"]),
+            )
+            if state == "open"
+            else 0.0
+        )
+        return {
+            "state": state,
+            "recent_failures": len(_PROVIDER_CIRCUIT["failures"]),
+            "cooldown_seconds": _PROVIDER_CIRCUIT["cooldown_seconds"],
+            "cooldown_remaining_seconds": round(remaining, 2),
+            "trips": _PROVIDER_CIRCUIT["trips"],
+            "probe_in_flight": _PROVIDER_CIRCUIT["probe_in_flight"],
+        }
+
+
+def _provider_circuit_allows_request(diagnostics: list[str] | None = None) -> bool:
+    """Allow normal traffic while closed and exactly one probe after cooldown."""
+    now = monotonic()
+    with _PROVIDER_CIRCUIT_LOCK:
+        state = _PROVIDER_CIRCUIT["state"]
+        if state == "open":
+            elapsed = now - _PROVIDER_CIRCUIT["opened_at"]
+            if elapsed < _PROVIDER_CIRCUIT["cooldown_seconds"]:
+                if diagnostics is not None:
+                    diagnostics.append("Yahoo provider circuit open; request suppressed")
+                return False
+            _PROVIDER_CIRCUIT["state"] = "half_open"
+            state = "half_open"
+
+        if state == "half_open":
+            if _PROVIDER_CIRCUIT["probe_in_flight"]:
+                if diagnostics is not None:
+                    diagnostics.append("Yahoo provider circuit half-open; probe already in flight")
+                return False
+            _PROVIDER_CIRCUIT["probe_in_flight"] = True
+        return True
+
+
+def _provider_circuit_record_failure() -> None:
+    """Count provider failures and open/re-open the circuit at the threshold."""
+    now = monotonic()
+    with _PROVIDER_CIRCUIT_LOCK:
+        state = _PROVIDER_CIRCUIT["state"]
+        if state == "open":
+            return
+        if state == "half_open":
+            _PROVIDER_CIRCUIT["trips"] += 1
+            _PROVIDER_CIRCUIT["cooldown_seconds"] = min(
+                PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+                * (2 ** (_PROVIDER_CIRCUIT["trips"] - 1)),
+                PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
+            )
+            _PROVIDER_CIRCUIT["state"] = "open"
+            _PROVIDER_CIRCUIT["opened_at"] = now
+            _PROVIDER_CIRCUIT["probe_in_flight"] = False
+            return
+
+        failures = _PROVIDER_CIRCUIT["failures"]
+        failures.append(now)
+        while failures and now - failures[0] > PROVIDER_CIRCUIT_FAILURE_WINDOW_SECONDS:
+            failures.popleft()
+        if len(failures) >= PROVIDER_CIRCUIT_FAILURE_THRESHOLD:
+            _PROVIDER_CIRCUIT["trips"] += 1
+            _PROVIDER_CIRCUIT["cooldown_seconds"] = min(
+                PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+                * (2 ** (_PROVIDER_CIRCUIT["trips"] - 1)),
+                PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
+            )
+            _PROVIDER_CIRCUIT["state"] = "open"
+            _PROVIDER_CIRCUIT["opened_at"] = now
+            _PROVIDER_CIRCUIT["probe_in_flight"] = False
+
+
+def _provider_circuit_record_success() -> None:
+    """Close the circuit only after a successful half-open probe."""
+    with _PROVIDER_CIRCUIT_LOCK:
+        if _PROVIDER_CIRCUIT["state"] == "half_open":
+            _PROVIDER_CIRCUIT["state"] = "closed"
+            _PROVIDER_CIRCUIT["failures"].clear()
+            _PROVIDER_CIRCUIT["cooldown_seconds"] = PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+            _PROVIDER_CIRCUIT["trips"] = 0
+            _PROVIDER_CIRCUIT["probe_in_flight"] = False
+        elif _PROVIDER_CIRCUIT["state"] == "closed":
+            _PROVIDER_CIRCUIT["failures"].clear()
+
+
 _PROVIDER_REQUEST_LIMIT = BoundedSemaphore(MAX_PROVIDER_REQUESTS_IN_FLIGHT)
 _CACHE_LOCK = RLock()
 _INFLIGHT_BATCH_LOCK = RLock()
@@ -267,6 +390,8 @@ def _download_batch(
 
     retry_count = max(0, int(retries))
     for attempt in range(retry_count + 1):
+        if not _provider_circuit_allows_request(diagnostics):
+            return pd.DataFrame()
         try:
             with _PROVIDER_REQUEST_LIMIT:
                 _record_runtime_stat("batch_requests")
@@ -282,15 +407,17 @@ def _download_batch(
                     repair=True,
                 )
             if result is not None and not result.empty:
+                _provider_circuit_record_success()
                 return result
+            _provider_circuit_record_failure()
+            if diagnostics is not None:
+                diagnostics.append("batch request returned no rows")
         except Exception as exc:
             last_error = exc
             _record_runtime_stat("provider_errors")
+            _provider_circuit_record_failure()
             if diagnostics is not None:
                 diagnostics.append(f"batch request raised {type(exc).__name__}")
-        else:
-            if diagnostics is not None and (result is None or result.empty):
-                diagnostics.append("batch request returned no rows")
 
         if attempt < retry_count:
             sleep(RETRY_BACKOFF_SECONDS * (2**attempt))
