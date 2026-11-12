@@ -144,3 +144,40 @@ def test_bse_group_unavailable_is_not_misclassified():
     )
     result = _attach_bse_group(frame, None)
     assert result["BSE Group"].tolist() == ["Unverified", "N/A"]
+
+
+def test_market_movers_submits_exchange_universe_in_one_bounded_parallel_call(monkeypatch):
+    from modules import market_movers
+
+    index = pd.date_range("2026-11-10 09:15", periods=8, freq="5min", tz="Asia/Kolkata")
+    frame = pd.DataFrame(
+        {
+            "Open": [100.0] * 8,
+            "High": [101.0] * 7 + [103.0],
+            "Low": [99.0] * 8,
+            "Close": [100.0, 100.2, 100.4, 100.6, 100.8, 101.0, 101.2, 102.0],
+            "Volume": [1000] * 8,
+        },
+        index=index,
+    )
+    calls = []
+    monkeypatch.setattr(market_movers, "BATCH_SIZE", 2)
+    monkeypatch.setattr(market_movers, "_quote_freshness", lambda _value: "TEST")
+
+    def fake_download(tickers, **kwargs):
+        calls.append((list(tickers), kwargs))
+        return {ticker: frame for ticker in tickers}, []
+
+    monkeypatch.setattr(market_movers, "download_symbol_frames", fake_download)
+
+    result, stats = market_movers._scan_batches(
+        [("AAA", "NSE"), ("BBB", "NSE"), ("CCC", "BSE")], 0
+    )
+
+    assert len(calls) == 1
+    assert calls[0][0] == ["AAA.NS", "BBB.NS", "CCC.BO"]
+    assert calls[0][1]["batch_size"] == 2
+    assert calls[0][1]["max_workers"] == 4
+    assert stats["batches"] == 2
+    assert stats["usable_quotes"] == 3
+    assert set(result["Ticker"]) == {"AAA.NS", "BBB.NS", "CCC.BO"}
