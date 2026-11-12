@@ -668,3 +668,42 @@ def test_analysis_diagnostics_count_attempts_and_short_history() -> None:
         "analysis_attempted": 1,
         "analysis_insufficient_history": 1,
     }
+
+
+def test_deduplicate_scan_results_keeps_best_exchange_qualified_row() -> None:
+    from scanner.market_scanner import _deduplicate_scan_results
+
+    frame = pd.DataFrame(
+        [
+            {"Symbol": "RELIANCE", "Exchange": "NSE", "AI Score": 80},
+            {"Symbol": "RELIANCE", "Exchange": "NSE", "AI Score": 65},
+            {"Symbol": "RELIANCE", "Exchange": "BSE", "AI Score": 70},
+            {"Symbol": "TCS", "Exchange": "NSE", "AI Score": 60},
+        ]
+    )
+
+    result, removed = _deduplicate_scan_results(frame)
+
+    assert removed == 1
+    assert result[["Symbol", "Exchange"]].values.tolist() == [
+        ["RELIANCE", "NSE"],
+        ["RELIANCE", "BSE"],
+        ["TCS", "NSE"],
+    ]
+    assert result.iloc[0]["AI Score"] == 80
+
+
+def test_deduplicate_scan_results_does_not_merge_same_company_across_exchanges() -> None:
+    from scanner.market_scanner import _deduplicate_scan_results
+
+    frame = pd.DataFrame(
+        [
+            {"Symbol": "RELIANCE", "Exchange": "NSE"},
+            {"Symbol": "RELIANCE", "Exchange": "BSE"},
+        ]
+    )
+
+    result, removed = _deduplicate_scan_results(frame)
+
+    assert removed == 0
+    assert len(result) == 2

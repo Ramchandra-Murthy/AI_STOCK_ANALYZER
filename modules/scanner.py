@@ -164,6 +164,7 @@ def _show_coverage_summary(coverage_rows: list[dict]) -> None:
             ("Stale analysis history", "stale_data_rejected"),
             ("Unknown timestamp", "unknown_timestamp_rejected"),
             ("Future timestamp", "future_timestamp_rejected"),
+            ("Duplicate result rows removed", "duplicate_rows_removed"),
             ("Analysis download failed", "analysis_download_failed"),
             ("Provider error chunks", "provider_error_chunks"),
             ("Recently failed tickers skipped", "cached_failures_skipped"),
