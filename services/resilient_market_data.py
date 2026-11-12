@@ -170,6 +170,13 @@ def _provider_circuit_record_success() -> None:
 
 
 def _provider_circuit_cancel_probe() -> None:
+    """Release a half-open probe reservation when request setup fails."""
+    with _PROVIDER_CIRCUIT_LOCK:
+        if _PROVIDER_CIRCUIT["state"] == "half_open":
+            _PROVIDER_CIRCUIT["probe_in_flight"] = False
+
+
+def _provider_circuit_cancel_probe() -> None:
     """Release a half-open probe reservation when no provider call was made."""
     with _PROVIDER_CIRCUIT_LOCK:
         if _PROVIDER_CIRCUIT["state"] == "half_open":
@@ -413,8 +420,10 @@ def _download_batch(
     for attempt in range(retry_count + 1):
         if not _provider_circuit_allows_request(diagnostics):
             return pd.DataFrame()
+        request_started = False
         try:
             with _PROVIDER_REQUEST_LIMIT:
+                request_started = True
                 _record_runtime_stat("batch_requests")
                 result = yf.download(
                     tickers=tickers,
@@ -436,7 +445,10 @@ def _download_batch(
         except Exception as exc:
             last_error = exc
             _record_runtime_stat("provider_errors")
-            _provider_circuit_record_failure()
+            if request_started:
+                _provider_circuit_record_failure()
+            else:
+                _provider_circuit_cancel_probe()
             if diagnostics is not None:
                 diagnostics.append(f"batch request raised {type(exc).__name__}")
 
@@ -530,8 +542,10 @@ def _download_single(
     for attempt in range(retry_count + 1):
         if not _provider_circuit_allows_request(diagnostics):
             return pd.DataFrame()
+        request_started = False
         try:
             with _PROVIDER_REQUEST_LIMIT:
+                request_started = True
                 _record_runtime_stat("single_symbol_requests")
                 result = yf.Ticker(ticker).history(
                     period=period,
@@ -548,7 +562,10 @@ def _download_single(
             _provider_circuit_record_failure()
         except Exception as exc:
             _record_runtime_stat("provider_errors")
-            _provider_circuit_record_failure()
+            if request_started:
+                _provider_circuit_record_failure()
+            else:
+                _provider_circuit_cancel_probe()
             if diagnostics is not None:
                 diagnostics.append(f"single-symbol request raised {type(exc).__name__}")
         if attempt < retry_count:
