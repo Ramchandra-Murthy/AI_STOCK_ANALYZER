@@ -22,11 +22,14 @@ def _frames():
     return intraday, daily
 
 
+AS_OF = datetime.fromisoformat("2026-11-02T09:18:00+05:30")
+
+
 def test_watchlist_intraday_context_uses_prior_daily_baselines():
     from scanner.watchlist_scanner import _intraday_context_columns
 
     intraday, daily = _frames()
-    result = _intraday_context_columns(intraday, daily)
+    result = _intraday_context_columns(intraday, daily, now=AS_OF)
 
     assert result["Gap %"] == 2.941
     assert result["Intraday change %"] == 3.81
@@ -48,6 +51,19 @@ def test_watchlist_intraday_context_fails_closed_when_data_missing():
     assert result["Context status"] == "INTRADAY CONTEXT UNAVAILABLE"
 
 
+def test_watchlist_context_withholds_metrics_when_ohlcv_is_invalid():
+    from scanner.watchlist_scanner import _intraday_context_columns
+
+    intraday, daily = _frames()
+    intraday.loc[intraday.index[0], "Volume"] = -1
+
+    result = _intraday_context_columns(intraday, daily, now=AS_OF)
+
+    assert result["Context status"] == "INVALID INTRADAY DATA"
+    assert result["Session volume"] is None
+    assert "invalid OHLCV: 1" in result["Context rejection reason"]
+
+
 def test_watchlist_context_excludes_same_session_daily_candle():
     from scanner.watchlist_scanner import _intraday_context_columns
 
@@ -58,7 +74,7 @@ def test_watchlist_context_excludes_same_session_daily_candle():
     )
     daily = pd.concat([daily, same_day])
 
-    result = _intraday_context_columns(intraday, daily)
+    result = _intraday_context_columns(intraday, daily, now=AS_OF)
 
     assert result["Gap %"] == 2.941
     assert result["Cumulative RVOL"] == 0.273

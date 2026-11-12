@@ -62,7 +62,9 @@ def test_scan_watchlist_includes_intraday_context_without_changing_analysis(
     )
     monkeypatch.setattr(watchlist_scanner, "analyze_stock", lambda ticker: _analysis_result())
 
-    result = watchlist_scanner.scan_watchlist(["ABC"])
+    result = watchlist_scanner.scan_watchlist(
+        ["ABC"], now=datetime.fromisoformat("2026-11-02T09:18:00+05:30")
+    )
 
     assert len(result) == 1
     row = result.iloc[0]
@@ -75,7 +77,7 @@ def test_scan_watchlist_includes_intraday_context_without_changing_analysis(
     assert row["Session volume"] == 3000
     assert row["Cumulative RVOL"] == 0.273
     assert row["Context status"] == "OK"
-    assert row["Context freshness"] == "STALE"
+    assert row["Context freshness"] == "FRESH"
     assert row["Cumulative RVOL basis"] == "Not time-of-day normalized"
 
 
@@ -122,4 +124,5 @@ def test_watchlist_context_freshness_flags_future_candle_timestamp():
     result = _intraday_context_columns(intraday, daily, now=evaluation_time)
 
     assert result["Context freshness"] == "FUTURE_TIMESTAMP"
-    assert result["Context status"] == "OK"
+    assert result["Context status"] == "INVALID INTRADAY DATA"
+    assert result["Intraday change %"] is None
