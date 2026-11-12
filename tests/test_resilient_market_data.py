@@ -909,3 +909,31 @@ def test_negative_metadata_cache_is_thread_safe(monkeypatch) -> None:
     assert len(calls) <= 32
     assert "THREAD.NS" in market_data._NEGATIVE_METADATA_CACHE
     assert len(market_data._NEGATIVE_METADATA_CACHE) == 1
+
+
+def test_negative_metadata_cache_refreshes_lru_recency(monkeypatch) -> None:
+    market_data.clear_market_metadata_cache()
+    limit = market_data._NEGATIVE_METADATA_CACHE_MAX_ENTRIES
+    calls: list[str] = []
+
+    class FakeTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        @property
+        def fast_info(self) -> dict[str, None]:
+            calls.append(self.ticker)
+            return {"market_cap": None}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+    for index in range(limit):
+        assert market_data.get_market_cap(f"S{index}.NS", negative_cache_ttl_seconds=60) is None
+
+    # Touch the oldest key so it becomes most recently used.
+    assert market_data.get_market_cap("S0.NS", negative_cache_ttl_seconds=60) is None
+    assert calls.count("S0.NS") == 1
+
+    assert market_data.get_market_cap(f"S{limit}.NS", negative_cache_ttl_seconds=60) is None
+    assert len(market_data._NEGATIVE_METADATA_CACHE) == limit
+    assert "S0.NS" in market_data._NEGATIVE_METADATA_CACHE
+    assert "S1.NS" not in market_data._NEGATIVE_METADATA_CACHE
