@@ -257,9 +257,7 @@ def _cached_scan(limit_per_exchange: int) -> tuple[pd.DataFrame, dict[str, int |
     group_a_codes = dynamic_bse_group_a_codes()
     frame = _attach_bse_group(frame, group_a_codes)
     stats["bse_group_a_source"] = "BSE official" if group_a_codes is not None else "Unavailable"
-    stats["bse_group_a_verified"] = (
-        int(frame["BSE Group"].eq("A").sum()) if not frame.empty else 0
-    )
+    stats["bse_group_a_verified"] = int(frame["BSE Group"].eq("A").sum()) if not frame.empty else 0
     frame = _classify_market_caps(frame)
     stats["market_cap_lookups"] = min(300, len(frame))
     stats["market_cap_verified"] = (
