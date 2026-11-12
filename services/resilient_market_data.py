@@ -184,7 +184,12 @@ _MARKET_DATA_CACHE: OrderedDict[tuple[str, str, str, bool], tuple[float, pd.Data
     OrderedDict()
 )
 _METADATA_CACHE: dict[str, tuple[float, float]] = {}
+_NEGATIVE_METADATA_CACHE_MAX_ENTRIES = 2000
+_NEGATIVE_METADATA_CACHE: OrderedDict[str, float] = OrderedDict()
 _METADATA_CACHE_LOCK = RLock()
+_COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
+_COMPANY_NAME_NEGATIVE_CACHE: OrderedDict[str, float] = OrderedDict()
+_COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
 _RUNTIME_STATS_LOCK = RLock()
 _RUNTIME_STATS = {
     "scan_calls": 0,
@@ -196,6 +201,38 @@ _RUNTIME_STATS = {
     "total_scan_seconds": 0.0,
 }
 DEFAULT_METADATA_CACHE_TTL_SECONDS = 1800.0
+NEGATIVE_METADATA_CACHE_TTL_SECONDS = 120.0
+
+
+def _store_negative_metadata_cache(
+    cache: OrderedDict[str, float],
+    symbol: str,
+    ttl_seconds: float,
+) -> None:
+    """Store a missing-metadata result with an expiry and a hard size bound."""
+    if ttl_seconds <= 0:
+        return
+    cache.pop(symbol, None)
+    cache[symbol] = monotonic() + ttl_seconds
+    while len(cache) > _NEGATIVE_METADATA_CACHE_MAX_ENTRIES:
+        cache.popitem(last=False)
+
+
+def _get_cached_negative_metadata(
+    cache: OrderedDict[str, float],
+    symbol: str,
+    ttl_seconds: float,
+    now: float,
+) -> bool:
+    """Return whether a negative result is still valid, removing expired entries."""
+    negative_until = cache.get(symbol)
+    if negative_until is None:
+        return False
+    if ttl_seconds > 0 and now < negative_until:
+        cache.move_to_end(symbol)
+        return True
+    cache.pop(symbol, None)
+    return False
 
 
 def _record_runtime_stat(name: str, amount: int | float = 1) -> None:
@@ -224,95 +261,110 @@ def get_market_cap(
     ticker: str,
     *,
     cache_ttl_seconds: float = DEFAULT_METADATA_CACHE_TTL_SECONDS,
+    negative_cache_ttl_seconds: float = NEGATIVE_METADATA_CACHE_TTL_SECONDS,
     timeout: float = DEFAULT_TIMEOUT,
 ) -> float | None:
-    """Fetch Yahoo market-cap metadata with shared request throttling and a TTL cache."""
+    """Fetch Yahoo market-cap metadata with positive and bounded negative TTL caches."""
     symbol = str(ticker).strip().upper()
     if not symbol:
         return None
     ttl = max(0.0, float(cache_ttl_seconds))
+    negative_ttl = max(0.0, float(negative_cache_ttl_seconds))
     now = monotonic()
-    if ttl > 0:
-        with _METADATA_CACHE_LOCK:
-            cached = _METADATA_CACHE.get(symbol)
-            if cached is not None:
-                stored_at, value = cached
-                if now - stored_at < ttl:
-                    return value
-                del _METADATA_CACHE[symbol]
+    with _METADATA_CACHE_LOCK:
+        cached = _METADATA_CACHE.get(symbol)
+        if cached is not None:
+            stored_at, value = cached
+            if ttl > 0 and now - stored_at < ttl:
+                return value
+            del _METADATA_CACHE[symbol]
+        if _get_cached_negative_metadata(_NEGATIVE_METADATA_CACHE, symbol, negative_ttl, now):
+            return None
+
+    if not _provider_circuit_allows_request():
+        return None
 
     try:
-        if not _provider_circuit_allows_request():
-            return None
         with _PROVIDER_REQUEST_LIMIT:
             raw_value = yf.Ticker(symbol, timeout=timeout).fast_info.get("market_cap")
         _provider_circuit_record_success()
         value = float(raw_value) if raw_value is not None else 0.0
-        if not pd.notna(value) or value <= 0:
-            return None
     except Exception:
         _provider_circuit_record_failure()
         return None
 
-    if ttl > 0:
-        with _METADATA_CACHE_LOCK:
+    if not pd.notna(value) or value <= 0:
+        if negative_ttl > 0:
+            with _METADATA_CACHE_LOCK:
+                _store_negative_metadata_cache(_NEGATIVE_METADATA_CACHE, symbol, negative_ttl)
+        return None
+
+    with _METADATA_CACHE_LOCK:
+        _NEGATIVE_METADATA_CACHE.pop(symbol, None)
+        if ttl > 0:
             _METADATA_CACHE[symbol] = (monotonic(), value)
     return value
 
 
 def clear_market_metadata_cache() -> None:
-    """Clear cached market-cap metadata; primarily useful for tests and refreshes."""
+    """Clear positive and negative market-cap metadata caches."""
     with _METADATA_CACHE_LOCK:
         _METADATA_CACHE.clear()
-
-
-_COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
-_COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
+        _NEGATIVE_METADATA_CACHE.clear()
 
 
 def get_company_name(
     ticker: str,
     *,
     cache_ttl_seconds: float = _COMPANY_NAME_CACHE_TTL_SECONDS,
+    negative_cache_ttl_seconds: float = NEGATIVE_METADATA_CACHE_TTL_SECONDS,
     timeout: float = DEFAULT_TIMEOUT,
 ) -> str:
-    """Resolve a company name through the shared provider limit and a long-lived cache."""
+    """Resolve company names with success caching and bounded missing-name caching."""
     symbol = str(ticker).strip().upper()
     if not symbol:
         return ""
     ttl = max(0.0, float(cache_ttl_seconds))
+    negative_ttl = max(0.0, float(negative_cache_ttl_seconds))
     now = monotonic()
-    if ttl > 0:
-        with _METADATA_CACHE_LOCK:
-            cached = _COMPANY_NAME_CACHE.get(symbol)
-            if cached is not None:
-                stored_at, cached_name = cached
-                if now - stored_at < ttl:
-                    return cached_name
-                del _COMPANY_NAME_CACHE[symbol]
+    with _METADATA_CACHE_LOCK:
+        cached = _COMPANY_NAME_CACHE.get(symbol)
+        if cached is not None:
+            stored_at, cached_name = cached
+            if ttl > 0 and now - stored_at < ttl:
+                return cached_name
+            del _COMPANY_NAME_CACHE[symbol]
+        if _get_cached_negative_metadata(_COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl, now):
+            return symbol
+
+    if not _provider_circuit_allows_request():
+        return symbol
 
     try:
-        if not _provider_circuit_allows_request():
-            return symbol
         with _PROVIDER_REQUEST_LIMIT:
             info = yf.Ticker(symbol, timeout=timeout).get_info()
         _provider_circuit_record_success()
-        raw_name = info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
-        resolved = raw_name.strip() if isinstance(raw_name, str) and raw_name.strip() else symbol
     except Exception:
         _provider_circuit_record_failure()
-        resolved = symbol
+        return symbol
 
-    if resolved != symbol and ttl > 0:
-        with _METADATA_CACHE_LOCK:
-            _COMPANY_NAME_CACHE[symbol] = (monotonic(), resolved)
+    raw_name = info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
+    resolved = raw_name.strip() if isinstance(raw_name, str) and raw_name.strip() else symbol
+    with _METADATA_CACHE_LOCK:
+        if resolved != symbol:
+            _COMPANY_NAME_NEGATIVE_CACHE.pop(symbol, None)
+            if ttl > 0:
+                _COMPANY_NAME_CACHE[symbol] = (monotonic(), resolved)
+        elif negative_ttl > 0:
+            _store_negative_metadata_cache(_COMPANY_NAME_NEGATIVE_CACHE, symbol, negative_ttl)
     return resolved
 
 
 def clear_company_name_cache() -> None:
-    """Clear cached company names; primarily useful for tests and explicit refreshes."""
+    """Clear positive and negative company-name metadata caches."""
     with _METADATA_CACHE_LOCK:
         _COMPANY_NAME_CACHE.clear()
+        _COMPANY_NAME_NEGATIVE_CACHE.clear()
 
 
 def _cache_ttl(interval: str, override: float | None = None) -> float:
