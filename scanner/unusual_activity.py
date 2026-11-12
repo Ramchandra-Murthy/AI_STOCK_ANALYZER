@@ -1,13 +1,21 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
 from scanner.universe import BSE_CANDIDATES, NSE_CANDIDATES, bse_candidates_for_nse_symbols
+from services.market_calendar import (
+    CalendarUnavailableError,
+    equity_market_session_status,
+    is_equity_trading_day,
+)
 from services.resilient_market_data import download_market_frames
 
 CHUNK_SIZE = 100
+IST = ZoneInfo("Asia/Kolkata")
 
 # Representative NSE candidate baskets, not exhaustive exchange classifications.
 # Categories are based on widely followed index constituents; market-cap ranks can change.
@@ -169,6 +177,80 @@ def _frame_for(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
     return frame
 
 
+def _completed_activity_frame(
+    frame: pd.DataFrame, as_of: datetime
+) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Validate OHLCV and keep only completed, current-session five-minute bars."""
+    rejected = {
+        "incomplete_candles": 0,
+        "future_candles": 0,
+        "duplicate_candles": 0,
+        "invalid_timestamps": 0,
+        "missing_ohlcv": 0,
+        "invalid_ohlcv": 0,
+        "stale_symbols": 0,
+    }
+    current = pd.Timestamp(as_of)
+    current = current.tz_localize(IST) if current.tzinfo is None else current.tz_convert(IST)
+    records: dict[pd.Timestamp, dict[str, float]] = {}
+    required = ("Open", "High", "Low", "Close", "Volume")
+    for timestamp, row in frame.iterrows():
+        try:
+            start = pd.Timestamp(timestamp)
+            if pd.isna(start):
+                raise ValueError("invalid timestamp")
+            start = start.tz_localize(IST) if start.tzinfo is None else start.tz_convert(IST)
+        except (TypeError, ValueError, OverflowError):
+            rejected["invalid_timestamps"] += 1
+            continue
+        if start > current:
+            rejected["future_candles"] += 1
+            continue
+        if start + pd.Timedelta(minutes=5) > current:
+            rejected["incomplete_candles"] += 1
+            continue
+        if not set(required).issubset(frame.columns) or row.loc[list(required)].isna().any():
+            rejected["missing_ohlcv"] += 1
+            continue
+        try:
+            candle = {name: float(row[name]) for name in required}
+        except (TypeError, ValueError, OverflowError):
+            rejected["invalid_ohlcv"] += 1
+            continue
+        if (
+            not all(pd.notna(value) and abs(value) != float("inf") for value in candle.values())
+            or min(candle[name] for name in required[:4]) <= 0
+            or candle["Volume"] < 0
+            or candle["High"] < max(candle["Open"], candle["Close"], candle["Low"])
+            or candle["Low"] > min(candle["Open"], candle["Close"], candle["High"])
+        ):
+            rejected["invalid_ohlcv"] += 1
+            continue
+        if start in records:
+            rejected["duplicate_candles"] += 1
+        records[start] = candle
+
+    completed = pd.DataFrame.from_dict(records, orient="index").sort_index()
+    if completed.empty:
+        return completed, rejected
+
+    session_status = equity_market_session_status(current.to_pydatetime())
+    latest_end = completed.index[-1] + pd.Timedelta(minutes=5)
+    try:
+        trading_day = is_equity_trading_day(current.date())
+    except CalendarUnavailableError:
+        trading_day = False
+    if (
+        session_status == "CALENDAR_UNAVAILABLE"
+        or not trading_day
+        or completed.index[-1].date() != current.date()
+        or (session_status == "OPEN" and (current - latest_end).total_seconds() > 15 * 60)
+    ):
+        rejected["stale_symbols"] = 1
+        return completed.iloc[0:0], rejected
+    return completed, rejected
+
+
 def finalize_scan_result(
     rows: list[dict[str, Any]],
     limit: int,
@@ -195,6 +277,8 @@ def scan_unusual_activity(
     limit: int = 20,
     cap_category: str = "All caps",
     exchange_category: str = "Both",
+    *,
+    as_of: datetime | None = None,
 ) -> pd.DataFrame:
     """Find positive intraday movers with unusually high latest-bar volume.
 
@@ -223,7 +307,16 @@ def scan_unusual_activity(
         "processing_errors": 0,
         "matches_before_limit": 0,
         "displayed_count": 0,
+        "incomplete_candles": 0,
+        "future_candles": 0,
+        "duplicate_candles": 0,
+        "invalid_timestamps": 0,
+        "missing_ohlcv": 0,
+        "invalid_ohlcv": 0,
+        "stale_symbols": 0,
+        "missing_ohlcv_columns": 0,
     }
+    evaluation_time = as_of or datetime.now(IST)
     for exchange in exchanges:
         symbols = [symbol for symbol, venue in selected_universe if venue == exchange]
         tickers = [_ticker(symbol, exchange) for symbol in symbols]
@@ -247,10 +340,14 @@ def scan_unusual_activity(
                 try:
                     frame = frames.get(ticker, pd.DataFrame())
                     required = {"Open", "High", "Low", "Close", "Volume"}
-                    if frame.empty or not required.issubset(frame.columns):
+                    if frame.empty:
                         continue
-                    frame = frame.dropna(subset=list(required)).sort_index()
-                    frame = frame[~frame.index.duplicated(keep="last")]
+                    if not required.issubset(frame.columns):
+                        stats["missing_ohlcv_columns"] += 1
+                        continue
+                    frame, rejected = _completed_activity_frame(frame, evaluation_time)
+                    for reason, count in rejected.items():
+                        stats[reason] += count
                     if frame.empty:
                         continue
                     stats["usable_count"] += 1
