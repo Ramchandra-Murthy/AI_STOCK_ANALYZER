@@ -957,7 +957,9 @@ def _patch_download(monkeypatch, frames: dict[str, pd.DataFrame]) -> None:
 
 
 def test_scan_attaches_a_momentum_ranking_without_changing_the_movers_table(monkeypatch) -> None:
-    now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
+    clock = _Clock(datetime(2026, 10, 19, 10, 0, tzinfo=ZoneInfo(top10_live.TOP10_TIMEZONE)))
+    clock.install(monkeypatch)
+    now = pd.Timestamp(clock.current)
     frames = {
         NSE_TICKERS[0]: _trend_frame(now, per_minute=0.0010),
         NSE_TICKERS[1]: _trend_frame(now, per_minute=0.0002),
