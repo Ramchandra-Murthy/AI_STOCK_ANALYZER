@@ -481,7 +481,7 @@ def show() -> None:
     c3.metric("Market-cap verified", int(stats["market_cap_verified"]))
     c4.metric("Failed batches", int(stats["failed_batches"]))
     st.caption(
-        f"Provider data availability: {stats.get('live_data_status', 'UNKNOWN')} · "
+        f"Provider data availability: {stats.get('data_availability', 'UNKNOWN')} · "
         f"missing symbols: {stats.get('missing_symbols', 0)} · "
         f"usable quotes: {stats.get('usable_quotes', 0)} / {stats.get('candidate_count', 0)}"
     )
