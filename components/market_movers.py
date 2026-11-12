@@ -3,4 +3,3 @@ def show_market_movers():
     from modules.market_movers import show
 
     show()
-
