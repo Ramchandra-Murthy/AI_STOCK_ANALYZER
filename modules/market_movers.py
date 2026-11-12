@@ -198,6 +198,7 @@ def _scan_batches(
     }
     return frame, stats
 
+
 def _classify_market_caps(frame: pd.DataFrame) -> pd.DataFrame:
     """Attach estimated cap ranks; these are not official AMFI category labels."""
     result = frame.copy()
