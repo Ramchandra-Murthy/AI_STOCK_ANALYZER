@@ -337,6 +337,7 @@ def show():
                 raise
         scanner_coverage = df.attrs.get("scanner_coverage", {})
         universe_provenance = df.attrs.get("scanner_universe_provenance", {})
+        watchlist_stats = df.attrs.get("scan_stats", {})
 
         if scan_mode == "Broad Market":
             # Streamlit cache/deployments can briefly retain legacy rows with numeric confidence.
@@ -412,6 +413,40 @@ def show():
                     st.caption(
                         "Provider error chunks are counted separately; recently failed tickers are briefly skipped to avoid repeated requests."
                     )
+        elif scan_mode == "Personal Watchlist" and watchlist_stats:
+            st.subheader("Watchlist scan coverage")
+            coverage = pd.DataFrame(
+                [
+                    {
+                        "Symbols requested": watchlist_stats.get("symbols_requested", 0),
+                        "Unique mapped tickers": watchlist_stats.get("unique_tickers_requested", 0),
+                        "Duplicate entries removed": watchlist_stats.get(
+                            "duplicate_entries_removed", 0
+                        ),
+                        "Invalid entries": watchlist_stats.get("invalid_entries", 0),
+                        "Intraday histories returned": watchlist_stats.get(
+                            "intraday_frames_returned", 0
+                        ),
+                        "Daily histories returned": watchlist_stats.get("daily_frames_returned", 0),
+                        "Analyses attempted": watchlist_stats.get("analysis_attempted", 0),
+                        "Analyses completed": watchlist_stats.get("analysis_completed", 0),
+                        "Analyses failed": watchlist_stats.get("analysis_failed", 0),
+                    }
+                ]
+            )
+            st.dataframe(coverage, width="stretch", hide_index=True)
+            missing_intraday = watchlist_stats.get("intraday_symbols_missing", [])
+            missing_daily = watchlist_stats.get("daily_symbols_missing", [])
+            if missing_intraday or missing_daily:
+                st.warning(
+                    f"Missing context histories: intraday {len(missing_intraday)} "
+                    f"{missing_intraday}; daily {len(missing_daily)} {missing_daily}."
+                )
+            failed_symbols = watchlist_stats.get("analysis_failed_symbols", [])
+            if failed_symbols:
+                st.warning(
+                    f"Analysis failed for {len(failed_symbols)} ticker(s): {failed_symbols}."
+                )
 
         if df.empty:
             st.warning("No stocks could be analyzed for this scan.")

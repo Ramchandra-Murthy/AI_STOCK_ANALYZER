@@ -155,14 +155,26 @@ def scan_watchlist(symbols: list[str], *, now: datetime | None = None) -> pd.Dat
     """Analyze each saved symbol directly; do not substitute broad-universe movers."""
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
-    tickers = list(
-        dict.fromkeys(ticker for symbol in symbols if (ticker := _normalize_ticker(symbol)))
-    )
+    normalized = [_normalize_ticker(symbol) for symbol in symbols]
+    valid_tickers = [ticker for ticker in normalized if ticker]
+    tickers = list(dict.fromkeys(valid_tickers))
+    stats: dict[str, Any] = {
+        "symbols_requested": len(symbols),
+        "unique_tickers_requested": len(tickers),
+        "duplicate_entries_removed": len(valid_tickers) - len(tickers),
+        "invalid_entries": len(symbols) - len(valid_tickers),
+        "intraday_frames_returned": 0,
+        "daily_frames_returned": 0,
+        "analysis_attempted": 0,
+        "analysis_completed": 0,
+        "analysis_failed": 0,
+        "analysis_failed_symbols": [],
+    }
     intraday_frames: dict[str, pd.DataFrame] = {}
     daily_frames: dict[str, pd.DataFrame] = {}
     if tickers:
         try:
-            intraday_frames, _ = download_symbol_frames(
+            intraday_frames, _intraday_missing = download_symbol_frames(
                 tickers,
                 period="1d",
                 interval="1m",
@@ -172,7 +184,7 @@ def scan_watchlist(symbols: list[str], *, now: datetime | None = None) -> pd.Dat
                 retries=0,
                 recover_missing=False,
             )
-            daily_frames, _ = download_symbol_frames(
+            daily_frames, _daily_missing = download_symbol_frames(
                 tickers,
                 period="1mo",
                 interval="1d",
@@ -185,12 +197,19 @@ def scan_watchlist(symbols: list[str], *, now: datetime | None = None) -> pd.Dat
         except Exception:
             # Context is optional; existing analysis should remain available.
             intraday_frames, daily_frames = {}, {}
+    stats["intraday_frames_returned"] = len(intraday_frames)
+    stats["daily_frames_returned"] = len(daily_frames)
+    stats["intraday_symbols_missing"] = [
+        ticker for ticker in tickers if ticker not in intraday_frames
+    ]
+    stats["daily_symbols_missing"] = [ticker for ticker in tickers if ticker not in daily_frames]
     for symbol in symbols:
         ticker = _normalize_ticker(symbol)
         if not ticker or ticker in seen:
             continue
         seen.add(ticker)
         try:
+            stats["analysis_attempted"] += 1
             result = analyze_stock(ticker)
             last = result["last"]
             signal = result["signal"]
@@ -215,13 +234,19 @@ def scan_watchlist(symbols: list[str], *, now: datetime | None = None) -> pd.Dat
                     "Recommendation": signal["Recommendation"],
                 }
             )
+            stats["analysis_completed"] += 1
         except Exception:
             # One unavailable/invalid ticker must not prevent the rest of the list.
+            stats["analysis_failed"] += 1
+            stats["analysis_failed_symbols"].append(ticker)
             continue
     if not rows:
-        return pd.DataFrame()
-    return (
-        pd.DataFrame(rows)
-        .sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
-        .reset_index(drop=True)
-    )
+        result_frame = pd.DataFrame()
+    else:
+        result_frame = (
+            pd.DataFrame(rows)
+            .sort_values(by=["AI Score", "Confidence"], ascending=[False, False])
+            .reset_index(drop=True)
+        )
+    result_frame.attrs["scan_stats"] = stats
+    return result_frame
