@@ -334,8 +334,6 @@ def get_company_name(
     return resolved
 
 
-_COMPANY_NAME_CACHE: dict[str, tuple[float, str]] = {}
-_COMPANY_NAME_CACHE_TTL_SECONDS = 24 * 60 * 60
 
 
 def clear_company_name_cache() -> None:
