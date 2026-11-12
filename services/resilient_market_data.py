@@ -176,13 +176,6 @@ def _provider_circuit_cancel_probe() -> None:
             _PROVIDER_CIRCUIT["probe_in_flight"] = False
 
 
-def _provider_circuit_cancel_probe() -> None:
-    """Release a half-open probe reservation when no provider call was made."""
-    with _PROVIDER_CIRCUIT_LOCK:
-        if _PROVIDER_CIRCUIT["state"] == "half_open":
-            _PROVIDER_CIRCUIT["probe_in_flight"] = False
-
-
 _PROVIDER_REQUEST_LIMIT = BoundedSemaphore(MAX_PROVIDER_REQUESTS_IN_FLIGHT)
 _CACHE_LOCK = RLock()
 _INFLIGHT_BATCH_LOCK = RLock()
