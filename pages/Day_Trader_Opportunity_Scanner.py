@@ -1,4 +1,3 @@
-Warning: fs was declared with const; use let for reassignable variables.
 """Streamlit page for objective intraday opportunity screening."""
 
 # ruff: noqa: I001
