@@ -19,6 +19,7 @@ import pandas as pd
 import yfinance as yf
 
 DEFAULT_RETRIES = 2
+MAX_SINGLE_SYMBOL_RECOVERY_PER_CALL = 20
 DEFAULT_TIMEOUT = 12.0
 RETRY_BACKOFF_SECONDS = 1.0
 MAX_PROVIDER_REQUESTS_IN_FLIGHT = 4
@@ -457,6 +458,7 @@ def download_symbol_frames(
     diagnostics: list[str] | None = None,
     max_workers: int = 3,
     cache_ttl_seconds: float | None = None,
+    recovery_max_symbols: int = MAX_SINGLE_SYMBOL_RECOVERY_PER_CALL,
 ) -> tuple[dict[str, pd.DataFrame], list[str]]:
     """Return usable frames, downloading batches with bounded concurrency.
 
@@ -525,7 +527,8 @@ def download_symbol_frames(
 
     missing = [ticker for ticker in symbols if ticker not in frames]
     if recover_missing:
-        for ticker in missing:
+        recovery_limit = max(0, int(recovery_max_symbols))
+        for ticker in missing[:recovery_limit]:
             recovery_started = perf_counter()
             frame = _download_single(
                 ticker,
@@ -555,6 +558,7 @@ def download_symbol_frames(
             f"cache_hits={cache_hits} cache_ttl={ttl:.0f}s "
             f"batch_workers={worker_count} provider_request_limit={MAX_PROVIDER_REQUESTS_IN_FLIGHT} "
             f"single_recovery_attempts={recovery_count} "
+            f"single_recovery_limit={max(0, int(recovery_max_symbols))} "
             f"batch_seconds={batch_seconds:.2f} "
             f"recovery_seconds={recovery_seconds:.2f} "
             f"total_seconds={perf_counter() - scan_started:.2f}"
