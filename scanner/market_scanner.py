@@ -142,7 +142,9 @@ def _download_shared_history(chunk: list[str], *, period: str, timeout: float) -
             auto_adjust=True,
             batch_size=len(chunk),
             timeout=timeout,
-            recover_missing=True,
+            # The outer scanner owns bounded chunk splitting. Do not repeat
+            # per-symbol recovery here; it multiplies requests during outages.
+            recover_missing=False,
             diagnostics=diagnostics,
             max_workers=MAX_SCREEN_WORKERS,
         )
