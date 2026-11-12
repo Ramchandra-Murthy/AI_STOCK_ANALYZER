@@ -706,12 +706,83 @@ def test_freshness_limits_reflect_exchange_provider_delay():
     assert max_candle_age_minutes("BSE", "1m") == 25.0
 
 
-def test_candle_age_clamps_future_timestamps_to_zero():
+def test_candle_age_rejects_future_timestamps():
     from scanner.day_trader_opportunity import candle_age_minutes
 
     now = pd.Timestamp("2026-11-10 10:15:00", tz="Asia/Kolkata")
     future = pd.Timestamp("2026-11-10 10:16:00", tz="Asia/Kolkata")
-    assert candle_age_minutes(future, now) == 0.0
+    assert candle_age_minutes(future, now) is None
+
+
+def test_completed_candle_frame_excludes_partial_future_duplicate_and_invalid_rows():
+    from scanner.day_trader_opportunity import _completed_candle_frame
+
+    index = [
+        "2026-11-10 10:00:00",
+        "2026-11-10 10:05:00",
+        "2026-11-10 10:05:00",
+        "2026-11-10 10:10:00",
+        "2026-11-10 10:15:00",
+        "2026-11-10 10:20:00",
+        "not-a-timestamp",
+    ]
+    frame = pd.DataFrame({"Close": range(len(index))}, index=index)
+    now = pd.Timestamp("2026-11-10 10:17:00", tz="Asia/Kolkata")
+
+    completed, counts = _completed_candle_frame(frame, "5m", now)
+
+    assert completed["Close"].tolist() == [0, 2, 3]
+    assert counts == {
+        "invalid_timestamp_count": 1,
+        "duplicate_candle_count": 1,
+        "incomplete_candle_count": 1,
+        "future_candle_count": 1,
+    }
+
+
+def test_completed_candle_frame_converts_aware_provider_timestamps_to_ist():
+    from scanner.day_trader_opportunity import _completed_candle_frame
+
+    frame = pd.DataFrame(
+        {"Close": [10.0]},
+        index=pd.DatetimeIndex(["2026-11-10 04:30:00"], tz="UTC"),
+    )
+    now = pd.Timestamp("2026-11-10 10:07:00", tz="Asia/Kolkata")
+
+    completed, counts = _completed_candle_frame(frame, "5m", now)
+
+    assert completed.index[0] == pd.Timestamp("2026-11-10 10:00:00", tz="Asia/Kolkata")
+    assert counts["invalid_timestamp_count"] == 0
+
+
+def test_frame_reports_missing_and_invalid_ohlcv_rows():
+    from scanner.day_trader_opportunity import _frame
+
+    history = pd.DataFrame(
+        {
+            "Open": [10.0, 10.0, 10.0, 10.0],
+            "High": [11.0, 11.0, 9.0, 11.0],
+            "Low": [9.0, 9.0, 9.0, 9.0],
+            "Close": [10.0, None, 10.0, 10.0],
+            "Volume": [100.0, 100.0, 100.0, float("inf")],
+        },
+        index=pd.date_range("2026-11-10 10:00", periods=4, freq="5min"),
+    )
+
+    result = _frame(history, "TEST.NS")
+
+    assert len(result) == 1
+    assert result.attrs["missing_or_nonfinite_candle_count"] == 2
+    assert result.attrs["invalid_ohlcv_count"] == 1
+
+
+def test_frame_reports_missing_ohlcv_columns():
+    from scanner.day_trader_opportunity import _frame
+
+    result = _frame(pd.DataFrame({"Close": [10.0]}), "TEST.NS")
+
+    assert result.empty
+    assert result.attrs["missing_ohlcv_column_count"] == 4
 
 
 def test_completed_volume_bars_excludes_in_progress_five_minute_candle():
