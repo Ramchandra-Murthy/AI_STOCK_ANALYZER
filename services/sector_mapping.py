@@ -76,21 +76,6 @@ SECTOR_BY_SYMBOL = {
     "LODHA": "Real Estate",
     "DLF": "Real Estate",
 
-    "HINDUNILVR": "Consumer",
-    "KOTAKBANK": "Financials",
-    "MARUTI": "Automobiles",
-    "M&M": "Automobiles",
-    "ADANIPORTS": "Industrials",
-    "HCLTECH": "IT",
-    "ULTRACEMCO": "Cement",
-    "TATACONSUM": "Consumer",
-    "DRREDDY": "Pharma",
-    "DIVISLAB": "Pharma",
-    "APOLLOHOSP": "Healthcare",
-    "GRASIM": "Diversified",
-    "EICHERMOT": "Automobiles",
-    "HEROMOTOCO": "Automobiles",
-    "BAJAJ-AUTO": "Automobiles",
     "DABUR": "Consumer",
     "GODREJCP": "Consumer",
     "PIDILITIND": "Chemicals",
@@ -108,11 +93,6 @@ SECTOR_BY_SYMBOL = {
     "SIEMENS": "Industrials",
     "ABB": "Industrials",
     "HAVELLS": "Consumer Durables",
-    "TATAMOTORS": "Automobiles",
-    "ZOMATO": "Internet",
-    "ETERNAL": "Internet",
-    "PAYTM": "Financial Technology",
-    "JIOFIN": "Financials",
 }
 
 
