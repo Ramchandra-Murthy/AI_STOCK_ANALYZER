@@ -392,22 +392,47 @@ def test_market_cap_metadata_is_cached_and_uses_provider(monkeypatch) -> None:
     assert calls == [("AAA.NS", {"timeout": market_data.DEFAULT_TIMEOUT})]
 
 
-def test_market_cap_metadata_does_not_cache_unavailable_values(monkeypatch) -> None:
+def test_market_cap_metadata_negative_cache_expires(monkeypatch) -> None:
     market_data.clear_market_metadata_cache()
-    calls = []
+    clock = [100.0]
+    calls: list[str] = []
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
 
     class FakeTicker:
-        def __init__(self, ticker, **kwargs):
+        def __init__(self, ticker: str, **_kwargs) -> None:
             calls.append(ticker)
 
         @property
-        def fast_info(self):
+        def fast_info(self) -> dict[str, None]:
             return {"market_cap": None}
 
     monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
 
-    assert market_data.get_market_cap("AAA.NS") is None
-    assert market_data.get_market_cap("AAA.NS") is None
+    assert market_data.get_market_cap("AAA.NS", negative_cache_ttl_seconds=10) is None
+    assert market_data.get_market_cap("AAA.NS", negative_cache_ttl_seconds=10) is None
+    assert calls == ["AAA.NS"]
+
+    clock[0] += 11
+    assert market_data.get_market_cap("AAA.NS", negative_cache_ttl_seconds=10) is None
+    assert calls == ["AAA.NS", "AAA.NS"]
+
+
+def test_market_cap_negative_cache_can_be_disabled(monkeypatch) -> None:
+    calls: list[str] = []
+
+    class FakeTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            calls.append(ticker)
+
+        @property
+        def fast_info(self) -> dict[str, None]:
+            return {"market_cap": None}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+
+    for _ in range(2):
+        assert market_data.get_market_cap("AAA.NS", negative_cache_ttl_seconds=0) is None
+
     assert calls == ["AAA.NS", "AAA.NS"]
 
 
@@ -429,7 +454,31 @@ def test_company_name_metadata_is_cached_and_provider_request_is_shared(monkeypa
     assert calls == ["EXAMPLE.NS"]
 
 
-def test_company_name_unavailable_metadata_is_not_cached(monkeypatch) -> None:
+def test_company_name_negative_cache_expires(monkeypatch) -> None:
+    clock = [100.0]
+    calls: list[str] = []
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    class FakeTicker:
+        def __init__(self, ticker: str, **_kwargs) -> None:
+            self.ticker = ticker
+
+        def get_info(self) -> dict[str, str]:
+            calls.append(self.ticker)
+            return {}
+
+    monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
+
+    assert market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=10) == "UNKNOWN.NS"
+    assert market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=10) == "UNKNOWN.NS"
+    assert calls == ["UNKNOWN.NS"]
+
+    clock[0] += 11
+    assert market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=10) == "UNKNOWN.NS"
+    assert calls == ["UNKNOWN.NS", "UNKNOWN.NS"]
+
+
+def test_company_name_negative_cache_can_be_disabled(monkeypatch) -> None:
     calls: list[str] = []
 
     class FakeTicker:
@@ -442,8 +491,9 @@ def test_company_name_unavailable_metadata_is_not_cached(monkeypatch) -> None:
 
     monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
 
-    assert market_data.get_company_name("UNKNOWN.NS") == "UNKNOWN.NS"
-    assert market_data.get_company_name("UNKNOWN.NS") == "UNKNOWN.NS"
+    for _ in range(2):
+        assert market_data.get_company_name("UNKNOWN.NS", negative_cache_ttl_seconds=0) == "UNKNOWN.NS"
+
     assert calls == ["UNKNOWN.NS", "UNKNOWN.NS"]
 
 
