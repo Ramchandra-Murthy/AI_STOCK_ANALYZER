@@ -229,12 +229,16 @@ def get_market_cap(
                 del _METADATA_CACHE[symbol]
 
     try:
+        if not _provider_circuit_allows_request():
+            return None
         with _PROVIDER_REQUEST_LIMIT:
             raw_value = yf.Ticker(symbol, timeout=timeout).fast_info.get("market_cap")
+        _provider_circuit_record_success()
         value = float(raw_value) if raw_value is not None else 0.0
         if not pd.notna(value) or value <= 0:
             return None
     except Exception:
+        _provider_circuit_record_failure()
         return None
 
     if ttl > 0:
@@ -275,11 +279,15 @@ def get_company_name(
                 del _COMPANY_NAME_CACHE[symbol]
 
     try:
+        if not _provider_circuit_allows_request():
+            return symbol
         with _PROVIDER_REQUEST_LIMIT:
             info = yf.Ticker(symbol, timeout=timeout).get_info()
+        _provider_circuit_record_success()
         raw_name = info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
         resolved = raw_name.strip() if isinstance(raw_name, str) and raw_name.strip() else symbol
     except Exception:
+        _provider_circuit_record_failure()
         resolved = symbol
 
     if resolved != symbol and ttl > 0:
@@ -507,6 +515,8 @@ def _download_single(
     _configure_yfinance()
     retry_count = max(0, int(retries))
     for attempt in range(retry_count + 1):
+        if not _provider_circuit_allows_request(diagnostics):
+            return pd.DataFrame()
         try:
             with _PROVIDER_REQUEST_LIMIT:
                 _record_runtime_stat("single_symbol_requests")
@@ -520,9 +530,12 @@ def _download_single(
                 )
             frame = _ticker_frame(result, ticker)
             if not frame.empty:
+                _provider_circuit_record_success()
                 return frame
+            _provider_circuit_record_failure()
         except Exception as exc:
             _record_runtime_stat("provider_errors")
+            _provider_circuit_record_failure()
             if diagnostics is not None:
                 diagnostics.append(f"single-symbol request raised {type(exc).__name__}")
         if attempt < retry_count:
@@ -744,6 +757,8 @@ def download_market_frames(
         "missing": missing,
         "coverage_pct": round(len(frames) / len(symbols) * 100, 1) if symbols else 100.0,
         "complete": not missing,
+        "provider_circuit": provider_circuit_breaker_stats(),
+        "provider_degraded": provider_circuit_breaker_stats()["state"] != "closed",
         "failure_diagnostics": list(
             dict.fromkeys(item for item in diagnostics if not item.startswith("download summary:"))
         ),
