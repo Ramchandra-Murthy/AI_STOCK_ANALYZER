@@ -24,3 +24,11 @@ def test_recently_observed_scanner_symbols_have_sector_mappings():
 
 def test_sector_for_unknown_symbol_is_unclassified():
     assert sector_for_symbol("NOT_A_REAL_SYMBOL") == "Unclassified"
+
+
+def test_curated_nse_universe_has_sector_classification():
+    from scanner.universe import NSE_CANDIDATES
+
+    unclassified = [symbol for symbol in NSE_CANDIDATES if sector_for_symbol(symbol) == "Unclassified"]
+
+    assert unclassified == []
