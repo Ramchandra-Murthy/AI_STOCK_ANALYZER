@@ -707,3 +707,25 @@ def test_deduplicate_scan_results_does_not_merge_same_company_across_exchanges()
 
     assert removed == 0
     assert len(result) == 2
+
+
+def test_broad_scanner_disables_inner_single_symbol_recovery(monkeypatch) -> None:
+    from scanner import market_scanner
+
+    calls = []
+
+    def fake_download(tickers, **kwargs):
+        calls.append((tickers, kwargs))
+        return {}, list(tickers)
+
+    monkeypatch.setattr(market_scanner, "download_symbol_frames", fake_download)
+
+    result = market_scanner._download_shared_history(
+        ["AAA.NS", "BBB.NS"],
+        period="5d",
+        timeout=5.0,
+    )
+
+    assert result.empty
+    assert len(calls) == 1
+    assert calls[0][1]["recover_missing"] is False
