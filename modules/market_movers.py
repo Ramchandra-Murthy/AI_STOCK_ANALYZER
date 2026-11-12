@@ -94,7 +94,7 @@ def _market_cap(ticker: str) -> float | None:
 def _scan_batches(
     candidates: list[tuple[str, str]], limit_per_exchange: int
 ) -> tuple[pd.DataFrame, dict[str, int | float | str]]:
-    """Scan 5-minute candles in batches and return coverage diagnostics."""
+    """Scan selected NSE/BSE symbols using the shared bounded-parallel downloader."""
     selected: list[tuple[str, str]] = []
     for exchange in ("NSE", "BSE"):
         exchange_candidates = [item for item in candidates if item[1] == exchange]
@@ -102,82 +102,85 @@ def _scan_batches(
             exchange_candidates[:limit_per_exchange] if limit_per_exchange else exchange_candidates
         )
 
+    started = perf_counter()
+    tickers = [_ticker(symbol, exchange) for symbol, exchange in selected]
+    symbol_by_ticker = {_ticker(symbol, exchange): symbol for symbol, exchange in selected}
+    batches = (len(tickers) + BATCH_SIZE - 1) // BATCH_SIZE
     rows: list[dict[str, object]] = []
     failed_batches = 0
-    batches = 0
-    started = perf_counter()
-    for exchange in ("NSE", "BSE"):
-        exchange_items = [item for item in selected if item[1] == exchange]
-        tickers = [_ticker(symbol, exchange) for symbol, _ in exchange_items]
-        symbol_by_ticker = {_ticker(symbol, exchange): symbol for symbol, _ in exchange_items}
-        for start in range(0, len(tickers), BATCH_SIZE):
-            chunk = tickers[start : start + BATCH_SIZE]
-            batches += 1
-            try:
-                frames, _missing = download_symbol_frames(
-                    chunk,
-                    period="5d",
-                    interval="5m",
-                    auto_adjust=False,
-                    batch_size=len(chunk),
-                    timeout=15,
-                    retries=2,
-                    recover_missing=True,
-                    max_workers=4,
-                )
-            except Exception:
-                failed_batches += 1
+
+    if tickers:
+        try:
+            frames, missing = download_symbol_frames(
+                tickers,
+                period="5d",
+                interval="5m",
+                auto_adjust=False,
+                batch_size=BATCH_SIZE,
+                timeout=15,
+                retries=2,
+                recover_missing=True,
+                max_workers=4,
+            )
+        except Exception:
+            frames, missing = {}, tickers
+            failed_batches = batches
+        else:
+            missing_set = set(missing)
+            failed_batches = sum(
+                1
+                for start in range(0, len(tickers), BATCH_SIZE)
+                if all(ticker in missing_set for ticker in tickers[start : start + BATCH_SIZE])
+            )
+
+        for ticker in tickers:
+            frame = _extract_frame(frames.get(ticker, pd.DataFrame()), ticker)
+            if len(frame) < 7:
                 continue
-            if not frames:
-                failed_batches += 1
-            for ticker in chunk:
-                frame = _extract_frame(frames.get(ticker, pd.DataFrame()), ticker)
-                if len(frame) < 7:
-                    continue
-                close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
-                volume = pd.to_numeric(frame["Volume"], errors="coerce").fillna(0)
-                if len(close) < 7 or float(close.iloc[-1]) <= 0:
-                    continue
-                symbol = symbol_by_ticker.get(ticker, ticker.rsplit(".", 1)[0])
-                latest_time = frame.index[-1]
-                try:
-                    observed = pd.Timestamp(latest_time)
-                    if observed.tzinfo is None:
-                        observed = observed.tz_localize("UTC")
-                    observed_at = observed.tz_convert(IST).strftime("%Y-%m-%d %H:%M:%S IST")
-                except (TypeError, ValueError):
-                    observed_at = str(latest_time)
-                last_volume = float(volume.iloc[-1]) if len(volume) else 0.0
-                baseline = (
-                    float(volume.iloc[-21:-1].median())
-                    if len(volume) >= 21
-                    else (float(volume.iloc[:-1].median()) if len(volume) > 1 else 0.0)
-                )
-                volume_ratio = round(last_volume / baseline, 2) if baseline > 0 else None
-                high_window = pd.to_numeric(frame["High"], errors="coerce").dropna().tail(13)
-                breakout = bool(
-                    len(high_window) >= 13
-                    and float(close.iloc[-1]) > float(high_window.iloc[:-1].max())
-                )
-                rows.append(
-                    {
-                        "Symbol": symbol,
-                        "Ticker": ticker,
-                        "Exchange": exchange,
-                        "Price": round(float(close.iloc[-1]), 2),
-                        "Change 5m %": _window_change(close, 1),
-                        "Change 15m %": _window_change(close, 3),
-                        "Change 30m %": _window_change(close, 6),
-                        "Volume": int(last_volume),
-                        "Volume surge x": volume_ratio,
-                        "Breakout (65m)": breakout,
-                        "Observed (IST)": observed_at,
-                        "Quote Status": _quote_freshness(observed_at),
-                        "Market cap (₹)": None,
-                        "Market-cap class": "Unverified",
-                        "BSE Group": "N/A" if exchange == "NSE" else "Unverified",
-                    }
-                )
+            close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
+            volume = pd.to_numeric(frame["Volume"], errors="coerce").fillna(0)
+            if len(close) < 7 or float(close.iloc[-1]) <= 0:
+                continue
+            symbol = symbol_by_ticker.get(ticker, ticker.rsplit(".", 1)[0])
+            latest_time = frame.index[-1]
+            try:
+                observed = pd.Timestamp(latest_time)
+                if observed.tzinfo is None:
+                    observed = observed.tz_localize("UTC")
+                observed_at = observed.tz_convert(IST).strftime("%Y-%m-%d %H:%M:%S IST")
+            except (TypeError, ValueError):
+                observed_at = str(latest_time)
+            last_volume = float(volume.iloc[-1]) if len(volume) else 0.0
+            baseline = (
+                float(volume.iloc[-21:-1].median())
+                if len(volume) >= 21
+                else (float(volume.iloc[:-1].median()) if len(volume) > 1 else 0.0)
+            )
+            volume_ratio = round(last_volume / baseline, 2) if baseline > 0 else None
+            high_window = pd.to_numeric(frame["High"], errors="coerce").dropna().tail(13)
+            breakout = bool(
+                len(high_window) >= 13
+                and float(close.iloc[-1]) > float(high_window.iloc[:-1].max())
+            )
+            rows.append(
+                {
+                    "Symbol": symbol,
+                    "Ticker": ticker,
+                    "Exchange": "NSE" if ticker.endswith(".NS") else "BSE",
+                    "Price": round(float(close.iloc[-1]), 2),
+                    "Change 5m %": _window_change(close, 1),
+                    "Change 15m %": _window_change(close, 3),
+                    "Change 30m %": _window_change(close, 6),
+                    "Volume": int(last_volume),
+                    "Volume surge x": volume_ratio,
+                    "Breakout (65m)": breakout,
+                    "Observed (IST)": observed_at,
+                    "Quote Status": _quote_freshness(observed_at),
+                    "Market cap (₹)": None,
+                    "Market-cap class": "Unverified",
+                    "BSE Group": "N/A" if ticker.endswith(".NS") else "Unverified",
+                }
+            )
 
     frame = pd.DataFrame(rows)
     if not frame.empty:
