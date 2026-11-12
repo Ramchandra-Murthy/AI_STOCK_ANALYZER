@@ -36,6 +36,7 @@ from components.top10_live import (
     _add_signal_strength,
     _annotate_watchlist_changes,
     _calculate_signal_strength,
+    _completed_one_minute_closes,
     _coverage_status,
     _format_candle_time,
     _is_fresh_provider_timestamp,
@@ -673,6 +674,25 @@ def test_top10_live_uses_provider_candle_age() -> None:
     assert _provider_age_seconds("2026-10-05T10:01:01+05:30", now) is None
 
 
+def test_top10_live_excludes_incomplete_future_and_invalid_one_minute_candles() -> None:
+    now = pd.Timestamp("2026-10-05 10:00:30", tz=TOP10_TIMEZONE)
+    close = pd.Series(
+        [100.0, 101.0, 102.0, 103.0, float("inf")],
+        index=[
+            pd.Timestamp("2026-10-05 09:59:00", tz=TOP10_TIMEZONE),
+            pd.Timestamp("2026-10-05 09:59:00", tz=TOP10_TIMEZONE),
+            pd.Timestamp("2026-10-05 10:00:00", tz=TOP10_TIMEZONE),
+            pd.Timestamp("2026-10-05 10:01:00", tz=TOP10_TIMEZONE),
+            "invalid",
+        ],
+    )
+
+    completed, rejected = _completed_one_minute_closes(close, now.to_pydatetime())
+
+    assert completed.tolist() == [101.0]
+    assert rejected == {"invalid": 1, "future": 1, "incomplete": 1, "duplicates": 1}
+
+
 def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
     source = open("components/top10_live.py", encoding="utf-8").read()
     assert "retries=TOP10_PROVIDER_RETRIES" in source
@@ -684,7 +704,7 @@ def test_top10_live_avoids_missing_ticker_recovery_storm() -> None:
 
 def test_top10_scan_excludes_symbols_with_stale_latest_candles(monkeypatch) -> None:
     now = pd.Timestamp.now(tz=TOP10_TIMEZONE)
-    fresh_timestamp = now - pd.Timedelta(seconds=30)
+    fresh_timestamp = now - pd.Timedelta(seconds=90)
     stale_timestamp = now - pd.Timedelta(minutes=10)
     tickers = [
         *(

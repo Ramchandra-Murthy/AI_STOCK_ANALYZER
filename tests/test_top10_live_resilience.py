@@ -251,8 +251,8 @@ def _scripted_scans(monkeypatch: pytest.MonkeyPatch, outcomes: list[object]) -> 
 def test_scan_rejects_infinite_prices_and_keeps_valid_quotes(monkeypatch) -> None:
     now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
     frames = {
-        NSE_TICKERS[0]: _fresh_frame(now, age_seconds=20, closes=(100.0, float("inf"))),
-        NSE_TICKERS[1]: _fresh_frame(now, age_seconds=20, closes=(100.0, 101.0)),
+        NSE_TICKERS[0]: _fresh_frame(now, age_seconds=90, closes=(100.0, float("inf"))),
+        NSE_TICKERS[1]: _fresh_frame(now, age_seconds=90, closes=(100.0, 101.0)),
     }
     monkeypatch.setattr(
         top10_live,
@@ -271,7 +271,7 @@ def test_scan_rejects_infinite_prices_and_keeps_valid_quotes(monkeypatch) -> Non
 def test_scan_uses_stable_exchange_and_symbol_tiebreaks_for_equal_moves(monkeypatch) -> None:
     now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
     frames = {
-        ticker: _fresh_frame(now, age_seconds=20, closes=(100.0, 101.0))
+        ticker: _fresh_frame(now, age_seconds=90, closes=(100.0, 101.0))
         for ticker in ALL_TICKERS[:4]
     }
     monkeypatch.setattr(
@@ -291,7 +291,7 @@ def test_scan_uses_stable_exchange_and_symbol_tiebreaks_for_equal_moves(monkeypa
 def test_scan_shows_valid_quotes_when_some_symbols_are_missing(monkeypatch) -> None:
     """Regression: one unresolved ticker used to crash the whole scan."""
     now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
-    frames = {ticker: _fresh_frame(now, age_seconds=20) for ticker in NSE_TICKERS}
+    frames = {ticker: _fresh_frame(now, age_seconds=90) for ticker in NSE_TICKERS}
     monkeypatch.setattr(
         top10_live,
         "_download_top10_frames",
@@ -309,8 +309,8 @@ def test_scan_shows_valid_quotes_when_some_symbols_are_missing(monkeypatch) -> N
 def test_scan_rows_come_only_from_provider_candles(monkeypatch) -> None:
     now = pd.Timestamp.now(tz=top10_live.TOP10_TIMEZONE)
     frames = {
-        NSE_TICKERS[0]: _fresh_frame(now, age_seconds=10, closes=(200.0, 210.0)),
-        NSE_TICKERS[1]: _fresh_frame(now, age_seconds=10, closes=(50.0, 49.0)),
+        NSE_TICKERS[0]: _fresh_frame(now, age_seconds=90, closes=(200.0, 210.0)),
+        NSE_TICKERS[1]: _fresh_frame(now, age_seconds=90, closes=(50.0, 49.0)),
     }
     monkeypatch.setattr(
         top10_live,
