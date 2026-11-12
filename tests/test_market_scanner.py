@@ -100,6 +100,10 @@ def test_market_scan_reports_per_exchange_coverage_when_no_movers(monkeypatch) -
             "stale_data_rejected": 0,
             "unknown_timestamp_rejected": 0,
             "future_timestamp_rejected": 0,
+            "analysis_attempted": 0,
+            "analysis_insufficient_history": 0,
+            "analysis_signal_rejected": 0,
+            "analysis_errors": 0,
             "analyses_completed": 0,
             "final_rows": 0,
             "cached_failures_skipped": 0,
@@ -643,3 +647,24 @@ def test_broad_market_download_returns_empty_frame_when_all_history_missing(monk
     )
 
     assert market_scanner._download_analysis_chunk(["MISSING.NS"]).empty
+
+
+def test_analysis_diagnostics_count_attempts_and_short_history() -> None:
+    from scanner.market_scanner import _analyze_history_frame
+
+    outcome = {}
+    frame = pd.DataFrame(
+        {
+            "Open": [100.0] * 20,
+            "High": [101.0] * 20,
+            "Low": [99.0] * 20,
+            "Close": [100.0] * 20,
+            "Volume": [1000] * 20,
+        }
+    )
+
+    assert _analyze_history_frame("RELIANCE.NS", frame, outcome=outcome) is None
+    assert outcome == {
+        "analysis_attempted": 1,
+        "analysis_insufficient_history": 1,
+    }
