@@ -52,7 +52,72 @@ def _extract_frame(history: pd.DataFrame, ticker: str) -> pd.DataFrame:
         return pd.DataFrame()
     frame = frame.loc[:, list(required)].apply(pd.to_numeric, errors="coerce")
     frame = frame.dropna(subset=["Close"]).sort_index()
-    return frame.loc[~frame.index.duplicated(keep="last")]
+    return frame
+
+
+def _completed_market_mover_frame(
+    frame: pd.DataFrame, now: datetime
+) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Reject unusable five-minute bars before price, breakout, or volume scoring."""
+    rejected = {
+        "invalid_timestamps": 0,
+        "future_candles": 0,
+        "incomplete_candles": 0,
+        "duplicate_candles": 0,
+        "invalid_ohlcv": 0,
+        "stale_symbols": 0,
+    }
+    if frame.empty:
+        return frame, rejected
+
+    current = pd.Timestamp(now)
+    current = current.tz_localize(IST) if current.tzinfo is None else current.tz_convert(IST)
+    records: dict[pd.Timestamp, dict[str, float]] = {}
+    for timestamp, row in frame.iterrows():
+        try:
+            start = pd.Timestamp(timestamp)
+            if pd.isna(start):
+                raise ValueError("invalid timestamp")
+            start = start.tz_localize(IST) if start.tzinfo is None else start.tz_convert(IST)
+        except (TypeError, ValueError, OverflowError):
+            rejected["invalid_timestamps"] += 1
+            continue
+        if start > current:
+            rejected["future_candles"] += 1
+            continue
+        if start + pd.Timedelta(minutes=5) > current:
+            rejected["incomplete_candles"] += 1
+            continue
+
+        values = pd.to_numeric(row, errors="coerce")
+        if not values.index.isin(["Open", "High", "Low", "Close", "Volume"]).all():
+            rejected["invalid_ohlcv"] += 1
+            continue
+        candle = {name: float(values[name]) for name in ("Open", "High", "Low", "Close", "Volume")}
+        if (
+            not all(
+                pd.notna(value) and value != float("inf") and value != float("-inf")
+                for value in candle.values()
+            )
+            or min(candle[name] for name in ("Open", "High", "Low", "Close")) <= 0
+            or candle["Volume"] < 0
+            or candle["High"] < max(candle["Open"], candle["Close"], candle["Low"])
+            or candle["Low"] > min(candle["Open"], candle["Close"], candle["High"])
+        ):
+            rejected["invalid_ohlcv"] += 1
+            continue
+        if start in records:
+            rejected["duplicate_candles"] += 1
+        records[start] = candle
+
+    completed = pd.DataFrame.from_dict(records, orient="index").sort_index()
+    session_status = equity_market_session_status(current.to_pydatetime())
+    if not completed.empty and session_status in {"OPEN", "CALENDAR_UNAVAILABLE"}:
+        age_seconds = (current - (completed.index[-1] + pd.Timedelta(minutes=5))).total_seconds()
+        if age_seconds > 15 * 60:
+            rejected["stale_symbols"] = 1
+            return completed.iloc[0:0], rejected
+    return completed, rejected
 
 
 def _window_change(close: pd.Series, bars: int) -> float | None:
@@ -109,6 +174,16 @@ def _scan_batches(
     batches = (len(tickers) + BATCH_SIZE - 1) // BATCH_SIZE
     rows: list[dict[str, object]] = []
     failed_batches = 0
+    evaluation_time = datetime.now(IST)
+    rejected_counts = {
+        "invalid_timestamps": 0,
+        "future_candles": 0,
+        "incomplete_candles": 0,
+        "duplicate_candles": 0,
+        "invalid_ohlcv": 0,
+        "stale_symbols": 0,
+    }
+    missing_ohlcv_columns = 0
 
     if tickers:
         try:
@@ -135,7 +210,14 @@ def _scan_batches(
             )
 
         for ticker in tickers:
-            frame = _extract_frame(frames.get(ticker, pd.DataFrame()), ticker)
+            raw_frame = frames.get(ticker, pd.DataFrame())
+            frame = _extract_frame(raw_frame, ticker)
+            if not raw_frame.empty and frame.empty:
+                missing_ohlcv_columns += 1
+                continue
+            frame, rejected = _completed_market_mover_frame(frame, evaluation_time)
+            for reason, count in rejected.items():
+                rejected_counts[reason] += count
             if len(frame) < 7:
                 continue
             close = pd.to_numeric(frame["Close"], errors="coerce").dropna()
@@ -196,6 +278,8 @@ def _scan_batches(
         "scan_completed_at": datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S IST"),
         "nse_candidates": sum(exchange == "NSE" for _, exchange in selected),
         "bse_candidates": sum(exchange == "BSE" for _, exchange in selected),
+        "missing_ohlcv_columns": missing_ohlcv_columns,
+        **{f"rejected_{reason}": count for reason, count in rejected_counts.items()},
     }
     return frame, stats
 
@@ -388,6 +472,21 @@ def show() -> None:
     c2.metric("Usable quotes", int(stats["usable_quotes"]))
     c3.metric("Market-cap verified", int(stats["market_cap_verified"]))
     c4.metric("Failed batches", int(stats["failed_batches"]))
+    rejected = {
+        "incomplete candles": stats.get("rejected_incomplete_candles", 0),
+        "future candles": stats.get("rejected_future_candles", 0),
+        "invalid timestamps": stats.get("rejected_invalid_timestamps", 0),
+        "duplicate candles": stats.get("rejected_duplicate_candles", 0),
+        "invalid OHLCV": stats.get("rejected_invalid_ohlcv", 0),
+        "stale symbols": stats.get("rejected_stale_symbols", 0),
+        "missing OHLCV columns": stats.get("missing_ohlcv_columns", 0),
+    }
+    rejected = {reason: count for reason, count in rejected.items() if count}
+    if rejected:
+        st.warning(
+            "Excluded provider data: "
+            + " · ".join(f"{reason}: {count}" for reason, count in rejected.items())
+        )
     st.caption(
         f"Scan completed {stats['scan_completed_at']} · {stats['elapsed_seconds']} s · "
         f"Universe sources: NSE {stats.get('nse_universe_source', 'unknown')} "
