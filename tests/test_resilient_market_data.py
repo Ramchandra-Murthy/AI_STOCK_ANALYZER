@@ -16,10 +16,12 @@ def _clear_market_data_cache():
     market_data.clear_market_data_runtime_stats()
     market_data.clear_market_metadata_cache()
     market_data.clear_company_name_cache()
+    market_data._reset_provider_circuit_breaker()
     yield
     market_data.clear_market_data_cache()
     market_data.clear_market_metadata_cache()
     market_data.clear_company_name_cache()
+    market_data._reset_provider_circuit_breaker()
 
 
 def _frame() -> pd.DataFrame:
@@ -629,3 +631,99 @@ def test_cache_hit_does_not_extend_absolute_ttl(monkeypatch) -> None:
     assert within_ttl["AAA.NS"]["Close"].iloc[-1] == 102.5
     assert expired["AAA.NS"]["Close"].iloc[-1] == 202.5
     assert calls == [0, 1]
+
+
+def test_provider_circuit_opens_after_three_failures_and_suppresses_requests(monkeypatch) -> None:
+    clock = [100.0]
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    for _ in range(market_data.PROVIDER_CIRCUIT_FAILURE_THRESHOLD):
+        market_data._provider_circuit_record_failure()
+
+    assert market_data.provider_circuit_breaker_stats()["state"] == "open"
+    diagnostics: list[str] = []
+    assert market_data._provider_circuit_allows_request(diagnostics) is False
+    assert any("request suppressed" in item for item in diagnostics)
+
+
+def test_provider_circuit_allows_only_one_half_open_probe_and_recovers(monkeypatch) -> None:
+    clock = [100.0]
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    for _ in range(market_data.PROVIDER_CIRCUIT_FAILURE_THRESHOLD):
+        market_data._provider_circuit_record_failure()
+
+    clock[0] += market_data.PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+    assert market_data._provider_circuit_allows_request() is True
+    assert market_data.provider_circuit_breaker_stats()["state"] == "half_open"
+    assert market_data._provider_circuit_allows_request() is False
+
+    market_data._provider_circuit_record_success()
+    stats = market_data.provider_circuit_breaker_stats()
+    assert stats["state"] == "closed"
+    assert stats["trips"] == 0
+    assert stats["probe_in_flight"] is False
+
+
+def test_provider_circuit_reopens_with_exponential_cooldown_after_probe_failure(
+    monkeypatch,
+) -> None:
+    clock = [100.0]
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    for _ in range(market_data.PROVIDER_CIRCUIT_FAILURE_THRESHOLD):
+        market_data._provider_circuit_record_failure()
+    clock[0] += market_data.PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+
+    assert market_data._provider_circuit_allows_request() is True
+    market_data._provider_circuit_record_failure()
+
+    stats = market_data.provider_circuit_breaker_stats()
+    assert stats["state"] == "open"
+    assert stats["cooldown_seconds"] == 60.0
+    assert stats["trips"] == 2
+
+
+def test_provider_circuit_does_not_leave_probe_reserved_after_request_setup_error(
+    monkeypatch,
+) -> None:
+    clock = [100.0]
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+    for _ in range(market_data.PROVIDER_CIRCUIT_FAILURE_THRESHOLD):
+        market_data._provider_circuit_record_failure()
+    clock[0] += market_data.PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+
+    assert market_data._provider_circuit_allows_request() is True
+    market_data._provider_circuit_cancel_probe()
+
+    stats = market_data.provider_circuit_breaker_stats()
+    assert stats["state"] == "half_open"
+    assert stats["probe_in_flight"] is False
+    assert market_data._provider_circuit_allows_request() is True
+
+
+def test_provider_circuit_exponential_cooldown_is_capped(monkeypatch) -> None:
+    clock = [100.0]
+    monkeypatch.setattr(market_data, "monotonic", lambda: clock[0])
+
+    market_data._provider_circuit_record_failure()
+    market_data._provider_circuit_record_failure()
+    market_data._provider_circuit_record_failure()
+
+    expected_cooldown = market_data.PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+    for _ in range(6):
+        stats = market_data.provider_circuit_breaker_stats()
+        assert stats["state"] == "open"
+        assert stats["cooldown_seconds"] == expected_cooldown
+
+        clock[0] += expected_cooldown
+        assert market_data._provider_circuit_allows_request() is True
+        market_data._provider_circuit_record_failure()
+
+        expected_cooldown = min(
+            expected_cooldown * 2,
+            market_data.PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
+        )
+        stats = market_data.provider_circuit_breaker_stats()
+        assert stats["state"] == "open"
+        assert stats["cooldown_seconds"] == expected_cooldown

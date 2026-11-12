@@ -8,12 +8,12 @@ exchange-tick execution feed.
 
 from __future__ import annotations
 
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from collections.abc import Iterable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from threading import BoundedSemaphore, RLock
 from time import monotonic, perf_counter, sleep
-from typing import Any
+from typing import Any, Literal, TypedDict
 
 import pandas as pd
 import yfinance as yf
@@ -40,6 +40,142 @@ MARKET_DATA_CACHE_TTLS = {
     "1mo": 7200.0,
     "3mo": 7200.0,
 }
+PROVIDER_CIRCUIT_FAILURE_THRESHOLD = 3
+PROVIDER_CIRCUIT_FAILURE_WINDOW_SECONDS = 60.0
+PROVIDER_CIRCUIT_COOLDOWN_SECONDS = 30.0
+PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS = 300.0
+
+
+class _ProviderCircuitState(TypedDict):
+    state: Literal["closed", "open", "half_open"]
+    failures: deque[float]
+    opened_at: float
+    cooldown_seconds: float
+    trips: int
+    probe_in_flight: bool
+
+
+_PROVIDER_CIRCUIT_LOCK = RLock()
+_PROVIDER_CIRCUIT: _ProviderCircuitState = {
+    "state": "closed",
+    "failures": deque(),
+    "opened_at": 0.0,
+    "cooldown_seconds": PROVIDER_CIRCUIT_COOLDOWN_SECONDS,
+    "trips": 0,
+    "probe_in_flight": False,
+}
+
+
+def _reset_provider_circuit_breaker() -> None:
+    """Reset provider protection state; intended for isolated tests."""
+    with _PROVIDER_CIRCUIT_LOCK:
+        _PROVIDER_CIRCUIT["state"] = "closed"
+        _PROVIDER_CIRCUIT["failures"] = deque()
+        _PROVIDER_CIRCUIT["opened_at"] = 0.0
+        _PROVIDER_CIRCUIT["cooldown_seconds"] = PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+        _PROVIDER_CIRCUIT["trips"] = 0
+        _PROVIDER_CIRCUIT["probe_in_flight"] = False
+
+
+def provider_circuit_breaker_stats() -> dict[str, Any]:
+    """Return a read-only snapshot of the process-local Yahoo circuit breaker."""
+    now = monotonic()
+    with _PROVIDER_CIRCUIT_LOCK:
+        state = _PROVIDER_CIRCUIT["state"]
+        remaining = (
+            max(
+                0.0,
+                _PROVIDER_CIRCUIT["cooldown_seconds"] - (now - _PROVIDER_CIRCUIT["opened_at"]),
+            )
+            if state == "open"
+            else 0.0
+        )
+        return {
+            "state": state,
+            "recent_failures": len(_PROVIDER_CIRCUIT["failures"]),
+            "cooldown_seconds": _PROVIDER_CIRCUIT["cooldown_seconds"],
+            "cooldown_remaining_seconds": round(remaining, 2),
+            "trips": _PROVIDER_CIRCUIT["trips"],
+            "probe_in_flight": _PROVIDER_CIRCUIT["probe_in_flight"],
+        }
+
+
+def _provider_circuit_allows_request(diagnostics: list[str] | None = None) -> bool:
+    """Allow normal traffic while closed and exactly one probe after cooldown."""
+    now = monotonic()
+    with _PROVIDER_CIRCUIT_LOCK:
+        state = _PROVIDER_CIRCUIT["state"]
+        if state == "open":
+            elapsed = now - _PROVIDER_CIRCUIT["opened_at"]
+            if elapsed < _PROVIDER_CIRCUIT["cooldown_seconds"]:
+                if diagnostics is not None:
+                    diagnostics.append("Yahoo provider circuit open; request suppressed")
+                return False
+            _PROVIDER_CIRCUIT["state"] = "half_open"
+            state = "half_open"
+
+        if state == "half_open":
+            if _PROVIDER_CIRCUIT["probe_in_flight"]:
+                if diagnostics is not None:
+                    diagnostics.append("Yahoo provider circuit half-open; probe already in flight")
+                return False
+            _PROVIDER_CIRCUIT["probe_in_flight"] = True
+        return True
+
+
+def _provider_circuit_record_failure() -> None:
+    """Count provider failures and open/re-open the circuit at the threshold."""
+    now = monotonic()
+    with _PROVIDER_CIRCUIT_LOCK:
+        state = _PROVIDER_CIRCUIT["state"]
+        if state == "open":
+            return
+        if state == "half_open":
+            _PROVIDER_CIRCUIT["trips"] += 1
+            _PROVIDER_CIRCUIT["cooldown_seconds"] = min(
+                PROVIDER_CIRCUIT_COOLDOWN_SECONDS * (2 ** (_PROVIDER_CIRCUIT["trips"] - 1)),
+                PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
+            )
+            _PROVIDER_CIRCUIT["state"] = "open"
+            _PROVIDER_CIRCUIT["opened_at"] = now
+            _PROVIDER_CIRCUIT["probe_in_flight"] = False
+            return
+
+        failures = _PROVIDER_CIRCUIT["failures"]
+        failures.append(now)
+        while failures and now - failures[0] > PROVIDER_CIRCUIT_FAILURE_WINDOW_SECONDS:
+            failures.popleft()
+        if len(failures) >= PROVIDER_CIRCUIT_FAILURE_THRESHOLD:
+            _PROVIDER_CIRCUIT["trips"] += 1
+            _PROVIDER_CIRCUIT["cooldown_seconds"] = min(
+                PROVIDER_CIRCUIT_COOLDOWN_SECONDS * (2 ** (_PROVIDER_CIRCUIT["trips"] - 1)),
+                PROVIDER_CIRCUIT_MAX_COOLDOWN_SECONDS,
+            )
+            _PROVIDER_CIRCUIT["state"] = "open"
+            _PROVIDER_CIRCUIT["opened_at"] = now
+            _PROVIDER_CIRCUIT["probe_in_flight"] = False
+
+
+def _provider_circuit_record_success() -> None:
+    """Close the circuit only after a successful half-open probe."""
+    with _PROVIDER_CIRCUIT_LOCK:
+        if _PROVIDER_CIRCUIT["state"] == "half_open":
+            _PROVIDER_CIRCUIT["state"] = "closed"
+            _PROVIDER_CIRCUIT["failures"].clear()
+            _PROVIDER_CIRCUIT["cooldown_seconds"] = PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+            _PROVIDER_CIRCUIT["trips"] = 0
+            _PROVIDER_CIRCUIT["probe_in_flight"] = False
+        elif _PROVIDER_CIRCUIT["state"] == "closed":
+            _PROVIDER_CIRCUIT["failures"].clear()
+
+
+def _provider_circuit_cancel_probe() -> None:
+    """Release a half-open probe reservation when request setup fails."""
+    with _PROVIDER_CIRCUIT_LOCK:
+        if _PROVIDER_CIRCUIT["state"] == "half_open":
+            _PROVIDER_CIRCUIT["probe_in_flight"] = False
+
+
 _PROVIDER_REQUEST_LIMIT = BoundedSemaphore(MAX_PROVIDER_REQUESTS_IN_FLIGHT)
 _CACHE_LOCK = RLock()
 _INFLIGHT_BATCH_LOCK = RLock()
@@ -106,12 +242,16 @@ def get_market_cap(
                 del _METADATA_CACHE[symbol]
 
     try:
+        if not _provider_circuit_allows_request():
+            return None
         with _PROVIDER_REQUEST_LIMIT:
             raw_value = yf.Ticker(symbol, timeout=timeout).fast_info.get("market_cap")
+        _provider_circuit_record_success()
         value = float(raw_value) if raw_value is not None else 0.0
         if not pd.notna(value) or value <= 0:
             return None
     except Exception:
+        _provider_circuit_record_failure()
         return None
 
     if ttl > 0:
@@ -152,11 +292,15 @@ def get_company_name(
                 del _COMPANY_NAME_CACHE[symbol]
 
     try:
+        if not _provider_circuit_allows_request():
+            return symbol
         with _PROVIDER_REQUEST_LIMIT:
             info = yf.Ticker(symbol, timeout=timeout).get_info()
+        _provider_circuit_record_success()
         raw_name = info.get("longName") or info.get("shortName") if isinstance(info, dict) else None
         resolved = raw_name.strip() if isinstance(raw_name, str) and raw_name.strip() else symbol
     except Exception:
+        _provider_circuit_record_failure()
         resolved = symbol
 
     if resolved != symbol and ttl > 0:
@@ -267,8 +411,12 @@ def _download_batch(
 
     retry_count = max(0, int(retries))
     for attempt in range(retry_count + 1):
+        if not _provider_circuit_allows_request(diagnostics):
+            return pd.DataFrame()
+        request_started = False
         try:
             with _PROVIDER_REQUEST_LIMIT:
+                request_started = True
                 _record_runtime_stat("batch_requests")
                 result = yf.download(
                     tickers=tickers,
@@ -282,15 +430,20 @@ def _download_batch(
                     repair=True,
                 )
             if result is not None and not result.empty:
+                _provider_circuit_record_success()
                 return result
+            _provider_circuit_record_failure()
+            if diagnostics is not None:
+                diagnostics.append("batch request returned no rows")
         except Exception as exc:
             last_error = exc
             _record_runtime_stat("provider_errors")
+            if request_started:
+                _provider_circuit_record_failure()
+            else:
+                _provider_circuit_cancel_probe()
             if diagnostics is not None:
                 diagnostics.append(f"batch request raised {type(exc).__name__}")
-        else:
-            if diagnostics is not None and (result is None or result.empty):
-                diagnostics.append("batch request returned no rows")
 
         if attempt < retry_count:
             sleep(RETRY_BACKOFF_SECONDS * (2**attempt))
@@ -380,8 +533,12 @@ def _download_single(
     _configure_yfinance()
     retry_count = max(0, int(retries))
     for attempt in range(retry_count + 1):
+        if not _provider_circuit_allows_request(diagnostics):
+            return pd.DataFrame()
+        request_started = False
         try:
             with _PROVIDER_REQUEST_LIMIT:
+                request_started = True
                 _record_runtime_stat("single_symbol_requests")
                 result = yf.Ticker(ticker).history(
                     period=period,
@@ -393,9 +550,15 @@ def _download_single(
                 )
             frame = _ticker_frame(result, ticker)
             if not frame.empty:
+                _provider_circuit_record_success()
                 return frame
+            _provider_circuit_record_failure()
         except Exception as exc:
             _record_runtime_stat("provider_errors")
+            if request_started:
+                _provider_circuit_record_failure()
+            else:
+                _provider_circuit_cancel_probe()
             if diagnostics is not None:
                 diagnostics.append(f"single-symbol request raised {type(exc).__name__}")
         if attempt < retry_count:
@@ -617,6 +780,8 @@ def download_market_frames(
         "missing": missing,
         "coverage_pct": round(len(frames) / len(symbols) * 100, 1) if symbols else 100.0,
         "complete": not missing,
+        "provider_circuit": provider_circuit_breaker_stats(),
+        "provider_degraded": provider_circuit_breaker_stats()["state"] != "closed",
         "failure_diagnostics": list(
             dict.fromkeys(item for item in diagnostics if not item.startswith("download summary:"))
         ),
