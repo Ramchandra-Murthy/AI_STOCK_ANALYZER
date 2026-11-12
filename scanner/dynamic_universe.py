@@ -286,4 +286,3 @@ def merge_bse_universe(extra_symbols: list[str] | None = None) -> list[str]:
 def passes_liquidity_filter(latest_price: float, average_volume: float) -> bool:
     """Keep reasonably liquid stocks suitable for an intraday opportunity scan."""
     return latest_price >= MIN_PRICE and latest_price * average_volume >= MIN_AVG_DAILY_TURNOVER
-

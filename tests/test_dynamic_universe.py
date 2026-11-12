@@ -142,4 +142,3 @@ def test_dynamic_bse_fallback_is_cached_until_universe_ttl_expires(monkeypatch):
     now[0] += dynamic_universe.CACHE_TTL_SECONDS
     assert dynamic_universe.dynamic_bse_symbols() == dynamic_universe.BSE_CANDIDATES
     assert calls == ["BSE", "BSE"]
-
