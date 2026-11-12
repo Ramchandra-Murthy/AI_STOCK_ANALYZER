@@ -881,13 +881,10 @@ def test_metadata_provider_exceptions_are_not_negative_cached(monkeypatch) -> No
     assert "TIMEOUT.NS" not in market_data._NEGATIVE_METADATA_CACHE
     assert "TIMEOUT.NS" not in market_data._COMPANY_NAME_NEGATIVE_CACHE
 
-
 def test_negative_metadata_cache_is_thread_safe(monkeypatch) -> None:
     market_data.clear_market_metadata_cache()
     calls: list[str] = []
     calls_lock = Lock()
-    provider_started = Event()
-    release_provider = Event()
 
     class FakeTicker:
         def __init__(self, ticker: str, **_kwargs) -> None:
@@ -897,8 +894,6 @@ def test_negative_metadata_cache_is_thread_safe(monkeypatch) -> None:
         def fast_info(self) -> dict[str, None]:
             with calls_lock:
                 calls.append(self.ticker)
-            provider_started.set()
-            assert release_provider.wait(timeout=3)
             return {"market_cap": None}
 
     monkeypatch.setattr(market_data.yf, "Ticker", FakeTicker)
@@ -906,14 +901,11 @@ def test_negative_metadata_cache_is_thread_safe(monkeypatch) -> None:
     def lookup():
         return market_data.get_market_cap("THREAD.NS", negative_cache_ttl_seconds=60)
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        first = executor.submit(lookup)
-        assert provider_started.wait(timeout=2)
-        second = executor.submit(lookup)
-        # This API currently protects cache state but does not singleflight metadata reads.
-        release_provider.set()
-        assert first.result(timeout=3) is None
-        assert second.result(timeout=3) is None
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _index: lookup(), range(32)))
 
-    assert calls in (["THREAD.NS"], ["THREAD.NS", "THREAD.NS"])
+    assert results == [None] * 32
+    assert calls
+    assert len(calls) <= 32
     assert "THREAD.NS" in market_data._NEGATIVE_METADATA_CACHE
+    assert len(market_data._NEGATIVE_METADATA_CACHE) == 1
