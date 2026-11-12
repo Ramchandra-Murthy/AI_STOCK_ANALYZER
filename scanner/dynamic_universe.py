@@ -21,6 +21,7 @@ SYMBOL_PATTERN = re.compile(r"^[A-Z0-9&.-]+$")
 
 _cached_nse_symbols: tuple[float, list[str]] | None = None
 _cached_bse_symbols: tuple[float, list[str]] | None = None
+_cached_bse_group_a: tuple[float, set[str]] | None = None
 _bse_yahoo_symbol_map: dict[str, str] = {}
 
 
@@ -122,6 +123,62 @@ def _download_bse_equity_list() -> list[str]:
         )
 
     return parsed
+
+
+
+def dynamic_bse_group_a_codes() -> set[str] | None:
+    """Return BSE's active Group A scrip codes, or None when the official source fails.
+
+    This uses BSE's own Group=A security-master filter. It deliberately does not
+    infer Group A from market-cap rank or the curated scanner universe.
+    """
+    global _cached_bse_group_a
+
+    now = time.time()
+    if _cached_bse_group_a and now - _cached_bse_group_a[0] < CACHE_TTL_SECONDS:
+        return set(_cached_bse_group_a[1])
+
+    query = urlencode(
+        {
+            "scripcode": "",
+            "Group": "A",
+            "industry": "",
+            "segment": "Equity",
+            "status": "Active",
+        }
+    )
+    request = Request(
+        f"{BSE_SECURITIES_URL}?{query}",
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; AI_STOCK_ANALYZER/1.0)",
+            "Accept": "application/json,text/plain,*/*",
+            "Referer": "https://www.bseindia.com/",
+            "Origin": "https://www.bseindia.com",
+        },
+    )
+    try:
+        with urlopen(request, timeout=15) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        if not isinstance(payload, list):
+            raise ValueError("BSE Group A response must be a list")
+        codes = {
+            str(row.get("SCRIP_CD", "")).strip()
+            for row in payload
+            if isinstance(row, dict)
+            and str(row.get("Status", "")).strip().lower() == "active"
+            and str(row.get("Segment", "")).strip().lower() == "equity"
+            and str(row.get("SCRIP_CD", "")).strip().isdigit()
+            and len(str(row.get("SCRIP_CD", "")).strip()) == 6
+        }
+        if not codes:
+            raise ValueError("BSE Group A response contained no active equity scrip codes")
+    except Exception as exc:
+        logging.warning("BSE Group A source unavailable: %s", exc)
+        return None
+
+    _cached_bse_group_a = (now, codes)
+    logging.info("BSE Group A source=official active_scrip_codes=%d", len(codes))
+    return set(codes)
 
 
 def yahoo_symbol_for_bse_code(code: str) -> str | None:
