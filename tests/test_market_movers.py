@@ -313,4 +313,3 @@ def test_market_movers_submits_exchange_universe_in_one_bounded_parallel_call(mo
     assert stats["batches"] == 2
     assert stats["usable_quotes"] == 3
     assert set(result["Ticker"]) == {"AAA.NS", "BBB.NS", "CCC.BO"}
-
