@@ -69,14 +69,12 @@ _PROVIDER_CIRCUIT: _ProviderCircuitState = {
 def _reset_provider_circuit_breaker() -> None:
     """Reset provider protection state; intended for isolated tests."""
     with _PROVIDER_CIRCUIT_LOCK:
-        _PROVIDER_CIRCUIT.update(
-            state="closed",
-            failures=deque(),
-            opened_at=0.0,
-            cooldown_seconds=PROVIDER_CIRCUIT_COOLDOWN_SECONDS,
-            trips=0,
-            probe_in_flight=False,
-        )
+        _PROVIDER_CIRCUIT["state"] = "closed"
+        _PROVIDER_CIRCUIT["failures"] = deque()
+        _PROVIDER_CIRCUIT["opened_at"] = 0.0
+        _PROVIDER_CIRCUIT["cooldown_seconds"] = PROVIDER_CIRCUIT_COOLDOWN_SECONDS
+        _PROVIDER_CIRCUIT["trips"] = 0
+        _PROVIDER_CIRCUIT["probe_in_flight"] = False
 
 
 def provider_circuit_breaker_stats() -> dict[str, Any]:
