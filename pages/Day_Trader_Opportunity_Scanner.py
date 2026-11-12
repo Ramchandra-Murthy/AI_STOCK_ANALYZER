@@ -1,3 +1,4 @@
+Warning: fs was declared with const; use let for reassignable variables.
 """Streamlit page for objective intraday opportunity screening."""
 
 # ruff: noqa: I001
@@ -73,11 +74,11 @@ from services.market_status import describe_market_status
 
 st.set_page_config(
     page_title="Day-Trader Opportunity Scanner",
-    page_icon="âš¡",
+    page_icon="⚡",
     layout="wide",
 )
 
-st.title("âš¡ Day-Trader Opportunity Scanner")
+st.title("⚡ Day-Trader Opportunity Scanner")
 control_left, control_right = st.columns([3, 1])
 with control_left:
     st.caption(
@@ -102,7 +103,7 @@ st.info(
     "The current candidate universe is limited to the symbols maintained by this app."
 )
 
-st.subheader("ðŸ“ˆ Options Analytics")
+st.subheader("📈 Options Analytics")
 st.caption(
     "Options analytics uses NSE index option-chain data first, with Yahoo Finance as a "
     "fallback. It reports open interest, volume, implied volatility and descriptive PCR. "
@@ -129,7 +130,7 @@ with options_right:
     )
 
 if options_load:
-    with st.spinner(f"Loading {options_underlying} option chainâ€¦"):
+    with st.spinner(f"Loading {options_underlying} option chain…"):
         st.session_state["options_chain_result"] = fetch_option_chain(options_underlying)
 
 options_result = st.session_state.get("options_chain_result")
@@ -151,7 +152,7 @@ elif options_result.status == "AVAILABLE":
         "Reload selected expiry",
         key="reload_option_expiry",
     ):
-        with st.spinner(f"Loading {options_underlying} Â· {expiry}â€¦"):
+        with st.spinner(f"Loading {options_underlying} · {expiry}…"):
             st.session_state["options_chain_result"] = fetch_option_chain(
                 options_underlying,
                 expiry,
@@ -161,9 +162,9 @@ elif options_result.status == "AVAILABLE":
     metric_left, metric_mid, metric_right = st.columns(3)
     metric_left.metric(
         "Underlying spot",
-        f"â‚¹{options_result.spot:,.2f}" if options_result.spot else "â€”",
+        f"₹{options_result.spot:,.2f}" if options_result.spot else "—",
     )
-    metric_mid.metric("Expiry", options_result.expiry or "â€”")
+    metric_mid.metric("Expiry", options_result.expiry or "—")
     metric_right.metric("Provider", options_result.provider_symbol.split(":")[0])
 
     option_summary = summarize_option_chain(options_result.chain)
@@ -177,7 +178,7 @@ elif options_result.status == "AVAILABLE":
         key="download_option_chain",
     )
 else:
-    st.warning(f"Options data: {options_result.status} Â· {options_result.message}")
+    st.warning(f"Options data: {options_result.status} · {options_result.message}")
 
 left, middle, right = st.columns(3)
 with left:
@@ -196,7 +197,7 @@ with right:
         "Low-price threshold",
         [10.0, 20.0, 50.0, 100.0],
         index=2,
-        format_func=lambda value: f"â‚¹{value:g}",
+        format_func=lambda value: f"₹{value:g}",
     )
 
 if exchange == "BSE":
@@ -247,13 +248,13 @@ exclude_flagged = st.checkbox(
 def _live_market_mode_controller():
     now = pd.Timestamp.now(tz="Asia/Kolkata").to_pydatetime()
     if not auto_refresh:
-        st.caption("âšª Live Market Mode: OFF")
+        st.caption("⚪ Live Market Mode: OFF")
         return
 
     if not market_is_open(now):
         st.info(
-            "ðŸ”µ Live Market Mode: ARMED Â· scans are paused outside NSE market hours "
-            "(09:15â€“15:30 IST) and will resume automatically during the next session."
+            "🔵 Live Market Mode: ARMED · scans are paused outside NSE market hours "
+            "(09:15–15:30 IST) and will resume automatically during the next session."
         )
         return
 
@@ -262,7 +263,7 @@ def _live_market_mode_controller():
         initial_wait = seconds_until_first_scan(now)
         if initial_wait > 0:
             st.info(
-                "ðŸŸ¢ Live Market Mode: READY Â· first automatic scan starts at 09:25 IST "
+                "🟢 Live Market Mode: READY · first automatic scan starts at 09:25 IST "
                 f"({refresh_label(initial_wait)} remaining) to let opening volatility settle."
             )
             return
@@ -275,7 +276,7 @@ def _live_market_mode_controller():
         st.rerun()
 
     st.success(
-        f"ðŸŸ¢ LIVE MARKET MODE Â· next scan in {refresh_label(remaining)} Â· "
+        f"🟢 LIVE MARKET MODE · next scan in {refresh_label(remaining)} · "
         f"refresh interval {refresh_interval // 60} min"
     )
 
@@ -292,7 +293,7 @@ if scan_requested or auto_scan_requested:
         st.session_state["intraday_scan_in_progress"] = True
         try:
             previous_results = st.session_state.get("day_trader_opportunities")
-            with st.spinner("Scanning the current NSE+BSE candidate universeâ€¦"):
+            with st.spinner("Scanning the current NSE+BSE candidate universe…"):
                 results = scan_day_trader_opportunities(
                     limit=100,
                     exchange_category=exchange,
@@ -421,7 +422,7 @@ else:
 def _price_jump_watchlist():
     price_jump_col, price_jump_status = st.columns([4, 1])
     with price_jump_col:
-        st.subheader("âš¡ Intraday Price-Jump Pulse")
+        st.subheader("⚡ Intraday Price-Jump Pulse")
         st.caption(
             "Scans the maintained NSE/BSE candidate universe for short-window price jumps and relative volume. "
             "This is a retrospective screen using Yahoo Finance candles, not a tick-level alert or trade instruction."
@@ -463,7 +464,7 @@ def _price_jump_watchlist():
 
     if auto_refresh:
         st.caption(
-            "ðŸŸ¢ Live Price-Jump Watchlist: refreshes at the selected interval during NSE "
+            "🟢 Live Price-Jump Watchlist: refreshes at the selected interval during NSE "
             "market hours. The selected price-jump window is evaluated on each refresh."
         )
 
@@ -488,7 +489,7 @@ def _price_jump_watchlist():
         )
         st.session_state["price_jump_scan_job_id"] = active_job_id
         st.info(
-            "â³ Price-Jump Pulse started in the background. The page remains responsive while "
+            "⏳ Price-Jump Pulse started in the background. The page remains responsive while "
             "market data loads."
         )
         st.rerun()
@@ -501,7 +502,7 @@ def _price_jump_watchlist():
             st.error("Background price-jump scan was lost. Please run the pulse again.")
         elif job["status"] in {"queued", "running"}:
             st.info(
-                "â³ Price-Jump Pulse is still running in the background. Results will appear "
+                "⏳ Price-Jump Pulse is still running in the background. Results will appear "
                 "automatically."
             )
         elif job["status"] == "failed":
@@ -535,7 +536,7 @@ def _price_jump_watchlist():
             )
             st.session_state.pop("price_jump_scan_job_id", None)
             st.success(
-                f"âœ… Price-Jump Pulse completed Â· {len(pulse_results)} candidates returned."
+                f"✅ Price-Jump Pulse completed · {len(pulse_results)} candidates returned."
             )
     pulse_results = st.session_state.get("price_jump_results")
     if pulse_results is None:
@@ -564,7 +565,7 @@ def _price_jump_watchlist():
         ]
         st.dataframe(pulse_results[pulse_columns], width="stretch", hide_index=True)
 
-        st.subheader("â­ Top 10 Price-Jump Watchlist")
+        st.subheader("⭐ Top 10 Price-Jump Watchlist")
         if st.session_state.get("price_jump_scan_window") == 1:
             st.caption(
                 "The watchlist shows the 10 largest observed 1-minute price jumps from the "
@@ -609,7 +610,7 @@ def _price_jump_watchlist():
 
         watchlist_delta = st.session_state.get("price_jump_watchlist_delta")
         if watchlist_delta is not None and not watchlist_delta.empty:
-            st.subheader("ðŸ”„ Watchlist changes since previous refresh")
+            st.subheader("🔄 Watchlist changes since previous refresh")
             st.caption(
                 "Descriptive changes versus the immediately previous Top-10 pulse: "
                 "NEW entrants, UP/DOWN rank movements, unchanged names and DROPPED names."
@@ -625,10 +626,10 @@ def _price_jump_watchlist():
     pulse_stats = st.session_state.get("price_jump_scan_stats", {})
     if pulse_stats:
         st.caption(
-            f"Candidates checked: {pulse_stats.get('candidate_count', 0)} Â· "
-            f"Usable candles: {pulse_stats.get('usable_count', 0)} Â· "
-            f"Matches before limit: {pulse_stats.get('matches_before_limit', 0)} Â· "
-            f"Interval: {pulse_stats.get('interval', 'â€”')}"
+            f"Candidates checked: {pulse_stats.get('candidate_count', 0)} · "
+            f"Usable candles: {pulse_stats.get('usable_count', 0)} · "
+            f"Matches before limit: {pulse_stats.get('matches_before_limit', 0)} · "
+            f"Interval: {pulse_stats.get('interval', '—')}"
         )
 
     price_jump_history = st.session_state.get("price_jump_history")
@@ -832,9 +833,9 @@ elif raw_results.empty:
             "Low-price threshold pass": scan_stats.get("low_price_pass_count", 0),
             "Matches before safety": scan_stats.get("matches_before_safety", 0),
             "Matches after safety": scan_stats.get("matches_after_safety", 0),
-            "Data interval": scan_stats.get("interval", "â€”"),
-            "Exchange": scan_stats.get("exchange", "â€”"),
-            "Market-cap basket": scan_stats.get("cap_category", "â€”"),
+            "Data interval": scan_stats.get("interval", "—"),
+            "Exchange": scan_stats.get("exchange", "—"),
+            "Market-cap basket": scan_stats.get("cap_category", "—"),
         }
         st.subheader("Scan diagnostics")
         st.dataframe(
@@ -853,9 +854,9 @@ else:
     scan_stats = st.session_state.get("intraday_scan_stats", {})
     if scan_stats:
         st.caption(
-            f"Universe: {scan_stats.get('candidate_count', 0)} symbols â€¢ "
+            f"Universe: {scan_stats.get('candidate_count', 0)} symbols • "
             f"{scan_stats.get('usable_data_count', 0)} usable "
-            f"({scan_stats.get('data_coverage_pct', 0)}% coverage) â€¢ "
+            f"({scan_stats.get('data_coverage_pct', 0)}% coverage) • "
             f"{scan_stats.get('matches_before_safety', 0)} matched filters"
         )
         timing_columns = st.columns(4)
@@ -931,7 +932,7 @@ else:
     risk_left, risk_right = st.columns(2)
     with risk_left:
         risk_budget = st.number_input(
-            "Risk budget per candidate (â‚¹)",
+            "Risk budget per candidate (₹)",
             min_value=0.0,
             max_value=MAX_INTRADAY_LOSS_PER_TRADE,
             value=DEFAULT_INTRADAY_RISK_BUDGET,
@@ -939,7 +940,7 @@ else:
         )
     with risk_right:
         capital_limit = st.number_input(
-            "Capital limit per candidate (â‚¹)",
+            "Capital limit per candidate (₹)",
             min_value=0.0,
             max_value=MAX_INTRADAY_CAPITAL,
             value=DEFAULT_INTRADAY_CAPITAL,
@@ -975,7 +976,7 @@ else:
         size_left, size_mid, size_right = st.columns(3)
         with size_left:
             sizing_capital = st.number_input(
-                "Sizing capital (â‚¹)",
+                "Sizing capital (₹)",
                 min_value=0.0,
                 max_value=MAX_INTRADAY_CAPITAL,
                 value=DEFAULT_INTRADAY_CAPITAL,
@@ -988,7 +989,7 @@ else:
                 max_value=5.0,
                 value=5.0,
                 step=0.25,
-                help="Capped at â‚¹500 per trade. At â‚¹10,000 capital, 5% equals â‚¹500.",
+                help="Capped at ₹500 per trade. At ₹10,000 capital, 5% equals ₹500.",
                 key="sizing_risk",
             )
         with size_mid:
@@ -1171,7 +1172,7 @@ else:
             ]
             if column in risk_results.columns
         ]
-        directional_tabs = st.tabs(["ðŸŸ¢ LONG", "âšª NEUTRAL", "ðŸ”´ SHORT", "All directions"])
+        directional_tabs = st.tabs(["🟢 LONG", "⚪ NEUTRAL", "🔴 SHORT", "All directions"])
         direction_groups = [
             ("LONG", directional_tabs[0]),
             ("NEUTRAL", directional_tabs[1]),
@@ -1339,7 +1340,7 @@ st.markdown("""
 - The safety filter checks the latest available NSE surveillance indicator archive (ASM/GSM/ESM and Trade-to-Trade where reported).
 - Price bands, bid/ask spreads and BSE surveillance status still require broker/exchange confirmation.
 - NSE surveillance measures can change after the archive snapshot; re-check before placing an order.
-- Low price is not the same as low risk. A â‚¹10 stock can be substantially harder to trade than a liquid higher-priced stock.
+- Low price is not the same as low risk. A ₹10 stock can be substantially harder to trade than a liquid higher-priced stock.
 - The scanner does not calculate guaranteed entries, targets or stop-losses and does not place trades.
 """)
 st.caption(
